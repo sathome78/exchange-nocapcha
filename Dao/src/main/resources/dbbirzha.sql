@@ -31,7 +31,6 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS `Birzha`.`CURRENCY` (
   `id` INT(40) NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NULL,
-  `commission` DOUBLE(40,5) NULL,
   `description` VARCHAR(45) NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `ID_cur_UNIQUE` (`id` ASC))
@@ -47,7 +46,6 @@ CREATE TABLE IF NOT EXISTS `Birzha`.`WALLET` (
   `user_id` INT(40) NOT NULL,
   `active_balance` DOUBLE(40,9) NULL,
   `reserved_balance` DOUBLE(40,9) NULL,
-  `WALLETScol` VARCHAR(45) NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_purse_UNIQUE` (`id` ASC),
   INDEX `fk_WALLET_CURRENCIES1_idx` (`currency_id` ASC),
@@ -147,6 +145,19 @@ CREATE TABLE IF NOT EXISTS `Birzha`.`USER_ROLE` (
     REFERENCES `Birzha`.`USER` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `Birzha`.`COMMISSION`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `Birzha`.`COMMISSION` (
+  `id` INT(40) NOT NULL AUTO_INCREMENT,
+  `operation_type` VARCHAR(45) NULL,
+  `value` DOUBLE(40,9) NULL,
+  `date_of_change` TIMESTAMP NULL DEFAULT now(),
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `id_UNIQUE` (`id` ASC))
 ENGINE = InnoDB;
 
 
