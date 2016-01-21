@@ -88,49 +88,32 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `Birzha`.`COMMISSION_HISTORY`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `Birzha`.`COMMISSION_HISTORY` (
-  `id` INT(40) NOT NULL AUTO_INCREMENT,
-  `user_id` INT(40) NOT NULL,
-  `operation_type` INT(40) NOT NULL,
-  `value` DOUBLE(40,9) NOT NULL,
-  `date` TIMESTAMP NOT NULL DEFAULT now(),
-  PRIMARY KEY (`id`),
-  UNIQUE INDEX `id_UNIQUE` (`id` ASC))
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
 -- Table `Birzha`.`ORDER`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `Birzha`.`ORDER` (
   `id` INT(40) NOT NULL AUTO_INCREMENT,
-  `wallet_id_from` INT(40) NOT NULL,
-  `amount_from` DOUBLE(40,9) NOT NULL,
-  `commissionFrom` INT(40) NULL,
-  `wallet_id_to` INT(40) NULL,
-  `currency_to` INT(40) NOT NULL,
+  `wallet_id_sell` INT(40) NOT NULL,
+  `amount_sell` DOUBLE(40,9) NOT NULL,
+  `wallet_id_buy` INT(40) NULL,
+  `currency_buy` INT(40) NOT NULL,
   `exchange_rate` DOUBLE(40,9) NOT NULL,
-  `commissionTo` INT(40) NULL,
   `operation_type` INT(40) NOT NULL,
-  `status` INT(40) NOT NULL,
+  `status` INT(40) NOT NULL DEFAULT 1,
   `date_creation` TIMESTAMP NOT NULL DEFAULT now(),
   `date_final` DATETIME NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_order_UNIQUE` (`id` ASC),
-  INDEX `fk_ORDERS_WALLET1_idx` (`wallet_id_from` ASC),
-  INDEX `fk_ORDER_CURRENCY1_idx` (`currency_to` ASC),
+  INDEX `fk_ORDERS_WALLET1_idx` (`wallet_id_sell` ASC),
+  INDEX `fk_ORDER_CURRENCY1_idx` (`currency_buy` ASC),
   INDEX `fk_ORDER_OPERATION_TYPE1_idx` (`operation_type` ASC),
   INDEX `fk_ORDER_ORDER_STATUS1_idx` (`status` ASC),
-  INDEX `fk_ORDER_COMMISSION_HISTORY1_idx` (`commissionFrom` ASC),
   CONSTRAINT `fk_ORDERS_WALLET1`
-    FOREIGN KEY (`wallet_id_from`)
+    FOREIGN KEY (`wallet_id_sell`)
     REFERENCES `Birzha`.`WALLET` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_ORDER_CURRENCY1`
-    FOREIGN KEY (`currency_to`)
+    FOREIGN KEY (`currency_buy`)
     REFERENCES `Birzha`.`CURRENCY` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
@@ -142,11 +125,6 @@ CREATE TABLE IF NOT EXISTS `Birzha`.`ORDER` (
   CONSTRAINT `fk_ORDER_ORDER_STATUS1`
     FOREIGN KEY (`status`)
     REFERENCES `Birzha`.`ORDER_STATUS` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_ORDER_COMMISSION_HISTORY1`
-    FOREIGN KEY (`commissionFrom`)
-    REFERENCES `Birzha`.`COMMISSION_HISTORY` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
@@ -213,17 +191,12 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `Birzha`.`COMMISSION` (
   `id` INT(40) NOT NULL AUTO_INCREMENT,
+  `user_id` INT(40) NOT NULL,
   `operation_type` INT(40) NOT NULL,
   `value` DOUBLE(40,9) NOT NULL,
-  `date_of_change` TIMESTAMP NOT NULL DEFAULT now(),
+  `date` TIMESTAMP NOT NULL DEFAULT now(),
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `id_UNIQUE` (`id` ASC),
-  INDEX `fk_COMMISSION_OPERATION_TYPE1_idx` (`operation_type` ASC),
-  CONSTRAINT `fk_COMMISSION_OPERATION_TYPE1`
-    FOREIGN KEY (`operation_type`)
-    REFERENCES `Birzha`.`OPERATION_TYPE` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+  UNIQUE INDEX `id_UNIQUE` (`id` ASC))
 ENGINE = InnoDB;
 
 
