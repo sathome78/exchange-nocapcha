@@ -226,7 +226,9 @@ CREATE TABLE `YANDEX_MONEY_MERCHANT` (
   `user_id` int(11) DEFAULT NULL,
   `access_token` varchar(100) DEFAULT NULL,
   `expiration_date` date DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `YANDEX_MONEY_MERCHANT` (`user_id`),
+  CONSTRAINT `yandex_money_merchant_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `USER` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -239,4 +241,4 @@ CREATE TABLE `YANDEX_MONEY_MERCHANT` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2016-01-21 18:54:20
+-- Dump completed on 2016-01-21 19:04:12
