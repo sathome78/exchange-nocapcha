@@ -21,7 +21,7 @@
     </dependency>
     <dependency>
       <groupId>kds</groupId>
-      <artifactId>SpringJDBC</artifactId>
+      <artifactId>JDBC</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
   </dependencies>
