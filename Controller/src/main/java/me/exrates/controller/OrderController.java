@@ -72,6 +72,8 @@ public ModelAndView submitNewOrderToSell(@Valid @ModelAttribute Order order, Bin
     	int walletIdFrom = walletService.getWalletId(userService.getIdByEmail(principal.getName()),order.getCurrencySell());
     	boolean ifEnoughMoney = walletService.ifEnoughMoney(walletIdFrom, order.getAmountSell(), OPERATION_TYPE_SELL);
     	if(ifEnoughMoney) {
+    		order.setWalletIdSell(walletIdFrom);
+    		order.setOperationType(OPERATION_TYPE_SELL);
     		model.setViewName("submitorder");
     	}
     	else {
@@ -86,12 +88,10 @@ public ModelAndView submitNewOrderToSell(@Valid @ModelAttribute Order order, Bin
 
 @RequestMapping("/createorder")  
 public ModelAndView recordOrderToDB(@ModelAttribute Order order, Principal principal) {  
-	System.out.println("order = "+order.toString());
+	System.out.println(order.getCommission());
 	System.out.println(order.getAmountSell());
 	System.out.println(order.getCurrencySell());
-	int walletIdFrom = walletService.getWalletId(userService.getIdByEmail(principal.getName()),order.getCurrencySell());
-	order.setWalletIdSell(walletIdFrom);
-	order.setOperationType(OPERATION_TYPE_SELL);
+	
 	
 	ModelAndView modelAndView = new ModelAndView();
 	if(orderService.createOrder(order)) {
