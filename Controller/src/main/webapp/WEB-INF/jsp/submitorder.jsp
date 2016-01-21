@@ -49,7 +49,7 @@ td {
 		<loc:message code="orders.sum1"/>: ${order.amountSell*order.exchangeRate-commissionValue}<br>
 		<c:set var="commissionValue" value="${order.amountSell*order.exchangeRate*commission/100}"/>
 		<loc:message code="orders.yourcommission"/>: ${commissionValue} ${currList.get(order.currencyBuy-1).getName()}<br>
-		<form action="createorder"  modelAttribute="order">
+		<form action="createorder" modelAttribute="order">
 		<loc:message code="submitorder.submit" var="labelSubmit"></loc:message>
      		 <input type="submit" value="${labelSubmit}" />
      	</form>
