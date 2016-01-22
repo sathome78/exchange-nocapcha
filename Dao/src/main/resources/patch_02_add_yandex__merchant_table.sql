@@ -85,7 +85,7 @@ CREATE TABLE `IP_Log` (
   UNIQUE KEY `id_UNIQUE` (`id`),
   KEY `fk_IP_Logs_USERS1_idx` (`user_id`),
   CONSTRAINT `fk_IP_Logs_USERS1` FOREIGN KEY (`user_id`) REFERENCES `USER` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -172,7 +172,7 @@ CREATE TABLE `USER` (
   UNIQUE KEY `idusers_UNIQUE` (`id`),
   UNIQUE KEY `nickname_UNIQUE` (`nickname`),
   UNIQUE KEY `email_UNIQUE` (`email`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -222,13 +222,12 @@ DROP TABLE IF EXISTS `YANDEX_MONEY_MERCHANT`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `YANDEX_MONEY_MERCHANT` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_id` int(11) DEFAULT NULL,
-  `access_token` varchar(100) DEFAULT NULL,
+  `user_id` int(11) NOT NULL,
+  `access_token` varchar(400) NOT NULL,
   `expiration_date` date DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `YANDEX_MONEY_MERCHANT` (`user_id`),
-  CONSTRAINT `yandex_money_merchant_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `USER` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  PRIMARY KEY (`access_token`),
+  UNIQUE KEY `user_id` (`user_id`),
+  CONSTRAINT `yandex_money_merchant_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `USER` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -241,4 +240,4 @@ CREATE TABLE `YANDEX_MONEY_MERCHANT` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2016-01-21 19:04:12
+-- Dump completed on 2016-01-22 17:45:13
