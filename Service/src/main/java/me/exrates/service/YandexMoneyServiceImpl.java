@@ -23,22 +23,22 @@ public class YandexMoneyServiceImpl implements YandexMoneyService {
     }
 
     @Override
-    public Token getTokenByUser(User user) {
-        return yandexMoneyMerchantDao.getTokenByUserId(user.getId());
+    public Token getTokenByUserEmail(String userEmail) {
+        return yandexMoneyMerchantDao.getTokenByUserEmail(userEmail);
     }
 
     @Override
     public boolean addToken(Token token, User user) {
-        return yandexMoneyMerchantDao.addAndMapTokenToUserID(token,user.getId());
+        return yandexMoneyMerchantDao.createToken(token,user.getId());
     }
 
     @Override
     public boolean updateUserToken(Token newToken, User user) {
-        return yandexMoneyMerchantDao.updateTokenByUserId(user.getId(),newToken);
+        return yandexMoneyMerchantDao.updateTokenByUserEmail(user.getEmail(),newToken);
     }
 
     @Override
-    public boolean deleteTokenByUser(User user) {
-        return yandexMoneyMerchantDao.deleteTokenByUserId(user.getId());
+    public boolean deleteUserToken(User user) {
+        return yandexMoneyMerchantDao.deleteTokenByUserEmail(user.getEmail());
     }
 }

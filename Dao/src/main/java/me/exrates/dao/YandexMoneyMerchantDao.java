@@ -10,8 +10,8 @@ import java.util.List;
  */
 public interface YandexMoneyMerchantDao {
     List<Token> getAllTokens();
-    Token getTokenByUserId(int id);
-    boolean addAndMapTokenToUserID(Token token, int id);
-    boolean deleteTokenByUserId(int id);
-    boolean updateTokenByUserId(int id,Token newToken);
+    Token getTokenByUserEmail(String email);
+    boolean createToken(Token token, int userId);
+    boolean deleteTokenByUserEmail(String userEmail);
+    boolean updateTokenByUserEmail(String userEmail, Token newToken);
 }

@@ -45,6 +45,16 @@ public class WalletDaoImpl implements WalletDao {
 		return balance;
 	}
 
+	@Override
+	public double setWalletABalance(int walletId) {
+		return 0;
+	}
+
+	@Override
+	public double setWalletRBalance(int walletId) {
+		return 0;
+	}
+
 	public int getWalletId(int userId, int currencyId) {
 		String sql = "SELECT id FROM wallet WHERE user_id = :userId AND currency_id = :currencyId";
 		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);

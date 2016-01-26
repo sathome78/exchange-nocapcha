@@ -5,7 +5,6 @@ import com.google.common.collect.Sets;
 import com.yandex.money.api.methods.Token;
 import me.exrates.dao.YandexMoneyMerchantDao;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import javax.sql.DataSource;
@@ -15,30 +14,30 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static me.exrates.jdbc.TokenRowMapper.tokenRowMapper;
+
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
-public class YandexMoneyMerchantDaoImpl implements YandexMoneyMerchantDao {
+public final class YandexMoneyMerchantDaoImpl implements YandexMoneyMerchantDao {
 
     @Autowired
     private DataSource dataSource;
 
-    private static final String TABLE = "YANDEX_MONEY_MERCHANT";
+    private static final String YMONEY_TABLE = "YANDEX_MONEY_MERCHANT";
 
     @Override
     public List<Token> getAllTokens() {
-        final String sql = "SELECT * FROM " + TABLE;
+        final String sql = "SELECT * FROM " + YMONEY_TABLE;
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-        return namedParameterJdbcTemplate.query(sql, (resultSet, i) ->
-                new Token(resultSet.getString("access_token"), null));//// TODO: 1/21/16 null or ERROR.Undefined ?
-
+        return namedParameterJdbcTemplate.query(sql, tokenRowMapper);
     }
 
     @Override
-    public boolean addAndMapTokenToUserID(Token token, int id) {
-        final String sql = "INSERT "+TABLE+" (user_id, access_token, expiration_date) VALUES (:userId,:accessToken,:expDate)";
+    public boolean createToken(Token token, int userId) {
+        final String sql = "INSERT "+ YMONEY_TABLE +" (user_id, access_token, expiration_date) VALUES (:userId,:accessToken,:expDate)";
         Map<String,String> params = new HashMap<>();
-        params.put("userId",String.valueOf(id));
+        params.put("userId",String.valueOf(userId));
         params.put("accessToken",token.accessToken);
         params.put("expDate",Date.valueOf(LocalDate.now().plusYears(3L)).toString());
         return new NamedParameterJdbcTemplate(dataSource)
@@ -46,32 +45,29 @@ public class YandexMoneyMerchantDaoImpl implements YandexMoneyMerchantDao {
     }
 
     @Override
-    public Token getTokenByUserId(int id) {
-        final String sql = "SELECT access_token FROM "+TABLE+" WHERE user_id=:userId";
-        final Map<String, String> params = Maps.asMap(Sets.newHashSet("userId"), x -> String.valueOf(id));
-        try {
-            return new NamedParameterJdbcTemplate(dataSource)
-                    .queryForObject(sql, params, (resultSet, i) -> {
-                        return new Token(resultSet.getString("access_token"),null);
-                    });//// TODO: 1/21/16 null or ERROR.Undefined ?
-        } catch (EmptyResultDataAccessException e) {
-            return null;
-        }
-    }
-
-    @Override
-    public boolean deleteTokenByUserId(int id) {
-        final String sql = "DELETE FROM "+TABLE+" WHERE user_id=:userId";
+    public Token getTokenByUserEmail(String userEmail) {
+        final String sql = "SELECT access_token FROM "+YMONEY_TABLE+" WHERE user_id IN " +
+                "(SELECT id FROM USER WHERE email=:userEmail)";
+        final Map<String, String> params = Maps.asMap(Sets.newHashSet("userEmail"), x -> userEmail);
         return new NamedParameterJdbcTemplate(dataSource)
-                .update(sql,Maps.asMap(Sets.newHashSet("userId"), x -> String.valueOf(id))) > 0;
+                .queryForObject(sql, params, tokenRowMapper);
     }
 
     @Override
-    public boolean updateTokenByUserId(int id,Token newToken) {
-        final String sql = "UPDATE "+TABLE+" SET access_token=:accessToken where user_id=:userId";
+    public boolean deleteTokenByUserEmail(String userEmail) {
+        final String sql = "DELETE FROM "+ YMONEY_TABLE +" WHERE user_id IN " +
+                "(SELECT id FROM USER WHERE email=:userEmail)";
+        return new NamedParameterJdbcTemplate(dataSource)
+                .update(sql,Maps.asMap(Sets.newHashSet("userEmail"), x -> userEmail)) > 0;
+    }
+
+    @Override
+    public boolean updateTokenByUserEmail(String userEmail, Token newToken) {
+        final String sql = "UPDATE "+ YMONEY_TABLE +" SET access_token=:accessToken where user_id IN " +
+                "(SELECT id FROM USER WHERE email=:userEmail)";
         Map<String,String> params = new HashMap<>();
         params.put("accessToken",newToken.accessToken);
-        params.put("userId",String.valueOf(id));
+        params.put("userEmail",userEmail);
         return new NamedParameterJdbcTemplate(dataSource)
                 .update(sql,params) > 0;
     }

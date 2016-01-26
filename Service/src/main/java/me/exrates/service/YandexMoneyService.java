@@ -10,8 +10,8 @@ import java.util.List;
  */
 public interface YandexMoneyService {
     List<Token> getAllTokens();
-    Token getTokenByUser(User user);
+    Token getTokenByUserEmail(String userEmail);
     boolean addToken(Token token, User user);
     boolean updateUserToken(Token newToken, User user);
-    boolean deleteTokenByUser(User user);
+    boolean deleteUserToken(User user);
 }

@@ -9,7 +9,15 @@
 </head>
 <body>
 <%@include file='header.jsp'%><br>
-<form action="/processYandexMoneyPayment" method="post">
+<form action="<c:url value='/merchants/yandexmoney/payment/prepare'/>" method="post">
+    <select name="targetPayment">
+        <option value="ymoney">Yandex Money</option>
+        <option value="rub">RUB</option>
+    </select>
+    <select name="meansOfPayment">
+        <option value="ymoney">Yandex Money</option>
+    </select>
+    <input type="text" name="sum">
     <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
     <input type="submit">
 </form>

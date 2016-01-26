@@ -12,12 +12,11 @@ import me.exrates.security.service.UserSecureServiceImpl;
 import me.exrates.service.*;
 
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.*;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,6 +32,8 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
 import org.springframework.web.servlet.view.UrlBasedViewResolver;
 
+import javax.sql.DataSource;
+
 @Configuration
 @EnableWebMvc
 @ComponentScan({ "me.exrates" })
@@ -40,6 +41,7 @@ import org.springframework.web.servlet.view.UrlBasedViewResolver;
 public class WebAppConfig extends WebMvcConfigurerAdapter {
 
 	@Bean(name = "dataSource")
+	@Profile("production")
 	public DriverManagerDataSource dataSource() {
 		DriverManagerDataSource driverManagerDataSource = new DriverManagerDataSource();
 		driverManagerDataSource.setDriverClassName("com.mysql.jdbc.Driver");
@@ -47,6 +49,15 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 		driverManagerDataSource.setUsername("root");
 		driverManagerDataSource.setPassword("root");
 		return driverManagerDataSource;
+	}
+
+	@Bean
+	@Profile("test")
+	public DataSource h2DataSource() {
+		return new EmbeddedDatabaseBuilder().setType(EmbeddedDatabaseType.H2)
+				.setName("Bizrha")
+				.addScript("classpath:patch_02_add_yandex__merchant_table.sql")
+				.build();
 	}
 
 	@Bean
