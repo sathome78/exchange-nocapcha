@@ -15,21 +15,25 @@
    </head>
  
 <body>
- 
-<div>
- <%@include file='WEB-INF/jsp/header.jsp'%><br>
-    <div style="margin-top: 20px;">
+ <table>
+	<tr>
+		<td colspan=2><%@include file='WEB-INF/jsp/header.jsp'%></td>
+	</tr>
+	<tr>
+		<td><%@include file='WEB-INF/jsp/usermenu.jsp'%></td>
+		<td>
+		<div style="margin-left: 20px;">
         <h1>Welcome!</h1>
         <p>
             It's main page!
         </p>
         
     </div>
- 
-    <div>
-        <%@include file='WEB-INF/jsp/footer.jsp'%>
-    </div>
- 
-</div>
+		 </td>
+	<tr>
+		<td colspan=2 align=center><%@include file='WEB-INF/jsp/footer.jsp'%></td>
+	</tr>
+</table>
+
 </body>
 </html>

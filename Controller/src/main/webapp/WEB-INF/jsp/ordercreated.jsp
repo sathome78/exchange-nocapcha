@@ -30,15 +30,15 @@ td {
 </style>  
 </head>  
 <body>  
-<table>
+<table width=100%>
 	<tr>
-		<td colspan=2><%@include file='header.jsp'%></td>
+		<td colspan=2 width=100%><%@include file='header.jsp'%></td>
 	</tr>
 	<tr>
-		<td><%@include file='usermenu.jsp'%></td>
-		<td>
-		<loc:message code="createdorder.text" />
-		<a href="editorder"><loc:message code="createdorder.edit" /></a>
+		<td width=20%><%@include file='usermenu.jsp'%></td>
+		<td width=70%>
+			<loc:message code="createdorder.text" /><br><br>
+			<a href="myorders"><loc:message code="createdorder.edit" /></a>
 		 </td>
 	<tr>
 		<td colspan=2 align=center><%@include file='footer.jsp'%></td>

@@ -40,23 +40,39 @@ td {
 	<td><%@include file='usermenu.jsp'%></td>
 	<td>
 		<h2><loc:message code="submitorder.text"/>:</h2>
+		
 		<loc:message code="orders.currencyforsale" />: 
 		<fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountSell}"/>
 		${currList.get(order.currencySell-1).getName()}
 		<br>
-		<loc:message code="orders.currencyforbuy"/>: ${currList.get(order.currencyBuy-1).getName()}<br>
-		<loc:message code="orders.kurs"/>: ${order.exchangeRate}<br>
-		<loc:message code="orders.sum1"/>: ${order.amountSell*order.exchangeRate-commissionValue}<br>
-		<c:set var="commissionValue" value="${order.amountSell*order.exchangeRate*commission/100}"/>
-		<loc:message code="orders.yourcommission"/>: ${commissionValue} ${currList.get(order.currencyBuy-1).getName()}<br>
-		<form action="createorder" modelAttribute="order">
-		<loc:message code="submitorder.submit" var="labelSubmit"></loc:message>
-     		 <input type="submit" value="${labelSubmit}" />
-     	</form>
-     	<form action="editorder" modelAttribute="order">
-		<loc:message code="submitorder.edit" var="labelEdit"></loc:message>
+		
+		<loc:message code="submitorder.buy"/>: ${order.amountBuy} ${currList.get(order.currencyBuy-1).getName()}<br>
+		
+		<c:set var="commissionValue" value="${order.amountBuy*commission/100}"/>
+		<loc:message code="submitorder.commission"/>: ${commissionValue} ${currList.get(order.currencyBuy-1).getName()}<br>
+	
+		<loc:message code="submitorder.sumwithcommission"/>: ${order.amountBuy-commissionValue} ${currList.get(order.currencyBuy-1).getName()}<br>
+		
+		<form:form action="createorder" modelAttribute="order" method="post">
+ 			<form:hidden path="amountSell" value= "${order.amountSell}" />
+	        <form:hidden path="currencySell" value= "${order.currencySell}" />
+		    <form:hidden path="currencyBuy" value= "${order.currencyBuy}" />
+		    <form:hidden path="amountBuy" value= "${order.amountBuy}" />
+			<loc:message code="submitorder.submit" var="labelSubmit"/>
+		 	<input type="submit" value="${labelSubmit}" /><br>
+     	</form:form>
+     	
+     	<form:form action="editorder" modelAttribute="order" method="post">
+			 <form:hidden path="amountSell" value= "${order.amountSell}" />
+	         <form:hidden path="currencySell" value= "${order.currencySell}" />
+		     <form:hidden path="currencyBuy" value= "${order.currencyBuy}" />
+		     <form:hidden path="amountBuy" value= "${order.amountBuy}" />
+			 <loc:message code="submitorder.edit" var="labelEdit"/>
      		 <input type="submit" value="${labelEdit}" />
-     	</form>
+     	</form:form>
+     </td>
+     </tr>
+ </table>
 </body>
 </html>
 

@@ -57,14 +57,22 @@ public class WalletServiceImpl implements WalletService{
 	}
 
 	@Override
-	public boolean ifEnoughMoney(int walletId, double amountForCheck, int operationType) {
+	public boolean ifEnoughMoney(int walletId, double amountForCheck) {
 		double balance = getWalletABalance(walletId);
-		double commission = commissionService.getCommissionByType(operationType);
-		double sumForCheck = amountForCheck + amountForCheck*commission/100; 
-		if(balance > sumForCheck){
+		if(balance > amountForCheck){
 			return true;
 		}
 		else return false;
+	}
+
+	@Override
+	public int getCurrencyId(int walletId) {
+		return currencyDao.getCurrencyId(walletId);
+	}
+
+	@Override
+	public String getCurrencyName(int currencyId) {
+		return currencyDao.getCurrencyName(currencyId);
 	}
 	
 	

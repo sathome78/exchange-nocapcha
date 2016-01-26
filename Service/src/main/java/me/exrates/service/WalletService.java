@@ -17,5 +17,9 @@ public interface WalletService {
 	
 	public double getWalletRBalance(int walletId);
 	
-	public boolean ifEnoughMoney(int walletId, double amountForCheck, int operationType);
+	public boolean ifEnoughMoney(int walletId, double amountForCheck);
+	
+	public int getCurrencyId(int walletId);
+	
+	public String getCurrencyName(int currencyId);
 }
