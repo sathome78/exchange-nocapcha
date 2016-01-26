@@ -7,15 +7,19 @@ import me.exrates.model.Wallet;
 
 public interface WalletService {
 
-	public List<Wallet> getAllWallets(int userId); 
+	List<Wallet> getAllWallets(int userId);
 	
-	public List<Currency> getCurrencyList();
+	List<Currency> getCurrencyList();
 	
-	public int getWalletId(int userId, int currencyId);
+	int getWalletId(int userId, int currencyId);
 	
-	public double getWalletABalance(int walletId);
+	double getWalletABalance(int walletId);
 	
-	public double getWalletRBalance(int walletId);
-	
-	public boolean ifEnoughMoney(int walletId, double amountForCheck, int operationType);
+	double getWalletRBalance(int walletId);
+
+	boolean setWalletABalance(int walletId,double newBalance);
+
+	boolean setWalletRBalance(int walletId, double newBalance);
+
+	boolean ifEnoughMoney(int walletId, double amountForCheck, int operationType);
 }

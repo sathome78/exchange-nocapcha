@@ -10,14 +10,15 @@
 <body>
 <%@include file='header.jsp'%><br>
 <form action="<c:url value='/merchants/yandexmoney/payment/prepare'/>" method="post">
-    <select name="targetPayment">
-        <option value="ymoney">Yandex Money</option>
-        <option value="rub">RUB</option>
+    <select name="currency">
+        <c:forEach var="wallet" items="${userWallets}">
+            <option value="${wallet.id}">${wallet.name}</option>
+        </c:forEach>
     </select>
     <select name="meansOfPayment">
         <option value="ymoney">Yandex Money</option>
     </select>
-    <input type="text" name="sum">
+    <input type="text" name="sum" required>
     <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
     <input type="submit">
 </form>

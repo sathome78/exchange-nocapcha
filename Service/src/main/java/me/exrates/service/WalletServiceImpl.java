@@ -57,6 +57,16 @@ public class WalletServiceImpl implements WalletService{
 	}
 
 	@Override
+	public boolean setWalletABalance(int walletId, double newBalance) {
+		return walletDao.setWalletABalance(walletId,newBalance);
+	}
+
+	@Override
+	public boolean setWalletRBalance(int walletId, double newBalance) {
+		return walletDao.setWalletRBalance(walletId,newBalance);
+	}
+
+	@Override
 	public boolean ifEnoughMoney(int walletId, double amountForCheck, int operationType) {
 		double balance = getWalletABalance(walletId);
 		double commission = commissionService.getCommissionByType(operationType);

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.SessionAttributes;
 public class Payment {
 
     private int userId;
-    private String targetPayment;
+    private int currency;
     private String meansOfPayment;
     private Double sum;
 
@@ -24,12 +24,12 @@ public class Payment {
         this.userId = userId;
     }
 
-    public String getTargetPayment() {
-        return targetPayment;
+    public int getCurrency() {
+        return currency;
     }
 
-    public void setTargetPayment(String targetPayment) {
-        this.targetPayment = targetPayment;
+    public void setCurrency(int currency) {
+        this.currency = currency;
     }
 
     public String getMeansOfPayment() {
@@ -51,7 +51,7 @@ public class Payment {
     @Override
     public String toString() {
         return "Payment{" +
-                "targetPayment='" + targetPayment + '\'' +
+                "currency='" + currency+ '\'' +
                 ", meansOfPayment='" + meansOfPayment + '\'' +
                 ", sum=" + sum +
                 '}';

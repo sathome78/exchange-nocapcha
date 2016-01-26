@@ -45,6 +45,8 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
+//// TODO: 1/26/16 Transactional Test
+//// TODO: 1/26/16 Refund
 //// TODO: 1/26/16 Logging
 //// TODO: 1/26/16 Handle yandex money commission
 @Controller
@@ -73,8 +75,10 @@ public class YandexMoneyMerchantController {
 
     /**
      * This is test account for merchant: yandex money
+     * login: birzha.application
+     * password: birzhaaplication
      */
-    private static final String COMPANY_YMONEY_WALLET = "testdenis.savin@yandex.ru";
+    private static final String COMPANY_YMONEY_WALLET = "birzha.application";
 
 
     @RequestMapping(value = "/token/authorization",method =  RequestMethod.GET)
@@ -152,7 +156,7 @@ public class YandexMoneyMerchantController {
         double amountToBeCredited = Math.round((payment.getSum() - payment.getSum() * COMMISSION) * 100.0)/100.0;
         ModelMap modelMap = new ModelMap()
                 .addAttribute("userId",userId)
-                .addAttribute("currency",payment.getTargetPayment())
+                .addAttribute("currency",payment.getCurrency())
                 .addAttribute("amount",amountToBeCredited)
                 .addAttribute("commission",Math.round((payment.getSum()-amountToBeCredited)*100.00)/100.00)
                 .addAttribute("sumToPay",payment.getSum());
@@ -193,7 +197,7 @@ public class YandexMoneyMerchantController {
                 .setComment("Purchase "+ paymentData.get("amount")+ paymentData.get("currency")+" at the S.E. Birzha")
                 .create();
         RequestPayment.Request request = RequestPayment.Request.newInstance(p2pTransferParams);
-        RequestPayment execute = null;
+        RequestPayment execute;
         try {
             execute = oAuth2Session.execute(request);
             BaseRequestPayment.Status responseStatus = execute.status;
@@ -221,8 +225,13 @@ public class YandexMoneyMerchantController {
         }
         ProcessPayment processPayment = oAuth2Session.execute(new ProcessPayment.Request(execute.requestId));
         if (processPayment.status.equals(ProcessPayment.Status.SUCCESS)) {
+            final int idByEmail = userService.getIdByEmail(principal.getName());
+            final int walletId = walletService.getWalletId(idByEmail, (Integer) paymentData.get("currency"));
+            final double walletABalance = walletService.getWalletABalance(walletId);
+            final double newBalance = Math.round((walletABalance + (double)paymentData.get("amount"))*100.00)/100.00;
+            walletService.setWalletABalance(walletId,newBalance);
 
         }
-        return null;
+        return new ModelAndView("redirect:/merchants");
     }
 }

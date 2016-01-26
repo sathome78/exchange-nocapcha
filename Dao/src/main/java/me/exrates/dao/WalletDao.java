@@ -10,9 +10,9 @@ public interface WalletDao {
 
 	double getWalletRBalance(int walletId);
 
-	double setWalletABalance(int walletId);
+	boolean setWalletABalance(int walletId,double newBalance);
 
-	double setWalletRBalance(int walletId);
+	boolean setWalletRBalance(int walletId,double newBalance);
 
 	int getWalletId(int userId, int currencyId);
 

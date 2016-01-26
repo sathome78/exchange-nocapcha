@@ -41,7 +41,6 @@ import javax.sql.DataSource;
 public class WebAppConfig extends WebMvcConfigurerAdapter {
 
 	@Bean(name = "dataSource")
-	@Profile("production")
 	public DriverManagerDataSource dataSource() {
 		DriverManagerDataSource driverManagerDataSource = new DriverManagerDataSource();
 		driverManagerDataSource.setDriverClassName("com.mysql.jdbc.Driver");
@@ -49,15 +48,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 		driverManagerDataSource.setUsername("root");
 		driverManagerDataSource.setPassword("root");
 		return driverManagerDataSource;
-	}
-
-	@Bean
-	@Profile("test")
-	public DataSource h2DataSource() {
-		return new EmbeddedDatabaseBuilder().setType(EmbeddedDatabaseType.H2)
-				.setName("Bizrha")
-				.addScript("classpath:patch_02_add_yandex__merchant_table.sql")
-				.build();
 	}
 
 	@Bean
