@@ -19,6 +19,11 @@ public interface WalletService {
 
 	boolean setWalletABalance(int walletId,double amount);
 
+	public int getCurrencyId(int walletId);
+
+	public String getCurrencyName(int currencyId);
+}
+
 	boolean setWalletRBalance(int walletId, double amount);
 
 	boolean ifEnoughMoney(int walletId, double amountForCheck, int operationType);

@@ -16,55 +16,117 @@ public class Order {
 	@Autowired
 	private MessageSource messageSource;
 	private static final Locale ru = new Locale("ru");
-
+	
 	private int id;
 	private int walletIdSell;
 	private int currencySell;
-
-	@NotNull(message = "Заполните поле")
+	private String currencySellString;
+		
+	@NotNull(message = "Заполните поле") 
 	@DecimalMin(value="0.000000001", message="Значение должно быть больше 0.000000001")
 	@DecimalMax(value="10000", message="Значение должно быть меньше 10 000")
 	@Digits(integer=5, fraction=9, message = "Значение должно быть в диапазоне: 0.000000001 - 10 000")
 	private double amountSell;
-
-	private int commission;
+	
+	private double commission;
 	private int currencyBuy;
+	private String currencyBuyString;
 	private int walletIdBuy;
-
+	
 	@NotNull(message = "Заполните поле")
 	@DecimalMin(value="0.000000001", message="Значение должно быть больше 0.000000001")
 	@DecimalMax(value="10000", message="Значение должно быть меньше 10 000")
 	@Digits(integer=5, fraction=9, message = "Значение должно быть в диапазоне: 0.000000001 - 10 000")
-	private double exchangeRate;
+	private double amountBuy;
+	private double amountBuyWithCommission;
 
 	private int operationType;
-	private String status;
-	private Date date_creation;
-	private Date date_final;
+	private int status;
+	private String statusString;
+	private Date dateCreation;
+	private Date dateFinal;
+	
+	
+	
+	public Order() {
+		
+	}
+
+	
+	public String getCurrencySellString() {
+		return currencySellString;
+	}
+
+
+	public void setCurrencySellString(String currencySellString) {
+		this.currencySellString = currencySellString;
+	}
+
+
+	public String getCurrencyBuyString() {
+		return currencyBuyString;
+	}
+
+
+	public void setCurrencyBuyString(String currencyBuyString) {
+		this.currencyBuyString = currencyBuyString;
+	}
+
+
+	public double getAmountBuy() {
+		return amountBuy;
+	}
+
+	public String getStatusString() {
+		return statusString;
+	}
+
+	public void setStatusString(String statusString) {
+		this.statusString = statusString;
+	}
+
+	public double getAmountBuyWithCommission() {
+		return amountBuy-amountBuy*commission/100;
+	}
+
+	public void setAmountBuyWithCommission(double amountBuyWithCommission) {
+		this.amountBuyWithCommission = amountBuyWithCommission;
+	}
+
+	public void setAmountBuy(double amountBuy) {
+		this.amountBuy = amountBuy;
+	}
+
 
 	public int getId() {
 		return id;
 	}
 
+
 	public void setId(int id) {
 		this.id = id;
 	}
+
 
 	public int getWalletIdSell() {
 		return walletIdSell;
 	}
 
+
 	public void setWalletIdSell(int walletIdSell) {
 		this.walletIdSell = walletIdSell;
 	}
+
 
 	public int getCurrencySell() {
 		return currencySell;
 	}
 
+
 	public void setCurrencySell(int currencySell) {
 		this.currencySell = currencySell;
 	}
+
 
 	public double getAmountSell() {
 		return amountSell;
@@ -74,18 +136,17 @@ public class Order {
 		this.amountSell = amountSell;
 	}
 
-	public int getCommission() {
+	public double getCommission() {
 		return commission;
 	}
 
-	public void setCommission(int commission) {
+	public void setCommission(double commission) {
 		this.commission = commission;
 	}
 
 	public int getCurrencyBuy() {
 		return currencyBuy;
 	}
-
 	public void setCurrencyBuy(int currencyBuy) {
 		this.currencyBuy = currencyBuy;
 	}
@@ -94,47 +155,62 @@ public class Order {
 		return walletIdBuy;
 	}
 
+
+
 	public void setWalletIdBuy(int walletIdBuy) {
 		this.walletIdBuy = walletIdBuy;
 	}
 
-	public double getExchangeRate() {
-		return exchangeRate;
-	}
 
-	public void setExchangeRate(double exchangeRate) {
-		this.exchangeRate = exchangeRate;
-	}
 
 	public int getOperationType() {
 		return operationType;
 	}
 
+
+
 	public void setOperationType(int operationType) {
 		this.operationType = operationType;
 	}
 
-	public String getStatus() {
+
+
+	public int getStatus() {
 		return status;
 	}
 
-	public void setStatus(String status) {
+
+
+	public void setStatus(int status) {
 		this.status = status;
 	}
 
-	public Date getDate_creation() {
-		return date_creation;
+
+
+	public Date getDateCreation() {
+		return dateCreation;
 	}
 
-	public void setDate_creation(Date date_creation) {
-		this.date_creation = date_creation;
+
+
+	public void setDateCreation(Date dateCreation) {
+		this.dateCreation = dateCreation;
 	}
 
-	public Date getDate_final() {
-		return date_final;
+
+
+	public Date getDateFinal() {
+		return dateFinal;
 	}
 
-	public void setDate_final(Date date_final) {
-		this.date_final = date_final;
+
+
+	public void setDateFinal(Date dateFinal) {
+		this.dateFinal = dateFinal;
 	}
+	
+	
 }
+
+
+	
