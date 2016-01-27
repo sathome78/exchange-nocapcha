@@ -20,6 +20,11 @@
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
+        <groupId>kds</groupId>
+        <artifactId>Utils</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
       <groupId>kds</groupId>
       <artifactId>Dao</artifactId>
       <version>0.0.1-SNAPSHOT</version>

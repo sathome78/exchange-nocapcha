@@ -11,8 +11,9 @@
 <%@include file='header.jsp'%><br>
 <c:url value="/merchants/yandexmoney/payment/process" var="submitUrl" />
 <paymentForm:form method="post" action="${submitUrl}" modelAttribute="payment">
-    <loc:message code="merchants.amountToBeCredited"/> : <input type="text" name="amount" value="${amount}" readonly="true"/>
-    <loc:message code="mechants.commission"/> : <input type="text" name="commission" value="${commission}" readonly="true"/>
+    <loc:message code="merchants.amountToBeCredited"/> : <input type="text" name="amount" value="${paymentPrepareData.amount}" readonly="true"/>
+    <loc:message code="mechants.commission"/> : <input type="text" name="commission" value="${paymentPrepareData.commission}" readonly="true"/>
+    <loc:message code="merchants.sumToPay"/> : <input type="text" value="${paymentPrepareData.sumToPay}">
     <input type="submit">
 </paymentForm:form>
 </body>

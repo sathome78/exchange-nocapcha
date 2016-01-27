@@ -1,5 +1,7 @@
 package me.exrates.controller.merchants;
 
+import me.exrates.dao.CompanyAccountDao;
+import me.exrates.model.CompanyAccount;
 import me.exrates.model.Wallet;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
@@ -9,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -23,6 +26,8 @@ public class CommonMerchantsController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private CompanyAccountDao companyAccountDao;
 
     @RequestMapping(value = "/merchants", method = RequestMethod.GET)
     public ModelAndView getPage(Principal principal) {

@@ -1,7 +1,5 @@
 package me.exrates.config;
 
-import java.util.Locale;
-
 import me.exrates.YandexMoneyProperties;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.dao.*;
@@ -10,29 +8,26 @@ import me.exrates.security.service.UserDetailsServiceImpl;
 import me.exrates.security.service.UserSecureService;
 import me.exrates.security.service.UserSecureServiceImpl;
 import me.exrates.service.*;
-
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
-import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
-import org.springframework.web.servlet.view.UrlBasedViewResolver;
 
-import javax.sql.DataSource;
+import java.util.Locale;
 
 @Configuration
 @EnableWebMvc
@@ -88,6 +83,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 	}
 
 	//Services
+
+	@Bean
+	public CompanyAccountService companyAccountService() {
+		return new CompanyAccountServiceImpl();
+	}
 
 	@Bean
 	public UserDetailsService getUserDetailsService(){
@@ -149,6 +149,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 	@Bean
 	public CommissionDao getCommissionDao(){
 		return new CommissionDaoImpl();
+	}
+
+	@Bean
+	public CompanyAccountDao companyAccountDao() {
+		return new CompanyAccountDaoImpl();
 	}
 
 	@Bean

@@ -11,24 +11,24 @@ import me.exrates.model.Currency;
 import me.exrates.model.Wallet;
 
 @Service("walletService")
-public class WalletServiceImpl implements WalletService{
+public class WalletServiceImpl implements WalletService {
 
-	@Autowired  
-	WalletDao walletDao; 
-	
-	@Autowired  
-	CommissionService commissionService; 
-	
-	@Autowired  
-	CurrencyDao currencyDao; 
-	
+	@Autowired
+	WalletDao walletDao;
+
+	@Autowired
+	CommissionService commissionService;
+
+	@Autowired
+	CurrencyDao currencyDao;
+
 	@Override
 	public List<Wallet> getAllWallets(int userId) {
 		List<Wallet> walletList = walletDao.getAllWallets(userId);
 		List<Currency> currList = currencyDao.getCurrList();
-		for(Wallet wallet : walletList) {
-			for(Currency currency : currList) {
-				if(wallet.getCurrId() == currency.getId()) {
+		for (Wallet wallet : walletList) {
+			for (Currency currency : currList) {
+				if (wallet.getCurrId() == currency.getId()) {
 					wallet.setName(currency.getName());
 				}
 			}
@@ -57,30 +57,24 @@ public class WalletServiceImpl implements WalletService{
 	}
 
 	@Override
-	public boolean setWalletABalance(int walletId, double newBalance) {
-		return walletDao.setWalletABalance(walletId,newBalance);
+	public boolean setWalletABalance(int walletId, double amount) {
+		final double oldBalance = walletDao.getWalletABalance(walletId);
+		final double newBalance = Math.round((oldBalance + amount) * 100.00) / 100.00;
+		return walletDao.setWalletABalance(walletId, newBalance);
 	}
 
 	@Override
-	public boolean setWalletRBalance(int walletId, double newBalance) {
-		return walletDao.setWalletRBalance(walletId,newBalance);
+	public boolean setWalletRBalance(int walletId, double amount) {
+		final double oldBalance = walletDao.getWalletRBalance(walletId);
+		final double newBalance = Math.round((oldBalance + amount) * 100.00) / 100.00;
+		return walletDao.setWalletRBalance(walletId, newBalance);
 	}
 
 	@Override
 	public boolean ifEnoughMoney(int walletId, double amountForCheck, int operationType) {
 		double balance = getWalletABalance(walletId);
 		double commission = commissionService.getCommissionByType(operationType);
-		double sumForCheck = amountForCheck + amountForCheck*commission/100; 
-		if(balance > sumForCheck){
-			return true;
-		}
-		else return false;
+		double sumForCheck = amountForCheck + amountForCheck * commission / 100;
+		return balance > sumForCheck;
 	}
-	
-	
-	
-	
-	
-	
-
 }
