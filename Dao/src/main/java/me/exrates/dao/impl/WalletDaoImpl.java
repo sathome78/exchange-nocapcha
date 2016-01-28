@@ -9,6 +9,7 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
+import com.google.common.collect.Maps;
 import me.exrates.dao.WalletDao;
 import me.exrates.model.Currency;
 import me.exrates.model.User;
@@ -19,8 +20,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 
-
+@Transactional
 public class WalletDaoImpl implements WalletDao {
 
 	//private static final Logger logger=Logger.getLogger(WalletDaoImpl.class); 
@@ -43,6 +45,30 @@ public class WalletDaoImpl implements WalletDao {
 		namedParameters.put("walletId", String.valueOf(walletId));
 		double balance = namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Double.class);
 		return balance;
+	}
+
+	@Override
+	public boolean setWalletABalance(int walletId,double newBalance) {
+		final String sql = "UPDATE WALLET SET active_balance =:newBalance WHERE id =:walletId";
+		final Map<String,String> params = new HashMap<String,String>() {
+			{
+				put("newBalance",String.valueOf(newBalance));
+				put("walletId",String.valueOf(walletId));
+			}
+		};
+		return new NamedParameterJdbcTemplate(dataSource).update(sql,params) > 0;
+	}
+
+	@Override
+	public boolean setWalletRBalance(int walletId,double newBalance) {
+		final String sql = "UPDATE WALLET SET reserved_balance =:newBalance WHERE id =:walletId";
+		final Map<String,String> params = new HashMap<String,String>() {
+			{
+				put("newBalance",String.valueOf(newBalance));
+				put("walletId",String.valueOf(walletId));
+			}
+		};
+		return new NamedParameterJdbcTemplate(dataSource).update(sql,params) > 0;
 	}
 
 	public int getWalletId(int userId, int currencyId) {
@@ -90,6 +116,4 @@ public class WalletDaoImpl implements WalletDao {
 		});
 		return walletList;
 	}
-	
-	
 }
