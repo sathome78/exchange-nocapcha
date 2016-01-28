@@ -17,6 +17,7 @@ import com.yandex.money.api.net.OAuth2Session;
 import com.yandex.money.api.typeadapters.TokenTypeAdapter;
 import com.yandex.money.api.utils.HttpHeaders;
 import com.yandex.money.api.utils.Strings;
+import jdk.nashorn.internal.codegen.types.NumericType;
 import me.exrates.YandexMoneyProperties;
 import me.exrates.model.CompanyAccount;
 import me.exrates.model.Payment;
