@@ -134,9 +134,10 @@ public class YandexMoneyMerchantController {
     }
 
     @RequestMapping(value = "/payment/prepare",method = RequestMethod.POST)
-    public ModelAndView preparePayment(@ModelAttribute @Valid  Payment payment, BindingResult result, Principal principal, HttpSession httpSession) {
+    public ModelAndView preparePayment(@ModelAttribute("payment") @Valid Payment payment, BindingResult result, Principal principal, HttpSession httpSession) {
         System.out.println(payment.getUserId());
         System.out.println(payment.getSum());
+        System.out.println(payment.getCurrency());
         System.out.println(result.hasErrors());
         //commissionService.getCommissionByType(); // TODO: 1/26/16 receive commission here from database
         System.out.println(yandexMoneyProperties.yandexMoneyP2PCommission());

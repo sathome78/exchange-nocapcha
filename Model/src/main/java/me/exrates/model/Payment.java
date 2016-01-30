@@ -1,10 +1,12 @@
 package me.exrates.model;
 
-import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.hibernate.validator.constraints.Range;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import javax.validation.constraints.Min;
+import javax.validation.constraints.Size;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -14,13 +16,14 @@ import org.springframework.stereotype.Component;
 public class Payment {
 
     @NotEmpty
+    @Min(10)
     private int userId;
 
     @NotEmpty
     private int currency;
 
     @NotEmpty
-    @Length(min = 100)
+    @Size(min = 40, max = 60)
     private String meansOfPayment;
 
     @NotEmpty
