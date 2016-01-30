@@ -50,7 +50,7 @@ public class YandexMoneyMerchantControllerTest {
 
     @Before
     public void setup() {
-        when(yandexMoneyService.getTokenByUserEmail("mockPresentEmail")).thenReturn(new Token("mockToken",null));
+        when(yandexMoneyService.getTokenByUserEmail("mockPresentEmail")).thenReturn("mockToken");
         when(yandexMoneyService.getTokenByUserEmail("mockAbsentToken")).thenReturn(null);
         when(principal.getName()).thenReturn("test@email.com");
         when(userService.getIdByEmail("test@email.com")).thenReturn(1);

@@ -11,24 +11,8 @@ public class CompanyAccount {
     private int walletId;
     private int commissionId;
     private double amount;
-    private TransactionType transactionType;
+    private Payment.TransactionType transactionType;
     private LocalDateTime date;
-
-    public enum TransactionType {
-
-        DEBIT(1),
-        CREDIT(0);
-
-        public final int operation;
-
-        TransactionType(int operation) {
-            this.operation = operation;
-        }
-
-        public int getOperation() {
-            return operation;
-        }
-    }
 
     public int getId() {
         return id;
@@ -62,11 +46,11 @@ public class CompanyAccount {
         this.amount = amount;
     }
 
-    public TransactionType getTransactionType() {
+    public Payment.TransactionType getTransactionType() {
         return transactionType;
     }
 
-    public void setTransactionType(TransactionType transactionType) {
+    public void setTransactionType(Payment.TransactionType transactionType) {
         this.transactionType = transactionType;
     }
 

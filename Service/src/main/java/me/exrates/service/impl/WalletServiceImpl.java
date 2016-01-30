@@ -1,7 +1,10 @@
-package me.exrates.service;
+package me.exrates.service.impl;
 
+import java.math.BigDecimal;
 import java.util.List;
 
+import me.exrates.service.CommissionService;
+import me.exrates.service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -60,14 +63,14 @@ public class WalletServiceImpl implements WalletService {
 	public boolean setWalletABalance(int walletId, double amount) {
 		final double oldBalance = walletDao.getWalletABalance(walletId);
 		final double newBalance = Math.round((oldBalance + amount) * 100.00) / 100.00;
-		return walletDao.setWalletABalance(walletId, newBalance);
+		return walletDao.setWalletABalance(walletId, BigDecimal.valueOf(newBalance));
 	}
 
 	@Override
 	public boolean setWalletRBalance(int walletId, double amount) {
 		final double oldBalance = walletDao.getWalletRBalance(walletId);
 		final double newBalance = Math.round((oldBalance + amount) * 100.00) / 100.00;
-		return walletDao.setWalletRBalance(walletId, newBalance);
+		return walletDao.setWalletRBalance(walletId, BigDecimal.valueOf(newBalance));
 	}
 
 	@Override

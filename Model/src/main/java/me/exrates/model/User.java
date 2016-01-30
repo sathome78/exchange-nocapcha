@@ -17,10 +17,6 @@ public class User  {
 	private boolean readRules;
 	private String role;
 	
-	public User() {
-		
-	}
-
 	public String getRole() {
 		return role;
 	}
@@ -33,21 +29,17 @@ public class User  {
 		return readRules;
 	}
 
-
 	public void setReadRules(boolean readRules) {
 		this.readRules = readRules;
 	}
-
 
 	public String getConfirmPassword() {
 		return confirmPassword;
 	}
 
-
 	public void setConfirmPassword(String confirmPassword) {
 		this.confirmPassword = confirmPassword;
 	}
-
 
 	public String getIp() {
 		return ip;
@@ -57,7 +49,6 @@ public class User  {
 		this.ip = ip;
 	}
 
-	
 	public int getId() {
 		return id;
 	}
@@ -91,10 +82,7 @@ public class User  {
 	}
 
 	public Boolean getStatus() {
-		if(status.equals("active")) {
-			return true;
-		}
-		else return false;
+		return status.equals("active");
 	}
 
 	public void setStatus(String status) {
@@ -124,9 +112,4 @@ public class User  {
 	public void setRegdate(Date regdate) {
 		this.regdate = regdate;
 	}
-
-	
-	
-	
-
 }

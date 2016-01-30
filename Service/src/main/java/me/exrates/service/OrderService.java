@@ -4,6 +4,5 @@ import me.exrates.model.Order;
 
 public interface OrderService {
 
-	public boolean createOrder(Order order);
-
+	boolean createOrder(Order order);
 }

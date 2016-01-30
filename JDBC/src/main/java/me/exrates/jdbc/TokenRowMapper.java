@@ -1,6 +1,5 @@
 package me.exrates.jdbc;
 
-import com.yandex.money.api.methods.Token;
 import org.springframework.jdbc.core.RowMapper;
 
 /**
@@ -9,10 +8,6 @@ import org.springframework.jdbc.core.RowMapper;
 
 public final class TokenRowMapper {
 
-    /**
-     * Maps database record to object of class {@link com.yandex.money.api.methods.Token}
-     * @param null -  error object
-     */
-    public static final RowMapper<Token> tokenRowMapper = (resultSet, i) ->
-            new Token(resultSet.getString("access_token"),null);
+    public static final RowMapper<String> tokenRowMapper = (resultSet, i) ->
+            resultSet.getString("access_token");
 }

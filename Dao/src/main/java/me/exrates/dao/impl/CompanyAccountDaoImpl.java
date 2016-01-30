@@ -4,6 +4,7 @@ import me.exrates.dao.CompanyAccountDao;
 import me.exrates.model.CompanyAccount;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
 import java.sql.Timestamp;
@@ -13,6 +14,7 @@ import java.util.Map;
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
+@Repository
 public final class CompanyAccountDaoImpl implements CompanyAccountDao {
 
     @Autowired
