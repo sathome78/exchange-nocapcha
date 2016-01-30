@@ -1,8 +1,8 @@
 package me.exrates.dao;
 
-import java.util.List;
-
 import me.exrates.model.Wallet;
+
+import java.util.List;
 
 public interface WalletDao {
 
@@ -10,9 +10,9 @@ public interface WalletDao {
 
 	double getWalletRBalance(int walletId);
 
-	boolean setWalletABalance(int walletId,double newBalance);
+	boolean setWalletABalance(int walletId, double newBalance);
 
-	boolean setWalletRBalance(int walletId,double newBalance);
+	boolean setWalletRBalance(int walletId, double newBalance);
 
 	int getWalletId(int userId, int currencyId);
 

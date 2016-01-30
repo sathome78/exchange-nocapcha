@@ -1,8 +1,12 @@
 package me.exrates.model;
 
+import org.hibernate.validator.constraints.NotEmpty;
+import org.hibernate.validator.constraints.Range;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.SessionAttributes;
+
+import javax.validation.constraints.Min;
+import javax.validation.constraints.Size;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -11,10 +15,36 @@ import org.springframework.web.bind.annotation.SessionAttributes;
 @Scope("session")
 public class Payment {
 
+    @NotEmpty
+    @Min(10)
     private int userId;
+
+    @NotEmpty
     private int currency;
+
+    @NotEmpty
+    @Size(min = 40, max = 60)
     private String meansOfPayment;
-    private Double sum;
+
+    @NotEmpty
+    @Range(min = 1)
+    private double sum;
+
+    public enum TransactionType {
+
+        INPUT(1),
+        OUTPUT(0);
+
+        public final int operation;
+
+        TransactionType(int operation) {
+            this.operation = operation;
+        }
+
+        public int getOperation() {
+            return operation;
+        }
+    }
 
     public int getUserId() {
         return userId;

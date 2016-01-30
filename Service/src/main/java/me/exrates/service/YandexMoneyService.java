@@ -1,17 +1,22 @@
 package me.exrates.service;
 
-import com.yandex.money.api.methods.Token;
-import me.exrates.model.User;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
+@Service
 public interface YandexMoneyService {
-    List<Token> getAllTokens();
-    Token getTokenByUserEmail(String userEmail);
-    boolean addToken(Token token, User user);
-    boolean updateUserToken(Token newToken, User user);
-    boolean deleteUserToken(User user);
+
+    List<String> getAllTokens();
+
+    String getTokenByUserEmail(String userEmail);
+
+    boolean addToken(String token, String email);
+
+    boolean updateTokenByUserEmail(String newToken, String email);
+
+    boolean deleteTokenByUserEmail(String email);
 }

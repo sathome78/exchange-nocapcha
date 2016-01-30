@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <operation_type id="1" name="input" />
+    <operation_type id="2" name="output" />
+    <operation_type id="3" name="sell" />
+    <operation_type id="4" name="buy" />
+</dataset>

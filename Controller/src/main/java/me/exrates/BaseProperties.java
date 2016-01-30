@@ -1,6 +1,6 @@
 package me.exrates;
 
-import com.google.common.base.Strings;
+import com.yandex.money.api.utils.Strings;
 
 import java.util.Properties;
 

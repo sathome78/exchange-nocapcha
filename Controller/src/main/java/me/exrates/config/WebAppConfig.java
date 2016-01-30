@@ -2,28 +2,24 @@ package me.exrates.config;
 
 import me.exrates.YandexMoneyProperties;
 import me.exrates.controller.validator.RegisterFormValidation;
-import me.exrates.dao.*;
-import me.exrates.dao.impl.*;
-import me.exrates.security.service.UserDetailsServiceImpl;
-import me.exrates.security.service.UserSecureService;
-import me.exrates.security.service.UserSecureServiceImpl;
-import me.exrates.service.*;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
 
@@ -31,6 +27,7 @@ import java.util.Locale;
 
 @Configuration
 @EnableWebMvc
+@EnableTransactionManagement
 @ComponentScan({ "me.exrates" })
 @Import({ me.exrates.security.config.SecurityConfig.class })
 public class WebAppConfig extends WebMvcConfigurerAdapter {
@@ -70,6 +67,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 		return resolver;
 	}
 
+	@Bean
+	public RequestMappingHandlerAdapter requestMappingHandlerAdapter() {
+		RequestMappingHandlerAdapter handlerAdapter = new RequestMappingHandlerAdapter();
+		handlerAdapter.setSynchronizeOnSession(true);
+		return handlerAdapter;
+	}
+
 	@Override
 	public void addInterceptors(InterceptorRegistry registry) {
 		LocaleChangeInterceptor interceptor = new LocaleChangeInterceptor();
@@ -78,88 +82,15 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 	}
 
 	@Bean
+	public DataSourceTransactionManager dataSourceTransactionManager() {
+		return new DataSourceTransactionManager(dataSource());
+	}
+
+	@Bean
 	public PasswordEncoder passwordEncoder(){
 		return new BCryptPasswordEncoder();
 	}
 
-	//Services
-
-	@Bean
-	public CompanyAccountService companyAccountService() {
-		return new CompanyAccountServiceImpl();
-	}
-
-	@Bean
-	public UserDetailsService getUserDetailsService(){
-		return new UserDetailsServiceImpl();
-	}
-
-	@Bean
-	public UserService getUserService(){
-		return new UserServiceImpl();
-	}
-
-	@Bean
-	public UserSecureService getUserSecureService(){
-		return new UserSecureServiceImpl();
-	}
-
-	@Bean
-	public WalletService getWalletService(){
-		return new WalletServiceImpl();
-	}
-
-	@Bean
-	public OrderService getOrderService(){
-		return new OrderServiceImpl();
-	}
-
-	@Bean
-	public CommissionService getCommissionService(){
-		return new CommissionServiceImpl();
-	}
-
-	@Bean
-	public YandexMoneyService getYandexMoneyService() {
-		return new YandexMoneyServiceImpl();
-	}
-
-	//DAO
-
-	@Bean
-	public UserDao getUserDao(){
-		return new UserDaoImpl();
-	}
-
-	@Bean
-	public WalletDao getWalletDao(){
-		return new WalletDaoImpl();
-	}
-
-	@Bean
-	public OrderDao getOrderDao(){
-		return new OrderDaoImpl();
-	}
-
-	@Bean
-	public CurrencyDao getCurrencyDao(){
-		return new CurrencyDaoImpl();
-	}
-
-	@Bean
-	public CommissionDao getCommissionDao(){
-		return new CommissionDaoImpl();
-	}
-
-	@Bean
-	public CompanyAccountDao companyAccountDao() {
-		return new CompanyAccountDaoImpl();
-	}
-
-	@Bean
-	public YandexMoneyMerchantDao getYandexMoneyMerchantDao() {
-		return new YandexMoneyMerchantDaoImpl();
-	}
 	//Validation
 	@Bean
 	public RegisterFormValidation getRegisterFormValidation(){

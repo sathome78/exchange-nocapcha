@@ -1,18 +1,14 @@
 package me.exrates.controller.merchants;
 
-import me.exrates.dao.CompanyAccountDao;
-import me.exrates.model.CompanyAccount;
-import me.exrates.model.Wallet;
-import me.exrates.service.UserService;
-import me.exrates.service.WalletService;
+import me.exrates.model.Payment;
+import me.exrates.service.CurrencyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
-
-import java.security.Principal;
-import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -21,26 +17,21 @@ import java.util.List;
 public class CommonMerchantsController {
 
     @Autowired
-    private WalletService walletService;
+    private CurrencyService currencyService;
 
-    @Autowired
-    private UserService userService;
 
-    @Autowired
-    private CompanyAccountDao companyAccountDao;
 
     @RequestMapping(value = "/merchants", method = RequestMethod.GET)
-    public ModelAndView getPage(Principal principal) {
-        String email = principal.getName();
-        int idByEmail = userService.getIdByEmail(email);
-        List<Wallet> userWallets = walletService.getAllWallets(idByEmail);
+    public ModelAndView getPage() {
         ModelAndView modelAndView = new ModelAndView("merchants");
-        modelAndView.addObject("userWallets",userWallets);
+        modelAndView.addObject("currencyList",currencyService.getAllCurrencies());
+        modelAndView.addObject("payment",new Payment());
+        System.out.println(currencyService.getAllCurrencies());
         return modelAndView;
     }
 
     @RequestMapping(value = "/merchants/{merchant}/error",method = RequestMethod.GET)
-    public ModelAndView handleErrorFromMerchant(@PathVariable String merchant, @RequestParam("error") String error) {;
+    public ModelAndView handleErrorFromMerchant(@PathVariable String merchant, @RequestParam("error") String error) {
         return new ModelAndView("merchanterror").addObject("error",error);
     }
 }
