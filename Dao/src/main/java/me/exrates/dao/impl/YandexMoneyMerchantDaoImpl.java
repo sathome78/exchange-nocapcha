@@ -17,7 +17,6 @@ import java.util.Map;
 
 import static me.exrates.jdbc.TokenRowMapper.tokenRowMapper;
 
-//// TODO: 1/29/16 Make methods using id
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */

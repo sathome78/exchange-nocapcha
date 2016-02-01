@@ -5,12 +5,21 @@ import java.util.Date;
 public class Commission {
 
 	private int id;
-	private int operationType;
+	private OperationType operationType;
 	private double value;
 	private Date dateOfChange;
-	
-	public Commission() {
-		
+
+	public enum OperationType {
+		INPUT(1),
+		OUTPUT(2),
+		SELL(3),
+		BUY(4);
+
+		public final int type;
+
+		OperationType(int type) {
+			this.type = type;
+		}
 	}
 
 	public int getId() {
@@ -21,11 +30,11 @@ public class Commission {
 		this.id = id;
 	}
 
-	public int getOperationType() {
+	public OperationType getOperationType() {
 		return operationType;
 	}
 
-	public void setoperationType(int operationType) {
+	public void setoperationType(OperationType operationType) {
 		this.operationType = operationType;
 	}
 
@@ -44,5 +53,4 @@ public class Commission {
 	public void setDateOfChange(Date dateOfChange) {
 		this.dateOfChange = dateOfChange;
 	}
-	
 }

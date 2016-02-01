@@ -15,7 +15,6 @@ public class UserServiceImpl implements UserService {
 	@Autowired
 	UserDao userdao;
 
-	@Transactional
 	public boolean create(User user) {
 		return userdao.create(user);
 	}

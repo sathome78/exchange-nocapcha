@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Transactional
 @Repository
 public class WalletDaoImpl implements WalletDao {
 
@@ -26,8 +25,7 @@ public class WalletDaoImpl implements WalletDao {
 		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
 		Map<String, String> namedParameters = new HashMap<>();
 		namedParameters.put("walletId", String.valueOf(walletId));
-		double balance = namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Double.class);
-		return balance;
+		return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Double.class);
 	}
 	
 	public double getWalletRBalance(int walletId) {
@@ -35,12 +33,11 @@ public class WalletDaoImpl implements WalletDao {
 		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
 		Map<String, String> namedParameters = new HashMap<>();
 		namedParameters.put("walletId", String.valueOf(walletId));
-		double balance = namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Double.class);
-		return balance;
+		return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Double.class);
 	}
 
 	@Override
-	public boolean setWalletABalance(int walletId,BigDecimal newBalance) {
+	public boolean setWalletABalance(int walletId, double newBalance) {
 		final String sql = "UPDATE WALLET SET active_balance =:newBalance WHERE id =:walletId";
 		final Map<String,String> params = new HashMap<String,String>() {
 			{
@@ -52,7 +49,7 @@ public class WalletDaoImpl implements WalletDao {
 	}
 
 	@Override
-	public boolean setWalletRBalance(int walletId,BigDecimal newBalance) {
+	public boolean setWalletRBalance(int walletId,double newBalance) {
 		final String sql = "UPDATE WALLET SET reserved_balance =:newBalance WHERE id =:walletId";
 		final Map<String,String> params = new HashMap<String,String>() {
 			{
@@ -85,20 +82,20 @@ public class WalletDaoImpl implements WalletDao {
 
 	@Override
 	public List<Wallet> getAllWallets(int userId) {
-		String sql = "select id, currency_id, user_id,active_balance, reserved_balance from wallet where user_id=:user_id";
+		String sql = "SELECT WALLET.id,WALLET.currency_id,WALLET.user_id,WALLET.active_balance,WALLET.reserved_balance, CURRENCY.name as wallet_name FROM WALLET" +
+				"  INNER JOIN CURRENCY On WALLET.currency_id = CURRENCY.id and WALLET.user_id = :userId";
 		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);		
-		Map<String, String> namedParameters = new HashMap<>();
-		namedParameters.put("user_id", String.valueOf(userId));		
-		List<Wallet> walletList;
-		walletList = namedParameterJdbcTemplate.query(sql, namedParameters, (rs, row) -> {
-                    Wallet wallet = new Wallet();
-                    wallet.setId(rs.getInt("id"));
-                    wallet.setCurrId(rs.getInt("currency_id"));
-                    wallet.setUserId(rs.getInt("user_id"));
-                    wallet.setActiveBalance(rs.getDouble("active_balance"));
-                    wallet.setReservedBalance(rs.getDouble("reserved_balance"));
-                    return wallet;
+		final Map<String, String> namedParameters = new HashMap<>();
+		namedParameters.put("userId", String.valueOf(userId));
+		return namedParameterJdbcTemplate.query(sql, namedParameters, (rs, row) -> {
+			Wallet wallet = new Wallet();
+			wallet.setId(rs.getInt("id"));
+			wallet.setCurrId(rs.getInt("currency_id"));
+			wallet.setUserId(rs.getInt("user_id"));
+			wallet.setActiveBalance(rs.getDouble("active_balance"));
+			wallet.setReservedBalance(rs.getDouble("reserved_balance"));
+            wallet.setName("wallet_name");
+			return wallet;
         });
-		return walletList;
 	}
 }

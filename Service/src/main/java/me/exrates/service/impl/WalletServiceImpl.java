@@ -12,8 +12,10 @@ import me.exrates.dao.CurrencyDao;
 import me.exrates.dao.WalletDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Wallet;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service("walletService")
+@Transactional
 public class WalletServiceImpl implements WalletService {
 
 	@Autowired
@@ -25,18 +27,10 @@ public class WalletServiceImpl implements WalletService {
 	@Autowired
 	CurrencyDao currencyDao;
 
+	@Transactional(readOnly = true)
 	@Override
 	public List<Wallet> getAllWallets(int userId) {
-		List<Wallet> walletList = walletDao.getAllWallets(userId);
-		List<Currency> currList = currencyDao.getCurrList();
-		for (Wallet wallet : walletList) {
-			for (Currency currency : currList) {
-				if (wallet.getCurrId() == currency.getId()) {
-					wallet.setName(currency.getName());
-				}
-			}
-		}
-		return walletList;
+		return walletDao.getAllWallets(userId);
 	}
 
 	@Override
@@ -59,20 +53,23 @@ public class WalletServiceImpl implements WalletService {
 		return walletDao.getWalletRBalance(walletId);
 	}
 
+	@Transactional()
 	@Override
 	public boolean setWalletABalance(int walletId, double amount) {
 		final double oldBalance = walletDao.getWalletABalance(walletId);
-		final double newBalance = Math.round((oldBalance + amount) * 100.00) / 100.00;
-		return walletDao.setWalletABalance(walletId, BigDecimal.valueOf(newBalance));
+		final BigDecimal newBalance = BigDecimal.valueOf(oldBalance).add(BigDecimal.valueOf(amount)).setScale(9,BigDecimal.ROUND_CEILING);
+		return walletDao.setWalletABalance(walletId, newBalance.doubleValue());
 	}
 
+	@Transactional
 	@Override
 	public boolean setWalletRBalance(int walletId, double amount) {
 		final double oldBalance = walletDao.getWalletRBalance(walletId);
-		final double newBalance = Math.round((oldBalance + amount) * 100.00) / 100.00;
-		return walletDao.setWalletRBalance(walletId, BigDecimal.valueOf(newBalance));
+		final BigDecimal newBalance = BigDecimal.valueOf(oldBalance).add(BigDecimal.valueOf(amount)).setScale(9,BigDecimal.ROUND_CEILING);
+		return walletDao.setWalletRBalance(walletId, newBalance.doubleValue());
 	}
 
+	@Transactional(readOnly = true)
 	@Override
 	public boolean ifEnoughMoney(int walletId, double amountForCheck, int operationType) {
 		double balance = getWalletABalance(walletId);

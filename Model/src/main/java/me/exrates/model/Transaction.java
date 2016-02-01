@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
-public class CompanyAccount {
+public class Transaction {
 
     private int id;
     private int walletId;
@@ -67,7 +67,7 @@ public class CompanyAccount {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        CompanyAccount that = (CompanyAccount) o;
+        Transaction that = (Transaction) o;
 
         if (id != that.id) return false;
         if (walletId != that.walletId) return false;
@@ -94,7 +94,7 @@ public class CompanyAccount {
 
     @Override
     public String toString() {
-        return "CompanyAccount{" +
+        return "Transaction{" +
                 "id=" + id +
                 ", walletId=" + walletId +
                 ", commissionId=" + commissionId +

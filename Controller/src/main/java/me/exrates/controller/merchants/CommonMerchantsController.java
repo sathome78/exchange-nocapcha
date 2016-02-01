@@ -31,7 +31,7 @@ public class CommonMerchantsController {
     }
 
     @RequestMapping(value = "/merchants/{merchant}/error",method = RequestMethod.GET)
-    public ModelAndView handleErrorFromMerchant(@PathVariable String merchant, @RequestParam("error") String error) {;
+    public ModelAndView handleErrorFromMerchant(@PathVariable String merchant, @RequestParam("error") String error) {
         return new ModelAndView("merchanterror").addObject("error",error);
     }
 }

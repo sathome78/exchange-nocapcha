@@ -8,6 +8,7 @@
 </head>
 <body>
 <%@include file='header.jsp'%><br>
-<h2>${error}</h2>
+<h2><loc:message code="${error}"/></h2>
+<a href="/merchants/"><loc:message code="merchants.merchants"/></a>
 </body>
 </html>

@@ -1,6 +1,5 @@
 package me.exrates.service;
 
-import me.exrates.model.User;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
