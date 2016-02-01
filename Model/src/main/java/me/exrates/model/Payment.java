@@ -15,19 +15,9 @@ import javax.validation.constraints.Size;
 @Scope("session")
 public class Payment {
 
-    @NotEmpty
-    @Min(10)
     private int userId;
-
-    @NotEmpty
     private int currency;
-
-    @NotEmpty
-    @Size(min = 40, max = 60)
     private String meansOfPayment;
-
-    @NotEmpty
-    @Range(min = 1)
     private double sum;
 
     public enum TransactionType {

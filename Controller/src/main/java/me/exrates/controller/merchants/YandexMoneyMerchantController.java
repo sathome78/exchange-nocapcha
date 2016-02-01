@@ -21,6 +21,7 @@ import com.yandex.money.api.typeadapters.TokenTypeAdapter;
 import com.yandex.money.api.utils.HttpHeaders;
 import com.yandex.money.api.utils.Strings;
 import me.exrates.YandexMoneyProperties;
+import me.exrates.controller.validator.PaymentValidator;
 import me.exrates.model.Commission;
 import me.exrates.model.Payment;
 import me.exrates.model.Transaction;
@@ -30,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.Validator;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -37,7 +39,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpSession;
-import javax.validation.Valid;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.Principal;
@@ -68,6 +69,9 @@ public class YandexMoneyMerchantController {
 
     @Autowired
     private YandexMoneyProperties yandexMoneyProperties;
+
+    @Autowired
+    private PaymentValidator paymentValidator;
 
     private static final String merchantErrorPage = "redirect:/merchants/yandexmoney/error";
 
@@ -135,7 +139,11 @@ public class YandexMoneyMerchantController {
     }
 
     @RequestMapping(value = "/payment/prepare",method = RequestMethod.POST)
-    public ModelAndView preparePayment(@ModelAttribute("payment") @Valid Payment payment, BindingResult result, Principal principal, HttpSession httpSession) {
+    public ModelAndView preparePayment(@ModelAttribute("payment") Payment payment, BindingResult result, Principal principal, HttpSession httpSession) {
+        paymentValidator.validate(payment,result);
+        if (result.hasErrors()) {
+            return new ModelAndView("redirect:/merchants",result.getModel());
+        }
         final BigDecimal exratesCommission = BigDecimal.valueOf(commissionService.getCommissionByType(Commission.OperationType.INPUT.type));
         final int userId = userService.getIdByEmail(principal.getName());
         final BigDecimal paymentSum= BigDecimal.valueOf(payment.getSum()).setScale(9,BigDecimal.ROUND_CEILING);
@@ -216,7 +224,7 @@ public class YandexMoneyMerchantController {
             transaction.setDate(LocalDateTime.now());
             transactionService.create(transaction);
             logger.info(transaction.toString());
-            return new ModelAndView("redirect:/merchants");
+            return new ModelAndView("redirect:/mywallets");
         } else if (processPayment.status.equals(ProcessPayment.Status.REFUSED)){
             switch (processPayment.error) {
                 case NOT_ENOUGH_FUNDS:
