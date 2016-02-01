@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<dataset>
-    <ip_log id="1" ip="0:0:0:0:0:0:0:1" user_id="1" date="2016-01-21 22:48:49.0" />
-    <ip_log id="2" ip="0:0:0:0:0:0:0:1" user_id="1" date="2016-01-21 23:11:23.0" />
-    <ip_log id="3" ip="0:0:0:0:0:0:0:1" user_id="1" date="2016-01-21 23:12:46.0" />
-</dataset>
