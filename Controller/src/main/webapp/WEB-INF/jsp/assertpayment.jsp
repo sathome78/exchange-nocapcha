@@ -35,7 +35,7 @@
         </tr>
         <tr>
             <td>
-                <loc:message code="mechants.commission"/>
+                <loc:message code="merchants.commission"/>
             </td>
             <td>
                 <input type="text" name="commission" value="${paymentPrepareData.commission}" readonly="true"/>
@@ -51,10 +51,10 @@
         </tr>
         <tr>
             <td>
-                <input type="submit" value="<loc:message code='mechants.submitPayment'/>">
+                <input type="submit" value="<loc:message code='merchants.submitPayment'/>">
             </td>
             <td>
-                <a href="<c:url value='/merchants'/>"><loc:message code="mechants.cancelPayment"/></a>
+                <a href="<c:url value='/merchants'/>"><loc:message code="merchants.cancelPayment"/></a>
             </td>
         </tr>
     </table>

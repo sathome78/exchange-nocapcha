@@ -49,7 +49,7 @@
             <td>
                 <paymentForm:select path="meansOfPayment">
                     <paymentForm:option value="ymoney">
-                        <loc:message code="mechants.yandexmoney"/>
+                        <loc:message code="merchants.yandexmoney"/>
                     </paymentForm:option>
                 </paymentForm:select>
             </td>
