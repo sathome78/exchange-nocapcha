@@ -1,8 +1,6 @@
 package me.exrates.service.impl;
 
-import me.exrates.dao.UserDao;
 import me.exrates.dao.YandexMoneyMerchantDao;
-import me.exrates.model.User;
 import me.exrates.service.UserService;
 import me.exrates.service.YandexMoneyService;
 import org.springframework.beans.factory.annotation.Autowired;

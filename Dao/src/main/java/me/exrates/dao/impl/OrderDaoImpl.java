@@ -17,8 +17,9 @@ import me.exrates.dao.OrderDao;
 import me.exrates.jdbc.OrderRowMapper;
 import me.exrates.model.Order;
 import me.exrates.model.Wallet;
+import org.springframework.stereotype.Repository;
 
-
+@Repository
 public class OrderDaoImpl implements OrderDao{
 
 	//private static final Logger logger=Logger.getLogger(OrderDaoImpl.class); 

@@ -1,4 +1,4 @@
-package me.exrates.service;
+package me.exrates.service.impl;
 
 import java.util.List;
 import java.util.Locale;
@@ -7,12 +7,16 @@ import me.exrates.dao.OrderDao;
 import me.exrates.dao.UserDao;
 import me.exrates.model.Order;
 
+import me.exrates.service.CommissionService;
+import me.exrates.service.OrderService;
+import me.exrates.service.UserService;
+import me.exrates.service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
 @Service("orderService")
-public class OrderServiceImpl implements OrderService{
+public class OrderServiceImpl implements OrderService {
 
 	@Autowired
 	OrderDao orderDao;

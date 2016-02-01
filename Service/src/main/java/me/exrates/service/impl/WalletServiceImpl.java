@@ -61,6 +61,16 @@ public class WalletServiceImpl implements WalletService {
 		return walletDao.setWalletABalance(walletId, newBalance.doubleValue());
 	}
 
+	@Override
+	public int getCurrencyId(int walletId) {
+		return currencyDao.getCurrencyId(walletId);
+	}
+
+	@Override
+	public String getCurrencyName(int currencyId) {
+		return currencyDao.getCurrencyName(currencyId);
+	}
+
 	@Transactional
 	@Override
 	public boolean setWalletRBalance(int walletId, double amount) {
@@ -71,10 +81,11 @@ public class WalletServiceImpl implements WalletService {
 
 	@Transactional(readOnly = true)
 	@Override
-	public boolean ifEnoughMoney(int walletId, double amountForCheck, int operationType) {
+	public boolean ifEnoughMoney(int walletId, double amountForCheck) {
 		double balance = getWalletABalance(walletId);
-		double commission = commissionService.getCommissionByType(operationType);
-		double sumForCheck = amountForCheck + amountForCheck * commission / 100;
-		return balance > sumForCheck;
+		if(balance > amountForCheck){
+			return true;
+		}
+		else return false;
 	}
 }
