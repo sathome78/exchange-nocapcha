@@ -1,7 +1,10 @@
 <%@page language="java"%>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <%@taglib uri="http://www.springframework.org/tags" prefix="loc"%>
+<<<<<<< HEAD
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+=======
+>>>>>>> 04262353b47fdd14c36825d96fcecbda53d964c1
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>  
 <head> 
@@ -38,6 +41,7 @@ td {
 	<tr>
 	<td><%@include file='usermenu.jsp'%></td>
 	<td nowrap style="padding-left:30px">
+<<<<<<< HEAD
 		<h4><a href="order/sell/new"><loc:message code="orders.createordersell"/></a>
 		<br>
 		<a href="newordertobuy"><loc:message code="orders.createorderbuy"/></a></h4>		 
@@ -84,6 +88,13 @@ td {
 				</table>
 				</p>
 		<loc:message code="orders.listtobuy"/>
+=======
+		<h4><a href="newordertosell"><loc:message code="orders.createordersell"/></a>
+		<br>
+		<a href="newordertobuy"><loc:message code="orders.createorderbuy"/></a></h4>		 
+		<br><br><br>
+		<loc:message code="orders.listtosell"/>/<loc:message code="orders.listtobuy"/>
+>>>>>>> 04262353b47fdd14c36825d96fcecbda53d964c1
 	</td>
 	<tr>
 		<td colspan=2 align=center><%@include file='footer.jsp'%></td>

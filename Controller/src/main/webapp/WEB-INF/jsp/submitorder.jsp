@@ -53,15 +53,24 @@ td {
 	
 		<loc:message code="submitorder.sumwithcommission"/>: ${order.amountBuy-commissionValue} ${currList.get(order.currencyBuy-1).getName()}<br>
 		
+<<<<<<< HEAD
 		<form:form action="create" modelAttribute="order" method="post">
  			<form:hidden path="amountSell" value= "${order.amountSell}" />
  			<form:hidden path="amountBuy" value= "${order.amountBuy}" />
  			<form:hidden path="currencySell" value= "${order.currencySell}" />
  			<form:hidden path="currencyBuy" value= "${order.currencyBuy}" />
+=======
+		<form:form action="createorder" modelAttribute="order" method="post">
+ 			<form:hidden path="amountSell" value= "${order.amountSell}" />
+	        <form:hidden path="currencySell" value= "${order.currencySell}" />
+		    <form:hidden path="currencyBuy" value= "${order.currencyBuy}" />
+		    <form:hidden path="amountBuy" value= "${order.amountBuy}" />
+>>>>>>> 04262353b47fdd14c36825d96fcecbda53d964c1
 			<loc:message code="submitorder.submit" var="labelSubmit"/>
 		 	<input type="submit" value="${labelSubmit}" /><br>
      	</form:form>
      	
+<<<<<<< HEAD
      	<form:form action="edit" modelAttribute="order" method="post">
 			 <form:hidden path="amountSell" value= "${order.amountSell}" />
  			 <form:hidden path="amountBuy" value= "${order.amountBuy}" />
@@ -76,6 +85,16 @@ td {
 			<loc:message code="submitorder.cancell" var="labelCancell"></loc:message>
      		 <input type="submit" value="${labelCancell}" />
 		</form:form>
+=======
+     	<form:form action="editorder" modelAttribute="order" method="post">
+			 <form:hidden path="amountSell" value= "${order.amountSell}" />
+	         <form:hidden path="currencySell" value= "${order.currencySell}" />
+		     <form:hidden path="currencyBuy" value= "${order.currencyBuy}" />
+		     <form:hidden path="amountBuy" value= "${order.amountBuy}" />
+			 <loc:message code="submitorder.edit" var="labelEdit"/>
+     		 <input type="submit" value="${labelEdit}" />
+     	</form:form>
+>>>>>>> 04262353b47fdd14c36825d96fcecbda53d964c1
      </td>
      </tr>
  </table>

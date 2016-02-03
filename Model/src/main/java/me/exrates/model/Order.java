@@ -8,9 +8,12 @@ import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotNull;
 
+<<<<<<< HEAD
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
 
+=======
+>>>>>>> 04262353b47fdd14c36825d96fcecbda53d964c1
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 
@@ -24,7 +27,11 @@ public class Order {
 	private int walletIdSell;
 	private int currencySell;
 	private String currencySellString;
+<<<<<<< HEAD
 
+=======
+		
+>>>>>>> 04262353b47fdd14c36825d96fcecbda53d964c1
 	@NotNull(message = "Заполните поле") 
 	@DecimalMin(value="0.000000001", message="Значение должно быть больше 0.000000001")
 	@DecimalMax(value="10000", message="Значение должно быть меньше 10 000")
@@ -43,8 +50,13 @@ public class Order {
 	private double amountBuy;
 	private double amountBuyWithCommission;
 
+<<<<<<< HEAD
 	private OperationType operationType;
 	private OrderStatus status;
+=======
+	private int operationType;
+	private int status;
+>>>>>>> 04262353b47fdd14c36825d96fcecbda53d964c1
 	private String statusString;
 	private Date dateCreation;
 	private Date dateFinal;
@@ -166,25 +178,41 @@ public class Order {
 
 
 
+<<<<<<< HEAD
 	public OperationType getOperationType() {
+=======
+	public int getOperationType() {
+>>>>>>> 04262353b47fdd14c36825d96fcecbda53d964c1
 		return operationType;
 	}
 
 
 
+<<<<<<< HEAD
 	public void setOperationType(OperationType operationType) {
+=======
+	public void setOperationType(int operationType) {
+>>>>>>> 04262353b47fdd14c36825d96fcecbda53d964c1
 		this.operationType = operationType;
 	}
 
 
 
+<<<<<<< HEAD
 	public OrderStatus getStatus() {
+=======
+	public int getStatus() {
+>>>>>>> 04262353b47fdd14c36825d96fcecbda53d964c1
 		return status;
 	}
 
 
 
+<<<<<<< HEAD
 	public void setStatus(OrderStatus status) {
+=======
+	public void setStatus(int status) {
+>>>>>>> 04262353b47fdd14c36825d96fcecbda53d964c1
 		this.status = status;
 	}
 

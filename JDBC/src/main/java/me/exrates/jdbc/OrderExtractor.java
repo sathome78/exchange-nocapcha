@@ -5,8 +5,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;  
 
 import me.exrates.model.Order;
+<<<<<<< HEAD
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
+=======
+>>>>>>> 04262353b47fdd14c36825d96fcecbda53d964c1
 
 import org.springframework.dao.DataAccessException;  
 import org.springframework.jdbc.core.ResultSetExtractor;  
@@ -23,6 +26,7 @@ public class OrderExtractor implements ResultSetExtractor<Order> {
 	order.setAmountSell(rs.getDouble("amount_sell"));
 	order.setAmountBuy(rs.getDouble("amount_buy"));
 	order.setWalletIdBuy(rs.getInt("wallet_id_buy"));
+<<<<<<< HEAD
 	int operationType = rs.getInt("operation_type");
 	OperationType[] typeenum = OperationType.values();
 	for(OperationType t : typeenum) {
@@ -38,6 +42,10 @@ public class OrderExtractor implements ResultSetExtractor<Order> {
 		}
 	}
 
+=======
+	order.setOperationType(rs.getInt("operation_type"));
+	order.setStatus(rs.getInt("status"));
+>>>>>>> 04262353b47fdd14c36825d96fcecbda53d964c1
 	order.setDateCreation(rs.getDate("date_creation"));
 	order.setDateFinal(rs.getDate("date_final"));
 	return order;
