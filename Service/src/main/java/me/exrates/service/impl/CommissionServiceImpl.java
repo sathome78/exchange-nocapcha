@@ -1,8 +1,9 @@
 package me.exrates.service.impl;
 
 import me.exrates.dao.CommissionDao;
-
+import me.exrates.model.enums.OperationType;
 import me.exrates.service.CommissionService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,7 +14,8 @@ public class CommissionServiceImpl implements CommissionService {
 	CommissionDao commissionDao;
 	
 	@Override
-	public double getCommissionByType(int operationType) {
-		return commissionDao.getCommissionByType(operationType);
+	public double getCommissionByType(OperationType type) {
+		return commissionDao.getCommissionByType(type);
 	}
+
 }

@@ -14,7 +14,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.Wallet;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service("walletService")
+@Service
 @Transactional
 public class WalletServiceImpl implements WalletService {
 

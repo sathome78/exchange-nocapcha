@@ -16,14 +16,7 @@ public class User  {
 	private String confirmPassword;
 	private boolean readRules;
 	private String role;
-	
-<<<<<<< HEAD
-	public User() {
-		
-	}
 
-=======
->>>>>>> 04262353b47fdd14c36825d96fcecbda53d964c1
 	public String getRole() {
 		return role;
 	}
@@ -36,34 +29,18 @@ public class User  {
 		return readRules;
 	}
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 04262353b47fdd14c36825d96fcecbda53d964c1
 	public void setReadRules(boolean readRules) {
 		this.readRules = readRules;
 	}
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 04262353b47fdd14c36825d96fcecbda53d964c1
 	public String getConfirmPassword() {
 		return confirmPassword;
 	}
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 04262353b47fdd14c36825d96fcecbda53d964c1
 	public void setConfirmPassword(String confirmPassword) {
 		this.confirmPassword = confirmPassword;
 	}
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 04262353b47fdd14c36825d96fcecbda53d964c1
 	public String getIp() {
 		return ip;
 	}
@@ -72,10 +49,6 @@ public class User  {
 		this.ip = ip;
 	}
 
-<<<<<<< HEAD
-	
-=======
->>>>>>> 04262353b47fdd14c36825d96fcecbda53d964c1
 	public int getId() {
 		return id;
 	}
@@ -109,14 +82,7 @@ public class User  {
 	}
 
 	public Boolean getStatus() {
-<<<<<<< HEAD
-		if(status.equals("active")) {
-			return true;
-		}
-		else return false;
-=======
 		return status.equals("active");
->>>>>>> 04262353b47fdd14c36825d96fcecbda53d964c1
 	}
 
 	public void setStatus(String status) {
@@ -146,13 +112,4 @@ public class User  {
 	public void setRegdate(Date regdate) {
 		this.regdate = regdate;
 	}
-<<<<<<< HEAD
-
-	
-	
-	
-
 }
-=======
-}
->>>>>>> 04262353b47fdd14c36825d96fcecbda53d964c1

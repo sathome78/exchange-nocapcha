@@ -39,11 +39,7 @@ td {
 	<td><%@include file='usermenu.jsp'%></td>
 	<td>
 <h2><loc:message code="orders.ordersell"/>:</h2>
-<<<<<<< HEAD
 	<form:form action="submit" method="post" modelAttribute="order">
-=======
-	<form:form action="submitordertosell" method="post" modelAttribute="order">
->>>>>>> 04262353b47fdd14c36825d96fcecbda53d964c1
 			<loc:message code="orders.currencyforsale" /><br>
 			<form:select path="currencySell">
    			 	<form:options items="${currList}" itemLabel="name" itemValue="id" />
@@ -63,7 +59,9 @@ td {
 			<loc:message code="orders.submit" var="labelSubmit"></loc:message>
      		 <input type="submit" value="${labelSubmit}" />
 		</form:form>
-	
+	</td>
+	</tr>
+	</table>
 </body>
 </html>
 

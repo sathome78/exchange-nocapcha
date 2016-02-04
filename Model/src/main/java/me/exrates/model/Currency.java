@@ -5,15 +5,9 @@ public class Currency {
 	private int id;
 	private String name;
 	private String description;
-<<<<<<< HEAD
-	
 	public Currency() {
 		
 	}
-		
-=======
-
->>>>>>> 04262353b47fdd14c36825d96fcecbda53d964c1
 	public String getDescription() {
 		return description;
 	}
@@ -38,10 +32,6 @@ public class Currency {
 		this.name = name;
 	}
 
-<<<<<<< HEAD
-		
-}
-=======
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
@@ -72,4 +62,3 @@ public class Currency {
 				'}';
 	}
 }
->>>>>>> 04262353b47fdd14c36825d96fcecbda53d964c1

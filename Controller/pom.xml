@@ -1,49 +1,5 @@
 <?xml version="1.0"?>
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-<<<<<<< HEAD
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>kds</groupId>
-    <artifactId>Birzha</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-  </parent>
-  <artifactId>Controller</artifactId>
-
-  <packaging>war</packaging>
-  <name>Controller Maven Webapp</name>
-  <url>http://maven.apache.org</url>
-
- <dependencies>
-    <dependency>
-      <groupId>kds</groupId>
-      <artifactId>Model</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>kds</groupId>
-      <artifactId>Dao</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>kds</groupId>
-      <artifactId>Service</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>kds</groupId>
-      <artifactId>JDBC</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
-    </dependency>
-   <dependency>
-      <groupId>kds</groupId>
-      <artifactId>Security</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
-    </dependency>
-  </dependencies>
-  
-    </project>
-=======
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
     <parent>
@@ -106,4 +62,3 @@
         </dependency>
     </dependencies>
 </project>
->>>>>>> 04262353b47fdd14c36825d96fcecbda53d964c1

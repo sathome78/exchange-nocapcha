@@ -38,11 +38,7 @@ td {
 		<td width=20%><%@include file='usermenu.jsp'%></td>
 		<td width=70%>
 			<loc:message code="createdorder.text" /><br><br>
-<<<<<<< HEAD
 			<a href="<c:url value='/myorders'/>"><loc:message code="createdorder.edit" /></a>
-=======
-			<a href="myorders"><loc:message code="createdorder.edit" /></a>
->>>>>>> 04262353b47fdd14c36825d96fcecbda53d964c1
 		 </td>
 	<tr>
 		<td colspan=2 align=center><%@include file='footer.jsp'%></td>

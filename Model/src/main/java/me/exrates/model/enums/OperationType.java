@@ -2,6 +2,8 @@ package me.exrates.model.enums;
 
 public enum OperationType {
 
+	INPUT(1),
+	OUTPUT(2),
 	SELL(3),
 	BUY(4);
 	

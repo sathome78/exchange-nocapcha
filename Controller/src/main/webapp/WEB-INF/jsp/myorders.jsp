@@ -39,19 +39,13 @@ td {
 	<tr>
 	<td><%@include file='usermenu.jsp'%></td>
 	<td>
-<<<<<<< HEAD
 		<c:if test="${orderMap.sell.size() eq 0}"><loc:message code="myorders.noorders"/></c:if>
 		<c:if test="${orderMap.sell.size() ne 0}">
-=======
-		<c:if test="${orderList.size() eq 0}"><loc:message code="myorders.noorders"/></c:if>
-		<c:if test="${orderList.size() ne 0}">
->>>>>>> 04262353b47fdd14c36825d96fcecbda53d964c1
 			<h2><loc:message code="myorders.text"/></h2><br>
 			<h3><loc:message code="myorders.sellorders"/>:</h3>
 			<c:if test="${msg eq 'delete'}" >
 				<br><loc:message code="myorders.deletesuccess"/>
 			</c:if>
-<<<<<<< HEAD
 			<c:if test="${msg eq 'deletefailed'}" >
 				<br><loc:message code="myorders.deletefailed"/>
 			</c:if>
@@ -61,11 +55,6 @@ td {
 			<c:if test="${msg eq 'editfailed'}" >
 				<br><loc:message code="myorders.editfailed"/>
 			</c:if>
-=======
-			<c:if test="${msg eq 'failed'}" >
-				<br><loc:message code="myorders.deletefailed"/>
-			</c:if>
->>>>>>> 04262353b47fdd14c36825d96fcecbda53d964c1
 			<p>
 				<table border=1>
 					<tr>
@@ -81,11 +70,7 @@ td {
 						<td></td>
 						<td></td>
 					</tr>
-<<<<<<< HEAD
 				 <c:forEach var="myorder" items="${orderMap.sell}">
-=======
-				 <c:forEach var="myorder" items="${orderList}">
->>>>>>> 04262353b47fdd14c36825d96fcecbda53d964c1
 					<tr>
 						<td>
 							${myorder.currencySellString}
@@ -114,17 +99,10 @@ td {
 						<td>
 							${myorder.statusString}
 						</td>
-<<<<<<< HEAD
      					<td><a href="myorders/delete?id=${myorder.id}"><loc:message code="myorders.delete"/></a></td>  
 						<td>
 							<c:if test="${myorder.status.status eq 1}">
 								<a href="myorders/edit?id=${myorder.id}"><loc:message code="myorders.edit"/></a>
-=======
-     					<td><a href="deleteorder?id=${myorder.id}"><loc:message code="myorders.delete"/></a></td>  
-						<td>
-							<c:if test="${myorder.status eq 1}">
-								<a href="editorderDB?id=${myorder.id}"><loc:message code="myorders.edit"/></a>
->>>>>>> 04262353b47fdd14c36825d96fcecbda53d964c1
 							</c:if>
 						</td>
 					</tr>

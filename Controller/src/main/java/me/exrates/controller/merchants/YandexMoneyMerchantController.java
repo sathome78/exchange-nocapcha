@@ -20,12 +20,15 @@ import com.yandex.money.api.net.OAuth2Session;
 import com.yandex.money.api.typeadapters.TokenTypeAdapter;
 import com.yandex.money.api.utils.HttpHeaders;
 import com.yandex.money.api.utils.Strings;
+
 import me.exrates.YandexMoneyProperties;
 import me.exrates.controller.validator.PaymentValidator;
 import me.exrates.model.Commission;
 import me.exrates.model.Payment;
 import me.exrates.model.Transaction;
+import me.exrates.model.enums.OperationType;
 import me.exrates.service.*;
+
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -39,6 +42,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpSession;
+
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.Principal;
@@ -144,7 +148,7 @@ public class YandexMoneyMerchantController {
         if (result.hasErrors()) {
             return new ModelAndView("redirect:/merchants",result.getModel());
         }
-        final BigDecimal exratesCommission = BigDecimal.valueOf(commissionService.getCommissionByType(Commission.OperationType.INPUT.type));
+        final BigDecimal exratesCommission = BigDecimal.valueOf(commissionService.getCommissionByType(OperationType.INPUT));
         final int userId = userService.getIdByEmail(principal.getName());
         final BigDecimal paymentSum= BigDecimal.valueOf(payment.getSum()).setScale(9,BigDecimal.ROUND_CEILING);
         final BigDecimal commission = paymentSum.multiply(exratesCommission);
@@ -218,7 +222,7 @@ public class YandexMoneyMerchantController {
             walletService.setWalletABalance(walletId,((BigDecimal)paymentData.get("amount")).doubleValue());
             Transaction transaction = new Transaction();
             transaction.setAmount(((BigDecimal)paymentData.get("amount")).doubleValue());
-            transaction.setCommissionId(Commission.OperationType.INPUT.type);
+            transaction.setCommissionId(OperationType.INPUT.type);
             transaction.setTransactionType(Payment.TransactionType.INPUT);
             transaction.setWalletId(walletId);
             transaction.setDate(LocalDateTime.now());
