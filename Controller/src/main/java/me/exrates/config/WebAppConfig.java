@@ -2,7 +2,7 @@ package me.exrates.config;
 
 import me.exrates.YandexMoneyProperties;
 import me.exrates.controller.validator.RegisterFormValidation;
-import org.hibernate.validator.HibernateValidator;
+
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -18,7 +18,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
@@ -72,9 +71,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 		return resolver;
 	}
 
-	@Override
-	public void addResourceHandlers(ResourceHandlerRegistry registry) {
-		registry.addResourceHandler("/client/**").addResourceLocations("/client/");
+	@Bean
+	public RequestMappingHandlerAdapter requestMappingHandlerAdapter() {
+		RequestMappingHandlerAdapter handlerAdapter = new RequestMappingHandlerAdapter();
+		handlerAdapter.setSynchronizeOnSession(true);
+		handlerAdapter.setMessageConverters(Collections.singletonList(new MappingJackson2HttpMessageConverter()));
+		return handlerAdapter;
 	}
 
 	@Override
@@ -104,4 +106,5 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 	public YandexMoneyProperties getYandexMoneyProperties() {
 		return new YandexMoneyProperties("/merchants.properties");
 	}
+
 }

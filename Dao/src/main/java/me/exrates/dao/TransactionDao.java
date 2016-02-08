@@ -7,4 +7,5 @@ import me.exrates.model.Transaction;
  */
 public interface TransactionDao {
     boolean create(Transaction transaction);
+
 }

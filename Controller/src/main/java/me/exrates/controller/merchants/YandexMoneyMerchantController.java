@@ -20,21 +20,16 @@ import com.yandex.money.api.net.OAuth2Session;
 import com.yandex.money.api.typeadapters.TokenTypeAdapter;
 import com.yandex.money.api.utils.HttpHeaders;
 import com.yandex.money.api.utils.Strings;
-
 import me.exrates.YandexMoneyProperties;
 import me.exrates.controller.validator.PaymentValidator;
 import me.exrates.model.Commission;
 import me.exrates.model.Payment;
 import me.exrates.model.Transaction;
-import me.exrates.model.enums.OperationType;
 import me.exrates.service.*;
-
-import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.Validator;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -42,7 +37,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpSession;
-
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.Principal;
@@ -52,7 +46,6 @@ import java.time.LocalDateTime;
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 @Controller
-@org.springframework.context.annotation.Scope("session")
 @RequestMapping("/merchants/yandexmoney")
 public class YandexMoneyMerchantController {
 
@@ -79,7 +72,6 @@ public class YandexMoneyMerchantController {
 
     private static final String merchantErrorPage = "redirect:/merchants/yandexmoney/error";
 
-    private static final Logger logger = Logger.getLogger(YandexMoneyMerchantController.class);
 
     @RequestMapping(value = "/token/authorization",method =  RequestMethod.GET)
     public ModelAndView yandexMoneyTemporaryAuthorizationCodeRequest(ModelAndView modelAndView) {
@@ -148,7 +140,7 @@ public class YandexMoneyMerchantController {
         if (result.hasErrors()) {
             return new ModelAndView("redirect:/merchants",result.getModel());
         }
-        final BigDecimal exratesCommission = BigDecimal.valueOf(commissionService.getCommissionByType(OperationType.INPUT));
+        final BigDecimal exratesCommission = BigDecimal.valueOf(commissionService.getCommissionByType(Commission.OperationType.INPUT.type));
         final int userId = userService.getIdByEmail(principal.getName());
         final BigDecimal paymentSum= BigDecimal.valueOf(payment.getSum()).setScale(9,BigDecimal.ROUND_CEILING);
         final BigDecimal commission = paymentSum.multiply(exratesCommission);
@@ -165,9 +157,8 @@ public class YandexMoneyMerchantController {
     }
 
     @RequestMapping(value = "/payment/process")
-    public ModelAndView processPayment(Principal principal, HttpSession httpSession) throws InvalidTokenException, InsufficientScopeException, InvalidRequestException, IOException {
+    public ModelAndView processPayment(Principal principal) throws InvalidTokenException, InsufficientScopeException, InvalidRequestException, IOException {
         String email = principal.getName();
-        String accessToken = yandexMoneyService.getTokenByUserEmail(email);
         if (Strings.isNullOrEmpty(accessToken)) {
             return new ModelAndView("redirect:/merchants/yandexmoney/token/authorization");
         }
@@ -183,7 +174,7 @@ public class YandexMoneyMerchantController {
         String payInfo = "Purchase "+ paymentData.get("amount") + paymentData.get("currency")
                 + " from " + principal.getName() + ". Total transferred amount: " + paymentData.get("sumToPay")
                 + ", Commission: "+paymentData.get("commission") + ", Amount to be credited to user wallet: " + paymentData.get("amount");
-        logger.info(payInfo);
+//        logger.info(payInfo);
         P2pTransferParams p2pTransferParams = new P2pTransferParams.Builder(yandexMoneyProperties.companyYandexMoneyWalletId())
                 .setAmount((BigDecimal) paymentData.get("sumToPay"))
                 .setComment("Purchase "+ paymentData.get("amount")+ paymentData.get("currency")+" at the S.E. Birzha")
@@ -207,12 +198,12 @@ public class YandexMoneyMerchantController {
                     case EXT_ACTION_REQUIRED:
                         return new ModelAndView("redirect:"+execute.extActionUri);
                     default:
-                        logger.fatal(execute.error);
+//                        logger.fatal(execute.error);
                         return redirectToMerchantError.addObject("error","merchants.internalError");
                 }
             }
         } catch (IOException | InvalidRequestException | InsufficientScopeException | InvalidTokenException e) {
-            logger.error(e.getMessage());
+//            logger.error(e.getMessage());
             return redirectToMerchantError.addObject("error","merchants.internalError");
         }
         ProcessPayment processPayment = oAuth2Session.execute(new ProcessPayment.Request(execute.requestId));
@@ -222,12 +213,12 @@ public class YandexMoneyMerchantController {
             walletService.setWalletABalance(walletId,((BigDecimal)paymentData.get("amount")).doubleValue());
             Transaction transaction = new Transaction();
             transaction.setAmount(((BigDecimal)paymentData.get("amount")).doubleValue());
-            transaction.setCommissionId(OperationType.INPUT.type);
+            transaction.setCommissionId(Commission.OperationType.INPUT.type);
             transaction.setTransactionType(Payment.TransactionType.INPUT);
             transaction.setWalletId(walletId);
             transaction.setDate(LocalDateTime.now());
             transactionService.create(transaction);
-            logger.info(transaction.toString());
+//            logger.info(transaction.toString());
             return new ModelAndView("redirect:/mywallets");
         } else if (processPayment.status.equals(ProcessPayment.Status.REFUSED)){
             switch (processPayment.error) {

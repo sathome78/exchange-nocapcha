@@ -22,7 +22,7 @@
 </head>
 <body>
 <%--@elvariable id="_csrf" type="org.springframework.security.web.csrf.CsrfAuthenticationStrategy.SaveOnAccessCsrfToken"--%>
-<%--@elvariable id="currencyList" type="java.util.List"--%>
+<%--@elvariable id="currencies" type="java.util.List"--%>
 <%@include file='header.jsp'%><br>
 <c:url value="/merchants/yandexmoney/payment/prepare" var="url"/>
 <paymentForm:form action="${url}" method="post" modelAttribute="payment"  acceptCharset="UTF-8">
@@ -35,7 +35,7 @@
             </td>
             <td>
                 <paymentForm:select path="currency">
-                    <paymentForm:options items="${currencyList}" itemLabel="name" itemValue="id" />
+                    <paymentForm:options items="${currencies}" itemLabel="name" itemValue="id" />
                 </paymentForm:select>
             </td>
             <td>
