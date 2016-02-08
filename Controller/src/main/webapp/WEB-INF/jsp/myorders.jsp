@@ -68,7 +68,7 @@ td {
 						<td><loc:message code="myorders.datefinal"/></td>
 						<td><loc:message code="myorders.status"/></td>
 						<td></td>
-						<td></td>
+
 					</tr>
 				 <c:forEach var="myorder" items="${orderMap.sell}">
 					<tr>
@@ -99,13 +99,12 @@ td {
 						<td>
 							${myorder.statusString}
 						</td>
-     					<td><a href="myorders/delete?id=${myorder.id}"><loc:message code="myorders.delete"/></a></td>  
-						<td>
-							<c:if test="${myorder.status.status eq 1}">
-								<a href="myorders/edit?id=${myorder.id}"><loc:message code="myorders.edit"/></a>
-							</c:if>
-						</td>
-					</tr>
+     					<td>
+     						<c:if test="${(myorder.status.status eq 2)||(myorder.status.status eq 1)}">
+     							<a href="myorders/delete?id=${myorder.id}"><loc:message code="myorders.delete"/></a>
+     						</c:if>  
+     					</td>
+				</tr>
 				</c:forEach>
 				</table>
 				</p>

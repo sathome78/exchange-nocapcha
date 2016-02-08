@@ -1,14 +1,16 @@
 package me.exrates.service.impl;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
 import me.exrates.dao.OrderDao;
-import me.exrates.dao.UserDao;
 import me.exrates.model.Order;
+import me.exrates.model.Wallet;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.service.CommissionService;
@@ -42,11 +44,17 @@ public class OrderServiceImpl implements OrderService{
 	MessageSource messageSource;
 	
 	@Override
+	@Transactional
 	public int createOrder(Order order) {
+		int orderId = 0;
 		if(walletService.ifEnoughMoney(order.getWalletIdSell(),order.getAmountSell())) {
-			return orderDao.createOrder(order);
+			if((orderId=orderDao.createOrder(order)) > 0) {
+				walletService.setWalletRBalance(order.getWalletIdSell(), order.getAmountSell());
+				walletService.setWalletABalance(order.getWalletIdSell(), -order.getAmountSell());
+				setStatus(orderId, OrderStatus.OPENED);
+			}
 		}
-		else return 0;
+		return orderId;
 	}
 
 	@Transactional(readOnly = true)
@@ -100,16 +108,6 @@ public class OrderServiceImpl implements OrderService{
 		return orderMap;
 	}
 	
-	private String getStatusString(OrderStatus status) {
-		String statusString = null;
-		switch (status) {
-		case INPROCESS : statusString= messageSource.getMessage("orderstatus.inprocess", null, ru); break;
-		case OPENED : statusString= messageSource.getMessage("orderstatus.opened", null, ru); break;
-		case CLOSED : statusString= messageSource.getMessage("orderstatus.closed", null, ru); break;
-		}
-		return statusString;
-	}
-
 	@Transactional
 	@Override
 	public boolean deleteOrder(int orderId) {
@@ -131,12 +129,78 @@ public class OrderServiceImpl implements OrderService{
 	@Transactional
 	@Override
 	public boolean updateOrder(Order order) {
-		if(walletService.ifEnoughMoney(order.getWalletIdSell(),order.getAmountSell())) {
-			return orderDao.updateOrder(order);
+		return orderDao.updateOrder(order);
+	}
+	
+	@Transactional
+	@Override
+	public boolean acceptOrder(int userId, int orderId) {
+		Order order = this.getOrderById(orderId);
+		int userWalletId = walletService.getWalletId(userId, order.getCurrencyBuy());
+		if(walletService.ifEnoughMoney(userWalletId, order.getAmountBuy())) {
+			Double commission = commissionService.getCommissionByType(OperationType.SELL);
+			System.out.println("commission = "+commission);
+			//for seller
+			Double amountForSeller = order.getAmountBuy() - order.getAmountBuy()*commission/100;
+			System.out.println("amount that receive seller for ABalance= "+amountForSeller);
+			int wallet1ForBuyCurrency = walletService.getWalletId(walletService.getUserIdFromWallet(order.getWalletIdSell()), order.getCurrencyBuy());
+			if(wallet1ForBuyCurrency == 0) {
+				Wallet wallet = new Wallet();
+				wallet.setCurrId(order.getCurrencyBuy());
+				wallet.setActiveBalance(0);
+				wallet.setUserId(walletService.getUserIdFromWallet(order.getWalletIdSell()));
+				wallet1ForBuyCurrency = walletService.createNewWallet(wallet);
+			}
+			walletService.setWalletABalance(wallet1ForBuyCurrency, amountForSeller);
+			System.out.println("minus on rbalance = "+order.getAmountSell());
+			walletService.setWalletRBalance(order.getWalletIdSell(), -order.getAmountSell());
+			//should be companyAccount transaction for commission when I minus reserved balance
+			//for buyer
+			Double amountForBuyer = order.getAmountSell() - order.getAmountSell()*commission/100;
+			System.out.println("amount that receive buyer to abalance = "+amountForBuyer);
+			int wallet2ForBuyCurrency = walletService.getWalletId(userId, order.getCurrencySell());
+			if(wallet2ForBuyCurrency == 0){
+				Wallet wall = new Wallet();
+				wall.setActiveBalance(0);
+				wall.setUserId(userId);
+				wall.setCurrId(order.getCurrencySell());
+				wallet2ForBuyCurrency = walletService.createNewWallet(wall);
+			}
+			walletService.setWalletABalance(wallet2ForBuyCurrency, amountForBuyer);
+			System.out.println("minus on abalance for buyer = "+order.getAmountBuy());
+			walletService.setWalletABalance(walletService.getWalletId(userId, order.getCurrencyBuy()), -order.getAmountBuy());
+			//should be companyAccount transaction for commission when I minus abalance
+            order.setWalletIdBuy(wallet2ForBuyCurrency);
+            order.setStatus(OrderStatus.CLOSED);
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            Date date = new Date();
+            String currentTime = format.format(date);
+			order.setDateFinal(currentTime);
+			updateOrder(order);
+			return true;
 		}
-		
 		else return false;
 	}
 	
 	
+	@Transactional
+	@Override
+	public boolean cancellOrder(int orderId) {
+		if(setStatus(orderId, OrderStatus.CANCELLED));
+		Order order = getOrderById(orderId);
+		walletService.setWalletABalance(order.getWalletIdSell(), order.getAmountSell());
+		walletService.setWalletRBalance(order.getWalletIdSell(), -order.getAmountSell());
+		return true;
+	}
+
+	private String getStatusString(OrderStatus status) {
+		String statusString = null;
+		switch (status) {
+		case INPROCESS : statusString= messageSource.getMessage("orderstatus.inprocess", null, ru); break;
+		case OPENED : statusString= messageSource.getMessage("orderstatus.opened", null, ru); break;
+		case CLOSED : statusString= messageSource.getMessage("orderstatus.closed", null, ru); break;
+		}
+		return statusString;
+	}
+
 }

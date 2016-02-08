@@ -1,13 +1,22 @@
 package me.exrates.dao.impl;
 
+import static me.exrates.jdbc.TokenRowMapper.tokenRowMapper;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.sql.DataSource;
+
 import me.exrates.dao.WalletDao;
 import me.exrates.model.Wallet;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -63,18 +72,29 @@ public class WalletDaoImpl implements WalletDao {
 		Map<String, String> namedParameters = new HashMap<>();
 		namedParameters.put("userId", String.valueOf(userId));
 		namedParameters.put("currencyId", String.valueOf(currencyId));
-		return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Integer.class);
+		try {
+            int id = namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Integer.class);
+            return id;
+        } catch (EmptyResultDataAccessException e) {
+            return 0;
+        }
 	}
 	
 	
-	public boolean createNewWallet(Wallet wallet) {
-		String sql = "INSERT wallet(currency_id,users_id,active_balance) VALUES(:currId,:userId,:activeBalance)";
+	public int createNewWallet(Wallet wallet) {
+		String sql = "INSERT wallet(currency_id,user_id,active_balance) VALUES(:currId,:userId,:activeBalance)";
 		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);		
-		Map<String, String> namedParameters = new HashMap<>();
-		namedParameters.put("currId", String.valueOf(wallet.getCurrId()));
-		namedParameters.put("userId", String.valueOf(wallet.getUserId()));
-		namedParameters.put("activeBalance", String.valueOf(wallet.getActiveBalance()));
-		return namedParameterJdbcTemplate.update(sql, namedParameters) > 0;
+		KeyHolder keyHolder = new GeneratedKeyHolder();
+		MapSqlParameterSource parameters = new MapSqlParameterSource()
+        .addValue("currId", wallet.getCurrId())
+        .addValue("userId", wallet.getUserId())
+        .addValue("activeBalance", wallet.getActiveBalance());
+		int result = namedParameterJdbcTemplate.update(sql, parameters, keyHolder);
+		int id = (int) keyHolder.getKey().longValue();
+		if(result <= 0) {
+			id = 0;
+		}
+		return id;
 	}
 
 	@Override
@@ -94,5 +114,14 @@ public class WalletDaoImpl implements WalletDao {
 			wallet.setName(rs.getString("wallet_name"));
 			return wallet;
         });
+	}
+	
+	public int getUserIdFromWallet(int walletId) {
+		String sql = "SELECT user_id FROM wallet WHERE id = :walletId";
+		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+		Map<String, String> namedParameters = new HashMap<>();
+		namedParameters.put("walletId", String.valueOf(walletId));
+		int userId = namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Integer.class);
+		return userId;
 	}
 }

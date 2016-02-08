@@ -30,13 +30,13 @@ public class OrderExtractor implements ResultSetExtractor<Order> {
 	int status = rs.getInt("status");
 	OrderStatus[] statusenum = OrderStatus.values();
 	for(OrderStatus s : statusenum) {
-		if(s.status == status) {
+		if(s.getStatus() == status) {
 			order.setStatus(s);
 		}
 	}
 
 	order.setDateCreation(rs.getDate("date_creation"));
-	order.setDateFinal(rs.getDate("date_final"));
+	order.setDateFinal(rs.getString("date_final"));
 	return order;
  }  
   

@@ -26,4 +26,10 @@ public interface WalletService {
 	boolean setWalletRBalance(int walletId, double amount);
 
 	boolean ifEnoughMoney(int walletId, double amountForCheck);
+	
+	int createNewWallet(Wallet wallet);
+	
+	int getUserIdFromWallet(int walletId);
+	
+	
 }

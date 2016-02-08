@@ -9,7 +9,7 @@ public enum OrderStatus {
 	DELETED(5),
 	DRAFT(6);
 
-    public final int status;
+    private final int status;
 
     OrderStatus(int status) {
         this.status = status;

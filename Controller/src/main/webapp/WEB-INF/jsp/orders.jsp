@@ -42,7 +42,10 @@ td {
 		<br>
 		<a href="newordertobuy"><loc:message code="orders.createorderbuy"/></a></h4>		 
 		<br><br><br>
-		<loc:message code="orders.listtosell"/>
+		<loc:message code="orders.listtosell"/><br>
+		<c:if test="${msq ne ''}">
+		${msg}
+		</c:if>
 		<p>
 				<table border=1>
 					<tr>
@@ -70,15 +73,15 @@ td {
 							<fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountBuy}"/>
 						</td>
 						<td>
-							${order.commission}
+							${order.commission*order.amountSell/100}
 						</td>
 						<td>
-							<fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountBuyWithCommission}"/>
+							<fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountSellWithCommission}"/>
 						</td>
 						<td>
 							${order.dateCreation}
 						</td>
-	   					<td><a href="orders/accept?id=${order.id}"><loc:message code="orders.accept"/></a></td>  
+	   					<td><a href="orders/sell/accept?id=${order.id}"><loc:message code="orders.accept"/></a></td>  
 					</tr>
 				</c:forEach>
 				</table>

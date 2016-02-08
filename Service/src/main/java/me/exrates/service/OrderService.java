@@ -21,5 +21,9 @@ public interface OrderService {
 	public boolean setStatus(int orderId, OrderStatus status);
 	
 	public boolean updateOrder(Order order);
-
+	
+	public boolean acceptOrder(int userId, int orderId);
+	
+	public boolean cancellOrder(int orderId);
+	
 }

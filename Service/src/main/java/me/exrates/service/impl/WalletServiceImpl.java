@@ -58,7 +58,10 @@ public class WalletServiceImpl implements WalletService {
 	public boolean setWalletABalance(int walletId, double amount) {
 		final double oldBalance = walletDao.getWalletABalance(walletId);
 		final BigDecimal newBalance = BigDecimal.valueOf(oldBalance).add(BigDecimal.valueOf(amount)).setScale(9,BigDecimal.ROUND_CEILING);
-		return walletDao.setWalletABalance(walletId, newBalance.doubleValue());
+		if(newBalance.signum() == -1) {
+			return false;
+		}
+		else return walletDao.setWalletABalance(walletId, newBalance.doubleValue());
 	}
 
 	@Override
@@ -76,16 +79,32 @@ public class WalletServiceImpl implements WalletService {
 	public boolean setWalletRBalance(int walletId, double amount) {
 		final double oldBalance = walletDao.getWalletRBalance(walletId);
 		final BigDecimal newBalance = BigDecimal.valueOf(oldBalance).add(BigDecimal.valueOf(amount)).setScale(9,BigDecimal.ROUND_CEILING);
-		return walletDao.setWalletRBalance(walletId, newBalance.doubleValue());
+		if(newBalance.signum() == -1) {
+			return false;
+		}
+		else return walletDao.setWalletRBalance(walletId, newBalance.doubleValue());
 	}
 
 	@Transactional(readOnly = true)
 	@Override
 	public boolean ifEnoughMoney(int walletId, double amountForCheck) {
 		double balance = getWalletABalance(walletId);
-		if(balance > amountForCheck){
+		if(balance >= amountForCheck){
 			return true;
 		}
 		else return false;
 	}
+	
+	@Transactional
+	@Override
+	public int createNewWallet(Wallet wallet) {
+		return walletDao.createNewWallet(wallet);
+	}
+
+	@Override
+	public int getUserIdFromWallet(int walletId) {
+		return walletDao.getUserIdFromWallet(walletId);
+	}
+	
+	
 }

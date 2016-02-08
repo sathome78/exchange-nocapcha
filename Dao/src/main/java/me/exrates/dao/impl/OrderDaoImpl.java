@@ -36,7 +36,7 @@ public class OrderDaoImpl implements OrderDao{
 
 	public int createOrder(Order order) {
 		
-		String sql = "insert into orders(wallet_id_sell,amount_sell,currency_buy,amount_buy, operation_type, status) values(:walletSell,:amountSell,:currencyBuy,:amountBuy, :operationType, :status)";
+		String sql = "insert into orders(wallet_id_sell,amount_sell,currency_buy,amount_buy, operation_type) values(:walletSell,:amountSell,:currencyBuy,:amountBuy, :operationType)";
 		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);		
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 		MapSqlParameterSource parameters = new MapSqlParameterSource()
@@ -44,8 +44,7 @@ public class OrderDaoImpl implements OrderDao{
         .addValue("amountSell", order.getAmountSell())
         .addValue("currencyBuy", order.getCurrencyBuy())
         .addValue("amountBuy", order.getAmountBuy())
-        .addValue("operationType", order.getOperationType().type)
-        .addValue("status", order.getStatus().status);
+        .addValue("operationType", order.getOperationType().type);
 		int result = namedParameterJdbcTemplate.update(sql, parameters, keyHolder);
 		int id = (int) keyHolder.getKey().longValue();
 		if(result <= 0) {
@@ -56,7 +55,10 @@ public class OrderDaoImpl implements OrderDao{
 
 	@Override
 	public List<Order> getMyOrders(int userId) {
-		String sql = "select * from orders where wallet_id_sell in (select id from wallet where user_id=:user_id) && (status=1 || status=2 || status=3)";
+		String sql = "select * from orders where "
+				+ "(wallet_id_sell in (select id from wallet where user_id=:user_id) ||"
+				+"wallet_id_buy in (select id from wallet where user_id=:user_id))"
+				+ "&& (status=1 || status=2 || status=3)";
 		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);		
 		Map<String, String> namedParameters = new HashMap<String, String>();
 		namedParameters.put("user_id", String.valueOf(userId));		
@@ -105,7 +107,7 @@ public class OrderDaoImpl implements OrderDao{
 		String sql = "update orders set status=:status where id = :id";
 		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);		
 		Map<String, String> namedParameters = new HashMap<String, String>();
-		namedParameters.put("status", String.valueOf(status.status));
+		namedParameters.put("status", String.valueOf(status.getStatus()));
 		namedParameters.put("id", String.valueOf(orderId));
 		int result = namedParameterJdbcTemplate.update(sql, namedParameters);
 		if(result > 0) {
@@ -117,17 +119,14 @@ public class OrderDaoImpl implements OrderDao{
 
 	@Override
 	public boolean updateOrder(Order order) {
-		String sql = "update orders set wallet_id_sell=:walletSell, amount_sell=:amountSell,currency_buy=:currencyBuy,amount_buy=:amountBuy, operation_type=:operationType,status=:status  where id = :id";
+		String sql = "update orders set wallet_id_buy=:walletBuy, status=:status, date_final=:dateFinal  where id = :id";
 		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);		
 		Map<String, String> namedParameters = new HashMap<String, String>();
+	    namedParameters.put("walletBuy", String.valueOf(order.getWalletIdBuy()));
+	    namedParameters.put("status", String.valueOf(order.getStatus().getStatus()));
+		namedParameters.put("dateFinal", String.valueOf(order.getDateFinal()));
 		namedParameters.put("id", String.valueOf(order.getId()));
-	    namedParameters.put("walletSell", String.valueOf(order.getWalletIdSell()));
-	    namedParameters.put("amountSell", String.valueOf(order.getAmountSell()));
-	    namedParameters.put("currencyBuy", String.valueOf(order.getCurrencyBuy()));
-	    namedParameters.put("amountBuy", String.valueOf(order.getAmountBuy()));
-	    namedParameters.put("operationType", String.valueOf(order.getOperationType().type));
-		namedParameters.put("status", String.valueOf(order.getStatus().status));
-
+		System.out.println("ststus = "+order.getStatus().getStatus());
 		int result = namedParameterJdbcTemplate.update(sql, namedParameters);
 		if(result > 0) {
 			return true;

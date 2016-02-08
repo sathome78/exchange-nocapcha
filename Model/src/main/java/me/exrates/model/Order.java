@@ -39,15 +39,14 @@ public class Order {
 	@DecimalMax(value="10000", message="Значение должно быть меньше 10 000")
 	@Digits(integer=5, fraction=9, message = "Значение должно быть в диапазоне: 0.000000001 - 10 000")
 	private double amountBuy;
-	private double amountBuyWithCommission;
 
 	private OperationType operationType;
 	private OrderStatus status;
 	private String statusString;
 	private Date dateCreation;
-	private Date dateFinal;
-	
-	
+	private String dateFinal;
+	private double amountBuyWithCommission;	
+	private double amountSellWithCommission;
 	
 	public Order() {
 		
@@ -86,14 +85,7 @@ public class Order {
 		this.statusString = statusString;
 	}
 
-	public double getAmountBuyWithCommission() {
-		return amountBuy-amountBuy*commission/100;
-	}
-
-	public void setAmountBuyWithCommission(double amountBuyWithCommission) {
-		this.amountBuyWithCommission = amountBuyWithCommission;
-	}
-
+	
 	public void setAmountBuy(double amountBuy) {
 		this.amountBuy = amountBuy;
 	}
@@ -184,14 +176,32 @@ public class Order {
 		this.dateCreation = dateCreation;
 	}
 
-	public Date getDateFinal() {
+	
+	public String getDateFinal() {
 		return dateFinal;
 	}
 
-	public void setDateFinal(Date dateFinal) {
+
+	public void setDateFinal(String dateFinal) {
 		this.dateFinal = dateFinal;
 	}
-	
+
+
+	public double getAmountBuyWithCommission() {
+		return amountBuy-amountBuy*commission/100;
+	}
+
+	public void setAmountBuyWithCommission(double amountBuyWithCommission) {
+		this.amountBuyWithCommission = amountBuyWithCommission;
+	}
+
+	public double getAmountSellWithCommission() {
+		return amountSell-amountSell*commission/100;
+	}
+
+	public void setAmountSellWithCommission(double amountSellWithCommission) {
+		this.amountSellWithCommission = amountSellWithCommission;
+	}
 }
 
 

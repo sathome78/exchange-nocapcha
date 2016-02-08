@@ -2,12 +2,10 @@ package me.exrates.controller;
 
 
 import java.security.Principal;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import me.exrates.model.Currency;
@@ -22,7 +20,6 @@ import me.exrates.service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;  
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;  
-import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;  
@@ -51,13 +48,43 @@ MessageSource messageSource;
 
 private static final Locale ru = new Locale("ru");
 
-@RequestMapping("/orders")  
+@RequestMapping(value = "/orders")  
 public ModelAndView myOrders() {  
+	ModelAndView model = new ModelAndView();
 	Map<String, List<Order>> orderMap = orderService.getAllOrders();
-
-   return new ModelAndView("orders", "orderMap", orderMap);  
+	model.setViewName("orders");
+	model.addObject("orderMap", orderMap);
+   return model;
 }  
- 
+
+@RequestMapping(value = "/orders/sell/accept")  
+public ModelAndView acceptOrder(@RequestParam int id, ModelAndView model, Principal principal, RedirectAttributes redirectAttributes){
+	int userId = userService.getIdByEmail(principal.getName());
+	Order order = orderService.getOrderById(id);
+	int userWalletIdForBuy = walletService.getWalletId(userId, order.getCurrencyBuy());
+	if(userWalletIdForBuy != 0) {
+		if(walletService.ifEnoughMoney(userWalletIdForBuy, order.getAmountBuy())) {
+			if(orderService.acceptOrder(userId, id)) {
+				model.setViewName("acceptordersuccess");
+				model.addObject("order", order);
+			}
+			else {
+				model.setViewName("DBError");
+			}
+		}
+		else {
+			redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("validation.orderNotEnoughMoney", null, ru));
+			model.setViewName("redirect:/orders");
+		}
+	}
+	else {
+		redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("validation.orderNotEnoughMoney", null, ru));
+		model.setViewName("redirect:/orders");
+	}
+  return model;
+}  
+
+
 @RequestMapping(value = "/order/sell/new", method = RequestMethod.GET)  
 public ModelAndView showNewOrderToSellForm(ModelAndView model) {  
 	getCurrenciesAndCommission(model, OperationType.SELL);
@@ -93,7 +120,6 @@ public ModelAndView recordOrderToDB(ModelAndView model, @ModelAttribute Order or
 	int walletIdFrom = walletService.getWalletId(userService.getIdByEmail(principal.getName()),order.getCurrencySell());
 	order.setWalletIdSell(walletIdFrom);
 	order.setOperationType(OperationType.SELL);
-	order.setStatus(OrderStatus.INPROCESS);
 	if((orderService.createOrder(order)) > 0) {
 		model.setViewName("ordercreated");
 	}
@@ -110,6 +136,7 @@ public ModelAndView showEditOrderToSellForm(ModelAndView model, @ModelAttribute 
    getCurrenciesAndCommission(model, OperationType.SELL);
    return model;
 }  
+
 
 @RequestMapping("/newordertobuy")  
 public ModelAndView makeNewOrderToBuy(Principal principal) {  
@@ -176,8 +203,8 @@ public String updateOrder(@ModelAttribute Order order, Principal principal, Redi
 @RequestMapping("/myorders/delete")  
 public String deleteOrder(@RequestParam int id, RedirectAttributes redirectAttributes) {  
 	String msg = null;
-	if(orderService.setStatus(id, OrderStatus.CANCELLED)) {
-	msg = "delete";
+	if(orderService.cancellOrder(id)) {
+		msg = "delete";
 	}
 	else {
 		msg = "deletefailed";

@@ -17,8 +17,10 @@ public interface WalletDao {
 
 	int getWalletId(int userId, int currencyId);
 
-	boolean createNewWallet(Wallet wallet);
+	int createNewWallet(Wallet wallet);
 
 	List<Wallet> getAllWallets(int userId);
+	
+	int getUserIdFromWallet(int walletId);
 }
 
