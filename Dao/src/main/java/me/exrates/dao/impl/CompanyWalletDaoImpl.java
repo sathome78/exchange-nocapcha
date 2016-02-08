@@ -4,7 +4,6 @@ import me.exrates.dao.CompanyWalletDao;
 import me.exrates.model.CompanyWallet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -12,9 +11,6 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,7 +31,9 @@ public class CompanyWalletDaoImpl implements CompanyWalletDao {
         final MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("currencyId",companyWallet.getCurrencyId());
         NamedParameterJdbcTemplate jdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-
+        if (jdbcTemplate.update(sql,params,keyHolder)>0) {
+            return findByCurrencyId(companyWallet.getCurrencyId());
+        }
         return null;
     }
 

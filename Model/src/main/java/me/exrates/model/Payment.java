@@ -1,5 +1,6 @@
 package me.exrates.model;
 
+import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.hibernate.validator.constraints.Range;
 import org.springframework.context.annotation.Scope;
@@ -16,7 +17,10 @@ import javax.validation.constraints.Size;
 public class Payment {
 
     private int userId;
+    @Min(value = 100,message = "TO SMALL")
     private int currency;
+
+    @Email(message = "TO SMALL")
     private String meansOfPayment;
     private double sum;
 

@@ -60,9 +60,9 @@ public class Merchant {
     @Override
     public String toString() {
         return "Merchant{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
+                ", name='" + name + '\'' +
+                ", id=" + id +
                 '}';
     }
 }

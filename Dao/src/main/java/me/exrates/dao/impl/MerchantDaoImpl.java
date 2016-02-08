@@ -1,6 +1,7 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.MerchantDao;
+import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -11,9 +12,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -39,6 +38,8 @@ public class MerchantDaoImpl implements MerchantDao {
         return null;
     }
 
+
+
     @Override
     public List<Merchant> findAllByCurrency(int currencyId) {
         final String sql = "SELECT * FROM MERCHANT WHERE id in (SELECT merchant_id FROM MERCHANT_CURRENCY WHERE currency_id = :currencyId)";
@@ -56,5 +57,10 @@ public class MerchantDaoImpl implements MerchantDao {
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
+    }
+
+    public static void main(String[] args) {
+        Set<Integer> currencies = new HashSet<>();
+
     }
 }

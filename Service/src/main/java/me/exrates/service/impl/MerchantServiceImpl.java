@@ -1,5 +1,6 @@
 package me.exrates.service.impl;
 
+import javafx.util.Pair;
 import me.exrates.dao.MerchantDao;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
@@ -8,6 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -27,5 +31,12 @@ public class MerchantServiceImpl implements MerchantService{
     @Override
     public List<Merchant> findAllByCurrency(Currency currency) {
         return merchantDao.findAllByCurrency(currency.getId());
+    }
+
+    @Override
+    public Map<Currency, List<Merchant>> mapMerchantsToCurrency(List<Currency> currencies) {
+        return currencies.stream()
+                .map(currency -> new Pair<>(currency, merchantDao.findAllByCurrency(currency.getId())))
+                .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
     }
 }

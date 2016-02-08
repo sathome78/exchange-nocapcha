@@ -19,6 +19,9 @@
             margin: 16px;
         }
     </style>
+    <script src="<c:url value="/client/js/jquery.js"/>"></script>
+    <script src="<c:url value="/client/js/main.js"/>"></script>
+
 </head>
 <body>
 <%--@elvariable id="_csrf" type="org.springframework.security.web.csrf.CsrfAuthenticationStrategy.SaveOnAccessCsrfToken"--%>
@@ -62,7 +65,7 @@
                 <loc:message code="merchants.sum"/>
             </td>
             <td>
-                <paymentForm:input path="sum"/>
+                <paymentForm:input id="abc" path="sum"/>
             </td>
             <td>
                 <paymentForm:errors path="sum"/>
@@ -71,6 +74,7 @@
         <tr>
             <td>
                 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+                <input type="hidden" name="jsonObject" value='${currencyMerchantsMap}'/>
                 <input type="submit">
             </td>
         </tr>
