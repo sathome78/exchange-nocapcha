@@ -22,7 +22,7 @@
 </head>
 <body>
 <%@include file='header.jsp'%><br>
-<c:url value="/merchants/yandexmoney/payment/process" var="submitUrl" />
+<c:url value="/merchants/yandexmoney/token/authorization" var="submitUrl" />
 <paymentForm:form method="post" action="${submitUrl}" modelAttribute="payment">
     <table>
         <tr>

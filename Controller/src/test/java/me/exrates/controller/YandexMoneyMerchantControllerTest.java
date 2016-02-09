@@ -1,8 +1,6 @@
 package me.exrates.controller;
 
-import com.yandex.money.api.methods.Token;
 import me.exrates.controller.merchants.YandexMoneyMerchantController;
-import me.exrates.model.Payment;
 import me.exrates.service.UserService;
 import me.exrates.service.YandexMoneyService;
 import org.junit.Before;
@@ -39,9 +37,6 @@ public class YandexMoneyMerchantControllerTest {
     private WebApplicationContext webApplicationContext;
 
     @Mock
-    private YandexMoneyService yandexMoneyService;
-
-    @Mock
     private UserService userService;
 
     @Mock
@@ -50,8 +45,6 @@ public class YandexMoneyMerchantControllerTest {
 
     @Before
     public void setup() {
-        when(yandexMoneyService.getTokenByUserEmail("mockPresentEmail")).thenReturn("mockToken");
-        when(yandexMoneyService.getTokenByUserEmail("mockAbsentToken")).thenReturn(null);
         when(principal.getName()).thenReturn("test@email.com");
         when(userService.getIdByEmail("test@email.com")).thenReturn(1);
         mockMvc = MockMvcBuilders.standaloneSetup(yandexMoneyMerchantController).build();

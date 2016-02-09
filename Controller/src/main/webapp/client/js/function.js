@@ -34,7 +34,7 @@ $(document).ready(function() {
     });
 
     // Tabs
-    $('.nav-tabs a:first').tab('show');
+    //$('.nav-tabs a:first').tab('show');
 
 	// Stiky menu
     // $(document).ready(function(){

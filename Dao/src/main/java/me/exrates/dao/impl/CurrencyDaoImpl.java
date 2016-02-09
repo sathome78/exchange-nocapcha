@@ -15,7 +15,7 @@ import java.util.Map;
 @Repository
 public class CurrencyDaoImpl implements CurrencyDao{
 
-	//private static final Logger logger=Logger.getLogger(CurrencyDaoImpl.class); 
+	//private static final Logger logger=Logger.getLogger(CurrencyDaoImpl.class);
 	@Autowired
 	DataSource dataSource;
 
@@ -24,12 +24,12 @@ public class CurrencyDaoImpl implements CurrencyDao{
 		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 		List<Currency> currList;
 		currList = jdbcTemplate.query(sql, (rs, row) -> {
-            Currency currency = new Currency();
-            currency.setId(rs.getInt("id"));
-            currency.setName(rs.getString("name"));
-            return currency;
+			Currency currency = new Currency();
+			currency.setId(rs.getInt("id"));
+			currency.setName(rs.getString("name"));
+			return currency;
 
-        });
+		});
 		return currList;
 	}
 

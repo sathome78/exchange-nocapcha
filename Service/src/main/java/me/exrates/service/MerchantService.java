@@ -15,5 +15,5 @@ public interface MerchantService {
 
     List<Merchant> findAllByCurrency(Currency currency);
 
-    Map<Currency,List<Merchant>> mapMerchantsToCurrency(List<Currency> currencies);
+    Map<Integer,List<Merchant>> mapMerchantsToCurrency(List<Currency> currencies);
 }

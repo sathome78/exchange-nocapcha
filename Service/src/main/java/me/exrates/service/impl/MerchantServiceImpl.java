@@ -34,9 +34,10 @@ public class MerchantServiceImpl implements MerchantService{
     }
 
     @Override
-    public Map<Currency, List<Merchant>> mapMerchantsToCurrency(List<Currency> currencies) {
+    public Map<Integer, List<Merchant>> mapMerchantsToCurrency(List<Currency> currencies) {
         return currencies.stream()
-                .map(currency -> new Pair<>(currency, merchantDao.findAllByCurrency(currency.getId())))
+                .map(Currency::getId)
+                .map(currencyId -> new Pair<>(currencyId, merchantDao.findAllByCurrency(currencyId)))
                 .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
     }
 }

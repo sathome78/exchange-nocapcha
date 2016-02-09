@@ -1,10 +1,12 @@
 package me.exrates.controller.merchants;
 
 import com.google.gson.Gson;
+import javafx.util.Pair;
 import me.exrates.dao.CompanyWalletDao;
-import me.exrates.model.Currency;
+import me.exrates.model.Commission;
 import me.exrates.model.Merchant;
 import me.exrates.model.Payment;
+import me.exrates.service.CommissionService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import org.apache.logging.log4j.LogManager;
@@ -34,19 +36,35 @@ public class CommonMerchantsController {
     @Autowired
     private CompanyWalletDao companyWalletDao;
 
+    @Autowired
+    private CommissionService commissionService;
+
     private static final Gson gson = new Gson();
 
     @RequestMapping(value = "/merchants/input", method = RequestMethod.GET)
     public ModelAndView merchants() {
         final ModelAndView modelAndView = new ModelAndView("merchantsInputCredits");
+        modelAndView.addObject("currencies",currencyService.getAllCurrencies());
         modelAndView.addObject("payment", new Payment());
         return modelAndView;
     }
 
     @RequestMapping(value = "/merchants/data", method = RequestMethod.GET)
-    public @ResponseBody
-        Map<Currency, List<Merchant>> getMerchantsData() {
-        return merchantService.mapMerchantsToCurrency(currencyService.getAllCurrencies());
+    public @ResponseBody Map<Integer, List<Merchant>> getMerchantsData() {
+        return merchantService
+                .mapMerchantsToCurrency(currencyService.getAllCurrencies());
+    }
+
+    @RequestMapping(value = "/merchants/commission/{type}",method = RequestMethod.GET)
+    public @ResponseBody Double  getCommissions(@PathVariable("type") String type) {
+        switch (type) {
+            case "input" :
+                return commissionService.getCommissionByType(Commission.OperationType.INPUT.type);
+            case "output" :
+                return commissionService.getCommissionByType(Commission.OperationType.OUTPUT.type);
+            default:
+                return null;
+        }
     }
 
     @RequestMapping(value = "/merchants/{merchant}/error", method = RequestMethod.GET)
