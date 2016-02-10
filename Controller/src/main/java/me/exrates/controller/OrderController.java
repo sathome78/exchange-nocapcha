@@ -54,6 +54,9 @@ public ModelAndView myOrders() {
 	Map<String, List<Order>> orderMap = orderService.getAllOrders();
 	model.setViewName("orders");
 	model.addObject("orderMap", orderMap);
+	Order order = new Order();
+	getCurrenciesAndCommission(model,OperationType.SELL);
+    model.addObject(order);
    return model;
 }  
 

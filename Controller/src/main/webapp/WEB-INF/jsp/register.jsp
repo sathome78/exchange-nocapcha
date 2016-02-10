@@ -49,8 +49,8 @@ td {
      </tr>  
      <tr>  
       <td><loc:message code="register.password" /></td>  
-      <td><registrationform:input path="password" /></td>  
-      <td><registrationform:errors path="password" /></td>  
+      <td><registrationform:input path="password" type="password"/></td>  
+      <td><registrationform:errors path="password" type="password"/></td>  
      </tr> 
     
      <tr>  
