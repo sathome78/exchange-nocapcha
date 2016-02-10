@@ -4,6 +4,14 @@ $(function(){
         object = result;
         loadMeansOfPayment()
     });
+    $("#meansOfPaymentSelect").change(function(){
+        if ($("#meansOfPaymentSelect").find(":selected").text()=="Perfect Money") {
+            $("button[name='assertInputPay']").prop("disabled", true).html("Сервис в разработке");
+
+        } else {
+            $("button[name='assertInputPay']").prop("disabled", false).html("Пополнить");
+        }
+    });
     $("button[name='paymentProcess']").bind(
         "click", function() {
             $('form[name="payment"]').submit();
@@ -65,6 +73,7 @@ function loadMeansOfPayment() {
     var selectedVal = $("#currencySelect").find(":selected").val()
     $("#meansOfPaymentSelect")
         .empty();
+
     for (var key in object) {
         if (key==selectedVal){
             for(var value in object[key]) {

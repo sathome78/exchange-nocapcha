@@ -64,7 +64,7 @@
                     </div>
                     <div class="form-group">
                         <div class="col-sm-offset-3 col-sm-8">
-                            <paymentForm:input  class="form-control" placeholder="Сумма" id="#" path="sum"/>
+                            <paymentForm:input  class="form-control" pattern="/\d*\.\d{1,2}/" placeholder="Сумма" id="#" path="sum"/>
                         </div>
                     </div>
                     <div class="form-group">
@@ -93,7 +93,7 @@
             <div class="modal-footer">
                 <div class="add__money__btns">
                     <button type="button" name="paymentProcess" class="btn btn-primary">Продолжить</button>
-                    <button type="button" class="btn btn-warning">Отменить</button>
+                    <button type="button" data-dismiss="modal" class="btn btn-warning">Отменить</button>
                 </div>
             </div>
         </div><!-- /.modal-content -->

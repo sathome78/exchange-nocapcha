@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpSession;
+import javax.validation.Valid;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.Principal;
@@ -131,7 +132,7 @@ public class YandexMoneyMerchantController {
     }
 
     @RequestMapping(value = "/payment/prepare", method = RequestMethod.POST)
-    public ModelAndView preparePayment(@ModelAttribute("payment") Payment payment, BindingResult result, Principal principal, HttpSession httpSession) {
+    public ModelAndView preparePayment(@Valid @ModelAttribute("payment") Payment payment, BindingResult result, Principal principal, HttpSession httpSession) {
         if (result.hasErrors()) {
             return new ModelAndView("redirect:/merchants/input", result.getModel());
         }
