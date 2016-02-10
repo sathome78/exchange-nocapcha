@@ -45,7 +45,7 @@
                 <div class="title__page">Ввод средств</div>
 
                 <!-- Start  withdraw__money -->
-                <c:url value="/merchants/yandexmoney/payment/process" var="url"/>
+                <c:url value="/merchants/yandexmoney/payment/prepare" var="url"/>
                 <paymentForm:form class="form-horizontal withdraw__money" name="payment" method="post" modelAttribute="payment" action="${url}">
                     <div class="form-group">
                         <label class="col-sm-3 control-label" for="#">Валюта к вводу</label>
@@ -58,7 +58,7 @@
                     <div class="form-group">
                         <label class="col-sm-3 control-label" for="#"><loc:message code="merchants.meansOfPayment"/></label>
                         <div class="col-sm-8">
-                            <paymentForm:select id="meansOfPaymentSelect" path="meansOfPayment">
+                            <paymentForm:select id="meansOfPaymentSelect" path="merchant">
                             </paymentForm:select>
                         </div>
                     </div>

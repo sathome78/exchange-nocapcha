@@ -20,8 +20,8 @@ public class PaymentValidator implements Validator{
     public void validate(Object o, Errors errors) {
         ValidationUtils.rejectIfEmptyOrWhitespace(errors,"meansOfPayment","merchants.incorrectPaymentDetails");
         Payment payment = (Payment)o;
-        if (payment.getSum().compareTo(0.01) < 0) {
-            errors.reject("error","merchants.invalidSum");
-        }
+//        if (payment.getSum().compareTo(0.01) < 0) {
+//            errors.reject("error","merchants.invalidSum");
+//        }
     }
 }

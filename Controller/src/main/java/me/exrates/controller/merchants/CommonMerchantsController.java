@@ -1,14 +1,10 @@
 package me.exrates.controller.merchants;
 
 import com.google.gson.Gson;
-import javafx.util.Pair;
 import me.exrates.dao.CompanyWalletDao;
-import me.exrates.model.Commission;
-import me.exrates.model.Merchant;
-import me.exrates.model.Payment;
-import me.exrates.service.CommissionService;
-import me.exrates.service.CurrencyService;
-import me.exrates.service.MerchantService;
+import me.exrates.model.*;
+import me.exrates.model.enums.OperationType;
+import me.exrates.service.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +12,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.math.BigDecimal;
+import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 
@@ -34,18 +32,37 @@ public class CommonMerchantsController {
     private MerchantService merchantService;
 
     @Autowired
-    private CompanyWalletDao companyWalletDao;
-
-    @Autowired
     private CommissionService commissionService;
 
-    private static final Gson gson = new Gson();
+    @Autowired
+    private WalletService walletService;
+
+    @Autowired
+    private CompanyWalletService companyWalletService;
+
+    @Autowired
+    private UserService userService;
 
     @RequestMapping(value = "/merchants/input", method = RequestMethod.GET)
-    public ModelAndView merchants() {
+    public ModelAndView inputCredits() {
         final ModelAndView modelAndView = new ModelAndView("merchantsInputCredits");
         modelAndView.addObject("currencies",currencyService.getAllCurrencies());
         modelAndView.addObject("payment", new Payment());
+        return modelAndView;
+    }
+
+    @RequestMapping(value = "/test")
+    public @ResponseBody
+    Boolean get() {
+        return walletService.setWalletABalance(4, BigDecimal.valueOf(1).negate().doubleValue());
+    }
+
+    @RequestMapping(value = "/merchants/output", method = RequestMethod.GET)
+    public ModelAndView outputCredits(Principal principal) {
+        final ModelAndView modelAndView = new ModelAndView("merchantsOutputCredits");
+        final List<Wallet> allWallets = walletService.getAllWallets(userService.getIdByEmail(principal.getName()));
+        modelAndView.addObject("wallets",allWallets);
+        modelAndView.addObject("payment", new CreditsWithdrawal());
         return modelAndView;
     }
 
@@ -59,9 +76,9 @@ public class CommonMerchantsController {
     public @ResponseBody Double  getCommissions(@PathVariable("type") String type) {
         switch (type) {
             case "input" :
-                return commissionService.getCommissionByType(Commission.OperationType.INPUT.type);
+                return commissionService.getCommissionByType(OperationType.INPUT);
             case "output" :
-                return commissionService.getCommissionByType(Commission.OperationType.OUTPUT.type);
+                return commissionService.getCommissionByType(OperationType.OUTPUT);
             default:
                 return null;
         }

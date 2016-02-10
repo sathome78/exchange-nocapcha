@@ -24,27 +24,35 @@ public class Wallet {
 	public int getId() {
 		return id;
 	}
+
 	public void setId(int id) {
 		this.id = id;
 	}
+
 	public int getCurrId() {
 		return currId;
 	}
+
 	public void setCurrId(int currId) {
 		this.currId = currId;
 	}
+
 	public int getUserId() {
 		return userId;
 	}
+
 	public void setUserId(int userId) {
 		this.userId = userId;
 	}
+
 	public double getActiveBalance() {
 		return activeBalance;
 	}
+
 	public void setActiveBalance(double activeBalance) {
 		this.activeBalance = activeBalance;
 	}
+
 	public double getReservedBalance() {
 		return reservedBalance;
 	}
@@ -52,6 +60,9 @@ public class Wallet {
 		this.reservedBalance = reservedBalance;
 	}
 
+	public String getFullName(){
+		return name+" "+activeBalance;
+	}
 	
 }
 

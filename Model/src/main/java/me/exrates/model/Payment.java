@@ -14,6 +14,7 @@ public class Payment {
     private int currency;
     private String meansOfPayment;
     private double sum;
+    private int merchant;
 
     public enum TransactionType {
 
@@ -55,12 +56,20 @@ public class Payment {
         this.meansOfPayment = meansOfPayment;
     }
 
-    public Double getSum() {
+    public double getSum() {
         return sum;
     }
 
-    public void setSum(Double sum) {
+    public void setSum(double sum) {
         this.sum = sum;
+    }
+
+    public int getMerchant() {
+        return merchant;
+    }
+
+    public void setMerchant(int merchant) {
+        this.merchant = merchant;
     }
 
     @Override

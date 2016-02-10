@@ -31,8 +31,7 @@ td {
 </style>  
 </head>  
 <body>  
-<%@include file='header.jsp'%><br>
- <b><loc:message code="register.form" /></b>   
+ <b><loc:message code="register.form" /></b>
    
   <div>  
    <registrationform:form method="post" action="create" modelAttribute="user">  

@@ -22,10 +22,10 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class WalletDaoImpl implements WalletDao {
 
-	//private static final Logger logger=Logger.getLogger(WalletDaoImpl.class); 
-	@Autowired  
+	//private static final Logger logger=Logger.getLogger(WalletDaoImpl.class);
+	@Autowired
 	DataSource dataSource;
-	
+
 	public double getWalletABalance(int walletId) {
 		String sql = "SELECT active_balance FROM wallet WHERE id = :walletId";
 		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
@@ -33,7 +33,7 @@ public class WalletDaoImpl implements WalletDao {
 		namedParameters.put("walletId", String.valueOf(walletId));
 		return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Double.class);
 	}
-	
+
 	public double getWalletRBalance(int walletId) {
 		String sql = "SELECT reserved_balance FROM wallet WHERE id = :walletId";
 		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
@@ -73,22 +73,21 @@ public class WalletDaoImpl implements WalletDao {
 		namedParameters.put("userId", String.valueOf(userId));
 		namedParameters.put("currencyId", String.valueOf(currencyId));
 		try {
-            int id = namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Integer.class);
-            return id;
-        } catch (EmptyResultDataAccessException e) {
-            return 0;
-        }
+			return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Integer.class);
+		} catch (EmptyResultDataAccessException e) {
+			return 0;
+		}
 	}
-	
-	
+
+
 	public int createNewWallet(Wallet wallet) {
 		String sql = "INSERT wallet(currency_id,user_id,active_balance) VALUES(:currId,:userId,:activeBalance)";
-		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);		
+		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 		MapSqlParameterSource parameters = new MapSqlParameterSource()
-        .addValue("currId", wallet.getCurrId())
-        .addValue("userId", wallet.getUserId())
-        .addValue("activeBalance", wallet.getActiveBalance());
+				.addValue("currId", wallet.getCurrId())
+				.addValue("userId", wallet.getUserId())
+				.addValue("activeBalance", wallet.getActiveBalance());
 		int result = namedParameterJdbcTemplate.update(sql, parameters, keyHolder);
 		int id = (int) keyHolder.getKey().longValue();
 		if(result <= 0) {
@@ -101,7 +100,7 @@ public class WalletDaoImpl implements WalletDao {
 	public List<Wallet> getAllWallets(int userId) {
 		String sql = "SELECT WALLET.id,WALLET.currency_id,WALLET.user_id,WALLET.active_balance,WALLET.reserved_balance, CURRENCY.name as wallet_name FROM WALLET" +
 				"  INNER JOIN CURRENCY On WALLET.currency_id = CURRENCY.id and WALLET.user_id = :userId";
-		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);		
+		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
 		final Map<String, String> namedParameters = new HashMap<>();
 		namedParameters.put("userId", String.valueOf(userId));
 		return namedParameterJdbcTemplate.query(sql, namedParameters, (rs, row) -> {
@@ -113,15 +112,18 @@ public class WalletDaoImpl implements WalletDao {
 			wallet.setReservedBalance(rs.getDouble("reserved_balance"));
 			wallet.setName(rs.getString("wallet_name"));
 			return wallet;
-        });
+		});
 	}
-	
+
 	public int getUserIdFromWallet(int walletId) {
 		String sql = "SELECT user_id FROM wallet WHERE id = :walletId";
 		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
 		Map<String, String> namedParameters = new HashMap<>();
 		namedParameters.put("walletId", String.valueOf(walletId));
-		int userId = namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Integer.class);
-		return userId;
+		try {
+			return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Integer.class);
+		} catch (EmptyResultDataAccessException e) {
+			return 0;
+		}
 	}
 }

@@ -1,5 +1,9 @@
 $(document).ready(function() {
 
+	$("#logout").click(function(){
+		$("#logoutForm").submit();
+	});
+
 	function setHeiHeight() {
 	    $('.full__height, .lk > .container, .sidebar, .main__content').css({
 	        minHeight: $(window).height() + 'px'

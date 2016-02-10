@@ -47,12 +47,13 @@
 
         <div class="header__flip">
             <span>Добрый день! <strong><sec:authentication property="principal.username" /></strong></span>
-            <form action="${logoutUrl}" method="post">
-                <a href="#" class="login__link">Выйти
-                    <input type="submit" value="Logout" />
-                </a>
+            <c:url value="/logout" var="logoutUrl" />
+            <form action="${logoutUrl}" id="logoutForm" method="post">
                 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
             </form>
+            <a href="#" id="logout" class="login__link">
+                Выйти
+            </a>
             <div class="dropdown lang__select">
                 <a data-toggle="dropdown" href="#">ru</a><i class="glyphicon-chevron-down"></i>
                 <ul class="dropdown-menu">

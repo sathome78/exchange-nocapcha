@@ -44,17 +44,17 @@ public class CompanyWalletDaoImpl implements CompanyWalletDao {
         final Map<String,Integer> params = new HashMap<>();
         params.put("currencyId",currencyId);
         NamedParameterJdbcTemplate jdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+        CompanyWallet companyWallet = new CompanyWallet();
         try {
             jdbcTemplate.query(sql, params, (resultSet, i) -> {
-                CompanyWallet companyWallet = new CompanyWallet();
-                companyWallet.setCurrencyId(resultSet.getInt("id"));
+                companyWallet.setId(resultSet.getInt("id"));
                 companyWallet.setCurrencyId(resultSet.getInt("currency_id"));
                 companyWallet.setName(resultSet.getString("currency_name"));
                 return companyWallet;
             });
         } catch (EmptyResultDataAccessException e) {
-            /*NOP*/
+            return null;
         }
-        return null;
+        return companyWallet;
     }
 }

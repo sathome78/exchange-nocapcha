@@ -39,4 +39,8 @@ public final class YandexMoneyProperties extends BaseProperties {
     public BigDecimal yandexMoneyP2PCommission() {
         return BigDecimal.valueOf(Double.valueOf(get(PREFIX+"commissionP2P")));
     }
+
+    public String accessToken(){
+        return get(PREFIX+"token");
+    }
 }

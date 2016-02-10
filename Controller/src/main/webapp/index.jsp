@@ -264,7 +264,7 @@
             <div class="modal fade" id="video__about" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-lg">
                     <div class="video__wrapper">
-                        <iframe width="560" height="315" src="https://www.youtube.com/embed/dLTngFItgj8" frameborder="0" allowfullscreen></iframe>
+                        <iframe width="560" height="315" src="https://www.youtube.com/embed/nNwPuaHF-jo" frameborder="0" allowfullscreen></iframe>
                     </div>
                 </div>
             </div>

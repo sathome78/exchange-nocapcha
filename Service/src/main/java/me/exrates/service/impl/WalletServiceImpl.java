@@ -56,8 +56,11 @@ public class WalletServiceImpl implements WalletService {
 	@Transactional()
 	@Override
 	public boolean setWalletABalance(int walletId, double amount) {
+		System.out.println(amount + " AMOUNT");
 		final double oldBalance = walletDao.getWalletABalance(walletId);
+		System.out.println(oldBalance + "OLD BALANCE");
 		final BigDecimal newBalance = BigDecimal.valueOf(oldBalance).add(BigDecimal.valueOf(amount)).setScale(9,BigDecimal.ROUND_CEILING);
+		System.out.println(newBalance + " NEW BALANCE");
 		if(newBalance.signum() == -1) {
 			return false;
 		}
@@ -94,7 +97,7 @@ public class WalletServiceImpl implements WalletService {
 		}
 		else return false;
 	}
-	
+
 	@Transactional
 	@Override
 	public int createNewWallet(Wallet wallet) {
@@ -105,6 +108,6 @@ public class WalletServiceImpl implements WalletService {
 	public int getUserIdFromWallet(int walletId) {
 		return walletDao.getUserIdFromWallet(walletId);
 	}
-	
-	
+
+
 }

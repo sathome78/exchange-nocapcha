@@ -20,7 +20,6 @@ public interface WalletDao {
 	int createNewWallet(Wallet wallet);
 
 	List<Wallet> getAllWallets(int userId);
-	
+
 	int getUserIdFromWallet(int walletId);
 }
-

@@ -22,7 +22,7 @@ public final class TransactionDaoImpl implements TransactionDao {
 
     @Override
     public boolean create(Transaction transaction) {
-        final String sql = "INSERT INTO TRANSACTIONS (wallet_id, amount, transaction_type, date, commission_id) " +
+        final String sql = "INSERT INTO TRANSACTION (wallet_id, amount, transaction_type, date, commission_id) " +
                 "VALUES (:walletId, :amount, :transactionType, :date, :commission_id)";
         final Map<String,String> params = new HashMap<String,String>(){
             {
