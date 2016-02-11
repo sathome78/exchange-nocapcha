@@ -37,7 +37,7 @@
                 </a>
             </li>
             <li class="navabr__item">
-                <a href="#" class="navabr__link">Ордера</a>
+                <a href="<c:url value="/orders"/>" class="navabr__link">Ордера</a>
             </li>
             <li class="navabr__item">
                 <a href="<c:url value="/merchants/input"/>" class="navabr__link">Ввод средств</a>
@@ -46,7 +46,7 @@
                 <a href="<c:url value="/merchants/output"/>" class="navabr__link">Вывод средств</a>
             </li>
             <li class="navabr__item">
-                <a href="#" class="navabr__link">История операций</a>
+                <a href="<c:url value="/transaction"/>" class="navabr__link">История операций</a>
             </li>
             <li class="navabr__item">
                 <a href="#" class="navabr__link">Настройки</a>

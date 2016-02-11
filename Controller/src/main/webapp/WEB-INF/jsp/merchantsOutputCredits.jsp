@@ -43,7 +43,12 @@
             <div class="content__page">
 
                 <div class="title__page">Вывод средств</div>
-            <c:choose>
+                <c:if test="${error!=null}">
+                    <label class="alert-danger has-error">
+                        <loc:message code="${error}"/>
+                    </label>
+                </c:if>
+                <c:choose>
                 <c:when test="${empty wallets}">
                     <loc:message code="merchants.noWallet"/>
                 </c:when>
@@ -105,7 +110,7 @@
             <div class="modal-footer">
                 <div class="add__money__btns">
                     <button type="button" name="paymentOutput" class="btn btn-primary">Продолжить</button>
-                    <button type="button" class="btn btn-warning">Отменить</button>
+                    <button type="button" data-dismiss="modal" class="btn btn-warning">Отменить</button>
                 </div>
             </div>
         </div><!-- /.modal-content -->

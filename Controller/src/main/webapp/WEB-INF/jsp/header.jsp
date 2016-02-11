@@ -52,7 +52,7 @@
                 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
             </form>
             <a href="#" id="logout" class="login__link">
-                Выйти
+                <h5><strong>Выйти</strong></h5>
             </a>
             <div class="dropdown lang__select">
                 <a data-toggle="dropdown" href="#">ru</a><i class="glyphicon-chevron-down"></i>

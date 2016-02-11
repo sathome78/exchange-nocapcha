@@ -4,6 +4,15 @@ $(function(){
         object = result;
         loadMeansOfPayment()
     });
+
+    $("input[name='sum']").keypress(function(){
+        var data = this.value;
+        if (isNaN(data) || parseFloat(data) < 1) {
+            $("button[name='assertInputPay']").prop("disabled", true)
+        } else {
+            $("button[name='assertInputPay']").prop("disabled", false)
+        }
+    });
     $("#meansOfPaymentSelect").change(function(){
         if ($("#meansOfPaymentSelect").find(":selected").text()=="Perfect Money") {
             $("button[name='assertInputPay']").prop("disabled", true).html("Сервис в разработке");
@@ -20,8 +29,12 @@ $(function(){
     $("button[name='paymentOutput']").bind(
         "click", function() {
             var uid = $("input[name='walletUid']").val();
-            $("#meanOfPaymentId").val(uid);
-            $('form[name="payment"]').submit();
+            if (uid.length>5){
+                $("#meanOfPaymentId").val(uid);
+                $('form[name="payment"]').submit();
+            } else {
+
+            }
         }
     );
     $("button[name='assertInputPay']").click(function(){
@@ -34,39 +47,39 @@ $(function(){
             } else {
                 var sum = parseFloat($("input[name='sum']").val());
                 var currency = $("select[name='currency']").find(":selected").text();
-                var meanOfPayment = $("select[name='meansOfPayment']").find(":selected").text();
+                var meanOfPayment = $("select[name='merchant']").find(":selected").text();
                 var computedCommission = Math.ceil((sum * commission))/100;
                 var finalSum = sum + computedCommission;
                 $(".modal-body")
                     .empty()
-                    .append("Вы вводите "+sum+" "+currency+" через платежную систему "+meanOfPayment+". " +
-                        "Коммиссия биржи составит - "+computedCommission+" "+currency+". Итого сумма к оплате : "+finalSum+" " +
-                        currency+".");
+                    .append("Вы вводите через платежную систему "+meanOfPayment+" " + sum+" "+currency + "<br/>"+
+                        "Коммиссия биржи составит : "+computedCommission+" "+currency+".<br/>"+
+                        "Итого сумма к оплате : "+finalSum+" " + currency+".");
             }
         });
     });
 
-    //$("button[name='assertOutputPay']").click(function(){
-    //    $.get("/merchants/commission/output",function(commission){
-    //        commission = parseFloat(commission);
-    //        if (isNaN(commission)){
-    //            $(".modal-body")
-    //                .empty()
-    //                .append("К сожалению в настоящий момент оплата недоступна.");
-    //        } else {
-    //            var sum = parseFloat($("input[name='sum']").val());
-    //            var currency = $("select[name='currency']").find(":selected").text();
-    //            var meanOfPayment = $("select[name='merchant']").find(":selected").text();
-    //            var computedCommission = Math.ceil((sum * commission)*100)/100;
-    //            var finalSum = sum + computedCommission;
-    //            $(".modal-body")
-    //                .empty()
-    //                .append("Вы вводите "+sum+" "+currency+" через платежную систему "+meanOfPayment+". " +
-    //                    "Коммиссия биржи составит - "+computedCommission+" "+currency+". Итого сумма к оплате : "+finalSum+" " +
-    //                    currency+".");
-    //        }
-    //    });
-    //});
+    $("button[name='assertOutputPay']").click(function(){
+        $.get("/merchants/commission/output",function(commission){
+            commission = parseFloat(commission);
+            if (isNaN(commission)){
+                $(".modal-body")
+                    .empty()
+                    .append("К сожалению в настоящий момент оплата недоступна.");
+            } else {
+                var sum = parseFloat($("input[name='sum']").val());
+                var currency = $("select[name='currency']").find(":selected").text().split(" ",1);
+                var meanOfPayment = $("select[name='meansOfPayment']").find(":selected").text();
+                var computedCommission = Math.ceil((sum * commission))/100;
+                var finalSum = sum + computedCommission;
+                $(".modal-header")
+                    .empty()
+                    .append("Вы выводите через платежную систему "+meanOfPayment+" : " + +sum+" "+currency+" <br/>"+
+                        "Коммиссия биржи составит "+computedCommission+" "+currency+". <br/> " +
+                        "Итого сумма к списанию : "+finalSum+" " + currency+".");
+            }
+        });
+    });
 
 });
 function loadMeansOfPayment() {

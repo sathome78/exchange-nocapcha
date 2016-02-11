@@ -43,7 +43,11 @@
             <div class="content__page">
 
                 <div class="title__page">Ввод средств</div>
-
+                <c:if test="${error!=null}">
+                <label class="alert-danger has-error">
+                    <loc:message code="${error}"/>
+                </label>
+                </c:if>
                 <!-- Start  withdraw__money -->
                 <c:url value="/merchants/yandexmoney/payment/prepare" var="url"/>
                 <paymentForm:form class="form-horizontal withdraw__money" name="payment" method="post" modelAttribute="payment" action="${url}">

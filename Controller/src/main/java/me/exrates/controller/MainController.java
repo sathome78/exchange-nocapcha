@@ -1,12 +1,17 @@
 package me.exrates.controller;  
 
 import java.security.Principal;
+import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import me.exrates.controller.validator.RegisterFormValidation;
+import me.exrates.model.Transaction;
 import me.exrates.model.User;
 import me.exrates.security.service.UserSecureService;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.TransactionService;
 import me.exrates.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;  
+import me.exrates.service.WalletService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;  
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
@@ -31,6 +36,11 @@ RegisterFormValidation registerFormValidation;
 @Autowired
 HttpServletRequest request;
 
+    @Autowired
+    private TransactionService transactionService;
+
+    @Autowired
+    private WalletService walletService;
   
  @RequestMapping("/admin")  
  public ModelAndView admin() {  
@@ -105,6 +115,17 @@ HttpServletRequest request;
 		return model;
 
 	}
+
+    @RequestMapping(value = "/transaction")
+    public ModelAndView transactions(Principal principal) {
+        final int idByEmail = userService.getIdByEmail(principal.getName());
+        final List<Transaction> allByUserId = transactionService.findAllByUserId(idByEmail);
+        allByUserId.forEach(transaction ->
+                transaction.setCurrency(walletService.getCurrencyName(walletService.getCurrencyId(transaction.getWalletId()))));
+        System.out.println(allByUserId.get(0).getCurrency() + "CURRENCY");
+        final ModelAndView modelAndView = new ModelAndView("transaction");
+        return modelAndView.addObject("transactions",allByUserId);
+    }
  
 }  
 

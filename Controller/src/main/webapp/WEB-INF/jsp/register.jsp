@@ -1,4 +1,4 @@
-<%@page language="java"%>
+<%@page language="java" contentType="text/html; charset=UTF-8"%>
 <%@taglib uri="http://www.springframework.org/tags/form" prefix="registrationform"%>  
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <%@taglib uri="http://www.springframework.org/tags" prefix="loc"%>
@@ -54,7 +54,7 @@ td {
     
      <tr>  
       <td><loc:message code="register.repeatpassword" /></td>  
-      <td><registrationform:input path="confirmPassword" /></td>  
+      <td><registrationform:input path="confirmPassword" type="password" /></td>
       <td><registrationform:errors path="confirmPassword" /></td>  
      </tr> 
      

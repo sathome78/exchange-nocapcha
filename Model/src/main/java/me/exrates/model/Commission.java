@@ -24,7 +24,7 @@ public class Commission {
 		return operationType;
 	}
 
-	public void setoperationType(OperationType operationType) {
+	public void setOperationType(OperationType operationType) {
 		this.operationType = operationType;
 	}
 

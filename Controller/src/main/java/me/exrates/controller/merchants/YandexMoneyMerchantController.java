@@ -27,8 +27,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
@@ -36,7 +40,6 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -68,25 +71,12 @@ public class YandexMoneyMerchantController {
 
     private static final Logger logger = LogManager.getLogger(YandexMoneyMerchantController.class);
 
-    private static final String merchantErrorPage = "redirect:/merchants/yandexmoney/error";
+    private static final String merchantInputErrorPage = "redirect:/merchants/input";
 
-    @RequestMapping("/test")
-    public
-    @ResponseBody
-    List<Wallet> get() {
-//        Wallet wallet = new Wallet();
-//        wallet.setCurrId(1);
-//        wallet.setName("USD" );
-//        wallet.setUserId(1);
-//        final int newWallet = walletService.createNewWallet(wallet);
-//        walletService.setWalletABalance(newWallet,123);
-//        walletService.setWalletRBalance(newWallet,321);
-//        return walletService.getAllWallets(newWallet);
-        return null;
-    }
+    private static final String merchantOutputErrorPage = "redirect:/merchants/output";
 
     @RequestMapping(value = "/token/authorization", method = RequestMethod.GET)
-    public ModelAndView yandexMoneyTemporaryAuthorizationCodeRequest(ModelAndView modelAndView) {
+    public ModelAndView yandexMoneyTemporaryAuthorizationCodeRequest(ModelAndView modelAndView,RedirectAttributes redirectAttributes) {
         DefaultApiClient apiClient = new DefaultApiClient(yandexMoneyProperties.clientId(), true);
         OAuth2Session session = new OAuth2Session(apiClient);
         OAuth2Authorization oAuth2Authorization = session.createOAuth2Authorization();
@@ -106,15 +96,17 @@ public class YandexMoneyMerchantController {
         try {
             response = httpClient.newCall(request).execute();
         } catch (IOException e) {
-            return new ModelAndView(merchantErrorPage, new ModelMap().addAttribute("error", "merchants.internalError"));
+            redirectAttributes.addFlashAttribute("error", "merchants.internalError");
+            return new ModelAndView(merchantInputErrorPage);
         }
         modelAndView.setViewName("redirect:" + response.header(HttpHeaders.LOCATION));
         return modelAndView;
     }
 
     @RequestMapping(value = "/token/access")
-    public ModelAndView yandexMoneyAccessTokenRequest(@RequestParam(value = "code", required = false) String code, Principal principal) {
-        ModelAndView errorModelAndView = new ModelAndView(merchantErrorPage, new ModelMap().addAttribute("error", "merchants.internalError"));
+    public ModelAndView yandexMoneyAccessTokenRequest(@RequestParam(value = "code", required = false) String code,RedirectAttributes redirectAttributes) {
+        ModelAndView errorModelAndView = new ModelAndView(merchantInputErrorPage);
+        redirectAttributes.addFlashAttribute("error", "merchants.authRejected");
         if (Strings.isNullOrEmpty(code)) {
             return errorModelAndView;
         }
@@ -155,16 +147,14 @@ public class YandexMoneyMerchantController {
     }
 
     @RequestMapping(value = "/payment/process")
-    public ModelAndView processPayment(Principal principal, @ModelAttribute(value = "token") String token, HttpSession httpSession) throws InvalidTokenException, InsufficientScopeException, InvalidRequestException, IOException {
-        String email = principal.getName();
-        if (Strings.isNullOrEmpty(token)) {
-            return new ModelAndView("redirect:/merchants/yandexmoney/token/authorization");
-        }
+    public ModelAndView processPayment(Principal principal, @ModelAttribute(value = "token") String token, HttpSession httpSession,RedirectAttributes redir) throws InvalidTokenException, InsufficientScopeException, InvalidRequestException, IOException {
         ModelMap paymentData;
-        paymentData = (ModelMap) httpSession.getAttribute("paymentPrepareData");
-        httpSession.removeAttribute("paymentPrepareData");
+        synchronized (httpSession) {
+            paymentData = (ModelMap) httpSession.getAttribute("paymentPrepareData");
+            httpSession.removeAttribute("paymentPrepareData");
+        }
         if (paymentData == null) {
-            return new ModelAndView("redirect:/merchants");
+            return new ModelAndView("redirect:/merchants/input");
         }
         DefaultApiClient apiClient = new DefaultApiClient(yandexMoneyProperties.clientId(), true);
         OAuth2Session oAuth2Session = new OAuth2Session(apiClient);
@@ -179,30 +169,35 @@ public class YandexMoneyMerchantController {
                 .create();
         RequestPayment.Request request = RequestPayment.Request.newInstance(p2pTransferParams);
         RequestPayment execute;
-        ModelAndView redirectToMerchantError = new ModelAndView(merchantErrorPage);
+        ModelAndView redirectToMerchantError = new ModelAndView(merchantInputErrorPage);
         try {
             execute = oAuth2Session.execute(request);
             BaseRequestPayment.Status responseStatus = execute.status;
             if (responseStatus.equals(BaseRequestPayment.Status.REFUSED)) {
                 switch (execute.error) {
                     case NOT_ENOUGH_FUNDS:
-                        return redirectToMerchantError.addObject("error", "merchants.notEnoughMoney");
+                        redir.addFlashAttribute("error", "merchants.notEnoughMoney");
+                        return redirectToMerchantError;
                     case AUTHORIZATION_REJECT:
-                        return redirectToMerchantError.addObject("error", "merchants.authRejected");
+                        redir.addFlashAttribute("error", "merchants.authRejected");
+                        return redirectToMerchantError;
                     case LIMIT_EXCEEDED:
-                        return redirectToMerchantError.addObject("error", "merchants.limitExceed");
+                        redir.addFlashAttribute("error", "merchants.limitExceed");
+                        return redirectToMerchantError;
                     case ACCOUNT_BLOCKED:
                         return new ModelAndView("redirect:" + execute.accountUnblockUri);
                     case EXT_ACTION_REQUIRED:
                         return new ModelAndView("redirect:" + execute.extActionUri);
                     default:
                         logger.fatal(execute.error);
-                        return redirectToMerchantError.addObject("error", "merchants.internalError");
+                        redir.addFlashAttribute("error", "merchants.internalError");
+                        return redirectToMerchantError;
                 }
             }
         } catch (IOException | InvalidRequestException | InsufficientScopeException | InvalidTokenException e) {
             logger.error(e.getMessage());
-            return redirectToMerchantError.addObject("error", "merchants.internalError");
+            redir.addFlashAttribute("error", "merchants.internalError");
+            return redirectToMerchantError;
         }
         ProcessPayment processPayment = oAuth2Session.execute(new ProcessPayment.Request(execute.requestId));
         if (processPayment.status.equals(ProcessPayment.Status.SUCCESS)) {
@@ -214,7 +209,6 @@ public class YandexMoneyMerchantController {
                 wallet.setCurrId(currencyId);
                 wallet.setUserId(idByEmail);
                 walletId = walletService.createNewWallet(wallet);
-
             }
             walletService.setWalletABalance(walletId, ((BigDecimal) paymentData.get("amount")).doubleValue());
             CompanyTransaction companyTransaction = new CompanyTransaction();
@@ -227,33 +221,36 @@ public class YandexMoneyMerchantController {
             companyTransaction = companyTransactionService.create(companyTransaction);
             logger.info(companyTransaction);
             Transaction transaction = new Transaction();
-            transaction.setAmount(((BigDecimal) paymentData.get("amount")).doubleValue());
-            transaction.setCommissionId(OperationType.INPUT.type);
+            transaction.setAmount(((BigDecimal) paymentData.get("sumToPay")).doubleValue());
+            transaction.setCommissionId(commissionService.findCommissionByType(OperationType.INPUT).getId());
             transaction.setTransactionType(Payment.TransactionType.INPUT);
             transaction.setWalletId(walletId);
             transaction.setDate(LocalDateTime.now());
             transactionService.create(transaction);
             logger.info(transaction.toString());
+            redir.addFlashAttribute("message","Спасибо! Вы успешно ввели "+((BigDecimal) paymentData.get("amount")).setScale(2,BigDecimal.ROUND_CEILING) + " " + walletService.getCurrencyName(currencyId));
             return new ModelAndView("redirect:/mywallets");
         } else if (processPayment.status.equals(ProcessPayment.Status.REFUSED)) {
             switch (processPayment.error) {
                 case NOT_ENOUGH_FUNDS:
-                    return redirectToMerchantError.addObject("error", "merchants.notEnoughMoney");
+                    redir.addFlashAttribute("error", "merchants.notEnoughMoney");
+                    return redirectToMerchantError;
                 case ACCOUNT_BLOCKED:
                     return new ModelAndView("redirect:" + execute.accountUnblockUri);
             }
         }
-        return redirectToMerchantError.addObject("error", "merchants.internalError");
+        redir.addFlashAttribute("error", "merchants.internalError");
+        return redirectToMerchantError;
     }
 
     @RequestMapping(value = "/payment/output")
-    public ModelAndView processOutputPayment(Principal principal, CreditsWithdrawal creditsWithdrawal) throws InvalidTokenException, InsufficientScopeException, InvalidRequestException, IOException {
+    public ModelAndView processOutputPayment(Principal principal, CreditsWithdrawal creditsWithdrawal,RedirectAttributes redir) throws InvalidTokenException, InsufficientScopeException, InvalidRequestException, IOException {
         String email = principal.getName();
         final int currency = creditsWithdrawal.getCurrency();
         final int idByEmail = userService.getIdByEmail(email);
         final int walletId = walletService.getWalletId(idByEmail, currency);
         BigDecimal sumToWithdraw = (BigDecimal.valueOf(commissionService.getCommissionByType(OperationType.OUTPUT)).divide(BigDecimal.valueOf(100L), BigDecimal.ROUND_CEILING)).add(BigDecimal.valueOf(creditsWithdrawal.getSum())).setScale(2, BigDecimal.ROUND_CEILING);
-        ModelAndView redirectToMerchantError = new ModelAndView(merchantErrorPage);
+        ModelAndView redirectToMerchantError = new ModelAndView(merchantOutputErrorPage);
         if (walletService.ifEnoughMoney(walletId, sumToWithdraw.doubleValue())) {
             OAuth2Session oAuth2Session = new OAuth2Session(new DefaultApiClient(yandexMoneyProperties.clientId()));
             oAuth2Session.setAccessToken(yandexMoneyProperties.accessToken());
@@ -268,25 +265,37 @@ public class YandexMoneyMerchantController {
                 if (responseStatus.equals(BaseRequestPayment.Status.REFUSED)) {
                     switch (execute.error) {
                         default:
-                            logger.fatal(execute.error);
-                            return redirectToMerchantError.addObject("error", "merchants.internalError");
+                            logger.error(execute.error);
+                            redir.addFlashAttribute("error", "merchants.authRejected");
+                            return redirectToMerchantError;
                     }
                 }
             } catch (IOException | InvalidRequestException | InsufficientScopeException | InvalidTokenException e) {
                 logger.error(e.getMessage());
-                return redirectToMerchantError.addObject("error", "merchants.internalError");
+                redir.addFlashAttribute("error", "merchants.internalError");
+                return redirectToMerchantError;
             }
             ProcessPayment processPayment = oAuth2Session.execute(new ProcessPayment.Request(execute.requestId));
             if (processPayment.status.equals(ProcessPayment.Status.SUCCESS)) {
                 walletService.setWalletABalance(walletId, sumToWithdraw.negate().doubleValue());
+                Transaction transaction = new Transaction();
+                transaction.setAmount(sumToWithdraw.doubleValue());
+                transaction.setCommissionId(commissionService.findCommissionByType(OperationType.OUTPUT).getId());
+                transaction.setDate(LocalDateTime.now());
+                transaction.setTransactionType(Payment.TransactionType.OUTPUT);
+                transaction.setWalletId(walletId);
+                transactionService.create(transaction);
+                redir.addFlashAttribute("message","Вы успешно вывели средства : " + BigDecimal.valueOf(creditsWithdrawal.getSum()).setScale(2,BigDecimal.ROUND_CEILING) + " " + walletService.getCurrencyName(currency));
                 return new ModelAndView("redirect:/mywallets");
             } else if (processPayment.status.equals(ProcessPayment.Status.REFUSED)) {
                 switch (processPayment.error) {
                     default:
-                        return redirectToMerchantError.addObject("error", "merchants.internalError");
+                        redir.addFlashAttribute("error", "merchants.internalError");
+                        return redirectToMerchantError;
                 }
             }
         }
-        return redirectToMerchantError.addObject("error", "merchants.notEnoughWalletMoney");
+        redir.addFlashAttribute("error", "merchants.notEnoughWalletMoney");
+        return redirectToMerchantError;
     }
 }

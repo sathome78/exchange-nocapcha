@@ -6,6 +6,8 @@ import me.exrates.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
@@ -18,5 +20,10 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public boolean create(Transaction transaction) {
         return transactionDao.create(transaction);
+    }
+
+    @Override
+    public List<Transaction> findAllByUserId(int id) {
+        return transactionDao.findAllByUserId(id);
     }
 }

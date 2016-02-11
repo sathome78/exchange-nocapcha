@@ -105,7 +105,10 @@ public ModelAndView submitNewOrderToSell(@Valid @ModelAttribute Order order, Bin
     }
     else {
     	int walletIdFrom = walletService.getWalletId(userService.getIdByEmail(principal.getName()),order.getCurrencySell());
-    	boolean ifEnoughMoney = walletService.ifEnoughMoney(walletIdFrom, order.getAmountSell());
+		boolean ifEnoughMoney = false;
+		if(walletIdFrom != 0) {
+			ifEnoughMoney = walletService.ifEnoughMoney(walletIdFrom, order.getAmountSell());
+		}
     	if(ifEnoughMoney) {
     		model.setViewName("submitorder");
     	}

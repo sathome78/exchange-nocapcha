@@ -1,6 +1,7 @@
 package me.exrates.service.impl;
 
 import me.exrates.dao.CommissionDao;
+import me.exrates.model.Commission;
 import me.exrates.model.enums.OperationType;
 import me.exrates.service.CommissionService;
 
@@ -12,7 +13,12 @@ public class CommissionServiceImpl implements CommissionService {
 
 	@Autowired  
 	CommissionDao commissionDao;
-	
+
+	@Override
+	public Commission findCommissionByType(OperationType operationType) {
+		return commissionDao.getCommission(operationType);
+	}
+
 	@Override
 	public double getCommissionByType(OperationType type) {
 		return commissionDao.getCommissionByType(type);

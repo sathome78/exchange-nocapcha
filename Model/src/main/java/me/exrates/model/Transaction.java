@@ -13,6 +13,9 @@ public class Transaction {
     private double amount;
     private Payment.TransactionType transactionType;
     private LocalDateTime date;
+    private String currency;
+    private String operationType;
+    private double commission;
 
     public int getId() {
         return id;
@@ -60,6 +63,30 @@ public class Transaction {
 
     public void setDate(LocalDateTime date) {
         this.date = date;
+    }
+
+    public String getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(String currency) {
+        this.currency = currency;
+    }
+
+    public String getOperationType() {
+        return operationType;
+    }
+
+    public void setOperationType(String operationType) {
+        this.operationType = operationType;
+    }
+
+    public double getCommission() {
+        return commission;
+    }
+
+    public void setCommission(double commission) {
+        this.commission = commission;
     }
 
     @Override

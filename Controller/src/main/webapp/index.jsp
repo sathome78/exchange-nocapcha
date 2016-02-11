@@ -90,9 +90,41 @@
             </div>
         </header><!-- .header-->
     </sec:authorize>
-    <%--<sec:authorize access="isAuthenticated()">--%>
-        <%--<%@include file='header.jsp'%><br>--%>
-    <%--</sec:authorize>--%>
+    <sec:authorize access="isAuthenticated()">
+        <header class="header">
+            <div class="container container_center">
+
+                <!-- begin Logo block -->
+                <div class="header__logo">
+                    <a href="<c:url value="/"/>"><img src="<c:url value="/client/img/logo.png"/>" alt=""/></a>
+                </div>
+                <!-- end Logo block -->
+
+                <!-- begin Right block -->
+                <div class="header__flip">
+                    <span style="color:#eee">Добрый день! <strong><sec:authentication property="principal.username" /></strong></span>
+                    <c:url value="/logout" var="logoutUrl" />
+                    <form action="${logoutUrl}" id="logoutForm" method="post">
+                        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
+                    </form>
+                    <a href="#" id="logout" class="login__link">
+                        Выйти
+                    </a>
+
+                    <div class="dropdown lang__select">
+                        <a data-toggle="dropdown" href="#">ru</a><i class="glyphicon-chevron-down"></i>
+                        <ul class="dropdown-menu">
+                            <li><a href="#">ru</a></li>
+                            <li><a href="#">en</a></li>
+                        </ul>
+                    </div>
+
+                </div>
+                <!-- end Right block -->
+
+            </div>
+        </header><!-- .header-->
+    </sec:authorize>
 
 
 

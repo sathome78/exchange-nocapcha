@@ -1,7 +1,7 @@
 package me.exrates.controller.merchants;
 
-import com.google.gson.Gson;
-import me.exrates.dao.CompanyWalletDao;
+import me.exrates.dao.CommissionDao;
+import me.exrates.dao.TransactionDao;
 import me.exrates.model.*;
 import me.exrates.model.enums.OperationType;
 import me.exrates.service.*;
@@ -12,7 +12,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
@@ -41,20 +40,25 @@ public class CommonMerchantsController {
     private CompanyWalletService companyWalletService;
 
     @Autowired
+    private TransactionService transactionService;
+
+    @Autowired
     private UserService userService;
+
+    @Autowired
+    private CommissionDao commissionDao;
+
+    @Autowired
+    private TransactionDao transactionDao;
 
     @RequestMapping(value = "/merchants/input", method = RequestMethod.GET)
     public ModelAndView inputCredits() {
         final ModelAndView modelAndView = new ModelAndView("merchantsInputCredits");
         modelAndView.addObject("currencies",currencyService.getAllCurrencies());
-        modelAndView.addObject("payment", new Payment());
+        Payment payment = new Payment();
+        payment.setSum(1.00);
+        modelAndView.addObject("payment", payment);
         return modelAndView;
-    }
-
-    @RequestMapping(value = "/test")
-    public @ResponseBody
-    Boolean get() {
-        return walletService.setWalletABalance(4, BigDecimal.valueOf(1).negate().doubleValue());
     }
 
     @RequestMapping(value = "/merchants/output", method = RequestMethod.GET)
@@ -62,7 +66,9 @@ public class CommonMerchantsController {
         final ModelAndView modelAndView = new ModelAndView("merchantsOutputCredits");
         final List<Wallet> allWallets = walletService.getAllWallets(userService.getIdByEmail(principal.getName()));
         modelAndView.addObject("wallets",allWallets);
-        modelAndView.addObject("payment", new CreditsWithdrawal());
+        CreditsWithdrawal creditsWithdrawal = new CreditsWithdrawal();
+        creditsWithdrawal.setSum(1.00);
+        modelAndView.addObject("payment", creditsWithdrawal);
         return modelAndView;
     }
 
