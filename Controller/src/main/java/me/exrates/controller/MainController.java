@@ -122,7 +122,6 @@ HttpServletRequest request;
         final List<Transaction> allByUserId = transactionService.findAllByUserId(idByEmail);
         allByUserId.forEach(transaction ->
                 transaction.setCurrency(walletService.getCurrencyName(walletService.getCurrencyId(transaction.getWalletId()))));
-        System.out.println(allByUserId.get(0).getCurrency() + "CURRENCY");
         final ModelAndView modelAndView = new ModelAndView("transaction");
         return modelAndView.addObject("transactions",allByUserId);
     }
