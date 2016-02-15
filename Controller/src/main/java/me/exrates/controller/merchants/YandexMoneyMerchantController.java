@@ -148,6 +148,7 @@ public class YandexMoneyMerchantController {
 
     @RequestMapping(value = "/payment/process")
     public ModelAndView processPayment(Principal principal, @ModelAttribute(value = "token") String token, HttpSession httpSession,RedirectAttributes redir) throws InvalidTokenException, InsufficientScopeException, InvalidRequestException, IOException {
+        System.out.println(token + "   TOKEN");
         ModelMap paymentData;
         synchronized (httpSession) {
             paymentData = (ModelMap) httpSession.getAttribute("paymentPrepareData");
@@ -252,7 +253,8 @@ public class YandexMoneyMerchantController {
         BigDecimal sumToWithdraw = (BigDecimal.valueOf(commissionService.getCommissionByType(OperationType.OUTPUT)).divide(BigDecimal.valueOf(100L), BigDecimal.ROUND_CEILING)).add(BigDecimal.valueOf(creditsWithdrawal.getSum())).setScale(2, BigDecimal.ROUND_CEILING);
         ModelAndView redirectToMerchantError = new ModelAndView(merchantOutputErrorPage);
         if (walletService.ifEnoughMoney(walletId, sumToWithdraw.doubleValue())) {
-            OAuth2Session oAuth2Session = new OAuth2Session(new DefaultApiClient(yandexMoneyProperties.clientId()));
+            DefaultApiClient apiClient = new DefaultApiClient(yandexMoneyProperties.clientId(), true);
+            OAuth2Session oAuth2Session = new OAuth2Session(apiClient);
             oAuth2Session.setAccessToken(yandexMoneyProperties.accessToken());
             P2pTransferParams p2pTransferParams = new P2pTransferParams.Builder(creditsWithdrawal.getMeansOfPaymentId())
                     .setAmount(BigDecimal.valueOf(creditsWithdrawal.getSum()))

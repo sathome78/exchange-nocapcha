@@ -29,7 +29,7 @@ public class UserDaoImpl implements UserDao {
 		DataSource dataSource;  
 
 		public int getIdByEmail(String email) {
-			String sql = "SELECT id FROM user WHERE email = :email";
+			String sql = "SELECT id FROM USER WHERE email = :email";
 			NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
 			Map<String, String> namedParameters = new HashMap<String, String>();
 			namedParameters.put("email", email);
@@ -38,7 +38,7 @@ public class UserDaoImpl implements UserDao {
 		}
 		
 		public boolean create(User user) {
-			String sql = "insert into user(nickname,email,password) values(:nickname,:email,:password)";
+			String sql = "insert into USER(nickname,email,password) values(:nickname,:email,:password)";
 			NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);		
 			Map<String, String> namedParameters = new HashMap<String, String>();
 			namedParameters.put("email", user.getEmail());
@@ -58,7 +58,7 @@ public class UserDaoImpl implements UserDao {
 
 		
 		public List<String> getUserRoles(String email) {
-			String sql = "select name from user_role where user_id=(select id from user where email = :email)";
+			String sql = "select name from USER_ROLE where user_id=(select id from USER where email = :email)";
 			NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);		
 			Map<String, String> namedParameters = new HashMap<String, String>();
 			namedParameters.put("email", email);
@@ -72,7 +72,7 @@ public class UserDaoImpl implements UserDao {
 		}
 		
 		public boolean addUserRoles(String email, String role) {
-			String sql = "insert into user_role(name, user_id) values(:name,:userid)";
+			String sql = "insert into USER_ROLE(name, user_id) values(:name,:userid)";
 			NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);		
 			Map<String, String> namedParameters = new HashMap<String, String>();
 			namedParameters.put("name", role);
@@ -87,7 +87,7 @@ public class UserDaoImpl implements UserDao {
 
 
 		public List<User> getAllUsers() {
-			String sql = "select email, password, status from user";
+			String sql = "select email, password, status from USER";
 			JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);		
 			List<User> userList = new ArrayList<User>();  
 			userList = jdbcTemplate.query(sql, new RowMapper<User>(){
@@ -108,7 +108,7 @@ public class UserDaoImpl implements UserDao {
 		}
 
 		public boolean ifNicknameIsUnique(String nickname) {
-			String sql = "SELECT id FROM user WHERE nickname = :nickname";
+			String sql = "SELECT id FROM USER WHERE nickname = :nickname";
 			NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);		
 			Map<String, String> namedParameters = new HashMap<String, String>();
 			namedParameters.put("nickname", nickname);
@@ -129,7 +129,7 @@ public class UserDaoImpl implements UserDao {
 		}
 
 		public boolean ifEmailIsUnique(String email) {
-			String sql = "SELECT id FROM user WHERE email = :email";
+			String sql = "SELECT id FROM USER WHERE email = :email";
 			NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);		
 			Map<String, String> namedParameters = new HashMap<String, String>();
 			namedParameters.put("email", email);
@@ -150,7 +150,7 @@ public class UserDaoImpl implements UserDao {
 		}
 
 		public String getIP(int userId) {
-			String sql = "SELECT ipaddress FROM user WHERE id = :userId";
+			String sql = "SELECT ipaddress FROM USER WHERE id = :userId";
 			NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);		
 			Map<String, String> namedParameters = new HashMap<String, String>();
 			namedParameters.put("userId", String.valueOf(userId));
@@ -167,7 +167,7 @@ public class UserDaoImpl implements UserDao {
 		}
 
 		public boolean setIP(int id, String ip) {
-			String sql = "UPDATE user SET ipaddress = :ipaddress WHERE id = :id";
+			String sql = "UPDATE USER SET ipaddress = :ipaddress WHERE id = :id";
 			NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);		
 			Map<String, String> namedParameters = new HashMap<String, String>();
 			namedParameters.put("ipaddress",ip);
@@ -180,7 +180,7 @@ public class UserDaoImpl implements UserDao {
 		}
 
 		public boolean addIPToLog(int userId, String ip) {
-			String sql = "insert ip_log(ip,user_id) values(:ip,:userId)";
+			String sql = "insert INTO IP_Log (ip,user_id) values(:ip,:userId)";
 			NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);		
 			Map<String, String> namedParameters = new HashMap<String, String>();
 			namedParameters.put("ip",ip);

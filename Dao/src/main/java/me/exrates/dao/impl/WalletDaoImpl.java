@@ -27,7 +27,7 @@ public class WalletDaoImpl implements WalletDao {
 	DataSource dataSource;
 
 	public double getWalletABalance(int walletId) {
-		String sql = "SELECT active_balance FROM wallet WHERE id = :walletId";
+		String sql = "SELECT active_balance FROM WALLET WHERE id = :walletId";
 		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
 		Map<String, String> namedParameters = new HashMap<>();
 		namedParameters.put("walletId", String.valueOf(walletId));
@@ -35,7 +35,7 @@ public class WalletDaoImpl implements WalletDao {
 	}
 
 	public double getWalletRBalance(int walletId) {
-		String sql = "SELECT reserved_balance FROM wallet WHERE id = :walletId";
+		String sql = "SELECT reserved_balance FROM WALLET WHERE id = :walletId";
 		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
 		Map<String, String> namedParameters = new HashMap<>();
 		namedParameters.put("walletId", String.valueOf(walletId));
@@ -67,7 +67,7 @@ public class WalletDaoImpl implements WalletDao {
 	}
 
 	public int getWalletId(int userId, int currencyId) {
-		String sql = "SELECT id FROM wallet WHERE user_id = :userId AND currency_id = :currencyId";
+		String sql = "SELECT id FROM WALLET WHERE user_id = :userId AND currency_id = :currencyId";
 		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
 		Map<String, String> namedParameters = new HashMap<>();
 		namedParameters.put("userId", String.valueOf(userId));
@@ -81,7 +81,7 @@ public class WalletDaoImpl implements WalletDao {
 
 
 	public int createNewWallet(Wallet wallet) {
-		String sql = "INSERT wallet(currency_id,user_id,active_balance) VALUES(:currId,:userId,:activeBalance)";
+		String sql = "INSERT INTO WALLET (currency_id,user_id,active_balance) VALUES(:currId,:userId,:activeBalance)";
 		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 		MapSqlParameterSource parameters = new MapSqlParameterSource()
@@ -116,7 +116,7 @@ public class WalletDaoImpl implements WalletDao {
 	}
 
 	public int getUserIdFromWallet(int walletId) {
-		String sql = "SELECT user_id FROM wallet WHERE id = :walletId";
+		String sql = "SELECT user_id FROM WALLET WHERE id = :walletId";
 		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
 		Map<String, String> namedParameters = new HashMap<>();
 		namedParameters.put("walletId", String.valueOf(walletId));

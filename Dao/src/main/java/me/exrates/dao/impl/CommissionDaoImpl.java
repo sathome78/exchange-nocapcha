@@ -19,7 +19,7 @@ public class CommissionDaoImpl implements CommissionDao{
 
 	@Override
 	public Commission getCommission(OperationType operationType) {
-		final String sql = "SELECT * FROM commission WHERE operation_type = :operationType "
+		final String sql = "SELECT * FROM COMMISSION WHERE operation_type = :operationType "
 				+ "order by date desc limit 1";
 		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
 		final HashMap<String,Integer> params = new HashMap<>();
@@ -36,7 +36,7 @@ public class CommissionDaoImpl implements CommissionDao{
 
 	@Override
 	public double getCommissionByType(OperationType type) {
-		String sql = "SELECT value FROM commission WHERE operation_type = :operationType "
+		String sql = "SELECT value FROM COMMISSION WHERE operation_type = :operationType "
 				+ "order by date desc limit 1";
 		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
 		Map<String, String> namedParameters = new HashMap<String, String>();

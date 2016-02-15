@@ -40,6 +40,9 @@
                 <a href="<c:url value="/orders"/>" class="navabr__link">Ордера</a>
             </li>
             <li class="navabr__item">
+                <a href="<c:url value="/myorders"/>" class="navabr__link">Мои ордера</a>
+            </li>
+            <li class="navabr__item">
                 <a href="<c:url value="/merchants/input"/>" class="navabr__link">Ввод средств</a>
             </li>
             <li class="navabr__item">

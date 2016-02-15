@@ -36,7 +36,7 @@ public class OrderDaoImpl implements OrderDao{
 
 	public int createOrder(Order order) {
 		
-		String sql = "insert into orders(wallet_id_sell,amount_sell,currency_buy,amount_buy, operation_type) values(:walletSell,:amountSell,:currencyBuy,:amountBuy, :operationType)";
+		String sql = "INSERT INTO ORDERS(wallet_id_sell,amount_sell,currency_buy,amount_buy, operation_type) values(:walletSell,:amountSell,:currencyBuy,:amountBuy, :operationType)";
 		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);		
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 		MapSqlParameterSource parameters = new MapSqlParameterSource()
@@ -55,9 +55,9 @@ public class OrderDaoImpl implements OrderDao{
 
 	@Override
 	public List<Order> getMyOrders(int userId) {
-		String sql = "select * from orders where "
-				+ "(wallet_id_sell in (select id from wallet where user_id=:user_id) ||"
-				+"wallet_id_buy in (select id from wallet where user_id=:user_id))"
+		String sql = "select * from ORDERS where "
+				+ "(wallet_id_sell in (select id from WALLET where user_id=:user_id) ||"
+				+"wallet_id_buy in (select id from WALLET where user_id=:user_id))"
 				+ "&& (status=1 || status=2 || status=3)";
 		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);		
 		Map<String, String> namedParameters = new HashMap<String, String>();
@@ -69,7 +69,7 @@ public class OrderDaoImpl implements OrderDao{
 	
 	@Override
 	public List<Order> getAllOrders() {
-		String sql = "select * from orders where status = 2";
+		String sql = "select * from ORDERS where status = 2";
 		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);		
 		List<Order> orderList = new ArrayList<Order>();  
 		orderList = jdbcTemplate.query(sql, new OrderRowMapper());	
@@ -78,7 +78,7 @@ public class OrderDaoImpl implements OrderDao{
 
 	@Override
 	public boolean deleteOrder(int orderId) {
-		String sql = "delete from orders where id = :id";
+		String sql = "delete from ORDERS where id = :id";
 		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);		
 		Map<String, String> namedParameters = new HashMap<String, String>();
 		namedParameters.put("id", String.valueOf(orderId));
@@ -92,7 +92,7 @@ public class OrderDaoImpl implements OrderDao{
 
 	@Override
 	public Order getOrderById(int orderId) {
-		String sql = "select * from orders where id = :id";
+		String sql = "select * from ORDERS where id = :id";
 		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);		
 		Map<String, String> namedParameters = new HashMap<String, String>();
 		namedParameters.put("id", String.valueOf(orderId));
@@ -104,7 +104,7 @@ public class OrderDaoImpl implements OrderDao{
 
 	@Override
 	public boolean setStatus(int orderId, OrderStatus status) {
-		String sql = "update orders set status=:status where id = :id";
+		String sql = "update ORDERS set status=:status where id = :id";
 		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);		
 		Map<String, String> namedParameters = new HashMap<String, String>();
 		namedParameters.put("status", String.valueOf(status.getStatus()));
@@ -119,7 +119,7 @@ public class OrderDaoImpl implements OrderDao{
 
 	@Override
 	public boolean updateOrder(Order order) {
-		String sql = "update orders set wallet_id_buy=:walletBuy, status=:status, date_final=:dateFinal  where id = :id";
+		String sql = "update ORDERS set wallet_id_buy=:walletBuy, status=:status, date_final=:dateFinal  where id = :id";
 		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);		
 		Map<String, String> namedParameters = new HashMap<String, String>();
 	    namedParameters.put("walletBuy", String.valueOf(order.getWalletIdBuy()));

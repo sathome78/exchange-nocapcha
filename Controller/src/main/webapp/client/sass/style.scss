@@ -146,6 +146,30 @@ strong {
 			}
 		}
 	}
+	&.responsive {
+		tbody {
+			tr {
+				td {
+					text-align: center;
+				}
+			}
+			a {
+				text-decoration: underline;
+				&.uk-text-primary {
+					color: #2c3e50;
+				}
+				&.uk-text-danger {
+					color: #ea748f;
+				}
+				&.uk-text-success {
+					color: #439a63;
+				}
+				&:hover {
+					text-decoration: none;
+				}
+			}
+		}
+	}
 }
 
 .wrapper {
@@ -167,6 +191,10 @@ strong {
 	margin-right: auto;
 }
 
+.login_page {
+	background: #eceff0;
+}
+
 .video__wrapper {
 	position: relative;
 	padding-bottom: 31.8%;
@@ -180,7 +208,90 @@ strong {
 	}
 }
 
+// register form
+.registration__form {
+	max-width: 460px;
+	background: #fff;
+	box-shadow: 0 0 15px rgba(0, 0, 0, 0.33);
+	margin: 11% auto;
+	padding: 25px;
+	color: #2c3e50;
+	@include border-radius(2px);
+	@extend %clear_all;
+	legend {
+		border-bottom: none;
+		font-size: 16px;
+		margin-bottom: 19px;
+	}
+	input {
+		color: #2c3e50;
+		border: 1px solid #abb2b9;
+	}
+	.row {
+		margin-left: 0;
+		margin-right: 0;
+		&:nth-child(n+2) {
+			margin-top: 10px;
+		}
+		label {
+			color: #2c3e50;
+			font-size: 10px;
+			font-weight: 300;
+			padding-left: 11px;
+		}
+		.offerta {
 
+		}
+	}
+	.btn {
+		width: 50%;
+		min-width: 150px;
+		@media (max-width: 600px) {
+			width: 100%;
+		}
+	}	
+	input[type="checkbox"] + label {
+		color: #2c3e50;
+		font-size: 12px;
+
+	}
+}
+
+input[type="checkbox"] {
+	display: none;
+}
+
+input[type="checkbox"] + label {
+	position: relative;
+	padding-left: 24px !important;
+	display: inline-block;
+	padding-top: 2px;
+	color: #2c3e50;
+	font-size: 12px;
+}
+
+input[type="checkbox"] + label:before {
+	content: '';
+	width: 15px;
+	height: 15px;
+	background-color: white;
+	border: 1px solid #abb2b9;
+	display: block;
+	position: absolute;
+	left: 0;
+	top: 0;
+	font-size: 20px;
+	line-height: 10px;
+	color: #55799d;
+}
+
+input[type="checkbox"]:checked + label a {
+	display: inline-block;
+}
+
+input[type="checkbox"]:checked + label:before {
+	content: '■';
+}
 
 
 /* Header

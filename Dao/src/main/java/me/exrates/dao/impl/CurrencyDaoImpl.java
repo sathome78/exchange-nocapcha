@@ -20,7 +20,7 @@ public class CurrencyDaoImpl implements CurrencyDao{
 	DataSource dataSource;
 
 	public List<Currency> getCurrList() {
-		String sql = "SELECT id, name FROM currency";
+		String sql = "SELECT id, name FROM CURRENCY";
 		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 		List<Currency> currList;
 		currList = jdbcTemplate.query(sql, (rs, row) -> {
@@ -35,7 +35,7 @@ public class CurrencyDaoImpl implements CurrencyDao{
 
 	@Override
 	public int getCurrencyId(int walletId) {
-		String sql = "SELECT currency_id FROM wallet WHERE id = :walletId ";
+		String sql = "SELECT currency_id FROM WALLET WHERE id = :walletId ";
 		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
 		Map<String, String> namedParameters = new HashMap<String, String>();
 		namedParameters.put("walletId", String.valueOf(walletId));
@@ -45,7 +45,7 @@ public class CurrencyDaoImpl implements CurrencyDao{
 
 	@Override
 	public String getCurrencyName(int currencyId) {
-		String sql = "SELECT name FROM currency WHERE  id = :id ";
+		String sql = "SELECT name FROM CURRENCY WHERE  id = :id ";
 		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
 		Map<String, String> namedParameters = new HashMap<String, String>();
 		namedParameters.put("id", String.valueOf(currencyId));

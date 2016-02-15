@@ -102,7 +102,10 @@
 
                 <!-- begin Right block -->
                 <div class="header__flip">
-                    <span style="color:#eee">Добрый день! <strong><sec:authentication property="principal.username" /></strong></span>
+                    <a href="<c:url value="/mywallets"/>">
+                        <span style="color:#eee">Добрый день! <strong><sec:authentication property="principal.username" /></strong>
+                        </span>
+                    </a>
                     <c:url value="/logout" var="logoutUrl" />
                     <form action="${logoutUrl}" id="logoutForm" method="post">
                         <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />

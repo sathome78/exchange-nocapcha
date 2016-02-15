@@ -2,14 +2,16 @@ package me.exrates.config;
 
 import me.exrates.YandexMoneyProperties;
 import me.exrates.controller.validator.RegisterFormValidation;
-import org.hibernate.validator.HibernateValidator;
+import org.apache.commons.logging.LogFactory;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -22,12 +24,9 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
-import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Locale;
 
 @Configuration
@@ -37,11 +36,13 @@ import java.util.Locale;
 @Import({ me.exrates.security.config.SecurityConfig.class })
 public class WebAppConfig extends WebMvcConfigurerAdapter {
 
+	private static final Logger logger = LogManager.getLogger(WebAppConfig.class);
+
 	@Bean(name = "dataSource")
 	public DriverManagerDataSource dataSource() {
 		DriverManagerDataSource driverManagerDataSource = new DriverManagerDataSource();
 		driverManagerDataSource.setDriverClassName("com.mysql.jdbc.Driver");
-		driverManagerDataSource.setUrl("jdbc:mysql://127.0.0.1:3306/birzha");
+		driverManagerDataSource.setUrl("jdbc:mysql://localhost:3306/birzha");
 		driverManagerDataSource.setUsername("root");
 		driverManagerDataSource.setPassword("Nf38930ds2j");
 		return driverManagerDataSource;

@@ -4,14 +4,16 @@ $(function(){
         object = result;
         loadMeansOfPayment()
     });
-
-    $("input[name='sum']").keypress(function(){
-        var data = this.value;
-        if (isNaN(data) || parseFloat(data) < 1) {
-            $("button[name='assertInputPay']").prop("disabled", true)
+    $("input[name='sum']").keyup(function(){
+        var val = document.getElementById("#").value;
+        if (isNaN(val) || val < 1) {
+            $("button[name='assertOutputPay']").prop("disabled", true);
+            $("button[name='assertInputPay']").prop("disabled", true);
         } else {
-            $("button[name='assertInputPay']").prop("disabled", false)
+            $("button[name='assertOutputPay']").prop("disabled", false);
+            $("button[name='assertInputPay']").prop("disabled", false);
         }
+
     });
     $("#meansOfPaymentSelect").change(function(){
         if ($("#meansOfPaymentSelect").find(":selected").text()=="Perfect Money") {
