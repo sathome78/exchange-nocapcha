@@ -53,20 +53,6 @@ public class CommonMerchantsController {
     @Autowired
     private TransactionDao transactionDao;
 
-    @Autowired
-    private WalletDao walletDao;
-
-    @Autowired
-    private YandexMoneyMerchant yandexMoneyMerchant;
-
-
-    @RequestMapping("/test")
-    public @ResponseBody
-    Wallet test() {
-        yandexMoneyMerchant.f();
-        return walletDao.findByUserAndCurrency(1,10);
-    }
-
     @RequestMapping(value = "/merchants/input", method = RequestMethod.GET)
     public ModelAndView inputCredits() {
         final ModelAndView modelAndView = new ModelAndView("merchantsInputCredits");

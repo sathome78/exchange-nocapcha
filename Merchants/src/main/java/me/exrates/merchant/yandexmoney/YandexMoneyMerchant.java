@@ -81,6 +81,6 @@ public class YandexMoneyMerchant {
         return Optional.of(token.accessToken);
     }
 
-    
+
 
 }
