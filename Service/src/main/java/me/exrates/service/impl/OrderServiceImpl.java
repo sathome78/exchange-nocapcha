@@ -146,7 +146,7 @@ public class OrderServiceImpl implements OrderService{
 			int wallet1ForBuyCurrency = walletService.getWalletId(walletService.getUserIdFromWallet(order.getWalletIdSell()), order.getCurrencyBuy());
 			if(wallet1ForBuyCurrency == 0) {
 				Wallet wallet = new Wallet();
-				wallet.setCurrId(order.getCurrencyBuy());
+				wallet.setCurrencyId(order.getCurrencyBuy());
 				wallet.setActiveBalance(0);
 				wallet.setUserId(walletService.getUserIdFromWallet(order.getWalletIdSell()));
 				wallet1ForBuyCurrency = walletService.createNewWallet(wallet);
@@ -163,7 +163,7 @@ public class OrderServiceImpl implements OrderService{
 				Wallet wall = new Wallet();
 				wall.setActiveBalance(0);
 				wall.setUserId(userId);
-				wall.setCurrId(order.getCurrencySell());
+				wall.setCurrencyId(order.getCurrencySell());
 				wallet2ForBuyCurrency = walletService.createNewWallet(wall);
 			}
 			walletService.setWalletABalance(wallet2ForBuyCurrency, amountForBuyer);

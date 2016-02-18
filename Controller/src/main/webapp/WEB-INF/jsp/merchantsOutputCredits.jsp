@@ -60,7 +60,7 @@
                             <label class="col-sm-3 control-label" for="#">Валюта к выводу</label>
                             <div class="col-sm-8">
                                 <paymentForm:select id="currencySelect" path="currency" onchange="loadMeansOfPayment()" class="select form-control">
-                                    <paymentForm:options items="${wallets}" itemLabel="fullName" itemValue="currId" />
+                                    <paymentForm:options items="${wallets}" itemLabel="fullName" itemValue="currencyId" />
                                 </paymentForm:select>
                             </div>
                         </div>

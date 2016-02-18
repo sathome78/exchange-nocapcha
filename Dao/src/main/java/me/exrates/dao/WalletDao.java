@@ -3,6 +3,7 @@ package me.exrates.dao;
 import java.util.List;
 
 import me.exrates.model.Order;
+import me.exrates.model.User;
 import me.exrates.model.Wallet;
 
 public interface WalletDao {
@@ -19,7 +20,10 @@ public interface WalletDao {
 
 	int createNewWallet(Wallet wallet);
 
-	List<Wallet> getAllWallets(int userId);
-
 	int getUserIdFromWallet(int walletId);
+
+	List<Wallet> findAllByUser(int userId);
+
+	Wallet findByUserAndCurrency(int userId,int currencyId);
+
 }

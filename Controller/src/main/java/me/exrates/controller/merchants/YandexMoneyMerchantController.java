@@ -207,7 +207,7 @@ public class YandexMoneyMerchantController {
             int walletId = walletService.getWalletId(idByEmail, currencyId);
             if (walletId==0){
                 Wallet wallet = new Wallet();
-                wallet.setCurrId(currencyId);
+                wallet.setCurrencyId(currencyId);
                 wallet.setUserId(idByEmail);
                 walletId = walletService.createNewWallet(wallet);
             }

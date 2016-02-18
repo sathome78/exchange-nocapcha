@@ -30,7 +30,7 @@ public class WalletServiceImpl implements WalletService {
 	@Transactional(readOnly = true)
 	@Override
 	public List<Wallet> getAllWallets(int userId) {
-		return walletDao.getAllWallets(userId);
+		return walletDao.findAllByUser(userId);
 	}
 
 	@Override

@@ -2,6 +2,8 @@ package me.exrates.controller.merchants;
 
 import me.exrates.dao.CommissionDao;
 import me.exrates.dao.TransactionDao;
+import me.exrates.dao.WalletDao;
+import me.exrates.merchant.yandexmoney.YandexMoneyMerchant;
 import me.exrates.model.*;
 import me.exrates.model.enums.OperationType;
 import me.exrates.service.*;
@@ -50,6 +52,20 @@ public class CommonMerchantsController {
 
     @Autowired
     private TransactionDao transactionDao;
+
+    @Autowired
+    private WalletDao walletDao;
+
+    @Autowired
+    private YandexMoneyMerchant yandexMoneyMerchant;
+
+
+    @RequestMapping("/test")
+    public @ResponseBody
+    Wallet test() {
+        yandexMoneyMerchant.f();
+        return walletDao.findByUserAndCurrency(1,10);
+    }
 
     @RequestMapping(value = "/merchants/input", method = RequestMethod.GET)
     public ModelAndView inputCredits() {

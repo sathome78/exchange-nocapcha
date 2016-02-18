@@ -26,6 +26,11 @@
         </dependency>
         <dependency>
             <groupId>kds</groupId>
+            <artifactId>Merchants</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>kds</groupId>
             <artifactId>Service</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
