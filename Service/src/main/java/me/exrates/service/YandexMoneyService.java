@@ -6,6 +6,7 @@ import com.yandex.money.api.net.OAuth2Session;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.ModelMap;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,7 +26,7 @@ public interface YandexMoneyService {
 
     boolean deleteTokenByUserEmail(String email);
 
-    String getTemporaryAuthCode();
+    URI getTemporaryAuthCode();
 
     Optional<String> getAccessToken(String code);
 

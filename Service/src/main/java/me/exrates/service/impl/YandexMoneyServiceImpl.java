@@ -15,11 +15,6 @@ import com.yandex.money.api.net.DefaultApiClient;
 import com.yandex.money.api.net.OAuth2Authorization;
 import com.yandex.money.api.net.OAuth2Session;
 import me.exrates.dao.YandexMoneyMerchantDao;
-import me.exrates.model.CompanyTransaction;
-import me.exrates.model.Payment;
-import me.exrates.model.Transaction;
-import me.exrates.model.Wallet;
-import me.exrates.model.enums.OperationType;
 import me.exrates.service.TransactionService;
 import me.exrates.service.UserService;
 import me.exrates.service.YandexMoneyService;
@@ -33,11 +28,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.ModelMap;
-import org.springframework.web.servlet.ModelAndView;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 
@@ -97,12 +91,13 @@ public class YandexMoneyServiceImpl implements YandexMoneyService {
     }
 
     @Override
-    public String getTemporaryAuthCode() {
+    public URI getTemporaryAuthCode() {
         final DefaultApiClient apiClient = new DefaultApiClient(clientId, true);
         final OAuth2Session session = new OAuth2Session(apiClient);
         final OAuth2Authorization oAuth2Authorization = session.createOAuth2Authorization();
         final com.squareup.okhttp.OkHttpClient httpClient = apiClient.getHttpClient();
         session.setDebugLogging(true);
+        System.out.println(clientId);
         final byte[] params = oAuth2Authorization.getAuthorizeParams()
                 .addScope(Scope.ACCOUNT_INFO)
                 .addScope(Scope.PAYMENT_P2P)
@@ -120,7 +115,7 @@ public class YandexMoneyServiceImpl implements YandexMoneyService {
             logger.fatal(e);
             throw new MerchantInternalException("YandexMoneyServiceInput");
         }
-        return response.header(HttpHeaders.LOCATION);
+        return URI.create(response.header(HttpHeaders.LOCATION));
     }
 
     @Override
@@ -134,9 +129,9 @@ public class YandexMoneyServiceImpl implements YandexMoneyService {
             logger.fatal(e);
             throw new MerchantInternalException("YandexMoneyServiceInput");
         } catch (InvalidRequestException | InvalidTokenException | InsufficientScopeException e) {
-            e.printStackTrace();
+            logger.error(e);
+            return Optional.empty();
         }
-
         return Optional.of(token.accessToken);
     }
 

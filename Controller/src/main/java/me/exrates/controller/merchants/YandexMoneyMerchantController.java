@@ -15,6 +15,9 @@ import me.exrates.service.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
@@ -26,6 +29,7 @@ import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.net.URI;
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -65,18 +69,21 @@ public class YandexMoneyMerchantController {
     private static final String merchantOutputErrorPage = "redirect:/merchants/output";
 
     @RequestMapping(value = "/token/authorization", method = RequestMethod.GET)
-    public String yandexMoneyTemporaryAuthorizationCodeRequest() {
-        final String temporaryAuthCode = yandexMoneyService.getTemporaryAuthCode();
-        return "redirect:" + temporaryAuthCode;
+    public ResponseEntity<String> yandexMoneyTemporaryAuthorizationCodeRequest() {
+        final URI temporaryAuthCode = yandexMoneyService.getTemporaryAuthCode();
+        final HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setLocation(temporaryAuthCode);
+        return new ResponseEntity<>(httpHeaders, HttpStatus.SEE_OTHER);
     }
 
     @RequestMapping(value = "/token/access")
-    public ModelAndView yandexMoneyAccessTokenRequest(@RequestParam(value = "code") String code,RedirectAttributes redirectAttributes) {
-        ModelAndView errorModelAndView = new ModelAndView(merchantInputErrorPage);
-        redirectAttributes.addFlashAttribute("error", "merchants.authRejected");
+    public ModelAndView yandexMoneyAccessTokenRequest(@RequestParam(value = "code") String code,RedirectAttributes redir) {
         final Optional<String> accessToken = yandexMoneyService.getAccessToken(code);
-        accessToken.orElseThrow(InvalidToke);
-        return new ModelAndView("redirect:/merchants/yandexmoney/payment/process").addObject("token", token.accessToken);
+        if (!accessToken.isPresent()) {
+            redir.addFlashAttribute("error", "merchants.authRejected");
+            return new ModelAndView(merchantInputErrorPage);
+        }
+        return new ModelAndView("redirect:/merchants/yandexmoney/payment/process").addObject("token", accessToken.get());
     }
 
     @RequestMapping(value = "/payment/prepare", method = RequestMethod.POST)
@@ -113,14 +120,14 @@ public class YandexMoneyMerchantController {
         if (paymentData == null) {
             return new ModelAndView("redirect:/merchants/input");
         }
-        DefaultApiClient apiClient = new DefaultApiClient(yandexMoneyProperties.clientId(), true);
+        DefaultApiClient apiClient = new DefaultApiClient("", true);
         OAuth2Session oAuth2Session = new OAuth2Session(apiClient);
         oAuth2Session.setAccessToken(token);
         String payInfo = "Purchase " + paymentData.get("amount") + paymentData.get("currency")
                 + " from " + principal.getName() + ". Total transferred amount: " + paymentData.get("sumToPay")
                 + ", Commission: " + paymentData.get("commission") + ", Amount to be credited to user wallet: " + paymentData.get("amount");
         logger.info(payInfo);
-        P2pTransferParams p2pTransferParams = new P2pTransferParams.Builder(yandexMoneyProperties.companyYandexMoneyWalletId())
+        P2pTransferParams p2pTransferParams = new P2pTransferParams.Builder("")
                 .setAmount((BigDecimal) paymentData.get("sumToPay"))
                 .setComment("Purchase " + paymentData.get("amount") + paymentData.get("currency") + " at the S.E. Birzha")
                 .create();
@@ -209,9 +216,9 @@ public class YandexMoneyMerchantController {
         BigDecimal sumToWithdraw = (BigDecimal.valueOf(commissionService.getCommissionByType(OperationType.OUTPUT)).divide(BigDecimal.valueOf(100L), BigDecimal.ROUND_CEILING)).add(BigDecimal.valueOf(creditsWithdrawal.getSum())).setScale(2, BigDecimal.ROUND_CEILING);
         ModelAndView redirectToMerchantError = new ModelAndView(merchantOutputErrorPage);
         if (walletService.ifEnoughMoney(walletId, sumToWithdraw.doubleValue())) {
-            DefaultApiClient apiClient = new DefaultApiClient(yandexMoneyProperties.clientId(), true);
+            DefaultApiClient apiClient = new DefaultApiClient("", true);
             OAuth2Session oAuth2Session = new OAuth2Session(apiClient);
-            oAuth2Session.setAccessToken(yandexMoneyProperties.accessToken());
+            oAuth2Session.setAccessToken("");
             P2pTransferParams p2pTransferParams = new P2pTransferParams.Builder(creditsWithdrawal.getMeansOfPaymentId())
                     .setAmount(BigDecimal.valueOf(creditsWithdrawal.getSum()))
                     .create();
