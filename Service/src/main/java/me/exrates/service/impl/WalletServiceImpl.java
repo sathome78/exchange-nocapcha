@@ -2,10 +2,13 @@ package me.exrates.service.impl;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Stream;
 
+import me.exrates.model.User;
 import me.exrates.service.CommissionService;
 import me.exrates.service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.datetime.DateFormatter;
 import org.springframework.stereotype.Service;
 
 import me.exrates.dao.CurrencyDao;
@@ -109,5 +112,19 @@ public class WalletServiceImpl implements WalletService {
 		return walletDao.getUserIdFromWallet(walletId);
 	}
 
+	@Override
+	public Wallet findByUserAndCurrency(User user, Currency currency) {
+		return walletDao.findByUserAndCurrency(user.getId(),currency.getId());
+	}
 
+	@Override
+	public Wallet createWallet(User user, Currency currency) {
+		final Wallet wallet = walletDao.createWallet(user.getId(), currency.getId());
+		wallet.setName(currency.getName());
+		return wallet;
+	}
+
+	public static void main(String[] args) {
+		Stream.of("a","b").distinct();
+	}
 }

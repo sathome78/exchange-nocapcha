@@ -9,6 +9,8 @@ import java.util.List;
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 public interface TransactionDao {
+
     boolean create(Transaction transaction);
+
     List<Transaction> findAllByUserId(int id);
 }

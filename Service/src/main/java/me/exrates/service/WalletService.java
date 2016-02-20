@@ -3,6 +3,7 @@ package me.exrates.service;
 import java.util.List;
 
 import me.exrates.model.Currency;
+import me.exrates.model.User;
 import me.exrates.model.Wallet;
 
 public interface WalletService {
@@ -31,5 +32,7 @@ public interface WalletService {
 
 	int getUserIdFromWallet(int walletId);
 
+	Wallet findByUserAndCurrency(User user, Currency currency);
 
+	Wallet createWallet(User user,Currency currency);
 }

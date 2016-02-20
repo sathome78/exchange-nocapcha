@@ -1,23 +1,14 @@
 package me.exrates.controller.merchants;
 
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.RequestBody;
-import com.squareup.okhttp.Response;
 import com.yandex.money.api.exceptions.InsufficientScopeException;
 import com.yandex.money.api.exceptions.InvalidRequestException;
 import com.yandex.money.api.exceptions.InvalidTokenException;
 import com.yandex.money.api.methods.BaseRequestPayment;
 import com.yandex.money.api.methods.ProcessPayment;
 import com.yandex.money.api.methods.RequestPayment;
-import com.yandex.money.api.methods.Token;
 import com.yandex.money.api.methods.params.P2pTransferParams;
-import com.yandex.money.api.model.Scope;
 import com.yandex.money.api.net.DefaultApiClient;
-import com.yandex.money.api.net.OAuth2Authorization;
 import com.yandex.money.api.net.OAuth2Session;
-import com.yandex.money.api.utils.HttpHeaders;
-import com.yandex.money.api.utils.Strings;
-import me.exrates.YandexMoneyProperties;
 import me.exrates.model.*;
 import me.exrates.model.enums.OperationType;
 import me.exrates.service.*;
@@ -27,10 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -40,6 +28,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -47,6 +36,9 @@ import java.time.LocalDateTime;
 @Controller
 @RequestMapping("/merchants/yandexmoney")
 public class YandexMoneyMerchantController {
+
+    @Autowired
+    private YandexMoneyService yandexMoneyService;
 
     @Autowired
     private UserService userService;
@@ -64,9 +56,6 @@ public class YandexMoneyMerchantController {
     private CompanyTransactionService companyTransactionService;
 
     @Autowired
-    private YandexMoneyProperties yandexMoneyProperties;
-
-    @Autowired
     private TransactionService transactionService;
 
     private static final Logger logger = LogManager.getLogger(YandexMoneyMerchantController.class);
@@ -76,50 +65,17 @@ public class YandexMoneyMerchantController {
     private static final String merchantOutputErrorPage = "redirect:/merchants/output";
 
     @RequestMapping(value = "/token/authorization", method = RequestMethod.GET)
-    public ModelAndView yandexMoneyTemporaryAuthorizationCodeRequest(ModelAndView modelAndView,RedirectAttributes redirectAttributes) {
-        DefaultApiClient apiClient = new DefaultApiClient(yandexMoneyProperties.clientId(), true);
-        OAuth2Session session = new OAuth2Session(apiClient);
-        OAuth2Authorization oAuth2Authorization = session.createOAuth2Authorization();
-        com.squareup.okhttp.OkHttpClient httpClient = apiClient.getHttpClient();
-        session.setDebugLogging(true);
-        byte[] params = oAuth2Authorization.getAuthorizeParams()
-                .addScope(Scope.ACCOUNT_INFO)
-                .addScope(Scope.PAYMENT_P2P)
-                .setRedirectUri(yandexMoneyProperties.redirectURI())
-                .setResponseType(yandexMoneyProperties.responseType())
-                .build();
-        Request request = new Request.Builder()
-                .url(oAuth2Authorization.getAuthorizeUrl())
-                .post(RequestBody.create(yandexMoneyProperties.mediaType(), params))
-                .build();
-        Response response;
-        try {
-            response = httpClient.newCall(request).execute();
-        } catch (IOException e) {
-            redirectAttributes.addFlashAttribute("error", "merchants.internalError");
-            return new ModelAndView(merchantInputErrorPage);
-        }
-        modelAndView.setViewName("redirect:" + response.header(HttpHeaders.LOCATION));
-        return modelAndView;
+    public String yandexMoneyTemporaryAuthorizationCodeRequest() {
+        final String temporaryAuthCode = yandexMoneyService.getTemporaryAuthCode();
+        return "redirect:" + temporaryAuthCode;
     }
 
     @RequestMapping(value = "/token/access")
-    public ModelAndView yandexMoneyAccessTokenRequest(@RequestParam(value = "code", required = false) String code,RedirectAttributes redirectAttributes) {
+    public ModelAndView yandexMoneyAccessTokenRequest(@RequestParam(value = "code") String code,RedirectAttributes redirectAttributes) {
         ModelAndView errorModelAndView = new ModelAndView(merchantInputErrorPage);
         redirectAttributes.addFlashAttribute("error", "merchants.authRejected");
-        if (Strings.isNullOrEmpty(code)) {
-            return errorModelAndView;
-        }
-        final Token.Request request = new Token.Request(code, yandexMoneyProperties.clientId(), yandexMoneyProperties.redirectURI());
-        OAuth2Session session = new OAuth2Session(new DefaultApiClient(yandexMoneyProperties.clientId()));
-        Token token;
-        try {
-            token = session.execute(request);
-        } catch (IOException e) {
-            return errorModelAndView;
-        } catch (InvalidTokenException | InvalidRequestException | InsufficientScopeException e) {
-            return errorModelAndView;
-        }
+        final Optional<String> accessToken = yandexMoneyService.getAccessToken(code);
+        accessToken.orElseThrow(InvalidToke);
         return new ModelAndView("redirect:/merchants/yandexmoney/payment/process").addObject("token", token.accessToken);
     }
 

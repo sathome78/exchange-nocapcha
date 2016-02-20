@@ -1,8 +1,13 @@
 package me.exrates.service;
 
+import com.yandex.money.api.methods.ProcessPayment;
+import com.yandex.money.api.methods.RequestPayment;
+import com.yandex.money.api.net.OAuth2Session;
 import org.springframework.stereotype.Service;
+import org.springframework.ui.ModelMap;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -19,4 +24,12 @@ public interface YandexMoneyService {
     boolean updateTokenByUserEmail(String newToken, String email);
 
     boolean deleteTokenByUserEmail(String email);
+
+    String getTemporaryAuthCode();
+
+    Optional<String> getAccessToken(String code);
+
+    Optional<RequestPayment> requestPayment(String email, String token, ModelMap map);
+
+    Optional<ProcessPayment> processPayment(String requestId, OAuth2Session auth2Session);
 }

@@ -12,7 +12,6 @@
 		<module>Dao</module>
 		<module>JDBC</module>
 		<module>Controller</module>
-		<module>Merchants</module>
 	</modules>
 
 	<properties>

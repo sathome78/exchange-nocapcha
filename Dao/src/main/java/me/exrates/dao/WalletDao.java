@@ -26,4 +26,5 @@ public interface WalletDao {
 
 	Wallet findByUserAndCurrency(int userId,int currencyId);
 
+	Wallet createWallet(int userId,int currencyId);
 }

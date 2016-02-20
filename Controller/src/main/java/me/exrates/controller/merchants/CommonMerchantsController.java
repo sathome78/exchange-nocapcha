@@ -1,18 +1,20 @@
 package me.exrates.controller.merchants;
 
-import me.exrates.dao.CommissionDao;
-import me.exrates.dao.TransactionDao;
-import me.exrates.dao.WalletDao;
-import me.exrates.merchant.yandexmoney.YandexMoneyMerchant;
-import me.exrates.model.*;
+import me.exrates.model.CreditsWithdrawal;
+import me.exrates.model.Merchant;
+import me.exrates.model.Payment;
+import me.exrates.model.Wallet;
 import me.exrates.model.enums.OperationType;
 import me.exrates.service.*;
+
+import me.exrates.service.exception.MerchantInternalException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
 import java.util.List;
@@ -39,19 +41,11 @@ public class CommonMerchantsController {
     private WalletService walletService;
 
     @Autowired
-    private CompanyWalletService companyWalletService;
-
-    @Autowired
-    private TransactionService transactionService;
-
-    @Autowired
     private UserService userService;
 
-    @Autowired
-    private CommissionDao commissionDao;
+    private static final String merchantInputErrorPage = "redirect:/merchants/input";
 
-    @Autowired
-    private TransactionDao transactionDao;
+    private static final String merchantOutputErrorPage = "redirect:/merchants/output";
 
     @RequestMapping(value = "/merchants/input", method = RequestMethod.GET)
     public ModelAndView inputCredits() {
@@ -62,6 +56,8 @@ public class CommonMerchantsController {
         modelAndView.addObject("payment", payment);
         return modelAndView;
     }
+
+
 
     @RequestMapping(value = "/merchants/output", method = RequestMethod.GET)
     public ModelAndView outputCredits(Principal principal) {
@@ -90,6 +86,15 @@ public class CommonMerchantsController {
             default:
                 return null;
         }
+    }
+
+    @ExceptionHandler(MerchantInternalException.class)
+    public ModelAndView networkExceptionHandler(Exception e, RedirectAttributes redir, ModelAndView modelAndView) {
+        final String view = e.getMessage().endsWith("Input") ? merchantInputErrorPage
+                : merchantOutputErrorPage;
+        modelAndView.setViewName(view);
+        redir.addFlashAttribute("error", "merchants.internalError");
+        return modelAndView;
     }
 
     @RequestMapping(value = "/merchants/{merchant}/error", method = RequestMethod.GET)

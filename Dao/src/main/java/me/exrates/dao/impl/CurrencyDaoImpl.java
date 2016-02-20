@@ -3,25 +3,27 @@ package me.exrates.dao.impl;
 import me.exrates.dao.CurrencyDao;
 import me.exrates.model.Currency;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.sql.DataSource;
+import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Collections.unmodifiableMap;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Stream.of;
+
 @Repository
 public class CurrencyDaoImpl implements CurrencyDao{
 
-	//private static final Logger logger=Logger.getLogger(CurrencyDaoImpl.class);
 	@Autowired
-	DataSource dataSource;
+	private NamedParameterJdbcTemplate jdbcTemplate;
 
 	public List<Currency> getCurrList() {
 		String sql = "SELECT id, name FROM CURRENCY";
-		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 		List<Currency> currList;
 		currList = jdbcTemplate.query(sql, (rs, row) -> {
 			Currency currency = new Currency();
@@ -36,21 +38,25 @@ public class CurrencyDaoImpl implements CurrencyDao{
 	@Override
 	public int getCurrencyId(int walletId) {
 		String sql = "SELECT currency_id FROM WALLET WHERE id = :walletId ";
-		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-		Map<String, String> namedParameters = new HashMap<String, String>();
+		Map<String, String> namedParameters = new HashMap<>();
 		namedParameters.put("walletId", String.valueOf(walletId));
-		int value = namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Integer.class);
-		return value;
+		return jdbcTemplate.queryForObject(sql, namedParameters, Integer.class);
 	}
 
 	@Override
 	public String getCurrencyName(int currencyId) {
 		String sql = "SELECT name FROM CURRENCY WHERE  id = :id ";
-		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
 		Map<String, String> namedParameters = new HashMap<String, String>();
 		namedParameters.put("id", String.valueOf(currencyId));
-		String value = namedParameterJdbcTemplate.queryForObject(sql, namedParameters, String.class);
-		return value;
+		return jdbcTemplate.queryForObject(sql, namedParameters, String.class);
 	}
 
+	@Override
+	public Currency findByName(String name) {
+		final String sql = "SELECT * FROM CURRENCY WHERE name = :name";
+		final Map<String,String> params = unmodifiableMap(of(
+				new AbstractMap.SimpleEntry<>("name", name))
+				.collect(toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue)));
+		return jdbcTemplate.queryForObject(sql, params, new BeanPropertyRowMapper<>(Currency.class));
+	}
 }
