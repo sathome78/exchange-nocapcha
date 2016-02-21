@@ -1,5 +1,6 @@
 package me.exrates.service.impl;
 
+import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
@@ -35,6 +36,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 
+import static com.squareup.okhttp.MediaType.*;
 import static com.squareup.okhttp.MediaType.parse;
 import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED;
 
@@ -52,6 +54,8 @@ public class YandexMoneyServiceImpl implements YandexMoneyService {
     private @Value("${yandexmoney.redirectURI}") String redirectURI;
 
     private @Value("${yandexmoney.companyWalletId}") String companyWalletId;
+
+    private @Value("${yandexmoney.responseType}") String responseType;
 
     private static final Logger logger = LogManager.getLogger(YandexMoneyServiceImpl.class);
 
@@ -97,16 +101,15 @@ public class YandexMoneyServiceImpl implements YandexMoneyService {
         final OAuth2Authorization oAuth2Authorization = session.createOAuth2Authorization();
         final com.squareup.okhttp.OkHttpClient httpClient = apiClient.getHttpClient();
         session.setDebugLogging(true);
-        System.out.println(clientId);
         final byte[] params = oAuth2Authorization.getAuthorizeParams()
                 .addScope(Scope.ACCOUNT_INFO)
                 .addScope(Scope.PAYMENT_P2P)
                 .setRedirectUri(redirectURI)
-                .setResponseType(APPLICATION_FORM_URLENCODED.getType())
+                .setResponseType(responseType)
                 .build();
         final Request request = new Request.Builder()
                 .url(oAuth2Authorization.getAuthorizeUrl())
-                .post(RequestBody.create(parse(APPLICATION_FORM_URLENCODED.getType()), params))
+                .post(RequestBody.create(parse(APPLICATION_FORM_URLENCODED.toString()), params))
                 .build();
         final Response response;
         try {
@@ -115,6 +118,7 @@ public class YandexMoneyServiceImpl implements YandexMoneyService {
             logger.fatal(e);
             throw new MerchantInternalException("YandexMoneyServiceInput");
         }
+        System.out.println(response.header(HttpHeaders.LOCATION));
         return URI.create(response.header(HttpHeaders.LOCATION));
     }
 

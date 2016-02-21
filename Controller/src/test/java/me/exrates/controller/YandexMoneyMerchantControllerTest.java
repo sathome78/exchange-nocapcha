@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.net.URI;
 import java.security.Principal;
 
 import static org.mockito.Mockito.doThrow;
@@ -60,10 +61,10 @@ public class YandexMoneyMerchantControllerTest {
 
     @Test
     public void successTemporaryAuthorizationCodeRequest() throws Exception {
-//        when(yandexMoneyService.getTemporaryAuthCode()).thenReturn(URI);
-//        mockMvc.perform(get("/merchants/yandexmoney/token/authorization"))
-//                .andExpect(status().is3xxRedirection())
-//                .andExpect(mvcResult -> ModelAndViewAssert.assertViewName(mvcResult.getModelAndView(),"redirect:code"));
+        when(yandexMoneyService.getTemporaryAuthCode()).thenReturn(URI.create("code"));
+        mockMvc.perform(get("/merchants/yandexmoney/token/authorization"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(mvcResult -> AssertMvc);
     }
 
     @Test(expected = MerchantInternalException.class)
