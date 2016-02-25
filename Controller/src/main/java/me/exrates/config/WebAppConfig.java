@@ -1,21 +1,17 @@
 package me.exrates.config;
 
-import me.exrates.YandexMoneyProperties;
 import me.exrates.controller.validator.RegisterFormValidation;
 import org.apache.commons.dbcp2.BasicDataSource;
-import org.apache.commons.logging.LogFactory;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.*;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -30,7 +26,6 @@ import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
 
-import javax.annotation.Resource;
 import javax.sql.DataSource;
 import java.util.Locale;
 
@@ -39,13 +34,19 @@ import java.util.Locale;
 @EnableTransactionManagement
 @ComponentScan({ "me.exrates" })
 @Import({ me.exrates.security.config.SecurityConfig.class })
+@PropertySource(value = "classpath:/${spring.profile.active}/db.properties")
 public class WebAppConfig extends WebMvcConfigurerAdapter {
+
+	private @Value("${db.user}") String dbUser;
+	private @Value("${db.password}") String dbPassword;
+	private @Value("${db.url}") String dbUrl;
+	private @Value("${db.classname}") String dbClassname;
 
 	private static final Logger logger = LogManager.getLogger(WebAppConfig.class);
 
 	@Bean
 	public DataSource dataSource() {
-		BasicDataSource dataSource = new BasicDataSource();
+		final BasicDataSource dataSource = new BasicDataSource();
 		dataSource.setDriverClassName("com.mysql.jdbc.Driver");
 		dataSource.setUrl("jdbc:mysql://localhost:3306/birzha");
 		dataSource.setUsername("root");
@@ -122,10 +123,5 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 	@Bean
 	public RegisterFormValidation getRegisterFormValidation(){
 		return new RegisterFormValidation();
-	}
-
-	@Bean
-	public YandexMoneyProperties getYandexMoneyProperties() {
-		return new YandexMoneyProperties("/merchants.properties");
 	}
 }

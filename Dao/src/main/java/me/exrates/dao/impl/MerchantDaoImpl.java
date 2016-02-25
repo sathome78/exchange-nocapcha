@@ -1,18 +1,25 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.MerchantDao;
-import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-import javax.sql.DataSource;
-import java.util.*;
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static java.util.AbstractMap.SimpleEntry;
+import static java.util.Collections.unmodifiableMap;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Stream.of;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -21,7 +28,7 @@ import java.util.*;
 public class MerchantDaoImpl implements MerchantDao {
 
     @Autowired
-    private DataSource dataSource;
+    private NamedParameterJdbcTemplate jdbcTemplate;
 
     @Override
     public Merchant create(Merchant merchant) {
@@ -30,14 +37,21 @@ public class MerchantDaoImpl implements MerchantDao {
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("description",merchant.getDescription());
         params.addValue("name",merchant.getName());
-        NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-        if (namedParameterJdbcTemplate.update(sql, params, keyHolder)>0) {
+        if (jdbcTemplate.update(sql, params, keyHolder)>0) {
             merchant.setId(keyHolder.getKey().intValue());
             return merchant;
         }
         return null;
     }
 
+    @Override
+    public Merchant findById(int id) {
+        final String sql = "SELECT * FROM MERCHANT WHERE id = :id";
+        final Map<String, Integer> params = unmodifiableMap(of(
+                new SimpleEntry<>("id", id))
+                .collect(toMap(SimpleEntry::getKey, SimpleEntry::getValue)));
+        return jdbcTemplate.queryForObject(sql,params,new BeanPropertyRowMapper<>(Merchant.class));
+    }
 
 
     @Override
@@ -45,9 +59,8 @@ public class MerchantDaoImpl implements MerchantDao {
         final String sql = "SELECT * FROM MERCHANT WHERE id in (SELECT merchant_id FROM MERCHANT_CURRENCY WHERE currency_id = :currencyId)";
         Map<String,Integer> params = new HashMap<>();
         params.put("currencyId",currencyId);
-        NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         try {
-            return namedParameterJdbcTemplate.query(sql, params, (resultSet, i) -> {
+            return jdbcTemplate.query(sql, params, (resultSet, i) -> {
                 Merchant merchant = new Merchant();
                 merchant.setDescription(resultSet.getString("description"));
                 merchant.setId(resultSet.getInt("id"));
@@ -59,8 +72,13 @@ public class MerchantDaoImpl implements MerchantDao {
         }
     }
 
-    public static void main(String[] args) {
-        Set<Integer> currencies = new HashSet<>();
-
+    @Override
+    public BigDecimal getMinSum(int merchant, int currency) {
+        final String sql = "SELECT min_sum FROM MERCHANT_CURRENCY WHERE merchant_id = :merchant AND currency_id = :currency";
+        final Map<String, Integer> params = unmodifiableMap(of(
+                new SimpleEntry<>("merchant", merchant),
+                new SimpleEntry<>("currency",currency))
+                .collect(toMap(SimpleEntry::getKey, SimpleEntry::getValue)));
+        return jdbcTemplate.queryForObject(sql,params,BigDecimal.class);
     }
 }

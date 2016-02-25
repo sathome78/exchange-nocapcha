@@ -1,4 +1,4 @@
-package me.exrates.model.exception;
+package me.exrates.model.exceptions;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)

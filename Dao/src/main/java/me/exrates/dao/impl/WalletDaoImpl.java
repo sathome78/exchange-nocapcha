@@ -92,8 +92,6 @@ public class WalletDaoImpl implements WalletDao {
 		return id;
 	}
 
-
-
 	@Override
 	public List<Wallet> findAllByUser(int userId) {
 		final String sql = "SELECT WALLET.id,WALLET.currency_id,WALLET.user_id,WALLET.active_balance, WALLET.reserved_balance, CURRENCY.name as name FROM WALLET" +
@@ -137,6 +135,18 @@ public class WalletDaoImpl implements WalletDao {
 		}
 		return null;
 	}
+
+	@Override
+	public boolean update(Wallet wallet) {
+		final String sql = "UPDATE WALLET SET active_balance = :activeBalance, reserved_balance = :reservedBalance WHERE id = :id";
+		final Map<String,Object> params = unmodifiableMap(of(
+				new SimpleEntry<>("id",wallet.getId()),
+				new SimpleEntry<>("activeBalance", wallet.getActiveBalance()),
+				new SimpleEntry<>("reservedBalance", wallet.getReservedBalance())
+		).collect(toMap(SimpleEntry::getKey,SimpleEntry::getValue)));
+		return jdbcTemplate.update(sql,params) == 1;
+	}
+
 
 	public int getUserIdFromWallet(int walletId) {
 		final String sql = "SELECT user_id FROM WALLET WHERE id = :walletId";

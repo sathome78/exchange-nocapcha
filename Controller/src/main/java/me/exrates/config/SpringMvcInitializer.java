@@ -2,6 +2,9 @@ package me.exrates.config;
 
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+
 
 public class SpringMvcInitializer 
        extends AbstractAnnotationConfigDispatcherServletInitializer {
@@ -20,5 +23,15 @@ public class SpringMvcInitializer
 	protected String[] getServletMappings() {
 		return new String[] { "/" };
 	}
-	
+
+	@Override
+	public void onStartup(ServletContext servletContext) throws ServletException {
+		super.onStartup(servletContext);
+		String activeProfile = System.getProperty("profile");
+		if (activeProfile == null) {
+			activeProfile = "prod";
+		}
+		System.out.println(activeProfile);
+		servletContext.setInitParameter("spring.profile.active",activeProfile);
+	}
 }

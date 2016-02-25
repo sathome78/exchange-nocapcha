@@ -1,5 +1,6 @@
 package me.exrates.service;
 
+import me.exrates.model.CreditsOperation;
 import me.exrates.model.Transaction;
 
 import java.util.List;
@@ -9,7 +10,7 @@ import java.util.List;
  */
 public interface TransactionService {
 
-    boolean create(Transaction transaction);
+    Transaction provideTransaction(CreditsOperation creditsOperation);
 
     List<Transaction> findAllByUserId(int id);
 }

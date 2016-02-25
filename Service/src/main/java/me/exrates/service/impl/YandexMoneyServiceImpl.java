@@ -1,6 +1,5 @@
 package me.exrates.service.impl;
 
-import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
@@ -16,19 +15,27 @@ import com.yandex.money.api.net.DefaultApiClient;
 import com.yandex.money.api.net.OAuth2Authorization;
 import com.yandex.money.api.net.OAuth2Session;
 import me.exrates.dao.YandexMoneyMerchantDao;
-import me.exrates.service.TransactionService;
-import me.exrates.service.UserService;
-import me.exrates.service.YandexMoneyService;
+import me.exrates.model.Commission;
+import me.exrates.model.CreditsOperation;
+import me.exrates.model.Payment;
+import me.exrates.model.Transaction;
+import me.exrates.model.enums.OperationType;
+import me.exrates.service.*;
 import me.exrates.service.exception.MerchantInternalException;
+import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
+import me.exrates.service.exception.UnsupportedMerchantException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.ModelMap;
+import org.springframework.web.servlet.ModelAndView;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -36,15 +43,15 @@ import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 
-import static com.squareup.okhttp.MediaType.*;
 import static com.squareup.okhttp.MediaType.parse;
+import static me.exrates.model.enums.OperationType.*;
 import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 @Service("yandexMoneyService")
-@PropertySource({"classpath:merchants.properties"})
+@PropertySource("classpath:/${spring.profile.active}/merchants.properties")
 public class YandexMoneyServiceImpl implements YandexMoneyService {
 
     private @Value("${yandexmoney.clientId}") String clientId;
@@ -66,6 +73,9 @@ public class YandexMoneyServiceImpl implements YandexMoneyService {
     private UserService userService;
 
     @Autowired
+    private WalletService walletService;
+
+    @Autowired
     private TransactionService transactionService;
 
     @Override
@@ -81,12 +91,12 @@ public class YandexMoneyServiceImpl implements YandexMoneyService {
     @Override
     public boolean addToken(String token, String email) {
         final int id = userService.getIdByEmail(email);
-        return yandexMoneyMerchantDao.createToken(token,id);
+        return yandexMoneyMerchantDao.createToken(token, id);
     }
 
     @Override
     public boolean updateTokenByUserEmail(String newToken, String email) {
-        return yandexMoneyMerchantDao.updateTokenByUserEmail(email,newToken);
+        return yandexMoneyMerchantDao.updateTokenByUserEmail(email, newToken);
     }
 
     @Override
@@ -95,7 +105,7 @@ public class YandexMoneyServiceImpl implements YandexMoneyService {
     }
 
     @Override
-    public URI getTemporaryAuthCode() {
+    public String getTemporaryAuthCode() {
         final DefaultApiClient apiClient = new DefaultApiClient(clientId, true);
         final OAuth2Session session = new OAuth2Session(apiClient);
         final OAuth2Authorization oAuth2Authorization = session.createOAuth2Authorization();
@@ -118,8 +128,7 @@ public class YandexMoneyServiceImpl implements YandexMoneyService {
             logger.fatal(e);
             throw new MerchantInternalException("YandexMoneyServiceInput");
         }
-        System.out.println(response.header(HttpHeaders.LOCATION));
-        return URI.create(response.header(HttpHeaders.LOCATION));
+        return response.header(HttpHeaders.LOCATION);
     }
 
     @Override
@@ -140,79 +149,61 @@ public class YandexMoneyServiceImpl implements YandexMoneyService {
     }
 
     @Override
-    public Optional<RequestPayment> requestPayment(String email, String token, ModelMap map) {
-        final DefaultApiClient apiClient = new DefaultApiClient(clientId, true);
-        final OAuth2Session oAuth2Session = new OAuth2Session(apiClient);
-        oAuth2Session.setAccessToken(token);
-        logger.info("Purchase " + map.get("amount") + map.get("currency")
-                + " from " + email + ". Total transferred amount: " + map.get("sumToPay")
-                + ", Commission: " + map.get("commission") + ", Amount to be credited to user wallet: " + map.get("amount"));
-        final P2pTransferParams p2pTransferParams = new P2pTransferParams.Builder(companyWalletId)
-                .setAmount((BigDecimal) map.get("sumToPay"))
-                .setComment("Purchase " + map.get("amount") + map.get("currency") + " at the S.E. Birzha")
-                .create();
-        final RequestPayment.Request request = RequestPayment.Request.newInstance(p2pTransferParams);
-        try {
-            return Optional.of(oAuth2Session.execute(request));
-        } catch (IOException | InvalidRequestException | InsufficientScopeException | InvalidTokenException e) {
-            logger.error(e.getMessage());
-            return Optional.empty();
-        }
+    public Optional<RequestPayment> requestInputPayment(String token, CreditsOperation creditsOperation) {
+        return requestOutputPayment(token, companyWalletId, creditsOperation);
     }
 
     @Override
-    @Transactional
-    public Optional<ProcessPayment> processPayment(String requestId,OAuth2Session oAuth2Session) {
-//        final ProcessPayment processPayment;
-//        try {
-//            processPayment = oAuth2Session.execute(new ProcessPayment.Request(requestId));
-//            Transaction transaction = new Transaction();
-//            transaction.setAmount(((BigDecimal) paymentData.get("sumToPay")).doubleValue());
-//            transaction.setCommissionId(commissionService.findCommissionByType(OperationType.INPUT).getId());
-//            transaction.setTransactionType(Payment.TransactionType.INPUT);
-//            transaction.setWalletId(walletId);
-//            transaction.setDate(LocalDateTime.now());
-//            transactionService.create(transaction);
-//
-//        } catch (IOException | InvalidRequestException | InsufficientScopeException | InvalidTokenException e) {
-//            e.printStackTrace();
-//            return Optional.empty();
-//        }
-//        if (processPayment.status.equals(ProcessPayment.Status.SUCCESS)) {
-//            final int idByEmail = userService.getIdByEmail(principal.getName());
-//            final int currencyId = (Integer) paymentData.get("currency");
-//            int walletId = walletService.getWalletId(idByEmail, currencyId);
-//            if (walletId==0){
-//                Wallet wallet = new Wallet();
-//                wallet.setCurrencyId(currencyId);
-//                wallet.setUserId(idByEmail);
-//                walletId = walletService.createNewWallet(wallet);
-//            }
-//            walletService.setWalletABalance(walletId, ((BigDecimal) paymentData.get("amount")).doubleValue());
-//            CompanyTransaction companyTransaction = new CompanyTransaction();
-//            companyTransaction.setCurrencyId(currencyId);
-//            companyTransaction.setDate(LocalDateTime.now());
-//            companyTransaction.setMerchantId((Integer) paymentData.get("merchant"));
-//            companyTransaction.setOperationTypeId(OperationType.INPUT.type);
-//            companyTransaction.setSum((BigDecimal) paymentData.get("amount"));
-//            companyTransaction.setWalletId(companyWalletService.findByCurrencyId(currencyId).getId());
-//            companyTransaction = companyTransactionService.create(companyTransaction);
-//            logger.info(companyTransaction);
-//
-//            logger.info(transaction.toString());
-//            redir.addFlashAttribute("message","Спасибо! Вы успешно ввели "+((BigDecimal) paymentData.get("amount")).setScale(2,BigDecimal.ROUND_CEILING) + " " + walletService.getCurrencyName(currencyId));
-//            return new ModelAndView("redirect:/mywallets");
-//        } else if (processPayment.status.equals(ProcessPayment.Status.REFUSED)) {
-//            switch (processPayment.error) {
-//                case NOT_ENOUGH_FUNDS:
-//                    redir.addFlashAttribute("error", "merchants.notEnoughMoney");
-//                    return redirectToMerchantError;
+    public Optional<RequestPayment> requestOutputPayment(String token, String destination, CreditsOperation creditsOperation) {
+        final DefaultApiClient apiClient = new DefaultApiClient(clientId, true);
+        final OAuth2Session oAuth2Session = new OAuth2Session(apiClient);
+        oAuth2Session.setAccessToken(token);
+        final BigDecimal sum = creditsOperation.getAmount().add(creditsOperation.getCommissionAmount());
+        final P2pTransferParams p2pTransferParams = new P2pTransferParams.Builder(destination)
+                .setAmount(sum)
+                .create();
+        final RequestPayment.Request request = RequestPayment.Request.newInstance(p2pTransferParams);
+        try {
+            final Optional<RequestPayment> execute = Optional.of(oAuth2Session.execute(request));
+            if (execute.isPresent()) {
+                return execute;
+            }
+            executePayment(execute.get().requestId,oAuth2Session,creditsOperation);
+        } catch (IOException e) {
+            logger.fatal(e);
+            final String message = "YandexMoneyService".concat(destination.equals(companyWalletId) ? "Input" : "Output");
+            throw new MerchantInternalException(message);
+        } catch (InvalidRequestException | InsufficientScopeException | InvalidTokenException e) {
+            logger.error(e.getMessage());
+            return Optional.empty();
+        }
+        return Optional.empty();
+    }
+
+
+    @Transactional(rollbackFor = RuntimeException.class)
+    protected void executePayment(String requestId, OAuth2Session oAuth2Session,
+                                  CreditsOperation creditsOperation) {
+        final ProcessPayment processPayment;
+        final Transaction transaction;
+        try {
+            transaction = transactionService.provideTransaction(creditsOperation);
+            processPayment = oAuth2Session.execute(new ProcessPayment.Request(requestId));
+        } catch (IOException | InvalidRequestException | InsufficientScopeException | InvalidTokenException e) {
+            logger.fatal(e.getMessage());
+            throw new MerchantInternalException(creditsOperation.getOperationType().name());
+        }
+        if (processPayment.status.equals(ProcessPayment.Status.SUCCESS)) {
+            logger.info(transaction.toString());
+            return;
+        }
+        if (processPayment.status.equals(ProcessPayment.Status.REFUSED)) {
+            switch (processPayment.error) {
+                case NOT_ENOUGH_FUNDS:
+                    throw new NotEnoughUserWalletMoneyException("Not enough money on yandex wallet");
 //                case ACCOUNT_BLOCKED:
 //                    return new ModelAndView("redirect:" + execute.accountUnblockUri);
-//            }
-//        }
-//        redir.addFlashAttribute("error", "merchants.internalError");
-//        return redirectToMerchantError;
-        return null;
+            }
+        }
     }
 }

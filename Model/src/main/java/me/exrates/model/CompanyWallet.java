@@ -1,13 +1,16 @@
 package me.exrates.model;
 
+import java.math.BigDecimal;
+
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 public class CompanyWallet {
 
     private int id;
-    private int currencyId;
-    private String name;
+    private Currency currency;
+    private BigDecimal balance;
+    private BigDecimal commissionBalance;
 
     public int getId() {
         return id;
@@ -17,20 +20,28 @@ public class CompanyWallet {
         this.id = id;
     }
 
-    public int getCurrencyId() {
-        return currencyId;
+    public Currency getCurrency() {
+        return currency;
     }
 
-    public void setCurrencyId(int currencyId) {
-        this.currencyId = currencyId;
+    public void setCurrency(Currency currency) {
+        this.currency = currency;
     }
 
-    public String getName() {
-        return name;
+    public BigDecimal getBalance() {
+        return balance;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setBalance(BigDecimal balance) {
+        this.balance = balance;
+    }
+
+    public BigDecimal getCommissionBalance() {
+        return commissionBalance;
+    }
+
+    public void setCommissionBalance(BigDecimal commissionBalance) {
+        this.commissionBalance = commissionBalance;
     }
 
     @Override
@@ -41,25 +52,28 @@ public class CompanyWallet {
         CompanyWallet that = (CompanyWallet) o;
 
         if (id != that.id) return false;
-        if (currencyId != that.currencyId) return false;
-        return name != null ? name.equals(that.name) : that.name == null;
+        if (currency != null ? !currency.equals(that.currency) : that.currency != null) return false;
+        if (balance != null ? !balance.equals(that.balance) : that.balance != null) return false;
+        return commissionBalance != null ? commissionBalance.equals(that.commissionBalance) : that.commissionBalance == null;
 
     }
 
     @Override
     public int hashCode() {
         int result = id;
-        result = 31 * result + currencyId;
-        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (currency != null ? currency.hashCode() : 0);
+        result = 31 * result + (balance != null ? balance.hashCode() : 0);
+        result = 31 * result + (commissionBalance != null ? commissionBalance.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString() {
         return "CompanyWallet{" +
-                "name='" + name + '\'' +
-                ", currencyId=" + currencyId +
-                ", id=" + id +
+                "id=" + id +
+                ", currency=" + currency +
+                ", balance=" + balance +
+                ", commissionBalance=" + commissionBalance +
                 '}';
     }
 }

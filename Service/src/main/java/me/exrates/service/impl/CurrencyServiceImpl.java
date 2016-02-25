@@ -26,4 +26,9 @@ public class CurrencyServiceImpl implements CurrencyService {
     public Currency findByName(String name) {
         return currencyDao.findByName(name);
     }
+
+    @Override
+    public Currency findById(int id) {
+        return currencyDao.findById(id);
+    }
 }

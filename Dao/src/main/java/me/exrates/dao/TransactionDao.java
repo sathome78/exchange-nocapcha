@@ -1,5 +1,6 @@
 package me.exrates.dao;
 
+import me.exrates.model.CreditsOperation;
 import me.exrates.model.Transaction;
 import me.exrates.model.User;
 
@@ -10,7 +11,7 @@ import java.util.List;
  */
 public interface TransactionDao {
 
-    boolean create(Transaction transaction);
+    Transaction create(Transaction transaction);
 
     List<Transaction> findAllByUserId(int id);
 }

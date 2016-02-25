@@ -42,7 +42,7 @@
 
             <div class="content__page">
 
-                <div class="title__page">Ввод средств</div>
+                <div class="title__page"><loc:message code="merchants.inputTitle"/></div>
                 <c:if test="${error!=null}">
                 <label class="alert-danger has-error">
                     <loc:message code="${error}"/>
@@ -52,7 +52,7 @@
                 <c:url value="/merchants/yandexmoney/payment/prepare" var="url"/>
                 <paymentForm:form class="form-horizontal withdraw__money" name="payment" method="post" modelAttribute="payment" action="${url}">
                     <div class="form-group">
-                        <label class="col-sm-3 control-label" for="#">Валюта к вводу</label>
+                        <label class="col-sm-3 control-label" for="#"><loc:message code="merchants.inputCurrency"/></label>
                         <div class="col-sm-8">
                             <paymentForm:select id="currencySelect" path="currency" onchange="loadMeansOfPayment()" class="select form-control">
                                 <paymentForm:options items="${currencies}" itemLabel="name" itemValue="id" />
@@ -62,8 +62,7 @@
                     <div class="form-group">
                         <label class="col-sm-3 control-label" for="#"><loc:message code="merchants.meansOfPayment"/></label>
                         <div class="col-sm-8">
-                            <paymentForm:select id="meansOfPaymentSelect" path="merchant">
-                            </paymentForm:select>
+                            <paymentForm:select id="meansOfPaymentSelect" path="merchant"/>
                         </div>
                     </div>
                     <div class="form-group">
@@ -76,6 +75,7 @@
                             <button type="button" data-toggle="modal" name="assertInputPay" data-target="#myModal" class="btn btn-primary">Пополнить</button>
                         </div>
                     </div>
+                <paymentForm:hidden path="operationType"/>
                 </paymentForm:form>
                 <!-- End  withdraw__money -->
                 <%@include file='footer.jsp'%>

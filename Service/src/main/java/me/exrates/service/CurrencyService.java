@@ -12,4 +12,6 @@ public interface CurrencyService {
     List<Currency> getAllCurrencies();
 
     Currency findByName(String name);
+
+    Currency findById(int id);
 }

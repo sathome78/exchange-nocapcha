@@ -1,23 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@taglib uri="http://www.springframework.org/tags" prefix="loc"%> 
-<%--<!DOCTYPE html>--%>
-<%--<html>--%>
-<%--<head>--%>
-  <%--<title></title>--%>
- <%--</head>--%>
-<%--<body>--%>
-    <%--<div style="margin-top: 10px;">--%>
-    <%--<p><a href="mywallets" ><loc:message code="usermenu.accounts" /></a>--%>
-    <%--<p><a href="orders" ><loc:message code="usermenu.orders" /></a>--%>
-    <%--<p><a href="merchants/input" ><loc:message code="usermenu.enter" /></a>--%>
-    <%--<p><a href="/" ><loc:message code="usermenu.history" /></a>--%>
-    <%--<p><a href="/" ><loc:message code="usermenu.settings" /></a>--%>
-    <%--</div>--%>
-
-<%--</body>--%>
-<%--</html>--%>
-
 <aside class="sidebar">
 
     <!-- begin Logo block -->
@@ -32,28 +15,26 @@
         <!-- begin navbar -->
         <ul class="navbar">
             <li class="navabr__item">
-                <a href="<c:url value="/mywallets"/>"
-                   class="navabr__link">Мои счета
-                </a>
+                <a href="<c:url value="/mywallets"/>" class="navabr__link"><loc:message code="usermenu.mywallets"/></a>
             </li>
             <li class="navabr__item">
-                <a href="<c:url value="/orders"/>" class="navabr__link">Ордера</a>
+                <a href="<c:url value="/orders"/>" class="navabr__link"><loc:message code="usermenu.orders"/></a>
             </li>
             <li class="navabr__item">
-                <a href="<c:url value="/myorders"/>" class="navabr__link">Мои ордера</a>
+                <a href="<c:url value="/myorders"/>" class="navabr__link"><loc:message code="usermenu.myorders"/></a>
             </li>
             <li class="navabr__item">
-                <a href="<c:url value="/merchants/input"/>" class="navabr__link">Ввод средств</a>
+                <a href="<c:url value="/merchants/input"/>" class="navabr__link"><loc:message code="usermenu.inputCredits"/></a>
             </li>
             <li class="navabr__item">
-                <a href="<c:url value="/merchants/output"/>" class="navabr__link">Вывод средств</a>
+                <a href="<c:url value="/merchants/output"/>" class="navabr__link"><loc:message code="usermenu.outputCredits"/></a>
             </li>
             <li class="navabr__item">
-                <a href="<c:url value="/transaction"/>" class="navabr__link">История операций</a>
+                <a href="<c:url value="/transaction"/>" class="navabr__link"><loc:message code="usermenu.history"/></a>
             </li>
-            <li class="navabr__item">
-                <a href="#" class="navabr__link">Настройки</a>
-            </li>
+            <%--<li class="navabr__item">--%>
+                <%--<a href="#" class="navabr__link"><loc:message code="usermenu.settings"/></a>--%>
+            <%--</li>--%>
         </ul>
         <!-- end navbar -->
 
@@ -61,19 +42,19 @@
         <!-- begin sub__navbar  -->
         <ul class="sub__navbar ">
             <li class="navabr__item">
-                <a href="#" class="navabr__link">Комиссии</a>
+                <a href="#" class="navabr__link"><loc:message code="subusermenu.commissions"/></a>
             </li>
             <li class="navabr__item">
-                <a href="#" class="navabr__link">Новости</a>
+                <a href="#" class="navabr__link"><loc:message code="subusermenu.news"/></a>
             </li>
             <li class="navabr__item">
-                <a href="#" class="navabr__link">API</a>
+                <a href="#" class="navabr__link"><loc:message code="subusermenu.api"/></a>
             </li>
             <li class="navabr__item">
-                <a href="#" class="navabr__link">Правила</a>
+                <a href="#" class="navabr__link"><loc:message code="subusermenu.rules"/></a>
             </li>
             <li class="navabr__item">
-                <a href="#" class="navabr__link">FAQ</a>
+                <a href="#" class="navabr__link"><loc:message code="subusermenu.faq"/></a>
             </li>
         </ul>
         <!-- end sub__navbar  -->

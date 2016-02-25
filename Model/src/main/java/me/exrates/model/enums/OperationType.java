@@ -1,6 +1,6 @@
 package me.exrates.model.enums;
 
-import me.exrates.model.exception.UnsupportedOperationTypeException;
+import me.exrates.model.exceptions.UnsupportedOperationTypeException;
 
 public enum OperationType {
 

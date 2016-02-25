@@ -13,4 +13,6 @@ public interface CurrencyDao {
 	String getCurrencyName(int currencyId);
 
 	Currency findByName(String name);
+
+	Currency findById(int id);
 }

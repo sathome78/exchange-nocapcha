@@ -1,10 +1,11 @@
 package me.exrates.service;
 
-import java.util.List;
-
 import me.exrates.model.Currency;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
+
+import java.math.BigDecimal;
+import java.util.List;
 
 public interface WalletService {
 
@@ -34,5 +35,13 @@ public interface WalletService {
 
 	Wallet findByUserAndCurrency(User user, Currency currency);
 
-	Wallet createWallet(User user,Currency currency);
+	Wallet create(User user, Currency currency);
+
+	void depositActiveBalance(Wallet wallet, BigDecimal sum);
+
+	void withdrawActiveBalance(Wallet wallet, BigDecimal sum);
+
+	void depositReservedBalance(Wallet wallet, BigDecimal sum);
+
+	void withdrawReservedBalance(Wallet wallet,BigDecimal sum);
 }

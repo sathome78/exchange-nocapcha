@@ -1,5 +1,8 @@
 package me.exrates.model;
 
+import me.exrates.model.enums.OperationType;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -8,14 +11,15 @@ import java.time.LocalDateTime;
 public class Transaction {
 
     private int id;
-    private int walletId;
-    private int commissionId;
-    private double amount;
-    private Payment.TransactionType transactionType;
-    private LocalDateTime date;
-    private String currency;
-    private String operationType;
-    private double commission;
+    private Wallet userWallet;
+    private CompanyWallet companyWallet;
+    private BigDecimal amount;
+    private BigDecimal commissionAmount;
+    private Commission commission;
+    private OperationType operationType;
+    private Currency currency;
+    private Merchant merchant;
+    private LocalDateTime datetime;
 
     public int getId() {
         return id;
@@ -25,68 +29,76 @@ public class Transaction {
         this.id = id;
     }
 
-    public int getWalletId() {
-        return walletId;
+    public Wallet getUserWallet() {
+        return userWallet;
     }
 
-    public void setWalletId(int walletId) {
-        this.walletId = walletId;
+    public void setUserWallet(Wallet userWallet) {
+        this.userWallet = userWallet;
     }
 
-    public int getCommissionId() {
-        return commissionId;
+    public CompanyWallet getCompanyWallet() {
+        return companyWallet;
     }
 
-    public void setCommissionId(int commissionId) {
-        this.commissionId = commissionId;
+    public void setCompanyWallet(CompanyWallet companyWallet) {
+        this.companyWallet = companyWallet;
     }
 
-    public double getAmount() {
+    public BigDecimal getAmount() {
         return amount;
     }
 
-    public void setAmount(double amount) {
+    public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
 
-    public Payment.TransactionType getTransactionType() {
-        return transactionType;
+    public BigDecimal getCommissionAmount() {
+        return commissionAmount;
     }
 
-    public void setTransactionType(Payment.TransactionType transactionType) {
-        this.transactionType = transactionType;
+    public void setCommissionAmount(BigDecimal commissionAmount) {
+        this.commissionAmount = commissionAmount;
     }
 
-    public LocalDateTime getDate() {
-        return date;
-    }
-
-    public void setDate(LocalDateTime date) {
-        this.date = date;
-    }
-
-    public String getCurrency() {
-        return currency;
-    }
-
-    public void setCurrency(String currency) {
-        this.currency = currency;
-    }
-
-    public String getOperationType() {
-        return operationType;
-    }
-
-    public void setOperationType(String operationType) {
-        this.operationType = operationType;
-    }
-
-    public double getCommission() {
+    public Commission getCommission() {
         return commission;
     }
 
-    public void setCommission(double commission) {
+    public void setCommission(Commission commission) {
         this.commission = commission;
+    }
+
+    public OperationType getOperationType() {
+        return operationType;
+    }
+
+    public void setOperationType(OperationType operationType) {
+        this.operationType = operationType;
+    }
+
+    public Currency getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(Currency currency) {
+        this.currency = currency;
+    }
+
+    public Merchant getMerchant() {
+        return merchant;
+    }
+
+    public void setMerchant(Merchant merchant) {
+        this.merchant = merchant;
+    }
+
+    public LocalDateTime getDatetime() {
+        return datetime;
+    }
+
+    public void setDatetime(LocalDateTime datetime) {
+        this.datetime = datetime;
     }
 
     @Override
@@ -97,25 +109,32 @@ public class Transaction {
         Transaction that = (Transaction) o;
 
         if (id != that.id) return false;
-        if (walletId != that.walletId) return false;
-        if (commissionId != that.commissionId) return false;
-        if (Double.compare(that.amount, amount) != 0) return false;
-        if (transactionType != that.transactionType) return false;
-        return date != null ? date.equals(that.date) : that.date == null;
+        if (userWallet != null ? !userWallet.equals(that.userWallet) : that.userWallet != null) return false;
+        if (companyWallet != null ? !companyWallet.equals(that.companyWallet) : that.companyWallet != null)
+            return false;
+        if (amount != null ? !amount.equals(that.amount) : that.amount != null) return false;
+        if (commissionAmount != null ? !commissionAmount.equals(that.commissionAmount) : that.commissionAmount != null)
+            return false;
+        if (commission != null ? !commission.equals(that.commission) : that.commission != null) return false;
+        if (operationType != that.operationType) return false;
+        if (currency != null ? !currency.equals(that.currency) : that.currency != null) return false;
+        if (merchant != null ? !merchant.equals(that.merchant) : that.merchant != null) return false;
+        return datetime != null ? datetime.equals(that.datetime) : that.datetime == null;
 
     }
 
     @Override
     public int hashCode() {
-        int result;
-        long temp;
-        result = id;
-        result = 31 * result + walletId;
-        result = 31 * result + commissionId;
-        temp = Double.doubleToLongBits(amount);
-        result = 31 * result + (int) (temp ^ (temp >>> 32));
-        result = 31 * result + (transactionType != null ? transactionType.hashCode() : 0);
-        result = 31 * result + (date != null ? date.hashCode() : 0);
+        int result = id;
+        result = 31 * result + (userWallet != null ? userWallet.hashCode() : 0);
+        result = 31 * result + (companyWallet != null ? companyWallet.hashCode() : 0);
+        result = 31 * result + (amount != null ? amount.hashCode() : 0);
+        result = 31 * result + (commissionAmount != null ? commissionAmount.hashCode() : 0);
+        result = 31 * result + (commission != null ? commission.hashCode() : 0);
+        result = 31 * result + (operationType != null ? operationType.hashCode() : 0);
+        result = 31 * result + (currency != null ? currency.hashCode() : 0);
+        result = 31 * result + (merchant != null ? merchant.hashCode() : 0);
+        result = 31 * result + (datetime != null ? datetime.hashCode() : 0);
         return result;
     }
 
@@ -123,11 +142,15 @@ public class Transaction {
     public String toString() {
         return "Transaction{" +
                 "id=" + id +
-                ", walletId=" + walletId +
-                ", commissionId=" + commissionId +
+                ", userWallet=" + userWallet +
+                ", companyWallet=" + companyWallet +
                 ", amount=" + amount +
-                ", transactionType=" + transactionType +
-                ", date=" + date +
+                ", commissionAmount=" + commissionAmount +
+                ", commission=" + commission +
+                ", operationType=" + operationType +
+                ", currency=" + currency +
+                ", merchant=" + merchant +
+                ", datetime=" + datetime +
                 '}';
     }
 }

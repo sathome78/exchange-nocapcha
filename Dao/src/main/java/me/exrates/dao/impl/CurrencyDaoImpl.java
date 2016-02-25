@@ -8,6 +8,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.AbstractMap;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +18,7 @@ import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Stream.of;
 
 @Repository
-public class CurrencyDaoImpl implements CurrencyDao{
+public class CurrencyDaoImpl implements CurrencyDao {
 
 	@Autowired
 	private NamedParameterJdbcTemplate jdbcTemplate;
@@ -55,8 +56,17 @@ public class CurrencyDaoImpl implements CurrencyDao{
 	public Currency findByName(String name) {
 		final String sql = "SELECT * FROM CURRENCY WHERE name = :name";
 		final Map<String,String> params = unmodifiableMap(of(
-				new AbstractMap.SimpleEntry<>("name", name))
-				.collect(toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue)));
+				new SimpleEntry<>("name", name))
+				.collect(toMap(SimpleEntry::getKey, SimpleEntry::getValue)));
+		return jdbcTemplate.queryForObject(sql, params, new BeanPropertyRowMapper<>(Currency.class));
+	}
+
+	@Override
+	public Currency findById(int id) {
+		final String sql = "SELECT * FROM CURRENCY WHERE id = :id";
+		final Map<String,Integer> params = unmodifiableMap(of(
+				new SimpleEntry<>("id", id))
+				.collect(toMap(SimpleEntry::getKey, SimpleEntry::getValue)));
 		return jdbcTemplate.queryForObject(sql, params, new BeanPropertyRowMapper<>(Currency.class));
 	}
 }

@@ -7,12 +7,12 @@ public class User  {
 	private int id;
 	private String nickname;
 	private String email;
-	private int phone;
+	private String phone;
 	private String status;
 	private String password;
 	private String finpassword;
 	private Date regdate;
-	private String ip;
+	private String ipaddress;
 	private String confirmPassword;
 	private boolean readRules;
 	private String role;
@@ -42,11 +42,11 @@ public class User  {
 	}
 
 	public String getIp() {
-		return ip;
+		return ipaddress;
 	}
 
 	public void setIp(String ip) {
-		this.ip = ip;
+		this.ipaddress = ip;
 	}
 
 	public int getId() {
@@ -73,11 +73,11 @@ public class User  {
 		this.email = email;
 	}
 
-	public int getPhone() {
+	public String getPhone() {
 		return phone;
 	}
 
-	public void setPhone(int phone) {
+	public void setPhone(String phone) {
 		this.phone = phone;
 	}
 
@@ -111,5 +111,23 @@ public class User  {
 
 	public void setRegdate(Date regdate) {
 		this.regdate = regdate;
+	}
+
+	@Override
+	public String toString() {
+		return "User{" +
+				"id=" + id +
+				", nickname='" + nickname + '\'' +
+				", email='" + email + '\'' +
+				", phone=" + phone +
+				", status='" + status + '\'' +
+				", password='" + password + '\'' +
+				", finpassword='" + finpassword + '\'' +
+				", regdate=" + regdate +
+				", ip='" + ipaddress + '\'' +
+				", confirmPassword='" + confirmPassword + '\'' +
+				", readRules=" + readRules +
+				", role='" + role + '\'' +
+				'}';
 	}
 }

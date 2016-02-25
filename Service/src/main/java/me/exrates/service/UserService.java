@@ -6,6 +6,8 @@ public interface UserService {
 
     int getIdByEmail(String email);
 
+    User findByEmail(String email);
+
     boolean create(User user);
 
     boolean ifNicknameIsUnique(String nickname);
