@@ -1,25 +1,27 @@
-package me.exrates.controller;  
+package me.exrates.controller;
 
-import java.security.Principal;
-import java.util.List;
-import javax.servlet.http.HttpServletRequest;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.Transaction;
 import me.exrates.model.User;
+import me.exrates.model.Wallet;
 import me.exrates.security.service.UserSecureService;
-import me.exrates.service.CurrencyService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;  
+import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.ModelAttribute;  
-import org.springframework.web.bind.annotation.RequestMapping;  
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.ModelAndView;  
+import org.springframework.web.servlet.ModelAndView;
+
+import javax.servlet.http.HttpServletRequest;
+import java.security.Principal;
+import java.util.List;
+import java.util.stream.Collectors;
   
 @Controller  
 public class MainController {  
@@ -118,10 +120,15 @@ HttpServletRequest request;
 
     @RequestMapping(value = "/transaction")
     public ModelAndView transactions(Principal principal) {
-        final int idByEmail = userService.getIdByEmail(principal.getName());
-        final List<Transaction> allByUserId = transactionService.findAllByUserId(idByEmail);
-//        allByUserId.forEach(transaction ->
-//                transaction.setCurrency(walletService.getCurrencyName(walletService.getCurrencyId(transaction.getWalletId()))));
+        final int id = userService.getIdByEmail(principal.getName());
+        final List<Integer> collect = walletService.getAllWallets(id)
+                .stream()
+                .mapToInt(Wallet::getId)
+                .boxed()
+                .collect(Collectors.toList());
+        System.out.println(collect);
+        final List<Transaction> allByUserId = transactionService.findAllByUserWallets(collect);
+        System.out.println(allByUserId);
         final ModelAndView modelAndView = new ModelAndView("transaction");
         return modelAndView.addObject("transactions",allByUserId);
     }

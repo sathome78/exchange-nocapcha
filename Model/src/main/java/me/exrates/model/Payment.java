@@ -1,11 +1,9 @@
 package me.exrates.model;
 
 import me.exrates.model.enums.OperationType;
-import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -15,12 +13,10 @@ import javax.validation.constraints.NotNull;
 @Scope("session")
 public class Payment {
 
-
     private int currency;
-
     private int merchant;
-
     private double sum;
+    private String destination;
 
     @NotNull
     private OperationType operationType;
@@ -57,12 +53,21 @@ public class Payment {
         this.operationType = operationType;
     }
 
+    public String getDestination() {
+        return destination;
+    }
+
+    public void setDestination(String destination) {
+        this.destination = destination;
+    }
+
     @Override
     public String toString() {
         return "Payment{" +
                 "currency=" + currency +
                 ", merchant=" + merchant +
                 ", sum=" + sum +
+                ", destination='" + destination + '\'' +
                 ", operationType=" + operationType +
                 '}';
     }

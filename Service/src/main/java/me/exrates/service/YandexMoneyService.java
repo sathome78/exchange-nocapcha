@@ -1,13 +1,9 @@
 package me.exrates.service;
 
-import com.yandex.money.api.methods.ProcessPayment;
 import com.yandex.money.api.methods.RequestPayment;
-import com.yandex.money.api.net.OAuth2Session;
 import me.exrates.model.CreditsOperation;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,7 +27,5 @@ public interface YandexMoneyService {
 
     Optional<String> getAccessToken(String code);
 
-    Optional<RequestPayment> requestInputPayment(String token, CreditsOperation creditsOperation);
-
-    Optional<RequestPayment> requestOutputPayment(String token, String destination, CreditsOperation creditsOperation);
+    Optional<RequestPayment> requestPayment(String token, CreditsOperation creditsOperation);
 }

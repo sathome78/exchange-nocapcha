@@ -32,7 +32,7 @@ $(function(){
         "click", function() {
             var uid = $("input[name='walletUid']").val();
             if (uid.length>5){
-                $("#meanOfPaymentId").val(uid);
+                $("#destination").val(uid);
                 $('form[name="payment"]').submit();
             } else {
 
@@ -73,19 +73,21 @@ $(function(){
                 var currency = $("select[name='currency']").find(":selected").text().split(" ",1);
                 var meanOfPayment = $("select[name='meansOfPayment']").find(":selected").text();
                 var computedCommission = Math.ceil((sum * commission))/100;
-                var finalSum = sum + computedCommission;
+                var finalSum = sum - computedCommission;
                 $(".modal-header")
                     .empty()
                     .append("Вы выводите через платежную систему "+meanOfPayment+" : " + +sum+" "+currency+" <br/>"+
                         "Коммиссия биржи составит "+computedCommission+" "+currency+". <br/> " +
-                        "Итого сумма к списанию : "+finalSum+" " + currency+".");
+                        "Итого сумма к получению: "+finalSum+" " + currency+".");
             }
         });
     });
 
 });
 function loadMeansOfPayment() {
+
     var selectedVal = $("#currencySelect").find(":selected").val()
+
     $("#meansOfPaymentSelect")
         .empty();
 

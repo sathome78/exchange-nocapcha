@@ -12,5 +12,5 @@ public interface TransactionService {
 
     Transaction provideTransaction(CreditsOperation creditsOperation);
 
-    List<Transaction> findAllByUserId(int id);
+    List<Transaction> findAllByUserWallets(List<Integer> userWalletsIds);
 }

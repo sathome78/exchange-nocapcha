@@ -1,35 +1,27 @@
 package me.exrates.controller.merchants;
 
-import com.yandex.money.api.exceptions.InsufficientScopeException;
-import com.yandex.money.api.exceptions.InvalidRequestException;
-import com.yandex.money.api.exceptions.InvalidTokenException;
 import com.yandex.money.api.methods.BaseRequestPayment;
-import com.yandex.money.api.methods.ProcessPayment;
 import com.yandex.money.api.methods.RequestPayment;
-import com.yandex.money.api.methods.params.P2pTransferParams;
-import com.yandex.money.api.net.DefaultApiClient;
-import com.yandex.money.api.net.OAuth2Session;
-import me.exrates.model.*;
+import com.yandex.money.api.utils.Strings;
+import me.exrates.model.CreditsOperation;
 import me.exrates.model.enums.OperationType;
-import me.exrates.service.*;
+import me.exrates.service.MerchantService;
+import me.exrates.service.YandexMoneyService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.support.SessionStatus;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
+import org.springframework.web.util.WebUtils;
 
-import javax.validation.Valid;
-import java.io.IOException;
+import javax.servlet.http.HttpSession;
 import java.math.BigDecimal;
-import java.security.Principal;
-import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -37,7 +29,6 @@ import java.util.Optional;
  */
 @Controller
 @RequestMapping("/merchants/yandexmoney")
-@SessionAttributes(types = CreditsOperation.class, value = "creditsOperation")
 public class YandexMoneyMerchantController {
 
     @Autowired
@@ -50,15 +41,17 @@ public class YandexMoneyMerchantController {
 
     private static final String merchantInputErrorPage = "redirect:/merchants/input";
 
-    private static final String merchantOutputErrorPage = "redirect:/merchants/output";
-
     @RequestMapping(value = "/token/authorization", method = RequestMethod.GET)
     public RedirectView yandexMoneyTemporaryAuthorizationCodeRequest() {
         return new RedirectView(yandexMoneyService.getTemporaryAuthCode());
     }
 
     @RequestMapping(value = "/token/access")
-    public ModelAndView yandexMoneyAccessTokenRequest(@RequestParam(value = "code") String code,RedirectAttributes redir) {
+    public ModelAndView yandexMoneyAccessTokenRequest(@RequestParam(value = "code",   required = false) String code,RedirectAttributes redir) {
+        if (Strings.isNullOrEmpty(code)) {
+            redir.addFlashAttribute("error", "merchants.authRejected");
+            return new ModelAndView(merchantInputErrorPage);
+        }
         final Optional<String> accessToken = yandexMoneyService.getAccessToken(code);
         if (!accessToken.isPresent()) {
             redir.addFlashAttribute("error", "merchants.authRejected");
@@ -68,33 +61,25 @@ public class YandexMoneyMerchantController {
         return new ModelAndView("redirect:/merchants/yandexmoney/payment/process");
     }
 
-    //// TODO: HANDLE 500 if OperationType is not be converted
-    @RequestMapping(value = "/payment/prepare", method = RequestMethod.POST)
-    public ModelAndView preparePayment(@Valid @ModelAttribute("payment") Payment payment, Model data,
-                                       BindingResult result, Principal principal,RedirectAttributes redir) {
-        final String errorRedirectView = payment.getOperationType() == OperationType.INPUT ?
-                merchantInputErrorPage : merchantOutputErrorPage;
-        final Map<String, Object> model = result.getModel();
-        if (result.hasErrors()) {
-            return new ModelAndView(errorRedirectView, model);
-        }
-        final Optional<CreditsOperation> creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName());
-        if (!creditsOperation.isPresent()) {
-            redir.addFlashAttribute("error", "merchants.invalidSum");
-            return new ModelAndView(errorRedirectView);
-        }
-        final ModelAndView modelAndView = new ModelAndView("redirect:/merchants/yandexmoney/token/authorization");
-        data.addAttribute("creditsOperation", creditsOperation.get());
-        return modelAndView;
-    }
+
 
     @RequestMapping(value = "/payment/process")
-    public RedirectView processPayment(Principal principal, @ModelAttribute("creditsOperation") CreditsOperation creditsOperation,
-                                       @ModelAttribute(value = "token") String token, RedirectAttributes redir, SessionStatus sessionStatus) {
-        final Optional<RequestPayment> requestPayment = yandexMoneyService.requestInputPayment(token, creditsOperation);
+    public RedirectView processPayment(@ModelAttribute(value = "token") String token, RedirectAttributes redir,
+                                       HttpSession httpSession) {
+        final Object mutex = WebUtils.getSessionMutex(httpSession);
+        final CreditsOperation creditsOperation;
+        synchronized (mutex) {
+            creditsOperation = (CreditsOperation) httpSession.getAttribute("creditsOperation");
+            httpSession.removeAttribute("creditsOperation");
+        }
+        final Optional<RequestPayment> requestPayment = yandexMoneyService.requestPayment(token,creditsOperation);
         final RedirectView successView = new RedirectView("/mywallets");
         if (!requestPayment.isPresent()) {
-            redir.addFlashAttribute("message","yo");
+            final String sumCurrency = creditsOperation.getAmount().setScale(2,BigDecimal.ROUND_CEILING) + " " + creditsOperation.getCurrency().getName();
+            final String message = creditsOperation.getOperationType() == OperationType.INPUT ? "merchants.successfulBalanceDeposit"
+                    : "merchants.successfulBalanceWithdraw";
+            redir.addFlashAttribute("message",message);
+            redir.addFlashAttribute("sumCurrency",sumCurrency);
             return successView;
         }
         final RequestPayment request = requestPayment.get();
@@ -102,6 +87,9 @@ public class YandexMoneyMerchantController {
                 creditsOperation.getOperationType() == OperationType.INPUT ? "input" : "output"));
         if (request.status.equals(BaseRequestPayment.Status.REFUSED)) {
             switch (request.error) {
+                case PAYEE_NOT_FOUND:
+                    redir.addFlashAttribute("error", "merchants.incorrectPaymentDetails");
+                    return failureView;
                     case NOT_ENOUGH_FUNDS:
                         redir.addFlashAttribute("error", "merchants.notEnoughMoney");
                         return failureView;

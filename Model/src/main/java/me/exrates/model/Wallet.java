@@ -95,4 +95,16 @@ public class Wallet {
 		result = 31 * result + (name != null ? name.hashCode() : 0);
 		return result;
 	}
+
+	@Override
+	public String toString() {
+		return "Wallet{" +
+				"id=" + id +
+				", currencyId=" + currencyId +
+				", userId=" + userId +
+				", activeBalance=" + activeBalance +
+				", reservedBalance=" + reservedBalance +
+				", name='" + name + '\'' +
+				'}';
+	}
 }

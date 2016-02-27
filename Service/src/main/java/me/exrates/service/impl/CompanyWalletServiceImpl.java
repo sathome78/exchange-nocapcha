@@ -34,10 +34,12 @@ public class CompanyWalletServiceImpl implements CompanyWalletService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.NESTED)
     public void deposit(CompanyWallet companyWallet, BigDecimal amount, BigDecimal commissionAmount) {
         final BigDecimal newBalance = companyWallet.getBalance().add(amount);
-        final BigDecimal newCommissionBalance = companyWallet.getCommissionBalance().add(companyWallet.getCommissionBalance());
+        final BigDecimal newCommissionBalance = companyWallet.getCommissionBalance().add(commissionAmount);
+        System.out.println(newBalance + " NEW BALANCE");
+        System.out.println(newCommissionBalance);
         companyWallet.setBalance(newBalance);
         companyWallet.setCommissionBalance(newCommissionBalance);
         if (!companyWalletDao.update(companyWallet)) {
@@ -46,10 +48,10 @@ public class CompanyWalletServiceImpl implements CompanyWalletService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.NESTED)
     public void withdraw(CompanyWallet companyWallet, BigDecimal amount, BigDecimal commissionAmount) {
         final BigDecimal newBalance = companyWallet.getBalance().subtract(amount);
-        final BigDecimal newCommissionBalance = companyWallet.getCommissionBalance().add(companyWallet.getCommissionBalance());
+        final BigDecimal newCommissionBalance = companyWallet.getCommissionBalance().add(commissionAmount);
         if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
             throw new NotEnoughUserWalletMoneyException("POTENTIAL HACKING! Not enough money on Company Account for operation!" + companyWallet.toString());
         }

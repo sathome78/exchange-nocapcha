@@ -3,6 +3,7 @@ package me.exrates.model;
 import me.exrates.model.enums.OperationType;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -17,6 +18,7 @@ public class CreditsOperation {
     private final Commission commission;
     private final Currency currency;
     private final Merchant merchant;
+    private final Optional<String> destination;
 
     private CreditsOperation(Builder builder) {
         this.userWallet = builder.userWallet;
@@ -27,6 +29,8 @@ public class CreditsOperation {
         this.commission = builder.commission;
         this.currency = builder.currency;
         this.merchant = builder.merchant;
+        this.destination = builder.destination == null ?
+                Optional.empty() : builder.destination;
     }
 
     public Wallet getUserWallet() {
@@ -61,6 +65,10 @@ public class CreditsOperation {
         return merchant;
     }
 
+    public Optional<String> getDestination() {
+        return destination;
+    }
+
     public static class Builder {
 
         private Wallet userWallet;
@@ -71,6 +79,7 @@ public class CreditsOperation {
         private Commission commission;
         private Currency currency;
         private Merchant merchant;
+        private Optional<String> destination;
 
         public Builder userWallet(Wallet userWallet) {
             this.userWallet = userWallet;
@@ -112,6 +121,11 @@ public class CreditsOperation {
             return this;
         }
 
+        public Builder destination(String destination) {
+            this.destination = Optional.ofNullable(destination);
+            return this;
+        }
+
         public CreditsOperation build() {
             return new CreditsOperation(this);
         }
@@ -133,7 +147,8 @@ public class CreditsOperation {
         if (operationType != that.operationType) return false;
         if (commission != null ? !commission.equals(that.commission) : that.commission != null) return false;
         if (currency != null ? !currency.equals(that.currency) : that.currency != null) return false;
-        return merchant != null ? merchant.equals(that.merchant) : that.merchant == null;
+        if (merchant != null ? !merchant.equals(that.merchant) : that.merchant != null) return false;
+        return destination != null ? destination.equals(that.destination) : that.destination == null;
 
     }
 
@@ -147,20 +162,7 @@ public class CreditsOperation {
         result = 31 * result + (commission != null ? commission.hashCode() : 0);
         result = 31 * result + (currency != null ? currency.hashCode() : 0);
         result = 31 * result + (merchant != null ? merchant.hashCode() : 0);
+        result = 31 * result + (destination != null ? destination.hashCode() : 0);
         return result;
-    }
-
-    @Override
-    public String toString() {
-        return "CreditsOperation{" +
-                "userWallet=" + userWallet +
-                ", companyWallet=" + companyWallet +
-                ", amount=" + amount +
-                ", commissionAmount=" + commissionAmount +
-                ", operationType=" + operationType +
-                ", commission=" + commission +
-                ", currency=" + currency +
-                ", merchant=" + merchant +
-                '}';
     }
 }

@@ -2,85 +2,6 @@
 <%@taglib uri="http://www.springframework.org/tags/form" prefix="registrationform"%>  
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <%@taglib uri="http://www.springframework.org/tags" prefix="loc"%>
-<%--<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">--%>
-<%--<html>  --%>
-<%--<head> --%>
-<%--<title><loc:message code="register.title" /></title>--%>
-<%--<style>  --%>
-<%--body {  --%>
- <%--font-size: 20px;  --%>
- <%--color: teal;  --%>
- <%--font-family: Calibri;  --%>
-<%--}  --%>
-  <%----%>
-<%--td {  --%>
- <%--font-size: 15px;  --%>
- <%--color: black;  --%>
- <%--width: 100px;  --%>
- <%--height: 22px;  --%>
- <%--text-align: left;  --%>
-<%--}  --%>
-  <%----%>
-<%--.heading {  --%>
- <%--font-size: 18px;  --%>
- <%--color: white;  --%>
- <%--font: bold;  --%>
- <%--background-color: orange;  --%>
- <%--border: thick;  --%>
-<%--}  --%>
-<%--</style>  --%>
-<%--</head>  --%>
-<%--<body>  --%>
- <%--<b><loc:message code="register.form" /></b>--%>
-   <%----%>
-  <%--<div>  --%>
-   <%--<registrationform:form method="post" action="create" modelAttribute="user">  --%>
-    <%--<table>  --%>
-     <%--<tr>  --%>
-      <%--<td><loc:message code="register.nickname" /></td>  --%>
-      <%--<td><registrationform:input path="nickname" /></td> --%>
-      <%--<td><registrationform:errors path="nickname" /></td>  --%>
-     <%--</tr>  --%>
-     <%--<tr>  --%>
-      <%--<td><loc:message code="register.email" /></td>  --%>
-      <%--<td><registrationform:input path="email" /></td>  --%>
-      <%--<td><registrationform:errors path="email" /></td>  --%>
-     <%--</tr>  --%>
-     <%--<tr>  --%>
-      <%--<td><loc:message code="register.password" /></td>  --%>
-      <%--<td><registrationform:input path="password" type="password"/></td>  --%>
-      <%--<td><registrationform:errors path="password" type="password"/></td>  --%>
-     <%--</tr> --%>
-    <%----%>
-     <%--<tr>  --%>
-      <%--<td><loc:message code="register.repeatpassword" /></td>  --%>
-      <%--<td><registrationform:input path="confirmPassword" type="password" /></td>--%>
-      <%--<td><registrationform:errors path="confirmPassword" /></td>  --%>
-     <%--</tr> --%>
-     <%----%>
-     <%--<tr>  --%>
-      <%--<td><loc:message code="register.readrules" /></td>  --%>
-      <%--<td><registrationform:checkbox path="readRules" value="ReadRulesOk" /></td>  --%>
-      <%--<td><registrationform:errors path="readRules" /></td>  --%>
-     <%--</tr> --%>
-   <%----%>
-     <%--<tr>  --%>
-      <%--<td> </td>  --%>
-      <%--<td>--%>
-     	 <%--<loc:message code="register.submit" var="labelSubmit"></loc:message>--%>
-     	 <%--<input type="submit" value="${labelSubmit}" />--%>
-      <%--</td>  --%>
-      <%--<td></td>--%>
-     <%--</tr>  --%>
-   <%--</table>  --%>
-   <%--</registrationform:form>  --%>
-  <%--</div>  --%>
-
-<%--</body>  --%>
-<%--</html>--%>
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -108,52 +29,53 @@
 <div class="wrapper login_page">
 
 
- <div class="container container_center full__height">
+    <div class="container container_center full__height">
 
-  <div class="main__content full__height">
+        <div class="main__content full__height">
 
-   <div class="content__page full__height">
+            <div class="content__page full__height">
 
-    <!-- begin registration__form -->
+                <!-- begin registration__form -->
+                <div class="registration__form form">
+                    <registrationform:form method="post" action="create" modelAttribute="user">
+                        <legend><loc:message code="register.title"/></legend>
+                        <div class="row">
+                            <loc:message code="register.nickname" var="login"/>
+                            <registrationform:input path="nickname"  class="form-control" placeholder="${login}" required="required" />
+                            <registrationform:errors path="nickname" class="form-control"  />
+                        </div>
+                        <div class="row">
+                            <label for="email"><loc:message code="register.loginLabel"/></label>
+                            <loc:message code="register.email" var="email"/>
+                            <registrationform:input id="email" path="email" class="form-control" placeholder="${email}" required="required"/>
+                            <registrationform:errors path="email" class="form-control" />
+                        </div>
+                        <div class="row">
+                            <loc:message code="register.password" var="password"/>
+                            <registrationform:input path="password" type="password" placeholder="${password}" class="form-control" required="required"/>
+                            <registrationform:errors path="password" class="form-control" />
+                        </div>
+                        <div class="row">
+                            <loc:message code="register.repeatpassword" var="repassword"/>
+                            <registrationform:input path="confirmPassword" type="password" placeholder="${repassword}" class="form-control"  required="required" />
+                            <registrationform:errors path="confirmPassword" class="form-control" />
+                        </div>
+                        <div class="row offerta">
+                            <registrationform:checkbox path="readRules" id="1" value="ReadRulesOk" required="required"  />
+                            <registrationform:errors path="readRules" class="form-control" />
+                            <label for="1"><a href="#"><loc:message code="register.readrules"/></a></label>
+                        </div>
+                        <div class="row">
+                            <button type="submit" class="btn btn-primary"><loc:message code="register.submit"/></button>
+                        </div>
+                    </div>
+                <!-- end registration__form -->
+                </registrationform:form>
+            </div>
 
-    <div class="registration__form form">
-<registrationform:form method="post" action="create" modelAttribute="user">
-     <legend>Регистрация</legend>
-     <div class="row">
+        </div>
 
-      <registrationform:input path="nickname"  class="form-control" placeholder="<loc:message code=\"register.nickname\" />" required="required" />
-      <registrationform:errors path="nickname" />
-     <%--<input type="text" class="form-control" placeholder="Имя*" required>--%>
-     </div>
-     <div class="row">
-      <label>Используется как логин для входа, изменению не подлежит.</label>
-      <registrationform:input path="email" class="form-control" required="required"/>
-      <registrationform:errors path="email" />
-     </div>
-     <div class="row">
-      <registrationform:input path="password" type="password" class="form-control" required="required"/>
-      <registrationform:errors path="password" />
-     </div>
-     <div class="row">
-      <registrationform:input path="confirmPassword" type="password" class="form-control"  required="required" />
-      <registrationform:errors path="confirmPassword" />
-     </div>
-     <div class="row offerta">
-      <registrationform:checkbox path="readRules" id="1" value="ReadRulesOk" required="required"  />
-      <registrationform:errors path="readRules" />
-      <label for="1"><a href="#">С правилами</a> ознакомлен.</label>
-     </div>
-     <div class="row">
-      <button type="button" class="btn btn-primary">Зарегистрироваться</button>
-     </div>
     </div>
-    <!-- end registration__form -->
- </registrationform:form>
-   </div>
-
-  </div>
-
- </div>
 
 </div>
 

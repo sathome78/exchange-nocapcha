@@ -40,23 +40,23 @@
 
 
         <!-- begin sub__navbar  -->
-        <ul class="sub__navbar ">
-            <li class="navabr__item">
-                <a href="#" class="navabr__link"><loc:message code="subusermenu.commissions"/></a>
-            </li>
-            <li class="navabr__item">
-                <a href="#" class="navabr__link"><loc:message code="subusermenu.news"/></a>
-            </li>
-            <li class="navabr__item">
-                <a href="#" class="navabr__link"><loc:message code="subusermenu.api"/></a>
-            </li>
-            <li class="navabr__item">
-                <a href="#" class="navabr__link"><loc:message code="subusermenu.rules"/></a>
-            </li>
-            <li class="navabr__item">
-                <a href="#" class="navabr__link"><loc:message code="subusermenu.faq"/></a>
-            </li>
-        </ul>
+        <%--<ul class="sub__navbar ">--%>
+            <%--<li class="navabr__item">--%>
+                <%--<a href="#" class="navabr__link"><loc:message code="subusermenu.commissions"/></a>--%>
+            <%--</li>--%>
+            <%--<li class="navabr__item">--%>
+                <%--<a href="#" class="navabr__link"><loc:message code="subusermenu.news"/></a>--%>
+            <%--</li>--%>
+            <%--<li class="navabr__item">--%>
+                <%--<a href="#" class="navabr__link"><loc:message code="subusermenu.api"/></a>--%>
+            <%--</li>--%>
+            <%--<li class="navabr__item">--%>
+                <%--<a href="#" class="navabr__link"><loc:message code="subusermenu.rules"/></a>--%>
+            <%--</li>--%>
+            <%--<li class="navabr__item">--%>
+                <%--<a href="#" class="navabr__link"><loc:message code="subusermenu.faq"/></a>--%>
+            <%--</li>--%>
+        <%--</ul>--%>
         <!-- end sub__navbar  -->
     </div>
 </aside>

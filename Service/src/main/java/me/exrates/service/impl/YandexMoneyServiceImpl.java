@@ -6,6 +6,7 @@ import com.squareup.okhttp.Response;
 import com.yandex.money.api.exceptions.InsufficientScopeException;
 import com.yandex.money.api.exceptions.InvalidRequestException;
 import com.yandex.money.api.exceptions.InvalidTokenException;
+import com.yandex.money.api.methods.BaseRequestPayment;
 import com.yandex.money.api.methods.ProcessPayment;
 import com.yandex.money.api.methods.RequestPayment;
 import com.yandex.money.api.methods.Token;
@@ -14,37 +15,32 @@ import com.yandex.money.api.model.Scope;
 import com.yandex.money.api.net.DefaultApiClient;
 import com.yandex.money.api.net.OAuth2Authorization;
 import com.yandex.money.api.net.OAuth2Session;
+import com.yandex.money.api.utils.Strings;
 import me.exrates.dao.YandexMoneyMerchantDao;
-import me.exrates.model.Commission;
 import me.exrates.model.CreditsOperation;
-import me.exrates.model.Payment;
 import me.exrates.model.Transaction;
-import me.exrates.model.enums.OperationType;
-import me.exrates.service.*;
+import me.exrates.service.TransactionService;
+import me.exrates.service.UserService;
+import me.exrates.service.YandexMoneyService;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
-import me.exrates.service.exception.UnsupportedMerchantException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.ui.ModelMap;
-import org.springframework.web.servlet.ModelAndView;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 
 import static com.squareup.okhttp.MediaType.parse;
-import static me.exrates.model.enums.OperationType.*;
+import static me.exrates.model.enums.OperationType.INPUT;
 import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED;
 
 /**
@@ -55,13 +51,9 @@ import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED;
 public class YandexMoneyServiceImpl implements YandexMoneyService {
 
     private @Value("${yandexmoney.clientId}") String clientId;
-
     private @Value("${yandexmoney.token}") String token;
-
     private @Value("${yandexmoney.redirectURI}") String redirectURI;
-
     private @Value("${yandexmoney.companyWalletId}") String companyWalletId;
-
     private @Value("${yandexmoney.responseType}") String responseType;
 
     private static final Logger logger = LogManager.getLogger(YandexMoneyServiceImpl.class);
@@ -71,9 +63,6 @@ public class YandexMoneyServiceImpl implements YandexMoneyService {
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private WalletService walletService;
 
     @Autowired
     private TransactionService transactionService;
@@ -149,26 +138,30 @@ public class YandexMoneyServiceImpl implements YandexMoneyService {
     }
 
     @Override
-    public Optional<RequestPayment> requestInputPayment(String token, CreditsOperation creditsOperation) {
-        return requestOutputPayment(token, companyWalletId, creditsOperation);
-    }
-
-    @Override
-    public Optional<RequestPayment> requestOutputPayment(String token, String destination, CreditsOperation creditsOperation) {
+    @Transactional
+    public Optional<RequestPayment> requestPayment(String token, CreditsOperation creditsOperation) {
+        if (Strings.isNullOrEmpty(token)) {
+            token = this.token;
+        }
         final DefaultApiClient apiClient = new DefaultApiClient(clientId, true);
         final OAuth2Session oAuth2Session = new OAuth2Session(apiClient);
         oAuth2Session.setAccessToken(token);
-        final BigDecimal sum = creditsOperation.getAmount().add(creditsOperation.getCommissionAmount());
+        final String destination = creditsOperation
+                .getDestination()
+                .orElse(companyWalletId);
+        final BigDecimal amount = creditsOperation.getOperationType() == INPUT ?
+                creditsOperation.getAmount().add(creditsOperation.getCommissionAmount()) :
+                creditsOperation.getAmount().subtract(creditsOperation.getCommissionAmount());
         final P2pTransferParams p2pTransferParams = new P2pTransferParams.Builder(destination)
-                .setAmount(sum)
+                .setAmount(amount.setScale(2,BigDecimal.ROUND_CEILING))
                 .create();
         final RequestPayment.Request request = RequestPayment.Request.newInstance(p2pTransferParams);
         try {
-            final Optional<RequestPayment> execute = Optional.of(oAuth2Session.execute(request));
-            if (execute.isPresent()) {
-                return execute;
+            final RequestPayment execute = oAuth2Session.execute(request);
+            if (execute.status.equals(BaseRequestPayment.Status.REFUSED)) {
+                return Optional.of(execute);
             }
-            executePayment(execute.get().requestId,oAuth2Session,creditsOperation);
+            executePayment(execute.requestId,oAuth2Session,creditsOperation);
         } catch (IOException e) {
             logger.fatal(e);
             final String message = "YandexMoneyService".concat(destination.equals(companyWalletId) ? "Input" : "Output");
@@ -180,8 +173,7 @@ public class YandexMoneyServiceImpl implements YandexMoneyService {
         return Optional.empty();
     }
 
-
-    @Transactional(rollbackFor = RuntimeException.class)
+    @Transactional(propagation = Propagation.MANDATORY)
     protected void executePayment(String requestId, OAuth2Session oAuth2Session,
                                   CreditsOperation creditsOperation) {
         final ProcessPayment processPayment;

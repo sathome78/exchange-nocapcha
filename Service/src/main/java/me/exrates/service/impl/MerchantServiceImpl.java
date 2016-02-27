@@ -68,6 +68,7 @@ public class MerchantServiceImpl implements MerchantService{
         final BigDecimal amount = BigDecimal.valueOf(payment.getSum());
         final Merchant merchant = merchantDao.findById(payment.getMerchant());
         final Currency currency = currencyService.findById(payment.getCurrency());
+        final String destination = payment.getDestination();
         try {
             if (!isPayable(merchant,currency,amount)) {
                 return Optional.empty();
@@ -86,11 +87,9 @@ public class MerchantServiceImpl implements MerchantService{
         final User user = userService.findByEmail(userEmail);
 
         CompanyWallet companyWallet = companyWalletService.findByCurrency(currency);
-        System.out.println(companyWallet);
         companyWallet = companyWallet == null ? companyWalletService.create(currency) : companyWallet;
 
         Wallet userWallet = walletService.findByUserAndCurrency(user,currency);
-        System.out.println(userWallet);
         userWallet = userWallet == null ? walletService.create(user,currency) : userWallet;
 
         final CreditsOperation creditsOperation = new CreditsOperation.Builder()
@@ -102,6 +101,7 @@ public class MerchantServiceImpl implements MerchantService{
                 .companyWallet(companyWallet)
                 .currency(currency)
                 .merchant(merchant)
+                .destination(destination)
                 .build();
         return Optional.of(creditsOperation);
     }

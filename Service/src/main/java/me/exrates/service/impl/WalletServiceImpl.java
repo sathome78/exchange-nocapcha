@@ -130,7 +130,7 @@ public class WalletServiceImpl implements WalletService {
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.MANDATORY)
+	@Transactional(propagation = Propagation.NESTED)
 	public void depositActiveBalance(Wallet wallet, BigDecimal sum) {
 		final BigDecimal newBalance =
 				BigDecimal.valueOf(wallet.getActiveBalance()).add(sum).setScale(9,BigDecimal.ROUND_CEILING);
@@ -140,7 +140,7 @@ public class WalletServiceImpl implements WalletService {
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.MANDATORY)
+	@Transactional(propagation = Propagation.NESTED)
 	public void withdrawActiveBalance(Wallet wallet, BigDecimal sum) {
 		final BigDecimal newBalance =
 				BigDecimal.valueOf(wallet.getActiveBalance()).subtract(sum).setScale(9,BigDecimal.ROUND_CEILING);
@@ -154,13 +154,13 @@ public class WalletServiceImpl implements WalletService {
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.MANDATORY)
+	@Transactional(propagation = Propagation.NESTED)
 	public void depositReservedBalance(Wallet wallet, BigDecimal sum) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.MANDATORY)
+	@Transactional(propagation = Propagation.NESTED)
 	public void withdrawReservedBalance(Wallet wallet, BigDecimal sum) {
 		throw new UnsupportedOperationException();
 	}

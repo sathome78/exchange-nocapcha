@@ -53,32 +53,41 @@
                                        <td><loc:message code="transaction.walletId"/></td>
                                        <td><loc:message code="transaction.currency"/></td>
                                        <td><loc:message code="transaction.amount"/></td>
-                                       <td><loc:message code="transaction.transactionType"/></td>
-                                       <td><loc:message code="transaction.date"/></td>
+                                       <td><loc:message code="transaction.commissionAmount"/></td>
                                        <td><loc:message code="transaction.commission"/></td>
+                                       <td><loc:message code="transaction.operationType"/></td>
+                                       <td><loc:message code="transaction.merchant"/></td>
+                                       <td><loc:message code="transaction.datetime"/></td>
                                    </tr>
                                    <tr>
                                        <td>
                                            <label>${transaction.id}</label>
                                        </td>
                                        <td>
-                                           <label>${transaction.walletId}</label>
+                                           <label>${transaction.userWallet.id}</label>
                                        </td>
                                        <td>
-                                           <label>${transaction.currency}</label>
+                                           <label>${transaction.currency.name}</label>
                                        </td>
                                        <td>
-                                           <label>${transaction.amount}</label>
+                                           <label><fmt:formatNumber value="${transaction.amount}" pattern="0.00"/></label>
                                        </td>
                                        <td>
-                                           <label>${transaction.operationType}</label>
+                                           <label><fmt:formatNumber value="${transaction.commissionAmount}" pattern="0.00"/></label>
                                        </td>
                                        <td>
-                                           <label>${transaction.date}</label>
+                                           <label><fmt:formatNumber value="${transaction.commission.value}" pattern="0.00"/></label>
                                        </td>
                                        <td>
-                                           <label>${transaction.commission}</label>
+                                           <label><loc:message code="transaction.operationType${transaction.operationType}"/></label>
                                        </td>
+                                       <td>
+                                           <label><loc:message code="transaction.${transaction.merchant.name}"/></label>
+                                       </td>
+                                       <td>
+                                           <label>${transaction.datetime}</label>
+                                       </td>
+
                                    </tr>
                                </table>
                            </div>

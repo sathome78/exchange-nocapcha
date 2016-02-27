@@ -48,7 +48,7 @@
             <td>
                 <input type="text" value="${paymentPrepareData.sumToPay}">
             </td>
-                <h4>${paymentPrepareData.merchant}asdasdasds</h4>
+                <h4>${paymentPrepareData.merchant}</h4>
         </tr>
         <tr>
             <td>

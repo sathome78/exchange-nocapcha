@@ -1,8 +1,8 @@
 package me.exrates.model;
 
-import java.util.Date;
-
 import me.exrates.model.enums.OperationType;
+
+import java.util.Date;
 
 public class Commission {
 
@@ -42,5 +42,15 @@ public class Commission {
 
 	public void setDateOfChange(Date dateOfChange) {
 		this.dateOfChange = dateOfChange;
+	}
+
+	@Override
+	public String toString() {
+		return "Commission{" +
+				"id=" + id +
+				", operationType=" + operationType +
+				", value=" + value +
+				", dateOfChange=" + dateOfChange +
+				'}';
 	}
 }

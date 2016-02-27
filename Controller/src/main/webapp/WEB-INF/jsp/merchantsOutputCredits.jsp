@@ -54,7 +54,7 @@
                 </c:when>
                 <c:otherwise>
                     <!-- Start  withdraw__money -->
-                    <c:url value="/merchants/yandexmoney/payment/output" var="url"/>
+                    <c:url value="/merchants/yandexmoney/payment/prepare" var="url"/>
                     <paymentForm:form class="form-horizontal withdraw__money" name="payment" method="post" modelAttribute="payment" action="${url}">
                         <div class="form-group">
                             <label class="col-sm-3 control-label" for="#">Валюта к выводу</label>
@@ -67,16 +67,17 @@
                         <div class="form-group">
                             <label class="col-sm-3 control-label" for="#"><loc:message code="merchants.meansOfPayment"/></label>
                             <div class="col-sm-8">
-                                <paymentForm:select id="meansOfPaymentSelect" path="meansOfPayment">
-                                </paymentForm:select>
+                                <paymentForm:select id="meansOfPaymentSelect" path="merchant"/>
                             </div>
                         </div>
                         <div class="form-group">
-                            <div class="col-sm-offset-3 col-sm-8">
-                                <paymentForm:input  class="form-control" placeholder="Сумма" id="#" path="sum"/>
+                            <label class="col-sm-3 control-label" for="#"><loc:message code="merchants.sum"/></label>
+                            <div class="col-sm-8">
+                                <paymentForm:input  class="form-control" pattern="/\d*\.\d{1,2}/" placeholder="Сумма" id="#" path="sum"/>
                             </div>
                         </div>
-                        <paymentForm:input  type="hidden" id="meanOfPaymentId" path="meansOfPaymentId"/>
+                        <paymentForm:hidden path="operationType"/>
+                        <paymentForm:hidden id="destination" path="destination"/>
                         <div class="form-group">
                             <div class="col-sm-offset-3 col-sm-6">
                                 <button type="button" data-toggle="modal" name="assertOutputPay" data-target="#myModal2" class="btn btn-primary">Вывести</button>
@@ -115,7 +116,7 @@
             </div>
         </div><!-- /.modal-content -->
     </div><!-- /.modal-dialog -->
-</div><!-- /.modal
+</div><!-- /.modal-->
 
 </body>
 </html>

@@ -66,7 +66,8 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <div class="col-sm-offset-3 col-sm-8">
+                        <label class="col-sm-3 control-label" for="#"><loc:message code="merchants.sum"/></label>
+                        <div class="col-sm-8">
                             <paymentForm:input  class="form-control" pattern="/\d*\.\d{1,2}/" placeholder="Сумма" id="#" path="sum"/>
                         </div>
                     </div>

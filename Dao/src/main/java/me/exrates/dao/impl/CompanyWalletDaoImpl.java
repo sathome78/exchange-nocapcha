@@ -3,7 +3,6 @@ package me.exrates.dao.impl;
 import me.exrates.dao.CompanyWalletDao;
 import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
-import org.omg.SendingContext.RunTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -12,19 +11,13 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-import javax.sql.DataSource;
 import java.math.BigDecimal;
-import java.util.AbstractMap;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import static java.util.AbstractMap.*;
-import static java.util.Collections.*;
-import static java.util.stream.Collectors.*;
-import static java.util.stream.Stream.*;
+import static java.util.AbstractMap.SimpleEntry;
+import static java.util.Collections.unmodifiableMap;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Stream.of;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -53,26 +46,29 @@ public class CompanyWalletDaoImpl implements CompanyWalletDao {
 
     @Override
     public CompanyWallet findByCurrencyId(Currency currency) {
-        final String sql = "SELECT COMPANY_WALLET.id FROM COMPANY_WALLET JOIN CURRENCY ON COMPANY_WALLET.currency_id = CURRENCY.id WHERE currency_id = :currencyId";
+        final String sql = "SELECT * FROM  COMPANY_WALLET WHERE currency_id = :currencyId";
         final Map<String,Integer> params = unmodifiableMap(of(
                 new SimpleEntry<>("currencyId",currency.getId()
                 )).collect(toMap(SimpleEntry::getKey,SimpleEntry::getValue)));
+        final CompanyWallet companyWallet = new CompanyWallet();
         try {
-            jdbcTemplate.query(sql, params, (resultSet, i) -> {
-                final CompanyWallet companyWallet = new CompanyWallet();
+            return jdbcTemplate.queryForObject(sql, params, (resultSet, i) -> {
                 companyWallet.setId(resultSet.getInt("id"));
+                companyWallet.setBalance(resultSet.getBigDecimal("balance"));
+                companyWallet.setCommissionBalance(resultSet.getBigDecimal("commission_balance"));
                 companyWallet.setCurrency(currency);
                 return companyWallet;
             });
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
-        return null;
     }
 
     @Override
     public boolean update(CompanyWallet companyWallet) {
-        final String sql = "UPDATE COMPANY_WALLET SET balance := balance, commission_balance = :commissionBalance";
+        final String sql = "UPDATE COMPANY_WALLET SET balance = :balance, commission_balance = :commissionBalance";
+        System.out.println(companyWallet.getBalance() + "BALANCE");
+        System.out.println(companyWallet.getCommissionBalance() + "CBALANCE");
         final Map<String,BigDecimal> params = unmodifiableMap(of(
                 new SimpleEntry<>("balance",companyWallet.getBalance()),
                 new SimpleEntry<>("commissionBalance",companyWallet.getCommissionBalance())

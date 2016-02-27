@@ -1,7 +1,6 @@
 package me.exrates.service.impl;
 
 import me.exrates.dao.TransactionDao;
-import me.exrates.model.CompanyWallet;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Transaction;
 import me.exrates.service.CompanyWalletService;
@@ -32,19 +31,18 @@ public class TransactionServiceImpl implements TransactionService {
     private CompanyWalletService companyWalletService;
 
     @Override
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.NESTED)
     public Transaction provideTransaction(CreditsOperation creditsOperation) {
         Transaction transaction = new Transaction();
         transaction.setAmount(creditsOperation.getAmount());
-        transaction.setCommission(creditsOperation.getCommission());
         transaction.setCommissionAmount(creditsOperation.getCommissionAmount());
+        transaction.setCommission(creditsOperation.getCommission());
         transaction.setCompanyWallet(creditsOperation.getCompanyWallet());
         transaction.setUserWallet(creditsOperation.getUserWallet());
         transaction.setCurrency(creditsOperation.getCurrency());
         transaction.setDatetime(LocalDateTime.now());
         transaction.setMerchant(creditsOperation.getMerchant());
         transaction.setOperationType(creditsOperation.getOperationType());
-
         switch (creditsOperation.getOperationType()) {
             case INPUT :
                 walletService.depositActiveBalance(creditsOperation.getUserWallet(),creditsOperation.getAmount());
@@ -59,14 +57,14 @@ public class TransactionServiceImpl implements TransactionService {
         }
         transaction = transactionDao.create(transaction);
         if (transaction==null) {
-            throw new TransactionPersistException("Failed to provide transaction " + transaction.toString());
+            throw new TransactionPersistException("Failed to provide transaction ");
         }
         return transaction;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<Transaction> findAllByUserId(int id) {
-        return transactionDao.findAllByUserId(id);
+    public List<Transaction> findAllByUserWallets(List<Integer> userWalletsIds) {
+        return transactionDao.findAllByUserWallets(userWalletsIds);
     }
 }
