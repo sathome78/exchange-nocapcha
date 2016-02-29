@@ -12,13 +12,9 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.Timestamp;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static java.util.AbstractMap.SimpleEntry;
-import static java.util.Collections.unmodifiableMap;
-import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Stream.of;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -36,17 +32,19 @@ public final class TransactionDaoImpl implements TransactionDao {
                 "   VALUES (:userWallet,:companyWallet,:amount,:commissionAmount,:commission,:operationType, :currency," +
                 "   :merchant, :datetime)";
         final KeyHolder keyHolder = new GeneratedKeyHolder();
-        final Map<String, Object> params = unmodifiableMap(of(
-                new SimpleEntry<>("userWallet", transaction.getUserWallet().getId()),
-                new SimpleEntry<>("companyWallet", transaction.getCompanyWallet().getId()),
-                new SimpleEntry<>("amount", transaction.getAmount()),
-                new SimpleEntry<>("commissionAmount", transaction.getCommissionAmount()),
-                new SimpleEntry<>("commission", transaction.getCommission().getId()),
-                new SimpleEntry<>("operationType", transaction.getOperationType().type),
-                new SimpleEntry<>("currency", transaction.getCurrency().getId()),
-                new SimpleEntry<>("merchant", transaction.getMerchant().getId()),
-                new SimpleEntry<>("datetime", Timestamp.valueOf(transaction.getDatetime())))
-                .collect(toMap(SimpleEntry::getKey, SimpleEntry::getValue)));
+        final Map<String, Object> params = new HashMap<String,Object>(){
+            {
+                put("userWallet", transaction.getUserWallet().getId());
+                put("companyWallet", transaction.getCompanyWallet().getId());
+                put("amount", transaction.getAmount());
+                put("commissionAmount", transaction.getCommissionAmount());
+                put("commission", transaction.getCommission().getId());
+                put("operationType", transaction.getOperationType().type);
+                put("currency", transaction.getCurrency().getId());
+                put("merchant", transaction.getMerchant().getId());
+                put("datetime", Timestamp.valueOf(transaction.getDatetime()));
+            }
+        };
         if (jdbcTemplate.update(sql, new MapSqlParameterSource(params), keyHolder)>0) {
             transaction.setId(keyHolder.getKey().intValue());
             return transaction;

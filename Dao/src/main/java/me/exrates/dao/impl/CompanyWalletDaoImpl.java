@@ -12,12 +12,8 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.Map;
-
-import static java.util.AbstractMap.SimpleEntry;
-import static java.util.Collections.unmodifiableMap;
-import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Stream.of;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -32,9 +28,11 @@ public class CompanyWalletDaoImpl implements CompanyWalletDao {
     public CompanyWallet create(Currency currency) {
         final String sql = "INSERT INTO COMPANY_WALLET(currency_id) VALUES (:currencyId)";
         final KeyHolder keyHolder = new GeneratedKeyHolder();
-        final Map<String,Integer> params = unmodifiableMap(of(
-                new SimpleEntry<>("currencyId",currency.getId()
-        )).collect(toMap(SimpleEntry::getKey,SimpleEntry::getValue)));
+        final Map<String,Integer> params = new HashMap<String,Integer>(){
+            {
+                put("currencyId",currency.getId());
+            }
+        };
         if (jdbcTemplate.update(sql,new MapSqlParameterSource(params),keyHolder)>0) {
             final CompanyWallet companyWallet = new CompanyWallet();
             companyWallet.setCurrency(currency);
@@ -47,9 +45,11 @@ public class CompanyWalletDaoImpl implements CompanyWalletDao {
     @Override
     public CompanyWallet findByCurrencyId(Currency currency) {
         final String sql = "SELECT * FROM  COMPANY_WALLET WHERE currency_id = :currencyId";
-        final Map<String,Integer> params = unmodifiableMap(of(
-                new SimpleEntry<>("currencyId",currency.getId()
-                )).collect(toMap(SimpleEntry::getKey,SimpleEntry::getValue)));
+        final Map<String,Integer> params = new HashMap<String, Integer>(){
+            {
+                put("currencyId", currency.getId());
+            }
+        };
         final CompanyWallet companyWallet = new CompanyWallet();
         try {
             return jdbcTemplate.queryForObject(sql, params, (resultSet, i) -> {
@@ -67,12 +67,12 @@ public class CompanyWalletDaoImpl implements CompanyWalletDao {
     @Override
     public boolean update(CompanyWallet companyWallet) {
         final String sql = "UPDATE COMPANY_WALLET SET balance = :balance, commission_balance = :commissionBalance";
-        System.out.println(companyWallet.getBalance() + "BALANCE");
-        System.out.println(companyWallet.getCommissionBalance() + "CBALANCE");
-        final Map<String,BigDecimal> params = unmodifiableMap(of(
-                new SimpleEntry<>("balance",companyWallet.getBalance()),
-                new SimpleEntry<>("commissionBalance",companyWallet.getCommissionBalance())
-                ).collect(toMap(SimpleEntry::getKey,SimpleEntry::getValue)));
+        final Map<String,BigDecimal> params = new HashMap<String,BigDecimal>(){
+            {
+                put("balance",companyWallet.getBalance());
+                put("commissionBalance",companyWallet.getCommissionBalance());
+            }
+        };
         return jdbcTemplate.update(sql, params) > 0;
     }
 }

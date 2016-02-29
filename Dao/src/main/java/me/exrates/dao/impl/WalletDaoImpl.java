@@ -15,11 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.AbstractMap.SimpleEntry;
-import static java.util.Collections.unmodifiableMap;
-import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Stream.of;
-
 @Repository
 public class WalletDaoImpl implements WalletDao {
 
@@ -96,9 +91,11 @@ public class WalletDaoImpl implements WalletDao {
 	public List<Wallet> findAllByUser(int userId) {
 		final String sql = "SELECT WALLET.id,WALLET.currency_id,WALLET.user_id,WALLET.active_balance, WALLET.reserved_balance, CURRENCY.name as name FROM WALLET" +
 				"  INNER JOIN CURRENCY On WALLET.currency_id = CURRENCY.id and WALLET.user_id = :userId";
-		final Map<String, Integer> params = unmodifiableMap(of(
-				new SimpleEntry<>("userId", userId))
-				.collect(toMap(SimpleEntry::getKey, SimpleEntry::getValue)));
+		final Map<String, Integer> params = new HashMap<String,Integer>(){
+			{
+				put("userId", userId);
+			}
+		};
 		return jdbcTemplate.query(sql,params,new BeanPropertyRowMapper<>(Wallet.class));
 	}
 
@@ -106,10 +103,12 @@ public class WalletDaoImpl implements WalletDao {
 	public Wallet findByUserAndCurrency(int userId,int currencyId) {
 		final String sql = "SELECT WALLET.id,WALLET.currency_id,WALLET.user_id,WALLET.active_balance, WALLET.reserved_balance, CURRENCY.name as name FROM WALLET INNER JOIN CURRENCY On" +
 				"  WALLET.currency_id = CURRENCY.id WHERE user_id = :userId and currency_id = :currencyId";
-		final Map<String, Integer> params = unmodifiableMap(of(
-				new SimpleEntry<>("userId", userId),
-				new SimpleEntry<>("currencyId",currencyId))
-				.collect(toMap(SimpleEntry::getKey, SimpleEntry::getValue)));
+		final Map<String, Integer> params = new HashMap<String, Integer>() {
+			{
+				put("userId", userId);
+				put("currencyId", currencyId);
+			}
+		};
 		try {
 			return jdbcTemplate.queryForObject(sql,params, new BeanPropertyRowMapper<>(Wallet.class));
 		} catch (EmptyResultDataAccessException e) {
@@ -139,11 +138,13 @@ public class WalletDaoImpl implements WalletDao {
 	@Override
 	public boolean update(Wallet wallet) {
 		final String sql = "UPDATE WALLET SET active_balance = :activeBalance, reserved_balance = :reservedBalance WHERE id = :id";
-		final Map<String,Object> params = unmodifiableMap(of(
-				new SimpleEntry<>("id",wallet.getId()),
-				new SimpleEntry<>("activeBalance", wallet.getActiveBalance()),
-				new SimpleEntry<>("reservedBalance", wallet.getReservedBalance())
-		).collect(toMap(SimpleEntry::getKey,SimpleEntry::getValue)));
+		final Map<String,Object> params = new HashMap<String,Object>(){
+			{
+				put("id",wallet.getId());
+				put("activeBalance", wallet.getActiveBalance());
+				put("reservedBalance", wallet.getReservedBalance());
+			}
+		};
 		return jdbcTemplate.update(sql,params) == 1;
 	}
 

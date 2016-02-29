@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,16 +14,15 @@ import java.util.Map;
 public class CommissionDaoImpl implements CommissionDao{
 
 	@Autowired  
-	DataSource dataSource;
+	NamedParameterJdbcTemplate jdbcTemplate;
 
 	@Override
 	public Commission getCommission(OperationType operationType) {
 		final String sql = "SELECT * FROM COMMISSION WHERE operation_type = :operationType "
 				+ "order by date desc limit 1";
-		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
 		final HashMap<String,Integer> params = new HashMap<>();
 		params.put("operationType",operationType.type);
-		return namedParameterJdbcTemplate.queryForObject(sql,params,(resultSet, i) -> {
+		return jdbcTemplate.queryForObject(sql,params,(resultSet, i) -> {
 			Commission commission = new Commission();
 			commission.setDateOfChange(resultSet.getDate("date"));
 			commission.setId(resultSet.getInt("id"));
@@ -38,10 +36,9 @@ public class CommissionDaoImpl implements CommissionDao{
 	public double getCommissionByType(OperationType type) {
 		String sql = "SELECT value FROM COMMISSION WHERE operation_type = :operationType "
 				+ "order by date desc limit 1";
-		NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-		Map<String, String> namedParameters = new HashMap<String, String>();
+		Map<String, String> namedParameters = new HashMap<>();
 		namedParameters.put("operationType", String.valueOf(type.type));
-		return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, Double.class);
+		return jdbcTemplate.queryForObject(sql, namedParameters, Double.class);
 	}
 	
 }
