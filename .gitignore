@@ -60,6 +60,7 @@ Temporary Items
 
 .settings
 target/
+~/
 .project
 .classpath
 *.class
