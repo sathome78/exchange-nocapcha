@@ -12,11 +12,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.AbstractMap.SimpleEntry;
-import static java.util.Collections.unmodifiableMap;
-import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Stream.of;
-
 @Repository
 public class UserDaoImpl implements UserDao { 
 		
@@ -61,9 +56,11 @@ public class UserDaoImpl implements UserDao {
 	@Override
 	public User findByEmail(String email) {
 		final String sql = "SELECT * FROM USER WHERE email = :email";
-		final Map<String,String> params = unmodifiableMap(of(
-				new SimpleEntry<>("email", email)
-		).collect(toMap(SimpleEntry::getKey,SimpleEntry::getValue)));
+		final Map<String,String> params =  new HashMap<String, String>(){
+			{
+				put("email", email);
+			}
+		};
 		return jdbcTemplate.queryForObject(sql,params, new BeanPropertyRowMapper<>(User.class));
 	}
 
