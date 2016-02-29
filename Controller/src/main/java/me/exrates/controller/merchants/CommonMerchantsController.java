@@ -1,9 +1,6 @@
 package me.exrates.controller.merchants;
 
-import me.exrates.model.CreditsOperation;
-import me.exrates.model.Merchant;
-import me.exrates.model.Payment;
-import me.exrates.model.Wallet;
+import me.exrates.model.*;
 import me.exrates.model.enums.OperationType;
 import me.exrates.service.*;
 import org.apache.logging.log4j.LogManager;
@@ -19,6 +16,7 @@ import org.springframework.web.util.WebUtils;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.security.Principal;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -49,6 +47,13 @@ public class CommonMerchantsController {
 
     @Autowired
     private TransactionService transactionService;
+
+    @RequestMapping("/test/{id}")
+    public @ResponseBody List<Transaction> test(@PathVariable String id) {
+        System.out.println(id);
+
+        return transactionService.findAllByUserWallets(Arrays.asList(1,2,5));
+    }
 
     @RequestMapping(value = "/input", method = RequestMethod.GET)
     public ModelAndView inputCredits() {

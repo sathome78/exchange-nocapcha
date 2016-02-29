@@ -16,6 +16,9 @@ public class OrderExtractor implements ResultSetExtractor<Order> {
     Order order = new Order();  
 	order.setId(rs.getInt("id"));
 	order.setWalletIdSell(rs.getInt("wallet_id_sell"));
+	order.setCurrencySell(rs.getInt("currency_sell"));
+	order.setCommissionAmountBuy(rs.getDouble("commission_amount_buy"));
+	order.setCommissionAmountSell(rs.getDouble("commission_amount_sell"));
 	order.setCurrencyBuy(rs.getInt("currency_buy"));
 	order.setAmountSell(rs.getDouble("amount_sell"));
 	order.setAmountBuy(rs.getDouble("amount_buy"));

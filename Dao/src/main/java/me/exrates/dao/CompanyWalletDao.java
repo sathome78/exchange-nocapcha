@@ -1,5 +1,7 @@
 package me.exrates.dao;
 
+import java.util.List;
+
 import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
 

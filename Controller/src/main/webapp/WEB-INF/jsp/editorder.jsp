@@ -45,11 +45,14 @@
 
 					<div class="title__page"><loc:message code="editorder.text"/></div>
 
-	
+					<c:set var="SELL" value="<%=me.exrates.model.enums.OperationType.SELL%>"/>
+					<c:set var="BUY" value="<%=me.exrates.model.enums.OperationType.BUY%>"/>
+					
 						<div class="tab-content">
 							<div class="tab-pane active" id="tab__sell">
 								<!-- Start  withdraw__money -->
 								<form:form class="form-horizontal withdraw__money" action="submit" method="post" modelAttribute="order">
+								 <c:if test="${order.operationType  eq SELL}" >
 									<div class="form-group">
 										<label class="col-sm-3 control-label" for="#"><loc:message code="orders.currencyforsale" /></label>
 										<div class="col-sm-7">
@@ -66,6 +69,7 @@
 											<span style="color:red">${notEnoughMoney}</span>
 										</div>
 									</div>
+								  </c:if>
 									<div class="form-group">
 										<label class="col-sm-3 control-label" for="#"><loc:message code="orders.currencyforbuy"/> </label>
 										<div class="col-sm-7">
@@ -81,6 +85,24 @@
 	 		 								<form:errors path="amountBuy" />
 										</div>
 									</div>
+									<c:if test="${order.operationType  eq BUY}" >
+									<div class="form-group">
+										<label class="col-sm-3 control-label" for="#"><loc:message code="orders.currencyforsale" /></label>
+										<div class="col-sm-7">
+											<form:select path="currencySell" class="select form-control">
+   			 									<form:options items="${currList}" itemLabel="name" itemValue="id" />
+											</form:select>
+										</div>
+									</div>
+									<div class="form-group">
+										<label class="col-sm-3 control-label" for="#"><loc:message code="orders.sum1"/></label>
+										<div class="col-sm-7">
+											<form:input path="amountSell" class="form-control"/> 
+											<form:errors path="amountSell" /> 
+											<span style="color:red">${notEnoughMoney}</span>
+										</div>
+									</div>
+								  </c:if>
 									<div class="form-group">
 										<label class="col-sm-3 control-label" for="#"><loc:message code="orders.yourcommission"/></label>
 										<div class="col-sm-7">
@@ -90,8 +112,9 @@
 									<br>
 									<div class="form-group">
 										<div class="col-sm-offset-3 col-sm-6">
+										    <form:hidden path="operationType" value="${order.operationType}" />
 											<loc:message code="submitorder.change" var="labelSubmit"></loc:message>
-     										 <input type="submit" value="${labelSubmit}" class="btn btn-primary"/>
+     										<input type="submit" value="${labelSubmit}" class="btn btn-primary"/>
 										</div>
 									</div>
 								</form:form>

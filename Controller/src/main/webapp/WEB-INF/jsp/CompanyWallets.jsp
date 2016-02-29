@@ -40,58 +40,28 @@
 				<!--#include file="header__lk.shtml" -->
 					<%@include file='header.jsp'%>
 				<div class="content__page">
-				<c:choose>
-					<c:when test="${fn:length(walletList)==0}">
-						<loc:message code="merchants.noWallet"/>
-					</c:when>
-					<c:otherwise>
-					<c:if test="${error!=null}">
-								<label class="alert-danger"><loc:message code="${error}"/></label>
-							</c:if>
-							<c:if test="${message!=null}">
-								<label class="alert-success"><loc:message arguments="${sumCurrency}" code="${message}"/></label>
-							</c:if>
-							<c:forEach var="wallet" items="${walletList}">
+							<c:forEach var="wallet" items="${companyWalletList}">
 								<div>
 									<table class="table">
 										<tr>
-											<td colspan=4 style="text-align:left; font-weight:bold">${wallet.name}</td>
+											<td colspan=4 style="text-align:left; font-weight:bold">${wallet.currency.name}</td>
 										</tr>
 										<tr>
 											<td nowrap  width=200 style="text-align:left">
-												<loc:message code="mywallets.abalance"/>:
-												<fmt:formatNumber type="number" maxFractionDigits="9" value="${wallet.activeBalance}"/></td>
-											<td>
-												<form action="<c:url value="/merchants/input"/>">
-													<loc:message code="mywallets.input" var="inputButton"/>
-													<input type="submit" value="${inputButton}" class="btn btn-primary">
-												</form>
-											</td>
-											<td>
-												<form action="<c:url value="/merchants/output"/>">
-													<loc:message code="mywallets.output" var="outputButton"/>
-													<input type="submit" value="${outputButton}" class="btn btn-primary">
-												</form>
-											</td>
-											<td>
-												<form action="order/new">
-													<loc:message code="mywallets.createorder" var="createorderButton"/>
-													<input type="submit" value="${createorderButton}" class="btn btn-primary">
-												</form>
-											</td>
+												<loc:message code="mywallets.balance"/>:
+												<fmt:formatNumber type="number" maxFractionDigits="9" value="${wallet.balance}"/>
+										</td>
 										</tr>
 										<tr>
 											<td colspan=4 style="text-align:left">
-												<loc:message code="mywallets.rbalance"/>:
-												<fmt:formatNumber type="number" maxFractionDigits="9" value="${wallet.reservedBalance}"/>
+												<loc:message code="mywallets.commissionbalance"/>:
+												<fmt:formatNumber type="number" maxFractionDigits="9" value="${wallet.commissionBalance}"/>
 											</td>
 										</tr>
 									</table>
 								</div>
 							</c:forEach>
 						</div>
-					</c:otherwise>
-				</c:choose>
 				<!--#include file="footer__lk.shtml" -->
 					<%@include file='footer.jsp'%>
 			</div>

@@ -49,11 +49,14 @@
 
 					<div class="title__page"><loc:message code="submitorder.text"/>:</div>
 
-	
+					<c:set var="SELL" value="<%=me.exrates.model.enums.OperationType.SELL%>"/>
+					<c:set var="BUY" value="<%=me.exrates.model.enums.OperationType.BUY%>"/>
+
 						<div class="tab-content">
 							<div class="tab-pane active">
 								<!-- Start  withdraw__money -->
 								<div class="form-horizontal withdraw__money">
+								  <c:if test="${order.operationType  eq SELL}" >
 									<div class="form-group">
 										<label class="col-sm-3 control-label" for="#"><loc:message code="orders.currencyforsale" /></label>
 										<div class="col-sm-7">
@@ -61,6 +64,7 @@
 											${currList.get(order.currencySell-1).getName()}</span>
 										</div>
 									</div>
+								  </c:if>
 									<div class="form-group">
 										<label class="col-sm-3 control-label" for="#"><loc:message code="submitorder.buy"/></label>
 										<div class="col-sm-7">
@@ -68,6 +72,15 @@
 											${currList.get(order.currencyBuy-1).getName()}</span>
 										</div>
 									</div>
+								  <c:if test="${order.operationType  eq BUY}" >
+									<div class="form-group">
+										<label class="col-sm-3 control-label" for="#"><loc:message code="orders.currencyforsale" /></label>
+										<div class="col-sm-7">
+											<span class="form-control"><fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountSell}" />
+											${currList.get(order.currencySell-1).getName()}</span>
+										</div>
+									</div>
+								  </c:if>
 									<div class="form-group">
 										<label class="col-sm-3 control-label" for="#"><loc:message code="submitorder.commission"/></label>
 										<div class="col-sm-7">
@@ -91,6 +104,7 @@
 									 			<form:hidden path="amountBuy" value= "${order.amountBuy}" />
 									 			<form:hidden path="currencySell" value= "${order.currencySell}" />
 									 			<form:hidden path="currencyBuy" value= "${order.currencyBuy}" />
+												<form:hidden path="operationType" value="${order.operationType}" />
 												<loc:message code="submitorder.submit" var="labelSubmit"/>
 											 	<input type="submit" value="${labelSubmit}" class="btn btn-primary"/>
 									     	</form:form>
@@ -100,6 +114,7 @@
 									 			 <form:hidden path="amountBuy" value= "${order.amountBuy}" />
 									 			 <form:hidden path="currencySell" value= "${order.currencySell}" />
 									 			 <form:hidden path="currencyBuy" value= "${order.currencyBuy}" />
+									 			 <form:hidden path="operationType" value="${order.operationType}" />
 												 <loc:message code="submitorder.edit" var="labelEdit"/>
 									     		 <input type="submit" value="${labelEdit}" class="btn btn-primary" />
 									     	</form:form>

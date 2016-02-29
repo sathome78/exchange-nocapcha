@@ -3,6 +3,7 @@
 <%@taglib uri="http://www.springframework.org/tags" prefix="loc"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@taglib uri="http://www.springframework.org/tags/form" prefix="form"%>
+<%@taglib uri="http://www.springframework.org/tags" prefix="spring"%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -44,14 +45,19 @@
 
 				<div class="title__page"><loc:message code="orders.title"/></div>
 
-				<!-- begin chart__section -->
+				<!-- begin chart__section 
 				<div class="chart__section">
 					<div class="diagramm__box">
 						<img src="<c:url value='/client/img/grafik.png'/>" alt=""/>
 					</div>
 				</div>
 				<!-- end chart__section -->
-
+				<div>
+					<c:if test="${msq ne ''}">
+						<span style="color:red">${msg}</span><br><br>
+					</c:if>
+				</div>
+	
 				<!-- begin sell__buy -->
 				<div class="sell__buy">
 					<ul class="nav nav-tabs col-sm-offset-3 col-sm-7">
@@ -70,8 +76,8 @@
 					<div class="tab-content">
 						<div class="tab-pane active" id="tab__sell">
 							<!-- Start  withdraw__money -->
-							<c:set var="sellurl" value="order/sell/submit"/>
-							<form:form class="form-horizontal withdraw__money" action="${sellurl}" method="post" modelAttribute="order">
+							<c:set var="submiturl" value="order/submit"/>
+							<form:form class="form-horizontal withdraw__money" action="${submiturl}" method="post" modelAttribute="order">
 								<div class="form-group">
 									<label class="col-sm-3 control-label" for="#"><loc:message code="orders.currencyforsale" /></label>
 									<div class="col-sm-7">
@@ -114,6 +120,8 @@
 								<br>
 								<div class="form-group">
 									<div class="col-sm-offset-3 col-sm-6">
+										<c:set var="SELL" value="<%=me.exrates.model.enums.OperationType.SELL%>"/>
+										<form:hidden path="operationType" value= "${SELL}" />
 										<loc:message code="orders.submit" var="labelSubmit"></loc:message>
 										<input type="submit" value="${labelSubmit}" class="btn btn-primary"/>
 									</div>
@@ -124,26 +132,9 @@
 
 						<div class="tab-pane" id="tab__buy">
 							<!-- Start  withdraw__money -->
-							<c:set var="sellurl" value="order/sell/submit"/>
-							<form:form class="form-horizontal withdraw__money" action="${sellurl}" method="post" modelAttribute="order">
+							<form:form class="form-horizontal withdraw__money" action="${submiturl}" method="post" modelAttribute="order">
 								<div class="form-group">
-									<label class="col-sm-3 control-label" for="#"><loc:message code="orders.currencyforsale" /></label>
-									<div class="col-sm-7">
-										<form:select path="currencySell" class="select form-control">
-											<form:options items="${currList}" itemLabel="name" itemValue="id" />
-										</form:select>
-									</div>
-								</div>
-								<div class="form-group">
-									<label class="col-sm-3 control-label" for="#"><loc:message code="orders.sum1"/></label>
-									<div class="col-sm-7">
-										<form:errors path="amountSell" style="color:red"/>
-										<span style="color:red">${notEnoughMoney}</span>
-										<form:input path="amountSell" class="form-control" placeholder="2 890.89765"/>
-									</div>
-								</div>
-								<div class="form-group">
-									<label class="col-sm-3 control-label" for="#"><loc:message code="orders.currencyforbuy"/></label>
+									<label class="col-sm-3 control-label" for="#"><loc:message code="orders.currencyforbuy" /></label>
 									<div class="col-sm-7">
 										<form:select path="currencyBuy" class="select form-control">
 											<form:options items="${currList}" itemLabel="name" itemValue="id" />
@@ -151,10 +142,26 @@
 									</div>
 								</div>
 								<div class="form-group">
+									<label class="col-sm-3 control-label" for="#"><loc:message code="orders.sum1"/></label>
+									<div class="col-sm-7">
+										<form:errors path="amountBuy" style="color:red"/>
+										<span style="color:red">${notEnoughMoney}</span>
+										<form:input path="amountBuy" class="form-control" placeholder="2 890.89765"/>
+									</div>
+								</div>
+								<div class="form-group">
+									<label class="col-sm-3 control-label" for="#"><loc:message code="orders.currencyforsale"/></label>
+									<div class="col-sm-7">
+										<form:select path="currencySell" class="select form-control">
+											<form:options items="${currList}" itemLabel="name" itemValue="id" />
+										</form:select>
+									</div>
+								</div>
+								<div class="form-group">
 									<label class="col-sm-3 control-label" for="#"><loc:message code="orders.sum2"/></label>
 									<div class="col-sm-7">
-										<form:errors path="amountBuy" style="color:red" />
-										<form:input path="amountBuy" class="form-control" placeholder="129"/>
+										<form:errors path="amountSell" style="color:red" />
+										<form:input path="amountSell" class="form-control" placeholder="129"/>
 									</div>
 								</div>
 								<div class="form-group">
@@ -168,6 +175,8 @@
 								<br>
 								<div class="form-group">
 									<div class="col-sm-offset-3 col-sm-6">
+										<c:set var="BUY" value="<%=me.exrates.model.enums.OperationType.BUY%>"/>
+										<form:hidden path="operationType" value="${BUY}" />
 										<loc:message code="orders.submit" var="labelSubmit"></loc:message>
 										<input type="submit" value="${labelSubmit}" class="btn btn-primary"/>
 									</div>
@@ -186,10 +195,7 @@
 							<div class="orders__sell__buy__title">
 								<loc:message code="orders.listtosell"/>
 							</div>
-							<c:if test="${msq ne ''}">
-								<span style="color:red">${msg}</span>
-							</c:if>
-
+	
 							<table class="table">
 								<thead>
 								<tr>
@@ -215,7 +221,7 @@
 									<td>
 										<fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountBuy}"/>
 									</td>
-									<td><a href="orders/sell/accept?id=${order.id}"><loc:message code="orders.accept"/></a></td>
+									<td><a href="orders/submitaccept?id=${order.id}"><loc:message code="orders.accept"/></a></td>
 								</tr>
 								</c:forEach>
 								<tbody>
@@ -225,17 +231,14 @@
 						<div class="col-sm-6">
 							<div class="orders__sell__buy__title">
 								<loc:message code="orders.listtobuy"/><br>
-								<c:if test="${msq ne ''}">
-									<span style="color:red">${msg}</span>
-								</c:if>
 							</div>
 							<table class="table">
 								<thead>
 								<tr>
-									<th class="col-xs-4"><loc:message code="orders.currsell"/></th>
-									<th class="col-xs-4"><loc:message code="orders.amountsell"/></th>
 									<th class="col-xs-4"><loc:message code="orders.currbuy"/></th>
 									<th class="col-xs-4"><loc:message code="orders.amountbuy"/></th>
+									<th class="col-xs-4"><loc:message code="orders.currsell"/></th>
+									<th class="col-xs-4"><loc:message code="orders.amountsell"/></th>
 									<td></td>
 								</tr>
 								</thead>
@@ -243,27 +246,18 @@
 								<c:forEach var="order" items="${orderMap.buy}">
 								<tr>
 									<td>
-											${order.currencySellString}
-									</td>
-									<td>
-										<fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountSell}"/>
-									</td>
-									<td>
 											${order.currencyBuyString}
 									</td>
 									<td>
 										<fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountBuy}"/>
 									</td>
 									<td>
-											${order.commission*order.amountSell/100}
+											${order.currencySellString}
 									</td>
 									<td>
-										<fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountSellWithCommission}"/>
+										<fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountSell}"/>
 									</td>
-									<td>
-											${order.dateCreation}
-									</td>
-									<td><a href="orders/sell/accept?id=${order.id}"><loc:message code="orders.accept"/></a></td>
+									<td><a href="orders/submitaccept?id=${order.id}"><loc:message code="orders.accept"/></a></td>
 								</tr>
 								</c:forEach>
 								<tbody>

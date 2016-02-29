@@ -60,7 +60,29 @@ public ModelAndView myOrders() {
    return model;
 }  
 
-@RequestMapping(value = "/orders/sell/accept")  
+@RequestMapping(value = "/orders/submitaccept")  
+public ModelAndView submitAcceptOrder(@RequestParam int id, ModelAndView model, Principal principal, RedirectAttributes redirectAttributes){
+	int userId = userService.getIdByEmail(principal.getName());
+	Order order = orderService.getOrderById(id);
+	int userWalletIdForBuy = walletService.getWalletId(userId, order.getCurrencyBuy());
+	if(userWalletIdForBuy != 0) {
+		if(walletService.ifEnoughMoney(userWalletIdForBuy, order.getAmountBuy())) {
+			model.setViewName("submitacceptorder");
+			model.addObject("order", order);
+		}
+		else {
+			redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("validation.orderNotEnoughMoney", null, ru));
+			model.setViewName("redirect:/orders");
+		}
+	}
+	else {
+		redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("validation.orderNotEnoughMoney", null, ru));
+		model.setViewName("redirect:/orders");
+	}
+  return model;
+}  
+
+@RequestMapping(value = "/orders/accept")  
 public ModelAndView acceptOrder(@RequestParam int id, ModelAndView model, Principal principal, RedirectAttributes redirectAttributes){
 	int userId = userService.getIdByEmail(principal.getName());
 	Order order = orderService.getOrderById(id);
@@ -87,8 +109,7 @@ public ModelAndView acceptOrder(@RequestParam int id, ModelAndView model, Princi
   return model;
 }  
 
-
-@RequestMapping(value = "/order/sell/new", method = RequestMethod.GET)  
+@RequestMapping(value = "/order/new", method = RequestMethod.GET)  
 public ModelAndView showNewOrderToSellForm(ModelAndView model) {  
 	getCurrenciesAndCommission(model, OperationType.SELL);
     Order order = new Order();
@@ -97,14 +118,14 @@ public ModelAndView showNewOrderToSellForm(ModelAndView model) {
     return model;  
 }  
 
-@RequestMapping(value = "/order/sell/submit", method = RequestMethod.POST)  
+@RequestMapping(value = "/order/submit", method = RequestMethod.POST)  
 public ModelAndView submitNewOrderToSell(@Valid @ModelAttribute Order order, BindingResult result, ModelAndView model, Principal principal) {  
-	getCurrenciesAndCommission(model,OperationType.SELL);
+	getCurrenciesAndCommission(model,order.getOperationType());
 	if(result.hasErrors()) {
      	model.setViewName("newordertosell");
     }
     else {
-    	int walletIdFrom = walletService.getWalletId(userService.getIdByEmail(principal.getName()),order.getCurrencySell());
+     	int walletIdFrom = walletService.getWalletId(userService.getIdByEmail(principal.getName()),order.getCurrencySell());
 		boolean ifEnoughMoney = false;
 		if(walletIdFrom != 0) {
 			ifEnoughMoney = walletService.ifEnoughMoney(walletIdFrom, order.getAmountSell());
@@ -121,11 +142,10 @@ public ModelAndView submitNewOrderToSell(@Valid @ModelAttribute Order order, Bin
 	return model;  
 }  
 
-@RequestMapping(value="/order/sell/create",method = RequestMethod.POST)  
+@RequestMapping(value="/order/create",method = RequestMethod.POST)  
 public ModelAndView recordOrderToDB(ModelAndView model, @ModelAttribute Order order, Principal principal) {  
 	int walletIdFrom = walletService.getWalletId(userService.getIdByEmail(principal.getName()),order.getCurrencySell());
 	order.setWalletIdSell(walletIdFrom);
-	order.setOperationType(OperationType.SELL);
 	if((orderService.createOrder(order)) > 0) {
 		model.setViewName("ordercreated");
 	}
@@ -136,18 +156,11 @@ public ModelAndView recordOrderToDB(ModelAndView model, @ModelAttribute Order or
     return model;  
 }  
 
-@RequestMapping(value = "/order/sell/edit", method = RequestMethod.POST)  
+@RequestMapping(value = "/order/edit", method = RequestMethod.POST)  
 public ModelAndView showEditOrderToSellForm(ModelAndView model, @ModelAttribute Order order){
    model = new ModelAndView("editorder","order",order);  
-   getCurrenciesAndCommission(model, OperationType.SELL);
+   getCurrenciesAndCommission(model, order.getOperationType());
    return model;
-}  
-
-
-@RequestMapping("/newordertobuy")  
-public ModelAndView makeNewOrderToBuy(Principal principal) {  
-	String email = principal.getName();
-   return new ModelAndView("newordertobuy", "email", email);  
 }  
 
 @RequestMapping("/myorders")  
@@ -156,54 +169,6 @@ public ModelAndView showMyOrders(Principal principal, ModelAndView model) {
 	Map<String, List<Order>> orderMap = orderService.getMyOrders(email);
 	model.addObject("orderMap", orderMap);
 return model;  
-}  
-
-@RequestMapping("/myorders/edit")  
-public ModelAndView editUser(@RequestParam int id, ModelAndView model) {  
- getCurrenciesAndCommission(model, OperationType.SELL);
- Order order = orderService.getOrderById(id);
- model.addObject("order", order);
- model.setViewName("editorderinprocess");
- return model;  
- 
-}  
-
-@RequestMapping(value = "/myorders/submit", method = RequestMethod.POST)  
-public ModelAndView submitEditedOrderToSell(@Valid @ModelAttribute Order order, BindingResult result, ModelAndView model, Principal principal) {  
-	getCurrenciesAndCommission(model, OperationType.SELL);
-	if(result.hasErrors()) {
-     	model.setViewName("editorderinrocess");
-    }
-    else {
-    	int walletIdFrom = walletService.getWalletId(userService.getIdByEmail(principal.getName()),order.getCurrencySell());
-    	boolean ifEnoughMoney = walletService.ifEnoughMoney(walletIdFrom, order.getAmountSell());
-    	if(ifEnoughMoney) {
-    		model.setViewName("submitorderDB");
-    	}
-    	else {
-    		model.addObject("notEnoughMoney", messageSource.getMessage("validation.orderNotEnoughMoney", null, ru));
-    		model.setViewName("editorderinprocess");
-    	}
-    }
-	model.addObject("order",order);
-	return model;  
-}  
-
-@RequestMapping(value="/myorders/update",method = RequestMethod.POST)  
-public String updateOrder(@ModelAttribute Order order, Principal principal, RedirectAttributes redirectAttributes) {  
-	String msg = null;
-	int walletIdFrom = walletService.getWalletId(userService.getIdByEmail(principal.getName()),order.getCurrencySell());
-	order.setWalletIdSell(walletIdFrom);
-	order.setOperationType(OperationType.SELL);
-	order.setStatus(OrderStatus.OPENED);
-	if(orderService.updateOrder(order)) {
-		msg = "edit";
-	}
-	else {
-		msg="editfailed";
-	}
-	redirectAttributes.addFlashAttribute("msg", msg);
-	return "redirect:/myorders"; 
 }  
 
 @RequestMapping("/myorders/delete")  
