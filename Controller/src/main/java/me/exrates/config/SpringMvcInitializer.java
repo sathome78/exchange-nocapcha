@@ -34,8 +34,4 @@ public class SpringMvcInitializer
 		System.out.println(activeProfile);
 		servletContext.setInitParameter("spring.profile.active",activeProfile);
 	}
-
-	public static void main(String[] args) {
-		System.out.println(System.getenv("EXRATES_PROFILE"));
-	}
 }
