@@ -86,19 +86,12 @@ public class MerchantServiceImpl implements MerchantService{
                 .divide(BigDecimal.valueOf(100),BigDecimal.ROUND_CEILING);
         final User user = userService.findByEmail(userEmail);
 
-        CompanyWallet companyWallet = companyWalletService.findByCurrency(currency);
-        companyWallet = companyWallet == null ? companyWalletService.create(currency) : companyWallet;
-
-        Wallet userWallet = walletService.findByUserAndCurrency(user,currency);
-        userWallet = userWallet == null ? walletService.create(user,currency) : userWallet;
-
         final CreditsOperation creditsOperation = new CreditsOperation.Builder()
                 .amount(amount)
                 .commissionAmount(commissionAmount)
                 .commission(commissionByType)
                 .operationType(operationType)
-                .userWallet(userWallet)
-                .companyWallet(companyWallet)
+                .user(user)
                 .currency(currency)
                 .merchant(merchant)
                 .destination(destination)

@@ -78,6 +78,7 @@ public class CommonMerchantsController {
     public ModelAndView preparePayment(@Valid @ModelAttribute("payment") Payment payment,
                                        BindingResult result, Principal principal, RedirectAttributes redir,
                                        @PathVariable String merchant, HttpSession httpSession) {
+        System.out.println("HERE");
         System.out.println(payment);
         final String errorRedirectView = payment.getOperationType() == OperationType.INPUT ?
                 "merchantsInputCredits": "merchantsOutputCredits";

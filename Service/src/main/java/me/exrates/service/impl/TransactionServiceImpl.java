@@ -1,8 +1,7 @@
 package me.exrates.service.impl;
 
 import me.exrates.dao.TransactionDao;
-import me.exrates.model.CreditsOperation;
-import me.exrates.model.Transaction;
+import me.exrates.model.*;
 import me.exrates.service.CompanyWalletService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.WalletService;
@@ -33,25 +32,34 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional(propagation = Propagation.NESTED)
     public Transaction provideTransaction(CreditsOperation creditsOperation) {
+        final Currency currency = creditsOperation.getCurrency();
+        final User user = creditsOperation.getUser();
+
+        CompanyWallet companyWallet = companyWalletService.findByCurrency(currency);
+        companyWallet = companyWallet == null ? companyWalletService.create(currency) : companyWallet;
+
+        Wallet userWallet = walletService.findByUserAndCurrency(user,currency);
+        userWallet = userWallet == null ? walletService.create(user,currency) : userWallet;
+
         Transaction transaction = new Transaction();
         transaction.setAmount(creditsOperation.getAmount());
         transaction.setCommissionAmount(creditsOperation.getCommissionAmount());
         transaction.setCommission(creditsOperation.getCommission());
-        transaction.setCompanyWallet(creditsOperation.getCompanyWallet());
-        transaction.setUserWallet(creditsOperation.getUserWallet());
-        transaction.setCurrency(creditsOperation.getCurrency());
+        transaction.setCompanyWallet(companyWallet);
+        transaction.setUserWallet(userWallet);
+        transaction.setCurrency(currency);
         transaction.setDatetime(LocalDateTime.now());
         transaction.setMerchant(creditsOperation.getMerchant());
         transaction.setOperationType(creditsOperation.getOperationType());
         switch (creditsOperation.getOperationType()) {
             case INPUT :
-                walletService.depositActiveBalance(creditsOperation.getUserWallet(),creditsOperation.getAmount());
-                companyWalletService.deposit(creditsOperation.getCompanyWallet(),creditsOperation.getAmount(),
+                walletService.depositActiveBalance(userWallet,creditsOperation.getAmount());
+                companyWalletService.deposit(companyWallet,creditsOperation.getAmount(),
                         creditsOperation.getCommissionAmount());
                 break;
             case OUTPUT:
-                walletService.withdrawActiveBalance(creditsOperation.getUserWallet(),creditsOperation.getAmount());
-                companyWalletService.withdraw(creditsOperation.getCompanyWallet(),creditsOperation.getAmount(),
+                walletService.withdrawActiveBalance(userWallet,creditsOperation.getAmount());
+                companyWalletService.withdraw(companyWallet,creditsOperation.getAmount(),
                         creditsOperation.getCommissionAmount());
                 break;
         }

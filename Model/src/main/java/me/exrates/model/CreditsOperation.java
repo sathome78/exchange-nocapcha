@@ -10,8 +10,7 @@ import java.util.Optional;
  */
 public class CreditsOperation {
 
-    private final Wallet userWallet;
-    private final CompanyWallet companyWallet;
+    private final User user;
     private final BigDecimal amount;
     private final BigDecimal commissionAmount;
     private final OperationType operationType;
@@ -21,8 +20,7 @@ public class CreditsOperation {
     private final Optional<String> destination;
 
     private CreditsOperation(Builder builder) {
-        this.userWallet = builder.userWallet;
-        this.companyWallet = builder.companyWallet;
+        this.user = builder.user;
         this.amount = builder.amount;
         this.commissionAmount = builder.commissionAmount;
         this.operationType = builder.operationType;
@@ -33,12 +31,8 @@ public class CreditsOperation {
                 Optional.empty() : builder.destination;
     }
 
-    public Wallet getUserWallet() {
-        return userWallet;
-    }
-
-    public CompanyWallet getCompanyWallet() {
-        return companyWallet;
+    public User getUser() {
+        return user;
     }
 
     public BigDecimal getAmount() {
@@ -71,8 +65,7 @@ public class CreditsOperation {
 
     public static class Builder {
 
-        private Wallet userWallet;
-        private CompanyWallet companyWallet;
+        private User user;
         private BigDecimal amount;
         private BigDecimal commissionAmount;
         private OperationType operationType;
@@ -81,13 +74,8 @@ public class CreditsOperation {
         private Merchant merchant;
         private Optional<String> destination;
 
-        public Builder userWallet(Wallet userWallet) {
-            this.userWallet = userWallet;
-            return this;
-        }
-
-        public Builder companyWallet(CompanyWallet companyWallet) {
-            this.companyWallet = companyWallet;
+        public Builder user(User user) {
+            this.user = user;
             return this;
         }
 
@@ -138,9 +126,7 @@ public class CreditsOperation {
 
         CreditsOperation that = (CreditsOperation) o;
 
-        if (userWallet != null ? !userWallet.equals(that.userWallet) : that.userWallet != null) return false;
-        if (companyWallet != null ? !companyWallet.equals(that.companyWallet) : that.companyWallet != null)
-            return false;
+        if (user != null ? !user.equals(that.user) : that.user != null) return false;
         if (amount != null ? !amount.equals(that.amount) : that.amount != null) return false;
         if (commissionAmount != null ? !commissionAmount.equals(that.commissionAmount) : that.commissionAmount != null)
             return false;
@@ -154,8 +140,7 @@ public class CreditsOperation {
 
     @Override
     public int hashCode() {
-        int result = userWallet != null ? userWallet.hashCode() : 0;
-        result = 31 * result + (companyWallet != null ? companyWallet.hashCode() : 0);
+        int result = user != null ? user.hashCode() : 0;
         result = 31 * result + (amount != null ? amount.hashCode() : 0);
         result = 31 * result + (commissionAmount != null ? commissionAmount.hashCode() : 0);
         result = 31 * result + (operationType != null ? operationType.hashCode() : 0);
