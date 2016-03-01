@@ -61,7 +61,7 @@
                             <registrationform:errors path="confirmPassword" class="form-control" />
                         </div>
                         <div class="row offerta">
-                            <registrationform:checkbox path="readRules" id="1" value="ReadRulesOk" required="required"  />
+                            <registrationform:checkbox path="readRules" class="form-control" id="1" value="ReadRulesOk" required="required"  />
                             <registrationform:errors path="readRules" class="form-control" />
                             <label for="1"><a href="#"><loc:message code="register.readrules"/></a></label>
                         </div>

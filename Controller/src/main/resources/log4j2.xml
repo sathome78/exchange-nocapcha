@@ -21,8 +21,8 @@
             <!--<Appender-ref ref="Log"  />-->
         </logger>
         <logger name="org.springframework" level="ALL">
-            <!--<AppenderRef ref="Console"/>-->
-            <!--<Appender-ref ref="Log"  />-->
+            <AppenderRef ref="Console"/>
+            <Appender-ref ref="Log"  />
         </logger>
         <Root level="error">
             <AppenderRef ref="Merchant"/>

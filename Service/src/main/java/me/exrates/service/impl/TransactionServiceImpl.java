@@ -73,6 +73,9 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional(readOnly = true)
     public List<Transaction> findAllByUserWallets(List<Integer> userWalletsIds) {
+        if (userWalletsIds.size()==0) {
+            return null;
+        }
         return transactionDao.findAllByUserWallets(userWalletsIds);
     }
 }
