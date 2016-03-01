@@ -1,5 +1,6 @@
 package me.exrates.model;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
@@ -7,8 +8,10 @@ import javax.validation.constraints.DecimalMax;
 import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotNull;
+
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 
@@ -30,6 +33,8 @@ public class Order {
 	private double amountSell;
 	
 	private double commission;
+	private double commissionAmountSell;
+	private double commissionAmountBuy;
 	private int currencyBuy;
 	private String currencyBuyString;
 	private int walletIdBuy;
@@ -47,12 +52,33 @@ public class Order {
 	private String dateFinal;
 	private double amountBuyWithCommission;	
 	private double amountSellWithCommission;
+	SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
 	public Order() {
 		
 	}
 
 	
+	public double getCommissionAmountSell() {
+		return commissionAmountSell;
+	}
+
+
+	public void setCommissionAmountSell(double commissionAmountSell) {
+		this.commissionAmountSell = commissionAmountSell;
+	}
+
+
+	public double getCommissionAmountBuy() {
+		return commissionAmountBuy;
+	}
+
+
+	public void setCommissionAmountBuy(double commissionAmountBuy) {
+		this.commissionAmountBuy = commissionAmountBuy;
+	}
+
+
 	public String getCurrencySellString() {
 		return currencySellString;
 	}

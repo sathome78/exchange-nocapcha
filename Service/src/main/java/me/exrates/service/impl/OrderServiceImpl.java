@@ -1,5 +1,6 @@
 package me.exrates.service.impl;
 
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -9,18 +10,24 @@ import java.util.Locale;
 import java.util.Map;
 
 import me.exrates.dao.OrderDao;
+import me.exrates.model.CompanyWallet;
+import me.exrates.model.Currency;
 import me.exrates.model.Order;
 import me.exrates.model.Wallet;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.service.CommissionService;
+import me.exrates.service.CompanyWalletService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -36,9 +43,14 @@ public class OrderServiceImpl implements OrderService{
 	WalletService walletService;
 	
 	@Autowired
+	CompanyWalletService companyWalletService;
+	
+	@Autowired
 	CommissionService commissionService;
 	
 	private static final Locale ru = new Locale("ru");
+	
+	private static final Logger logger = LogManager.getLogger(OrderServiceImpl.class);
 	 
 	@Autowired
 	MessageSource messageSource;
@@ -48,6 +60,11 @@ public class OrderServiceImpl implements OrderService{
 	public int createOrder(Order order) {
 		int orderId = 0;
 		if(walletService.ifEnoughMoney(order.getWalletIdSell(),order.getAmountSell())) {
+			BigDecimal commission = BigDecimal.valueOf(commissionService.getCommissionByType(OperationType.SELL)).divide(BigDecimal.valueOf(100));
+			BigDecimal commissionAmountSell = BigDecimal.valueOf(order.getAmountSell()).multiply(commission);
+			BigDecimal commissionAmountBuy = BigDecimal.valueOf(order.getAmountBuy()).multiply(commission);
+			order.setCommissionAmountBuy(commissionAmountBuy.doubleValue());
+			order.setCommissionAmountSell(commissionAmountSell.doubleValue());
 			if((orderId=orderDao.createOrder(order)) > 0) {
 				walletService.setWalletRBalance(order.getWalletIdSell(), order.getAmountSell());
 				walletService.setWalletABalance(order.getWalletIdSell(), -order.getAmountSell());
@@ -117,7 +134,6 @@ public class OrderServiceImpl implements OrderService{
 	@Transactional(readOnly = true)
 	public Order getOrderById(int orderId) {
 		Order order = orderDao.getOrderById(orderId);
-		order.setCurrencySell(walletService.getCurrencyId(order.getWalletIdSell()));
 		return order;
 	}
 	
@@ -132,65 +148,86 @@ public class OrderServiceImpl implements OrderService{
 		return orderDao.updateOrder(order);
 	}
 	
-	@Transactional
+	@Transactional(rollbackFor={Throwable.class})
 	@Override
 	public boolean acceptOrder(int userId, int orderId) {
+		Boolean flag = false;
 		Order order = this.getOrderById(orderId);
 		int userWalletId = walletService.getWalletId(userId, order.getCurrencyBuy());
-		if(walletService.ifEnoughMoney(userWalletId, order.getAmountBuy())) {
-			Double commission = commissionService.getCommissionByType(OperationType.SELL);
-			System.out.println("commission = "+commission);
-			//for seller
-			Double amountForSeller = order.getAmountBuy() - order.getAmountBuy()*commission/100;
-			System.out.println("amount that receive seller for ABalance= "+amountForSeller);
-			int wallet1ForBuyCurrency = walletService.getWalletId(walletService.getUserIdFromWallet(order.getWalletIdSell()), order.getCurrencyBuy());
-			if(wallet1ForBuyCurrency == 0) {
-				Wallet wallet = new Wallet();
-				wallet.setCurrencyId(order.getCurrencyBuy());
-				wallet.setActiveBalance(0);
-				wallet.setUserId(walletService.getUserIdFromWallet(order.getWalletIdSell()));
-				wallet1ForBuyCurrency = walletService.createNewWallet(wallet);
+		try {
+			if(walletService.ifEnoughMoney(userWalletId, order.getAmountBuy())) {
+				
+				//for seller
+				BigDecimal amountForSeller = BigDecimal.valueOf(order.getAmountBuy())
+								.add(BigDecimal.valueOf(order.getCommissionAmountBuy()))
+								.negate();	
+				int wallet1ForBuyCurrency = walletService.getWalletId(walletService.getUserIdFromWallet(order.getWalletIdSell()), order.getCurrencyBuy());
+				if(wallet1ForBuyCurrency == 0) {
+					Wallet wallet = new Wallet();
+					wallet.setCurrencyId(order.getCurrencyBuy());
+					wallet.setActiveBalance(0);
+					wallet.setUserId(walletService.getUserIdFromWallet(order.getWalletIdSell()));
+					wallet1ForBuyCurrency = walletService.createNewWallet(wallet);
+				}
+				walletService.setWalletABalance(wallet1ForBuyCurrency, amountForSeller.doubleValue());
+				walletService.setWalletRBalance(order.getWalletIdSell(), -order.getAmountSell());
+				Currency currencySell = new Currency();
+				currencySell.setId(order.getCurrencySell());
+				CompanyWallet companyWalletSell = companyWalletService.findByCurrency(currencySell);
+				companyWalletService.deposit(companyWalletSell, BigDecimal.valueOf(0), BigDecimal.valueOf(order.getCommissionAmountSell()));
+
+				//for buyer
+				BigDecimal amountForBuyer = BigDecimal.valueOf(order.getAmountSell())
+						.add(BigDecimal.valueOf(order.getCommissionAmountSell()))
+						.negate();
+				int wallet2ForBuyCurrency = walletService.getWalletId(userId, order.getCurrencySell());
+				if(wallet2ForBuyCurrency == 0){
+					Wallet wall = new Wallet();
+					wall.setActiveBalance(0);
+					wall.setUserId(userId);
+					wall.setCurrencyId(order.getCurrencySell());
+					wallet2ForBuyCurrency = walletService.createNewWallet(wall);
+				}
+				walletService.setWalletABalance(wallet2ForBuyCurrency, amountForBuyer.doubleValue());
+				walletService.setWalletABalance(walletService.getWalletId(userId, order.getCurrencyBuy()), -order.getAmountBuy());
+
+				Currency currencyBuy = new Currency();
+				currencyBuy.setId(order.getCurrencySell());
+				CompanyWallet companyWalletBuy = companyWalletService.findByCurrency(currencyBuy);
+				companyWalletService.deposit(companyWalletBuy, BigDecimal.valueOf(0), BigDecimal.valueOf(order.getCommissionAmountBuy()));
+				
+				//and add to wallet balance history
+	            order.setWalletIdBuy(wallet2ForBuyCurrency);
+	            order.setStatus(OrderStatus.CLOSED);
+	            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	            Date date = new Date();
+	            String currentTime = format.format(date);
+				order.setDateFinal(currentTime);
+				updateOrder(order);
+				flag = true;
 			}
-			walletService.setWalletABalance(wallet1ForBuyCurrency, amountForSeller);
-			System.out.println("minus on rbalance = "+order.getAmountSell());
-			walletService.setWalletRBalance(order.getWalletIdSell(), -order.getAmountSell());
-			//should be companyAccount transaction for commission when I minus reserved balance
-			//for buyer
-			Double amountForBuyer = order.getAmountSell() - order.getAmountSell()*commission/100;
-			System.out.println("amount that receive buyer to abalance = "+amountForBuyer);
-			int wallet2ForBuyCurrency = walletService.getWalletId(userId, order.getCurrencySell());
-			if(wallet2ForBuyCurrency == 0){
-				Wallet wall = new Wallet();
-				wall.setActiveBalance(0);
-				wall.setUserId(userId);
-				wall.setCurrencyId(order.getCurrencySell());
-				wallet2ForBuyCurrency = walletService.createNewWallet(wall);
-			}
-			walletService.setWalletABalance(wallet2ForBuyCurrency, amountForBuyer);
-			System.out.println("minus on abalance for buyer = "+order.getAmountBuy());
-			walletService.setWalletABalance(walletService.getWalletId(userId, order.getCurrencyBuy()), -order.getAmountBuy());
-			//should be companyAccount transaction for commission when I minus abalance
-            order.setWalletIdBuy(wallet2ForBuyCurrency);
-            order.setStatus(OrderStatus.CLOSED);
-            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            Date date = new Date();
-            String currentTime = format.format(date);
-			order.setDateFinal(currentTime);
-			updateOrder(order);
-			return true;
+		} catch (Throwable e) {
+			logger.error("Error while accepting order with id = "+order.getId()+" exception: "+e.getMessage());
 		}
-		else return false;
+		return flag;
 	}
 	
 	
-	@Transactional
+	@Transactional(rollbackFor={Throwable.class})
 	@Override
 	public boolean cancellOrder(int orderId) {
-		if(setStatus(orderId, OrderStatus.CANCELLED));
-		Order order = getOrderById(orderId);
-		walletService.setWalletABalance(order.getWalletIdSell(), order.getAmountSell());
-		walletService.setWalletRBalance(order.getWalletIdSell(), -order.getAmountSell());
-		return true;
+		boolean flag = false;
+		try{
+			setStatus(orderId, OrderStatus.CANCELLED);
+			Order order = getOrderById(orderId);
+			walletService.setWalletABalance(order.getWalletIdSell(), order.getAmountSell());
+			walletService.setWalletRBalance(order.getWalletIdSell(), -order.getAmountSell());
+			flag = true;
+		} catch (Throwable e) {
+			logger.error("Error while cancelling order "+orderId+" , "+e.getMessage());
+		}
+		
+		return flag;
 	}
 
 	private String getStatusString(OrderStatus status) {

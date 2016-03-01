@@ -3,6 +3,7 @@ package me.exrates.dao.impl;
 import me.exrates.dao.CompanyWalletDao;
 import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -75,4 +77,5 @@ public class CompanyWalletDaoImpl implements CompanyWalletDao {
         };
         return jdbcTemplate.update(sql, params) > 0;
     }
+ 
 }

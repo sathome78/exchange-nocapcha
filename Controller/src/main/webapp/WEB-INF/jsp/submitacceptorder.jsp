@@ -2,12 +2,18 @@
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <%@taglib uri="http://www.springframework.org/tags" prefix="loc"%>
 <%@taglib uri="http://www.springframework.org/tags/form" prefix="form"%>  
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@page language="java"%>
+<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@taglib uri="http://www.springframework.org/tags" prefix="loc"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@taglib uri="http://www.springframework.org/tags/form" prefix="form"%>  
 <!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="utf-8" />
 	<!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
-	<title><loc:message code="orders.ordersell" /></title>
+	<title><loc:message code="acceptorder.title"/></title>
 	<meta name="keywords" content="" />
 	<meta name="description" content="" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -40,97 +46,75 @@
 				<%@include file='header.jsp'%>
 
 				<div class="content__page">
+
+					<div class="title__page"><loc:message code="acceptorder.text"/>:</div>
+
 					<c:set var="SELL" value="<%=me.exrates.model.enums.OperationType.SELL%>"/>
 					<c:set var="BUY" value="<%=me.exrates.model.enums.OperationType.BUY%>"/>
-					<c:if test="${order.operationType  eq SELL}" >
-						<div class="title__page"><loc:message code="orders.ordersell"/></div>
-					</c:if>
-					<c:if test="${order.operationType  eq BUY}" >
-						<div class="title__page"><loc:message code="orders.orderbuy"/></div>
-					</c:if>
 
-			
-					<!-- begin sell__buy -->
-					<div class="sell__buy">
 						<div class="tab-content">
 							<div class="tab-pane active">
 								<!-- Start  withdraw__money -->
-								<form:form class="form-horizontal withdraw__money" action="submit" method="post" modelAttribute="order">
-								  <c:if test="${order.operationType  eq SELL}">
+								<div class="form-horizontal withdraw__money">
+								  <c:if test="${order.operationType  eq SELL}" >
 									<div class="form-group">
 										<label class="col-sm-3 control-label" for="#"><loc:message code="orders.currencyforsale" /></label>
 										<div class="col-sm-7">
-											<form:select path="currencySell" class="select form-control">
-   			 									<form:options items="${currList}" itemLabel="name" itemValue="id" />
-											</form:select>
-										</div>
-									</div>
-									<div class="form-group">
-										<label class="col-sm-3 control-label" for="#"><loc:message code="orders.sum1"/></label>
-										<div class="col-sm-7">
-											<form:errors path="amountSell" style="color:red"/> 
-											<span style="color:red">${notEnoughMoney}</span>
-											<form:input path="amountSell" class="form-control" placeholder="2 890.89765"/> 
+											<span class="form-control"><fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountSell}" />
+											${currList.get(order.currencySell-1).getName()}</span>
 										</div>
 									</div>
 								  </c:if>
 									<div class="form-group">
-										<label class="col-sm-3 control-label" for="#"><loc:message code="orders.currencyforbuy"/></label>
+										<label class="col-sm-3 control-label" for="#"><loc:message code="submitorder.buy"/></label>
 										<div class="col-sm-7">
-											<form:select path="currencyBuy" class="select form-control">
-   			 									<form:options items="${currList}" itemLabel="name" itemValue="id" />
-											</form:select>
+											<span class="form-control"><fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountBuy}"/> 
+											${currList.get(order.currencyBuy-1).getName()}</span>
 										</div>
 									</div>
-									<div class="form-group">
-										<label class="col-sm-3 control-label" for="#"><loc:message code="orders.sum2"/></label>
-										<div class="col-sm-7">
-											<form:errors path="amountBuy" style="color:red" />
-											<form:input path="amountBuy" class="form-control" placeholder="129"/>
-										</div>
-									</div>
-								  <c:if test="${order.operationType  eq BUY}">
+								  <c:if test="${order.operationType  eq BUY}" >
 									<div class="form-group">
 										<label class="col-sm-3 control-label" for="#"><loc:message code="orders.currencyforsale" /></label>
 										<div class="col-sm-7">
-											<form:select path="currencySell" class="select form-control">
-   			 									<form:options items="${currList}" itemLabel="name" itemValue="id" />
-											</form:select>
-										</div>
-									</div>
-									<div class="form-group">
-										<label class="col-sm-3 control-label" for="#"><loc:message code="orders.sum1"/></label>
-										<div class="col-sm-7">
-											<form:errors path="amountSell" style="color:red"/> 
-											<span style="color:red">${notEnoughMoney}</span>
-											<form:input path="amountSell" class="form-control" placeholder="2 890.89765"/> 
+											<span class="form-control"><fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountSell}" />
+											${currList.get(order.currencySell-1).getName()}</span>
 										</div>
 									</div>
 								  </c:if>
 									<div class="form-group">
-										<label class="col-sm-3 control-label" for="#">
-											<loc:message code="orders.yourcommission"/>: 
-										</label>
+										<label class="col-sm-3 control-label" for="#"><loc:message code="submitorder.commission"/></label>
 										<div class="col-sm-7">
-											${commission}%
+											<span class="form-control"><fmt:formatNumber type="number" maxFractionDigits="9" value="${order.commissionAmountBuy}"/>
+											${currList.get(order.currencyBuy-1).getName()}</span>
+										</div>
+									</div>
+									<div class="form-group">
+										<label class="col-sm-3 control-label" for="#"><loc:message code="submitorder.sumwithcommission"/></label>
+										<div class="col-sm-7">
+											<span class="form-control"><fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountBuy-order.commissionAmountBuy}"/>
+											 ${currList.get(order.currencyBuy-1).getName()}</span>
 										</div>
 									</div>
 									<br>
 									<div class="form-group">
 										<div class="col-sm-offset-3 col-sm-6">
-											<form:hidden path="operationType" value="${order.operationType}" />
-											<loc:message code="orders.submit" var="labelSubmit"></loc:message>
-     									    <input type="submit" value="${labelSubmit}" class="btn btn-primary"/>
+											<form:form action="accept" modelAttribute="order" method="post">
+									 			<form:hidden path="id" value= "${order.id}" />
+												<loc:message code="acceptorder.submit" var="labelSubmit"/>
+											 	<input type="submit" value="${labelSubmit}" class="btn btn-primary"/>
+									     	</form:form>
+
+									     	<c:url value="/orders" var="url"/>
+											<form:form action="${url}">
+												<loc:message code="submitorder.cancell" var="labelCancell"></loc:message>
+									     		 <input type="submit" value="${labelCancell}" class="btn btn-primary"/>
+											</form:form>
 										</div>
 									</div>
-								</form:form>
+								</div>
 								<!-- End  withdraw__money -->
 							</div>
-						</div>
-					</div>
-					<!-- end sell__buy -->
-
-
+						
 				</div>
 					
 				<!--#include file="footer__lk.shtml" -->
@@ -142,6 +126,7 @@
 
 	</div>
 
+</div>
 
 </body>
 </html>
