@@ -2,7 +2,10 @@ package me.exrates.security.config;
 
 import me.exrates.security.service.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -10,9 +13,13 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(securedEnabled = true)
+@PropertySource("classpath:/${spring.profile.active}/merchants/perfectmoney.properties")
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
@@ -20,6 +27,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     UserDetailsServiceImpl userDetailsService;
+
+    private @Value("${ipWhiteList}") String ipWhiteList;
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
@@ -33,13 +42,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .authorizeRequests()
                 .antMatchers("/admin/**", "/admin").access("hasRole('ADMINISTRATOR')")
+                .antMatchers(HttpMethod.POST,"/merchants/perfectmoney/payment/status").permitAll()
                 .antMatchers("/index.jsp","/client/**").permitAll()
                 .antMatchers("/login","/register","/create").anonymous()
                 .antMatchers("/*.html").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .exceptionHandling().accessDeniedPage("/403");
-
         http.formLogin()
                 .loginPage("/login")
                 .defaultSuccessUrl("/mywallets")
@@ -57,4 +66,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	    .csrf();
     }
 
+    private String buildHasIpExpression() {
+        System.out.println(ipWhiteList);
+        return Stream.of(ipWhiteList.split(";"))
+                .map(ip -> String.format("hasIpAddress('%s')", ip))
+                .collect(Collectors.joining(" or "));
+    }
  }

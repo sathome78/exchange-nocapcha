@@ -1,16 +1,10 @@
 package me.exrates.model;
 
 import me.exrates.model.enums.OperationType;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
-import javax.validation.constraints.NotNull;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
-@Component
-@Scope("session")
 public class Payment {
 
     private int currency;
@@ -18,7 +12,6 @@ public class Payment {
     private double sum;
     private String destination;
 
-    @NotNull
     private OperationType operationType;
 
     public int getCurrency() {

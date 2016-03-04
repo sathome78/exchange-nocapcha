@@ -61,7 +61,7 @@ HttpServletRequest request;
      return new ModelAndView("register", "user", user);
  }  
   
- @RequestMapping("/create")  
+ @RequestMapping(value = "/create")
  public ModelAndView createUser(User user, BindingResult result, ModelMap model) {  
 
 	 registerFormValidation.validate(user, result);  

@@ -43,11 +43,11 @@
             <div class="content__page">
 
                 <div class="title__page"><loc:message code="merchants.inputTitle"/></div>
-                <c:if test="${error!=null}">
-                <label class="alert-danger has-error">
+                <label class="alert-danger has-error merchantError">
+                    <c:if test="${error!=null}">
                     <loc:message code="${error}"/>
+                    </c:if>
                 </label>
-                </c:if>
                 <!-- Start  withdraw__money -->
                 <c:url value="/merchants/yandexmoney/payment/prepare" var="url"/>
                 <paymentForm:form class="form-horizontal withdraw__money" name="payment" method="post" modelAttribute="payment" action="${url}">
@@ -68,7 +68,7 @@
                     <div class="form-group">
                         <label class="col-sm-3 control-label" for="#"><loc:message code="merchants.sum"/></label>
                         <div class="col-sm-8">
-                            <paymentForm:input  class="form-control" pattern="/\d*\.\d{1,2}/" placeholder="Сумма" id="#" path="sum"/>
+                            <paymentForm:input  class="form-control" pattern="/\d*\.\d{1,2}/" placeholder="Сумма" id="sum" path="sum"/>
                         </div>
                     </div>
                     <div class="form-group">
@@ -97,7 +97,7 @@
             </div>
             <div class="modal-footer">
                 <div class="add__money__btns">
-                    <button type="button" name="paymentProcess" class="btn btn-primary">Продолжить</button>
+                    <button type="button" id="inputPaymentProcess" class="btn btn-primary">Продолжить</button>
                     <button type="button" data-dismiss="modal" class="btn btn-warning">Отменить</button>
                 </div>
             </div>
