@@ -27,18 +27,10 @@ public class CommissionDaoImpl implements CommissionDao{
 			commission.setDateOfChange(resultSet.getDate("date"));
 			commission.setId(resultSet.getInt("id"));
 			commission.setOperationType(OperationType.convert(resultSet.getInt("operation_type")));
-			commission.setValue(resultSet.getDouble("value"));
+			commission.setValue(resultSet.getBigDecimal("value"));
 			return commission;
 		});
 	}
 
-	@Override
-	public double getCommissionByType(OperationType type) {
-		String sql = "SELECT value FROM COMMISSION WHERE operation_type = :operationType "
-				+ "order by date desc limit 1";
-		Map<String, String> namedParameters = new HashMap<>();
-		namedParameters.put("operationType", String.valueOf(type.type));
-		return jdbcTemplate.queryForObject(sql, namedParameters, Double.class);
-	}
 	
 }

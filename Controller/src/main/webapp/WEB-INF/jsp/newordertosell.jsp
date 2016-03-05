@@ -2,6 +2,7 @@
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <%@taglib uri="http://www.springframework.org/tags" prefix="loc"%>
 <%@taglib uri="http://www.springframework.org/tags/form" prefix="form"%>  
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -70,7 +71,7 @@
 										<div class="col-sm-7">
 											<form:errors path="amountSell" style="color:red"/> 
 											<span style="color:red">${notEnoughMoney}</span>
-											<form:input path="amountSell" class="form-control" placeholder="2 890.89765"/> 
+											<form:input path="amountSell" class="form-control" placeholder="0.0"/> 
 										</div>
 									</div>
 								  </c:if>
@@ -86,7 +87,7 @@
 										<label class="col-sm-3 control-label" for="#"><loc:message code="orders.sum2"/></label>
 										<div class="col-sm-7">
 											<form:errors path="amountBuy" style="color:red" />
-											<form:input path="amountBuy" class="form-control" placeholder="129"/>
+											<form:input path="amountBuy" class="form-control" placeholder="0.0"/>
 										</div>
 									</div>
 								  <c:if test="${order.operationType  eq BUY}">
@@ -103,7 +104,7 @@
 										<div class="col-sm-7">
 											<form:errors path="amountSell" style="color:red"/> 
 											<span style="color:red">${notEnoughMoney}</span>
-											<form:input path="amountSell" class="form-control" placeholder="2 890.89765"/> 
+											<form:input path="amountSell" class="form-control" placeholder="0.0"/> 
 										</div>
 									</div>
 								  </c:if>
@@ -112,7 +113,7 @@
 											<loc:message code="orders.yourcommission"/>: 
 										</label>
 										<div class="col-sm-7">
-											${commission}%
+											<fmt:formatNumber type="number" maxFractionDigits="9" value="${commission}"/>%
 										</div>
 									</div>
 									<br>

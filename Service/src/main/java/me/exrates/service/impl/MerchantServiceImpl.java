@@ -79,10 +79,10 @@ public class MerchantServiceImpl implements MerchantService{
             throw new UnsupportedMerchantException(exceptionMessage);
         }
         final Commission commissionByType = commissionService.findCommissionByType(operationType);
-        final BigDecimal commissionAmount = (BigDecimal
-                .valueOf(commissionByType.getValue())
+        final BigDecimal commissionAmount = 
+                 commissionByType.getValue()
                 .setScale(9,BigDecimal.ROUND_CEILING)
-                .multiply(amount))
+                .multiply(amount)
                 .divide(BigDecimal.valueOf(100),BigDecimal.ROUND_CEILING);
         final User user = userService.findByEmail(userEmail);
 

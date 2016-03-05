@@ -7,6 +7,5 @@ public interface CommissionDao {
 
 	Commission getCommission(OperationType operationType);
 
-	double getCommissionByType(OperationType operationType);
 }
 

@@ -3,6 +3,7 @@ package me.exrates.controller.merchants;
 import me.exrates.model.*;
 import me.exrates.model.enums.OperationType;
 import me.exrates.service.*;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,8 @@ import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
+
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.Arrays;
 import java.util.List;
@@ -127,12 +130,12 @@ public class CommonMerchantsController {
     }
 
     @RequestMapping(value = "/commission/{type}",method = RequestMethod.GET)
-    public @ResponseBody Double  getCommissions(@PathVariable("type") String type) {
+    public @ResponseBody BigDecimal  getCommissions(@PathVariable("type") String type) {
         switch (type) {
             case "input" :
-                return commissionService.getCommissionByType(OperationType.INPUT);
+                return commissionService.findCommissionByType(OperationType.INPUT).getValue();
             case "output" :
-                return commissionService.getCommissionByType(OperationType.OUTPUT);
+                return commissionService.findCommissionByType(OperationType.OUTPUT).getValue();
             default:
                 return null;
         }

@@ -3,7 +3,7 @@
 <%@taglib uri="http://www.springframework.org/tags" prefix="loc"%>
 <%@taglib uri="http://www.springframework.org/tags/form" prefix="form"%> 
 <%@ taglib uri="http://www.springframework.org/tags" prefix="spring"%>   
-
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -106,7 +106,7 @@
 									<div class="form-group">
 										<label class="col-sm-3 control-label" for="#"><loc:message code="orders.yourcommission"/></label>
 										<div class="col-sm-7">
-											${commission}%
+											<fmt:formatNumber type="number" maxFractionDigits="9" value="${commission}"/>%
 										</div>
 									</div>
 									<br>

@@ -18,10 +18,5 @@ public class CommissionServiceImpl implements CommissionService {
 	public Commission findCommissionByType(OperationType operationType) {
 		return commissionDao.getCommission(operationType);
 	}
-
-	@Override
-	public double getCommissionByType(OperationType type) {
-		return commissionDao.getCommissionByType(type);
-	}
-
+	
 }
