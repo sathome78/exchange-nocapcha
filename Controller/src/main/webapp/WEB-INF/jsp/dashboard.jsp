@@ -1,0 +1,341 @@
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
+<%@taglib uri="http://www.springframework.org/tags" prefix="loc"%>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
+
+
+<html>
+<head>
+    <meta charset="utf-8" />
+    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+    <title></title>
+    <meta name="keywords" content="" />
+    <meta name="description" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link href="/client/css/bootstrap.css" rel="stylesheet" type="text/css" />
+    <link href="/client/css/jquery.mCustomScrollbar.css" rel="stylesheet" type="text/css" />
+    <link href="/client/css/style.css" rel="stylesheet" type="text/css" />
+
+    <script type="text/javascript" src="/client/js/jquery.js"></script>
+    <script type="text/javascript" src="/client/js/dropdown.js"></script>
+    <script type="text/javascript" src="/client/js/modal.js"></script>
+    <script type="text/javascript" src="/client/js/tab.js"></script>
+    <script type="text/javascript" src="/client/js/chosen.jquery.min.js"></script>
+    <script type="text/javascript" src="/client/js/jquery.mCustomScrollbar.concat.min.js"></script>
+    <script type="text/javascript" src="/client/js/function.js"></script>
+    <script type="text/javascript" src="/client/js/dashboard.js"></script>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+        google.load("visualization", "1", {"packages":["corechart"]});
+    </script>
+
+</head>
+
+<body>
+
+<div class="wrapper market">
+
+    <header class="header">
+        <div class="container container_center">
+
+            <!-- begin Logo block -->
+            <div class="header__logo">
+                <a href="/"><img src="/client/img/logo.png" alt=""/></a>
+            </div>
+            <!-- end Logo block -->
+
+            <!-- begin Right block -->
+            <div class="header__flip">
+                <div class="dropdown lang__select">
+                    <a data-toggle="dropdown" href="#">ru</a><i class="glyphicon-chevron-down"></i>
+                    <ul class="dropdown-menu">
+                        <li><a href="#">ru</a></li>
+                        <li><a href="#">en</a></li>
+                    </ul>
+                </div>
+            </div>
+            <!-- end Right block -->
+
+            <!-- begin header__menu -->
+            <div class="header__menu">
+                <sec:authorize access="!isAuthenticated()">
+                    <!-- begin header__login__form -->
+                    <div class="header__login__form">
+                        <c:url value="/login" var="loginUrl" />
+                        <form action="${loginUrl}" method="post">
+                            <input class="login__field" type="text" name="username" placeholder=<loc:message code="dasbboard.loginText"/>>
+                            <input class="password__field" type="password" name="password" placeholder=<loc:message code="dasbboard.passwordText"/>>
+                            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+                            <button class="btn"><loc:message code="dasbboard.entrance"/></button>
+
+                        </form>
+                        <div class="header__login__form__link">
+                            <a href="<c:url value="/register" />"><loc:message code="dasbboard.signUp"/></a>
+
+                            <%--<a href="<c:url value="/forgotPassword"/>">Забыли пароль?</a>--%>
+                            <a href="#"><loc:message code="dasbboard.forgotPassword"/></a>
+                        </div>
+                    </div>
+                    <!-- end header__login__form -->
+                </sec:authorize>
+
+                <sec:authorize access="isAuthenticated()">
+                    <div class="header__flip">
+                        <a href="<c:url value="/mywallets"/>">
+                                <span style="color:#eee"><loc:message code="dasbboard.hello"/> <strong><sec:authentication property="principal.username" /></strong>
+                                </span>
+                        </a>
+                        <c:url value="/logout" var="logoutUrl" />
+                        <form action="${logoutUrl}" id="logoutForm" method="post">
+                            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
+                            <button type="submit" class="btn btn-link"><loc:message code="dasbboard.goOut"/></button>
+                        </form>
+                    </div>
+                </sec:authorize>
+
+                <!-- begin navbar main__menu -->
+                <ul class="navbar main__menu">
+                    <li class="navabr__item">
+                        <a href="#" class="navabr__link active"><loc:message code="dasbboard.general"/></a>
+                    </li>
+                    <li class="navabr__item">
+                        <a href="<c:url value="/mywallets"/>" class="navabr__link"><loc:message code="dasbboard.personalArea"/></a>
+                    </li>
+                    <li class="navabr__item">
+                        <a href="#" class="navabr__link"><loc:message code="dasbboard.news"/></a>
+                    </li>
+                    <li class="navabr__item">
+                        <a href="#" class="navabr__link"><loc:message code="dasbboard.training"/></a>
+                    </li>
+                </ul>
+                <!-- end navbar main__menu -->
+
+            </div>
+            <!-- end header__menu -->
+        </div>
+    </header><!-- .header-->
+
+    <!-- begin order__history -->
+
+
+    <section id="" class="order__history">
+        <div class="container container_center">
+            <div class="dropdown order__history__instrument">
+                    <select id="currencyPair-select" class="form-control" name="currencyPair-select">
+                        <c:forEach var="currencyPair" items="${currencyPairs}">
+                            <option id="currencyPair" value="${currencyPair.getName()}">${currencyPair.getName()}</option>
+                        </c:forEach>
+                    </select>
+
+            </div>
+            <ul class="order__history__item">
+                <li><span><loc:message code="dasbboard.lastOrder"/></span> <span>${lastOrder.getAmountBuy()} ${currencyPair.getCurrency2().getName()}</span></li>
+                <li><span><loc:message code="dasbboard.priceStart"/></span> <span>${lastOrder.getAmountBuy()} ${currencyPair.getCurrency2().getName()}</span></li>
+                <li><span><loc:message code="dasbboard.priceEnd"/></span> <span>${lastOrder.getAmountBuy()} ${currencyPair.getCurrency2().getName()}</span></li>
+                <li><span><loc:message code="dasbboard.volume"/></span> <span>${sumAmountBuyClosed} ${currencyPair.getCurrency1().getName()}</span></li>
+                <li><span>${sumAmountSellClosed} ${currencyPair.getCurrency2().getName()}</span></li>
+            </ul>
+        </div>
+    </section>
+    <!-- end order__history -->
+
+    <!-- begin quotes__news__section -->
+    <section class="quotes__news__section">
+        <div class="container container_center">
+
+            <!-- begin chart__section -->
+            <div class="chart__section">
+                <div class="chart__section__title"><a id="chartPair"></a> </div>
+                <div id='chart_div'></div>
+            </div>
+            <!-- end chart__section -->
+
+        </div>
+    </section>
+    <!-- end quotes__news__section -->
+
+    <main class="main__content">
+
+        <div class="container container_center">
+
+            <!-- Start  buy__sell__btc -->
+            <div class="buy__sell__btc">
+
+                <%--<form class="form-horizontal col-sm-6" id="123" >--%>
+                <form:form action="order/submit" method="post" modelAttribute="order" name="formBuy">
+
+                  <div class="form-horizontal col-sm-6">
+                    <div class="buy__sell__btc__title"><loc:message code="dasbboard.BUY"/> ${currencyPair.getCurrency1().getName()}</div>
+                    <div class="buy__sell__btc__thead">
+                        <div class="col-sm-4"><loc:message code="dasbboard.yourBalance"/><br>${balanceCurrency1} ${currencyPair.getCurrency2().getName()}</div>
+                        <div class="col-sm-8"><loc:message code="dasbboard.lowestPrice"/><br>${minPrice} ${currencyPair.getCurrency2().getName()}</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label" for="#"><loc:message code="dasbboard.amount"/> ${currencyPair.getCurrency1().getName()}:</label>
+                        <div class="col-sm-8">
+                            <%--<input class="form-control" type="text" value="0">--%>
+                                <form:errors path="amountBuy" style="color:red" />
+                                <form:input path="amountBuy" class="form-control" id="amountBuyForm1" placeholder="129"/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label" for="#"><loc:message code="dasbboard.priceFor"/> ${currencyPair.getCurrency1().getName()}:</label>
+                        <div class="col-sm-8 btc__currency">
+                            <%--<input class="form-control" type="text" value="0">--%>
+                                <form:errors path="amountSell" style="color:red" />
+                                <form:input path="amountSell" class="form-control" id="amountSellForm1" placeholder="129"/>
+                            <i>${currencyPair.getCurrency2().getName()}</i>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label" for="#"><loc:message code="dasbboard.total"/></label>
+                        <div class="col-sm-8 btc__currency">
+                            <div class="item-form">
+                                <b id="sumBuyWithCommission"></b> ${currencyPair.getCurrency2().getName()}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label" for="#"><loc:message code="dasbboard.fee"/></label>
+                        <div class="col-sm-8 btc__currency">
+                            <div class="item-form">
+                                <b id="buyCommission"></b> ${currencyPair.getCurrency1().getName()}
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="form-group">
+                            <div class="buy__sell__btn">
+                                <button type="button" class="btn btn-primary" name="calculateBuy"><loc:message code="dasbboard.calculate"/></button>
+                                    <c:set var="BUY" value="<%=me.exrates.model.enums.OperationType.BUY%>"/>
+                                    <form:hidden path="operationType" value= "${BUY}" />
+                                    <form:hidden path="currencySell" value= "1" />
+                                    <form:hidden path="currencyBuy" value= "2" />
+                                    <button class="btn btn-buy" type="submit"><loc:message code="dasbboard.buy"/> ${currencyPair.getCurrency1().getName()}</button>
+
+                            </div>
+                    </div>
+                  </div>
+                </form:form>
+
+                <form:form action="order/submit" method="post" modelAttribute="order">
+                <div class="form-horizontal col-sm-6">
+                    <div class="buy__sell__btc__title"><loc:message code="dasbboard.SELL"/> ${currencyPair.getCurrency1().getName()}</div>
+                    <div class="buy__sell__btc__thead">
+                        <div class="col-sm-4"><loc:message code="dasbboard.yourBalance"/> <br>${balanceCurrency2} ${currencyPair.getCurrency1().getName()}</div>
+                        <div class="col-sm-8"><loc:message code="dasbboard.highestPrice"/> <br>${maxPrice} ${currencyPair.getCurrency2().getName()}</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label" for="#"><loc:message code="dasbboard.amount"/> ${currencyPair.getCurrency1().getName()}:</label>
+                        <div class="col-sm-8">
+                            <form:errors path="amountSell" style="color:red" />
+                            <form:input path="amountSell" class="form-control" id="amountSellForm2" placeholder="129"/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label" for="#"><loc:message code="dasbboard.priceFor"/> ${currencyPair.getCurrency1().getName()}:</label>
+                        <div class="col-sm-8 btc__currency">
+                            <form:errors path="amountBuy" style="color:red" />
+                            <form:input path="amountBuy" class="form-control" id="amountBuyForm2" placeholder="129"/>
+                            <i>${currencyPair.getCurrency2().getName()}</i>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label" for="#"><loc:message code="dasbboard.total"/></label>
+                        <div class="col-sm-8 btc__currency">
+                            <div class="item-form">
+                                <b id="sumSellWithCommission"></b> ${currencyPair.getCurrency2().getName()}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label" for="#"><loc:message code="dasbboard.fee"/></label>
+                        <div class="col-sm-8 btc__currency">
+                            <div class="item-form">
+                                <b id="sellCommission"></b> ${currencyPair.getCurrency1().getName()}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                            <div class="buy__sell__btn">
+                                <button type="button" name="calculateSell" class="btn btn-primary"><loc:message code="dasbboard.calculate"/></button>
+                                <c:set var="SELL" value="<%=me.exrates.model.enums.OperationType.SELL%>"/>
+                                <form:hidden path="operationType" value= "${SELL}" />
+                                <form:hidden path="currencySell" value= "2" />
+                                <form:hidden path="currencyBuy" value= "1" />
+                                <button class="btn btn-sell" type="submit" ><loc:message code="dasbboard.sell"/> ${currencyPair.getCurrency1().getName()}</button>
+                            </div>
+                    </div>
+                </div>
+            </form:form>
+
+            <!-- End  buy__sell__btc -->
+
+            <!-- begin btc__orders -->
+            <div class="btc__orders">
+                <div class="col-sm-6">
+                    <div class="btc__orders__title"><loc:message code="dasbboard.buyOrders"/></div>
+                    <div class="btc__orders__ammount">Всего: ${sumAmountBuy} ${currencyPair.getCurrency1().getName()}</div>
+                    <div class="btc__orders__table__wrapper custom__scrollbar">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>Цена</th>
+                                <th>${currencyPair.getCurrency1().getName()}</th>
+                                <th>${currencyPair.getCurrency2().getName()}</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                                <c:forEach var="order" items="${ordersBuy}">
+                                    <tr>
+                                        <td>${order.amountSell/order.amountBuy}</td>
+                                        <td>${order.amountBuy}</td>
+                                        <td>${order.amountSell}</td>
+                                    </tr>
+                                </c:forEach>
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="btc__orders__title"><loc:message code="dasbboard.sellOrders"/></div>
+                    <div class="btc__orders__ammount">Всего: ${sumAmountSell} ${currencyPair.getCurrency2().getName()}</div>
+                    <div class="btc__orders__table__wrapper custom__scrollbar">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>Цена</th>
+                                <th>${currencyPair.getCurrency1().getName()}</th>
+                                <th>${currencyPair.getCurrency2().getName()}</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <c:forEach var="order" items="${ordersSell}">
+                                <tr>
+                                    <td>${order.amountBuy/order.amountSell}</td>
+                                    <td>${order.amountSell}</td>
+                                    <td>${order.amountBuy}</td>
+                                </tr>
+                            </c:forEach>
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <!-- end btc__orders -->
+
+        </div>
+
+        </div>
+    </main>
+
+
+</div>
+
+<jsp:include page="footer.jsp"/>
+
+</body>
+</html>

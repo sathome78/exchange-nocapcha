@@ -2,6 +2,7 @@ package me.exrates.dao.impl;
 
 import me.exrates.dao.CurrencyDao;
 import me.exrates.model.Currency;
+import me.exrates.model.CurrencyPair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -66,5 +67,61 @@ public class CurrencyDaoImpl implements CurrencyDao {
 			}
 		};
 		return jdbcTemplate.queryForObject(sql, params, new BeanPropertyRowMapper<>(Currency.class));
+	}
+
+	@Override
+	public List<CurrencyPair> getAllCurrencyPairs() {
+		String sql = "SELECT currency1_id, currency2_id, name, \n" +
+				"(select name from currency where id = currency1_id) as currency1_name,\n" +
+				"(select name from currency where id = currency2_id) as currency2_name\n" +
+				" FROM currency_pairs ";
+
+		List<CurrencyPair> currencyPairList = jdbcTemplate.query(sql, (rs, row) -> {
+			CurrencyPair currencyPair = new CurrencyPair();
+			Currency currency1 = new Currency();
+			currency1.setId(rs.getInt("currency1_id"));
+			currency1.setName(rs.getString("currency1_name"));
+			currencyPair.setCurrency1(currency1);
+
+			Currency currency2 = new Currency();
+			currency2.setId(rs.getInt("currency2_id"));
+			currency2.setName(rs.getString("currency2_name"));
+			currencyPair.setCurrency2(currency2);
+
+			currencyPair.setName(rs.getString("name"));
+
+			return currencyPair;
+
+		});
+
+		return currencyPairList;
+	}
+
+	@Override
+	public CurrencyPair getCurrencyPairById(int currency1Id, int currency2Id) {
+		String sql = "SELECT currency1_id, currency2_id, name, \n" +
+				"(select name from currency where id = currency1_id) as currency1_name,\n" +
+				"(select name from currency where id = currency2_id) as currency2_name\n" +
+				" FROM currency_pairs WHERE currency1_id = :currency1Id AND currency2_id = :currency2Id";
+
+		Map<String, String> namedParameters = new HashMap<String, String>();
+		namedParameters.put("currency1Id", String.valueOf(currency1Id));
+		namedParameters.put("currency2Id", String.valueOf(currency2Id));
+		return jdbcTemplate.queryForObject(sql, namedParameters,(resultSet, i) -> {
+			CurrencyPair currencyPair = new CurrencyPair();
+			Currency currency1 = new Currency();
+			currency1.setId(resultSet.getInt("currency1_id"));
+			currency1.setName(resultSet.getString("currency1_name"));
+			currencyPair.setCurrency1(currency1);
+
+			Currency currency2 = new Currency();
+			currency2.setId(resultSet.getInt("currency2_id"));
+			currency2.setName(resultSet.getString("currency2_name"));
+			currencyPair.setCurrency2(currency2);
+
+			currencyPair.setName(resultSet.getString("name"));
+
+			return currencyPair;
+		});
 	}
 }

@@ -32,13 +32,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
-                .antMatchers("/admin/**", "/admin").access("hasRole('ADMINISTRATOR')")
-                .antMatchers("/index.jsp","/client/**").permitAll()
-                .antMatchers("/login","/register","/create").anonymous()
-                .antMatchers("/*.html").permitAll()
+                .antMatchers("/admin/**", "/admin").hasAnyAuthority("administrator", "accountant", "admin_user")
+                .antMatchers("/index.jsp","/client/**","/dashboard/**").permitAll()
+                .antMatchers("/login","/register","/create","/forgotPassword","/resetPassword").anonymous()
+//                .antMatchers("/*.html").permitAll()
                 .anyRequest().authenticated()
                 .and()
+
                 .exceptionHandling().accessDeniedPage("/403");
+
 
         http.formLogin()
                 .loginPage("/login")
