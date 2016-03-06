@@ -125,9 +125,9 @@ public class DashboardController {
     public @ResponseBody Double  getCommissions(@PathVariable("type") String type) {
         switch (type) {
             case "input" :
-                return commissionService.getCommissionByType(OperationType.INPUT);
+                return commissionService.findCommissionByType(OperationType.INPUT).getValue();
             case "output" :
-                return commissionService.getCommissionByType(OperationType.OUTPUT);
+                return commissionService.findCommissionByType(OperationType.OUTPUT).getValue();
             default:
                 return null;
         }
