@@ -56,14 +56,9 @@ public class DashboardController {
 
         Order order = new Order();
 
-        Double sumAmountBuy = 0.0;
-        for(Order orderRecord : ordersBuy){
-            sumAmountBuy += orderRecord.getAmountBuy();
-        }
-        Double sumAmountSell = 0.0;
-        for(Order orderRecord : ordersSell){
-            sumAmountSell += orderRecord.getAmountBuy();
-        }
+        BigDecimal sumAmountBuy = ordersBuy.stream().map(Order::getAmountBuy).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal sumAmountSell = ordersSell.stream().map(Order::getAmountBuy).reduce(BigDecimal.ZERO, BigDecimal::add);
+
         model.addObject("sumAmountBuy", sumAmountBuy);
         model.addObject("sumAmountSell", sumAmountSell);
 
@@ -72,11 +67,11 @@ public class DashboardController {
         BigDecimal sumAmountBuyClosed = new BigDecimal(0.0);
         BigDecimal sumAmountSellClosed = new BigDecimal(0.0);
         for (Map<String, BigDecimal> tempRow : list) {
-            sumAmountBuyClosed =  tempRow.get("amount_buy").setScale(2,BigDecimal.ROUND_CEILING);
-            sumAmountSellClosed = tempRow.get("amount_sell").setScale(2,BigDecimal.ROUND_CEILING);
+            sumAmountBuyClosed =  tempRow.get("amount_buy");
+            sumAmountSellClosed = tempRow.get("amount_sell");
         }
-        model.addObject("sumAmountBuyClosed", sumAmountBuyClosed.setScale(2,BigDecimal.ROUND_CEILING));
-        model.addObject("sumAmountSellClosed", sumAmountSellClosed.setScale(2,BigDecimal.ROUND_CEILING));
+        model.addObject("sumAmountBuyClosed", sumAmountBuyClosed);
+        model.addObject("sumAmountSellClosed", sumAmountSellClosed);
 
         if (principal != null){
             model.addObject("balanceCurrency1", dashboardService.getBalanceByCurrency(userService.getIdByEmail(principal.getName()),1));
@@ -85,9 +80,9 @@ public class DashboardController {
 
         BigDecimal minPrice = dashboardService.getMinPriceByCurrency(currencyPair);
         BigDecimal maxPrice = dashboardService.getMaxPriceByCurrency(currencyPair);
-        model.addObject("minPrice",minPrice.setScale(5,BigDecimal.ROUND_CEILING) );
+        model.addObject("minPrice",minPrice);
 //        order.setAmountSell(minPrice);
-        model.addObject("maxPrice",maxPrice.setScale(5,BigDecimal.ROUND_CEILING) );
+        model.addObject("maxPrice",maxPrice);
 //        order.setAmountBuy(maxPrice);
 
         model.addObject(order);
@@ -103,18 +98,19 @@ public class DashboardController {
         ArrayList<ArrayList> arrayListMain = new ArrayList<ArrayList>();
 
         for (Map<String, Object> tempRow : list) {
-            Double amount = (Double) tempRow.get("amount");
-            Double amountSell = (Double) tempRow.get("amount_sell");
+            BigDecimal amount = (BigDecimal) tempRow.get("amount");
+            BigDecimal amountSell = (BigDecimal) tempRow.get("amount_sell");
             Timestamp timestamp = (Timestamp)tempRow.get("date_final");
             Date date  = new Date(timestamp.getTime());
 
             ArrayList<Object> arrayList = new ArrayList<Object>();
             arrayList.add(timestamp.toString());
-            arrayList.add(amount);
-            arrayList.add(amount);
-            arrayList.add(amount);
-            arrayList.add(amount);
-            arrayList.add(amountSell);
+            arrayList.add(amount.doubleValue());
+            arrayList.add(amount.doubleValue());
+            arrayList.add(amount.doubleValue());
+            arrayList.add(amount.doubleValue());
+            arrayList.add(amountSell.doubleValue());
+
             arrayListMain.add(arrayList);
 
         }
@@ -122,7 +118,7 @@ public class DashboardController {
    }
 
     @RequestMapping(value = "/dashboard/commission/{type}",method = RequestMethod.GET)
-    public @ResponseBody Double  getCommissions(@PathVariable("type") String type) {
+    public @ResponseBody BigDecimal  getCommissions(@PathVariable("type") String type) {
         switch (type) {
             case "input" :
                 return commissionService.findCommissionByType(OperationType.INPUT).getValue();

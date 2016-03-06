@@ -100,7 +100,13 @@ public class DashboardDaoImpl implements DashboardDao{
         Map<String, String> namedParameters = new HashMap<String, String>();
         namedParameters.put("currency_sell", String.valueOf(currencyPair.getCurrency1().getId()));
         namedParameters.put("currency_buy", String.valueOf(currencyPair.getCurrency2().getId()));
-        List<Map<String, Object>> rows = namedParameterJdbcTemplate.queryForList(sql, namedParameters);
+        List<Map<String, Object>> rows = namedParameterJdbcTemplate.query(sql, namedParameters,(rs, row) -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("date_final", rs.getTimestamp("date_final"));
+            map.put("amount", rs.getBigDecimal("amount"));
+            map.put("amount_sell", rs.getBigDecimal("amount_sell"));
+            return map;
+        });
 
         return rows;
     }
