@@ -72,8 +72,8 @@ public class CurrencyDaoImpl implements CurrencyDao {
 	@Override
 	public List<CurrencyPair> getAllCurrencyPairs() {
 		String sql = "SELECT currency1_id, currency2_id, name, \n" +
-				"(select name from currency where id = currency1_id) as currency1_name,\n" +
-				"(select name from currency where id = currency2_id) as currency2_name\n" +
+				"(select name from CURRENCY where id = currency1_id) as currency1_name,\n" +
+				"(select name from CURRENCY where id = currency2_id) as currency2_name\n" +
 				" FROM CURRENCY_PAIR ";
 
 		List<CurrencyPair> currencyPairList = jdbcTemplate.query(sql, (rs, row) -> {
@@ -100,8 +100,8 @@ public class CurrencyDaoImpl implements CurrencyDao {
 	@Override
 	public CurrencyPair getCurrencyPairById(int currency1Id, int currency2Id) {
 		String sql = "SELECT currency1_id, currency2_id, name, \n" +
-				"(select name from currency where id = currency1_id) as currency1_name,\n" +
-				"(select name from currency where id = currency2_id) as currency2_name\n" +
+				"(select name from CURRENCY where id = currency1_id) as currency1_name,\n" +
+				"(select name from CURRENCY where id = currency2_id) as currency2_name\n" +
 				" FROM CURRENCY_PAIR WHERE currency1_id = :currency1Id AND currency2_id = :currency2Id";
 
 		Map<String, String> namedParameters = new HashMap<String, String>();
