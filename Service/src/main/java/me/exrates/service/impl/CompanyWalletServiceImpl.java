@@ -59,8 +59,6 @@ public class CompanyWalletServiceImpl implements CompanyWalletService {
     public void deposit(CompanyWallet companyWallet, BigDecimal amount, BigDecimal commissionAmount) {
         final BigDecimal newBalance = companyWallet.getBalance().add(amount);
         final BigDecimal newCommissionBalance = companyWallet.getCommissionBalance().add(commissionAmount);
-        System.out.println(newBalance + " NEW BALANCE");
-        System.out.println("newCommissionBalance = "+newCommissionBalance);
         companyWallet.setBalance(newBalance);
         companyWallet.setCommissionBalance(newCommissionBalance);
         if (!companyWalletDao.update(companyWallet)) {

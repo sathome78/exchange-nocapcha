@@ -15,19 +15,19 @@
     <meta name="description" content="" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <link href="/client/css/bootstrap.css" rel="stylesheet" type="text/css" />
-    <link href="/client/css/jquery.mCustomScrollbar.css" rel="stylesheet" type="text/css" />
-    <link href="/client/css/style.css" rel="stylesheet" type="text/css" />
+    <link href="<c:url value='/client/css/bootstrap.css'/>" rel="stylesheet" type="text/css" />
+    <link href="<c:url value='/client/css/jquery.mCustomScrollbar.css'/>" rel="stylesheet" type="text/css" />
+    <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet" type="text/css" />
 
-    <script type="text/javascript" src="/client/js/jquery.js"></script>
-    <script type="text/javascript" src="/client/js/dropdown.js"></script>
-    <script type="text/javascript" src="/client/js/modal.js"></script>
-    <script type="text/javascript" src="/client/js/tab.js"></script>
-    <script type="text/javascript" src="/client/js/chosen.jquery.min.js"></script>
-    <script type="text/javascript" src="/client/js/jquery.mCustomScrollbar.concat.min.js"></script>
-    <script type="text/javascript" src="/client/js/function.js"></script>
-    <script type="text/javascript" src="/client/js/dashboard.js"></script>
-    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/jquery.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/dropdown.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/modal.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/tab.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/chosen.jquery.min.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/jquery.mCustomScrollbar.concat.min.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/function.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/dashboard.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='https://www.google.com/jsapi'/>"></script>
     <script type="text/javascript">
         google.load("visualization", "1", {"packages":["corechart"]});
     </script>

@@ -68,11 +68,12 @@ public class CompanyWalletDaoImpl implements CompanyWalletDao {
 
     @Override
     public boolean update(CompanyWallet companyWallet) {
-        final String sql = "UPDATE COMPANY_WALLET SET balance = :balance, commission_balance = :commissionBalance";
-        final Map<String,BigDecimal> params = new HashMap<String,BigDecimal>(){
+    	final String sql = "UPDATE COMPANY_WALLET SET balance = :balance, commission_balance = :commissionBalance where id = :id";
+        final Map<String,Object> params = new HashMap<String,Object>(){
             {
                 put("balance",companyWallet.getBalance());
                 put("commissionBalance",companyWallet.getCommissionBalance());
+                put("id", companyWallet.getId());
             }
         };
         return jdbcTemplate.update(sql, params) > 0;

@@ -93,9 +93,9 @@ public class RegisterFormValidation implements Validator{
 		    passwordMismatch);  
 		  }  
 		  
-		  if (!user.isReadRules()) {  
-		   errors.rejectValue("readRules", "noselect.readRules",  
-		     notReadRules);  
-		  }  
+//		  if (!user.isReadRules()) {  
+//		   errors.rejectValue("readRules", "noselect.readRules",  
+//		     notReadRules);  
+//		  }  
 		 }  
 }  
