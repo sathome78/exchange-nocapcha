@@ -63,6 +63,14 @@ public class MerchantServiceImpl implements MerchantService{
         return merchantDao.findById(id);
     }
 
+    @Override
+    public List<MerchantCurrency> findAllByCurrencies(List<Integer> currenciesId) {
+        if (currenciesId.isEmpty()) {
+            return null;
+        }
+        return merchantDao.findAllByCurrencies(currenciesId);
+    }
+
     public Optional<CreditsOperation> prepareCreditsOperation(Payment payment,String userEmail) {
         final OperationType operationType = payment.getOperationType();
         final BigDecimal amount = BigDecimal.valueOf(payment.getSum());
@@ -99,7 +107,7 @@ public class MerchantServiceImpl implements MerchantService{
         return Optional.of(creditsOperation);
     }
 
-    protected boolean isPayable(Merchant merchant, Currency currency, BigDecimal sum) {
+    private boolean isPayable(Merchant merchant, Currency currency, BigDecimal sum) {
         final BigDecimal minSum = merchantDao.getMinSum(merchant.getId(), currency.getId());
         return sum.compareTo(minSum) >= 0;
     }

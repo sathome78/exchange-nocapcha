@@ -7,7 +7,6 @@ import me.exrates.service.CompanyWalletService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.WalletPersistException;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -59,8 +58,6 @@ public class CompanyWalletServiceImpl implements CompanyWalletService {
     public void deposit(CompanyWallet companyWallet, BigDecimal amount, BigDecimal commissionAmount) {
         final BigDecimal newBalance = companyWallet.getBalance().add(amount);
         final BigDecimal newCommissionBalance = companyWallet.getCommissionBalance().add(commissionAmount);
-        System.out.println(newBalance + " NEW BALANCE");
-        System.out.println(newCommissionBalance);
         companyWallet.setBalance(newBalance);
         companyWallet.setCommissionBalance(newCommissionBalance);
         if (!companyWalletDao.update(companyWallet)) {

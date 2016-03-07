@@ -54,12 +54,11 @@
                 </c:when>
                 <c:otherwise>
                     <!-- Start  withdraw__money -->
-                    <c:url value="/merchants/yandexmoney/payment/prepare" var="url"/>
-                    <paymentForm:form class="form-horizontal withdraw__money" name="payment" method="post" modelAttribute="payment" action="${url}">
+                    <paymentForm:form class="form-horizontal withdraw__money" name="payment" method="post" modelAttribute="payment" action="">
                         <div class="form-group">
                             <label class="col-sm-3 control-label" for="#">Валюта к выводу</label>
                             <div class="col-sm-8">
-                                <paymentForm:select id="currencySelect" path="currency" onchange="loadMeansOfPayment()" class="select form-control">
+                                <paymentForm:select id="currency" path="currency" class="select form-control">
                                     <paymentForm:options items="${wallets}" itemLabel="fullName" itemValue="currencyId" />
                                 </paymentForm:select>
                             </div>
@@ -67,7 +66,7 @@
                         <div class="form-group">
                             <label class="col-sm-3 control-label" for="#"><loc:message code="merchants.meansOfPayment"/></label>
                             <div class="col-sm-8">
-                                <paymentForm:select id="meansOfPaymentSelect" path="merchant"/>
+                                <paymentForm:select id="merchant" path="merchant"/>
                             </div>
                         </div>
                         <div class="form-group">
@@ -103,9 +102,9 @@
                 <p>Комиссия составляет — 0.1BTC</p>
             </div>
             <div class="modal-body">
-                <label class="control-label" for="#">Введите email либо номер кошелька :</label>
+                <label class="control-label" for="walletUid">Введите email либо номер кошелька :</label>
                 <div class="">
-                    <input class="form-control" name="walletUid" type="text" id="#" placeholder="">
+                    <input class="form-control" name="walletUid" type="text" id="walletUid" placeholder="">
                 </div>
             </div>
             <div class="modal-footer">

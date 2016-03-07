@@ -71,6 +71,7 @@ public class YandexMoneyMerchantController {
     public ModelAndView preparePayment(@Valid @ModelAttribute("payment") Payment payment,
                                        BindingResult result, Principal principal, RedirectAttributes redir,
                                        HttpSession httpSession) {
+        System.out.println(payment);
         final String errorRedirectView = payment.getOperationType() == OperationType.INPUT ?
                 "merchantsInputCredits": "merchantsOutputCredits";
         final Map<String, Object> model = result.getModel();

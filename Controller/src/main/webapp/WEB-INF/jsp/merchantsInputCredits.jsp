@@ -49,31 +49,30 @@
                     </c:if>
                 </label>
                 <!-- Start  withdraw__money -->
-                <c:url value="/merchants/yandexmoney/payment/prepare" var="url"/>
-                <paymentForm:form class="form-horizontal withdraw__money" name="payment" method="post" modelAttribute="payment" action="${url}">
+                <paymentForm:form class="form-horizontal withdraw__money" id="payment" name="payment" method="post" modelAttribute="payment" action="">
                     <div class="form-group">
-                        <label class="col-sm-3 control-label" for="#"><loc:message code="merchants.inputCurrency"/></label>
+                        <label class="col-sm-3 control-label" for="currency"><loc:message code="merchants.inputCurrency"/></label>
                         <div class="col-sm-8">
-                            <paymentForm:select id="currencySelect" path="currency" onchange="loadMeansOfPayment()" class="select form-control">
+                            <paymentForm:select id="currency" path="currency"  class="select form-control">
                                 <paymentForm:options items="${currencies}" itemLabel="name" itemValue="id" />
                             </paymentForm:select>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-sm-3 control-label" for="#"><loc:message code="merchants.meansOfPayment"/></label>
+                        <label class="col-sm-3 control-label" for="merchant"><loc:message code="merchants.meansOfPayment"/></label>
                         <div class="col-sm-8">
-                            <paymentForm:select id="meansOfPaymentSelect" path="merchant"/>
+                            <paymentForm:select id="merchant" path="merchant"/>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-sm-3 control-label" for="#"><loc:message code="merchants.sum"/></label>
+                        <label class="col-sm-3 control-label" for="sum"><loc:message code="merchants.sum"/></label>
                         <div class="col-sm-8">
                             <paymentForm:input  class="form-control" pattern="/\d*\.\d{1,2}/" placeholder="Сумма" id="sum" path="sum"/>
                         </div>
                     </div>
                     <div class="form-group">
                         <div class="col-sm-offset-3 col-sm-6">
-                            <button type="button" data-toggle="modal" name="assertInputPay" data-target="#myModal" class="btn btn-primary">Пополнить</button>
+                            <button type="button" data-toggle="modal" name="assertInputPay" data-target="#myModal" class="btn btn-primary"><loc:message code="merchants.deposit"/></button>
                         </div>
                     </div>
                 <paymentForm:hidden path="operationType"/>
@@ -90,15 +89,15 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" id="assertInputPayment" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title">Ввод средств</h4>
+                <h4 class="modal-title"><loc:message code="merchants.inputTitle"/></h4>
             </div>
             <div class="modal-body">
 
             </div>
             <div class="modal-footer">
                 <div class="add__money__btns">
-                    <button type="button" id="inputPaymentProcess" class="btn btn-primary">Продолжить</button>
-                    <button type="button" data-dismiss="modal" class="btn btn-warning">Отменить</button>
+                    <button type="button" id="inputPaymentProcess" class="btn btn-primary"><loc:message code="merchants.continue"/></button>
+                    <button type="button" data-dismiss="modal" class="btn btn-warning"><loc:message code="merchants.dismiss"/></button>
                 </div>
             </div>
         </div><!-- /.modal-content -->

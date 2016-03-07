@@ -1,6 +1,8 @@
 package me.exrates.controller.merchants;
 
-import me.exrates.model.Merchant;
+import me.exrates.dao.MerchantDao;
+import me.exrates.model.Currency;
+import me.exrates.model.MerchantCurrency;
 import me.exrates.model.Payment;
 import me.exrates.model.Wallet;
 import me.exrates.model.enums.OperationType;
@@ -13,9 +15,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.security.Principal;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -41,6 +42,9 @@ public class CommonMerchantsController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private MerchantDao merchantDao;
+
     @RequestMapping(value = "/input", method = RequestMethod.GET)
     public ModelAndView inputCredits() {
         final ModelAndView modelAndView = new ModelAndView("merchantsInputCredits");
@@ -64,25 +68,20 @@ public class CommonMerchantsController {
         return modelAndView;
     }
 
-    @RequestMapping(value = "{merchant}/payment/prepareAndReceive",method = RequestMethod.POST,
-            headers = {"Content-type=application/json"})
-    public @ResponseBody Map<String,String> prepareAndReceiveMerchantInfo(@RequestBody Payment payment, @PathVariable("merchant") String merchant) {
-        System.out.println(payment);
-        return new HashMap<String,String>(){
-            {
-                put("PAYEE", "U12312");
-            }
-        };
-    }
-
     @RequestMapping(value = "/data", method = RequestMethod.GET)
-    public @ResponseBody Map<Integer, List<Merchant>> getMerchantsData() {
+    public @ResponseBody List<MerchantCurrency> getMerchantsData() {
+        final List<Integer> currenciesId = currencyService
+                .getAllCurrencies()
+                .stream()
+                .mapToInt(Currency::getId)
+                .boxed()
+                .collect(Collectors.toList());
         return merchantService
-                .mapMerchantsToCurrency(currencyService.getAllCurrencies());
+                .findAllByCurrencies(currenciesId);
     }
 
     @RequestMapping(value = "/commission/{type}",method = RequestMethod.GET)
-    public @ResponseBody Double  getCommissions(@PathVariable("type") String type) {
+    public @ResponseBody Double getCommissions(@PathVariable("type") String type) {
         switch (type) {
             case "input" :
                 return commissionService.getCommissionByType(OperationType.INPUT);

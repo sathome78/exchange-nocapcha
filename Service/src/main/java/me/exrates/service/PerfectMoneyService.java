@@ -1,15 +1,26 @@
 package me.exrates.service;
 
-import me.exrates.model.Payment;
+import me.exrates.model.CreditsOperation;
+import me.exrates.model.Transaction;
 
-import java.security.Principal;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 public interface PerfectMoneyService {
 
-    Optional<Map<String,String>> preparePayment(Payment payment,Principal principal);
+    Map<String,String> getPerfectMoneyParams(Transaction transaction);
+
+    String provideOutputPayment(String to,Transaction transaction);
+
+    Transaction preparePaymentTransactionRequest(CreditsOperation creditsOperation);
+
+    void provideTransaction(Transaction transaction);
+
+    void invalidateTransaction(Transaction transaction);
+
+    String computePaymentHash(Map<String, String> perfectMoneyParams);
+
+    void consumePerfectMoneyResponse(Map<String,String> perfectMoneyResponse,Map<String,String> params);
 }

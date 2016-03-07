@@ -179,7 +179,8 @@ public class YandexMoneyServiceImpl implements YandexMoneyService {
         final ProcessPayment processPayment;
         final Transaction transaction;
         try {
-            transaction = transactionService.provideTransaction(creditsOperation);
+            transaction = transactionService.createTransactionRequest(creditsOperation);
+            transactionService.provideTransaction(transaction);
             processPayment = oAuth2Session.execute(new ProcessPayment.Request(requestId));
         } catch (IOException | InvalidRequestException | InsufficientScopeException | InvalidTokenException e) {
             logger.fatal(e.getMessage());

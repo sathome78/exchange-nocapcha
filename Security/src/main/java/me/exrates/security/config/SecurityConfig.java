@@ -37,12 +37,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .passwordEncoder(passwordEncoder);
     }
 
+    //// TODO: 3/4/16 Access to perfectmoney[status/success/failure] need to be protected by list of while ip addrs
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
                 .antMatchers("/admin/**", "/admin").access("hasRole('ADMINISTRATOR')")
-                .antMatchers(HttpMethod.POST,"/merchants/perfectmoney/payment/status").permitAll()
+                .antMatchers(HttpMethod.POST,"/merchants/perfectmoney/payment/status",
+                        "/merchants/perfectmoney/payment/success",
+                        "/merchants/perfectmoney/payment/failure").permitAll()
                 .antMatchers("/index.jsp","/client/**").permitAll()
                 .antMatchers("/login","/register","/create").anonymous()
                 .antMatchers("/*.html").permitAll()
@@ -63,11 +66,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .logoutSuccessUrl("/")
                 .invalidateHttpSession(true)
                 .and()
-	    .csrf();
+	    .csrf()
+            .ignoringAntMatchers("/merchants/perfectmoney/payment/status",
+                    "/merchants/perfectmoney/payment/failure",
+                    "/merchants/perfectmoney/payment/success");
     }
 
     private String buildHasIpExpression() {
-        System.out.println(ipWhiteList);
         return Stream.of(ipWhiteList.split(";"))
                 .map(ip -> String.format("hasIpAddress('%s')", ip))
                 .collect(Collectors.joining(" or "));
