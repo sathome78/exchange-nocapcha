@@ -50,10 +50,15 @@
             <c:url value="/logout" var="logoutUrl" />
             <form action="${logoutUrl}" id="logoutForm" method="post">
                 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
+                <button type="submit" class="btn btn-link">
+                    <a>
+                        <h5><strong>Выйти</strong></h5>
+                    </a>
+                </button>
             </form>
-            <a href="#" id="logout" class="login__link">
-                <h5><strong>Выйти</strong></h5>
-            </a>
+            <%--<a href="#" id="logout" class="login__link">--%>
+                <%--<h5><strong>Выйти</strong></h5>--%>
+            <%--</a>--%>
             <div class="dropdown lang__select">
                 <a data-toggle="dropdown" href="#">ru</a><i class="glyphicon-chevron-down"></i>
                 <ul class="dropdown-menu">

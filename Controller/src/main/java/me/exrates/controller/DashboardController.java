@@ -37,6 +37,8 @@ public class DashboardController {
     @Autowired
     CommissionService commissionService;
 
+
+
     @RequestMapping(value = "/dashboard")
     public ModelAndView dashboard(Principal principal) {
         ModelAndView model = new ModelAndView();
@@ -120,10 +122,10 @@ public class DashboardController {
     @RequestMapping(value = "/dashboard/commission/{type}",method = RequestMethod.GET)
     public @ResponseBody BigDecimal  getCommissions(@PathVariable("type") String type) {
         switch (type) {
-            case "input" :
-                return commissionService.findCommissionByType(OperationType.INPUT).getValue();
-            case "output" :
-                return commissionService.findCommissionByType(OperationType.OUTPUT).getValue();
+            case "sell" :
+                return commissionService.findCommissionByType(OperationType.SELL).getValue();
+            case "buy" :
+                return commissionService.findCommissionByType(OperationType.BUY).getValue();
             default:
                 return null;
         }
