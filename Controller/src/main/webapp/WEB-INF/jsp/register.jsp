@@ -14,7 +14,7 @@
 
  <link href="<c:url value="/client/css/bootstrap.css"/>" rel="stylesheet" type="text/css" />
  <link href="<c:url value="/client/css/chosen.css"/>" rel="stylesheet" type="text/css" />
- <%--<link href="<c:url value="/client/css/style.css"/>" rel="stylesheet" type="text/css" />--%>
+ <link href="<c:url value="/client/css/style.css"/>" rel="stylesheet" type="text/css" />
 
  <script type="text/javascript" src="<c:url value="/client/js/jquery.js"/>"></script>
  <script type="text/javascript" src="<c:url value="/client/js/dropdown.js"/>"></script>
@@ -60,15 +60,15 @@
                             <registrationform:input path="confirmPassword" type="password" placeholder="${repassword}" class="form-control"  required="required" />
                             <registrationform:errors path="confirmPassword" class="form-control" />
                         </div>
-                        <div class="row offerta">
+                   <!--      <div class="row offerta">
                             <registrationform:checkbox path="readRules" class="form-control" id="1" value="ReadRulesOk" required="required"  />
                             <registrationform:errors path="readRules" class="form-control" />
                             <label for="1"><a href="#"><loc:message code="register.readrules"/></a></label>
-                        </div>
+                        </div> -->
                         <div class="row">
                             <button type="submit" class="btn btn-primary"><loc:message code="register.submit"/></button>
                         </div>
-                    </div>
+
                 <!-- end registration__form -->
                 </registrationform:form>
             </div>
@@ -76,7 +76,7 @@
         </div>
 
     </div>
-
+</div>
 </div>
 
 

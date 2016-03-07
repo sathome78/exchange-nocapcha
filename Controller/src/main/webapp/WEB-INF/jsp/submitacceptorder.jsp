@@ -84,15 +84,15 @@
 									<div class="form-group">
 										<label class="col-sm-3 control-label" for="#"><loc:message code="submitorder.commission"/></label>
 										<div class="col-sm-7">
-											<span class="form-control"><fmt:formatNumber type="number" maxFractionDigits="9" value="${order.commissionAmountBuy}"/>
-											${order.currencyBuyString}</span>
+											<span class="form-control"><fmt:formatNumber type="number" maxFractionDigits="9" value="${order.commissionAmountSell}"/>
+											${order.currencySellString}</span>
 										</div>
 									</div>
 									<div class="form-group">
 										<label class="col-sm-3 control-label" for="#"><loc:message code="submitorder.sumwithcommission"/></label>
 										<div class="col-sm-7">
-											<span class="form-control"><fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountBuy-order.commissionAmountBuy}"/>
-											 ${order.currencyBuyString}</span>
+											<span class="form-control"><fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountSell-order.commissionAmountSell}"/>
+											 ${order.currencySellString}</span>
 										</div>
 									</div>
 									<br>

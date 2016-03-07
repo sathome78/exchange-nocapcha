@@ -191,7 +191,7 @@ public class OrderServiceImpl implements OrderService{
 				walletService.setWalletABalance(walletService.getWalletId(userId, order.getCurrencyBuy()), order.getAmountBuy().negate());
 
 				Currency currencyBuy = new Currency();
-				currencyBuy.setId(order.getCurrencySell());
+				currencyBuy.setId(order.getCurrencyBuy());
 				CompanyWallet companyWalletBuy = companyWalletService.findByCurrency(currencyBuy);
 				companyWalletService.deposit(companyWalletBuy, BigDecimal.valueOf(0), order.getCommissionAmountBuy());
 

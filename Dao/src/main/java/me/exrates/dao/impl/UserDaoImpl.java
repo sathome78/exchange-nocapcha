@@ -2,6 +2,8 @@ package me.exrates.dao.impl;
 
 import me.exrates.dao.UserDao;
 import me.exrates.model.User;
+import me.exrates.model.enums.UserStatus;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -70,7 +72,13 @@ public class UserDaoImpl implements UserDao {
             User user = new User();
             user.setEmail(rs.getString("email"));
             user.setPassword(rs.getString("password"));
-            user.setStatus(rs.getString("status"));
+            int status = rs.getInt("status");
+        	UserStatus[] statusenum = UserStatus.values();
+        	for(UserStatus s : statusenum) {
+        		if(s.getStatus() == status) {
+        			user.setStatus(s);
+        		}
+        	}
             return user;
         });
 	}

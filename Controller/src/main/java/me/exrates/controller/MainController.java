@@ -71,9 +71,9 @@ HttpServletRequest request;
  } 
   
  @RequestMapping("/register")  
- public ModelAndView registerUser(@ModelAttribute User user) {
-     System.out.println("here");
-     return new ModelAndView("register", "user", user);
+ public ModelAndView registerUser() {
+	 User user = new User();
+	 return new ModelAndView("register", "user", user);
  }  
   
  @RequestMapping("/create")  
