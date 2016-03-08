@@ -1,6 +1,7 @@
 package me.exrates.config;
 
 import me.exrates.controller.validator.RegisterFormValidation;
+
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,6 +13,7 @@ import org.springframework.context.support.ReloadableResourceBundleMessageSource
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -27,7 +29,9 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
 
 import javax.sql.DataSource;
+
 import java.util.Locale;
+import java.util.Properties;
 
 @Configuration
 @EnableWebMvc
@@ -123,5 +127,20 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 	@Bean
 	public RegisterFormValidation getRegisterFormValidation(){
 		return new RegisterFormValidation();
+	}
+	
+	@Bean
+	public JavaMailSenderImpl javaMailSenderImpl() {
+		final JavaMailSenderImpl mailSenderImpl = new JavaMailSenderImpl();
+		mailSenderImpl.setHost("smtp.mail.ru");
+		mailSenderImpl.setPort(465);
+		mailSenderImpl.setProtocol("smtps");
+		mailSenderImpl.setUsername("ajet@mail.ru");
+		mailSenderImpl.setPassword("111111");
+		final Properties javaMailProps = new Properties();
+		javaMailProps.put("mail.smtp.auth", true);
+//		javaMailProps.put("mail.smtp.starttls.enable", true);
+		mailSenderImpl.setJavaMailProperties(javaMailProps);
+		return mailSenderImpl;
 	}
 }
