@@ -16,7 +16,13 @@ $.fn.serializeObject = function()
         }
     });
     return o;
+    
 };
+
+$(function(){
+    $('.merchantError').hide();
+});
+
 
 /* --------- make merchants module start -------------- */
 
@@ -30,6 +36,7 @@ $(function(){
     var merchant = $('#merchant');
     var sum = $('#sum');
     var operationType = $('#operationType');
+    var modalTemplate = $('.paymentInfo').html().trim().split("\n");
     var merchantsData;
 
     (function loadData(dataUrl) {
@@ -74,278 +81,151 @@ $(function(){
         if (operationType === 'INPUT') {
             switch (merchant) {
                 case YANDEX :
-                    form.action = formAction.yandex;
+                    form.attr('action', formAction.yandex);
                     break;
                 case PERFECT :
-                    form.action = formAction.perfectDeposit;
+                    form.attr('action', formAction.perfectDeposit);
                     break;
                 default:
-                    form.action = NO_ACTION;
+                    form.attr('action', NO_ACTION);
             }
         } else {
             switch (merchant) {
                 case YANDEX :
-                    form.action = formAction.yandex;
+                    form.attr('action', formAction.yandex);
                     break;
                 case PERFECT :
-                    form.action = formAction.perfectWithdraw;
+                    form.attr('action', formAction.perfectWithdraw);
                     break;
                 default:
-                    paymentForm.action = NO_ACTION;
+                    form.attr('action', NO_ACTION);
             }
         }
     }
 
-    function resetPaymentFormData(form,targetMerchant,serializedData) {
-        switch (targetMerchant) {
-            case PERFECT :
-                $.ajax("/merchants/perfectmoney/payment/prepare", {
-                    headers : {
-                        "X-CSRF-Token": $("input[name='_csrf']").val()
-                    },
-                    type: "post",
-                    contentType: "application/json",
-                    dataType: "json",
-                    data:JSON.stringify(serializedData)
-                }).done(function (response) {
-                    var inputsHTML = '';
-                    $.each(response, function (key) {
-                        $(form).append('<input type="hidden" name="' + key + '" value="' + response[key] + '">');
+    function resetPaymentFormData(targetMerchant,form,callback) {
+        if (operationType.val() === 'OUTPUT') {
+            callback();
+        } else {
+            switch (targetMerchant) {
+                case PERFECT :
+                    $.ajax("/merchants/perfectmoney/payment/prepare", {
+                        headers: {
+                            "X-CSRF-Token": $("input[name='_csrf']").val()
+                        },
+                        type: "POST",
+                        contentType: "application/json",
+                        dataType: "json",
+                        data: JSON.stringify($(form).serializeObject())
+                    }).done(function (response) {
+                        var inputsHTML = '';
+                        $.each(response, function (key) {
+                            $(form).append('<input type="hidden" name="' + key + '" value="' + response[key] + '">');
+                        });
+                        var targetCurrentHTML = $(form).html();
+                        var targetNewHTML = targetCurrentHTML + inputsHTML;
+                        $(form).html(targetNewHTML);
+                        callback();
+                    }).fail(function (error) {
+                        console.log(error);
                     });
-                    // var targetCurrentHTML = $(form).html();
-                    // var targetNewHTML = targetCurrentHTML + inputsHTML;
-                    // $(form).html(targetNewHTML);
-                }).fail(function (error) {
-                    console.log(error);
-                });
-                break;
+                    break;
+                default:
+                    callback();
+            }
         }
+    }
+    
+    function isCorrectSum() {
+        $.each(merchantsData,function(index) {
+            if (merchantsData[index].merchantId == merchant.val()) {
+                var minSum = parseFloat(merchantsData[index].minSum);
+                var targetSum = parseFloat(sum.val());
+                return (targetSum >= minSum);
+            }
+        });
+    }
+    
+    function fillModalWindow(url) {
+        $.ajax({
+            url: url,
+            type: "get",
+            contentType: "application/json"
+        }).done(function (response) {
+            console.log('handle');
+            var commission = parseFloat(response);
+            var targetCurrentSum = parseFloat(sum.val());
+            var computedCommission = Math.ceil(sum.val() * commission) / 100;
+            var targetNewSum = targetCurrentSum + computedCommission;
+            var selectedCurrency = $('#currency').find(':selected').text().split(" ")[0];
+            var templateVariables = {
+                amount: '__amount',
+                currency: '__currency',
+                merchant: '__merchant',
+                percent: '__percent'
+            };
+            var newHTMLElements = modalTemplate.slice(); //Create new array from template modalTemplate
+            newHTMLElements[0] = newHTMLElements[0]
+                .replace(templateVariables.amount, targetCurrentSum)
+                .replace(templateVariables.currency, selectedCurrency)
+                .replace(templateVariables.merchant, merchant.find(':selected').html());
+            newHTMLElements[1] = newHTMLElements[1]
+                .replace(templateVariables.amount, computedCommission)
+                .replace(templateVariables.currency, selectedCurrency)
+                .replace(templateVariables.percent, response + "%");
+            newHTMLElements[2] = newHTMLElements[2]
+                .replace(templateVariables.amount, targetNewSum)
+                .replace(templateVariables.currency, selectedCurrency);
+            var newHTML = '';
+            $.each(newHTMLElements, function (index) {
+                newHTML += newHTMLElements[index];
+            });
+            $('.paymentInfo').html(newHTML);
+            $('.merchantError').hide();
+
+        }).fail(function () {
+            $('.paymentInfo').hide();
+            $('.merchantError').show();
+        });
     }
 
     currency.on('change', function () {
         resetMerchantsList(this.value);
     });
 
-    $("button[name='paymentOutput']").bind(
-        "click", function() {
-            var uid = $("input[name='walletUid']").val();
-            if (uid.length>5){
-                $("#destination").val(uid);
-                $('form[name="payment"]').submit();
-            } else {
-
-            }
-        }
-    );
-    
-    $("#payment").submit(function () {
+    function submitProcess() {
         var targetMerchant = merchant.find(':selected').html();
-        var operationType = $(operationType).val(); 
-        resetFormAction(operationType, targetMerchant, this);
-        if (operationType==='INPUT') {
-            resetPaymentFormData(this,targetMerchant,$(this).serializeObject());   
-        }
+        var paymentForm = $('#payment');
+        resetFormAction(operationType.val(), targetMerchant,paymentForm);
+        resetPaymentFormData(targetMerchant,paymentForm,function(){
+            paymentForm.submit();
+        });
+    }
+    
+
+    if ($("#assertInputPay").length) {
+        $("#assertInputPay").bind('click',function(){
+            fillModalWindow('/merchants/commission/input');   
+        });
+    }
+    
+    if ($("#assertOutputPay").length) {
+        $("#assertOutputPay").bind('click',function(){
+            fillModalWindow('/merchants/commission/output');        
+        });
+    }
+
+    $('#inputPaymentProcess').on('click', function () {
+        submitProcess();
     });
 
+    $("#outputPaymentProcess").on('click', function () {
+        var uid = $("input[name='walletUid']").val();
+        if (uid.length>5){
+            $("#destination").val(uid);
+            submitProcess();
+        } else {
 
-    
-
-    // $.get("/merchants/data",function(result){
-    //     merchantsData = result;
-    //     loadMeansOfPayment();
-    //     var merchant = $("#meansOfPaymentSelect").find(":selected").val();
-    //     // changeFormActionAndSubmitName(merchant);
-    //
-    // });
-    // $("#inputCurrency").change(function(){
-    //     alert(this.value)
-    // });
-    //$("input[name='sum']").keyup(function(){
-    //    var val = document.getElementById("#").value;
-    //    if (isNaN(val) || val < 1) {
-    //        $("button[name='assertOutputPay']").prop("disabled", true);
-    //        $("button[name='assertInputPay']").prop("disabled", true);
-    //    } else {
-    //        $("button[name='assertOutputPay']").prop("disabled", false);
-    //        $("button[name='assertInputPay']").prop("disabled", false);
-    //    }
-    //
-    //});
-    //$("#meansOfPaymentSelect").change(function(){
-    //    var merchant = $("#meansOfPaymentSelect").find(":selected").val();
-    //    changeFormActionAndSubmitName(merchant);
-    //});
-
-    // $("#inputPaymentProcess").bind(
-    //     "click", function() {
-    //         switch (this.name) {
-    //             case "yandexMoneyPay" : submitPayForm();
-    //                 break;
-    //             case "perfectMoneyPay" : perfectMoneySubmit();
-    //                 break;
-    //         }
-    //     }
-    // );
-
-
-
-    // $("button[name='paymentOutput']").bind(
-    //     "click", function() {
-    //         var uid = $("input[name='walletUid']").val();
-    //         if (uid.length>5){
-    //             $("#destination").val(uid);
-    //             var currency = $("#currencySelect").find(":selected").val();
-    //             var merchant = $("#meansOfPaymentSelect").find(":selected").val();
-    //             var sum = $("#sum").val();
-    //             var operationType = $("#operationType").val();
-    //             var destination = $("#walletUid");
-    //             var payData = {
-    //                 "currency":currency,
-    //                 "merchant":merchant,
-    //                 "sum":sum,
-    //                 "operationType":operationType,
-    //                 "destination":destination
-    //             };
-    //             $.ajax("/merchants/perfectmoney/payment/prepare",{
-    //                 type:"post",
-    //                 contentType:"application/json",
-    //                 dataType:"json",
-    //                 success:function(data) {
-    //                     submitPayForm();
-    //                 },
-    //                 data:JSON.stringify(payData)
-    //             });
-    //         } else {
-    //
-    //         }
-    //     }
-    // );
-    // $("button[name='assertInputPay']").click(function(){
-    //     $.get("/merchants/commission/input",function(commission){
-    //         commission = parseFloat(commission);
-    //         if (isNaN(commission)){
-    //             $(".modal-body")
-    //                 .empty()
-    //                 .append("К сожалению в настоящий момент оплата недоступна.");
-    //         } else {
-    //             var sum = parseFloat($("input[name='sum']").val());
-    //             var currency = $("select[name='currency']").find(":selected").text();
-    //             var meanOfPayment = $("select[name='merchant']").find(":selected").text();
-    //             var computedCommission = Math.ceil((sum * commission))/100;
-    //             var finalSum = sum + computedCommission;
-    //             $(".modal-body")
-    //                 .empty()
-    //                 .append("Вы вводите через платежную систему "+meanOfPayment+" " + sum+" "+currency + "<br/>"+
-    //                     "Коммиссия биржи составит : "+computedCommission+" "+currency+".<br/>"+
-    //                     "Итого сумма к оплате : "+finalSum+" " + currency+".");
-    //         }
-    //     });
-    // });
-
-    // $("button[name='assertOutputPay']").click(function(){
-    //     $.get("/merchants/commission/output",function(commission){
-    //         commission = parseFloat(commission);
-    //         if (isNaN(commission)){
-    //             $(".modal-body")
-    //                 .empty()
-    //                 .append("К сожалению в настоящий момент оплата недоступна.");
-    //         } else {
-    //             var sum = parseFloat($("input[name='sum']").val());
-    //             var currency = $("select[name='currency']").find(":selected").text().split(" ",1);
-    //             var meanOfPayment = $("select[name='meansOfPayment']").find(":selected").text();
-    //             var computedCommission = Math.ceil((sum * commission))/100;
-    //             var finalSum = sum - computedCommission;
-    //             $(".modal-header")
-    //                 .empty()
-    //                 .append("Вы выводите через платежную систему "+meanOfPayment+" : " + +sum+" "+currency+" <br/>"+
-    //                     "Коммиссия биржи составит "+computedCommission+" "+currency+". <br/> " +
-    //                     "Итого сумма к получению: "+finalSum+" " + currency+".");
-    //         }
-    //     });
-    // });
-
+        }
+    });
 });
-// function loadMeansOfPayment(operationType) {
-//     var selectedCurrency = $("#currency").find(":selected").val();
-//     var merchants = $("#merchant");
-//     merchants.empty();
-//     for (var key in merchantsData) {
-//         if (key==selectedCurrency){
-//             for(var value in merchantsData[key]) {
-//                 merchants.append($('<option>', {
-//                     value: merchantsData[key][value]["id"],
-//                     text : merchantsData[key][value]["description"]
-//                 }));
-//             }
-//         }
-//     }
-// }
-//
-
-//
-// var changeFormActionAndSubmitName = function (merchant) {
-//     var form  = $('form[name="payment"]');
-//     var selectedCurrency = $("#currencySelect").find(":selected").val();
-//     var payProcessButton = $("#inputPaymentProcess");
-//     for (var i = 0; i < merchantsData[selectedCurrency].length; i++) {
-//         if (merchantsData[selectedCurrency][i].id == merchant) {
-//             merchant = merchantsData[selectedCurrency][i]["name"];
-//             switch (merchant) {
-//                 case "yandexmoney" :
-//                     form.attr("action","/merchants/yandexmoney/payment/prepare");
-//                     payProcessButton.attr("name","yandexMoneyPay");
-//                     break;
-//                 case "perfectmoney" :
-//                     form.attr("action","https://perfectmoney.is/api/step1.asp");
-//                     payProcessButton.attr("name","perfectMoneyPay");
-//                     break;
-//                 default :
-//                     payProcessButton.attr("name","");
-//             }
-//         }
-//     }
-// };
-//
-// var submitPayForm = function () {
-//     $('form[name="payment"]').submit();
-// };
-//
-// var perfectMoneySubmit = function() {
-//     var currency = $("#currencySelect").find(":selected").val();
-//     var merchant = $("#meansOfPaymentSelect").find(":selected").val();
-//     var sum = $("#sum").val();
-//     var operationType = $("#operationType").val();
-//     var payData = {
-//         "currency":currency,
-//         "merchant":merchant,
-//         "sum":sum,
-//         "operationType":operationType
-//     };
-//     $.ajax("/merchants/perfectmoney/payment/prepare",{
-//         type:"post",
-//         contentType:"application/json",
-//         dataType:"json",
-//         success:function(data) {
-//             $('form[name="payment"]')
-//                 .append("<input type='hidden' name='PAYEE_ACCOUNT' value='"+data.PAYEE_ACCOUNT+"'</input>")
-//                 .append("<input type='hidden' name='PAYEE_NAME' value='"+data.PAYEE_NAME+"'</input>")
-//                 .append("<input type='hidden' name='PAYMENT_AMOUNT' value='"+data.PAYMENT_AMOUNT+"'</input>")
-//                 .append("<input type='hidden' name='PAYMENT_UNITS' value='"+data.PAYMENT_UNITS+"'</input>")
-//                 .append("<input type='hidden' name='PAYMENT_ID' value='"+data.PAYMENT_ID+"'</input>")
-//                 .append("<input type='hidden' name='PAYMENT_URL' value='"+data.PAYMENT_URL+"'</input>")
-//                 .append("<input type='hidden' name='STATUS_URL' value='"+data.STATUS_URL+"'</input>")
-//                 .append("<input type='hidden' name='NOPAYMENT_URL' value='"+data.NOPAYMENT_URL+"'</input>")
-//                 .append("<input type='hidden' name='FORCED_PAYMENT_METHOD' value='"+data.FORCED_PAYMENT_METHOD+"'</input>")
-//                 .append("<input type='hidden' name='PAYMENT_URL_METHOD' value='"+data.PAYMENT_URL_METHOD+"'</input>")
-//                 .append("<input type='hidden' name='NOPAYMENT_URL_METHOD' value='"+data.NOPAYMENT_URL_METHOD+"'</input>")
-//             submitPayForm();
-//         },
-        //error:function(error) {
-        //    alert(JSON.stringify(error))
-        //    $(".modal-body")
-        //        .empty()
-        //        .append("ERROR");
-        //},
-        // data:JSON.stringify(payData)
-    // });
-// };

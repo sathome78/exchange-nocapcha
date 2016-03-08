@@ -41,11 +41,11 @@
             <!--#include file="header__lk.shtml" -->
 
             <div class="content__page">
-
                 <div class="title__page"><loc:message code="merchants.inputTitle"/></div>
+                <h4>${error}</h4>
                 <label class="alert-danger has-error merchantError">
-                    <c:if test="${error!=null}">
-                    <loc:message code="${error}"/>
+                    <c:if test="${not empty error}">
+                        <loc:message code="${error}"/>
                     </c:if>
                 </label>
                 <!-- Start  withdraw__money -->
@@ -72,7 +72,7 @@
                     </div>
                     <div class="form-group">
                         <div class="col-sm-offset-3 col-sm-6">
-                            <button type="button" data-toggle="modal" name="assertInputPay" data-target="#myModal" class="btn btn-primary"><loc:message code="merchants.deposit"/></button>
+                            <button type="button" data-toggle="modal" id="assertInputPay" name="assertInputPay" data-target="#myModal" class="btn btn-primary"><loc:message code="merchants.deposit"/></button>
                         </div>
                     </div>
                 <paymentForm:hidden path="operationType"/>
@@ -92,7 +92,12 @@
                 <h4 class="modal-title"><loc:message code="merchants.inputTitle"/></h4>
             </div>
             <div class="modal-body">
-
+                <label class="alert-danger merchantError"><loc:message code="merchants.notAvaliablePayment"/></label>
+                <div class="paymentInfo">
+                    <p><loc:message code="merchants.modalInputHeader"/></p>
+                    <p><loc:message code="merchants.modalInputCommission"/></p>
+                    <p><loc:message code="merchants.modalInputFinalSum"/></p>
+                </div>
             </div>
             <div class="modal-footer">
                 <div class="add__money__btns">

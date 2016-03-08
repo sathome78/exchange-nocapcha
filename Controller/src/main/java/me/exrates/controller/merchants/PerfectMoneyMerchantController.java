@@ -1,5 +1,6 @@
 package me.exrates.controller.merchants;
 
+import com.google.gson.Gson;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.model.Transaction;
@@ -14,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.WebUtils;
@@ -40,36 +40,23 @@ public class PerfectMoneyMerchantController {
     private MerchantService merchantService;
 
     @RequestMapping(value = "payment/provide",method = RequestMethod.POST)
-    public ModelAndView outputPayment(Payment payment,Principal principal,RedirectAttributes redir) {
-        System.out.println(payment);
+    public RedirectView outputPayment(Payment payment,Principal principal,RedirectAttributes redir) {
         final Optional<CreditsOperation> creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName());
         if (!creditsOperation.isPresent()) {
             redir.addFlashAttribute("error", "merchants.invalidSum");
-            return new ModelAndView("redirect:/mywallets");
+            return new RedirectView("/merchants/output");
         }
-        final Transaction transaction = perfectMoneyService.preparePaymentTransactionRequest(creditsOperation.get());
-        final String response = perfectMoneyService.provideOutputPayment(payment.getDestination(), transaction);
-        if (response.equalsIgnoreCase("OK")) {
-            perfectMoneyService.provideTransaction(transaction);
-            final String sumCurrency = transaction.getAmount().setScale(2, BigDecimal.ROUND_CEILING) + " " + transaction.getCurrency().getName();
-            final String message = transaction.getOperationType() == OperationType.INPUT ? "merchants.successfulBalanceWithdraw"
-                    : "merchants.successfulBalanceWithdraw";
+        final String sumCurrency = perfectMoneyService.provideOutputPayment(payment, creditsOperation.get());
+        final String message = "merchants.successfulBalanceWithdraw";
             redir.addFlashAttribute("message",message);
             redir.addFlashAttribute("sumCurrency",sumCurrency);
-            return new ModelAndView("redirect:/mywallets");
-        }
-        if (response.equalsIgnoreCase("INTERNAL_ERROR")) {
-            redir.addFlashAttribute("error", "merchants.internalError");
-        } else if (response.equalsIgnoreCase("INVALID_AMOUNT")) {
-            redir.addFlashAttribute("error","merchants.incorrectPaymentDetails");
-        }
-        return new ModelAndView("redirect:/merchants/input");
+            return new RedirectView("/mywallets");
     }
 
-    @RequestMapping(value = "payment/prepare",method = RequestMethod.POST,
-            headers = {"Content-type=application/json"})
-    public ResponseEntity<Map<String,String>> preparePayment(Payment payment, Principal principal,
-                                                             HttpSession httpSession) {
+    //Very strange behavior here : json data not converting to Payment POJO
+    @RequestMapping(value = "payment/prepare",method = RequestMethod.POST)
+    public ResponseEntity<Map<String,String>> preparePayment(@RequestBody String body, Principal principal, HttpSession httpSession) {
+        final Payment payment = new Gson().fromJson(body, Payment.class);
         final Optional<CreditsOperation> creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName());
         if (!creditsOperation.isPresent()) {
             final Map<String, String> errors = new HashMap<String, String>() {
@@ -113,18 +100,23 @@ public class PerfectMoneyMerchantController {
             return new RedirectView("/mywallets");
         }
         perfectMoneyService.invalidateTransaction(openTransaction);
-        redir.addFlashAttribute("error", "merchants.incorrectPaymentDetails");
-        return new RedirectView("/merchants/".concat(
-                openTransaction.getOperationType() == OperationType.INPUT ? "input" : "output"));
-    }
-
-    @RequestMapping(value = "payment/status",method = RequestMethod.POST)
-    public void payStatus(@RequestBody String body) {
-        System.out.println(body);
+        synchronized (mutex) {
+            httpSession.setAttribute("error", "merchants.incorrectPaymentDetails");
+        }
+        return new RedirectView("/merchants/input");
     }
 
     @RequestMapping(value = "payment/failure",method = RequestMethod.POST)
-    public void failurePayment(@RequestBody String body) {
-        System.out.println(body);
+    public RedirectView failurePayment(@RequestBody String body,HttpSession httpSession,RedirectAttributes redir) {
+        final Transaction openTransaction;
+        final Object mutex = WebUtils.getSessionMutex(httpSession);
+        synchronized (mutex) {
+            openTransaction = (Transaction) httpSession.getAttribute("transaction");
+            httpSession.removeAttribute("transaction");
+            httpSession.removeAttribute("payeeParams");
+        }
+        perfectMoneyService.invalidateTransaction(openTransaction);
+        redir.addFlashAttribute("error", "merchants.authRejected");
+        return new RedirectView("/merchants/input");
     }
 }

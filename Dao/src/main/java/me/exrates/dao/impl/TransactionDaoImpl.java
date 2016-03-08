@@ -115,9 +115,11 @@ public final class TransactionDaoImpl implements TransactionDao {
 
     @Override
     public boolean provide(int id) {
-        final String sql = "UPDATE TRANSACTION SET provided = 1 WHERE id = :id";
+        final int PROVIDED = 1;
+        final String sql = "UPDATE TRANSACTION SET provided = :provided WHERE id = :id";
         final Map<String, Integer> params = new HashMap<String, Integer>() {
             {
+                put("provided",PROVIDED);
                 put("id", id);
             }
         };

@@ -1,6 +1,5 @@
 package me.exrates.controller.merchants;
 
-import me.exrates.dao.MerchantDao;
 import me.exrates.model.Currency;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.Payment;
@@ -11,7 +10,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.security.Principal;
@@ -41,9 +43,6 @@ public class CommonMerchantsController {
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private MerchantDao merchantDao;
 
     @RequestMapping(value = "/input", method = RequestMethod.GET)
     public ModelAndView inputCredits() {
@@ -90,10 +89,5 @@ public class CommonMerchantsController {
             default:
                 return null;
         }
-    }
-
-    @RequestMapping(value = "/{merchant}/error", method = RequestMethod.GET)
-    public ModelAndView handleErrorFromMerchant(@PathVariable String merchant, @ModelAttribute("error") String error) {
-        return new ModelAndView("merchanterror").addObject("error", error);
     }
 }

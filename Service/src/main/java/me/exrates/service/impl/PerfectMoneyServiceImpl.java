@@ -2,10 +2,14 @@ package me.exrates.service.impl;
 
 import com.squareup.okhttp.*;
 import me.exrates.model.CreditsOperation;
+import me.exrates.model.Payment;
 import me.exrates.model.Transaction;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.PerfectMoneyService;
 import me.exrates.service.TransactionService;
+import me.exrates.service.exception.InvalidAmountException;
+import me.exrates.service.exception.InvalidPayeeWalletException;
+import me.exrates.service.exception.MerchantInternalException;
 import org.apache.logging.log4j.LogManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -70,7 +74,24 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
     }
 
     @Override
-    public String provideOutputPayment(String to,Transaction transaction) {
+    @Transactional
+    public String provideOutputPayment(Payment payment, CreditsOperation creditsOperation) {
+        final Transaction transaction = preparePaymentTransactionRequest(creditsOperation);
+        provideTransaction(transaction);
+        final String response = provideOutputPayment(payment.getDestination(), transaction);
+        switch (response) {
+            case "OK":
+                return transaction.getAmount().setScale(2, BigDecimal.ROUND_CEILING) + " " + transaction.getCurrency().getName();
+            case "INVALID_USER_ACCOUNT" :
+                throw new InvalidPayeeWalletException();
+            case "INVALID_AMOUNT" :
+                throw new InvalidAmountException();
+            default:
+                throw new MerchantInternalException("Exception while Output");
+        }
+    }
+
+    private String provideOutputPayment(String to,Transaction transaction) {
         OkHttpClient okHttpClient = new OkHttpClient();
         BigDecimal sum = transaction.getAmount().add(transaction.getCommissionAmount());
         final String currency = transaction.getCurrency().getName();
