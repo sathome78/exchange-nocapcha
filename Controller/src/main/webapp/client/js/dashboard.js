@@ -11,9 +11,9 @@ function changeCurrency() {
 
 $(function(){
     $("button[name='calculateBuy']").click(function(){
-        $.get("/dashboard/commission/input",function(commission){
-            var sum = document.getElementById("amountSellForm1").value;
-            var computedCommission = Math.ceil((sum * commission))/100;
+        $.get("/dashboard/commission/buy",function(commission){
+            var sum = document.getElementById("amountBuyForm1").value;
+            var computedCommission = Math.ceil(sum * commission)/100;
             document.getElementById("buyCommission").innerHTML = computedCommission;
             document.getElementById("sumBuyWithCommission").innerHTML = sum - computedCommission;
         })
@@ -21,9 +21,9 @@ $(function(){
     })
 
     $("button[name='calculateSell']").click(function(){
-        $.get("/dashboard/commission/input",function(commission){
+        $.get("/dashboard/commission/sell",function(commission){
             var sum = document.getElementById("amountBuyForm2").value;
-            var computedCommission = Math.ceil((sum * commission))/100;
+            var computedCommission = Math.ceil(sum * commission)/100;
             document.getElementById("sellCommission").innerHTML = computedCommission;
             document.getElementById("sumSellWithCommission").innerHTML = sum - computedCommission;
         })

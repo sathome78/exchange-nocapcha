@@ -43,7 +43,7 @@
 
             <!-- begin Logo block -->
             <div class="header__logo">
-                <a href="/"><img src="/client/img/logo.png" alt=""/></a>
+                <a href="/"><img src="<c:url value='/client/img/logo.png'/>" alt=""/></a>
             </div>
             <!-- end Logo block -->
 
@@ -75,7 +75,7 @@
                         <div class="header__login__form__link">
                             <a href="<c:url value="/register" />"><loc:message code="dasbboard.signUp"/></a>
 
-                            <%--<a href="<c:url value="/forgotPassword"/>">Забыли пароль?</a>--%>
+                                <%--<a href="<c:url value="/forgotPassword"/>">Забыли пароль?</a>--%>
                             <a href="#"><loc:message code="dasbboard.forgotPassword"/></a>
                         </div>
                     </div>
@@ -124,11 +124,11 @@
     <section id="" class="order__history">
         <div class="container container_center">
             <div class="dropdown order__history__instrument">
-                    <select id="currencyPair-select" class="form-control" name="currencyPair-select">
-                        <c:forEach var="currencyPair" items="${currencyPairs}">
-                            <option id="currencyPair" value="${currencyPair.getName()}">${currencyPair.getName()}</option>
-                        </c:forEach>
-                    </select>
+                <select id="currencyPair-select" class="form-control" name="currencyPair-select">
+                    <c:forEach var="currencyPair" items="${currencyPairs}">
+                        <option id="currencyPair" value="${currencyPair.getName()}">${currencyPair.getName()}</option>
+                    </c:forEach>
+                </select>
 
             </div>
             <ul class="order__history__item">
@@ -176,115 +176,115 @@
 
                 <form:form action="order/submit" method="post" modelAttribute="order" name="formBuy">
 
-                  <div class="form-horizontal col-sm-6">
-                    <div class="buy__sell__btc__title"><loc:message code="dasbboard.BUY"/> ${currencyPair.getCurrency1().getName()}</div>
-                    <div class="buy__sell__btc__thead">
-                        <div class="col-sm-4"><loc:message code="dasbboard.yourBalance"/><br>
-                            <%--${balanceCurrency1}--%>
-                            <fmt:formatNumber type="number" maxFractionDigits="9" value="${balanceCurrency1}"/>
-                            ${currencyPair.getCurrency2().getName()}
+                    <div class="form-horizontal col-sm-6">
+                        <div class="buy__sell__btc__title"><loc:message code="dasbboard.BUY"/> ${currencyPair.getCurrency1().getName()}</div>
+                        <div class="buy__sell__btc__thead">
+                            <div class="col-sm-4"><loc:message code="dasbboard.yourBalance"/><br>
+                                    <%--${balanceCurrency1}--%>
+                                <fmt:formatNumber type="number" maxFractionDigits="9" value="${balanceCurrency1}"/>
+                                    ${currencyPair.getCurrency2().getName()}
+                            </div>
+                            <div class="col-sm-8"><loc:message code="dasbboard.lowestPrice"/><br>
+                                    <%--${minPrice}--%>
+                                <fmt:formatNumber type="number" maxFractionDigits="9" value="${minPrice}"/>
+                                    ${currencyPair.getCurrency2().getName()}
+                            </div>
                         </div>
-                        <div class="col-sm-8"><loc:message code="dasbboard.lowestPrice"/><br>
-                        <%--${minPrice}--%>
-                            <fmt:formatNumber type="number" maxFractionDigits="9" value="${minPrice}"/>
-                            ${currencyPair.getCurrency2().getName()}
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="col-sm-4 control-label" for="#"><loc:message code="dasbboard.amount"/> ${currencyPair.getCurrency1().getName()}:</label>
-                        <div class="col-sm-8">
-                            <%--<input class="form-control" type="text" value="0">--%>
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label" for="#"><loc:message code="dasbboard.amount"/> ${currencyPair.getCurrency1().getName()}:</label>
+                            <div class="col-sm-8">
+                                    <%--<input class="form-control" type="text" value="0">--%>
                                 <form:errors path="amountBuy" style="color:red" />
                                 <form:input path="amountBuy" class="form-control" id="amountBuyForm1" placeholder="0"/>
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="col-sm-4 control-label" for="#"><loc:message code="dasbboard.priceFor"/> ${currencyPair.getCurrency1().getName()}:</label>
-                        <div class="col-sm-8 btc__currency">
-                            <%--<input class="form-control" type="text" value="0">--%>
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label" for="#"><loc:message code="dasbboard.priceFor"/> ${currencyPair.getCurrency1().getName()}:</label>
+                            <div class="col-sm-8 btc__currency">
+                                    <%--<input class="form-control" type="text" value="0">--%>
                                 <form:errors path="amountSell" style="color:red" />
                                 <form:input path="amountSell" class="form-control" id="amountSellForm1" placeholder="0"/>
-                            <i>${currencyPair.getCurrency2().getName()}</i>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="col-sm-4 control-label" for="#"><loc:message code="dasbboard.total"/></label>
-                        <div class="col-sm-8 btc__currency">
-                            <div class="item-form">
-                                <b id="sumBuyWithCommission"></b> ${currencyPair.getCurrency2().getName()}
+                                <i>${currencyPair.getCurrency2().getName()}</i>
                             </div>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="col-sm-4 control-label" for="#"><loc:message code="dasbboard.fee"/></label>
-                        <div class="col-sm-8 btc__currency">
-                            <div class="item-form">
-                                <b id="buyCommission"></b> ${currencyPair.getCurrency1().getName()}
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label" for="#"><loc:message code="dasbboard.total"/></label>
+                            <div class="col-sm-8 btc__currency">
+                                <div class="item-form">
+                                    <b id="sumBuyWithCommission"></b> ${currencyPair.getCurrency1().getName()}
+                                </div>
                             </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label" for="#"><loc:message code="dasbboard.fee"/></label>
+                            <div class="col-sm-8 btc__currency">
+                                <div class="item-form">
+                                    <b id="buyCommission"></b> ${currencyPair.getCurrency1().getName()}
+                                </div>
 
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-group">
+                        <div class="form-group">
                             <div class="buy__sell__btn">
                                 <button type="button" class="btn btn-primary" name="calculateBuy"><loc:message code="dasbboard.calculate"/></button>
-                                    <c:set var="BUY" value="<%=me.exrates.model.enums.OperationType.BUY%>"/>
-                                    <form:hidden path="operationType" value= "${BUY}" />
-                                    <form:hidden path="currencySell" value= "1" />
-                                    <form:hidden path="currencyBuy" value= "2" />
-                                    <button class="btn btn-buy" type="submit"><loc:message code="dasbboard.buy"/> ${currencyPair.getCurrency1().getName()}</button>
+                                <c:set var="BUY" value="<%=me.exrates.model.enums.OperationType.BUY%>"/>
+                                <form:hidden path="operationType" value= "${BUY}" />
+                                <form:hidden path="currencySell" value= "1" />
+                                <form:hidden path="currencyBuy" value= "2" />
+                                <button class="btn btn-buy" type="submit"><loc:message code="dasbboard.buy"/> ${currencyPair.getCurrency1().getName()}</button>
 
                             </div>
+                        </div>
                     </div>
-                  </div>
                 </form:form>
 
                 <form:form action="order/submit" method="post" modelAttribute="order">
-                <div class="form-horizontal col-sm-6">
-                    <div class="buy__sell__btc__title"><loc:message code="dasbboard.SELL"/> ${currencyPair.getCurrency1().getName()}</div>
-                    <div class="buy__sell__btc__thead">
-                        <div class="col-sm-4"><loc:message code="dasbboard.yourBalance"/> <br>
-                            <%--${balanceCurrency2}--%>
-                            <fmt:formatNumber type="number" maxFractionDigits="9" value="${balanceCurrency2}"/>
-                            ${currencyPair.getCurrency1().getName()}
-                        </div>
-                        <div class="col-sm-8"><loc:message code="dasbboard.highestPrice"/> <br>
-                            <%--${maxPrice} --%>
-                            <fmt:formatNumber type="number" maxFractionDigits="9" value="${maxPrice}"/>
-                            ${currencyPair.getCurrency2().getName()}
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="col-sm-4 control-label" for="#"><loc:message code="dasbboard.amount"/> ${currencyPair.getCurrency1().getName()}:</label>
-                        <div class="col-sm-8">
-                            <form:errors path="amountSell" style="color:red" />
-                            <form:input path="amountSell" class="form-control" id="amountSellForm2" placeholder="0"/>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="col-sm-4 control-label" for="#"><loc:message code="dasbboard.priceFor"/> ${currencyPair.getCurrency1().getName()}:</label>
-                        <div class="col-sm-8 btc__currency">
-                            <form:errors path="amountBuy" style="color:red" />
-                            <form:input path="amountBuy" class="form-control" id="amountBuyForm2" placeholder="0"/>
-                            <i>${currencyPair.getCurrency2().getName()}</i>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="col-sm-4 control-label" for="#"><loc:message code="dasbboard.total"/></label>
-                        <div class="col-sm-8 btc__currency">
-                            <div class="item-form">
-                                <b id="sumSellWithCommission"></b> ${currencyPair.getCurrency2().getName()}
+                    <div class="form-horizontal col-sm-6">
+                        <div class="buy__sell__btc__title"><loc:message code="dasbboard.SELL"/> ${currencyPair.getCurrency1().getName()}</div>
+                        <div class="buy__sell__btc__thead">
+                            <div class="col-sm-4"><loc:message code="dasbboard.yourBalance"/> <br>
+                                    <%--${balanceCurrency2}--%>
+                                <fmt:formatNumber type="number" maxFractionDigits="9" value="${balanceCurrency2}"/>
+                                    ${currencyPair.getCurrency1().getName()}
+                            </div>
+                            <div class="col-sm-8"><loc:message code="dasbboard.highestPrice"/> <br>
+                                    <%--${maxPrice} --%>
+                                <fmt:formatNumber type="number" maxFractionDigits="9" value="${maxPrice}"/>
+                                    ${currencyPair.getCurrency2().getName()}
                             </div>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="col-sm-4 control-label" for="#"><loc:message code="dasbboard.fee"/></label>
-                        <div class="col-sm-8 btc__currency">
-                            <div class="item-form">
-                                <b id="sellCommission"></b> ${currencyPair.getCurrency1().getName()}
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label" for="#"><loc:message code="dasbboard.amount"/> ${currencyPair.getCurrency1().getName()}:</label>
+                            <div class="col-sm-8">
+                                <form:errors path="amountSell" style="color:red" />
+                                <form:input path="amountSell" class="form-control" id="amountSellForm2" placeholder="0"/>
                             </div>
                         </div>
-                    </div>
-                    <div class="form-group">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label" for="#"><loc:message code="dasbboard.priceFor"/> ${currencyPair.getCurrency1().getName()}:</label>
+                            <div class="col-sm-8 btc__currency">
+                                <form:errors path="amountBuy" style="color:red" />
+                                <form:input path="amountBuy" class="form-control" id="amountBuyForm2" placeholder="0"/>
+                                <i>${currencyPair.getCurrency2().getName()}</i>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label" for="#"><loc:message code="dasbboard.total"/></label>
+                            <div class="col-sm-8 btc__currency">
+                                <div class="item-form">
+                                    <b id="sumSellWithCommission"></b> ${currencyPair.getCurrency2().getName()}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label" for="#"><loc:message code="dasbboard.fee"/></label>
+                            <div class="col-sm-8 btc__currency">
+                                <div class="item-form">
+                                    <b id="sellCommission"></b> ${currencyPair.getCurrency2().getName()}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
                             <div class="buy__sell__btn">
                                 <button type="button" name="calculateSell" class="btn btn-primary"><loc:message code="dasbboard.calculate"/></button>
                                 <c:set var="SELL" value="<%=me.exrates.model.enums.OperationType.SELL%>"/>
@@ -293,93 +293,93 @@
                                 <form:hidden path="currencyBuy" value= "1" />
                                 <button class="btn btn-sell" type="submit" ><loc:message code="dasbboard.sell"/> ${currencyPair.getCurrency1().getName()}</button>
                             </div>
+                        </div>
                     </div>
-                </div>
-            </form:form>
+                </form:form>
 
-            <!-- End  buy__sell__btc -->
+                <!-- End  buy__sell__btc -->
 
-            <!-- begin btc__orders -->
-            <div class="btc__orders">
-                <div class="col-sm-6">
-                    <div class="btc__orders__title"><loc:message code="dasbboard.buyOrders"/></div>
-                    <div class="btc__orders__ammount">Всего:
-                        <%--${sumAmountBuy} --%>
-                        <fmt:formatNumber type="number" maxFractionDigits="9" value="${sumAmountBuy}"/>
-                        ${currencyPair.getCurrency1().getName()}
-                    </div>
-                    <div class="btc__orders__table__wrapper custom__scrollbar">
-                        <table class="table">
-                            <thead>
-                            <tr>
-                                <th>Цена</th>
-                                <th>${currencyPair.getCurrency1().getName()}</th>
-                                <th>${currencyPair.getCurrency2().getName()}</th>
-                            </tr>
-                            </thead>
-                            <tbody>
+                <!-- begin btc__orders -->
+                <div class="btc__orders">
+                    <div class="col-sm-6">
+                        <div class="btc__orders__title"><loc:message code="dasbboard.buyOrders"/></div>
+                        <div class="btc__orders__ammount">Всего:
+                            <%--${sumAmountBuy} --%>
+                            <fmt:formatNumber type="number" maxFractionDigits="9" value="${sumAmountBuy}"/>
+                            ${currencyPair.getCurrency1().getName()}
+                        </div>
+                        <div class="btc__orders__table__wrapper custom__scrollbar">
+                            <table class="table">
+                                <thead>
+                                <tr>
+                                    <th>Цена</th>
+                                    <th>${currencyPair.getCurrency1().getName()}</th>
+                                    <th>${currencyPair.getCurrency2().getName()}</th>
+                                </tr>
+                                </thead>
+                                <tbody>
                                 <c:forEach var="order" items="${ordersBuy}">
                                     <tr>
                                         <td>
-                                            <%--${order.amountSell/order.amountBuy}--%>
+                                                <%--${order.amountSell/order.amountBuy}--%>
                                             <fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountSell/order.amountBuy}"/>
                                         </td>
                                         <td>
-                                            <%--${order.amountBuy}--%>
+                                                <%--${order.amountBuy}--%>
                                             <fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountBuy}"/>
                                         </td>
                                         <td>
-                                            <%--${order.amountSell}--%>
+                                                <%--${order.amountSell}--%>
                                             <fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountSell}"/>
                                         </td>
                                     </tr>
                                 </c:forEach>
                                 </tbody>
-                        </table>
+                            </table>
+                        </div>
                     </div>
-                </div>
-                <div class="col-sm-6">
-                    <div class="btc__orders__title"><loc:message code="dasbboard.sellOrders"/></div>
-                    <div class="btc__orders__ammount">Всего:
-                        <%--${sumAmountSell} --%>
-                        <fmt:formatNumber type="number" maxFractionDigits="9" value="${sumAmountSell}"/>
-                        ${currencyPair.getCurrency2().getName()}
-                    </div>
-                    <div class="btc__orders__table__wrapper custom__scrollbar">
-                        <table class="table">
-                            <thead>
-                            <tr>
-                                <th>Цена</th>
-                                <th>${currencyPair.getCurrency1().getName()}</th>
-                                <th>${currencyPair.getCurrency2().getName()}</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <c:forEach var="order" items="${ordersSell}">
+                    <div class="col-sm-6">
+                        <div class="btc__orders__title"><loc:message code="dasbboard.sellOrders"/></div>
+                        <div class="btc__orders__ammount">Всего:
+                            <%--${sumAmountSell} --%>
+                            <fmt:formatNumber type="number" maxFractionDigits="9" value="${sumAmountSell}"/>
+                            ${currencyPair.getCurrency2().getName()}
+                        </div>
+                        <div class="btc__orders__table__wrapper custom__scrollbar">
+                            <table class="table">
+                                <thead>
                                 <tr>
-                                    <td>
-                                        <%--${order.amountBuy/order.amountSell}--%>
-                                        <fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountBuy/order.amountSell}"/>
-                                    </td>
-                                    <td>
-                                        <%--${order.amountSell}--%>
-                                        <fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountSell}"/>
-                                    </td>
-                                    <td>
-                                        <%--${order.amountBuy}--%>
-                                        <fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountBuy}"/>
-                                    </td>
+                                    <th>Цена</th>
+                                    <th>${currencyPair.getCurrency1().getName()}</th>
+                                    <th>${currencyPair.getCurrency2().getName()}</th>
                                 </tr>
-                            </c:forEach>
+                                </thead>
+                                <tbody>
+                                <c:forEach var="order" items="${ordersSell}">
+                                    <tr>
+                                        <td>
+                                                <%--${order.amountBuy/order.amountSell}--%>
+                                            <fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountBuy/order.amountSell}"/>
+                                        </td>
+                                        <td>
+                                                <%--${order.amountSell}--%>
+                                            <fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountSell}"/>
+                                        </td>
+                                        <td>
+                                                <%--${order.amountBuy}--%>
+                                            <fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountBuy}"/>
+                                        </td>
+                                    </tr>
+                                </c:forEach>
 
-                            </tbody>
-                        </table>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <!-- end btc__orders -->
+                <!-- end btc__orders -->
 
-        </div>
+            </div>
 
         </div>
     </main>

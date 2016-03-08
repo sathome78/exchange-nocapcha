@@ -27,7 +27,7 @@ public class DashboardDaoImpl implements DashboardDao{
 
     @Override
     public Order getLastClosedOrder(){
-        String sql = "SELECT * FROM birzha.orders WHERE status = 3 AND date_final=(SELECT MAX(date_final) FROM birzha.orders)";
+        String sql = "SELECT * FROM ORDERS WHERE status = 3 AND date_final=(SELECT MAX(date_final) FROM ORDERS)";
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         Map<String, String> namedParameters = new HashMap<String, String>();
         List<Order> orderList = namedParameterJdbcTemplate.query(sql, namedParameters, new OrderRowMapper());
@@ -42,7 +42,7 @@ public class DashboardDaoImpl implements DashboardDao{
 
     @Override
     public List<Order> getAllBuyOrders(CurrencyPair currencyPair){
-        String sql = "SELECT * FROM birzha.orders where status=2 AND currency_sell = :currency_buy AND currency_buy = :currency_sell;";
+        String sql = "SELECT * FROM ORDERS where status=2 AND currency_sell = :currency_buy AND currency_buy = :currency_sell;";
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         Map<String, String> namedParameters = new HashMap<String, String>();
         namedParameters.put("currency_sell", String.valueOf(currencyPair.getCurrency1().getId()));
@@ -54,7 +54,7 @@ public class DashboardDaoImpl implements DashboardDao{
 
     @Override
     public List<Order> getAllSellOrders(CurrencyPair currencyPair){
-        String sql = "SELECT * FROM birzha.orders where status=2 AND currency_sell = :currency_sell AND currency_buy = :currency_buy;";
+        String sql = "SELECT * FROM ORDERS where status=2 AND currency_sell = :currency_sell AND currency_buy = :currency_buy;";
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         Map<String, String> namedParameters = new HashMap<String, String>();
         namedParameters.put("currency_sell", String.valueOf(currencyPair.getCurrency1().getId()));
@@ -76,7 +76,7 @@ public class DashboardDaoImpl implements DashboardDao{
                 "sum(CASE WHEN currency_sell = :currency_sell AND currency_buy = :currency_buy THEN\n" +
                 "\tamount_sell\n" +
                 "    ELSE CASE WHEN currency_sell = :currency_buy AND currency_buy = :currency_sell THEN\n" +
-                "    amount_buy END END) as amount_buy FROM birzha.orders where status=3;";
+                "    amount_buy END END) as amount_buy FROM ORDERS where status=3;";
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         Map<String, String> namedParameters = new HashMap<String, String>();
         namedParameters.put("currency_sell", String.valueOf(currencyPair.getCurrency1().getId()));
@@ -94,7 +94,7 @@ public class DashboardDaoImpl implements DashboardDao{
 
     @Override
     public List<Map<String, Object>> getDataForChart(CurrencyPair currencyPair){
-        String sql = "SELECT date_final, (amount_buy/amount_sell) as amount, amount_sell FROM birzha.orders WHERE currency_buy = :currency_buy AND currency_sell = :currency_sell " +
+        String sql = "SELECT date_final, (amount_buy/amount_sell) as amount, amount_sell FROM ORDERS WHERE currency_buy = :currency_buy AND currency_sell = :currency_sell " +
                 "AND date_final IS NOT NULL order by date_final limit 12;";
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         Map<String, String> namedParameters = new HashMap<String, String>();
@@ -112,7 +112,7 @@ public class DashboardDaoImpl implements DashboardDao{
     }
 
     private BigDecimal getSumOrdersByCurrency(int currencyId){
-        String sql = "SELECT sum(amount_buy) FROM birzha.orders;";
+        String sql = "SELECT sum(amount_buy) FROM ORDERS;";
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         Map<String, String> namedParameters = new HashMap<String, String>();
 
@@ -139,7 +139,7 @@ public class DashboardDaoImpl implements DashboardDao{
 
     @Override
     public BigDecimal getMinPriceByCurrency(CurrencyPair currencyPair){
-        String sql = "SELECT min(amount_buy/amount_sell) FROM birzha.orders WHERE status = 2 " +
+        String sql = "SELECT min(amount_buy/amount_sell) FROM ORDERS WHERE status = 2 " +
                 "AND currency_sell = :currency_sell AND currency_buy = :currency_buy";
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         Map<String, String> namedParameters = new HashMap<>();
@@ -159,7 +159,7 @@ public class DashboardDaoImpl implements DashboardDao{
 
     @Override
     public BigDecimal getMaxPriceByCurrency(CurrencyPair currencyPair){
-        String sql = "SELECT max(amount_buy/amount_sell) FROM birzha.orders WHERE status = 2 " +
+        String sql = "SELECT max(amount_buy/amount_sell) FROM ORDERS WHERE status = 2 " +
                 "AND currency_sell = :currency_sell AND currency_buy = :currency_buy";
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         Map<String, String> namedParameters = new HashMap<>();
