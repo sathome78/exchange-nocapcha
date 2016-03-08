@@ -104,12 +104,6 @@
                     <li class="navabr__item">
                         <a href="<c:url value="/mywallets"/>" class="navabr__link"><loc:message code="dasbboard.personalArea"/></a>
                     </li>
-                    <li class="navabr__item">
-                        <a href="#" class="navabr__link"><loc:message code="dasbboard.news"/></a>
-                    </li>
-                    <li class="navabr__item">
-                        <a href="#" class="navabr__link"><loc:message code="dasbboard.training"/></a>
-                    </li>
                 </ul>
                 <!-- end navbar main__menu -->
 
@@ -124,12 +118,13 @@
     <section id="" class="order__history">
         <div class="container container_center">
             <div class="dropdown order__history__instrument">
-                <select id="currencyPair-select" class="form-control" name="currencyPair-select">
-                    <c:forEach var="currencyPair" items="${currencyPairs}">
-                        <option id="currencyPair" value="${currencyPair.getName()}">${currencyPair.getName()}</option>
-                    </c:forEach>
-                </select>
-
+                <form:form action="dashboard" method="get" modelAttribute="currencyPair" name="formTest">
+                    <form:select path="name" onchange="submit()" id="currencyPair-select" class="form-control" name="currencyPair-select">
+                        <c:forEach var="currencyPair" items="${currencyPairs}">
+                            <form:option type="submit" id="currencyPair" value="${currencyPair.getName()}">${currencyPair.getName()}</form:option>
+                        </c:forEach>
+                    </form:select>
+                </form:form>
             </div>
             <ul class="order__history__item">
                 <li><span><loc:message code="dasbboard.lastOrder"/></span>
@@ -159,7 +154,10 @@
             <!-- begin chart__section -->
             <div class="chart__section">
                 <div class="chart__section__title"><a id="chartPair"></a> </div>
-                <div id='chart_div'></div>
+                    <span style="color:red">${msg}</span><br><br>
+                    <c:if test="${not empty sumAmountBuyClosed}">
+                        <div id='chart_div'></div>
+                    </c:if>
             </div>
             <!-- end chart__section -->
 

@@ -37,15 +37,22 @@ public class DashboardController {
     @Autowired
     CommissionService commissionService;
 
-
-
-    @RequestMapping(value = "/dashboard")
-    public ModelAndView dashboard(Principal principal) {
+    @RequestMapping(value = {"/dashboard"})
+    public ModelAndView dashboard(@ModelAttribute CurrencyPair currencyPair, Principal principal) {
         ModelAndView model = new ModelAndView();
         model.setViewName("dashboard");
 
         List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs();
-        CurrencyPair currencyPair = currencyService.getCurrencyPairById(2,1);
+        if (currencyPair.getName() == null){
+            currencyPair = currencyPairs.get(0);
+        }
+
+        for (CurrencyPair currencyPairRecord:currencyPairs){
+            if (currencyPairRecord.getName().equals(currencyPair.getName())){
+                currencyPair = currencyPairRecord;
+            }
+        }
+
         model.addObject("currencyPairs", currencyPairs);
         model.addObject("currencyPair", currencyPair);
 
