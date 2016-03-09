@@ -5,6 +5,7 @@ import me.exrates.jdbc.OrderRowMapper;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.Order;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -125,8 +126,8 @@ public class DashboardDaoImpl implements DashboardDao{
         BigDecimal value = new BigDecimal(0.0);
         try {
             value = namedParameterJdbcTemplate.queryForObject(sql, namedParameters, BigDecimal.class);
-        }catch (Exception e){
-            e.printStackTrace();
+        }catch (EmptyResultDataAccessException e){
+            return null;
         }
 
         return value;
