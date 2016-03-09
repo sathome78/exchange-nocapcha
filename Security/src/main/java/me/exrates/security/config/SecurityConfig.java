@@ -42,13 +42,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
-                .antMatchers("/admin/**", "/admin").access("hasRole('ADMINISTRATOR')")
+                .antMatchers("/admin/**", "/admin").hasAnyAuthority("administrator", "accountant", "admin_user")
+                .antMatchers("/index.jsp","/client/**","/dashboard/**").permitAll()
                 .antMatchers(HttpMethod.POST,"/merchants/perfectmoney/payment/status",
                         "/merchants/perfectmoney/payment/success",
                         "/merchants/perfectmoney/payment/failure").permitAll()
-                .antMatchers("/index.jsp","/client/**").permitAll()
-                .antMatchers("/login","/register","/create").anonymous()
-                .antMatchers("/*.html").permitAll()
+                .antMatchers("/login","/register","/create","/forgotPassword","/resetPassword").anonymous()
                 .anyRequest().authenticated()
                 .and()
                 .exceptionHandling().accessDeniedPage("/403");

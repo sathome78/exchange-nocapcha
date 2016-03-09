@@ -42,7 +42,6 @@
 
             <div class="content__page">
                 <div class="title__page"><loc:message code="merchants.inputTitle"/></div>
-                <h4>${error}</h4>
                 <label class="alert-danger has-error merchantError">
                     <c:if test="${not empty error}">
                         <loc:message code="${error}"/>

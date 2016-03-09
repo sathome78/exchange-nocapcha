@@ -3,9 +3,7 @@ package me.exrates.dao.impl;
 import me.exrates.dao.UserDao;
 import me.exrates.model.User;
 import me.exrates.model.enums.UserStatus;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Repository;
@@ -63,7 +61,17 @@ public class UserDaoImpl implements UserDao {
 				put("email", email);
 			}
 		};
-		return jdbcTemplate.queryForObject(sql,params, new BeanPropertyRowMapper<>(User.class));
+		return jdbcTemplate.queryForObject(sql,params, (resultSet, i) -> {
+			final User user = new User();
+			user.setId(resultSet.getInt("id"));
+			user.setNickname(resultSet.getString("nickname"));
+			user.setEmail(resultSet.getString("email"));
+			user.setPassword(resultSet.getString("password"));
+			user.setRegdate(resultSet.getDate("regdate"));
+			user.setPhone(resultSet.getString("phone"));
+
+			return user;
+		});
 	}
 
 	public List<User> getAllUsers() {

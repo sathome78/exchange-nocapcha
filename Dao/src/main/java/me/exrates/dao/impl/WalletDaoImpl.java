@@ -2,7 +2,6 @@ package me.exrates.dao.impl;
 
 import me.exrates.dao.WalletDao;
 import me.exrates.model.Wallet;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;

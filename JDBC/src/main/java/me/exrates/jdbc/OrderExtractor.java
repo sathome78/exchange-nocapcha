@@ -1,15 +1,14 @@
 package me.exrates.jdbc;
 
-import java.sql.ResultSet;  
-import java.sql.SQLException;  
-import java.time.LocalDateTime;
-
 import me.exrates.model.Order;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.ResultSetExtractor;
 
-import org.springframework.dao.DataAccessException;  
-import org.springframework.jdbc.core.ResultSetExtractor;  
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDateTime;
 
   
 public class OrderExtractor implements ResultSetExtractor<Order> {  

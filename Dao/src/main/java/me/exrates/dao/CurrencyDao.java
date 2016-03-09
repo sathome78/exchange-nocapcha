@@ -1,9 +1,9 @@
 package me.exrates.dao;
 
-import java.util.List;
-
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
+
+import java.util.List;
 
 public interface CurrencyDao {
 

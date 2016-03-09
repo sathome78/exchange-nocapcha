@@ -35,7 +35,8 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
     private @Value("${paymentSuccess}") String paymentSuccess;
     private @Value("${paymentFailure}") String paymentFailure;
     private @Value("${paymentStatus}") String paymentStatus;
-    private @Value("${payeeAccount}") String companyAccount;
+    private @Value("${USDAccount}") String usdCompanyAccount;
+    private @Value("${EURAccount}") String eurCompanyAccount;
     private @Value("${alternatePassphrase}") String alternatePassphrase;
 
     private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger(PerfectMoneyServiceImpl.class);
@@ -50,6 +51,7 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
     public Map<String, String> getPerfectMoneyParams(Transaction transaction) {
         BigDecimal sum = transaction.getAmount().add(transaction.getCommissionAmount());
         final String currency = transaction.getCurrency().getName();
+        final String companyAccount;
         final Number amountToPay;
         switch (currency) {
             case "GOLD":
@@ -58,9 +60,10 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
             default:
                 amountToPay = sum.setScale(2, BigDecimal.ROUND_CEILING);
         }
+
         return new HashMap<String,String>(){
             {
-                put("PAYEE_ACCOUNT",companyAccount);
+                put("PAYEE_ACCOUNT", currency.equals("USD") ? usdCompanyAccount : eurCompanyAccount);
                 put("PAYEE_NAME",payeeName);
                 put("PAYMENT_AMOUNT", String.valueOf(amountToPay));
                 put("PAYMENT_UNITS",currency);
@@ -75,13 +78,13 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
 
     @Override
     @Transactional
-    public String provideOutputPayment(Payment payment, CreditsOperation creditsOperation) {
+    public void provideOutputPayment(Payment payment, CreditsOperation creditsOperation) {
         final Transaction transaction = preparePaymentTransactionRequest(creditsOperation);
         provideTransaction(transaction);
         final String response = provideOutputPayment(payment.getDestination(), transaction);
         switch (response) {
             case "OK":
-                return transaction.getAmount().setScale(2, BigDecimal.ROUND_CEILING) + " " + transaction.getCurrency().getName();
+                return;
             case "INVALID_USER_ACCOUNT" :
                 throw new InvalidPayeeWalletException();
             case "INVALID_AMOUNT" :
@@ -107,7 +110,7 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
                 .type(MultipartBuilder.FORM)
                 .addFormDataPart("AccountID", accountId)
                 .addFormDataPart("PassPhrase", accountPass)
-                .addFormDataPart("Payer_Account", companyAccount)
+                .addFormDataPart("Payer_Account", currency.equals("USD") ? usdCompanyAccount : eurCompanyAccount)
                 .addFormDataPart("Payee_Account", to)
                 .addFormDataPart("Amount", String.valueOf(amountToPay))
                 .addFormDataPart("PAYMENT_ID", String.valueOf(transaction.getId()))
@@ -126,7 +129,7 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
                 } else if (responseString.contains("Invalid Amount")) {
                     return "INVALID_AMOUNT";
                 }
-                logger.error(responseString);
+                System.out.println(responseString);
                 return "INTERNAL_ERROR";
             }
         } catch (IOException e) {

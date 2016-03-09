@@ -37,6 +37,7 @@ $(function(){
     var sum = $('#sum');
     var operationType = $('#operationType');
     var modalTemplate = $('.paymentInfo').html().trim().split("\n");
+    var button = $('#payment').find('button');
     var merchantsData;
 
     (function loadData(dataUrl) {
@@ -63,13 +64,24 @@ $(function(){
     function resetMerchantsList(currency) {
         var optionsHTML = '';
         $.each(merchantsData,function(index){
-           //noinspection JSUnresolvedVariable
             if (merchantsData[index].currencyId == currency) {
                optionsHTML+='<option value="'+merchantsData[index].merchantId+'">'+merchantsData[index].description+'</option>';
            }
-            merchant.empty();
-            merchant.html(optionsHTML);
         });
+        if (optionsHTML==='') {
+            merchant.fadeOut();
+            button.prop('disabled', true);
+        } else {
+            merchant.fadeIn();
+            button.prop('disabled', false);
+        }
+        merchant.empty();
+        merchant.html(optionsHTML);
+        if (isCorrectSum()) {
+            button.prop('disabled',false);
+        } else {
+            button.prop('disabled',true);
+        }
     }
 
     function resetFormAction(operationType,merchant,form) {
@@ -137,13 +149,17 @@ $(function(){
     }
     
     function isCorrectSum() {
+        var result = false;
         $.each(merchantsData,function(index) {
             if (merchantsData[index].merchantId == merchant.val()) {
                 var minSum = parseFloat(merchantsData[index].minSum);
                 var targetSum = parseFloat(sum.val());
-                return (targetSum >= minSum);
+                if (targetSum >= minSum) {
+                    return result = true;
+                }
             }
         });
+        return result;
     }
     
     function fillModalWindow(url) {
@@ -228,4 +244,22 @@ $(function(){
 
         }
     });
+
+    sum.on('keydown', function (e) {
+        var k = e.which;
+        /* numeric inputs can come from the keypad or the numeric row at the top */
+        if (k != 37 && k != 39 && k != 8 && k != 190 && (k < 48 || k > 57) && (k < 96 || k > 105)) {
+            e.preventDefault();
+            return false;
+        }
+    });
+
+    sum.on('keyup', function (e) {
+        if (isCorrectSum()) {
+            button.prop('disabled',false);
+        } else {
+            button.prop('disabled',true);
+        }
+    });
+    
 });

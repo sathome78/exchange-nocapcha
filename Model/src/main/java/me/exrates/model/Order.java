@@ -1,21 +1,17 @@
 package me.exrates.model;
 
-import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.Locale;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderStatus;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 
 import javax.validation.constraints.DecimalMax;
 import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotNull;
-
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.OrderStatus;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.Locale;
 
 public class Order {
 

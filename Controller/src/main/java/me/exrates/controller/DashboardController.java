@@ -1,12 +1,10 @@
 package me.exrates.controller;
 
-import com.mysql.fabric.xmlrpc.base.Data;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.Order;
 import me.exrates.model.enums.OperationType;
 import me.exrates.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.NumberFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;

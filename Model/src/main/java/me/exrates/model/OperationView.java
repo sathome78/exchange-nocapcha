@@ -1,10 +1,10 @@
 package me.exrates.model;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 public class OperationView {
 

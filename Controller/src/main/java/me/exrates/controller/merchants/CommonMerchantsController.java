@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -49,7 +50,6 @@ public class CommonMerchantsController {
         final ModelAndView modelAndView = new ModelAndView("merchantsInputCredits");
         modelAndView.addObject("currencies",currencyService.getAllCurrencies());
         Payment payment = new Payment();
-        payment.setSum(1.00);
         payment.setOperationType(OperationType.INPUT);
         modelAndView.addObject("payment", payment);
         return modelAndView;
@@ -61,7 +61,6 @@ public class CommonMerchantsController {
         final List<Wallet> allWallets = walletService.getAllWallets(userService.getIdByEmail(principal.getName()));
         modelAndView.addObject("wallets",allWallets);
         Payment payment = new Payment();
-        payment.setSum(1.00);
         payment.setOperationType(OperationType.OUTPUT);
         modelAndView.addObject("payment", payment);
         return modelAndView;
@@ -80,12 +79,13 @@ public class CommonMerchantsController {
     }
 
     @RequestMapping(value = "/commission/{type}",method = RequestMethod.GET)
-    public @ResponseBody Double getCommissions(@PathVariable("type") String type) {
+    public @ResponseBody
+    BigDecimal getCommissions(@PathVariable("type") String type) {
         switch (type) {
             case "input" :
-                return commissionService.getCommissionByType(OperationType.INPUT);
+                return commissionService.findCommissionByType(OperationType.INPUT).getValue();
             case "output" :
-                return commissionService.getCommissionByType(OperationType.OUTPUT);
+                return commissionService.findCommissionByType(OperationType.OUTPUT).getValue();
             default:
                 return null;
         }

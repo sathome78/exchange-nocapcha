@@ -1,11 +1,9 @@
 package me.exrates.dao;
 
+import me.exrates.model.Wallet;
+
 import java.math.BigDecimal;
 import java.util.List;
-
-import me.exrates.model.Order;
-import me.exrates.model.User;
-import me.exrates.model.Wallet;
 
 public interface WalletDao {
 

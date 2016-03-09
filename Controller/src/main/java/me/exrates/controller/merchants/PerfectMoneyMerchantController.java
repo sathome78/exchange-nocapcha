@@ -20,7 +20,6 @@ import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpSession;
-import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
@@ -46,11 +45,13 @@ public class PerfectMoneyMerchantController {
             redir.addFlashAttribute("error", "merchants.invalidSum");
             return new RedirectView("/merchants/output");
         }
-        final String sumCurrency = perfectMoneyService.provideOutputPayment(payment, creditsOperation.get());
+        perfectMoneyService.provideOutputPayment(payment, creditsOperation.get());
+        merchantService.formatResponseMessage(creditsOperation.get())
+                .entrySet()
+                .forEach(entry->redir.addFlashAttribute(entry.getKey(),entry.getValue()));
         final String message = "merchants.successfulBalanceWithdraw";
             redir.addFlashAttribute("message",message);
-            redir.addFlashAttribute("sumCurrency",sumCurrency);
-            return new RedirectView("/mywallets");
+        return new RedirectView("/mywallets");
     }
 
     //Very strange behavior here : json data not converting to Payment POJO
@@ -92,11 +93,12 @@ public class PerfectMoneyMerchantController {
         final String hash = perfectMoneyService.computePaymentHash(payeeParams);
         if (response.get("V2_HASH").equals(hash)) {
             perfectMoneyService.provideTransaction(openTransaction);
-            final String sumCurrency = openTransaction.getAmount().setScale(2, BigDecimal.ROUND_CEILING) + " " + openTransaction.getCurrency().getName();
+            merchantService.formatResponseMessage(openTransaction)
+                    .entrySet()
+                    .forEach(entry->redir.addFlashAttribute(entry.getKey(),entry.getValue()));
             final String message = openTransaction.getOperationType() == OperationType.INPUT ? "merchants.successfulBalanceDeposit"
                     : "merchants.successfulBalanceWithdraw";
-            redir.addFlashAttribute("message",message);
-            redir.addFlashAttribute("sumCurrency",sumCurrency);
+            redir.addFlashAttribute("message", message);
             return new RedirectView("/mywallets");
         }
         perfectMoneyService.invalidateTransaction(openTransaction);

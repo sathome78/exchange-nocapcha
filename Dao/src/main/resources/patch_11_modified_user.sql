@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS `birzha`.`USER_STATUS` (
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
-ALTER TABLE `birzha`.`USER` 
+ALTER TABLE USER
 ADD CONSTRAINT `fk_USER_USER_STATUS1`
   FOREIGN KEY (`status`)
   REFERENCES `birzha`.`USER_STATUS` (`id`)
@@ -26,5 +26,4 @@ ADD CONSTRAINT `fk_USER_USER_STATUS1`
  INSERT USER_STATUS VALUES(0,'registered','without email confirmation');
  INSERT USER_STATUS VALUES(0,'activated','with email confirmation');
  INSERT USER_STATUS VALUES(0,'blocked','blocked by admin');
- 
- 
+

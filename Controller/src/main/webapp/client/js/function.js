@@ -36,10 +36,10 @@ $(document).ready(function() {
     });
 
     // Tabs
-    $('.nav-tabs a:first').tab('show');
+    //$('.nav-tabs a:first').tab('show');
 
 	// Custom scrollbar
-    $(".custom__scrollbar").mCustomScrollbar();
+   // $(".custom__scrollbar").mCustomScrollbar();
 
 
 

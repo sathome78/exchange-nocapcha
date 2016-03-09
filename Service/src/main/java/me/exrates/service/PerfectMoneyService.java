@@ -13,7 +13,7 @@ public interface PerfectMoneyService {
 
     Map<String,String> getPerfectMoneyParams(Transaction transaction);
 
-    String provideOutputPayment(Payment payment, CreditsOperation creditsOperation);
+    void provideOutputPayment(Payment payment, CreditsOperation creditsOperation);
 
     Transaction preparePaymentTransactionRequest(CreditsOperation creditsOperation);
 

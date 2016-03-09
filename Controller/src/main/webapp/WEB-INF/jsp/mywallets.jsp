@@ -49,7 +49,7 @@
 								<label class="alert-danger"><loc:message code="${error}"/></label>
 							</c:if>
 							<c:if test="${message!=null}">
-								<label class="alert-success"><loc:message arguments="${sumCurrency}" code="${message}"/></label>
+								<label class="alert-success"><loc:message arguments="${sumCurrency},${commissionPercent},${finalAmount}" code="${message}"/></label>
 							</c:if>
 							<c:forEach var="wallet" items="${walletList}">
 								<div>

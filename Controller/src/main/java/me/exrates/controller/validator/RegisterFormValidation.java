@@ -1,18 +1,17 @@
 package me.exrates.controller.validator;
 
-import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import me.exrates.model.User;
 import me.exrates.service.UserService;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
+
+import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Component
 public class RegisterFormValidation implements Validator{

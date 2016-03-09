@@ -1,15 +1,13 @@
 package me.exrates.jdbc;
 
-  
-import java.sql.ResultSet;  
-import java.sql.SQLException;  
 
 import me.exrates.model.User;
-import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.enums.UserStatus;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.ResultSetExtractor;
 
-import org.springframework.dao.DataAccessException;  
-import org.springframework.jdbc.core.ResultSetExtractor;  
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
   
 public class UserExtractor implements ResultSetExtractor<User> {  

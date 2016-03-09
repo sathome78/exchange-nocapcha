@@ -21,5 +21,9 @@ public interface MerchantService {
 
     List<MerchantCurrency> findAllByCurrencies(List<Integer> currenciesId);
 
+    Map<String, String> formatResponseMessage(CreditsOperation creditsOperation);
+
+    Map<String, String> formatResponseMessage(Transaction transaction);
+
     Optional<CreditsOperation> prepareCreditsOperation (Payment payment, String userEmail);
 }

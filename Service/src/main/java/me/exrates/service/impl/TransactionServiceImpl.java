@@ -3,19 +3,13 @@ package me.exrates.service.impl;
 import me.exrates.dao.TransactionDao;
 import me.exrates.model.*;
 import me.exrates.model.enums.OperationType;
-import me.exrates.service.CompanyWalletService;
-import me.exrates.service.OrderService;
-import me.exrates.service.TransactionService;
-import me.exrates.service.UserService;
-import me.exrates.service.WalletService;
+import me.exrates.service.*;
 import me.exrates.service.exception.TransactionPersistException;
-
 import me.exrates.service.exception.TransactionProvidingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.servlet.ModelAndView;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

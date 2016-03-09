@@ -2,18 +2,12 @@ package me.exrates.controller;
 
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.OperationView;
-import me.exrates.model.OperationViewComparator;
-import me.exrates.model.Order;
-import me.exrates.model.Transaction;
 import me.exrates.model.User;
-import me.exrates.model.Wallet;
-import me.exrates.model.enums.OperationType;
 import me.exrates.security.service.UserSecureService;
 import me.exrates.service.OrderService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -25,15 +19,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
-
-import java.math.BigDecimal;
 import java.security.Principal;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
   
 @Controller  
 public class MainController {  
