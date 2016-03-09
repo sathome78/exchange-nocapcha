@@ -1,6 +1,7 @@
 package me.exrates.controller;  
 
 
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.List;
 import java.util.Locale;
@@ -109,10 +110,11 @@ public ModelAndView acceptOrder(@RequestParam int id, ModelAndView model, Princi
   return model;
 }  
 
-@RequestMapping(value = "/order/new", method = RequestMethod.GET)  
+@RequestMapping(value = "/order/new")  
 public ModelAndView showNewOrderToSellForm(ModelAndView model) {  
 	getCurrenciesAndCommission(model, OperationType.SELL);
     Order order = new Order();
+    order.setOperationType(OperationType.SELL);
     model.setViewName("newordertosell");
     model.addObject(order);
     return model;  
@@ -171,6 +173,14 @@ public ModelAndView showMyOrders(Principal principal, ModelAndView model) {
 return model;  
 }  
 
+@RequestMapping("/myorders/submitdelete")  
+public ModelAndView submitDeleteOrder(@RequestParam int id, RedirectAttributes redirectAttributes, ModelAndView model) {  
+	Order order = orderService.getOrderById(id);
+	model.setViewName("submitdeleteorder");
+	model.addObject("order", order);
+	return model;
+}  
+
 @RequestMapping("/myorders/delete")  
 public String deleteOrder(@RequestParam int id, RedirectAttributes redirectAttributes) {  
 	String msg = null;
@@ -192,7 +202,7 @@ public String DBerror() {
 
 private void getCurrenciesAndCommission(ModelAndView model, OperationType type) {
 	List<Currency> currList = walletService.getCurrencyList();
-    double commission = commissionService.getCommissionByType(type);
+    BigDecimal commission = commissionService.findCommissionByType(type).getValue();
     model.addObject("currList", currList);
     model.addObject("commission", commission);
 }

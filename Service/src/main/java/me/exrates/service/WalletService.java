@@ -15,19 +15,19 @@ public interface WalletService {
 
 	int getWalletId(int userId, int currencyId);
 
-	double getWalletABalance(int walletId);
+	BigDecimal getWalletABalance(int walletId);
 
-	double getWalletRBalance(int walletId);
+	BigDecimal getWalletRBalance(int walletId);
 
-	boolean setWalletABalance(int walletId,double amount);
+	boolean setWalletABalance(int walletId,BigDecimal amount);
 
 	int getCurrencyId(int walletId);
 
 	String getCurrencyName(int currencyId);
 
-	boolean setWalletRBalance(int walletId, double amount);
+	boolean setWalletRBalance(int walletId, BigDecimal amount);
 
-	boolean ifEnoughMoney(int walletId, double amountForCheck);
+	boolean ifEnoughMoney(int walletId, BigDecimal amountForCheck);
 
 	int createNewWallet(Wallet wallet);
 

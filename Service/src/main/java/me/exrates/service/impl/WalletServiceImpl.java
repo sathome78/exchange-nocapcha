@@ -47,30 +47,15 @@ public class WalletServiceImpl implements WalletService {
 	}
 
 	@Override
-	public double getWalletABalance(int walletId) {
+	@Transactional(propagation = Propagation.NESTED)
+	public BigDecimal getWalletABalance(int walletId) {
 		return walletDao.getWalletABalance(walletId);
 	}
 
 	@Override
-	public double getWalletRBalance(int walletId) {
+	@Transactional(propagation = Propagation.NESTED)
+	public BigDecimal getWalletRBalance(int walletId) {
 		return walletDao.getWalletRBalance(walletId);
-	}
-
-
-
-	//// TODO: 2/23/16 Dmytro Sokolov Replace to withdraw() and deposit() methods
-	@Transactional
-	@Override
-	public boolean setWalletABalance(int walletId, double amount) {
-		System.out.println(amount + " AMOUNT");
-		final double oldBalance = walletDao.getWalletABalance(walletId);
-		System.out.println(oldBalance + "OLD BALANCE");
-		final BigDecimal newBalance = BigDecimal.valueOf(oldBalance).add(BigDecimal.valueOf(amount)).setScale(9,BigDecimal.ROUND_CEILING);
-		System.out.println(newBalance + " NEW BALANCE");
-		if(newBalance.signum() == -1) {
-			return false;
-		}
-		else return walletDao.setWalletABalance(walletId, newBalance.doubleValue());
 	}
 
 	@Override
@@ -83,29 +68,17 @@ public class WalletServiceImpl implements WalletService {
 		return currencyDao.getCurrencyName(currencyId);
 	}
 
-	//// TODO: 2/23/16 Dmytro Sokolov Replace to withdraw() and deposit() methods
-	@Transactional
-	@Override
-	public boolean setWalletRBalance(int walletId, double amount) {
-		final double oldBalance = walletDao.getWalletRBalance(walletId);
-		final BigDecimal newBalance = BigDecimal.valueOf(oldBalance).add(BigDecimal.valueOf(amount)).setScale(9,BigDecimal.ROUND_CEILING);
-		if(newBalance.signum() == -1) {
-			return false;
-		}
-		else return walletDao.setWalletRBalance(walletId, newBalance.doubleValue());
-	}
-
 	@Transactional(readOnly = true)
 	@Override
-	public boolean ifEnoughMoney(int walletId, double amountForCheck) {
-		double balance = getWalletABalance(walletId);
-		if(balance >= amountForCheck){
+	public boolean ifEnoughMoney(int walletId, BigDecimal amountForCheck) {
+		BigDecimal balance = getWalletABalance(walletId);
+		if(balance.compareTo(amountForCheck) >= 0){
 			return true;
 		}
 		else return false;
 	}
 
-	@Transactional
+	@Transactional(propagation = Propagation.NESTED)
 	@Override
 	public int createNewWallet(Wallet wallet) {
 		return walletDao.createNewWallet(wallet);
@@ -128,13 +101,37 @@ public class WalletServiceImpl implements WalletService {
 		wallet.setName(currency.getName());
 		return wallet;
 	}
+	
+////TODO: 2/23/16 Dmytro Sokolov Replace to withdraw() and deposit() methods
+	@Transactional(propagation = Propagation.NESTED)
+	@Override
+	public boolean setWalletABalance(int walletId, BigDecimal amount) {
+		final BigDecimal oldBalance = walletDao.getWalletABalance(walletId);
+		final BigDecimal newBalance = oldBalance.add(amount).setScale(9,BigDecimal.ROUND_CEILING);
+		if(newBalance.signum() == -1) {
+			return false;
+		}
+		else return walletDao.setWalletABalance(walletId, newBalance);
+	}
+	
+	@Transactional(propagation = Propagation.NESTED)
+	@Override
+	public boolean setWalletRBalance(int walletId, BigDecimal amount) {
+		final BigDecimal oldBalance = walletDao.getWalletRBalance(walletId);
+		final BigDecimal newBalance = oldBalance.add(amount).setScale(9,BigDecimal.ROUND_CEILING);
+		if(newBalance.signum() == -1) {
+			return false;
+		}
+		else return walletDao.setWalletRBalance(walletId, newBalance);
+	}
+
 
 	@Override
 	@Transactional(propagation = Propagation.NESTED)
 	public void depositActiveBalance(Wallet wallet, BigDecimal sum) {
 		final BigDecimal newBalance =
-				BigDecimal.valueOf(wallet.getActiveBalance()).add(sum).setScale(9,BigDecimal.ROUND_CEILING);
-		wallet.setActiveBalance(newBalance.doubleValue());
+				wallet.getActiveBalance().add(sum).setScale(9,BigDecimal.ROUND_CEILING);
+		wallet.setActiveBalance(newBalance);
 		if (!walletDao.update(wallet))
 			throw new WalletPersistException("Failed to deposit on user wallet " + wallet.toString());
 	}
@@ -143,11 +140,11 @@ public class WalletServiceImpl implements WalletService {
 	@Transactional(propagation = Propagation.NESTED)
 	public void withdrawActiveBalance(Wallet wallet, BigDecimal sum) {
 		final BigDecimal newBalance =
-				BigDecimal.valueOf(wallet.getActiveBalance()).subtract(sum).setScale(9,BigDecimal.ROUND_CEILING);
+				wallet.getActiveBalance().subtract(sum).setScale(9,BigDecimal.ROUND_CEILING);
 		if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
 			throw new NotEnoughUserWalletMoneyException("Not enough money to withdraw on user wallet " + wallet.toString());
 		}
-		wallet.setActiveBalance(newBalance.doubleValue());
+		wallet.setActiveBalance(newBalance);
 		if (!walletDao.update(wallet)) {
 			throw new WalletPersistException("Failed to withdraw on user wallet " + wallet.toString());
 		}

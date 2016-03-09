@@ -1,8 +1,5 @@
-$(document).ready(function() {
 
-	$("#logout").click(function(){
-		$("#logoutForm").submit();
-	});
+$(document).ready(function() {
 
 	function setHeiHeight() {
 	    $('.full__height, .lk > .container, .sidebar, .main__content').css({
@@ -17,6 +14,7 @@ $(document).ready(function() {
 	$('[href*="#"]').click(function(event) {
 		event.preventDefault();
 	});
+
 
 	// Scroll to ID
     $('#main__menu a[href^="#"]').click( function(){ 
@@ -38,19 +36,13 @@ $(document).ready(function() {
     });
 
     // Tabs
-    //$('.nav-tabs a:first').tab('show');
+    $('.nav-tabs a:first').tab('show');
 
-	// Stiky menu
-    // $(document).ready(function(){
-    //     var HeaderTop = $('#header').offset().top;
-        
-    //     $(window).scroll(function(){
-    //             if( $(window).scrollTop() > HeaderTop ) {
-    //                     $('#header').addClass('stiky');
-    //             } else {
-    //                     $('#header').removeClass('stiky');
-    //             }
-    //     });
-    // });
+	// Custom scrollbar
+    $(".custom__scrollbar").mCustomScrollbar();
+
+
+
+
 
 });

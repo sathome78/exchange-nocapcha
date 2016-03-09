@@ -1,6 +1,7 @@
 package me.exrates.service;
 
 import me.exrates.model.CreditsOperation;
+import me.exrates.model.OperationView;
 import me.exrates.model.Transaction;
 
 import java.util.List;
@@ -17,4 +18,6 @@ public interface TransactionService {
     void invalidateTransaction(Transaction transaction);
 
     List<Transaction> findAllByUserWallets(List<Integer> userWalletsIds);
+    
+    List<OperationView> showMyOperationHistory(String email);
 }

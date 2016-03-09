@@ -2,13 +2,14 @@ package me.exrates.model;
 
 import me.exrates.model.enums.OperationType;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 public class Commission {
 
 	private int id;
 	private OperationType operationType;
-	private double value;
+	private BigDecimal value;
 	private Date dateOfChange;
 
 	
@@ -28,11 +29,11 @@ public class Commission {
 		this.operationType = operationType;
 	}
 
-	public double getValue() {
+	public BigDecimal getValue() {
 		return value;
 	}
 
-	public void setValue(double value) {
+	public void setValue(BigDecimal value) {
 		this.value = value;
 	}
 

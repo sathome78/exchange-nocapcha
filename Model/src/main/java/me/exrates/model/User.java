@@ -2,13 +2,15 @@ package me.exrates.model;
 
 import java.util.Date;
 
+import me.exrates.model.enums.UserStatus;
+
 public class User  {
 
 	private int id;
 	private String nickname;
 	private String email;
 	private String phone;
-	private String status;
+	private UserStatus status = UserStatus.REGISTERED;
 	private String password;
 	private String finpassword;
 	private Date regdate;
@@ -81,11 +83,12 @@ public class User  {
 		this.phone = phone;
 	}
 
-	public Boolean getStatus() {
-		return status.equals("active");
+	
+	public UserStatus getStatus() {
+		return status;
 	}
 
-	public void setStatus(String status) {
+	public void setStatus(UserStatus status) {
 		this.status = status;
 	}
 
@@ -120,7 +123,7 @@ public class User  {
 				", nickname='" + nickname + '\'' +
 				", email='" + email + '\'' +
 				", phone=" + phone +
-				", status='" + status + '\'' +
+				", status='" + status.toString() + '\'' +
 				", password='" + password + '\'' +
 				", finpassword='" + finpassword + '\'' +
 				", regdate=" + regdate +

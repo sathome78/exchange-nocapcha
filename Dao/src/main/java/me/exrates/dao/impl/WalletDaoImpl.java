@@ -2,6 +2,7 @@ package me.exrates.dao.impl;
 
 import me.exrates.dao.WalletDao;
 import me.exrates.model.Wallet;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -11,6 +12,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,22 +23,22 @@ public class WalletDaoImpl implements WalletDao {
 	@Autowired
 	private NamedParameterJdbcTemplate jdbcTemplate;
 
-	public double getWalletABalance(int walletId) {
+	public BigDecimal getWalletABalance(int walletId) {
 		String sql = "SELECT active_balance FROM WALLET WHERE id = :walletId";
 		Map<String, String> namedParameters = new HashMap<>();
 		namedParameters.put("walletId", String.valueOf(walletId));
-		return jdbcTemplate.queryForObject(sql, namedParameters, Double.class);
+		return jdbcTemplate.queryForObject(sql, namedParameters, BigDecimal.class);
 	}
 
-	public double getWalletRBalance(int walletId) {
+	public BigDecimal getWalletRBalance(int walletId) {
 		String sql = "SELECT reserved_balance FROM WALLET WHERE id = :walletId";
 		Map<String, String> namedParameters = new HashMap<>();
 		namedParameters.put("walletId", String.valueOf(walletId));
-		return jdbcTemplate.queryForObject(sql, namedParameters, Double.class);
+		return jdbcTemplate.queryForObject(sql, namedParameters, BigDecimal.class);
 	}
 
 	@Override
-	public boolean setWalletABalance(int walletId, double newBalance) {
+	public boolean setWalletABalance(int walletId, BigDecimal newBalance) {
 		final String sql = "UPDATE WALLET SET active_balance =:newBalance WHERE id =:walletId";
 		final Map<String,String> params = new HashMap<String,String>() {
 			{
@@ -48,7 +50,7 @@ public class WalletDaoImpl implements WalletDao {
 	}
 
 	@Override
-	public boolean setWalletRBalance(int walletId,double newBalance) {
+	public boolean setWalletRBalance(int walletId,BigDecimal newBalance) {
 		final String sql = "UPDATE WALLET SET reserved_balance =:newBalance WHERE id =:walletId";
 		final Map<String,String> params = new HashMap<String,String>() {
 			{
@@ -126,8 +128,8 @@ public class WalletDaoImpl implements WalletDao {
 				.addValue("userId", userId);
 		if (jdbcTemplate.update(sql, parameters, keyHolder)>0) {
 			Wallet wallet = new Wallet();
-			wallet.setActiveBalance(0);
-			wallet.setReservedBalance(0);
+			wallet.setActiveBalance(BigDecimal.valueOf(0));
+			wallet.setReservedBalance(BigDecimal.valueOf(0));
 			wallet.setId(keyHolder.getKey().intValue());
 			wallet.setCurrencyId(currencyId);
 			return wallet;

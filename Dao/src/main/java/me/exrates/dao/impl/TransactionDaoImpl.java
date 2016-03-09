@@ -83,7 +83,7 @@ public final class TransactionDaoImpl implements TransactionDao {
             final Commission commission = new Commission();
             commission.setId(resultSet.getInt("COMMISSION.id"));
             commission.setOperationType(operationType);
-            commission.setValue(resultSet.getDouble("COMMISSION.value"));
+            commission.setValue(resultSet.getBigDecimal("COMMISSION.value"));
             commission.setDateOfChange(resultSet.getTimestamp("COMMISSION.date"));
 
             final CompanyWallet companyWallet = new CompanyWallet();
@@ -93,8 +93,8 @@ public final class TransactionDaoImpl implements TransactionDao {
             companyWallet.setId(resultSet.getInt("COMPANY_WALLET.id"));
 
             final Wallet userWallet = new Wallet();
-            userWallet.setActiveBalance(resultSet.getDouble("WALLET.active_balance"));
-            userWallet.setReservedBalance(resultSet.getDouble("WALLET.reserved_balance"));
+            userWallet.setActiveBalance(resultSet.getBigDecimal("WALLET.active_balance"));
+            userWallet.setReservedBalance(resultSet.getBigDecimal("WALLET.reserved_balance"));
             userWallet.setId(resultSet.getInt("WALLET.id"));
             userWallet.setCurrencyId(currency.getId());
 

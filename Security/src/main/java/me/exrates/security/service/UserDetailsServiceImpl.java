@@ -30,7 +30,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 			throw new UsernameNotFoundException("Несуществующий логин");
 		} else
 		{
-			userSpring = new org.springframework.security.core.userdetails.User(person.getEmail(), person.getPassword(), person.getStatus(), true, true, true, 
+			userSpring = new org.springframework.security.core.userdetails.User(person.getEmail(), person.getPassword(), ifUserAllowed(person), true, true, true, 
 					getAuthorities(person.getEmail()));
 		}
 		return userSpring;
@@ -57,5 +57,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		}
 		return authList;
 	}
+    
+    private boolean ifUserAllowed(User user) {
+    	if(user.getStatus().getStatus()==2) {
+    		return true;
+    	}
+    	return false;
+    }
 
 	}

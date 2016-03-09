@@ -17,7 +17,13 @@ public class UserServiceImpl implements UserService {
 
  	@Transactional
  	public boolean create(User user) {
-	 return userdao.create(user);
+ 		if(this.ifEmailIsUnique(user.getEmail())) {
+ 			if(this.ifNicknameIsUnique(user.getNickname())) {
+ 			 return	userdao.create(user);
+ 			}
+ 			else return false;
+ 		}
+ 		else return false;
  }  
  
  	public int getIdByEmail(String email) {

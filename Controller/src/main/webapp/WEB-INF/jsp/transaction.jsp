@@ -40,62 +40,72 @@
             <!--#include file="header__lk.shtml" -->
             <%@include file='header.jsp'%>
             <div class="content__page">
-               <c:choose>
+          		<c:choose>
                    <c:when test="${fn:length(transactions)==0}">
                        <loc:message code="transactions.absent"/>
                    </c:when>
                    <c:otherwise>
-                       <c:forEach var="transaction" items="${transactions}">
-                           <div>
-                               <table class="table">
-                                   <tr>
-                                       <td><loc:message code="transaction.id"/>:</td>
-                                       <td><loc:message code="transaction.walletId"/></td>
-                                       <td><loc:message code="transaction.currency"/></td>
-                                       <td><loc:message code="transaction.amount"/></td>
-                                       <td><loc:message code="transaction.commissionAmount"/></td>
-                                       <td><loc:message code="transaction.commission"/></td>
-                                       <td><loc:message code="transaction.operationType"/></td>
-                                       <td><loc:message code="transaction.merchant"/></td>
-                                       <td><loc:message code="transaction.datetime"/></td>
-                                   </tr>
-                                   <tr>
-                                       <td>
-                                           <label>${transaction.id}</label>
+                  		 <div>
+                  		 <table class="table">
+                          <tbody>
+							 <thead>
+                               <tr>
+                                   <th class="col-xs-4"><loc:message code="transaction.datetime"/></th>
+                                   <th class="col-xs-4"><loc:message code="transaction.operationType"/></th>
+                                   <th class="col-xs-4"><loc:message code="transaction.currency"/></th>
+                                   <th class="col-xs-4"><loc:message code="transaction.amount"/></th>
+                                   <th class="col-xs-4"><loc:message code="transaction.currencyBuy"/></th>
+                                   <th class="col-xs-4"><loc:message code="transaction.amountBuy"/></th>
+                                   <th class="col-xs-4"><loc:message code="transaction.commissionAmount"/></th>
+                                   <th class="col-xs-4"><loc:message code="transaction.merchant"/></th>
+                                </tr>
+                               </thead>
+                       			<c:forEach var="transaction" items="${transactions}">
+                                 <tr>
+                                      <td>
+                                           ${transaction.datetime}
+                                      </td>
+                                      <td>
+                                          <c:choose>
+                                          	<c:when test="${transaction.operationType.type eq 1 or transaction.operationType.type eq 2}">
+                                          		<loc:message code="transaction.operationType${transaction.operationType}"/>
+                                          	</c:when>
+                                          	<c:when test="${transaction.orderStatus.status eq 2}">
+                                          		<loc:message code="transaction.operationTypeCreateOrder"/>
+                                          	</c:when>
+                                          	<c:when test="${transaction.orderStatus.status eq 3}">
+                                          		<loc:message code="transaction.operationTypeAcceptOrder"/>
+                                          	</c:when>
+                                          </c:choose>
+                                      </td>
+                                      <td>
+                                           ${transaction.currency}
                                        </td>
                                        <td>
-                                           <label>${transaction.userWallet.id}</label>
+                                          <fmt:formatNumber value="${transaction.amount}" maxFractionDigits="9"/>
                                        </td>
                                        <td>
-                                           <label>${transaction.currency.name}</label>
+                                       	   ${transaction.currencyBuy}                                 		
                                        </td>
                                        <td>
-                                           <label><fmt:formatNumber value="${transaction.amount}" pattern="0.00"/></label>
+                                       	  <fmt:formatNumber value="${transaction.amountBuy}" maxFractionDigits="9"/>
                                        </td>
                                        <td>
-                                           <label><fmt:formatNumber value="${transaction.commissionAmount}" pattern="0.00"/></label>
-                                       </td>
+                                          <fmt:formatNumber value="${transaction.commissionAmount}" maxFractionDigits="9"/>
+                                        </td>
                                        <td>
-                                           <label><fmt:formatNumber value="${transaction.commission.value}" pattern="0.00"/></label>
+                                           <c:if test="${transaction.orderStatus eq null}">
+                                           		<loc:message code="transaction.${transaction.merchant.name}"/>
+                                           </c:if>
                                        </td>
-                                       <td>
-                                           <label><loc:message code="transaction.operationType${transaction.operationType}"/></label>
-                                       </td>
-                                       <td>
-                                           <label><loc:message code="transaction.${transaction.merchant.name}"/></label>
-                                       </td>
-                                       <td>
-                                           <label>${transaction.datetime}</label>
-                                       </td>
-
-                                   </tr>
+                                    </tr>
+                                  </c:forEach>
+                                  </tbody>
                                </table>
                            </div>
-                       </c:forEach>
-                   </c:otherwise>
+                      </c:otherwise>
                </c:choose>
             </div>
-
             <!--#include file="footer__lk.shtml" -->
             <%@include file='footer.jsp'%>
         </div>

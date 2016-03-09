@@ -61,7 +61,7 @@
 										<label class="col-sm-3 control-label" for="#"><loc:message code="orders.currencyforsale" /></label>
 										<div class="col-sm-7">
 											<span class="form-control"><fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountSell}" />
-											${currList.get(order.currencySell-1).getName()}</span>
+											${order.currencySellString}</span>
 										</div>
 									</div>
 								  </c:if>
@@ -69,7 +69,7 @@
 										<label class="col-sm-3 control-label" for="#"><loc:message code="submitorder.buy"/></label>
 										<div class="col-sm-7">
 											<span class="form-control"><fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountBuy}"/> 
-											${currList.get(order.currencyBuy-1).getName()}</span>
+											${order.currencyBuyString}</span>
 										</div>
 									</div>
 								  <c:if test="${order.operationType  eq BUY}" >
@@ -77,22 +77,22 @@
 										<label class="col-sm-3 control-label" for="#"><loc:message code="orders.currencyforsale" /></label>
 										<div class="col-sm-7">
 											<span class="form-control"><fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountSell}" />
-											${currList.get(order.currencySell-1).getName()}</span>
+											${order.currencySellString}</span>
 										</div>
 									</div>
 								  </c:if>
 									<div class="form-group">
 										<label class="col-sm-3 control-label" for="#"><loc:message code="submitorder.commission"/></label>
 										<div class="col-sm-7">
-											<span class="form-control"><fmt:formatNumber type="number" maxFractionDigits="9" value="${order.commissionAmountBuy}"/>
-											${currList.get(order.currencyBuy-1).getName()}</span>
+											<span class="form-control"><fmt:formatNumber type="number" maxFractionDigits="9" value="${order.commissionAmountSell}"/>
+											${order.currencySellString}</span>
 										</div>
 									</div>
 									<div class="form-group">
 										<label class="col-sm-3 control-label" for="#"><loc:message code="submitorder.sumwithcommission"/></label>
 										<div class="col-sm-7">
-											<span class="form-control"><fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountBuy-order.commissionAmountBuy}"/>
-											 ${currList.get(order.currencyBuy-1).getName()}</span>
+											<span class="form-control"><fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountSell-order.commissionAmountSell}"/>
+											 ${order.currencySellString}</span>
 										</div>
 									</div>
 									<br>

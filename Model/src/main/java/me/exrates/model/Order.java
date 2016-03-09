@@ -1,6 +1,8 @@
 package me.exrates.model;
 
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Locale;
 
@@ -30,11 +32,11 @@ public class Order {
 	@DecimalMin(value="0.000000001", message="Значение должно быть больше 0.000000001")
 	@DecimalMax(value="10000", message="Значение должно быть меньше 10 000")
 	@Digits(integer=5, fraction=9, message = "Значение должно быть в диапазоне: 0.000000001 - 10 000")
-	private double amountSell;
+	private BigDecimal amountSell;
 	
-	private double commission;
-	private double commissionAmountSell;
-	private double commissionAmountBuy;
+	private BigDecimal commission;
+	private BigDecimal commissionAmountSell;
+	private BigDecimal commissionAmountBuy;
 	private int currencyBuy;
 	private String currencyBuyString;
 	private int walletIdBuy;
@@ -43,38 +45,36 @@ public class Order {
 	@DecimalMin(value="0.000000001", message="Значение должно быть больше 0.000000001")
 	@DecimalMax(value="10000", message="Значение должно быть меньше 10 000")
 	@Digits(integer=5, fraction=9, message = "Значение должно быть в диапазоне: 0.000000001 - 10 000")
-	private double amountBuy;
+	private BigDecimal amountBuy;
 
 	private OperationType operationType;
 	private OrderStatus status;
 	private String statusString;
-	private Date dateCreation;
-	private String dateFinal;
-	private double amountBuyWithCommission;	
-	private double amountSellWithCommission;
-	SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	private LocalDateTime dateCreation;
+	private LocalDateTime dateFinal;
+	private BigDecimal amountBuyWithCommission;	
+	private BigDecimal amountSellWithCommission;
 	
 	public Order() {
 		
 	}
-
 	
-	public double getCommissionAmountSell() {
+	public BigDecimal getCommissionAmountSell() {
 		return commissionAmountSell;
 	}
 
 
-	public void setCommissionAmountSell(double commissionAmountSell) {
+	public void setCommissionAmountSell(BigDecimal commissionAmountSell) {
 		this.commissionAmountSell = commissionAmountSell;
 	}
 
 
-	public double getCommissionAmountBuy() {
+	public BigDecimal getCommissionAmountBuy() {
 		return commissionAmountBuy;
 	}
 
 
-	public void setCommissionAmountBuy(double commissionAmountBuy) {
+	public void setCommissionAmountBuy(BigDecimal commissionAmountBuy) {
 		this.commissionAmountBuy = commissionAmountBuy;
 	}
 
@@ -99,7 +99,7 @@ public class Order {
 	}
 
 
-	public double getAmountBuy() {
+	public BigDecimal getAmountBuy() {
 		return amountBuy;
 	}
 
@@ -112,7 +112,7 @@ public class Order {
 	}
 
 	
-	public void setAmountBuy(double amountBuy) {
+	public void setAmountBuy(BigDecimal amountBuy) {
 		this.amountBuy = amountBuy;
 	}
 
@@ -147,19 +147,19 @@ public class Order {
 	}
 
 
-	public double getAmountSell() {
+	public BigDecimal getAmountSell() {
 		return amountSell;
 	}
 
-	public void setAmountSell(double amountSell) {
+	public void setAmountSell(BigDecimal amountSell) {
 		this.amountSell = amountSell;
 	}
 
-	public double getCommission() {
+	public BigDecimal getCommission() {
 		return commission;
 	}
 
-	public void setCommission(double commission) {
+	public void setCommission(BigDecimal commission) {
 		this.commission = commission;
 	}
 
@@ -194,38 +194,36 @@ public class Order {
 		this.status = status;
 	}
 
-	public Date getDateCreation() {
+
+	public LocalDateTime getDateCreation() {
 		return dateCreation;
 	}
 
-	public void setDateCreation(Date dateCreation) {
+	public void setDateCreation(LocalDateTime dateCreation) {
 		this.dateCreation = dateCreation;
 	}
 
-	
-	public String getDateFinal() {
+	public LocalDateTime getDateFinal() {
 		return dateFinal;
 	}
 
-
-	public void setDateFinal(String dateFinal) {
+	public void setDateFinal(LocalDateTime dateFinal) {
 		this.dateFinal = dateFinal;
 	}
 
-
-	public double getAmountBuyWithCommission() {
-		return amountBuy-amountBuy*commission/100;
+	public BigDecimal getAmountBuyWithCommission() {
+		return amountBuy.subtract(amountBuy.multiply(commission.divide(BigDecimal.valueOf(100))));
 	}
 
-	public void setAmountBuyWithCommission(double amountBuyWithCommission) {
+	public void setAmountBuyWithCommission(BigDecimal amountBuyWithCommission) {
 		this.amountBuyWithCommission = amountBuyWithCommission;
 	}
 
-	public double getAmountSellWithCommission() {
-		return amountSell-amountSell*commission/100;
+	public BigDecimal getAmountSellWithCommission() {
+		return amountSell.subtract(amountSell.multiply(commission.divide(BigDecimal.valueOf(100))));
 	}
 
-	public void setAmountSellWithCommission(double amountSellWithCommission) {
+	public void setAmountSellWithCommission(BigDecimal amountSellWithCommission) {
 		this.amountSellWithCommission = amountSellWithCommission;
 	}
 }
