@@ -1,5 +1,5 @@
 
- INSERT DATABASE_PATCH VALUES('patch_12_added_data_currencies',default,0);
+ INSERT DATABASE_PATCH VALUES('patch_12_added_data_currencies',default,1);
  
  DELETE FROM TRANSACTION;
  DELETE FROM WALLET;
