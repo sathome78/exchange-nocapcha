@@ -42,12 +42,12 @@
 
             <div class="content__page">
                 <div class="title__page"><loc:message code="merchants.inputTitle"/></div>
-                <label class="alert-danger has-error merchantError">
+                <!-- Start  withdraw__money -->
+                <label class="alert-danger has-error">
                     <c:if test="${not empty error}">
                         <loc:message code="${error}"/>
                     </c:if>
                 </label>
-                <!-- Start  withdraw__money -->
                 <paymentForm:form class="form-horizontal withdraw__money" id="payment" name="payment" method="post" modelAttribute="payment" action="">
                     <div class="form-group">
                         <label class="col-sm-3 control-label" for="currency"><loc:message code="merchants.inputCurrency"/></label>
