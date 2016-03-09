@@ -112,4 +112,28 @@ public final class TransactionDaoImpl implements TransactionDao {
             return transaction;
         }));
     }
+
+    @Override
+    public boolean provide(int id) {
+        final int PROVIDED = 1;
+        final String sql = "UPDATE TRANSACTION SET provided = :provided WHERE id = :id";
+        final Map<String, Integer> params = new HashMap<String, Integer>() {
+            {
+                put("provided",PROVIDED);
+                put("id", id);
+            }
+        };
+        return jdbcTemplate.update(sql,params) > 0;
+    }
+
+    @Override
+    public boolean delete(int id) {
+        final String sql = "DELETE FROM TRANSACTION where id = :id";
+        final Map<String, Integer> params = new HashMap<String, Integer>() {
+            {
+                put("id", id);
+            }
+        };
+        return jdbcTemplate.update(sql, params) > 0;
+    }
 }

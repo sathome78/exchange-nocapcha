@@ -20,6 +20,7 @@ public class Transaction {
     private Currency currency;
     private Merchant merchant;
     private LocalDateTime datetime;
+    private boolean provided;
 
     public int getId() {
         return id;
@@ -101,6 +102,14 @@ public class Transaction {
         this.datetime = datetime;
     }
 
+    public boolean isProvided() {
+        return provided;
+    }
+
+    public void setProvided(boolean provided) {
+        this.provided = provided;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -109,6 +118,7 @@ public class Transaction {
         Transaction that = (Transaction) o;
 
         if (id != that.id) return false;
+        if (provided != that.provided) return false;
         if (userWallet != null ? !userWallet.equals(that.userWallet) : that.userWallet != null) return false;
         if (companyWallet != null ? !companyWallet.equals(that.companyWallet) : that.companyWallet != null)
             return false;
@@ -135,6 +145,7 @@ public class Transaction {
         result = 31 * result + (currency != null ? currency.hashCode() : 0);
         result = 31 * result + (merchant != null ? merchant.hashCode() : 0);
         result = 31 * result + (datetime != null ? datetime.hashCode() : 0);
+        result = 31 * result + (provided ? 1 : 0);
         return result;
     }
 
@@ -151,6 +162,7 @@ public class Transaction {
                 ", currency=" + currency +
                 ", merchant=" + merchant +
                 ", datetime=" + datetime +
+                ", provided=" + provided +
                 '}';
     }
 }

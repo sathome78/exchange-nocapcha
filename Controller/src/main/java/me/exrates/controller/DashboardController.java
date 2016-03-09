@@ -1,12 +1,10 @@
 package me.exrates.controller;
 
-import com.mysql.fabric.xmlrpc.base.Data;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.Order;
 import me.exrates.model.enums.OperationType;
 import me.exrates.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.NumberFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -37,15 +35,22 @@ public class DashboardController {
     @Autowired
     CommissionService commissionService;
 
-
-
-    @RequestMapping(value = "/dashboard")
-    public ModelAndView dashboard(Principal principal) {
+    @RequestMapping(value = {"/dashboard"})
+    public ModelAndView dashboard(@ModelAttribute CurrencyPair currencyPair, Principal principal) {
         ModelAndView model = new ModelAndView();
         model.setViewName("dashboard");
 
         List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs();
-        CurrencyPair currencyPair = currencyService.getCurrencyPairById(2,1);
+        if (currencyPair.getName() == null){
+            currencyPair = currencyPairs.get(0);
+        }
+
+        for (CurrencyPair currencyPairRecord:currencyPairs){
+            if (currencyPairRecord.getName().equals(currencyPair.getName())){
+                currencyPair = currencyPairRecord;
+            }
+        }
+
         model.addObject("currencyPairs", currencyPairs);
         model.addObject("currencyPair", currencyPair);
 

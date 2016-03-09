@@ -1,8 +1,8 @@
 package me.exrates.model;
 
-import java.util.Date;
-
 import me.exrates.model.enums.UserStatus;
+
+import java.util.Date;
 
 public class User  {
 

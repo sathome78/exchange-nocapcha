@@ -54,33 +54,32 @@
                 </c:when>
                 <c:otherwise>
                     <!-- Start  withdraw__money -->
-                    <c:url value="/merchants/yandexmoney/payment/prepare" var="url"/>
-                    <paymentForm:form class="form-horizontal withdraw__money" name="payment" method="post" modelAttribute="payment" action="${url}">
+                    <paymentForm:form class="form-horizontal withdraw__money" name="payment" method="post" modelAttribute="payment" action="">
                         <div class="form-group">
-                            <label class="col-sm-3 control-label" for="#">Валюта к выводу</label>
+                            <label class="col-sm-3 control-label" for="currency">Валюта к выводу</label>
                             <div class="col-sm-8">
-                                <paymentForm:select id="currencySelect" path="currency" onchange="loadMeansOfPayment()" class="select form-control">
+                                <paymentForm:select id="currency" path="currency" class="select form-control">
                                     <paymentForm:options items="${wallets}" itemLabel="fullName" itemValue="currencyId" />
                                 </paymentForm:select>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="col-sm-3 control-label" for="#"><loc:message code="merchants.meansOfPayment"/></label>
+                            <label class="col-sm-3 control-label" for="merchant"><loc:message code="merchants.meansOfPayment"/></label>
                             <div class="col-sm-8">
-                                <paymentForm:select id="meansOfPaymentSelect" path="merchant"/>
+                                <paymentForm:select id="merchant" path="merchant"/>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="col-sm-3 control-label" for="#"><loc:message code="merchants.sum"/></label>
+                            <label class="col-sm-3 control-label" for="sum"><loc:message code="merchants.sum"/></label>
                             <div class="col-sm-8">
-                                <paymentForm:input  class="form-control" pattern="/\d*\.\d{1,2}/" placeholder="Сумма" id="#" path="sum"/>
+                                <paymentForm:input  class="form-control" pattern="/\d*\.\d{1,2}/" placeholder="Сумма" id="sum" path="sum"/>
                             </div>
                         </div>
                         <paymentForm:hidden path="operationType"/>
                         <paymentForm:hidden id="destination" path="destination"/>
                         <div class="form-group">
                             <div class="col-sm-offset-3 col-sm-6">
-                                <button type="button" data-toggle="modal" name="assertOutputPay" data-target="#myModal2" class="btn btn-primary">Вывести</button>
+                                <button type="button" data-toggle="modal" id="assertOutputPay" name="assertOutputPay" data-target="#myModal2" class="btn btn-primary">Вывести</button>
                             </div>
                         </div>
                     </paymentForm:form>
@@ -98,19 +97,23 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title">Вывод средств</h4>
-                <p>Вы хотите вывести 800 USD.</p>
-                <p>Комиссия составляет — 0.1BTC</p>
+                <h4 class="modal-title"><loc:message code="merchants.outputTitle"/></h4>
             </div>
             <div class="modal-body">
-                <label class="control-label" for="#">Введите email либо номер кошелька :</label>
-                <div class="">
-                    <input class="form-control" name="walletUid" type="text" id="#" placeholder="">
+                <label class="alert-danger merchantError"><loc:message code="merchants.notAvaliablePayment"/></label>
+                <div class="paymentInfo">
+                    <p><loc:message code="merchants.modalInputHeader"/></p>
+                    <p><loc:message code="merchants.modalInputCommission"/></p>
+                    <p><loc:message code="merchants.modalInputFinalSum"/></p>
                 </div>
-            </div>
+                    <label class="control-label" for="walletUid"><loc:message code="merchants.modalOutputWallet"/></label>
+                    <div class="">
+                        <input class="form-control" name="walletUid" type="text" id="walletUid">
+                    </div>
+                </div>
             <div class="modal-footer">
                 <div class="add__money__btns">
-                    <button type="button" name="paymentOutput" class="btn btn-primary">Продолжить</button>
+                    <button type="button" id="outputPaymentProcess" name="paymentOutput" class="btn btn-primary">Продолжить</button>
                     <button type="button" data-dismiss="modal" class="btn btn-warning">Отменить</button>
                 </div>
             </div>

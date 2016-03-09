@@ -1,14 +1,12 @@
 package me.exrates.controller.merchants;
 
+import me.exrates.service.exception.InvalidPayeeWalletException;
 import me.exrates.service.exception.MerchantInternalException;
-import org.springframework.http.ResponseEntity;
-import org.springframework.ui.Model;
+import me.exrates.service.exception.NotEnoughCompanyWalletMoneyException;
+import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.FlashMap;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap;
 import org.springframework.web.servlet.support.RequestContextUtils;
 import org.springframework.web.servlet.view.RedirectView;
 
@@ -34,4 +32,48 @@ public class MerchantsExceptionHandlingAdvice {
         }
         return redirectView;
     }
+
+    @ExceptionHandler(NotEnoughUserWalletMoneyException.class)
+    public RedirectView handleNotEnoughMoney(NotEnoughUserWalletMoneyException e, HttpServletRequest request,HttpServletResponse response) {
+        final RedirectView redirectView = new RedirectView("/merchants/output");
+        final FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
+        if (flashMap != null) {
+            flashMap.put("error","merchants.notEnoughMoney");
+        }
+        return redirectView;
+    }
+
+
+    //// TODO: 3/8/16 In this case block user acc and tell him about it
+    @ExceptionHandler(NotEnoughCompanyWalletMoneyException.class)
+    public RedirectView handleNotEnoughUserWalletMoneyException(NotEnoughUserWalletMoneyException e, HttpServletRequest request,HttpServletResponse response) {
+        final RedirectView redirectView = new RedirectView("/merchants/output");
+        final FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
+        if (flashMap != null) {
+            flashMap.put("error","merchants.notEnoughMoney");
+        }
+        return redirectView;
+    }
+
+    @ExceptionHandler(InvalidPayeeWalletException.class)
+    public RedirectView handleInvalidPayeeWalletException(InvalidPayeeWalletException e, HttpServletRequest request,HttpServletResponse response) {
+        final RedirectView redirectView = new RedirectView("/merchants/output");
+        final FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
+        if (flashMap != null) {
+            flashMap.put("error","merchants.incorrectPaymentDetails");
+        }
+        return redirectView;
+    }
+
+//    @ExceptionHandler(InvalidAmountException.class)
+//    public RedirectView handleInvalidPayeeWalletException(InvalidAmountException e, HttpServletRequest request,HttpServletResponse response) {
+//        final RedirectView redirectView = new RedirectView("/merchants/output");
+//        final FlashMap flashMap = RequestContextUtils.getOutputFlashMap(request);
+//        if (flashMap != null) {
+//            flashMap.put("error","merchants.incorrectPaymentDetails");
+//        }
+//        return redirectView;
+//    }
+
+
 }

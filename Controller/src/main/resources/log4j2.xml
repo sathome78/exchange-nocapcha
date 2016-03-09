@@ -13,7 +13,7 @@
     </Appenders>
     <Loggers>
         <Logger name="me.exrates" level="debug">
-
+            <AppenderRef ref="Console"/>
             <AppenderRef ref="Log"/>
         </Logger>
         <logger name="org.springframework.jdbc.core" level="ALL">
@@ -21,8 +21,8 @@
             <!--<Appender-ref ref="Log"  />-->
         </logger>
         <logger name="org.springframework" level="ALL">
-           
-            <Appender-ref ref="Log"  />
+            <!--<AppenderRef ref="Console"/>-->
+            <!--<Appender-ref ref="Log"  />-->
         </logger>
         <Root level="error">
             <AppenderRef ref="Merchant"/>

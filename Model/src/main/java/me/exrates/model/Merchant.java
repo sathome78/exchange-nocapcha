@@ -9,9 +9,6 @@ public class Merchant {
     private String name;
     private String description;
 
-    public Merchant() {
-    }
-
     public int getId() {
         return id;
     }

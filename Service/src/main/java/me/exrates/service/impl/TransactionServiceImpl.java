@@ -3,18 +3,13 @@ package me.exrates.service.impl;
 import me.exrates.dao.TransactionDao;
 import me.exrates.model.*;
 import me.exrates.model.enums.OperationType;
-import me.exrates.service.CompanyWalletService;
-import me.exrates.service.OrderService;
-import me.exrates.service.TransactionService;
-import me.exrates.service.UserService;
-import me.exrates.service.WalletService;
+import me.exrates.service.*;
 import me.exrates.service.exception.TransactionPersistException;
-
+import me.exrates.service.exception.TransactionProvidingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.servlet.ModelAndView;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -38,16 +33,16 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Autowired
     private CompanyWalletService companyWalletService;
-    
+
     @Autowired
     private UserService userService;
-    
+
     @Autowired
     private OrderService orderService;
 
     @Override
     @Transactional(propagation = Propagation.NESTED)
-    public Transaction provideTransaction(CreditsOperation creditsOperation) {
+    public Transaction createTransactionRequest(CreditsOperation creditsOperation) {
         final Currency currency = creditsOperation.getCurrency();
         final User user = creditsOperation.getUser();
 
@@ -67,23 +62,41 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setDatetime(LocalDateTime.now());
         transaction.setMerchant(creditsOperation.getMerchant());
         transaction.setOperationType(creditsOperation.getOperationType());
-        switch (creditsOperation.getOperationType()) {
-            case INPUT :
-                walletService.depositActiveBalance(userWallet,creditsOperation.getAmount());
-                companyWalletService.deposit(companyWallet,creditsOperation.getAmount(),
-                        creditsOperation.getCommissionAmount());
-                break;
-            case OUTPUT:
-                walletService.withdrawActiveBalance(userWallet,creditsOperation.getAmount());
-                companyWalletService.withdraw(companyWallet,creditsOperation.getAmount(),
-                        creditsOperation.getCommissionAmount());
-                break;
-        }
+        transaction.setProvided(false);
+
         transaction = transactionDao.create(transaction);
         if (transaction==null) {
             throw new TransactionPersistException("Failed to provide transaction ");
         }
         return transaction;
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.NESTED)
+    public void provideTransaction(Transaction transaction) {
+        switch (transaction.getOperationType()) {
+            case INPUT :
+                walletService.depositActiveBalance(transaction.getUserWallet(),transaction.getAmount());
+                companyWalletService.deposit(transaction.getCompanyWallet(),transaction.getAmount(),
+                        transaction.getCommissionAmount());
+                break;
+            case OUTPUT:
+                walletService.withdrawActiveBalance(transaction.getUserWallet(),transaction.getAmount());
+                companyWalletService.withdraw(transaction.getCompanyWallet(),transaction.getAmount(),
+                        transaction.getCommissionAmount());
+                break;
+        }
+        if (!transactionDao.provide(transaction.getId())) {
+            throw new TransactionProvidingException("Failed to provide transaction #"+transaction.getId());
+        }
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.NESTED)
+    public void invalidateTransaction(Transaction transaction) {
+        if (!transactionDao.delete(transaction.getId())) {
+            throw new TransactionProvidingException("Failed to delete transaction #"+transaction.getId());
+        }
     }
 
     @Override
@@ -94,10 +107,10 @@ public class TransactionServiceImpl implements TransactionService {
         }
         return transactionDao.findAllByUserWallets(userWalletsIds);
     }
-    
+
     @Override
     public List<OperationView> showMyOperationHistory(String email) {
-    	int id = userService.getIdByEmail(email); 
+    	int id = userService.getIdByEmail(email);
     	final List<Integer> collect = walletService.getAllWallets(id)
                  .stream()
                  .mapToInt(Wallet::getId)

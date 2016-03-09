@@ -11,7 +11,11 @@ import java.util.List;
  */
 public interface TransactionService {
 
-    Transaction provideTransaction(CreditsOperation creditsOperation);
+    Transaction createTransactionRequest(CreditsOperation creditsOperation);
+
+    void provideTransaction(Transaction transaction);
+
+    void invalidateTransaction(Transaction transaction);
 
     List<Transaction> findAllByUserWallets(List<Integer> userWalletsIds);
     

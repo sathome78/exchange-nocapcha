@@ -11,5 +11,9 @@ public interface TransactionDao {
 
     Transaction create(Transaction transaction);
 
+    boolean provide(int id);
+
+    boolean delete(int id);
+
     List<Transaction> findAllByUserWallets(List<Integer> walletIds);
 }

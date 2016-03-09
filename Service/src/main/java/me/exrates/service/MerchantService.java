@@ -1,11 +1,7 @@
 package me.exrates.service;
 
-import me.exrates.model.CreditsOperation;
-import me.exrates.model.Currency;
-import me.exrates.model.Merchant;
-import me.exrates.model.Payment;
+import me.exrates.model.*;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -22,6 +18,12 @@ public interface MerchantService {
     Map<Integer,List<Merchant>> mapMerchantsToCurrency(List<Currency> currencies);
 
     Merchant findById(int id);
+
+    List<MerchantCurrency> findAllByCurrencies(List<Integer> currenciesId);
+
+    Map<String, String> formatResponseMessage(CreditsOperation creditsOperation);
+
+    Map<String, String> formatResponseMessage(Transaction transaction);
 
     Optional<CreditsOperation> prepareCreditsOperation (Payment payment, String userEmail);
 }

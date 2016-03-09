@@ -1,15 +1,5 @@
 package me.exrates.service.impl;
 
-import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
 import me.exrates.dao.OrderDao;
 import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
@@ -17,12 +7,7 @@ import me.exrates.model.Order;
 import me.exrates.model.Wallet;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
-import me.exrates.service.CommissionService;
-import me.exrates.service.CompanyWalletService;
-import me.exrates.service.OrderService;
-import me.exrates.service.UserService;
-import me.exrates.service.WalletService;
-
+import me.exrates.service.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +15,10 @@ import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Service
 public class OrderServiceImpl implements OrderService{
