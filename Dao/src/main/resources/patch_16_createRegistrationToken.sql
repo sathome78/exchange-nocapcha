@@ -13,6 +13,5 @@ CREATE TABLE IF NOT EXISTS `Birzha`.`REGISTRATION_TOKEN` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
 
-
-
+INSERT DATABASE_PATCH VALUES('patch_15_added_data_currency_pairs',default,1);
 INSERT DATABASE_PATCH VALUES('patch_16_createRegistrationToken',default,1);
