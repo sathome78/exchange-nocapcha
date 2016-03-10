@@ -63,7 +63,7 @@ public class UserServiceImpl implements UserService {
  							" <a href='"+
  							rootUrl+
  							confirmationUrl+
- 							"'>Link</a>"
+ 							"'>Ссылка</a>"
  							);
  					email.setSubject(messageSource.getMessage("emailsubmitregister.subject", null, ru));
  				
@@ -78,7 +78,6 @@ public class UserServiceImpl implements UserService {
  
  	@Transactional(rollbackFor=Exception.class)
  	public void verifyUserEmail(String token) {
- 		System.out.println("token = "+token);
  		RegistrationToken rt = userdao.verifyToken(token);
 		userdao.deleteRegistrationToken(rt);
 		User user = new User();
