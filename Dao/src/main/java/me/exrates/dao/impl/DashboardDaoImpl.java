@@ -23,8 +23,11 @@ public class DashboardDaoImpl implements DashboardDao{
 
     @Override
     public Order getLastClosedOrder(CurrencyPair currencyPair){
-        String sql = "SELECT * FROM ORDERS WHERE status = 3 AND currency_sell = :currency_sell AND currency_buy = :currency_buy" +
-                " AND date_final=(SELECT MAX(date_final) FROM ORDERS WHERE status = 3 AND currency_sell = :currency_sell AND currency_buy = :currency_buy)";
+        String sql = "SELECT * FROM ORDERS WHERE status = 3 AND (currency_sell = :currency_sell OR currency_sell = :currency_buy) " +
+                "AND (currency_buy = :currency_buy OR currency_buy = :currency_sell)" +
+                " AND date_final=(SELECT MAX(date_final) FROM ORDERS WHERE status = 3 AND " +
+                "(currency_sell = :currency_sell OR currency_sell = :currency_buy) AND " +
+                "(currency_buy = :currency_buy OR currency_buy = :currency_sell))";
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         Map<String, String> namedParameters = new HashMap<String, String>();
         namedParameters.put("currency_sell", String.valueOf(currencyPair.getCurrency1().getId()));
@@ -93,8 +96,16 @@ public class DashboardDaoImpl implements DashboardDao{
 
     @Override
     public List<Map<String, Object>> getDataForChart(CurrencyPair currencyPair){
-        String sql = "SELECT date_final, (amount_buy/amount_sell) as amount, amount_sell FROM ORDERS WHERE currency_buy = :currency_buy AND currency_sell = :currency_sell " +
-                "AND date_final IS NOT NULL order by date_final limit 12;";
+        String sql = "SELECT date_final, " +
+                "CASE WHEN currency_buy = :currency_buy AND currency_sell = :currency_sell THEN\n" +
+                "\t(amount_buy/amount_sell)\n" +
+                "    ELSE CASE WHEN currency_buy = :currency_sell AND currency_sell = :currency_buy THEN\n" +
+                "    (amount_sell/amount_buy) END END as amount,\n" +
+                "CASE WHEN currency_buy = :currency_buy AND currency_sell = :currency_sell THEN\n" +
+                "\tamount_sell\n" +
+                "    ELSE CASE WHEN currency_buy = :currency_sell AND currency_sell = :currency_buy THEN\n" +
+                "    amount_buy END END as amount_sell FROM ORDERS WHERE date_final IS NOT NULL order by date_final limit 12;";
+
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         Map<String, String> namedParameters = new HashMap<String, String>();
         namedParameters.put("currency_sell", String.valueOf(currencyPair.getCurrency1().getId()));

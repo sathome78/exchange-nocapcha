@@ -57,7 +57,12 @@ public class DashboardController {
         model.addObject("currencyPairs", currencyPairs);
         model.addObject("currencyPair", currencyPair);
 
-        model.addObject("lastOrder", dashboardService.getLastClosedOrder(currencyPair));
+        Order lastOrder = dashboardService.getLastClosedOrder(currencyPair);
+        model.addObject("lastOrder", lastOrder);
+        if (lastOrder.getCurrencyBuy() != 0){
+            model.addObject("lastOrderCurrency", currencyService.getCurrencyName(lastOrder.getCurrencyBuy()));
+        }
+
 
         List<Order> ordersBuy = dashboardService.getAllBuyOrders(currencyPair);
         List<Order> ordersSell = dashboardService.getAllSellOrders(currencyPair);
