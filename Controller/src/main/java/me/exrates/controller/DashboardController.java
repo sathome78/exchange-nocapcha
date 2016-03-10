@@ -35,6 +35,8 @@ public class DashboardController {
     @Autowired
     CommissionService commissionService;
 
+    private CurrencyPair currentCurrencyPair;
+
     @RequestMapping(value = {"/dashboard"})
     public ModelAndView dashboard(@ModelAttribute CurrencyPair currencyPair, Principal principal) {
         ModelAndView model = new ModelAndView();
@@ -51,10 +53,11 @@ public class DashboardController {
             }
         }
 
+        currentCurrencyPair = currencyPair;
         model.addObject("currencyPairs", currencyPairs);
         model.addObject("currencyPair", currencyPair);
 
-        model.addObject("lastOrder", dashboardService.getLastClosedOrder());
+        model.addObject("lastOrder", dashboardService.getLastClosedOrder(currencyPair));
 
         List<Order> ordersBuy = dashboardService.getAllBuyOrders(currencyPair);
         List<Order> ordersSell = dashboardService.getAllSellOrders(currencyPair);
@@ -99,7 +102,7 @@ public class DashboardController {
     @RequestMapping(value = "/dashboard/chartArray", method = RequestMethod.GET)
     public @ResponseBody ArrayList chartArray() {
 
-        CurrencyPair currencyPair = currencyService.getCurrencyPairById(2,1);
+        CurrencyPair currencyPair = currentCurrencyPair;
         List<Map<String, Object>> list = dashboardService.getDataForChart(currencyPair);
 
         ArrayList<ArrayList> arrayListMain = new ArrayList<ArrayList>();
