@@ -8,6 +8,10 @@ import me.exrates.service.OrderService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
+import me.exrates.service.impl.UserServiceImpl;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -16,9 +20,11 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
+
 import java.security.Principal;
 import java.util.List;
   
@@ -36,6 +42,8 @@ RegisterFormValidation registerFormValidation;
 
 @Autowired
 HttpServletRequest request;
+
+private static final Logger logger = LogManager.getLogger(MainController.class);
 
     @Autowired
     private TransactionService transactionService;
@@ -63,9 +71,9 @@ HttpServletRequest request;
 	 return new ModelAndView("register", "user", user);
  }  
   
- @RequestMapping(value = "/create")
- public ModelAndView createUser(User user, BindingResult result, ModelMap model) {  
-
+ @RequestMapping(value = "/create", method = RequestMethod.POST)
+ public ModelAndView createUser(@ModelAttribute User user, BindingResult result, ModelMap model, HttpServletRequest request) {  
+	 boolean flag=false;
 	 registerFormValidation.validate(user, result);  
 	 if(result.hasErrors()){
     	 return new ModelAndView("register", "user", user); 
@@ -73,19 +81,33 @@ HttpServletRequest request;
      
      else{
     	 user = (User) result.getModel().get("user");  
-    	 if(userService.create(user)) {
-         	// logger.info("User registered with parameters = "+user.toString());
-        	return new ModelAndView("ProveRegistration", "user", user); 
-         }
-         else{
-         	//logger.error("User couldn't be registered with parameters = "+user.toString());
-        	return new ModelAndView("DBError", "user", user);
-         }
-	
-	    
+    	 try {
+    		 userService.create(user);
+    		 flag=true;
+    		 logger.info("User registered with parameters = "+user.toString());   	
+    	 } catch (Exception e) {
+    		 e.printStackTrace();
+    		logger.error("User can't be registered with parameters = "+user.toString()+"  "+e.getMessage());
+    	 }
+     if(flag) return new ModelAndView("ProveRegistration", "user", user); 
+     else  	return new ModelAndView("DBError", "user", user);
+     }       	    
  }  
+	 
+  @RequestMapping(value = "/registrationConfirm")
+  public ModelAndView verifyEmail(WebRequest request, @RequestParam("token") String token) {   
+	  ModelAndView model = new ModelAndView();
+	  try {
+		  userService.verifyUserEmail(token);
+ 		  model.setViewName("RegistrationConfirmed");
+	  } catch (Exception e) {
+		  model.setViewName("DBError");
+		  e.printStackTrace();
+		  logger.error("Error while verifing user registration email  "+e.getLocalizedMessage());
+	  }
+	  return model;
+  } 
  
- } 
   @RequestMapping("/personalpage")  
   public ModelAndView gotoPersonalPage(@ModelAttribute User user, Principal principal) {  
 	  String host = request.getRemoteHost();

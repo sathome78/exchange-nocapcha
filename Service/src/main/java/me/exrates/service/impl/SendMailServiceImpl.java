@@ -18,47 +18,30 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.mail.javamail.MimeMessagePreparator;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
+@Service
 public class SendMailServiceImpl implements SendMailService{
 
 	@Autowired
 	private JavaMailSender mailSender;
 	
-	@Autowired
-	MessageSource messageSource;
-	
-	private static final Locale ru = new Locale("ru");
-	
 	private static final Logger logger = LogManager.getLogger(SendMailServiceImpl.class);
 
-	public boolean sendMail(Email email) {
-		Boolean flag = false;
-		email.setMessage(messageSource.getMessage("emailsubmitregister.text", null, ru));
-		email.setSubject(messageSource.getMessage("emailsubmitregister.subject", null, ru));
+	public void sendMail(Email email){
 		email.setFrom("exrates@exrates.me");
-		try {
-		mailSender.send(new MimeMessagePreparator() {
-			  public void prepare(MimeMessage mimeMessage) {
+        mailSender.send(new MimeMessagePreparator() {
+			  public void prepare(MimeMessage mimeMessage) throws MessagingException {
 			    MimeMessageHelper message;
-				try {
-					message = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-					message.setFrom(email.getFrom());
-				    message.setTo(email.getTo());
-				    message.setSubject(email.getSubject());
-				    message.setText(email.getMessage(), true);
-				} catch (MessagingException e) {
-					e.printStackTrace();
-					logger.error(e.getLocalizedMessage());
-				}
-			    
+				message = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+				message.setFrom(email.getFrom());
+			    message.setTo(email.getTo());
+			    message.setSubject(email.getSubject());
+			    message.setText(email.getMessage(), true);
 			  }
 			});
-			flag=true;
-		} catch(MailException e) {
-			e.printStackTrace();
-			logger.error("Can't send mail: "+e.getLocalizedMessage());
-		}
-		return flag;
 }
 	
 }

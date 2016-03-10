@@ -42,23 +42,23 @@
                         <div class="row">
                             <loc:message code="register.nickname" var="login"/>
                             <registrationform:input path="nickname"  class="form-control" placeholder="${login}" required="required" />
-                            <registrationform:errors path="nickname" class="form-control"  />
+                            <registrationform:errors path="nickname" style="color:red" class="form-control"  />
                         </div>
                         <div class="row">
                             <label for="email"><loc:message code="register.loginLabel"/></label>
                             <loc:message code="register.email" var="email"/>
                             <registrationform:input id="email" path="email" class="form-control" placeholder="${email}" required="required"/>
-                            <registrationform:errors path="email" class="form-control" />
+                            <registrationform:errors path="email" style="color:red" class="form-control" />
                         </div>
                         <div class="row">
                             <loc:message code="register.password" var="password"/>
                             <registrationform:input path="password" type="password" placeholder="${password}" class="form-control" required="required"/>
-                            <registrationform:errors path="password" class="form-control" />
+                            <registrationform:errors path="password" style="color:red" class="form-control" />
                         </div>
                         <div class="row">
                             <loc:message code="register.repeatpassword" var="repassword"/>
                             <registrationform:input path="confirmPassword" type="password" placeholder="${repassword}" class="form-control"  required="required" />
-                            <registrationform:errors path="confirmPassword" class="form-control" />
+                            <registrationform:errors path="confirmPassword" style="color:red" class="form-control" />
                         </div>
                    <!--      <div class="row offerta">
                             <registrationform:checkbox path="readRules" class="form-control" id="1" value="ReadRulesOk" required="required"  />

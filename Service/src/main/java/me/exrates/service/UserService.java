@@ -15,4 +15,6 @@ public interface UserService {
     boolean ifEmailIsUnique(String email);
 
     String logIP(String email, String host);
+    
+    public void verifyUserEmail(String token);
 }
