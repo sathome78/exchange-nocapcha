@@ -129,13 +129,13 @@
             <ul class="order__history__item">
                 <li><span><loc:message code="dasbboard.lastOrder"/></span>
                     <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountBuy()}"/>
-                    ${currencyPair.getCurrency2().getName()}</li>
+                    ${lastOrderCurrency}</li>
                 <li><span><loc:message code="dasbboard.priceStart"/></span>
                     <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountBuy()}"/>
-                    ${currencyPair.getCurrency2().getName()}</span></li>
+                    ${lastOrderCurrency}</span></li>
                 <li><span><loc:message code="dasbboard.priceEnd"/></span>
                     <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountBuy()}"/>
-                    ${currencyPair.getCurrency2().getName()}</span></li>
+                    ${lastOrderCurrency}</span></li>
                 <li><span><loc:message code="dasbboard.volume"/></span>
                     <fmt:formatNumber type="number" maxFractionDigits="9" value="${sumAmountBuyClosed}"/>
                     ${currencyPair.getCurrency1().getName()}</span></li>
@@ -201,7 +201,9 @@
                             <div class="col-sm-8 btc__currency">
                                     <%--<input class="form-control" type="text" value="0">--%>
                                 <form:errors path="amountSell" style="color:red" />
-                                <form:input path="amountSell" class="form-control" id="amountSellForm1" placeholder="0"/>
+                                <input class="form-control" id="amountSellForm1" placeholder="0"/>
+                                <form:input type="hidden" path="amountSell" class="form-control" id="sumSellForm1" placeholder="0"/>
+
                                 <i>${currencyPair.getCurrency2().getName()}</i>
                             </div>
                         </div>
@@ -209,7 +211,7 @@
                             <label class="col-sm-4 control-label" for="#"><loc:message code="dasbboard.total"/></label>
                             <div class="col-sm-8 btc__currency">
                                 <div class="item-form">
-                                    <b id="sumBuyWithCommission"></b> ${currencyPair.getCurrency1().getName()}
+                                    <b id="sumBuyWithCommission"></b> ${currencyPair.getCurrency2().getName()}
                                 </div>
                             </div>
                         </div>
@@ -227,8 +229,8 @@
                                 <button type="button" class="btn btn-primary" name="calculateBuy"><loc:message code="dasbboard.calculate"/></button>
                                 <c:set var="BUY" value="<%=me.exrates.model.enums.OperationType.BUY%>"/>
                                 <form:hidden path="operationType" value= "${BUY}" />
-                                <form:hidden path="currencySell" value= "1" />
-                                <form:hidden path="currencyBuy" value= "2" />
+                                <form:hidden path="currencySell" value= "${currencyPair.getCurrency2().getId()}" />
+                                <form:hidden path="currencyBuy" value= "${currencyPair.getCurrency1().getId()}" />
                                 <button class="btn btn-buy" type="submit"><loc:message code="dasbboard.buy"/> ${currencyPair.getCurrency1().getName()}</button>
 
                             </div>
@@ -261,8 +263,9 @@
                         <div class="form-group">
                             <label class="col-sm-4 control-label" for="#"><loc:message code="dasbboard.priceFor"/> ${currencyPair.getCurrency1().getName()}:</label>
                             <div class="col-sm-8 btc__currency">
-                                <form:errors path="amountBuy" style="color:red" />
-                                <form:input path="amountBuy" class="form-control" id="amountBuyForm2" placeholder="0"/>
+                                <%--<form:errors path="amountBuy" style="color:red" />--%>
+                                <input class="form-control" id="amountBuyForm2" placeholder="0"/>
+                                <form:input type="hidden" path="amountBuy" class="form-control" id="sumBuyForm2" placeholder="0"/>
                                 <i>${currencyPair.getCurrency2().getName()}</i>
                             </div>
                         </div>
@@ -287,8 +290,8 @@
                                 <button type="button" name="calculateSell" class="btn btn-primary"><loc:message code="dasbboard.calculate"/></button>
                                 <c:set var="SELL" value="<%=me.exrates.model.enums.OperationType.SELL%>"/>
                                 <form:hidden path="operationType" value= "${SELL}" />
-                                <form:hidden path="currencySell" value= "2" />
-                                <form:hidden path="currencyBuy" value= "1" />
+                                <form:hidden path="currencySell" value= "${currencyPair.getCurrency1().getId()}" />
+                                <form:hidden path="currencyBuy" value= "${currencyPair.getCurrency2().getId()}" />
                                 <button class="btn btn-sell" type="submit" ><loc:message code="dasbboard.sell"/> ${currencyPair.getCurrency1().getName()}</button>
                             </div>
                         </div>
