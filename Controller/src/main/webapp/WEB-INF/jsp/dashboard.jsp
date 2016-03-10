@@ -129,13 +129,13 @@
             <ul class="order__history__item">
                 <li><span><loc:message code="dasbboard.lastOrder"/></span>
                     <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountBuy()}"/>
-                    ${currencyPair.getCurrency2().getName()}</li>
+                    ${lastOrderCurrency}</li>
                 <li><span><loc:message code="dasbboard.priceStart"/></span>
                     <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountBuy()}"/>
-                    ${currencyPair.getCurrency2().getName()}</span></li>
+                    ${lastOrderCurrency}</span></li>
                 <li><span><loc:message code="dasbboard.priceEnd"/></span>
                     <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountBuy()}"/>
-                    ${currencyPair.getCurrency2().getName()}</span></li>
+                    ${lastOrderCurrency}</span></li>
                 <li><span><loc:message code="dasbboard.volume"/></span>
                     <fmt:formatNumber type="number" maxFractionDigits="9" value="${sumAmountBuyClosed}"/>
                     ${currencyPair.getCurrency1().getName()}</span></li>
