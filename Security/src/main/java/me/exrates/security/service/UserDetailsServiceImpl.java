@@ -58,7 +58,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	}
     
     private boolean ifUserAllowed(User user) {
-    	if(user.getStatus().getStatus()==2 || user.getStatus().getStatus()==1) {
+    	if(user.getStatus().getStatus()==2) {
     		return true;
     	}
     	return false;

@@ -43,7 +43,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .authorizeRequests()
                 .antMatchers("/admin/**", "/admin").hasAnyAuthority("administrator", "accountant", "admin_user")
-                .antMatchers("/index.jsp","/client/**","/dashboard/**").permitAll()
+                .antMatchers("/index.jsp","/client/**","/dashboard/**","/registrationConfirm/**").permitAll()
                 .antMatchers(HttpMethod.POST,"/merchants/perfectmoney/payment/status",
                         "/merchants/perfectmoney/payment/success",
                         "/merchants/perfectmoney/payment/failure").permitAll()

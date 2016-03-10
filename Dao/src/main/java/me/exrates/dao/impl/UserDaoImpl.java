@@ -1,8 +1,10 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.UserDao;
+import me.exrates.model.RegistrationToken;
 import me.exrates.model.User;
 import me.exrates.model.enums.UserStatus;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -154,11 +156,44 @@ public class UserDaoImpl implements UserDao {
 		return jdbcTemplate.update(sql, namedParameters) > 0;
 	}
 
-	public void update(User user) {
-		// TODO Auto-generated method stub
+	public boolean createRegistrationToken(RegistrationToken token) {
+		String sql = "insert into REGISTRATION_TOKEN(value,user_id) values(:value,:user_id)";
+		Map<String, String> namedParameters = new HashMap<String, String>();
+		namedParameters.put("value", token.getValue());
+		namedParameters.put("user_id", String.valueOf(token.getUserId()));
+		return jdbcTemplate.update(sql, namedParameters) > 0;
+	}
+	
+	public RegistrationToken verifyToken(String token) {
+		String sql = "SELECT * FROM REGISTRATION_TOKEN WHERE VALUE= :value";
+		Map<String, String> namedParameters = new HashMap<String, String>();
+		namedParameters.put("value", token);
+		return jdbcTemplate.query(sql, namedParameters, (rs, row) -> {
+                    RegistrationToken rt = new RegistrationToken();
+                    rt.setId(rs.getInt("id"));
+                    rt.setUserId(rs.getInt("user_id"));
+                    rt.setValue(token);
+                    rt.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
+                    rt.setExpired(rs.getBoolean("expired"));
+                	return rt;
+ 
+		}).get(0);
+	}
+	
+	public boolean deleteRegistrationToken(RegistrationToken token) {
+		String sql = "delete from REGISTRATION_TOKEN where id = :id";
+		Map<String, String> namedParameters = new HashMap<String, String>();
+		namedParameters.put("id", String.valueOf(token.getId()));
+		return jdbcTemplate.update(sql, namedParameters) > 0;
+	}
+	
+	public boolean updateUserStatus(User user) {
+		String sql = "update USER set status=:status where id=:id";
+		Map<String, String> namedParameters = new HashMap<String, String>();
+		namedParameters.put("status", String.valueOf(user.getStatus().getStatus()));
+		namedParameters.put("id", String.valueOf(user.getId()));
+		return jdbcTemplate.update(sql, namedParameters) > 0;
 	}
 
-	public void delete(User user) {
-		// TODO Auto-generated method stub
-	}
+
 }

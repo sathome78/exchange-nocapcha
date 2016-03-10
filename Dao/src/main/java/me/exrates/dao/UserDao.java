@@ -2,6 +2,7 @@ package me.exrates.dao;
 
 import java.util.List;
 
+import me.exrates.model.RegistrationToken;
 import me.exrates.model.User;
 
 public interface UserDao {
@@ -28,11 +29,15 @@ public interface UserDao {
 
 	boolean addIPToLog(int userId, String ip);
 
-	void update(User user);
-
-	void delete(User user);
-
 	List<User> getAllUsers();
 
 	List<String> getUserRoles(String email);
+	
+	boolean createRegistrationToken(RegistrationToken token);
+	
+	RegistrationToken verifyToken(String token);
+	
+	boolean deleteRegistrationToken(RegistrationToken token);
+	
+	boolean updateUserStatus(User user);
 }

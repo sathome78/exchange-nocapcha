@@ -133,7 +133,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 	public JavaMailSenderImpl javaMailSenderImpl() {
 		final JavaMailSenderImpl mailSenderImpl = new JavaMailSenderImpl();
 		mailSenderImpl.setHost("mail.exrates.me");
-		mailSenderImpl.setPort(25);
+		mailSenderImpl.setPort(587);
 		mailSenderImpl.setProtocol("smtp");
 		mailSenderImpl.setUsername("exrates@exrates.me");
 		mailSenderImpl.setPassword("kEw5G7V676");
