@@ -18,8 +18,8 @@ public class DashboardServiceImpl implements DashboardService {
     DashboardDao dashboardDao;
 
     @Override
-    public Order getLastClosedOrder(){
-        return dashboardDao.getLastClosedOrder();
+    public Order getLastClosedOrder(CurrencyPair currencyPair){
+        return dashboardDao.getLastClosedOrder(currencyPair);
     }
 
     @Override

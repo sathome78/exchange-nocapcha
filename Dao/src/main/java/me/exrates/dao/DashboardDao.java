@@ -10,7 +10,7 @@ import java.util.Map;
 
 public interface DashboardDao {
 
-    Order getLastClosedOrder();
+    Order getLastClosedOrder(CurrencyPair currencyPair);
 
     List<Order> getAllBuyOrders(CurrencyPair currencyPair);
 

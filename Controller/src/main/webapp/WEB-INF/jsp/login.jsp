@@ -43,7 +43,6 @@
                 </c:if>
                 <c:url value="/login" var="loginUrl" />
                 <form action="${loginUrl}" method="post">
-                    <h2><loc:message code="login.title"/></h2>
                     <input type="text" class="form-control" name="username" placeholder="<loc:message code="login.email"/>" required autofocus>
                     <input type="password" class="form-control" name="password" placeholder="<loc:message code="login.password"/>" required>
                     <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
