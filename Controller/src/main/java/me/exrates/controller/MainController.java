@@ -25,6 +25,8 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.security.Principal;
 import java.util.List;
   
@@ -66,7 +68,7 @@ private static final Logger logger = LogManager.getLogger(MainController.class);
  } 
   
  @RequestMapping("/register")  
- public ModelAndView registerUser() {
+ public ModelAndView registerUser(HttpServletRequest request) {
 	 User user = new User();
 	 return new ModelAndView("register", "user", user);
  }  

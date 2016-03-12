@@ -1,6 +1,8 @@
 package me.exrates.service.impl;
 
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -57,8 +59,8 @@ public class UserServiceImpl implements UserService {
  					
  					Email email = new Email();
  					String confirmationUrl = "/registrationConfirm?token=" + token.getValue();
- 					String rootUrl = request.getLocalAddr();
- 					email.setMessage(
+ 					String rootUrl = request.getScheme() +"://"+ request.getServerName();
+					email.setMessage(
  							messageSource.getMessage("emailsubmitregister.text", null, ru)+
  							" <a href='"+
  							rootUrl+
