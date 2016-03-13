@@ -5,6 +5,7 @@ import java.util.List;
 import me.exrates.dao.UserDao;
 import me.exrates.model.User;
 
+import me.exrates.model.enums.UserRole;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,8 +20,12 @@ public class UserSecureServiceImpl implements UserSecureService {
 		return userDao.getAllUsers();
 		
 	}
-	
-	public List<String> getUserRoles(String email){
+
+	public List<User> getUsersByRoles(List<UserRole> listRoles){
+		return  userDao.getUsersByRoles(listRoles);
+	}
+
+	public UserRole getUserRoles(String email){
 		return userDao.getUserRoles(email);
 	}
 }

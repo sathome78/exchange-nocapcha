@@ -25,8 +25,6 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.security.Principal;
 import java.util.List;
   
@@ -56,19 +54,13 @@ private static final Logger logger = LogManager.getLogger(MainController.class);
     @Autowired 
     private OrderService orderService;  
   
- @RequestMapping("/admin")  
- public ModelAndView admin() {  
-   
-  return new ModelAndView("admin", "id", null);  
- }  
- 
- @RequestMapping("/403")  
+ @RequestMapping("/403")
  public String error403() {  
    return "403";  
  } 
   
  @RequestMapping("/register")  
- public ModelAndView registerUser(HttpServletRequest request) {
+ public ModelAndView registerUser() {
 	 User user = new User();
 	 return new ModelAndView("register", "user", user);
  }  
@@ -76,7 +68,8 @@ private static final Logger logger = LogManager.getLogger(MainController.class);
  @RequestMapping(value = "/create", method = RequestMethod.POST)
  public ModelAndView createUser(@ModelAttribute User user, BindingResult result, ModelMap model, HttpServletRequest request) {  
 	 boolean flag=false;
-	 registerFormValidation.validate(user, result);  
+	 registerFormValidation.validate(user, result);
+	 user.setPhone("");
 	 if(result.hasErrors()){
     	 return new ModelAndView("register", "user", user); 
      }

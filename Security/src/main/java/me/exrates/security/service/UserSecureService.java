@@ -3,10 +3,13 @@ package me.exrates.security.service;
 import java.util.List;
 
 import me.exrates.model.User;
+import me.exrates.model.enums.UserRole;
 
 public interface UserSecureService {
 
 public List<User> getAllUsers();
 
-public List<String> getUserRoles(String email);
+public List<User> getUsersByRoles(List<UserRole> listRoles);
+
+public UserRole getUserRoles(String email);
 }

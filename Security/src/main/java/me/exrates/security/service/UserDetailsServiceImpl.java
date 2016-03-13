@@ -1,6 +1,7 @@
 package me.exrates.security.service;
 
 import me.exrates.model.User;
+import me.exrates.model.enums.UserRole;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -49,11 +50,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
       
     private Collection<GrantedAuthority> getAuthorities(String login)
 	{
-		List<String> roleList = userSecureService.getUserRoles(login);
+		UserRole role = userSecureService.getUserRoles(login);
     	Collection<GrantedAuthority> authList = new ArrayList<GrantedAuthority>();
-		for(String role: roleList) {
-	    	authList.add(new SimpleGrantedAuthority(role));	
-		}
+    	authList.add(new SimpleGrantedAuthority(role.name()));
+
 		return authList;
 	}
     

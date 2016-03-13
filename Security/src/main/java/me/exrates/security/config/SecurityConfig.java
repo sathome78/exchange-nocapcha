@@ -1,5 +1,6 @@
 package me.exrates.security.config;
 
+import me.exrates.model.enums.UserRole;
 import me.exrates.security.service.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,7 +43,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
-                .antMatchers("/admin/**", "/admin").hasAnyAuthority("administrator", "accountant", "admin_user")
+                .antMatchers("/admin/**", "/admin").hasAnyAuthority(UserRole.ADMINISTRATOR.name(),
+                UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
                 .antMatchers("/index.jsp","/client/**","/dashboard/**","/registrationConfirm/**").permitAll()
                 .antMatchers(HttpMethod.POST,"/merchants/perfectmoney/payment/status",
                         "/merchants/perfectmoney/payment/success",

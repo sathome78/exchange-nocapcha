@@ -1,8 +1,6 @@
 package me.exrates.service.impl;
 
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -13,6 +11,7 @@ import me.exrates.dao.UserDao;
 import me.exrates.model.Email;
 import me.exrates.model.RegistrationToken;
 import me.exrates.model.User;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
@@ -24,6 +23,8 @@ import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -119,4 +120,23 @@ public class UserServiceImpl implements UserService {
 		return UUID.randomUUID().toString();
 	
 	}
+
+    public 	List<UserRole> getAllRoles(){
+		return userdao.getAllRoles();
+	}
+
+	public 	User getUserById(int id){
+		return userdao.getUserById(id);
+	}
+
+	@Transactional(rollbackFor=Exception.class)
+	public boolean createUserByAdmin(User user){
+		return userdao.create(user);
+	}
+
+	@Transactional(rollbackFor=Exception.class)
+	public boolean updateUserByAdmin(User user){
+		return userdao.update(user);
+	}
+
 }
