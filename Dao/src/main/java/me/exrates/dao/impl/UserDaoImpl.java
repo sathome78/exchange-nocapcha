@@ -57,8 +57,8 @@ public class UserDaoImpl implements UserDao {
 	}
 
 	public UserRole getUserRoles(String email) {
-		String sql = "select user_role.name as role_name from USER " +
-				"inner join USER_ROLE on user.roleid = user_role.id where user.email = :email";
+		String sql = "select USER_ROLE.name as role_name from USER " +
+				"inner join USER_ROLE on USER.roleid = USER_ROLE.id where USER.email = :email";
 		Map<String, String> namedParameters = new HashMap<>();
 		namedParameters.put("email", email);
 		return jdbcTemplate.query(sql, namedParameters, (rs, row) -> {
@@ -111,8 +111,8 @@ public class UserDaoImpl implements UserDao {
 		}
 
 		public User getUserById(int id) {
-			String sql = "select user.id, nickname, email, password, regdate, phone, status, user_role.name as role_name from USER " +
-					"inner join USER_ROLE on user.roleid = user_role.id where user.id = :id";
+			String sql = "select USER.id, nickname, email, password, regdate, phone, status, USER_ROLE.name as role_name from USER " +
+					"inner join USER_ROLE on USER.roleid = USER_ROLE.id where USER.id = :id";
 			Map<String, String> namedParameters = new HashMap<String, String>();
 			namedParameters.put("id", String.valueOf(id));
 
@@ -132,8 +132,8 @@ public class UserDaoImpl implements UserDao {
 		}
 
 		public List<User> getUsersByRoles(List<UserRole> listRoles) {
-		String sql = "select user.id, nickname, email, password, regdate, status, phone, user_role.name as role_name" +
-				" from USER inner join user_role on user.roleid = user_role.id where user_role.name IN (:roles)";
+		String sql = "select USER.id, nickname, email, password, regdate, status, phone, USER_ROLE.name as role_name" +
+				" from USER inner join USER_ROLE on USER.roleid = USER_ROLE.id where USER_ROLE.name IN (:roles)";
 		Map<String, List> namedParameters = new HashMap<String, List>();
 		List<String> stringList = new ArrayList<>();
 			for (UserRole userRole : listRoles){
@@ -221,7 +221,7 @@ public class UserDaoImpl implements UserDao {
 
 		public boolean update(User user) {
 			String sql = "UPDATE USER SET nickname = :nickname, email = :email, password = :password," +
-					"phone = :phone, status = :status, roleid = :roleid WHERE user.id = :id; ";
+					"phone = :phone, status = :status, roleid = :roleid WHERE USER.id = :id; ";
 
 			Map<String, String> namedParameters = new HashMap<String, String>();
 			namedParameters.put("id", String.valueOf(user.getId()));
