@@ -139,6 +139,7 @@ private static final Logger logger = LogManager.getLogger(MainController.class);
 			model.addObject("msg", "You've been logged out successfully.");
 		}
 		model.setViewName("login");
+		
 
 		return model;
 

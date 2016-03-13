@@ -22,3 +22,5 @@ ADD CONSTRAINT `fk_REGISTRATION_TOKEN_USER1`
 
 INSERT DATABASE_PATCH VALUES('patch_15_added_data_currency_pairs',default,1);
 INSERT DATABASE_PATCH VALUES('patch_16_createRegistrationToken',default,1);
+
+
