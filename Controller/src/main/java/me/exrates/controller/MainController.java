@@ -60,7 +60,7 @@ private static final Logger logger = LogManager.getLogger(MainController.class);
  } 
   
  @RequestMapping("/register")  
- public ModelAndView registerUser() {
+ public ModelAndView registerUser(HttpServletRequest request) {
 	 User user = new User();
 	 return new ModelAndView("register", "user", user);
  }  
