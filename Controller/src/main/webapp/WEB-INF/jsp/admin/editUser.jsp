@@ -81,7 +81,7 @@
                                                 code="admin.role"/></label>
                                         <div class="col-md-8">
                                             <form:select path="role" id="user-role" class="form-control"
-                                                         name="user-role">
+                                                         name="user-role" >
                                                 <c:forEach items="${roleList}" var="role">
                                                     <option value="${role}" <c:if test="${role eq user.role}">SELECTED</c:if>>${role}</option>
                                                 </c:forEach>

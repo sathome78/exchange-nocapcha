@@ -40,7 +40,7 @@
                 <c:set var="adminEnum" value="<%=me.exrates.model.enums.UserRole.ADMINISTRATOR%>"/>
                 <c:set var="accountantEnum" value="<%=me.exrates.model.enums.UserRole.ACCOUNTANT%>"/>
                 <c:set var="admin_userEnum" value="<%=me.exrates.model.enums.UserRole.ADMIN_USER%>"/>
-                <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${adminEnum}')">
+                <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
                     <a href="<c:url value="/admin"/>" class="navabr__link">Администрирование</a>
                 </sec:authorize>
             </li>

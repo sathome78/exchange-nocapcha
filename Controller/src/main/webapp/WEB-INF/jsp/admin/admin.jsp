@@ -49,7 +49,7 @@
                 <c:set var="accountantEnum" value="<%=me.exrates.model.enums.UserRole.ACCOUNTANT%>"/>
                 <c:set var="admin_userEnum" value="<%=me.exrates.model.enums.UserRole.ADMIN_USER%>"/>
                 <ul class="nav nav-tabs">
-                    <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${adminEnum}')">
+                    <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
                         <li class="active"><a data-toggle="tab" href="#panel1"><loc:message code="admin.users"/></a></li>
                     </sec:authorize>
                     <sec:authorize access="hasAnyAuthority('${adminEnum}')">
@@ -60,7 +60,7 @@
                     </sec:authorize>
                 </ul>
                 <div class="tab-content">
-                    <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${adminEnum}')">
+                    <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
                         <div id="panel1" class="tab-pane fade in active">
                             <h3>
                                 <b><loc:message code="admin.listOfUsers"/></b>

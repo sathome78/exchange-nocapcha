@@ -7,6 +7,7 @@ import me.exrates.model.enums.UserStatus;
 import me.exrates.security.service.UserSecureServiceImpl;
 import me.exrates.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.validation.Valid;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -85,12 +87,19 @@ public class AdminController {
     }
 
     @RequestMapping("/admin/editUser")
-    public ModelAndView editUser(@RequestParam int id) {
+    public ModelAndView editUser(@RequestParam int id, Principal principal) {
 
         ModelAndView model = new ModelAndView();
 
         model.addObject("statusList", UserStatus.values());
-        model.addObject("roleList", userService.getAllRoles());
+        String currentRole = ((UsernamePasswordAuthenticationToken) principal).getAuthorities().iterator().next().getAuthority();
+        List<UserRole> roleList = new ArrayList<>();
+        if (currentRole.equals(UserRole.ADMIN_USER.name())||currentRole.equals(UserRole.ACCOUNTANT.name())){
+            roleList.add(UserRole.USER);
+        }else {
+            roleList = userService.getAllRoles();
+        }
+        model.addObject("roleList", roleList);
         User user = userService.getUserById(id);
         user.setId(id);
         model.addObject("user", user);
