@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<%@taglib uri="http://www.springframework.org/tags" prefix="loc"%> 
+<%@taglib uri="http://www.springframework.org/tags" prefix="loc"%>
+<%@ taglib uri="http://www.springframework.org/security/tags"  prefix="sec"%>
 <aside class="sidebar">
 
     <!-- begin Logo block -->
@@ -35,6 +36,14 @@
             <%--<li class="navabr__item">--%>
                 <%--<a href="#" class="navabr__link"><loc:message code="usermenu.settings"/></a>--%>
             <%--</li>--%>
+            <li class="navabr__item">
+                <c:set var="adminEnum" value="<%=me.exrates.model.enums.UserRole.ADMINISTRATOR%>"/>
+                <c:set var="accountantEnum" value="<%=me.exrates.model.enums.UserRole.ACCOUNTANT%>"/>
+                <c:set var="admin_userEnum" value="<%=me.exrates.model.enums.UserRole.ADMIN_USER%>"/>
+                <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+                    <a href="<c:url value="/admin"/>" class="navabr__link">Администрирование</a>
+                </sec:authorize>
+            </li>
         </ul>
         <!-- end navbar -->
 

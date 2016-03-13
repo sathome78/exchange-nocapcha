@@ -1,8 +1,6 @@
 package me.exrates.service.impl;
 
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -13,6 +11,7 @@ import me.exrates.dao.UserDao;
 import me.exrates.model.Email;
 import me.exrates.model.RegistrationToken;
 import me.exrates.model.User;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
@@ -24,6 +23,8 @@ import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -46,7 +47,8 @@ public class UserServiceImpl implements UserService {
  	
  	@Transactional(rollbackFor=Exception.class)
  	public boolean create(User user) {
- 		Boolean flag = false;
+		logger.info("Begin 'create' method");
+		Boolean flag = false;
  		if(this.ifEmailIsUnique(user.getEmail())) {
  			if(this.ifNicknameIsUnique(user.getNickname())) {
  				if(userdao.create(user)) {
@@ -80,6 +82,7 @@ public class UserServiceImpl implements UserService {
  
  	@Transactional(rollbackFor=Exception.class)
  	public void verifyUserEmail(String token) {
+		logger.info("Begin 'verifyUserEmail' method");
  		RegistrationToken rt = userdao.verifyToken(token);
 		userdao.deleteRegistrationToken(rt);
 		User user = new User();
@@ -89,23 +92,28 @@ public class UserServiceImpl implements UserService {
  	}
  	
  	public int getIdByEmail(String email) {
- 		return userdao.getIdByEmail(email);  
+		logger.info("Begin 'getIdByEmail' method");
+ 		return userdao.getIdByEmail(email);
  	}
 
 	@Override
 	public User findByEmail(String email) {
+		logger.info("Begin 'findByEmail' method");
 		return userdao.findByEmail(email);
 	}
 
 	public boolean ifNicknameIsUnique(String nickname) {
-	return userdao.ifNicknameIsUnique(nickname);	
+		logger.info("Begin 'ifNicknameIsUnique' method");
+		return userdao.ifNicknameIsUnique(nickname);
 }  
   
 	public boolean ifEmailIsUnique(String email) {
-	return userdao.ifEmailIsUnique(email);	
+		logger.info("Begin 'ifEmailIsUnique' method");
+		return userdao.ifEmailIsUnique(email);
 }
 
 	public String logIP(String email, String host) {
+		logger.info("Begin 'logIP' method");
 		int id = userdao.getIdByEmail(email);
 		String userIP = userdao.getIP(id);
 		if(userIP == null) {
@@ -116,7 +124,31 @@ public class UserServiceImpl implements UserService {
 	}
 	
 	private String generateRegistrationToken() {
+		logger.info("Begin 'generateRegistrationToken' method");
 		return UUID.randomUUID().toString();
 	
 	}
+
+    public 	List<UserRole> getAllRoles(){
+		logger.info("Begin 'getAllRoles' method");
+		return userdao.getAllRoles();
+	}
+
+	public 	User getUserById(int id){
+		logger.info("Begin 'getUserById' method");
+		return userdao.getUserById(id);
+	}
+
+	@Transactional(rollbackFor=Exception.class)
+	public boolean createUserByAdmin(User user){
+		logger.info("Begin 'createUserByAdmin' method");
+		return userdao.create(user);
+	}
+
+	@Transactional(rollbackFor=Exception.class)
+	public boolean updateUserByAdmin(User user){
+		logger.info("Begin 'updateUserByAdmin' method");
+		return userdao.update(user);
+	}
+
 }

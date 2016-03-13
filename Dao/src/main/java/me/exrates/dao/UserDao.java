@@ -4,10 +4,15 @@ import java.util.List;
 
 import me.exrates.model.RegistrationToken;
 import me.exrates.model.User;
+import me.exrates.model.enums.UserRole;
 
 public interface UserDao {
 
 	boolean create(User user);
+
+	List<UserRole> getAllRoles();
+
+	List<User> getUsersByRoles(List<UserRole> listRoles);
 
 	boolean addUserRoles(String email, String role);
 
@@ -29,15 +34,20 @@ public interface UserDao {
 
 	boolean addIPToLog(int userId, String ip);
 
+	boolean update(User user);
+
 	List<User> getAllUsers();
 
-	List<String> getUserRoles(String email);
-	
+	User getUserById(int id);
+
+	UserRole getUserRoles(String email);
+
 	boolean createRegistrationToken(RegistrationToken token);
-	
+
 	RegistrationToken verifyToken(String token);
-	
+
 	boolean deleteRegistrationToken(RegistrationToken token);
-	
+
 	boolean updateUserStatus(User user);
+
 }

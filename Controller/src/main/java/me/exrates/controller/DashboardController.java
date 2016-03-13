@@ -118,6 +118,9 @@ public class DashboardController {
             Timestamp timestamp = (Timestamp)tempRow.get("date_final");
             Date date  = new Date(timestamp.getTime());
 
+            if (amount == null){
+                continue;
+            }
             ArrayList<Object> arrayList = new ArrayList<Object>();
             arrayList.add(timestamp.toString());
             arrayList.add(amount.doubleValue());

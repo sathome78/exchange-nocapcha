@@ -1,8 +1,11 @@
 package me.exrates.service;
 
 import me.exrates.model.User;
+import me.exrates.model.enums.UserRole;
 
-public interface UserService {  
+import java.util.List;
+
+public interface UserService {
 
     int getIdByEmail(String email);
 
@@ -15,6 +18,14 @@ public interface UserService {
     boolean ifEmailIsUnique(String email);
 
     String logIP(String email, String host);
-    
+
     public void verifyUserEmail(String token);
+
+    List<UserRole> getAllRoles();
+
+    User getUserById(int id);
+
+    boolean createUserByAdmin(User user);
+
+    boolean updateUserByAdmin(User user);
 }

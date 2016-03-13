@@ -3,6 +3,7 @@ package me.exrates.dao.impl;
 import me.exrates.dao.UserDao;
 import me.exrates.model.RegistrationToken;
 import me.exrates.model.User;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,24 +29,42 @@ public class UserDaoImpl implements UserDao {
 		return jdbcTemplate.queryForObject(sql, namedParameters, Integer.class);
 	}
 		
-	public boolean create(User user) {
-		String sql = "insert into USER(nickname,email,password) values(:nickname,:email,:password)";
-		Map<String, String> namedParameters = new HashMap<String, String>();
-		namedParameters.put("email", user.getEmail());
-		namedParameters.put("nickname", user.getNickname());
-		BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-		String hashedPassword = passwordEncoder.encode(user.getPassword());
-		namedParameters.put("password", hashedPassword);
+		public boolean create(User user) {
+			String sql = "insert into USER(nickname,email,password,phone,status,roleid ) " +
+					"values(:nickname,:email,:password,:phone,:status,:roleid)";
+			Map<String, String> namedParameters = new HashMap<String, String>();
+			namedParameters.put("email", user.getEmail());
+			namedParameters.put("nickname", user.getNickname());
+			BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+			String hashedPassword = passwordEncoder.encode(user.getPassword());
+			namedParameters.put("password", hashedPassword);
+			String phone = user.getPhone();
+			if(user.getPhone().equals("")){
+				phone = null;
+			}
+			namedParameters.put("phone", phone);
+			namedParameters.put("status", String.valueOf(user.getStatus().getStatus()));
+			namedParameters.put("roleid", String.valueOf(user.getRole().getRole()));
 		return jdbcTemplate.update(sql, namedParameters) > 0;
+		}
+
+		public List<UserRole> getAllRoles() {
+			String sql = "select name from USER_ROLE";
+			return jdbcTemplate.query(sql, (rs, row) -> {
+					UserRole role = UserRole.valueOf(rs.getString("name"));;
+					return role;
+			});
 	}
 
-	public List<String> getUserRoles(String email) {
-		String sql = "select name from USER_ROLE where user_id=(select id from USER where email = :email)";
+	public UserRole getUserRoles(String email) {
+		String sql = "select USER_ROLE.name as role_name from USER " +
+				"inner join USER_ROLE on USER.roleid = USER_ROLE.id where USER.email = :email";
 		Map<String, String> namedParameters = new HashMap<>();
 		namedParameters.put("email", email);
 		return jdbcTemplate.query(sql, namedParameters, (rs, row) -> {
-			return rs.getString("name");
-		});
+			UserRole role = UserRole.valueOf(rs.getString("role_name"));
+			return role;
+		}).get(0);
 	}
 		
 	public boolean addUserRoles(String email, String role) {
@@ -76,23 +96,66 @@ public class UserDaoImpl implements UserDao {
 		});
 	}
 
-	public List<User> getAllUsers() {
-		String sql = "select email, password, status from USER";
-		return jdbcTemplate.query(sql, (rs, row) -> {
-            User user = new User();
-            user.setEmail(rs.getString("email"));
-            user.setPassword(rs.getString("password"));
-            int status = rs.getInt("status");
-        	UserStatus[] statusenum = UserStatus.values();
-        	for(UserStatus s : statusenum) {
-        		if(s.getStatus() == status) {
-        			user.setStatus(s);
-        		}
-        	}
-            return user;
-        });
+
+		public List<User> getAllUsers() {
+			String sql = "select email, password, status, nickname, id from USER";
+			return jdbcTemplate.query(sql, (rs, row) -> {
+						User user = new User();
+						user.setEmail(rs.getString("email"));
+						user.setPassword(rs.getString("password"));
+						user.setStatus(UserStatus.values()[rs.getInt("status")-1]);
+						user.setNickname(rs.getString("nickname"));
+						user.setId(rs.getInt("id"));
+						return user;
+			});
+		}
+
+		public User getUserById(int id) {
+			String sql = "select USER.id, nickname, email, password, regdate, phone, status, USER_ROLE.name as role_name from USER " +
+					"inner join USER_ROLE on USER.roleid = USER_ROLE.id where USER.id = :id";
+			Map<String, String> namedParameters = new HashMap<String, String>();
+			namedParameters.put("id", String.valueOf(id));
+
+			return jdbcTemplate.queryForObject(sql,namedParameters, (resultSet, i) -> {
+				final User user = new User();
+				user.setId(resultSet.getInt("id"));
+				user.setNickname(resultSet.getString("nickname"));
+				user.setEmail(resultSet.getString("email"));
+				user.setPassword(resultSet.getString("password"));
+				user.setRegdate(resultSet.getDate("regdate"));
+				user.setPhone(resultSet.getString("phone"));
+				user.setStatus(UserStatus.values()[resultSet.getInt("status")-1]);
+				user.setRole(UserRole.valueOf(resultSet.getString("role_name")));
+
+				return user;
+			});
+		}
+
+		public List<User> getUsersByRoles(List<UserRole> listRoles) {
+		String sql = "select USER.id, nickname, email, password, regdate, status, phone, USER_ROLE.name as role_name" +
+				" from USER inner join USER_ROLE on USER.roleid = USER_ROLE.id where USER_ROLE.name IN (:roles)";
+		Map<String, List> namedParameters = new HashMap<String, List>();
+		List<String> stringList = new ArrayList<>();
+			for (UserRole userRole : listRoles){
+				stringList.add(userRole.name());
+			}
+		namedParameters.put("roles", stringList);
+
+		return jdbcTemplate.query(sql, namedParameters, (resultSet, row) -> {
+			final User user = new User();
+			user.setId(resultSet.getInt("id"));
+			user.setNickname(resultSet.getString("nickname"));
+			user.setEmail(resultSet.getString("email"));
+			user.setPassword(resultSet.getString("password"));
+			user.setRegdate(resultSet.getDate("regdate"));
+			user.setPhone(resultSet.getString("phone"));
+			user.setStatus(UserStatus.values()[resultSet.getInt("status")-1]);
+			user.setRole(UserRole.valueOf(resultSet.getString("role_name")));
+
+			return user;
+		});
 	}
-		
+
 	public String getBriefInfo(int login) {
 			return null;
 		}
@@ -155,6 +218,33 @@ public class UserDaoImpl implements UserDao {
 		namedParameters.put("userId", String.valueOf(userId));
 		return jdbcTemplate.update(sql, namedParameters) > 0;
 	}
+
+		public boolean update(User user) {
+			String sql = "UPDATE USER SET nickname = :nickname, email = :email, password = :password," +
+					"phone = :phone, status = :status, roleid = :roleid WHERE USER.id = :id; ";
+
+			Map<String, String> namedParameters = new HashMap<String, String>();
+			namedParameters.put("id", String.valueOf(user.getId()));
+			namedParameters.put("nickname", user.getNickname());
+			namedParameters.put("email", user.getEmail());
+			BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+			String hashedPassword;
+			if (user.getPassword() == ""){
+				hashedPassword = getUserById(user.getId()).getPassword();
+			}else {
+				hashedPassword = passwordEncoder.encode(user.getPassword());
+			}
+			namedParameters.put("password", hashedPassword);
+			String phone = String.valueOf(user.getPhone());
+			if(user.getPhone().isEmpty()){
+				phone = null;
+			}
+			namedParameters.put("phone", phone);
+			namedParameters.put("status", String.valueOf(user.getStatus().getStatus()));
+			namedParameters.put("roleid", String.valueOf(user.getRole().getRole()));
+
+			return jdbcTemplate.update(sql, namedParameters) > 0;
+		}
 
 	public boolean createRegistrationToken(RegistrationToken token) {
 		String sql = "insert into REGISTRATION_TOKEN(value,user_id) values(:value,:user_id)";

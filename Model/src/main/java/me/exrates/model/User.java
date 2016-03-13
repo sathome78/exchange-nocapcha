@@ -1,5 +1,6 @@
 package me.exrates.model;
 
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 
 import java.util.Date;
@@ -17,13 +18,13 @@ public class User  {
 	private String ipaddress;
 	private String confirmPassword;
 	private boolean readRules;
-	private String role;
+	private UserRole role = UserRole.USER;
 
-	public String getRole() {
+	public UserRole getRole() {
 		return role;
 	}
 
-	public void setRole(String role) {
+	public void setRole(UserRole role) {
 		this.role = role;
 	}
 
