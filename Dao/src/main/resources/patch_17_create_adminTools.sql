@@ -21,3 +21,5 @@ FOREIGN KEY (`roleid`)
 REFERENCES `birzha`.`USER_ROLE` (`id`)
 ON DELETE NO ACTION
 ON UPDATE NO ACTION;
+
+INSERT INTO DATABASE_PATCH VALUES('patch_17_create_adminTools',default,1);
