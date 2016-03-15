@@ -131,20 +131,17 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 	
 	@Bean
 	public JavaMailSenderImpl javaMailSenderImpl() {
-		//final JavaMailSenderImpl mailSenderImpl = new JavaMailSenderImpl();
-//		mailSenderImpl.setHost("smtp.gmail.com");
-//		mailSenderImpl.setPort(587);
-//		//mailSenderImpl.setUsername("195.154.176.137");;
-//		
-//		mailSenderImpl.setProtocol("smtp");
-//		mailSenderImpl.setUsername("support@exrates.me");
-//		mailSenderImpl.setPassword("Hgdr35lKN103b");
-//		final Properties javaMailProps = new Properties();
-////		<prop key="mail.smtp.from">XXX@gmail.com</prop>
-////        <prop key="mail.smtp.user">XXX@gmail.com</prop>
-//
-//		javaMailProps.put("mail.smtp.auth", true);
-//		javaMailProps.put("mail.smtp.starttls.enable", true);
+		final JavaMailSenderImpl mailSenderImpl = new JavaMailSenderImpl();
+		mailSenderImpl.setHost("smtp.gmail.com");
+		mailSenderImpl.setPort(587);
+		//mailSenderImpl.setUsername("195.154.176.137");;
+		
+		mailSenderImpl.setProtocol("smtp");
+		mailSenderImpl.setUsername("support@exrates.me");
+		mailSenderImpl.setPassword("Hgdr35lKN103b");
+		final Properties javaMailProps = new Properties();
+ 		javaMailProps.put("mail.smtp.auth", true);
+		javaMailProps.put("mail.smtp.starttls.enable", true);
 //		//javaMailProps.put("mail.smtp.socketFactory.port", 587);
 //	//	javaMailProps.put("mail.smtp.socketFactory.fallback", false);
 //		//javaMailProps.put("mail.smtp.starttls.required", true);
@@ -152,16 +149,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 //		//javaMailProps.put("mail.smtp.quitwait", false);
 //		javaMailProps.put("mail.smtp.ssl.trust", "smtp.gmail.com");
 
-		final JavaMailSenderImpl mailSenderImpl = new JavaMailSenderImpl();
-		mailSenderImpl.setHost("smtp.mail.ru");
-		mailSenderImpl.setPort(465);
-		mailSenderImpl.setProtocol("smtps");
-		mailSenderImpl.setUsername("exrates.me@mail.ru");
-		mailSenderImpl.setPassword("R345Jdber34O90");
-		final Properties javaMailProps = new Properties();
-		javaMailProps.put("mail.smtp.auth", true);
-		javaMailProps.put("mail.smtp.starttls.enable", true);
-		
+//		final JavaMailSenderImpl mailSenderImpl = new JavaMailSenderImpl();
+//		mailSenderImpl.setHost("smtp.mail.ru");
+//		mailSenderImpl.setPort(465);
+//		mailSenderImpl.setProtocol("smtps");
+//		mailSenderImpl.setUsername("exrates.me@mail.ru");
+//		mailSenderImpl.setPassword("R345Jdber34O90");
+//		final Properties javaMailProps = new Properties();
+//		javaMailProps.put("mail.smtp.auth", true);
+//		javaMailProps.put("mail.smtp.starttls.enable", true);
+//		
 		mailSenderImpl.setJavaMailProperties(javaMailProps);
 		return mailSenderImpl;
 	}
