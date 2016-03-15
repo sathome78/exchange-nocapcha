@@ -31,7 +31,7 @@ public class SendMailServiceImpl implements SendMailService{
 	private static final Logger logger = LogManager.getLogger(SendMailServiceImpl.class);
 
 	public void sendMail(Email email){
-		email.setFrom("exrates.me@mail.ru");
+		email.setFrom("support@exrates.me");
         mailSender.send(new MimeMessagePreparator() {
 			  public void prepare(MimeMessage mimeMessage) throws MessagingException {
 			    MimeMessageHelper message;
