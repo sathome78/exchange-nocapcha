@@ -33,8 +33,12 @@ public class AdminController {
     @Autowired
     RegisterFormValidation registerFormValidation;
 
+    private String currentRole;
+
     @RequestMapping("/admin")
-    public ModelAndView admin() {
+    public ModelAndView admin(Principal principal) {
+
+        currentRole = ((UsernamePasswordAuthenticationToken) principal).getAuthorities().iterator().next().getAuthority();
 
         ModelAndView model = new ModelAndView();
         List<UserRole> adminRoles = new ArrayList<>();
@@ -57,6 +61,9 @@ public class AdminController {
     @RequestMapping("/admin/addUser")
     public ModelAndView addUser() {
 
+        if (!currentRole.equals(UserRole.ADMINISTRATOR.name())) {
+            return new ModelAndView("403");
+        }
         ModelAndView model = new ModelAndView();
 
         model.addObject("roleList", userService.getAllRoles());
@@ -69,6 +76,10 @@ public class AdminController {
 
     @RequestMapping(value = "/admin/adduser/submit", method = RequestMethod.POST)
     public ModelAndView submitcreate(@Valid @ModelAttribute User user, BindingResult result, ModelAndView model) {
+
+        if (!currentRole.equals(UserRole.ADMINISTRATOR.name())) {
+            return new ModelAndView("403");
+        }
 
         user.setConfirmPassword(user.getPassword());
         user.setStatus(UserStatus.ACTIVE);
@@ -87,12 +98,11 @@ public class AdminController {
     }
 
     @RequestMapping("/admin/editUser")
-    public ModelAndView editUser(@RequestParam int id, Principal principal) {
+    public ModelAndView editUser(@RequestParam int id) {
 
         ModelAndView model = new ModelAndView();
 
         model.addObject("statusList", UserStatus.values());
-        String currentRole = ((UsernamePasswordAuthenticationToken) principal).getAuthorities().iterator().next().getAuthority();
         List<UserRole> roleList = new ArrayList<>();
         if (currentRole.equals(UserRole.ADMIN_USER.name())||currentRole.equals(UserRole.ACCOUNTANT.name())){
             roleList.add(UserRole.USER);
@@ -101,6 +111,9 @@ public class AdminController {
         }
         model.addObject("roleList", roleList);
         User user = userService.getUserById(id);
+        if (!currentRole.equals(UserRole.ADMINISTRATOR.name())&&!user.getRole().name().equals(UserRole.USER.name())) {
+            return new ModelAndView("403");
+        }
         user.setId(id);
         model.addObject("user", user);
         model.setViewName("admin/editUser");
@@ -111,6 +124,9 @@ public class AdminController {
     @RequestMapping(value = "/admin/edituser/submit", method = RequestMethod.POST)
     public ModelAndView submitedit(@Valid @ModelAttribute User user, BindingResult result, ModelAndView model) {
 
+        if (!currentRole.equals(UserRole.ADMINISTRATOR.name())&&!user.getRole().name().equals(UserRole.USER.name())) {
+            return new ModelAndView("403");
+        }
         user.setConfirmPassword(user.getPassword());
         registerFormValidation.validateEditUser(user, result);
         if(result.hasErrors()) {

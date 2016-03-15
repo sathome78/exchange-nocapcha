@@ -13,6 +13,7 @@ import me.exrates.service.impl.UserServiceImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
@@ -24,10 +25,12 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 import java.security.Principal;
 import java.util.List;
-  
+import java.util.Locale;
+
 @Controller  
 public class MainController {  
   
@@ -45,6 +48,8 @@ HttpServletRequest request;
 
 private static final Logger logger = LogManager.getLogger(MainController.class);
 
+private static final Locale ru = new Locale("ru");
+
     @Autowired
     private TransactionService transactionService;
 
@@ -52,7 +57,10 @@ private static final Logger logger = LogManager.getLogger(MainController.class);
     private WalletService walletService;
     
     @Autowired 
-    private OrderService orderService;  
+    private OrderService orderService;
+
+	@Autowired
+	MessageSource messageSource;
   
  @RequestMapping("/403")
  public String error403() {  
@@ -111,26 +119,23 @@ private static final Logger logger = LogManager.getLogger(MainController.class);
    return new ModelAndView("personalpage", "userIP", userIP);  
   }
   
-  @RequestMapping("/loginfailed")  
-  public ModelAndView authfailed(@ModelAttribute User user) {  
-     
-   return new ModelAndView("loginfailed", "user", user);  
-  }  
-  
- 
  @RequestMapping(value = "/login", method = RequestMethod.GET)
-	public ModelAndView login(
-		@RequestParam(value = "error", required = false) String error,
-		@RequestParam(value = "logout", required = false) String logout) {
+	public ModelAndView login(HttpSession httpSession,
+		@RequestParam(value = "error", required = false) String error) {
 
 		ModelAndView model = new ModelAndView();
 		if (error != null) {
-			model.addObject("error", "Invalid username and password!");
+			String exceptionClass = httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION").getClass().getName();
+			if (exceptionClass.equals("org.springframework.security.authentication.DisabledException")){
+				model.addObject("error", messageSource.getMessage("login.blocked", null, ru));
+			}else
+			if (exceptionClass.equals("org.springframework.security.authentication.BadCredentialsException")){
+				model.addObject("error", messageSource.getMessage("login.notFound", null, ru));
+			}else {
+				model.addObject("error", messageSource.getMessage("login.errorLogin", null, ru));
+			}
 		}
 
-		if (logout != null) {
-			model.addObject("msg", "You've been logged out successfully.");
-		}
 		model.setViewName("login");
 		
 

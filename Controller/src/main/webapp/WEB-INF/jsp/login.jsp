@@ -35,12 +35,10 @@
 
             <div class="content__page full__height">
                 <div class="registration__form form">
-                <c:if test="${not empty error}">
+                    <c:if test="${not empty error}">
+                        <font color="red">
                         <div class="error">${error}</div>
                     </c:if>
-                <c:if test="${not empty msg}">
-                        <div class="msg">${msg}</div>
-                </c:if>
                 <c:url value="/login" var="loginUrl" />
                 <form action="${loginUrl}" method="post">
                     <input type="text" class="form-control" name="username" placeholder="<loc:message code="login.email"/>" required autofocus>
