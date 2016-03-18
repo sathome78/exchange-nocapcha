@@ -54,7 +54,6 @@ public class PerfectMoneyMerchantController {
         return new RedirectView("/mywallets");
     }
 
-    //Very strange behavior here : json data not converting to Payment POJO
     @RequestMapping(value = "payment/prepare",method = RequestMethod.POST)
     public ResponseEntity<Map<String,String>> preparePayment(@RequestBody String body, Principal principal, HttpSession httpSession) {
         final Payment payment = new Gson().fromJson(body, Payment.class);

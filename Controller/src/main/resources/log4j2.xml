@@ -2,13 +2,20 @@
 <Configuration status="WARN">
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss,SSS} [%t] %-5level %logger{36} - %msg%n"/>
         </Console>
-        <File name="Merchant" fileName="${sys:catalina.home}/logs/merchants.log" append="true">
-            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
-        </File>
+        <RollingFile name="Merchant" fileName="${sys:catalina.home}/logs/merchants.log"
+                     filePattern="${sys:catalina.home}/logs/merchants_%d{MM-dd-yyyy}.log" append="true">
+            <PatternLayout>
+                <pattern>%d %p %C{1.} [%t] %m%n</pattern>
+            </PatternLayout>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
         <File name="Log" fileName="${sys:catalina.home}/logs/logs.log" append="true">
-            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss,SSS} [%t] %-5level %logger{36} - %msg%n"/>
         </File>
     </Appenders>
     <Loggers>
@@ -16,16 +23,9 @@
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Log"/>
         </Logger>
-        <logger name="org.springframework.jdbc.core" level="ALL">
-            <!--<AppenderRef ref="Console"/>-->
-            <!--<Appender-ref ref="Log"  />-->
-        </logger>
-        <logger name="org.springframework" level="ALL">
-            <!--<AppenderRef ref="Console"/>-->
-            <!--<Appender-ref ref="Log"  />-->
-        </logger>
-        <Root level="error">
+        <Logger name="me.exrates.controller.merchants">
             <AppenderRef ref="Merchant"/>
-        </Root>
+        </Logger>
+
     </Loggers>
 </Configuration>

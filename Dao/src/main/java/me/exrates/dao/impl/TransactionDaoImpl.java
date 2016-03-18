@@ -4,6 +4,7 @@ import me.exrates.dao.TransactionDao;
 import me.exrates.model.*;
 import me.exrates.model.enums.OperationType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -24,6 +25,53 @@ public final class TransactionDaoImpl implements TransactionDao {
 
     @Autowired
     private NamedParameterJdbcTemplate jdbcTemplate;
+
+    private RowMapper<Transaction> transactionRowMapper = (resultSet, i) -> {
+
+        final OperationType operationType = resultSet.getInt("TRANSACTION.operation_type_id") == 1 ? OperationType.INPUT :
+                OperationType.OUTPUT;
+
+        final Currency currency = new Currency();
+        currency.setId(resultSet.getInt("CURRENCY.id"));
+        currency.setName(resultSet.getString("CURRENCY.name"));
+        currency.setDescription(resultSet.getString("CURRENCY.description"));
+
+        final Merchant merchant = new Merchant();
+        merchant.setId(resultSet.getInt("MERCHANT.id"));
+        merchant.setName(resultSet.getString("MERCHANT.name"));
+        merchant.setDescription(resultSet.getString("MERCHANT.description"));
+
+        final Commission commission = new Commission();
+        commission.setId(resultSet.getInt("COMMISSION.id"));
+        commission.setOperationType(operationType);
+        commission.setValue(resultSet.getBigDecimal("COMMISSION.value"));
+        commission.setDateOfChange(resultSet.getTimestamp("COMMISSION.date"));
+
+        final CompanyWallet companyWallet = new CompanyWallet();
+        companyWallet.setBalance(resultSet.getBigDecimal("COMPANY_WALLET.balance"));
+        companyWallet.setCommissionBalance(resultSet.getBigDecimal("COMPANY_WALLET.commission_balance"));
+        companyWallet.setCurrency(currency);
+        companyWallet.setId(resultSet.getInt("COMPANY_WALLET.id"));
+
+        final Wallet userWallet = new Wallet();
+        userWallet.setActiveBalance(resultSet.getBigDecimal("WALLET.active_balance"));
+        userWallet.setReservedBalance(resultSet.getBigDecimal("WALLET.reserved_balance"));
+        userWallet.setId(resultSet.getInt("WALLET.id"));
+        userWallet.setCurrencyId(currency.getId());
+
+        final Transaction transaction = new Transaction();
+        transaction.setId(resultSet.getInt("TRANSACTION.id"));
+        transaction.setAmount(resultSet.getBigDecimal("TRANSACTION.amount"));
+        transaction.setCommissionAmount(resultSet.getBigDecimal("TRANSACTION.commission_amount"));
+        transaction.setDatetime(resultSet.getTimestamp("TRANSACTION.datetime").toLocalDateTime());
+        transaction.setCommission(commission);
+        transaction.setCompanyWallet(companyWallet);
+        transaction.setUserWallet(userWallet);
+        transaction.setOperationType(operationType);
+        transaction.setMerchant(merchant);
+        transaction.setCurrency(currency);
+        return transaction;
+    };
 
     @Override
     public Transaction create(Transaction transaction) {
@@ -53,6 +101,23 @@ public final class TransactionDaoImpl implements TransactionDao {
     }
 
     @Override
+    public Transaction findById(int id) {
+        final String sql = "SELECT TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime,TRANSACTION.operation_type_id," +
+                " WALLET.id,WALLET.active_balance,WALLET.reserved_balance,WALLET.currency_id," +
+                " COMPANY_WALLET.id,COMPANY_WALLET.balance,COMPANY_WALLET.commission_balance," +
+                " COMMISSION.id,COMMISSION.date,COMMISSION.value," +
+                " CURRENCY.id,CURRENCY.description,CURRENCY.name," +
+                " MERCHANT.id,MERCHANT.name,MERCHANT.description " +
+                " FROM TRANSACTION INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id" +
+                " INNER JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id" +
+                " INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
+                " INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id" +
+                " INNER JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id WHERE TRANSACTION.id = :id";
+        final Map<String, Integer> params = Collections.singletonMap("id", id);
+        return jdbcTemplate.queryForObject(sql, params, transactionRowMapper);
+    }
+
+    @Override
     public List<Transaction> findAllByUserWallets(List<Integer> walletIds) {
         final String sql = "SELECT TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime,TRANSACTION.operation_type_id," +
                 " WALLET.id,WALLET.active_balance,WALLET.reserved_balance,WALLET.currency_id," +
@@ -65,52 +130,7 @@ public final class TransactionDaoImpl implements TransactionDao {
                 " INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
                 " INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id" +
                 " INNER JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id WHERE TRANSACTION.user_wallet_id in (:ids)";
-        return jdbcTemplate.query(sql, Collections.singletonMap("ids", walletIds),((resultSet, i) -> {
-
-            final OperationType operationType = resultSet.getInt("TRANSACTION.operation_type_id") == 1 ? OperationType.INPUT :
-                    OperationType.OUTPUT;
-
-            final Currency currency = new Currency();
-            currency.setId(resultSet.getInt("CURRENCY.id"));
-            currency.setName(resultSet.getString("CURRENCY.name"));
-            currency.setDescription(resultSet.getString("CURRENCY.description"));
-
-            final Merchant merchant = new Merchant();
-            merchant.setId(resultSet.getInt("MERCHANT.id"));
-            merchant.setName(resultSet.getString("MERCHANT.name"));
-            merchant.setDescription(resultSet.getString("MERCHANT.description"));
-
-            final Commission commission = new Commission();
-            commission.setId(resultSet.getInt("COMMISSION.id"));
-            commission.setOperationType(operationType);
-            commission.setValue(resultSet.getBigDecimal("COMMISSION.value"));
-            commission.setDateOfChange(resultSet.getTimestamp("COMMISSION.date"));
-
-            final CompanyWallet companyWallet = new CompanyWallet();
-            companyWallet.setBalance(resultSet.getBigDecimal("COMPANY_WALLET.balance"));
-            companyWallet.setCommissionBalance(resultSet.getBigDecimal("COMPANY_WALLET.commission_balance"));
-            companyWallet.setCurrency(currency);
-            companyWallet.setId(resultSet.getInt("COMPANY_WALLET.id"));
-
-            final Wallet userWallet = new Wallet();
-            userWallet.setActiveBalance(resultSet.getBigDecimal("WALLET.active_balance"));
-            userWallet.setReservedBalance(resultSet.getBigDecimal("WALLET.reserved_balance"));
-            userWallet.setId(resultSet.getInt("WALLET.id"));
-            userWallet.setCurrencyId(currency.getId());
-
-            final Transaction transaction = new Transaction();
-            transaction.setId(resultSet.getInt("TRANSACTION.id"));
-            transaction.setAmount(resultSet.getBigDecimal("TRANSACTION.amount"));
-            transaction.setCommissionAmount(resultSet.getBigDecimal("TRANSACTION.commission_amount"));
-            transaction.setDatetime(resultSet.getTimestamp("TRANSACTION.datetime").toLocalDateTime());
-            transaction.setCommission(commission);
-            transaction.setCompanyWallet(companyWallet);
-            transaction.setUserWallet(userWallet);
-            transaction.setOperationType(operationType);
-            transaction.setMerchant(merchant);
-            transaction.setCurrency(currency);
-            return transaction;
-        }));
+        return jdbcTemplate.query(sql, Collections.singletonMap("ids", walletIds),transactionRowMapper);
     }
 
     @Override

@@ -30,6 +30,7 @@ $(function(){
 
     const YANDEX = 'Yandex.Money';
     const PERFECT = 'Perfect Money';
+    const BLOCKCHAIN = 'Blockchain';
     const NO_ACTION = 'javascript:void(0);';
 
     var currency = $('#currency');
@@ -87,6 +88,7 @@ $(function(){
     function resetFormAction(operationType,merchant,form) {
         var formAction = {
             yandex:'/merchants/yandexmoney/payment/prepare',
+            blockchainDeposit:'/merchants/blockchain/payment/provide',
             perfectDeposit:'https://perfectmoney.is/api/step1.asp',
             perfectWithdraw:'/merchants/perfectmoney/payment/provide'
         };
@@ -98,6 +100,7 @@ $(function(){
                 case PERFECT :
                     form.attr('action', formAction.perfectDeposit);
                     break;
+                case BLOCKCHAIN:
                 default:
                     form.attr('action', NO_ACTION);
             }
@@ -108,6 +111,9 @@ $(function(){
                     break;
                 case PERFECT :
                     form.attr('action', formAction.perfectWithdraw);
+                    break;
+                case BLOCKCHAIN:
+                    form.attr('action', formAction.blockchainDeposit);
                     break;
                 default:
                     form.attr('action', NO_ACTION);
@@ -121,13 +127,13 @@ $(function(){
         } else {
             switch (targetMerchant) {
                 case PERFECT :
-                    $.ajax("/merchants/perfectmoney/payment/prepare", {
+                    $.ajax('/merchants/perfectmoney/payment/prepare', {
                         headers: {
-                            "X-CSRF-Token": $("input[name='_csrf']").val()
+                            'X-CSRF-Token': $("input[name='_csrf']").val()
                         },
-                        type: "POST",
-                        contentType: "application/json",
-                        dataType: "json",
+                        type: 'POST',
+                        contentType: 'application/json',
+                        dataType: 'json',
                         data: JSON.stringify($(form).serializeObject())
                     }).done(function (response) {
                         var inputsHTML = '';
@@ -139,6 +145,22 @@ $(function(){
                         $(form).html(targetNewHTML);
                         callback();
                     }).fail(function (error) {
+                        console.log(error);
+                    });
+                    break;
+                case BLOCKCHAIN :
+                    $.ajax('/merchants/blockchain/payment/prepare', {
+                        headers: {
+                            'X-CSRF-Token': $("input[name='_csrf']").val()
+                        },
+                        type: 'POST',
+                        contentType: 'application/json',
+                        dataType: 'json',
+                        data: JSON.stringify($(form).serializeObject())
+                    }).done(function (response) {
+                        $('.paymentInfo').html(response.responseText);
+                    }).fail(function (error) {
+                        $('.paymentInfo').html(error.responseText);
                         console.log(error);
                     });
                     break;

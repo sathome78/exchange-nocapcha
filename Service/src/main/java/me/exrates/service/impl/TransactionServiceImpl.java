@@ -41,7 +41,7 @@ public class TransactionServiceImpl implements TransactionService {
     private OrderService orderService;
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional(propagation = Propagation.REQUIRED)
     public Transaction createTransactionRequest(CreditsOperation creditsOperation) {
         final Currency currency = creditsOperation.getCurrency();
         final User user = creditsOperation.getUser();
@@ -72,7 +72,13 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional(propagation = Propagation.REQUIRED,readOnly = true)
+    public Transaction findById(int id) {
+        return transactionDao.findById(id);
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED)
     public void provideTransaction(Transaction transaction) {
         switch (transaction.getOperationType()) {
             case INPUT :
@@ -92,7 +98,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.NESTED)
+    @Transactional(propagation = Propagation.REQUIRED)
     public void invalidateTransaction(Transaction transaction) {
         if (!transactionDao.delete(transaction.getId())) {
             throw new TransactionProvidingException("Failed to delete transaction #"+transaction.getId());

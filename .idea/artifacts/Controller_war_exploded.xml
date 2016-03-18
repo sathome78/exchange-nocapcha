@@ -17,6 +17,7 @@
             <element id="module-output" name="Service" />
           </element>
           <element id="library" level="project" name="Maven: com.squareup.okhttp:okhttp:2.7.2" />
+          <element id="library" level="project" name="Maven: info.blockchain:api:1.1.0" />
           <element id="archive" name="JDBC-0.0.1-SNAPSHOT.jar">
             <element id="module-output" name="JDBC" />
           </element>
