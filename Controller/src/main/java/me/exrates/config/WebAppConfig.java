@@ -1,7 +1,6 @@
 package me.exrates.config;
 
 import me.exrates.controller.validator.RegisterFormValidation;
-
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -29,7 +28,6 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
 
 import javax.sql.DataSource;
-
 import java.util.Locale;
 import java.util.Properties;
 
@@ -39,12 +37,19 @@ import java.util.Properties;
 @ComponentScan({ "me.exrates" })
 @Import({ me.exrates.security.config.SecurityConfig.class })
 @PropertySource(value = "classpath:/${spring.profile.active}/db.properties")
+@PropertySource(value = "classpath:/${spring.profile.active}/mail.properties")
 public class WebAppConfig extends WebMvcConfigurerAdapter {
 
 	private @Value("${db.user}") String dbUser;
 	private @Value("${db.password}") String dbPassword;
 	private @Value("${db.url}") String dbUrl;
 	private @Value("${db.classname}") String dbClassname;
+
+	private @Value("${mail.host}") String host;
+	private @Value("${mail.port}") Integer port;
+	private @Value("${mail.protocol}") String protocol;
+	private @Value("${mail.user}") String mailUser;
+	private @Value("${mail.password}") String mailPassword;
 
 	private static final Logger logger = LogManager.getLogger(WebAppConfig.class);
 
@@ -128,7 +133,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 	public RegisterFormValidation getRegisterFormValidation(){
 		return new RegisterFormValidation();
 	}
-	
+
 	@Bean
 	public JavaMailSenderImpl javaMailSenderImpl() {
 		//final JavaMailSenderImpl mailSenderImpl = new JavaMailSenderImpl();
@@ -153,15 +158,14 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 //		javaMailProps.put("mail.smtp.ssl.trust", "smtp.gmail.com");
 
 		final JavaMailSenderImpl mailSenderImpl = new JavaMailSenderImpl();
-		mailSenderImpl.setHost("smtp.mail.ru");
-		mailSenderImpl.setPort(465);
-		mailSenderImpl.setProtocol("smtps");
-		mailSenderImpl.setUsername("exrates.me@mail.ru");
-		mailSenderImpl.setPassword("R345Jdber34O90");
+		mailSenderImpl.setHost(host);
+		mailSenderImpl.setPort(port);
+		mailSenderImpl.setProtocol(protocol);
+		mailSenderImpl.setUsername(mailPassword);
+		mailSenderImpl.setPassword(mailPassword);
 		final Properties javaMailProps = new Properties();
 		javaMailProps.put("mail.smtp.auth", true);
 		javaMailProps.put("mail.smtp.starttls.enable", true);
-		
 		mailSenderImpl.setJavaMailProperties(javaMailProps);
 		return mailSenderImpl;
 	}

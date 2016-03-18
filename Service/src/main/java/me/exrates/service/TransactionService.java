@@ -13,6 +13,8 @@ public interface TransactionService {
 
     Transaction createTransactionRequest(CreditsOperation creditsOperation);
 
+    Transaction findById(int id);
+
     void provideTransaction(Transaction transaction);
 
     void invalidateTransaction(Transaction transaction);

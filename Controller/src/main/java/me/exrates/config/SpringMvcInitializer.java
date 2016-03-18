@@ -31,7 +31,6 @@ public class SpringMvcInitializer
 		if (activeProfile == null) {
 			activeProfile = "prod";
 		}
-		System.out.println(activeProfile);
 		servletContext.setInitParameter("spring.profile.active",activeProfile);
 	}
 }

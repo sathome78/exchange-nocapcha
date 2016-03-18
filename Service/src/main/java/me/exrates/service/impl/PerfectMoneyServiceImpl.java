@@ -51,7 +51,6 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
     public Map<String, String> getPerfectMoneyParams(Transaction transaction) {
         BigDecimal sum = transaction.getAmount().add(transaction.getCommissionAmount());
         final String currency = transaction.getCurrency().getName();
-        final String companyAccount;
         final Number amountToPay;
         switch (currency) {
             case "GOLD":
@@ -123,13 +122,11 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
             Response response = okHttpClient.newCall(request).execute();
             String responseString = response.body().string();
             if (responseString.contains("ERROR")) {
-                System.out.println(responseString);
                 if (responseString.contains("Invalid Payee_Account")) {
                     return "INVALID_USER_ACCOUNT";
                 } else if (responseString.contains("Invalid Amount")) {
                     return "INVALID_AMOUNT";
                 }
-                System.out.println(responseString);
                 return "INTERNAL_ERROR";
             }
         } catch (IOException e) {

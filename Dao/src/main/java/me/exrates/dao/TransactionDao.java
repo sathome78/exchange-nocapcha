@@ -11,6 +11,8 @@ public interface TransactionDao {
 
     Transaction create(Transaction transaction);
 
+    Transaction findById(int id);
+
     boolean provide(int id);
 
     boolean delete(int id);
