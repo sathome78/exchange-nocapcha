@@ -2,7 +2,7 @@ package me.exrates.dao;
 
 import java.util.List;
 
-import me.exrates.model.RegistrationToken;
+import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.enums.UserRole;
 
@@ -42,11 +42,11 @@ public interface UserDao {
 
 	UserRole getUserRoles(String email);
 
-	boolean createRegistrationToken(RegistrationToken token);
+	boolean createTemporalToken(TemporalToken token);
 
-	RegistrationToken verifyToken(String token);
+	TemporalToken verifyToken(String token);
 
-	boolean deleteRegistrationToken(RegistrationToken token);
+	boolean deleteTemporalToken(TemporalToken token);
 
 	boolean updateUserStatus(User user);
 

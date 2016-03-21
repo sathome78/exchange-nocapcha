@@ -1,6 +1,7 @@
 package me.exrates.service;
 
 import me.exrates.model.User;
+import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 
 import java.util.List;
@@ -19,7 +20,7 @@ public interface UserService {
 
     String logIP(String email, String host);
 
-    public void verifyUserEmail(String token);
+    User verifyUserEmail(String token);
 
     List<UserRole> getAllRoles();
 
@@ -28,4 +29,8 @@ public interface UserService {
     boolean createUserByAdmin(User user);
 
     boolean updateUserByAdmin(User user);
+
+    boolean update(User user, boolean changePassword, boolean changeFinPassword, boolean resetPassword);
+
+    void sendEmailWithToken(User user, TokenType tokenType, String tokenLink, String emailSubject, String emailText);
 }

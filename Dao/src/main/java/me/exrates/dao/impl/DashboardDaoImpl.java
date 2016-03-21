@@ -131,7 +131,7 @@ public class DashboardDaoImpl implements DashboardDao{
 
     @Override
     public BigDecimal getBalanceByCurrency(int userId, int currencyId){
-        String sql = "SELECT (active_balance-reserved_balance) FROM WALLET WHERE user_id = :userId AND currency_id = :currencyId;";
+        String sql = "SELECT active_balance FROM WALLET WHERE user_id = :userId AND currency_id = :currencyId;";
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("userId", String.valueOf(userId));
