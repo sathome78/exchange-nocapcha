@@ -2,15 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a6d4cdda-880d-467f-aa0b-e28fbdbe7bcd" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Dao/src/main/resources/patch_19_added_btc_support.sql" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/AlgorithmService.java" afterPath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/AlgorithmService.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/impl/AlgorithmServiceImpl.java" afterPath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/impl/AlgorithmServiceImpl.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/src/main/java/me/exrates/controller/merchants/BlockchainController.java" afterPath="$PROJECT_DIR$/Controller/src/main/java/me/exrates/controller/merchants/BlockchainController.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/SendMailService.java" afterPath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/SendMailService.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/exception/TransactionPersistException.java" afterPath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/exception/TransactionPersistException.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/src/main/resources/dev/merchants/blockchain.properties" afterPath="$PROJECT_DIR$/Controller/src/main/resources/dev/merchants/blockchain.properties" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/src/main/resources/prod/merchants/blockchain.properties" afterPath="$PROJECT_DIR$/Controller/src/main/resources/prod/merchants/blockchain.properties" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/src/main/webapp/client/js/main.js" afterPath="$PROJECT_DIR$/Controller/src/main/webapp/client/js/main.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <list id="cc5c0c81-d3fe-428f-9dab-dfe69ace8716" name="New changelist" comment="" />
@@ -62,8 +53,8 @@
             <state />
           </provider>
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="47" column="18" selection-start-line="47" selection-start-column="0" selection-end-line="47" selection-end-column="18" />
+            <state vertical-scroll-proportion="-4.107383">
+              <caret line="47" column="18" selection-start-line="47" selection-start-column="18" selection-end-line="47" selection-end-column="18" />
               <folding />
             </state>
           </provider>
@@ -981,7 +972,7 @@
       <workItem from="1459072245401" duration="27695000" />
       <workItem from="1459105487906" duration="1311000" />
       <workItem from="1459106855338" duration="155000" />
-      <workItem from="1459107013586" duration="63000" />
+      <workItem from="1459107013586" duration="399000" />
     </task>
     <task id="LOCAL-00001" summary="PROGRAM-84">
       <created>1458852749871</created>
@@ -1041,7 +1032,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="181872000" />
+    <option name="totallyTimeSpent" value="182208000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -1509,8 +1500,8 @@
         <state />
       </provider>
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="47" column="18" selection-start-line="47" selection-start-column="0" selection-end-line="47" selection-end-column="18" />
+        <state vertical-scroll-proportion="-4.107383">
+          <caret line="47" column="18" selection-start-line="47" selection-start-column="18" selection-end-line="47" selection-end-column="18" />
           <folding />
         </state>
       </provider>
