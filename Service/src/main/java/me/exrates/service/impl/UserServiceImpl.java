@@ -9,8 +9,9 @@ import javax.servlet.http.HttpServletRequest;
 
 import me.exrates.dao.UserDao;
 import me.exrates.model.Email;
-import me.exrates.model.RegistrationToken;
+import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
+import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.service.SendMailService;
@@ -53,26 +54,8 @@ public class UserServiceImpl implements UserService {
  			if(this.ifNicknameIsUnique(user.getNickname())) {
  				if(userdao.create(user)) {
  					int user_id = this.getIdByEmail(user.getEmail());
- 	
- 					RegistrationToken token = new RegistrationToken();
- 					token.setUserId(user_id);
- 					token.setValue(generateRegistrationToken());
- 					userdao.createRegistrationToken(token);
- 					
- 					Email email = new Email();
- 					String confirmationUrl = "/registrationConfirm?token=" + token.getValue();
- 					String rootUrl = request.getScheme() +"://"+ request.getServerName();
-					email.setMessage(
- 							messageSource.getMessage("emailsubmitregister.text", null, ru)+
- 							" <a href='"+
- 							rootUrl+
- 							confirmationUrl+
- 							"'>Ссылка</a>"
- 							);
- 					email.setSubject(messageSource.getMessage("emailsubmitregister.subject", null, ru));
- 				
- 					email.setTo(user.getEmail());
-					sendMailService.sendMail(email);
+					user.setId(user_id);
+					sendEmailWithToken(user, TokenType.REGISTRATION, "/registrationConfirm", "emailsubmitregister.subject", "emailsubmitregister.text");
  				}
  			}
  			
@@ -81,14 +64,15 @@ public class UserServiceImpl implements UserService {
  	}  
  
  	@Transactional(rollbackFor=Exception.class)
- 	public void verifyUserEmail(String token) {
+ 	public User verifyUserEmail(String token) {
 		logger.info("Begin 'verifyUserEmail' method");
- 		RegistrationToken rt = userdao.verifyToken(token);
-		userdao.deleteRegistrationToken(rt);
+ 		TemporalToken temporalToken = userdao.verifyToken(token);
+		userdao.deleteTemporalToken(temporalToken);
 		User user = new User();
-		user.setId(rt.getUserId());
+		user.setId(temporalToken.getUserId());
 		user.setStatus(UserStatus.ACTIVE);
 		userdao.updateUserStatus(user);
+		return user;
  	}
  	
  	public int getIdByEmail(String email) {
@@ -147,8 +131,52 @@ public class UserServiceImpl implements UserService {
 
 	@Transactional(rollbackFor=Exception.class)
 	public boolean updateUserByAdmin(User user){
-		logger.info("Begin 'updateUserByAdmin' method");
+		logger.info("Begin 'createUserByAdmin' method");
 		return userdao.update(user);
+	}
+
+	@Transactional(rollbackFor=Exception.class)
+	public boolean update(User user, boolean changePassword, boolean changeFinPassword, boolean resetPassword){
+		logger.info("Begin 'updateUserByAdmin' method");
+
+		if (!changeFinPassword){
+			user.setStatus(UserStatus.REGISTERED);
+		}
+		if(userdao.update(user)) {
+			if (changePassword) {
+				sendEmailWithToken(user, TokenType.CHANGE_PASSWORD, "/changePasswordConfirm", "emailsubmitChangePassword.subject", "emailsubmitChangePassword.text");
+			}else if (changeFinPassword){
+				sendEmailWithToken(user, TokenType.CHANGE_FIN_PASSWORD, "/changePasswordConfirm", "emailsubmitChangeFinPassword.subject", "emailsubmitChangeFinPassword.text");
+			}else {
+				sendEmailWithToken(user, TokenType.CHANGE_PASSWORD, "/resetPasswordConfirm", "emailsubmitResetPassword.subject", "emailsubmitResetPassword.text");
+			}
+		}
+		return true;
+	}
+
+	@Transactional(rollbackFor=Exception.class)
+	public void sendEmailWithToken(User user, TokenType tokenType, String tokenLink, String emailSubject, String emailText) {
+		TemporalToken token = new TemporalToken();
+		token.setUserId(user.getId());
+		token.setValue(generateRegistrationToken());
+		token.setTokenType(tokenType);
+		userdao.createTemporalToken(token);
+
+		Email email = new Email();
+		String confirmationUrl = tokenLink + "?token=" + token.getValue();
+		String rootUrl = request.getScheme() +"://"+ request.getServerName() +
+				":" + request.getServerPort();
+		email.setMessage(
+				messageSource.getMessage(emailText, null, ru)+
+						" <a href='"+
+						rootUrl+
+						confirmationUrl+
+						"'>Ссылка</a>"
+		);
+		email.setSubject(messageSource.getMessage(emailSubject, null, ru));
+
+		email.setTo(user.getEmail());
+		sendMailService.sendMail(email);
 	}
 
 }

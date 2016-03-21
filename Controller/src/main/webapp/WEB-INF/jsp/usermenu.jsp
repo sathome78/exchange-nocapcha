@@ -33,15 +33,16 @@
             <li class="navabr__item">
                 <a href="<c:url value="/transaction"/>" class="navabr__link"><loc:message code="usermenu.history"/></a>
             </li>
-            <%--<li class="navabr__item">--%>
+            <li class="navabr__item">
                 <%--<a href="#" class="navabr__link"><loc:message code="usermenu.settings"/></a>--%>
-            <%--</li>--%>
+                <a href="<c:url value="/settings"/>" class="navabr__link"><loc:message code="usermenu.settings"/></a>
+            </li>
             <li class="navabr__item">
                 <c:set var="adminEnum" value="<%=me.exrates.model.enums.UserRole.ADMINISTRATOR%>"/>
                 <c:set var="accountantEnum" value="<%=me.exrates.model.enums.UserRole.ACCOUNTANT%>"/>
                 <c:set var="admin_userEnum" value="<%=me.exrates.model.enums.UserRole.ADMIN_USER%>"/>
                 <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
-                    <a href="<c:url value="/admin"/>" class="navabr__link">Администрирование</a>
+                    <a href="<c:url value="/admin"/>" class="navabr__link"><loc:message code="admin.title"/></a>
                 </sec:authorize>
             </li>
         </ul>

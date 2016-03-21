@@ -6,41 +6,41 @@
     <div class="container container_center">
         <div class="row footer__menu">
             <div class="col-xs-3">
-                <div class="footer__title"><loc:message code="dasbboard.howItWork"/></div>
+                <div class="footer__title"><loc:message code="dashboard.howItWork"/></div>
                 <ul>
-                    <li class="footer__menu__item"><a class="footer__menu__link" href="#"><loc:message code="dasbboard.forBeginners"/></a></li>
-                    <li class="footer__menu__item"><a class="footer__menu__link" href="#"><loc:message code="dasbboard.buyCurrency"/></a></li>
-                    <li class="footer__menu__item"><a class="footer__menu__link" href="#"><loc:message code="dasbboard.sellCurrency"/></a></li>
-                    <li class="footer__menu__item"><a class="footer__menu__link" href="#"><loc:message code="dasbboard.tradeByCurrency"/></a></li>
+                    <li class="footer__menu__item"><a class="footer__menu__link" href="#"><loc:message code="dashboard.forBeginners"/></a></li>
+                    <li class="footer__menu__item"><a class="footer__menu__link" href="#"><loc:message code="dashboard.buyCurrency"/></a></li>
+                    <li class="footer__menu__item"><a class="footer__menu__link" href="#"><loc:message code="dashboard.sellCurrency"/></a></li>
+                    <li class="footer__menu__item"><a class="footer__menu__link" href="#"><loc:message code="dashboard.tradeByCurrency"/></a></li>
                 </ul>
             </div>
             <div class="col-xs-3">
-                <div class="footer__title"><loc:message code="dasbboard.documentation"/></div>
+                <div class="footer__title"><loc:message code="dashboard.documentation"/></div>
                 <ul>
-                    <li class="footer__menu__item"><a class="footer__menu__link" href="#"><loc:message code="dasbboard.FAQ"/></a></li>
-                    <li class="footer__menu__item"><a class="footer__menu__link" href="#"><loc:message code="dasbboard.depositAndWithdraw"/></a></li>
-                    <li class="footer__menu__item"><a class="footer__menu__link" href="#"><loc:message code="dasbboard.feeForTransaction"/></a></li>
-                    <li class="footer__menu__item"><a class="footer__menu__link" href="#"><loc:message code="dasbboard.legalityAndSecurity"/>ь</a></li>
+                    <li class="footer__menu__item"><a class="footer__menu__link" href="#"><loc:message code="dashboard.FAQ"/></a></li>
+                    <li class="footer__menu__item"><a class="footer__menu__link" href="#"><loc:message code="dashboard.depositAndWithdraw"/></a></li>
+                    <li class="footer__menu__item"><a class="footer__menu__link" href="#"><loc:message code="dashboard.feeForTransaction"/></a></li>
+                    <li class="footer__menu__item"><a class="footer__menu__link" href="#"><loc:message code="dashboard.legalityAndSecurity"/>ь</a></li>
                 </ul>
             </div>
             <div class="col-xs-3">
-                <div class="footer__title"><loc:message code="dasbboard.tools"/></div>
+                <div class="footer__title"><loc:message code="dashboard.tools"/></div>
                 <ul>
-                    <li class="footer__menu__item"><a class="footer__menu__link" href="#"><loc:message code="dasbboard.tradeAPI"/></a></li>
-                    <li class="footer__menu__item"><a class="footer__menu__link" href="#"><loc:message code="dasbboard.mobileApp"/></a></li>
+                    <li class="footer__menu__item"><a class="footer__menu__link" href="#"><loc:message code="dashboard.tradeAPI"/></a></li>
+                    <li class="footer__menu__item"><a class="footer__menu__link" href="#"><loc:message code="dashboard.mobileApp"/></a></li>
                 </ul>
             </div>
             <div class="col-xs-3">
-                <div class="footer__title"><loc:message code="dasbboard.ourWeb"/></div>
+                <div class="footer__title"><loc:message code="dashboard.ourWeb"/></div>
                 <ul>
-                    <li class="footer__menu__item"><a class="footer__menu__link" href="#"><loc:message code="dasbboard.aboutUs"/></a></li>
-                    <li class="footer__menu__item"><a class="footer__menu__link" href="#"><loc:message code="dasbboard.contactsAndSupport"/></a></li>
-                    <li class="footer__menu__item"><a class="footer__menu__link" href="#"><loc:message code="dasbboard.PressAboutUs"/></a></li>
+                    <li class="footer__menu__item"><a class="footer__menu__link" href="#"><loc:message code="dashboard.aboutUs"/></a></li>
+                    <li class="footer__menu__item"><a class="footer__menu__link" href="#"><loc:message code="dashboard.contactsAndSupport"/></a></li>
+                    <li class="footer__menu__item"><a class="footer__menu__link" href="#"><loc:message code="dashboard.PressAboutUs"/></a></li>
                 </ul>
             </div>
         </div>
         <div class="row text-center footer__copyright">
-            <loc:message code="dasbboard.allRightsReserved"/>
+            <loc:message code="dashboard.allRightsReserved"/>
         </div>
     </div>
 </footer>

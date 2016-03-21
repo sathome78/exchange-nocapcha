@@ -8,14 +8,17 @@ import me.exrates.security.service.UserSecureServiceImpl;
 import me.exrates.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.security.Principal;
 import java.util.ArrayList;
@@ -128,6 +131,9 @@ public class AdminController {
             return new ModelAndView("403");
         }
         user.setConfirmPassword(user.getPassword());
+        if (user.getFinpassword() == null){
+            user.setFinpassword("");
+        }
         registerFormValidation.validateEditUser(user, result);
         if(result.hasErrors()) {
             model.addObject("statusList", UserStatus.values());
@@ -142,4 +148,66 @@ public class AdminController {
 
         return model;
     }
+
+    @RequestMapping("/settings")
+    public ModelAndView settings(Principal principal) {
+
+        ModelAndView model = new ModelAndView();
+
+        User user = userService.getUserById(userService.getIdByEmail(principal.getName()));
+        model.addObject("user", user);
+        model.setViewName("settings");
+
+        return model;
+    }
+
+    @RequestMapping(value = "settings/changePassword/submit", method = RequestMethod.POST)
+    public ModelAndView submitsettingsPassword(@Valid @ModelAttribute User user, BindingResult result,
+                                               ModelAndView model, HttpServletRequest request) {
+
+        registerFormValidation.validateResetPassword(user, result);
+        if(result.hasErrors()) {
+            model.setViewName("settings");
+        }else {
+            userService.update(user, true, false, false);
+            new SecurityContextLogoutHandler().logout(request, null, null);
+            model.setViewName("redirect:/dashboard");
+        }
+
+        model.addObject("user", user);
+
+        return model;
+    }
+
+    @RequestMapping(value = "settings/changeFinPassword/submit", method = RequestMethod.POST)
+    public ModelAndView submitsettingsFinPassword(@Valid @ModelAttribute User user, BindingResult result,
+                                                  ModelAndView model, HttpServletRequest request) {
+
+        registerFormValidation.validateResetFinPassword(user, result);
+        if(result.hasErrors()) {
+            model.setViewName("settings");
+        }else {
+            userService.update(user, false, true, false);
+            model.setViewName("redirect:/mywallets");
+        }
+
+        model.addObject("user", user);
+
+        return model;
+    }
+
+    @RequestMapping(value = "/changePasswordConfirm")
+    public ModelAndView verifyEmail(WebRequest request, @RequestParam("token") String token) {
+        ModelAndView model = new ModelAndView();
+        try {
+            userService.verifyUserEmail(token);
+            model.setViewName("RegistrationConfirmed");
+        } catch (Exception e) {
+            model.setViewName("DBError");
+            e.printStackTrace();
+        }
+        return model;
+    }
+
+
 }

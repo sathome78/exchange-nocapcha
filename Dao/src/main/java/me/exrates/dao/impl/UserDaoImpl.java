@@ -1,8 +1,9 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.UserDao;
-import me.exrates.model.RegistrationToken;
+import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
+import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 
@@ -39,7 +40,7 @@ public class UserDaoImpl implements UserDao {
 			String hashedPassword = passwordEncoder.encode(user.getPassword());
 			namedParameters.put("password", hashedPassword);
 			String phone = user.getPhone();
-			if(user.getPhone().equals("")){
+			if(user.getPhone() != null && user.getPhone().equals("")){
 				phone = null;
 			}
 			namedParameters.put("phone", phone);
@@ -77,7 +78,8 @@ public class UserDaoImpl implements UserDao {
 
 	@Override
 	public User findByEmail(String email) {
-		final String sql = "SELECT * FROM USER WHERE email = :email";
+		String sql = "select USER.id, nickname, email, password, regdate, phone, status, USER_ROLE.name as role_name from USER " +
+				"inner join USER_ROLE on USER.roleid = USER_ROLE.id where USER.email = :email";
 		final Map<String,String> params =  new HashMap<String, String>(){
 			{
 				put("email", email);
@@ -91,6 +93,9 @@ public class UserDaoImpl implements UserDao {
 			user.setPassword(resultSet.getString("password"));
 			user.setRegdate(resultSet.getDate("regdate"));
 			user.setPhone(resultSet.getString("phone"));
+			user.setStatus(UserStatus.values()[resultSet.getInt("status")-1]);
+			user.setRole(UserRole.valueOf(resultSet.getString("role_name")));
+
 
 			return user;
 		});
@@ -221,7 +226,8 @@ public class UserDaoImpl implements UserDao {
 
 		public boolean update(User user) {
 			String sql = "UPDATE USER SET nickname = :nickname, email = :email, password = :password," +
-					"phone = :phone, status = :status, roleid = :roleid WHERE USER.id = :id; ";
+					"phone = :phone, status = :status, roleid = :roleid, " +
+					"finpassword = :finpassword WHERE USER.id = :id; ";
 
 			Map<String, String> namedParameters = new HashMap<String, String>();
 			namedParameters.put("id", String.valueOf(user.getId()));
@@ -229,14 +235,22 @@ public class UserDaoImpl implements UserDao {
 			namedParameters.put("email", user.getEmail());
 			BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 			String hashedPassword;
-			if (user.getPassword() == ""){
+			if (user.getPassword() == "" || user.getPassword() == null){
 				hashedPassword = getUserById(user.getId()).getPassword();
 			}else {
 				hashedPassword = passwordEncoder.encode(user.getPassword());
 			}
 			namedParameters.put("password", hashedPassword);
-			String phone = String.valueOf(user.getPhone());
-			if(user.getPhone().isEmpty()){
+			String hashedFinPassword;
+			if (user.getFinpassword() == "" || user.getFinpassword() == null){
+				hashedFinPassword = getUserById(user.getId()).getFinpassword();
+			}else {
+				hashedFinPassword = passwordEncoder.encode(user.getFinpassword());
+			}
+			namedParameters.put("finpassword", hashedFinPassword);
+
+			String phone = user.getPhone();
+			if(user.getPhone() != null && user.getPhone().equals("")){
 				phone = null;
 			}
 			namedParameters.put("phone", phone);
@@ -246,32 +260,34 @@ public class UserDaoImpl implements UserDao {
 			return jdbcTemplate.update(sql, namedParameters) > 0;
 		}
 
-	public boolean createRegistrationToken(RegistrationToken token) {
-		String sql = "insert into REGISTRATION_TOKEN(value,user_id) values(:value,:user_id)";
+	public boolean createTemporalToken(TemporalToken token) {
+		String sql = "insert into TEMPORAL_TOKEN(value,user_id,token_type_id) values(:value,:user_id,:token_type_id)";
 		Map<String, String> namedParameters = new HashMap<String, String>();
 		namedParameters.put("value", token.getValue());
 		namedParameters.put("user_id", String.valueOf(token.getUserId()));
+		namedParameters.put("token_type_id", String.valueOf(token.getTokenType().getTokenType()));
 		return jdbcTemplate.update(sql, namedParameters) > 0;
 	}
 	
-	public RegistrationToken verifyToken(String token) {
-		String sql = "SELECT * FROM REGISTRATION_TOKEN WHERE VALUE= :value";
+	public TemporalToken verifyToken(String token) {
+		String sql = "SELECT * FROM TEMPORAL_TOKEN WHERE VALUE= :value";
 		Map<String, String> namedParameters = new HashMap<String, String>();
 		namedParameters.put("value", token);
 		return jdbcTemplate.query(sql, namedParameters, (rs, row) -> {
-                    RegistrationToken rt = new RegistrationToken();
-                    rt.setId(rs.getInt("id"));
-                    rt.setUserId(rs.getInt("user_id"));
-                    rt.setValue(token);
-                    rt.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
-                    rt.setExpired(rs.getBoolean("expired"));
-                	return rt;
+                    TemporalToken temporalToken = new TemporalToken();
+					temporalToken.setId(rs.getInt("id"));
+					temporalToken.setUserId(rs.getInt("user_id"));
+					temporalToken.setValue(token);
+					temporalToken.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
+					temporalToken.setExpired(rs.getBoolean("expired"));
+					temporalToken.setTokenType(TokenType.values()[rs.getInt("token_type_id")-1]);
+                	return temporalToken;
  
 		}).get(0);
 	}
 	
-	public boolean deleteRegistrationToken(RegistrationToken token) {
-		String sql = "delete from REGISTRATION_TOKEN where id = :id";
+	public boolean deleteTemporalToken(TemporalToken token) {
+		String sql = "delete from TEMPORAL_TOKEN where id = :id";
 		Map<String, String> namedParameters = new HashMap<String, String>();
 		namedParameters.put("id", String.valueOf(token.getId()));
 		return jdbcTemplate.update(sql, namedParameters) > 0;

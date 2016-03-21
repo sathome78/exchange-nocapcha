@@ -74,6 +74,7 @@
                                 <tr>
                                     <th><loc:message code="admin.user"/></th>
                                     <th><loc:message code="admin.email"/></th>
+                                    <th><loc:message code="admin.registrationDate"/></th>
                                     <th><loc:message code="admin.role"/></th>
                                     <th><loc:message code="admin.status"/></th>
                                 </tr>
@@ -88,6 +89,9 @@
                                         </td>
                                         <td>
                                             <option>${user.getEmail()}</option>
+                                        </td>
+                                        <td>
+                                            <option>${user.getRegdate()}</option>
                                         </td>
                                         <td>
                                             <option>${user.getRole()}</option>
@@ -119,6 +123,7 @@
                                 <tr>
                                     <th><loc:message code="admin.user"/></th>
                                     <th><loc:message code="admin.email"/></th>
+                                    <th><loc:message code="admin.registrationDate"/></th>
                                     <th><loc:message code="admin.role"/></th>
                                     <th><loc:message code="admin.status"/></th>
                                 </tr>
@@ -133,6 +138,9 @@
                                         </td>
                                         <td>
                                             <option>${user.getEmail()}</option>
+                                        </td>
+                                        <td>
+                                            <option>${user.getRegdate()}</option>
                                         </td>
                                         <td>
                                             <option>${user.getRole()}</option>
@@ -150,7 +158,9 @@
                     </sec:authorize>
                     <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
                         <div id="panel3" class="tab-pane fade">
-                            <p>Anything finance...</p>
+                            <h3>
+                                <a class="link" href="companywallet" ><loc:message code="admin.companyWallet"/></a>
+                            </h3>
                         </div>
                     </sec:authorize>
                 </div>

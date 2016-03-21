@@ -1,14 +1,18 @@
 package me.exrates.model;
 
+import me.exrates.model.enums.TokenType;
+
 import java.time.LocalDateTime;
 
-public class RegistrationToken {
+public class TemporalToken {
 	
 	private int id;
 	private String value;
 	private int userId;
 	private boolean expired;
 	private LocalDateTime dateCreation;
+	private TokenType tokenType;
+
 	public int getId() {
 		return id;
 	}
@@ -39,5 +43,10 @@ public class RegistrationToken {
 	public void setDateCreation(LocalDateTime dateCreation) {
 		this.dateCreation = dateCreation;
 	}
-	
+	public TokenType getTokenType() {
+		return tokenType;
+	}
+	public void setTokenType(TokenType tokenType) {
+		this.tokenType = tokenType;
+	}
 }
