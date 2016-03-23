@@ -20,7 +20,8 @@ public class AlgorithmServiceImpl implements AlgorithmService {
         try {
             md5  = MessageDigest.getInstance("MD5");
         } catch (NoSuchAlgorithmException e) {
-            throw new BeanInstantiationException(AlgorithmServiceImpl.class,"Failed to receive MD5 MessageDigest instance");
+            throw new BeanInstantiationException(AlgorithmServiceImpl.class,
+                    "Failed to receive MD5 MessageDigest instance");
         }
 
     }

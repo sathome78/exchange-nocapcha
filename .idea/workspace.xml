@@ -2,38 +2,15 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a6d4cdda-880d-467f-aa0b-e28fbdbe7bcd" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Model/src/main/java/me/exrates/model/BTCTransaction.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Dao/src/main/java/me/exrates/dao/BTCTransactionDao.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Dao/src/main/java/me/exrates/dao/impl/BTCTransactionDaoImpl.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/util/BiTuple.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Controller/src/main/java/me/exrates/controller/merchants/BlockchainController.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Model/src/main/java/me/exrates/model/BlockchainPayment.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/BlockchainService.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/impl/BlockchainServiceImpl.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Dao/src/main/java/me/exrates/dao/PendingBlockchainPaymentDao.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Dao/src/main/java/me/exrates/dao/impl/PendingBlockchainPaymentDaoImpl.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/exception/RejectedPaymentInvoice.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Controller/src/main/resources/dev/merchants/blockchain.properties" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Controller/src/main/resources/prod/merchants/blockchain.properties" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Controller/src/main/resources/dev/mail.properties" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Controller/src/main/resources/prod/mail.properties" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/Controller.iml" afterPath="$PROJECT_DIR$/Controller/Controller.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/artifacts/Controller_war_exploded.xml" afterPath="$PROJECT_DIR$/.idea/artifacts/Controller_war_exploded.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/src/main/java/me/exrates/controller/merchants/PerfectMoneyMerchantController.java" afterPath="$PROJECT_DIR$/Controller/src/main/java/me/exrates/controller/merchants/PerfectMoneyMerchantController.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/impl/PerfectMoneyServiceImpl.java" afterPath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/impl/PerfectMoneyServiceImpl.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Security/Security.iml" afterPath="$PROJECT_DIR$/Security/Security.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Service/Service.iml" afterPath="$PROJECT_DIR$/Service/Service.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/src/main/java/me/exrates/config/SpringMvcInitializer.java" afterPath="$PROJECT_DIR$/Controller/src/main/java/me/exrates/config/SpringMvcInitializer.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Dao/src/main/java/me/exrates/dao/TransactionDao.java" afterPath="$PROJECT_DIR$/Dao/src/main/java/me/exrates/dao/TransactionDao.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Dao/src/main/java/me/exrates/dao/impl/TransactionDaoImpl.java" afterPath="$PROJECT_DIR$/Dao/src/main/java/me/exrates/dao/impl/TransactionDaoImpl.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/TransactionService.java" afterPath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/TransactionService.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/impl/TransactionServiceImpl.java" afterPath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/impl/TransactionServiceImpl.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/src/main/resources/log4j2.xml" afterPath="$PROJECT_DIR$/Controller/src/main/resources/log4j2.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Dao/src/main/resources/patch_19_added_btc_support.sql" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/AlgorithmService.java" afterPath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/AlgorithmService.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/impl/AlgorithmServiceImpl.java" afterPath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/impl/AlgorithmServiceImpl.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/src/main/java/me/exrates/controller/merchants/BlockchainController.java" afterPath="$PROJECT_DIR$/Controller/src/main/java/me/exrates/controller/merchants/BlockchainController.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/SendMailService.java" afterPath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/SendMailService.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/exception/TransactionPersistException.java" afterPath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/exception/TransactionPersistException.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/src/main/resources/dev/merchants/blockchain.properties" afterPath="$PROJECT_DIR$/Controller/src/main/resources/dev/merchants/blockchain.properties" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/src/main/resources/prod/merchants/blockchain.properties" afterPath="$PROJECT_DIR$/Controller/src/main/resources/prod/merchants/blockchain.properties" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/src/main/webapp/client/js/main.js" afterPath="$PROJECT_DIR$/Controller/src/main/webapp/client/js/main.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/src/main/resources/messages_ru.properties" afterPath="$PROJECT_DIR$/Controller/src/main/resources/messages_ru.properties" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/pom.xml" afterPath="$PROJECT_DIR$/pom.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/pom.xml" afterPath="$PROJECT_DIR$/Controller/pom.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Service/pom.xml" afterPath="$PROJECT_DIR$/Service/pom.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <list id="cc5c0c81-d3fe-428f-9dab-dfe69ace8716" name="New changelist" comment="" />
@@ -85,7 +62,7 @@
             <state />
           </provider>
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.68456376">
+            <state vertical-scroll-proportion="0.0">
               <caret line="47" column="18" selection-start-line="47" selection-start-column="0" selection-end-line="47" selection-end-column="18" />
               <folding />
             </state>
@@ -667,9 +644,9 @@
           </PATH>
         </subPane>
       </pane>
+      <pane id="Scope" />
       <pane id="Scratches" />
       <pane id="PackagesPane" />
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -1003,7 +980,8 @@
       <workItem from="1458900321228" duration="100076000" />
       <workItem from="1459072245401" duration="27695000" />
       <workItem from="1459105487906" duration="1311000" />
-      <workItem from="1459106855338" duration="19000" />
+      <workItem from="1459106855338" duration="155000" />
+      <workItem from="1459107013586" duration="63000" />
     </task>
     <task id="LOCAL-00001" summary="PROGRAM-84">
       <created>1458852749871</created>
@@ -1063,7 +1041,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="181673000" />
+    <option name="totallyTimeSpent" value="181872000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -1085,11 +1063,11 @@
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.48656294" sideWeight="0.5028986" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32956153" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32971016" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.4562147" sideWeight="0.49710146" order="10" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.4562147" sideWeight="0.49710146" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Spring" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32956153" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.25434783" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.25434783" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Bean Validation" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Web" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="5" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.28768116" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
@@ -1279,7 +1257,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.12903225">
           <caret line="4" column="23" selection-start-line="4" selection-start-column="23" selection-end-line="4" selection-end-column="23" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1356,7 +1333,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.17598344">
           <caret line="5" column="16" selection-start-line="0" selection-start-column="0" selection-end-line="54" selection-end-column="7" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1389,7 +1365,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-5.230769">
           <caret line="20" column="7" selection-start-line="20" selection-start-column="7" selection-end-line="20" selection-end-column="7" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1472,7 +1447,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-8.5">
           <caret line="31" column="0" selection-start-line="31" selection-start-column="0" selection-end-line="31" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1512,7 +1486,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="1" column="11" selection-start-line="1" selection-start-column="9" selection-end-line="1" selection-end-column="11" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1520,7 +1493,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.6876404">
           <caret line="18" column="0" selection-start-line="18" selection-start-column="0" selection-end-line="18" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1537,7 +1509,7 @@
         <state />
       </provider>
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.68456376">
+        <state vertical-scroll-proportion="0.0">
           <caret line="47" column="18" selection-start-line="47" selection-start-column="0" selection-end-line="47" selection-end-column="18" />
           <folding />
         </state>
