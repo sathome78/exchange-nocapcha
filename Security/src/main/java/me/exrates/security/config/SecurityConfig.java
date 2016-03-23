@@ -52,7 +52,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/merchants/perfectmoney/payment/success",
                         "/merchants/perfectmoney/payment/failure").permitAll()
                 .antMatchers("/login","/register","/create","/forgotPassword/**", "/resetPasswordConfirm/**").anonymous()
-                .anyRequest().authenticated()
+                .antMatchers("/updatePassword").hasAnyAuthority(UserRole.ROLE_CHANGE_PASSWORD.name())
+//                .anyRequest().authenticated()
+                .anyRequest().hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(),UserRole.ADMIN_USER.name(),UserRole.USER.name())
                 .and()
                 .exceptionHandling().accessDeniedPage("/403");
         http.formLogin()

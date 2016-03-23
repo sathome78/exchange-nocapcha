@@ -1,19 +1,35 @@
 package me.exrates.controller;
 
+import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.GenericResponse;
 import me.exrates.model.Order;
+import me.exrates.model.User;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.UserRole;
 import me.exrates.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.management.relation.RoleStatus;
+import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -33,7 +49,13 @@ public class DashboardController {
     UserService userService;
 
     @Autowired
+    UserDetailsService userDetailsService;
+
+    @Autowired
     CommissionService commissionService;
+
+    @Autowired
+    RegisterFormValidation registerFormValidation;
 
     private CurrencyPair currentCurrencyPair;
 
@@ -147,9 +169,84 @@ public class DashboardController {
         }
     }
 
+
     @RequestMapping(value = "/forgotPassword")
     public ModelAndView forgotPassword() {
         ModelAndView model = new ModelAndView();
+        model.addObject("user", new User());
+
+        return model;
+    }
+
+    @RequestMapping(value = "forgotPassword/submit", method = RequestMethod.POST)
+    public ModelAndView forgotPasswordSubmit(@ModelAttribute User user, ModelAndView model) {
+
+        String email = user.getEmail();
+        user = userService.findByEmail(email);
+        userService.update(user, false, false , true);
+
+        model.setViewName("redirect:/dashboard");
+
+        return model;
+    }
+
+    @RequestMapping(value = "/resetPasswordConfirm")
+    public ModelAndView resetPasswordConfirm(WebRequest request, @RequestParam("token") String token) {
+        ModelAndView model = new ModelAndView();
+        try {
+            int userId = userService.verifyUserEmail(token).getId();
+            User user = userService.getUserById(userId);
+            model.addObject("user", user);
+            model.setViewName("updatePassword");
+            org.springframework.security.core.userdetails.User userSpring = new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(), false, false, false, false,
+                    userDetailsService.loadUserByUsername(user.getEmail()).getAuthorities());
+            Collection<GrantedAuthority> authList = new ArrayList<GrantedAuthority>();
+            authList.add(new SimpleGrantedAuthority(UserRole.ROLE_CHANGE_PASSWORD.name()));
+            Authentication auth = new UsernamePasswordAuthenticationToken(
+                    userSpring, null, authList);
+            SecurityContextHolder.getContext().setAuthentication(auth);
+        } catch (Exception e) {
+            model.setViewName("DBError");
+            e.printStackTrace();
+        }
+        return model;
+    }
+
+    @RequestMapping(value = "/dashboard/updatePassword", method = RequestMethod.POST)
+    @ResponseBody
+    public ModelAndView updatePassword(HttpServletRequest request, @RequestParam("password") String password) {
+
+        ModelAndView model = new ModelAndView();
+        org.springframework.security.core.userdetails.User userSpring = (org.springframework.security.core.userdetails.User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = userService.findByEmail(userSpring.getUsername());
+        user.setPassword(password);
+        userService.updateUserByAdmin(user);
+        new SecurityContextLogoutHandler().logout(request, null, null);
+        model.setViewName("redirect:/dashboard");
+        return model;
+    }
+
+
+    @RequestMapping(value = "/forgotPassword/submitUpdate", method = RequestMethod.POST)
+    public ModelAndView submitUpdate(@ModelAttribute User user, BindingResult result, ModelAndView model) {
+
+
+        registerFormValidation.validateResetPassword(user, result);
+        if(result.hasErrors()){
+            model.addObject("user", user);
+            model.setViewName("updatePassword");
+            return model;
+        }
+
+        else {
+
+            User userUpdate = userService.getUserById(user.getId());
+            userUpdate.setPassword(user.getPassword());
+
+            userService.updateUserByAdmin(userUpdate);
+            model.setViewName("redirect:/dashboard");
+        }
+
         return model;
     }
     }
