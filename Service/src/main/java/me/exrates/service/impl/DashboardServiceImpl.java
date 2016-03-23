@@ -19,7 +19,7 @@ public class DashboardServiceImpl implements DashboardService {
     @Autowired
     DashboardDao dashboardDao;
 
-    private static final Logger logger = LogManager.getLogger(UserServiceImpl.class);
+    private static final Logger logger = LogManager.getLogger(DashboardServiceImpl.class);
 
     @Override
     public Order getLastClosedOrder(CurrencyPair currencyPair){

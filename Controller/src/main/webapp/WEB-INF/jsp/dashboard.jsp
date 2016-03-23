@@ -75,8 +75,8 @@
                         <div class="header__login__form__link">
                             <a href="<c:url value="/register" />"><loc:message code="dashboard.signUp"/></a>
 
-                            <%--<a href="<c:url value="/forgotPassword"/>"><loc:message code="dashboard.forgotPassword"/></a>--%>
-                            <a href="#"><loc:message code="dashboard.forgotPassword"/></a>
+                            <a href="<c:url value="/forgotPassword"/>"><loc:message code="dashboard.forgotPassword"/></a>
+                            <%--<a href="#"><loc:message code="dashboard.forgotPassword"/></a>--%>
                         </div>
                     </div>
                     <!-- end header__login__form -->
