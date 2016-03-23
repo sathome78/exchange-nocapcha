@@ -15,6 +15,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.MailException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -71,7 +72,11 @@ public class BlockchainController {
             email.setTo(principal.getName());
             email.setSubject("Exrates BTC Payment Invoice");
             email.setMessage(sumWithCurrency);
-            sendMailService.sendMail(email);
+            try {
+                sendMailService.sendMail(email);
+            } catch (MailException e) {
+                logger.error(e);
+            }
             logger.info(blockchainPayment.toString());
             return new ResponseEntity<>(success, HttpStatus.OK);
         } catch (InvalidAmountException|RejectedPaymentInvoice e) {

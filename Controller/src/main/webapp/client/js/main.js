@@ -19,12 +19,13 @@ $.fn.serializeObject = function()
     
 };
 
-$(function(){
-    $('.merchantError').hide();
-});
-
 
 /* --------- make merchants module start -------------- */
+
+$(function(){
+    $('.merchantError').hide();
+    $('.response_money_operation_btn').hide();
+});
 
 $(function(){
 
@@ -62,6 +63,7 @@ $(function(){
         });
     })('/merchants/data');
 
+    
     function resetMerchantsList(currency) {
         var optionsHTML = '';
         $.each(merchantsData,function(index){
@@ -159,7 +161,11 @@ $(function(){
                         data: JSON.stringify($(form).serializeObject())
                     }).done(function (response) {
                         $('.paymentInfo').html(response.responseText);
+                        $('.request_money_operation_btn').hide();
+                        $('.response_money_operation_btn').show();
                     }).fail(function (error) {
+                        $('.request_money_operation_btn').hide();
+                        $('.response_money_operation_btn').show();
                         $('.paymentInfo').html(error.responseText);
                         console.log(error);
                     });
@@ -282,6 +288,11 @@ $(function(){
         } else {
             button.prop('disabled',true);
         }
+    });
+
+    $('.response_money_operation_btn>button').on('click', function () {
+        $('.request_money_operation_btn').show();
+        $('.response_money_operation_btn').hide();
     });
     
 });

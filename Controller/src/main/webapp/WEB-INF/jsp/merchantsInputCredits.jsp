@@ -100,8 +100,13 @@
             </div>
             <div class="modal-footer">
                 <div class="add__money__btns">
-                    <button type="button" id="inputPaymentProcess" class="btn btn-primary"><loc:message code="merchants.continue"/></button>
-                    <button type="button" data-dismiss="modal" class="btn btn-warning"><loc:message code="merchants.dismiss"/></button>
+                    <div class="request_money_operation_btn">
+                        <button type="button" id="inputPaymentProcess" class="btn btn-primary"><loc:message code="merchants.continue"/></button>
+                        <button type="button" data-dismiss="modal" class="btn btn-warning"><loc:message code="merchants.dismiss"/></button>
+                    </div>
+                    <div class="response_money_operation_btn">
+                        <button type="button" data-dismiss="modal" class="btn btn-warning"><loc:message code="merchants.continue"/></button>
+                    </div>
                 </div>
             </div>
         </div><!-- /.modal-content -->
