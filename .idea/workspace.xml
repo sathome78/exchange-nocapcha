@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a6d4cdda-880d-467f-aa0b-e28fbdbe7bcd" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/src/main/java/me/exrates/controller/DashboardController.java" afterPath="$PROJECT_DIR$/Controller/src/main/java/me/exrates/controller/DashboardController.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/src/main/java/me/exrates/controller/validator/RegisterFormValidation.java" afterPath="$PROJECT_DIR$/Controller/src/main/java/me/exrates/controller/validator/RegisterFormValidation.java" />
     </list>
     <list id="cc5c0c81-d3fe-428f-9dab-dfe69ace8716" name="New changelist" comment="" />
     <ignored path="Birzha.iws" />
@@ -972,7 +973,7 @@
       <workItem from="1459072245401" duration="27695000" />
       <workItem from="1459105487906" duration="1311000" />
       <workItem from="1459106855338" duration="155000" />
-      <workItem from="1459107013586" duration="521000" />
+      <workItem from="1459107013586" duration="549000" />
     </task>
     <task id="LOCAL-00001" summary="PROGRAM-84">
       <created>1458852749871</created>
@@ -1032,7 +1033,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="182330000" />
+    <option name="totallyTimeSpent" value="182358000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
