@@ -1,4 +1,3 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <!DOCTYPE html>
 <%@ page contentType="text/html;charset=UTF-8" language="java"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
@@ -6,7 +5,7 @@
 <%@ taglib prefix="loc" uri="http://www.springframework.org/tags"%>
 <%@ taglib prefix="sec"
            uri="http://www.springframework.org/security/tags"%>
-<%@ page session="false"%>
+<%--<%@ page session="false"%>--%>
 <html>
 <head>
     <link href="<c:url value='/client/css/bootstrap.css'/>" rel="stylesheet" type="text/css"/>
@@ -28,11 +27,14 @@
         <div >
             <br>
             <form:form class="form-inline" id="settings-user-form"
-                action="forgotPassword/submit" method="post" modelAttribute="user">
+                action="/forgotPassword/submit" method="post" modelAttribute="user">
 
                 <div class="form-group">
 
-                    <form:label path="email"><loc:message code="admin.email" var="adminEmail"/></form:label>
+                    <form:errors path="email" style="color:red"/>
+                    <br>
+                    <br>
+                    <label path="email"><loc:message code="admin.email" var="adminEmail"/></label>
                     <form:input path="email" class="form-control" id="user-email"
                                 placeholder="${adminEmail}" />
 

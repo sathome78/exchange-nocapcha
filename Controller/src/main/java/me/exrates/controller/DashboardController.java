@@ -180,14 +180,21 @@ public class DashboardController {
     public ModelAndView forgotPassword() {
         ModelAndView model = new ModelAndView();
         model.addObject("user", new User());
+        model.setViewName("forgotPassword");
 
         return model;
     }
 
-    @RequestMapping(value = "forgotPassword/submit", method = RequestMethod.POST)
-    public ModelAndView forgotPasswordSubmit(@ModelAttribute User user, ModelAndView model) {
+    @RequestMapping(value = "/forgotPassword/submit", method = RequestMethod.POST)
+    public ModelAndView forgotPasswordSubmit(@ModelAttribute User user, BindingResult result, ModelAndView model) {
 
         String email = user.getEmail();
+        registerFormValidation.validateEmail(user, result);
+        if(result.hasErrors()){
+            model.addObject("user", user);
+            model.setViewName("/forgotPassword");
+            return model;
+        }
         user = userService.findByEmail(email);
         userService.update(user, false, false , true);
 
