@@ -1,6 +1,6 @@
 package me.exrates.dao.impl;
 
-import me.exrates.dao.PendingBlockchainPaymentDao;
+import me.exrates.dao.PendingCryptoPaymentDao;
 import me.exrates.model.BlockchainPayment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -16,7 +16,7 @@ import java.util.Map;
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 @Repository
-public class PendingBlockchainPaymentDaoImpl implements PendingBlockchainPaymentDao {
+public class PendingCryptoPaymentDao implements PendingCryptoPaymentDao {
 
     @Autowired
     private NamedParameterJdbcTemplate jdbcTemplate;

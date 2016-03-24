@@ -5,7 +5,7 @@ import me.exrates.model.BlockchainPayment;
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
-public interface PendingBlockchainPaymentDao {
+public interface PendingCryptoPaymentDao {
 
     BlockchainPayment create(BlockchainPayment blockchainPayment);
 
