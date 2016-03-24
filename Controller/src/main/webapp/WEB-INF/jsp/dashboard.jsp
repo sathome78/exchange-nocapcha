@@ -27,6 +27,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/jquery.mCustomScrollbar.concat.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/function.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/dashboard.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
     <script type="text/javascript" src="<c:url value='https://www.google.com/jsapi'/>"></script>
     <script type="text/javascript">
         google.load("visualization", "1", {"packages":["corechart"]});
@@ -50,10 +51,12 @@
             <!-- begin Right block -->
             <div class="header__flip">
                 <div class="dropdown lang__select">
-                    <a data-toggle="dropdown" href="#">ru</a><i class="glyphicon-chevron-down"></i>
+                    <a data-toggle="dropdown" href="#">${pageContext.response.locale}</a><i class="glyphicon-chevron-down"></i>
                     <ul class="dropdown-menu">
-                        <li><a href="#">ru</a></li>
-                        <li><a href="#">en</a></li>
+                        <%--<li><a  class="lang__item" href="#">ru</a></li>--%>
+                        <li><a  class="lang__item" href="#">English</a></li>
+                        <li><a  class="lang__item" href="#">Русский</a></li>
+                        <li><a  class="lang__item" href="#">Chinese</a></li>
                     </ul>
                 </div>
             </div>

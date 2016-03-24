@@ -2,7 +2,6 @@ package me.exrates.controller;
 
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.GenericResponse;
 import me.exrates.model.Order;
 import me.exrates.model.User;
 import me.exrates.model.enums.OperationType;
@@ -22,7 +21,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.management.relation.RoleStatus;
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.security.Principal;
