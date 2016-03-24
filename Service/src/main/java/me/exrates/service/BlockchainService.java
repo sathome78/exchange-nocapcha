@@ -5,14 +5,12 @@ import me.exrates.model.BlockchainPayment;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 
-import java.util.Optional;
-
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 public interface BlockchainService {
 
-    Optional<BlockchainPayment> createPaymentInvoice(CreditsOperation creditsOperation);
+    BlockchainPayment createPaymentInvoice(CreditsOperation creditsOperation);
 
     BlockchainPayment findByInvoiceId(int invoiceId);
 

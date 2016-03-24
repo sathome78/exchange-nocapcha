@@ -62,7 +62,7 @@ public class BlockchainController {
         final Optional<CreditsOperation> creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName());
         try {
             final BlockchainPayment blockchainPayment = creditsOperation
-                    .flatMap(blockchainService::createPaymentInvoice)
+                    .map(blockchainService::createPaymentInvoice)
                     .orElseThrow(InvalidAmountException::new);
             final String sumWithCurrency = blockchainPayment.getAmount() + "BTC";
             final String success = String.format(context

@@ -7,7 +7,7 @@ import info.blockchain.api.receive.ReceiveResponse;
 import info.blockchain.api.wallet.PaymentResponse;
 import info.blockchain.api.wallet.Wallet;
 import me.exrates.dao.BTCTransactionDao;
-import me.exrates.dao.PendingBlockchainPaymentDao;
+import me.exrates.dao.PendingCryptoPaymentDao;
 import me.exrates.model.*;
 import me.exrates.model.enums.OperationType;
 import me.exrates.service.BlockchainService;
@@ -49,7 +49,7 @@ public class BlockchainServiceImpl implements BlockchainService {
     private TransactionService transactionService;
 
     @Autowired
-    private PendingBlockchainPaymentDao blockchainPaymentDao;
+    private PendingCryptoPaymentDao pendingCryptoPaymentDao;
 
     @Autowired
     private BTCTransactionDao btcTransactionDao;
@@ -60,7 +60,7 @@ public class BlockchainServiceImpl implements BlockchainService {
 
     @Override
     @Transactional
-    public Optional<BlockchainPayment> createPaymentInvoice(CreditsOperation creditsOperation) {
+    public BlockchainPayment createPaymentInvoice(CreditsOperation creditsOperation) {
         final Transaction request = transactionService.createTransactionRequest(creditsOperation);
         final String callback = UriComponentsBuilder
                 .fromUriString(callbackUrl)
@@ -76,10 +76,9 @@ public class BlockchainServiceImpl implements BlockchainService {
             payment.setAddress(response.getReceivingAddress());
             payment.setAmount(amount);
             payment.setInvoiceId(request.getId());
-            blockchainPaymentDao.create(payment);
-            return Optional.of(payment);
+            pendingCryptoPaymentDao.create(payment);
+            return payment;
         } catch (APIException | IOException e) {
-            System.out.println(e);
             logger.error(e);
             throw new RejectedPaymentInvoice();
         }
@@ -87,7 +86,7 @@ public class BlockchainServiceImpl implements BlockchainService {
 
     @Override
     public BlockchainPayment findByInvoiceId(int invoiceId) {
-        final BlockchainPayment pendingPayment = blockchainPaymentDao.findByInvoiceId(invoiceId);
+        final BlockchainPayment pendingPayment = pendingCryptoPaymentDao.findByInvoiceId(invoiceId);
         pendingPayment.setSecret(secret);
         return pendingPayment;
     }
@@ -97,7 +96,7 @@ public class BlockchainServiceImpl implements BlockchainService {
     public void persistBlockchainTransaction(BlockchainPayment payment, BTCTransaction btcTransaction) {
         final Transaction transaction = transactionService.findById(payment.getInvoiceId());
         if (transaction.getOperationType()== OperationType.INPUT){
-            blockchainPaymentDao.delete(payment.getInvoiceId());
+            pendingCryptoPaymentDao.delete(payment.getInvoiceId());
         }
         transactionService.provideTransaction(transaction);
         btcTransactionDao.create(btcTransaction);
