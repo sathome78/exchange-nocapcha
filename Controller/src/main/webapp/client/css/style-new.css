@@ -1,0 +1,1154 @@
+/******************************** 
+
+	1. Navigation
+	2. Exchange Data
+	3. Exchange INFO
+	4. BUY or SELL
+	5. Table
+	6. Table
+	7. FOOTER
+	8. MEDIA QUERIES
+	9. Modal SignIn
+	10. Login
+	11. ORDERS NEW
+	12. Transaction
+	13. Output
+	14. My Orders
+	15. My Wallets
+
+********************************/
+
+html, body {
+    width: 100%;
+    height: 100%;
+
+}
+
+@font-face {
+    font-family: calibri;
+    src: url('../fonts/Calibri.ttf');
+}
+
+body {
+
+    font-family: Calibri, 'Roboto', sans-serif;
+    background: #6a1c0b;
+    color: #ebeef7;
+    background-image: url("../img/background.jpg");
+    background-size: cover;
+    /*background: radial-gradient(at top, #a44a1e,  #64180a);*/
+}
+
+/*Make footer stick to bottom*/
+.container_footer_bottom {
+    min-height: 100%;
+    margin-top: -72px;
+    padding-top: 72px;
+    margin-bottom: -240px;
+}
+
+@media only screen and (max-width: 768px) {
+    .container {
+        margin: 0 auto;
+        padding: 0;
+        max-width: 95%
+    }
+
+}
+
+/***********************************
+			1. NAVIGATION
+***********************************/
+nav.navbar {
+    width: 100%;
+    background: rgba(255, 255, 255, .25);
+}
+
+nav.navbar ul li a {
+    color: #fff;
+}
+
+nav.navbar ul li a:hover,
+.nav .open > a,
+.nav .open > a:focus,
+.nav .open > a:hover,
+.nav > li > a:focus, .nav > li > a:hover {
+    background-color: rgba(255, 255, 255, .1);
+    outline: 0;
+}
+
+nav.navbar ul li:active a {
+    background: rgba(255, 255, 255, .1);
+}
+
+nav.navbar a img {
+    margin-top: -8px;
+}
+
+ul#languageUl.dropdown-menu {
+    background: rgba(255, 255, 255, .25);
+    min-width: 60px;
+}
+
+ul.nav {
+    float: right;
+}
+
+ul.nav .margin-left {
+    margin-left: 80px;
+}
+
+/***********************************
+			2. Exchange Data
+***********************************/
+
+.exchange_data {
+    background-color: rgba(255, 255, 255, .25);
+    overflow: auto;
+    padding: 10px;
+
+}
+
+.exchange_data ul {
+    width: 20%;
+    padding-left: 0;
+    float: left;
+}
+
+.exchange_data ul li {
+    line-height: 30px;
+    list-style: none;
+    margin: 4px 0;
+    width: 100%;
+}
+
+.exchange_data ul li a {
+    background: rgba(255, 255, 255, .25);
+    color: #65180a;
+    border: none;
+    display: inline-block;
+    height: 30px;
+    line-height: 28px;
+    position: relative;
+    text-decoration: none;
+    max-width: 150px;
+    display: block;
+}
+
+.exchange_data ul li.active a {
+    background: #6b1d0c;
+    color: #fff;
+}
+
+.exchange_data ul li a:after {
+    left: 100%;
+    top: 50%;
+    border: solid transparent;
+    content: " ";
+    height: 0;
+    width: 0;
+    position: absolute;
+    pointer-events: none;
+    border-left-color: rgba(255, 255, 255, .25);
+    border-width: 15px;
+    margin-top: -15px;
+}
+
+.exchange_data ul li:last-child {
+    max-width: 150px;
+}
+
+.exchange_data ul li:last-child a:after {
+    display: none;
+}
+
+.exchange_data ul li.active a:after {
+    border-left-color: #6b1d0c;
+}
+
+.exchange_data ul li:last-child ul {
+    width: 900px;
+    background: rgba(255, 255, 255, .5);
+    position: absolute;
+    z-index: 20;
+    display: none;
+}
+
+.exchange_data ul li:last-child ul li {
+    width: 140px;
+    float: left;
+    list-style: none;
+    margin: 5px;
+    background: rgba(255, 255, 255, .5);
+}
+
+.exchange_data ul li:last-child ul li a {
+    display: block;
+    width: 100%;
+    margin-right: 5px;
+}
+
+#other_pairs a span {
+    display: block;
+    float: right;
+    margin-top: 12px;
+
+}
+
+.exchange_data ul li a {
+    color: #65180a;
+    padding: 2px 10px;
+}
+
+.exchange_data .graphic {
+    max-width: 80%;
+    float: left;
+    overflow: hidden;
+    padding-bottom: 15px;
+}
+
+.exchange_data .graphic img {
+    max-width: 100%;
+}
+
+.whiter {
+    background: rgba(255, 255, 255, .5);
+}
+
+/****************************************
+			3. Exchange INFO
+****************************************/
+.exchange_info {
+    margin-top: 20px;
+    background: rgba(255, 255, 255, .25);
+    overflow: visible;
+    padding: 15px 10px;
+    min-height: 50px;
+}
+
+.exchange_info ul {
+    padding-left: 0;
+    overflow: auto;
+    margin-bottom: 0;
+}
+
+.exchange_info ul li {
+    list-style: none;
+    float: left;
+    margin: 8px 20px 0 20px;
+}
+
+.exchange_info ul li:first-child {
+    margin-left: 0;
+}
+
+.exchange_info ul li.reveal {
+    float: right;
+}
+
+.exchange_info ul li a {
+    color: #fff;
+    text-decoration: none;
+}
+
+div.exchange_info > ul > li.reveal {
+    background-color: #7d3320;
+    padding: 5px 12px;
+    margin-top: 0px;
+    width: 115px;
+}
+
+div.exchange_info > ul > li.reveal:after {
+    margin-left: -105px;
+    margin-top: -5px;
+    border: solid transparent;
+    content: "";
+    height: 0;
+    width: 0;
+    position: absolute;
+    pointer-events: none;
+    border-right-color: #7d3320;
+    border-width: 15px;
+}
+
+#currency {
+    min-width: 95px;
+    width: 120px;
+    padding: 5px;
+    overflow: auto;
+    margin-top: 20px;
+    display: none;
+    position: absolute;
+    margin-left: -15px;
+    background-color: rgba(255, 255, 255, .25);
+    z-index: 10;
+}
+
+#currency li {
+    margin: 5px;
+    padding: 10px;
+    float: none;
+    background-color: #7d3320;
+    min-width: 100px;
+}
+
+#currency li a {
+    display: block;
+}
+
+.exchange_info .dropdown-menu li {
+    margin-left: 0;
+}
+
+@media only screen and (max-width: 1200px) {
+    .exchange_info ul li {
+        margin: 8px 15px 0 15px;
+    }
+}
+
+@media only screen and (max-width: 990px) {
+    div.exchange_info > ul > li.reveal:after {
+        margin-left: -119px;
+    }
+}
+
+/****************************************
+			4. BUY or SELL
+****************************************/
+
+.buy_sell {
+    background-image: url("../img/logo_lines.png");
+    margin-top: 20px;
+    background-size: contain;
+    min-height: 520px;
+}
+
+.add_margin {
+    margin-top: 25px;
+    margin-bottom: 25px;
+}
+
+.buy_sell span.col1,
+.buy_sell span.col2 {
+    display: block;
+    float: left;
+    margin: 5px 0;
+}
+
+.col1,
+.buy_sell span.col1 {
+    width: 40%;
+    /*margin-right: 5%;*/
+}
+
+.col2,
+.buy_sell span.col2 {
+    width: 55%;
+}
+
+hr.display_at_small_width {
+    display: none;
+}
+
+.buy_sell input {
+    background: transparent;
+    border: solid 1px #965a4a;
+    padding-left: 10px;
+    padding-right: 10px;
+    margin: 10px 0;
+}
+
+.buy_sell .sell input {
+    text-align: right;
+}
+
+.buy_sell button.calculate {
+    background-color: #93472a;
+    border: none;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.buy_sell button.buy {
+    background-color: #6a1c0b;
+    border: none;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.buy_sell .big_logo {
+    margin-top: 100px;
+}
+
+.sell {
+    text-align: right;
+}
+
+.buy_sell .sell span.col1,
+.buy_sell .sell span.col2 {
+    float: right;
+}
+
+.margin-top-40 {
+
+}
+
+.margin_top {
+    margin-top: -65px;
+}
+
+.align-right {
+    text-align: right;
+}
+
+@media only screen and (max-width: 1200px) {
+    .buy_sell {
+        min-height: 420px;
+    }
+
+    .margin_top {
+        margin-top: -50px;
+    }
+
+    .buy_sell h3 {
+        margin-top: 10px;
+    }
+}
+
+/****************************************
+				6. Table
+****************************************/
+
+table {
+    width: 100%;
+}
+
+.table1 {
+    height: 218px;
+    /*overflow: scroll;*/
+}
+
+table th {
+    background-color: rgba(255, 255, 255, 0.25);
+    padding: 5px 10px;
+}
+
+table tr {
+    border: solid 1px #9b5e4c;
+}
+
+table td {
+    padding: 5px 10px;
+    margin: 2px 0;
+}
+
+/****************************************
+			7. FOOTER
+****************************************/
+
+footer {
+    font-size: 0.8em;
+    position: relative;
+    padding: 20px;
+}
+
+footer span {
+    color: #e0b18c;
+}
+
+footer .header {
+    background-color: rgba(255, 255, 255, .1);
+    padding: 5px 20px;
+}
+
+footer .options {
+    background-color: rgba(255, 255, 255, .25);
+    padding: 5px 20px;
+    min-height: 110px;
+}
+
+footer .options ul {
+    padding-left: 0;
+}
+
+footer .options ul li {
+    list-style: none;
+    line-height: 2em;
+}
+
+footer .options ul li a {
+    color: #fff;
+    text-decoration: none;
+}
+
+footer p {
+    margin-left: 40px;
+    margin-top: 30px;
+}
+
+/****************************************
+			8. MEDIA QUERIES
+****************************************/
+
+@media only screen and (max-width: 990px) {
+    .navbar-brand {
+        max-width: 160px;
+    }
+
+    .navbar-brand img {
+        max-width: 100%;
+    }
+
+    .nav > li > a {
+        padding: 10px 8px;
+    }
+
+    .exchange_data ul {
+        width: 15%;
+        margin-right: 5%;
+    }
+
+    ul.nav .margin-left {
+        margin-left: 0px;
+    }
+
+    .exchange_info {
+        min-height: 45px;
+    }
+
+    .exchange_info ul {
+        text-align: center;
+    }
+
+    .exchange_info ul li,
+    div.exchange_info > ul > li.reveal {
+        display: inline-block;
+        float: none;
+    }
+
+    .buy_sell h3 {
+        margin-top: 5px;
+    }
+
+    .buy_sell {
+        min-height: 330px;
+    }
+
+    .add_margin {
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+
+    .buy_sell input {
+        margin: 5px 0;
+    }
+
+    .orders h3 {
+        font-size: 1.6em;
+    }
+
+    footer .options {
+        min-height: 152px;
+    }
+
+    .exchange_data ul li:last-child {
+        width: 120px;
+    }
+
+    .exchange_data ul li:last-child ul {
+        width: 600px;
+    }
+}
+
+@media only screen and (max-width: 768px) {
+    body {
+        min-width: 500px;
+    }
+
+    .buy_sell {
+        background-image: none;
+    }
+
+    .buy_sell .col-sm-4 {
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    hr.display_at_small_width {
+        display: block;
+    }
+
+    .sell h3 {
+        margin-top: 50px;
+    }
+
+    .margin_top {
+        margin-top: 20px;
+    }
+
+    .orders .col-sm-4 {
+        width: 45%;
+        margin-right: 5%;
+        float: left;
+    }
+
+    .orders .col-sm-4.align-right {
+        float: right;
+        margin-right: 0;
+    }
+
+    footer .col-sm-3 {
+        max-width: 500px;
+        margin: 5px auto;
+    }
+
+    .exchange_info ul li {
+        line-height: 30px;
+    }
+
+    div.exchange_info > ul > li.reveal {
+        margin-top: 0;
+        line-height: 20px;
+    }
+
+    .navbar-toggle .icon-bar {
+        background-color: #fff;
+    }
+
+    ul.nav {
+        float: none;
+        text-align: center;
+    }
+
+    ul.nav ul {
+        text-align: center;
+    }
+}
+
+@media only screen and (max-width: 640px) {
+    .exchange_data ul li:last-child ul {
+        width: 450px;
+    }
+}
+
+/****************************************
+			9. Modal Sign In
+****************************************/
+
+#myModal {
+    max-width: 320px;
+    max-height: 200px;
+    background-image: url("../img/background.jpg");
+    background-size: cover;
+    margin: 0 auto;
+    margin-top: 100px;
+    padding: 0 10px;
+}
+
+#myModal .modal-header {
+    color: rgba(255, 255, 255, .5);
+    border-bottom: solid 1px rgba(255, 255, 255, .25);
+    padding: 5px 15px;
+}
+
+#myModal .modal-dialog {
+    width: 100%;
+    margin: 10px auto;
+}
+
+#myModal .content {
+    max-width: 360px;
+    background: none;
+}
+
+#myModal .modal-content {
+    background: none;
+    box-shadow: none;
+    border: none;
+}
+
+#myModal .content form input {
+    display: block;
+    width: 100%;
+    background-color: rgba(255, 255, 255, .5);
+    border: none;
+    color: #621609;
+    margin: 5px 0;
+    padding: 0 10px;
+    line-height: 2em;
+    outline: 0;
+}
+
+::-webkit-input-placeholder {
+    color: #621609;
+}
+
+:-moz-placeholder {
+    /* Firefox 18- */
+    color: #621609;
+}
+
+::-moz-placeholder {
+    /* Firefox 19+ */
+    color: #621609;
+}
+
+:-ms-input-placeholder {
+    color: #621609;
+}
+
+#myModal .content form button.button_enter,
+#myModal .content form button.button_forgot {
+    background-color: rgba(255, 255, 255, .5);
+    color: #FFF;
+    border: none;
+    width: 47%;
+    margin-right: 1.5%;
+    line-height: 2em;
+    outline: 0;
+}
+
+#myModal .button_forgot a {
+	color: #ffffff;
+    text-decoration: none;
+}
+
+#myModal .content form button.button_forgot {
+    background-color: transparent;
+    margin-left: 1.5%;
+}
+
+#myModal .content form button.button_forgot:hover {
+    background-color: rgba(255, 255, 255, .1);
+}
+
+#myModal .content form button.button_enter:hover {
+    color: #621609;
+}
+
+/****************************************
+			10. Register
+****************************************/
+
+#register {
+    min-width: 320px;
+}
+
+.register {
+    margin-bottom: 50px;
+}
+
+.register hr {
+    border-top: 1px solid #a4654f;
+    position: relative;
+    top: 45px;
+    width: 100%;
+    margin: 0;
+}
+
+.register h5 {
+    font-size: 1.2em;
+    display: block;
+    border-bottom: 1px solid #fff;
+    margin-bottom: 45px;
+    padding-bottom: 15px;
+}
+
+.register form input {
+    background: #ba9287;
+    color: #621609;
+    border: none;
+    padding: 10px 15px;
+    padding-right: 35px;
+    width: 100%;
+    margin: 8px 0;
+    font-size: 1.2em;
+    outline: 0;
+}
+
+.register form span.repass {
+    color: #621609;
+    font-size: 18px;
+    padding-right: 0.5em;
+    position: absolute;
+    z-index: 10;
+    right: 15px;
+    margin-top: -40px;
+    display: none;
+}
+
+.register form span {
+    margin-bottom: 25px;
+    display: block;
+}
+
+.register form button {
+    color: #fff;
+    background: #65180a;
+    border: none;
+    outline: 0;
+    padding: 10px 20px;
+}
+
+.register form button:disabled {
+    color: #777;
+}
+
+@media only screen and (max-width: 990px) {
+    .register hr {
+        top: 62px;
+    }
+}
+
+@media only screen and (max-width: 768px) {
+    .register hr {
+        display: none;
+    }
+}
+
+/****************************************
+			11. ORDERS NEW
+****************************************/
+.orders_new .side_menu ul {
+    margin-top: 25px;
+    margin-left: 0;
+    padding-left: 0;
+}
+
+.orders_new .side_menu ul li {
+    list-style: none;
+    margin: 1px 0;
+    display: block;
+    width: 100%;
+}
+
+.orders_new .side_menu ul li a {
+    display: block;
+    background-color: rgba(255, 255, 255, .15);
+    color: #fff;
+    padding: 8px 15px;
+    text-decoration: none;
+    font-weight: thin;
+}
+
+.orders_new .side_menu ul li a:hover,
+.orders_new .side_menu ul li a.active {
+    background-color: rgba(255, 255, 255, .25);
+}
+
+.orders_new .content h4 {
+    margin-top: 30px;
+    border-bottom: 1px solid #fff;
+    display: inline-block;
+    padding-bottom: 10px;
+
+}
+
+.orders_new .content hr {
+    border-top: 1px solid #a4654f;
+    position: relative;
+    top: -11px;
+    width: 100%;
+    z-index: -1;
+    margin: 0;
+    margin-bottom: 25px;
+}
+
+.orders_new .content form > div {
+    display: block;
+}
+
+.orders_new .content form {
+    margin-bottom: 45px;
+}
+
+.orders_new .content form > div label {
+    width: 14%;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    margin-right: 5%
+}
+
+.orders_new .content form > div select,
+.orders_new .content form > div input {
+    width: 80%;
+    /*max-width: 500px;*/
+    height: 30px;
+    color: #fff;
+    margin: 5px 0;
+    padding: 5px 10px;
+    outline: 0;
+    float: right;
+}
+
+.orders_new .content form > div select {
+    background: #70210e;
+    border: none;
+    border-radius: 0;
+
+    -moz-appearance: none;
+    text-indent: 0.01px;
+    text-overflow: '';
+    /*-webkit-appearance: none;*/
+
+}
+
+.orders_new .content form > div input {
+    border: solid 1px #a56650;
+    background: transparent;
+    color: #fff;
+}
+
+.orders_new .content form > div input::-webkit-input-placeholder {
+    color: #fff;
+}
+
+.orders_new .content form > div input::-moz-placeholder {
+    color: #fff;
+}
+
+/* Firefox 19+ */
+.orders_new .content form > div input:-moz-placeholder {
+    color: #fff;
+}
+
+/* Firefox 18- */
+.orders_new .content form > div input:-ms-input-placeholder {
+    color: #fff;
+}
+
+.orders_new .content form p {
+    display: inline-block;
+    margin-top: 20px;
+
+}
+
+.orders_new .content form p span.fee {
+    margin-left: 15px;
+}
+
+.orders_new .content button {
+    background: #74240f;
+    border: none;
+    padding: 5px 30px;
+    outline: 0;
+    margin: 15px auto;
+    display: block;
+    float: right;
+}
+
+/***************************************
+			12. TRANSACTION
+***************************************/
+.orders_new.transaction .content hr {
+    display: block;
+}
+
+.transaction table {
+    margin-top: 0px;
+    margin-bottom: 30px;
+}
+
+.transaction table tr {
+    border-left: none;
+    border-right: none;
+}
+
+.transaction table tr:first-child {
+    border: none;
+}
+
+.transaction table tr:nth-child(2) {
+    border-top: none;
+}
+
+.transaction table tr th {
+    background: #70210d;
+    border: none;
+}
+
+/***************************************
+			13. OUTPUT
+***************************************/
+.output.orders_new .content {
+    margin-bottom: 15px;
+}
+
+.output.orders_new .content form > div label {
+    width: 20%;
+    margin-right: 4%;
+}
+
+.output.orders_new .content form > div select,
+.output.orders_new .content form > div input {
+    width: 75%;
+}
+
+body#output {
+    min-width: 320px;
+}
+
+.orders_new.output .content button {
+    float: none;
+
+}
+
+@media only screen and (max-width: 400px) {
+    .output.orders_new .content form > div label {
+        display: block;
+        width: 100%;
+        margin-bottom: 0;
+        margin-top: 10px;
+    }
+
+    .output.orders_new .content form > div select,
+    .output.orders_new .content form > div input {
+        width: 100%;
+    }
+}
+
+/***************************************
+			14. MY ORDERS
+***************************************/
+
+.my_orders.orders_new .content {
+    margin-top: 20px;
+}
+
+.my_orders.orders_new .content button {
+    float: none;
+    margin: 10px 0;
+    background: #6c1e0c;
+}
+
+.my_orders.orders_new .content table span {
+    float: right;
+    margin-left: 5px;
+}
+
+.my_orders.orders_new .content table span:hover {
+    cursor: pointer;
+}
+
+.my_orders.orders_new .content table td {
+    padding: 12px 5px;
+}
+
+/***************************************
+			15. ORDERS
+***************************************/
+
+.orders.my_orders.orders_new .content .buttons {
+    margin-left: 20%;
+    display: block;
+    overflow: auto;
+}
+
+.orders.my_orders.orders_new .content .buttons button {
+    float: left;
+    margin: 10px 5%;
+    margin-left: 0;
+    width: 47.5%;
+}
+
+.orders.my_orders.orders_new .content .buttons button:nth-child(2) {
+    background: #a0512e;
+    margin-right: 0;
+}
+
+.orders.my_orders.orders_new .content form {
+    max-width: 600px;
+}
+
+.orders.my_orders.orders_new .content table tr th {
+    background: #9e604d;
+    border: solid 1px #9e604d;
+}
+
+.orders.my_orders.orders_new .content table tr:nth-child(2) td {
+    border-top: solid 1px #995c4c;
+}
+
+.orders.my_orders.orders_new .content table td {
+    padding: 5px;
+    border-top: double 3px #995c4c;
+}
+
+.orders.my_orders.orders_new .content table td:first-child {
+    border-left: solid 1px #995c4c;
+
+}
+
+.orders.my_orders.orders_new .content table td:last-child {
+    border-right: solid 1px #995c4c;
+}
+
+/***************************************
+			15. My Wallets
+***************************************/
+
+.my_wallets .content > div > div.currency {
+    display: block;
+    background: rgba(255, 255, 255, .25);
+    overflow: auto;
+    padding: 5px 20px;
+}
+
+.my_wallets .content .block {
+    overflow: auto;
+    margin-bottom: 20px;
+}
+
+.my_wallets .content p.margin_top {
+
+    display: inline-block;
+    margin-top: 15px;
+}
+
+.my_wallets.my_orders.orders_new .content .buttons1 {
+    float: right;
+    margin-bottom: 15px;
+}
+
+.my_wallets.my_orders.orders_new .content .buttons1 button {
+    float: left;
+    margin: 10px;
+    margin-left: 5px;
+    width: auto;
+}
+
+.my_wallets.orders_new.transaction .content hr {
+    margin: 15px 0 5px 0;
+}
+
+.my_wallets.orders_new.transaction .content hr {
+    margin-bottom: 5px;
+    margin-top: 15px;
+}
+
+@media only screen and (max-width: 990px) {
+    .my_wallets.my_orders.orders_new .content .buttons1 button {
+        padding: 5px 15px;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
