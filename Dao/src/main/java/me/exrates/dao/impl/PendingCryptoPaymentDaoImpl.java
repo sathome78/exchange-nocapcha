@@ -1,5 +1,8 @@
 package me.exrates.dao.impl;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import me.exrates.dao.PendingCryptoPaymentDao;
 import me.exrates.model.BlockchainPayment;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,15 +11,11 @@ import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 @Repository
-public class PendingCryptoPaymentDao implements PendingCryptoPaymentDao {
+public class PendingCryptoPaymentDaoImpl implements PendingCryptoPaymentDao {
 
     @Autowired
     private NamedParameterJdbcTemplate jdbcTemplate;

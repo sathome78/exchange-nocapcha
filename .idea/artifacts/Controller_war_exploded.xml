@@ -18,6 +18,9 @@
           </element>
           <element id="library" level="project" name="Maven: com.squareup.okhttp:okhttp:2.7.2" />
           <element id="library" level="project" name="Maven: info.blockchain:api:1.1.0" />
+          <element id="library" level="project" name="Maven: com.jcabi.incubator:xembly:0.22" />
+          <element id="library" level="project" name="Maven: org.antlr:antlr-runtime:3.5.2" />
+          <element id="library" level="project" name="Maven: com.google.guava:guava:19.0" />
           <element id="archive" name="JDBC-0.0.1-SNAPSHOT.jar">
             <element id="module-output" name="JDBC" />
           </element>

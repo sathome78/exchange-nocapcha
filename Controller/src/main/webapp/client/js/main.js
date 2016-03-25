@@ -32,6 +32,7 @@ $(function(){
     const YANDEX = 'Yandex.Money';
     const PERFECT = 'Perfect Money';
     const BLOCKCHAIN = 'Blockchain';
+    const EDR_COIN = 'EDR Coin';
     const NO_ACTION = 'javascript:void(0);';
 
     var currency = $('#currency');
@@ -92,7 +93,8 @@ $(function(){
             yandex:'/merchants/yandexmoney/payment/prepare',
             blockchainDeposit:'/merchants/blockchain/payment/provide',
             perfectDeposit:'https://perfectmoney.is/api/step1.asp',
-            perfectWithdraw:'/merchants/perfectmoney/payment/provide'
+            perfectWithdraw:'/merchants/perfectmoney/payment/provide',
+            edrcoinWithdraw:'/merchants/edrcoin/payment/provide'
         };
         if (operationType === 'INPUT') {
             switch (merchant) {
@@ -116,6 +118,9 @@ $(function(){
                     break;
                 case BLOCKCHAIN:
                     form.attr('action', formAction.blockchainDeposit);
+                    break;
+                case EDR_COIN:
+                    form.attr('action',formAction.edrcoinWithdraw);
                     break;
                 default:
                     form.attr('action', NO_ACTION);
@@ -170,6 +175,23 @@ $(function(){
                         console.log(error);
                     });
                     break;
+                case EDR_COIN :
+                  $.ajax('/merchants/edrcoin/payment/prepare', {
+                      headers: {
+                          'X-CSRF-Token': $("input[name='_csrf']").val()
+                      },
+                      type: 'POST',
+                      contentType: 'application/json',
+                      dataType: 'json',
+                      data: JSON.stringify($(form).serializeObject()),
+                      success:function (response) {
+                          alert(response);
+                      },
+                      error:function (error) {
+                          alert("error");
+                      }
+                  });
+                      break;
                 default:
                     callback();
             }
