@@ -85,6 +85,7 @@ public class BlockchainServiceImpl implements BlockchainService {
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRED)
     public BlockchainPayment findByInvoiceId(int invoiceId) {
         final BlockchainPayment pendingPayment = pendingCryptoPaymentDao.findByInvoiceId(invoiceId);
         pendingPayment.setSecret(secret);
