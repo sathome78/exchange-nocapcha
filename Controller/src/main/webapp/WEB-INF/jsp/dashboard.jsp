@@ -74,7 +74,7 @@
                     </c:otherwise>
                 </c:choose>
             </c:forEach>
-            <li id="other_pairs"><a href="#">Другие пары <span class="caret"></span></a>
+            <li id="other_pairs"><a href="#"><loc:message code="dashboard.otherpairs"> <span class="caret"></span></a>
                 <ul>
                     <c:forEach var="curr" items="${currencyPairs}" begin="4">
                         <c:choose>

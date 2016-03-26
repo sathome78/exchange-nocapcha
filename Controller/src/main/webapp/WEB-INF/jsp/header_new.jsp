@@ -13,7 +13,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand" href="#"><img src="/client/img/logo.png" alt="Logo"></a>
+                <a class="navbar-brand" href="/"><img src="/client/img/logo.png" alt="Logo"></a>
             </div>
 
             <div id="navbar" class="collapse navbar-collapse">
@@ -23,8 +23,8 @@
                         <li>
                             <a href="#" class="navabr__link active"><loc:message code="dashboard.general"/></a>
                         </li>
-                        <li><a href="#">НОВОСТИ</a></li>
-                        <li><a href="#">ОБУЧЕНИЕ</a></li>
+                        <li><a href="#"><loc:message code="dashboard.news"/></a></li>
+                        <li><a href="#"><loc:message code="dashboard.training"/></a></li>
                         <%--ЛИЧНЫЙ КАБИНЕТ--%>
                         <li>
                             <a href="<c:url value="/mywallets"/>" class="navabr__link"><loc:message
@@ -85,7 +85,7 @@
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
                         aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="myModalLabel">Вход</h4>
+                <h4 class="modal-title" id="myModalLabel"><loc:message code="dashboard.entrance"/></h4>
             </div>
             <div class="modal-body">
                 <div class="content">

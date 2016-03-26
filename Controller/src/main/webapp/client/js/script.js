@@ -15,8 +15,8 @@ $('.orderForm-toggler').click(function(){
 
 //Enable REGISTER button if pass == repass when entering repass
 $(document).ready(function(){
-	//пока не понял - закомментировал //TODO
-	/*document.getElementById("register_button").disabled = true;
+	//разобраться с этим //TODO
+	document.getElementById("register_button").disabled = true;
     $("#repass").keyup(function(){
     	console.log("keyup")
     	var pass = $('#pass').val();
@@ -36,7 +36,7 @@ $(document).ready(function(){
         	$('.repass').css("display","none");
         	$("#register_button").prop('disabled', true);
         }
-    });*/
+    });
 });
 
 
