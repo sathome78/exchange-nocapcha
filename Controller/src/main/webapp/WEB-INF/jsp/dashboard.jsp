@@ -23,11 +23,18 @@
     <link href="<c:url value='/client/css/style-new.css'/>" rel="stylesheet">
 
     <script type="text/javascript" src="<c:url value='/client/js/dashboard.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/dashboard.newInterface.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
     <script type="text/javascript" src="<c:url value='https://www.google.com/jsapi'/>"></script>
     <script type="text/javascript">
         google.load("visualization", "1", {"packages": ["corechart"]});
+    </script>
+
+    <script type="text/javascript">
+        window.$zopim||(function(d,s){var z=$zopim=function(c){z._.push(c)},$=z.s=
+                d.createElement(s),e=d.getElementsByTagName(s)[0];z.set=function(o){z.set.
+                _.push(o)};z._=[];z.set._=[];$.async=!0;$.setAttribute("charset","utf-8");
+            $.src="//v2.zopim.com/?3n4rzwKe0WvQGt1TDMpL8gvMRIUvgCjX";z.t=+new Date;$.
+                    type="text/javascript";e.parentNode.insertBefore($,e)})(document,"script");
     </script>
 
 </head>
@@ -124,15 +131,32 @@
 <main class="container">
     <div class="exchange_data"> <!-- Exchange currencies and graphic -->
         <ul class="exchange">
-            <li class="active exchange__pair"><a href="?name=BTC/USD" class="active">BTC/USD</a></li>
-            <li class="exchange__pair"><a href="?name=BTC/UAH">BTC/UAH</a></li>
-            <li class="exchange__pair"><a href="?name=BTC/EUR">BTC/EUR</a></li>
-            <li class="exchange__pair"><a href="?name=BTC/RUR">BTC/RUR</a></li>
+
+            <c:forEach var="curr" items="${currencyPairs}" begin="0" end="3">
+                <c:choose>
+                    <c:when test="${curr.getName()==currencyPair.getName()}">
+                        <li class="exchange__pair active" selected><a class="active"
+                                                                      href="?name=${curr.getName()}">${curr.getName()}</a></li>
+                    </c:when>
+                    <c:otherwise>
+                        <li class="exchange__pair"><a
+                                href="?name=${curr.getName()}">${curr.getName()}</a></li>
+                    </c:otherwise>
+                </c:choose>
+            </c:forEach>
             <li id="other_pairs"><a href="#">Другие пары <span class="caret"></span></a>
                 <ul>
-                    <c:forEach var="currencyPair" items="${currencyPairs}">
-                        <li class="exchange__pair"><a
-                                href="?name=${currencyPair.getName()}">${currencyPair.getName()}</a></li>
+                    <c:forEach var="curr" items="${currencyPairs}" begin="4">
+                        <c:choose>
+                            <c:when test="${curr.getName()==currencyPair.getName()}">
+                                <li class="exchange__pair active" selected><a class="active"
+                                        href="?name=${curr.getName()}">${curr.getName()}</a></li>
+                            </c:when>
+                            <c:otherwise>
+                                <li class="exchange__pair"><a
+                                        href="?name=${curr.getName()}">${curr.getName()}</a></li>
+                            </c:otherwise>
+                        </c:choose>
                     </c:forEach>
                 </ul>
             </li>
