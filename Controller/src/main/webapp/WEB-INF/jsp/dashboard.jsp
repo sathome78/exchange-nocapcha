@@ -30,103 +30,32 @@
     </script>
 
     <script type="text/javascript">
-        window.$zopim||(function(d,s){var z=$zopim=function(c){z._.push(c)},$=z.s=
-                d.createElement(s),e=d.getElementsByTagName(s)[0];z.set=function(o){z.set.
-                _.push(o)};z._=[];z.set._=[];$.async=!0;$.setAttribute("charset","utf-8");
-            $.src="//v2.zopim.com/?3n4rzwKe0WvQGt1TDMpL8gvMRIUvgCjX";z.t=+new Date;$.
-                    type="text/javascript";e.parentNode.insertBefore($,e)})(document,"script");
+        window.$zopim || (function (d, s) {
+            var z = $zopim = function (c) {
+                z._.push(c)
+            }, $ = z.s =
+                    d.createElement(s), e = d.getElementsByTagName(s)[0];
+            z.set = function (o) {
+                z.set.
+                        _.push(o)
+            };
+            z._ = [];
+            z.set._ = [];
+            $.async = !0;
+            $.setAttribute("charset", "utf-8");
+            $.src = "//v2.zopim.com/?3n4rzwKe0WvQGt1TDMpL8gvMRIUvgCjX";
+            z.t = +new Date;
+            $.
+                    type = "text/javascript";
+            e.parentNode.insertBefore($, e)
+        })(document, "script");
     </script>
 
 </head>
 
 <body>
 
-<header>
-    <nav class="navbar">
-        <div class="container">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
-                        aria-expanded="false" aria-controls="navbar">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <a class="navbar-brand" href="#"><img src="/client/img/logo.png" alt="Logo"></a>
-            </div>
-            <div id="navbar" class="collapse navbar-collapse">
-                <ul class="nav navbar-nav">
-                    <li>
-                        <%--ГЛАВНАЯ--%>
-                        <a href="#" class="navabr__link active"><loc:message code="dashboard.general"/></a>
-                    </li>
-                    <li><a href="#">НОВОСТИ</a></li>
-                    <li><a href="#">ОБУЧЕНИЕ</a></li>
-                    <li>
-                        <%--ЛИЧНЫЙ КАБИНЕТ--%>
-                        <a href="<c:url value="/mywallets"/>" class="navabr__link"><loc:message
-                                code="dashboard.personalArea"/></a
-                    </li>
-
-
-                    <li class="margin-left">
-                        <%--ВОЙТИ--%>
-                        <a href="#" data-toggle="modal" data-target="#myModal"><loc:message
-                                code="dashboard.entrance"/></a></li>
-
-                    <li>
-                        <%--РЕГИСТРАЦИЯ--%>
-                        <a href="<c:url value="/register" />"><loc:message code="dashboard.signUp"/></a>
-                    </li>
-
-                    <%--ПЕРЕКЛЮЧЕНИЕ ЯЗЫКОВ--%>
-                    <li role="presentation" class="dropdown closed">
-                        <a href="#" id="language" class="dropdown-toggle" data-toggle="dropdown"
-                           aria-expanded="true">
-                            ${pageContext.response.locale} <span class="caret"></span>
-                        </a>
-                        <ul class="dropdown-menu" id="languageUl">
-                            <li><a class="lang__item" href="#">English</a></li>
-                            <li><a class="lang__item" href="#">Русский</a></li>
-                            <li><a class="lang__item" href="#">Chinese</a></li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-            <!--/.nav-collapse -->
-        </div>
-    </nav>
-</header>
-
-<!-- Modal  SIGN IN -->
-<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                        aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="myModalLabel">Вход</h4>
-            </div>
-            <div class="modal-body">
-                <div class="content">
-                    <c:url value="/login" var="loginUrl"/>
-                    <form action="${loginUrl}" method="post">
-                        <%--логин--%>
-                        <input type="text" name="username" placeholder=<loc:message code="dashboard.loginText"/>>
-                        <%--пароль--%>
-                        <input type="password" name="password" placeholder=<loc:message code="dashboard.passwordText"/>>
-                        <%--csrf--%>
-                        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
-                        <%--войти--%>
-                        <button type="submit" class="button_enter"><loc:message code="dashboard.entrance"/></button>
-                        <%--Забыли пароль?--%>
-                        <button type="button" class="button_forgot"><a href="<c:url value="/forgotPassword"/>"><loc:message code="dashboard.forgotPassword"/></a></button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<%@include file="header_new.jsp" %>
 
 <main class="container">
     <div class="exchange_data"> <!-- Exchange currencies and graphic -->
@@ -136,7 +65,8 @@
                 <c:choose>
                     <c:when test="${curr.getName()==currencyPair.getName()}">
                         <li class="exchange__pair active" selected><a class="active"
-                                                                      href="?name=${curr.getName()}">${curr.getName()}</a></li>
+                                                                      href="?name=${curr.getName()}">${curr.getName()}</a>
+                        </li>
                     </c:when>
                     <c:otherwise>
                         <li class="exchange__pair"><a
@@ -150,7 +80,8 @@
                         <c:choose>
                             <c:when test="${curr.getName()==currencyPair.getName()}">
                                 <li class="exchange__pair active" selected><a class="active"
-                                        href="?name=${curr.getName()}">${curr.getName()}</a></li>
+                                                                              href="?name=${curr.getName()}">${curr.getName()}</a>
+                                </li>
                             </c:when>
                             <c:otherwise>
                                 <li class="exchange__pair"><a

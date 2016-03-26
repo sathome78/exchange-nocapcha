@@ -1135,8 +1135,16 @@ body#output {
     }
 }
 
+.clearfix:after {
+    display: block;
+    content: "";
+    clear: both;
+}
 
-
+.form-input-error-message{
+    display: inline-block;
+    margin-left: 20%;
+}
 
 
 

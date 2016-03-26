@@ -1,4 +1,4 @@
-$(document).ready(function() {
+$(document).ready(function () {
     $(".lang__item").click(function (e) {
         var localeName = e.target.textContent;
         var localeCode = 'ru';
@@ -9,17 +9,10 @@ $(document).ready(function() {
         } else if (localeName == 'Chinese') {
             localeCode = 'cn';
         }
-
-        {
-            //вариант c изменением url
-            //window.location.href = window.location.href.split('?')[0] + '?locale='+localeCode;
-        }
-        {
-            //вариант без изменения url
-            var ref = '?locale=' + localeCode;
-            $.get(ref, function () {
-                window.location.reload();
-            });
-        }
+        var ref = '?locale=' + localeCode;
+        $.get(ref)
+            .always(function () {
+            window.location.reload();
+        });
     });
 });

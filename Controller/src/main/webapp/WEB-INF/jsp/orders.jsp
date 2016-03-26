@@ -1,5 +1,4 @@
-<%@page language="java" %>
-<%@ page contentType="text/html; charset=UTF-8" language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@taglib uri="http://www.springframework.org/tags" prefix="loc" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
@@ -36,7 +35,7 @@
 
 <body>
 
-<%@include file='header_orders_new.jsp' %>
+<%@include file='header_new.jsp' %>
 
 <main class="container orders_new transaction my_orders orders">
     <%@include file='exchange_info_new.jsp' %>
@@ -78,10 +77,11 @@
                             </form:select>
                         </div>
                         <%--Сумма--%>
-                        <div><label><loc:message code="orders.sum1"/></label>
-                            <form:errors path="amountSell" style="color:red"/>
-                            <span style="color:red">${notEnoughMoney}</span>
+                        <div>
                             <form:input path="amountSell" class="form-control" placeholder="0.0"/>
+                            <label><loc:message code="orders.sum1"/></label>
+                            <form:errors class="form-input-error-message" path="amountSell" style="color:red"/>
+                            <span>${notEnoughMoney}</span>
                         </div>
                         <%--Покупаю--%>
                         <div>
@@ -92,9 +92,9 @@
                         </div>
                         <%--Сумма--%>
                         <div>
-                            <label><loc:message code="orders.sum2"/></label>
-                            <form:errors path="amountBuy" style="color:red"/>
                             <form:input path="amountBuy" class="form-control" placeholder="0.0"/>
+                            <label><loc:message code="orders.sum2"/></label>
+                            <form:errors class="form-input-error-message" path="amountBuy" style="color:red"/>
                         </div>
                         <%--Комиссия с данной операции составит--%>
                         <p><loc:message code="orders.yourcommission"/>:
@@ -123,10 +123,10 @@
                         </div>
                         <%--Сумма--%>
                         <div>
+                            <form:input class="form-input-error-message" path="amountBuy" placeholder="0.0"/>
                             <label><loc:message code="orders.sum1"/></label>
                             <form:errors path="amountBuy" style="color:red"/>
-                            <span style="color:red">${notEnoughMoney}</span>
-                            <form:input path="amountBuy" class="form-control" placeholder="0.0"/>
+                            <span>${notEnoughMoney}</span>
                         </div>
                         <%--Продаю--%>
                         <div>
@@ -137,9 +137,9 @@
                         </div>
                         <%--Сумма--%>
                         <div>
+                            <form:input class="form-input-error-message" path="amountSell" placeholder="0.0"/>
                             <label><loc:message code="orders.sum2"/></label>
                             <form:errors path="amountSell" style="color:red"/>
-                            <form:input path="amountSell" class="form-control" placeholder="0.0"/>
                         </div>
                         <%--Комиссия с данной операции составит--%>
                         <p><loc:message code="orders.yourcommission"/>:
