@@ -166,41 +166,11 @@
         </div>
     </div>
 
-    <div class="exchange_info"> <!-- Exchange info -->
-        <ul>
-            <li><span><loc:message code="dashboard.lastOrder"/></span>
-                <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountBuy()}"/>
-                ${lastOrderCurrency}</li>
-            <li><span><loc:message code="dashboard.priceStart"/></span>
-                <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountBuy()}"/>
-                ${lastOrderCurrency}</span></li>
-            <li><span><loc:message code="dashboard.priceEnd"/></span>
-                <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountBuy()}"/>
-                ${lastOrderCurrency}</span></li>
-            <li><span><loc:message code="dashboard.volume"/></span>
-                <fmt:formatNumber type="number" maxFractionDigits="9" value="${sumAmountBuyClosed}"/>
-                ${currencyPair.getCurrency1().getName()}</span></li>
-            <li><span>
-                    <fmt:formatNumber type="number" maxFractionDigits="9" value="${sumAmountSellClosed}"/>
-                ${currencyPair.getCurrency2().getName()}</span></li>
-
-            <%--непонятный элемент - в старой форме отсутствует ...  // TODO--%>
-            <li class="reveal">
-                <a href="#">
-                    BTC/USD <span class="caret"></span>
-                </a>
-                <ul class="" id="currency">
-                    <li><a href="#">BTC/USD</a></li>
-                    <li><a href="#">BTC/USD</a></li>
-                </ul>
-            </li>
-            <%-- ... непонятный элемент - в старой форме отсутствует  --%>
-        </ul>
-    </div>
-    <!-- End Exchange info -->
+    <%@include file='exchange_info_new.jsp' %>
 
     <!-- begin quotes__news__section -->
     <%--элемент отсутсвует в новом интерфейсе  //TODO --%>
+    <%--отключен до выяснения функциональности--%>
     <section hidden class="quotes__news__section">
         <div class="container container_center">
 
@@ -411,67 +381,7 @@
     <!-- end Tables -->
 </main>
 
-<footer>
-    <div class="container">
-        <div class="row info">
-            <div class="col-sm-3">
-                <%--КАК ЭТО РАБОТАЕТ--%>
-                <div class="header"><h5><loc:message code="dashboard.howItWork"/></h5></div>
-                <div class="options">
-                    <ul>
-                        <%--Для начинающих
-                        Купить валюту
-                        Продать валюту
-                        Торговля валютой--%>
-                        <li><a href="#"><loc:message code="dashboard.forBeginners"/></a></li>
-                        <li><a href="#"><loc:message code="dashboard.buyCurrency"/></a></li>
-                        <li><a href="#"><loc:message code="dashboard.sellCurrency"/></a></li>
-                        <li><a href="#"><loc:message code="dashboard.tradeByCurrency"/></a></li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="col-sm-3">
-                <%--ДОКУМЕНТАЦИЯ--%>
-                <div class="header"><h5><loc:message code="dashboard.documentation"/></h5></div>
-                <div class="options">
-                    <ul>
-                        <li><a href="#"><loc:message code="dashboard.FAQ"/></a></li>
-                        <li><a href="#"><loc:message code="dashboard.depositAndWithdraw"/></a></li>
-                        <li><a href="#"><loc:message code="dashboard.feeForTransaction"/></a></li>
-                        <li><a href="#"><loc:message code="dashboard.legalityAndSecurity"/>ь</a></li>
-                        <li></li>
-                    </ul>
-                </div>
-
-            </div>
-            <div class="col-sm-3">
-                <%--ИНСТРУМЕНТЫ--%>
-                <div class="header"><h5><loc:message code="dashboard.tools"/></h5></div>
-                <div class="options">
-                    <ul>
-                        <li><a href="#"><loc:message code="dashboard.tradeAPI"/></a></li>
-                        <li><a href="#"><loc:message code="dashboard.mobileApp"/></a></li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="col-sm-3">
-                <%--EXRATES.ME--%>
-                <div class="header"><h5><loc:message code="dashboard.ourWeb"/></h5></div>
-                <div class="options">
-                    <ul>
-                        <li><a href="#"><loc:message code="dashboard.aboutUs"/></a></li>
-                        <li><a href="#"><loc:message code="dashboard.contactsAndSupport"/></a></li>
-                        <li><a href="#"><loc:message code="dashboard.PressAboutUs"/></a></li>
-                        <li></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-        <p><loc:message code="dashboard.allRightsReserved"/></p>
-    </div>
-</footer>
+<%@include file='footer_new.jsp' %>
 
 <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>

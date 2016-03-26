@@ -1052,8 +1052,11 @@ body#output {
 }
 
 .orders.my_orders.orders_new .content .buttons button:nth-child(2) {
-    background: #a0512e;
+    /*background: #a0512e;*/
     margin-right: 0;
+}
+.orders.my_orders.orders_new .content .buttons button.active{
+    background: #a0512e;
 }
 
 .orders.my_orders.orders_new .content form {

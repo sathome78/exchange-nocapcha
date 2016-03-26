@@ -7,11 +7,16 @@ $( "#other_pairs" ).click(function() {
   $("#other_pairs").toggleClass("whiter");	
 });
 
+$('.orderForm-toggler').click(function(){
+	$('.tab-pane').toggleClass('active');
+	$('.orderForm-toggler').toggleClass('active');
+});
 
 
 //Enable REGISTER button if pass == repass when entering repass
 $(document).ready(function(){
-	document.getElementById("register_button").disabled = true;
+	//пока не понял - закомментировал //TODO
+	/*document.getElementById("register_button").disabled = true;
     $("#repass").keyup(function(){
     	console.log("keyup")
     	var pass = $('#pass').val();
@@ -31,7 +36,7 @@ $(document).ready(function(){
         	$('.repass').css("display","none");
         	$("#register_button").prop('disabled', true);
         }
-    });
+    });*/
 });
 
 
