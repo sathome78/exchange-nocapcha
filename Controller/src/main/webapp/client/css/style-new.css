@@ -1135,6 +1135,8 @@ body#output {
     }
 }
 
+/*дополнительные:*/
+
 .clearfix:after {
     display: block;
     content: "";
@@ -1167,7 +1169,21 @@ body#output {
 }
 
 
+.orders_new .content button.confirm-button{
+    display: inline-block;
+}
 
+
+.input-field-wrapper{
+    display: inline-block;
+    height: 100%;
+    width: 80%;
+}
+.input-field-wrapper input{
+    display: inline-block;
+    width: 100% !important;
+    /*margin:  0 0 0 0 !important;*/
+}
 
 
 

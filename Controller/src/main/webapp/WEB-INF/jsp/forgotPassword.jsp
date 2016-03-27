@@ -1,61 +1,72 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@taglib uri="http://www.springframework.org/tags" prefix="loc" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
+<%@taglib uri="http://www.springframework.org/tags" prefix="spring" %>
+<%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
+<%@taglib uri="http://www.springframework.org/tags/form" prefix="registrationform" %>
+
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
+
 <!DOCTYPE html>
-<%@ page contentType="text/html;charset=UTF-8" language="java"%>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form"%>
-<%@ taglib prefix="loc" uri="http://www.springframework.org/tags"%>
-<%@ taglib prefix="sec"
-           uri="http://www.springframework.org/security/tags"%>
-<%@ page session="false"%>
 <html>
 <head>
-    <link href="<c:url value='/client/css/bootstrap.css'/>" rel="stylesheet" type="text/css"/>
-    <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet" type="text/css"/>
-
-    <script type="text/javascript" src="/client/js/jquery.js"></script>
-    <script type="text/javascript" src="/client/js/tab.js"></script>
-
-    <meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+    <meta charset="utf-8">
     <title><loc:message code="dashboard.resetPasswordTitle"></loc:message></title>
 
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Roboto:400,700,300' rel='stylesheet' type='text/css'>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js" type="text/javascript"></script>
+    <script src="<c:url value='/client/js/jquery.mCustomScrollbar.concat.min.js'/>" type="text/javascript"></script>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    <link href="<c:url value='/client/css/jquery.mCustomScrollbar.min.css'/>" rel="stylesheet">
+    <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
+    <link href="<c:url value='/client/css/style-new.css'/>" rel="stylesheet">
+
+    <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
+
 </head>
+
+
 <body>
-<div class="container container_center full__height">
-    <div class="content__page">
-        <h1>
-            <loc:message code="dashboard.resetPasswordTitle"></loc:message>
-        </h1>
-        <div >
-            <br>
+
+<%@include file='header_new.jsp' %>
+
+<main class="container register">
+    <hr>
+    <div class="row">
+        <div class="col-sm-4">
+            <%--ФОРМА ВОССТАНОВЛЕНИЯ ПАРОЛЯ--%>
+            <h5><loc:message code="dashboard.resetPasswordTitle"/></h5>
+
             <form:form class="form-inline" id="settings-user-form"
-                action="forgotPassword/submit" method="post" modelAttribute="user">
+                       action="forgotPassword/submit" method="post" modelAttribute="user">
 
-                <div class="form-group">
+                <loc:message code="admin.email" var="adminEmail"/>
+                <form:input path="email" id="user-email"
+                            placeholder="${adminEmail}"/>
 
-                    <form:label path="email"><loc:message code="admin.email" var="adminEmail"/></form:label>
-                    <form:input path="email" class="form-control" id="user-email"
-                                placeholder="${adminEmail}" />
-
-                    <loc:message code="dashboard.resetPasswordButton" var="saveSubmit"></loc:message>
-                    <input class="btn btn-primary" value="${saveSubmit}" type="submit">
-                </div>
+                <%--ВОССТАНОВИТЬ ПАРОЛЬ--%>
+                <button type="submit"><loc:message code="dashboard.resetPasswordButton"></loc:message></button>
             </form:form>
-
-
+            <br/>
+            <br/>
+            <br/>
+            <h4><loc:message
+                    code="admin.changePasswordSendEmail"/></h4>
         </div>
-
-        <br>
-        <a href="<c:url value="/register" />">
-            <loc:message code="register.submit"></loc:message>
-        </a>
-        <br>
-        <a href="<c:url value="/login" />">
-            <loc:message code="login.submit"></loc:message>
-        </a>
-
     </div>
-</div>
+</main>
+<%@include file='footer_new.jsp' %>
 
+<%----------%>
+<script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
+<%----------%>
 </body>
-
 </html>
+

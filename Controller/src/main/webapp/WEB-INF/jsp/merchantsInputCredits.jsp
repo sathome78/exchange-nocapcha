@@ -27,7 +27,6 @@
     <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/style-new.css'/>" rel="stylesheet">
 
-    <script type="text/javascript" src="<c:url value='/client/js/dashboard.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
     <script type="text/javascript" src="<c:url value='https://www.google.com/jsapi'/>"></script>
     <script type="text/javascript">
@@ -80,7 +79,7 @@
                         </div>
                         <div>
                             <label for="sum"><loc:message code="merchants.sum"/></label>
-                            <paymentForm:input class="form-control" pattern="/\d*\.\d{1,2}/" placeholder="Сумма"
+                            <paymentForm:input class="form-control" pattern="/\d*\.\d{1,2}/" placeholder="0.0"
                                                id="sum" path="sum"/>
                         </div>
                         <%--Создать(Вывести)--%>
