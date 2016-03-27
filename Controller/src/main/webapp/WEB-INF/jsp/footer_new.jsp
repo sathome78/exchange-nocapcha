@@ -4,7 +4,7 @@
 <footer>
     <div class="container">
         <%--элемент потом скрыть до наполнения функциональностью //TODO --%>
-        <div  class="row info">
+        <div  hidden class="row info">
             <div class="col-sm-3">
                 <%--КАК ЭТО РАБОТАЕТ--%>
                 <div class="header"><h5><loc:message code="dashboard.howItWork"/></h5></div>
