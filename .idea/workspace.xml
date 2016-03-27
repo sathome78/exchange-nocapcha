@@ -1,12 +1,90 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="a6d4cdda-880d-467f-aa0b-e28fbdbe7bcd" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/src/main/java/me/exrates/controller/DashboardController.java" afterPath="$PROJECT_DIR$/Controller/src/main/java/me/exrates/controller/DashboardController.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Security/src/main/java/me/exrates/security/config/SecurityConfig.java" afterPath="$PROJECT_DIR$/Security/src/main/java/me/exrates/security/config/SecurityConfig.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/src/main/resources/messages_ru.properties" afterPath="$PROJECT_DIR$/Controller/src/main/resources/messages_ru.properties" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/src/main/resources/prod/merchants/perfectmoney.properties" afterPath="$PROJECT_DIR$/Controller/src/main/resources/prod/merchants/perfectmoney.properties" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+    <list default="true" id="a6d4cdda-880d-467f-aa0b-e28fbdbe7bcd" name="Default" comment="PROGRAM-84 corrected myorder">
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.gitattributes" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.gitignore" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\.name" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\artifacts\Controller_war.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\artifacts\Controller_war_exploded.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\compiler.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\copyright\profiles_settings.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\dataSources.ids" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\dataSources.local.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\dataSources.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\encodings.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__aopalliance_aopalliance_1_0.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__com_fasterxml_classmate_0_8_0.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__com_fasterxml_jackson_core_jackson_annotations_2_7_0.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__com_fasterxml_jackson_core_jackson_core_2_7_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__com_fasterxml_jackson_core_jackson_databind_2_7_1_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__com_google_code_gson_gson_2_5.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__com_jcabi_incubator_xembly_0_22.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__com_squareup_okhttp3_okhttp_3_2_0.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__com_squareup_okhttp_okhttp_2_7_2.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__com_squareup_okio_okio_1_6_0.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__com_yandex_money_api_yandex_money_sdk_java_5_0_8.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__commons_logging_commons_logging_1_2.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__info_blockchain_api_1_1_0.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__javax_activation_activation_1_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__javax_inject_javax_inject_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__javax_mail_mail_1_4_3.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__javax_servlet_javax_servlet_api_3_1_0.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__javax_servlet_jsp_jstl_javax_servlet_jsp_jstl_api_1_2_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__javax_validation_validation_api_1_1_0_Final.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__joda_time_joda_time_2_9_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__junit_junit_4_12.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__mysql_mysql_connector_java_5_1_38.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__org_antlr_antlr_runtime_3_5_2.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__org_apache_commons_commons_dbcp2_2_1_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__org_apache_commons_commons_pool2_2_4_2.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__org_apache_logging_log4j_log4j_1_2_api_2_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__org_apache_logging_log4j_log4j_api_2_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__org_apache_logging_log4j_log4j_core_2_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__org_apache_logging_log4j_log4j_slf4j_impl_2_1.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__org_hamcrest_hamcrest_all_1_3.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__org_hibernate_hibernate_validator_5_0_1_Final.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__org_jboss_logging_jboss_logging_3_1_1_GA.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__org_mockito_mockito_all_2_0_2_beta.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__org_slf4j_slf4j_api_1_7_7.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__org_springframework_security_spring_security_acl_4_0_3_RELEASE.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__org_springframework_security_spring_security_config_4_0_3_RELEASE.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__org_springframework_security_spring_security_core_4_0_3_RELEASE.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__org_springframework_security_spring_security_taglibs_4_0_3_RELEASE.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__org_springframework_security_spring_security_web_4_0_3_RELEASE.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__org_springframework_spring_aop_4_2_4_RELEASE.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__org_springframework_spring_beans_4_2_4_RELEASE.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__org_springframework_spring_context_4_2_4_RELEASE.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__org_springframework_spring_context_support_3_0_5_RELEASE.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__org_springframework_spring_core_4_2_4_RELEASE.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__org_springframework_spring_expression_4_2_4_RELEASE.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__org_springframework_spring_jdbc_4_2_4_RELEASE.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__org_springframework_spring_test_4_2_4_RELEASE.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__org_springframework_spring_tx_4_2_4_RELEASE.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__org_springframework_spring_web_4_2_4_RELEASE.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__org_springframework_spring_webmvc_4_2_4_RELEASE.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\libraries\Maven__taglibs_standard_1_1_2.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\misc.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\modules.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\sqldialects.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\uiDesigner.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\vcs.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\workspace.xml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\Birzha.iml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\Controller\Controller.iml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\Controller\src\main\webapp\WEB-INF\jsp\forgotPassword-orig.jsp" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\Controller\src\main\webapp\WEB-INF\jsp\merchantsInputCredits-orig.jsp" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\Controller\src\main\webapp\WEB-INF\jsp\merchantsOutputCredits-orig.jsp" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\Controller\src\main\webapp\WEB-INF\jsp\myorders-orig.jsp" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\Controller\src\main\webapp\WEB-INF\jsp\mywallets-orig.jsp" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\Controller\src\main\webapp\WEB-INF\jsp\register-orig.jsp" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\Controller\src\main\webapp\WEB-INF\jsp\settings-orig.jsp" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\Controller\src\main\webapp\WEB-INF\jsp\transaction-orig.jsp" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\Dao\Dao.iml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\JDBC\JDBC.iml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\Model\Model.iml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\Security\Security.iml" afterPath="" />
+      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\Service\Service.iml" afterPath="" />
     </list>
     <list id="cc5c0c81-d3fe-428f-9dab-dfe69ace8716" name="New changelist" comment="" />
     <ignored path="Birzha.iws" />
@@ -19,6 +97,16 @@
     <ignored path="$PROJECT_DIR$/Dao/target/" />
     <ignored path="$PROJECT_DIR$/Service/target/" />
     <ignored path=".idea/dataSources.local.xml" />
+    <ignored path=".idea/" />
+    <ignored path="Controller/target/" />
+    <ignored path="Dao/target/" />
+    <ignored path="JDBC/target/" />
+    <ignored path="Model/target/" />
+    <ignored path="Security/target/" />
+    <ignored path="Service/target/" />
+    <ignored mask="*.iml" />
+    <ignored mask=".*.*" />
+    <ignored mask=".*" />
     <manually-removed-from-ignored>
       <directory path="Security/" />
     </manually-removed-from-ignored>
@@ -87,7 +175,7 @@
       <file leaf-file-name="forgotPassword.jsp" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Controller/src/main/webapp/WEB-INF/jsp/forgotPassword.jsp">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="1.6846846">
+            <state vertical-scroll-proportion="1.5148515">
               <caret line="33" column="0" selection-start-line="33" selection-start-column="0" selection-end-line="33" selection-end-column="0" />
               <folding />
             </state>
@@ -256,102 +344,6 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="Security" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Birzha" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="exrates" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Security" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="src" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Birzha" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="exrates" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Security" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="src" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="main" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="java" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="security" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Birzha" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="exrates" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Security" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="src" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="main" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="java" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="security" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="config" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Birzha" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="exrates" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
               <option name="myItemId" value="Controller" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
@@ -498,104 +490,6 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="webapp" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="client" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="js" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Birzha" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="exrates" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Controller" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="src" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="main" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="webapp" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="client" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="css" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Birzha" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="exrates" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Controller" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="src" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="main" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="resources" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Resource Bundle 'messages'" />
-              <option name="myItemType" value="com.intellij.lang.properties.projectView.ResourceBundleNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Birzha" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="exrates" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Controller" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="src" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="main" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
               <option name="myItemId" value="resources" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
@@ -627,44 +521,6 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="exrates" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="controller" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Birzha" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="exrates" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Controller" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="src" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="main" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="java" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="exrates" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="config" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -676,7 +532,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/Security/src/main/java/me/exrates/security/config/SecurityWebApplicationInitializer.java" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/Service/target" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="recentsLimit" value="5" />
     <property name="restartRequiresConfirmation" value="true" />
@@ -1007,7 +863,7 @@
       <workItem from="1459105487906" duration="1311000" />
       <workItem from="1459106855338" duration="155000" />
       <workItem from="1459107013586" duration="1379000" />
-      <workItem from="1459108428456" duration="469000" />
+      <workItem from="1459108428456" duration="3581000" />
     </task>
     <task id="LOCAL-00001" summary="PROGRAM-84">
       <created>1458852749871</created>
@@ -1067,7 +923,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="183657000" />
+    <option name="totallyTimeSpent" value="186769000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -1080,16 +936,18 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1440" height="868" extended-state="0" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32956153" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32956153" sideWeight="0.5" order="13" side_tool="false" content_ui="tabs" />
       <window_info id="Palette&#9;" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Java Enterprise" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.48656294" sideWeight="0.5028986" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32956153" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32971016" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.45480227" sideWeight="0.49710146" order="10" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.49646392" sideWeight="0.49710146" order="10" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.12871288" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Spring" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32956153" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
@@ -1100,15 +958,13 @@
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="UI Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="4" side_tool="true" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3026874" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3026874" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32956153" sideWeight="0.5" order="13" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.12871288" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.34512022" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
@@ -1538,7 +1394,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Controller/src/main/webapp/WEB-INF/jsp/forgotPassword.jsp">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="1.6846846">
+        <state vertical-scroll-proportion="1.5148515">
           <caret line="33" column="0" selection-start-line="33" selection-start-column="0" selection-end-line="33" selection-end-column="0" />
           <folding />
         </state>
