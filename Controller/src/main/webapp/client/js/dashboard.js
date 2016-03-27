@@ -9,8 +9,8 @@ function changeCurrency() {
     if (chartPair) chartPair.innerHTML = selectedVal;
 
     //for new interface
-    selectedVal = document.querySelector('.exchange__pair[selected]').innerHTML;
-    document.getElementById("chartPair").innerHTML = selectedVal;
+    //selectedVal = document.querySelector('.exchange__pair[selected]').innerHTML;
+    //document.getElementById("chartPair").innerHTML = selectedVal;
 }
 
 
