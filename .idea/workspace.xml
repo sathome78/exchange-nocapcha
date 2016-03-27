@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="a6d4cdda-880d-467f-aa0b-e28fbdbe7bcd" name="Default" comment="removed unnecessary files">
+    <list default="true" id="a6d4cdda-880d-467f-aa0b-e28fbdbe7bcd" name="Default" comment="">
       <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.gitattributes" afterPath="" />
       <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.gitignore" afterPath="" />
       <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\.name" afterPath="" />
@@ -70,21 +70,6 @@
       <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\uiDesigner.xml" afterPath="" />
       <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\vcs.xml" afterPath="" />
       <change type="DELETED" beforePath="D:\IdeaProjects\exrates\.idea\workspace.xml" afterPath="" />
-      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\Birzha.iml" afterPath="" />
-      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\Controller\Controller.iml" afterPath="" />
-      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\Controller\src\main\webapp\WEB-INF\jsp\forgotPassword-orig.jsp" afterPath="" />
-      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\Controller\src\main\webapp\WEB-INF\jsp\merchantsInputCredits-orig.jsp" afterPath="" />
-      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\Controller\src\main\webapp\WEB-INF\jsp\merchantsOutputCredits-orig.jsp" afterPath="" />
-      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\Controller\src\main\webapp\WEB-INF\jsp\myorders-orig.jsp" afterPath="" />
-      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\Controller\src\main\webapp\WEB-INF\jsp\mywallets-orig.jsp" afterPath="" />
-      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\Controller\src\main\webapp\WEB-INF\jsp\register-orig.jsp" afterPath="" />
-      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\Controller\src\main\webapp\WEB-INF\jsp\settings-orig.jsp" afterPath="" />
-      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\Controller\src\main\webapp\WEB-INF\jsp\transaction-orig.jsp" afterPath="" />
-      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\Dao\Dao.iml" afterPath="" />
-      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\JDBC\JDBC.iml" afterPath="" />
-      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\Model\Model.iml" afterPath="" />
-      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\Security\Security.iml" afterPath="" />
-      <change type="DELETED" beforePath="D:\IdeaProjects\exrates\Service\Service.iml" afterPath="" />
     </list>
     <list id="cc5c0c81-d3fe-428f-9dab-dfe69ace8716" name="New changelist" comment="" />
     <ignored path="Birzha.iws" />
@@ -310,20 +295,6 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="exrates" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Birzha" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="exrates" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value=".idea" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -663,7 +634,7 @@
       <workItem from="1459106855338" duration="155000" />
       <workItem from="1459107013586" duration="1379000" />
       <workItem from="1459108428456" duration="4017000" />
-      <workItem from="1459114710199" duration="794000" />
+      <workItem from="1459114710199" duration="1076000" />
     </task>
     <task id="LOCAL-00001" summary="PROGRAM-84">
       <created>1458852749871</created>
@@ -731,11 +702,17 @@
       <option name="project" value="LOCAL" />
       <updated>1459114797861</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="removed unnecessary files">
+      <created>1459115534465</created>
+      <option name="number" value="00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1459115534465</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="187999000" />
+    <option name="totallyTimeSpent" value="188281000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -758,11 +735,11 @@
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.48656294" sideWeight="0.5028986" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32956153" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32971016" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.41442716" sideWeight="0.49710146" order="10" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.41442716" sideWeight="0.49710146" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Spring" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32956153" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.25434783" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.25434783" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Bean Validation" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Web" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="5" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.28768116" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
