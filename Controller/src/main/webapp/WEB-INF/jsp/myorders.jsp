@@ -105,7 +105,14 @@
                                     <td> ${myorder.dateCreation} </td>
                                     <td><c:if
                                             test="${myorder.status.status eq 3}">                                                            ${myorder.dateFinal}                                                        </c:if></td>
-                                    <td> ${myorder.statusString} </td>
+                                    <td>
+                                        <c:if test="${myorder.status=='OPENED'}">
+                                            <loc:message code="orderstatus.opened"/>
+                                        </c:if>
+                                        <c:if test="${myorder.status=='CLOSED'}">
+                                            <loc:message code="orderstatus.closed"/>
+                                        </c:if>
+                                    </td>
                                     <td><c:if test="${(myorder.status.status eq 2)||(myorder.status.status eq 1)}"> <a
                                             href="myorders/submitdelete?id=${myorder.id}"><loc:message
                                             code="myorders.delete"/></a> </c:if></td>
@@ -145,9 +152,16 @@
                                     <td><fmt:formatNumber type="number" maxFractionDigits="9"
                                                           value="${myorder.amountBuyWithCommission}"/></td>
                                     <td> ${myorder.dateCreation} </td>
-                                    <td><c:if
-                                            test="${myorder.status.status eq 3}">                                        ${myorder.dateFinal}                                    </c:if></td>
-                                    <td> ${myorder.statusString} </td>
+                                    <td><c:if test="${myorder.status.status eq 3}">
+                                        ${myorder.dateFinal}
+                                    </c:if></td>
+                                    <td>
+                                        <c:if test="${myorder.status=='OPENED'}">
+                                            <loc:message code="orderstatus.opened"/>
+                                        </c:if>
+                                        <c:if test="${myorder.status=='CLOSED'}">
+                                            <loc:message code="orderstatus.closed"/>
+                                        </c:if>
                                     <td>
                                         <c:if test="${(myorder.status.status eq 2)||(myorder.status.status eq 1)}">
                                             <a href="myorders/submitdelete?id=${myorder.id}"><loc:message
