@@ -55,6 +55,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST,"/merchants/perfectmoney/payment/status",
                         "/merchants/perfectmoney/payment/success",
                         "/merchants/perfectmoney/payment/failure").permitAll()
+                .antMatchers(HttpMethod.POST,"/merchants/advcash/payment/status",
+                        "/merchants/advcash/payment/success",
+                        "/merchants/advcash/payment/failure").permitAll()
                 .antMatchers(HttpMethod.GET,"/merchants/blockchain/payment/received").permitAll()
                 .antMatchers(HttpMethod.POST,"/merchants/edrcoin/payment/received").permitAll()
                 .antMatchers("/login","/register","/create","/forgotPassword/**", "/resetPasswordConfirm/**").anonymous()
@@ -82,9 +85,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .invalidateHttpSession(true)
                 .and()
 	    .csrf()
-            .ignoringAntMatchers("/merchants/perfectmoney/payment/status",
-                    "/merchants/perfectmoney/payment/failure",
-                    "/merchants/perfectmoney/payment/success");
+                .ignoringAntMatchers("/merchants/perfectmoney/payment/status",
+                        "/merchants/perfectmoney/payment/failure",
+                        "/merchants/perfectmoney/payment/success","/merchants/advcash/payment/status",
+                        "/merchants/advcash/payment/failure",
+                        "/merchants/advcash/payment/success");
     }
 
     private String buildHasIpExpression() {

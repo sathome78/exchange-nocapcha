@@ -32,6 +32,7 @@ $(function(){
     const YANDEX = 'Yandex.Money';
     const PERFECT = 'Perfect Money';
     const BLOCKCHAIN = 'Blockchain';
+    const ADVCASH = 'Advcash Money';
     const EDR_COIN = 'EDR Coin';
     const NO_ACTION = 'javascript:void(0);';
 
@@ -96,6 +97,7 @@ $(function(){
             blockchainDeposit:'/merchants/blockchain/payment/provide',
             perfectDeposit:'https://perfectmoney.is/api/step1.asp',
             perfectWithdraw:'/merchants/perfectmoney/payment/provide',
+            advcash:'/merchants/advcash/payment/prepare',
             edrcoinWithdraw:'/merchants/edrcoin/payment/provide'
         };
         if (operationType === 'INPUT') {
@@ -105,6 +107,9 @@ $(function(){
                     break;
                 case PERFECT :
                     form.attr('action', formAction.perfectDeposit);
+                    break;
+                case ADVCASH :
+                    form.attr('action', formAction.advcash);
                     break;
                 case BLOCKCHAIN:
                 default:
@@ -120,6 +125,9 @@ $(function(){
                     break;
                 case BLOCKCHAIN:
                     form.attr('action', formAction.blockchainDeposit);
+                    break;
+                case ADVCASH :
+                    form.attr('action', formAction.advcash);
                     break;
                 case EDR_COIN:
                     form.attr('action',formAction.edrcoinWithdraw);
