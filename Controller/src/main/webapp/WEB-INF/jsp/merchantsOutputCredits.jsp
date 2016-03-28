@@ -81,7 +81,7 @@
                                 <paymentForm:hidden id="destination" path="destination"/>
                                 <%--Создать(Вывести)--%>
                                 <button type="button" data-toggle="modal" id="assertOutputPay"
-                                        name="assertOutputPay" data-target="#myModal2" class="btn btn-primary">
+                                        name="assertOutputPay" data-target="#myModal" class="btn btn-primary">
                                     <loc:message code="merchants.withdraw"/>
                                 </button>
                             </paymentForm:form>
@@ -97,7 +97,7 @@
 <%@include file='footer_new.jsp' %>
 
 <%--MODAL ... --%>
-<div class="modal fade" id="myModal2">
+<div class="modal fade merchant-output" id="myModal">
     <div class="modal-dialog modal-sm">
         <div class="modal-content">
             <div class="modal-header">
@@ -108,11 +108,11 @@
                 <label class="alert-danger merchantError"><loc:message code="merchants.notAvaliablePayment"/></label>
 
                 <div class="paymentInfo">
-                    <p><loc:message code="merchants.modalInputHeader"/></p>
+                    <p><loc:message code="merchants.modalOutputHeader"/></p>
 
-                    <p><loc:message code="merchants.modalInputCommission"/></p>
+                    <p><loc:message code="merchants.modalOutputCommission"/></p>
 
-                    <p><loc:message code="merchants.modalInputFinalSum"/></p>
+                    <p><loc:message code="merchants.modalOutputFinalSum"/></p>
                 </div>
                 <label class="control-label" for="walletUid"><loc:message code="merchants.modalOutputWallet"/></label>
 
@@ -122,11 +122,11 @@
             </div>
             <div class="modal-footer">
                 <div class="add__money__btns">
-                    <button type="button" id="outputPaymentProcess" name="paymentOutput" class="btn btn-primary">
-                        <loc:message code="merchants.continue"/>
-                    </button>
-                    <button type="button" data-dismiss="modal" class="btn btn-warning">
+                    <button class="modal-button" type="button" data-dismiss="modal">
                         <loc:message code="merchants.dismiss"/>
+                    </button>
+                    <button class="modal-button" type="button" id="outputPaymentProcess" name="paymentOutput">
+                        <loc:message code="merchants.continue"/>
                     </button>
                 </div>
             </div>

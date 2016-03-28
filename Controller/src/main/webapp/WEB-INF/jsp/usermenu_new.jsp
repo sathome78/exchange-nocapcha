@@ -6,8 +6,8 @@
 
 <div class="side_menu col-sm-3"> <!-- Side Menu -->
     <ul>
-        <li><a href="<c:url value="/mywallets"/>"><loc:message code="usermenu.mywallets"/></a></li>
-        <li><a href="<c:url value="/orders"/>" class="active"><loc:message code="usermenu.orders"/></a></li>
+        <li><a  class="active" href="<c:url value="/mywallets"/>"><loc:message code="usermenu.mywallets"/></a></li>
+        <li><a href="<c:url value="/orders"/>"><loc:message code="usermenu.orders"/></a></li>
         <li><a href="<c:url value="/myorders"/>"><loc:message code="usermenu.myorders"/></a></li>
         <li><a href="<c:url value="/merchants/input"/>"><loc:message code="usermenu.inputCredits"/></a></li>
         <li><a href="<c:url value="/merchants/output"/>"><loc:message code="usermenu.outputCredits"/></a></li>

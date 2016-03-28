@@ -93,6 +93,13 @@
         </ul>
         <div class="graphic"> <!-- graphic -->
             <img src="/client/img/graphic.png" alt="Graphic">
+            <%--<div class="chart__section">
+                <div class="chart__section__title"><a id="chartPair"></a> </div>
+                <span style="color:red">${msg}</span><br><br>
+                <c:if test="${not empty sumAmountBuyClosed}">
+                    <div id='chart_div'></div>
+                </c:if>
+            </div>--%>
         </div>
     </div>
 

@@ -80,34 +80,37 @@
     </nav>
 </header>
 
-<!-- Modal  SIGN IN -->
-<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                        aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="myModalLabel"><loc:message code="dashboard.entrance"/></h4>
-            </div>
-            <div class="modal-body">
-                <div class="content">
-                    <c:url value="/login" var="loginUrl"/>
-                    <form action="${loginUrl}" method="post">
-                        <%--логин--%>
-                        <input type="text" name="username" placeholder=<loc:message code="dashboard.loginText"/>>
-                        <%--пароль--%>
-                        <input type="password" name="password" placeholder=<loc:message code="dashboard.passwordText"/>>
-                        <%--csrf--%>
-                        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
-                        <%--войти--%>
-                        <button type="submit" class="button_enter"><loc:message code="dashboard.entrance"/></button>
-                        <%--Забыли пароль?--%>
-                        <button type="button" class="button_forgot"><a
-                                href="<c:url value="/forgotPassword"/>"><loc:message
-                                code="dashboard.forgotPassword"/></a></button>
-                    </form>
+<!-- Modal SIGN IN -->
+<sec:authorize access="!isAuthenticated()">
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel"><loc:message code="dashboard.entrance"/></h4>
+                </div>
+                <div class="modal-body">
+                    <div class="content">
+                        <c:url value="/login" var="loginUrl"/>
+                        <form action="${loginUrl}" method="post">
+                                <%--логин--%>
+                            <input type="text" name="username" placeholder=<loc:message code="dashboard.loginText"/>>
+                                <%--пароль--%>
+                            <input type="password" name="password" placeholder=<loc:message
+                                    code="dashboard.passwordText"/>>
+                                <%--csrf--%>
+                            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+                                <%--войти--%>
+                            <button type="submit" class="button_enter"><loc:message code="dashboard.entrance"/></button>
+                                <%--Забыли пароль?--%>
+                            <button type="button" class="button_forgot"><a
+                                    href="<c:url value="/forgotPassword"/>"><loc:message
+                                    code="dashboard.forgotPassword"/></a></button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</sec:authorize>
