@@ -26,7 +26,11 @@
             <a href="#">
                 BTC/USD <span class="caret"></span>
             </a>
-            <ul class="" id="currency">
+            <%--
+            id="currency" нельзя использовать - конфликтует с main.js (ловит его по id вместо нужного)
+            если включать <li hidden class="reveal">, то продумать замену <ul class="" id="currency">
+            --%>
+            <ul class="" id="curr-ency">
                 <li><a href="#">BTC/USD</a></li>
                 <li><a href="#">BTC/USD</a></li>
             </ul>

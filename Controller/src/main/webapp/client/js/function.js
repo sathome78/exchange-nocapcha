@@ -26,7 +26,13 @@ $(document).ready(function() {
     });
 
     // tag select styller
+	/*отключена из-за ошибки
+	смысл кода:  установить на элементе порог, ниже которого не будет показано окошко поиска в селекте
+	НЕ КРИТИЧНО
+	причина ошибки - проблема с совместимостью jquery версий
+
     $('.select').chosen({disable_search_threshold: 10});
+    */
 
     // Mobile menu toggle
     $('.mobile__menu__toggle').click(function() {

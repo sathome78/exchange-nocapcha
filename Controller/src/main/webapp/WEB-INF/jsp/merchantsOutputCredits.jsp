@@ -1,13 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@taglib uri="http://www.springframework.org/tags/form" prefix="paymentForm" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@taglib uri="http://www.springframework.org/tags" prefix="loc" %>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<%@taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
-<%@taglib uri="http://www.springframework.org/tags" prefix="spring" %>
-<%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
-<%@taglib uri="http://www.springframework.org/tags/form" prefix="paymentForm" %>
-
-<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 
 <!DOCTYPE html>
 <html>
@@ -32,8 +26,8 @@
         google.load("visualization", "1", {"packages": ["corechart"]});
     </script>
 
-    <script type="text/javascript" src="<c:url value="/client/js/function.js"/>"></script>
     <script type="text/javascript" src="<c:url value="/client/js/main.js"/>"></script>
+    <script type="text/javascript" src="<c:url value="/client/js/function.js"/>"></script>
 
 </head>
 
@@ -68,10 +62,10 @@
                                 <div>
                                         <%--Валюта к вводу--%>
                                     <label><loc:message code="merchants.currencyforoutput"/> </label>
-                                            <paymentForm:select path="currency" class="select currency-for-output-select">
-                                                <paymentForm:options items="${wallets}" itemLabel="fullName"
-                                                                     itemValue="currencyId"/>
-                                            </paymentForm:select>
+                                    <paymentForm:select path="currency" class="select currency-for-output-select">
+                                        <paymentForm:options items="${wallets}" itemLabel="fullName"
+                                                             itemValue="currencyId"/>
+                                    </paymentForm:select>
                                 </div>
                                 <div>
                                         <%--Способ оплаты--%>

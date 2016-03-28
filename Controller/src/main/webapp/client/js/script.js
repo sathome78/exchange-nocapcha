@@ -16,9 +16,16 @@ $('.orderForm-toggler').click(function(){
 //Enable REGISTER button if pass == repass when entering repass
 $(document).ready(function(){
 	//разобраться с этим //TODO
-	document.getElementById("register_button").disabled = true;
+	/*corrections:
+	* register_button -> #register_button
+	* add check on null
+	* was: document.getElementById("register_button").disabled = true;
+	* */
+	if (document.getElementById("#register_button")){
+		document.getElementById("#register_button").disabled = true;
+	}
     $("#repass").keyup(function(){
-    	console.log("keyup")
+    	console.log("keyup");
     	var pass = $('#pass').val();
     	var repass = $('#repass').val();
     	var email = $('#email').val();
