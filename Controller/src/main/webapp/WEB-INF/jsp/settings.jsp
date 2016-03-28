@@ -10,6 +10,7 @@
 <head>
     <meta charset="utf-8">
     <title><loc:message code="admin.title"/></title>
+    <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon" />
 
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -47,11 +48,11 @@
             <div class="buttons">
                 <%--Создать ордер на продажу--%>
                 <button class="active orderForm-toggler">
-                    <loc:message code="orders.createordersell"/>
+                    <loc:message code="admin.changePassword"/>
                 </button>
                 <%--Создать ордер на покупку--%>
                 <button class="orderForm-toggler">
-                    <loc:message code="orders.createorderbuy"/>
+                    <loc:message code="admin.changeFinPassword"/>
                 </button>
             </div>
 
@@ -173,6 +174,7 @@
 <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/menuSwitcher.js'/>"></script>
 <%----------%>
 </body>
 </html>

@@ -10,6 +10,7 @@
 <head>
     <meta charset="utf-8">
     <title><loc:message code="orders.title"/></title>
+    <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon" />
 
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -225,6 +226,7 @@
 <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/menuSwitcher.js'/>"></script>
 <%----------%>
 </body>
 </html>

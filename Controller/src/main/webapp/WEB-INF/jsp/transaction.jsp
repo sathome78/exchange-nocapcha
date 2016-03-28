@@ -13,6 +13,7 @@
 <head>
     <meta charset="utf-8">
     <title><loc:message code="transactions.title"/></title>
+    <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon" />
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -137,6 +138,7 @@
 <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/menuSwitcher.js'/>"></script>
 <%----------%>
 </body>
 </html>

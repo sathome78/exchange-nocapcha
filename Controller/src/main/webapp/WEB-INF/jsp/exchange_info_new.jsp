@@ -22,19 +22,19 @@
 
         <%--элемент отсутсвует в новом интерфейсе  //TODO --%>
         <%--отключен до выяснения функциональности--%>
-        <li hidden class="reveal">
+        <%--<li class="reveal">
             <a href="#">
                 BTC/USD <span class="caret"></span>
             </a>
-            <%--
+            &lt;%&ndash;
             id="currency" нельзя использовать - конфликтует с main.js (ловит его по id вместо нужного)
             если включать <li hidden class="reveal">, то продумать замену <ul class="" id="currency">
-            --%>
+            &ndash;%&gt;
             <ul class="" id="curr-ency">
                 <li><a href="#">BTC/USD</a></li>
                 <li><a href="#">BTC/USD</a></li>
             </ul>
-        </li>
+        </li>--%>
         <%-- ... непонятный элемент - в старой форме отсутствует  --%>
     </ul>
 </div>
