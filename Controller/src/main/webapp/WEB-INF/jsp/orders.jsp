@@ -25,7 +25,6 @@
     <link href="<c:url value='/client/css/style-new.css'/>" rel="stylesheet">
 
     <script type="text/javascript" src="<c:url value='/client/js/dashboard.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
     <script type="text/javascript" src="<c:url value='https://www.google.com/jsapi'/>"></script>
     <script type="text/javascript">
         google.load("visualization", "1", {"packages": ["corechart"]});
@@ -225,6 +224,7 @@
 <%----------%>
 <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
 <%----------%>
 </body>
 </html>

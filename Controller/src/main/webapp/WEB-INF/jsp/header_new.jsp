@@ -21,10 +21,12 @@
                     <sec:authorize access="isAuthenticated()">
                         <%--ГЛАВНАЯ--%>
                         <li>
-                            <a href="#" class="navabr__link active"><loc:message code="dashboard.general"/></a>
+                            <a href="/" class="navabr__link active"><loc:message code="dashboard.general"/></a>
                         </li>
-                        <li><a href="#"><loc:message code="dashboard.news"/></a></li>
-                        <li><a href="#"><loc:message code="dashboard.training"/></a></li>
+                        <%--НОВОСТИ--%>
+                        <%--<li><a href="#"><loc:message code="dashboard.news"/></a></li>--%>
+                        <%--ОБУЧЕНИЕ--%>
+                        <%--<li><a href="#"><loc:message code="dashboard.training"/></a></li>--%>
                         <%--ЛИЧНЫЙ КАБИНЕТ--%>
                         <li>
                             <a href="<c:url value="/mywallets"/>" class="navabr__link"><loc:message
@@ -68,7 +70,7 @@
                         <ul class="dropdown-menu" id="languageUl">
                             <li><a class="lang__item" href="#">English</a></li>
                             <li><a class="lang__item" href="#">Русский</a></li>
-                            <li><a class="lang__item" href="#">Chinese</a></li>
+                            <%--<li><a class="lang__item" href="#">Chinese</a></li>--%>
                         </ul>
                     </li>
                 </ul>

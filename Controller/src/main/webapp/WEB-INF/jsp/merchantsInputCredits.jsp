@@ -13,7 +13,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title><loc:message code="orders.title"/></title>
+    <title><loc:message code="merchants.inputTitle"></loc:message></title>
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -27,7 +27,6 @@
     <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/style-new.css'/>" rel="stylesheet">
 
-    <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
     <script type="text/javascript" src="<c:url value='https://www.google.com/jsapi'/>"></script>
     <script type="text/javascript">
         google.load("visualization", "1", {"packages": ["corechart"]});
@@ -136,6 +135,7 @@
 <%----------%>
 <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
 <%----------%>
 </body>
 </html>

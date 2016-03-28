@@ -1,4 +1,4 @@
-$(document).ready(function () {
++function initLocaleSwitcher() {
     $(".lang__item").click(function (e) {
         var localeName = e.target.textContent;
         var localeCode = 'ru';
@@ -12,7 +12,7 @@ $(document).ready(function () {
         var ref = '?locale=' + localeCode;
         $.get(ref)
             .always(function () {
-            window.location.reload();
-        });
+                window.location.reload();
+            });
     });
-});
+}();
