@@ -15,6 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.view.RedirectView;
 
 import java.math.BigDecimal;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -90,14 +92,32 @@ public class AdvcashServiceImpl implements AdvcashService{
         properties.put("ac_amount", amountToPay);
         properties.put("ac_currency", creditsOperation.getCurrency().getName());
         properties.put("ac_order_id", transaction.getId());
-        String sign = email + ":" + payeeName + ":" + amountToPay
+        String sign = accountId + ":" + payeeName + ":" + amountToPay
                 + ":" + creditsOperation.getCurrency().getName() + ":" + payeePassword
                 + ":" + transaction.getId();
+        try {
+            properties.put("ac_sign", getSHA256String(sign));
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException();
+        }
         RedirectView redirectView = new RedirectView(url);
         redirectView.setAttributes(properties);
 
 
         return redirectView;
+    }
+
+    private static String getSHA256String(String stringToConfert) throws NoSuchAlgorithmException {
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        md.update(stringToConfert.getBytes());
+        byte[] byteData = md.digest();
+        StringBuffer result = new StringBuffer();
+
+        for(int i = 0; i < byteData.length; ++i) {
+            result.append(Integer.toString((byteData[i] & 255) + 256, 16).substring(1));
+        }
+
+        return result.toString();
     }
 
     @Override
