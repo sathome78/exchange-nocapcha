@@ -645,6 +645,26 @@ footer p {
     padding: 0 10px;
 }
 
+#myModal.merchant-input {
+    max-width: 420px;
+    max-height: 280px;
+}
+
+#myModal.merchant-output {
+    max-width: 420px;
+    max-height: 380px;
+}
+
+#myModal .modal-button {
+    background: #74240f none repeat scroll 0 0;
+    border: medium none;
+    display: block;
+    float: right;
+    margin: 15px 0 15px 20px;
+    outline: 0 none;
+    padding: 5px 30px;
+}
+
 #myModal .modal-header {
     color: rgba(255, 255, 255, .5);
     border-bottom: solid 1px rgba(255, 255, 255, .25);
@@ -709,7 +729,7 @@ footer p {
 }
 
 #myModal .button_forgot a {
-	color: #ffffff;
+    color: #ffffff;
     text-decoration: none;
 }
 
@@ -1055,7 +1075,8 @@ body#output {
     /*background: #a0512e;*/
     margin-right: 0;
 }
-.orders.my_orders.orders_new .content .buttons button.active{
+
+.orders.my_orders.orders_new .content .buttons button.active {
     background: #a0512e;
 }
 
@@ -1143,13 +1164,12 @@ body#output {
     clear: both;
 }
 
-.form-input-error-message{
+.form-input-error-message {
     display: inline-block;
     margin-left: 20%;
 }
 
-
-.form{
+.form {
     float: left;
     margin-bottom: 0 !important;
 }
@@ -1168,18 +1188,17 @@ body#output {
     z-index: 10;
 }
 
-
-.orders_new .content button.confirm-button{
+.orders_new .content button.confirm-button {
     display: inline-block;
 }
 
-
-.input-field-wrapper{
+.input-field-wrapper {
     display: inline-block;
     height: 100%;
     width: 80%;
 }
-.input-field-wrapper input{
+
+.input-field-wrapper input {
     display: inline-block;
     width: 100% !important;
     /*margin:  0 0 0 0 !important;*/
