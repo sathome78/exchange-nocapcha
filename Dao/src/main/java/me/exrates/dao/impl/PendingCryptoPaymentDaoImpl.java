@@ -45,6 +45,17 @@ public class PendingCryptoPaymentDaoImpl implements PendingCryptoPaymentDao {
     }
 
     @Override
+    public BlockchainPayment findByAddress(final String address) {
+        final String sql = "SELECT * FROM PENDING_BLOCKCHAIN_PAYMENT WHERE address = :address";
+        final Map<String, String> params = Collections.singletonMap("address", address);
+        try {
+            return jdbcTemplate.queryForObject(sql, params, new BeanPropertyRowMapper<>(BlockchainPayment.class));
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
+    }
+
+    @Override
     public boolean delete(int invoiceId) {
         final String sql = "DELETE FROM PENDING_BLOCKCHAIN_PAYMENT WHERE invoice_id = :invoiceId";
         final Map<String, Integer> params = Collections.singletonMap("invoiceId", invoiceId);

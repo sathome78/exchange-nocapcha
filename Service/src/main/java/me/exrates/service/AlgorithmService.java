@@ -10,4 +10,6 @@ public interface AlgorithmService {
     String sha1(String string);
 
     String base64Encode(String string);
+
+    String base64Decode(String string);
 }

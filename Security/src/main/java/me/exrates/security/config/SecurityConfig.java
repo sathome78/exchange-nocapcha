@@ -47,10 +47,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
                 .antMatchers("/companywallet").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name())
                 .antMatchers("/index.jsp","/client/**","/dashboard/**","/registrationConfirm/**",
-                        "/changePasswordConfirm/**").permitAll()
+                        "/changePasswordConfirm/**")
+            .permitAll()
                 .antMatchers(HttpMethod.POST,"/merchants/perfectmoney/payment/status",
                         "/merchants/perfectmoney/payment/success",
                         "/merchants/perfectmoney/payment/failure").permitAll()
+                .antMatchers(HttpMethod.POST,"/merchants/edrcoin/payment/received").permitAll()
                 .antMatchers("/login","/register","/create","/forgotPassword/**", "/resetPasswordConfirm/**").anonymous()
                 .antMatchers("/updatePassword").hasAnyAuthority(UserRole.ROLE_CHANGE_PASSWORD.name())
 //                .anyRequest().authenticated()

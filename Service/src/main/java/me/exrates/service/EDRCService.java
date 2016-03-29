@@ -14,4 +14,6 @@ public interface EDRCService {
     BlockchainPayment findByInvoiceId(int invoiceId);
 
     void provideOutputPayment(Payment payment, CreditsOperation creditsOperation);
+
+    boolean verifyPayment(final String response);
 }

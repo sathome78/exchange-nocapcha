@@ -2,30 +2,39 @@
 <Configuration status="WARN">
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss,SSS} [%t] %-5level %logger{36} - %msg%n"/>
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
         </Console>
-        <RollingFile name="Merchant" fileName="${sys:catalina.home}/logs/merchants.log"
-                     filePattern="${sys:catalina.home}/logs/merchants_%d{MM-dd-yyyy}.log" append="true">
-            <PatternLayout>
-                <pattern>%d %p %C{1.} [%t] %m%n</pattern>
-            </PatternLayout>
+        <RollingFile name="Merchants" fileName="${sys:catalina.home}/logs/merchants.log"
+                     filePattern="${sys:catalina.home}/logs/merchants_%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
             <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
                 <SizeBasedTriggeringPolicy size="20 MB"/>
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-        <File name="Log" fileName="${sys:catalina.home}/logs/logs.log" append="true">
-            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss,SSS} [%t] %-5level %logger{36} - %msg%n"/>
-        </File>
+        <RollingFile name="Logs" fileName="${sys:catalina.home}/logs/log.log"
+            filePattern="${sys:catalina.home}/logs/log_%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
     </Appenders>
     <Loggers>
-        <Logger name="me.exrates" level="debug">
+        <Logger name="merchant" level="TRACE" additivity="false">
             <AppenderRef ref="Console"/>
-            <AppenderRef ref="Log"/>
+            <AppenderRef ref="Merchants"/>
         </Logger>
-        <Logger name="me.exrates.controller.merchants">
-            <AppenderRef ref="Merchant"/>
-        </Logger>
-
+        <logger name="org.springframework" level="ERROR" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="Logs"/>
+        </logger>
+        <Root level="TRACE">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="Logs"/>
+        </Root>
     </Loggers>
 </Configuration>
