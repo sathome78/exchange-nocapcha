@@ -1,12 +1,6 @@
 package me.exrates.service.impl;
 
 
-import java.util.Locale;
-import java.util.UUID;
-
-import javax.mail.MessagingException;
-import javax.servlet.http.HttpServletRequest;
-
 import me.exrates.dao.UserDao;
 import me.exrates.model.Email;
 import me.exrates.model.TemporalToken;
@@ -16,16 +10,17 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -139,7 +134,7 @@ public class UserServiceImpl implements UserService {
 	public boolean update(User user, boolean changePassword, boolean changeFinPassword, boolean resetPassword){
 		logger.info("Begin 'updateUserByAdmin' method");
 
-		if (!changeFinPassword){
+		if (changePassword){
 			user.setStatus(UserStatus.REGISTERED);
 		}
 		if(userdao.update(user)) {

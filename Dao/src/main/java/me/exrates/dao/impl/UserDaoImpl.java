@@ -235,9 +235,11 @@ public class UserDaoImpl implements UserDao {
 			namedParameters.put("email", user.getEmail());
 			BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 			String hashedPassword;
-			if (user.getPassword() == "" || user.getPassword() == null){
-				hashedPassword = getUserById(user.getId()).getPassword();
-			}else {
+			String currentPassword = getUserById(user.getId()).getPassword();
+			if (user.getPassword() == "" || user.getPassword() == null||
+			user.getPassword().equals(currentPassword)){
+				hashedPassword = currentPassword;
+			} else {
 				hashedPassword = passwordEncoder.encode(user.getPassword());
 			}
 			namedParameters.put("password", hashedPassword);
