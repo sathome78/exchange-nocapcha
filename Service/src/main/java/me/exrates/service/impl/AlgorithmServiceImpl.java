@@ -1,13 +1,12 @@
 package me.exrates.service.impl;
 
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import me.exrates.service.AlgorithmService;
 import org.springframework.beans.BeanInstantiationException;
 import org.springframework.stereotype.Service;
-
-import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -26,7 +25,6 @@ public class AlgorithmServiceImpl implements AlgorithmService {
             throw new BeanInstantiationException(AlgorithmServiceImpl.class,
                     "Failed to receive MD5 MessageDigest instance");
         }
-
     }
 
     @Override
@@ -51,7 +49,14 @@ public class AlgorithmServiceImpl implements AlgorithmService {
 
     @Override
     public String base64Encode(final String string) {
-        return Base64.getEncoder().encodeToString(string.getBytes());
+        return Base64
+            .getEncoder()
+            .encodeToString(string.getBytes());
+    }
+
+    @Override
+    public String base64Decode(final String string) {
+        return new String(Base64.getDecoder().decode(string));
     }
 
     private String byteArrayToHexString(byte[] bytes) {

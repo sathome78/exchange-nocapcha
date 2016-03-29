@@ -35,6 +35,8 @@ $(function(){
     const EDR_COIN = 'EDR Coin';
     const NO_ACTION = 'javascript:void(0);';
 
+    const COMPUTING_PRECISION = 9;
+
     var currency = $('#currency');
     var merchant = $('#merchant');
     var sum = $('#sum');
@@ -161,18 +163,18 @@ $(function(){
                             'X-CSRF-Token': $("input[name='_csrf']").val()
                         },
                         type: 'POST',
-                        contentType: 'application/json',
-                        dataType: 'json',
+                        contentType: 'application/json;charset=utf-8',
+                        dataType: 'text',
                         data: JSON.stringify($(form).serializeObject())
                     }).done(function (response) {
-                        $('.paymentInfo').html(response.responseText);
+                        $('.paymentInfo').html(response);
                         $('.request_money_operation_btn').hide();
                         $('.response_money_operation_btn').show();
-                    }).fail(function (error) {
+                    }).fail(function (error,jqXHR, textStatus, errorThrown) {
                         $('.request_money_operation_btn').hide();
                         $('.response_money_operation_btn').show();
                         $('.paymentInfo').html(error.responseText);
-                        console.log(error);
+                        console.log(textStatus);
                     });
                     break;
                 case EDR_COIN :
@@ -182,13 +184,14 @@ $(function(){
                       },
                       type: 'POST',
                       contentType: 'application/json',
-                      dataType: 'json',
                       data: JSON.stringify($(form).serializeObject()),
                       success:function (response) {
                           alert(response);
                       },
-                      error:function (error) {
-                          alert("error");
+                      error:function (jqXHR, textStatus, errorThrown) {
+                          alert(jqXHR);
+                          alert(textStatus);
+                          alert(errorThrown);
                       }
                   });
                       break;
@@ -218,12 +221,12 @@ $(function(){
             type: "get",
             contentType: "application/json"
         }).done(function (response) {
-            console.log('handle');
+            var selectedCurrency = currency.find(':selected').html();
+            var round = selectedCurrency === 'BTC' || selectedCurrency === 'EDRC' ? 8 : 2;
             var commission = parseFloat(response);
             var targetCurrentSum = parseFloat(sum.val());
-            var computedCommission = Math.ceil(sum.val() * commission) / 100;
+            var computedCommission = targetCurrentSum * commission;
             var targetNewSum = targetCurrentSum + computedCommission;
-            var selectedCurrency = $('#currency').find(':selected').text().split(" ")[0];
             var templateVariables = {
                 amount: '__amount',
                 currency: '__currency',
@@ -232,11 +235,11 @@ $(function(){
             };
             var newHTMLElements = modalTemplate.slice(); //Create new array from template modalTemplate
             newHTMLElements[0] = newHTMLElements[0]
-                .replace(templateVariables.amount, targetCurrentSum)
+                .replace(templateVariables.amount, parseFloat(targetCurrentSum))
                 .replace(templateVariables.currency, selectedCurrency)
                 .replace(templateVariables.merchant, merchant.find(':selected').html());
             newHTMLElements[1] = newHTMLElements[1]
-                .replace(templateVariables.amount, computedCommission)
+                .replace(templateVariables.amount, parseFloat(computedCommission.toFixed(round)))
                 .replace(templateVariables.currency, selectedCurrency)
                 .replace(templateVariables.percent, response + "%");
             newHTMLElements[2] = newHTMLElements[2]
@@ -271,13 +274,13 @@ $(function(){
 
     if ($("#assertInputPay").length) {
         $("#assertInputPay").bind('click',function(){
-            fillModalWindow('/merchants/commission/input');   
+            fillModalWindow('/merchants/commission/input');
         });
     }
     
     if ($("#assertOutputPay").length) {
         $("#assertOutputPay").bind('click',function(){
-            fillModalWindow('/merchants/commission/output');        
+            fillModalWindow('/merchants/commission/output');
         });
     }
 
@@ -316,5 +319,4 @@ $(function(){
         $('.request_money_operation_btn').show();
         $('.response_money_operation_btn').hide();
     });
-    
 });

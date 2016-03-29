@@ -1,7 +1,16 @@
 package me.exrates.controller.merchants;
 
 import com.google.gson.Gson;
-import me.exrates.model.*;
+import java.math.BigDecimal;
+import java.security.Principal;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import me.exrates.model.BTCTransaction;
+import me.exrates.model.BlockchainPayment;
+import me.exrates.model.CreditsOperation;
+import me.exrates.model.Email;
+import me.exrates.model.Payment;
 import me.exrates.service.BlockchainService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.SendMailService;
@@ -13,19 +22,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.MailException;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
-
-import java.math.BigDecimal;
-import java.security.Principal;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -53,7 +61,7 @@ public class BlockchainController {
 
     private static final int GRACEFUL_CONFIRMATIONS_NUMBER = 4;
 
-    private static final Logger logger = LogManager.getLogger(BlockchainController.class);
+    private static final Logger logger = LogManager.getLogger("merchant");
 
     //// TODO: Provide mail subject & description
     @RequestMapping(value = "/payment/prepare",method = RequestMethod.POST)
@@ -64,7 +72,7 @@ public class BlockchainController {
             final BlockchainPayment blockchainPayment = creditsOperation
                     .map(blockchainService::createPaymentInvoice)
                     .orElseThrow(InvalidAmountException::new);
-            final String sumWithCurrency = blockchainPayment.getAmount() + "BTC";
+            final String sumWithCurrency = blockchainPayment.getAmount().stripTrailingZeros() + "BTC";
             final String success = String.format(context
                     .getMessage("merchants.makePay", null, locale), sumWithCurrency,blockchainPayment.getAddress());
             final Email email = new Email();
@@ -78,7 +86,9 @@ public class BlockchainController {
                 logger.error(e);
             }
             logger.info(blockchainPayment.toString());
-            return new ResponseEntity<>(success, HttpStatus.OK);
+            final HttpHeaders httpHeaders = new HttpHeaders();
+            httpHeaders.add("Content-Type", "text/plain; charset=utf-8");
+            return new ResponseEntity<>(success, httpHeaders,HttpStatus.OK);
         } catch (InvalidAmountException|RejectedPaymentInvoice e) {
             final String error = context.getMessage("merchants.incorrectPaymentDetails", null, locale);
             return new ResponseEntity<>(error,HttpStatus.NO_CONTENT);

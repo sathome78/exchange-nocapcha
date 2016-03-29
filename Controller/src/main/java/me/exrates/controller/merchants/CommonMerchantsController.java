@@ -1,5 +1,7 @@
 package me.exrates.controller.merchants;
 
+import java.math.MathContext;
+import java.math.RoundingMode;
 import me.exrates.model.Currency;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.Payment;
@@ -28,7 +30,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/merchants/")
 public class CommonMerchantsController {
 
-    private static final Logger logger = LogManager.getLogger(CommonMerchantsController.class);
+    private static final Logger logger = LogManager.getLogger("merchant");
 
     @Autowired
     private CurrencyService currencyService;
@@ -44,6 +46,8 @@ public class CommonMerchantsController {
 
     @Autowired
     private UserService userService;
+
+    private final MathContext mathContext = new MathContext(9, RoundingMode.CEILING);
 
     @RequestMapping(value = "/input", method = RequestMethod.GET)
     public ModelAndView inputCredits() {
@@ -83,9 +87,17 @@ public class CommonMerchantsController {
     BigDecimal getCommissions(@PathVariable("type") String type) {
         switch (type) {
             case "input" :
-                return commissionService.findCommissionByType(OperationType.INPUT).getValue();
+                return commissionService
+                    .findCommissionByType(OperationType.INPUT)
+                    .getValue()
+                    .divide(BigDecimal.valueOf(100L),mathContext)
+                    .setScale(9, BigDecimal.ROUND_CEILING);
             case "output" :
-                return commissionService.findCommissionByType(OperationType.OUTPUT).getValue();
+                return commissionService
+                    .findCommissionByType(OperationType.OUTPUT)
+                    .getValue()
+                    .divide(BigDecimal.valueOf(100L),mathContext)
+                    .setScale(9, BigDecimal.ROUND_CEILING);
             default:
                 return null;
         }

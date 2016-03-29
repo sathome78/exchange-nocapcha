@@ -3,6 +3,7 @@ package me.exrates.controller.merchants;
 import com.google.gson.Gson;
 import java.security.Principal;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import me.exrates.model.BlockchainPayment;
 import me.exrates.model.CreditsOperation;
@@ -51,7 +52,7 @@ public class EDRCoinController {
 
     private @Value("${mail.user}") String mailUser;
 
-    private static final Logger logger = LogManager.getLogger(EDRCoinController.class);
+    private static final Logger logger = LogManager.getLogger(EDRCoinController.class.getName());
 
     @RequestMapping(value = "/payment/prepare",method = RequestMethod.POST)
     public ResponseEntity<String> preparePayment(@RequestBody String body, Principal principal, Locale locale) {
@@ -75,7 +76,7 @@ public class EDRCoinController {
                 logger.error(e);
             }
             logger.info(blockchainPayment.toString());
-            System.out.println(success);
+            logger.info(success);
             return new ResponseEntity<>(success, HttpStatus.OK);
         } catch (InvalidAmountException|RejectedPaymentInvoice e) {
             final String error = context.getMessage("merchants.incorrectPaymentDetails", null, locale);
@@ -83,11 +84,17 @@ public class EDRCoinController {
         }
     }
 
+    //// TODO: 3/26/16 Currentrly not using
     @RequestMapping(value = "/payment/provide",method = RequestMethod.POST)
     public RedirectView provideOutputPayment(final Payment payment,final Principal principal, final RedirectAttributes redir) {
         final Optional<CreditsOperation> creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName());
         edrcService.provideOutputPayment(payment, creditsOperation.get());
-        System.out.println("Money sended");
         return null;
     }
+
+    @RequestMapping("/payment/received")
+    public void paymentHandler(@RequestBody Map<String,String> response) {
+
+    }
+
 }

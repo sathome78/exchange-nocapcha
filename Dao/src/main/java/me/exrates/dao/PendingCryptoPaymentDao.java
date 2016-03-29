@@ -11,5 +11,7 @@ public interface PendingCryptoPaymentDao {
 
     BlockchainPayment findByInvoiceId(int invoiceId);
 
+    BlockchainPayment findByAddress(String address);
+
     boolean delete(int invoiceId);
 }
