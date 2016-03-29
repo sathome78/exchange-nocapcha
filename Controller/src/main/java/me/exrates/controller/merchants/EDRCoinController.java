@@ -20,7 +20,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import static org.springframework.http.HttpStatus.OK;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.MailException;
 import org.springframework.stereotype.Controller;
@@ -57,27 +59,34 @@ public class EDRCoinController {
     @RequestMapping(value = "/payment/prepare",method = RequestMethod.POST)
     public ResponseEntity<String> preparePayment(@RequestBody String body, Principal principal, Locale locale) {
         final Payment payment = new Gson().fromJson(body, Payment.class);
-        final Optional<CreditsOperation> creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName());
+        final String email = principal.getName();
+        logger.debug("Preparing payment: "+payment+" for: " + email);
+        final Optional<CreditsOperation> creditsOperation = merchantService.prepareCreditsOperation(payment, email);
+        logger.debug("Prepared payment: "+creditsOperation);
         try {
             final BlockchainPayment blockchainPayment = creditsOperation
                 .map(edrcService::createPaymentInvoice)
                 .orElseThrow(InvalidAmountException::new);
-            final String sumWithCurrency = blockchainPayment.getAmount() + "EDRC";
-            final String success = String.format(context
-                .getMessage("merchants.makePay", null, locale), sumWithCurrency,blockchainPayment.getAddress());
-            final Email email = new Email();
-            email.setFrom(mailUser);
-            email.setTo(principal.getName());
-            email.setSubject("Exrates EDRC Payment Invoice");
-            email.setMessage(sumWithCurrency);
+            final String sumWithCurrency = blockchainPayment.getAmount().stripTrailingZeros() + " EDRC";
+            final String notification = String.format(context
+                .getMessage("merchants.makePay", null, locale), sumWithCurrency, blockchainPayment.getAddress()) +
+                "<br>The transfer of money will will occur within next 48 hours"+
+                "<br>Зачисление средств приозойдет в течении 48 часов";
+            final Email mail = new Email();
+            mail.setFrom(mailUser);
+            mail.setTo(principal.getName());
+            mail.setSubject("Exrates EDRC Payment Invoice");
+            mail.setMessage(sumWithCurrency);
             try {
-                sendMailService.sendMail(email);
+                sendMailService.sendMail(mail);
             } catch (MailException e) {
                 logger.error(e);
             }
-            logger.info(blockchainPayment.toString());
-            logger.info(success);
-            return new ResponseEntity<>(success, HttpStatus.OK);
+            logger.info("New pending EDRCoin payment :"+blockchainPayment);
+            logger.info(notification);
+            final HttpHeaders httpHeaders = new HttpHeaders();
+            httpHeaders.add("Content-Type", "text/plain; charset=utf-8");
+            return new ResponseEntity<>(notification, httpHeaders, OK);
         } catch (InvalidAmountException|RejectedPaymentInvoice e) {
             final String error = context.getMessage("merchants.incorrectPaymentDetails", null, locale);
             return new ResponseEntity<>(error,HttpStatus.NO_CONTENT);
@@ -92,9 +101,9 @@ public class EDRCoinController {
         return null;
     }
 
+    //// TODO: 3/30/16 Will be implemented
     @RequestMapping("/payment/received")
     public void paymentHandler(@RequestBody Map<String,String> response) {
-
+        logger.info(response);
     }
-
 }

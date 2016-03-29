@@ -9,6 +9,8 @@ import me.exrates.service.CommissionService;
 import me.exrates.service.WalletService;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.WalletPersistException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -29,6 +31,8 @@ public class WalletServiceImpl implements WalletService {
 
 	@Autowired
 	CurrencyDao currencyDao;
+
+	private static final Logger logger = LogManager.getLogger(WalletServiceImpl.class);
 
 	@Transactional(readOnly = true)
 	@Override
@@ -102,7 +106,6 @@ public class WalletServiceImpl implements WalletService {
 		return wallet;
 	}
 	
-////TODO: 2/23/16 Dmytro Sokolov Replace to withdraw() and deposit() methods
 	@Transactional(propagation = Propagation.NESTED)
 	@Override
 	public boolean setWalletABalance(int walletId, BigDecimal amount) {
@@ -129,16 +132,22 @@ public class WalletServiceImpl implements WalletService {
 	@Override
 	@Transactional(propagation = Propagation.NESTED)
 	public void depositActiveBalance(Wallet wallet, BigDecimal sum) {
+		logger.info("Trying deposit active balance on wallet "+ wallet+
+			", amount: "+sum);
 		final BigDecimal newBalance =
 				wallet.getActiveBalance().add(sum).setScale(9,BigDecimal.ROUND_CEILING);
 		wallet.setActiveBalance(newBalance);
-		if (!walletDao.update(wallet))
+		if (!walletDao.update(wallet)) {
 			throw new WalletPersistException("Failed to deposit on user wallet " + wallet.toString());
+		}
+		logger.info("Successfull active balance deposit on wallet "+wallet);
 	}
 
 	@Override
 	@Transactional(propagation = Propagation.NESTED)
 	public void withdrawActiveBalance(Wallet wallet, BigDecimal sum) {
+		logger.info("Trying withdraw active balance on wallet "+ wallet+
+			", amount: "+sum);
 		final BigDecimal newBalance =
 				wallet.getActiveBalance().subtract(sum).setScale(9,BigDecimal.ROUND_CEILING);
 		if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
@@ -148,6 +157,7 @@ public class WalletServiceImpl implements WalletService {
 		if (!walletDao.update(wallet)) {
 			throw new WalletPersistException("Failed to withdraw on user wallet " + wallet.toString());
 		}
+		logger.info("Successfull active balance withdraw on wallet "+wallet);
 	}
 
 	@Override

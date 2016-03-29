@@ -2,24 +2,25 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a6d4cdda-880d-467f-aa0b-e28fbdbe7bcd" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/EDRCService.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/impl/EDRCServiceImpl.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Controller/src/main/java/me/exrates/controller/merchants/EDRCoinController.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Controller/src/main/resources/dev/merchants/edrcBlockchain.properties" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Controller/src/main/resources/prod/merchants/edrcBlockchain.properties" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Dao/src/main/resources/patch_20_added_edrc_support.sql" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/AlgorithmService.java" afterPath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/AlgorithmService.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/impl/AlgorithmServiceImpl.java" afterPath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/impl/AlgorithmServiceImpl.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/src/main/java/me/exrates/controller/merchants/BlockchainController.java" afterPath="$PROJECT_DIR$/Controller/src/main/java/me/exrates/controller/merchants/BlockchainController.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/BlockchainService.java" afterPath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/BlockchainService.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/impl/BlockchainServiceImpl.java" afterPath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/impl/BlockchainServiceImpl.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/Controller.iml" afterPath="$PROJECT_DIR$/Controller/Controller.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/artifacts/Controller_war_exploded.xml" afterPath="$PROJECT_DIR$/.idea/artifacts/Controller_war_exploded.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/exception/MerchantInternalException.java" afterPath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/exception/MerchantInternalException.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Security/Security.iml" afterPath="$PROJECT_DIR$/Security/Security.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Service/Service.iml" afterPath="$PROJECT_DIR$/Service/Service.iml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/impl/CompanyWalletServiceImpl.java" afterPath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/impl/CompanyWalletServiceImpl.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Model/src/main/java/me/exrates/model/CreditsOperation.java" afterPath="$PROJECT_DIR$/Model/src/main/java/me/exrates/model/CreditsOperation.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/src/main/java/me/exrates/controller/merchants/EDRCoinController.java" afterPath="$PROJECT_DIR$/Controller/src/main/java/me/exrates/controller/merchants/EDRCoinController.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Model/src/main/java/me/exrates/model/Email.java" afterPath="$PROJECT_DIR$/Model/src/main/java/me/exrates/model/Email.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/impl/MerchantServiceImpl.java" afterPath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/impl/MerchantServiceImpl.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Security/src/main/java/me/exrates/security/config/SecurityConfig.java" afterPath="$PROJECT_DIR$/Security/src/main/java/me/exrates/security/config/SecurityConfig.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/src/main/java/me/exrates/config/SpringMvcInitializer.java" afterPath="$PROJECT_DIR$/Controller/src/main/java/me/exrates/config/SpringMvcInitializer.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/impl/TransactionServiceImpl.java" afterPath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/impl/TransactionServiceImpl.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/impl/WalletServiceImpl.java" afterPath="$PROJECT_DIR$/Service/src/main/java/me/exrates/service/impl/WalletServiceImpl.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/src/main/resources/dev/merchants/blockchain.properties" afterPath="$PROJECT_DIR$/Controller/src/main/resources/dev/merchants/blockchain.properties" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/src/main/resources/prod/merchants/blockchain.properties" afterPath="$PROJECT_DIR$/Controller/src/main/resources/prod/merchants/blockchain.properties" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/src/main/webapp/client/js/main.js" afterPath="$PROJECT_DIR$/Controller/src/main/webapp/client/js/main.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Dao/src/main/resources/patch_19_added_btc_support.sql" afterPath="$PROJECT_DIR$/Dao/src/main/resources/patch_19_added_btc_support.sql" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Dao/src/main/resources/patch_20_added_edrc_support.sql" afterPath="$PROJECT_DIR$/Dao/src/main/resources/patch_20_added_edrc_support.sql" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Service/pom.xml" afterPath="$PROJECT_DIR$/Service/pom.xml" />
-      <change type="MOVED" beforePath="D:\IdeaProjects\exrates\Dao\src\main\java\me\exrates\dao\impl\PendingCryptoPaymentDao.java" afterPath="$PROJECT_DIR$/Dao/src/main/java/me/exrates/dao/impl/PendingCryptoPaymentDaoImpl.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Controller/src/main/resources/prod/merchants/yandexmoney.properties" afterPath="$PROJECT_DIR$/Controller/src/main/resources/prod/merchants/yandexmoney.properties" />
     </list>
     <list id="cc5c0c81-d3fe-428f-9dab-dfe69ace8716" name="New changelist" comment="" />
     <ignored path="Birzha.iws" />
@@ -989,7 +990,7 @@
       <workItem from="1459072245401" duration="27695000" />
       <workItem from="1459105487906" duration="1311000" />
       <workItem from="1459106855338" duration="155000" />
-      <workItem from="1459107013586" duration="597000" />
+      <workItem from="1459107013586" duration="639000" />
     </task>
     <task id="LOCAL-00001" summary="PROGRAM-84">
       <created>1458852749871</created>
@@ -1049,7 +1050,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="182406000" />
+    <option name="totallyTimeSpent" value="182448000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">

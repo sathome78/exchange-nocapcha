@@ -20,7 +20,6 @@
     <orderEntry type="library" name="Maven: info.blockchain:api:1.1.0" level="project" />
     <orderEntry type="library" name="Maven: com.jcabi.incubator:xembly:0.22" level="project" />
     <orderEntry type="library" name="Maven: org.antlr:antlr-runtime:3.5.2" level="project" />
-    <orderEntry type="library" name="Maven: com.google.guava:guava:19.0" level="project" />
     <orderEntry type="module" module-name="JDBC" />
     <orderEntry type="module" module-name="Dao" />
     <orderEntry type="library" name="Maven: mysql:mysql-connector-java:5.1.38" level="project" />

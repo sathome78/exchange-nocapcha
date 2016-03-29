@@ -6,6 +6,8 @@ import me.exrates.model.*;
 import me.exrates.model.enums.OperationType;
 import me.exrates.service.*;
 import me.exrates.service.exception.UnsupportedMerchantException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
@@ -40,6 +42,8 @@ public class MerchantServiceImpl implements MerchantService{
 
     @Autowired
     CurrencyService currencyService;
+
+    private static final Logger logger = LogManager.getLogger("merchant");
 
     @Override
     public Merchant create(Merchant merchant) {
@@ -143,6 +147,7 @@ public class MerchantServiceImpl implements MerchantService{
         final String destination = payment.getDestination();
         try {
             if (!isPayable(merchant,currency,amount)) {
+                logger.warn("Merchant respond as not support this pay"+payment);
                 return Optional.empty();
             }
         } catch (EmptyResultDataAccessException e) {
