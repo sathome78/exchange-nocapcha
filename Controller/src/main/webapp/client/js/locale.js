@@ -9,7 +9,7 @@
         } else if (localeName == 'Chinese') {
             localeCode = 'cn';
         }
-        var ref = '?locale=' + localeCode;
+        var ref = '/dashboard/locale?locale=' + localeCode;
         $.get(ref)
             .always(function () {
                 window.location.reload();

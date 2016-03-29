@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
@@ -61,6 +62,9 @@ private static final Locale ru = new Locale("ru");
 
 	@Autowired
 	MessageSource messageSource;
+
+	@Autowired
+	LocaleResolver localeResolver;
   
  @RequestMapping("/403")
  public String error403() {  
@@ -127,12 +131,12 @@ private static final Locale ru = new Locale("ru");
 		if (error != null) {
 			String exceptionClass = httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION").getClass().getName();
 			if (exceptionClass.equals("org.springframework.security.authentication.DisabledException")){
-				model.addObject("error", messageSource.getMessage("login.blocked", null, ru));
+				model.addObject("error", messageSource.getMessage("login.blocked", null, localeResolver.resolveLocale(request)));
 			}else
 			if (exceptionClass.equals("org.springframework.security.authentication.BadCredentialsException")){
-				model.addObject("error", messageSource.getMessage("login.notFound", null, ru));
+				model.addObject("error", messageSource.getMessage("login.notFound", null, localeResolver.resolveLocale(request)));
 			}else {
-				model.addObject("error", messageSource.getMessage("login.errorLogin", null, ru));
+				model.addObject("error", messageSource.getMessage("login.errorLogin", null, localeResolver.resolveLocale(request)));
 			}
 		}
 

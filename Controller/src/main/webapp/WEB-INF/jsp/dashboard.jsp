@@ -253,7 +253,7 @@
             <hr class="display_at_small_width">
             <%--Всего--%>
             <p>
-                Всего:
+                <loc:message code="dashboard.total"/>
                 <fmt:formatNumber type="number" maxFractionDigits="9" value="${sumAmountBuy}"/>
                 ${currencyPair.getCurrency1().getName()}
             </p>
@@ -264,7 +264,7 @@
             <h3 class=""><loc:message code="dashboard.sellOrders"/></h3>
             <hr class="display_at_small_width">
             <p>
-                Всего:
+                <loc:message code="dashboard.total"/>
                 <fmt:formatNumber type="number" maxFractionDigits="9" value="${sumAmountSell}"/>
                 ${currencyPair.getCurrency2().getName()}
             </p>
@@ -275,7 +275,7 @@
         <div class="col-xs-6 table1 mCustomScrollbar" data-mcs-theme="dark">
             <table>
                 <tr>
-                    <th>Цена</th>
+                    <th><loc:message code="dashboard.orderPrice"/></th>
                     <th>${currencyPair.getCurrency1().getName()}</th>
                     <th>${currencyPair.getCurrency2().getName()}</th>
                 </tr>
@@ -298,7 +298,7 @@
         <div class="col-xs-6 table1 mCustomScrollbar" data-mcs-theme="dark">
             <table>
                 <tr>
-                    <th>Цена</th>
+                    <th><loc:message code="dashboard.orderPrice"/></th>
                     <th>${currencyPair.getCurrency1().getName()}</th>
                     <th>${currencyPair.getCurrency2().getName()}</th>
                 </tr>
