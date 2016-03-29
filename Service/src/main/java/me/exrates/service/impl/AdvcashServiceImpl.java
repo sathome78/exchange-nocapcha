@@ -100,6 +100,8 @@ public class AdvcashServiceImpl implements AdvcashService{
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException();
         }
+        properties.put("ac_success_url", paymentSuccess);
+        properties.put("ac_success__method", "POST");
         RedirectView redirectView = new RedirectView(url);
         redirectView.setAttributes(properties);
 
