@@ -1,9 +1,13 @@
 package me.exrates.service.impl;
 
 
+import me.exrates.dao.PendingPaymentDao;
 import me.exrates.model.CreditsOperation;
+import me.exrates.model.PendingPayment;
 import me.exrates.model.Transaction;
+import me.exrates.model.enums.OperationType;
 import me.exrates.service.AdvcashService;
+import me.exrates.service.AlgorithmService;
 import me.exrates.service.TransactionService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -15,10 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.view.RedirectView;
 
 import java.math.BigDecimal;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 
 @Service
@@ -40,6 +43,12 @@ public class AdvcashServiceImpl implements AdvcashService{
 
     @Autowired
     private TransactionService transactionService;
+
+    @Autowired
+    private PendingPaymentDao pendingPaymentDao;
+
+    @Autowired
+    private AlgorithmService algorithmService;
 
     @Override
     public Map<String, String> getPerfectMoneyParams(Transaction transaction) {
@@ -95,11 +104,15 @@ public class AdvcashServiceImpl implements AdvcashService{
         String sign = accountId + ":" + payeeName + ":" + amountToPay
                 + ":" + creditsOperation.getCurrency().getName() + ":" + payeePassword
                 + ":" + transaction.getId();
-        try {
-            properties.put("ac_sign", getSHA256String(sign));
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException();
-        }
+        String transactionHash = algorithmService.sha256(sign);
+        properties.put("ac_sign", transactionHash);
+        properties.put("transaction_hash", transactionHash);
+
+        final PendingPayment payment = new PendingPayment();
+        payment.setTransactionHash(transactionHash);
+        payment.setInvoiceId(transaction.getId());
+        pendingPaymentDao.create(payment);
+
         properties.put("ac_success_url", paymentSuccess);
         properties.put("ac_success__method", "POST");
         RedirectView redirectView = new RedirectView(url);
@@ -107,19 +120,6 @@ public class AdvcashServiceImpl implements AdvcashService{
 
 
         return redirectView;
-    }
-
-    private static String getSHA256String(String stringToConfert) throws NoSuchAlgorithmException {
-        MessageDigest md = MessageDigest.getInstance("SHA-256");
-        md.update(stringToConfert.getBytes());
-        byte[] byteData = md.digest();
-        StringBuffer result = new StringBuffer();
-
-        for(int i = 0; i < byteData.length; ++i) {
-            result.append(Integer.toString((byteData[i] & 255) + 256, 16).substring(1));
-        }
-
-        return result.toString();
     }
 
     @Override
@@ -131,6 +131,9 @@ public class AdvcashServiceImpl implements AdvcashService{
     @Override
     @Transactional
     public void provideTransaction(Transaction transaction) {
+        if (transaction.getOperationType()== OperationType.INPUT){
+            pendingPaymentDao.delete(transaction.getId());
+        }
         transactionService.provideTransaction(transaction);
     }
 
@@ -140,4 +143,15 @@ public class AdvcashServiceImpl implements AdvcashService{
         transactionService.invalidateTransaction(transaction);
     }
 
+    @Override
+    public boolean checkHashTransactionByTransactionId(int invoiceId, String inputHash) {
+        Optional<PendingPayment> pendingPayment = pendingPaymentDao.findByInvoiceId(invoiceId);
+
+        if (pendingPayment.isPresent()){
+            String transactionHash = pendingPayment.get().getTransactionHash();
+            return  transactionHash.equals(inputHash);
+        }else {
+            return false;
+        }
+    }
 }
