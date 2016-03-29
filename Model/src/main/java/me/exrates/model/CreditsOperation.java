@@ -150,4 +150,18 @@ public class CreditsOperation {
         result = 31 * result + (destination != null ? destination.hashCode() : 0);
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "CreditsOperation{" +
+            "user=" + user +
+            ", amount=" + amount +
+            ", commissionAmount=" + commissionAmount +
+            ", operationType=" + operationType +
+            ", commission=" + commission +
+            ", currency=" + currency +
+            ", merchant=" + merchant +
+            ", destination=" + destination +
+            '}';
+    }
 }

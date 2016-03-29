@@ -6,6 +6,8 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.service.*;
 import me.exrates.service.exception.TransactionPersistException;
 import me.exrates.service.exception.TransactionProvidingException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -40,6 +42,8 @@ public class TransactionServiceImpl implements TransactionService {
     @Autowired
     private OrderService orderService;
 
+    private static final Logger logger = LogManager.getLogger(TransactionServiceImpl.class);
+
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
     public Transaction createTransactionRequest(CreditsOperation creditsOperation) {
@@ -68,6 +72,7 @@ public class TransactionServiceImpl implements TransactionService {
         if (transaction==null) {
             throw new TransactionPersistException("Failed to provide transaction ");
         }
+        logger.info("Transaction created:"+transaction);
         return transaction;
     }
 

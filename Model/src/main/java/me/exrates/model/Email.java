@@ -6,6 +6,7 @@ public class Email {
 	private String from;
 	private String message;
 	private String subject;
+
 	public String getTo() {
 		return to;
 	}
@@ -30,7 +31,14 @@ public class Email {
 	public void setSubject(String subject) {
 		this.subject = subject;
 	}
-	
-	
-	
+
+	@Override
+	public String toString() {
+		return "Email{" +
+			"to='" + to + '\'' +
+			", from='" + from + '\'' +
+			", message='" + message + '\'' +
+			", subject='" + subject + '\'' +
+			'}';
+	}
 }

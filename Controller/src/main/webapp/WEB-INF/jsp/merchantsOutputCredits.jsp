@@ -42,10 +42,15 @@
 
             <div class="content__page">
 
-                <div class="title__page">Вывод средств</div>
+                <div class="title__page"><loc:message code="transaction.operationTypeOUTPUT"/></div>
                 <c:if test="${error!=null}">
                     <label class="alert-danger has-error">
                         <loc:message code="${error}"/>
+                    </label>
+                </c:if>
+                <c:if test="${notification!=null}">
+                    <label class="alert-success">
+                        ${notification}
                     </label>
                 </c:if>
                 <c:choose>

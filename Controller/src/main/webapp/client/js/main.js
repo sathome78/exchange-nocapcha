@@ -186,7 +186,9 @@ $(function(){
                       contentType: 'application/json',
                       data: JSON.stringify($(form).serializeObject()),
                       success:function (response) {
-                          alert(response);
+                          $('.paymentInfo').html(response);
+                          $('.request_money_operation_btn').hide();
+                          $('.response_money_operation_btn').show();
                       },
                       error:function (jqXHR, textStatus, errorThrown) {
                           alert(jqXHR);
