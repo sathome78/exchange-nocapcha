@@ -20,4 +20,6 @@ public interface AdvcashService {
 
     void invalidateTransaction(Transaction transaction);
 
+    boolean checkHashTransactionByTransactionId(int invoiceId, String inputHash);
+
 }

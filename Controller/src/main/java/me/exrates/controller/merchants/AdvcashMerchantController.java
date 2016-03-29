@@ -70,7 +70,7 @@ public class AdvcashMerchantController {
 
         Transaction transaction = transactionService.findById(Integer.parseInt(response.get("ac_order_id")));
 
-        if (response.get("ac_transaction_status").equals("COMPLETED")){
+        if (response.get("ac_transaction_status").equals("COMPLETED") && advcashService.checkHashTransactionByTransactionId(transaction.getId(), response.get("transaction_hash"))){
             merchantService.formatResponseMessage(transaction)
                     .entrySet()
                     .forEach(entry->redir.addFlashAttribute(entry.getKey(),entry.getValue()));
@@ -81,8 +81,11 @@ public class AdvcashMerchantController {
             return new RedirectView("/mywallets");
 
         }
-        advcashService.invalidateTransaction(transaction);
+//        advcashService.invalidateTransaction(transaction);
 
-        return new RedirectView("/merchants/input");
+        final String message = "merchants.internalError";
+        redir.addFlashAttribute("message", message);
+
+        return new RedirectView("/mywallets");
         }
     }
