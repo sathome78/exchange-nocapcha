@@ -90,8 +90,8 @@
                             aria-hidden="true">&times;</span></button>
                     <h4 class="modal-title" id="myModalLabel"><loc:message code="dashboard.entrance"/></h4>
                 </div>
-                <div class="modal-body">
-                    <div class="content">
+                <div class="modal-body modal-content__input-block-wrapper">
+                    <div class="content modal-content__content-wrapper">
                         <c:url value="/login" var="loginUrl"/>
                         <form action="${loginUrl}" method="post">
                                 <%--логин--%>
@@ -104,9 +104,10 @@
                                 <%--войти--%>
                             <button type="submit" class="button_enter"><loc:message code="dashboard.entrance"/></button>
                                 <%--Забыли пароль?--%>
-                            <button type="button" class="button_forgot"><a
-                                    href="<c:url value="/forgotPassword"/>"><loc:message
-                                    code="dashboard.forgotPassword"/></a></button>
+                            <form action="/forgotPassword">
+                                <button type="submit" class="button_forgot"><loc:message
+                                        code="dashboard.forgotPassword"/></button>
+                            </form>
                         </form>
                     </div>
                 </div>

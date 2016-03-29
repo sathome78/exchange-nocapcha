@@ -653,7 +653,8 @@ footer p {
 
 #myModal .modal-dialog {
     width: 100%;
-    margin: 10px auto;
+    /*margin: 10px auto;*/
+    margin: 10px auto 0 auto;
 }
 
 #myModal .content {
