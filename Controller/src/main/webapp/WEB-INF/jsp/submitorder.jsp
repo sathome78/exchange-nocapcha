@@ -43,8 +43,6 @@
         <%@include file='usermenu_new.jsp' %>
 
         <div class="col-sm-9 content">
-            <%--ЗАГОЛОВОК: ОРДЕР НА ПРОДАЖУ--%>
-
             <div class="row">
                 <div class="col-sm-9">
                     <%--Подтвердите создание ордера с такими данными	--%>
