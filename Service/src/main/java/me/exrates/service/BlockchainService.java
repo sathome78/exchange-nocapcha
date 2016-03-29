@@ -3,7 +3,7 @@ package me.exrates.service;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import me.exrates.model.BlockchainPayment;
+import me.exrates.model.PendingPayment;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 
@@ -12,15 +12,15 @@ import me.exrates.model.Payment;
  */
 public interface BlockchainService {
 
-    BlockchainPayment createPaymentInvoice(CreditsOperation creditsOperation);
+    PendingPayment createPaymentInvoice(CreditsOperation creditsOperation);
 
-    BlockchainPayment findByInvoiceId(int invoiceId);
+    PendingPayment findByInvoiceId(int invoiceId);
 
-    String sendPaymentNotification(BlockchainPayment payment, String email,Locale locale);
+    String sendPaymentNotification(String address, String email,Locale locale, CreditsOperation creditsOperation);
 
-    Optional<String> notCorresponds(Map<String,String> pretended,BlockchainPayment actual);
+    Optional<String> notCorresponds(Map<String,String> pretended,PendingPayment actual);
 
-    String approveBlockchainTransaction(BlockchainPayment payment,Map<String,String> params);
+    String approveBlockchainTransaction(PendingPayment payment,Map<String,String> params);
 
     void provideOutputPayment(Payment payment, CreditsOperation creditsOperation);
 }

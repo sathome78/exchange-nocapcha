@@ -1,6 +1,6 @@
 package me.exrates.service;
 
-import me.exrates.model.BlockchainPayment;
+import me.exrates.model.PendingPayment;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 
@@ -9,9 +9,9 @@ import me.exrates.model.Payment;
  */
 public interface EDRCService {
 
-    BlockchainPayment createPaymentInvoice(CreditsOperation creditsOperation);
+    PendingPayment createPaymentInvoice(CreditsOperation creditsOperation);
 
-    BlockchainPayment findByInvoiceId(int invoiceId);
+    PendingPayment findByInvoiceId(int invoiceId);
 
     void provideOutputPayment(Payment payment, CreditsOperation creditsOperation);
 

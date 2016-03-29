@@ -4,8 +4,9 @@ import com.google.gson.Gson;
 import java.security.Principal;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
-import me.exrates.model.BlockchainPayment;
+import me.exrates.model.PendingPayment;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.service.BlockchainService;
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
@@ -59,12 +61,13 @@ public class BlockchainController {
                 .prepareCreditsOperation(payment, email);
             logger.debug("Prepared payment: "+creditsOperation);
             try {
-                final BlockchainPayment blockchainPayment = creditsOperation
+                final PendingPayment pendingPayment = creditsOperation
                         .map(blockchainService::createPaymentInvoice)
                     .orElseThrow(InvalidAmountException::new);
                 final String notification = blockchainService
-                    .sendPaymentNotification(blockchainPayment,email,locale);
-                logger.info("New pending Blockchain payment :"+blockchainPayment);
+                    .sendPaymentNotification(pendingPayment.getAddress().get()
+                        ,email,locale,creditsOperation.get());
+                logger.info("New pending Blockchain payment :"+ pendingPayment);
                 final HttpHeaders httpHeaders = new HttpHeaders();
                 httpHeaders.add("Content-Type", "text/plain; charset=utf-8");
                 return new ResponseEntity<>(notification, httpHeaders, OK);
@@ -77,10 +80,13 @@ public class BlockchainController {
 
     @RequestMapping(value = "/payment/received")
     public ResponseEntity<String> paymentHandler(final @RequestParam Map<String,String> params) {
+        if (Objects.isNull(params.get("invoice_id"))) {
+            return new ResponseEntity<>("No invoice id_presented", HttpStatus.BAD_REQUEST);
+        }
         final int invoiceId = Integer.parseInt(params.get("invoice_id"));
         logger.info("Received BTC on Blockchain Wallet. Invoice id #"+invoiceId+
             ".Request Body:"+params);
-        final BlockchainPayment pendingPayment = blockchainService.findByInvoiceId(invoiceId);
+        final PendingPayment pendingPayment = blockchainService.findByInvoiceId(invoiceId);
         logger.debug("Corresponding pending Blockchain payment (Invoice id #"
             +invoiceId+") from database :"+pendingPayment);
         final ResponseEntity<String> response = blockchainService
@@ -95,20 +101,20 @@ public class BlockchainController {
         return response;
     }
 
-    //// TODO: 3/29/16 Remove
     @RequestMapping(value = "/payment/provide",method = RequestMethod.POST)
     public RedirectView outputPayment(Payment payment, Principal principal, RedirectAttributes redir) {
-        final Optional<CreditsOperation> creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName());
-        if (!creditsOperation.isPresent()) {
-            redir.addFlashAttribute("error", "merchants.invalidSum");
-            return new RedirectView("/merchants/output");
-        }
-        blockchainService.provideOutputPayment(payment, creditsOperation.get());
-        merchantService.formatResponseMessage(creditsOperation.get())
-                .entrySet()
-                .forEach(entry->redir.addFlashAttribute(entry.getKey(),entry.getValue()));
-        final String message = "merchants.successfulBalanceWithdraw";
-        redir.addFlashAttribute("message",message);
-        return new RedirectView("/mywallets");
+//        final Optional<CreditsOperation> creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName());
+//        if (!creditsOperation.isPresent()) {
+//            redir.addFlashAttribute("error", "merchants.invalidSum");
+//            return new RedirectView("/merchants/output");
+//        }
+//        blockchainService.provideOutputPayment(payment, creditsOperation.get());
+//        merchantService.formatResponseMessage(creditsOperation.get())
+//                .entrySet()
+//                .forEach(entry->redir.addFlashAttribute(entry.getKey(),entry.getValue()));
+//        final String message = "merchants.successfulBalanceWithdraw";
+//        redir.addFlashAttribute("message",message);
+//        return new RedirectView("/mywallets");
+        throw new UnsupportedOperationException();
     }
 }

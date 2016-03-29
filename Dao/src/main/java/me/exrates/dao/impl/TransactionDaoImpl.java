@@ -70,6 +70,7 @@ public final class TransactionDaoImpl implements TransactionDao {
         transaction.setOperationType(operationType);
         transaction.setMerchant(merchant);
         transaction.setCurrency(currency);
+        transaction.setProvided(resultSet.getBoolean("provided"));
         return transaction;
     };
 
@@ -102,7 +103,7 @@ public final class TransactionDaoImpl implements TransactionDao {
 
     @Override
     public Transaction findById(int id) {
-        final String sql = "SELECT TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime,TRANSACTION.operation_type_id," +
+        final String sql = "SELECT TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime,TRANSACTION.operation_type_id,TRANSACTION.provided," +
                 " WALLET.id,WALLET.active_balance,WALLET.reserved_balance,WALLET.currency_id," +
                 " COMPANY_WALLET.id,COMPANY_WALLET.balance,COMPANY_WALLET.commission_balance," +
                 " COMMISSION.id,COMMISSION.date,COMMISSION.value," +
@@ -119,7 +120,7 @@ public final class TransactionDaoImpl implements TransactionDao {
 
     @Override
     public List<Transaction> findAllByUserWallets(List<Integer> walletIds) {
-        final String sql = "SELECT TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime,TRANSACTION.operation_type_id," +
+        final String sql = "SELECT TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime,TRANSACTION.operation_type_id,TRANSACTION.provided," +
                 " WALLET.id,WALLET.active_balance,WALLET.reserved_balance,WALLET.currency_id," +
                 " COMPANY_WALLET.id,COMPANY_WALLET.balance,COMPANY_WALLET.commission_balance," +
                 " COMMISSION.id,COMMISSION.date,COMMISSION.value," +

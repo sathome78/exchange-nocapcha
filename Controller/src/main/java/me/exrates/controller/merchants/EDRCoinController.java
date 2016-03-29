@@ -1,14 +1,15 @@
 package me.exrates.controller.merchants;
 
 import com.google.gson.Gson;
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import me.exrates.model.BlockchainPayment;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Email;
 import me.exrates.model.Payment;
+import me.exrates.model.PendingPayment;
 import me.exrates.service.EDRCService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.SendMailService;
@@ -54,7 +55,7 @@ public class EDRCoinController {
 
     private @Value("${mail.user}") String mailUser;
 
-    private static final Logger logger = LogManager.getLogger(EDRCoinController.class.getName());
+    private static final Logger logger = LogManager.getLogger("merchant");
 
     @RequestMapping(value = "/payment/prepare",method = RequestMethod.POST)
     public ResponseEntity<String> preparePayment(@RequestBody String body, Principal principal, Locale locale) {
@@ -64,13 +65,15 @@ public class EDRCoinController {
         final Optional<CreditsOperation> creditsOperation = merchantService.prepareCreditsOperation(payment, email);
         logger.debug("Prepared payment: "+creditsOperation);
         try {
-            final BlockchainPayment blockchainPayment = creditsOperation
+            final PendingPayment pendingPayment = creditsOperation
                 .map(edrcService::createPaymentInvoice)
                 .orElseThrow(InvalidAmountException::new);
-            final String sumWithCurrency = blockchainPayment.getAmount().stripTrailingZeros() + " EDRC";
-            final String notification = String.format("Please pay %1s on the wallet %1s", sumWithCurrency, blockchainPayment.getAddress()) +
-                "<br>The transfer of money will will occur within next 48 hours"+
-                "<br>Зачисление средств приозойдет в течении 48 часов";
+            final BigDecimal amount = creditsOperation.get().getAmount().add(
+                creditsOperation.get().getCommissionAmount()
+            );
+            final String sumWithCurrency = amount.stripTrailingZeros() + " EDRC";
+            final String notification = String.format("Please pay %1s on the wallet %1s", sumWithCurrency, pendingPayment.getAddress().get()) +
+                "<br>" + context.getMessage("merchants.pendingEnrollment", null, locale);
             final Email mail = new Email();
             mail.setFrom(mailUser);
             mail.setTo(principal.getName());
@@ -81,7 +84,7 @@ public class EDRCoinController {
             } catch (MailException e) {
                 logger.error(e);
             }
-            logger.info("New pending EDRCoin payment :"+blockchainPayment);
+            logger.info("New pending EDRCoin payment :"+ pendingPayment);
             logger.info(notification);
             final HttpHeaders httpHeaders = new HttpHeaders();
             httpHeaders.add("Content-Type", "text/plain; charset=utf-8");
@@ -92,12 +95,10 @@ public class EDRCoinController {
         }
     }
 
-    //// TODO: 3/26/16 Currentrly not using
+
     @RequestMapping(value = "/payment/provide",method = RequestMethod.POST)
     public RedirectView provideOutputPayment(final Payment payment,final Principal principal, final RedirectAttributes redir) {
-        final Optional<CreditsOperation> creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName());
-        edrcService.provideOutputPayment(payment, creditsOperation.get());
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     //// TODO: 3/30/16 Will be implemented

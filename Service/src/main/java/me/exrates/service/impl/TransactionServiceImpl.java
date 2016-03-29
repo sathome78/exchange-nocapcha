@@ -89,12 +89,12 @@ public class TransactionServiceImpl implements TransactionService {
             case INPUT :
                 walletService.depositActiveBalance(transaction.getUserWallet(),transaction.getAmount());
                 companyWalletService.deposit(transaction.getCompanyWallet(),transaction.getAmount(),
-                        transaction.getCommissionAmount());
+                    transaction.getCommissionAmount());
                 break;
             case OUTPUT:
                 walletService.withdrawActiveBalance(transaction.getUserWallet(),transaction.getAmount());
                 companyWalletService.withdraw(transaction.getCompanyWallet(),transaction.getAmount(),
-                        transaction.getCommissionAmount());
+                    transaction.getCommissionAmount());
                 break;
         }
         if (!transactionDao.provide(transaction.getId())) {
@@ -121,53 +121,57 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public List<OperationView> showMyOperationHistory(String email) {
-    	int id = userService.getIdByEmail(email);
-    	final List<Integer> collect = walletService.getAllWallets(id)
-                 .stream()
-                 .mapToInt(Wallet::getId)
-                 .boxed()
-                 .collect(Collectors.toList());
-         final List<Transaction> allByUserId = findAllByUserWallets(collect);
-         Map<String, List<Order>> orderMap = orderService.getMyOrders(email);
-         List<Order> orderList = new ArrayList<Order>();
-         orderList.addAll(orderMap.get("sell"));
-         orderList.addAll(orderMap.get("buy"));
-         List<OperationView> list = new ArrayList<OperationView>();
-         if(orderList.size() > 0 ) {
-        	 for(Order order : orderList) {
-	         	OperationView view = new OperationView();
-	         	LocalDateTime datetime = order.getDateFinal();
-	         	if(order.getDateCreation().isAfter(order.getDateFinal())) {
-	         		datetime = order.getDateCreation();
-	         	}
-	         	view.setDatetime(datetime);
-	         	view.setAmount(order.getAmountSell());
-	         	view.setAmountBuy(order.getAmountBuy());
-	         	BigDecimal commissionAmount = order.getCommissionAmountBuy();
-	         	if(order.getOperationType().equals(OperationType.SELL)) {
-	         		commissionAmount = order.getCommissionAmountSell();
-	         	}
-	         	view.setCommissionAmount(commissionAmount);
-	         	view.setCurrency(order.getCurrencySellString());
-	         	view.setCurrencyBuy(order.getCurrencyBuyString());
-	         	view.setOperationType(order.getOperationType());
-	         	view.setOrderStatus(order.getStatus());
-	         	list.add(view);
-        	 }
-         }
-         if (allByUserId != null) {
-	         for(Transaction t : allByUserId) {
-	         	OperationView view = new OperationView();
-	         	view.setDatetime(t.getDatetime());
-	         	view.setAmount(t.getAmount());
-	         	view.setCommissionAmount(t.getCommissionAmount());
-	         	view.setCurrency(t.getCurrency().getName());
-	         	view.setOperationType(t.getOperationType());
-	         	view.setMerchant(t.getMerchant());
-	         	list.add(view);
-	         }
-         }
-         Collections.sort(list, new OperationViewComparator());
-         return list;
+        int id = userService.getIdByEmail(email);
+        final List<Integer> collect = walletService.getAllWallets(id)
+            .stream()
+            .mapToInt(Wallet::getId)
+            .boxed()
+            .collect(Collectors.toList());
+        final List<Transaction> allByUserId = findAllByUserWallets(collect);
+        logger.info(allByUserId);
+        Map<String, List<Order>> orderMap = orderService.getMyOrders(email);
+        List<Order> orderList = new ArrayList<Order>();
+        orderList.addAll(orderMap.get("sell"));
+        orderList.addAll(orderMap.get("buy"));
+        List<OperationView> list = new ArrayList<OperationView>();
+        if(orderList.size() > 0 ) {
+            for(Order order : orderList) {
+                OperationView view = new OperationView();
+                LocalDateTime datetime = order.getDateFinal();
+                if(order.getDateCreation().isAfter(order.getDateFinal())) {
+                    datetime = order.getDateCreation();
+                }
+                view.setDatetime(datetime);
+                view.setAmount(order.getAmountSell());
+                view.setAmountBuy(order.getAmountBuy());
+                BigDecimal commissionAmount = order.getCommissionAmountBuy();
+                if(order.getOperationType().equals(OperationType.SELL)) {
+                    commissionAmount = order.getCommissionAmountSell();
+                }
+                view.setCommissionAmount(commissionAmount);
+                view.setCurrency(order.getCurrencySellString());
+                view.setCurrencyBuy(order.getCurrencyBuyString());
+                view.setOperationType(order.getOperationType());
+                view.setOrderStatus(order.getStatus());
+                list.add(view);
+            }
+        }
+        if (allByUserId != null) {
+            allByUserId
+                .stream()
+                .filter(Transaction::isProvided)
+                .forEach(t -> {
+                    OperationView view = new OperationView();
+                    view.setDatetime(t.getDatetime());
+                    view.setAmount(t.getAmount());
+                    view.setCommissionAmount(t.getCommissionAmount());
+                    view.setCurrency(t.getCurrency().getName());
+                    view.setOperationType(t.getOperationType());
+                    view.setMerchant(t.getMerchant());
+                    list.add(view);
+                });
+        }
+        Collections.sort(list, new OperationViewComparator());
+        return list;
     }
 }
