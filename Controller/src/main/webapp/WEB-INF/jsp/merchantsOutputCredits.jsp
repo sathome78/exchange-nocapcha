@@ -81,9 +81,10 @@
                                 <paymentForm:hidden path="operationType"/>
                                 <paymentForm:hidden id="destination" path="destination"/>
                                 <%--Создать(Вывести)--%>
-                                <button type="button" data-toggle="modal" id="assertOutputPay"
+                                <button type="button" disabled data-toggle="modal" id="assertOutputPay"
                                         name="assertOutputPay" data-target="#myModal" class="btn btn-primary">
-                                    <loc:message code="merchants.withdraw"/>
+                                    Service will be available soon
+                                    <%--<loc:message code="merchants.withdraw"/>--%>
                                 </button>
                             </paymentForm:form>
                         </div>
@@ -126,8 +127,9 @@
                     <button class="modal-button" type="button" data-dismiss="modal">
                         <loc:message code="merchants.dismiss"/>
                     </button>
-                    <button class="modal-button" type="button" id="outputPaymentProcess" name="paymentOutput">
-                        <loc:message code="merchants.continue"/>
+                    <button class="modal-button" type="button" disabled id="outputPaymentProcess" name="paymentOutput">
+                        Service will be available soon
+                        <%--<loc:message code="merchants.continue"/>--%>
                     </button>
                 </div>
             </div>

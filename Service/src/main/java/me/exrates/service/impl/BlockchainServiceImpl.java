@@ -118,8 +118,7 @@ public class BlockchainServiceImpl implements BlockchainService {
     public String sendPaymentNotification(final BlockchainPayment payment,
         final String email, final Locale locale) {
             final String sumWithCurrency = payment.getAmount().stripTrailingZeros() + "BTC";
-            final String notification = String.format(applicationContext
-                .getMessage("merchants.makePay", null, locale), sumWithCurrency,payment.getAddress());
+            final String notification = String.format("Please pay %1s on the wallet %1s", sumWithCurrency,payment.getAddress());
         final Email mail = new Email();
         mail.setTo(email);
         mail.setSubject("Exrates BTC Payment Invoice");
