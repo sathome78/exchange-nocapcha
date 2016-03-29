@@ -8,6 +8,9 @@ $( "#other_pairs" ).click(function() {
 });
 
 $('.orderForm-toggler').click(function(){
+	 if($(this).hasClass('active')) {
+		 return;
+	 }
 	$('.tab-pane').toggleClass('active');
 	$('.orderForm-toggler').toggleClass('active');
 });

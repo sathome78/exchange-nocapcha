@@ -1,11 +1,8 @@
 package me.exrates.service.impl;
 
-import com.google.gson.Gson;
 import info.blockchain.api.APIException;
 import info.blockchain.api.receive.Receive;
 import info.blockchain.api.receive.ReceiveResponse;
-import info.blockchain.api.wallet.PaymentResponse;
-import info.blockchain.api.wallet.Wallet;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -14,15 +11,17 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.StringJoiner;
 import me.exrates.dao.BTCTransactionDao;
-import me.exrates.dao.PendingCryptoPaymentDao;
+import me.exrates.dao.PendingPaymentDao;
 import me.exrates.model.BTCTransaction;
-import me.exrates.model.BlockchainPayment;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Email;
 import me.exrates.model.Payment;
+import me.exrates.model.PendingPayment;
 import me.exrates.model.Transaction;
 import me.exrates.model.enums.OperationType;
+import me.exrates.service.AlgorithmService;
 import me.exrates.service.BlockchainService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.TransactionService;
@@ -51,16 +50,15 @@ public class BlockchainServiceImpl implements BlockchainService {
     private @Value("${apiCode}") String apiCode;
     private @Value("${callbackUrl}") String callbackUrl;
     private @Value("${secret}") String secret;
-    private @Value("${password}") String password;
-    private @Value("${guid}") String guid;
-    private @Value("${serviceUrl}") String serviceUrl;
-    private @Value("${identifier}") String identifier;
 
     @Autowired
     private TransactionService transactionService;
 
     @Autowired
-    private PendingCryptoPaymentDao pendingCryptoPaymentDao;
+    private PendingPaymentDao pendingPaymentDao;
+
+    @Autowired
+    private AlgorithmService algorithmService;
 
     @Autowired
     private BTCTransactionDao btcTransactionDao;
@@ -78,24 +76,24 @@ public class BlockchainServiceImpl implements BlockchainService {
 
     @Override
     @Transactional
-    public BlockchainPayment createPaymentInvoice(CreditsOperation creditsOperation) {
-        final Transaction request = transactionService.createTransactionRequest(creditsOperation);
+    public PendingPayment createPaymentInvoice(CreditsOperation creditsOperation) {
+        final Transaction transaction = transactionService.createTransactionRequest(creditsOperation);
+        final String transactionHash = computeTransactionHash(transaction);
         final String callback = UriComponentsBuilder
                 .fromUriString(callbackUrl)
-                .queryParam("invoice_id", request.getId())
-                .queryParam("secret",secret)
+                .queryParam("invoice_id", transaction.getId())
+                .queryParam("secret",transactionHash)
                 .build()
                 .encode()
                 .toString();
         logger.debug(callback);
         try {
             final ReceiveResponse response = Receive.receive(xPub, callback, apiCode);
-            final BigDecimal amount = request.getAmount().add(request.getCommissionAmount());
-            final BlockchainPayment payment = new BlockchainPayment();
+            final PendingPayment payment = new PendingPayment();
+            payment.setTransactionHash(transactionHash);
+            payment.setInvoiceId(transaction.getId());
             payment.setAddress(response.getReceivingAddress());
-            payment.setAmount(amount);
-            payment.setInvoiceId(request.getId());
-            pendingCryptoPaymentDao.create(payment);
+            pendingPaymentDao.create(payment);
             return payment;
         } catch (APIException | IOException e) {
             logger.error(e);
@@ -105,21 +103,21 @@ public class BlockchainServiceImpl implements BlockchainService {
 
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
-    public BlockchainPayment findByInvoiceId(int invoiceId) {
-        final BlockchainPayment pendingPayment = pendingCryptoPaymentDao.findByInvoiceId(invoiceId);
-        if (pendingPayment==null) {
-            throw new MerchantInternalException("Invalid invoice_id "+invoiceId);
-        }
-        pendingPayment.setSecret(secret);
-        return pendingPayment;
+    public PendingPayment findByInvoiceId(int invoiceId) {
+        return pendingPaymentDao.findByInvoiceId(invoiceId)
+            .orElseThrow(()->
+                new MerchantInternalException("Invalid invoice_id "+invoiceId));
     }
 
     @Override
-    public String sendPaymentNotification(final BlockchainPayment payment,
-        final String email, final Locale locale) {
-            final String sumWithCurrency = payment.getAmount().stripTrailingZeros() + "BTC";
-            final String notification = String.format(applicationContext
-                .getMessage("merchants.makePay", null, locale), sumWithCurrency,payment.getAddress());
+    public String sendPaymentNotification(final String address,
+        final String email, final Locale locale, final CreditsOperation creditsOperation)
+    {
+        final BigDecimal amount = creditsOperation.getAmount()
+            .add(creditsOperation.getCommissionAmount());
+        final String sumWithCurrency = amount.stripTrailingZeros() + " BTC";
+        final String notification = String.format("Please pay %1s on the wallet %1s",
+            sumWithCurrency,address);
         final Email mail = new Email();
         mail.setTo(email);
         mail.setSubject("Exrates BTC Payment Invoice");
@@ -135,7 +133,7 @@ public class BlockchainServiceImpl implements BlockchainService {
 
     @Override
     public Optional<String> notCorresponds(final Map<String, String> pretended,
-        final BlockchainPayment actual) {
+        final PendingPayment actual) {
         final String value = pretended.get("value");
         if (Objects.isNull(value)) {
             return Optional.of("Amount is invalid");
@@ -143,15 +141,12 @@ public class BlockchainServiceImpl implements BlockchainService {
         BigDecimal amount =
             new BigDecimal(value).divide(SATOSHI,MATH_CONTEXT);
         if (Objects.isNull(pretended.get("address")) ||
-            !pretended.get("address").equals(actual.getAddress())) {
+            !pretended.get("address").equals(actual.getAddress().get())) {
             return Optional.of("Address is not correct");
         }
         if (Objects.isNull(pretended.get("secret")) ||
-            !pretended.get("secret").equals(actual.getSecret())) {
+            !pretended.get("secret").equals(actual.getTransactionHash())) {
             return Optional.of("Secret is invalid");
-        }
-        if (amount.compareTo(actual.getAmount())!=0) {
-            return Optional.of("Amount is invalid");
         }
         if (Objects.isNull(pretended.get("transaction_hash"))) {
             return Optional.of("Transaction hash missing");
@@ -161,7 +156,7 @@ public class BlockchainServiceImpl implements BlockchainService {
 
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
-    public String approveBlockchainTransaction(final BlockchainPayment payment,
+    public String approveBlockchainTransaction(final PendingPayment payment,
         final Map<String,String> params) {
         if (Objects.isNull(params.get("confirmations")) ||
             Integer.valueOf(params.get("confirmations"))<4) {
@@ -170,11 +165,13 @@ public class BlockchainServiceImpl implements BlockchainService {
         final Transaction transaction = transactionService
             .findById(payment.getInvoiceId());
         if (transaction.getOperationType()== OperationType.INPUT){
-            pendingCryptoPaymentDao.delete(payment.getInvoiceId());
+            pendingPaymentDao.delete(payment.getInvoiceId());
         }
         transactionService.provideTransaction(transaction);
+        final BigDecimal amount = transaction.getAmount()
+            .add(transaction.getCommissionAmount());
         final BTCTransaction btcTransaction = new BTCTransaction();
-        btcTransaction.setAmount(payment.getAmount());
+        btcTransaction.setAmount(amount);
         btcTransaction.setTransactionId(transaction.getId());
         btcTransaction.setHash(params.get("transaction_hash"));
         btcTransactionDao.create(btcTransaction);
@@ -182,38 +179,40 @@ public class BlockchainServiceImpl implements BlockchainService {
         return "*ok*";
     }
 
-    //// TODO: 3/29/16 Must be removed
     @Override
     @Transactional
     public void provideOutputPayment(Payment payment, CreditsOperation creditsOperation) {
-        final BigDecimal amount = creditsOperation.getAmount().add(creditsOperation.getCommissionAmount());
-        final Transaction transactionRequest = transactionService.createTransactionRequest(creditsOperation);
-        transactionService.provideTransaction(transactionRequest);
-        final String txHash = sendBTC(payment.getDestination(), amount)
-                .orElseThrow(RuntimeException::new);
-        final BTCTransaction btcTransaction = new BTCTransaction();
-        btcTransaction.setTransactionId(transactionRequest.getId());
-        btcTransaction.setAmount(amount);
-        btcTransaction.setHash(txHash);
+//        final BigDecimal amount = creditsOperation.getAmount().add(creditsOperation.getCommissionAmount());
+//        final Transaction transactionRequest = transactionService.createTransactionRequest(creditsOperation);
+//        transactionService.provideTransaction(transactionRequest);
+//        final String txHash = sendBTC(payment.getDestination(), amount)
+//                .orElseThrow(RuntimeException::new);
+//        final BTCTransaction btcTransaction = new BTCTransaction();
+//        btcTransaction.setTransactionId(transactionRequest.getId());
+//        btcTransaction.setAmount(amount);
+//        btcTransaction.setHash(txHash);
 //        persistBlockchainTransaction(null, btcTransaction);
+        throw new UnsupportedOperationException();
     }
 
-    //// TODO: 3/29/16 Must be removed
+
     private Optional<String> sendBTC(String address,BigDecimal amount) {
-        final info.blockchain.api.wallet.Wallet wallet = new Wallet(
-                serviceUrl,
-                apiCode,
-                identifier,
-                password);
-        final long inSatoshi = amount.multiply(SATOSHI).longValue();
-        final PaymentResponse send;
-        try {
-            send = wallet.send(address, inSatoshi, null, null, null);
-        } catch (APIException | IOException e) {
-            logger.error(e);
-            throw new MerchantInternalException("Failed to bitcoin Output");
-        }
-        final Map json = new Gson().fromJson(send.getMessage(), Map.class);
-        return Optional.ofNullable((String)json.get("tx_hash"));
+        throw new UnsupportedOperationException();
+    }
+
+    protected String computeTransactionHash(final Transaction request) {
+        final String target = new StringJoiner(":")
+            .add(String.valueOf(request.getId()))
+            .add(request
+                .getAmount()
+                .stripTrailingZeros()
+                .toString())
+            .add(request
+                .getCommissionAmount()
+                .stripTrailingZeros()
+                .toString())
+            .add(secret)
+            .toString();
+        return algorithmService.sha256(target);
     }
 }

@@ -28,7 +28,6 @@
     <link href="<c:url value='/client/css/style-new.css'/>" rel="stylesheet">
 
     <script type="text/javascript" src="<c:url value="/client/js/function.js"/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
 
 </head>
 
@@ -50,7 +49,7 @@
                 <registrationform:input id="login" path="nickname" placeholder="${login}"
                                         required="required"/>
                 <registrationform:errors path="nickname" style="color:red" class="form-control"/>
-                <span>Используется как логин для входа, изменению не подлежит.</span>
+                <span><loc:message code="register.loginLabel"/></span>
                 <%--email--%>
                 <loc:message code="register.email" var="email"/>
                 <registrationform:input id="email" path="email" placeholder="${email}"
@@ -79,7 +78,9 @@
 <%----------%>
 <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
 <%----------%>
+
 </body>
 </html>
 

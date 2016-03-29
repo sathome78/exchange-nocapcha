@@ -175,6 +175,7 @@ $(function(){
                         dataType: 'text',
                         data: JSON.stringify($(form).serializeObject())
                     }).done(function (response) {
+                        $('.add__money__btns').hide();
                         $('.paymentInfo').html(response);
                         $('.request_money_operation_btn').hide();
                         $('.response_money_operation_btn').show();
@@ -194,6 +195,7 @@ $(function(){
                       contentType: 'application/json',
                       data: JSON.stringify($(form).serializeObject()),
                       success:function (response) {
+                          console.log(response);
                           $('.paymentInfo').html(response);
                           $('.request_money_operation_btn').hide();
                           $('.response_money_operation_btn').show();
@@ -251,7 +253,7 @@ $(function(){
             newHTMLElements[1] = newHTMLElements[1]
                 .replace(templateVariables.amount, parseFloat(computedCommission.toFixed(round)))
                 .replace(templateVariables.currency, selectedCurrency)
-                .replace(templateVariables.percent, response + "%");
+                .replace(templateVariables.percent, response*100 + "%");
             newHTMLElements[2] = newHTMLElements[2]
                 .replace(templateVariables.amount, targetNewSum)
                 .replace(templateVariables.currency, selectedCurrency);

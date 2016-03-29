@@ -1,13 +1,22 @@
 package me.exrates.controller.merchants;
 
+import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
+import java.security.Principal;
+import java.util.List;
+import java.util.stream.Collectors;
+import me.exrates.dao.PendingPaymentDao;
 import me.exrates.model.Currency;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.Payment;
 import me.exrates.model.Wallet;
 import me.exrates.model.enums.OperationType;
-import me.exrates.service.*;
+import me.exrates.service.CommissionService;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.MerchantService;
+import me.exrates.service.UserService;
+import me.exrates.service.WalletService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,11 +26,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
-
-import java.math.BigDecimal;
-import java.security.Principal;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -46,6 +50,9 @@ public class CommonMerchantsController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private PendingPaymentDao pendingPaymentDao;
 
     private final MathContext mathContext = new MathContext(9, RoundingMode.CEILING);
 

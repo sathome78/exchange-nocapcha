@@ -645,26 +645,6 @@ footer p {
     padding: 0 10px;
 }
 
-#myModal.merchant-input {
-    max-width: 420px;
-    max-height: 280px;
-}
-
-#myModal.merchant-output {
-    max-width: 420px;
-    max-height: 380px;
-}
-
-#myModal .modal-button {
-    background: #74240f none repeat scroll 0 0;
-    border: medium none;
-    display: block;
-    float: right;
-    margin: 15px 0 15px 20px;
-    outline: 0 none;
-    padding: 5px 30px;
-}
-
 #myModal .modal-header {
     color: rgba(255, 255, 255, .5);
     border-bottom: solid 1px rgba(255, 255, 255, .25);
@@ -1204,7 +1184,62 @@ body#output {
     /*margin:  0 0 0 0 !important;*/
 }
 
+#myModal.merchant-input {
+    max-width: 420px;
+    max-height: 280px;
+}
 
+#myModal.merchant-output {
+    max-width: 420px;
+    max-height: 380px;
+}
+
+#myModal .modal-button {
+    background: #74240f none repeat scroll 0 0;
+    border: medium none;
+    display: block;
+    float: right;
+    margin: 15px 0 15px 20px;
+    outline: 0 none;
+    padding: 5px 30px;
+}
+
+form#order.submit-order-form, form#command.submit-order-form{
+    display: inline-block;
+    margin: 0 0 0 2%;
+    width: 30%;
+}
+
+form#order.submit-order-form button, form#command.submit-order-form button{
+    margin: 0 0 0 0;
+    width: 100%;
+}
+
+
+.submit-order-button-container{
+    width: 100%;
+    margin: 50px 0 0 0;
+}
+.submit-order-label{
+    width: 30%;
+}
+
+.submit-order-input{
+    display: inline-block;
+    width: 65%;
+    border: solid 1px #a56650;
+    background: transparent;
+    color: #fff;
+    height: 30px;
+    line-height: 1.42857143;
+    margin: 5px 0;
+    padding: 5px 10px;
+    outline: 0;
+    font-size: 14px;
+
+    border-radius: 4px;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+}
 
 
 
