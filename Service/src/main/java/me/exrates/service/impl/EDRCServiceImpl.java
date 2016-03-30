@@ -12,6 +12,8 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.StringJoiner;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -27,6 +29,7 @@ import me.exrates.service.AlgorithmService;
 import me.exrates.service.EDRCService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.exception.MerchantInternalException;
+import static me.exrates.service.util.OkHttpUtils.stringifyBody;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +48,7 @@ import org.xml.sax.InputSource;
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 @Service
-@PropertySource("classpath:/${spring.profile.active}/merchants/edrcBlockchain.properties")
+@PropertySource("classpath:/${spring.profile.active}/merchants/edrcoin.properties")
 public class EDRCServiceImpl implements EDRCService {
 
     private @Value("${id}") String id;
@@ -53,10 +56,8 @@ public class EDRCServiceImpl implements EDRCService {
     private @Value("${key}") String key;
 
     private static final String REGEX = ".*";
-    private final int PRECISION = 6;
     private final OkHttpClient client = new OkHttpClient();
 
-    private static final int CONFIRMATIONS = 10;
     private static final Logger logger = LogManager.getLogger("merchant");
 
     @Autowired
@@ -71,20 +72,26 @@ public class EDRCServiceImpl implements EDRCService {
     @Override
     @Transactional
     public PendingPayment createPaymentInvoice(final CreditsOperation creditsOperation) {
-        final Transaction transaction = transactionService.createTransactionRequest(creditsOperation);
+        final Transaction transaction = transactionService
+            .createTransactionRequest(creditsOperation);
         final String xml = buildEDRCAddressXML(transaction.getId());
-        logger.debug("Builded xml request: "+xml);
-        final String response = sendRequest(xml, "http://api.blockchain.mn/merchant/coin/get_new_address");
+        logger.debug("Builded xml request: " + xml);
+        final String response = sendRequest(xml,
+            "http://api.blockchain.mn/merchant/coin/get_new_address");
         try {
-            logger.debug("EDR-Coin response: "+response);
+            logger.debug("EDR-Coin response: " + response);
             final PendingPayment payment = new PendingPayment();
             final String address = evaluateXpath(response,
                 Collections.singletonMap("address", "//address/text()"))
                 .get("address");
-            final String transactionHash = computeTransactionHash(transaction);
+            final BigDecimal amount = transaction
+                .getAmount()
+                .add(transaction.getCommissionAmount());
+            final String hash = computePaymentHash(transaction.getId(),
+                id, amount);
             payment.setAddress(address);
             payment.setInvoiceId(transaction.getId());
-            payment.setTransactionHash(transactionHash);
+            payment.setTransactionHash(hash);
             pendingPaymentDao.create(payment);
             return payment;
         } catch (final Exception e) {
@@ -96,7 +103,8 @@ public class EDRCServiceImpl implements EDRCService {
     @Transactional(propagation = Propagation.REQUIRED)
     public PendingPayment findByInvoiceId(final int invoiceId) {
         return pendingPaymentDao.findByInvoiceId(invoiceId)
-            .orElseThrow(()->new MerchantInternalException("Invalid invoice_id: "+invoiceId));
+            .orElseThrow(() ->
+                new MerchantInternalException("Invalid invoice_id: " + invoiceId));
     }
 
     @Override
@@ -110,41 +118,61 @@ public class EDRCServiceImpl implements EDRCService {
         throw new UnsupportedOperationException();
     }
 
-    //// TODO: 3/29/16 Provide this according to EDRC Response
+
     @Override
     @Transactional
-    public boolean verifyPayment(final String response) {
+    public boolean confirmPayment(final String requestXml,
+        final String requestSignature)
+    {
+        final String xml = algorithmService
+            .base64Decode(requestXml);
+        final String signature = algorithmService
+            .base64Decode(requestSignature);
+
+        logger.info("Request xml: " + xml);
+        logger.info("Request signature " + signature);
+
+        if (!Objects.equals(signature,sha1Signature(xml))) {
+            logger.info("Signature is incorrect");
+            return false;
+        }
         final Map<String,String> xpaths = new HashMap<String,String>() {
             {
-                put("merchant_id", "//merchant_id/text()");
-                put("address","//address/text()");
                 put("amount", "//amount/text()");
+                put("merchantId", "//merchant_id/text()");
                 put("status", "//status/text()");
-                put("conirmations", "//conirmations/text()");
+                put("address","//address/text()");
+                put("conirmations","//conirmations/text()");
             }
         };
         final Map<String,String> result;
         try {
-            result = evaluateXpath(response, xpaths);
+            result = evaluateXpath(xml, xpaths);
         } catch (Exception e) {
-            throw new MerchantInternalException(e);
+            logger.error(e);
+            return false;
         }
-        final int confirmations = Integer.parseInt(result.get("conirmations")
-            .split("/")[0]);
-        if (!result.get("merchant_id").equals(id) ||
-            !result.get("status").equals("1") ||
-            confirmations< CONFIRMATIONS) {
+        if (!Objects.equals(result.get("status"),"1")) {
             return false;
         }
         final String address = result.get("address");
-//        final PendingPayment payment = pendingPaymentDao.findByAddress(address);
-//        if (Objects.isNull(payment)) {
-//            return false;
-//        }
-//        final BigDecimal thatAmount = new BigDecimal(result.get("amount"));
-//        if (!payment.getAmount().equals(thatAmount)) {
-//            return false;
-//        }
+        final Optional<PendingPayment> optional = pendingPaymentDao
+            .findByAddress(address);
+        if (!optional.isPresent()) {
+            return false;
+        }
+        final PendingPayment pending = optional.get();
+        final BigDecimal amount = new BigDecimal(result.get("amount"));
+        if (!Objects.equals(pending.getTransactionHash(),
+            computePaymentHash(pending.getInvoiceId(),
+                result.get("merchantId"),amount))) {
+            logger.error("Payment hash do not match");
+            return false;
+        }
+        final Transaction transaction = transactionService
+            .findById(pending.getInvoiceId());
+        pendingPaymentDao.delete(pending.getInvoiceId());
+        transactionService.provideTransaction(transaction);
         return true;
     }
 
@@ -184,8 +212,11 @@ public class EDRCServiceImpl implements EDRCService {
         }
     }
 
-    protected String buildWithdrawEDRCXml(final int requestId,final String address, final BigDecimal amount) {
+    protected String buildWithdrawEDRCXml(final int requestId,
+        final String address, final BigDecimal amount)
+    {
         try {
+            final int PRECISION = 6;
             return new Xembler(
                 new Directives()
                     .add("request")
@@ -220,6 +251,8 @@ public class EDRCServiceImpl implements EDRCService {
             .url(url)
             .post(body)
             .build();
+        logger.info("Request: " + request.toString() +
+            ", body {"+ stringifyBody(request)+"}");
         try {
             return client
                 .newCall(request)
@@ -236,15 +269,23 @@ public class EDRCServiceImpl implements EDRCService {
     }
 
     protected String encodeSignature(final String xml) {
-        final String sign = key + xml + key;
-        final String sha1 = algorithmService.sha1(sign);
-        return Base64.getEncoder().encodeToString(sha1.getBytes());
+        return Base64.getEncoder()
+            .encodeToString(sha1Signature(xml).getBytes());
     }
 
-    protected static Map<String,String> evaluateXpath(final String xml, final Map<String,String> xpaths) throws Exception {
-        final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    protected String sha1Signature(final String xml) {
+        final String sign = key + xml + key;
+        return algorithmService.sha1(sign);
+    }
+
+    protected static Map<String,String> evaluateXpath(final String xml,
+        final Map<String,String> xpaths) throws Exception
+    {
+        final DocumentBuilderFactory factory = DocumentBuilderFactory
+            .newInstance();
         final DocumentBuilder builder = factory.newDocumentBuilder();
-        final Document document = builder.parse(new InputSource(new StringReader(xml)));
+        final Document document = builder
+            .parse(new InputSource(new StringReader(xml)));
         final XPathFactory xPathfactory = XPathFactory.newInstance();
         final XPath xpath = xPathfactory.newXPath();
         final Map<String, String> result = new HashMap<>();
@@ -256,20 +297,16 @@ public class EDRCServiceImpl implements EDRCService {
         return result;
     }
 
-    protected String computeTransactionHash(final Transaction request) {
+    protected String computePaymentHash(final int invoiceId,
+        final String merchantId,
+        final BigDecimal amount)
+    {
         final String target = new StringJoiner(":")
-            .add(String.valueOf(request.getId()))
-            .add(request
-                .getAmount()
-                .stripTrailingZeros()
-                .toString())
-            .add(request
-                .getCommissionAmount()
-                .stripTrailingZeros()
-                .toString())
+            .add(String.valueOf(invoiceId))
+            .add(String.valueOf(merchantId))
+            .add(amount.stripTrailingZeros().toString())
             .add(key)
             .toString();
         return algorithmService.sha256(target);
     }
-
 }

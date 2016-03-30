@@ -22,7 +22,7 @@ public class BTCTransactionDaoImpl implements BTCTransactionDao {
     private NamedParameterJdbcTemplate jdbcTemplate;
 
     @Override
-    public BTCTransaction create(BTCTransaction btcTransaction) {
+    public final BTCTransaction create(BTCTransaction btcTransaction) {
         final String sql = "INSERT INTO BTC_TRANSACTION (hash, amount, transaction_id) VALUES (:hash, :amount, :transactionId)";
         final Map<String, Object> params = new HashMap<String, Object>() {
             {
@@ -36,7 +36,7 @@ public class BTCTransactionDaoImpl implements BTCTransactionDao {
     }
 
     @Override
-    public BTCTransaction findByTransactionId(int transactionId) {
+    public final BTCTransaction findByTransactionId(int transactionId) {
         final String sql = "SELECT * FROM BTC_TRANSACTION WHERE transaction_id = :transactionId";
         final Map<String, Integer> params = Collections.singletonMap("transactionId", transactionId);
         try {
@@ -47,7 +47,7 @@ public class BTCTransactionDaoImpl implements BTCTransactionDao {
     }
 
     @Override
-    public boolean delete(int transactionId) {
+    public final boolean delete(int transactionId) {
         final String sql = "DELETE FROM BTC_TRANSACTION WHERE transaction_id = :transactionId";
         final Map<String, Integer> params = Collections.singletonMap("transactionId", transactionId);
         return jdbcTemplate.update(sql,params) > 0;

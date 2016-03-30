@@ -1,5 +1,6 @@
 package me.exrates.service.impl;
 
+import java.util.Locale;
 import javafx.util.Pair;
 import me.exrates.dao.MerchantDao;
 import me.exrates.model.*;
@@ -10,6 +11,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -32,16 +34,19 @@ public class MerchantServiceImpl implements MerchantService{
     private CommissionService commissionService;
 
     @Autowired
-    UserService userService;
+    private UserService userService;
 
     @Autowired
-    CompanyWalletService companyWalletService;
+    private CompanyWalletService companyWalletService;
 
     @Autowired
-    WalletService walletService;
+    private WalletService walletService;
 
     @Autowired
-    CurrencyService currencyService;
+    private CurrencyService currencyService;
+
+    @Autowired
+    private SendMailService sendMailService;
 
     private static final Logger logger = LogManager.getLogger("merchant");
 
@@ -53,6 +58,33 @@ public class MerchantServiceImpl implements MerchantService{
     @Override
     public List<Merchant> findAllByCurrency(Currency currency) {
         return merchantDao.findAllByCurrency(currency.getId());
+    }
+
+    @Override
+    public String sendDepositNotification(final String toWallet,
+        final String email, final Locale locale,
+        final CreditsOperation creditsOperation)
+    {
+        final BigDecimal amount = creditsOperation
+            .getAmount()
+            .add(creditsOperation.getCommissionAmount());
+        final String sumWithCurrency = amount.stripTrailingZeros() +
+            creditsOperation
+                .getCurrency()
+                .getName();
+        final String notification = String
+            .format("Please pay %1s on the wallet %1s", sumWithCurrency, toWallet);
+        final Email mail = new Email();
+        mail.setTo(email);
+        mail.setSubject("Exrates Payment Invoice");
+        mail.setMessage(sumWithCurrency);
+        try {
+            sendMailService.sendMail(mail);
+            logger.info("Sended email :"+email);
+        } catch (MailException e) {
+            logger.error(e);
+        }
+        return notification;
     }
 
     @Override
