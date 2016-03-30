@@ -120,7 +120,7 @@
                                     <%--мерч имя--%>
                                 <td>
                                     <c:if test="${transaction.orderStatus eq null}">
-                                        <loc:message code="transaction.${transaction.merchant.name}"/>
+                                        ${transaction.merchant.name}
                                     </c:if>
                                 </td>
                             </tr>

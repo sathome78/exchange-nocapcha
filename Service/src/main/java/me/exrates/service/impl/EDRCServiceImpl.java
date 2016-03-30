@@ -29,6 +29,8 @@ import me.exrates.service.AlgorithmService;
 import me.exrates.service.EDRCService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.exception.MerchantInternalException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -56,7 +58,8 @@ public class EDRCServiceImpl implements EDRCService {
     private final int PRECISION = 6;
     private final OkHttpClient client = new OkHttpClient();
 
-    private static final int GRACEFUL_CONFIRMATIONS_NUMBER = 10;
+    private static final int CONFIRMATIONS = 10;
+    private static final Logger logger = LogManager.getLogger("merchant");
 
     @Autowired
     private AlgorithmService algorithmService;
@@ -72,12 +75,15 @@ public class EDRCServiceImpl implements EDRCService {
     public BlockchainPayment createPaymentInvoice(final CreditsOperation creditsOperation) {
         final Transaction transaction = transactionService.createTransactionRequest(creditsOperation);
         final String xml = buildEDRCAddressXML(transaction.getId());
-        final String request = sendRequest(xml, "http://api.blockchain.mn/merchant/coin/get_new_address");
+        logger.debug("Builded xml request: "+xml);
+        final String response = sendRequest(xml, "http://api.blockchain.mn/merchant/coin/get_new_address");
         try {
-            final BigDecimal amount = transaction.getAmount().add(transaction.getCommissionAmount());
+            logger.debug("EDR-Coin response: "+response);
+            final BigDecimal amount = transaction
+                .getAmount().add(transaction.getCommissionAmount());
             final BlockchainPayment payment = new BlockchainPayment();
-            final String address;
-            address = evaluateXpath(request, Collections.singletonMap("address", "//address/text()"))
+            final String address = evaluateXpath(response,
+                Collections.singletonMap("address", "//address/text()"))
                 .get("address");
             payment.setAddress(address);
             payment.setAmount(amount);
@@ -128,7 +134,7 @@ public class EDRCServiceImpl implements EDRCService {
             .split("/")[0]);
         if (!result.get("merchant_id").equals(id) ||
             !result.get("status").equals("1") ||
-            confirmations<GRACEFUL_CONFIRMATIONS_NUMBER) {
+            confirmations< CONFIRMATIONS) {
             return false;
         }
         final String address = result.get("address");

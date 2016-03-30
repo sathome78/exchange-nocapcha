@@ -68,8 +68,7 @@ public class EDRCoinController {
                 .map(edrcService::createPaymentInvoice)
                 .orElseThrow(InvalidAmountException::new);
             final String sumWithCurrency = blockchainPayment.getAmount().stripTrailingZeros() + " EDRC";
-            final String notification = String.format(context
-                .getMessage("merchants.makePay", null, locale), sumWithCurrency, blockchainPayment.getAddress()) +
+            final String notification = String.format("Please pay %1s on the wallet %1s", sumWithCurrency, blockchainPayment.getAddress()) +
                 "<br>The transfer of money will will occur within next 48 hours"+
                 "<br>Зачисление средств приозойдет в течении 48 часов";
             final Email mail = new Email();
