@@ -1,11 +1,16 @@
 
 window.onload = function(){
     changeCurrency();
-}
+};
 
 function changeCurrency() {
-    var selectedVal = $("#currencyPair-select").find(":selected").val()
-    document.getElementById("chartPair").innerHTML = selectedVal;
+    var selectedVal = $("#currencyPair-select").find(":selected").val();
+    var chartPair = document.getElementById("chartPair");
+    if (chartPair) chartPair.innerHTML = selectedVal;
+
+    //for new interface
+    //selectedVal = document.querySelector('.exchange__pair[selected]').innerHTML;
+    //document.getElementById("chartPair").innerHTML = selectedVal;
 }
 
 

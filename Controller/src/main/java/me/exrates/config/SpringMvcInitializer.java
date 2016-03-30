@@ -33,7 +33,7 @@ public class SpringMvcInitializer
 		super.onStartup(servletContext);
 		String activeProfile = System.getenv("EXRATES_PROFILE");
 		if (activeProfile == null) {
-			activeProfile = "prod";
+			activeProfile = "dev";
 		}
 		logger.info("Active profile :" + activeProfile);
 		servletContext.setInitParameter("spring.profile.active",activeProfile);

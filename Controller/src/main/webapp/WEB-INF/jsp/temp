@@ -48,16 +48,11 @@
 
                 <loc:message code="admin.email" var="adminEmail"/>
                 <form:input path="email" id="user-email"
-                            placeholder="${adminEmail}"/>
+                            placeholder="${adminEmail}" />
 
                 <%--ВОССТАНОВИТЬ ПАРОЛЬ--%>
                 <button type="submit"><loc:message code="dashboard.resetPasswordButton"></loc:message></button>
             </form:form>
-            <br/>
-            <br/>
-            <br/>
-            <h4><loc:message
-                    code="admin.changePasswordSendEmail"/></h4>
         </div>
     </div>
 </main>

@@ -1,118 +1,143 @@
-<%@page language="java"%>
-<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
-<%@taglib uri="http://www.springframework.org/tags" prefix="loc"%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@taglib uri="http://www.springframework.org/tags" prefix="loc" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
+<%@taglib uri="http://www.springframework.org/tags" prefix="spring" %>
+<%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
+
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
+
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="utf-8" />
-    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+    <meta charset="utf-8">
     <title><loc:message code="transactions.title"/></title>
-    <meta name="keywords" content="" />
-    <meta name="description" content="" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <link href="<c:url value='/client/css/bootstrap.css'/>" rel="stylesheet" type="text/css" />
-    <link href="<c:url value='/client/css/chosen.css'/>" rel="stylesheet" type="text/css" />
-    <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet" type="text/css" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Roboto:400,700,300' rel='stylesheet' type='text/css'>
 
-    <script type="text/javascript" src="<c:url value='/client/js/jquery.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/dropdown.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/tab.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/modal.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/chosen.jquery.min.js'/>"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js" type="text/javascript"></script>
+    <script src="<c:url value='/client/js/jquery.mCustomScrollbar.concat.min.js'/>" type="text/javascript"></script>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    <link href="<c:url value='/client/css/jquery.mCustomScrollbar.min.css'/>" rel="stylesheet">
+    <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
+    <link href="<c:url value='/client/css/style-new.css'/>" rel="stylesheet">
+
+    <script type="text/javascript" src="<c:url value='/client/js/dashboard.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='https://www.google.com/jsapi'/>"></script>
+    <script type="text/javascript">
+        google.load("visualization", "1", {"packages": ["corechart"]});
+    </script>
+
     <script type="text/javascript" src="<c:url value='/client/js/function.js'/>"></script>
 
 </head>
 
+
 <body>
-<div class="wrapper lk">
 
+<%@include file='header_new.jsp' %>
 
-    <div class="container container_center full__height">
+<main class="container orders_new transaction my_orders orders .container_footer_bottom my_wallets">
+    <%@include file='exchange_info_new.jsp' %>
+    <div class="row">
+        <%--изменить активный элемент //TODO --%>
+        <%@include file='usermenu_new.jsp' %>
 
-        <!--#include file="sidebar__lk.shtml" -->
-        <%@include file='usermenu.jsp'%>
-
-        <div class="main__content">
-
-            <!--#include file="header__lk.shtml" -->
-            <%@include file='header.jsp'%>
-            <div class="content__page">
-          		<c:choose>
-                   <c:when test="${fn:length(transactions)==0}">
-                       <loc:message code="transactions.absent"/>
-                   </c:when>
-                   <c:otherwise>
-                  		 <div>
-                  		 <table class="table">
-                          <tbody>
-							 <thead>
-                               <tr>
-                                   <th class="col-xs-4"><loc:message code="transaction.datetime"/></th>
-                                   <th class="col-xs-4"><loc:message code="transaction.operationType"/></th>
-                                   <th class="col-xs-4"><loc:message code="transaction.currency"/></th>
-                                   <th class="col-xs-4"><loc:message code="transaction.amount"/></th>
-                                   <th class="col-xs-4"><loc:message code="transaction.currencyBuy"/></th>
-                                   <th class="col-xs-4"><loc:message code="transaction.amountBuy"/></th>
-                                   <th class="col-xs-4"><loc:message code="transaction.commissionAmount"/></th>
-                                   <th class="col-xs-4"><loc:message code="transaction.merchant"/></th>
-                                </tr>
-                               </thead>
-                       			<c:forEach var="transaction" items="${transactions}">
-                                 <tr>
-                                      <td>
-                                           ${transaction.datetime}
-                                      </td>
-                                      <td>
-                                          <c:choose>
-                                          	<c:when test="${transaction.operationType.type eq 1 or transaction.operationType.type eq 2}">
-                                          		<loc:message code="transaction.operationType${transaction.operationType}"/>
-                                          	</c:when>
-                                          	<c:when test="${transaction.orderStatus.status eq 2}">
-                                          		<loc:message code="transaction.operationTypeCreateOrder"/>
-                                          	</c:when>
-                                          	<c:when test="${transaction.orderStatus.status eq 3}">
-                                          		<loc:message code="transaction.operationTypeAcceptOrder"/>
-                                          	</c:when>
-                                          </c:choose>
-                                      </td>
-                                      <td>
-                                           ${transaction.currency}
-                                       </td>
-                                       <td>
-                                          <fmt:formatNumber value="${transaction.amount}" maxFractionDigits="9"/>
-                                       </td>
-                                       <td>
-                                       	   ${transaction.currencyBuy}                                 		
-                                       </td>
-                                       <td>
-                                       	  <fmt:formatNumber value="${transaction.amountBuy}" maxFractionDigits="9"/>
-                                       </td>
-                                       <td>
-                                          <fmt:formatNumber value="${transaction.commissionAmount}" maxFractionDigits="9"/>
-                                        </td>
-                                       <td>
-                                           <c:if test="${transaction.orderStatus eq null}">
-                                           		<loc:message code="transaction.${transaction.merchant.name}"/>
-                                           </c:if>
-                                       </td>
-                                    </tr>
-                                  </c:forEach>
-                                  </tbody>
-                               </table>
-                           </div>
-                      </c:otherwise>
-               </c:choose>
-            </div>
-            <!--#include file="footer__lk.shtml" -->
-            <%@include file='footer.jsp'%>
+        <div class="col-sm-9 content">
+            <c:choose>
+                <c:when test="${fn:length(transactions)==0}">
+                    <loc:message code="transactions.absent"/>
+                </c:when>
+                <c:otherwise>
+                    <%--ИСТОРИЯ ОПЕРАЦИЙ--%>
+                    <h4><loc:message code="transactions.title"/></h4>
+                    <hr>
+                    <table>
+                        <tbody>
+                        <tr>
+                                <%--Дата--%>
+                            <th><loc:message code="transaction.datetime"/></th>
+                                <%--Тип--%>
+                            <th><loc:message code="transaction.operationType"/></th>
+                                <%--Валюта--%>
+                            <th><loc:message code="transaction.currency"/></th>
+                                <%--Сумма--%>
+                            <th><loc:message code="transaction.amount"/></th>
+                                <%--Валюта <br> покупки--%>
+                            <th><loc:message code="transaction.currencyBuy"/></th>
+                                <%--Сумма <br> покупки--%>
+                            <th><loc:message code="transaction.amountBuy"/></th>
+                                <%--Сумма <br> комиссии--%>
+                            <th><loc:message code="transaction.commissionAmount"/></th>
+                                <%--Платежная <br> система--%>
+                            <th><loc:message code="transaction.merchant"/></th>
+                        </tr>
+                        <c:forEach var="transaction" items="${transactions}">
+                            <tr>
+                                    <%--2016-03-08 <br> 14:48:46--%>
+                                <td>
+                                        ${transaction.datetime}
+                                </td>
+                                <td>
+                                        <%--Принятие <br> ордера--%>
+                                    <c:choose>
+                                        <c:when test="${transaction.operationType.type eq 1 or transaction.operationType.type eq 2}">
+                                            <loc:message code="transaction.operationType${transaction.operationType}"/>
+                                        </c:when>
+                                        <c:when test="${transaction.orderStatus.status eq 2}">
+                                            <loc:message code="transaction.operationTypeCreateOrder"/>
+                                        </c:when>
+                                        <c:when test="${transaction.orderStatus.status eq 3}">
+                                            <loc:message code="transaction.operationTypeAcceptOrder"/>
+                                        </c:when>
+                                    </c:choose>
+                                </td>
+                                    <%--USD--%>
+                                <td>
+                                        ${transaction.currency}
+                                </td>
+                                    <%--сумма--%>
+                                <td>
+                                    <fmt:formatNumber value="${transaction.amount}" maxFractionDigits="9"/>
+                                </td>
+                                    <%--EUR--%>
+                                <td>
+                                        ${transaction.currencyBuy}
+                                </td>
+                                    <%--сумма--%>
+                                <td>
+                                    <fmt:formatNumber value="${transaction.amountBuy}" maxFractionDigits="9"/>
+                                </td>
+                                    <%--комиссия--%>
+                                <td>
+                                    <fmt:formatNumber value="${transaction.commissionAmount}" maxFractionDigits="9"/>
+                                </td>
+                                    <%--мерч имя--%>
+                                <td>
+                                    <c:if test="${transaction.orderStatus eq null}">
+                                        <loc:message code="transaction.${transaction.merchant.name}"/>
+                                    </c:if>
+                                </td>
+                            </tr>
+                        </c:forEach>
+                        </tbody>
+                    </table>
+                </c:otherwise>
+            </c:choose>
         </div>
-
     </div>
+</main>
+<%@include file='footer_new.jsp' %>
 
-</div>
-
+<%----------%>
+<script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
+<%----------%>
 </body>
 </html>
+
