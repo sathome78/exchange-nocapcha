@@ -1242,8 +1242,24 @@ form#order.submit-order-form button, form#command.submit-order-form button{
     box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
 }
 
+#myModal .content form a.button_forgot {
+    float: right;
+    background: rgba(255, 255, 255, .25);
+    color: #65180a;
+    border: none;
+    line-height: 2em;
+    height: 28px;
+    width: 47%;
+    text-decoration: none;
+    max-width: 150px;
+    text-align: center;
+    margin-top: 10px;
+}
 
-
+#myModal .content form button.button_enter{
+    margin-top: 10px;
+    height: 28px;
+}
 
 
 
