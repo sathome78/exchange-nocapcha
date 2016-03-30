@@ -26,7 +26,7 @@ $(document).ready(function() {
     });
 
     // tag select styller
-    $('.select').chosen({disable_search_threshold: 10});
+    // $('.select').chosen({disable_search_threshold: 10});
 
     // Mobile menu toggle
     $('.mobile__menu__toggle').click(function() {

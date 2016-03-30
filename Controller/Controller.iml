@@ -40,6 +40,19 @@
     <orderEntry type="library" name="Maven: info.blockchain:api:1.1.0" level="project" />
     <orderEntry type="library" name="Maven: com.jcabi.incubator:xembly:0.22" level="project" />
     <orderEntry type="library" name="Maven: org.antlr:antlr-runtime:3.5.2" level="project" />
+    <orderEntry type="module-library">
+      <library name="Maven: advcash.wsm:advcash-sdk:1.0">
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../Service/src/main/resources/advcash-sdk.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="library" name="Maven: org.apache.axis:axis:1.4" level="project" />
+    <orderEntry type="library" name="Maven: javax.xml:jaxrpc-api:1.1" level="project" />
+    <orderEntry type="library" name="Maven: commons-discovery:commons-discovery:0.5" level="project" />
+    <orderEntry type="library" name="Maven: wsdl4j:wsdl4j:1.6.2" level="project" />
     <orderEntry type="module" module-name="JDBC" />
     <orderEntry type="module" module-name="Security" />
     <orderEntry type="library" name="Maven: com.squareup.okhttp3:okhttp:3.2.0" level="project" />
