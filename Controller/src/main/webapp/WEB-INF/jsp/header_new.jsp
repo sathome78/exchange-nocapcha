@@ -104,10 +104,8 @@
                                 <%--войти--%>
                             <button type="submit" class="button_enter"><loc:message code="dashboard.entrance"/></button>
                                 <%--Забыли пароль?--%>
-                            <form action="/forgotPassword">
-                                <button type="submit" class="button_forgot"><loc:message
-                                        code="dashboard.forgotPassword"/></button>
-                            </form>
+                            <a class="button_forgot" href="/forgotPassword"><loc:message
+                                    code="dashboard.forgotPassword"/></a>
                         </form>
                     </div>
                 </div>
