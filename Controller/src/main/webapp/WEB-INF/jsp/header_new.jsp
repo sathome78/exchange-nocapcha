@@ -1,8 +1,14 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 
 <header>
+    <c:set var="path" value="${fn:replace(pageContext.request.requestURI, '/WEB-INF/jsp', '')}"/>
+    <c:set var="path" value="${fn:replace(path, '.jsp', '')}"/>
+    <c:set var="showEntrance" value="${(path != '/login')
+                                && (path != '/register')
+                                && (path != '/login?error')}"/>
     <nav class="navbar">
         <div class="container">
             <div class="navbar-header">
@@ -51,10 +57,12 @@
                     </sec:authorize>
 
                     <sec:authorize access="!isAuthenticated()">
-                        <%--ВОЙТИ--%>
-                        <li class="margin-left">
-                            <a href="#" data-toggle="modal" data-target="#myModal"><loc:message
-                                    code="dashboard.entrance"/></a></li>
+                        <c:if test="${showEntrance}">
+                            <%--ВОЙТИ--%>
+                            <li class="margin-left">
+                                <a href="#" data-toggle="modal" data-target="#myModal"><loc:message
+                                        code="dashboard.entrance"/></a></li>
+                        </c:if>
                         <%--РЕГИСТРАЦИЯ--%>
                         <li>
                             <a href="<c:url value="/register" />"><loc:message code="dashboard.signUp"/></a>
@@ -101,6 +109,11 @@
                                     code="dashboard.passwordText"/>>
                                 <%--csrf--%>
                             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+                            <br/>
+                                <%--CAPCHA--%>
+                            <div id="cpch-head-field" class="g-recaptcha"
+                                 data-sitekey="6LfPFRwTAAAAAO86BgguULebb3tXZbur5ccLCvPX"></div>
+                            <p class='cpch-error-message' style="color:red">${cpch}</p>
                                 <%--войти--%>
                             <button type="submit" class="button_enter"><loc:message code="dashboard.entrance"/></button>
                                 <%--Забыли пароль?--%>
@@ -113,3 +126,11 @@
         </div>
     </div>
 </sec:authorize>
+
+<%--capcha--%>
+<c:if test="${showEntrance}">
+    <script type="text/javascript" src="<c:url value='/client/js/capchahead.js'/>"></script>
+    <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallbackHead&render=explicit&hl=${pageContext.response.locale}"
+            async defer>
+    </script>
+</c:if>

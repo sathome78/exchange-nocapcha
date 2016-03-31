@@ -637,7 +637,7 @@ footer p {
 
 #myModal {
     max-width: 320px;
-    max-height: 200px;
+    max-height: 380px;
     background-image: url("../img/background.jpg");
     background-size: cover;
     margin: 0 auto;

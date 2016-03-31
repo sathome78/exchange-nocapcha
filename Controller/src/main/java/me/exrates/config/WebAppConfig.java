@@ -1,6 +1,7 @@
 package me.exrates.config;
 
 import me.exrates.controller.utils.VerifyReCaptcha;
+import me.exrates.controller.validator.OrderValidator;
 import me.exrates.controller.validator.RegisterFormValidation;
 
 import org.apache.commons.dbcp2.BasicDataSource;
@@ -133,6 +134,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 	@Bean
 	public RegisterFormValidation getRegisterFormValidation(){
 		return new RegisterFormValidation();
+	}
+
+	@Bean
+	public OrderValidator orderValidator(){
+		return new OrderValidator();
 	}
 	
 	@Bean

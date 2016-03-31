@@ -2,6 +2,7 @@ package me.exrates.controller;
 
 
 import me.exrates.controller.utils.LocaleKeeper;
+import me.exrates.controller.validator.OrderValidator;
 import me.exrates.model.Currency;
 import me.exrates.model.Order;
 import me.exrates.model.enums.OperationType;
@@ -50,6 +51,9 @@ public class OrderController {
     @Autowired
     LocaleResolver localeResolver;
     //private static final Locale ru = new Locale("ru");
+
+    @Autowired
+    OrderValidator orderValidator;
 
     @RequestMapping(value = "/orders")
     public ModelAndView myOrders(HttpServletRequest request) {
@@ -119,6 +123,7 @@ public class OrderController {
 
     @RequestMapping(value = "/order/submit", method = RequestMethod.POST)
     public ModelAndView submitNewOrderToSell(@Valid @ModelAttribute Order order, BindingResult result, ModelAndView model, Principal principal, HttpServletRequest request) {
+        orderValidator.validate(order, result);
         getCurrenciesAndCommission(model, order.getOperationType());
         if (result.hasErrors()) {
             model.setViewName("newordertosell");

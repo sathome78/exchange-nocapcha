@@ -5,223 +5,220 @@ import me.exrates.model.enums.OrderStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 
-import javax.validation.constraints.DecimalMax;
-import javax.validation.constraints.DecimalMin;
-import javax.validation.constraints.Digits;
-import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Locale;
 
 public class Order {
 
-	@Autowired
-	private MessageSource messageSource;
-	private static final Locale ru = new Locale("ru");
-	
-	private int id;
-	private int walletIdSell;
-	private int currencySell;
-	private String currencySellString;
+    @Autowired
+    private MessageSource messageSource;
+    private static final Locale ru = new Locale("ru");
 
-	@NotNull(message = "Заполните поле") 
-	@DecimalMin(value="0.000000001", message="Значение должно быть больше 0.000000001")
-	@DecimalMax(value="10000", message="Значение должно быть меньше 10 000")
-	@Digits(integer=5, fraction=9, message = "Значение должно быть в диапазоне: 0.000000001 - 10 000")
-	private BigDecimal amountSell;
-	
-	private BigDecimal commission;
-	private BigDecimal commissionAmountSell;
-	private BigDecimal commissionAmountBuy;
-	private int currencyBuy;
-	private String currencyBuyString;
-	private int walletIdBuy;
-	
-	@NotNull(message = "Заполните поле")
-	@DecimalMin(value="0.000000001", message="Значение должно быть больше 0.000000001")
-	@DecimalMax(value="10000", message="Значение должно быть меньше 10 000")
-	@Digits(integer=5, fraction=9, message = "Значение должно быть в диапазоне: 0.000000001 - 10 000")
-	private BigDecimal amountBuy;
+    private int id;
+    private int walletIdSell;
+    private int currencySell;
+    private String currencySellString;
 
-	private OperationType operationType;
-	private OrderStatus status;
-	private String statusString;
-	private LocalDateTime dateCreation;
-	private LocalDateTime dateFinal;
-	private BigDecimal amountBuyWithCommission;	
-	private BigDecimal amountSellWithCommission;
-	
-	public Order() {
-		
-	}
-	
-	public BigDecimal getCommissionAmountSell() {
-		return commissionAmountSell;
-	}
+    /*@NotNull(message = "Заполните поле")
+    @DecimalMin(value="0.000000001", message="Значение должно быть больше 0.000000001")
+    @DecimalMax(value="10000", message="Значение должно быть меньше 10 000")
+    @Digits(integer=5, fraction=9, message = "Значение должно быть в диапазоне: 0.000000001 - 10 000")*/
+    private BigDecimal amountSell;
 
+    private BigDecimal commission;
+    private BigDecimal commissionAmountSell;
+    private BigDecimal commissionAmountBuy;
+    private int currencyBuy;
+    private String currencyBuyString;
+    private int walletIdBuy;
 
-	public void setCommissionAmountSell(BigDecimal commissionAmountSell) {
-		this.commissionAmountSell = commissionAmountSell;
-	}
+    /*@NotNull(message = "Заполните поле")
+    @DecimalMin(value="0.000000001", message="Значение должно быть больше 0.000000001")
+    @DecimalMax(value="10000", message="Значение должно быть меньше 10 000")
+    @Digits(integer=5, fraction=9, message = "Значение должно быть в диапазоне: 0.000000001 - 10 000")*/
+    private BigDecimal amountBuy;
+
+    private OperationType operationType;
+    private OrderStatus status;
+    private String statusString;
+    private LocalDateTime dateCreation;
+    private LocalDateTime dateFinal;
+    private BigDecimal amountBuyWithCommission;
+    private BigDecimal amountSellWithCommission;
+
+    public Order() {
+
+    }
+
+    public BigDecimal getCommissionAmountSell() {
+        return commissionAmountSell;
+    }
 
 
-	public BigDecimal getCommissionAmountBuy() {
-		return commissionAmountBuy;
-	}
+    public void setCommissionAmountSell(BigDecimal commissionAmountSell) {
+        this.commissionAmountSell = commissionAmountSell;
+    }
 
 
-	public void setCommissionAmountBuy(BigDecimal commissionAmountBuy) {
-		this.commissionAmountBuy = commissionAmountBuy;
-	}
+    public BigDecimal getCommissionAmountBuy() {
+        return commissionAmountBuy;
+    }
 
 
-	public String getCurrencySellString() {
-		return currencySellString;
-	}
+    public void setCommissionAmountBuy(BigDecimal commissionAmountBuy) {
+        this.commissionAmountBuy = commissionAmountBuy;
+    }
 
 
-	public void setCurrencySellString(String currencySellString) {
-		this.currencySellString = currencySellString;
-	}
+    public String getCurrencySellString() {
+        return currencySellString;
+    }
 
 
-	public String getCurrencyBuyString() {
-		return currencyBuyString;
-	}
+    public void setCurrencySellString(String currencySellString) {
+        this.currencySellString = currencySellString;
+    }
 
 
-	public void setCurrencyBuyString(String currencyBuyString) {
-		this.currencyBuyString = currencyBuyString;
-	}
+    public String getCurrencyBuyString() {
+        return currencyBuyString;
+    }
 
 
-	public BigDecimal getAmountBuy() {
-		return amountBuy;
-	}
-
-	public String getStatusString() {
-		return statusString;
-	}
-
-	public void setStatusString(String statusString) {
-		this.statusString = statusString;
-	}
-
-	
-	public void setAmountBuy(BigDecimal amountBuy) {
-		this.amountBuy = amountBuy;
-	}
+    public void setCurrencyBuyString(String currencyBuyString) {
+        this.currencyBuyString = currencyBuyString;
+    }
 
 
-	public int getId() {
-		return id;
-	}
+    public BigDecimal getAmountBuy() {
+        return amountBuy;
+    }
+
+    public String getStatusString() {
+        return statusString;
+    }
+
+    public void setStatusString(String statusString) {
+        this.statusString = statusString;
+    }
 
 
-	public void setId(int id) {
-		this.id = id;
-	}
+    public void setAmountBuy(BigDecimal amountBuy) {
+        this.amountBuy = amountBuy;
+    }
 
 
-	public int getWalletIdSell() {
-		return walletIdSell;
-	}
+    public int getId() {
+        return id;
+    }
 
 
-	public void setWalletIdSell(int walletIdSell) {
-		this.walletIdSell = walletIdSell;
-	}
+    public void setId(int id) {
+        this.id = id;
+    }
 
 
-	public int getCurrencySell() {
-		return currencySell;
-	}
+    public int getWalletIdSell() {
+        return walletIdSell;
+    }
 
 
-	public void setCurrencySell(int currencySell) {
-		this.currencySell = currencySell;
-	}
+    public void setWalletIdSell(int walletIdSell) {
+        this.walletIdSell = walletIdSell;
+    }
 
 
-	public BigDecimal getAmountSell() {
-		return amountSell;
-	}
-
-	public void setAmountSell(BigDecimal amountSell) {
-		this.amountSell = amountSell;
-	}
-
-	public BigDecimal getCommission() {
-		return commission;
-	}
-
-	public void setCommission(BigDecimal commission) {
-		this.commission = commission;
-	}
-
-	public int getCurrencyBuy() {
-		return currencyBuy;
-	}
-	public void setCurrencyBuy(int currencyBuy) {
-		this.currencyBuy = currencyBuy;
-	}
-
-	public int getWalletIdBuy() {
-		return walletIdBuy;
-	}
-
-	public void setWalletIdBuy(int walletIdBuy) {
-		this.walletIdBuy = walletIdBuy;
-	}
-
-	public OperationType getOperationType() {
-		return operationType;
-	}
-
-	public void setOperationType(OperationType operationType) {
-		this.operationType = operationType;
-	}
-
-	public OrderStatus getStatus() {
-		return status;
-	}
-
-	public void setStatus(OrderStatus status) {
-		this.status = status;
-	}
+    public int getCurrencySell() {
+        return currencySell;
+    }
 
 
-	public LocalDateTime getDateCreation() {
-		return dateCreation;
-	}
+    public void setCurrencySell(int currencySell) {
+        this.currencySell = currencySell;
+    }
 
-	public void setDateCreation(LocalDateTime dateCreation) {
-		this.dateCreation = dateCreation;
-	}
 
-	public LocalDateTime getDateFinal() {
-		return dateFinal;
-	}
+    public BigDecimal getAmountSell() {
+        return amountSell;
+    }
 
-	public void setDateFinal(LocalDateTime dateFinal) {
-		this.dateFinal = dateFinal;
-	}
+    public void setAmountSell(BigDecimal amountSell) {
+        this.amountSell = amountSell;
+    }
 
-	public BigDecimal getAmountBuyWithCommission() {
-		return amountBuy.subtract(amountBuy.multiply(commission.divide(BigDecimal.valueOf(100))));
-	}
+    public BigDecimal getCommission() {
+        return commission;
+    }
 
-	public void setAmountBuyWithCommission(BigDecimal amountBuyWithCommission) {
-		this.amountBuyWithCommission = amountBuyWithCommission;
-	}
+    public void setCommission(BigDecimal commission) {
+        this.commission = commission;
+    }
 
-	public BigDecimal getAmountSellWithCommission() {
-		return amountSell.subtract(amountSell.multiply(commission.divide(BigDecimal.valueOf(100))));
-	}
+    public int getCurrencyBuy() {
+        return currencyBuy;
+    }
 
-	public void setAmountSellWithCommission(BigDecimal amountSellWithCommission) {
-		this.amountSellWithCommission = amountSellWithCommission;
-	}
+    public void setCurrencyBuy(int currencyBuy) {
+        this.currencyBuy = currencyBuy;
+    }
+
+    public int getWalletIdBuy() {
+        return walletIdBuy;
+    }
+
+    public void setWalletIdBuy(int walletIdBuy) {
+        this.walletIdBuy = walletIdBuy;
+    }
+
+    public OperationType getOperationType() {
+        return operationType;
+    }
+
+    public void setOperationType(OperationType operationType) {
+        this.operationType = operationType;
+    }
+
+    public OrderStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(OrderStatus status) {
+        this.status = status;
+    }
+
+
+    public LocalDateTime getDateCreation() {
+        return dateCreation;
+    }
+
+    public void setDateCreation(LocalDateTime dateCreation) {
+        this.dateCreation = dateCreation;
+    }
+
+    public LocalDateTime getDateFinal() {
+        return dateFinal;
+    }
+
+    public void setDateFinal(LocalDateTime dateFinal) {
+        this.dateFinal = dateFinal;
+    }
+
+    public BigDecimal getAmountBuyWithCommission() {
+        return amountBuy.subtract(amountBuy.multiply(commission.divide(BigDecimal.valueOf(100))));
+    }
+
+    public void setAmountBuyWithCommission(BigDecimal amountBuyWithCommission) {
+        this.amountBuyWithCommission = amountBuyWithCommission;
+    }
+
+    public BigDecimal getAmountSellWithCommission() {
+        return amountSell.subtract(amountSell.multiply(commission.divide(BigDecimal.valueOf(100))));
+    }
+
+    public void setAmountSellWithCommission(BigDecimal amountSellWithCommission) {
+        this.amountSellWithCommission = amountSellWithCommission;
+    }
 }
 
 

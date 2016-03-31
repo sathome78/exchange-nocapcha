@@ -2,8 +2,8 @@
  * Created by Valk on 30.03.16.
  */
 
+//for reCAPCHA on "big" login and register forms
 function onloadCallback() {
-    console.log('ready');
     grecaptcha.render('cpch-field', {
         'sitekey': '6LfPFRwTAAAAAO86BgguULebb3tXZbur5ccLCvPX',
         'size': 'normal',
@@ -24,4 +24,3 @@ function capExpired() {
     $('#cpch-field').removeClass('passed');
     $('#register_button').prop('disabled', true);
 }
-
