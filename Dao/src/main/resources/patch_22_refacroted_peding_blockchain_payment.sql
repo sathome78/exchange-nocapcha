@@ -4,6 +4,5 @@ ALTER TABLE PENDING_PAYMENT DROP COLUMN amount,
 CHANGE address transaction_hash VARCHAR(64) NOT NULL,
 ADD COLUMN address VARCHAR(64);
 
-
-SELECT *
-FROM TRANSACTION WHERE TRANSACTION.user_wallet_id = 13;
+INSERT INTO DATABASE_PATCH
+VALUES ("patch_22_refacroted_peding_blockchain_payment", default, 1);
