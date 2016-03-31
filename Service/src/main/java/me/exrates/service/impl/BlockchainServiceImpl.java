@@ -5,8 +5,6 @@ import info.blockchain.api.receive.Receive;
 import info.blockchain.api.receive.ReceiveResponse;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.math.MathContext;
-import java.math.RoundingMode;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -15,7 +13,6 @@ import me.exrates.dao.BTCTransactionDao;
 import me.exrates.dao.PendingPaymentDao;
 import me.exrates.model.BTCTransaction;
 import me.exrates.model.CreditsOperation;
-import me.exrates.model.Payment;
 import me.exrates.model.PendingPayment;
 import me.exrates.model.Transaction;
 import me.exrates.model.enums.OperationType;
@@ -57,10 +54,6 @@ public class BlockchainServiceImpl implements BlockchainService {
 
     @Autowired
     private BTCTransactionDao btcTransactionDao;
-
-    private static final BigDecimal SATOSHI = BigDecimal.valueOf(100000000L);
-    private static final MathContext MATH_CONTEXT =
-        new MathContext(9, RoundingMode.CEILING);
 
     private static final int CONFIRMATIONS = 4;
 
@@ -151,27 +144,6 @@ public class BlockchainServiceImpl implements BlockchainService {
         btcTransactionDao.create(btcTransaction);
         logger.info("BTC transaction provided "+btcTransaction);
         return "*ok*";
-    }
-
-    @Override
-    @Transactional
-    public void provideOutputPayment(Payment payment, CreditsOperation creditsOperation) {
-//        final BigDecimal amount = creditsOperation.getAmount().add(creditsOperation.getCommissionAmount());
-//        final Transaction transactionRequest = transactionService.createTransactionRequest(creditsOperation);
-//        transactionService.provideTransaction(transactionRequest);
-//        final String txHash = sendBTC(payment.getDestination(), amount)
-//                .orElseThrow(RuntimeException::new);
-//        final BTCTransaction btcTransaction = new BTCTransaction();
-//        btcTransaction.setTransactionId(transactionRequest.getId());
-//        btcTransaction.setAmount(amount);
-//        btcTransaction.setHash(txHash);
-//        persistBlockchainTransaction(null, btcTransaction);
-        throw new UnsupportedOperationException();
-    }
-
-
-    private Optional<String> sendBTC(String address,BigDecimal amount) {
-        throw new UnsupportedOperationException();
     }
 
     protected String computeTransactionHash(final Transaction request) {

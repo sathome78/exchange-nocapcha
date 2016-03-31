@@ -22,7 +22,6 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
 import me.exrates.dao.PendingPaymentDao;
 import me.exrates.model.CreditsOperation;
-import me.exrates.model.Payment;
 import me.exrates.model.PendingPayment;
 import me.exrates.model.Transaction;
 import me.exrates.service.AlgorithmService;
@@ -109,18 +108,6 @@ public class EDRCServiceImpl implements EDRCService {
 
     @Override
     @Transactional
-    public void provideOutputPayment(final Payment payment, final CreditsOperation creditsOperation) {
-//        final BigDecimal amount = creditsOperation.getAmount().add(creditsOperation.getCommissionAmount());
-//        final Transaction transaction = transactionService.createTransactionRequest(creditsOperation);
-//        transactionService.provideTransaction(transaction);
-//        final String xml = buildWithdrawEDRCXml(transaction.getId(), payment.getDestination(), amount);
-//        sendEDRC(xml);
-        throw new UnsupportedOperationException();
-    }
-
-
-    @Override
-    @Transactional
     public boolean confirmPayment(final String requestXml,
         final String requestSignature)
     {
@@ -174,24 +161,6 @@ public class EDRCServiceImpl implements EDRCService {
         pendingPaymentDao.delete(pending.getInvoiceId());
         transactionService.provideTransaction(transaction);
         return true;
-    }
-
-    @Transactional(propagation = Propagation.NESTED)
-    protected void sendEDRC(final String xml) {
-//        final String response = sendRequest(xml, "http://api.blockchain.mn/merchant/coin/withdraw");
-//        System.out.println(response);
-//        try {
-//            String status = evaluateXpath(response, Collections.singletonMap("status", "//status/text()"))
-//                .get("status");
-//            if  (status.equals("0")) {
-//                String message = "EDRCService exception: "+evaluateXpath(response, Collections.singletonMap("error", "//error_msg/text()"))
-//                    .get("error");
-//                throw new MerchantInternalException(message);
-//            }
-//        } catch (Exception e) {
-//            throw new MerchantInternalException();
-//        }
-        throw new UnsupportedOperationException();
     }
 
     protected String buildEDRCAddressXML(final int requestId) {

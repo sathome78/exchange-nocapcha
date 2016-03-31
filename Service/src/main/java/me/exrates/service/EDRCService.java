@@ -1,7 +1,6 @@
 package me.exrates.service;
 
 import me.exrates.model.CreditsOperation;
-import me.exrates.model.Payment;
 import me.exrates.model.PendingPayment;
 
 /**
@@ -12,8 +11,6 @@ public interface EDRCService {
     PendingPayment createPaymentInvoice(CreditsOperation creditsOperation);
 
     PendingPayment findByInvoiceId(int invoiceId);
-
-    void provideOutputPayment(Payment payment, CreditsOperation creditsOperation);
 
     boolean confirmPayment(final String xml, final String signature);
 }

@@ -71,11 +71,11 @@ public class MerchantServiceImpl implements MerchantService{
                 .getCurrency()
                 .getName();
         final String notification = String
-            .format(context.getMessage("merchants.depositNotification",null,locale),
+            .format(context.getMessage("merchants.depositNotification.body",null,locale),
                 sumWithCurrency, toWallet);
         final Email mail = new Email();
         mail.setTo(email);
-        mail.setSubject("Exrates Payment Invoice");
+        mail.setSubject(context.getMessage("merchants.depositNotification.header",null,locale));
         mail.setMessage(sumWithCurrency);
         try {
             sendMailService.sendMail(mail);

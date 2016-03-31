@@ -29,8 +29,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.servlet.view.RedirectView;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -101,22 +99,5 @@ public class BlockchainController {
             );
         logger.info("Response to https://blockchain.info/ : "+response);
         return response;
-    }
-
-    @RequestMapping(value = "/payment/provide",method = POST)
-    public RedirectView outputPayment(Payment payment, Principal principal, RedirectAttributes redir) {
-//        final Optional<CreditsOperation> creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName());
-//        if (!creditsOperation.isPresent()) {
-//            redir.addFlashAttribute("error", "merchants.invalidSum");
-//            return new RedirectView("/merchants/output");
-//        }
-//        blockchainService.provideOutputPayment(payment, creditsOperation.get());
-//        merchantService.formatResponseMessage(creditsOperation.get())
-//                .entrySet()
-//                .forEach(entry->redir.addFlashAttribute(entry.getKey(),entry.getValue()));
-//        final String message = "merchants.successfulBalanceWithdraw";
-//        redir.addFlashAttribute("message",message);
-//        return new RedirectView("/mywallets");
-        throw new UnsupportedOperationException();
     }
 }

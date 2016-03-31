@@ -27,8 +27,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.servlet.view.RedirectView;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -78,19 +76,6 @@ public class EDRCoinController {
         }
     }
 
-
-    @RequestMapping(value = "/payment/provide",method = POST)
-    public RedirectView provideOutputPayment(final Payment payment,final Principal principal, final RedirectAttributes redir) {
-        throw new UnsupportedOperationException();
-    }
-
-    @RequestMapping(value = "payment/x",method = POST)
-    public ResponseEntity<Void> aymentHandler (final @RequestBody Map<String,String> params) {
-        System.out.println(params);
-        return null;
-    }
-
-
     @RequestMapping(value = "payment/received",method = POST)
     public ResponseEntity<Void> paymentHandler (final @RequestParam Map<String,String> params) {
         logger.info("Recieved response from edrc-coin: " + params);
@@ -98,7 +83,6 @@ public class EDRCoinController {
         final String xml = params.get("operation_xml");
         final String signature = params.get("signature");
         if (Objects.isNull(xml) || Objects.isNull(signature)) {
-            logger.error("null");
             return response;
         }
         if (edrcService.confirmPayment(xml,signature)) {

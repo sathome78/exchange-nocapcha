@@ -112,11 +112,6 @@ public class PerfectMoneyMerchantController {
         return new RedirectView("/merchants/input");
     }
 
-    @RequestMapping(value = "payment/status",method = RequestMethod.POST)
-    public void prepare(@RequestParam Map<String,String> response) {
-        System.out.println(response);
-    }
-
     @RequestMapping(value = "payment/failure",method = RequestMethod.POST)
     public RedirectView failurePayment(@RequestBody String body,HttpSession httpSession,RedirectAttributes redir) {
         final Transaction openTransaction;
