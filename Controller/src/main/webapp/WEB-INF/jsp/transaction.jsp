@@ -13,7 +13,7 @@
 <head>
     <meta charset="utf-8">
     <title><loc:message code="transactions.title"/></title>
-    <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon" />
+    <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon"/>
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -81,7 +81,9 @@
                             <tr>
                                     <%--2016-03-08 <br> 14:48:46--%>
                                 <td>
-                                        ${transaction.datetime}
+                                    <fmt:parseDate value="${transaction.datetime}" var="parsedDate"
+                                                   pattern="yyyy-MM-dd'T'HH:mm"/>
+                                    <fmt:formatDate value="${parsedDate}" pattern="yyyy-MM-dd'<br/>'HH:mm"/>
                                 </td>
                                 <td>
                                         <%--Принятие <br> ордера--%>

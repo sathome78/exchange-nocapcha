@@ -13,7 +13,7 @@
 <head>
     <meta charset="utf-8">
     <title><loc:message code="myorders.title"/></title>
-    <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon" />
+    <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon"/>
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -102,9 +102,18 @@
                                     <td><fmt:formatNumber type="number" maxFractionDigits="9"
                                                           value="${myorder.amountBuyWithCommission}"/></td>
                                         <%--2016-03-08 14:48:46--%>
-                                    <td> ${myorder.dateCreation} </td>
-                                    <td><c:if
-                                            test="${myorder.status.status eq 3}">                                                            ${myorder.dateFinal}                                                        </c:if></td>
+                                    <td>
+                                        <fmt:parseDate value="${myorder.dateCreation}" var="parsedDate"
+                                                       pattern="yyyy-MM-dd'T'HH:mm"/>
+                                        <fmt:formatDate value="${parsedDate}" pattern="yyyy-MM-dd'<br/>'HH:mm"/>
+                                    </td>
+                                    <td>
+                                        <c:if test="${myorder.status.status eq 3}">
+                                            <fmt:parseDate value="${myorder.dateFinal}" var="parsedDate"
+                                                           pattern="yyyy-MM-dd'T'HH:mm"/>
+                                            <fmt:formatDate value="${parsedDate}" pattern="yyyy-MM-dd'<br/>'HH:mm"/>
+                                        </c:if>
+                                    </td>
                                     <td>
                                         <c:if test="${myorder.status=='OPENED'}">
                                             <loc:message code="orderstatus.opened"/>
@@ -151,10 +160,18 @@
                                     </td>
                                     <td><fmt:formatNumber type="number" maxFractionDigits="9"
                                                           value="${myorder.amountBuyWithCommission}"/></td>
-                                    <td> ${myorder.dateCreation} </td>
-                                    <td><c:if test="${myorder.status.status eq 3}">
-                                        ${myorder.dateFinal}
-                                    </c:if></td>
+                                    <td>
+                                        <fmt:parseDate value="${myorder.dateCreation}" var="parsedDate"
+                                                       pattern="yyyy-MM-dd'T'HH:mm"/>
+                                        <fmt:formatDate value="${parsedDate}" pattern="yyyy-MM-dd'<br/>'HH:mm"/>
+                                    </td>
+                                    <td>
+                                        <c:if test="${myorder.status.status eq 3}">
+                                            <fmt:parseDate value="${myorder.dateFinal}" var="parsedDate"
+                                                           pattern="yyyy-MM-dd'T'HH:mm"/>
+                                            <fmt:formatDate value="${parsedDate}" pattern="yyyy-MM-dd'<br/>'HH:mm"/>
+                                        </c:if>
+                                    </td>
                                     <td>
                                         <c:if test="${myorder.status=='OPENED'}">
                                             <loc:message code="orderstatus.opened"/>
