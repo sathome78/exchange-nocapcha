@@ -89,12 +89,6 @@
 			<version>1.2.1</version>
 		</dependency>
 
-		<!--<dependency>-->
-			<!--<groupId>javax.servlet.jsp.jstl</groupId>-->
-			<!--<artifactId>jstl</artifactId>-->
-			<!--<version>1.2</version>-->
-		<!--</dependency>-->
-
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-beans</artifactId>
@@ -118,6 +112,7 @@
 			<artifactId>validation-api</artifactId>
 			<version>1.1.0.Final</version>
 		</dependency>
+
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-validator</artifactId>
@@ -148,8 +143,8 @@
 			<version>${log4j2.version}</version>
 		</dependency>
 
+		<!-- Logging -->
 
-		<!-- @Inject -->
 		<dependency>
 			<groupId>javax.inject</groupId>
 			<artifactId>javax.inject</artifactId>
@@ -236,6 +231,7 @@
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.5.1</version>
 				<configuration>
 					<source>1.8</source>
 					<target>1.8</target>

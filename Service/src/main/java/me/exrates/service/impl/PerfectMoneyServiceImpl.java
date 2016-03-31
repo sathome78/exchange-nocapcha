@@ -26,7 +26,7 @@ import java.util.Map;
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 @Service
-@PropertySource("classpath:/${spring.profile.active}/merchants/perfectmoney.properties")
+@PropertySource("classpath:/merchants/perfectmoney.properties")
 public class PerfectMoneyServiceImpl implements PerfectMoneyService {
 
     private @Value("${accountId}") String accountId;

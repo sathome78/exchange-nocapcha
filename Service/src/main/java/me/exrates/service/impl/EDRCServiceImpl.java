@@ -48,7 +48,7 @@ import org.xml.sax.InputSource;
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 @Service
-@PropertySource("classpath:/${spring.profile.active}/merchants/edrcoin.properties")
+@PropertySource("classpath:/merchants/edrcoin.properties")
 public class EDRCServiceImpl implements EDRCService {
 
     private @Value("${id}") String id;

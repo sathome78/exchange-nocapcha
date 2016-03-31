@@ -38,7 +38,7 @@ import org.springframework.web.util.UriComponentsBuilder;
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 @Service
-@PropertySource("classpath:/${spring.profile.active}/merchants/blockchain.properties")
+@PropertySource("classpath:/merchants/blockchain.properties")
 public class BlockchainServiceImpl implements BlockchainService {
 
     private @Value("${xPub}") String xPub;

@@ -20,7 +20,7 @@ import java.util.stream.Stream;
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(securedEnabled = true)
-@PropertySource("classpath:/${spring.profile.active}/merchants/perfectmoney.properties")
+@PropertySource("classpath:/merchants/perfectmoney.properties")
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
