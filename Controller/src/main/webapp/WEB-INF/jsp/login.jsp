@@ -55,8 +55,13 @@
                 <input name="password" type="password" placeholder="${password}"
                        required="required"/>
                 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
-                <%--ВОЙТИ--%>
                 <br/>
+                <br/>
+                <%--CAPCHA--%>
+                <div id="cpch-field" class="g-recaptcha" data-sitekey="6LfPFRwTAAAAAO86BgguULebb3tXZbur5ccLCvPX"></div>
+                <p class='cpch-error-message' style="color:red">${cpch}</p>
+                <br/>
+                <%--ВОЙТИ--%>
                 <br/>
                 <button type="submit"><loc:message
                         code="login.submit"/></button>
@@ -71,6 +76,11 @@
 <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
 <%----------%>
+<%--capcha--%>
+<%--<script type="text/javascript" src="<c:url value='/client/js/capcha.js'/>"></script>
+<script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit&hl=${pageContext.response.locale}"
+        async defer>
+</script>--%>
 
 </body>
 </html>

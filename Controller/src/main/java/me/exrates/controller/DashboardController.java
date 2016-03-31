@@ -37,6 +37,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 
 @Controller
@@ -62,6 +63,9 @@ public class DashboardController {
 
     @Autowired
     RegisterFormValidation registerFormValidation;
+
+    @Autowired
+    LocaleResolver localeResolver;
 
     private CurrencyPair currentCurrencyPair;
 
@@ -190,10 +194,10 @@ public class DashboardController {
     }
 
     @RequestMapping(value = "/forgotPassword/submit", method = RequestMethod.POST)
-    public ModelAndView forgotPasswordSubmit(@ModelAttribute User user, BindingResult result, ModelAndView model) {
+    public ModelAndView forgotPasswordSubmit(@ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request) {
 
         String email = user.getEmail();
-        registerFormValidation.validateEmail(user, result);
+        registerFormValidation.validateEmail(user, result, localeResolver.resolveLocale(request));
         if(result.hasErrors()){
             model.addObject("user", user);
             model.setViewName("/forgotPassword");
@@ -245,10 +249,10 @@ public class DashboardController {
 
 
     @RequestMapping(value = "/forgotPassword/submitUpdate", method = RequestMethod.POST)
-    public ModelAndView submitUpdate(@ModelAttribute User user, BindingResult result, ModelAndView model) {
+    public ModelAndView submitUpdate(@ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request) {
 
 
-        registerFormValidation.validateResetPassword(user, result);
+        registerFormValidation.validateResetPassword(user, result, localeResolver.resolveLocale(request));
         if(result.hasErrors()){
             model.addObject("user", user);
             model.setViewName("updatePassword");

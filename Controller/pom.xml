@@ -13,6 +13,10 @@
     <name>Controller Maven Webapp</name>
     <url>http://maven.apache.org</url>
 
+    <properties>
+        <javax.json.version>1.0.4</javax.json.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>kds</groupId>
@@ -60,6 +64,12 @@
             <version>5.0.8</version>
             <type>jar</type>
         </dependency>
+        <dependency>
+            <groupId>org.glassfish</groupId>
+            <artifactId>javax.json</artifactId>
+            <version>${javax.json.version}</version>
+        </dependency>
+
 
     </dependencies>
 </project>

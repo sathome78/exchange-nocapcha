@@ -9,6 +9,7 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -29,7 +30,8 @@ public class RegisterFormValidation implements Validator {
     String STRING_PATTERN = "[a-zA-Z]+";
     String MOBILE_PATTERN = "[0-9]{12}";
     private static final String PASSWORD_PATTERN = "((?=.*\\d)(?=.*[a-zA-Z]).{8,20})";
-    private static final Locale ru = new Locale("ru");
+//    private static final Locale ru = new Locale("ru");
+    private Locale ru = new Locale("en");
 
     @Autowired
     MessageSource messageSource;
@@ -37,6 +39,11 @@ public class RegisterFormValidation implements Validator {
     public boolean supports(Class<?> arg0) {
         // TODO Auto-generated method stub
         return false;
+    }
+
+    public void validate(Object target, Errors errors, Locale ru) {
+        this.ru = ru;
+        validate(target, errors);
     }
 
     public void validate(Object target, Errors errors) {
@@ -107,7 +114,7 @@ public class RegisterFormValidation implements Validator {
 
     }
 
-    public void validateEditUser(Object target, Errors errors) {
+    public void validateEditUser(Object target, Errors errors, Locale ru) {
         User user = (User) target;
         String emailRequired = messageSource.getMessage("validation.emailrequired", null, ru);
         String emailIncorrect = messageSource.getMessage("validation.emailincorrect", null, ru);
@@ -145,7 +152,7 @@ public class RegisterFormValidation implements Validator {
         }
     }
 
-    public void validateResetPassword(Object target, Errors errors) {
+    public void validateResetPassword(Object target, Errors errors, Locale ru) {
         User user = (User) target;
 
         String passwordRequired = messageSource.getMessage("validation.passwordrequired", null, ru);
@@ -169,7 +176,7 @@ public class RegisterFormValidation implements Validator {
         }
     }
 
-    public void validateResetFinPassword(Object target, Errors errors) {
+    public void validateResetFinPassword(Object target, Errors errors, Locale ru) {
         User user = (User) target;
 
         String passwordRequired = messageSource.getMessage("validation.passwordrequired", null, ru);
@@ -193,7 +200,7 @@ public class RegisterFormValidation implements Validator {
         }
     }
 
-    public void validateEmail(User user, Errors errors) {
+    public void validateEmail(User user, Errors errors, Locale ru) {
         String emailIncorrect = messageSource.getMessage("validation.emailincorrect", null, ru);
 
         if (userService.ifEmailIsUnique(user.getEmail())) {
