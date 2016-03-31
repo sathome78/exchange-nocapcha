@@ -63,6 +63,9 @@ public class MainController {
     @Autowired
     LocaleResolver localeResolver;
 
+    @Autowired
+    VerifyReCaptcha verifyReCaptcha;
+
     @RequestMapping("/403")
     public String error403() {
         return "403";
@@ -81,7 +84,7 @@ public class MainController {
         boolean flag = false;
 
         String recapchaResponse = request.getParameter("g-recaptcha-response");
-        if (!VerifyReCaptcha.verify(recapchaResponse)) {
+        if (!verifyReCaptcha.verify(recapchaResponse)) {
             String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
             ModelAndView modelAndView = new ModelAndView("register", "user", user);
             modelAndView.addObject("cpch", correctCapchaRequired);
@@ -101,7 +104,7 @@ public class MainController {
         } else {
             user = (User) result.getModel().get("user");
             try {
-                userService.create(user);
+                userService.create(user, localeResolver.resolveLocale(request));
                 flag = true;
                 logger.info("User registered with parameters = " + user.toString());
             } catch (Exception e) {
@@ -162,7 +165,7 @@ public class MainController {
 
     @RequestMapping(value = "/transaction")
     public ModelAndView transactions(Principal principal) {
-        List<OperationView> list = transactionService.showMyOperationHistory(principal.getName());
+        List<OperationView> list = transactionService.showMyOperationHistory(principal.getName(), localeResolver.resolveLocale(request));
         return new ModelAndView("transaction", "transactions", list);
     }
 

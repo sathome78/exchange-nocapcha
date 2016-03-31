@@ -1,6 +1,7 @@
 package me.exrates.controller;
 
 
+import me.exrates.controller.utils.LocaleKeeper;
 import me.exrates.model.Currency;
 import me.exrates.model.Order;
 import me.exrates.model.enums.OperationType;
@@ -51,9 +52,9 @@ public class OrderController {
     //private static final Locale ru = new Locale("ru");
 
     @RequestMapping(value = "/orders")
-    public ModelAndView myOrders() {
+    public ModelAndView myOrders(HttpServletRequest request) {
         ModelAndView model = new ModelAndView();
-        Map<String, List<Order>> orderMap = orderService.getAllOrders();
+        Map<String, List<Order>> orderMap = orderService.getAllOrders(localeResolver.resolveLocale(request));
         model.setViewName("orders");
         model.addObject("orderMap", orderMap);
         Order order = new Order();
@@ -159,9 +160,9 @@ public class OrderController {
     }
 
     @RequestMapping("/myorders")
-    public ModelAndView showMyOrders(Principal principal, ModelAndView model) {
+    public ModelAndView showMyOrders(Principal principal, ModelAndView model, HttpServletRequest request) {
         String email = principal.getName();
-        Map<String, List<Order>> orderMap = orderService.getMyOrders(email);
+        Map<String, List<Order>> orderMap = orderService.getMyOrders(email, localeResolver.resolveLocale(request));
         model.addObject("orderMap", orderMap);
         return model;
     }

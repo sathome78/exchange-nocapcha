@@ -1,6 +1,7 @@
 package me.exrates.service;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import me.exrates.model.Order;
@@ -10,9 +11,9 @@ public interface OrderService {
 
 	public int createOrder(Order order);
 	
-	public Map<String, List<Order>> getMyOrders(String email);
+	public Map<String, List<Order>> getMyOrders(String email, Locale locale);
 	
-	public Map<String, List<Order>> getAllOrders();
+	public Map<String, List<Order>> getAllOrders(Locale locale);
 	
 	public boolean deleteOrder(int orderId);
 	

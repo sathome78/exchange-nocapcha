@@ -1,5 +1,6 @@
 package me.exrates.config;
 
+import me.exrates.controller.utils.VerifyReCaptcha;
 import me.exrates.controller.validator.RegisterFormValidation;
 
 import org.apache.commons.dbcp2.BasicDataSource;
@@ -100,6 +101,10 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 		resolver.setCookieName("myAppLocaleCookie");
 		resolver.setCookieMaxAge(3600);
 		return resolver;
+	}
+	@Bean
+	public VerifyReCaptcha verifyReCaptcha(){
+		return new VerifyReCaptcha();
 	}
 
 	@Override

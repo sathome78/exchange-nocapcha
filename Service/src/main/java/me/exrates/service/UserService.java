@@ -5,6 +5,7 @@ import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 
 import java.util.List;
+import java.util.Locale;
 
 public interface UserService {
 
@@ -12,7 +13,7 @@ public interface UserService {
 
     User findByEmail(String email);
 
-    boolean create(User user);
+    boolean create(User user, Locale locale);
 
     boolean ifNicknameIsUnique(String nickname);
 
@@ -30,7 +31,7 @@ public interface UserService {
 
     boolean updateUserByAdmin(User user);
 
-    boolean update(User user, boolean changePassword, boolean changeFinPassword, boolean resetPassword);
+    boolean update(User user, boolean changePassword, boolean changeFinPassword, boolean resetPassword, Locale locale);
 
-    void sendEmailWithToken(User user, TokenType tokenType, String tokenLink, String emailSubject, String emailText);
+    void sendEmailWithToken(User user, TokenType tokenType, String tokenLink, String emailSubject, String emailText, Locale locale);
 }

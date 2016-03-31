@@ -5,6 +5,7 @@ import me.exrates.model.OperationView;
 import me.exrates.model.Transaction;
 
 import java.util.List;
+import java.util.Locale;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -21,5 +22,5 @@ public interface TransactionService {
 
     List<Transaction> findAllByUserWallets(List<Integer> userWalletsIds);
     
-    List<OperationView> showMyOperationHistory(String email);
+    List<OperationView> showMyOperationHistory(String email, Locale locale);
 }

@@ -173,7 +173,7 @@ public class AdminController {
         if (result.hasErrors()) {
             model.setViewName("settings");
         } else {
-            userService.update(user, true, false, false);
+            userService.update(user, true, false, false, localeResolver.resolveLocale(request));
             new SecurityContextLogoutHandler().logout(request, null, null);
             model.setViewName("redirect:/dashboard");
         }
@@ -191,7 +191,7 @@ public class AdminController {
         if (result.hasErrors()) {
             model.setViewName("settings");
         } else {
-            userService.update(user, false, true, false);
+            userService.update(user, false, true, false, localeResolver.resolveLocale(request));
             model.setViewName("redirect:/mywallets");
         }
 

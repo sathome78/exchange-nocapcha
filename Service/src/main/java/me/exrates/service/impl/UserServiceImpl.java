@@ -37,12 +37,12 @@ public class UserServiceImpl implements UserService {
 	@Autowired
 	HttpServletRequest request;
 	
-	private static final Locale ru = new Locale("ru");
+//	private static final Locale ru = new Locale("ru");
  	
  	private static final Logger logger = LogManager.getLogger(UserServiceImpl.class);
  	
  	@Transactional(rollbackFor=Exception.class)
- 	public boolean create(User user) {
+ 	public boolean create(User user, Locale locale) {
 		logger.info("Begin 'create' method");
 		Boolean flag = false;
  		if(this.ifEmailIsUnique(user.getEmail())) {
@@ -50,7 +50,7 @@ public class UserServiceImpl implements UserService {
  				if(userdao.create(user)) {
  					int user_id = this.getIdByEmail(user.getEmail());
 					user.setId(user_id);
-					sendEmailWithToken(user, TokenType.REGISTRATION, "/registrationConfirm", "emailsubmitregister.subject", "emailsubmitregister.text");
+					sendEmailWithToken(user, TokenType.REGISTRATION, "/registrationConfirm", "emailsubmitregister.subject", "emailsubmitregister.text", locale);
  				}
  			}
  			
@@ -131,7 +131,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Transactional(rollbackFor=Exception.class)
-	public boolean update(User user, boolean changePassword, boolean changeFinPassword, boolean resetPassword){
+	public boolean update(User user, boolean changePassword, boolean changeFinPassword, boolean resetPassword, Locale locale){
 		logger.info("Begin 'updateUserByAdmin' method");
 
 		if (changePassword){
@@ -139,18 +139,18 @@ public class UserServiceImpl implements UserService {
 		}
 		if(userdao.update(user)) {
 			if (changePassword) {
-				sendEmailWithToken(user, TokenType.CHANGE_PASSWORD, "/changePasswordConfirm", "emailsubmitChangePassword.subject", "emailsubmitChangePassword.text");
+				sendEmailWithToken(user, TokenType.CHANGE_PASSWORD, "/changePasswordConfirm", "emailsubmitChangePassword.subject", "emailsubmitChangePassword.text", locale);
 			}else if (changeFinPassword){
-				sendEmailWithToken(user, TokenType.CHANGE_FIN_PASSWORD, "/changePasswordConfirm", "emailsubmitChangeFinPassword.subject", "emailsubmitChangeFinPassword.text");
+				sendEmailWithToken(user, TokenType.CHANGE_FIN_PASSWORD, "/changePasswordConfirm", "emailsubmitChangeFinPassword.subject", "emailsubmitChangeFinPassword.text", locale);
 			}else {
-				sendEmailWithToken(user, TokenType.CHANGE_PASSWORD, "/resetPasswordConfirm", "emailsubmitResetPassword.subject", "emailsubmitResetPassword.text");
+				sendEmailWithToken(user, TokenType.CHANGE_PASSWORD, "/resetPasswordConfirm", "emailsubmitResetPassword.subject", "emailsubmitResetPassword.text", locale);
 			}
 		}
 		return true;
 	}
 
 	@Transactional(rollbackFor=Exception.class)
-	public void sendEmailWithToken(User user, TokenType tokenType, String tokenLink, String emailSubject, String emailText) {
+	public void sendEmailWithToken(User user, TokenType tokenType, String tokenLink, String emailSubject, String emailText, Locale locale) {
 		TemporalToken token = new TemporalToken();
 		token.setUserId(user.getId());
 		token.setValue(generateRegistrationToken());
@@ -162,13 +162,13 @@ public class UserServiceImpl implements UserService {
 		String rootUrl = request.getScheme() +"://"+ request.getServerName() +
 				":" + request.getServerPort();
 		email.setMessage(
-				messageSource.getMessage(emailText, null, ru)+
+				messageSource.getMessage(emailText, null, locale)+
 						" <a href='"+
 						rootUrl+
 						confirmationUrl+
 						"'>Ссылка</a>"
 		);
-		email.setSubject(messageSource.getMessage(emailSubject, null, ru));
+		email.setSubject(messageSource.getMessage(emailSubject, null, locale));
 
 		email.setTo(user.getEmail());
 		sendMailService.sendMail(email);

@@ -7,7 +7,6 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.servlet.LocaleResolver;
-import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -23,13 +22,17 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
     @Autowired
     LocaleResolver localeResolver;
 
+    @Autowired
+    VerifyReCaptchaSec verifyReCaptchaSec;
+
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
 
         String recapchaResponse = request.getParameter("g-recaptcha-response");
-        if ((recapchaResponse!=null) && !VerifyReCaptcha.verify(recapchaResponse)) {
+        if ((recapchaResponse!=null) && !verifyReCaptchaSec.verify(recapchaResponse)) {
             String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
             throw new UsernameNotFoundException("capcha error");
         }
+
 
         return super.attemptAuthentication(request, response);
     }

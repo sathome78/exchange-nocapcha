@@ -2,6 +2,7 @@ package me.exrates.service.impl;
 
 import me.exrates.dao.TransactionDao;
 import me.exrates.model.*;
+import me.exrates.model.Currency;
 import me.exrates.model.enums.OperationType;
 import me.exrates.service.*;
 import me.exrates.service.exception.TransactionPersistException;
@@ -15,10 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -120,7 +118,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public List<OperationView> showMyOperationHistory(String email) {
+    public List<OperationView> showMyOperationHistory(String email, Locale locale) {
         int id = userService.getIdByEmail(email);
         final List<Integer> collect = walletService.getAllWallets(id)
             .stream()
@@ -129,7 +127,7 @@ public class TransactionServiceImpl implements TransactionService {
             .collect(Collectors.toList());
         final List<Transaction> allByUserId = findAllByUserWallets(collect);
         logger.info(allByUserId);
-        Map<String, List<Order>> orderMap = orderService.getMyOrders(email);
+        Map<String, List<Order>> orderMap = orderService.getMyOrders(email, locale);
         List<Order> orderList = new ArrayList<Order>();
         orderList.addAll(orderMap.get("sell"));
         orderList.addAll(orderMap.get("buy"));

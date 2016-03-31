@@ -204,7 +204,7 @@ public class DashboardController {
             return model;
         }
         user = userService.findByEmail(email);
-        userService.update(user, false, false , true);
+        userService.update(user, false, false , true, localeResolver.resolveLocale(request));
 
         model.setViewName("redirect:/dashboard");
 

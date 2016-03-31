@@ -1265,7 +1265,17 @@ form#order.submit-order-form button, form#command.submit-order-form button {
     background-color: rgba(255, 255, 255, 0) !important;
 }
 
+.socials-icon-wrapper{
+    position: relative;
+    width: 100%;
+    padding: 0 0 5px 0;
+    border-bottom: 1px solid rgb(101, 24, 10);
+    overflow: hidden;
+}
 
-
+.socials-icon-wrapper__icon {
+    float: right;
+    margin: 0 0 0 5px;
+}
 
 

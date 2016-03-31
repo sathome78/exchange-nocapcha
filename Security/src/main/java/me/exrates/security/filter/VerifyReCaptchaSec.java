@@ -6,6 +6,7 @@ package me.exrates.security.filter;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.stereotype.Component;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -17,14 +18,15 @@ import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.net.URL;
 
-public class VerifyReCaptcha {
+@Component
+public class VerifyReCaptchaSec {
 
-    private static final Logger logger = LogManager.getLogger(VerifyReCaptcha.class);
+    private static final Logger logger = LogManager.getLogger(VerifyReCaptchaSec.class);
 
     public static final String URL = "https://www.google.com/recaptcha/api/siteverify";
     public static final String SECRET_KEY = "6LfPFRwTAAAAAKgKnzkT1KPLjPIYey52ojx9xCpY";
 
-    public static boolean verify(String recapchaResponse) {
+    public boolean verify(String recapchaResponse) {
         boolean result = false;
         if (recapchaResponse == null || "".equals(recapchaResponse)) {
             logger.warn("empty response of reCapcha");

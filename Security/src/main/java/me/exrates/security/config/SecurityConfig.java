@@ -3,6 +3,7 @@ package me.exrates.security.config;
 import me.exrates.model.enums.UserRole;
 import me.exrates.security.filter.CapchaAuthorizationFilter;
 import me.exrates.security.filter.LoginFailureHandler;
+import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.security.service.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,6 +34,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     UserDetailsServiceImpl userDetailsService;
+
+    @Bean
+    public VerifyReCaptchaSec verifyReCaptcha() {
+        return new VerifyReCaptchaSec();
+    }
 
     @Bean
     public CapchaAuthorizationFilter customUsernamePasswordAuthenticationFilter()

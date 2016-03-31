@@ -38,7 +38,7 @@ public class OrderServiceImpl implements OrderService{
 	@Autowired
 	CommissionService commissionService;
 	
-	private static final Locale ru = new Locale("ru");
+//	private static final Locale ru = new Locale("ru");
 	
 	private static final Logger logger = LogManager.getLogger(OrderServiceImpl.class);
 	 
@@ -66,13 +66,13 @@ public class OrderServiceImpl implements OrderService{
 
 	@Transactional(readOnly = true)
 	@Override
-	public Map<String, List<Order>> getMyOrders(String email) {
+	public Map<String, List<Order>> getMyOrders(String email, Locale locale) {
 		int userId = userService.getIdByEmail(email);
 		List<Order> orderList = orderDao.getMyOrders(userId);
 		List<Order> sellOrderList = new ArrayList<Order>();
 		List<Order> buyOrderList = new ArrayList<Order>();
 		for(Order order : orderList) {
-			order.setStatusString(getStatusString(order.getStatus()));
+			order.setStatusString(getStatusString(order.getStatus(), locale));
 			order.setCommission(commissionService.findCommissionByType(order.getOperationType()).getValue());
 			order.setCurrencySell(walletService.getCurrencyId(order.getWalletIdSell()));
 			order.setCurrencySellString(walletService.getCurrencyName(order.getCurrencySell()));
@@ -92,12 +92,12 @@ public class OrderServiceImpl implements OrderService{
 	
 	@Transactional(readOnly = true)
 	@Override
-	public  Map<String, List<Order>>  getAllOrders(){
+	public  Map<String, List<Order>>  getAllOrders(Locale locale){
 		List<Order> orderList = orderDao.getAllOrders();
 		List<Order> sellOrderList = new ArrayList<Order>();
 		List<Order> buyOrderList = new ArrayList<Order>();
 		for(Order order : orderList) {
-			order.setStatusString(getStatusString(order.getStatus()));
+			order.setStatusString(getStatusString(order.getStatus(), locale));
 			order.setCommission(commissionService.findCommissionByType(order.getOperationType()).getValue());
 			order.setCurrencySell(walletService.getCurrencyId(order.getWalletIdSell()));
 			order.setCurrencySellString(walletService.getCurrencyName(order.getCurrencySell()));
@@ -215,7 +215,7 @@ public class OrderServiceImpl implements OrderService{
 		return flag;
 	}
 
-	private String getStatusString(OrderStatus status) {
+	private String getStatusString(OrderStatus status, Locale ru) {
 		String statusString = null;
 		switch (status) {
 		case INPROCESS : statusString= messageSource.getMessage("orderstatus.inprocess", null, ru); break;

@@ -1,10 +1,10 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<%@taglib uri="http://www.springframework.org/tags" prefix="loc"%>
+<%@taglib uri="http://www.springframework.org/tags" prefix="loc" %>
 
 <footer>
     <div class="container">
         <%--элемент потом скрыть до наполнения функциональностью //TODO --%>
-        <div  hidden class="row info">
+        <div hidden class="row info">
             <div class="col-sm-3">
                 <%--КАК ЭТО РАБОТАЕТ--%>
                 <div class="header"><h5><loc:message code="dashboard.howItWork"/></h5></div>
@@ -59,6 +59,12 @@
                     </ul>
                 </div>
             </div>
+        </div>
+        <div class="socials-icon-wrapper ">
+            <a class="socials-icon-wrapper__icon" href="https://twitter.com/exratesme" target="_blank"><img
+                    src="<c:url value='/client/img/twitter.png'/>" alt="TW"/></a>
+            <a class="socials-icon-wrapper__icon" href="https://www.facebook.com/exrates.me" target="_blank"><img
+                    src="<c:url value='/client/img/facebook.png'/>" alt="FB"/></a>
         </div>
         <p><loc:message code="dashboard.allRightsReserved"/></p>
     </div>
