@@ -65,6 +65,10 @@ public class DashboardController {
 
     private CurrencyPair currentCurrencyPair;
 
+    @RequestMapping(value = {"/dashboard/locale"})
+    public void localeSwitcherCommand(){
+    }
+
     @RequestMapping(value = {"/dashboard"})
     public ModelAndView dashboard(@ModelAttribute CurrencyPair currencyPair, Principal principal) {
         ModelAndView model = new ModelAndView();
