@@ -7,6 +7,8 @@ import me.exrates.model.Transaction;
 import me.exrates.model.enums.OperationType;
 import me.exrates.service.MerchantService;
 import me.exrates.service.PerfectMoneyService;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,6 +39,8 @@ public class PerfectMoneyMerchantController {
 
     @Autowired
     private MerchantService merchantService;
+
+    private static final Logger logger = LogManager.getLogger("merchant");
 
     @RequestMapping(value = "payment/provide",method = RequestMethod.POST)
     public RedirectView outputPayment(Payment payment,Principal principal,RedirectAttributes redir) {
@@ -79,6 +83,7 @@ public class PerfectMoneyMerchantController {
     @RequestMapping(value = "payment/success",method = RequestMethod.POST)
     public RedirectView successPayment(@RequestParam Map<String,String> response, HttpSession httpSession,
                                        RedirectAttributes redir) {
+        logger.info("Response: " + response);
         final Object mutex = WebUtils.getSessionMutex(httpSession);
         final Map<String,String> payeeParams;
         final Transaction openTransaction;

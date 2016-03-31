@@ -52,7 +52,7 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
 
     @Override
     public Optional<PendingPayment> findByAddress(final String address) {
-        final String sql = "SELECT * FROM PENDING_PAYMENT WHERE address = :address";
+        final String sql = "SELECT * FROM PENDING_PAYMENT WHERE address= :address";
         final Map<String, String> params = Collections.singletonMap("address", address);
         try {
             return Optional.of(

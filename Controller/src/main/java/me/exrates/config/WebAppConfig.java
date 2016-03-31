@@ -39,7 +39,7 @@ import java.util.Properties;
 @EnableTransactionManagement
 @ComponentScan({ "me.exrates" })
 @Import({ me.exrates.security.config.SecurityConfig.class })
-@PropertySource(value = "classpath:/${spring.profile.active}/db.properties")
+@PropertySource(value = "classpath:/db.properties")
 public class WebAppConfig extends WebMvcConfigurerAdapter {
 
 	private @Value("${db.user}") String dbUser;

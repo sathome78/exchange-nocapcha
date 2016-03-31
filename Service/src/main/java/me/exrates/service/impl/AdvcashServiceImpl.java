@@ -25,7 +25,7 @@ import java.util.Optional;
 import java.util.Properties;
 
 @Service
-@PropertySource("classpath:/${spring.profile.active}/merchants/advcashmoney.properties")
+@PropertySource("classpath:/merchants/advcashmoney.properties")
 public class AdvcashServiceImpl implements AdvcashService{
 
     private @Value("${advcash.accountId}") String accountId;

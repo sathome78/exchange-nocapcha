@@ -47,7 +47,7 @@ import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED;
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 @Service("yandexMoneyService")
-@PropertySource("classpath:/${spring.profile.active}/merchants/yandexmoney.properties")
+@PropertySource("classpath:/merchants/yandexmoney.properties")
 public class YandexMoneyServiceImpl implements YandexMoneyService {
 
     private @Value("${yandexmoney.clientId}") String clientId;

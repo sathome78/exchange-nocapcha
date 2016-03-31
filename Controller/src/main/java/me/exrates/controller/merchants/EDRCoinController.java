@@ -1,44 +1,38 @@
 package me.exrates.controller.merchants;
 
 import com.google.gson.Gson;
-import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Objects;
 import me.exrates.model.CreditsOperation;
-import me.exrates.model.Email;
 import me.exrates.model.Payment;
 import me.exrates.model.PendingPayment;
 import me.exrates.service.EDRCService;
 import me.exrates.service.MerchantService;
-import me.exrates.service.SendMailService;
 import me.exrates.service.exception.InvalidAmountException;
+import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.RejectedPaymentInvoice;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.OK;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.MailException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.servlet.view.RedirectView;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 @Controller
 @RequestMapping("/merchants/edrcoin")
-@PropertySource(value = "classpath:/${spring.profile.active}/mail.properties")
 public class EDRCoinController {
 
     @Autowired
@@ -50,40 +44,27 @@ public class EDRCoinController {
     @Autowired
     private ApplicationContext context;
 
-    @Autowired
-    private SendMailService sendMailService;
-
-    private @Value("${mail.user}") String mailUser;
-
     private static final Logger logger = LogManager.getLogger("merchant");
 
-    @RequestMapping(value = "/payment/prepare",method = RequestMethod.POST)
-    public ResponseEntity<String> preparePayment(@RequestBody String body, Principal principal, Locale locale) {
+    @RequestMapping(value = "/payment/prepare", method = POST)
+    public ResponseEntity<String> preparePayment(final @RequestBody String body,
+        final Principal principal, final Locale locale)
+    {
         final Payment payment = new Gson().fromJson(body, Payment.class);
         final String email = principal.getName();
-        logger.debug("Preparing payment: "+payment+" for: " + email);
-        final Optional<CreditsOperation> creditsOperation = merchantService.prepareCreditsOperation(payment, email);
-        logger.debug("Prepared payment: "+creditsOperation);
+        logger.debug("Preparing payment: " + payment + " for: " + email);
+        final CreditsOperation creditsOperation = merchantService
+            .prepareCreditsOperation(payment, email)
+            .orElseThrow(InvalidAmountException::new);
+        logger.debug("Prepared payment: "+ creditsOperation);
         try {
-            final PendingPayment pendingPayment = creditsOperation
-                .map(edrcService::createPaymentInvoice)
-                .orElseThrow(InvalidAmountException::new);
-            final BigDecimal amount = creditsOperation.get().getAmount().add(
-                creditsOperation.get().getCommissionAmount()
-            );
-            final String sumWithCurrency = amount.stripTrailingZeros() + " EDRC";
-            final String notification = String.format("Please pay %1s on the wallet %1s", sumWithCurrency, pendingPayment.getAddress().get()) +
-                "<br>" + context.getMessage("merchants.pendingEnrollment", null, locale);
-            final Email mail = new Email();
-            mail.setFrom(mailUser);
-            mail.setTo(principal.getName());
-            mail.setSubject("Exrates EDRC Payment Invoice");
-            mail.setMessage(sumWithCurrency);
-            try {
-                sendMailService.sendMail(mail);
-            } catch (MailException e) {
-                logger.error(e);
-            }
+            final PendingPayment pendingPayment = edrcService
+                .createPaymentInvoice(creditsOperation);
+            final String notification = merchantService
+                .sendDepositNotification(pendingPayment
+                        .getAddress().orElseThrow(
+                        ()->new MerchantInternalException("Address not presented"))
+                    ,email ,locale, creditsOperation);
             logger.info("New pending EDRCoin payment :"+ pendingPayment);
             logger.info(notification);
             final HttpHeaders httpHeaders = new HttpHeaders();
@@ -95,15 +76,18 @@ public class EDRCoinController {
         }
     }
 
-
-    @RequestMapping(value = "/payment/provide",method = RequestMethod.POST)
-    public RedirectView provideOutputPayment(final Payment payment,final Principal principal, final RedirectAttributes redir) {
-        throw new UnsupportedOperationException();
-    }
-
-    //// TODO: 3/30/16 Will be implemented
-    @RequestMapping("/payment/received")
-    public void paymentHandler(@RequestBody Map<String,String> response) {
-        logger.info(response);
+    @RequestMapping(value = "payment/received",method = POST)
+    public ResponseEntity<Void> paymentHandler (final @RequestParam Map<String,String> params) {
+        logger.info("Recieved response from edrc-coin: " + params);
+        final ResponseEntity<Void> response = new ResponseEntity<>(OK);
+        final String xml = params.get("operation_xml");
+        final String signature = params.get("signature");
+        if (Objects.isNull(xml) || Objects.isNull(signature)) {
+            return response;
+        }
+        if (edrcService.confirmPayment(xml,signature)) {
+            return response;
+        }
+        return new ResponseEntity<>(BAD_REQUEST);
     }
 }
