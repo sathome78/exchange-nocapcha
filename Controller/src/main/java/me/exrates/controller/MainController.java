@@ -141,13 +141,15 @@ public class MainController {
 
         ModelAndView model = new ModelAndView();
         if (error != null) {
-            String exceptionClass = httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION").getClass().getName();
-            if (exceptionClass.equals("org.springframework.security.authentication.DisabledException")) {
-                model.addObject("error", messageSource.getMessage("login.blocked", null, localeResolver.resolveLocale(request)));
-            } else if (exceptionClass.equals("org.springframework.security.authentication.BadCredentialsException")) {
-                model.addObject("error", messageSource.getMessage("login.notFound", null, localeResolver.resolveLocale(request)));
-            } else {
-                model.addObject("error", messageSource.getMessage("login.errorLogin", null, localeResolver.resolveLocale(request)));
+            if (httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION") != null) {
+                String exceptionClass = httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION").getClass().getName();
+                if (exceptionClass.equals("org.springframework.security.authentication.DisabledException")) {
+                    model.addObject("error", messageSource.getMessage("login.blocked", null, localeResolver.resolveLocale(request)));
+                } else if (exceptionClass.equals("org.springframework.security.authentication.BadCredentialsException")) {
+                    model.addObject("error", messageSource.getMessage("login.notFound", null, localeResolver.resolveLocale(request)));
+                } else {
+                    model.addObject("error", messageSource.getMessage("login.errorLogin", null, localeResolver.resolveLocale(request)));
+                }
             }
         }
 
