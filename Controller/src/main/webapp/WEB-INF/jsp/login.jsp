@@ -77,10 +77,10 @@
 <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
 <%----------%>
 <%--capcha--%>
-<%--<script type="text/javascript" src="<c:url value='/client/js/capcha.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/capcha.js'/>"></script>
 <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit&hl=${pageContext.response.locale}"
         async defer>
-</script>--%>
+</script>
 
 </body>
 </html>
