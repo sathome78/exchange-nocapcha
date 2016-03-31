@@ -31,9 +31,9 @@ public class SpringMvcInitializer
 	@Override
 	public void onStartup(ServletContext servletContext) throws ServletException {
 		super.onStartup(servletContext);
-		String activeProfile = System.getProperty("profile.active");
+		String activeProfile = System.getProperty("profile_active");
 		if (activeProfile == null) {
-			activeProfile = "uat";
+			activeProfile = "dev";
 		}
 		logger.info("Active profile :" + activeProfile);
 		servletContext.setInitParameter("spring.profile.active" , activeProfile);

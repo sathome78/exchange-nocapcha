@@ -10,6 +10,7 @@ import me.exrates.service.exception.UnsupportedMerchantException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
@@ -37,16 +38,13 @@ public class MerchantServiceImpl implements MerchantService{
     private UserService userService;
 
     @Autowired
-    private CompanyWalletService companyWalletService;
-
-    @Autowired
-    private WalletService walletService;
-
-    @Autowired
     private CurrencyService currencyService;
 
     @Autowired
     private SendMailService sendMailService;
+
+    @Autowired
+    private ApplicationContext context;
 
     private static final Logger logger = LogManager.getLogger("merchant");
 
@@ -73,7 +71,8 @@ public class MerchantServiceImpl implements MerchantService{
                 .getCurrency()
                 .getName();
         final String notification = String
-            .format("Please pay %1s on the wallet %1s", sumWithCurrency, toWallet);
+            .format(context.getMessage("merchants.depositNotification",null,locale),
+                sumWithCurrency, toWallet);
         final Email mail = new Email();
         mail.setTo(email);
         mail.setSubject("Exrates Payment Invoice");
