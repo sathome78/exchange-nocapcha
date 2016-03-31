@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
@@ -35,6 +36,9 @@ public class AdminController {
 
     @Autowired
     RegisterFormValidation registerFormValidation;
+
+    @Autowired
+    LocaleResolver localeResolver;
 
     private String currentRole;
 
@@ -78,7 +82,7 @@ public class AdminController {
     }
 
     @RequestMapping(value = "/admin/adduser/submit", method = RequestMethod.POST)
-    public ModelAndView submitcreate(@Valid @ModelAttribute User user, BindingResult result, ModelAndView model) {
+    public ModelAndView submitcreate(@Valid @ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request) {
 
         if (!currentRole.equals(UserRole.ADMINISTRATOR.name())) {
             return new ModelAndView("403");
@@ -86,11 +90,11 @@ public class AdminController {
 
         user.setConfirmPassword(user.getPassword());
         user.setStatus(UserStatus.ACTIVE);
-        registerFormValidation.validate(user, result);
-        if(result.hasErrors()) {
+        registerFormValidation.validate(user, result, localeResolver.resolveLocale(request));
+        if (result.hasErrors()) {
             model.addObject("roleList", userService.getAllRoles());
             model.setViewName("admin/addUser");
-        }else {
+        } else {
             userService.createUserByAdmin(user);
             model.setViewName("redirect:/admin");
         }
@@ -107,14 +111,14 @@ public class AdminController {
 
         model.addObject("statusList", UserStatus.values());
         List<UserRole> roleList = new ArrayList<>();
-        if (currentRole.equals(UserRole.ADMIN_USER.name())||currentRole.equals(UserRole.ACCOUNTANT.name())){
+        if (currentRole.equals(UserRole.ADMIN_USER.name()) || currentRole.equals(UserRole.ACCOUNTANT.name())) {
             roleList.add(UserRole.USER);
-        }else {
+        } else {
             roleList = userService.getAllRoles();
         }
         model.addObject("roleList", roleList);
         User user = userService.getUserById(id);
-        if (!currentRole.equals(UserRole.ADMINISTRATOR.name())&&!user.getRole().name().equals(UserRole.USER.name())) {
+        if (!currentRole.equals(UserRole.ADMINISTRATOR.name()) && !user.getRole().name().equals(UserRole.USER.name())) {
             return new ModelAndView("403");
         }
         user.setId(id);
@@ -125,21 +129,21 @@ public class AdminController {
     }
 
     @RequestMapping(value = "/admin/edituser/submit", method = RequestMethod.POST)
-    public ModelAndView submitedit(@Valid @ModelAttribute User user, BindingResult result, ModelAndView model) {
+    public ModelAndView submitedit(@Valid @ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request) {
 
-        if (!currentRole.equals(UserRole.ADMINISTRATOR.name())&&!user.getRole().name().equals(UserRole.USER.name())) {
+        if (!currentRole.equals(UserRole.ADMINISTRATOR.name()) && !user.getRole().name().equals(UserRole.USER.name())) {
             return new ModelAndView("403");
         }
         user.setConfirmPassword(user.getPassword());
-        if (user.getFinpassword() == null){
+        if (user.getFinpassword() == null) {
             user.setFinpassword("");
         }
-        registerFormValidation.validateEditUser(user, result);
-        if(result.hasErrors()) {
+        registerFormValidation.validateEditUser(user, result, localeResolver.resolveLocale(request));
+        if (result.hasErrors()) {
             model.addObject("statusList", UserStatus.values());
             model.addObject("roleList", userService.getAllRoles());
             model.setViewName("admin/editUser");
-        }else {
+        } else {
             userService.updateUserByAdmin(user);
             model.setViewName("redirect:/admin");
         }
@@ -165,10 +169,10 @@ public class AdminController {
     public ModelAndView submitsettingsPassword(@Valid @ModelAttribute User user, BindingResult result,
                                                ModelAndView model, HttpServletRequest request) {
 
-        registerFormValidation.validateResetPassword(user, result);
-        if(result.hasErrors()) {
+        registerFormValidation.validateResetPassword(user, result, localeResolver.resolveLocale(request));
+        if (result.hasErrors()) {
             model.setViewName("settings");
-        }else {
+        } else {
             userService.update(user, true, false, false);
             new SecurityContextLogoutHandler().logout(request, null, null);
             model.setViewName("redirect:/dashboard");
@@ -183,10 +187,10 @@ public class AdminController {
     public ModelAndView submitsettingsFinPassword(@Valid @ModelAttribute User user, BindingResult result,
                                                   ModelAndView model, HttpServletRequest request) {
 
-        registerFormValidation.validateResetFinPassword(user, result);
-        if(result.hasErrors()) {
+        registerFormValidation.validateResetFinPassword(user, result, localeResolver.resolveLocale(request));
+        if (result.hasErrors()) {
             model.setViewName("settings");
-        }else {
+        } else {
             userService.update(user, false, true, false);
             model.setViewName("redirect:/mywallets");
         }

@@ -66,6 +66,12 @@
                                         required="required"/>
                 <span class='repass'><i class="fa fa-check"></i></span>
                 <registrationform:errors path="confirmPassword" style="color:red"/>
+                <br/>
+                <br/>
+                <%--CAPCHA--%>
+                <div id="cpch-field" class="g-recaptcha" data-sitekey="6LfPFRwTAAAAAO86BgguULebb3tXZbur5ccLCvPX"></div>
+                <p class='cpch-error-message' style="color:red">${cpch}</p>
+                <br/>
                 <%--ЗАРЕГИСТРИРОВАТЬСЯ--%>
                 <button id="register_button" type="submit"><loc:message
                         code="register.submit"/></button>
@@ -80,6 +86,11 @@
 <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
 <%----------%>
+<%--capcha--%>
+<script type="text/javascript" src="<c:url value='/client/js/capcha.js'/>"></script>
+<script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit&hl=${pageContext.response.locale}"
+        async defer>
+</script>
 
 </body>
 </html>
