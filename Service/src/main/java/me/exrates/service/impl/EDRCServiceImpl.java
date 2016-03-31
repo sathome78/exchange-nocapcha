@@ -7,23 +7,21 @@ import com.squareup.okhttp.RequestBody;
 import java.io.IOException;
 import java.io.StringReader;
 import java.math.BigDecimal;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.AbstractMap;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
+import java.util.StringJoiner;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
-import me.exrates.dao.PendingCryptoPaymentDao;
-import me.exrates.model.BlockchainPayment;
+import me.exrates.dao.PendingPaymentDao;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
+import me.exrates.model.PendingPayment;
 import me.exrates.model.Transaction;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.EDRCService;
@@ -65,30 +63,30 @@ public class EDRCServiceImpl implements EDRCService {
     private AlgorithmService algorithmService;
 
     @Autowired
-    private PendingCryptoPaymentDao pendingCryptoPaymentDao;
+    private PendingPaymentDao pendingPaymentDao;
 
     @Autowired
     private TransactionService transactionService;
 
     @Override
     @Transactional
-    public BlockchainPayment createPaymentInvoice(final CreditsOperation creditsOperation) {
+    public PendingPayment createPaymentInvoice(final CreditsOperation creditsOperation) {
         final Transaction transaction = transactionService.createTransactionRequest(creditsOperation);
         final String xml = buildEDRCAddressXML(transaction.getId());
         logger.debug("Builded xml request: "+xml);
         final String response = sendRequest(xml, "http://api.blockchain.mn/merchant/coin/get_new_address");
         try {
             logger.debug("EDR-Coin response: "+response);
-            final BigDecimal amount = transaction
-                .getAmount().add(transaction.getCommissionAmount());
-            final BlockchainPayment payment = new BlockchainPayment();
+            final PendingPayment payment = new PendingPayment();
             final String address = evaluateXpath(response,
                 Collections.singletonMap("address", "//address/text()"))
                 .get("address");
+            final String transactionHash = computeTransactionHash(transaction);
             payment.setAddress(address);
-            payment.setAmount(amount);
             payment.setInvoiceId(transaction.getId());
-            return pendingCryptoPaymentDao.create(payment);
+            payment.setTransactionHash(transactionHash);
+            pendingPaymentDao.create(payment);
+            return payment;
         } catch (final Exception e) {
             throw new MerchantInternalException(e);
         }
@@ -96,22 +94,23 @@ public class EDRCServiceImpl implements EDRCService {
 
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
-    public BlockchainPayment findByInvoiceId(final int invoiceId) {
-        final BlockchainPayment pendingPayment = pendingCryptoPaymentDao.findByInvoiceId(invoiceId);
-        pendingPayment.setSecret(key);
-        return pendingPayment;
+    public PendingPayment findByInvoiceId(final int invoiceId) {
+        return pendingPaymentDao.findByInvoiceId(invoiceId)
+            .orElseThrow(()->new MerchantInternalException("Invalid invoice_id: "+invoiceId));
     }
 
     @Override
     @Transactional
     public void provideOutputPayment(final Payment payment, final CreditsOperation creditsOperation) {
-        final BigDecimal amount = creditsOperation.getAmount().add(creditsOperation.getCommissionAmount());
-        final Transaction transaction = transactionService.createTransactionRequest(creditsOperation);
-        transactionService.provideTransaction(transaction);
-        final String xml = buildWithdrawEDRCXml(transaction.getId(), payment.getDestination(), amount);
-        sendEDRC(xml);
+//        final BigDecimal amount = creditsOperation.getAmount().add(creditsOperation.getCommissionAmount());
+//        final Transaction transaction = transactionService.createTransactionRequest(creditsOperation);
+//        transactionService.provideTransaction(transaction);
+//        final String xml = buildWithdrawEDRCXml(transaction.getId(), payment.getDestination(), amount);
+//        sendEDRC(xml);
+        throw new UnsupportedOperationException();
     }
 
+    //// TODO: 3/29/16 Provide this according to EDRC Response
     @Override
     @Transactional
     public boolean verifyPayment(final String response) {
@@ -138,35 +137,34 @@ public class EDRCServiceImpl implements EDRCService {
             return false;
         }
         final String address = result.get("address");
-        final BlockchainPayment payment = pendingCryptoPaymentDao.findByAddress(address);
-        if (Objects.isNull(payment)) {
-            return false;
-        }
-        final BigDecimal thatAmount = new BigDecimal(result.get("amount"));
-        if (!payment.getAmount().equals(thatAmount)) {
-            return false;
-        }
+//        final PendingPayment payment = pendingPaymentDao.findByAddress(address);
+//        if (Objects.isNull(payment)) {
+//            return false;
+//        }
+//        final BigDecimal thatAmount = new BigDecimal(result.get("amount"));
+//        if (!payment.getAmount().equals(thatAmount)) {
+//            return false;
+//        }
         return true;
     }
 
     @Transactional(propagation = Propagation.NESTED)
     protected void sendEDRC(final String xml) {
-        final String response = sendRequest(xml, "http://api.blockchain.mn/merchant/coin/withdraw");
-        System.out.println(response);
-        try {
-            String status = evaluateXpath(response, Collections.singletonMap("status", "//status/text()"))
-                .get("status");
-            if  (status.equals("0")) {
-                String message = "EDRCService exception: "+evaluateXpath(response, Collections.singletonMap("error", "//error_msg/text()"))
-                    .get("error");
-                throw new MerchantInternalException(message);
-            }
-        } catch (Exception e) {
-            throw new MerchantInternalException();
-        }
+//        final String response = sendRequest(xml, "http://api.blockchain.mn/merchant/coin/withdraw");
+//        System.out.println(response);
+//        try {
+//            String status = evaluateXpath(response, Collections.singletonMap("status", "//status/text()"))
+//                .get("status");
+//            if  (status.equals("0")) {
+//                String message = "EDRCService exception: "+evaluateXpath(response, Collections.singletonMap("error", "//error_msg/text()"))
+//                    .get("error");
+//                throw new MerchantInternalException(message);
+//            }
+//        } catch (Exception e) {
+//            throw new MerchantInternalException();
+//        }
+        throw new UnsupportedOperationException();
     }
-
-
 
     protected String buildEDRCAddressXML(final int requestId) {
         try {
@@ -233,76 +231,6 @@ public class EDRCServiceImpl implements EDRCService {
         }
     }
 
-    static String sha1(String input) throws NoSuchAlgorithmException {
-        MessageDigest mDigest = MessageDigest.getInstance("SHA1");
-        byte[] result = mDigest.digest(input.getBytes());
-        StringBuffer sb = new StringBuffer();
-        for (int i = 0; i < result.length; i++) {
-            sb.append(Integer.toString((result[i] & 0xff) + 0x100, 16).substring(1));
-        }
-
-        return sb.toString();
-    }
-
-    public static void main(String[] args) throws Exception {
-//        final String xml = new Xembler(
-//            new Directives()
-//                .add("request")
-//                .add("merchant_id")
-//                .set(14)
-//                .up()
-//                .add("request_id")
-//                .set(12345)
-//                .up()
-//                .add("address")
-//                .set("eYCZkYQxhY4L6VkH4AruVJ9APxteBsETLP")
-//                .up()
-//                .add("amount")
-//                .set("0.5")
-//                .up()
-//                .add("description")
-//                .set("Exrates EDRC payment"))
-//            .xml()
-//            .replaceFirst(REGEX, "")
-//            .trim();
-//        final String xml = "<request>\n" +
-//            "        <merchant_id>20</merchant_id>\n" +
-//            "        <request_id>111111</request_id>\n" +
-//            "    </request>";
-//        final String secret = "9b82b1719ecdc08fd341842878e91570";
-//        final String sign = secret + xml + secret;
-//        final String hashCode = sha1(sign);
-//        final String signature = BaseEncoding.base64().encode(hashCode.getBytes());
-//        final String encoded = BaseEncoding.base64().encode(xml.getBytes());
-//        System.out.println(signature);
-//        System.out.println(encoded);
-//        final RequestBody body = new FormEncodingBuilder()
-//            .add("operation_xml", encoded)
-//            .add("signature", signature)
-//            .build();
-//        final Request request = new Request.Builder()
-//            .url("http://api.blockchain.mn/merchant/coin/get_new_address")
-//            .post(body)
-//            .build();
-//        OkHttpClient client = new OkHttpClient();
-//        Response response = client.newCall(request).execute();
-//        System.out.println(sign);
-//        System.out.println(signature);
-//        String r = response.body().string();
-//        System.out.println(r);
-        EDRCServiceImpl edrcService = new EDRCServiceImpl();
-        final String xml = "<request>\n" +
-            "                <merchant_id>14</merchant_id>\n" +
-            "                <address>xxxxxjkhjkkj</address>\n" +
-            "                <amount>0.555</amount>\n" +
-            "                <createtime>111111</createtime>\n" +
-            "                <status>1</status>\n" +
-            "               <conirmations>2/10</conirmations>  \n" +
-            "                        </request>";
-
-        edrcService.verifyPayment(xml);
-    }
-
     protected String encodeRequest(final String xml) {
         return algorithmService.base64Encode(xml);
     }
@@ -327,4 +255,21 @@ public class EDRCServiceImpl implements EDRCService {
         }
         return result;
     }
+
+    protected String computeTransactionHash(final Transaction request) {
+        final String target = new StringJoiner(":")
+            .add(String.valueOf(request.getId()))
+            .add(request
+                .getAmount()
+                .stripTrailingZeros()
+                .toString())
+            .add(request
+                .getCommissionAmount()
+                .stripTrailingZeros()
+                .toString())
+            .add(key)
+            .toString();
+        return algorithmService.sha256(target);
+    }
+
 }

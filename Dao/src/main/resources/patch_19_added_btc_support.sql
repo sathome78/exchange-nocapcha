@@ -1,9 +1,9 @@
 INSERT INTO MERCHANT (description, name) VALUES ("Blockchain","blockchain");
 
 INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum)
-  VALUES ((SELECT id from MERCHANT WHERE name="blockchain"),
-          (SELECT id from CURRENCY WHERE name="BTC"),
-          0.00000001);
+VALUES ((SELECT id from MERCHANT WHERE name="blockchain"),
+        (SELECT id from CURRENCY WHERE name="BTC"),
+        0.00000001);
 
 CREATE TABLE IF NOT EXISTS PENDING_BLOCKCHAIN_PAYMENT (
   amount DOUBLE(40,9) NOT NULL ,

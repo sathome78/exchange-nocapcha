@@ -1,11 +1,11 @@
 package me.exrates.service.impl;
 
+import static com.yandex.money.api.utils.Numbers.bytesToHex;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import me.exrates.service.AlgorithmService;
-import org.springframework.beans.BeanInstantiationException;
 import org.springframework.stereotype.Service;
 
 /**
@@ -14,25 +14,13 @@ import org.springframework.stereotype.Service;
 @Service
 public class AlgorithmServiceImpl implements AlgorithmService {
 
-    private final MessageDigest md5;
-    private final MessageDigest sha1;
-
-    public AlgorithmServiceImpl() {
-        try {
-            md5  = MessageDigest.getInstance("MD5");
-            sha1 = MessageDigest.getInstance("SHA1");
-        } catch (NoSuchAlgorithmException e) {
-            throw new BeanInstantiationException(AlgorithmServiceImpl.class,
-                    "Failed to receive MD5 MessageDigest instance");
-        }
-    }
-
     @Override
     public String computeMD5Hash(String string) {
         try {
+            final MessageDigest md5 = MessageDigest.getInstance("MD5");
             final byte[] digest = md5.digest(string.getBytes("UTF-8"));
             return byteArrayToHexString(digest);
-        } catch (UnsupportedEncodingException ignore) {
+        } catch (UnsupportedEncodingException|NoSuchAlgorithmException ignore) {
             return null;
         }
     }
@@ -40,10 +28,22 @@ public class AlgorithmServiceImpl implements AlgorithmService {
     @Override
     public String sha1(final String string) {
         try {
+            final MessageDigest sha1 = MessageDigest.getInstance("SHA1");
             byte[] digest = sha1.digest(string.getBytes("UTF-8"));
             return byteArrayToHexString(digest);
-        } catch (UnsupportedEncodingException e) {
-            return null;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public String sha256(final String string) {
+        try{
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            md.update(string.getBytes());
+            return bytesToHex(md.digest());
+        } catch(Exception e){
+            throw new RuntimeException(e);
         }
     }
 
