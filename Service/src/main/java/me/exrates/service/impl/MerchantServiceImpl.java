@@ -1,6 +1,7 @@
 package me.exrates.service.impl;
 
 import java.util.Locale;
+import java.util.Objects;
 import javafx.util.Pair;
 import me.exrates.dao.MerchantDao;
 import me.exrates.model.*;
@@ -63,19 +64,33 @@ public class MerchantServiceImpl implements MerchantService{
         final String email, final Locale locale,
         final CreditsOperation creditsOperation)
     {
+        return sendDepositNotification
+            (toWallet, email, locale, creditsOperation, null);
+    }
+
+    @Override
+    public String sendDepositNotification(final String toWallet,
+        final String email, final Locale locale,
+        final CreditsOperation creditsOperation, final BigDecimal externalFee)
+    {
         final BigDecimal amount = creditsOperation
             .getAmount()
-            .add(creditsOperation.getCommissionAmount());
+            .add(creditsOperation.getCommissionAmount())
+            .add(Objects.nonNull(externalFee) ? externalFee : BigDecimal.ZERO);
         final String sumWithCurrency = amount.stripTrailingZeros() +
             creditsOperation
                 .getCurrency()
                 .getName();
         final String notification = String
-            .format(context.getMessage("merchants.depositNotification.body",null,locale),
+            .format(context
+                .getMessage(Objects.isNull(externalFee) ?
+                    "merchants.depositNotification.body" :
+                    "merchants.depositNotificationWithFee.body",null,locale),
                 sumWithCurrency, toWallet);
         final Email mail = new Email();
         mail.setTo(email);
-        mail.setSubject(context.getMessage("merchants.depositNotification.header",null,locale));
+        mail.setSubject(context
+            .getMessage("merchants.depositNotification.header",null,locale));
         mail.setMessage(sumWithCurrency);
         try {
             sendMailService.sendMail(mail);
