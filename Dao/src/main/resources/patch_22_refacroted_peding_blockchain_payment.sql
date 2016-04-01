@@ -8,4 +8,3 @@ INSERT INTO DATABASE_PATCH
 VALUES ("patch_22_refacroted_peding_blockchain_payment", default, 1);
 
 ALTER TABLE PENDING_PAYMENT CHANGE transaction_hash transaction_hash VARCHAR(64) DEFAULT NULL ;
-show tables;
