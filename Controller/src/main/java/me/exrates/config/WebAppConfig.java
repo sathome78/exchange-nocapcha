@@ -8,10 +8,12 @@ import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.*;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -79,7 +81,15 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 		viewResolver.setViewClass(JstlView.class);
 		viewResolver.setPrefix("/WEB-INF/jsp/");
 		viewResolver.setSuffix(".jsp");
+		viewResolver.setExposedContextBeanNames("captchaProperties");
 		return viewResolver;
+	}
+
+	@Bean(name = "captchaProperties")
+	public PropertiesFactoryBean urlProperties() {
+		PropertiesFactoryBean prop = new PropertiesFactoryBean();
+		prop.setLocation(new ClassPathResource("capcha.properties"));
+		return prop;
 	}
 
 	@Bean

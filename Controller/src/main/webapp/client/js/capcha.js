@@ -4,8 +4,9 @@
 
 //for reCAPCHA on "big" login and register forms
 function onloadCallback() {
+    var key = $('#cpch-field').attr('data-sitekey');
     grecaptcha.render('cpch-field', {
-        'sitekey': '6LfPFRwTAAAAAO86BgguULebb3tXZbur5ccLCvPX',
+        'sitekey': key,
         'size': 'normal',
         'callback': capResultCheck,
         'expired-callback': capExpired
