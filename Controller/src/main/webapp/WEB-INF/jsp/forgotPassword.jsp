@@ -50,7 +50,7 @@
                 <br/>
                 <br/>
                 <%--CAPCHA--%>
-                <div id="cpch-field" class="g-recaptcha" data-sitekey="6LfPFRwTAAAAAO86BgguULebb3tXZbur5ccLCvPX"></div>
+                <div id="cpch-field" class="g-recaptcha" data-sitekey=${captchaProperties.key}></div>
                 <p class='cpch-error-message' style="color:red">${cpch}</p>
                 <br/>
                 <%--ВОССТАНОВИТЬ ПАРОЛЬ--%>

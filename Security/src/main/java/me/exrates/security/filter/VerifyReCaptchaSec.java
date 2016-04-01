@@ -6,6 +6,8 @@ package me.exrates.security.filter;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
 import javax.json.Json;
@@ -19,12 +21,13 @@ import java.io.StringReader;
 import java.net.URL;
 
 @Component
+@PropertySource("classpath:/capcha.properties")
 public class VerifyReCaptchaSec {
 
     private static final Logger logger = LogManager.getLogger(VerifyReCaptchaSec.class);
 
     public static final String URL = "https://www.google.com/recaptcha/api/siteverify";
-    public static final String SECRET_KEY = "6LfPFRwTAAAAAKgKnzkT1KPLjPIYey52ojx9xCpY";
+    private @Value("${skey}") String SECRET_KEY;
 
     public boolean verify(String recapchaResponse) {
         boolean result = false;

@@ -12,7 +12,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title><loc:message code="register.title"/></title>
+    <title><loc:message code="login.title"/></title>
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -58,7 +58,7 @@
                 <br/>
                 <br/>
                 <%--CAPCHA--%>
-                <div id="cpch-field" class="g-recaptcha" data-sitekey="6LfPFRwTAAAAAO86BgguULebb3tXZbur5ccLCvPX"></div>
+                <div id="cpch-field" class="g-recaptcha" data-sitekey=${captchaProperties.key}></div>
                 <p class='cpch-error-message' style="color:red">${cpch}</p>
                 <br/>
                 <%--ВОЙТИ--%>
