@@ -86,7 +86,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 	}
 
 	@Bean(name = "captchaProperties")
-	public PropertiesFactoryBean urlProperties() {
+	public PropertiesFactoryBean captchaProperties() {
 		PropertiesFactoryBean prop = new PropertiesFactoryBean();
 		prop.setLocation(new ClassPathResource("capcha.properties"));
 		return prop;
