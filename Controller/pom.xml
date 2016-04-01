@@ -100,9 +100,6 @@
         </profile>
         <profile>
             <id>uat</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
             <build>
                 <plugins>
                     <plugin>

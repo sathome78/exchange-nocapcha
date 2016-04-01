@@ -1,6 +1,7 @@
 package me.exrates.controller.merchants;
 
 import com.google.gson.Gson;
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.Locale;
 import java.util.Map;
@@ -44,6 +45,7 @@ public class EDRCoinController {
     @Autowired
     private ApplicationContext context;
 
+    private static final BigDecimal EDR_COIN_COMMISSION = BigDecimal.valueOf(0.001);
     private static final Logger logger = LogManager.getLogger("merchant");
 
     @RequestMapping(value = "/payment/prepare", method = POST)

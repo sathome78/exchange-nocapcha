@@ -1,5 +1,6 @@
 package me.exrates.service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -22,6 +23,9 @@ public interface MerchantService {
 
     String sendDepositNotification(String toWallet, String email,
         Locale locale, CreditsOperation creditsOperation);
+
+    String sendDepositNotification(String toWallet, String email,
+        Locale locale, CreditsOperation creditsOperation, BigDecimal externalFee);
 
     Map<Integer,List<Merchant>> mapMerchantsToCurrency(List<Currency> currencies);
 

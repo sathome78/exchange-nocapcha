@@ -54,10 +54,11 @@ public class EDRCServiceImpl implements EDRCService {
     private @Value("${account}") String account;
     private @Value("${key}") String key;
 
-    private static final String REGEX = ".*";
     private final OkHttpClient client = new OkHttpClient();
+    private static final String REGEX = ".*";
 
     private static final Logger logger = LogManager.getLogger("merchant");
+
 
     @Autowired
     private AlgorithmService algorithmService;
