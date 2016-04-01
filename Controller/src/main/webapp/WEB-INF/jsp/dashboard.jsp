@@ -5,7 +5,6 @@
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
-
 <html>
 <head>
     <title>Exrates</title>
@@ -55,10 +54,10 @@
     </script>
 
 </head>
-
 <body>
 
 <%@include file="header_new.jsp" %>
+</div>
 
 <main class="container">
     <div class="exchange_data"> <!-- Exchange currencies and graphic -->

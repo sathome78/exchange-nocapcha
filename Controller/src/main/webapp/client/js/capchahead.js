@@ -3,8 +3,9 @@
  */
 //for reCAPCHA on HEAD
 function onloadCallbackHead() {
+    var key = $('#cpch-head-field').attr('data-sitekey');
     grecaptcha.render('cpch-head-field', {
-        'sitekey': '6LfPFRwTAAAAAO86BgguULebb3tXZbur5ccLCvPX',
+        'sitekey': key,
         'size': 'compact',
         'callback': capResultCheckHead,
         'expired-callback': capExpiredHead

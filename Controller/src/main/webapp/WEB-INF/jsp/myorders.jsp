@@ -39,7 +39,6 @@
 <main class="container orders_new transaction my_orders">
     <%@include file='exchange_info_new.jsp' %>
     <div class="row">
-        <%--изменить активный элемент //TODO --%>
         <%@include file='usermenu_new.jsp' %>
 
         <div class="col-sm-9 content">
