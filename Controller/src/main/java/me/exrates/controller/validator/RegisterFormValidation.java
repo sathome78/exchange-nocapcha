@@ -30,6 +30,7 @@ public class RegisterFormValidation implements Validator {
     String STRING_PATTERN = "[a-zA-Z]+";
     String MOBILE_PATTERN = "[0-9]{12}";
     private static final String PASSWORD_PATTERN = "((?=.*\\d)(?=.*[a-zA-Z]).{8,20})";
+    private static final String NICKNAME_PATTERN = "^\\D+[\\w\\d\\-_]+";
 //    private static final Locale ru = new Locale("ru");
     private Locale ru = new Locale("en");
 
@@ -62,9 +63,19 @@ public class RegisterFormValidation implements Validator {
 
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "nickname", "required.nickname",
                 nicknameRequired);
+
+        if (!user.getNickname().matches(NICKNAME_PATTERN)) {
+            errors.rejectValue("nickname", "login.latinonly");
+            errors.rejectValue("nickname", "login.symbonly");
+            errors.rejectValue("nickname", "login.notdigit");
+            return;
+        }
+
         if (user.getNickname().length() > 40) {
             errors.rejectValue("nickname", "nickname.exceed", nicknameExceed);
         }
+
+
         if (!userService.ifNicknameIsUnique(user.getNickname())) {
             errors.rejectValue("nickname", "nickname.incorrect", nicknameExists);
         }

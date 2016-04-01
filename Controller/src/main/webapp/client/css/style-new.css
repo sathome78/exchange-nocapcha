@@ -1278,4 +1278,10 @@ form#order.submit-order-form button, form#command.submit-order-form button {
     margin: 0 0 0 5px;
 }
 
-
+.form-login-error-message {
+    display: inline-block;
+    background-color: white;
+    border-radius: 4px;
+    width: 100%;
+    padding: 1px 5px 1px 5px;
+}

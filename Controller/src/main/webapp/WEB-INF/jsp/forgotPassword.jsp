@@ -42,12 +42,17 @@
             <h5><loc:message code="dashboard.resetPasswordTitle"/></h5>
 
             <form:form class="form-inline" id="settings-user-form"
-                       action="forgotPassword/submit" method="post" modelAttribute="user">
+                       action="/forgotPassword/submit" method="post" modelAttribute="user">
 
                 <loc:message code="admin.email" var="adminEmail"/>
                 <form:input path="email" id="user-email"
                             placeholder="${adminEmail}"/>
-
+                <br/>
+                <br/>
+                <%--CAPCHA--%>
+                <div id="cpch-field" class="g-recaptcha" data-sitekey="6LfPFRwTAAAAAO86BgguULebb3tXZbur5ccLCvPX"></div>
+                <p class='cpch-error-message' style="color:red">${cpch}</p>
+                <br/>
                 <%--ВОССТАНОВИТЬ ПАРОЛЬ--%>
                 <button type="submit"><loc:message code="dashboard.resetPasswordButton"></loc:message></button>
             </form:form>
@@ -67,6 +72,11 @@
 
 <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
 <%----------%>
+<%--capcha--%>
+<script type="text/javascript" src="<c:url value='/client/js/capcha.js'/>"></script>
+<script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit&hl=${pageContext.response.locale}"
+        async defer>
+</script>
 </body>
 </html>
 

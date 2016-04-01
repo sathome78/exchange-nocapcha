@@ -6,8 +6,10 @@
 <header>
     <c:set var="path" value="${fn:replace(pageContext.request.requestURI, '/WEB-INF/jsp', '')}"/>
     <c:set var="path" value="${fn:replace(path, '.jsp', '')}"/>
+    <%--don't show entrance menu item in header for pages that contain it's own capcha because conflict occurs--%>
     <c:set var="showEntrance" value="${(path != '/login')
                                 && (path != '/register')
+                                && (path != '/forgotPassword')
                                 && (path != '/login?error')}"/>
     <nav class="navbar">
         <div class="container">

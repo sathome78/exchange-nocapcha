@@ -48,7 +48,8 @@
                 <loc:message code="register.nickname" var="login"/>
                 <registrationform:input id="login" path="nickname" placeholder="${login}"
                                         required="required"/>
-                <registrationform:errors path="nickname" style="color:red" class="form-control"/>
+                <%--<registrationform:errors path="nickname" style="color:red" class="form-control"/>--%>
+                <form:errors class="form-login-error-message" path="nickname" style="color:red"/>
                 <span><loc:message code="register.loginLabel"/></span>
                 <%--email--%>
                 <loc:message code="register.email" var="email"/>

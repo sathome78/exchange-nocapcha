@@ -42,15 +42,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private User getUser(List<User> lp, String userName)
 	{
 		logger.info("Begin 'getUser' method");
-		User pers = null;
-		for (User p : lp)
-		{
-			if (userName.equals(p.getEmail()))
-			{
-				pers = p;
-			}
-		}
-		return pers;
+		final String un = userName.toLowerCase();
+		return lp.stream()
+				.filter(e ->e.getEmail().toLowerCase().equals(un))
+				.findFirst()
+				.get();
 	}
       
     private Collection<GrantedAuthority> getAuthorities(String login)

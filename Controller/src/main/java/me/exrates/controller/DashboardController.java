@@ -9,6 +9,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
+
+import me.exrates.controller.utils.VerifyReCaptcha;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.Order;
@@ -21,6 +23,7 @@ import me.exrates.service.DashboardService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -65,7 +68,13 @@ public class DashboardController {
     RegisterFormValidation registerFormValidation;
 
     @Autowired
+    MessageSource messageSource;
+
+    @Autowired
     LocaleResolver localeResolver;
+
+    @Autowired
+    VerifyReCaptcha verifyReCaptcha;
 
     private CurrencyPair currentCurrencyPair;
 
@@ -195,6 +204,14 @@ public class DashboardController {
 
     @RequestMapping(value = "/forgotPassword/submit", method = RequestMethod.POST)
     public ModelAndView forgotPasswordSubmit(@ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request) {
+
+        String recapchaResponse = request.getParameter("g-recaptcha-response");
+        if (!verifyReCaptcha.verify(recapchaResponse)) {
+            String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
+            ModelAndView modelAndView = new ModelAndView("/forgotPassword", "user", user);
+            modelAndView.addObject("cpch", correctCapchaRequired);
+            return modelAndView;
+        }
 
         String email = user.getEmail();
         registerFormValidation.validateEmail(user, result, localeResolver.resolveLocale(request));
