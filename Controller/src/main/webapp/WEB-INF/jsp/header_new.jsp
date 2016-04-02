@@ -7,7 +7,9 @@
     <c:set var="path" value="${fn:replace(pageContext.request.requestURI, '/WEB-INF/jsp', '')}"/>
     <c:set var="path" value="${fn:replace(path, '.jsp', '')}"/>
     <%--don't show entrance menu item in header for pages that contain it's own capcha because conflict occurs--%>
-    <c:set var="showEntrance" value="${(path != '/login')
+    <sec:authorize access="isAuthenticated()" var="isAuth"/>
+    <c:set var="showEntrance" value="${
+                                (path != '/login')
                                 && (path != '/register')
                                 && (path != '/forgotPassword')
                                 && (path != '/login?error')}"/>
@@ -130,7 +132,7 @@
 </sec:authorize>
 
 <%--capcha--%>
-<c:if test="${showEntrance}">
+<c:if test="${showEntrance && !isAuth}">
     <script type="text/javascript" src="<c:url value='/client/js/capchahead.js'/>"></script>
     <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallbackHead&render=explicit&hl=${pageContext.response.locale}"
             async defer>
