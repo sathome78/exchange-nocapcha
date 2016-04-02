@@ -16,6 +16,19 @@ $('.orderForm-toggler').click(function () {
 });
 
 
+$('.adminForm-toggler').click(function () {
+    if ($(this).hasClass('active')) {
+        return;
+    }else {
+        $('.tab-pane').removeClass('active');
+        $('.adminForm-toggler').removeClass('active');
+        $(this).addClass('active');
+        var idx = $(this).index();
+        $('.tab-pane:eq('+idx+')').addClass('active');
+    }
+});
+
+
 //Enable REGISTER button if pass == repass when entering repass
 $(document).ready(function () {
     /*Activates submit button if all field filled correct and capcha is passed

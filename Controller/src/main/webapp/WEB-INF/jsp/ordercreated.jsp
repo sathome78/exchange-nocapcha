@@ -12,7 +12,7 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title><loc:message code="myorders.title"/></title>
+	<title><loc:message code="createdorder.title" /></title>
 	<link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon"/>
 
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
