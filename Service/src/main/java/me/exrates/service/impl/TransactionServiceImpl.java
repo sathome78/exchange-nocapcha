@@ -172,4 +172,9 @@ public class TransactionServiceImpl implements TransactionService {
         Collections.sort(list, new OperationViewComparator());
         return list;
     }
+
+    @Override
+    public List<OperationView> showUserOperationHistory(int id, Locale locale) {
+        return showMyOperationHistory(userService.getUserById(id).getEmail(), locale);
+    }
 }
