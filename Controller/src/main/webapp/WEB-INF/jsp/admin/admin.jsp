@@ -1,177 +1,144 @@
-<%@page language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@taglib uri="http://www.springframework.org/tags" prefix="loc" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
 <%@taglib uri="http://www.springframework.org/tags" prefix="spring" %>
-<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
-
-<html>
+<%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <meta charset="utf-8"/>
-    <!--[if lt IE 9]>
-    <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+    <meta charset="utf-8">
     <title><loc:message code="admin.title"/></title>
-    <meta name="keywords" content=""/>
-    <meta name="description" content=""/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon"/>
 
-    <link href="<c:url value='/client/css/bootstrap.css'/>" rel="stylesheet" type="text/css"/>
-    <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet" type="text/css"/>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Roboto:400,700,300' rel='stylesheet' type='text/css'>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js" type="text/javascript"></script>
+    <script src="<c:url value='/client/js/jquery.mCustomScrollbar.concat.min.js'/>" type="text/javascript"></script>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    <link href="<c:url value='/client/css/jquery.mCustomScrollbar.min.css'/>" rel="stylesheet">
+    <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
+    <link href="<c:url value='/client/css/style-new.css'/>" rel="stylesheet">
+
     <link href="<c:url value='/client/css/jquery.dataTables.min.css'/>" rel="stylesheet" type="text/css"/>
 
-    <script type="text/javascript" src="/client/js/jquery.js"></script>
-    <script type="text/javascript" src="/client/js/tab.js"></script>
+    <%--<script type="text/javascript" src="/client/js/jquery.js"></script>--%>
+    <%--<script type="text/javascript" src="/client/js/tab.js"></script>--%>
     <script type="text/javascript" src="/client/js/jquery.dataTables.min.js"></script>
-    <script type="text/javascript">
-        $(document).ready(function(){
-            $('#usersTable').DataTable();
-        });
-    </script>
-
 
 </head>
+
 <body>
 
-<div class="wrapper lk">
+<%@include file='../header_new.jsp' %>
 
-    <div class="container container_center full__height">
+<main class="container orders_new admin side_menu">
+    <%@include file='../exchange_info_new.jsp' %>
+    <div class="row">
+        <%@include file='../usermenu_new.jsp' %>
 
-        <%@include file='../usermenu.jsp' %>
-
-        <div class="main__content">
-
-            <%@include file='../header.jsp' %>
-
-            <%--<div class="col-md-12 main">--%>
-            <div class="content__page">
+        <div class="col-sm-9 content">
+            <div class="buttons">
                 <c:set var="adminEnum" value="<%=me.exrates.model.enums.UserRole.ADMINISTRATOR%>"/>
                 <c:set var="accountantEnum" value="<%=me.exrates.model.enums.UserRole.ACCOUNTANT%>"/>
                 <c:set var="admin_userEnum" value="<%=me.exrates.model.enums.UserRole.ADMIN_USER%>"/>
-                <ul class="nav nav-tabs">
-                    <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
-                        <li class="active"><a data-toggle="tab" href="#panel1"><loc:message code="admin.users"/></a></li>
-                    </sec:authorize>
-                    <sec:authorize access="hasAnyAuthority('${adminEnum}')">
-                        <li><a data-toggle="tab" href="#panel2"><loc:message code="admin.admins"/></a></li>
-                    </sec:authorize>
-                    <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
-                        <li><a data-toggle="tab" href="#panel3"><loc:message code="admin.finance"/></a></li>
-                    </sec:authorize>
-                </ul>
-                <div class="tab-content">
-                    <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
-                        <div id="panel1" class="tab-pane fade in active">
-                            <h3>
-                                <b><loc:message code="admin.listOfUsers"/></b>
-                            </h3>
-                            <h1>
+                <%--Пользователи--%>
+                <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+                    <button class="active adminForm-toggler">
+                        <loc:message code="admin.users"/>
+                    </button>
+                </sec:authorize>
+                <%--Администраторы--%>
+                <sec:authorize access="hasAnyAuthority('${adminEnum}')">
+                    <button class="adminForm-toggler">
+                        <loc:message code="admin.admins"/>
+                    </button>
+                </sec:authorize>
+                <%--Финансисты--%>
+                <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
+                    <button class="adminForm-toggler">
+                        <loc:message code="admin.finance"/>
+                    </button>
+                </sec:authorize>
+            </div>
 
-                            </h1>
-                            <table id="usersTable" class="table table-hover table-bordered table-striped" border="1" cellpadding="8"
-                                   cellspacing="0">
-                                <thead style="border-style: none;">
-                                <tr>
-                                    <th><loc:message code="admin.user"/></th>
-                                    <th><loc:message code="admin.email"/></th>
-                                    <th><loc:message code="admin.registrationDate"/></th>
-                                    <th><loc:message code="admin.role"/></th>
-                                    <th><loc:message code="admin.status"/></th>
-                                    <th><loc:message code="admin.balance"/></th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <c:forEach items="${userUsers}" var="user">
-                                    <tr>
-                                        <td>
-                                            <a class="link" href="admin/editUser?id=${user.getId()}" name="edit-user-id"
-                                               id="edit-user-id" title=<loc:message
-                                                    code="admin.editUser"/>>${user.getNickname()}</a>
-                                        </td>
-                                        <td>
-                                            <option>${user.getEmail()}</option>
-                                        </td>
-                                        <td>
-                                            <option>${user.getRegdate()}</option>
-                                        </td>
-                                        <td>
-                                            <option>${user.getRole()}</option>
-                                        </td>
-                                        <td>
-                                            <option>${user.getStatus()}</option>
-                                        </td>
-                                        <td>
-                                            <option>${user.getStatus()}</option>
-                                        </td>
+            <%--контейнер форм ролей пользователей--%>
+            <div class="tab-content">
+                <%--форма Пользователи--%>
+                <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+                    <div id="panel1" class="tab-pane active">
+                        <h4>
+                            <b><loc:message code="admin.listOfUsers"/></b>
+                        </h4>
+                        <hr/>
 
-                                    </tr>
-                                </c:forEach>
+                        <table id="usersTable" class="admin-table table table-hover table-bordered table-striped"
+                               style="width: 100%;">
+                            <thead>
+                            <tr>
+                                <th><loc:message code="admin.user"/></th>
+                                <th><loc:message code="admin.email"/></th>
+                                <th><loc:message code="admin.registrationDate"/></th>
+                                <th><loc:message code="admin.role"/></th>
+                                <th><loc:message code="admin.status"/></th>
+                            </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </sec:authorize>
 
-                                </tbody>
-                            </table>
-                        </div>
-                    </sec:authorize>
-                    <sec:authorize access="hasAnyAuthority('${adminEnum}')">
-                        <div id="panel2" class="tab-pane fade">
-                            <h3>
-                                <b><loc:message code="admin.listOfAdmins"/></b>
-                                <a href="/admin/addUser" class="btn btn-primary pull-right" id="admin-add-button"
-                                   title=<loc:message code="admin.addUser"/>><loc:message code="admin.addUser"/></a>
-                            </h3>
-                            <h1>
+                <%--форма админы--%>
+                <sec:authorize access="hasAnyAuthority('${adminEnum}')">
+                    <div id="panel2" class="tab-pane">
+                        <h4>
+                            <b><loc:message code="admin.listOfAdmins"/></b>
+                            <button onclick="javascript:window.location.href='/admin/addUser';" id="admin-add-button"><loc:message code="admin.addUser"/></button>
+                        </h4>
 
-                            </h1>
-                            <table id="adminsTable" class="table table-hover table-bordered table-striped" border="1" cellpadding="8"
-                                   cellspacing="0">
-                                <thead style="border-style: none;">
-                                <tr>
-                                    <th><loc:message code="admin.user"/></th>
-                                    <th><loc:message code="admin.email"/></th>
-                                    <th><loc:message code="admin.registrationDate"/></th>
-                                    <th><loc:message code="admin.role"/></th>
-                                    <th><loc:message code="admin.status"/></th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <c:forEach items="${adminUsers}" var="user">
-                                    <tr>
-                                        <td>
-                                            <a class="link" href="admin/editUser?id=${user.getId()}" name="edit-admin-id"
-                                               id="edit-admin-id" title=<loc:message
-                                                    code="admin.editUser"/>>${user.getNickname()}</a>
-                                        </td>
-                                        <td>
-                                            <option>${user.getEmail()}</option>
-                                        </td>
-                                        <td>
-                                            <option>${user.getRegdate()}</option>
-                                        </td>
-                                        <td>
-                                            <option>${user.getRole()}</option>
-                                        </td>
-                                        <td>
-                                            <option>${user.getStatus()}</option>
-                                        </td>
+                        <hr/>
 
-                                    </tr>
-                                </c:forEach>
+                        <table id="adminsTable" class="admin-table table table-hover table-bordered table-striped"
+                               style="width: 100%;">
+                            <thead>
+                            <tr>
+                                <th><loc:message code="admin.user"/></th>
+                                <th><loc:message code="admin.email"/></th>
+                                <th><loc:message code="admin.registrationDate"/></th>
+                                <th><loc:message code="admin.role"/></th>
+                                <th><loc:message code="admin.status"/></th>
+                            </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </sec:authorize>
 
-                                </tbody>
-                            </table>
-                        </div>
-                    </sec:authorize>
-                    <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
-                        <div id="panel3" class="tab-pane fade">
-                            <h3>
-                                <a class="link" href="companywallet" ><loc:message code="admin.companyWallet"/></a>
-                            </h3>
-                        </div>
-                    </sec:authorize>
-                </div>
-                <%--<%@include file='footer.jsp'%>--%>
+                <%--форма финансисты--%>
+                <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
+                    <div id="panel3" class="tab-pane">
+                        <h4>
+                            <p><a class="link" href="companywallet"><loc:message code="admin.companyWallet"/></a></p>
+                        </h4>
+                    </div>
+                </sec:authorize>
             </div>
         </div>
     </div>
-</div>
+    <hr>
+</main>
+<%----------%>
+<script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/menuSwitcher.js'/>"></script>
+
+<script type="text/javascript" src="<c:url value='/client/js/dataTable/adminUsersDataTable.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/dataTable/adminAdminsDataTable.js'/>"></script>
+<%----------%>
 </body>
 </html>
+

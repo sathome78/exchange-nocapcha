@@ -10,7 +10,7 @@
 <head>
     <meta charset="utf-8">
     <title><loc:message code="orders.title"/></title>
-    <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon" />
+    <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon"/>
 
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -174,7 +174,7 @@
                                 <td> ${order.currencyBuyString} </td>
                                 <td><fmt:formatNumber type="number" maxFractionDigits="9"
                                                       value="${order.amountBuy}"/></td>
-                                <td><a href="orders/submitaccept?id=${order.id}"><loc:message
+                                <td><a href="/orders/submitaccept?id=${order.id}"><loc:message
                                         code="orders.accept"/></a></td>
                             </tr>
                         </c:forEach>
@@ -203,19 +203,17 @@
                                 <td> ${order.currencySellString} </td>
                                 <td><fmt:formatNumber type="number" maxFractionDigits="9"
                                                       value="${order.amountSell}"/></td>
-                                <td><a href="orders/submitaccept?id=${order.id}"><loc:message code="orders.accept"/></a>
+                                <td><a href="/orders/submitaccept?id=${order.id}"><loc:message code="orders.accept"/></a>
                                 </td>
                             </tr>
                         </c:forEach>
                         </tbody>
                     </table>
                 </div>
-                <!-- end col-sm-6 -->
             </div>
-            <!-- end row -->
         </div>
-        <!-- end col-sm-9 content -->
     </div>
+    <hr>
 </main>
 <%@include file='footer_new.jsp' %>
 <%----------%>

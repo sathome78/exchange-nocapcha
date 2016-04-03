@@ -51,7 +51,6 @@
                 <c:otherwise>
                     <%--ИСТОРИЯ ОПЕРАЦИЙ--%>
                     <h4><loc:message code="transactions.title"/></h4>
-                    <hr>
                     <table>
                         <tbody>
                         <tr>
@@ -128,6 +127,7 @@
             </c:choose>
         </div>
     </div>
+    <hr/>
 </main>
 <%@include file='footer_new.jsp' %>
 

@@ -60,6 +60,8 @@
                 </div>
             </div>
         </div>
+        <br/>
+
         <div class="socials-icon-wrapper ">
             <a class="socials-icon-wrapper__icon" href="https://twitter.com/exratesme" target="_blank"><img
                     src="<c:url value='/client/img/twitter.png'/>" alt="TW"/></a>

@@ -46,9 +46,6 @@
                     <loc:message code="${error}"/>
                 </c:if>
             </label>
-
-            <hr>
-
             <div class="row">
                 <div class="col-sm-9">
                     <paymentForm:form class="form-horizontal withdraw__money" id="payment" name="payment" method="post"
@@ -81,6 +78,7 @@
             </div>
         </div>
     </div>
+    <hr>
 </main>
 
 <%@include file='footer_new.jsp' %>

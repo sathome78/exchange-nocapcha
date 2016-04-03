@@ -10,7 +10,7 @@
 <head>
     <meta charset="utf-8">
     <title><loc:message code="admin.title"/></title>
-    <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon" />
+    <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon"/>
 
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -64,42 +64,61 @@
                                action="/settings/changePassword/submit"
                                method="post" modelAttribute="user">
                         <%--Логин--%>
-                        <div>
-                            <label for="user-name"><loc:message code="admin.login"/></label>
-                            <form:input path="id" type="hidden" class="form-control" id="user-id"/>
-                            <form:input path="role" type="hidden" class="form-control" id="user-role"/>
-                            <form:input path="status" type="hidden" class="form-control"
-                                        id="user-status"/>
-                            <form:input path="finpassword" type="hidden" class="form-control"
-                                        id="user-finpassword"/>
-                            <form:input path="nickname" class="form-control" id="user-name"
-                                        readonly="true"/>
+                        <div class="input-block-wrapper">
+                            <div class="col-md-4 input-block-wrapper__label-wrapper">
+                                <label for="user-name" class="input-block-wrapper__label"><loc:message
+                                        code="admin.login"/></label>
+                            </div>
+                            <div class="col-md-8 input-block-wrapper__input-wrapper">
+                                <form:input path="id" type="hidden" class="form-control" id="user-id"/>
+                                <form:input path="role" type="hidden" class="form-control" id="user-role"/>
+                                <form:input path="status" type="hidden" class="form-control"
+                                            id="user-status"/>
+                                <form:input path="finpassword" type="hidden" class="form-control"
+                                            id="user-finpassword"/>
+                                <form:input path="nickname" class="input-block-wrapper__input" id="user-name"
+                                            readonly="true"/>
+                            </div>
                         </div>
                         <%--e-mail--%>
-                        <div>
-                            <label for="user-email"><loc:message code="admin.email"/></label>
-                            <form:errors path="email" style="color:red"/>
-                            <form:input path="email" class="form-control" id="user-email"
-                                        readonly="true"/>
+                        <div class="input-block-wrapper">
+                            <div class="col-md-4 input-block-wrapper__label-wrapper">
+                                <label for="user-email" class="input-block-wrapper__label"><loc:message
+                                        code="admin.email"/></label>
+                            </div>
+                            <div class="col-md-8 input-block-wrapper__input-wrapper">
+                                <form:input path="email" class="input-block-wrapper__input"
+                                            id="user-email" readonly="true"/>
+                                <form:errors path="email" class="input-block-wrapper__input"
+                                             style="color:red"/>
+                            </div>
                         </div>
                         <%--пароль--%>
-                        <div>
-                            <label for="user-password" path="password"><loc:message code="admin.password"/></label>
-
-                            <div class="input-field-wrapper">
-                                <form:password path="password" class="form-control" id="user-password"/>
-                                <form:errors path="password" style="color:red"/>
+                        <div class="input-block-wrapper">
+                            <div class="col-md-4 input-block-wrapper__label-wrapper">
+                                <label for="user-password" path="password"
+                                       class="input-block-wrapper__label"><loc:message
+                                        code="admin.password"/></label>
+                            </div>
+                            <div class="col-md-8 input-block-wrapper__input-wrapper">
+                                <form:password path="password" class="input-block-wrapper__input"
+                                               id="user-password"/>
+                                <form:errors path="password" class="input-block-wrapper__input"
+                                             style="color:red"/>
                             </div>
                         </div>
                         <%--повтор пароль--%>
-                        <div>
-                            <label for="user-confirmpassword" path="confirmpassword"><loc:message
-                                    code="admin.confirmpassword"/></label>
-
-                            <div class="input-field-wrapper">
-                                <form:password path="confirmPassword" class="form-control"
+                        <div class="input-block-wrapper">
+                            <div class="col-md-4 input-block-wrapper__label-wrapper">
+                                <label for="user-confirmpassword" path="confirmpassword"
+                                       class="input-block-wrapper__label"><loc:message
+                                        code="admin.confirmpassword"/></label>
+                            </div>
+                            <div class="col-md-8 input-block-wrapper__input-wrapper">
+                                <form:password path="confirmPassword" class="input-block-wrapper__input"
                                                id="user-confirmpassword"/>
-                                <form:errors path="confirmPassword" style="color:red"/>
+                                <form:errors path="confirmPassword" class="input-block-wrapper__input"
+                                             style="color:red"/>
                             </div>
                         </div>
                         <%--будет отправлено письмо--%>
@@ -117,43 +136,60 @@
                                action="/settings/changeFinPassword/submit"
                                method="post" modelAttribute="user">
                         <%--Логин--%>
-                        <div>
-                            <label for="userFin-name"><loc:message code="admin.login"/></label>
-                            <form:input path="id" type="hidden" class="form-control" id="userFin-id"/>
-                            <form:input path="role" type="hidden" class="form-control"
-                                        id="userFin-role"/>
-                            <form:input path="status" type="hidden" class="form-control"
-                                        id="userFin-status"/>
-                            <form:input path="nickname" class="form-control" id="userFin-name"
-                                        readonly="true"/>
+                        <div class="input-block-wrapper">
+                            <div class="col-md-4 input-block-wrapper__label-wrapper">
+                                <label for="userFin-name" class="input-block-wrapper__label"><loc:message
+                                        code="admin.login"/></label>
+                            </div>
+                            <div class="col-md-8 input-block-wrapper__input-wrapper">
+                                <form:input path="id" type="hidden" class="form-control" id="userFin-id"/>
+                                <form:input path="role" type="hidden" class="form-control"
+                                            id="userFin-role"/>
+                                <form:input path="status" type="hidden" class="form-control"
+                                            id="userFin-status"/>
+                                <form:input path="nickname" class="input-block-wrapper__input" id="userFin-name"
+                                            readonly="true"/>
+                            </div>
                         </div>
                         <%--e-mail--%>
-                        <div>
-                            <label for="userFin-email"><loc:message code="admin.email"/></label>
-                            <form:errors path="email" style="color:red"/>
-                            <form:input path="email" class="form-control" id="userFin-email"
-                                        readonly="true"/>
+                        <div class="input-block-wrapper">
+                            <div class="col-md-4 input-block-wrapper__label-wrapper">
+                                <label for="userFin-email" class="input-block-wrapper__label"><loc:message
+                                        code="admin.email"/></label>
+                            </div>
+                            <div class="col-md-8 input-block-wrapper__input-wrapper">
+                                <form:input path="email" class="input-block-wrapper__input"
+                                            id="userFin-email" readonly="true"/>
+                                <form:errors path="email" class="input-block-wrapper__input"
+                                             style="color:red"/>
+                            </div>
                         </div>
                         <%--пароль--%>
-                        <div>
-                            <label for="userFin-password" path="finpassword"><loc:message
-                                    code="admin.finPassword"/></label>
-
-                            <div class="input-field-wrapper">
-                                <form:password path="finpassword" class="form-control"
+                        <div class="input-block-wrapper">
+                            <div class="col-md-4 input-block-wrapper__label-wrapper">
+                                <label for="userFin-password" path="finpassword"
+                                       class="input-block-wrapper__label"><loc:message
+                                        code="admin.finPassword"/></label>
+                            </div>
+                            <div class="col-md-8 input-block-wrapper__input-wrapper">
+                                <form:password path="finpassword" class="input-block-wrapper__input"
                                                id="userFin-password"/>
-                                <form:errors path="finpassword" style="color:red"/>
+                                <form:errors path="finpassword" class="input-block-wrapper__input"
+                                             style="color:red"/>
                             </div>
                         </div>
                         <%--повтор пароль--%>
-                        <div>
-                            <label for="userFin-confirmpassword" path="confirmpassword"><loc:message
-                                    code="admin.confirmpassword"/></label>
-
-                            <div class="input-field-wrapper">
-                                <form:password path="confirmPassword" class="form-control"
+                        <div class="input-block-wrapper">
+                            <div class="col-md-4 input-block-wrapper__label-wrapper">
+                                <label for="userFin-confirmpassword" path="confirmpassword"
+                                       class="input-block-wrapper__label"><loc:message
+                                        code="admin.confirmpassword"/></label>
+                            </div>
+                            <div class="col-md-8 input-block-wrapper__input-wrapper">
+                                <form:password path="confirmPassword" class="input-block-wrapper__input"
                                                id="userFin-confirmpassword"/>
-                                <form:errors path="confirmPassword" style="color:red"/>
+                                <form:errors path="confirmPassword" class="input-block-wrapper__input"
+                                             style="color:red"/>
                             </div>
                         </div>
                         <%--будет отправлено письмо--%>
@@ -165,9 +201,9 @@
                     </form:form>
                 </div>
             </div>
-            <hr>
         </div>
     </div>
+    <hr/>
 </main>
 <%@include file='footer_new.jsp' %>
 <%----------%>
