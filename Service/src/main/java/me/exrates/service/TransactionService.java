@@ -23,4 +23,6 @@ public interface TransactionService {
     List<Transaction> findAllByUserWallets(List<Integer> userWalletsIds);
     
     List<OperationView> showMyOperationHistory(String email, Locale locale);
+
+    List<OperationView> showUserOperationHistory(int id, Locale locale);
 }

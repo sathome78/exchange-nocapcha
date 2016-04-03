@@ -94,10 +94,9 @@
                     </c:forEach>
                 </c:otherwise>
             </c:choose>
-
-
         </div>
     </div>
+    <hr>
 </main>
 <%@include file='footer_new.jsp' %>
 
