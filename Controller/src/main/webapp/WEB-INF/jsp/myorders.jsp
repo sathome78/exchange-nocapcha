@@ -122,7 +122,7 @@
                                         </c:if>
                                     </td>
                                     <td><c:if test="${(myorder.status.status eq 2)||(myorder.status.status eq 1)}"> <a
-                                            href="myorders/submitdelete?id=${myorder.id}"><loc:message
+                                            href="/myorders/submitdelete?id=${myorder.id}"><loc:message
                                             code="myorders.delete"/></a> </c:if></td>
                                 </tr>
                             </c:forEach>
@@ -180,7 +180,7 @@
                                         </c:if>
                                     <td>
                                         <c:if test="${(myorder.status.status eq 2)||(myorder.status.status eq 1)}">
-                                            <a href="myorders/submitdelete?id=${myorder.id}"><loc:message
+                                            <a href="/myorders/submitdelete?id=${myorder.id}"><loc:message
                                                     code="myorders.delete"/></a>
                                         </c:if></td>
                                 </tr>
@@ -192,6 +192,7 @@
             </c:choose>
         </div>
     </div>
+    <hr/>
 </main>
 <%@include file='footer_new.jsp' %>
 

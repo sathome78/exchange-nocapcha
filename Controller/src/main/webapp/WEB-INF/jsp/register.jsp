@@ -41,7 +41,8 @@
     <div class="row">
         <div class="col-sm-4">
             <%--РЕГИСТРАЦИЯ НОВОГО ПОЛЬЗОВАТЕЛЯ--%>
-            <h5><loc:message code="register.title"/></h5>
+            <h4><loc:message code="register.title"/></h4>
+            <br/>
 
             <registrationform:form method="post" action="create" modelAttribute="user">
                 <%--Логин--%>

@@ -1,102 +1,146 @@
-<%@page language="java" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@taglib uri="http://www.springframework.org/tags" prefix="loc" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
 <%@taglib uri="http://www.springframework.org/tags" prefix="spring" %>
-
-<html>
+<%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <meta charset="utf-8"/>
-    <!--[if lt IE 9]>
-    <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+    <meta charset="utf-8">
     <title><loc:message code="admin.title"/></title>
-    <meta name="keywords" content=""/>
-    <meta name="description" content=""/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon"/>
 
-    <link href="<c:url value='/client/css/bootstrap.css'/>" rel="stylesheet" type="text/css"/>
-    <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet" type="text/css"/>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Roboto:400,700,300' rel='stylesheet' type='text/css'>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js" type="text/javascript"></script>
+    <script src="<c:url value='/client/js/jquery.mCustomScrollbar.concat.min.js'/>" type="text/javascript"></script>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    <link href="<c:url value='/client/css/jquery.mCustomScrollbar.min.css'/>" rel="stylesheet">
+    <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
+    <link href="<c:url value='/client/css/style-new.css'/>" rel="stylesheet">
+
+    <link href="<c:url value='/client/css/jquery.dataTables.min.css'/>" rel="stylesheet" type="text/css"/>
+
+    <script type="text/javascript" src="/client/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#usersTable').DataTable();
+        });
+    </script>
 
 </head>
+
 <body>
 
-<div class="wrapper lk">
+<%@include file='../header_new.jsp' %>
 
-    <div class="container container_center full__height">
+<main class="container orders_new admin side_menu">
+    <%@include file='../exchange_info_new.jsp' %>
+    <div class="row">
+        <%@include file='../usermenu_new.jsp' %>
+        <%--<div class="col-sm-6 content">--%>
+        <div class="content">
+            <%--форма редактирование пользователя--%>
+            <div class="col-sm-6 content">
+                <h4>
+                    <b><loc:message code="admin.addUser"/></b>
+                </h4>
+                <hr/>
+                <div class="panel-body">
+                    <form:form class="form-horizontal" id="user-add-form" action="/admin/adduser/submit" method="post" modelAttribute="user">
+                        <div>
+                            <fieldset class="field-user">
 
-        <%@include file='../usermenu.jsp' %>
-
-        <div class="main__content">
-
-            <%@include file='../header.jsp' %>
-
-            <div class="col-md-12 main">
-                <div class="panel user-panel panel-primary">
-                    <div class="panel-heading">
-                        <h3 class="panel-title"><loc:message code="admin.addUser"/></h3>
-                    </div>
-                    <div class="panel-body">
-                            <form:form class="form-horizontal" id="user-add-form" action="/admin/adduser/submit" method="post" modelAttribute="user">
-                            <div>
-                                <fieldset class="field-user">
-                                     <div class="form-group user-name-group">
-                                        <label for="user-name" class="col-md-4 control-label"><loc:message code="admin.login"/></label>
-                                        <div class="col-md-8">
-                                            <form:errors path="nickname" style="color:red"/>
-                                            <form:input path="nickname" class="form-control" id="user-name" required="required"/>
-
-                                        </div>
+                                <div class="input-block-wrapper">
+                                    <div class="col-md-4 input-block-wrapper__label-wrapper">
+                                        <label for="user-name" class="input-block-wrapper__label"><loc:message
+                                                code="admin.login"/></label>
                                     </div>
-                                    <div class="form-group user-email-group">
-                                        <label for="user-email" class="col-md-4 control-label"><loc:message code="admin.email"/></label>
-                                        <div class="col-md-8">
-                                            <form:errors path="email" style="color:red"/>
-                                            <form:input path="email" class="form-control" id="user-email" required="required" />
-                                        </div>
+                                    <div class="col-md-8 input-block-wrapper__input-wrapper">
+                                        <form:input path="nickname" class="input-block-wrapper__input" id="user-name" required="required"/>
+                                        <form:errors path="nickname" class="input-block-wrapper__input" style="color:red"/>
                                     </div>
-                                    <div class="form-group user-password-group">
-                                        <label for="user-password" class="col-md-4 control-label"><loc:message code="admin.password"/></label>
-                                        <div class="col-md-8">
-                                            <form:errors path="password" style="color:red"/>
-                                            <form:input path="password" type="password" class="form-control" id="user-password" required="required"/>
-                                        </div>
+                                </div>
+                                <div class="input-block-wrapper">
+                                    <div class="col-md-4 input-block-wrapper__label-wrapper">
+                                        <label for="user-email" class="input-block-wrapper__label"><loc:message
+                                                code="admin.email"/></label>
                                     </div>
-                                    <div class="form-group user-phone-group">
-                                        <label for="user-phone" class="col-md-4 control-label"><loc:message code="admin.phone"/></label>
-                                        <div class="col-md-8">
-                                            <form:errors path="phone" style="color:red"/>
-                                            <form:input path="phone" class="form-control" id="user-phone" />
-                                        </div>
+                                    <div class="col-md-8 input-block-wrapper__input-wrapper">
+                                        <form:input path="email" class="input-block-wrapper__input" id="user-email" required="required" />
+                                        <form:errors path="email" class="input-block-wrapper__input" style="color:red"/>
                                     </div>
-                                    <div class="form-group user-role-group">
-                                        <label for="user-role" class="col-md-4 control-label"><loc:message code="admin.role"/></label>
-                                        <div class="col-md-8">
-                                            <form:select path="role" id="user-role" class="form-control" name="user-role">
-                                                <c:forEach items="${roleList}" var="role">
-                                                    <option value="${role}">${role}</option>
-                                                </c:forEach>
-                                            </form:select>
-                                        </div>
+                                </div>
+                                <div class="input-block-wrapper">
+                                    <div class="col-md-4 input-block-wrapper__label-wrapper">
+                                        <label for="user-password" path="password"
+                                               class="input-block-wrapper__label"><loc:message
+                                                code="admin.password"/></label>
                                     </div>
-                                    <div class="form-group">
-                                        <div class="text-center">
-                                            <loc:message code="admin.save" var="saveSubmit"></loc:message>
-                                            <input class="btn btn-primary" value="${saveSubmit}" type="submit">
+                                    <div class="col-md-8 input-block-wrapper__input-wrapper">
+                                        <form:input path="password" type="password" class="input-block-wrapper__input" id="user-password" required="required"/>
+                                        <form:errors path="password" class="input-block-wrapper__input" style="color:red"/>
+                                    </div>
+                                </div>
+                                <div class="input-block-wrapper">
+                                    <div class="col-md-4 input-block-wrapper__label-wrapper">
+                                        <label for="user-phone" class="input-block-wrapper__label"><loc:message
+                                                code="admin.phone"/></label>
+                                    </div>
+                                    <div class="col-md-8 input-block-wrapper__input-wrapper">
+                                        <form:input path="phone" class="input-block-wrapper__input" id="user-phone" />
+                                        <form:errors path="phone" class="input-block-wrapper__input" style="color:red"/>
+                                    </div>
+                                </div>
 
-                                            <loc:message code="admin.cancel" var="cancelSubmit"></loc:message>
-                                            <input onclick="javascript:window.location='/admin';"
-                                                   class="btn btn-default" value="${cancelSubmit}" type="reset">
-                                        </div>
+                                <div class="input-block-wrapper">
+                                    <div class="col-md-4 input-block-wrapper__label-wrapper">
+                                        <label for="user-role" class="input-block-wrapper__label"><loc:message
+                                                code="admin.role"/></label>
                                     </div>
-                                </fieldset>
-                            </div>
-                        </form:form>
-                    </div>
+                                    <div class="col-md-8 input-block-wrapper__input-wrapper">
+                                        <form:select path="role" id="user-role" class="input-block-wrapper__input" name="user-role">
+                                            <c:forEach items="${roleList}" var="role">
+                                                <option value="${role}">${role}</option>
+                                            </c:forEach>
+                                        </form:select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div>
+                                        <loc:message code="admin.save" var="saveSubmit"></loc:message>
+                                        <button type="submit">${saveSubmit}</button>
+
+                                        <loc:message code="admin.cancel" var="cancelSubmit"></loc:message>
+                                        <button type="reset"
+                                                onclick="javascript:window.location='/admin';">${cancelSubmit}</button>
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </div>
+                    </form:form>
                 </div>
             </div>
         </div>
     </div>
-</div>
+    <hr>
+</main>
+<%----------%>
+<script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/menuSwitcher.js'/>"></script>
+
+<script type="text/javascript" src="<c:url value='/client/js/dataTable/adminTransactionsDataTable.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/dataTable/adminWalletsDataTable.js'/>"></script>
+<%----------%>
 </body>
 </html>
+

@@ -44,7 +44,6 @@
                     <loc:message code="${error}"/>
                 </label>
             </c:if>
-            <hr>
             <c:choose>
                 <c:when test="${empty wallets}">
                     <loc:message code="merchants.noWallet"/>
@@ -86,6 +85,7 @@
             </c:choose>
         </div>
     </div>
+    <hr/>
 </main>
 
 <%@include file='footer_new.jsp' %>
