@@ -245,7 +245,12 @@ $(function(){
             var commission = parseFloat(response);
             var targetCurrentSum = parseFloat(sum.val());
             var computedCommission = targetCurrentSum * commission;
-            var targetNewSum = targetCurrentSum + computedCommission;
+            var targetNewSum;
+            if (url.indexOf('output' )=== -1) {
+                targetNewSum = targetCurrentSum + computedCommission;    
+            } else {
+                targetNewSum = targetCurrentSum - computedCommission;
+            }
             var templateVariables = {
                 amount: '__amount',
                 currency: '__currency',
