@@ -1,16 +1,13 @@
 package me.exrates.service;
 
+import me.exrates.model.*;
+
 import java.math.BigDecimal;
+import java.security.Principal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import me.exrates.model.CreditsOperation;
-import me.exrates.model.Currency;
-import me.exrates.model.Merchant;
-import me.exrates.model.MerchantCurrency;
-import me.exrates.model.Payment;
-import me.exrates.model.Transaction;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -20,6 +17,11 @@ public interface MerchantService {
     Merchant create(Merchant merchant);
 
     List<Merchant> findAllByCurrency(Currency currency);
+
+    Map<String, String> withdrawRequest(CreditsOperation creditsOperation, Locale locale, Principal principal);
+
+    String sendWithdrawalNotification(final int requestId, String mail,
+                                      Locale locale, CreditsOperation creditsOperation);
 
     String sendDepositNotification(String toWallet, String email,
         Locale locale, CreditsOperation creditsOperation);

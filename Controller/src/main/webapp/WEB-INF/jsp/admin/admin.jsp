@@ -49,8 +49,11 @@
                 <c:set var="accountantEnum" value="<%=me.exrates.model.enums.UserRole.ACCOUNTANT%>"/>
                 <c:set var="admin_userEnum" value="<%=me.exrates.model.enums.UserRole.ADMIN_USER%>"/>
                 <ul class="nav nav-tabs">
+                    <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
+                        <li class="active"><a data-toggle="tab" href="#panel0"><loc:message code="admin.withdrawRequests"/></a></li>
+                    </sec:authorize>
                     <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
-                        <li class="active"><a data-toggle="tab" href="#panel1"><loc:message code="admin.users"/></a></li>
+                        <li><a data-toggle="tab" href="#panel1"><loc:message code="admin.users"/></a></li>
                     </sec:authorize>
                     <sec:authorize access="hasAnyAuthority('${adminEnum}')">
                         <li><a data-toggle="tab" href="#panel2"><loc:message code="admin.admins"/></a></li>
@@ -60,8 +63,15 @@
                     </sec:authorize>
                 </ul>
                 <div class="tab-content">
+                    <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
+                        <div id="panel0" class="tab-pane fade in active">
+                            <h3>
+                                <a class="link" href="/admin/withdrawal" ><loc:message code="admin.withdrawRequests"/></a>
+                            </h3>
+                        </div>
+                    </sec:authorize>
                     <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
-                        <div id="panel1" class="tab-pane fade in active">
+                        <div id="panel1" class="tab-pane fade">
                             <h3>
                                 <b><loc:message code="admin.listOfUsers"/></b>
                             </h3>

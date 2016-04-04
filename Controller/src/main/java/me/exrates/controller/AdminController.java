@@ -1,6 +1,7 @@
 package me.exrates.controller;
 
 import me.exrates.controller.validator.RegisterFormValidation;
+import me.exrates.dao.WithdrawRequestDao;
 import me.exrates.model.User;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
@@ -22,23 +23,27 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+
+import static java.util.Arrays.*;
 
 @Controller
 public class AdminController {
 
     @Autowired
-    UserSecureServiceImpl userSecureService;
+    private UserSecureServiceImpl userSecureService;
 
     @Autowired
-    UserService userService;
+    private UserService userService;
 
     @Autowired
-    RegisterFormValidation registerFormValidation;
+    private RegisterFormValidation registerFormValidation;
 
     @Autowired
-    LocaleResolver localeResolver;
+    private LocaleResolver localeResolver;
+
+    @Autowired
+    private WithdrawRequestDao withdrawRequestDao;
 
     private String currentRole;
 
@@ -46,7 +51,6 @@ public class AdminController {
     public ModelAndView admin(Principal principal) {
 
         currentRole = ((UsernamePasswordAuthenticationToken) principal).getAuthorities().iterator().next().getAuthority();
-
         ModelAndView model = new ModelAndView();
         List<UserRole> adminRoles = new ArrayList<>();
         adminRoles.add(UserRole.ADMINISTRATOR);
@@ -54,8 +58,6 @@ public class AdminController {
         adminRoles.add(UserRole.ADMIN_USER);
         List<User> adminUsers = userSecureService.getUsersByRoles(adminRoles);
         model.addObject("adminUsers", adminUsers);
-
-
         List<UserRole> userRoles = new ArrayList<>();
         userRoles.add(UserRole.USER);
         List<User> userUsers = userSecureService.getUsersByRoles(userRoles);
@@ -64,6 +66,8 @@ public class AdminController {
 
         return model;
     }
+
+
 
     @RequestMapping("/admin/addUser")
     public ModelAndView addUser() {
@@ -213,5 +217,14 @@ public class AdminController {
         return model;
     }
 
+    @RequestMapping(value = "/admin/withdrawal")
+    public ModelAndView withdrawalRequests() {
+        final ModelAndView modelAndView = new ModelAndView("");
+        final List<UserRole> roles = new ArrayList<>();
+        roles.addAll(asList(UserRole.ADMINISTRATOR, UserRole.ACCOUNTANT));
+        final HashMap<String, String> params = new HashMap<>();
+        return null;
+//        return new ModelAndView("withdrawRequests",Collections.)
+    }
 
 }

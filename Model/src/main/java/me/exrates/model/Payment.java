@@ -2,11 +2,14 @@ package me.exrates.model;
 
 import me.exrates.model.enums.OperationType;
 
+import javax.validation.constraints.Min;
+
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 public class Payment {
 
+    @Min(value = 30,message = "Bad currency")
     private int currency;
     private int merchant;
     private double sum;

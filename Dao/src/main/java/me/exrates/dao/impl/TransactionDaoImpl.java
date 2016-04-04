@@ -26,7 +26,7 @@ public final class TransactionDaoImpl implements TransactionDao {
     @Autowired
     private NamedParameterJdbcTemplate jdbcTemplate;
 
-    private RowMapper<Transaction> transactionRowMapper = (resultSet, i) -> {
+    protected static RowMapper<Transaction> transactionRowMapper = (resultSet, i) -> {
 
         final OperationType operationType = resultSet.getInt("TRANSACTION.operation_type_id") == 1 ? OperationType.INPUT :
                 OperationType.OUTPUT;
