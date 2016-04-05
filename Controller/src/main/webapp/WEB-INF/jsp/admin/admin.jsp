@@ -77,38 +77,39 @@
                             <h3>
                                 <b><loc:message code="admin.listOfUsers"/></b>
                             </h3>
-                            <h1>
-                <%--Пользователи--%>
-                <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
-                    <button class="active orderForm-toggler">
-                        <loc:message code="admin.users"/>
-                    </button>
-                </sec:authorize>
-                <%--Администраторы--%>
-                <sec:authorize access="hasAnyAuthority('${adminEnum}')">
-                    <button class="orderForm-toggler">
-                        <loc:message code="admin.admins"/>
-                    </button>
-                </sec:authorize>
-                <%--Финансисты--%>
-                <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
-                    <button class="orderForm-toggler">
-                        <loc:message code="admin.finance"/>
-                    </button>
-                </sec:authorize>
-            </div>
+                        </div>
+                    </sec:authorize>
+                    <%--Пользователи--%>
+                    <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+                        <button class="active orderForm-toggler">
+                            <loc:message code="admin.users"/>
+                        </button>
+                    </sec:authorize>
+                    <%--Администраторы--%>
+                    <sec:authorize access="hasAnyAuthority('${adminEnum}')">
+                        <button class="orderForm-toggler">
+                            <loc:message code="admin.admins"/>
+                        </button>
+                    </sec:authorize>
+                    <%--Финансисты--%>
+                    <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
+                        <button class="orderForm-toggler">
+                            <loc:message code="admin.finance"/>
+                        </button>
+                    </sec:authorize>
+                </div>
 
-            <%--контейнер форм ролей пользователей--%>
-            <div class="tab-content">
-                <%--форма Пользователи--%>
-                <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
-                    <div class="tab-pane active" id="tab__sell">
-                        <h4>
-                            <b><loc:message code="admin.listOfUsers"/></b>
-                        </h4>
-                        <hr/>
+                <%--контейнер форм ролей пользователей--%>
+                <div class="tab-content">
+                    <%--форма Пользователи--%>
+                    <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+                        <div class="tab-pane active" id="tab__sell">
+                            <h4>
+                                <b><loc:message code="admin.listOfUsers"/></b>
+                            </h4>
+                            <hr/>
 
-                        <table id="adminsTable" class="table table-hover table-bordered table-striped" border="1" cellpadding="8"
+                            <table id="adminsTable" class="table table-hover table-bordered table-striped" border="1" cellpadding="8">
                             <tbody>
 
                             <tr>
@@ -145,21 +146,21 @@
                                 </tr>
                             </c:forEach>
                             </tbody>
-                        </table>
+                            </table>
+
+                        </div>
+                    </sec:authorize>
+
+                    <%--форма покупки--%>
+                    <div class="tab-pane" id="tab__buy">
 
                     </div>
-                </sec:authorize>
-
-                <%--форма покупки--%>
-                <div class="tab-pane" id="tab__buy">
-
                 </div>
+                <hr>
+                <!-- end row -->
             </div>
-            <hr>
-            <!-- end row -->
+            <!-- end col-sm-9 content -->
         </div>
-        <!-- end col-sm-9 content -->
-    </div>
 </main>
 <%@include file='../footer_new.jsp' %>
 <%----------%>
