@@ -7,6 +7,11 @@ import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+
+import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.controller.exception.NotAcceptableOrderException;
+import me.exrates.controller.exception.NotCreatableOrderException;
+import me.exrates.controller.exception.NotEnoughMoneyException;
 import me.exrates.controller.validator.OrderValidator;
 import me.exrates.model.Currency;
 import me.exrates.model.Order;
@@ -17,12 +22,10 @@ import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -47,7 +50,6 @@ public class OrderController {
 
     @Autowired
     LocaleResolver localeResolver;
-    //private static final Locale ru = new Locale("ru");
 
     @Autowired
     OrderValidator orderValidator;
@@ -64,50 +66,58 @@ public class OrderController {
         return model;
     }
 
+   /*ACCEPT ORDER ...*/
+
+    /* check if enough money to accept
+    * */
+    @RequestMapping(value = "/orders/submitaccept/check")
+    @ResponseBody
+    public void checkSubmitAcceptOrder(@RequestParam int id, Principal principal, HttpServletRequest request) {
+        int userId = userService.getIdByEmail(principal.getName());
+        Order order = orderService.getOrderById(id);
+        int userWalletIdForBuy = walletService.getWalletId(userId, order.getCurrencyBuy());
+        if ((userWalletIdForBuy == 0) || !walletService.ifEnoughMoney(userWalletIdForBuy, order.getAmountBuy())) {
+            throw new NotEnoughMoneyException(messageSource.getMessage("validation.orderNotEnoughMoney", null, localeResolver.resolveLocale(request)));
+        }
+    }
+
+    /* after success checking for enough money to accept
+    to pass to form for control and submit accept
+    * */
     @RequestMapping(value = "/orders/submitaccept")
     public ModelAndView submitAcceptOrder(@RequestParam int id, ModelAndView model, Principal principal, RedirectAttributes redirectAttributes, HttpServletRequest request) {
-        int userId = userService.getIdByEmail(principal.getName());
         Order order = orderService.getOrderById(id);
-        int userWalletIdForBuy = walletService.getWalletId(userId, order.getCurrencyBuy());
-        if (userWalletIdForBuy != 0) {
-            if (walletService.ifEnoughMoney(userWalletIdForBuy, order.getAmountBuy())) {
-                model.setViewName("submitacceptorder");
-                model.addObject("order", order);
-            } else {
-                redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("validation.orderNotEnoughMoney", null, localeResolver.resolveLocale(request)));
-                model.setViewName("redirect:/orders");
-            }
-        } else {
-            redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("validation.orderNotEnoughMoney", null, localeResolver.resolveLocale(request)));
-            model.setViewName("redirect:/orders");
-        }
+        model.setViewName("submitacceptorder");
+        model.addObject("order", order);
         return model;
     }
 
+    /* after succes checking for enough money for accept
+    and after submit accept
+    try to fix operation in db. It's possible that error occures (for example because balance has changed)
+    * */
     @RequestMapping(value = "/orders/accept")
-    public ModelAndView acceptOrder(@RequestParam int id, ModelAndView model, Principal principal, RedirectAttributes redirectAttributes, HttpServletRequest request) {
+    @ResponseBody public void acceptOrder(@RequestParam int id, ModelAndView model, Principal principal, RedirectAttributes redirectAttributes, HttpServletRequest request) {
         int userId = userService.getIdByEmail(principal.getName());
-        Order order = orderService.getOrderById(id);
-        int userWalletIdForBuy = walletService.getWalletId(userId, order.getCurrencyBuy());
-        if (userWalletIdForBuy != 0) {
-            if (walletService.ifEnoughMoney(userWalletIdForBuy, order.getAmountBuy())) {
-                if (orderService.acceptOrder(userId, id)) {
-                    model.setViewName("acceptordersuccess");
-                    model.addObject("order", order);
-                } else {
-                    model.setViewName("DBError");
-                }
-            } else {
-                redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("validation.orderNotEnoughMoney", null, localeResolver.resolveLocale(request)));
-                model.setViewName("redirect:/orders");
-            }
-        } else {
-            redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("validation.orderNotEnoughMoney", null, localeResolver.resolveLocale(request)));
-            model.setViewName("redirect:/orders");
+        if (! orderService.acceptOrder(userId, id)) {
+            throw new NotAcceptableOrderException(messageSource.getMessage("dberror.text", null, localeResolver.resolveLocale(request)));
         }
+    }
+
+    /*show message form after success accept
+    * */
+    @RequestMapping(value = "/orders/acceptordersuccess")
+    public ModelAndView acceptOrderSuccess(ModelAndView model) {
+        model.setViewName("acceptordersuccess");
         return model;
     }
 
+    /*... ACCEPT ORDER*/
+
+    /*CREATE ORDER....*/
+
+    /* to show form to create order (to fill param fields)
+    * */
     @RequestMapping(value = "/order/new")
     public ModelAndView showNewOrderToSellForm(ModelAndView model) {
         getCurrenciesAndCommission(model, OperationType.SELL);
@@ -118,41 +128,44 @@ public class OrderController {
         return model;
     }
 
+
+    /* after filling fileds of creation form on orders page or on page newordertosell
+    show form to submit new order if all fields are filled correct
+    * */
     @RequestMapping(value = "/order/submit", method = RequestMethod.POST)
     public ModelAndView submitNewOrderToSell(@Valid @ModelAttribute Order order, BindingResult result, ModelAndView model, Principal principal, HttpServletRequest request) {
-        orderValidator.validate(order, result);
+        orderValidator.validate(order, result, principal);
         getCurrenciesAndCommission(model, order.getOperationType());
         if (result.hasErrors()) {
             model.setViewName("newordertosell");
         } else {
-            int walletIdFrom = walletService.getWalletId(userService.getIdByEmail(principal.getName()), order.getCurrencySell());
-            boolean ifEnoughMoney = false;
-            if (walletIdFrom != 0) {
-                ifEnoughMoney = walletService.ifEnoughMoney(walletIdFrom, order.getAmountSell());
-            }
-            if (ifEnoughMoney) {
-                model.setViewName("submitorder");
-            } else {
-                model.addObject("notEnoughMoney", messageSource.getMessage("validation.orderNotEnoughMoney", null, localeResolver.resolveLocale(request)));
-                model.setViewName("newordertosell");
-            }
+            model.setViewName("submitorder");
         }
         model.addObject("order", order);
         return model;
     }
 
-    @RequestMapping(value = "/order/create", method = RequestMethod.POST)
-    public ModelAndView recordOrderToDB(ModelAndView model, @ModelAttribute Order order, Principal principal) {
+    /* after submit create order
+    to try to fix operation in db. It's possible that error occures (for example because balance has changed)
+    * */
+    @RequestMapping(value = "/orders/create")
+    @ResponseBody public void recordOrderToDB(Order order, Principal principal, HttpServletRequest request)  {
         int walletIdFrom = walletService.getWalletId(userService.getIdByEmail(principal.getName()), order.getCurrencySell());
         order.setWalletIdSell(walletIdFrom);
-        if ((orderService.createOrder(order)) > 0) {
-            model.setViewName("ordercreated");
-        } else {
-            model.setViewName("DBError");
+        if ((orderService.createOrder(order)) <= 0) {
+            throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, localeResolver.resolveLocale(request)));
         }
-        model.addObject(order);
+    }
+
+    /*to show message form after success accept
+    * */
+    @RequestMapping(value = "/orders/createordersuccess")
+    public ModelAndView createOrderSuccess(ModelAndView model) {
+        model.setViewName("ordercreated");
         return model;
     }
+
+    /* ... CREATE ORDER*/
 
     @RequestMapping(value = "/order/edit", method = RequestMethod.POST)
     public ModelAndView showEditOrderToSellForm(ModelAndView model, @ModelAttribute Order order) {
@@ -200,6 +213,30 @@ public class OrderController {
         BigDecimal commission = commissionService.findCommissionByType(type).getValue();
         model.addObject("currList", currList);
         model.addObject("commission", commission);
+    }
+
+    /*error handlers for this controller
+    * */
+
+    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+    @ExceptionHandler(NotEnoughMoneyException.class)
+    @ResponseBody
+    public ErrorInfo notEnoughMoneyExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+    @ExceptionHandler(NotAcceptableOrderException.class)
+    @ResponseBody
+    public ErrorInfo NotAcceptableOrderExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+    @ExceptionHandler(NotCreatableOrderException.class)
+    @ResponseBody
+    public ErrorInfo NotCreatableOrderExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
     }
 
 }  

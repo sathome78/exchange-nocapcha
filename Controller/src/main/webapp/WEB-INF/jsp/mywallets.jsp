@@ -78,7 +78,8 @@
                                     <button type="submit">${outputButton}</button>
                                 </form>
                                     <%--Создать ордер--%>
-                                <form class="form"  action="order/new">
+                                <form class="form"  action="order/new" method="get">
+                                    <input type="hidden" name="walletName" value="${wallet.name}"/>
                                     <loc:message code="mywallets.createorder" var="createorderButton"/>
                                     <button type="submit">${createorderButton}</button>
                                 </form>

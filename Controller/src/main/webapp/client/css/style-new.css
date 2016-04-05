@@ -1193,13 +1193,17 @@ body#output {
     padding: 5px 30px;
 }
 
-form#order.submit-order-form, form#command.submit-order-form {
+form#submitOrderForm.submit-order-form,
+form#order.submit-order-form,
+form#command.submit-order-form {
     display: inline-block;
     margin: 0 0 0 2%;
     width: 30%;
 }
 
-form#order.submit-order-form button, form#command.submit-order-form button {
+form#submitOrderForm.submit-order-form button,
+form#order.submit-order-form button,
+form#command.submit-order-form button {
     margin: 0 0 0 0;
     width: 100%;
 }

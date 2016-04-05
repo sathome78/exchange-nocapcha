@@ -38,14 +38,6 @@
     <div class="row">
         <%@include file='usermenu_new.jsp' %>
 
-        <%--взял из старого - не понял для чего он... //TODO--%>
-        <div>
-            <c:if test="${msq ne ''}">
-                <span style="color:red">${msg}</span><br><br>
-            </c:if>
-        </div>
-        <%-- ... взял из старого - не понял для чего он--%>
-
         <div class="col-sm-9 content">
             <div class="buttons">
                 <%--Создать ордер на продажу--%>
@@ -174,8 +166,7 @@
                                 <td> ${order.currencyBuyString} </td>
                                 <td><fmt:formatNumber type="number" maxFractionDigits="9"
                                                       value="${order.amountBuy}"/></td>
-                                <td><a href="/orders/submitaccept?id=${order.id}"><loc:message
-                                        code="orders.accept"/></a></td>
+                                <td><button onclick="submitAcceptOrder(${order.id})"><loc:message code="orders.accept"/></button>
                             </tr>
                         </c:forEach>
                         </tbody>
@@ -203,7 +194,7 @@
                                 <td> ${order.currencySellString} </td>
                                 <td><fmt:formatNumber type="number" maxFractionDigits="9"
                                                       value="${order.amountSell}"/></td>
-                                <td><a href="/orders/submitaccept?id=${order.id}"><loc:message code="orders.accept"/></a>
+                                <td><button onclick="submitAcceptOrder(${order.id})"><loc:message code="orders.accept"/></button>
                                 </td>
                             </tr>
                         </c:forEach>
@@ -214,6 +205,8 @@
         </div>
     </div>
     <hr>
+    //not used. might come useful for future (send startup message)
+    <span hidden id="errorNoty">${notEnoughMoney}</span>
 </main>
 <%@include file='footer_new.jsp' %>
 <%----------%>
@@ -221,6 +214,8 @@
 <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/menuSwitcher.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/submits/orderSubmitAccept.js'/>"></script>
 <%----------%>
 </body>
 </html>
