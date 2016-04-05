@@ -4,22 +4,6 @@ import com.squareup.okhttp.FormEncodingBuilder;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
-import java.io.IOException;
-import java.io.StringReader;
-import java.math.BigDecimal;
-import java.util.AbstractMap;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.StringJoiner;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathFactory;
 import me.exrates.dao.PendingPaymentDao;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.PendingPayment;
@@ -28,7 +12,6 @@ import me.exrates.service.AlgorithmService;
 import me.exrates.service.EDRCService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.exception.MerchantInternalException;
-import static me.exrates.service.util.OkHttpUtils.stringifyBody;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +25,25 @@ import org.xembly.Directives;
 import org.xembly.ImpossibleModificationException;
 import org.xembly.Xembler;
 import org.xml.sax.InputSource;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathFactory;
+import java.io.IOException;
+import java.io.StringReader;
+import java.math.BigDecimal;
+import java.util.AbstractMap;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.StringJoiner;
+
+import static me.exrates.service.util.OkHttpUtils.stringifyBody;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -116,10 +118,6 @@ public class EDRCServiceImpl implements EDRCService {
             .base64Decode(requestXml);
         final String signature = algorithmService
             .base64Decode(requestSignature);
-
-        logger.info("Request xml: " + xml);
-        logger.info("Request signature " + signature);
-
         if (!Objects.equals(signature,sha1Signature(xml))) {
             logger.info("Signature is incorrect");
             return false;

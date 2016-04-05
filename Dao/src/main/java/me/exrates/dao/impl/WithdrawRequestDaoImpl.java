@@ -29,12 +29,11 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
 
     private final static RowMapper<WithdrawRequest> withdrawRequestRowMapper = (resultSet, i) -> {
         final Transaction transaction = TransactionDaoImpl.transactionRowMapper.mapRow(resultSet, i);
-        final String email = resultSet.getString("email");
         final WithdrawRequest request = new WithdrawRequest();
-        request.setUserEmail(resultSet.getString("USER.email"));
+        request.setUserEmail(resultSet.getString("email"));
         request.setWallet(resultSet.getString("wallet"));
         request.setTransaction(transaction);
-        request.setProcessedBy(email);
+        request.setProcessedBy(resultSet.getString("admin_email"));
         request.setAcceptance(resultSet
                 .getTimestamp("acceptance")
                 .toLocalDateTime()

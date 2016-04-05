@@ -94,7 +94,7 @@ $(function(){
             yandex:'/merchants/yandexmoney/payment/prepare',
             blockchainDeposit:'/merchants/blockchain/payment/provide',
             perfectDeposit:'https://perfectmoney.is/api/step1.asp',
-            advcash:'/merchants/advcash/payment/prepare',
+            advcash:'/merchants/advcash/payment/prepare'
 
         };
         if (operationType === 'INPUT') {
@@ -136,14 +136,21 @@ $(function(){
                 dataType: 'json',
                 data: JSON.stringify($(form).serializeObject())
             }).done(function (response) {
+                var oldHTML = $('#currency').find(':selected').html().split(' ');
+                var withdrawAmount = parseFloat($('#sum').val());
+                var amount = oldHTML[1];
+                amount -= withdrawAmount;
+                var newHTML = oldHTML[0] + ' ' + amount;
+                $('#currency').find(':selected').html(newHTML);
                 responseControls();
                 $('.paymentInfo').html(response['success']);
                 $('.wallet_input').hide();
             }).fail(function (error, jqXHR, textStatus) {
-                responseControls();
-                $('.paymentInfo').html(error['error']);
-                $('.wallet_input').hide();
                 console.log(textStatus);
+                console.log(jqXHR);
+                responseControls();
+                $('.paymentInfo').html(error['responseJSON']['failure']);
+                $('.wallet_input').hide();
             });
         } else {
             switch (targetMerchant) {

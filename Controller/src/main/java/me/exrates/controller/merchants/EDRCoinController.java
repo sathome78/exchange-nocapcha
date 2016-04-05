@@ -54,11 +54,9 @@ public class EDRCoinController {
     {
         final Payment payment = new Gson().fromJson(body, Payment.class);
         final String email = principal.getName();
-        logger.debug("Preparing payment: " + payment + " for: " + email);
         final CreditsOperation creditsOperation = merchantService
             .prepareCreditsOperation(payment, email)
             .orElseThrow(InvalidAmountException::new);
-        logger.debug("Prepared payment: "+ creditsOperation);
         try {
             final PendingPayment pendingPayment = edrcService
                 .createPaymentInvoice(creditsOperation);
@@ -67,8 +65,6 @@ public class EDRCoinController {
                         .getAddress().orElseThrow(
                         ()->new MerchantInternalException("Address not presented"))
                     ,email ,locale, creditsOperation);
-            logger.info("New pending EDRCoin payment :"+ pendingPayment);
-            logger.info(notification);
             final HttpHeaders httpHeaders = new HttpHeaders();
             httpHeaders.add("Content-Type", "text/plain; charset=utf-8");
             return new ResponseEntity<>(notification, httpHeaders, OK);
@@ -80,7 +76,6 @@ public class EDRCoinController {
 
     @RequestMapping(value = "payment/received",method = POST)
     public ResponseEntity<Void> paymentHandler (final @RequestParam Map<String,String> params) {
-        logger.info("Recieved response from edrc-coin: " + params);
         final ResponseEntity<Void> response = new ResponseEntity<>(OK);
         final String xml = params.get("operation_xml");
         final String signature = params.get("signature");

@@ -1,4 +1,4 @@
-package com.Birzha.Dao;
+package me.exrates.dao.impl;
 
 import junit.framework.Test;
 import junit.framework.TestCase;

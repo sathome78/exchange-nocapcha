@@ -90,7 +90,7 @@ public class TransactionServiceImpl implements TransactionService {
                     transaction.getCommissionAmount());
                 break;
             case OUTPUT:
-                walletService.withdrawActiveBalance(transaction.getUserWallet(),transaction.getAmount());
+                walletService.withdrawReservedBalance(transaction.getUserWallet(),transaction.getAmount());
                 companyWalletService.withdraw(transaction.getCompanyWallet(),transaction.getAmount(),
                     transaction.getCommissionAmount());
                 break;

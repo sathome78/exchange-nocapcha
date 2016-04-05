@@ -7,7 +7,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title><loc:message code="merchants.outputTitle"></loc:message></title>
+    <title><loc:message code="merchants.outputTitle"/></title>
     <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon" />
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -58,8 +58,7 @@
                                         <%--Валюта к вводу--%>
                                     <label><loc:message code="merchants.currencyforoutput"/> </label>
                                     <paymentForm:select path="currency" class="select currency-for-output-select">
-                                        <paymentForm:options items="${wallets}" itemLabel="fullName"
-                                                             itemValue="currencyId"/>
+                                        <paymentForm:options items="${wallets}" itemLabel="fullName" itemValue="currencyId"/>
                                     </paymentForm:select>
                                 </div>
                                 <div>

@@ -1,8 +1,5 @@
 package me.exrates.service.impl;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 import me.exrates.dao.CompanyWalletDao;
 import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
@@ -16,6 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -59,8 +60,6 @@ public class CompanyWalletServiceImpl implements CompanyWalletService {
     @Override
     @Transactional(propagation = Propagation.NESTED)
     public void deposit(CompanyWallet companyWallet, BigDecimal amount, BigDecimal commissionAmount) {
-        logger.info("Trying deposit balance on company wallet "+ companyWallet+
-            ", amount: "+amount+", commission "+commissionAmount);
         final BigDecimal newBalance = companyWallet.getBalance().add(amount);
         final BigDecimal newCommissionBalance = companyWallet.getCommissionBalance().add(commissionAmount);
         companyWallet.setBalance(newBalance);
@@ -68,14 +67,11 @@ public class CompanyWalletServiceImpl implements CompanyWalletService {
         if (!companyWalletDao.update(companyWallet)) {
             throw new WalletPersistException("Failed deposit on company wallet " + companyWallet.toString());
         }
-        logger.info("Successfull balance deposit on company wallet "+companyWallet);
     }
 
     @Override
     @Transactional(propagation = Propagation.NESTED)
     public void withdraw(CompanyWallet companyWallet, BigDecimal amount, BigDecimal commissionAmount) {
-        logger.info("Trying withdraw balance on company wallet "+ companyWallet+
-            ", amount: "+amount+", commission "+commissionAmount);
         final BigDecimal newBalance = companyWallet.getBalance().subtract(amount);
         final BigDecimal newCommissionBalance = companyWallet.getCommissionBalance().add(commissionAmount);
         if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
@@ -86,6 +82,5 @@ public class CompanyWalletServiceImpl implements CompanyWalletService {
         if (!companyWalletDao.update(companyWallet)) {
             throw new WalletPersistException("Failed withdraw on company wallet " + companyWallet.toString());
         }
-        logger.info("Successfull balance withdraw on company wallet "+companyWallet);
     }
 }

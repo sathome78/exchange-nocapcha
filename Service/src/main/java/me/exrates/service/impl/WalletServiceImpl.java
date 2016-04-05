@@ -122,9 +122,9 @@ public final class WalletServiceImpl implements WalletService {
 
 	@Override
 	@Transactional(propagation = Propagation.NESTED)
-	public void depositActiveBalance(Wallet wallet, BigDecimal sum) {
-		LOGGER.info("Trying deposit active balance on wallet "+ wallet+
-			", amount: "+sum);
+	public void depositActiveBalance(final Wallet wallet, final BigDecimal sum) {
+		LOGGER.info("Trying deposit active balance on wallet  "+ wallet +
+			", amount: " + sum);
 		final BigDecimal newBalance =
 				wallet.getActiveBalance().add(sum,MATH_CONTEXT);
 		wallet.setActiveBalance(newBalance);
@@ -134,9 +134,9 @@ public final class WalletServiceImpl implements WalletService {
 
 	@Override
 	@Transactional(propagation = Propagation.NESTED)
-	public void withdrawActiveBalance(Wallet wallet, BigDecimal sum) {
-		LOGGER.info("Trying withdraw active balance on wallet "+ wallet+
-			", amount: "+sum);
+	public void withdrawActiveBalance(final Wallet wallet, final BigDecimal sum) {
+		LOGGER.info("Trying withdraw active balance on wallet " + wallet +
+			", amount: " + sum);
 		final BigDecimal newBalance = wallet.getActiveBalance().subtract(sum,MATH_CONTEXT);
 		if (newBalance.compareTo(ZERO) < 0) {
 			throw new NotEnoughUserWalletMoneyException("Not enough money to withdraw on user wallet " +
@@ -149,9 +149,9 @@ public final class WalletServiceImpl implements WalletService {
 
 	@Override
 	@Transactional(propagation = Propagation.NESTED)
-	public void depositReservedBalance(Wallet wallet, BigDecimal sum) {
+	public void depositReservedBalance(final Wallet wallet, final BigDecimal sum) {
 		LOGGER.info("Trying deposit reserved balance on wallet "+ wallet +
-				", amount: "+sum);
+				", amount: " + sum);
 		wallet.setActiveBalance(wallet.getActiveBalance().subtract(sum, MATH_CONTEXT));
 		if (wallet.getActiveBalance().compareTo(ZERO) < 0) {
 			throw new NotEnoughUserWalletMoneyException("Not enough money to withdraw on user wallet " + wallet);
@@ -163,8 +163,8 @@ public final class WalletServiceImpl implements WalletService {
 
 	@Override
 	@Transactional(propagation = Propagation.NESTED)
-	public void withdrawReservedBalance(Wallet wallet, BigDecimal sum) {
-		LOGGER.info("Trying withdraw reserved balance on wallet " + wallet + ", amount: "+sum);
+	public void withdrawReservedBalance(final Wallet wallet, final BigDecimal sum) {
+		LOGGER.info("Trying withdraw reserved balance on wallet " + wallet + ", amount: " + sum);
 		wallet.setReservedBalance(wallet.getReservedBalance().subtract(sum, MATH_CONTEXT));
 		if (wallet.getReservedBalance().compareTo(ZERO) < 0) {
 			throw new NotEnoughUserWalletMoneyException("Not enough money to withdraw on user wallet " + wallet);

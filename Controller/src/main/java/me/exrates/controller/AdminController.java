@@ -1,11 +1,11 @@
 package me.exrates.controller;
 
 import me.exrates.controller.validator.RegisterFormValidation;
-import me.exrates.dao.WithdrawRequestDao;
 import me.exrates.model.User;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.security.service.UserSecureServiceImpl;
+import me.exrates.service.MerchantService;
 import me.exrates.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -23,9 +23,12 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.security.Principal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import static java.util.Arrays.*;
+import static java.util.Arrays.asList;
 
 @Controller
 public class AdminController {
@@ -43,7 +46,7 @@ public class AdminController {
     private LocaleResolver localeResolver;
 
     @Autowired
-    private WithdrawRequestDao withdrawRequestDao;
+    private MerchantService merchantService;
 
     private String currentRole;
 
@@ -219,12 +222,12 @@ public class AdminController {
 
     @RequestMapping(value = "/admin/withdrawal")
     public ModelAndView withdrawalRequests() {
-        final ModelAndView modelAndView = new ModelAndView("");
-        final List<UserRole> roles = new ArrayList<>();
-        roles.addAll(asList(UserRole.ADMINISTRATOR, UserRole.ACCOUNTANT));
-        final HashMap<String, String> params = new HashMap<>();
-        return null;
-//        return new ModelAndView("withdrawRequests",Collections.)
+        final List<UserRole> admins = new ArrayList<>();
+        admins.addAll(asList(UserRole.ADMINISTRATOR, UserRole.ACCOUNTANT));
+        final Map<String, Object> params = new HashMap<>();
+        params.put("admins", admins);
+        params.put("requests", this.merchantService.findAllWithdrawRequests());
+        return new ModelAndView("withdrawalRequests", params);
     }
 
 }

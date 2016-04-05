@@ -14,6 +14,10 @@ public class OkHttpUtils {
 
     private static final Logger logger = LogManager.getLogger(OkHttpUtils.class);
 
+    private OkHttpUtils(){
+
+    }
+
     public static String stringifyBody(final Request request) {
         try {
             final Request copy = request.newBuilder().build();
