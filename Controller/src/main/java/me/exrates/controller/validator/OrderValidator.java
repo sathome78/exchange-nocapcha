@@ -1,6 +1,8 @@
 package me.exrates.controller.validator;
 
 import me.exrates.model.Order;
+import me.exrates.service.UserService;
+import me.exrates.service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
@@ -9,18 +11,29 @@ import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
 
 import java.math.BigDecimal;
+import java.security.Principal;
 
 /**
  * Created by Valk on 31.03.16.
  */
 @Component
 public class OrderValidator implements Validator {
-/*    @Autowired
-    MessageSource messageSource;*/
+    private Principal principal;
+
+    @Autowired
+    WalletService walletService;
+
+    @Autowired
+    UserService userService;
 
     @Override
     public boolean supports(Class<?> aClass) {
         return Order.class.equals(aClass);
+    }
+
+    public void validate(Object o, Errors errors, Principal principal) {
+        this.principal = principal;
+        this.validate(o, errors);
     }
 
     @Override
@@ -33,8 +46,18 @@ public class OrderValidator implements Validator {
                 errors.rejectValue("amountSell", "order.valuerange");
             }
             if (order.getAmountSell().compareTo(new BigDecimal(0.000000001)) == -1) {
-                errors.rejectValue("amouuntSell", "order.minvalue");
-                errors.rejectValue("amouuntSell", "order.valuerange");
+                errors.rejectValue("amountSell", "order.minvalue");
+                errors.rejectValue("amountSell", "order.valuerange");
+            }
+
+            //check for enoughMoney
+            int walletIdFrom = walletService.getWalletId(userService.getIdByEmail(principal.getName()), order.getCurrencySell());
+            boolean ifEnoughMoney = false;
+            if (walletIdFrom != 0) {
+                ifEnoughMoney = walletService.ifEnoughMoney(walletIdFrom, order.getAmountSell());
+            }
+            if (! ifEnoughMoney) {
+                errors.rejectValue("amountSell", "validation.orderNotEnoughMoney");
             }
         }
         /**/

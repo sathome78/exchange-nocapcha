@@ -225,9 +225,10 @@
                 <span class="col2"><b id="sellCommission"></b> ${currencyPair.getCurrency2().getName()}</span>
 
                 <div class="row">
-                    <div class="col-xs-6" type="button" name="calculateSell">
+                    <div class="col-xs-6">
                             <%--Подсчитать--%>
-                        <button class="calculate"><loc:message code="dashboard.calculate"/></button>
+                        <button class="calculate" type="button" name="calculateSell"><loc:message
+                                code="dashboard.calculate"/></button>
                     </div>
                     <c:set var="SELL" value="<%=me.exrates.model.enums.OperationType.SELL%>"/>
                     <form:hidden path="operationType" value="${SELL}"/>

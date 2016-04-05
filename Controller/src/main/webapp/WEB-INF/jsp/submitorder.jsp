@@ -53,11 +53,12 @@
                                 <%--Продаю--%>
                                 <c:if test="${order.operationType  eq SELL}">
                                     <div class="clearfix">
-                                        <label class="submit-order-label"><loc:message code="orders.currencyforsale"/></label>
+                                        <label class="submit-order-label"><loc:message
+                                                code="orders.currencyforsale"/></label>
                                         <fmt:formatNumber type="number" maxFractionDigits="9"
                                                           value="${order.amountSell}"
                                                           var='amountSell'/>
-                                        <input  class="submit-order-input" readonly="true"
+                                        <input class="submit-order-input" readonly="true"
                                                value="${amountSell}&nbsp;${currList.get(order.currencySell-1).getName()}"/>
                                     </div>
                                 </c:if>
@@ -72,7 +73,8 @@
                                 <%--Продаю--%>
                                 <c:if test="${order.operationType  eq BUY}">
                                     <div>
-                                        <label class="submit-order-label"><loc:message code="orders.currencyforsale"/></label>
+                                        <label class="submit-order-label"><loc:message
+                                                code="orders.currencyforsale"/></label>
                                         <fmt:formatNumber type="number" maxFractionDigits="9"
                                                           value="${order.amountSell}"
                                                           var='amountSell'/>
@@ -84,10 +86,11 @@
                                 <div>
                                     <div>
                                         <c:set var="commissionValue" value="${order.amountBuy*commission/100}"/>
-                                        <label class="submit-order-label"><loc:message code="submitorder.commission"/></label>
+                                        <label class="submit-order-label"><loc:message
+                                                code="submitorder.commission"/></label>
                                         <fmt:formatNumber type="number" maxFractionDigits="9"
                                                           value="${commissionValue}"
-                                                var="cv"/>
+                                                          var="cv"/>
                                         <input class="submit-order-input" readonly="true"
                                                value="${commissionValue}&nbsp;${currList.get(order.currencyBuy-1).getName()}"/>
                                     </div>
@@ -96,7 +99,8 @@
                                 <%--Сумма с комиссией--%>
                                 <div>
                                     <div>
-                                        <label class="submit-order-label"><loc:message code="submitorder.sumwithcommission"/></label>
+                                        <label class="submit-order-label"><loc:message
+                                                code="submitorder.sumwithcommission"/></label>
                                         <fmt:formatNumber type="number" maxFractionDigits="9"
                                                           value="${order.amountBuy-commissionValue}"
                                                           var='valueWithCommission'/>
@@ -104,18 +108,20 @@
                                                value="${valueWithCommission}&nbsp;${currList.get(order.currencyBuy-1).getName()}"/>
                                     </div>
                                 </div>
-                                    <div class="submit-order-button-container">
-                                    <form:form class ="submit-order-form" action="create" modelAttribute="order" method="post">
+                                <div class="submit-order-button-container">
+                                    <form:form id="submitOrderForm" class="submit-order-form" action="create"
+                                               modelAttribute="order" method="post">
                                         <form:hidden path="amountSell" value="${order.amountSell}"/>
                                         <form:hidden path="amountBuy" value="${order.amountBuy}"/>
                                         <form:hidden path="currencySell" value="${order.currencySell}"/>
                                         <form:hidden path="currencyBuy" value="${order.currencyBuy}"/>
                                         <form:hidden path="operationType" value="${order.operationType}"/>
                                         <loc:message code="submitorder.submit" var="labelSubmit"/>
-                                        <button type="submit">${labelSubmit}</button>
+                                        <button onclick="submitCreateOrder()" type="button">${labelSubmit}</button>
                                     </form:form>
 
-                                    <form:form class ="submit-order-form" action="edit" modelAttribute="order" method="post">
+                                    <form:form class="submit-order-form" action="edit" modelAttribute="order"
+                                               method="post">
                                         <form:hidden path="amountSell" value="${order.amountSell}"/>
                                         <form:hidden path="amountBuy" value="${order.amountBuy}"/>
                                         <form:hidden path="currencySell" value="${order.currencySell}"/>
@@ -126,7 +132,7 @@
                                     </form:form>
 
                                     <c:url value="/orders" var="url"/>
-                                    <form:form class ="submit-order-form" action="${url}">
+                                    <form:form class="submit-order-form" action="${url}">
                                         <loc:message code="submitorder.cancell" var="labelCancell"></loc:message>
                                         <button type="submit">${labelCancell}</button>
                                     </form:form>
@@ -138,6 +144,7 @@
                     </div>
                 </div>
             </div>
+        </div>
 </main>
 <%@include file='footer_new.jsp' %>
 <%----------%>
@@ -145,6 +152,9 @@
 <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
 
+
+<script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/submits/orderSubmitCreate.js'/>"></script>
 <%----------%>
 
 </body>

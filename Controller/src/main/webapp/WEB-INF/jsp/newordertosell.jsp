@@ -60,7 +60,18 @@
                             <div>
                                 <label><loc:message code="orders.currencyforsale"/></label>
                                 <form:select path="currencySell">
-                                    <form:options items="${currList}" itemLabel="name" itemValue="id"/>
+                                    <c:forEach var="item" items="${currList}">
+                                        <c:choose>
+                                            <c:when test="${walletName==item.name}">
+                                                <form:option selected="selected" value="${item.id}"> ${item.name}
+                                                </form:option>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <form:option value="${item.id}"> ${item.name}
+                                                </form:option>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </c:forEach>
                                 </form:select>
                             </div>
                             <div class="clearfix">
