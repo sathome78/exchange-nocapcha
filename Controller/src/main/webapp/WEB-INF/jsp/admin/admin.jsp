@@ -4,12 +4,13 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
 <%@taglib uri="http://www.springframework.org/tags" prefix="spring" %>
-<%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <!DOCTYPE html>
 <html lang="en">
+<html>
 <head>
     <meta charset="utf-8">
-    <title><loc:message code="orders.title"/></title>
+    <title><loc:message code="admin.title"/></title>
     <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon"/>
 
     <meta charset="utf-8">
@@ -25,7 +26,9 @@
     <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/style-new.css'/>" rel="stylesheet">
 
-    <%--<link href="<c:url value='/client/css/jquery.dataTables.min.css'/>" rel="stylesheet" type="text/css"/>--%>
+    <link href="<c:url value='/client/css/jquery.dataTables.min.css'/>" rel="stylesheet" type="text/css"/>
+
+    <script type="text/javascript" src="/client/js/jquery.js"></script>
     <script type="text/javascript" src="/client/js/tab.js"></script>
     <script type="text/javascript" src="/client/js/jquery.dataTables.min.js"></script>
     <script type="text/javascript">
@@ -33,6 +36,7 @@
             $('#usersTable').DataTable();
         });
     </script>
+
 
 </head>
 
@@ -98,6 +102,35 @@
                         </button>
                     </sec:authorize>
                 </div>
+                <%--Пользователи--%>
+                <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+                    <button class="active adminForm-toggler">
+                        <loc:message code="admin.users"/>
+                    </button>
+                </sec:authorize>
+                <%--Администраторы--%>
+                <sec:authorize access="hasAnyAuthority('${adminEnum}')">
+                    <button class="adminForm-toggler">
+                        <loc:message code="admin.admins"/>
+                    </button>
+                </sec:authorize>
+                <%--Финансисты--%>
+                <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
+                    <button class="adminForm-toggler">
+                        <loc:message code="admin.finance"/>
+                    </button>
+                </sec:authorize>
+            </div>
+
+            <%--контейнер форм ролей пользователей--%>
+            <div class="tab-content">
+                <%--форма Пользователи--%>
+                <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+                    <div id="panel1" class="tab-pane active">
+                        <h4>
+                            <b><loc:message code="admin.listOfUsers"/></b>
+                        </h4>
+                        <hr/>
 
                 <%--контейнер форм ролей пользователей--%>
                 <div class="tab-content">
@@ -158,6 +191,54 @@
                 </div>
                 <hr>
                 <!-- end row -->
+                        <table id="usersTable" class="admin-table table table-hover table-bordered table-striped"
+                               style="width: 100%;">
+                            <thead>
+                            <tr>
+                                <th><loc:message code="admin.user"/></th>
+                                <th><loc:message code="admin.email"/></th>
+                                <th><loc:message code="admin.registrationDate"/></th>
+                                <th><loc:message code="admin.role"/></th>
+                                <th><loc:message code="admin.status"/></th>
+                            </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </sec:authorize>
+
+                <%--форма админы--%>
+                <sec:authorize access="hasAnyAuthority('${adminEnum}')">
+                    <div id="panel2" class="tab-pane">
+                        <h4>
+                            <b><loc:message code="admin.listOfAdmins"/></b>
+                            <button onclick="javascript:window.location.href='/admin/addUser';" id="admin-add-button"><loc:message code="admin.addUser"/></button>
+                        </h4>
+
+                        <hr/>
+
+                        <table id="adminsTable" class="admin-table table table-hover table-bordered table-striped"
+                               style="width: 100%;">
+                            <thead>
+                            <tr>
+                                <th><loc:message code="admin.user"/></th>
+                                <th><loc:message code="admin.email"/></th>
+                                <th><loc:message code="admin.registrationDate"/></th>
+                                <th><loc:message code="admin.role"/></th>
+                                <th><loc:message code="admin.status"/></th>
+                            </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </sec:authorize>
+
+                <%--форма финансисты--%>
+                <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
+                    <div id="panel3" class="tab-pane">
+                        <h4>
+                            <p><a class="link" href="companywallet"><loc:message code="admin.companyWallet"/></a></p>
+                        </h4>
+                    </div>
+                </sec:authorize>
             </div>
             <!-- end col-sm-9 content -->
         </div>
@@ -168,6 +249,13 @@
 <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/menuSwitcher.js'/>"></script>
+<%----------%>
+    </div>
+    <hr>
+</main>
+<%----------%>
+<script type="text/javascript" src="<c:url value='/client/js/dataTable/adminUsersDataTable.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/dataTable/adminAdminsDataTable.js'/>"></script>
 <%----------%>
 </body>
 </html>

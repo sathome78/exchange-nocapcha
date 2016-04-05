@@ -1,13 +1,18 @@
 package me.exrates.controller;
 
 import me.exrates.controller.validator.RegisterFormValidation;
+import me.exrates.model.OperationView;
 import me.exrates.model.User;
+import me.exrates.model.Wallet;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.security.service.UserSecureServiceImpl;
 import me.exrates.service.MerchantService;
+import me.exrates.service.TransactionService;
 import me.exrates.service.UserService;
+import me.exrates.service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
@@ -16,6 +21,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
@@ -24,6 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,13 +47,19 @@ public class AdminController {
     private UserService userService;
 
     @Autowired
-    private RegisterFormValidation registerFormValidation;
-
-    @Autowired
     private LocaleResolver localeResolver;
 
     @Autowired
     private MerchantService merchantService;
+
+    @Autowired
+    private RegisterFormValidation registerFormValidation;
+
+    @Autowired
+    private WalletService walletService;
+
+    @Autowired
+    private TransactionService transactionService;
 
     private String currentRole;
 
@@ -54,23 +67,42 @@ public class AdminController {
     public ModelAndView admin(Principal principal) {
 
         currentRole = ((UsernamePasswordAuthenticationToken) principal).getAuthorities().iterator().next().getAuthority();
+
         ModelAndView model = new ModelAndView();
-        List<UserRole> adminRoles = new ArrayList<>();
-        adminRoles.add(UserRole.ADMINISTRATOR);
-        adminRoles.add(UserRole.ACCOUNTANT);
-        adminRoles.add(UserRole.ADMIN_USER);
-        List<User> adminUsers = userSecureService.getUsersByRoles(adminRoles);
-        model.addObject("adminUsers", adminUsers);
-        List<UserRole> userRoles = new ArrayList<>();
-        userRoles.add(UserRole.USER);
-        List<User> userUsers = userSecureService.getUsersByRoles(userRoles);
-        model.addObject("userUsers", userUsers);
         model.setViewName("admin/admin");
 
         return model;
     }
 
+    @ResponseBody
+    @RequestMapping(value = "/admin/users", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public Collection<User> getAllUsers() {
+        List<UserRole> userRoles = new ArrayList<>();
+        userRoles.add(UserRole.USER);
+        return userSecureService.getUsersByRoles(userRoles);
+    }
 
+    @ResponseBody
+    @RequestMapping(value = "/admin/admins", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public Collection<User> getAllAdmins() {
+        List<UserRole> adminRoles = new ArrayList<>();
+        adminRoles.add(UserRole.ADMINISTRATOR);
+        adminRoles.add(UserRole.ACCOUNTANT);
+        adminRoles.add(UserRole.ADMIN_USER);
+        return userSecureService.getUsersByRoles(adminRoles);
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/admin/transactions", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public Collection<OperationView> getUserTransactions(@RequestParam int id, HttpServletRequest request) {
+        return transactionService.showUserOperationHistory(id, localeResolver.resolveLocale(request));
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/admin/wallets", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public Collection<Wallet> getUserWalletss(@RequestParam int id, HttpServletRequest request) {
+        return walletService.getAllWallets(id);
+    }
 
     @RequestMapping("/admin/addUser")
     public ModelAndView addUser() {
@@ -132,6 +164,12 @@ public class AdminController {
         model.addObject("user", user);
         model.setViewName("admin/editUser");
 
+        return model;
+    }
+
+    @RequestMapping("/admin/userInfo")
+    public ModelAndView userInfo(@RequestParam int id, HttpServletRequest request) {
+        ModelAndView model = editUser(id);
         return model;
     }
 
