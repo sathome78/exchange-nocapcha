@@ -51,7 +51,7 @@ public class AdvcashServiceImpl implements AdvcashService{
     private AlgorithmService algorithmService;
 
     @Override
-    public Map<String, String> getPerfectMoneyParams(Transaction transaction) {
+    public Map<String, String> getAdvcashParams(Transaction transaction) {
         BigDecimal sum = transaction.getAmount().add(transaction.getCommissionAmount());
         final String currency = transaction.getCurrency().getName();
         final String companyAccount;
@@ -83,17 +83,11 @@ public class AdvcashServiceImpl implements AdvcashService{
     public RedirectView preparePayment(CreditsOperation creditsOperation, String email) {
 
         Transaction transaction = transactionService.createTransactionRequest(creditsOperation);
-        Map<String, String> params = getPerfectMoneyParams(transaction);
+        Map<String, String> params = getAdvcashParams(transaction);
         BigDecimal sum = transaction.getAmount().add(transaction.getCommissionAmount());
         final String currency = transaction.getCurrency().getName();
-        final Number amountToPay;
-        switch (currency) {
-            case "GOLD":
-                amountToPay = sum.toBigInteger();
-                break;
-            default:
-                amountToPay = sum.setScale(2, BigDecimal.ROUND_CEILING);
-        }
+        final Number amountToPay = sum.setScale(2, BigDecimal.ROUND_CEILING);
+
         Properties properties = new Properties();
         String url = "https://wallet.advcash.com/sci/";
         properties.put("ac_account_email", accountId);

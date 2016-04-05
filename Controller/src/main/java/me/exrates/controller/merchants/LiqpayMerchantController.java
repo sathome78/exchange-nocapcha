@@ -1,0 +1,109 @@
+package me.exrates.controller.merchants;
+
+import me.exrates.model.CreditsOperation;
+import me.exrates.model.Payment;
+import me.exrates.model.Transaction;
+import me.exrates.model.enums.OperationType;
+import me.exrates.service.LiqpayService;
+import me.exrates.service.MerchantService;
+import me.exrates.service.TransactionService;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.view.RedirectView;
+
+import javax.validation.Valid;
+import java.security.Principal;
+import java.util.Map;
+import java.util.Optional;
+
+@Controller
+@RequestMapping("/merchants/liqpay")
+public class LiqpayMerchantController {
+
+    @Autowired
+    private MerchantService merchantService;
+
+    @Autowired
+    private TransactionService transactionService;
+
+    @Autowired
+    private LiqpayService liqpayService;
+
+    private static final Logger logger = LogManager.getLogger(LiqpayMerchantController.class);
+
+    private static final String merchantInputErrorPage = "redirect:/merchants/input";
+
+    @RequestMapping(value = "/payment/prepare", method = RequestMethod.POST)
+    public RedirectView preparePayment(@Valid @ModelAttribute("payment") Payment payment,
+                                       Principal principal, RedirectAttributes redir) {
+
+        final String errorRedirectView = "/merchants/".concat(payment.getOperationType() == OperationType.INPUT ?
+                "/input" : "/output");
+
+        final Optional<CreditsOperation> creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName());
+        if (!creditsOperation.isPresent()) {
+            redir.addFlashAttribute("error", "merchants.invalidSum");
+            return new RedirectView(errorRedirectView);
+        }
+
+        final OperationType operationType = creditsOperation.get().getOperationType();
+
+        if (operationType == OperationType.INPUT) {
+            return liqpayService.preparePayment(creditsOperation.get(), principal.getName());
+        } else {
+            // TODO questions about output
+//            url = "/advcash/output";
+            return new RedirectView("dashboard");
+        }
+
+
+    }
+
+    @RequestMapping(value = "payment/success",method = RequestMethod.POST)
+    public RedirectView successPayment(@RequestParam Map<String,String> response, RedirectAttributes redir) {
+
+        String signature = response.get("signature");
+        String data = response.get("data");;
+
+
+        data = data.replace("%3D","=");
+
+
+        Map responseData = liqpayService.getResponse(data);
+
+        Transaction transaction = transactionService.findById(Integer.parseInt(String.valueOf(responseData.get("order_id"))));
+
+        if ((responseData.get("status").equals("success")||responseData.get("status").equals("wait_accept")) && liqpayService.checkHashTransactionByTransactionId(transaction.getId(), (String) responseData.get("info"))){
+            merchantService.formatResponseMessage(transaction)
+                    .entrySet()
+                    .forEach(entry->redir.addFlashAttribute(entry.getKey(),entry.getValue()));
+            final String message = "merchants.successfulBalanceDeposit";
+            redir.addFlashAttribute("message", message);
+            liqpayService.provideTransaction(transaction);
+
+            return new RedirectView("/mywallets");
+
+        }
+
+        final String message = "merchants.internalError";
+        redir.addFlashAttribute("message", message);
+
+        return new RedirectView("/mywallets");
+    }
+
+    @RequestMapping(value = "payment/status",method = RequestMethod.POST)
+    public RedirectView statusPayment(@RequestParam Map<String,String> response, RedirectAttributes redir) {
+
+        Transaction transaction = transactionService.findById(Integer.parseInt(response.get("ac_order_id")));
+
+
+        return new RedirectView("/mywallets");
+    }
+}
