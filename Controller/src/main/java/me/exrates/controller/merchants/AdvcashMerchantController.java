@@ -11,6 +11,7 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -42,7 +43,7 @@ public class AdvcashMerchantController {
 
     @RequestMapping(value = "/payment/prepare", method = RequestMethod.POST)
     public RedirectView preparePayment(@Valid @ModelAttribute("payment") Payment payment,
-                                       Principal principal, RedirectAttributes redir) {
+                                       BindingResult result, Principal principal, RedirectAttributes redir) {
 
         final String errorRedirectView = "/merchants/".concat(payment.getOperationType() == OperationType.INPUT ?
                 "/input": "/output");
