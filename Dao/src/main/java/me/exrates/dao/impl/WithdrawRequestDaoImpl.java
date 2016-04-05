@@ -43,7 +43,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
 
     private final static String SELECT_ALL_REQUESTS =
             " SELECT WITHDRAW_REQUEST.acceptance, WITHDRAW_REQUEST.wallet, WITHDRAW_REQUEST.processed_by, " +
-                    "USER.email,(select email from user where id = WITHDRAW_REQUEST.processed_by) as admin_email, " +
+                    "USER.email,(SELECT EMAIL from USER WHERE id = WITHDRAW_REQUEST.processed_by) as admin_email, " +
                     "TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime, " +
                     "TRANSACTION.operation_type_id,TRANSACTION.provided,WALLET.id,WALLET.active_balance, " +
                     "WALLET.reserved_balance,WALLET.currency_id,COMPANY_WALLET.id,COMPANY_WALLET.balance, " +
