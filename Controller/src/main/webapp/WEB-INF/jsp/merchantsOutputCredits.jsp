@@ -38,7 +38,6 @@
         <%@include file='usermenu_new.jsp' %>
 
         <div class="col-sm-9 content">
-            <%--ВЫВОД СРЕДСТВ--%>
             <h4><loc:message code="merchants.outputTitle"/></h4>
             <c:if test="${error!=null}">
                 <label class="alert-danger has-error">
@@ -53,7 +52,7 @@
                     <div class="row">
                         <div class="col-sm-9">
                             <paymentForm:form class="form-horizontal withdraw__money" name="payment" method="post"
-                                              modelAttribute="payment" action="">
+                                              modelAttribute="payment" action="/merchants/payment/withdraw">
                                 <div>
                                         <%--Валюта к вводу--%>
                                     <label><loc:message code="merchants.currencyforoutput"/> </label>
@@ -75,10 +74,9 @@
                                 <paymentForm:hidden path="operationType"/>
                                 <paymentForm:hidden id="destination" path="destination"/>
                                 <%--Создать(Вывести)--%>
-                                <button type="button" disabled data-toggle="modal" id="assertOutputPay"
+                                <button type="button" data-toggle="modal" id="assertOutputPay"
                                         name="assertOutputPay" data-target="#myModal" class="btn btn-primary">
-                                    Service will be available soon
-                                    <%--<loc:message code="merchants.withdraw"/>--%>
+                                    <loc:message code="merchants.withdraw"/>
                                 </button>
                             </paymentForm:form>
                         </div>
@@ -111,21 +109,24 @@
 
                     <p><loc:message code="merchants.modalOutputFinalSum"/></p>
                 </div>
-                <label class="control-label" for="walletUid"><loc:message code="merchants.modalOutputWallet"/></label>
-
-                <div class="">
-                    <input class="form-control" name="walletUid" type="text" id="walletUid">
+                <div class="wallet_input">
+                    <label class="control-label" for="walletUid">
+                        <loc:message code="merchants.modalOutputWallet"/>
+                    </label>
+                    <input class="form-control" autofocus="autofocus" name="walletUid" type="text" id="walletUid">
                 </div>
             </div>
             <div class="modal-footer">
-                <div class="add__money__btns">
+                <div class="add__money__btns request_money_operation_btn">
                     <button class="modal-button" type="button" data-dismiss="modal">
                         <loc:message code="merchants.dismiss"/>
                     </button>
-                    <button class="modal-button" type="button" disabled id="outputPaymentProcess" name="paymentOutput">
-                        Service will be available soon
-                        <%--<loc:message code="merchants.continue"/>--%>
+                    <button class="modal-button" type="button" id="outputPaymentProcess" name="paymentOutput">
+                        <loc:message code="merchants.continue"/>
                     </button>
+                </div>
+                <div class="response_money_operation_btn">
+                    <button class="modal-button" type="button" data-dismiss="modal"><loc:message code="merchants.continue"/></button>
                 </div>
             </div>
         </div>

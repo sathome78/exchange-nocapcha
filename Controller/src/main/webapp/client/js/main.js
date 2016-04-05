@@ -35,14 +35,12 @@ $(function(){
     const ADVCASH = 'Advcash Money';
     const EDR_COIN = 'EDR Coin';
     const NO_ACTION = 'javascript:void(0);';
-
-    const COMPUTING_PRECISION = 9;
-
+    
     var currency = $('#currency');
     var merchant = $('#merchant');
     var sum = $('#sum');
     var operationType = $('#operationType');
-    var modalTemplate = $('.paymentInfo').html().trim().split("\n");
+    var modalTemplate = $('.paymentInfo p');
     var button = $('#payment').find('button');
     var merchantsData;
 
@@ -96,9 +94,8 @@ $(function(){
             yandex:'/merchants/yandexmoney/payment/prepare',
             blockchainDeposit:'/merchants/blockchain/payment/provide',
             perfectDeposit:'https://perfectmoney.is/api/step1.asp',
-            perfectWithdraw:'/merchants/perfectmoney/payment/provide',
             advcash:'/merchants/advcash/payment/prepare',
-            edrcoinWithdraw:'/merchants/edrcoin/payment/provide'
+
         };
         if (operationType === 'INPUT') {
             switch (merchant) {
@@ -115,32 +112,39 @@ $(function(){
                 default:
                     form.attr('action', NO_ACTION);
             }
-        } else {
-            switch (merchant) {
-                case YANDEX :
-                    form.attr('action', formAction.yandex);
-                    break;
-                case PERFECT :
-                    form.attr('action', formAction.perfectWithdraw);
-                    break;
-                case BLOCKCHAIN:
-                    form.attr('action', formAction.blockchainDeposit);
-                    break;
-                case ADVCASH :
-                    form.attr('action', formAction.advcash);
-                    break;
-                case EDR_COIN:
-                    form.attr('action',formAction.edrcoinWithdraw);
-                    break;
-                default:
-                    form.attr('action', NO_ACTION);
-            }
         }
+    }
+
+    function responseControls () {
+        $('.request_money_operation_btn').hide();
+        $('.response_money_operation_btn').show();
+    }
+
+    function requestControls() {
+        $('.request_money_operation_btn').show();
+        $('.response_money_operation_btn').hide();
     }
 
     function resetPaymentFormData(targetMerchant,form,callback) {
         if (operationType.val() === 'OUTPUT') {
-            callback();
+            $.ajax('/merchants/payment/withdraw', {
+                headers: {
+                    'X-CSRF-Token': $("input[name='_csrf']").val()
+                },
+                type: 'POST',
+                contentType: 'application/json',
+                dataType: 'json',
+                data: JSON.stringify($(form).serializeObject())
+            }).done(function (response) {
+                responseControls();
+                $('.paymentInfo').html(response['success']);
+                $('.wallet_input').hide();
+            }).fail(function (error, jqXHR, textStatus) {
+                responseControls();
+                $('.paymentInfo').html(error['error']);
+                $('.wallet_input').hide();
+                console.log(textStatus);
+            });
         } else {
             switch (targetMerchant) {
                 case PERFECT :
@@ -162,6 +166,8 @@ $(function(){
                         $(form).html(targetNewHTML);
                         callback();
                     }).fail(function (error) {
+                        responseControls();
+                        $('.paymentInfo').html(error.responseText);
                         console.log(error);
                     });
                     break;
@@ -175,13 +181,10 @@ $(function(){
                         dataType: 'text',
                         data: JSON.stringify($(form).serializeObject())
                     }).done(function (response) {
-                        $('.add__money__btns').hide();
                         $('.paymentInfo').html(response);
-                        $('.request_money_operation_btn').hide();
-                        $('.response_money_operation_btn').show();
-                    }).fail(function (error,jqXHR, textStatus, errorThrown) {
-                        $('.request_money_operation_btn').hide();
-                        $('.response_money_operation_btn').show();
+                        responseControls();
+                    }).fail(function (error, jqXHR, textStatus) {
+                        responseControls();
                         $('.paymentInfo').html(error.responseText);
                         console.log(textStatus);
                     });
@@ -197,13 +200,14 @@ $(function(){
                       success:function (response) {
                           console.log(response);
                           $('.paymentInfo').html(response);
-                          $('.request_money_operation_btn').hide();
-                          $('.response_money_operation_btn').show();
+                          responseControls();
                       },
                       error:function (jqXHR, textStatus, errorThrown) {
-                          alert(jqXHR);
-                          alert(textStatus);
-                          alert(errorThrown);
+                          console.log(jqXHR);
+                          console.log(textStatus);
+                          console.log(errorThrown);
+                          $('.paymentInfo').html(error.responseText);
+                          responseControls();
                       }
                   });
                       break;
@@ -233,19 +237,30 @@ $(function(){
             type: "get",
             contentType: "application/json"
         }).done(function (response) {
-            var selectedCurrency = currency.find(':selected').html();
+            var selectedCurrency = currency
+              .find(':selected')
+              .html()
+              .split(" ")[0];
             var round = selectedCurrency === 'BTC' || selectedCurrency === 'EDRC' ? 8 : 2;
             var commission = parseFloat(response);
             var targetCurrentSum = parseFloat(sum.val());
             var computedCommission = targetCurrentSum * commission;
-            var targetNewSum = targetCurrentSum + computedCommission;
+            var targetNewSum;
+            if (url.indexOf('output' )=== -1) {
+                targetNewSum = targetCurrentSum + computedCommission;    
+            } else {
+                targetNewSum = targetCurrentSum - computedCommission;
+            }
             var templateVariables = {
                 amount: '__amount',
                 currency: '__currency',
                 merchant: '__merchant',
                 percent: '__percent'
             };
-            var newHTMLElements = modalTemplate.slice(); //Create new array from template modalTemplate
+            var newHTMLElements = []; 
+              modalTemplate.slice().each(function(index,val){
+                  newHTMLElements[index] = '<p>'+$(val).html()+'</p>';
+              });
             newHTMLElements[0] = newHTMLElements[0]
                 .replace(templateVariables.amount, parseFloat(targetCurrentSum))
                 .replace(templateVariables.currency, selectedCurrency)
@@ -286,12 +301,16 @@ $(function(){
 
     if ($("#assertInputPay").length) {
         $("#assertInputPay").bind('click',function(){
+            requestControls();
             fillModalWindow('/merchants/commission/input');
         });
     }
     
     if ($("#assertOutputPay").length) {
-        $("#assertOutputPay").bind('click',function(){
+        $("#assertOutputPay").bind('click',function() {
+            $('.wallet_input').show();
+            setTimeout("$('.wallet_input>input').focus().val('')",200);
+            requestControls();
             fillModalWindow('/merchants/commission/output');
         });
     }
@@ -305,8 +324,6 @@ $(function(){
         if (uid.length>5){
             $("#destination").val(uid);
             submitProcess();
-        } else {
-
         }
     });
 
@@ -325,10 +342,5 @@ $(function(){
         } else {
             button.prop('disabled',true);
         }
-    });
-
-    $('.response_money_operation_btn>button').on('click', function () {
-        $('.request_money_operation_btn').show();
-        $('.response_money_operation_btn').hide();
     });
 });

@@ -1,26 +1,25 @@
 package me.exrates.service.impl;
 
-import java.util.Locale;
-import java.util.Objects;
 import javafx.util.Pair;
 import me.exrates.dao.MerchantDao;
+import me.exrates.dao.WithdrawRequestDao;
 import me.exrates.model.*;
+import me.exrates.model.Currency;
 import me.exrates.model.enums.OperationType;
 import me.exrates.service.*;
 import me.exrates.service.exception.UnsupportedMerchantException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.MessageSource;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.security.Principal;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -45,9 +44,15 @@ public class MerchantServiceImpl implements MerchantService{
     private SendMailService sendMailService;
 
     @Autowired
-    private ApplicationContext context;
+    private MessageSource messageSource;
 
-    private static final Logger logger = LogManager.getLogger("merchant");
+    @Autowired
+    private TransactionService transactionService;
+
+    @Autowired
+    private WithdrawRequestDao withdrawRequestDao;
+
+    private static final Logger LOGGER = LogManager.getLogger("merchant");
 
     @Override
     public Merchant create(Merchant merchant) {
@@ -58,6 +63,52 @@ public class MerchantServiceImpl implements MerchantService{
     public List<Merchant> findAllByCurrency(Currency currency) {
         return merchantDao.findAllByCurrency(currency.getId());
     }
+
+    @Override
+    @Transactional
+    public Map<String, String> withdrawRequest(final CreditsOperation creditsOperation,
+                                               final Locale locale, final Principal principal) {
+
+        final Transaction transaction = transactionService.createTransactionRequest(creditsOperation);
+        final WithdrawRequest request = new WithdrawRequest();
+        creditsOperation
+                .getDestination()
+                .ifPresent(request::setWallet);
+        request.setTransaction(transaction);
+        withdrawRequestDao.create(request);
+        final String notification = sendWithdrawalNotification(transaction.getId(),
+                principal.getName(),
+                locale, creditsOperation
+        );
+        return Collections.singletonMap("success", notification);
+    }
+
+    @Override
+    public String sendWithdrawalNotification(final int requestId, final String mail,
+                                             final Locale locale, final CreditsOperation creditsOperation) {
+        final String notification = messageSource.getMessage(
+                "merchants.withdrawNotification",
+                new Object[]{
+                        requestId,
+                        creditsOperation
+                                .getMerchant()
+                                .getDescription()
+                },
+                locale);
+        final Email email = new Email();
+        email.setMessage(notification);
+        email.setSubject(messageSource
+                .getMessage("merchants.withdrawNotification.header", null, locale));
+        email.setTo(mail);
+        try {
+            sendMailService.sendMail(email);
+            LOGGER.info("Sanded email :"+email);
+        } catch (MailException e) {
+            LOGGER.error(e);
+        }
+        return notification;
+    }
+
 
     @Override
     public String sendDepositNotification(final String toWallet,
@@ -82,21 +133,21 @@ public class MerchantServiceImpl implements MerchantService{
                 .getCurrency()
                 .getName();
         final String notification = String
-            .format(context
+            .format(messageSource
                 .getMessage(Objects.isNull(externalFee) ?
                     "merchants.depositNotification.body" :
                     "merchants.depositNotificationWithFee.body",null,locale),
                 sumWithCurrency, toWallet);
         final Email mail = new Email();
         mail.setTo(email);
-        mail.setSubject(context
+        mail.setSubject(messageSource
             .getMessage("merchants.depositNotification.header",null,locale));
         mail.setMessage(sumWithCurrency);
         try {
             sendMailService.sendMail(mail);
-            logger.info("Sended email :"+email);
+            LOGGER.info("Sanded email :"+email);
         } catch (MailException e) {
-            logger.error(e);
+            LOGGER.error(e);
         }
         return notification;
     }
@@ -193,7 +244,7 @@ public class MerchantServiceImpl implements MerchantService{
         final String destination = payment.getDestination();
         try {
             if (!isPayable(merchant,currency,amount)) {
-                logger.warn("Merchant respond as not support this pay"+payment);
+                LOGGER.warn("Merchant respond as not support this pay " + payment);
                 return Optional.empty();
             }
         } catch (EmptyResultDataAccessException e) {

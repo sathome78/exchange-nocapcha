@@ -5,10 +5,8 @@ import me.exrates.dao.WalletDao;
 import me.exrates.model.Currency;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
-import me.exrates.service.CommissionService;
 import me.exrates.service.WalletService;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
-import me.exrates.service.exception.WalletPersistException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,22 +15,24 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.util.List;
+
+import static java.math.BigDecimal.ZERO;
 
 @Service
 @Transactional
-public class WalletServiceImpl implements WalletService {
+public final class WalletServiceImpl implements WalletService {
 
 	@Autowired
-	WalletDao walletDao;
+	private WalletDao walletDao;
 
 	@Autowired
-	CommissionService commissionService;
+	private CurrencyDao currencyDao;
 
-	@Autowired
-	CurrencyDao currencyDao;
-
-	private static final Logger logger = LogManager.getLogger(WalletServiceImpl.class);
+	private static final MathContext MATH_CONTEXT = new MathContext(9, RoundingMode.CEILING);
+	private static final Logger LOGGER = LogManager.getLogger(WalletServiceImpl.class);
 
 	@Transactional(readOnly = true)
 	@Override
@@ -76,10 +76,7 @@ public class WalletServiceImpl implements WalletService {
 	@Override
 	public boolean ifEnoughMoney(int walletId, BigDecimal amountForCheck) {
 		BigDecimal balance = getWalletABalance(walletId);
-		if(balance.compareTo(amountForCheck) >= 0){
-			return true;
-		}
-		else return false;
+		return balance.compareTo(amountForCheck) >= 0;
 	}
 
 	@Transactional(propagation = Propagation.NESTED)
@@ -110,65 +107,69 @@ public class WalletServiceImpl implements WalletService {
 	@Override
 	public boolean setWalletABalance(int walletId, BigDecimal amount) {
 		final BigDecimal oldBalance = walletDao.getWalletABalance(walletId);
-		final BigDecimal newBalance = oldBalance.add(amount).setScale(9,BigDecimal.ROUND_CEILING);
-		if(newBalance.signum() == -1) {
-			return false;
-		}
-		else return walletDao.setWalletABalance(walletId, newBalance);
+		final BigDecimal newBalance = oldBalance.add(amount, MATH_CONTEXT);
+		return newBalance.signum() != -1 && walletDao.setWalletABalance(walletId, newBalance);
 	}
 	
 	@Transactional(propagation = Propagation.NESTED)
 	@Override
 	public boolean setWalletRBalance(int walletId, BigDecimal amount) {
 		final BigDecimal oldBalance = walletDao.getWalletRBalance(walletId);
-		final BigDecimal newBalance = oldBalance.add(amount).setScale(9,BigDecimal.ROUND_CEILING);
-		if(newBalance.signum() == -1) {
-			return false;
-		}
-		else return walletDao.setWalletRBalance(walletId, newBalance);
+		final BigDecimal newBalance = oldBalance.add(amount, MATH_CONTEXT);
+		return newBalance.signum() != -1 && walletDao.setWalletRBalance(walletId, newBalance);
 	}
 
 
 	@Override
 	@Transactional(propagation = Propagation.NESTED)
 	public void depositActiveBalance(Wallet wallet, BigDecimal sum) {
-		logger.info("Trying deposit active balance on wallet "+ wallet+
+		LOGGER.info("Trying deposit active balance on wallet "+ wallet+
 			", amount: "+sum);
 		final BigDecimal newBalance =
-				wallet.getActiveBalance().add(sum).setScale(9,BigDecimal.ROUND_CEILING);
+				wallet.getActiveBalance().add(sum,MATH_CONTEXT);
 		wallet.setActiveBalance(newBalance);
-		if (!walletDao.update(wallet)) {
-			throw new WalletPersistException("Failed to deposit on user wallet " + wallet.toString());
-		}
-		logger.info("Successfull active balance deposit on wallet "+wallet);
+		walletDao.update(wallet);
+		LOGGER.info("Successful active balance deposit on wallet "+wallet);
 	}
 
 	@Override
 	@Transactional(propagation = Propagation.NESTED)
 	public void withdrawActiveBalance(Wallet wallet, BigDecimal sum) {
-		logger.info("Trying withdraw active balance on wallet "+ wallet+
+		LOGGER.info("Trying withdraw active balance on wallet "+ wallet+
 			", amount: "+sum);
-		final BigDecimal newBalance =
-				wallet.getActiveBalance().subtract(sum).setScale(9,BigDecimal.ROUND_CEILING);
-		if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
-			throw new NotEnoughUserWalletMoneyException("Not enough money to withdraw on user wallet " + wallet.toString());
+		final BigDecimal newBalance = wallet.getActiveBalance().subtract(sum,MATH_CONTEXT);
+		if (newBalance.compareTo(ZERO) < 0) {
+			throw new NotEnoughUserWalletMoneyException("Not enough money to withdraw on user wallet " +
+					wallet.toString());
 		}
 		wallet.setActiveBalance(newBalance);
-		if (!walletDao.update(wallet)) {
-			throw new WalletPersistException("Failed to withdraw on user wallet " + wallet.toString());
-		}
-		logger.info("Successfull active balance withdraw on wallet "+wallet);
+		walletDao.update(wallet);
+		LOGGER.info("Successful active balance withdraw on wallet " + wallet);
 	}
 
 	@Override
 	@Transactional(propagation = Propagation.NESTED)
 	public void depositReservedBalance(Wallet wallet, BigDecimal sum) {
-		throw new UnsupportedOperationException();
+		LOGGER.info("Trying deposit reserved balance on wallet "+ wallet +
+				", amount: "+sum);
+		wallet.setActiveBalance(wallet.getActiveBalance().subtract(sum, MATH_CONTEXT));
+		if (wallet.getActiveBalance().compareTo(ZERO) < 0) {
+			throw new NotEnoughUserWalletMoneyException("Not enough money to withdraw on user wallet " + wallet);
+		}
+		wallet.setReservedBalance(wallet.getReservedBalance().add(sum, MATH_CONTEXT));
+		walletDao.update(wallet);
+		LOGGER.info("Successful reserved balance deposit on wallet " + wallet);
 	}
 
 	@Override
 	@Transactional(propagation = Propagation.NESTED)
 	public void withdrawReservedBalance(Wallet wallet, BigDecimal sum) {
-		throw new UnsupportedOperationException();
+		LOGGER.info("Trying withdraw reserved balance on wallet " + wallet + ", amount: "+sum);
+		wallet.setReservedBalance(wallet.getReservedBalance().subtract(sum, MATH_CONTEXT));
+		if (wallet.getReservedBalance().compareTo(ZERO) < 0) {
+			throw new NotEnoughUserWalletMoneyException("Not enough money to withdraw on user wallet " + wallet);
+		}
+		walletDao.update(wallet);
+		LOGGER.info("Successful reserved balance deposit on wallet " + wallet);
 	}
 }

@@ -1,10 +1,11 @@
 package me.exrates.service.util;
 
 import com.squareup.okhttp.Request;
-import java.io.IOException;
 import okio.Buffer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.io.IOException;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -19,8 +20,8 @@ public class OkHttpUtils {
             final Buffer buffer = new Buffer();
             copy.body().writeTo(buffer);
             return buffer.readUtf8();
-        } catch (final IOException e) {
-            throw new RuntimeException(e);
+        } catch (final IOException ignore) {
+            return null; // it will never happen
         }
     }
 }
