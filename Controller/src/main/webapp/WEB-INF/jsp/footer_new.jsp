@@ -67,6 +67,10 @@
                     src="<c:url value='/client/img/twitter.png'/>" alt="TW"/></a>
             <a class="socials-icon-wrapper__icon" href="https://www.facebook.com/exrates.me" target="_blank"><img
                     src="<c:url value='/client/img/facebook.png'/>" alt="FB"/></a>
+            <a class="socials-icon-wrapper__icon" href="https://edrcoin.com/ " target="_blank"><img
+                    src="<c:url value='/client/img/edrcoin.png'/>" alt="FB"/></a>
+            <a class="socials-icon-wrapper__icon" href="https://blockchain.mn/ " target="_blank"><img
+                    src="<c:url value='/client/img/blockchain.png'/>" alt="FB"/></a>
         </div>
         <p><loc:message code="dashboard.allRightsReserved"/></p>
     </div>

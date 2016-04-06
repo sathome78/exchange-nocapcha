@@ -45,15 +45,25 @@
         <%-- ... взял из старого - не понял для чего он--%>
 
         <div class="col-sm-9 content">
+            <% String tabIdx = request.getParameter("tabIdx");%>
             <div class="buttons">
-                <%--Создать ордер на продажу--%>
-                <button class="active orderForm-toggler">
-                    <loc:message code="admin.changePassword"/>
-                </button>
-                <%--Создать ордер на покупку--%>
-                <button class="orderForm-toggler">
-                    <loc:message code="admin.changeFinPassword"/>
-                </button>
+                <%--изменить пароль--%>
+                <% if (tabIdx==null || "1".equals(tabIdx)) {%>
+                <button class="orderForm-toggler active">
+                        <%} else {%>
+                    <button class="orderForm-toggler">
+                        <%}%>
+                        <loc:message code="admin.changePassword"/>
+                    </button>
+
+                    <%--изменить фин пароль--%>
+                        <% if ("2".equals(tabIdx)) {%>
+                    <button class="orderForm-toggler active">
+                            <%} else {%>
+                        <button class="orderForm-toggler">
+                            <%}%>
+                            <loc:message code="admin.changeFinPassword"/>
+                        </button>
             </div>
 
             <%--контейнер форм продажа - покупка--%>
@@ -206,11 +216,13 @@
     <hr/>
 </main>
 <%@include file='footer_new.jsp' %>
+<span hidden id="errorNoty">${errorNoty}</span>
 <%----------%>
 <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/menuSwitcher.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
 <%----------%>
 </body>
 </html>

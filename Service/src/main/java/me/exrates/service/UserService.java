@@ -1,5 +1,6 @@
 package me.exrates.service;
 
+import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
@@ -21,7 +22,11 @@ public interface UserService {
 
     String logIP(String email, String host);
 
+    List<TemporalToken> getTokenByUserAndType(User user, TokenType tokenType);
+
     User verifyUserEmail(String token);
+
+    void verifyUserEmail(String token, TokenType tokenType);
 
     List<UserRole> getAllRoles();
 

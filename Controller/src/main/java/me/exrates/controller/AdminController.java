@@ -4,6 +4,7 @@ import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.OperationView;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
+import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.security.service.UserSecureServiceImpl;
@@ -17,11 +18,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
@@ -199,12 +196,14 @@ public class AdminController {
     }
 
     @RequestMapping("/settings")
-    public ModelAndView settings(Principal principal) {
+    public ModelAndView settings(Principal principal, @RequestParam(required = false) Integer tabIdx, @RequestParam(required = false) String msg, HttpServletRequest request) {
 
         ModelAndView model = new ModelAndView();
 
         User user = userService.getUserById(userService.getIdByEmail(principal.getName()));
         model.addObject("user", user);
+        model.addObject("tabIdx", tabIdx);
+        model.addObject("errorNoty", msg);
         model.setViewName("settings");
 
         return model;
@@ -250,6 +249,19 @@ public class AdminController {
         ModelAndView model = new ModelAndView();
         try {
             userService.verifyUserEmail(token);
+            model.setViewName("RegistrationConfirmed");
+        } catch (Exception e) {
+            model.setViewName("DBError");
+            e.printStackTrace();
+        }
+        return model;
+    }
+
+    @RequestMapping(value = "/changeFinPasswordConfirm")
+    public ModelAndView verifyEmailForFinPassword(WebRequest request, @RequestParam("token") String token) {
+        ModelAndView model = new ModelAndView();
+        try {
+            userService.verifyUserEmail(token, TokenType.CHANGE_FIN_PASSWORD);
             model.setViewName("RegistrationConfirmed");
         } catch (Exception e) {
             model.setViewName("DBError");

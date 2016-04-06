@@ -117,7 +117,9 @@
                                         <form:hidden path="currencyBuy" value="${order.currencyBuy}"/>
                                         <form:hidden path="operationType" value="${order.operationType}"/>
                                         <loc:message code="submitorder.submit" var="labelSubmit"/>
-                                        <button onclick="submitCreateOrder()" type="button">${labelSubmit}</button>
+                                        <%--<button onclick="submitCreateOrder()" type="button">${labelSubmit}</button>--%>
+                                        <button onclick="finPassCheck(${order.id}, submitCreateOrder, event)"><loc:message
+                                                code="orders.accept"/></button>
                                     </form:form>
 
                                     <form:form class="submit-order-form" action="edit" modelAttribute="order"
@@ -147,6 +149,7 @@
         </div>
 </main>
 <%@include file='footer_new.jsp' %>
+<%@include file='finpassword.jsp' %>
 <%----------%>
 <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>

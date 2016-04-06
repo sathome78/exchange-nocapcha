@@ -70,7 +70,8 @@
                         </div>
                         <%--Создать(Вывести)--%>
                         <button type="button" data-toggle="modal" id="assertInputPay" name="assertInputPay"
-                                data-target="#myModal"><loc:message code="merchants.deposit"/></button>
+                                data-target="#myModal"
+                                class="btn btn-primary"><loc:message code="merchants.deposit"/></button>
                         <paymentForm:hidden path="operationType"/>
                     </paymentForm:form>
                 </div>

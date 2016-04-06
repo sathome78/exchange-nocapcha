@@ -15,6 +15,12 @@ $('.orderForm-toggler').click(function () {
     $('.orderForm-toggler').toggleClass('active');
 });
 
++function syncOrderFormTabPane(){
+    var idx = $('.orderForm-toggler.active').index();
+    $('.tab-pane').removeClass('active');
+    $('.tab-pane:eq('+idx+')').addClass('active');
+
+}();
 
 $('.adminForm-toggler').click(function () {
     if ($(this).hasClass('active')) {

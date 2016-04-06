@@ -111,7 +111,7 @@
                                                method="post">
                                         <form:hidden path="id" value="${order.id}"/>
                                         <loc:message code="acceptorder.submit" var="labelSubmit"/>
-                                        <button type="button" onclick="acceptOrder(${order.id})">${labelSubmit}</button>
+                                        <button type="button" onclick="finPassCheck(${order.id}, submitAcceptOrder)">${labelSubmit}</button>
                                     </form:form>
 
                                     <c:url value="/orders" var="url"/>
@@ -134,13 +134,14 @@
     <%--</c:if>--%>
 </div>
 <%@include file='footer_new.jsp' %>
+<%@include file='finpassword.jsp' %>
 <%----------%>
 <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
 
 <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
-<script type="text/javascript" src="<c:url value='/client/js/submits/orderAccept.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/submits/orderSubmitAccept.js'/>"></script>
 
 <%----------%>
 

@@ -51,7 +51,7 @@
                 <c:otherwise>
                     <div class="row">
                         <div class="col-sm-9">
-                            <paymentForm:form class="form-horizontal withdraw__money" name="payment" method="post"
+                            <paymentForm:form id="payment" class="form-horizontal withdraw__money" name="payment" method="post"
                                               modelAttribute="payment" action="/merchants/payment/withdraw">
                                 <div>
                                         <%--Валюта к вводу--%>
@@ -73,8 +73,8 @@
                                 <paymentForm:hidden path="operationType"/>
                                 <paymentForm:hidden id="destination" path="destination"/>
                                 <%--Создать(Вывести)--%>
-                                <button type="button" data-toggle="modal" id="assertOutputPay"
-                                        name="assertOutputPay" data-target="#myModal" class="btn btn-primary">
+                                <button onclick="finPassCheck('myModal', submitMerchantsOutput)" type="button" id="assertOutputPay"
+                                        class="btn btn-primary">
                                     <loc:message code="merchants.withdraw"/>
                                 </button>
                             </paymentForm:form>
@@ -89,6 +89,7 @@
 </main>
 
 <%@include file='footer_new.jsp' %>
+<%@include file='finpassword.jsp' %>
 
 <%--MODAL ... --%>
 <div class="modal fade merchant-output" id="myModal">
@@ -141,6 +142,7 @@
 <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/menuSwitcher.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/submits/merchantsSubmitOutput.js'/>"></script>
 <%----------%>
 </body>
 </html>

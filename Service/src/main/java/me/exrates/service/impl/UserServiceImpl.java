@@ -69,6 +69,24 @@ public class UserServiceImpl implements UserService {
 		userdao.updateUserStatus(user);
 		return user;
  	}
+
+	/*
+	* this method verify if there is token with concrete TokenType in db
+	* and delete ALL tokens of this TokenType for user that holds this token
+	* It's used for clear user tokens if fin password is confirmed by email
+	* */
+	@Transactional(rollbackFor=Exception.class)
+	public void verifyUserEmail(String token, TokenType tokenType) {
+		logger.info("Begin 'verifyUserEmail' method");
+		TemporalToken temporalToken = userdao.verifyToken(token);
+		if (temporalToken != null) {
+			userdao.deleteTemporalToken(temporalToken.getUserId(), tokenType);
+		}
+	}
+
+	public List<TemporalToken> getTokenByUserAndType(User user, TokenType tokenType){
+		return userdao.getTokenByUserAndType(user.getId(), tokenType);
+	}
  	
  	public int getIdByEmail(String email) {
 		logger.info("Begin 'getIdByEmail' method");
@@ -141,7 +159,7 @@ public class UserServiceImpl implements UserService {
 			if (changePassword) {
 				sendEmailWithToken(user, TokenType.CHANGE_PASSWORD, "/changePasswordConfirm", "emailsubmitChangePassword.subject", "emailsubmitChangePassword.text", locale);
 			}else if (changeFinPassword){
-				sendEmailWithToken(user, TokenType.CHANGE_FIN_PASSWORD, "/changePasswordConfirm", "emailsubmitChangeFinPassword.subject", "emailsubmitChangeFinPassword.text", locale);
+				sendEmailWithToken(user, TokenType.CHANGE_FIN_PASSWORD, "/changeFinPasswordConfirm", "emailsubmitChangeFinPassword.subject", "emailsubmitChangeFinPassword.text", locale);
 			}else {
 				sendEmailWithToken(user, TokenType.CHANGE_PASSWORD, "/resetPasswordConfirm", "emailsubmitResetPassword.subject", "emailsubmitResetPassword.text", locale);
 			}
