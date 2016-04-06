@@ -37,8 +37,8 @@ function failNoty(jqXHR) {
     });
 }
 
-//for future
-function showErrorNotyOnEntry(){
+//Show error message on page load - if massage was passed to page
++function showErrorNotyOnEntry(){
     var msg = $('#errorNoty').html();
     if (msg){
         failedNote = noty({
@@ -48,4 +48,4 @@ function showErrorNotyOnEntry(){
             timeout: false
         });
     }
-} //();
+} ();

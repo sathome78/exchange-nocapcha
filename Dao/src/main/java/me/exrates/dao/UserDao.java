@@ -4,6 +4,7 @@ import java.util.List;
 
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
+import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 
 public interface UserDao {
@@ -47,6 +48,10 @@ public interface UserDao {
 	TemporalToken verifyToken(String token);
 
 	boolean deleteTemporalToken(TemporalToken token);
+
+	boolean deleteTemporalToken(int userId, TokenType tokenType);
+
+	List<TemporalToken> getTokenByUserAndType(int userId, TokenType tokenType);
 
 	boolean updateUserStatus(User user);
 

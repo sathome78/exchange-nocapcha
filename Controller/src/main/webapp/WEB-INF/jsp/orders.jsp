@@ -55,7 +55,7 @@
                 <%--форма продажи--%>
                 <div class="tab-pane active" id="tab__sell">
                     <c:set var="submiturl" value="order/submit"/>
-                    <form:form class="form-horizontal withdraw__money" action="${submiturl}" method="post"
+                    <form:form id="createSellOrderForm" class="form-horizontal withdraw__money" action="${submiturl}" method="post"
                                modelAttribute="order">
                         <%--Продаю--%>
                         <div>
@@ -166,7 +166,9 @@
                                 <td> ${order.currencyBuyString} </td>
                                 <td><fmt:formatNumber type="number" maxFractionDigits="9"
                                                       value="${order.amountBuy}"/></td>
-                                <td><button onclick="submitAcceptOrder(${order.id})"><loc:message code="orders.accept"/></button>
+                                <td>
+                                    <button onclick="beginAcceptOrder(${order.id})"><loc:message
+                                            code="orders.accept"/></button>
                             </tr>
                         </c:forEach>
                         </tbody>
@@ -194,7 +196,9 @@
                                 <td> ${order.currencySellString} </td>
                                 <td><fmt:formatNumber type="number" maxFractionDigits="9"
                                                       value="${order.amountSell}"/></td>
-                                <td><button onclick="submitAcceptOrder(${order.id})"><loc:message code="orders.accept"/></button>
+                                <td>
+                                    <button onclick="beginAcceptOrder(${order.id})"><loc:message
+                                            code="orders.accept"/></button>
                                 </td>
                             </tr>
                         </c:forEach>
@@ -209,13 +213,14 @@
     <span hidden id="errorNoty">${notEnoughMoney}</span>
 </main>
 <%@include file='footer_new.jsp' %>
+<%@include file='finpassword.jsp' %>
 <%----------%>
 <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/menuSwitcher.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
-<script type="text/javascript" src="<c:url value='/client/js/submits/orderSubmitAccept.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/submits/orderBeginAccept.js'/>"></script>
 <%----------%>
 </body>
 </html>

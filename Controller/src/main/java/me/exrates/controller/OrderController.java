@@ -8,14 +8,14 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
-import me.exrates.controller.exception.ErrorInfo;
-import me.exrates.controller.exception.NotAcceptableOrderException;
-import me.exrates.controller.exception.NotCreatableOrderException;
-import me.exrates.controller.exception.NotEnoughMoneyException;
+import me.exrates.controller.exception.*;
 import me.exrates.controller.validator.OrderValidator;
 import me.exrates.model.Currency;
 import me.exrates.model.Order;
+import me.exrates.model.User;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.TokenType;
+import me.exrates.model.enums.UserStatus;
 import me.exrates.service.CommissionService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
@@ -23,6 +23,9 @@ import me.exrates.service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -66,6 +69,28 @@ public class OrderController {
         return model;
     }
 
+    /*CHECK FIN PASSWORD*/
+
+    @RequestMapping(value = "/checkfinpass", method = RequestMethod.POST)
+    @ResponseBody
+    public void checkFinPassword(User user, HttpServletRequest request) {
+        String enteredFinPassword = user.getFinpassword();
+        User storedUser = userService.getUserById(userService.getIdByEmail(user.getEmail()));
+        boolean isNotConfirmedToken = userService.getTokenByUserAndType(storedUser, TokenType.CHANGE_FIN_PASSWORD).size()>0;
+        if (isNotConfirmedToken) {
+            throw new NotConfirmedFinPasswordException(messageSource.getMessage("admin.notconfirmedfinpassword", null, localeResolver.resolveLocale(request)));
+        }
+        String currentFinPassword = storedUser.getFinpassword();
+        if (currentFinPassword == null || currentFinPassword.isEmpty()) {
+            throw new AbsentFinPasswordException(messageSource.getMessage("admin.absentfinpassword", null, localeResolver.resolveLocale(request)));
+        }
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        boolean authSuccess = passwordEncoder.matches(enteredFinPassword, currentFinPassword);
+        if (! authSuccess) {
+            throw new WrongFinPasswordException(messageSource.getMessage("admin.wrongfinpassword", null, localeResolver.resolveLocale(request)));
+        }
+    }
+
    /*ACCEPT ORDER ...*/
 
     /* check if enough money to accept
@@ -97,9 +122,10 @@ public class OrderController {
     try to fix operation in db. It's possible that error occures (for example because balance has changed)
     * */
     @RequestMapping(value = "/orders/accept")
-    @ResponseBody public void acceptOrder(@RequestParam int id, ModelAndView model, Principal principal, RedirectAttributes redirectAttributes, HttpServletRequest request) {
+    @ResponseBody
+    public void acceptOrder(@RequestParam int id, ModelAndView model, Principal principal, RedirectAttributes redirectAttributes, HttpServletRequest request) {
         int userId = userService.getIdByEmail(principal.getName());
-        if (! orderService.acceptOrder(userId, id)) {
+        if (!orderService.acceptOrder(userId, id)) {
             throw new NotAcceptableOrderException(messageSource.getMessage("dberror.text", null, localeResolver.resolveLocale(request)));
         }
     }
@@ -149,7 +175,8 @@ public class OrderController {
     to try to fix operation in db. It's possible that error occures (for example because balance has changed)
     * */
     @RequestMapping(value = "/orders/create")
-    @ResponseBody public void recordOrderToDB(Order order, Principal principal, HttpServletRequest request)  {
+    @ResponseBody
+    public void recordOrderToDB(Order order, Principal principal, HttpServletRequest request) {
         int walletIdFrom = walletService.getWalletId(userService.getIdByEmail(principal.getName()), order.getCurrencySell());
         order.setWalletIdSell(walletIdFrom);
         if ((orderService.createOrder(order)) <= 0) {
@@ -215,7 +242,8 @@ public class OrderController {
         model.addObject("commission", commission);
     }
 
-    /*error handlers for this controller
+    /*
+    error handlers for this controller
     * */
 
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
@@ -239,5 +267,25 @@ public class OrderController {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 
-}  
+    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+    @ExceptionHandler(WrongFinPasswordException.class)
+    @ResponseBody
+    public ErrorInfo WrongFinPasswordExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+    @ExceptionHandler(AbsentFinPasswordException.class)
+    @ResponseBody
+    public ErrorInfo AbsentFinPasswordExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+    @ExceptionHandler(NotConfirmedFinPasswordException.class)
+    @ResponseBody
+    public ErrorInfo NotConfirmedFinPasswordExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
+}
 
