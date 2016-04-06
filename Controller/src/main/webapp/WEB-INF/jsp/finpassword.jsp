@@ -33,7 +33,7 @@
                         <button onclick="finPassCheck()" type="button" data-dismiss="modal" class="button_enter">
                             <loc:message code="admin.submitfinpassword"/></button>
                         <%--Забыли пароль?--%>
-                        <a class="button_forgot" href="/forgotPassword"><loc:message
+                        <a style="display:none" class="button_forgot" href="/forgotPassword"><loc:message
                                 code="dashboard.forgotPassword"/></a>
                     </form>
                 </div>
