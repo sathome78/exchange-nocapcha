@@ -10,22 +10,20 @@ import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
-import me.exrates.controller.utils.VerifyReCaptcha;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.Order;
 import me.exrates.model.User;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
+import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.CommissionService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.DashboardService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -76,7 +74,7 @@ public class DashboardController {
     LocaleResolver localeResolver;
 
     @Autowired
-    VerifyReCaptcha verifyReCaptcha;
+    VerifyReCaptchaSec verifyReCaptcha;
 
     private CurrencyPair currentCurrencyPair;
 
@@ -136,8 +134,8 @@ public class DashboardController {
         model.addObject("sumAmountSellClosed", sumAmountSellClosed);
 
         if (principal != null){
-            model.addObject("balanceCurrency1", dashboardService.getBalanceByCurrency(userService.getIdByEmail(principal.getName()),1));
-            model.addObject("balanceCurrency2", dashboardService.getBalanceByCurrency(userService.getIdByEmail(principal.getName()),2));
+            model.addObject("balanceCurrency1", dashboardService.getBalanceByCurrency(userService.getIdByEmail(principal.getName()),currencyPair.getCurrency1().getId()));
+            model.addObject("balanceCurrency2", dashboardService.getBalanceByCurrency(userService.getIdByEmail(principal.getName()),currencyPair.getCurrency2().getId()));
         }
 
         BigDecimal minPrice = dashboardService.getMinPriceByCurrency(currencyPair);

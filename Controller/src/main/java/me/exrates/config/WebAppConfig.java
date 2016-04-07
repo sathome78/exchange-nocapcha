@@ -1,9 +1,9 @@
 package me.exrates.config;
 
-import me.exrates.controller.utils.VerifyReCaptcha;
 import me.exrates.controller.validator.OrderValidator;
 import me.exrates.controller.validator.RegisterFormValidation;
 
+import me.exrates.security.filter.VerifyReCaptchaSec;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -114,8 +114,8 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 		return resolver;
 	}
 	@Bean
-	public VerifyReCaptcha verifyReCaptcha(){
-		return new VerifyReCaptcha();
+	public VerifyReCaptchaSec verifyReCaptcha(){
+		return new VerifyReCaptchaSec();
 	}
 
 	@Override

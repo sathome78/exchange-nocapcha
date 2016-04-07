@@ -46,6 +46,7 @@
 
         <div class="col-sm-9 content">
             <% String tabIdx = request.getParameter("tabIdx");%>
+            <% if (tabIdx == null) {tabIdx=String.valueOf(request.getAttribute("tabIdx"));}  %>
             <div class="buttons">
                 <%--изменить пароль--%>
                 <% if (tabIdx==null || "1".equals(tabIdx)) {%>
@@ -196,9 +197,9 @@
                                         code="admin.confirmpassword"/></label>
                             </div>
                             <div class="col-md-8 input-block-wrapper__input-wrapper">
-                                <form:password path="confirmPassword" class="input-block-wrapper__input"
+                                <form:password path="confirmFinPassword" class="input-block-wrapper__input"
                                                id="userFin-confirmpassword"/>
-                                <form:errors path="confirmPassword" class="input-block-wrapper__input"
+                                <form:errors path="confirmFinPassword" class="input-block-wrapper__input"
                                              style="color:red"/>
                             </div>
                         </div>

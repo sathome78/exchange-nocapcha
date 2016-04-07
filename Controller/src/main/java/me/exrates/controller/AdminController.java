@@ -216,6 +216,7 @@ public class AdminController {
         registerFormValidation.validateResetPassword(user, result, localeResolver.resolveLocale(request));
         if (result.hasErrors()) {
             model.setViewName("settings");
+            model.addObject("tabIdx", 1);
         } else {
             userService.update(user, true, false, false, localeResolver.resolveLocale(request));
             new SecurityContextLogoutHandler().logout(request, null, null);
@@ -234,6 +235,7 @@ public class AdminController {
         registerFormValidation.validateResetFinPassword(user, result, localeResolver.resolveLocale(request));
         if (result.hasErrors()) {
             model.setViewName("settings");
+            model.addObject("tabIdx", 2);
         } else {
             userService.update(user, false, true, false, localeResolver.resolveLocale(request));
             model.setViewName("redirect:/mywallets");

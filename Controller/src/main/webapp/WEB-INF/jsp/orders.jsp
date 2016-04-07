@@ -147,15 +147,15 @@
             <div class="row">
                 <%--СПИСОК ОРДЕРОВ НА ПРОДАЖУ--%>
                 <div class="col-sm-6">
-                    <p><loc:message code="orders.listtosell"/></p>
+                    <p><loc:message code="orders.listtobuy"/></p>
                     <table>
                         <tbody>
                         <%--Продаю	Сумма	Покупаю	Сумма--%>
                         <tr>
-                            <th><loc:message code="orders.currsell"/></th>
-                            <th><loc:message code="orders.amountsell"/></th>
                             <th><loc:message code="orders.currbuy"/></th>
                             <th><loc:message code="orders.amountbuy"/></th>
+                            <th><loc:message code="orders.currsell"/></th>
+                            <th><loc:message code="orders.amountsell"/></th>
                             <th></th>
                         </tr>
                         <c:forEach var="order" items="${orderMap.sell}">
@@ -177,15 +177,15 @@
                 <!-- end col-sm-6 -->
                 <%--СПИСОК ОРДЕРОВ НА ПОКУПКУ--%>
                 <div class="col-sm-6">
-                    <p><loc:message code="orders.listtobuy"/></p>
+                    <p><loc:message code="orders.listtosell"/></p>
                     <table>
                         <tbody>
                         <%--Покупаю	Сумма	Продаю	Сумма--%>
                         <tr>
-                            <th><loc:message code="orders.currbuy"/></th>
-                            <th><loc:message code="orders.amountbuy"/></th>
                             <th><loc:message code="orders.currsell"/></th>
                             <th><loc:message code="orders.amountsell"/></th>
+                            <th><loc:message code="orders.currbuy"/></th>
+                            <th><loc:message code="orders.amountbuy"/></th>
                             <th></th>
                         </tr>
                         <c:forEach var="order" items="${orderMap.buy}">
@@ -209,7 +209,7 @@
         </div>
     </div>
     <hr>
-    //not used. might come useful for future (send startup message)
+    <%--not used. might come useful for future (send startup message)--%>
     <span hidden id="errorNoty">${notEnoughMoney}</span>
 </main>
 <%@include file='footer_new.jsp' %>

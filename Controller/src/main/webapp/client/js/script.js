@@ -15,22 +15,23 @@ $('.orderForm-toggler').click(function () {
     $('.orderForm-toggler').toggleClass('active');
 });
 
-+function syncOrderFormTabPane(){
++function syncOrderFormTabPane() {
     var idx = $('.orderForm-toggler.active').index();
-    $('.tab-pane').removeClass('active');
-    $('.tab-pane:eq('+idx+')').addClass('active');
-
+    if (idx >= 0) {
+        $('.tab-pane').removeClass('active');
+        $('.tab-pane:eq(' + idx + ')').addClass('active');
+    }
 }();
 
 $('.adminForm-toggler').click(function () {
     if ($(this).hasClass('active')) {
         return;
-    }else {
+    } else {
         $('.tab-pane').removeClass('active');
         $('.adminForm-toggler').removeClass('active');
         $(this).addClass('active');
         var idx = $(this).index();
-        $('.tab-pane:eq('+idx+')').addClass('active');
+        $('.tab-pane:eq(' + idx + ')').addClass('active');
     }
 });
 
