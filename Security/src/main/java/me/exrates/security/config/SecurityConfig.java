@@ -75,10 +75,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.addFilterBefore(customUsernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
-//        http.authenticationProvider(new OTPAuthenticationProvider());
         http
                 .authorizeRequests()
-                .antMatchers("/admin/withdrawal").hasAnyAuthority(UserRole.ADMINISTRATOR.name(),UserRole.ACCOUNTANT.name())
+                .antMatchers("/admin/withdrawal").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name())
                 .antMatchers("/admin/**", "/admin").hasAnyAuthority(UserRole.ADMINISTRATOR.name(),
                 UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
                 .antMatchers("/companywallet").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name())
@@ -88,8 +87,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/companywallet").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name())
                 .antMatchers("/index.jsp", "/client/**", "/dashboard/**", "/registrationConfirm/**",
                         "/changePasswordConfirm/**").permitAll()
-                .antMatchers(HttpMethod.POST,"/merchants/withdrawal/request/accept",
-                        "/merchants/withdrawal/request/decline").hasAnyAuthority(UserRole.ADMINISTRATOR.name(),UserRole.ACCOUNTANT.name())
+                .antMatchers(HttpMethod.POST, "/merchants/withdrawal/request/accept",
+                        "/merchants/withdrawal/request/decline").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name())
                 .antMatchers(HttpMethod.POST, "/merchants/perfectmoney/payment/status",
                         "/merchants/perfectmoney/payment/status",
                         "/merchants/perfectmoney/payment/success",
@@ -100,9 +99,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, "/merchants/liqpay/payment/status",
                         "/merchants/liqpay/payment/success",
                         "/merchants/liqpay/payment/failure").permitAll()
-                .antMatchers(HttpMethod.POST,"/merchants/edrcoin/payment/received").permitAll()
-                .antMatchers(HttpMethod.GET,"/merchants/blockchain/payment/received").permitAll()
-                .antMatchers("/login","/register","/create","/forgotPassword/**", "/resetPasswordConfirm/**").anonymous()
+                .antMatchers(HttpMethod.POST, "/merchants/edrcoin/payment/received").permitAll()
+                .antMatchers(HttpMethod.GET, "/merchants/blockchain/payment/received").permitAll()
+                .antMatchers("/login", "/register", "/create", "/forgotPassword/**", "/resetPasswordConfirm/**").anonymous()
                 .antMatchers("/updatePassword").hasAnyAuthority(UserRole.ROLE_CHANGE_PASSWORD.name())
 //                .anyRequest().authenticated()
                 .anyRequest().hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.USER.name())

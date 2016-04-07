@@ -1,9 +1,9 @@
 package me.exrates.controller;
 
-import me.exrates.controller.utils.VerifyReCaptcha;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.OperationView;
 import me.exrates.model.User;
+import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.security.service.UserSecureService;
 import me.exrates.service.OrderService;
 import me.exrates.service.TransactionService;
@@ -64,7 +64,7 @@ public class MainController {
     LocaleResolver localeResolver;
 
     @Autowired
-    VerifyReCaptcha verifyReCaptcha;
+    VerifyReCaptchaSec verifyReCaptcha;
 
     @RequestMapping("/403")
     public String error403() {
@@ -145,11 +145,14 @@ public class MainController {
         ModelAndView model = new ModelAndView();
         if (error != null) {
             if (httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION") != null) {
-                String exceptionClass = httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION").getClass().getName();
-                if (exceptionClass.equals("org.springframework.security.authentication.DisabledException")) {
+                String[] parts = httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION").getClass().getName().split("\\.");
+                String exceptionClass = parts[parts.length - 1];
+                if (exceptionClass.equals("DisabledException")) {
                     model.addObject("error", messageSource.getMessage("login.blocked", null, localeResolver.resolveLocale(request)));
-                } else if (exceptionClass.equals("org.springframework.security.authentication.BadCredentialsException")) {
+                } else if (exceptionClass.equals("BadCredentialsException")) {
                     model.addObject("error", messageSource.getMessage("login.notFound", null, localeResolver.resolveLocale(request)));
+                } else if (exceptionClass.equals("NotVerifiedCaptchaError")) {
+                    model.addObject("error", messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request)));
                 } else {
                     model.addObject("error", messageSource.getMessage("login.errorLogin", null, localeResolver.resolveLocale(request)));
                 }
@@ -157,7 +160,6 @@ public class MainController {
         }
 
         model.setViewName("login");
-
 
         return model;
 

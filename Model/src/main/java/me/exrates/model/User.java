@@ -17,6 +17,7 @@ public class User  {
 	private Date regdate;
 	private String ipaddress;
 	private String confirmPassword;
+	private String confirmFinPassword;
 	private boolean readRules;
 	private UserRole role = UserRole.USER;
 
@@ -117,6 +118,14 @@ public class User  {
 		this.regdate = regdate;
 	}
 
+	public String getConfirmFinPassword() {
+		return confirmFinPassword;
+	}
+
+	public void setConfirmFinPassword(String confirmFinPassword) {
+		this.confirmFinPassword = confirmFinPassword;
+	}
+
 	@Override
 	public String toString() {
 		return "User{" +
@@ -130,8 +139,10 @@ public class User  {
 				", regdate=" + regdate +
 				", ip='" + ipaddress + '\'' +
 				", confirmPassword='" + confirmPassword + '\'' +
+				", confirmPassword='" + confirmFinPassword + '\'' +
 				", readRules=" + readRules +
 				", role='" + role + '\'' +
 				'}';
 	}
+
 }

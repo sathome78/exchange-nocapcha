@@ -137,7 +137,7 @@
                 <%--ваши средства--%>
                 <div class="col-xs-6"><loc:message code="dashboard.yourBalance"/><br>
                     <fmt:formatNumber type="number" maxFractionDigits="9" value="${balanceCurrency1}"/>
-                    ${currencyPair.getCurrency2().getName()}
+                    ${currencyPair.getCurrency1().getName()}
                 </div>
                 <%--мин цена--%>
                 <div class="col-xs-6"><loc:message code="dashboard.lowestPrice"/><br>
@@ -196,13 +196,13 @@
                 <%--Ваши средства--%>
                 <div class="col-xs-6"><loc:message code="dashboard.yourBalance"/> <br>
                     <fmt:formatNumber type="number" maxFractionDigits="9" value="${balanceCurrency2}"/>
-                    ${currencyPair.getCurrency1().getName()}
+                    ${currencyPair.getCurrency2().getName()}
                 </div>
                 <%--Мин. Цена--%>
                 <div class="col-xs-6"><loc:message code="dashboard.highestPrice"/> <br>
                     <%--${maxPrice} --%>
                     <fmt:formatNumber type="number" maxFractionDigits="9" value="${maxPrice}"/>
-                    ${currencyPair.getCurrency2().getName()}
+                    ${currencyPair.getCurrency1().getName()}
                 </div>
             </div>
             <form:form action="order/submit" method="post" modelAttribute="order">

@@ -27,7 +27,9 @@ public class VerifyReCaptchaSec {
     private static final Logger logger = LogManager.getLogger(VerifyReCaptchaSec.class);
 
     public static final String URL = "https://www.google.com/recaptcha/api/siteverify";
-    private @Value("${skey}") String SECRET_KEY;
+    private
+    @Value("${skey}")
+    String SECRET_KEY;
 
     public boolean verify(String recapchaResponse) {
         boolean result = false;

@@ -54,7 +54,7 @@
                                 <c:if test="${order.operationType  eq SELL}">
                                     <div class="clearfix">
                                         <label class="submit-order-label"><loc:message
-                                                code="orders.currencyforsale"/></label>
+                                                code="orders.currencyforbuy"/></label>
                                         <fmt:formatNumber type="number" maxFractionDigits="9"
                                                           value="${order.amountSell}"
                                                           var='amountSell'/>
@@ -64,7 +64,7 @@
                                 </c:if>
                                 <%--Покупаю--%>
                                 <div>
-                                    <label class="submit-order-label"><loc:message code="submitorder.buy"/></label>
+                                    <label class="submit-order-label"><loc:message code="orders.currencyforsale"/></label>
                                     <fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountBuy}"
                                                       var='amountBuy'/>
                                     <input class="submit-order-input" readonly="true"
@@ -74,7 +74,7 @@
                                 <c:if test="${order.operationType  eq BUY}">
                                     <div class="clearfix">
                                         <label class="submit-order-label"><loc:message
-                                                code="orders.currencyforsale"/></label>
+                                                code="orders.currencyforbuy"/></label>
                                         <fmt:formatNumber type="number" maxFractionDigits="9"
                                                           value="${order.amountSell}"
                                                           var='amountSell'/>

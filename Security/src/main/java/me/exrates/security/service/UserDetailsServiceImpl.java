@@ -46,7 +46,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		return lp.stream()
 				.filter(e ->e.getEmail().toLowerCase().equals(un))
 				.findFirst()
-				.get();
+				.orElse(null);
 	}
       
     private Collection<GrantedAuthority> getAuthorities(String login)
