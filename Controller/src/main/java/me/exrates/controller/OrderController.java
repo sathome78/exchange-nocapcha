@@ -145,12 +145,13 @@ public class OrderController {
     /* to show form to create order (to fill param fields)
     * */
     @RequestMapping(value = "/order/new")
-    public ModelAndView showNewOrderToSellForm(ModelAndView model) {
+    public ModelAndView showNewOrderToSellForm(ModelAndView model, @RequestParam(required = false) String walletName) {
         getCurrenciesAndCommission(model, OperationType.SELL);
         Order order = new Order();
         order.setOperationType(OperationType.SELL);
         model.setViewName("newordertosell");
         model.addObject(order);
+        model.addObject("walletName", walletName);
         return model;
     }
 
