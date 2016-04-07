@@ -3,12 +3,6 @@ package me.exrates.service.impl;
 import info.blockchain.api.APIException;
 import info.blockchain.api.receive.Receive;
 import info.blockchain.api.receive.ReceiveResponse;
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.StringJoiner;
 import me.exrates.dao.BTCTransactionDao;
 import me.exrates.dao.PendingPaymentDao;
 import me.exrates.model.BTCTransaction;
@@ -30,6 +24,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.StringJoiner;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -58,6 +59,8 @@ public class BlockchainServiceImpl implements BlockchainService {
     private static final int CONFIRMATIONS = 4;
 
     private static final Logger logger = LogManager.getLogger("merchant");
+
+
 
     @Override
     @Transactional
@@ -93,7 +96,7 @@ public class BlockchainServiceImpl implements BlockchainService {
     public PendingPayment findByInvoiceId(int invoiceId) {
         return pendingPaymentDao.findByInvoiceId(invoiceId)
             .orElseThrow(()->
-                new MerchantInternalException("Invalid invoice_id "+invoiceId));
+                new MerchantInternalException("Invalid invoice_id " + invoiceId));
     }
 
     @Override
@@ -131,7 +134,7 @@ public class BlockchainServiceImpl implements BlockchainService {
         }
         final Transaction transaction = transactionService
             .findById(payment.getInvoiceId());
-        if (transaction.getOperationType()== OperationType.INPUT){
+        if (transaction.getOperationType()== OperationType.INPUT) {
             pendingPaymentDao.delete(payment.getInvoiceId());
         }
         transactionService.provideTransaction(transaction);
@@ -142,7 +145,7 @@ public class BlockchainServiceImpl implements BlockchainService {
         btcTransaction.setTransactionId(transaction.getId());
         btcTransaction.setHash(params.get("transaction_hash"));
         btcTransactionDao.create(btcTransaction);
-        logger.info("BTC transaction provided "+btcTransaction);
+        logger.info("BTC transaction provided " + btcTransaction);
         return "*ok*";
     }
 
