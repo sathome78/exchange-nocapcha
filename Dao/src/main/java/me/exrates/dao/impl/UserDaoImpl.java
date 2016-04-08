@@ -6,17 +6,14 @@ import me.exrates.model.User;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
-
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
-import org.springframework.jdbc.core.PreparedStatementCallback;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Repository;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -26,6 +23,8 @@ import java.util.Map;
 
 @Repository
 public class UserDaoImpl implements UserDao {
+
+    private static final Logger LOGGER = LogManager.getLogger(UserDaoImpl.class);
 
     @Autowired
     NamedParameterJdbcTemplate jdbcTemplate;
@@ -283,31 +282,40 @@ public class UserDaoImpl implements UserDao {
         String sql = "SELECT * FROM TEMPORAL_TOKEN WHERE VALUE= :value";
         Map<String, String> namedParameters = new HashMap<String, String>();
         namedParameters.put("value", token);
-        return jdbcTemplate.query(sql, namedParameters, (rs, row) -> {
-            TemporalToken temporalToken = new TemporalToken();
-            temporalToken.setId(rs.getInt("id"));
-            temporalToken.setUserId(rs.getInt("user_id"));
-            temporalToken.setValue(token);
-            temporalToken.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
-            temporalToken.setExpired(rs.getBoolean("expired"));
-            temporalToken.setTokenType(TokenType.values()[rs.getInt("token_type_id") - 1]);
-            return temporalToken;
-
-        }).get(0);
+        ArrayList<TemporalToken> result = (ArrayList<TemporalToken>) jdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<TemporalToken>() {
+            @Override
+            public TemporalToken mapRow(ResultSet rs, int rowNumber) throws SQLException {
+                TemporalToken temporalToken = new TemporalToken();
+                temporalToken.setId(rs.getInt("id"));
+                temporalToken.setUserId(rs.getInt("user_id"));
+                temporalToken.setValue(token);
+                temporalToken.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
+                temporalToken.setExpired(rs.getBoolean("expired"));
+                temporalToken.setTokenType(TokenType.values()[rs.getInt("token_type_id") - 1]);
+                return temporalToken;
+            }
+        });
+        return result.size() == 1 ? result.get(0) : null;
     }
 
     public boolean deleteTemporalToken(TemporalToken token) {
+        if (token == null) {
+            return false;
+        }
         String sql = "delete from TEMPORAL_TOKEN where id = :id";
         Map<String, String> namedParameters = new HashMap<String, String>();
         namedParameters.put("id", String.valueOf(token.getId()));
         return jdbcTemplate.update(sql, namedParameters) > 0;
     }
 
-    public boolean deleteTemporalToken(int userId, TokenType tokenType) {
+    public boolean deleteTemporalTokensOfTokentypeForUser(TemporalToken token) {
+        if (token == null) {
+            return false;
+        }
         String sql = "delete from TEMPORAL_TOKEN where user_id = :user_id and token_type_id=:token_type_id";
         Map<String, String> namedParameters = new HashMap<String, String>();
-        namedParameters.put("user_id", String.valueOf(userId));
-        namedParameters.put("token_type_id", String.valueOf(tokenType.getTokenType()));
+        namedParameters.put("user_id", String.valueOf(token.getUserId()));
+        namedParameters.put("token_type_id", String.valueOf(token.getTokenType().getTokenType()));
         return jdbcTemplate.update(sql, namedParameters) > 0;
     }
 
@@ -316,13 +324,13 @@ public class UserDaoImpl implements UserDao {
         Map<String, String> namedParameters = new HashMap<String, String>();
         namedParameters.put("user_id", String.valueOf(userId));
         namedParameters.put("token_type_id", String.valueOf(tokenType.getTokenType()));
-        ArrayList<TemporalToken> result = (ArrayList<TemporalToken>)jdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<TemporalToken>(){
+        ArrayList<TemporalToken> result = (ArrayList<TemporalToken>) jdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<TemporalToken>() {
             @Override
             public TemporalToken mapRow(ResultSet rs, int rowNumber) throws SQLException {
                 TemporalToken temporalToken = new TemporalToken();
                 temporalToken.setId(rs.getInt("id"));
                 temporalToken.setUserId(rs.getInt("user_id"));
-                temporalToken.setValue("value");
+                temporalToken.setValue(rs.getString("value"));
                 temporalToken.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
                 temporalToken.setExpired(rs.getBoolean("expired"));
                 temporalToken.setTokenType(TokenType.values()[rs.getInt("token_type_id") - 1]);
@@ -338,6 +346,36 @@ public class UserDaoImpl implements UserDao {
         namedParameters.put("status", String.valueOf(user.getStatus().getStatus()));
         namedParameters.put("id", String.valueOf(user.getId()));
         return jdbcTemplate.update(sql, namedParameters) > 0;
+    }
+
+    public List<TemporalToken> getAllTokens() {
+        String sql = "SELECT * FROM TEMPORAL_TOKEN";
+        ArrayList<TemporalToken> result = (ArrayList<TemporalToken>) jdbcTemplate.query(sql, new BeanPropertyRowMapper<TemporalToken>() {
+            @Override
+            public TemporalToken mapRow(ResultSet rs, int rowNumber) throws SQLException {
+                TemporalToken temporalToken = new TemporalToken();
+                temporalToken.setId(rs.getInt("id"));
+                temporalToken.setUserId(rs.getInt("user_id"));
+                temporalToken.setValue(rs.getString("value"));
+                temporalToken.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
+                temporalToken.setExpired(rs.getBoolean("expired"));
+                temporalToken.setTokenType(TokenType.values()[rs.getInt("token_type_id") - 1]);
+                return temporalToken;
+            }
+        });
+        return result;
+    }
+
+    public boolean delete(User user) {
+        boolean result;
+        String sql = "delete from USER where id = :id";
+        Map<String, String> namedParameters = new HashMap<String, String>();
+        namedParameters.put("id", String.valueOf(user.getId()));
+        result = jdbcTemplate.update(sql, namedParameters) > 0;
+        if (!result) {
+            LOGGER.warn("requested user deleting was not fulfilled. userId = " + user.getId());
+        }
+        return result;
     }
 
 

@@ -1272,8 +1272,6 @@ form#command.submit-order-form button {
 
 .form-login-error-message {
     display: inline-block;
-    background-color: white;
-    border-radius: 4px;
     width: 100%;
     padding: 1px 5px 1px 5px;
 }

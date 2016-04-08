@@ -56,18 +56,18 @@
                 <loc:message code="register.email" var="email"/>
                 <registrationform:input id="email" path="email" placeholder="${email}"
                                         required="required"/>
-                <registrationform:errors path="email" style="color:red" class="form-control"/>
+                <registrationform:errors path="email" style="color:red" class="form-login-error-message"/>
                 <%--Пароль--%>
                 <loc:message code="register.password" var="password"/>
                 <registrationform:input id="pass" path="password" type="password" placeholder="${password}"
                                         required="required"/>
-                <registrationform:errors path="password" style="color:red"/>
+                <registrationform:errors path="password" style="color:red" class="form-login-error-message"/>
                 <%--Повторите пароль--%>
                 <loc:message code="register.repeatpassword" var="repassword"/>
                 <registrationform:input id="repass" path="confirmPassword" type="password" placeholder="${repassword}"
                                         required="required"/>
                 <span class='repass'><i class="fa fa-check"></i></span>
-                <registrationform:errors path="confirmPassword" style="color:red"/>
+                <registrationform:errors path="confirmPassword" style="color:red" class="form-login-error-message"/>
                 <br/>
                 <br/>
                 <%--CAPCHA--%>

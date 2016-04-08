@@ -4,7 +4,6 @@ import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.OperationView;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
-import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.security.service.UserSecureServiceImpl;
@@ -13,24 +12,20 @@ import me.exrates.service.TransactionService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.util.Arrays.asList;
 
@@ -42,6 +37,9 @@ public class AdminController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    MessageSource messageSource;
 
     @Autowired
     private LocaleResolver localeResolver;
@@ -247,10 +245,14 @@ public class AdminController {
     }
 
     @RequestMapping(value = "/changePasswordConfirm")
-    public ModelAndView verifyEmail(WebRequest request, @RequestParam("token") String token) {
+    public ModelAndView verifyEmail(@RequestParam("token") String token, HttpServletRequest req) {
         ModelAndView model = new ModelAndView();
         try {
-            userService.verifyUserEmail(token);
+            if (userService.verifyUserEmail(token) != null){
+                model.addObject("message", messageSource.getMessage("register.successfullyproved", null, localeResolver.resolveLocale(req)));
+            } else {
+                model.addObject("message", messageSource.getMessage("register.unsuccessfullyproved", null, localeResolver.resolveLocale(req)));
+            }
             model.setViewName("RegistrationConfirmed");
         } catch (Exception e) {
             model.setViewName("DBError");
@@ -260,10 +262,14 @@ public class AdminController {
     }
 
     @RequestMapping(value = "/changeFinPasswordConfirm")
-    public ModelAndView verifyEmailForFinPassword(WebRequest request, @RequestParam("token") String token) {
+    public ModelAndView verifyEmailForFinPassword(HttpServletRequest request, @RequestParam("token") String token) {
         ModelAndView model = new ModelAndView();
         try {
-            userService.verifyUserEmail(token, TokenType.CHANGE_FIN_PASSWORD);
+            if (userService.verifyUserEmail(token) != null) {
+                model.addObject("message", messageSource.getMessage("admin.finpasswordproved", null, localeResolver.resolveLocale(request)));
+            } else {
+                model.addObject("message", messageSource.getMessage("admin.finpasswordnotproved", null, localeResolver.resolveLocale(request)));
+            }
             model.setViewName("RegistrationConfirmed");
         } catch (Exception e) {
             model.setViewName("DBError");
