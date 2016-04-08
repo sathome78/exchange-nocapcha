@@ -1,15 +1,5 @@
 package me.exrates.controller;
 
-import java.math.BigDecimal;
-import java.security.Principal;
-import java.sql.Date;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
-
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.Order;
@@ -17,11 +7,7 @@ import me.exrates.model.User;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.security.filter.VerifyReCaptchaSec;
-import me.exrates.service.CommissionService;
-import me.exrates.service.CurrencyService;
-import me.exrates.service.DashboardService;
-import me.exrates.service.OrderService;
-import me.exrates.service.UserService;
+import me.exrates.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -33,15 +19,19 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
+
+import javax.servlet.http.HttpServletRequest;
+import java.math.BigDecimal;
+import java.security.Principal;
+import java.sql.Date;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 @Controller
 public class DashboardController {
@@ -79,7 +69,7 @@ public class DashboardController {
     private CurrencyPair currentCurrencyPair;
 
     @RequestMapping(value = {"/dashboard/locale"})
-    public void localeSwitcherCommand(){
+    public void localeSwitcherCommand() {
     }
 
     @RequestMapping(value = {"/dashboard"})
@@ -88,12 +78,12 @@ public class DashboardController {
         model.setViewName("dashboard");
 
         List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs();
-        if (currencyPair.getName() == null){
+        if (currencyPair.getName() == null) {
             currencyPair = currencyPairs.get(0);
         }
 
-        for (CurrencyPair currencyPairRecord:currencyPairs){
-            if (currencyPairRecord.getName().equals(currencyPair.getName())){
+        for (CurrencyPair currencyPairRecord : currencyPairs) {
+            if (currencyPairRecord.getName().equals(currencyPair.getName())) {
                 currencyPair = currencyPairRecord;
             }
         }
@@ -104,7 +94,7 @@ public class DashboardController {
 
         Order lastOrder = dashboardService.getLastClosedOrder(currencyPair);
         model.addObject("lastOrder", lastOrder);
-        if (lastOrder.getCurrencyBuy() != 0){
+        if (lastOrder.getCurrencyBuy() != 0) {
             model.addObject("lastOrderCurrency", currencyService.getCurrencyName(lastOrder.getCurrencyBuy()));
         }
 
@@ -127,22 +117,22 @@ public class DashboardController {
         BigDecimal sumAmountBuyClosed = new BigDecimal(0.0);
         BigDecimal sumAmountSellClosed = new BigDecimal(0.0);
         for (Map<String, BigDecimal> tempRow : list) {
-            sumAmountBuyClosed =  tempRow.get("amount_buy");
+            sumAmountBuyClosed = tempRow.get("amount_buy");
             sumAmountSellClosed = tempRow.get("amount_sell");
         }
         model.addObject("sumAmountBuyClosed", sumAmountBuyClosed);
         model.addObject("sumAmountSellClosed", sumAmountSellClosed);
 
-        if (principal != null){
-            model.addObject("balanceCurrency1", dashboardService.getBalanceByCurrency(userService.getIdByEmail(principal.getName()),currencyPair.getCurrency1().getId()));
-            model.addObject("balanceCurrency2", dashboardService.getBalanceByCurrency(userService.getIdByEmail(principal.getName()),currencyPair.getCurrency2().getId()));
+        if (principal != null) {
+            model.addObject("balanceCurrency1", dashboardService.getBalanceByCurrency(userService.getIdByEmail(principal.getName()), currencyPair.getCurrency1().getId()));
+            model.addObject("balanceCurrency2", dashboardService.getBalanceByCurrency(userService.getIdByEmail(principal.getName()), currencyPair.getCurrency2().getId()));
         }
 
         BigDecimal minPrice = dashboardService.getMinPriceByCurrency(currencyPair);
         BigDecimal maxPrice = dashboardService.getMaxPriceByCurrency(currencyPair);
-        model.addObject("minPrice",minPrice);
+        model.addObject("minPrice", minPrice);
 //        order.setAmountSell(minPrice);
-        model.addObject("maxPrice",maxPrice);
+        model.addObject("maxPrice", maxPrice);
 //        order.setAmountBuy(maxPrice);
 
         model.addObject(order);
@@ -150,7 +140,9 @@ public class DashboardController {
     }
 
     @RequestMapping(value = "/dashboard/chartArray", method = RequestMethod.GET)
-    public @ResponseBody ArrayList chartArray() {
+    public
+    @ResponseBody
+    ArrayList chartArray() {
 
         CurrencyPair currencyPair = currentCurrencyPair;
         List<Map<String, Object>> list = dashboardService.getDataForChart(currencyPair);
@@ -160,10 +152,10 @@ public class DashboardController {
         for (Map<String, Object> tempRow : list) {
             BigDecimal amount = (BigDecimal) tempRow.get("amount");
             BigDecimal amountSell = (BigDecimal) tempRow.get("amount_sell");
-            Timestamp timestamp = (Timestamp)tempRow.get("date_final");
-            Date date  = new Date(timestamp.getTime());
+            Timestamp timestamp = (Timestamp) tempRow.get("date_final");
+            Date date = new Date(timestamp.getTime());
 
-            if (amount == null){
+            if (amount == null) {
                 continue;
             }
             ArrayList<Object> arrayList = new ArrayList<Object>();
@@ -178,14 +170,16 @@ public class DashboardController {
 
         }
         return arrayListMain;
-   }
+    }
 
-    @RequestMapping(value = "/dashboard/commission/{type}",method = RequestMethod.GET)
-    public @ResponseBody BigDecimal  getCommissions(@PathVariable("type") String type) {
+    @RequestMapping(value = "/dashboard/commission/{type}", method = RequestMethod.GET)
+    public
+    @ResponseBody
+    BigDecimal getCommissions(@PathVariable("type") String type) {
         switch (type) {
-            case "sell" :
+            case "sell":
                 return commissionService.findCommissionByType(OperationType.SELL).getValue();
-            case "buy" :
+            case "buy":
                 return commissionService.findCommissionByType(OperationType.BUY).getValue();
             default:
                 return null;
@@ -215,13 +209,13 @@ public class DashboardController {
 
         String email = user.getEmail();
         registerFormValidation.validateEmail(user, result, localeResolver.resolveLocale(request));
-        if(result.hasErrors()){
+        if (result.hasErrors()) {
             model.addObject("user", user);
             model.setViewName("/forgotPassword");
             return model;
         }
         user = userService.findByEmail(email);
-        userService.update(user, false, false , true, localeResolver.resolveLocale(request));
+        userService.update(user, false, false, true, localeResolver.resolveLocale(request));
 
         model.setViewName("redirect:/dashboard");
 
@@ -229,7 +223,7 @@ public class DashboardController {
     }
 
     @RequestMapping(value = "/resetPasswordConfirm")
-    public ModelAndView resetPasswordConfirm(WebRequest request, @RequestParam("token") String token) {
+    public ModelAndView resetPasswordConfirm(@RequestParam("token") String token) {
         ModelAndView model = new ModelAndView();
         try {
             int userId = userService.verifyUserEmail(token).getId();
@@ -243,6 +237,7 @@ public class DashboardController {
             Authentication auth = new UsernamePasswordAuthenticationToken(
                     userSpring, null, authList);
             SecurityContextHolder.getContext().setAuthentication(auth);
+            user.setPassword(null);
         } catch (Exception e) {
             model.setViewName("DBError");
             e.printStackTrace();
@@ -251,32 +246,42 @@ public class DashboardController {
     }
 
     @RequestMapping(value = "/dashboard/updatePassword", method = RequestMethod.POST)
-    @ResponseBody
-    public ModelAndView updatePassword(HttpServletRequest request, @RequestParam("password") String password) {
+    public ModelAndView updatePassword(@ModelAttribute User user, BindingResult result, HttpServletRequest request) {
 
-        ModelAndView model = new ModelAndView();
-        org.springframework.security.core.userdetails.User userSpring = (org.springframework.security.core.userdetails.User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        User user = userService.findByEmail(userSpring.getUsername());
-        user.setPassword(password);
-        userService.updateUserByAdmin(user);
-        new SecurityContextLogoutHandler().logout(request, null, null);
-        model.setViewName("redirect:/dashboard");
-        return model;
+        String recapchaResponse = request.getParameter("g-recaptcha-response");
+        if (!verifyReCaptcha.verify(recapchaResponse)) {
+            String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
+            ModelAndView modelAndView = new ModelAndView("/updatePassword", "user", user);
+            modelAndView.addObject("cpch", correctCapchaRequired);
+            return modelAndView;
+        }
+
+        registerFormValidation.validateResetPassword(user, result, localeResolver.resolveLocale(request));
+        user.setPhone("");
+        if (result.hasErrors()) {
+            return new ModelAndView("/updatePassword", "user", user);
+        } else {
+            String password = user.getPassword();
+            ModelAndView model = new ModelAndView();
+            org.springframework.security.core.userdetails.User userSpring = (org.springframework.security.core.userdetails.User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            user = userService.findByEmail(userSpring.getUsername());
+            user.setPassword(password);
+            userService.updateUserByAdmin(user);
+            new SecurityContextLogoutHandler().logout(request, null, null);
+            model.setViewName("redirect:/dashboard");
+            return model;
+        }
     }
-
 
     @RequestMapping(value = "/forgotPassword/submitUpdate", method = RequestMethod.POST)
     public ModelAndView submitUpdate(@ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request) {
-
-
         registerFormValidation.validateResetPassword(user, result, localeResolver.resolveLocale(request));
-        if(result.hasErrors()){
+
+        if (result.hasErrors()) {
             model.addObject("user", user);
             model.setViewName("updatePassword");
             return model;
-        }
-
-        else {
+        } else {
 
             User userUpdate = userService.getUserById(user.getId());
             userUpdate.setPassword(user.getPassword());
@@ -287,4 +292,6 @@ public class DashboardController {
 
         return model;
     }
-    }
+}
+
+

@@ -82,11 +82,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
                 .antMatchers("/companywallet").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name())
                 .antMatchers("/index.jsp", "/client/**", "/dashboard/**", "/registrationConfirm/**",
-                        "/changePasswordConfirm/**")
-                .permitAll()
+                        "/changePasswordConfirm/**", "/changePasswordConfirm/**").permitAll()
                 .antMatchers("/companywallet").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name())
                 .antMatchers("/index.jsp", "/client/**", "/dashboard/**", "/registrationConfirm/**",
-                        "/changePasswordConfirm/**").permitAll()
+                        "/changePasswordConfirm/**", "/changeFinPasswordConfirm/**").permitAll()
                 .antMatchers(HttpMethod.POST, "/merchants/withdrawal/request/accept",
                         "/merchants/withdrawal/request/decline").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name())
                 .antMatchers(HttpMethod.POST, "/merchants/perfectmoney/payment/status",

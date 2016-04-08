@@ -30,7 +30,8 @@ td {
 </style>  
 </head>  
 <body>
-<loc:message code="register.successfullyproved" />
+<%--<loc:message code="register.successfullyproved" />--%>
+${message}
 <br/><a href="<c:url value="/"/>">На главную</a>
 </body>
 </html>  

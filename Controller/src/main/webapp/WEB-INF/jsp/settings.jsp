@@ -67,7 +67,6 @@
                         </button>
             </div>
 
-            <%--контейнер форм продажа - покупка--%>
             <div class="tab-content">
                 <%--Изменить пароль--%>
                 <div class="tab-pane active" id="tab__sell">

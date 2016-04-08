@@ -5,10 +5,8 @@ import me.exrates.model.OperationView;
 import me.exrates.model.User;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.security.service.UserSecureService;
-import me.exrates.service.OrderService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.UserService;
-import me.exrates.service.WalletService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,16 +44,8 @@ public class MainController {
 
     private static final Logger logger = LogManager.getLogger(MainController.class);
 
-//    private static final Locale ru = new Locale("ru");
-
     @Autowired
     private TransactionService transactionService;
-
-    @Autowired
-    private WalletService walletService;
-
-    @Autowired
-    private OrderService orderService;
 
     @Autowired
     MessageSource messageSource;

@@ -49,10 +49,13 @@ public interface UserDao {
 
 	boolean deleteTemporalToken(TemporalToken token);
 
-	boolean deleteTemporalToken(int userId, TokenType tokenType);
+	boolean deleteTemporalTokensOfTokentypeForUser(TemporalToken token);
 
 	List<TemporalToken> getTokenByUserAndType(int userId, TokenType tokenType);
 
 	boolean updateUserStatus(User user);
 
+	List<TemporalToken> getAllTokens();
+
+	boolean delete(User user);
 }

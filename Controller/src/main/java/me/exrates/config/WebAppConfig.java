@@ -1,5 +1,6 @@
 package me.exrates.config;
 
+import me.exrates.service.token.TokenScheduler;
 import me.exrates.controller.validator.OrderValidator;
 import me.exrates.controller.validator.RegisterFormValidation;
 
@@ -150,7 +151,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 	public OrderValidator orderValidator(){
 		return new OrderValidator();
 	}
-	
+
 	@Bean
 	public JavaMailSenderImpl javaMailSenderImpl() {
 		final JavaMailSenderImpl mailSenderImpl = new JavaMailSenderImpl();
@@ -184,4 +185,10 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 		mailSenderImpl.setJavaMailProperties(javaMailProps);
 		return mailSenderImpl;
 	}
+
+	@Bean (name = "tokenScheduler")
+	public TokenScheduler tokenScheduler(){
+		return TokenScheduler.getInstance();
+	}
+
 }

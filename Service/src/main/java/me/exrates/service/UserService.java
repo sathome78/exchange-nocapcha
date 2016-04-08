@@ -4,6 +4,7 @@ import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
+import me.exrates.service.exception.UnRegisteredUserDeleteException;
 
 import java.util.List;
 import java.util.Locale;
@@ -26,8 +27,6 @@ public interface UserService {
 
     User verifyUserEmail(String token);
 
-    void verifyUserEmail(String token, TokenType tokenType);
-
     List<UserRole> getAllRoles();
 
     User getUserById(int id);
@@ -39,4 +38,10 @@ public interface UserService {
     boolean update(User user, boolean changePassword, boolean changeFinPassword, boolean resetPassword, Locale locale);
 
     void sendEmailWithToken(User user, TokenType tokenType, String tokenLink, String emailSubject, String emailText, Locale locale);
+
+    List<TemporalToken> getAllTokens();
+
+    boolean deleteExpiredToken(String token) throws UnRegisteredUserDeleteException;
+
+    boolean createTemporalToken(TemporalToken token);
 }
