@@ -236,5 +236,4 @@ public class UserServiceImpl implements UserService {
         tokenScheduler.initTrigers();
     }
 
-
 }

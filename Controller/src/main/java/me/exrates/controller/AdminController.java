@@ -249,11 +249,11 @@ public class AdminController {
         ModelAndView model = new ModelAndView();
         try {
             if (userService.verifyUserEmail(token) != null){
-                model.addObject("message", messageSource.getMessage("register.successfullyproved", null, localeResolver.resolveLocale(req)));
+                model.addObject("successNoty", messageSource.getMessage("admin.passwordproved", null, localeResolver.resolveLocale(req)));
             } else {
-                model.addObject("message", messageSource.getMessage("register.unsuccessfullyproved", null, localeResolver.resolveLocale(req)));
+                model.addObject("errorNoty", messageSource.getMessage("admin.passwordnotproved", null, localeResolver.resolveLocale(req)));
             }
-            model.setViewName("RegistrationConfirmed");
+            model.setViewName("redirect:/dashboard");
         } catch (Exception e) {
             model.setViewName("DBError");
             e.printStackTrace();
@@ -266,11 +266,11 @@ public class AdminController {
         ModelAndView model = new ModelAndView();
         try {
             if (userService.verifyUserEmail(token) != null) {
-                model.addObject("message", messageSource.getMessage("admin.finpasswordproved", null, localeResolver.resolveLocale(request)));
+                model.addObject("successNoty", messageSource.getMessage("admin.finpasswordproved", null, localeResolver.resolveLocale(request)));
             } else {
-                model.addObject("message", messageSource.getMessage("admin.finpasswordnotproved", null, localeResolver.resolveLocale(request)));
+                model.addObject("errorNoty", messageSource.getMessage("admin.finpasswordnotproved", null, localeResolver.resolveLocale(request)));
             }
-            model.setViewName("RegistrationConfirmed");
+            model.setViewName("redirect:/dashboard");
         } catch (Exception e) {
             model.setViewName("DBError");
             e.printStackTrace();

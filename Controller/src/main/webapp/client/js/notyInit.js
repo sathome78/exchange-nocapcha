@@ -7,22 +7,26 @@ $(document).ajaxError(function (event, jqXHR, options, jsExc) {
 });
 
 var failedNote;
+var successNote;
 
 function closeNote() {
     if (failedNote) {
         failedNote.close();
         failedNote = undefined;
     }
+    if (successNote) {
+        successNote.close();
+        successNote = undefined;
+    }
 }
 
-//for future
 function successNoty(text) {
     closeNote();
-    noty({
+    successNote = noty({
         text: text,
         type: 'success',
         layout: 'bottomRight',
-        timeout: true
+        timeout: false
     });
 }
 
@@ -38,9 +42,9 @@ function failNoty(jqXHR) {
 }
 
 //Show error message on page load - if massage was passed to page
-+function showErrorNotyOnEntry(){
++function showErrorNotyOnEntry() {
     var msg = $('#errorNoty').html();
-    if (msg){
+    if (msg) {
         failedNote = noty({
             text: msg,
             type: 'error',
@@ -48,4 +52,12 @@ function failNoty(jqXHR) {
             timeout: false
         });
     }
-} ();
+}();
+
+//Show success message on page load - if massage was passed to page
++function showSuccessNotyOnEntry() {
+    var msg = $('#successNoty').html();
+    if (msg) {
+        successNoty(msg);
+    }
+}();

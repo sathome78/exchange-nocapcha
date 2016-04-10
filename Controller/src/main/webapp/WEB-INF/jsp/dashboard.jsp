@@ -323,10 +323,13 @@
 </main>
 
 <%@include file='footer_new.jsp' %>
+<span hidden id="errorNoty">${errorNoty}</span>
+<span hidden id="successNoty">${successNoty}</span>
 
 <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
 
 <script>
     (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
