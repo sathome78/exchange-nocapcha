@@ -73,8 +73,10 @@ public class DashboardController {
     }
 
     @RequestMapping(value = {"/dashboard"})
-    public ModelAndView dashboard(@ModelAttribute CurrencyPair currencyPair, Principal principal) {
+    public ModelAndView dashboard(@ModelAttribute CurrencyPair currencyPair, Principal principal, @RequestParam(required = false) String errorNoty, @RequestParam(required = false) String successNoty) {
         ModelAndView model = new ModelAndView();
+        model.addObject("successNoty", successNoty);
+        model.addObject("errorNoty", errorNoty);
         model.setViewName("dashboard");
 
         List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs();
@@ -185,7 +187,6 @@ public class DashboardController {
                 return null;
         }
     }
-
 
     @RequestMapping(value = "/forgotPassword")
     public ModelAndView forgotPassword() {

@@ -53,8 +53,8 @@ public class TokenScheduler {
     /**
      * collects all tokens and schedules job for it deleting when it expires
      */
-    public void initTrigers() {
-        List<JobKey> jobsInQueue = getClearTokenJobKeys();
+    public List<JobKey> initTrigers() {
+        List<JobKey> jobsInQueue = getAllJobKeys();
         Integer jobsInQueueCount = jobsInQueue == null ? 0 : jobsInQueue.size();
         tokens = userService.getAllTokens();
         try {
@@ -81,15 +81,27 @@ public class TokenScheduler {
                     scheduler.scheduleJob(job, trigger);
                 }
             }
-            LOGGER.debug(String.format("expired token scheduler: queued %s job(s)" + "\n" + "  in queue now %s jobs",
+            LOGGER.debug(String.format("expired token scheduler: queued %s job(s)" + "\n" + "  in queue now %s jobs : %s",
                     (scheduler.getJobKeys(GroupMatcher.jobGroupEquals(TRIGGER_GROUP)).size() - jobsInQueueCount),
-                    scheduler.getJobKeys(GroupMatcher.jobGroupEquals(TRIGGER_GROUP)).size()));
+                    scheduler.getJobKeys(GroupMatcher.jobGroupEquals(TRIGGER_GROUP)).size(),
+                    getAllJobKeys()));
         } catch (SchedulerException e) {
             LOGGER.error("error while token clean triggers init " + e.getLocalizedMessage());
         }
+        return getAllJobKeys();
     }
 
-    public List<JobKey> getClearTokenJobKeys() {
+    public List<JobKey> reInitTriggers() {
+        LOGGER.error("expired token scheduler: start re init ");
+        try {
+            scheduler.unscheduleJobs(scheduler.getTriggerKeys(GroupMatcher.groupEquals(TRIGGER_GROUP)).stream().collect(Collectors.toList()));
+        } catch (SchedulerException e) {
+            LOGGER.error("error while token clean triggers re init " + e.getLocalizedMessage());
+        }
+        return initTrigers();
+    }
+
+    public List<JobKey> getAllJobKeys() {
         List<JobKey> jobs = null;
         try {
             jobs = scheduler.getJobKeys(GroupMatcher.groupEquals(TRIGGER_GROUP))

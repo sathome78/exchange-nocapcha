@@ -107,11 +107,15 @@ public class MainController {
     }
 
     @RequestMapping(value = "/registrationConfirm")
-    public ModelAndView verifyEmail(WebRequest request, @RequestParam("token") String token) {
+    public ModelAndView verifyEmail(HttpServletRequest request, @RequestParam("token") String token) {
         ModelAndView model = new ModelAndView();
         try {
-            userService.verifyUserEmail(token);
-            model.setViewName("RegistrationConfirmed");
+            if (userService.verifyUserEmail(token) != null){
+                model.addObject("successNoty", messageSource.getMessage("register.successfullyproved", null, localeResolver.resolveLocale(request)));
+            } else {
+                model.addObject("errorNoty", messageSource.getMessage("register.unsuccessfullyproved", null, localeResolver.resolveLocale(request)));
+            }
+            model.setViewName("redirect:/dashboard");
         } catch (Exception e) {
             model.setViewName("DBError");
             e.printStackTrace();

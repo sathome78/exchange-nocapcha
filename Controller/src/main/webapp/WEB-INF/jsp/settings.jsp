@@ -47,6 +47,7 @@
         <div class="col-sm-9 content">
             <% String tabIdx = request.getParameter("tabIdx");%>
             <% if (tabIdx == null) {tabIdx=String.valueOf(request.getAttribute("tabIdx"));}  %>
+            <% if (tabIdx == "null") {tabIdx="1";}  %>
             <div class="buttons">
                 <%--изменить пароль--%>
                 <% if (tabIdx==null || "1".equals(tabIdx)) {%>
