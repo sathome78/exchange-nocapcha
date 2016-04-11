@@ -1,7 +1,6 @@
 package me.exrates.service.impl;
 
 import info.blockchain.api.APIException;
-import info.blockchain.api.receive.Receive;
 import info.blockchain.api.receive.ReceiveResponse;
 import me.exrates.dao.BTCTransactionDao;
 import me.exrates.dao.PendingPaymentDao;
@@ -11,6 +10,7 @@ import me.exrates.model.PendingPayment;
 import me.exrates.model.Transaction;
 import me.exrates.model.enums.OperationType;
 import me.exrates.service.AlgorithmService;
+import me.exrates.service.BlockchainSDKWrapper;
 import me.exrates.service.BlockchainService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.exception.MerchantInternalException;
@@ -27,10 +27,13 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
+
+import static java.util.Objects.isNull;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -56,11 +59,14 @@ public class BlockchainServiceImpl implements BlockchainService {
     @Autowired
     private BTCTransactionDao btcTransactionDao;
 
+    @Autowired
+    private BlockchainSDKWrapper blockchainSDKWrapper;
+
     private static final int CONFIRMATIONS = 4;
 
-    private static final Logger logger = LogManager.getLogger("merchant");
+    private static final Logger LOG = LogManager.getLogger("merchant");
 
-
+    private static final MathContext MATH_CONTEXT = new MathContext(9, RoundingMode.CEILING);
 
     @Override
     @Transactional
@@ -71,14 +77,12 @@ public class BlockchainServiceImpl implements BlockchainService {
         final String callback = UriComponentsBuilder
                 .fromUriString(callbackUrl)
                 .queryParam("invoice_id", transaction.getId())
-                .queryParam("secret",transactionHash)
+                .queryParam("secret", transactionHash)
                 .build()
                 .encode()
                 .toString();
-        logger.debug(callback);
         try {
-            final ReceiveResponse response = Receive
-                .receive(xPub, callback, apiCode);
+            final ReceiveResponse response = blockchainSDKWrapper.receive(xPub, callback, apiCode);
             final PendingPayment payment = new PendingPayment();
             payment.setTransactionHash(transactionHash);
             payment.setInvoiceId(transaction.getId());
@@ -86,7 +90,7 @@ public class BlockchainServiceImpl implements BlockchainService {
             pendingPaymentDao.create(payment);
             return payment;
         } catch (APIException | IOException e) {
-            logger.error(e);
+            LOG.error(e);
             throw new RejectedPaymentInvoice();
         }
     }
@@ -101,24 +105,21 @@ public class BlockchainServiceImpl implements BlockchainService {
 
     @Override
     public Optional<String> notCorresponds(final Map<String, String> pretended,
-        final PendingPayment actual) {
+        final PendingPayment actual)
+    {
         final String value = pretended.get("value");
-        if (Objects.isNull(value)) {
+        if (isNull(value)) {
             return Optional.of("Amount is invalid");
         }
-        if (Objects.isNull(pretended.get("address")) ||
-            !pretended.get("address").equals(
-                actual.getAddress()
-                .orElseThrow(()->
-                    new MerchantInternalException("Address is not presented"))
-            )) {
+        if (isNull(pretended.get("address")) ||
+            !pretended.get("address").equals(actual.getAddress().get())) {
             return Optional.of("Address is not correct");
         }
-        if (Objects.isNull(pretended.get("secret")) ||
+        if (isNull(pretended.get("secret")) ||
             !pretended.get("secret").equals(actual.getTransactionHash())) {
             return Optional.of("Secret is invalid");
         }
-        if (Objects.isNull(pretended.get("transaction_hash"))) {
+        if (isNull(pretended.get("transaction_hash"))) {
             return Optional.of("Transaction hash missing");
         }
         return Optional.empty();
@@ -128,13 +129,13 @@ public class BlockchainServiceImpl implements BlockchainService {
     @Transactional(propagation = Propagation.REQUIRED)
     public String approveBlockchainTransaction(final PendingPayment payment,
         final Map<String,String> params) {
-        if (Objects.isNull(params.get("confirmations")) ||
+        if (isNull(params.get("confirmations")) ||
             Integer.valueOf(params.get("confirmations")) < CONFIRMATIONS) {
             return "Waiting for confirmations";
         }
         final Transaction transaction = transactionService
             .findById(payment.getInvoiceId());
-        if (transaction.getOperationType()== OperationType.INPUT) {
+        if (transaction.getOperationType() == OperationType.INPUT) {
             pendingPaymentDao.delete(payment.getInvoiceId());
         }
         transactionService.provideTransaction(transaction);
@@ -145,11 +146,14 @@ public class BlockchainServiceImpl implements BlockchainService {
         btcTransaction.setTransactionId(transaction.getId());
         btcTransaction.setHash(params.get("transaction_hash"));
         btcTransactionDao.create(btcTransaction);
-        logger.info("BTC transaction provided " + btcTransaction);
+        LOG.info("BTC transaction provided " + btcTransaction);
         return "*ok*";
     }
 
-    protected String computeTransactionHash(final Transaction request) {
+    private String computeTransactionHash(final Transaction request) {
+        if (isNull(request) || isNull(request.getCommission()) || isNull(request.getCommissionAmount())) {
+            throw new IllegalArgumentException("Argument itself or contain null");
+        }
         final String target = new StringJoiner(":")
             .add(String.valueOf(request.getId()))
             .add(request

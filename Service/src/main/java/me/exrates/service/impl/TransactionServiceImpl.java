@@ -40,7 +40,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Autowired
     private OrderService orderService;
 
-    private static final Logger logger = LogManager.getLogger(TransactionServiceImpl.class);
+    private static final Logger LOG = LogManager.getLogger(TransactionServiceImpl.class);
 
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
@@ -70,7 +70,7 @@ public class TransactionServiceImpl implements TransactionService {
         if (transaction==null) {
             throw new TransactionPersistException("Failed to provide transaction ");
         }
-        logger.info("Transaction created:"+transaction);
+        LOG.info("Transaction created:"+transaction);
         return transaction;
     }
 
@@ -126,7 +126,7 @@ public class TransactionServiceImpl implements TransactionService {
             .boxed()
             .collect(Collectors.toList());
         final List<Transaction> allByUserId = findAllByUserWallets(collect);
-        logger.info(allByUserId);
+        LOG.info(allByUserId);
         Map<String, List<Order>> orderMap = orderService.getMyOrders(email, locale);
         List<Order> orderList = new ArrayList<Order>();
         orderList.addAll(orderMap.get("sell"));

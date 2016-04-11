@@ -84,7 +84,7 @@ public class MerchantServiceImpl implements MerchantService {
     @Autowired
     private WalletService walletService;
 
-    private static final Logger LOGGER = LogManager.getLogger("merchant");
+    private static final Logger LOG = LogManager.getLogger("merchant");
     private static final MathContext MATH_CONTEXT = new MathContext(9, RoundingMode.CEILING);
 
     @Override
@@ -154,7 +154,7 @@ public class MerchantServiceImpl implements MerchantService {
         try {
             notification = sendWithdrawalNotification(request, NEW, locale);
         } catch (final MailException e) {
-            LOGGER.error(e);
+            LOG.error(e);
         }
         return singletonMap("success", notification);
     }
@@ -191,9 +191,9 @@ public class MerchantServiceImpl implements MerchantService {
         email.setTo(withdrawRequest.getUserEmail());
         try {
             sendMailService.sendMail(email);
-            LOGGER.info("Sanded email :"+email);
+            LOG.info("Sanded email :"+email);
         } catch (MailException e) {
-            LOGGER.error(e);
+            LOG.error(e);
         }
         return notification;
     }
@@ -234,9 +234,9 @@ public class MerchantServiceImpl implements MerchantService {
         mail.setMessage(sumWithCurrency);
         try {
             sendMailService.sendMail(mail);
-            LOGGER.info("Sanded email :"+email);
+            LOG.info("Sanded email :"+email);
         } catch (MailException e) {
-            LOGGER.error(e);
+            LOG.error(e);
         }
         return notification;
     }
@@ -333,7 +333,7 @@ public class MerchantServiceImpl implements MerchantService {
         final String destination = payment.getDestination();
         try {
             if (!isPayable(merchant,currency,amount)) {
-                LOGGER.warn("Merchant respond as not support this pay " + payment);
+                LOG.warn("Merchant respond as not support this pay " + payment);
                 return Optional.empty();
             }
         } catch (EmptyResultDataAccessException e) {
