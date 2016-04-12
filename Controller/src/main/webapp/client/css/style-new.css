@@ -271,7 +271,7 @@ div.exchange_info > ul > li.reveal:after {
     border-width: 15px;
 }
 
-#currency {
+#curr-ency {
     min-width: 95px;
     width: 120px;
     padding: 5px;
@@ -284,7 +284,7 @@ div.exchange_info > ul > li.reveal:after {
     z-index: 10;
 }
 
-#currency li {
+#curr-ency li {
     margin: 5px;
     padding: 10px;
     float: none;
@@ -292,7 +292,7 @@ div.exchange_info > ul > li.reveal:after {
     min-width: 100px;
 }
 
-#currency li a {
+#curr-ency li a {
     display: block;
 }
 
@@ -1502,4 +1502,72 @@ form#command.submit-order-form button {
     max-width: 150px;
     text-align: center;
 
+}
+
+
+.exchange_info{
+    position: relative;
+}
+
+#pair-selector {
+    background-color: #7d3320;
+    margin: 0;
+    width: 10%;
+    float: right;
+    text-align: center;
+    line-height: 30px;
+    cursor: pointer;
+}
+
+
+#pair-selector div {
+    display: inline-block;
+    margin: 0 0 0 0;
+}
+#pair-selector span {
+    margin: 0 0 0 15px;
+}
+
+#pair-selector-arrow {
+    margin-right: -15px;
+    border: solid transparent;
+    content: "";
+    height: 0;
+    width: 0;
+    pointer-events: none;
+    border-right-color: #7d3320;
+    border-width: 15px;
+    float:right;
+}
+
+
+#pair-selector .pair-selector__menu {
+    width: 30%;
+    margin: 3px 0 0 -20%;
+    background: rgba(255, 255, 255, .5);
+    position: absolute;
+    z-index: 20;
+    display: none;
+    padding-left: 0;
+    float: right;
+    line-height: 30px;
+    border-radius: 4px;
+}
+
+#pair-selector .pair-selector__menu-item {
+    width: 20%;
+    float: left;
+    margin: 5px 2.5%;
+    background: rgba(255, 255, 255, .8);
+    text-align: center;
+    cursor: pointer;
+}
+
+#pair-selector .pair-selector__menu-item {
+    color: #6b1d0c;
+}
+
+#pair-selector .pair-selector__menu-item.active {
+    background: #6b1d0c;
+    color: white;
 }

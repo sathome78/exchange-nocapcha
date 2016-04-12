@@ -74,7 +74,8 @@ public class CurrencyDaoImpl implements CurrencyDao {
 		String sql = "SELECT currency1_id, currency2_id, name, \n" +
 				"(select name from CURRENCY where id = currency1_id) as currency1_name,\n" +
 				"(select name from CURRENCY where id = currency2_id) as currency2_name\n" +
-				" FROM CURRENCY_PAIR ";
+				" FROM CURRENCY_PAIR " +
+				" ORDER BY -pair_order DESC";
 
 		List<CurrencyPair> currencyPairList = jdbcTemplate.query(sql, (rs, row) -> {
 			CurrencyPair currencyPair = new CurrencyPair();

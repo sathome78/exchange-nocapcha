@@ -4,37 +4,66 @@
 
 <div class="exchange_info"> <!-- Exchange info -->
     <ul>
-        <li><span><loc:message code="dashboard.lastOrder"/></span>
-            <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountBuy()}"/>
-            ${lastOrderCurrency}</li>
-        <li><span><loc:message code="dashboard.priceStart"/></span>
-            <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountBuy()}"/>
-            ${lastOrderCurrency}</span></li>
-        <li><span><loc:message code="dashboard.priceEnd"/></span>
-            <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountBuy()}"/>
-            ${lastOrderCurrency}</span></li>
-        <li><span><loc:message code="dashboard.volume"/></span>
-            <fmt:formatNumber type="number" maxFractionDigits="9" value="${sumAmountBuyClosed}"/>
-            ${currencyPair.getCurrency1().getName()}</span></li>
-        <li><span>
-                    <fmt:formatNumber type="number" maxFractionDigits="9" value="${sumAmountSellClosed}"/>
-            ${currencyPair.getCurrency2().getName()}</span></li>
+        <li id="lastOrder">
+            <span>
+                <loc:message code="dashboard.lastOrder"/>
+            </span>
+            <span>
+                <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountBuy()}"/>
+                ${lastOrderCurrency}
+            </span>
+        </li>
+        <li id="priceStart">
+            <span>
+                <loc:message code="dashboard.priceStart"/>
+            </span>
+            <span>
+                <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountBuy()}"/>
+                ${lastOrderCurrency}
+            </span>
+        </li>
+        <li id="priceEnd">
+            <span>
+                <loc:message code="dashboard.priceEnd"/>
+            </span>
+            <span>
+                <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountBuy()}"/>
+                ${lastOrderCurrency}
+            </span>
+        </li>
+        <li id="sumAmountBuyClosed">
+            <span>
+                <loc:message code="dashboard.volume"/>
+            </span>
+            <span>
+                <fmt:formatNumber type="number" maxFractionDigits="9" value="${sumAmountBuyClosed}"/>
+                ${currencyPair.getCurrency1().getName()}
+            </span>
+        </li>
+        <li id="sumAmountSellClosed">
+            <span></span>
+            <span>
+                <fmt:formatNumber type="number" maxFractionDigits="9" value="${sumAmountSellClosed}"/>
+                ${currencyPair.getCurrency2().getName()}
+            </span></li>
 
-        <%--элемент отсутсвует в новом интерфейсе  //TODO --%>
-        <%--отключен до выяснения функциональности--%>
-        <%--<li class="reveal">
-            <a href="#">
-                BTC/USD <span class="caret"></span>
-            </a>
-            &lt;%&ndash;
-            id="currency" нельзя использовать - конфликтует с main.js (ловит его по id вместо нужного)
-            если включать <li hidden class="reveal">, то продумать замену <ul class="" id="currency">
-            &ndash;%&gt;
-            <ul class="" id="curr-ency">
-                <li><a href="#">BTC/USD</a></li>
-                <li><a href="#">BTC/USD</a></li>
-            </ul>
-        </li>--%>
-        <%-- ... непонятный элемент - в старой форме отсутствует  --%>
+        <li id="pair-selector">
+            <div>${currencyPair.getName()}</div>
+            <span class="caret"></span>
+            <div class="pair-selector__menu">
+                <c:forEach var="curr" items="${currencyPairs}">
+                    <c:choose>
+                        <c:when test="${curr.getName()==currencyPair.getName()}">
+                            <div class="pair-selector__menu-item active" selected>${curr.getName()}
+                            </div>
+                        </c:when>
+                        <c:otherwise>
+                            <div class="pair-selector__menu-item">${curr.getName()}</div>
+                        </c:otherwise>
+                    </c:choose>
+                </c:forEach>
+            </div>
+        </li>
+        <div id="pair-selector-arrow"></div>
     </ul>
 </div>

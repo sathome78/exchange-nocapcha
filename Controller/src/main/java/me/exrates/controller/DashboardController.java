@@ -1,6 +1,7 @@
 package me.exrates.controller;
 
 import me.exrates.controller.validator.RegisterFormValidation;
+import me.exrates.dto.CurrencyPairStatisticsDto;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.Order;
 import me.exrates.model.User;
@@ -10,6 +11,7 @@ import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -18,6 +20,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.ExtendedModelMap;
+import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
@@ -28,10 +32,14 @@ import java.math.BigDecimal;
 import java.security.Principal;
 import java.sql.Date;
 import java.sql.Timestamp;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 @Controller
 public class DashboardController {
@@ -292,6 +300,61 @@ public class DashboardController {
         }
 
         return model;
+    }
+
+    @RequestMapping(value = "/admin/changeCurrencyPair", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public CurrencyPairStatisticsDto getNewCurrencyPairData(@RequestParam(required = false) String currencyPairName, HttpServletRequest request) {
+        List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs();
+        CurrencyPair currencyPair;
+        if (currencyPairName==null) {
+            if (currentCurrencyPair == null) {
+                currencyPair = currencyPairs.get(0);
+            } else {
+                currencyPair = currentCurrencyPair;
+            }
+        } else {
+            currencyPair = currencyPairs
+                    .stream()
+                    .filter(e -> e.getName().equals(currencyPairName))
+                    .collect(Collectors.toList()).get(0);
+        }
+        currentCurrencyPair = currencyPair;
+        Order lastOrder = dashboardService.getLastClosedOrder(currencyPair);
+        CurrencyPairStatisticsDto currencyPairStatisticsDto = new CurrencyPairStatisticsDto();
+        currencyPairStatisticsDto.setName(currencyPair.getName());
+        currencyPairStatisticsDto.setCurrency1(currencyPair.getCurrency1().getName());
+        currencyPairStatisticsDto.setCurrency2(currencyPair.getCurrency2().getName());
+        if (lastOrder.getCurrencyBuy() != 0) {
+            currencyPairStatisticsDto.setLastOrderCurrency(currencyService.getCurrencyName(lastOrder.getCurrencyBuy()));
+        } else {
+            currencyPairStatisticsDto.setLastOrderCurrency("");
+        }
+        DecimalFormat df = new DecimalFormat();
+        df.setDecimalFormatSymbols(new DecimalFormatSymbols(localeResolver.resolveLocale(request)));
+        df.setMaximumFractionDigits(9);
+        df.setMinimumFractionDigits(0);
+        df.setGroupingUsed(true);
+        currencyPairStatisticsDto.setAmountBuy(lastOrder.getAmountBuy() == null ? "0" : df.format(lastOrder.getAmountBuy()));
+        //
+        List<Map<String, BigDecimal>> list = dashboardService.getAmountsFromClosedOrders(currencyPair);
+        BigDecimal sumAmountBuyClosed = new BigDecimal(0.0);
+        BigDecimal sumAmountSellClosed = new BigDecimal(0.0);
+        for (Map<String, BigDecimal> tempRow : list) {
+            sumAmountBuyClosed = tempRow.get("amount_buy");
+            sumAmountSellClosed = tempRow.get("amount_sell");
+        }
+        currencyPairStatisticsDto.setSumAmountBuyClosed(sumAmountBuyClosed == null ? "0" : df.format(sumAmountBuyClosed));
+        currencyPairStatisticsDto.setSumAmountSellClosed(sumAmountSellClosed == null ? "0" : df.format(sumAmountSellClosed));
+
+        return currencyPairStatisticsDto;
+    }
+
+    @RequestMapping(value = "/admin/createPairSelectorMenu", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public List<String> getCurrencyPairNameList() {
+        List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs();
+        return currencyPairs.stream().map(e -> e.getName()).collect((Collectors.toList()));
     }
 }
 

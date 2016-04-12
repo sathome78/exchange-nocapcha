@@ -62,7 +62,6 @@
 <main class="container">
     <div class="exchange_data"> <!-- Exchange currencies and graphic -->
         <ul class="exchange">
-
             <c:forEach var="curr" items="${currencyPairs}" begin="0" end="3">
                 <c:choose>
                     <c:when test="${curr.getName()==currencyPair.getName()}">

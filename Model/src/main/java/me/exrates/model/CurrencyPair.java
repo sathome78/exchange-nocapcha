@@ -9,6 +9,11 @@ public class CurrencyPair {
     public CurrencyPair() {
     }
 
+    public CurrencyPair(Currency currency1, Currency currency2) {
+        this.currency1 = currency1;
+        this.currency2 = currency2;
+    }
+
     public Currency getCurrency1() {
         return currency1;
     }

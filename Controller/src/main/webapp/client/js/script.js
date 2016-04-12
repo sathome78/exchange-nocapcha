@@ -2,7 +2,7 @@ $(".reveal").click(function () {
     $('.reveal ul').slideToggle();
 });
 
-$("#other_pairs").click(function () {
+$("#other_pairs").click(function (e) {
     $('#other_pairs ul').slideToggle();
     $("#other_pairs").toggleClass("whiter");
 });
@@ -65,5 +65,73 @@ $(document).ready(function () {
         }
     });
 });
+
++function switchPairSelector(){
+    if ($('ul').is('.exchange')){
+        $("#pair-selector").css('display', 'none');
+        $("#pair-selector-arrow").css('display', 'none');
+    }
+}();
+
+$("#pair-selector").click(function (e) {
+    e.preventDefault();
+    $('.pair-selector__menu').slideToggle();
+});
+
+//$('#pair-selector').ready(function () {
+//$(document).ready(function () {
++function initCurrencyPairData(){
+    if (!$('#pair-selector>div:first-child').text()) {
+        getNewCurrencyPairData();
+    }
+}();
+
+
+//set 'click' handler for container because new '.pair-selector__menu-item' may be added
+$(".pair-selector__menu").on('click', '.pair-selector__menu-item', function (e) {
+    $('.pair-selector__menu-item').removeClass('active');
+    $(this).addClass('active');
+    $('#pair-selector>div:first-child').text($(this).text());
+    getNewCurrencyPairData($(this).text());
+});
+
+function getNewCurrencyPairData(newPairName) {
+    var url = '/admin/changeCurrencyPair';
+    $.ajax({
+        url: newPairName ? url + '?currencyPairName=' + newPairName : url,
+        type: 'GET',
+
+        success: function (data) {
+            $('#lastOrder>span:nth-child(2)').text(data['amountBuy'] + ' ' + data['lastOrderCurrency']);
+            $('#priceStart>span:nth-child(2)').text(data['amountBuy'] + ' ' + data['lastOrderCurrency']);
+            $('#priceEnd>span:nth-child(2)').text(data['amountBuy'] + ' ' + data['lastOrderCurrency']);
+            $('#sumAmountBuyClosed>span:nth-child(2)').text(data['sumAmountBuyClosed'] + ' ' + data['currency1']);
+            $('#sumAmountSellClosed>span:nth-child(2)').text(data['sumAmountSellClosed'] + ' ' + data['currency2']);
+            //
+            if (!$('#pair-selector>div:first-child').text()){
+                createPairSelectorMenu(data['name']);
+            }
+        }
+    });
+}
+
+function createPairSelectorMenu(currencyPairName) {
+    $('.pair-selector__menu').empty();
+    $.ajax({
+        url: '/admin/createPairSelectorMenu',
+        type: 'GET',
+
+        success: function (data) {
+            data.forEach(function(e){
+                if (e===currencyPairName) {
+                    $('.pair-selector__menu').append('<div class="pair-selector__menu-item active">' + e + '</div>');
+                    $('#pair-selector>div:first-child').text(e);
+                } else {
+                    $('.pair-selector__menu').append('<div class="pair-selector__menu-item">' + e + '</div>');
+                }
+            });
+        }
+    });
+}
 
 
