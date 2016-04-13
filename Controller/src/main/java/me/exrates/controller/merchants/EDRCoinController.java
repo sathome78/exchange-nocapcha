@@ -1,11 +1,6 @@
 package me.exrates.controller.merchants;
 
 import com.google.gson.Gson;
-import java.math.BigDecimal;
-import java.security.Principal;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.model.PendingPayment;
@@ -17,17 +12,23 @@ import me.exrates.service.exception.RejectedPaymentInvoice;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.MessageSource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.OK;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.security.Principal;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -43,10 +44,9 @@ public class EDRCoinController {
     private EDRCService edrcService;
 
     @Autowired
-    private ApplicationContext context;
+    private MessageSource source;
 
-    private static final BigDecimal EDR_COIN_COMMISSION = BigDecimal.valueOf(0.001);
-    private static final Logger logger = LogManager.getLogger("merchant");
+    private static final Logger LOG = LogManager.getLogger("merchant");
 
     @RequestMapping(value = "/payment/prepare", method = POST)
     public ResponseEntity<String> preparePayment(final @RequestBody String body,
@@ -57,21 +57,26 @@ public class EDRCoinController {
         final CreditsOperation creditsOperation = merchantService
             .prepareCreditsOperation(payment, email)
             .orElseThrow(InvalidAmountException::new);
+        final String error;
         try {
             final PendingPayment pendingPayment = edrcService
                 .createPaymentInvoice(creditsOperation);
             final String notification = merchantService
                 .sendDepositNotification(pendingPayment
-                        .getAddress().orElseThrow(
-                        ()->new MerchantInternalException("Address not presented"))
-                    ,email ,locale, creditsOperation);
+                        .getAddress().orElseThrow(() -> new MerchantInternalException("Address not presented")),
+                        email , locale, creditsOperation);
             final HttpHeaders httpHeaders = new HttpHeaders();
             httpHeaders.add("Content-Type", "text/plain; charset=utf-8");
             return new ResponseEntity<>(notification, httpHeaders, OK);
-        } catch (InvalidAmountException|RejectedPaymentInvoice e) {
-            final String error = context.getMessage("merchants.incorrectPaymentDetails", null, locale);
-            return new ResponseEntity<>(error,HttpStatus.NO_CONTENT);
+        } catch (final InvalidAmountException|RejectedPaymentInvoice e) {
+            LOG.error(e);
+            error = source.getMessage("merchants.incorrectPaymentDetails", null, locale);
         }
+        catch (final MerchantInternalException e) {
+            LOG.error(e);
+            error = source.getMessage("merchants.internalError", null, locale);
+        }
+        return new ResponseEntity<>(error,HttpStatus.NO_CONTENT);
     }
 
     @RequestMapping(value = "payment/received",method = POST)

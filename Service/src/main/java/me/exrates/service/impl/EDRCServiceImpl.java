@@ -43,6 +43,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
 
+import static java.util.Objects.*;
 import static me.exrates.service.util.OkHttpUtils.stringifyBody;
 
 /**
@@ -83,20 +84,25 @@ public class EDRCServiceImpl implements EDRCService {
         try {
             logger.debug("EDR-Coin response: " + response);
             final PendingPayment payment = new PendingPayment();
-            final String address = evaluateXpath(response,
-                Collections.singletonMap("address", "//address/text()"))
-                .get("address");
+            final Map<String, String> params = new HashMap<>();
+            params.put("address", "//address/text()");
+            params.put("error", "//error_msg/text()");
+            final Map<String, String> result = evaluateXpath(response, params);
+            if (!isNull(result.get("error"))) {
+                throw new MerchantInternalException("Edr-coin responded with error: " + result.get("error"));
+            }
             final BigDecimal amount = transaction
                 .getAmount()
                 .add(transaction.getCommissionAmount());
             final String hash = computePaymentHash(transaction.getId(),
                 id, amount);
-            payment.setAddress(address);
+            payment.setAddress(result.get("address"));
             payment.setInvoiceId(transaction.getId());
             payment.setTransactionHash(hash);
             pendingPaymentDao.create(payment);
             return payment;
         } catch (final Exception e) {
+            
             throw new MerchantInternalException(e);
         }
     }
@@ -162,7 +168,7 @@ public class EDRCServiceImpl implements EDRCService {
         return true;
     }
 
-    protected String buildEDRCAddressXML(final int requestId) {
+    private String buildEDRCAddressXML(final int requestId) {
         try {
             return new Xembler(
                 new Directives()
@@ -210,7 +216,7 @@ public class EDRCServiceImpl implements EDRCService {
         }
     }
 
-    protected String sendRequest(final String xml,final String url) {
+    private String sendRequest(final String xml, final String url) {
         final RequestBody body = new FormEncodingBuilder()
             .add("operation_xml", encodeRequest(xml))
             .add("signature", encodeSignature(xml))
@@ -232,22 +238,22 @@ public class EDRCServiceImpl implements EDRCService {
         }
     }
 
-    protected String encodeRequest(final String xml) {
+    private String encodeRequest(final String xml) {
         return algorithmService.base64Encode(xml);
     }
 
-    protected String encodeSignature(final String xml) {
+    private String encodeSignature(final String xml) {
         return Base64.getEncoder()
             .encodeToString(sha1Signature(xml).getBytes());
     }
 
-    protected String sha1Signature(final String xml) {
+    private String sha1Signature(final String xml) {
         final String sign = key + xml + key;
         return algorithmService.sha1(sign);
     }
 
-    protected static Map<String,String> evaluateXpath(final String xml,
-        final Map<String,String> xpaths) throws Exception
+    private static Map<String,String> evaluateXpath(final String xml,
+                                                    final Map<String, String> xpaths) throws Exception
     {
         final DocumentBuilderFactory factory = DocumentBuilderFactory
             .newInstance();
@@ -260,14 +266,14 @@ public class EDRCServiceImpl implements EDRCService {
         for (AbstractMap.Entry<String,String> e : xpaths.entrySet()) {
             final XPathExpression compile = xpath.compile(e.getValue());
             final String val = compile.evaluate(document);
-            result.put(e.getKey(), val);
+            result.put(e.getKey(), !val.isEmpty() ? val : null);
         }
         return result;
     }
 
-    protected String computePaymentHash(final int invoiceId,
-        final String merchantId,
-        final BigDecimal amount)
+    private String computePaymentHash(final int invoiceId,
+                                      final String merchantId,
+                                      final BigDecimal amount)
     {
         final String target = new StringJoiner(":")
             .add(String.valueOf(invoiceId))
@@ -276,5 +282,18 @@ public class EDRCServiceImpl implements EDRCService {
             .add(key)
             .toString();
         return algorithmService.sha256(target);
+    }
+
+    public static void main(String[] args) throws Exception {
+        String s = "<request>\n" +
+                "        <request_id>1234567</request_id>\n" +
+                "        <address>ej8oEq2S534534Uu7STgjr9Ei2vEeS1y8</address>\n" +
+                "        <qr_code>http://api.blockchain.mn/images/qr/adr_45345335.png</qr_code>\n" +
+                "        <status>1</status>\n" +
+                "        <error>0</error>\n" +
+                "        <error_msg></error_msg>\n" +
+                "        </request>";
+        final Map<String, String> stringStringMap = evaluateXpath(s, Collections.singletonMap("error", "//error_msg/text()"));
+        System.out.println(stringStringMap.get("error"));
     }
 }
