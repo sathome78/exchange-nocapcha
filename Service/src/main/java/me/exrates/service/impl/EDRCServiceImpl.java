@@ -36,14 +36,13 @@ import java.io.StringReader;
 import java.math.BigDecimal;
 import java.util.AbstractMap;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.StringJoiner;
 
-import static java.util.Objects.*;
+import static java.util.Objects.isNull;
 import static me.exrates.service.util.OkHttpUtils.stringifyBody;
 
 /**
@@ -53,14 +52,14 @@ import static me.exrates.service.util.OkHttpUtils.stringifyBody;
 @PropertySource("classpath:/merchants/edrcoin.properties")
 public class EDRCServiceImpl implements EDRCService {
 
-    private @Value("${id}") String id;
-    private @Value("${account}") String account;
-    private @Value("${key}") String key;
+    private @Value("${edrcoin.id}") String id;
+    private @Value("${edrcoin.account}") String account;
+    private @Value("${edrcoin.key}") String key;
 
     private final OkHttpClient client = new OkHttpClient();
     private static final String REGEX = ".*";
 
-    private static final Logger logger = LogManager.getLogger("merchant");
+    private static final Logger LOG = LogManager.getLogger("merchant");
 
 
     @Autowired
@@ -78,11 +77,13 @@ public class EDRCServiceImpl implements EDRCService {
         final Transaction transaction = transactionService
             .createTransactionRequest(creditsOperation);
         final String xml = buildEDRCAddressXML(transaction.getId());
-        logger.debug("Builded xml request: " + xml);
+        LOG.debug("Builded xml request: " + xml);
         final String response = sendRequest(xml,
             "http://api.blockchain.mn/merchant/coin/get_new_address");
+        LOG.debug("key = "+ key);
+        LOG.debug("keyLength = "+ key.length());
         try {
-            logger.debug("EDR-Coin response: " + response);
+            LOG.debug("EDR-Coin response: " + response);
             final PendingPayment payment = new PendingPayment();
             final Map<String, String> params = new HashMap<>();
             params.put("address", "//address/text()");
@@ -102,7 +103,6 @@ public class EDRCServiceImpl implements EDRCService {
             pendingPaymentDao.create(payment);
             return payment;
         } catch (final Exception e) {
-            
             throw new MerchantInternalException(e);
         }
     }
@@ -125,7 +125,7 @@ public class EDRCServiceImpl implements EDRCService {
         final String signature = algorithmService
             .base64Decode(requestSignature);
         if (!Objects.equals(signature,sha1Signature(xml))) {
-            logger.info("Signature is incorrect");
+            LOG.info("Signature is incorrect");
             return false;
         }
         final Map<String,String> xpaths = new HashMap<String,String>() {
@@ -141,7 +141,7 @@ public class EDRCServiceImpl implements EDRCService {
         try {
             result = evaluateXpath(xml, xpaths);
         } catch (Exception e) {
-            logger.error(e);
+            LOG.error(e);
             return false;
         }
         if (!Objects.equals(result.get("status"),"1")) {
@@ -158,7 +158,7 @@ public class EDRCServiceImpl implements EDRCService {
         if (!Objects.equals(pending.getTransactionHash(),
             computePaymentHash(pending.getInvoiceId(),
                 result.get("merchantId"),amount))) {
-            logger.error("Payment hash do not match");
+            LOG.error("Payment hash do not match");
             return false;
         }
         final Transaction transaction = transactionService
@@ -225,7 +225,7 @@ public class EDRCServiceImpl implements EDRCService {
             .url(url)
             .post(body)
             .build();
-        logger.info("Request: " + request.toString() +
+        LOG.info("Request: " + request.toString() +
             ", body {"+ stringifyBody(request)+"}");
         try {
             return client
@@ -282,18 +282,5 @@ public class EDRCServiceImpl implements EDRCService {
             .add(key)
             .toString();
         return algorithmService.sha256(target);
-    }
-
-    public static void main(String[] args) throws Exception {
-        String s = "<request>\n" +
-                "        <request_id>1234567</request_id>\n" +
-                "        <address>ej8oEq2S534534Uu7STgjr9Ei2vEeS1y8</address>\n" +
-                "        <qr_code>http://api.blockchain.mn/images/qr/adr_45345335.png</qr_code>\n" +
-                "        <status>1</status>\n" +
-                "        <error>0</error>\n" +
-                "        <error_msg></error_msg>\n" +
-                "        </request>";
-        final Map<String, String> stringStringMap = evaluateXpath(s, Collections.singletonMap("error", "//error_msg/text()"));
-        System.out.println(stringStringMap.get("error"));
     }
 }
