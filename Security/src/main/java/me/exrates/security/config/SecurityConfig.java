@@ -98,6 +98,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, "/merchants/liqpay/payment/status",
                         "/merchants/liqpay/payment/success",
                         "/merchants/liqpay/payment/failure").permitAll()
+                .antMatchers(HttpMethod.POST, "/merchants/nixmoney/payment/status",
+                        "/merchants/nixmoney/nixmoney/success",
+                        "/merchants/nixmoney/nixmoney/failure").permitAll()
                 .antMatchers(HttpMethod.POST, "/merchants/edrcoin/payment/received").permitAll()
                 .antMatchers(HttpMethod.GET, "/merchants/blockchain/payment/received").permitAll()
                 .antMatchers("/login", "/register", "/create", "/forgotPassword/**", "/resetPasswordConfirm/**").anonymous()
@@ -133,7 +136,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/merchants/edrcoin/payment/received",
                         "/merchants/liqpay/payment/failure",
                         "/merchants/liqpay/payment/success",
-                        "/merchants/liqpay/payment/status");
+                        "/merchants/liqpay/payment/status",
+                        "/merchants/nixmoney/payment/failure",
+                        "/merchants/nixmoney/payment/success",
+                        "/merchants/nixmoney/payment/status");
     }
 
     private String buildHasIpExpression() {
