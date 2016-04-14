@@ -39,133 +39,41 @@
         <%@include file='usermenu_new.jsp' %>
 
         <div class="col-sm-9 content">
-            <div class="buttons">
-                <%--Создать ордер на продажу--%>
-                <button class="active orderForm-toggler">
-                    <loc:message code="orders.createordersell"/>
-                </button>
-                <%--Создать ордер на покупку--%>
-                <button class="orderForm-toggler">
-                    <loc:message code="orders.createorderbuy"/>
-                </button>
-            </div>
-
-            <%--контейнер форм продажа - покупка--%>
             <div class="tab-content">
-                <%--форма продажи--%>
-                <div class="tab-pane active" id="tab__sell">
-                    <c:set var="submiturl" value="order/submit"/>
-                    <form:form id="createSellOrderForm" class="form-horizontal withdraw__money" action="${submiturl}" method="post"
-                               modelAttribute="order">
-                        <%--Продаю--%>
-                        <div>
-                            <label><loc:message code="orders.currencyforsale"/></label>
-                            <form:select path="currencySell" class="select form-control">
-                                <form:options items="${currList}" itemLabel="name" itemValue="id"/>
-                            </form:select>
-                        </div>
-                        <%--Сумма--%>
-                        <div>
-                            <form:input path="amountSell" class="form-control" placeholder="0.0"/>
-                            <label><loc:message code="orders.sum1"/></label>
-                            <form:errors class="form-input-error-message" path="amountSell" style="color:red"/>
-                            <span>${notEnoughMoney}</span>
-                        </div>
-                        <%--Покупаю--%>
-                        <div>
-                            <label><loc:message code="orders.currencyforbuy"/></label>
-                            <form:select path="currencyBuy" class="select form-control">
-                                <form:options items="${currList}" itemLabel="name" itemValue="id"/>
-                            </form:select>
-                        </div>
-                        <%--Сумма--%>
-                        <div>
-                            <form:input path="amountBuy" class="form-control" placeholder="0.0"/>
-                            <label><loc:message code="orders.sum2"/></label>
-                            <form:errors class="form-input-error-message" path="amountBuy" style="color:red"/>
-                        </div>
-                        <%--Комиссия с данной операции составит--%>
-                        <p><loc:message code="orders.yourcommission"/>:
-                            <span class="fee"><fmt:formatNumber type="number" maxFractionDigits="9"
-                                                                value="${commission}"/>%
-                            </span>
-                        </p>
-                        <%--Создать--%>
-                        <c:set var="SELL" value="<%=me.exrates.model.enums.OperationType.SELL%>"/>
-                        <form:hidden path="operationType" value="${SELL}"/>
-                        <loc:message code="orders.submit" var="labelSubmit"/>
-                        <button type="submit">${labelSubmit}</button>
-                    </form:form>
+                <c:set var="submitUrl" value="/order/submit"/>
+                <%--BUY form - user can buy--%>
+                <%--On this form displayed SELL orders--%>
+                <div class="buy-form">
+                    <%@include file="orderForBuyForm.jsp" %>
                 </div>
-
-                <%--форма покупки--%>
-                <div class="tab-pane" id="tab__buy">
-                    <form:form class="form-horizontal withdraw__money" action="${submiturl}" method="post"
-                               modelAttribute="order">
-                        <%--Покупаю--%>
-                        <div>
-                            <label><loc:message code="orders.currencyforbuy"/></label>
-                            <form:select path="currencyBuy" class="select form-control">
-                                <form:options items="${currList}" itemLabel="name" itemValue="id"/>
-                            </form:select>
-                        </div>
-                        <%--Сумма--%>
-                        <div>
-                            <form:input class="form-input-error-message" path="amountBuy" placeholder="0.0"/>
-                            <label><loc:message code="orders.sum1"/></label>
-                            <form:errors path="amountBuy" style="color:red"/>
-                            <span>${notEnoughMoney}</span>
-                        </div>
-                        <%--Продаю--%>
-                        <div>
-                            <label><loc:message code="orders.currencyforsale"/></label>
-                            <form:select path="currencySell" class="select form-control">
-                                <form:options items="${currList}" itemLabel="name" itemValue="id"/>
-                            </form:select>
-                        </div>
-                        <%--Сумма--%>
-                        <div>
-                            <form:input class="form-input-error-message" path="amountSell" placeholder="0.0"/>
-                            <label><loc:message code="orders.sum2"/></label>
-                            <form:errors path="amountSell" style="color:red"/>
-                        </div>
-                        <%--Комиссия с данной операции составит--%>
-                        <p><loc:message code="orders.yourcommission"/>:
-                            <span class="fee"><fmt:formatNumber type="number" maxFractionDigits="9"
-                                                                value="${commission}"/>%
-                            </span>
-                        </p>
-                        <%--Создать--%>
-                        <c:set var="BUY" value="<%=me.exrates.model.enums.OperationType.BUY%>"/>
-                        <form:hidden path="operationType" value="${BUY}"/>
-                        <loc:message code="orders.submit" var="labelSubmit"/>
-                        <button type="submit">${labelSubmit}</button>
-                    </form:form>
+                <%--SELL form - user can sell--%>
+                <%--On this form displayed BUY orders--%>
+                <div class="sell-form">
+                    <%@include file="orderForSellForm.jsp" %>
                 </div>
             </div>
             <hr>
             <div class="row">
-                <%--СПИСОК ОРДЕРОВ НА ПРОДАЖУ--%>
+                <%--LIST OF ORDERS SELL--%>
                 <div class="col-sm-6">
-                    <p><loc:message code="orders.listtobuy"/></p>
+                    <p><loc:message code="orders.listtosell"/></p>
                     <table>
                         <tbody>
-                        <%--Продаю	Сумма	Покупаю	Сумма--%>
+                        <%--Rate	Currency1	Currency2	--%>
                         <tr>
-                            <th><loc:message code="orders.currbuy"/></th>
-                            <th><loc:message code="orders.amountbuy"/></th>
-                            <th><loc:message code="orders.currsell"/></th>
-                            <th><loc:message code="orders.amountsell"/></th>
+                            <th><loc:message code="orders.exrate"/></th>
+                            <th>${orderCreateDto.currencyPair.getCurrency1().getName()}</th>
+                            <th>${orderCreateDto.currencyPair.getCurrency2().getName()}</th>
                             <th></th>
                         </tr>
-                        <c:forEach var="order" items="${orderMap.sell}">
+                        <c:forEach var="order" items="${sellOrdersList}">
                             <tr>
-                                <td> ${order.currencySellString} </td>
                                 <td><fmt:formatNumber type="number" maxFractionDigits="9"
-                                                      value="${order.amountSell}"/></td>
-                                <td> ${order.currencyBuyString} </td>
+                                                      value="${order.exrate}"/></td>
                                 <td><fmt:formatNumber type="number" maxFractionDigits="9"
-                                                      value="${order.amountBuy}"/></td>
+                                                      value="${order.currencyAmount1}"/></td>
+                                <td><fmt:formatNumber type="number" maxFractionDigits="9"
+                                                      value="${order.currencyAmount2}"/></td>
                                 <td>
                                     <button onclick="beginAcceptOrder(${order.id})"><loc:message
                                             code="orders.accept"/></button>
@@ -174,32 +82,29 @@
                         </tbody>
                     </table>
                 </div>
-                <!-- end col-sm-6 -->
-                <%--СПИСОК ОРДЕРОВ НА ПОКУПКУ--%>
+                <%--LIST OF ORDERS BUY--%>
                 <div class="col-sm-6">
-                    <p><loc:message code="orders.listtosell"/></p>
+                    <p><loc:message code="orders.listtobuy"/></p>
                     <table>
                         <tbody>
-                        <%--Покупаю	Сумма	Продаю	Сумма--%>
+                        <%--Rate	Currency1	Currency2	--%>
                         <tr>
-                            <th><loc:message code="orders.currsell"/></th>
-                            <th><loc:message code="orders.amountsell"/></th>
-                            <th><loc:message code="orders.currbuy"/></th>
-                            <th><loc:message code="orders.amountbuy"/></th>
+                            <th><loc:message code="orders.exrate"/></th>
+                            <th>${orderCreateDto.currencyPair.getCurrency1().getName()}</th>
+                            <th>${orderCreateDto.currencyPair.getCurrency2().getName()}</th>
                             <th></th>
                         </tr>
-                        <c:forEach var="order" items="${orderMap.buy}">
+                        <c:forEach var="order" items="${buyOrdersList}">
                             <tr>
-                                <td> ${order.currencyBuyString} </td>
                                 <td><fmt:formatNumber type="number" maxFractionDigits="9"
-                                                      value="${order.amountBuy}"/></td>
-                                <td> ${order.currencySellString} </td>
+                                                      value="${order.exrate}"/></td>
                                 <td><fmt:formatNumber type="number" maxFractionDigits="9"
-                                                      value="${order.amountSell}"/></td>
+                                                      value="${order.currencyAmount1}"/></td>
+                                <td><fmt:formatNumber type="number" maxFractionDigits="9"
+                                                      value="${order.currencyAmount2}"/></td>
                                 <td>
                                     <button onclick="beginAcceptOrder(${order.id})"><loc:message
                                             code="orders.accept"/></button>
-                                </td>
                             </tr>
                         </c:forEach>
                         </tbody>
@@ -221,6 +126,7 @@
 <script type="text/javascript" src="<c:url value='/client/js/menuSwitcher.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/submits/orderBeginAccept.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/calculateCreateOrderFormField.js'/>"></script>
 <%----------%>
 </body>
 </html>

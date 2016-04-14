@@ -1,5 +1,6 @@
 package me.exrates.model;
 
+
 public class CurrencyPair {
 
     private Currency currency1;
@@ -49,6 +50,10 @@ public class CurrencyPair {
         if (currency2 != null ? !currency2.equals(that.currency2) : that.currency2 != null) return false;
         return name != null ? name.equals(that.name) : that.name == null;
 
+    }
+
+    public Currency getAnotherCurrency(Currency currency) {
+        return currency.equals(currency1) ? currency2 : currency1;
     }
 
     @Override

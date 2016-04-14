@@ -58,7 +58,7 @@
                 <br/>
                 <br/>
                 <%--CAPCHA--%>
-                <div id="cpch-field" class="g-recaptcha" data-sitekey=${captchaProperties.key}></div>
+                <div id="cpch-field" class="g-recaptcha" data-sitekey=${captchaProperties.get("captcha.key")}></div>
                 <p class='cpch-error-message' style="color:red">${cpch}</p>
                 <br/>
                 <%--ВОЙТИ--%>

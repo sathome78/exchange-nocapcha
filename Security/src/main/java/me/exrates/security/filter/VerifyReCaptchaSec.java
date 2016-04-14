@@ -21,14 +21,14 @@ import java.io.StringReader;
 import java.net.URL;
 
 @Component
-@PropertySource("classpath:/capcha.properties")
+@PropertySource("classpath:/captcha.properties")
 public class VerifyReCaptchaSec {
 
     private static final Logger logger = LogManager.getLogger(VerifyReCaptchaSec.class);
 
     public static final String URL = "https://www.google.com/recaptcha/api/siteverify";
     private
-    @Value("${skey}")
+    @Value("${captcha.skey}")
     String SECRET_KEY;
 
     public boolean verify(String recapchaResponse) {

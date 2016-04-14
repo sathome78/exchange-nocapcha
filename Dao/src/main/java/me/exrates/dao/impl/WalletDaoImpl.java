@@ -23,6 +23,9 @@ public class WalletDaoImpl implements WalletDao {
 	private NamedParameterJdbcTemplate jdbcTemplate;
 
 	public BigDecimal getWalletABalance(int walletId) {
+		if (walletId==0) {
+			return new BigDecimal(0);
+		}
 		String sql = "SELECT active_balance FROM WALLET WHERE id = :walletId";
 		Map<String, String> namedParameters = new HashMap<>();
 		namedParameters.put("walletId", String.valueOf(walletId));

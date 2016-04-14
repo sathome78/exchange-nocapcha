@@ -1,7 +1,7 @@
 package me.exrates.controller;
 
 import me.exrates.controller.validator.RegisterFormValidation;
-import me.exrates.dto.CurrencyPairStatisticsDto;
+import me.exrates.model.dto.CurrencyPairStatisticsDto;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.Order;
 import me.exrates.model.User;
@@ -20,8 +20,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.ExtendedModelMap;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
@@ -38,12 +36,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 @Controller
 public class DashboardController {
-
     @Autowired
     OrderService orderService;
 
@@ -74,14 +70,14 @@ public class DashboardController {
     @Autowired
     VerifyReCaptchaSec verifyReCaptcha;
 
-    private CurrencyPair currentCurrencyPair;
+//    private CurrencyPair currentCurrencyPair;
 
     @RequestMapping(value = {"/dashboard/locale"})
     public void localeSwitcherCommand() {
     }
 
     @RequestMapping(value = {"/dashboard"})
-    public ModelAndView dashboard(@ModelAttribute CurrencyPair currencyPair, Principal principal, @RequestParam(required = false) String errorNoty, @RequestParam(required = false) String successNoty) {
+    public ModelAndView dashboard(@ModelAttribute CurrencyPair currencyPair, Principal principal, @RequestParam(required = false) String errorNoty, @RequestParam(required = false) String successNoty, HttpServletRequest request) {
         ModelAndView model = new ModelAndView();
         model.addObject("successNoty", successNoty);
         model.addObject("errorNoty", errorNoty);
@@ -98,7 +94,7 @@ public class DashboardController {
             }
         }
 
-        currentCurrencyPair = currencyPair;
+        request.getSession().setAttribute("currentCurrencyPair", currencyPair);
         model.addObject("currencyPairs", currencyPairs);
         model.addObject("currencyPair", currencyPair);
 
@@ -152,9 +148,9 @@ public class DashboardController {
     @RequestMapping(value = "/dashboard/chartArray", method = RequestMethod.GET)
     public
     @ResponseBody
-    ArrayList chartArray() {
+    ArrayList chartArray(HttpServletRequest request) {
 
-        CurrencyPair currencyPair = currentCurrencyPair;
+        CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");;
         List<Map<String, Object>> list = dashboardService.getDataForChart(currencyPair);
 
         ArrayList<ArrayList> arrayListMain = new ArrayList<ArrayList>();
@@ -308,10 +304,10 @@ public class DashboardController {
         List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs();
         CurrencyPair currencyPair;
         if (currencyPairName==null) {
-            if (currentCurrencyPair == null) {
+            if (request.getSession().getAttribute("currentCurrencyPair") == null) {
                 currencyPair = currencyPairs.get(0);
             } else {
-                currencyPair = currentCurrencyPair;
+                currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
             }
         } else {
             currencyPair = currencyPairs
@@ -319,7 +315,7 @@ public class DashboardController {
                     .filter(e -> e.getName().equals(currencyPairName))
                     .collect(Collectors.toList()).get(0);
         }
-        currentCurrencyPair = currencyPair;
+        request.getSession().setAttribute("currentCurrencyPair", currencyPair);
         Order lastOrder = dashboardService.getLastClosedOrder(currencyPair);
         CurrencyPairStatisticsDto currencyPairStatisticsDto = new CurrencyPairStatisticsDto();
         currencyPairStatisticsDto.setName(currencyPair.getName());

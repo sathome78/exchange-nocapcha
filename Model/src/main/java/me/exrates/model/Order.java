@@ -47,6 +47,9 @@ public class Order {
     private BigDecimal amountBuyWithCommission;
     private BigDecimal amountSellWithCommission;
 
+    private BigDecimal exrate;
+
+
     public Order() {
 
     }
@@ -218,6 +221,14 @@ public class Order {
 
     public void setAmountSellWithCommission(BigDecimal amountSellWithCommission) {
         this.amountSellWithCommission = amountSellWithCommission;
+    }
+
+    public BigDecimal getExrate() {
+        return exrate;
+    }
+
+    public void setExrate(BigDecimal exrate) {
+        this.exrate = exrate;
     }
 }
 

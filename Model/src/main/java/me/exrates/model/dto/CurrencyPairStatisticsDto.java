@@ -1,6 +1,4 @@
-package me.exrates.dto;
-
-import me.exrates.model.CurrencyPair;
+package me.exrates.model.dto;
 
 /**
  * Created by Valk on 12.04.16.

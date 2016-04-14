@@ -215,7 +215,7 @@ public class UserServiceImpl implements UserService {
                         " <a href='" +
                         rootUrl +
                         confirmationUrl +
-                        "'>Ссылка</a>"
+                        "'>"+messageSource.getMessage("admin.ref", null, locale)+"</a>"
         );
         email.setSubject(messageSource.getMessage(emailSubject, null, locale));
 

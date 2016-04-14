@@ -1,5 +1,6 @@
 package me.exrates.config;
 
+import me.exrates.model.converter.CurrencyPairConverter;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.controller.validator.OrderValidator;
 import me.exrates.controller.validator.RegisterFormValidation;
@@ -15,6 +16,7 @@ import org.springframework.context.annotation.*;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.format.FormatterRegistry;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -89,7 +91,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 	@Bean(name = "captchaProperties")
 	public PropertiesFactoryBean captchaProperties() {
 		PropertiesFactoryBean prop = new PropertiesFactoryBean();
-		prop.setLocation(new ClassPathResource("capcha.properties"));
+		prop.setLocation(new ClassPathResource("captcha.properties"));
 		return prop;
 	}
 
@@ -189,5 +191,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 	@Bean (name = "tokenScheduler")
 	public TokenScheduler tokenScheduler(){
 		return TokenScheduler.getInstance();
+	}
+
+	@Override
+	public void addFormatters(FormatterRegistry registry) {
+		registry.addConverter(new CurrencyPairConverter());
+		super.addFormatters(registry);
 	}
 }

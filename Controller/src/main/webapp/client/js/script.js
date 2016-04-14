@@ -44,7 +44,6 @@ $(document).ready(function () {
         document.getElementById("#register_button").disabled = true;
     }
     $("#repass").keyup(function () {
-        console.log("keyup");
         var pass = $('#pass').val();
         var repass = $('#repass').val();
         var email = $('#email').val();
@@ -78,8 +77,6 @@ $("#pair-selector").click(function (e) {
     $('.pair-selector__menu').slideToggle();
 });
 
-//$('#pair-selector').ready(function () {
-//$(document).ready(function () {
 +function initCurrencyPairData(){
     if (!$('#pair-selector>div:first-child').text()) {
         getNewCurrencyPairData();
@@ -133,5 +130,6 @@ function createPairSelectorMenu(currencyPairName) {
         }
     });
 }
+
 
 

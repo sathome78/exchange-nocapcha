@@ -131,7 +131,7 @@
                             <br/>
                                 <%--CAPCHA--%>
                             <div id="cpch-head-field" class="g-recaptcha"
-                                 data-sitekey=${captchaProperties.key}></div>
+                                 data-sitekey=${captchaProperties.get("captcha.key")}></div>
                             <p class='cpch-error-message' style="color:red">${cpch}</p>
                                 <%--войти--%>
                             <button type="submit" class="button_enter"><loc:message code="dashboard.entrance"/></button>

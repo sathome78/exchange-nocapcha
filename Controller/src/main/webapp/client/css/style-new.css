@@ -1370,31 +1370,107 @@ form#command.submit-order-form button {
     padding: 5px 0;
 }
 
+.buy-form {
+    float: left;
+    width: 48%;
+    margin: 0 4% 0 0;
+}
+
+.sell-form {
+    float: right;
+    width: 48%;
+    margin: 0 0 0 0;
+}
+
+.buy-sell-form {
+    float: left;
+    width: 70%;
+    margin: 0 0 0 0;
+}
+
+#createBuyOrderForm,
+#createSellOrderForm {
+    margin: 0 0 10px 0;
+}
+
+#submitOrderBuySellWrapper,
+#editOrderBuySellWrapper,
+#cancelOrderBuySellWrapper {
+    display: inline-block;
+    margin: 0 10px 0 0;
+}
+
+.formButtonWrapper{
+    margin: -15px 0 15px 0;
+}
+
+#submitOrderBuy,
+#submitOrderSell,
+#editOrderBuySell,
+#cancelOrderBuySell {
+    margin: 0 0 0 0;
+}
+
 .input-block-wrapper {
     display: inline-block;
     height: 100%;
     width: 100%;
-}
-
-.input-block-wrapper .input-block-wrapper__label-wrapper .input-block-wrapper__label{
-    margin: 10px 0;
-    width: 100%;
-}
-
-.input-block-wrapper .input-block-wrapper__input-wrapper .input-block-wrapper__input{
-/*.input-block-wrapper span {*/
-    float: right;
-    display: inline-block;
-    /*width: 80% !important;*/
-    width: 100%;
+    overflow: hidden;
     margin: 5px 0;
 }
-#admin-add-button{
+
+.input-block-wrapper__label-wrapper,
+.input-block-wrapper__input-wrapper,
+.input-block-wrapper__error-wrapper {
+    padding: 0 0 0 0;
+    margin: 0 0;
+}
+
+.input-block-wrapper__input-wrapper {
+    float: right;
+    border: solid 1px #a56650;
+    background: transparent;
+}
+
+.input-block-wrapper__error-wrapper {
+    float: right;
+    border-bottom: solid 1px #a56650;
+    background: transparent;
+    color: red;
+}
+
+.input-block-wrapper .input-block-wrapper__label-wrapper .input-block-wrapper__label {
+    margin: 0 0;
+    width: 100%;
+    line-height: 30px;
+}
+
+.input-block-wrapper .input-block-wrapper__input-wrapper .input-block-wrapper__input {
+    float: left;
+    display: inline-block;
+    max-width: 80%;
+    margin: 0 0;
+    height: 30px;
+    padding: 5px;
+    border: none;
+    color: #fff;
+}
+
+.input-block-wrapper .input-block-wrapper__input-wrapper .input-block-wrapper__input[readonly] {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.input-block-wrapper__inner-label {
+    float: right;
+    line-height: 30px;
+    margin: 0 5px 0 0;
+}
+
+#admin-add-button {
     float: right;
     font-size: 14px;
     border-radius: 4px;
 }
-
 
 /*Enter FinPassword Modal*/
 
@@ -1504,8 +1580,7 @@ form#command.submit-order-form button {
 
 }
 
-
-.exchange_info{
+.exchange_info {
     position: relative;
 }
 
@@ -1519,11 +1594,11 @@ form#command.submit-order-form button {
     cursor: pointer;
 }
 
-
 #pair-selector div {
     display: inline-block;
     margin: 0 0 0 0;
 }
+
 #pair-selector span {
     margin: 0 0 0 15px;
 }
@@ -1537,9 +1612,8 @@ form#command.submit-order-form button {
     pointer-events: none;
     border-right-color: #7d3320;
     border-width: 15px;
-    float:right;
+    float: right;
 }
-
 
 #pair-selector .pair-selector__menu {
     width: 30%;

@@ -1,21 +1,16 @@
 package me.exrates.controller;
 
 
-import java.math.BigDecimal;
-import java.security.Principal;
-import java.util.List;
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-
 import me.exrates.controller.exception.*;
 import me.exrates.controller.validator.OrderValidator;
 import me.exrates.model.Currency;
+import me.exrates.model.CurrencyPair;
 import me.exrates.model.Order;
 import me.exrates.model.User;
+import me.exrates.model.dto.OrderCreateDto;
+import me.exrates.model.dto.OrderListDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TokenType;
-import me.exrates.model.enums.UserStatus;
 import me.exrates.service.CommissionService;
 import me.exrates.service.OrderService;
 import me.exrates.service.UserService;
@@ -23,15 +18,20 @@ import me.exrates.service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+import java.math.BigDecimal;
+import java.security.Principal;
+import java.util.List;
+import java.util.Map;
 
 @Controller
 public class OrderController {
@@ -58,14 +58,31 @@ public class OrderController {
     OrderValidator orderValidator;
 
     @RequestMapping(value = "/orders")
-    public ModelAndView myOrders(HttpServletRequest request) {
+    public ModelAndView myOrders(Principal principal, HttpServletRequest request) {
         ModelAndView model = new ModelAndView();
-        Map<String, List<Order>> orderMap = orderService.getAllOrders(localeResolver.resolveLocale(request));
         model.setViewName("orders");
-        model.addObject("orderMap", orderMap);
-        Order order = new Order();
-        getCurrenciesAndCommission(model, OperationType.SELL);
-        model.addObject(order);
+        //
+        List<OrderListDto> sellOrdersList = orderService.getOrdersSell();
+        List<OrderListDto> buyOrdersList = orderService.getOrdersBuy();
+        model.addObject("sellOrdersList", sellOrdersList);
+        model.addObject("buyOrdersList", buyOrdersList);
+        //
+        int userId = userService.getIdByEmail(principal.getName());
+        int currencyId1 = ((CurrencyPair) request.getSession().getAttribute("currentCurrencyPair")).getCurrency1().getId();
+        int currencyId2 = ((CurrencyPair) request.getSession().getAttribute("currentCurrencyPair")).getCurrency2().getId();
+        int walletIdCurrency1 = walletService.getWalletId(userId, currencyId1);
+        int walletIdCurrency2 = walletService.getWalletId(userId, currencyId2);
+        //
+        OrderCreateDto orderCreateDto = new OrderCreateDto();
+        orderCreateDto.setCurrencyPair((CurrencyPair) request.getSession().getAttribute("currentCurrencyPair"));
+        orderCreateDto.setWalletIdCurrency1(walletIdCurrency1);
+        orderCreateDto.setBalance1(walletService.getWalletABalance(walletIdCurrency1));
+        orderCreateDto.setWalletIdCurrency2(walletIdCurrency2);
+        orderCreateDto.setBalance2(walletService.getWalletABalance(walletIdCurrency2));
+        orderCreateDto.setComissionForBuy(commissionService.findCommissionByType(OperationType.BUY).getValue());
+        orderCreateDto.setComissionForSell(commissionService.findCommissionByType(OperationType.SELL).getValue());
+        model.addObject("orderCreateDto", orderCreateDto);
+
         return model;
     }
 
@@ -76,7 +93,7 @@ public class OrderController {
     public void checkFinPassword(User user, HttpServletRequest request) {
         String enteredFinPassword = user.getFinpassword();
         User storedUser = userService.getUserById(userService.getIdByEmail(user.getEmail()));
-        boolean isNotConfirmedToken = userService.getTokenByUserAndType(storedUser, TokenType.CHANGE_FIN_PASSWORD).size()>0;
+        boolean isNotConfirmedToken = userService.getTokenByUserAndType(storedUser, TokenType.CHANGE_FIN_PASSWORD).size() > 0;
         if (isNotConfirmedToken) {
             throw new NotConfirmedFinPasswordException(messageSource.getMessage("admin.notconfirmedfinpassword", null, localeResolver.resolveLocale(request)));
         }
@@ -86,7 +103,7 @@ public class OrderController {
         }
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         boolean authSuccess = passwordEncoder.matches(enteredFinPassword, currentFinPassword);
-        if (! authSuccess) {
+        if (!authSuccess) {
             throw new WrongFinPasswordException(messageSource.getMessage("admin.wrongfinpassword", null, localeResolver.resolveLocale(request)));
         }
     }
@@ -155,20 +172,26 @@ public class OrderController {
         return model;
     }
 
-
-    /* after filling fileds of creation form on orders page or on page newordertosell
-    show form to submit new order if all fields are filled correct
+    /* after filling fields of creation form on orders page or on page newordertosell
+    shows form to submit new order if all fields are filled correct
     * */
     @RequestMapping(value = "/order/submit", method = RequestMethod.POST)
-    public ModelAndView submitNewOrderToSell(@Valid @ModelAttribute Order order, BindingResult result, ModelAndView model, Principal principal, HttpServletRequest request) {
-        orderValidator.validate(order, result, principal);
-        getCurrenciesAndCommission(model, order.getOperationType());
+    public ModelAndView submitNewOrderToSell(@Valid @ModelAttribute OrderCreateDto orderCreateDto,
+                                             BindingResult result, ModelAndView model) {
+        orderValidator.validate(orderCreateDto, result);
         if (result.hasErrors()) {
             model.setViewName("newordertosell");
         } else {
+            //final amounts calculated here (not by javascript) and transfere to submit form
+            OrderValidator.OrderSum orderSum = orderValidator.getCalculatedSum(orderCreateDto);
+            orderCreateDto.setTotal(orderSum.total);
+            orderCreateDto.setComission(orderSum.comission);
+            orderCreateDto.setTotalWithComission(orderSum.totalWithComission);
+            model.addObject("orderCreateDto", orderCreateDto);
+            //
             model.setViewName("submitorder");
         }
-        model.addObject("order", order);
+        model.addObject("orderCreateDto", orderCreateDto);
         return model;
     }
 
@@ -177,9 +200,35 @@ public class OrderController {
     * */
     @RequestMapping(value = "/orders/create")
     @ResponseBody
-    public void recordOrderToDB(Order order, Principal principal, HttpServletRequest request) {
-        int walletIdFrom = walletService.getWalletId(userService.getIdByEmail(principal.getName()), order.getCurrencySell());
-        order.setWalletIdSell(walletIdFrom);
+    public void recordOrderToDB(OrderCreateDto orderCreateDto, Principal principal, HttpServletRequest request) {
+        CurrencyPair currencyPair = orderCreateDto.getCurrencyPair();
+        Currency currencyForBuy = (orderCreateDto.getOperationType() == OperationType.BUY) ?
+                currencyPair.getCurrency1() :
+                currencyPair.getCurrency2();
+        Currency currencyForSell = currencyPair.getAnotherCurrency(currencyForBuy);
+
+        Order order = new Order();
+        order.setOperationType(orderCreateDto.getOperationType());
+        order.setExrate(orderCreateDto.getExchangeRate());
+        order.setCurrencyBuy(currencyForBuy.getId());
+        order.setCurrencySell(currencyForSell.getId());
+        if (orderCreateDto.getOperationType() == OperationType.BUY) {
+            order.setWalletIdBuy(orderCreateDto.getWalletIdCurrency1());
+            order.setWalletIdSell(orderCreateDto.getWalletIdCurrency2());
+            order.setAmountBuy(orderCreateDto.getAmount());
+            order.setAmountSell(orderCreateDto.getTotal());
+            order.setCommissionAmountSell(orderCreateDto.getComission());
+            //
+            order.setCommissionAmountBuy(orderCreateDto.getTotal().multiply(orderCreateDto.getComissionForSell().divide(new BigDecimal(100))));
+        } else {
+            order.setWalletIdSell(orderCreateDto.getWalletIdCurrency1());
+            order.setWalletIdBuy(orderCreateDto.getWalletIdCurrency2());
+            order.setAmountSell(orderCreateDto.getAmount());
+            order.setAmountBuy(orderCreateDto.getTotal());
+            order.setCommissionAmountBuy(orderCreateDto.getComission());
+            //
+            order.setCommissionAmountSell(orderCreateDto.getAmount().multiply(orderCreateDto.getComissionForBuy().divide(new BigDecimal(100))));
+        }
         if ((orderService.createOrder(order)) <= 0) {
             throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, localeResolver.resolveLocale(request)));
         }
@@ -195,10 +244,13 @@ public class OrderController {
 
     /* ... CREATE ORDER*/
 
+    /*
+    if need to edit created order before final submit
+    * */
     @RequestMapping(value = "/order/edit", method = RequestMethod.POST)
-    public ModelAndView showEditOrderToSellForm(ModelAndView model, @ModelAttribute Order order) {
-        model = new ModelAndView("editorder", "order", order);
-        getCurrenciesAndCommission(model, order.getOperationType());
+    public ModelAndView showEditOrderToSellForm(@Valid @ModelAttribute OrderCreateDto orderCreateDto, ModelAndView model) {
+        model.setViewName("newordertosell");
+        model.addObject("orderCreateDto", orderCreateDto);
         return model;
     }
 

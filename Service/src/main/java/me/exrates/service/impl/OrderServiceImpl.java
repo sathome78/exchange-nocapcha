@@ -5,6 +5,7 @@ import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
 import me.exrates.model.Order;
 import me.exrates.model.Wallet;
+import me.exrates.model.dto.OrderListDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.service.*;
@@ -50,11 +51,6 @@ public class OrderServiceImpl implements OrderService{
 	public int createOrder(Order order) {
 		int orderId = 0;
 		if(walletService.ifEnoughMoney(order.getWalletIdSell(),order.getAmountSell())) {
-			BigDecimal commission = commissionService.findCommissionByType(OperationType.SELL).getValue().divide(BigDecimal.valueOf(100));
-			BigDecimal commissionAmountSell = order.getAmountSell().multiply(commission);
-			BigDecimal commissionAmountBuy = order.getAmountBuy().multiply(commission);
-			order.setCommissionAmountBuy(commissionAmountBuy);
-			order.setCommissionAmountSell(commissionAmountSell);
 			if((orderId=orderDao.createOrder(order)) > 0) {
 				walletService.setWalletRBalance(order.getWalletIdSell(), order.getAmountSell());
 				walletService.setWalletABalance(order.getWalletIdSell(), order.getAmountSell().negate());
@@ -114,7 +110,19 @@ public class OrderServiceImpl implements OrderService{
 		orderMap.put("buy", buyOrderList);
 		return orderMap;
 	}
-	
+
+	@Transactional(readOnly = true)
+	@Override
+	public  List<OrderListDto>  getOrdersSell(){
+		return orderDao.getOrdersSell();
+	}
+
+	@Transactional(readOnly = true)
+	@Override
+	public  List<OrderListDto>  getOrdersBuy(){
+		return orderDao.getOrdersBuy();
+	}
+
 	@Transactional
 	@Override
 	public boolean deleteOrder(int orderId) {

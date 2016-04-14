@@ -36,92 +36,24 @@
     <%@include file='exchange_info_new.jsp' %>
     <div class="row">
         <%@include file='usermenu_new.jsp' %>
-
         <div class="col-sm-9 content">
-            <%--ЗАГОЛОВОК: ОРДЕР НА ПРОДАЖУ--%>
             <c:set var="SELL" value="<%=me.exrates.model.enums.OperationType.SELL%>"/>
             <c:set var="BUY" value="<%=me.exrates.model.enums.OperationType.BUY%>"/>
-            <c:if test="${order.operationType  eq SELL}">
-                <h4><loc:message code="orders.ordersell"/></h4>
-            </c:if>
-            <c:if test="${order.operationType  eq BUY}">
-                <h4><loc:message code="orders.orderbuy"/></h4>
-            </c:if>
-
-            <hr>
-
-            <%--форма--%>
-            <div class="row">
-                <div class="col-sm-9">
-                    <form:form class="form-horizontal withdraw__money" action="submit" method="post"
-                               modelAttribute="order">
-                        <%--Продаю--%>
-                        <c:if test="${order.operationType  eq SELL}">
-                            <div>
-                                <label><loc:message code="orders.currencyforsale"/></label>
-                                <form:select path="currencySell">
-                                    <c:forEach var="item" items="${currList}">
-                                        <c:choose>
-                                            <c:when test="${walletName==item.name}">
-                                                <form:option selected="selected" value="${item.id}"> ${item.name}
-                                                </form:option>
-                                            </c:when>
-                                            <c:otherwise>
-                                                <form:option value="${item.id}"> ${item.name}
-                                                </form:option>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </c:forEach>
-                                </form:select>
-                            </div>
-                            <div class="clearfix">
-                                <form:input path="amountSell" placeholder="0.0"/>
-                                <label><loc:message code="orders.sum1"/></label>
-                                <form:errors class="form-input-error-message" path="amountSell" style="color:red"/>
-                                <span>${notEnoughMoney}</span>
-                            </div>
-                        </c:if>
-
-                        <%--Покупаю--%>
-                        <div>
-                            <label><loc:message code="orders.currencyforbuy"/></label>
-                            <form:select path="currencyBuy" class="select form-control">
-                                <form:options items="${currList}" itemLabel="name" itemValue="id"/>
-                            </form:select>
-                        </div>
-                        <div>
-                            <form:input path="amountBuy" class="form-control" placeholder="0.0"/>
-                            <label><loc:message code="orders.sum2"/></label>
-                            <form:errors class="form-input-error-message" path="amountBuy" style="color:red"/>
-                        </div>
-                        <%--Продаю--%>
-                        <c:if test="${order.operationType  eq BUY}">
-                            <div>
-                                <label><loc:message code="orders.currencyforsale"/></label>
-                                <form:select path="currencySell">
-                                    <form:options items="${currList}" itemLabel="name" itemValue="id"/>
-                                </form:select>
-                            </div>
-                            <div>
-                                <form:input path="amountSell" class="form-control" placeholder="0.0"/>
-                                <label><loc:message code="orders.sum1"/></label>
-                                <form:errors class="form-input-error-message" path="amountSell" style="color:red"/>
-                                <span>${notEnoughMoney}</span>
-                            </div>
-                        </c:if>
-                        <%--Комиссия с данной операции составит:--%>
-                        <p><loc:message code="orders.yourcommission"/>:
-                            <span class="fee"><fmt:formatNumber type="number" maxFractionDigits="9"
-                                                                value="${commission}"/>%</span>
-                        </p>
-                        <%--Создать--%>
-                        <form:hidden path="operationType" value="${order.operationType}"/>
-                        <loc:message code="orders.submit" var="labelSubmit"/>
-                        <button type="submit">${labelSubmit}</button>
-                    </form:form>
+            <c:set value="/order/submit" var="submitUrl" />
+            <c:set value="/orders" var="cancelUrl"/>
+            <%----%>
+            <c:if test="${orderCreateDto.getOperationType()  eq BUY}">
+                <div class="buy-sell-form">
+                    <%@include file="orderForBuyForm.jsp" %>
                 </div>
-                <div class="col-sm-3"></div>
-            </div>
+            </c:if>
+            <c:if test="${orderCreateDto.getOperationType()  eq SELL}">
+                <div class="buy-sell-form">
+                    <%@include file="orderForSellForm.jsp" %>
+                </div>
+            </c:if>
+            <%----%>
+            <hr>
         </div>
     </div>
 </main>
@@ -131,6 +63,7 @@
 <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
 <%----------%>
 <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/calculateCreateOrderFormField.js'/>"></script>
 </body>
 </html>
 
