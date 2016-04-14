@@ -35,6 +35,7 @@ $(function(){
     const ADVCASH = 'Advcash Money';
     const EDR_COIN = 'EDR Coin';
     const LIQPAY = 'LiqPay';
+    const NIX = 'Nix Money';
     const NO_ACTION = 'javascript:void(0);';
     
     var currency = $('#currency');
@@ -96,7 +97,8 @@ $(function(){
             blockchainDeposit:'/merchants/blockchain/payment/provide',
             perfectDeposit:'https://perfectmoney.is/api/step1.asp',
             advcash:'/merchants/advcash/payment/prepare',
-            liqpay:'/merchants/liqpay/payment/prepare'
+            liqpay:'/merchants/liqpay/payment/prepare',
+            nixmoney:'/merchants/nixmoney/payment/prepare'
 
         };
         if (operationType === 'INPUT') {
@@ -114,6 +116,9 @@ $(function(){
 
                 case LIQPAY :
                     form.attr('action', formAction.liqpay);
+                    break;
+                case NIX :
+                    form.attr('action', formAction.nixmoney);
                     break;
                 default:
                     form.attr('action', NO_ACTION);
