@@ -24,7 +24,8 @@ import java.util.Properties;
 public class NixMoneyServiceImpl implements NixMoneyService {
 
     private @Value("${nixmoney.url}") String url;
-    private @Value("${nixmoney.payeeAccount}") String payeeAccount;
+    private @Value("${nixmoney.payeeAccountUSD}") String payeeAccountUSD;
+    private @Value("${nixmoney.payeeAccountEUR}") String payeeAccountEUR;
     private @Value("${nixmoney.payeeName}") String payeeName;
     private @Value("${nixmoney.payeePassword}") String payeePassword;
     private @Value("${nixmoney.paymentUrl}") String paymentUrl;
@@ -52,7 +53,12 @@ public class NixMoneyServiceImpl implements NixMoneyService {
         Properties properties = new Properties();
 
 
-        properties.put("PAYEE_ACCOUNT", payeeAccount);
+        if (creditsOperation.getCurrency().getName().equals("USD")){
+            properties.put("PAYEE_ACCOUNT", payeeAccountUSD);
+        }
+        if (creditsOperation.getCurrency().getName().equals("EUR")){
+            properties.put("PAYEE_ACCOUNT", payeeAccountEUR);
+        }
         properties.put("PAYMENT_ID", transaction.getId());
         properties.put("PAYEE_NAME", payeeName);
         properties.put("PAYMENT_AMOUNT", amountToPay);
