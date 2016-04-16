@@ -1,6 +1,5 @@
 package me.exrates.service.token;
 
-import me.exrates.service.UserService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.quartz.Job;
@@ -26,9 +25,8 @@ public class ClearTokenJob implements Job {
                 + " userId: " + jobParams.get("tokenUser")
                 + " : " + jobParams.get("tokenDateCreation");
 
-        UserService userService = TokenScheduler.getInstance().userService;
         try {
-            if (userService.deleteExpiredToken(jobParams.getString("tokenValue"))) {
+            if (TokenScheduler.getTokenScheduler().deleteExpiredToken(jobParams.getString("tokenValue"))) {
                 message = String.format("the expired token was deleted: %s" + "\n" + "  in queue now %s jobs remain",
                         tokenString, jobExecutionContext.getScheduler().getJobKeys(GroupMatcher.jobGroupEquals(TokenScheduler.TRIGGER_GROUP)).size() - 1);
             } else {

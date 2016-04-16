@@ -35,6 +35,7 @@ import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
 
+import javax.annotation.PreDestroy;
 import javax.sql.DataSource;
 
 import java.util.Locale;
@@ -188,9 +189,9 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 		return mailSenderImpl;
 	}
 
-	@Bean (name = "tokenScheduler")
+	@Bean (name = "tokenScheduler", initMethod = "init", destroyMethod = "destroy")
 	public TokenScheduler tokenScheduler(){
-		return TokenScheduler.getInstance();
+		return new TokenScheduler();
 	}
 
 	@Override
@@ -198,4 +199,5 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 		registry.addConverter(new CurrencyPairConverter());
 		super.addFormatters(registry);
 	}
+
 }

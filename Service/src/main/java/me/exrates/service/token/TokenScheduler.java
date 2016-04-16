@@ -2,6 +2,7 @@ package me.exrates.service.token;
 
 import me.exrates.model.TemporalToken;
 import me.exrates.service.UserService;
+import me.exrates.service.exception.UnRegisteredUserDeleteException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.quartz.*;
@@ -22,31 +23,39 @@ import java.util.stream.Collectors;
 
 @Component
 public class TokenScheduler {
-
     private static final Logger LOGGER = LogManager.getLogger(TokenScheduler.class);
-
     public static final String TRIGGER_GROUP = "token";
     public static final Integer TOKEN_LIFE_TIME_DAYS = 1;
 
-    private static TokenScheduler instance = new TokenScheduler();
-
     private Scheduler scheduler = null;
+    private static TokenScheduler tokenScheduler = null;
 
-    public static TokenScheduler getInstance() {
-        return instance;
+    public static TokenScheduler getTokenScheduler() {
+        return tokenScheduler;
     }
 
-    private TokenScheduler() {
+    @Autowired
+    protected UserService userService;
+
+    private void init() {
         try {
+            TokenScheduler.tokenScheduler = this;
             scheduler = new StdSchedulerFactory().getScheduler();
             scheduler.start();
+            LOGGER.debug("TokenScheduler is started ");
         } catch (SchedulerException e) {
             LOGGER.error("error while TokenScheduler init " + e.getLocalizedMessage());
         }
     }
 
-    @Autowired
-    protected UserService userService;
+    private void destroy() {
+        try {
+            scheduler.shutdown(true);
+            LOGGER.debug("TokenScheduler is stoped");
+        } catch (SchedulerException e) {
+            LOGGER.error("error while TokenScheduler destroy " + e.getLocalizedMessage());
+        }
+    }
 
     private List<TemporalToken> tokens = new ArrayList<>();
 
@@ -133,5 +142,9 @@ public class TokenScheduler {
             jobs = null;
         }
         return jobs;
+    }
+
+    protected boolean deleteExpiredToken(String token) throws UnRegisteredUserDeleteException {
+        return userService.deleteExpiredToken(token);
     }
 }

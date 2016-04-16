@@ -217,9 +217,9 @@ public class OrderController {
             order.setWalletIdSell(orderCreateDto.getWalletIdCurrency2());
             order.setAmountBuy(orderCreateDto.getAmount());
             order.setAmountSell(orderCreateDto.getTotal());
-            order.setCommissionAmountSell(orderCreateDto.getComission());
+            order.setCommissionAmountBuy(orderCreateDto.getComission());
             //
-            order.setCommissionAmountBuy(orderCreateDto.getTotal().multiply(orderCreateDto.getComissionForSell().divide(new BigDecimal(100))));
+            order.setCommissionAmountSell(orderCreateDto.getTotal().multiply(orderCreateDto.getComissionForSell().divide(new BigDecimal(100))));
         } else {
             order.setWalletIdSell(orderCreateDto.getWalletIdCurrency1());
             order.setWalletIdBuy(orderCreateDto.getWalletIdCurrency2());
