@@ -1,4 +1,8 @@
-+function initLocaleSwitcher() {
+$(function(){
+    initLocaleSwitcher();
+});
+
+function initLocaleSwitcher() {
     $(".lang__item").click(function (e) {
         var localeName = e.target.textContent;
         var localeCode = 'ru';
@@ -15,4 +19,4 @@
                 window.location.reload();
             });
     });
-}();
+}

@@ -16,6 +16,10 @@ import java.math.BigDecimal;
  */
 @Component
 public class OrderValidator implements Validator {
+
+    private final BigDecimal MAX_ORDER_VALUE = new BigDecimal(10000);
+    private final BigDecimal MIN_ORDER_VALUE = new BigDecimal(0.000000001);
+
     @Autowired
     WalletService walletService;
 
@@ -33,11 +37,11 @@ public class OrderValidator implements Validator {
         ValidationUtils.rejectIfEmpty(errors, "amount", "order.fillfield");
         ValidationUtils.rejectIfEmpty(errors, "exchangeRate", "order.fillfield");
         if (orderCreateDto.getAmount() != null) {
-            if (orderCreateDto.getAmount().compareTo(new BigDecimal(10000)) == 1) {
+            if (orderCreateDto.getAmount().compareTo(MAX_ORDER_VALUE) == 1) {
                 errors.rejectValue("amount", "order.maxvalue");
                 errors.rejectValue("amount", "order.valuerange");
             }
-            if (orderCreateDto.getAmount().compareTo(new BigDecimal(0.000000001)) == -1) {
+            if (orderCreateDto.getAmount().compareTo(MIN_ORDER_VALUE) == -1) {
                 errors.rejectValue("amount", "order.minvalue");
                 errors.rejectValue("amount", "order.valuerange");
             }

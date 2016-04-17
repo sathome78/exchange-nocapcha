@@ -1,43 +1,43 @@
-$(".reveal").click(function () {
-    $('.reveal ul').slideToggle();
-});
-
-$("#other_pairs").click(function (e) {
-    $('#other_pairs ul').slideToggle();
-    $("#other_pairs").toggleClass("whiter");
-});
-
-$('.orderForm-toggler').click(function () {
-    if ($(this).hasClass('active')) {
-        return;
-    }
-    $('.tab-pane').toggleClass('active');
-    $('.orderForm-toggler').toggleClass('active');
-});
-
-+function syncOrderFormTabPane() {
-    var idx = $('.orderForm-toggler.active').index();
-    if (idx >= 0) {
-        $('.tab-pane').removeClass('active');
-        $('.tab-pane:eq(' + idx + ')').addClass('active');
-    }
-}();
-
-$('.adminForm-toggler').click(function () {
-    if ($(this).hasClass('active')) {
-        return;
-    } else {
-        $('.tab-pane').removeClass('active');
-        $('.adminForm-toggler').removeClass('active');
-        $(this).addClass('active');
-        var idx = $(this).index();
-        $('.tab-pane:eq(' + idx + ')').addClass('active');
-    }
-});
-
-
-//Enable REGISTER button if pass == repass when entering repass
 $(document).ready(function () {
+    $(".reveal").click(function () {
+        $('.reveal ul').slideToggle();
+    });
+
+    $("#other_pairs").click(function (e) {
+        $('#other_pairs ul').slideToggle();
+        $("#other_pairs").toggleClass("whiter");
+    });
+
+    $('.orderForm-toggler').click(function () {
+        if ($(this).hasClass('active')) {
+            return;
+        }
+        $('.tab-pane').toggleClass('active');
+        $('.orderForm-toggler').toggleClass('active');
+    });
+
+    +function syncOrderFormTabPane() {
+        var idx = $('.orderForm-toggler.active').index();
+        if (idx >= 0) {
+            $('.tab-pane').removeClass('active');
+            $('.tab-pane:eq(' + idx + ')').addClass('active');
+        }
+    }();
+
+    $('.adminForm-toggler').click(function () {
+        if ($(this).hasClass('active')) {
+            return;
+        } else {
+            $('.tab-pane').removeClass('active');
+            $('.adminForm-toggler').removeClass('active');
+            $(this).addClass('active');
+            var idx = $(this).index();
+            $('.tab-pane:eq(' + idx + ')').addClass('active');
+        }
+    });
+
+
+    //Enable REGISTER button if pass == repass when entering repass
     /*Activates submit button if all field filled correct and capcha is passed
      * */
     if (document.getElementById("#register_button")) {
@@ -65,8 +65,8 @@ $(document).ready(function () {
     });
 });
 
-+function switchPairSelector(){
-    if ($('ul').is('.exchange')){
++function switchPairSelector() {
+    if ($('ul').is('.exchange')) {
         $("#pair-selector").css('display', 'none');
         $("#pair-selector-arrow").css('display', 'none');
     }
@@ -77,7 +77,7 @@ $("#pair-selector").click(function (e) {
     $('.pair-selector__menu').slideToggle();
 });
 
-+function initCurrencyPairData(){
++function initCurrencyPairData() {
     if (!$('#pair-selector>div:first-child').text()) {
         getNewCurrencyPairData();
     }
@@ -105,7 +105,7 @@ function getNewCurrencyPairData(newPairName) {
             $('#sumAmountBuyClosed>span:nth-child(2)').text(data['sumAmountBuyClosed'] + ' ' + data['currency1']);
             $('#sumAmountSellClosed>span:nth-child(2)').text(data['sumAmountSellClosed'] + ' ' + data['currency2']);
             //
-            if (!$('#pair-selector>div:first-child').text()){
+            if (!$('#pair-selector>div:first-child').text()) {
                 createPairSelectorMenu(data['name']);
             }
         }
@@ -119,8 +119,8 @@ function createPairSelectorMenu(currencyPairName) {
         type: 'GET',
 
         success: function (data) {
-            data.forEach(function(e){
-                if (e===currencyPairName) {
+            data.forEach(function (e) {
+                if (e === currencyPairName) {
                     $('.pair-selector__menu').append('<div class="pair-selector__menu-item active">' + e + '</div>');
                     $('#pair-selector>div:first-child').text(e);
                 } else {

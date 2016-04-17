@@ -24,6 +24,13 @@
     <link href="<c:url value='/client/css/jquery.mCustomScrollbar.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/style-new.css'/>" rel="stylesheet">
+    <%----------%>
+    <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/menuSwitcher.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
+    <%----------%>
 
 </head>
 
@@ -218,13 +225,6 @@
 </main>
 <%@include file='footer_new.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>
-<%----------%>
-<script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
-<script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
-<script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
-<script type="text/javascript" src="<c:url value='/client/js/menuSwitcher.js'/>"></script>
-<script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
-<%----------%>
 </body>
 </html>
 

@@ -2,9 +2,34 @@
  * Created by Valk on 04.04.16.
  */
 
-$(document).ajaxError(function (event, jqXHR, options, jsExc) {
-    failNoty(jqXHR);
-});
+$(function()
+    {
+        $(document).ajaxError(function (event, jqXHR, options, jsExc) {
+            failNoty(jqXHR);
+        });
+
+        //Show error message on page load - if massage was passed to page
+        +function showErrorNotyOnEntry() {
+            var msg = $('#errorNoty').html();
+            if (msg) {
+                failedNote = noty({
+                    text: msg,
+                    type: 'error',
+                    layout: 'bottomRight',
+                    timeout: false
+                });
+            }
+        }();
+
+        //Show success message on page load - if massage was passed to page
+        +function showSuccessNotyOnEntry() {
+            var msg = $('#successNoty').html();
+            if (msg) {
+                successNoty(msg);
+            }
+        }();
+    }
+);
 
 var failedNote;
 var successNote;
@@ -41,23 +66,3 @@ function failNoty(jqXHR) {
     });
 }
 
-//Show error message on page load - if massage was passed to page
-+function showErrorNotyOnEntry() {
-    var msg = $('#errorNoty').html();
-    if (msg) {
-        failedNote = noty({
-            text: msg,
-            type: 'error',
-            layout: 'bottomRight',
-            timeout: false
-        });
-    }
-}();
-
-//Show success message on page load - if massage was passed to page
-+function showSuccessNotyOnEntry() {
-    var msg = $('#successNoty').html();
-    if (msg) {
-        successNoty(msg);
-    }
-}();

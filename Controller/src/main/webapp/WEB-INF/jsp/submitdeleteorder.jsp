@@ -24,9 +24,12 @@
     <link href="<c:url value='/client/css/style-new.css'/>" rel="stylesheet">
 
     <script type="text/javascript" src="<c:url value='/client/js/dashboard.js'/>"></script>
-
+    <%----------%>
+    <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
+    <%----------%>
 </head>
-
 
 <body>
 
@@ -87,8 +90,9 @@
                                            value="${amountBuyWithCommission}&nbsp;${order.currencyBuyString}"/>
                                 </div>
                                 <div class="submit-order-button-container">
-                                    <form:form class="submit-order-form" action="delete" modelAttribute="order" method="post">
-                                        <form:hidden path="id" value= "${order.id}" />
+                                    <form:form class="submit-order-form" action="delete" modelAttribute="order"
+                                               method="post">
+                                        <form:hidden path="id" value="${order.id}"/>
                                         <loc:message code="deleteorder.submit" var="labelSubmit"/>
                                         <button type="submit">${labelSubmit}</button>
                                     </form:form>
@@ -105,15 +109,9 @@
                     </div>
                 </div>
             </div>
+        </div>
 </main>
 <%@include file='footer_new.jsp' %>
-<%----------%>
-<script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
-<script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
-<script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
-
-<%----------%>
-
 </body>
 </html>
 

@@ -24,6 +24,13 @@
     <link href="<c:url value='/client/css/style-new.css'/>" rel="stylesheet">
 
     <script type="text/javascript" src="<c:url value='/client/js/dashboard.js'/>"></script>
+    <%----------%>
+    <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/submits/orderSubmitAccept.js'/>"></script>
+    <%----------%>
 
 </head>
 
@@ -135,16 +142,6 @@
 </div>
 <%@include file='footer_new.jsp' %>
 <%@include file='finpassword.jsp' %>
-<%----------%>
-<script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
-<script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
-<script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
-
-<script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
-<script type="text/javascript" src="<c:url value='/client/js/submits/orderSubmitAccept.js'/>"></script>
-
-<%----------%>
-
 </body>
 </html>
 

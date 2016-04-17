@@ -109,6 +109,10 @@ $(document).ready(function() {
 
     }
 
-    google.setOnLoadCallback(drawVisualization);
+    try {
+        google.setOnLoadCallback(drawVisualization);
+    } catch (e){
+        console.log(e);
+    }
 
 });
