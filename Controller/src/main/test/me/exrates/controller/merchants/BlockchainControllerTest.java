@@ -50,7 +50,4 @@ public class BlockchainControllerTest {
                 .andExpect(content().contentType("text/plain; charset=utf-8"))
                 .andExpect(content().string("No invoice id_presented"));
     }
-
-
-
 }

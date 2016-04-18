@@ -25,12 +25,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
-import static java.util.Arrays.asList;
-import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.http.MediaType.TEXT_PLAIN;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -84,10 +81,10 @@ public class BlockchainController {
 
     @RequestMapping(value = "/payment/received", method = GET)
     public ResponseEntity<String> paymentHandler(final @RequestParam Map<String,String> params) {
-        final HttpHeaders headers = new HttpHeaders();
-        headers.put(CONTENT_TYPE, asList(TEXT_PLAIN.toString(), "charset=utf-8"));
+        final HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add("Content-Type", "text/plain; charset=utf-8");
         if (Objects.isNull(params.get("invoice_id"))) {
-            return new ResponseEntity<>("No invoice id_presented", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("No invoice id_presented", httpHeaders, HttpStatus.BAD_REQUEST);
         }
         final int invoiceId = Integer.parseInt(params.get("invoice_id"));
         LOG.info("Received BTC on Blockchain Wallet. Invoice id #" + invoiceId + ".Request Body:" + params);
@@ -100,7 +97,7 @@ public class BlockchainController {
             .orElseGet(() ->
                 new ResponseEntity<>(
                     blockchainService
-                        .approveBlockchainTransaction(pendingPayment, params), OK)
+                        .approveBlockchainTransaction(pendingPayment, params), httpHeaders, OK)
             );
         LOG.info("Response to https://blockchain.info/ : "+response);
         return response;

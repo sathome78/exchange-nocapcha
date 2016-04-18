@@ -133,7 +133,7 @@ public class EDRCServiceImpl implements EDRCService {
                 put("merchantId", "//merchant_id/text()");
                 put("status", "//status/text()");
                 put("address","//address/text()");
-                put("conirmations","//conirmations/text()");
+                put("confirmations","//confirmations/text()");
             }
         };
         final Map<String,String> result;
