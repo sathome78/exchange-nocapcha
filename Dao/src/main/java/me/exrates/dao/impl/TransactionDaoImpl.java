@@ -1,7 +1,12 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.TransactionDao;
-import me.exrates.model.*;
+import me.exrates.model.Commission;
+import me.exrates.model.CompanyWallet;
+import me.exrates.model.Currency;
+import me.exrates.model.Merchant;
+import me.exrates.model.Transaction;
+import me.exrates.model.Wallet;
 import me.exrates.model.enums.OperationType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
@@ -12,10 +17,11 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Timestamp;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static java.util.Collections.singletonMap;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -71,15 +77,16 @@ public final class TransactionDaoImpl implements TransactionDao {
         transaction.setMerchant(merchant);
         transaction.setCurrency(currency);
         transaction.setProvided(resultSet.getBoolean("provided"));
+        transaction.setConfirmation(resultSet.getInt("confirmation"));
         return transaction;
     };
 
     @Override
     public Transaction create(Transaction transaction) {
         final String sql = "INSERT INTO TRANSACTION (user_wallet_id, company_wallet_id, amount, commission_amount, " +
-                "commission_id, operation_type_id, currency_id, merchant_id, datetime)" +
+                "commission_id, operation_type_id, currency_id, merchant_id, datetime, confirmation)" +
                 "   VALUES (:userWallet,:companyWallet,:amount,:commissionAmount,:commission,:operationType, :currency," +
-                "   :merchant, :datetime)";
+                "   :merchant, :datetime, :confirmation)";
         final KeyHolder keyHolder = new GeneratedKeyHolder();
         final Map<String, Object> params = new HashMap<String,Object>(){
             {
@@ -92,6 +99,7 @@ public final class TransactionDaoImpl implements TransactionDao {
                 put("currency", transaction.getCurrency().getId());
                 put("merchant", transaction.getMerchant().getId());
                 put("datetime", Timestamp.valueOf(transaction.getDatetime()));
+                put("confirmation", transaction.getConfirmation());
             }
         };
         if (jdbcTemplate.update(sql, new MapSqlParameterSource(params), keyHolder)>0) {
@@ -103,7 +111,7 @@ public final class TransactionDaoImpl implements TransactionDao {
 
     @Override
     public Transaction findById(int id) {
-        final String sql = "SELECT TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime,TRANSACTION.operation_type_id,TRANSACTION.provided," +
+        final String sql = "SELECT TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime,TRANSACTION.operation_type_id,TRANSACTION.provided, TRANSACTION.confirmation," +
                 " WALLET.id,WALLET.active_balance,WALLET.reserved_balance,WALLET.currency_id," +
                 " COMPANY_WALLET.id,COMPANY_WALLET.balance,COMPANY_WALLET.commission_balance," +
                 " COMMISSION.id,COMMISSION.date,COMMISSION.value," +
@@ -114,13 +122,13 @@ public final class TransactionDaoImpl implements TransactionDao {
                 " INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
                 " INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id" +
                 " INNER JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id WHERE TRANSACTION.id = :id";
-        final Map<String, Integer> params = Collections.singletonMap("id", id);
+        final Map<String, Integer> params = singletonMap("id", id);
         return jdbcTemplate.queryForObject(sql, params, transactionRowMapper);
     }
 
     @Override
     public List<Transaction> findAllByUserWallets(List<Integer> walletIds) {
-        final String sql = "SELECT TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime,TRANSACTION.operation_type_id,TRANSACTION.provided," +
+        final String sql = "SELECT TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime,TRANSACTION.operation_type_id,TRANSACTION.provided, TRANSACTION.confirmation," +
                 " WALLET.id,WALLET.active_balance,WALLET.reserved_balance,WALLET.currency_id," +
                 " COMPANY_WALLET.id,COMPANY_WALLET.balance,COMPANY_WALLET.commission_balance," +
                 " COMMISSION.id,COMMISSION.date,COMMISSION.value," +
@@ -131,7 +139,7 @@ public final class TransactionDaoImpl implements TransactionDao {
                 " INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
                 " INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id" +
                 " INNER JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id WHERE TRANSACTION.user_wallet_id in (:ids)";
-        return jdbcTemplate.query(sql, Collections.singletonMap("ids", walletIds),transactionRowMapper);
+        return jdbcTemplate.query(sql, singletonMap("ids", walletIds),transactionRowMapper);
     }
 
     @Override
@@ -147,6 +155,8 @@ public final class TransactionDaoImpl implements TransactionDao {
         return jdbcTemplate.update(sql,params) > 0;
     }
 
+
+
     @Override
     public boolean delete(int id) {
         final String sql = "DELETE FROM TRANSACTION where id = :id";
@@ -156,5 +166,14 @@ public final class TransactionDaoImpl implements TransactionDao {
             }
         };
         return jdbcTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public void updateTransactionConfirmations(final int transactionId, final int confirmations) {
+        final String sql = "UPDATE TRANSACTION SET confirmation = :confirmations WHERE id  = :id";
+        final Map<String, Integer> params = new HashMap<>();
+        params.put("id", transactionId);
+        params.put("confirmations", confirmations);
+        jdbcTemplate.update(sql, params);
     }
 }

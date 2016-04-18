@@ -17,5 +17,7 @@ public interface TransactionDao {
 
     boolean delete(int id);
 
+    void updateTransactionConfirmations(int transactionId, int confirmations);
+
     List<Transaction> findAllByUserWallets(List<Integer> walletIds);
 }

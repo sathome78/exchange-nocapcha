@@ -9,7 +9,12 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
+import static java.math.BigDecimal.ROUND_CEILING;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -21,6 +26,16 @@ public class CurrencyServiceImpl implements CurrencyService {
     private CurrencyDao currencyDao;
 
     private static final Logger logger = LogManager.getLogger(CurrencyServiceImpl.class);
+    private static final Set<String> CRYPTO = new HashSet<String>() {
+        {
+            add("EDRC");
+            add("BTC");
+            add("LTC");
+        }
+    };
+    private static final int CRYPTO_PRECISION = 9;
+    private static final int DEFAULT_PRECISION = 2;
+
 
     @Override
     public String getCurrencyName(int currencyId) {
@@ -56,5 +71,15 @@ public class CurrencyServiceImpl implements CurrencyService {
     public CurrencyPair getCurrencyPairById(int currency1Id, int currency2Id) {
         logger.info("Begin 'getCurrencyPairById' method");
         return currencyDao.getCurrencyPairById(currency1Id, currency2Id);
+    }
+
+    @Override
+    public String amountToString(final BigDecimal amount, final String currency) {
+        return amount.setScale(resolvePrecision(currency), ROUND_CEILING).toString();
+    }
+
+    @Override
+    public int resolvePrecision(final String currency) {
+        return CRYPTO.contains(currency) ? CRYPTO_PRECISION : DEFAULT_PRECISION;
     }
 }

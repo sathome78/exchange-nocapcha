@@ -70,6 +70,7 @@
                             <th><loc:message code="transaction.commissionAmount"/></th>
                                 <%--Платежная <br> система--%>
                             <th><loc:message code="transaction.merchant"/></th>
+                            <th><loc:message code="transaction.status"/></th>
                         </tr>
                         <c:forEach var="transaction" items="${transactions}">
                             <tr>
@@ -97,7 +98,7 @@
                                 <td>
                                         ${transaction.currency}
                                 </td>
-                                    <%--сумма--%>
+                                    <%--Amount--%>
                                 <td>
                                     <fmt:formatNumber value="${transaction.amount}" maxFractionDigits="9"/>
                                 </td>
@@ -117,6 +118,11 @@
                                 <td>
                                     <c:if test="${transaction.orderStatus eq null}">
                                         ${transaction.merchant.name}
+                                    </c:if>
+                                </td>
+                                <td>
+                                    <c:if test="${transaction.status != null}">
+                                        ${transaction.status}
                                     </c:if>
                                 </td>
                             </tr>

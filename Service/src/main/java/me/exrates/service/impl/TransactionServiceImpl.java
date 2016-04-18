@@ -1,10 +1,22 @@
 package me.exrates.service.impl;
 
 import me.exrates.dao.TransactionDao;
-import me.exrates.model.*;
+import me.exrates.model.CompanyWallet;
+import me.exrates.model.CreditsOperation;
 import me.exrates.model.Currency;
+import me.exrates.model.OperationView;
+import me.exrates.model.OperationViewComparator;
+import me.exrates.model.Order;
+import me.exrates.model.Transaction;
+import me.exrates.model.User;
+import me.exrates.model.Wallet;
 import me.exrates.model.enums.OperationType;
-import me.exrates.service.*;
+import me.exrates.service.CompanyWalletService;
+import me.exrates.service.MerchantService;
+import me.exrates.service.OrderService;
+import me.exrates.service.TransactionService;
+import me.exrates.service.UserService;
+import me.exrates.service.WalletService;
 import me.exrates.service.exception.TransactionPersistException;
 import me.exrates.service.exception.TransactionProvidingException;
 import org.apache.logging.log4j.LogManager;
@@ -16,7 +28,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -40,6 +56,9 @@ public class TransactionServiceImpl implements TransactionService {
     @Autowired
     private OrderService orderService;
 
+    @Autowired
+    private MerchantService merchantService;
+
     private static final Logger LOG = LogManager.getLogger(TransactionServiceImpl.class);
 
     @Override
@@ -47,6 +66,9 @@ public class TransactionServiceImpl implements TransactionService {
     public Transaction createTransactionRequest(CreditsOperation creditsOperation) {
         final Currency currency = creditsOperation.getCurrency();
         final User user = creditsOperation.getUser();
+        final String currencyName = currency.getName();
+
+        System.out.println(currency);
 
         CompanyWallet companyWallet = companyWalletService.findByCurrency(currency);
         companyWallet = companyWallet == null ? companyWalletService.create(currency) : companyWallet;
@@ -65,7 +87,7 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setMerchant(creditsOperation.getMerchant());
         transaction.setOperationType(creditsOperation.getOperationType());
         transaction.setProvided(false);
-
+        transaction.setConfirmation((currencyName).equals("BTC") ? 0 : -1);
         transaction = transactionDao.create(transaction);
         if (transaction==null) {
             throw new TransactionPersistException("Failed to provide transaction ");
@@ -78,6 +100,11 @@ public class TransactionServiceImpl implements TransactionService {
     @Transactional(propagation = Propagation.REQUIRED,readOnly = true)
     public Transaction findById(int id) {
         return transactionDao.findById(id);
+    }
+
+    @Override
+    public void updateTransactionConfirmation(final int transactionId, final int confirmations) {
+        transactionDao.updateTransactionConfirmations(transactionId ,confirmations);
     }
 
     @Override
@@ -128,10 +155,10 @@ public class TransactionServiceImpl implements TransactionService {
         final List<Transaction> allByUserId = findAllByUserWallets(collect);
         LOG.info(allByUserId);
         Map<String, List<Order>> orderMap = orderService.getMyOrders(email, locale);
-        List<Order> orderList = new ArrayList<Order>();
+        List<Order> orderList = new ArrayList<>();
         orderList.addAll(orderMap.get("sell"));
         orderList.addAll(orderMap.get("buy"));
-        List<OperationView> list = new ArrayList<OperationView>();
+        List<OperationView> list = new ArrayList<>();
         if(orderList.size() > 0 ) {
             for(Order order : orderList) {
                 OperationView view = new OperationView();
@@ -157,16 +184,16 @@ public class TransactionServiceImpl implements TransactionService {
         if (allByUserId != null) {
             allByUserId
                 .stream()
-                .filter(Transaction::isProvided)
-                .forEach(t -> {
-                    OperationView view = new OperationView();
-                    view.setDatetime(t.getDatetime());
-                    view.setAmount(t.getAmount());
-                    view.setCommissionAmount(t.getCommissionAmount());
-                    view.setCurrency(t.getCurrency().getName());
-                    view.setOperationType(t.getOperationType());
-                    view.setMerchant(t.getMerchant());
-                    list.add(view);
+                    .forEach(t -> {
+                        OperationView view = new OperationView();
+                        view.setDatetime(t.getDatetime());
+                        view.setAmount(t.getAmount());
+                        view.setCommissionAmount(t.getCommissionAmount());
+                        view.setCurrency(t.getCurrency().getName());
+                        view.setOperationType(t.getOperationType());
+                        view.setMerchant(t.getMerchant());
+                        view.setStatus(merchantService.resolveTransactionStatus(t, locale));
+                        list.add(view);
                 });
         }
         Collections.sort(list, new OperationViewComparator());

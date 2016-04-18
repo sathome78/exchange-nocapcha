@@ -2,6 +2,7 @@
 <%@taglib uri="http://www.springframework.org/tags/form" prefix="paymentForm" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@taglib uri="http://www.springframework.org/tags" prefix="loc" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
 <!DOCTYPE html>
 <html>
@@ -54,14 +55,24 @@
                             <paymentForm:form id="payment" class="form-horizontal withdraw__money" name="payment" method="post"
                                               modelAttribute="payment" action="/merchants/payment/withdraw">
                                 <div>
-                                        <%--Валюта к вводу--%>
-                                    <label><loc:message code="merchants.currencyforoutput"/> </label>
-                                    <paymentForm:select path="currency" class="select currency-for-output-select">
-                                        <paymentForm:options items="${wallets}" itemLabel="fullName" itemValue="currencyId"/>
-                                    </paymentForm:select>
+                                        <%--Currency to withdraw--%>
+                                    <label>
+                                        <loc:message code="merchants.currencyforoutput"/>
+                                    </label>
+                                    <select name="currency" id="currency" class="select currency-for-output-select">
+                                        <c:forEach items="${wallets}" var="wallet">
+                                            <option value='<c:out value="${wallet.currencyId}"/>'>
+                                                <c:out value="${wallet.name}"/>
+                                                <c:out value="${wallet.activeBalance}"/>
+                                            </option>
+                                        </c:forEach>
+                                    </select>
+                                    <%--<paymentForm:select path="currency" class="select currency-for-output-select">--%>
+                                        <%--<paymentForm:options items="${wallets}" itemLabel="fullName" itemValue="currencyId"/>--%>
+                                    <%--</paymentForm:select>--%>
                                 </div>
                                 <div>
-                                        <%--Способ оплаты--%>
+                                        <%--Payment method--%>
                                     <label for="merchant"><loc:message code="merchants.meansOfPayment"/></label>
                                     <paymentForm:select id="merchant" path="merchant"/>
                                 </div>
@@ -72,7 +83,7 @@
                                 </div>
                                 <paymentForm:hidden path="operationType"/>
                                 <paymentForm:hidden id="destination" path="destination"/>
-                                <%--Создать(Вывести)--%>
+                                <%--Withdraw--%>
                                 <button onclick="finPassCheck('myModal', submitMerchantsOutput)" type="button" id="assertOutputPay"
                                         class="btn btn-primary">
                                     <loc:message code="merchants.withdraw"/>
@@ -104,9 +115,7 @@
 
                 <div class="paymentInfo">
                     <p><loc:message code="merchants.modalOutputHeader"/></p>
-
                     <p><loc:message code="merchants.modalOutputCommission"/></p>
-
                     <p><loc:message code="merchants.modalOutputFinalSum"/></p>
                 </div>
                 <div class="wallet_input">
@@ -126,7 +135,7 @@
                     </button>
                 </div>
                 <div class="response_money_operation_btn">
-                    <button class="modal-button" type="button" data-dismiss="modal"><loc:message code="merchants.continue"/></button>
+                    <button class="modal-button" type="button" data-dismiss="modal"><loc:message code="merchants.close"/></button>
                 </div>
             </div>
         </div>

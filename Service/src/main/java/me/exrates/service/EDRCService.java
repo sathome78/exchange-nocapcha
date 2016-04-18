@@ -13,4 +13,6 @@ public interface EDRCService {
     PendingPayment findByInvoiceId(int invoiceId);
 
     boolean confirmPayment(final String xml, final String signature);
+
+    int CONFIRMATIONS = 10;
 }

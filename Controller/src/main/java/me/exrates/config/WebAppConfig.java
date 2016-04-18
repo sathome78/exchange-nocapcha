@@ -190,5 +190,4 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 	public TokenScheduler tokenScheduler(){
 		return TokenScheduler.getInstance();
 	}
-
 }

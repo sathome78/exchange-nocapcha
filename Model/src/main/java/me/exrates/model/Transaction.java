@@ -21,6 +21,7 @@ public class Transaction {
     private Merchant merchant;
     private LocalDateTime datetime;
     private boolean provided;
+    private Integer confirmation;
 
     public int getId() {
         return id;
@@ -110,15 +111,24 @@ public class Transaction {
         this.provided = provided;
     }
 
+    public Integer getConfirmation() {
+        return confirmation;
+    }
+
+    public void setConfirmation(Integer confirmation) {
+        this.confirmation = confirmation;
+    }
+
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Transaction that = (Transaction) o;
+        final Transaction that = (Transaction) o;
 
         if (id != that.id) return false;
         if (provided != that.provided) return false;
+        if (confirmation != that.confirmation) return false;
         if (userWallet != null ? !userWallet.equals(that.userWallet) : that.userWallet != null) return false;
         if (companyWallet != null ? !companyWallet.equals(that.companyWallet) : that.companyWallet != null)
             return false;
@@ -146,6 +156,7 @@ public class Transaction {
         result = 31 * result + (merchant != null ? merchant.hashCode() : 0);
         result = 31 * result + (datetime != null ? datetime.hashCode() : 0);
         result = 31 * result + (provided ? 1 : 0);
+        result = 31 * result + confirmation;
         return result;
     }
 
@@ -163,6 +174,7 @@ public class Transaction {
                 ", merchant=" + merchant +
                 ", datetime=" + datetime +
                 ", provided=" + provided +
+                ", confirmation=" + confirmation +
                 '}';
     }
 }

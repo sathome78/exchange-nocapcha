@@ -1,10 +1,5 @@
 package me.exrates.controller.merchants;
 
-import com.google.gson.Gson;
-import java.security.Principal;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.model.PendingPayment;
@@ -16,19 +11,28 @@ import me.exrates.service.exception.RejectedPaymentInvoice;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.MessageSource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.NO_CONTENT;
-import static org.springframework.http.HttpStatus.OK;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.security.Principal;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+
+import static java.util.Arrays.asList;
+import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
+import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.MediaType.TEXT_PLAIN;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
-import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -44,20 +48,21 @@ public class BlockchainController {
     private BlockchainService blockchainService;
 
     @Autowired
-    private ApplicationContext context;
+    private MessageSource messageSource;
 
-    private static final Logger logger = LogManager.getLogger("merchant");
+    private static final Logger LOG = LogManager.getLogger("merchant");
 
     @RequestMapping(value = "/payment/prepare",method = POST)
-    public ResponseEntity<String> preparePayment(final @RequestBody String body,
-        final Principal principal, final Locale locale) {
-            final Payment payment = new Gson().fromJson(body, Payment.class);
-            final String email = principal.getName();
-            logger.debug("Preparing payment: "+payment+" for: " + email);
+    public ResponseEntity<String> preparePayment(final @RequestBody Payment payment,
+                                                 final Principal principal,
+                                                 final Locale locale)
+    {
+        final String email = principal.getName();
+        LOG.debug("Preparing payment: " + payment + " for: " + email);
         final CreditsOperation creditsOperation = merchantService
             .prepareCreditsOperation(payment, email)
             .orElseThrow(InvalidAmountException::new);
-            logger.debug("Prepared payment: "+creditsOperation);
+            LOG.debug("Prepared payment: "+creditsOperation);
             try {
                 final PendingPayment pendingPayment = blockchainService
                     .createPaymentInvoice(creditsOperation);
@@ -66,29 +71,29 @@ public class BlockchainController {
                         .getAddress().orElseThrow(
                             ()->new MerchantInternalException("Address not presented"))
                         ,email ,locale, creditsOperation);
-                logger.info("New pending Blockchain payment :"+ pendingPayment);
+                LOG.info("New pending Blockchain payment :"+ pendingPayment);
                 final HttpHeaders httpHeaders = new HttpHeaders();
                 httpHeaders.add("Content-Type", "text/plain; charset=utf-8");
                 return new ResponseEntity<>(notification, httpHeaders, OK);
             } catch (final InvalidAmountException|RejectedPaymentInvoice e) {
-                final String error = context
-                    .getMessage("merchants.incorrectPaymentDetails", null, locale);
-                logger.warn(error);
+                final String error = messageSource.getMessage("merchants.incorrectPaymentDetails", null, locale);
+                LOG.warn(error);
                 return new ResponseEntity<>(error, NO_CONTENT);
             }
     }
 
     @RequestMapping(value = "/payment/received", method = GET)
     public ResponseEntity<String> paymentHandler(final @RequestParam Map<String,String> params) {
+        final HttpHeaders headers = new HttpHeaders();
+        headers.put(CONTENT_TYPE, asList(TEXT_PLAIN.toString(), "charset=utf-8"));
         if (Objects.isNull(params.get("invoice_id"))) {
             return new ResponseEntity<>("No invoice id_presented", HttpStatus.BAD_REQUEST);
         }
         final int invoiceId = Integer.parseInt(params.get("invoice_id"));
-        logger.info("Received BTC on Blockchain Wallet. Invoice id #"+invoiceId+
-            ".Request Body:"+params);
+        LOG.info("Received BTC on Blockchain Wallet. Invoice id #" + invoiceId + ".Request Body:" + params);
         final PendingPayment pendingPayment = blockchainService.findByInvoiceId(invoiceId);
-        logger.debug("Corresponding pending Blockchain payment (Invoice id #"
-            +invoiceId+") from database :"+pendingPayment);
+        LOG.debug("Corresponding pending Blockchain payment (Invoice id #" +
+                invoiceId + ") from database :" + pendingPayment);
         final ResponseEntity<String> response = blockchainService
             .notCorresponds(params, pendingPayment)
             .map(error -> new ResponseEntity<>(error, BAD_REQUEST))
@@ -97,7 +102,7 @@ public class BlockchainController {
                     blockchainService
                         .approveBlockchainTransaction(pendingPayment, params), OK)
             );
-        logger.info("Response to https://blockchain.info/ : "+response);
+        LOG.info("Response to https://blockchain.info/ : "+response);
         return response;
     }
 }

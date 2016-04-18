@@ -8,7 +8,6 @@ import me.exrates.model.BTCTransaction;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.PendingPayment;
 import me.exrates.model.Transaction;
-import me.exrates.model.enums.OperationType;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.BlockchainSDKWrapper;
 import me.exrates.service.BlockchainService;
@@ -27,13 +26,13 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.math.MathContext;
-import java.math.RoundingMode;
 import java.util.Map;
 import java.util.Optional;
 import java.util.StringJoiner;
 
+import static java.lang.Integer.*;
 import static java.util.Objects.isNull;
+import static me.exrates.model.enums.OperationType.INPUT;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -62,11 +61,7 @@ public class BlockchainServiceImpl implements BlockchainService {
     @Autowired
     private BlockchainSDKWrapper blockchainSDKWrapper;
 
-    private static final int CONFIRMATIONS = 4;
-
     private static final Logger LOG = LogManager.getLogger("merchant");
-
-    private static final MathContext MATH_CONTEXT = new MathContext(9, RoundingMode.CEILING);
 
     @Override
     @Transactional
@@ -104,9 +99,7 @@ public class BlockchainServiceImpl implements BlockchainService {
     }
 
     @Override
-    public Optional<String> notCorresponds(final Map<String, String> pretended,
-        final PendingPayment actual)
-    {
+    public Optional<String> notCorresponds(final Map<String, String> pretended, final PendingPayment actual) {
         final String value = pretended.get("value");
         if (isNull(value)) {
             return Optional.of("Amount is invalid");
@@ -127,15 +120,18 @@ public class BlockchainServiceImpl implements BlockchainService {
 
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
-    public String approveBlockchainTransaction(final PendingPayment payment,
-        final Map<String,String> params) {
-        if (isNull(params.get("confirmations")) ||
-            Integer.valueOf(params.get("confirmations")) < CONFIRMATIONS) {
+    public String approveBlockchainTransaction(final PendingPayment payment, final Map<String,String> params) {
+        if (isNull(params.get("confirmations"))) {
+            return "Confirmations not presented";
+        }
+        final int confirmations = parseInt(params.get("confirmations"));
+        transactionService.updateTransactionConfirmation(payment.getInvoiceId(), confirmations);
+        if (confirmations < CONFIRMATIONS) {
             return "Waiting for confirmations";
         }
         final Transaction transaction = transactionService
             .findById(payment.getInvoiceId());
-        if (transaction.getOperationType() == OperationType.INPUT) {
+        if (transaction.getOperationType() == INPUT) {
             pendingPaymentDao.delete(payment.getInvoiceId());
         }
         transactionService.provideTransaction(transaction);

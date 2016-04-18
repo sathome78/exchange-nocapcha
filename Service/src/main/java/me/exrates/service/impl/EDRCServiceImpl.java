@@ -57,10 +57,9 @@ public class EDRCServiceImpl implements EDRCService {
     private @Value("${edrcoin.key}") String key;
 
     private final OkHttpClient client = new OkHttpClient();
+
     private static final String REGEX = ".*";
-
     private static final Logger LOG = LogManager.getLogger("merchant");
-
 
     @Autowired
     private AlgorithmService algorithmService;

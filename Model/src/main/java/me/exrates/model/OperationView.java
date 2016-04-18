@@ -20,6 +20,7 @@ public class OperationView {
 	@JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime datetime;
     private OrderStatus orderStatus;
+	private String status;
 
     
 	public OrderStatus getOrderStatus() {
@@ -76,7 +77,12 @@ public class OperationView {
 	public void setDatetime(LocalDateTime datetime) {
 		this.datetime = datetime;
 	}
-    
-    
 
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(final String status) {
+		this.status = status;
+	}
 }

@@ -15,8 +15,10 @@ import me.exrates.model.User;
 import me.exrates.model.WithdrawRequest;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.WithdrawalRequestStatus;
+import me.exrates.service.BlockchainService;
 import me.exrates.service.CommissionService;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.EDRCService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.TransactionService;
@@ -41,10 +43,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static java.math.BigDecimal.ROUND_CEILING;
+import static java.math.BigDecimal.valueOf;
 import static java.util.Collections.singletonMap;
 import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.WithdrawalRequestStatus.ACCEPTED;
@@ -84,6 +87,7 @@ public class MerchantServiceImpl implements MerchantService {
     @Autowired
     private WalletService walletService;
 
+    private static final BigDecimal HUNDREDTH = new BigDecimal(100L);
     private static final Logger LOG = LogManager.getLogger("merchant");
     private static final MathContext MATH_CONTEXT = new MathContext(9, RoundingMode.CEILING);
 
@@ -150,18 +154,58 @@ public class MerchantServiceImpl implements MerchantService {
                 .ifPresent(request::setWallet);
         request.setTransaction(transaction);
         withdrawRequestDao.create(request);
-        String notification=null;
+        String notification = null;
         try {
             notification = sendWithdrawalNotification(request, NEW, locale);
         } catch (final MailException e) {
             LOG.error(e);
         }
-        return singletonMap("success", notification);
+        final BigDecimal newAmount = transaction
+                .getUserWallet()
+                .getActiveBalance();
+        final String currency = transaction
+                .getCurrency()
+                .getName();
+        final String balance = currency + " " + currencyService.amountToString(newAmount, currency);
+        final Map<String, String> result = new HashMap<>();
+        result.put("success", notification);
+        result.put("balance", balance);
+        return result;
+    }
+
+    @Override
+    public String resolveTransactionStatus(final Transaction transaction, final Locale locale) {
+        if (transaction.isProvided()) {
+            return messageSource.getMessage("transaction.provided", null, locale);
+        }
+        if (transaction.getConfirmation() == -1) {
+            return messageSource.getMessage("transaction.notProvided", null, locale);
+        }
+        final String name = transaction.getCurrency().getName();
+        final int acceptableConfirmations;
+        switch (name) {
+            case "EDRC" :
+                acceptableConfirmations = EDRCService.CONFIRMATIONS;
+                break;
+            case "BTC"  :
+                acceptableConfirmations = BlockchainService.CONFIRMATIONS;
+                break;
+            default:
+                throw new MerchantInternalException("Unknown confirmations number on " + transaction.getCurrency() +
+                    " " + transaction.getMerchant());
+        }
+        return messageSource.getMessage("transaction.confirmations",
+                new Object[]{
+                        transaction.getConfirmation(),
+                        acceptableConfirmations
+                }, locale);
     }
 
     @Override
     public String sendWithdrawalNotification(final WithdrawRequest withdrawRequest,
-                                             final WithdrawalRequestStatus status ,final Locale locale) {
+                                             final WithdrawalRequestStatus status,
+                                             final Locale locale)
+    {
         final String notification;
         final Transaction transaction = withdrawRequest.getTransaction();
         final Object[] messageParams = {
@@ -201,40 +245,28 @@ public class MerchantServiceImpl implements MerchantService {
 
     @Override
     public String sendDepositNotification(final String toWallet,
-        final String email, final Locale locale,
-        final CreditsOperation creditsOperation)
-    {
-        return sendDepositNotification
-            (toWallet, email, locale, creditsOperation, null);
-    }
-
-    @Override
-    public String sendDepositNotification(final String toWallet,
-        final String email, final Locale locale,
-        final CreditsOperation creditsOperation, final BigDecimal externalFee)
+                                          final String email,
+                                          final Locale locale,
+                                          final CreditsOperation creditsOperation)
     {
         final BigDecimal amount = creditsOperation
-            .getAmount()
-            .add(creditsOperation.getCommissionAmount())
-            .add(Objects.nonNull(externalFee) ? externalFee : BigDecimal.ZERO);
+                .getAmount()
+                .add(creditsOperation.getCommissionAmount());
         final String sumWithCurrency = amount.stripTrailingZeros() +
-            creditsOperation
-                .getCurrency()
-                .getName();
-        final String notification = String
-            .format(messageSource
-                .getMessage(Objects.isNull(externalFee) ?
-                    "merchants.depositNotification.body" :
-                    "merchants.depositNotificationWithFee.body",null,locale),
-                sumWithCurrency, toWallet);
+                creditsOperation
+                        .getCurrency()
+                        .getName();
+        final String notification = messageSource.getMessage("merchants.depositNotification.body",
+                new Object[]{sumWithCurrency, toWallet},
+                locale);
         final Email mail = new Email();
         mail.setTo(email);
         mail.setSubject(messageSource
-            .getMessage("merchants.depositNotification.header",null,locale));
-        mail.setMessage(sumWithCurrency);
+                .getMessage("merchants.depositNotification.header",null,locale));
+        mail.setMessage(notification);
         try {
             sendMailService.sendMail(mail);
-            LOG.info("Sanded email :"+email);
+            LOG.info("Sanded email :" + email);
         } catch (MailException e) {
             LOG.error(e);
         }
@@ -268,7 +300,7 @@ public class MerchantServiceImpl implements MerchantService {
         final String commissionPercent = creditsOperation
                 .getCommission()
                 .getValue()
-                .setScale(2,BigDecimal.ROUND_CEILING)
+                .setScale(2, ROUND_CEILING)
                 .toString();
         String finalAmount=null;
         String sumCurrency=null;
@@ -276,14 +308,14 @@ public class MerchantServiceImpl implements MerchantService {
             case INPUT:
                 finalAmount = creditsOperation
                         .getAmount()
-                        .setScale(2,BigDecimal.ROUND_CEILING) + " "
+                        .setScale(2, ROUND_CEILING) + " "
                         + creditsOperation
                         .getCurrency()
                         .getName();
                 sumCurrency = creditsOperation
                         .getAmount()
                         .add(creditsOperation.getCommissionAmount())
-                        .setScale(2,BigDecimal.ROUND_CEILING) + " "
+                        .setScale(2, ROUND_CEILING) + " "
                         + creditsOperation
                         .getCurrency()
                         .getName();
@@ -292,13 +324,13 @@ public class MerchantServiceImpl implements MerchantService {
                 finalAmount = creditsOperation
                         .getAmount()
                         .subtract(creditsOperation.getCommissionAmount())
-                        .setScale(2,BigDecimal.ROUND_CEILING) + " "
+                        .setScale(2, ROUND_CEILING) + " "
                         + creditsOperation
                         .getCurrency()
                         .getName();
                 sumCurrency = creditsOperation
                         .getAmount()
-                        .setScale(2,BigDecimal.ROUND_CEILING) + " "
+                        .setScale(2, ROUND_CEILING) + " "
                         + creditsOperation
                         .getCurrency()
                         .getName();
@@ -325,9 +357,25 @@ public class MerchantServiceImpl implements MerchantService {
 
     }
 
+    @Override
+    public Map<String, String> computeCommission(final BigDecimal amount,
+                                                 final OperationType type,
+                                                 final String currency)
+    {
+        final Map<String, String> result = new HashMap<>();
+        final BigDecimal commission = commissionService.findCommissionByType(type).getValue();
+        final BigDecimal commissionAmount = amount.multiply(commission, MATH_CONTEXT).divide(HUNDREDTH, MATH_CONTEXT);
+        final BigDecimal resultAmount = type == INPUT ? amount.add(commissionAmount,MATH_CONTEXT) :
+                amount.subtract(commissionAmount, MATH_CONTEXT);
+        result.put("commission", commission.stripTrailingZeros().toString());
+        result.put("commissionAmount", currencyService.amountToString(amount.divide(HUNDREDTH, MATH_CONTEXT),currency));
+        result.put("amount", currencyService.amountToString(resultAmount, currency));
+        return result;
+    }
+
     public Optional<CreditsOperation> prepareCreditsOperation(Payment payment,String userEmail) {
         final OperationType operationType = payment.getOperationType();
-        final BigDecimal amount = BigDecimal.valueOf(payment.getSum());
+        final BigDecimal amount = valueOf(payment.getSum());
         final Merchant merchant = merchantDao.findById(payment.getMerchant());
         final Currency currency = currencyService.findById(payment.getCurrency());
         final String destination = payment.getDestination();
@@ -344,9 +392,9 @@ public class MerchantServiceImpl implements MerchantService {
         final Commission commissionByType = commissionService.findCommissionByType(operationType);
         final BigDecimal commissionAmount = 
                  commissionByType.getValue()
-                .setScale(9,BigDecimal.ROUND_CEILING)
+                .setScale(9, ROUND_CEILING)
                 .multiply(amount)
-                .divide(BigDecimal.valueOf(100),BigDecimal.ROUND_CEILING);
+                .divide(valueOf(100), ROUND_CEILING);
         final User user = userService.findByEmail(userEmail);
         final BigDecimal newAmount = payment.getOperationType() == INPUT ?
                 amount :

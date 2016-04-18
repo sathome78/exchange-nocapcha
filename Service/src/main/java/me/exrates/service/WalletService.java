@@ -6,8 +6,11 @@ import me.exrates.model.Wallet;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.function.Consumer;
 
 public interface WalletService {
+
+	void balanceRepresentation (Wallet wallet);
 
 	List<Wallet> getAllWallets(int userId);
 

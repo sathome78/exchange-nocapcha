@@ -16,6 +16,8 @@ public interface TransactionService {
 
     Transaction findById(int id);
 
+    void updateTransactionConfirmation(int transactionId, int confirmations);
+
     void provideTransaction(Transaction transaction);
 
     void invalidateTransaction(Transaction transaction);

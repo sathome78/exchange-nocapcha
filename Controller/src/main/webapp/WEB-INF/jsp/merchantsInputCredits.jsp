@@ -38,7 +38,7 @@
         <%@include file='usermenu_new.jsp' %>
 
         <div class="col-sm-9 content">
-            <%--ВЫВОД СРЕДСТВ--%>
+            <%--Deposit--%>
             <h4><loc:message code="merchants.inputTitle"/></h4>
 
             <label class="alert-danger has-error">
@@ -51,24 +51,27 @@
                     <paymentForm:form class="form-horizontal withdraw__money" id="payment" name="payment" method="post"
                                       modelAttribute="payment" action="">
                         <div>
-                                <%--Валюта к вводу--%>
-                            <label><loc:message code="merchants.inputCurrency"/> </label>
-                            <paymentForm:select id="currency" path="currency" class="select currency-for-output-select">
-                                <paymentForm:options items="${currencies}" itemLabel="name" itemValue="id"/>
-                            </paymentForm:select>
+                                <%--Currency to deposit--%>
+                            <label>
+                                <loc:message code="merchants.inputCurrency"/>
+                            </label>
+                                    <select name="currency" id="currency" class="select currency-for-output-select">
+                                        <c:forEach items="${currencies}" var="currency">
+                                            <option value="${currency.id}">${currency.name}</option>
+                                        </c:forEach>
+                                    </select>
                         </div>
                         <div>
-                                <%--Способ оплаты--%>
+                                <%--Payment method--%>
                             <label for="merchant"><loc:message
                                     code="merchants.meansOfPayment"/></label>
                             <paymentForm:select id="merchant" path="merchant"/>
                         </div>
                         <div>
                             <label for="sum"><loc:message code="merchants.sum"/></label>
-                            <paymentForm:input class="form-control" pattern="/\d*\.\d{1,2}/" placeholder="0.0"
+                            <paymentForm:input class="form-control" placeholder="0.0"
                                                id="sum" path="sum"/>
                         </div>
-                        <%--Создать(Вывести)--%>
                         <button type="button" data-toggle="modal" id="assertInputPay" name="assertInputPay"
                                 data-target="#myModal"
                                 class="btn btn-primary"><loc:message code="merchants.deposit"/></button>
@@ -98,6 +101,7 @@
                     <p><loc:message code="merchants.modalInputHeader"/></p>
                     <p><loc:message code="merchants.modalInputCommission"/></p>
                     <p><loc:message code="merchants.modalInputFinalSum"/></p>
+                    <p><loc:message code="merchants.warn"/></p>
                 </div>
             </div>
             <div class="modal-footer">
@@ -106,7 +110,7 @@
                     <button class="modal-button" type="button" id="inputPaymentProcess" ><loc:message code="merchants.continue"/></button>
                 </div>
                 <div class="response_money_operation_btn">
-                    <button class="modal-button" type="button" data-dismiss="modal"><loc:message code="merchants.continue"/></button>
+                    <button class="modal-button" type="button" data-dismiss="modal"><loc:message code="merchants.close"/></button>
                 </div>
             </div>
         </div><!-- /.modal-content -->

@@ -110,11 +110,10 @@ $(function(){
                 case ADVCASH :
                     form.attr('action', formAction.advcash);
                     break;
-                case BLOCKCHAIN:
-
                 case LIQPAY :
                     form.attr('action', formAction.liqpay);
                     break;
+                case BLOCKCHAIN:
                 default:
                     form.attr('action', NO_ACTION);
             }
@@ -142,12 +141,7 @@ $(function(){
                 dataType: 'json',
                 data: JSON.stringify($(form).serializeObject())
             }).done(function (response) {
-                var oldHTML = $('#currency').find(':selected').html().split(' ');
-                var withdrawAmount = parseFloat($('#sum').val());
-                var amount = oldHTML[1];
-                amount -= withdrawAmount;
-                var newHTML = oldHTML[0] + ' ' + amount;
-                $('#currency').find(':selected').html(newHTML);
+                $('#currency').find(':selected').html(response['balance']);
                 responseControls();
                 $('.paymentInfo').html(response['success']);
                 $('.wallet_input').hide();
@@ -244,26 +238,13 @@ $(function(){
         return result;
     }
     
-    function fillModalWindow(url) {
+    function fillModalWindow(type,amount,currency) {
         $.ajax({
-            url: url,
+            url: '/merchants/commission',
             type: "get",
-            contentType: "application/json"
+            contentType: "application/json",
+            data : {"type":type, "amount":amount, "currency":currency}
         }).done(function (response) {
-            var selectedCurrency = currency
-              .find(':selected')
-              .html()
-              .split(" ")[0];
-            var round = selectedCurrency === 'BTC' || selectedCurrency === 'EDRC' ? 8 : 2;
-            var commission = parseFloat(response);
-            var targetCurrentSum = parseFloat(sum.val());
-            var computedCommission = targetCurrentSum * commission;
-            var targetNewSum;
-            if (url.indexOf('output' )=== -1) {
-                targetNewSum = targetCurrentSum + computedCommission;    
-            } else {
-                targetNewSum = targetCurrentSum - computedCommission;
-            }
             var templateVariables = {
                 amount: '__amount',
                 currency: '__currency',
@@ -275,16 +256,16 @@ $(function(){
                   newHTMLElements[index] = '<p>'+$(val).html()+'</p>';
               });
             newHTMLElements[0] = newHTMLElements[0]
-                .replace(templateVariables.amount, parseFloat(targetCurrentSum))
-                .replace(templateVariables.currency, selectedCurrency)
-                .replace(templateVariables.merchant, merchant.find(':selected').html());
+                .replace(templateVariables.amount, "<span class='modal-amount'>"+amount+"</span>")
+                .replace(templateVariables.currency, "<span class='modal-amount'>"+getCurrentCurrency()+"</span>")
+                .replace(templateVariables.merchant, "<span class='modal-merchant'>"+merchant.find(':selected').html()+"</span>");
             newHTMLElements[1] = newHTMLElements[1]
-                .replace(templateVariables.amount, parseFloat(computedCommission.toFixed(round)))
-                .replace(templateVariables.currency, selectedCurrency)
-                .replace(templateVariables.percent, response*100 + "%");
+                .replace(templateVariables.amount, "<span class='modal-amount'>" + response['commissionAmount'] + "</span>")
+                .replace(templateVariables.currency, "<span class='modal-amount'>" + getCurrentCurrency() + "</span>")
+                .replace(templateVariables.percent, "<span class='modal-amount'>"+response['commission'] + "%" + "</span>");
             newHTMLElements[2] = newHTMLElements[2]
-                .replace(templateVariables.amount, targetNewSum)
-                .replace(templateVariables.currency, selectedCurrency);
+                .replace(templateVariables.amount, "<span class='modal-amount'>" + response['amount'] + "</span>")
+                .replace(templateVariables.currency, "<span class='modal-amount'>" + getCurrentCurrency() + "</span>");
             var newHTML = '';
             $.each(newHTMLElements, function (index) {
                 newHTML += newHTMLElements[index];
@@ -310,12 +291,15 @@ $(function(){
             paymentForm.submit();
         });
     }
-    
 
+    function getCurrentCurrency() {
+        return $("#currency").find(":selected").html().trim().split(' ')[0];
+    }
+    
     if ($("#assertInputPay").length) {
         $("#assertInputPay").bind('click',function(){
             requestControls();
-            fillModalWindow('/merchants/commission/input');
+            fillModalWindow('INPUT',sum.val(),getCurrentCurrency());
         });
     }
     
@@ -324,7 +308,7 @@ $(function(){
             $('.wallet_input').show();
             setTimeout("$('.wallet_input>input').focus().val('')",200);
             requestControls();
-            fillModalWindow('/merchants/commission/output');
+            fillModalWindow('OUTPUT',sum.val(),getCurrentCurrency());
         });
     }
 

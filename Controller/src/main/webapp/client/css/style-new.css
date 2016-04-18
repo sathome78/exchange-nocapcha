@@ -1174,8 +1174,8 @@ body#output {
 }
 
 #myModal.merchant-input {
-    max-width: 420px;
-    max-height: 280px;
+    max-width: 520px;
+    max-height: 340px;
 }
 
 #myModal.merchant-output {
@@ -1570,4 +1570,16 @@ form#command.submit-order-form button {
 #pair-selector .pair-selector__menu-item.active {
     background: #6b1d0c;
     color: white;
+}
+
+.paymentInfo {
+    font-size: 1.3em;
+}
+
+.modal-merchant {
+    text-decoration: underline;
+}
+
+.modal-amount {
+    text-decoration: underline;
 }

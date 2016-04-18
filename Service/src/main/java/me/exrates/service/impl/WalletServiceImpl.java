@@ -5,6 +5,7 @@ import me.exrates.dao.WalletDao;
 import me.exrates.model.Currency;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
+import me.exrates.service.CurrencyService;
 import me.exrates.service.WalletService;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import org.apache.logging.log4j.LogManager;
@@ -16,10 +17,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
-import java.math.RoundingMode;
 import java.util.List;
 
+import static java.math.BigDecimal.ROUND_CEILING;
 import static java.math.BigDecimal.ZERO;
+import static java.math.RoundingMode.CEILING;
 
 @Service
 @Transactional
@@ -31,13 +33,25 @@ public final class WalletServiceImpl implements WalletService {
 	@Autowired
 	private CurrencyDao currencyDao;
 
-	private static final MathContext MATH_CONTEXT = new MathContext(9, RoundingMode.CEILING);
+	@Autowired
+	private CurrencyService currencyService;
+
+	private static final MathContext MATH_CONTEXT = new MathContext(9, CEILING);
 	private static final Logger LOGGER = LogManager.getLogger(WalletServiceImpl.class);
+
+	@Override
+	public void balanceRepresentation(final Wallet wallet) {
+		wallet
+				.setActiveBalance(wallet.getActiveBalance()
+				.setScale(currencyService.resolvePrecision(wallet.getName()), ROUND_CEILING));
+	}
 
 	@Transactional(readOnly = true)
 	@Override
 	public List<Wallet> getAllWallets(int userId) {
-		return walletDao.findAllByUser(userId);
+		final List<Wallet> wallets = walletDao.findAllByUser(userId);
+		wallets.forEach(this::balanceRepresentation);
+		return wallets;
 	}
 
 	@Override
