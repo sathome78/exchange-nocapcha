@@ -184,6 +184,8 @@ $(function(){
                     });
                     break;
                 case BLOCKCHAIN :
+                    $('#inputPaymentProcess').html($('#mrcht-waiting').html());
+                    $('#inputPaymentProcess').prop('disabled', true);
                     $.ajax('/merchants/blockchain/payment/prepare', {
                         headers: {
                             'X-CSRF-Token': $("input[name='_csrf']").val()

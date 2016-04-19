@@ -106,6 +106,9 @@
             </div>
             <div class="modal-footer">
                 <div class="add__money__btns request_money_operation_btn">
+                    <input type="hidden" id="mrcht-waiting" value="<loc:message code="merchants.waiting">">
+                    <input type="hidden" id="mrcht-ready" value="<loc:message code="merchants.continue">">
+
                     <button class="modal-button" type="button" data-dismiss="modal"><loc:message code="merchants.dismiss"/></button>
                     <button class="modal-button" type="button" id="inputPaymentProcess" ><loc:message code="merchants.continue"/></button>
                 </div>
