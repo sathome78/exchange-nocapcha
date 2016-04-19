@@ -201,7 +201,7 @@ ul.nav .margin-left {
 }
 
 .exchange_data .graphic {
-    max-width: 80%;
+    width: 80%;
     float: left;
     overflow: hidden;
     padding-bottom: 15px;

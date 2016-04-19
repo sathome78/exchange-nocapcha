@@ -8,7 +8,7 @@
 <html>
 <head>
     <title>Exrates</title>
-    <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon" />
+    <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon"/>
 
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -25,18 +25,31 @@
     <link href="<c:url value='/client/css/style-new.css'/>" rel="stylesheet">
 
     <script type="text/javascript" src="<c:url value='/client/js/dashboard.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/chart/areaChart.js'/>"></script>
     <%----------%>
     <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
     <%----------%>
-
-    <script type="text/javascript" src="<c:url value='https://www.google.com/jsapi'/>"></script>
+    <!-- Google Charts ... -->
+    <script type="text/javascript" src="<c:url value='https://www.gstatic.com/charts/loader.js'/>"></script>
     <script type="text/javascript">
-        google.load("visualization", "1", {"packages": ["corechart"]});
+        google.charts.load('current', {'packages': ['corechart']});
     </script>
-
+    <!-- ... Google Charts -->
+    <!-- Google Analytics ... -->
+    <script async src='//www.google-analytics.com/analytics.js'></script>
+    <script>
+        window.ga = window.ga || function () {
+                    (ga.q = ga.q || []).push(arguments)
+                };
+        ga.l = +new Date;
+        ga('create', 'UA-75711135-1', 'auto');
+        ga('send', 'pageview');
+    </script>
+    <!-- ... Google Analytics -->
+    <%--Chat--%>
     <script type="text/javascript">
         window.$zopim || (function (d, s) {
             var z = $zopim = function (c) {
@@ -67,7 +80,7 @@
 
 <main class="container">
     <div class="exchange_data"> <!-- Exchange currencies and graphic -->
-        <ul class="exchange">
+        <ul class="large-pair-selector exchange">
             <c:forEach var="curr" items="${currencyPairs}" begin="0" end="3">
                 <c:choose>
                     <c:when test="${curr.getName()==currencyPair.getName()}">
@@ -100,38 +113,14 @@
             </li>
         </ul>
         <div class="graphic"> <!-- graphic -->
-            <img src="/client/img/graphic.png" alt="Graphic">
-            <%--<div class="chart__section">
-                <div class="chart__section__title"><a id="chartPair"></a> </div>
-                <span style="color:red">${msg}</span><br><br>
-                <c:if test="${not empty sumAmountBuyClosed}">
-                    <div id='chart_div'></div>
-                </c:if>
-            </div>--%>
+            <c:if test="${not empty sumAmountBuyClosed}">
+                <div id='chart_div'></div>
+            </c:if>
+            <img id='graphic' src="/client/img/graphic.png" alt="Graphic">
         </div>
     </div>
 
     <%@include file='exchange_info_new.jsp' %>
-
-    <!-- begin quotes__news__section -->
-    <%--элемент отсутсвует в новом интерфейсе  //TODO --%>
-    <%--отключен до выяснения функциональности--%>
-    <section hidden class="quotes__news__section">
-        <div class="container container_center">
-
-            <!-- begin chart__section -->
-            <div class="chart__section">
-                <div class="chart__section__title"><a id="chartPair"></a></div>
-                <span style="color:red">${msg}</span><br><br>
-                <c:if test="${not empty sumAmountBuyClosed}">
-                    <div id='chart_div'></div>
-                </c:if>
-            </div>
-            <!-- end chart__section -->
-
-        </div>
-    </section>
-    <!-- end quotes__news__section -->
 
     <div class="buy_sell row"> <!-- BUY or SELL BTC -->
         <div class="buy col-sm-4">
@@ -332,14 +321,20 @@
 <span hidden id="successNoty">${successNoty}</span>
 
 <script>
-    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-                (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
 
     ga('create', 'UA-75711135-1', 'auto');
     ga('send', 'pageview');
-
 </script>
 
 </body>

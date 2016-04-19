@@ -63,26 +63,26 @@ $(document).ready(function () {
             $("#register_button").prop('disabled', true);
         }
     });
+
+    +function switchPairSelector() {
+        if ($('ul').is('.large-pair-selector')) {
+            $("#pair-selector").css('display', 'none');
+            $("#pair-selector-arrow").css('display', 'none');
+        }
+    }();
+
+    $("#pair-selector").click(function (e) {
+        e.preventDefault();
+        $('.pair-selector__menu').slideToggle();
+    });
+
+    +function initCurrencyPairData() {
+        if (!$('#pair-selector>div:first-child').text()) {
+            getNewCurrencyPairData();
+        }
+    }();
+
 });
-
-+function switchPairSelector() {
-    if ($('ul').is('.exchange')) {
-        $("#pair-selector").css('display', 'none');
-        $("#pair-selector-arrow").css('display', 'none');
-    }
-}();
-
-$("#pair-selector").click(function (e) {
-    e.preventDefault();
-    $('.pair-selector__menu').slideToggle();
-});
-
-+function initCurrencyPairData() {
-    if (!$('#pair-selector>div:first-child').text()) {
-        getNewCurrencyPairData();
-    }
-}();
-
 
 //set 'click' handler for container because new '.pair-selector__menu-item' may be added
 $(".pair-selector__menu").on('click', '.pair-selector__menu-item', function (e) {
