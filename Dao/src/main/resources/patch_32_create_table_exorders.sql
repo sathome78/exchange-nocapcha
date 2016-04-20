@@ -1,6 +1,6 @@
 DROP TABLE IF EXISTS EXORDERS ;
 
-CREATE TABLE `exorders` (
+CREATE TABLE EXORDERS (
   `id` int(40) NOT NULL AUTO_INCREMENT,
   `user_id` int(40) NOT NULL,
   `currency_pair_id` int(40) NOT NULL,
