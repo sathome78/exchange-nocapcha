@@ -54,15 +54,10 @@ public class OrderValidator implements Validator {
 
         //check for enoughMoney
         if ((orderCreateDto.getAmount() != null) && (orderCreateDto.getExchangeRate() != null)) {
-            int walletId;
-            if (orderCreateDto.getOperationType() == OperationType.BUY) {
-                walletId = orderCreateDto.getWalletIdCurrency2();
-            } else {
-                walletId = orderCreateDto.getWalletIdCurrency1();
-            }
             boolean ifEnoughMoney = false;
-            if (walletId != 0) {
-                ifEnoughMoney = walletService.ifEnoughMoney(walletId, getCalculatedSum(orderCreateDto).totalWithComission);
+            int outWalletId = (orderCreateDto.getOperationType() == OperationType.BUY) ? orderCreateDto.getWalletIdCurrencyConvert(): orderCreateDto.getWalletIdCurrencyBase();
+            if (outWalletId != 0) {
+                ifEnoughMoney = walletService.ifEnoughMoney(outWalletId, orderCreateDto.getCalculatedAmounts().totalWithComission);
             }
             if (!ifEnoughMoney) {
                 errors.rejectValue("amount", "validation.orderNotEnoughMoney");
@@ -70,24 +65,27 @@ public class OrderValidator implements Validator {
         }
     }
 
-    public OrderSum getCalculatedSum(OrderCreateDto orderCreateDto){
+    /*public OrderSum getCalculatedSum(OrderCreateDto orderCreateDto){
         OrderSum result = new OrderSum();
         if (orderCreateDto.getOperationType() == OperationType.BUY) {
             result.total = orderCreateDto.getAmount().multiply(orderCreateDto.getExchangeRate());
-            result.comission = result.total.multiply(orderCreateDto.getComissionForBuy()).divide(new BigDecimal(100));
+            result.comissionId = orderCreateDto.getComissionForBuyId();
+            result.comission = result.total.multiply(orderCreateDto.getComissionForBuyRate()).divide(new BigDecimal(100));
             result.totalWithComission = result.total.add(result.comission);
         } else {
             result.total = orderCreateDto.getAmount().multiply(orderCreateDto.getExchangeRate());
-            result.comission = result.total.multiply(orderCreateDto.getComissionForSell()).divide(new BigDecimal(100));
+            result.comissionId = orderCreateDto.getComissionForSellId();
+            result.comission = result.total.multiply(orderCreateDto.getComissionForSellRate()).divide(new BigDecimal(100));
             result.totalWithComission = result.total.add(result.comission.negate());
         }
         return result;
-    }
+    }*/
 
-    public class OrderSum{
+    /*public class OrderSum{
         public BigDecimal total;
+        public int comissionId;
         public BigDecimal comission;
         public BigDecimal totalWithComission;
-    }
+    }*/
 
 }

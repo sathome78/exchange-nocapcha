@@ -14,7 +14,13 @@ public class Wallet {
 	public Wallet() {
 
 	}
-	
+
+	public Wallet(int currencyId, int userId, BigDecimal activeBalance) {
+		this.currencyId = currencyId;
+		this.userId = userId;
+		this.activeBalance = activeBalance;
+	}
+
 	public String getName() {
 		return name;
 	}

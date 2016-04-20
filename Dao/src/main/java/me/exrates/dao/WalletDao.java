@@ -1,6 +1,7 @@
 package me.exrates.dao;
 
 import me.exrates.model.Wallet;
+import me.exrates.model.dto.WalletsForOrderAcceptionDto;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -28,4 +29,6 @@ public interface WalletDao {
 	Wallet createWallet(int userId,int currencyId);
 
 	boolean update(Wallet wallet);
+
+	WalletsForOrderAcceptionDto getWalletsForOrderByOrderId(Integer orderId, Integer userAcceptorId);
 }

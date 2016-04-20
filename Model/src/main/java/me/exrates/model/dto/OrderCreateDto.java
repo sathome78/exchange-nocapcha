@@ -2,7 +2,6 @@ package me.exrates.model.dto;
 
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.enums.OperationType;
-import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 
@@ -10,29 +9,78 @@ import java.math.BigDecimal;
  * Created by Valk on 13.04.16.
  */
 
-@Component
 public class OrderCreateDto {
+    /*this field filled from existing order*/
+    private int orderId;
     /*these fields will be transferred to blank creation form */
     private CurrencyPair currencyPair;
-    private BigDecimal comissionForBuy;
-    private BigDecimal comissionForSell;
-    private int walletIdCurrency1;
-    private BigDecimal balance1;
-    private int walletIdCurrency2;
-    private BigDecimal balance2;
+    private int comissionForBuyId;
+    private BigDecimal comissionForBuyRate;
+    private int comissionForSellId;
+    private BigDecimal comissionForSellRate;
+    private int walletIdCurrencyBase;
+    private BigDecimal currencyBaseBalance;
+    private int walletIdCurrencyConvert;
+    private BigDecimal currencyConvertBalance;
     //
     /*these fields will be returned from creation form after submitting*/
     private OperationType operationType;
     private BigDecimal exchangeRate;
-    private BigDecimal amount;
+    private BigDecimal amount; //amount of base currency: base currency can be bought or sold dependending on operationType
     //
-    /*these fields will be transferred after submitting and before final creation confirmation the ordder
-    * It's necessary for verification of the amounts calculated directly in java and will be persistented in db
-    * Before this step this amounts are calculated by javascript and may be occur some difference*/
-    BigDecimal total;
-    BigDecimal comission;
-    BigDecimal totalWithComission;
-    //
+    /*
+    * these fields will be calculated after submitting the order and before final creation confirmation the order
+    * (here: OrderController.submitNewOrderToSell())
+    * These amounts calculated directly in java (after check the order parameters in java validator) and will be persistented in db
+    * (before this step these amounts were being calculated by javascript and may be occur some difference)
+    * */
+    private BigDecimal total; //calculated amount of currency conversion = amount * exchangeRate
+    private int comissionId;
+    private BigDecimal comission; //calculated comission amount depending on operationType and corresponding comission rate
+    private BigDecimal totalWithComission; //total + comission
+
+    /*constructors*/
+
+    public OrderCreateDto() {
+    }
+
+    /*service methods*/
+    public OrderSum getCalculatedAmounts(){
+        if (operationType == null) {
+            return null;
+        }
+        OrderSum result = new OrderSum();
+        if (operationType == OperationType.BUY) {
+            result.total = amount.multiply(exchangeRate);
+            result.comissionId = comissionForBuyId;
+            result.comission = result.total.multiply(comissionForBuyRate).divide(new BigDecimal(100));
+            result.totalWithComission = result.total.add(result.comission);
+        } else {
+            result.total = amount.multiply(exchangeRate);
+            result.comissionId = comissionForSellId;
+            result.comission = result.total.multiply(comissionForSellRate).divide(new BigDecimal(100));
+            result.totalWithComission = result.total.add(result.comission.negate());
+        }
+        return result;
+    }
+
+    public class OrderSum{
+        public BigDecimal total;
+        public int comissionId;
+        public BigDecimal comission;
+        public BigDecimal totalWithComission;
+    }
+
+    /*getters setters*/
+
+    public int getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(int orderId) {
+        this.orderId = orderId;
+    }
+
     public CurrencyPair getCurrencyPair() {
         return currencyPair;
     }
@@ -41,52 +89,68 @@ public class OrderCreateDto {
         this.currencyPair = currencyPair;
     }
 
-    public BigDecimal getComissionForBuy() {
-        return comissionForBuy;
+    public int getComissionForBuyId() {
+        return comissionForBuyId;
     }
 
-    public void setComissionForBuy(BigDecimal comissionForBuy) {
-        this.comissionForBuy = comissionForBuy;
+    public void setComissionForBuyId(int comissionForBuyId) {
+        this.comissionForBuyId = comissionForBuyId;
     }
 
-    public BigDecimal getComissionForSell() {
-        return comissionForSell;
+    public BigDecimal getComissionForBuyRate() {
+        return comissionForBuyRate;
     }
 
-    public void setComissionForSell(BigDecimal comissionForSell) {
-        this.comissionForSell = comissionForSell;
+    public void setComissionForBuyRate(BigDecimal comissionForBuyRate) {
+        this.comissionForBuyRate = comissionForBuyRate;
     }
 
-    public int getWalletIdCurrency1() {
-        return walletIdCurrency1;
+    public int getComissionForSellId() {
+        return comissionForSellId;
     }
 
-    public void setWalletIdCurrency1(int walletIdCurrency1) {
-        this.walletIdCurrency1 = walletIdCurrency1;
+    public void setComissionForSellId(int comissionForSellId) {
+        this.comissionForSellId = comissionForSellId;
     }
 
-    public BigDecimal getBalance1() {
-        return balance1;
+    public BigDecimal getComissionForSellRate() {
+        return comissionForSellRate;
     }
 
-    public void setBalance1(BigDecimal balance1) {
-        this.balance1 = balance1;
+    public void setComissionForSellRate(BigDecimal comissionForSellRate) {
+        this.comissionForSellRate = comissionForSellRate;
     }
 
-    public int getWalletIdCurrency2() {
-        return walletIdCurrency2;
+    public int getWalletIdCurrencyBase() {
+        return walletIdCurrencyBase;
     }
 
-    public void setWalletIdCurrency2(int walletIdCurrency2) {
-        this.walletIdCurrency2 = walletIdCurrency2;
+    public void setWalletIdCurrencyBase(int walletIdCurrencyBase) {
+        this.walletIdCurrencyBase = walletIdCurrencyBase;
     }
 
-    public BigDecimal getBalance2() {
-        return balance2;
+    public BigDecimal getCurrencyBaseBalance() {
+        return currencyBaseBalance;
     }
 
-    public void setBalance2(BigDecimal balance2) {
-        this.balance2 = balance2;
+    public void setCurrencyBaseBalance(BigDecimal currencyBaseBalance) {
+        this.currencyBaseBalance = currencyBaseBalance;
+    }
+
+    public int getWalletIdCurrencyConvert() {
+        return walletIdCurrencyConvert;
+    }
+
+    public void setWalletIdCurrencyConvert(int walletIdCurrencyConvert) {
+        this.walletIdCurrencyConvert = walletIdCurrencyConvert;
+    }
+
+    public BigDecimal getCurrencyConvertBalance() {
+        return currencyConvertBalance;
+    }
+
+    public void setCurrencyConvertBalance(BigDecimal currencyConvertBalance) {
+        this.currencyConvertBalance = currencyConvertBalance;
     }
 
     public OperationType getOperationType() {
@@ -119,6 +183,14 @@ public class OrderCreateDto {
 
     public void setTotal(BigDecimal total) {
         this.total = total;
+    }
+
+    public int getComissionId() {
+        return comissionId;
+    }
+
+    public void setComissionId(int comissionId) {
+        this.comissionId = comissionId;
     }
 
     public BigDecimal getComission() {

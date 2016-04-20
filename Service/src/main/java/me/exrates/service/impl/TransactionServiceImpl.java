@@ -159,7 +159,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public List<OperationView> showMyOperationHistory(String email, Locale locale) {
-        int id = userService.getIdByEmail(email);
+        /*int id = userService.getIdByEmail(email);
         final List<Integer> collect = walletService.getAllWallets(id)
             .stream()
             .mapToInt(Wallet::getId)
@@ -210,7 +210,8 @@ public class TransactionServiceImpl implements TransactionService {
                 });
         }
         Collections.sort(list, new OperationViewComparator());
-        return list;
+        return list;*/
+        return new ArrayList<OperationView>(); //TODO  !!!
     }
 
     @Override

@@ -10,12 +10,6 @@ import java.util.Map;
 
 public interface DashboardDao {
 
-    Order getLastClosedOrder(CurrencyPair currencyPair);
-
-    List<Order> getAllBuyOrders(CurrencyPair currencyPair);
-
-    List<Order> getAllSellOrders(CurrencyPair currencyPair);
-
     List<Map<String, BigDecimal>> getAmountsFromClosedOrders(CurrencyPair currencyPair);
 
     List<Map<String, Object>> getDataForChart(CurrencyPair currencyPair);

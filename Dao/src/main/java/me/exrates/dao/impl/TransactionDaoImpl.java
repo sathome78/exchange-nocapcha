@@ -1,12 +1,7 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.TransactionDao;
-import me.exrates.model.Commission;
-import me.exrates.model.CompanyWallet;
-import me.exrates.model.Currency;
-import me.exrates.model.Merchant;
-import me.exrates.model.Transaction;
-import me.exrates.model.Wallet;
+import me.exrates.model.*;
 import me.exrates.model.enums.OperationType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
@@ -85,11 +80,11 @@ public final class TransactionDaoImpl implements TransactionDao {
     @Override
     public Transaction create(Transaction transaction) {
         final String sql = "INSERT INTO TRANSACTION (user_wallet_id, company_wallet_id, amount, commission_amount, " +
-                "commission_id, operation_type_id, currency_id, merchant_id, datetime, confirmation)" +
+                "commission_id, operation_type_id, currency_id, merchant_id, datetime, order_id, confirmation)" +
                 "   VALUES (:userWallet,:companyWallet,:amount,:commissionAmount,:commission,:operationType, :currency," +
-                "   :merchant, :datetime, :confirmation)";
+                "   :merchant, :datetime, :order_id, :confirmation)";
         final KeyHolder keyHolder = new GeneratedKeyHolder();
-        final Map<String, Object> params = new HashMap<String,Object>(){
+        final Map<String, Object> params = new HashMap<String, Object>() {
             {
                 put("userWallet", transaction.getUserWallet().getId());
                 put("companyWallet", transaction.getCompanyWallet().getId());
@@ -98,12 +93,13 @@ public final class TransactionDaoImpl implements TransactionDao {
                 put("commission", transaction.getCommission().getId());
                 put("operationType", transaction.getOperationType().type);
                 put("currency", transaction.getCurrency().getId());
-                put("merchant", transaction.getMerchant().getId());
-                put("datetime", Timestamp.valueOf(transaction.getDatetime()));
+                put("merchant", transaction.getMerchant() == null ? null : transaction.getMerchant().getId());
+                put("datetime", transaction.getDatetime() == null ? null : Timestamp.valueOf(transaction.getDatetime()));
+                put("order_id", transaction.getOrder() == null ? null : transaction.getOrder().getId());
                 put("confirmation", transaction.getConfirmation());
             }
         };
-        if (jdbcTemplate.update(sql, new MapSqlParameterSource(params), keyHolder)>0) {
+        if (jdbcTemplate.update(sql, new MapSqlParameterSource(params), keyHolder) > 0) {
             transaction.setId(keyHolder.getKey().intValue());
             return transaction;
         }
@@ -149,14 +145,12 @@ public final class TransactionDaoImpl implements TransactionDao {
         final String sql = "UPDATE TRANSACTION SET provided = :provided WHERE id = :id";
         final Map<String, Integer> params = new HashMap<String, Integer>() {
             {
-                put("provided",PROVIDED);
+                put("provided", PROVIDED);
                 put("id", id);
             }
         };
-        return jdbcTemplate.update(sql,params) > 0;
+        return jdbcTemplate.update(sql, params) > 0;
     }
-
-
 
     @Override
     public boolean delete(int id) {

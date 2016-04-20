@@ -18,8 +18,8 @@
     <c:set var="pattern" value="\d+(.\d)*"/>
 
     <form:input hidden="true" path="currencyPair" value="${orderCreateDto.currencyPair}"/>
-    <form:input hidden="true" path="walletIdCurrency1" value="${orderCreateDto.walletIdCurrency1}"/>
-    <form:input hidden="true" path="walletIdCurrency2" value="${orderCreateDto.walletIdCurrency2}"/>
+    <form:input hidden="true" path="walletIdCurrencyBase" value="${orderCreateDto.walletIdCurrencyBase}"/>
+    <form:input hidden="true" path="walletIdCurrencyConvert" value="${orderCreateDto.walletIdCurrencyConvert}"/>
 
     <%--active balance--%>
     <div class="input-block-wrapper">
@@ -29,8 +29,9 @@
         </div>
         <div class="col-md-7 input-block-wrapper__input-wrapper">
             <fmt:formatNumber type="number" maxFractionDigits="9"
-                              value="${orderCreateDto.balance1}" var="balance1"/>
-            <form:input path="balance1" class="input-block-wrapper__input" value="${balance1}"
+                              value="${orderCreateDto.currencyBaseBalance}" var="currencyBaseBalance"
+                              groupingUsed="false"/>
+            <form:input path="currencyBaseBalance" class="input-block-wrapper__input" value="${currencyBaseBalance}"
                         readonly="true"/>
             <div class="input-block-wrapper__inner-label">${orderCreateDto.currencyPair.getCurrency1().getName()}</div>
         </div>
@@ -83,10 +84,15 @@
             <label class="input-block-wrapper__label"><loc:message code="order.commission"/></label>
         </div>
         <div class="col-md-7 input-block-wrapper__input-wrapper">
-            <form:input hidden="true" id="comissionForSell" path="comissionForSell"
-                        value="${orderCreateDto.comissionForSell}"/>
-            <form:input hidden="true" path="comissionForBuy"
-                        value="${orderCreateDto.comissionForBuy}"/>
+            <form:input hidden="true" path="comissionId" value="${orderCreateDto.comissionId}"/>
+            <form:input hidden="true" id="comissionForSellId" path="comissionForSellId"
+                        value="${orderCreateDto.comissionForSellId}"/>
+            <form:input hidden="true" id="comissionForSellRate" path="comissionForSellRate"
+                        value="${orderCreateDto.comissionForSellRate}"/>
+            <form:input hidden="true" path="comissionForBuyId"
+                        value="${orderCreateDto.comissionForBuyId}"/>
+            <form:input hidden="true" path="comissionForBuyRate"
+                        value="${orderCreateDto.comissionForBuyRate}"/>
             <form:input id="calculatedComissionForSell" path="comission" class="input-block-wrapper__input"
                         readonly="true"/>
 
@@ -115,14 +121,21 @@
 <div class="formButtonWrapper">
     <%--Create--%>
     <div id="submitOrderBuySellWrapper">
-        <c:if test="${submitUrl != null}">
-            <loc:message code="orders.submit" var="labelSubmit"/>
-            <button id="submitOrderSell" onclick="$('#createSellOrderForm').submit()"
-                    type="submit">${labelSubmit}</button>
+        <c:if test="${formVariant != 'acceptOrder'}">
+            <c:if test="${submitUrl != null}">
+                <loc:message code="orders.submit" var="labelSubmit"/>
+                <button id="submitOrderSell" onclick="$('#createSellOrderForm').submit()"
+                        type="submit">${labelSubmit}</button>
+            </c:if>
+            <c:if test="${submitUrl == null}">
+                <loc:message code="orders.submit" var="labelSubmit"/>
+                <button id="submitOrderSell" onclick="finPassCheck(0, submitCreateOrder, 'SELL', event)"
+                        type="submit">${labelSubmit}</button>
+            </c:if>
         </c:if>
-        <c:if test="${submitUrl == null}">
-            <loc:message code="orders.submit" var="labelSubmit"/>
-            <button id="submitOrderSell" onclick="finPassCheck(0, submitCreateOrder, 'SELL', event)"
+        <c:if test="${formVariant == 'acceptOrder'}">
+            <loc:message code="acceptorder.submit" var="labelSubmit"/>
+            <button id="submitOrderSell" onclick="finPassCheck(${orderCreateDto.orderId}, submitAcceptOrder)"
                     type="submit">${labelSubmit}</button>
         </c:if>
     </div>
@@ -130,16 +143,19 @@
     <c:if test="${editUrl != null}">
         <form:form id="editOrderBuySellWrapper" action="${editUrl}" modelAttribute="orderCreateDto" method="post">
             <form:input hidden="true" path="currencyPair" value="${orderCreateDto.currencyPair}"/>
-            <form:input hidden="true" path="walletIdCurrency1" value="${orderCreateDto.walletIdCurrency1}"/>
-            <form:input hidden="true" path="walletIdCurrency2" value="${orderCreateDto.walletIdCurrency2}"/>
-            <form:input hidden="true" path="balance1" value="${orderCreateDto.balance1}"/>
-            <form:input hidden="true" path="balance2" value="${orderCreateDto.balance2}"/>
-            <form:input hidden="true" path="comissionForBuy" value="${orderCreateDto.comissionForBuy}"/>
-            <form:input hidden="true" path="comissionForSell" value="${orderCreateDto.comissionForSell}"/>
+            <form:input hidden="true" path="walletIdCurrencyBase" value="${orderCreateDto.walletIdCurrencyBase}"/>
+            <form:input hidden="true" path="walletIdCurrencyConvert" value="${orderCreateDto.walletIdCurrencyConvert}"/>
+            <form:input hidden="true" path="currencyBaseBalance" value="${orderCreateDto.currencyBaseBalance}"/>
+            <form:input hidden="true" path="currencyConvertBalance" value="${orderCreateDto.currencyConvertBalance}"/>
+            <form:input hidden="true" path="comissionForBuyId" value="${orderCreateDto.comissionForBuyId}"/>
+            <form:input hidden="true" path="comissionForBuyRate" value="${orderCreateDto.comissionForBuyRate}"/>
+            <form:input hidden="true" path="comissionForSellId" value="${orderCreateDto.comissionForSellId}"/>
+            <form:input hidden="true" path="comissionForSellRate" value="${orderCreateDto.comissionForSellRate}"/>
             <form:input hidden="true" path="operationType" value="${orderCreateDto.operationType}"/>
             <form:input hidden="true" path="exchangeRate" value="${orderCreateDto.exchangeRate}"/>
             <form:input hidden="true" path="amount" value="${orderCreateDto.amount}"/>
             <form:input hidden="true" path="total" value="${orderCreateDto.total}"/>
+            <form:input hidden="true" path="comissionId" value="${orderCreateDto.comissionId}"/>
             <form:input hidden="true" path="comission" value="${orderCreateDto.comission}"/>
             <form:input hidden="totalWithComission" path="comission" value="${orderCreateDto.totalWithComission}"/>
             <loc:message code="submitorder.edit" var="labelEdit"/>

@@ -20,4 +20,6 @@ public interface CurrencyDao {
 	List<CurrencyPair> getAllCurrencyPairs();
 
 	CurrencyPair getCurrencyPairById(int currency1Id, int currency2Id);
+
+	CurrencyPair findCurrencyPairById(int currencyPairId);
 }

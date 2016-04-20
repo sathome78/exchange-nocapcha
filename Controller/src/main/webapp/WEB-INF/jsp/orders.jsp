@@ -80,9 +80,9 @@
                                 <td><fmt:formatNumber type="number" maxFractionDigits="9"
                                                       value="${order.exrate}"/></td>
                                 <td><fmt:formatNumber type="number" maxFractionDigits="9"
-                                                      value="${order.currencyAmount1}"/></td>
+                                                      value="${order.amountBase}"/></td>
                                 <td><fmt:formatNumber type="number" maxFractionDigits="9"
-                                                      value="${order.currencyAmount2}"/></td>
+                                                      value="${order.amountConvert}"/></td>
                                 <td>
                                     <button onclick="beginAcceptOrder(${order.id})"><loc:message
                                             code="orders.accept"/></button>
@@ -108,9 +108,9 @@
                                 <td><fmt:formatNumber type="number" maxFractionDigits="9"
                                                       value="${order.exrate}"/></td>
                                 <td><fmt:formatNumber type="number" maxFractionDigits="9"
-                                                      value="${order.currencyAmount1}"/></td>
+                                                      value="${order.amountBase}"/></td>
                                 <td><fmt:formatNumber type="number" maxFractionDigits="9"
-                                                      value="${order.currencyAmount2}"/></td>
+                                                      value="${order.amountConvert}"/></td>
                                 <td>
                                     <button onclick="beginAcceptOrder(${order.id})"><loc:message
                                             code="orders.accept"/></button>

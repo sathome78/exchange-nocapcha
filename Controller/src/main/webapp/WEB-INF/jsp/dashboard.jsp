@@ -248,7 +248,7 @@
             <%--Всего--%>
             <p>
                 <loc:message code="dashboard.total"/>
-                <fmt:formatNumber type="number" maxFractionDigits="9" value="${sumAmountBuy}"/>
+                <fmt:formatNumber type="number" maxFractionDigits="9" value="${sumAmountSell}"/>
                 ${currencyPair.getCurrency1().getName()}
             </p>
         </div>
@@ -259,8 +259,8 @@
             <hr class="display_at_small_width">
             <p>
                 <loc:message code="dashboard.total"/>
-                <fmt:formatNumber type="number" maxFractionDigits="9" value="${sumAmountSell}"/>
-                ${currencyPair.getCurrency2().getName()}
+                <fmt:formatNumber type="number" maxFractionDigits="9" value="${sumAmountBuy}"/>
+                ${currencyPair.getCurrency1().getName()}
             </p>
         </div>
     </div>
@@ -277,13 +277,13 @@
                     <tr>
                         <td>
                             <fmt:formatNumber type="number" maxFractionDigits="9"
-                                              value="${order.amountBuy/order.amountSell}"/>
+                                              value="${order.getExrate()}"/>
                         </td>
                         <td>
-                            <fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountSell}"/>
+                            <fmt:formatNumber type="number" maxFractionDigits="9" value="${order.getAmountBase()}"/>
                         </td>
                         <td>
-                            <fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountBuy}"/>
+                            <fmt:formatNumber type="number" maxFractionDigits="9" value="${order.getAmountConvert()}"/>
                         </td>
                     </tr>
                 </c:forEach>
@@ -300,13 +300,13 @@
                     <tr>
                         <td>
                             <fmt:formatNumber type="number" maxFractionDigits="9"
-                                              value="${order.amountSell/order.amountBuy}"/>
+                                              value="${order.getExrate()}"/>
                         </td>
                         <td>
-                            <fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountBuy}"/>
+                            <fmt:formatNumber type="number" maxFractionDigits="9" value="${order.getAmountBase()}"/>
                         </td>
                         <td>
-                            <fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountSell}"/>
+                            <fmt:formatNumber type="number" maxFractionDigits="9" value="${order.getAmountConvert()}"/>
                         </td>
                     </tr>
                 </c:forEach>

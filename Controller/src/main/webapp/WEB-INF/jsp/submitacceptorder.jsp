@@ -9,7 +9,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title><loc:message code="acceptorder.title"/></title>
+    <title><loc:message code="orders.title"/></title>
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -31,7 +31,6 @@
     <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/submits/orderSubmitAccept.js'/>"></script>
     <%----------%>
-
 </head>
 
 
@@ -45,101 +44,28 @@
         <%@include file='usermenu_new.jsp' %>
 
         <div class="col-sm-9 content">
-            <div class="row">
-                <div class="col-sm-9">
-                    <%--Подтвердите создание ордера с такими данными	--%>
-                    <h4><loc:message code="acceptorder.text"/>:</h4>
-                    <c:set var="SELL" value="<%=me.exrates.model.enums.OperationType.SELL%>"/>
-                    <c:set var="BUY" value="<%=me.exrates.model.enums.OperationType.BUY%>"/>
-                    <hr>
+            <c:set var="SELL" value="<%=me.exrates.model.enums.OperationType.SELL%>"/>
+            <c:set var="BUY" value="<%=me.exrates.model.enums.OperationType.BUY%>"/>
+            <c:set value="/orders" var="cancelUrl"/>
+            <c:set value="true" var="disableEdit"/>
+            <c:set value="acceptOrder" var="formVariant"/>
 
-                    <%--форма--%>
-                    <div class="row">
-                        <div class="col-sm-14">
-                            <div>
-                                <%--Продаю--%>
-                                <c:if test="${order.operationType  eq SELL}">
-                                    <div class="clearfix">
-                                        <label class="submit-order-label"><loc:message
-                                                code="orders.currencyforbuy"/></label>
-                                        <fmt:formatNumber type="number" maxFractionDigits="9"
-                                                          value="${order.amountSell}"
-                                                          var='amountSell'/>
-                                        <input class="submit-order-input" readonly="true"
-                                               value="${amountSell}&nbsp;${order.currencySellString}"/>
-                                    </div>
-                                </c:if>
-                                <%--Покупаю--%>
-                                <div>
-                                    <label class="submit-order-label"><loc:message code="orders.currencyforsale"/></label>
-                                    <fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountBuy}"
-                                                      var='amountBuy'/>
-                                    <input class="submit-order-input" readonly="true"
-                                           value="${amountBuy}&nbsp;${order.currencyBuyString}"/>
-                                </div>
-                                <%--Продаю--%>
-                                <c:if test="${order.operationType  eq BUY}">
-                                    <div class="clearfix">
-                                        <label class="submit-order-label"><loc:message
-                                                code="orders.currencyforbuy"/></label>
-                                        <fmt:formatNumber type="number" maxFractionDigits="9"
-                                                          value="${order.amountSell}"
-                                                          var='amountSell'/>
-                                        <input class="submit-order-input" readonly="true"
-                                               value="${amountSell}&nbsp;${order.currencySellString}"/>
-                                    </div>
-                                </c:if>
-                                <%--Комиссия--%>
-                                <div>
-                                    <div>
-                                        <label class="submit-order-label"><loc:message
-                                                code="submitorder.commission"/></label>
-                                        <fmt:formatNumber type="number" maxFractionDigits="9"
-                                                          value="${order.commissionAmountSell}"
-                                                          var="commissionAmountSell"/>
-                                        <input class="submit-order-input" readonly="true"
-                                               value="${commissionAmountSell}&nbsp;${order.currencySellString}"/>
-                                    </div>
-                                </div>
-                                <%--Сумма с комиссией--%>
-                                <div>
-                                    <div>
-                                        <label class="submit-order-label"><loc:message
-                                                code="submitorder.sumwithcommission"/></label>
-                                        <fmt:formatNumber type="number" maxFractionDigits="9"
-                                                          value="${order.amountSell-order.commissionAmountSell}"
-                                                          var='valueWithCommission'/>
-                                        <input class="submit-order-input" readonly="true"
-                                               value="${valueWithCommission}&nbsp;${order.currencySellString}"/>
-                                    </div>
-                                </div>
-                                <div class="submit-order-button-container">
-                                    <form:form class="submit-order-form" action="accept" modelAttribute="order"
-                                               method="post">
-                                        <form:hidden path="id" value="${order.id}"/>
-                                        <loc:message code="acceptorder.submit" var="labelSubmit"/>
-                                        <button type="button" onclick="finPassCheck(${order.id}, submitAcceptOrder)">${labelSubmit}</button>
-                                    </form:form>
+            <h4><loc:message code="acceptorder.text"/>:</h4>
 
-                                    <c:url value="/orders" var="url"/>
-                                    <form:form class="submit-order-form" action="${url}">
-                                        <loc:message code="submitorder.cancell" var="labelCancell"></loc:message>
-                                        <button type="submit">${labelCancell}</button>
-                                    </form:form>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-sm-3"></div>
-                    </div>
+            <%----%>
+            <c:if test="${orderCreateDto.getOperationType()  eq BUY}">
+                <div class="buy-sell-form">
+                    <%@include file="orderForBuyForm.jsp" %>
                 </div>
-            </div>
+            </c:if>
+            <c:if test="${orderCreateDto.getOperationType()  eq SELL}">
+                <div class="buy-sell-form">
+                    <%@include file="orderForSellForm.jsp" %>
+                </div>
+            </c:if>
+            <%----%>
         </div>
 </main>
-<div>
-    <%--<c:if test="${msq ne ''}">--%>
-        <span hidden id="errorNoty">${errorMsg}</span>
-    <%--</c:if>--%>
-</div>
 <%@include file='footer_new.jsp' %>
 <%@include file='finpassword.jsp' %>
 </body>

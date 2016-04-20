@@ -17,7 +17,7 @@ function calculateFieldsForBuy() {
     var amount = +$('#amountBuy').val();
     var exchangeRate = +$('#exchangeRateBuy').val();
     var totalForBuy = +$('#totalForBuy').val(amount * exchangeRate).val();
-    var comission = +$('#comissionForBuy').val();
+    var comission = +$('#comissionForBuyRate').val();
     var calculatedComissionForBuy = +$('#calculatedComissionForBuy').val(totalForBuy * comission / 100).val();
     var totalWithComissionForBuy = +$('#totalWithComissionForBuy').val(totalForBuy + calculatedComissionForBuy).val();
     var balance2 = +$('#balance2').val();
@@ -34,7 +34,7 @@ function calculateFieldsForSell() {
     var amount = +$('#amountSell').val();
     var exchangeRate = +$('#exchangeRateSell').val();
     var totalForSell = +$('#totalForSell').val(amount * exchangeRate).val();
-    var comission = +$('#comissionForSell').val();
+    var comission = +$('#comissionForSellRate').val();
     var calculatedComissionForSell = +$('#calculatedComissionForSell').val(totalForSell * comission / 100).val();
     var totalWithComissionForSell = +$('#totalWithComissionForSell').val(totalForSell - calculatedComissionForSell).val();
     var balance1 = +$('#balance1').val();

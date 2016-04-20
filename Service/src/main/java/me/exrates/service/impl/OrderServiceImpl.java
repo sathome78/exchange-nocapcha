@@ -1,14 +1,20 @@
 package me.exrates.service.impl;
 
+import me.exrates.dao.CommissionDao;
 import me.exrates.dao.OrderDao;
-import me.exrates.model.CompanyWallet;
+import me.exrates.dao.TransactionDao;
+import me.exrates.dao.WalletDao;
+import me.exrates.model.*;
 import me.exrates.model.Currency;
-import me.exrates.model.Order;
-import me.exrates.model.Wallet;
+import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderListDto;
+import me.exrates.model.dto.OrderWideListDto;
+import me.exrates.model.dto.WalletsForOrderAcceptionDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.service.*;
+import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
+import me.exrates.service.exception.TransactionPersistException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,215 +28,392 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
-public class OrderServiceImpl implements OrderService{
+public class OrderServiceImpl implements OrderService {
 
-	@Autowired
-	OrderDao orderDao;
-	
-	@Autowired
-	UserService userService;
-	
-	@Autowired
-	WalletService walletService;
-	
-	@Autowired
-	CompanyWalletService companyWalletService;
-	
-	@Autowired
-	CommissionService commissionService;
-	
-//	private static final Locale ru = new Locale("ru");
-	
-	private static final Logger logger = LogManager.getLogger(OrderServiceImpl.class);
-	 
-	@Autowired
-	MessageSource messageSource;
-	
-	@Override
-	@Transactional
-	public int createOrder(Order order) {
-		int orderId = 0;
-		if(walletService.ifEnoughMoney(order.getWalletIdSell(),order.getAmountSell())) {
-			if((orderId=orderDao.createOrder(order)) > 0) {
-				walletService.setWalletRBalance(order.getWalletIdSell(), order.getAmountSell());
-				walletService.setWalletABalance(order.getWalletIdSell(), order.getAmountSell().negate());
-				setStatus(orderId, OrderStatus.OPENED);
-			}
-		}
-		return orderId;
-	}
+    @Autowired
+    OrderDao orderDao;
 
-	@Transactional(readOnly = true)
-	@Override
-	public Map<String, List<Order>> getMyOrders(String email, Locale locale) {
-		int userId = userService.getIdByEmail(email);
-		List<Order> orderList = orderDao.getMyOrders(userId);
-		List<Order> sellOrderList = new ArrayList<Order>();
-		List<Order> buyOrderList = new ArrayList<Order>();
-		for(Order order : orderList) {
-			order.setStatusString(getStatusString(order.getStatus(), locale));
-			order.setCommission(commissionService.findCommissionByType(order.getOperationType()).getValue());
-			order.setCurrencySell(walletService.getCurrencyId(order.getWalletIdSell()));
-			order.setCurrencySellString(walletService.getCurrencyName(order.getCurrencySell()));
-			order.setCurrencyBuyString(walletService.getCurrencyName(order.getCurrencyBuy()));
-			if (order.getOperationType().equals(OperationType.SELL)) {
-				sellOrderList.add(order);
-			}
-			else if (order.getOperationType().equals(OperationType.BUY)) {
-				buyOrderList.add(order);
-			}
-		}
-		Map<String, List<Order>> orderMap = new HashMap<String, List<Order>>();
-		orderMap.put("sell", sellOrderList);
-		orderMap.put("buy", buyOrderList);
-		return orderMap;
-	}
-	
-	@Transactional(readOnly = true)
-	@Override
-	public  Map<String, List<Order>>  getAllOrders(Locale locale){
-		List<Order> orderList = orderDao.getAllOrders();
-		List<Order> sellOrderList = new ArrayList<Order>();
-		List<Order> buyOrderList = new ArrayList<Order>();
-		for(Order order : orderList) {
-			order.setStatusString(getStatusString(order.getStatus(), locale));
-			order.setCommission(commissionService.findCommissionByType(order.getOperationType()).getValue());
-			order.setCurrencySell(walletService.getCurrencyId(order.getWalletIdSell()));
-			order.setCurrencySellString(walletService.getCurrencyName(order.getCurrencySell()));
-			order.setCurrencyBuyString(walletService.getCurrencyName(order.getCurrencyBuy()));
-			if (order.getOperationType().getType() == OperationType.SELL.getType()) {
-				sellOrderList.add(order);
-			}
-			else if (order.getOperationType().getType() == OperationType.BUY.getType()) {
-				buyOrderList.add(order);
-			}
-		}
-		Map<String, List<Order>> orderMap = new HashMap<String, List<Order>>();
-		orderMap.put("sell", sellOrderList);
-		orderMap.put("buy", buyOrderList);
-		return orderMap;
-	}
+    @Autowired
+    WalletDao walletDao;
 
-	@Transactional(readOnly = true)
-	@Override
-	public  List<OrderListDto>  getOrdersSell(){
-		return orderDao.getOrdersSell();
-	}
+    @Autowired
+    CommissionDao commissionDao;
 
-	@Transactional(readOnly = true)
-	@Override
-	public  List<OrderListDto>  getOrdersBuy(){
-		return orderDao.getOrdersBuy();
-	}
+    @Autowired
+    TransactionDao transactionDao;
 
-	@Transactional
-	@Override
-	public boolean deleteOrder(int orderId) {
-		return orderDao.deleteOrder(orderId);
-	}
+    @Autowired
+    UserService userService;
 
-	@Transactional(readOnly = true)
-	public Order getOrderById(int orderId) {
-		Order order = orderDao.getOrderById(orderId);
-		order.setCurrencySellString(walletService.getCurrencyName(order.getCurrencySell()));
-		order.setCurrencyBuyString(walletService.getCurrencyName(order.getCurrencyBuy()));
-		return order;
-	}
-	
-	@Transactional(propagation = Propagation.NESTED)
-	public boolean setStatus(int orderId, OrderStatus status) {
-		return orderDao.setStatus(orderId, status);
-	}
+    @Autowired
+    WalletService walletService;
 
-	@Transactional(propagation = Propagation.NESTED)
-	@Override
-	public boolean updateOrder(Order order) {
-		return orderDao.updateOrder(order);
-	}
-	
-	@Transactional(rollbackFor={Throwable.class}, propagation=Propagation.NESTED)
-	@Override
-	public boolean acceptOrder(int userId, int orderId) {
-		Boolean flag = false;
-		Order order = this.getOrderById(orderId);
-		int userWalletId = walletService.getWalletId(userId, order.getCurrencyBuy());
-		try {
-			if(walletService.ifEnoughMoney(userWalletId, order.getAmountBuy())) {
-				
-				//for seller
-				BigDecimal amountForSeller = order.getAmountBuy().subtract(order.getCommissionAmountBuy());
-				int wallet1ForBuyCurrency = walletService.getWalletId(walletService.getUserIdFromWallet(order.getWalletIdSell()), order.getCurrencyBuy());
-				if(wallet1ForBuyCurrency == 0) {
-					Wallet wallet = new Wallet();
-					wallet.setCurrencyId(order.getCurrencyBuy());
-					wallet.setActiveBalance(BigDecimal.valueOf(0));
-					wallet.setUserId(walletService.getUserIdFromWallet(order.getWalletIdSell()));
-					wallet1ForBuyCurrency = walletService.createNewWallet(wallet);
-				}
-				walletService.setWalletABalance(wallet1ForBuyCurrency, amountForSeller);
-				walletService.setWalletRBalance(order.getWalletIdSell(), order.getAmountSell().negate());
-				Currency currencySell = new Currency();
-				currencySell.setId(order.getCurrencySell());
-				CompanyWallet companyWalletSell = companyWalletService.findByCurrency(currencySell);
-				companyWalletService.deposit(companyWalletSell, BigDecimal.valueOf(0), order.getCommissionAmountSell());
+    @Autowired
+    CompanyWalletService companyWalletService;
 
-				//for buyer
-				BigDecimal amountForBuyer = order.getAmountSell().subtract(order.getCommissionAmountSell());
-				int wallet2ForBuyCurrency = walletService.getWalletId(userId, order.getCurrencySell());
-				if(wallet2ForBuyCurrency == 0){
-					Wallet wall = new Wallet();
-					wall.setActiveBalance(BigDecimal.valueOf(0));
-					wall.setUserId(userId);
-					wall.setCurrencyId(order.getCurrencySell());
-					wallet2ForBuyCurrency = walletService.createNewWallet(wall);
-				}
-				walletService.setWalletABalance(wallet2ForBuyCurrency, amountForBuyer);
-				walletService.setWalletABalance(walletService.getWalletId(userId, order.getCurrencyBuy()), order.getAmountBuy().negate());
+    @Autowired
+    CommissionService commissionService;
 
-				Currency currencyBuy = new Currency();
-				currencyBuy.setId(order.getCurrencyBuy());
-				CompanyWallet companyWalletBuy = companyWalletService.findByCurrency(currencyBuy);
-				companyWalletService.deposit(companyWalletBuy, BigDecimal.valueOf(0), order.getCommissionAmountBuy());
+    @Autowired
+    CurrencyService currencyService;
 
-	            order.setWalletIdBuy(wallet2ForBuyCurrency);
-	            order.setStatus(OrderStatus.CLOSED);
-				order.setDateFinal(LocalDateTime.now());
-				updateOrder(order);
-				flag = true;
-			}
-		} catch (Throwable e) {
-			e.printStackTrace();
-			logger.error("Error while accepting order with id = "+order.getId()+" exception: "+e.getMessage());
-		}
-		return flag;
-	}
-	
-	
-	@Transactional(rollbackFor={Throwable.class})
-	@Override
-	public boolean cancellOrder(int orderId) {
-		boolean flag = false;
-		try{
-			setStatus(orderId, OrderStatus.CANCELLED);
-			Order order = getOrderById(orderId);
-			walletService.setWalletABalance(order.getWalletIdSell(), order.getAmountSell());
-			walletService.setWalletRBalance(order.getWalletIdSell(), order.getAmountSell().negate());
-			flag = true;
-		} catch (Throwable e) {
-			logger.error("Error while cancelling order "+orderId+" , "+e.getMessage());
-		}
-		
-		return flag;
-	}
+    private static final Logger logger = LogManager.getLogger(OrderServiceImpl.class);
 
-	private String getStatusString(OrderStatus status, Locale ru) {
-		String statusString = null;
-		switch (status) {
-		case INPROCESS : statusString= messageSource.getMessage("orderstatus.inprocess", null, ru); break;
-		case OPENED : statusString= messageSource.getMessage("orderstatus.opened", null, ru); break;
-		case CLOSED : statusString= messageSource.getMessage("orderstatus.closed", null, ru); break;
-		}
-		return statusString;
-	}
+    @Autowired
+    MessageSource messageSource;
+
+    @Override
+    @Transactional
+    public int createOrder(int userId, OrderCreateDto orderCreateDto) {
+        int createdOrderId = 0;
+        int outWalletId = (orderCreateDto.getOperationType() == OperationType.BUY) ? orderCreateDto.getWalletIdCurrencyConvert() : orderCreateDto.getWalletIdCurrencyBase();
+        if (walletService.ifEnoughMoney(outWalletId, orderCreateDto.getTotalWithComission())) {
+            ExOrder exOrder = new ExOrder(userId, orderCreateDto);
+            if ((createdOrderId = orderDao.createOrder(exOrder)) > 0) {
+                if (orderCreateDto.getOperationType() == OperationType.BUY) {
+                    walletService.setWalletRBalance(outWalletId, orderCreateDto.getTotalWithComission());
+                    walletService.setWalletABalance(outWalletId, orderCreateDto.getTotalWithComission().negate());
+                } else {
+                    walletService.setWalletRBalance(outWalletId, orderCreateDto.getAmount());
+                    walletService.setWalletABalance(outWalletId, orderCreateDto.getAmount().negate());
+                }
+                setStatus(createdOrderId, OrderStatus.OPENED);
+            }
+        }
+        return createdOrderId;
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public Map<String, List<OrderWideListDto>> getMyOrders(String email, Locale locale) {
+        int userId = userService.getIdByEmail(email);
+        List<ExOrder> orderList = orderDao.getMyOrders(userId);
+        /**/
+        List<OrderWideListDto> sellOrderList = new ArrayList<>();
+        List<OrderWideListDto> buyOrderList = new ArrayList<>();
+        for (ExOrder exOrder : orderList) {
+            OrderWideListDto orderWideListDto = new OrderWideListDto(exOrder);
+            orderWideListDto.setCurrencyPair(currencyService.findCurrencyPairById(exOrder.getCurrencyPairId()));
+            orderWideListDto.setStatusString(getStatusString(exOrder.getStatus(), locale));
+            if (exOrder.getOperationType().equals(OperationType.SELL)) {
+                sellOrderList.add(orderWideListDto);
+            } else if (exOrder.getOperationType().equals(OperationType.BUY)) {
+                buyOrderList.add(orderWideListDto);
+            }
+        }
+        Map<String, List<OrderWideListDto>> orderMap = new HashMap<>();
+        orderMap.put("sell", sellOrderList);
+        orderMap.put("buy", buyOrderList);
+        return orderMap;
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public Map<String, List<OrderWideListDto>> getAllOpenedOrders(Locale locale) {
+        List<ExOrder> orderList = orderDao.getAllOpenedOrders();
+        /**/
+        List<OrderWideListDto> sellOrderList = new ArrayList<>();
+        List<OrderWideListDto> buyOrderList = new ArrayList<>();
+        for (ExOrder exOrder : orderList) {
+            OrderWideListDto orderWideListDto = new OrderWideListDto(exOrder);
+            orderWideListDto.setCurrencyPair(currencyService.findCurrencyPairById(exOrder.getCurrencyPairId()));
+            orderWideListDto.setStatusString(getStatusString(exOrder.getStatus(), locale));
+            if (exOrder.getOperationType().equals(OperationType.SELL)) {
+                sellOrderList.add(orderWideListDto);
+            } else if (exOrder.getOperationType().equals(OperationType.BUY)) {
+                buyOrderList.add(orderWideListDto);
+            }
+        }
+        Map<String, List<OrderWideListDto>> orderMap = new HashMap<>();
+        orderMap.put("sell", sellOrderList);
+        orderMap.put("buy", buyOrderList);
+        return orderMap;
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<OrderListDto> getOrdersSell() {
+        return orderDao.getOrdersSell();
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<OrderListDto> getOrdersBuy() {
+        return orderDao.getOrdersBuy();
+    }
+
+    @Transactional
+    @Override
+    public boolean deleteOrder(int orderId) {
+        return orderDao.deleteOrder(orderId);
+    }
+
+    @Transactional(readOnly = true)
+    public ExOrder getOrderById(int orderId) {
+        return orderDao.getOrderById(orderId);
+    }
+
+    @Transactional(propagation = Propagation.NESTED)
+    public boolean setStatus(int orderId, OrderStatus status) {
+        return orderDao.setStatus(orderId, status);
+    }
+
+    @Transactional(rollbackFor = {Exception.class})
+    @Override
+    public void acceptOrder(int userAcceptorId, int orderId) {
+        try {
+            ExOrder exOrder = this.getOrderById(orderId);
+            WalletsForOrderAcceptionDto walletsForOrderAcceptionDto = walletDao.getWalletsForOrderByOrderId(exOrder.getId(), userAcceptorId);
+            BigDecimal amountWithComissionForCreator = getAmountWithComissionForCreator(exOrder);
+            /**/
+            OperationType operationTypeForAcceptor = exOrder.getOperationType() == OperationType.BUY ? OperationType.SELL : OperationType.BUY;
+            Commission comissionForAcceptor = commissionDao.getCommission(operationTypeForAcceptor);
+            BigDecimal comissionRateForAcceptor = comissionForAcceptor.getValue();
+            BigDecimal amountComissionForAcceptor = exOrder.getAmountConvert().multiply(comissionRateForAcceptor).divide(new BigDecimal(100));
+            BigDecimal amountWithComissionForAcceptor;
+            if (exOrder.getOperationType() == OperationType.BUY) {
+                amountWithComissionForAcceptor = exOrder.getAmountConvert().add(amountComissionForAcceptor.negate());
+            } else {
+                amountWithComissionForAcceptor = exOrder.getAmountConvert().add(amountComissionForAcceptor);
+            }
+            /**/
+            if (exOrder.getOperationType() == OperationType.BUY) {
+                if (walletsForOrderAcceptionDto.getUserCreatorInWalletId() == 0) {
+                    walletService.createNewWallet(new Wallet(walletsForOrderAcceptionDto.getCurrencyBase(), exOrder.getUserId(), new BigDecimal(0)));
+                }
+                walletService.setWalletABalance(walletsForOrderAcceptionDto.getUserCreatorInWalletId(), exOrder.getAmountBase());
+                if (!walletService.setWalletRBalance(walletsForOrderAcceptionDto.getUserCreatorOutWalletId(), amountWithComissionForCreator.negate())) {
+                    throw new NotEnoughUserWalletMoneyException("not enough reserved money for creator when accept the order " + orderId);
+                }
+                /**/
+                if (walletsForOrderAcceptionDto.getUserAcceptorInWalletId() == 0) {
+                    walletService.createNewWallet(new Wallet(walletsForOrderAcceptionDto.getCurrencyConvert(), userAcceptorId, new BigDecimal(0)));
+                }
+                walletService.setWalletABalance(walletsForOrderAcceptionDto.getUserAcceptorInWalletId(), amountWithComissionForAcceptor);
+                if (!walletService.setWalletABalance(walletsForOrderAcceptionDto.getUserAcceptorOutWalletId(), exOrder.getAmountBase().negate())) {
+                    throw new NotEnoughUserWalletMoneyException("not enough available money for acceptor when accept the order " + orderId);
+                }
+            }
+            if (exOrder.getOperationType() == OperationType.SELL) {
+                if (walletsForOrderAcceptionDto.getUserCreatorInWalletId() == 0) {
+                    walletService.createNewWallet(new Wallet(walletsForOrderAcceptionDto.getCurrencyConvert(), exOrder.getUserId(), new BigDecimal(0)));
+                }
+                walletService.setWalletABalance(walletsForOrderAcceptionDto.getUserCreatorInWalletId(), amountWithComissionForCreator);
+                if (!walletService.setWalletRBalance(walletsForOrderAcceptionDto.getUserCreatorOutWalletId(), exOrder.getAmountBase().negate())) {
+                    throw new NotEnoughUserWalletMoneyException("not enough reserved money for creator when accept the order " + orderId);
+                }
+                /**/
+                if (walletsForOrderAcceptionDto.getUserAcceptorInWalletId() == 0) {
+                    walletService.createNewWallet(new Wallet(walletsForOrderAcceptionDto.getCurrencyBase(), userAcceptorId, new BigDecimal(0)));
+                }
+                walletService.setWalletABalance(walletsForOrderAcceptionDto.getUserAcceptorInWalletId(), exOrder.getAmountBase());
+                if (!walletService.setWalletABalance(walletsForOrderAcceptionDto.getUserAcceptorOutWalletId(), amountWithComissionForAcceptor.negate())) {
+                    throw new NotEnoughUserWalletMoneyException("not enough available money for acceptor when accept the order " + orderId);
+                }
+            }
+            /**/
+            CompanyWallet companyWallet = companyWalletService.findByWalletId(walletsForOrderAcceptionDto.getCompanyWalletCurrencyConvert());
+            companyWallet.setId(walletsForOrderAcceptionDto.getCompanyWalletCurrencyConvert());
+            companyWalletService.deposit(companyWallet, new BigDecimal(0), exOrder.getCommissionFixedAmount().add(amountComissionForAcceptor));
+            /**/
+            Wallet wallet = new Wallet();
+            Currency currency = new Currency();
+            Commission commission = new Commission();
+            Transaction transaction = new Transaction();
+            if (exOrder.getOperationType() == OperationType.BUY) {
+                /*for creator IN*/
+                wallet.setId(walletsForOrderAcceptionDto.getUserCreatorInWalletId());
+                transaction.setUserWallet(wallet);
+                companyWallet.setId(walletsForOrderAcceptionDto.getCompanyWalletCurrencyBase());
+                transaction.setCompanyWallet(companyWallet);
+                transaction.setAmount(exOrder.getAmountBase());
+                transaction.setCommissionAmount(new BigDecimal(0));
+                commission.setId(exOrder.getComissionId());
+                transaction.setCommission(commission);
+                transaction.setOperationType(exOrder.getOperationType());
+                currency.setId(walletsForOrderAcceptionDto.getCurrencyBase());
+                transaction.setCurrency(currency);
+                transaction.setOrder(exOrder);
+                transaction = transactionDao.create(transaction);
+                if (transaction == null) {
+                    throw new TransactionPersistException("Failed to provide transaction ");
+                }
+                /*for creator OUT*/
+                wallet.setId(walletsForOrderAcceptionDto.getUserCreatorOutWalletId());
+                transaction.setUserWallet(wallet);
+                companyWallet.setId(walletsForOrderAcceptionDto.getCompanyWalletCurrencyConvert());
+                transaction.setCompanyWallet(companyWallet);
+                transaction.setAmount(amountWithComissionForCreator);
+                transaction.setCommissionAmount(exOrder.getCommissionFixedAmount());
+                commission.setId(exOrder.getComissionId());
+                transaction.setCommission(commission);
+                transaction.setOperationType(exOrder.getOperationType());
+                currency.setId(walletsForOrderAcceptionDto.getCurrencyConvert());
+                transaction.setCurrency(currency);
+                transaction.setOrder(exOrder);
+                transaction = transactionDao.create(transaction);
+                if (transaction == null) {
+                    throw new TransactionPersistException("Failed to provide transaction ");
+                }
+                /*for acceptor IN*/
+                wallet.setId(walletsForOrderAcceptionDto.getUserAcceptorInWalletId());
+                transaction.setUserWallet(wallet);
+                companyWallet.setId(walletsForOrderAcceptionDto.getCompanyWalletCurrencyConvert());
+                transaction.setCompanyWallet(companyWallet);
+                transaction.setAmount(amountWithComissionForAcceptor);
+                transaction.setCommissionAmount(amountComissionForAcceptor);
+                transaction.setCommission(comissionForAcceptor);
+                transaction.setOperationType(OperationType.SELL);
+                currency.setId(walletsForOrderAcceptionDto.getCurrencyConvert());
+                transaction.setCurrency(currency);
+                transaction.setOrder(exOrder);
+                transaction = transactionDao.create(transaction);
+                if (transaction == null) {
+                    throw new TransactionPersistException("Failed to provide transaction ");
+                }
+                /*for acceptor OUT*/
+                wallet.setId(walletsForOrderAcceptionDto.getUserAcceptorOutWalletId());
+                transaction.setUserWallet(wallet);
+                companyWallet.setId(walletsForOrderAcceptionDto.getCompanyWalletCurrencyBase());
+                transaction.setCompanyWallet(companyWallet);
+                transaction.setAmount(exOrder.getAmountBase());
+                transaction.setCommissionAmount(new BigDecimal(0));
+                transaction.setCommission(comissionForAcceptor);
+                transaction.setOperationType(OperationType.SELL);
+                currency.setId(walletsForOrderAcceptionDto.getCurrencyBase());
+                transaction.setCurrency(currency);
+                transaction.setOrder(exOrder);
+                transaction = transactionDao.create(transaction);
+                if (transaction == null) {
+                    throw new TransactionPersistException("Failed to provide transaction ");
+                }
+            }
+            if (exOrder.getOperationType() == OperationType.SELL) {
+                /*for creator IN*/
+                wallet.setId(walletsForOrderAcceptionDto.getUserCreatorInWalletId());
+                transaction.setUserWallet(wallet);
+                companyWallet.setId(walletsForOrderAcceptionDto.getCompanyWalletCurrencyConvert());
+                transaction.setCompanyWallet(companyWallet);
+                transaction.setAmount(amountWithComissionForCreator);
+                transaction.setCommissionAmount(exOrder.getCommissionFixedAmount());
+                commission.setId(exOrder.getComissionId());
+                transaction.setCommission(commission);
+                transaction.setOperationType(exOrder.getOperationType());
+                currency.setId(walletsForOrderAcceptionDto.getCurrencyConvert());
+                transaction.setCurrency(currency);
+                transaction.setOrder(exOrder);
+                transaction = transactionDao.create(transaction);
+                if (transaction == null) {
+                    throw new TransactionPersistException("Failed to provide transaction ");
+                }
+                /*for creator OUT*/
+                wallet.setId(walletsForOrderAcceptionDto.getUserCreatorOutWalletId());
+                transaction.setUserWallet(wallet);
+                companyWallet.setId(walletsForOrderAcceptionDto.getCompanyWalletCurrencyBase());
+                transaction.setCompanyWallet(companyWallet);
+                transaction.setAmount(exOrder.getAmountBase());
+                transaction.setCommissionAmount(new BigDecimal(0));
+                commission.setId(exOrder.getComissionId());
+                transaction.setCommission(commission);
+                transaction.setOperationType(exOrder.getOperationType());
+                currency.setId(walletsForOrderAcceptionDto.getCurrencyBase());
+                transaction.setCurrency(currency);
+                transaction.setOrder(exOrder);
+                transaction = transactionDao.create(transaction);
+                if (transaction == null) {
+                    throw new TransactionPersistException("Failed to provide transaction ");
+                }
+                /*for acceptor IN*/
+                wallet.setId(walletsForOrderAcceptionDto.getUserAcceptorInWalletId());
+                transaction.setUserWallet(wallet);
+                companyWallet.setId(walletsForOrderAcceptionDto.getCompanyWalletCurrencyBase());
+                transaction.setCompanyWallet(companyWallet);
+                transaction.setAmount(exOrder.getAmountBase());
+                transaction.setCommissionAmount(new BigDecimal(0));
+                transaction.setCommission(comissionForAcceptor);
+                transaction.setOperationType(OperationType.BUY);
+                currency.setId(walletsForOrderAcceptionDto.getCurrencyBase());
+                transaction.setCurrency(currency);
+                transaction.setOrder(exOrder);
+                transaction = transactionDao.create(transaction);
+                if (transaction == null) {
+                    throw new TransactionPersistException("Failed to provide transaction ");
+                }
+                /*for acceptor OUT*/
+                wallet.setId(walletsForOrderAcceptionDto.getUserAcceptorOutWalletId());
+                transaction.setUserWallet(wallet);
+                companyWallet.setId(walletsForOrderAcceptionDto.getCompanyWalletCurrencyConvert());
+                transaction.setCompanyWallet(companyWallet);
+                transaction.setAmount(amountWithComissionForAcceptor);
+                transaction.setCommissionAmount(amountComissionForAcceptor);
+                transaction.setCommission(comissionForAcceptor);
+                transaction.setOperationType(OperationType.BUY);
+                currency.setId(walletsForOrderAcceptionDto.getCurrencyConvert());
+                transaction.setCurrency(currency);
+                transaction.setOrder(exOrder);
+                transaction = transactionDao.create(transaction);
+                if (transaction == null) {
+                    throw new TransactionPersistException("Failed to provide transaction ");
+                }
+            }
+            /**/
+            exOrder.setStatus(OrderStatus.CLOSED);
+            exOrder.setDateAcception(LocalDateTime.now());
+            exOrder.setUserAcceptorId(userAcceptorId);
+            updateOrder(exOrder);
+        } catch (Exception e) {
+            logger.error("Error while accepting order with id = " + orderId + " exception: " + e.getLocalizedMessage());
+            throw e;
+        }
+    }
+
+    private BigDecimal getAmountWithComissionForCreator(ExOrder exOrder) {
+        if (exOrder.getOperationType() == OperationType.SELL) {
+            return exOrder.getAmountConvert().add(exOrder.getCommissionFixedAmount().negate());
+        } else {
+            return exOrder.getAmountConvert().add(exOrder.getCommissionFixedAmount());
+        }
+    }
+
+    @Transactional(rollbackFor = {Exception.class})
+    @Override
+    public boolean cancellOrder(int orderId) {
+        try {
+            ExOrder exOrder = getOrderById(orderId);
+            if (exOrder.getStatus() == OrderStatus.OPENED) {
+                BigDecimal amountWithComissionForCreator = getAmountWithComissionForCreator(exOrder);
+                WalletsForOrderAcceptionDto walletsForOrderAcceptionDto = walletDao.getWalletsForOrderByOrderId(exOrder.getId(), null);
+                walletService.setWalletABalance(walletsForOrderAcceptionDto.getUserCreatorOutWalletId(), amountWithComissionForCreator);
+                walletService.setWalletRBalance(walletsForOrderAcceptionDto.getUserCreatorOutWalletId(), amountWithComissionForCreator.negate());
+                setStatus(orderId, OrderStatus.CANCELLED);
+            }
+        } catch (Exception e) {
+            logger.error("Error while cancelling order " + orderId + " , " + e.getLocalizedMessage());
+            throw e;
+        }
+        return true;
+    }
+
+    private String getStatusString(OrderStatus status, Locale ru) {
+        String statusString = null;
+        switch (status) {
+            case INPROCESS:
+                statusString = messageSource.getMessage("orderstatus.inprocess", null, ru);
+                break;
+            case OPENED:
+                statusString = messageSource.getMessage("orderstatus.opened", null, ru);
+                break;
+            case CLOSED:
+                statusString = messageSource.getMessage("orderstatus.closed", null, ru);
+                break;
+        }
+        return statusString;
+    }
+
+    @Transactional(propagation = Propagation.NESTED)
+    @Override
+    public boolean updateOrder(ExOrder exOrder) {
+        return orderDao.updateOrder(exOrder);
+    }
 
 }

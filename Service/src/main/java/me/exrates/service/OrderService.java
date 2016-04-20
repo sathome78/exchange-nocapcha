@@ -1,35 +1,37 @@
 package me.exrates.service;
 
+import me.exrates.model.ExOrder;
+import me.exrates.model.dto.OrderCreateDto;
+import me.exrates.model.dto.OrderListDto;
+import me.exrates.model.dto.OrderWideListDto;
+import me.exrates.model.enums.OrderStatus;
+
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import me.exrates.model.Order;
-import me.exrates.model.dto.OrderListDto;
-import me.exrates.model.enums.OrderStatus;
-
 public interface OrderService {
 
-	public int createOrder(Order order);
-	
-	public Map<String, List<Order>> getMyOrders(String email, Locale locale);
-	
-	public Map<String, List<Order>> getAllOrders(Locale locale);
-	
-	public boolean deleteOrder(int orderId);
-	
-	public Order getOrderById(int orderId);
-	
-	public boolean setStatus(int orderId, OrderStatus status);
-	
-	public boolean updateOrder(Order order);
-	
-	public boolean acceptOrder(int userId, int orderId);
-	
-	public boolean cancellOrder(int orderId);
+    int createOrder(int userId, OrderCreateDto order);
 
-	List<OrderListDto>  getOrdersSell();
+    Map<String, List<OrderWideListDto>> getMyOrders(String email, Locale locale);
 
-	List<OrderListDto>  getOrdersBuy();
+    Map<String, List<OrderWideListDto>> getAllOpenedOrders(Locale locale);
+
+    boolean deleteOrder(int orderId);
+
+    ExOrder getOrderById(int orderId);
+
+    boolean setStatus(int orderId, OrderStatus status);
+
+    void acceptOrder(int userId, int orderId);
+
+    boolean cancellOrder(int orderId);
+
+    List<OrderListDto> getOrdersSell();
+
+    List<OrderListDto> getOrdersBuy();
+
+    boolean updateOrder(ExOrder exOrder);
 
 }

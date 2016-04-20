@@ -1,7 +1,8 @@
 package me.exrates.service;
 
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.Order;
+import me.exrates.model.ExOrder;
+import me.exrates.model.dto.OrderListDto;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -10,11 +11,13 @@ import java.util.Map;
 
 public interface DashboardService {
 
-    Order getLastClosedOrder(CurrencyPair currencyPair);
+    ExOrder getLastClosedOrder();
 
-    List<Order> getAllBuyOrders(CurrencyPair currencyPair);
+    ExOrder getLastClosedOrderForCurrencyPair(CurrencyPair currencyPair);
 
-    List<Order> getAllSellOrders(CurrencyPair currencyPair);
+    List<OrderListDto> getAllBuyOrders(CurrencyPair currencyPair);
+
+    List<OrderListDto> getAllSellOrders(CurrencyPair currencyPair);
 
     List<Map<String, BigDecimal>> getAmountsFromClosedOrders(CurrencyPair currencyPair);
 

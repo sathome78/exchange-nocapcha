@@ -20,4 +20,6 @@ public interface CompanyWalletService {
     void withdraw(CompanyWallet companyWallet, BigDecimal amount, BigDecimal commissionAmount);
 
     void deposit(CompanyWallet companyWallet, BigDecimal amount, BigDecimal commissionAmount);
+
+    CompanyWallet findByWalletId(int walletId);
 }

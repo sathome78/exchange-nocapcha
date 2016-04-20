@@ -20,6 +20,7 @@ public class Transaction {
     private Currency currency;
     private Merchant merchant;
     private LocalDateTime datetime;
+    private ExOrder order;
     private boolean provided;
     private Integer confirmation;
 
@@ -111,6 +112,14 @@ public class Transaction {
         this.provided = provided;
     }
 
+    public ExOrder getOrder() {
+        return order;
+    }
+
+    public void setOrder(ExOrder order) {
+        this.order = order;
+    }
+
     public Integer getConfirmation() {
         return confirmation;
     }
@@ -139,6 +148,7 @@ public class Transaction {
         if (operationType != that.operationType) return false;
         if (currency != null ? !currency.equals(that.currency) : that.currency != null) return false;
         if (merchant != null ? !merchant.equals(that.merchant) : that.merchant != null) return false;
+        if (order != null ? !order.equals(that.order) : that.order != null) return false;
         return datetime != null ? datetime.equals(that.datetime) : that.datetime == null;
 
     }
@@ -155,6 +165,7 @@ public class Transaction {
         result = 31 * result + (currency != null ? currency.hashCode() : 0);
         result = 31 * result + (merchant != null ? merchant.hashCode() : 0);
         result = 31 * result + (datetime != null ? datetime.hashCode() : 0);
+        result = 31 * result + (order != null ? order.hashCode() : 0);
         result = 31 * result + (provided ? 1 : 0);
         result = 31 * result + confirmation;
         return result;
@@ -173,6 +184,7 @@ public class Transaction {
                 ", currency=" + currency +
                 ", merchant=" + merchant +
                 ", datetime=" + datetime +
+                ", order=" + order +
                 ", provided=" + provided +
                 ", confirmation=" + confirmation +
                 '}';

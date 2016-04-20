@@ -3,18 +3,13 @@ package me.exrates.controller;
 
 import me.exrates.controller.exception.*;
 import me.exrates.controller.validator.OrderValidator;
-import me.exrates.model.Currency;
-import me.exrates.model.CurrencyPair;
-import me.exrates.model.Order;
-import me.exrates.model.User;
+import me.exrates.model.*;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderListDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TokenType;
-import me.exrates.service.CommissionService;
-import me.exrates.service.OrderService;
-import me.exrates.service.UserService;
-import me.exrates.service.WalletService;
+import me.exrates.service.*;
+import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
@@ -43,6 +38,9 @@ public class OrderController {
     CommissionService commissionService;
 
     @Autowired
+    CurrencyService currencyService;
+
+    @Autowired
     WalletService walletService;
 
     @Autowired
@@ -68,21 +66,26 @@ public class OrderController {
         model.addObject("buyOrdersList", buyOrdersList);
         //
         int userId = userService.getIdByEmail(principal.getName());
-        int currencyId1 = ((CurrencyPair) request.getSession().getAttribute("currentCurrencyPair")).getCurrency1().getId();
-        int currencyId2 = ((CurrencyPair) request.getSession().getAttribute("currentCurrencyPair")).getCurrency2().getId();
-        int walletIdCurrency1 = walletService.getWalletId(userId, currencyId1);
-        int walletIdCurrency2 = walletService.getWalletId(userId, currencyId2);
+        int currencyBaseId = ((CurrencyPair) request.getSession().getAttribute("currentCurrencyPair")).getCurrency1().getId();
+        int currencyConvertId = ((CurrencyPair) request.getSession().getAttribute("currentCurrencyPair")).getCurrency2().getId();
+        int currencyBaseWalletId = walletService.getWalletId(userId, currencyBaseId);
+        int currencyConvertWalletId = walletService.getWalletId(userId, currencyConvertId);
         //
+        CurrencyPair activeCurrencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
         OrderCreateDto orderCreateDto = new OrderCreateDto();
-        orderCreateDto.setCurrencyPair((CurrencyPair) request.getSession().getAttribute("currentCurrencyPair"));
-        orderCreateDto.setWalletIdCurrency1(walletIdCurrency1);
-        orderCreateDto.setBalance1(walletService.getWalletABalance(walletIdCurrency1));
-        orderCreateDto.setWalletIdCurrency2(walletIdCurrency2);
-        orderCreateDto.setBalance2(walletService.getWalletABalance(walletIdCurrency2));
-        orderCreateDto.setComissionForBuy(commissionService.findCommissionByType(OperationType.BUY).getValue());
-        orderCreateDto.setComissionForSell(commissionService.findCommissionByType(OperationType.SELL).getValue());
+        orderCreateDto.setCurrencyPair(activeCurrencyPair);
+        orderCreateDto.setWalletIdCurrencyBase(currencyBaseWalletId);
+        orderCreateDto.setCurrencyBaseBalance(walletService.getWalletABalance(currencyBaseWalletId));
+        orderCreateDto.setWalletIdCurrencyConvert(currencyConvertWalletId);
+        orderCreateDto.setCurrencyConvertBalance(walletService.getWalletABalance(currencyConvertWalletId));
+        Commission commission = commissionService.findCommissionByType(OperationType.BUY);
+        orderCreateDto.setComissionForBuyId(commission.getId());
+        orderCreateDto.setComissionForBuyRate(commission.getValue());
+        commission = commissionService.findCommissionByType(OperationType.SELL);
+        orderCreateDto.setComissionForSellId(commission.getId());
+        orderCreateDto.setComissionForSellRate(commission.getValue());
         model.addObject("orderCreateDto", orderCreateDto);
-
+        //
         return model;
     }
 
@@ -116,9 +119,21 @@ public class OrderController {
     @ResponseBody
     public void checkSubmitAcceptOrder(@RequestParam int id, Principal principal, HttpServletRequest request) {
         int userId = userService.getIdByEmail(principal.getName());
-        Order order = orderService.getOrderById(id);
-        int userWalletIdForBuy = walletService.getWalletId(userId, order.getCurrencyBuy());
-        if ((userWalletIdForBuy == 0) || !walletService.ifEnoughMoney(userWalletIdForBuy, order.getAmountBuy())) {
+        ExOrder exOrder = orderService.getOrderById(id);
+        int walletForCheck;
+        BigDecimal amountForCheck;
+        if (exOrder.getOperationType() == OperationType.BUY) {
+            Currency currencyBase = currencyService.findCurrencyPairById(exOrder.getCurrencyPairId()).getCurrency1();
+            walletForCheck = walletService.getWalletId(userId, currencyBase.getId());
+            amountForCheck = exOrder.getAmountBase();
+        } else {
+            Currency currencyConvert = currencyService.findCurrencyPairById(exOrder.getCurrencyPairId()).getCurrency2();
+            walletForCheck = walletService.getWalletId(userId, currencyConvert.getId());
+            BigDecimal comissionRateForAcceptor = commissionService.findCommissionByType(OperationType.BUY).getValue();
+            BigDecimal amountComissionForAcceptor = exOrder.getAmountConvert().multiply(comissionRateForAcceptor);
+            amountForCheck = exOrder.getAmountConvert().add(amountComissionForAcceptor);
+        }
+        if ((walletForCheck == 0) || !walletService.ifEnoughMoney(walletForCheck, amountForCheck)) {
             throw new NotEnoughMoneyException(messageSource.getMessage("validation.orderNotEnoughMoney", null, localeResolver.resolveLocale(request)));
         }
     }
@@ -128,9 +143,51 @@ public class OrderController {
     * */
     @RequestMapping(value = "/orders/submitaccept")
     public ModelAndView submitAcceptOrder(@RequestParam int id, ModelAndView model, Principal principal, RedirectAttributes redirectAttributes, HttpServletRequest request) {
-        Order order = orderService.getOrderById(id);
+        ExOrder exOrder = orderService.getOrderById(id);
+        CurrencyPair currencyPair = currencyService.findCurrencyPairById(exOrder.getCurrencyPairId());
+        //
+        int userId = userService.getIdByEmail(principal.getName());
+        int currencyBaseId = currencyPair.getCurrency1().getId();
+        int currencyConvertId = currencyPair.getCurrency2().getId();
+        int currencyBaseWalletId = walletService.getWalletId(userId, currencyBaseId);
+        int currencyConvertWalletId = walletService.getWalletId(userId, currencyConvertId);
+        //
+        OrderCreateDto orderCreateDto = new OrderCreateDto();
+        orderCreateDto.setOrderId(exOrder.getId());
+        if (exOrder.getOperationType() == OperationType.BUY) {
+            orderCreateDto.setOperationType(OperationType.SELL);
+        } else {
+            orderCreateDto.setOperationType(OperationType.BUY);
+        }
+        orderCreateDto.setExchangeRate(exOrder.getExRate());
+        /**/
+        orderCreateDto.setCurrencyPair(currencyPair);
+        orderCreateDto.setWalletIdCurrencyBase(currencyBaseWalletId);
+        orderCreateDto.setCurrencyBaseBalance(walletService.getWalletABalance(currencyBaseWalletId));
+        orderCreateDto.setWalletIdCurrencyConvert(currencyConvertWalletId);
+        orderCreateDto.setCurrencyConvertBalance(walletService.getWalletABalance(currencyConvertWalletId));
+        Commission commission = commissionService.findCommissionByType(OperationType.BUY);
+        orderCreateDto.setComissionForBuyId(commission.getId());
+        orderCreateDto.setComissionForBuyRate(commission.getValue());
+        commission = commissionService.findCommissionByType(OperationType.SELL);
+        orderCreateDto.setComissionForSellId(commission.getId());
+        orderCreateDto.setComissionForSellRate(commission.getValue());
+        orderCreateDto.setAmount(exOrder.getAmountBase());
+        orderCreateDto.setTotal(exOrder.getAmountConvert());
+        /**/
+        if (orderCreateDto.getOperationType() == OperationType.BUY) {
+            orderCreateDto.setComissionId(orderCreateDto.getComissionForBuyId());
+            orderCreateDto.setComission(exOrder.getAmountConvert().multiply(orderCreateDto.getComissionForBuyRate().divide(new BigDecimal(100))));
+            orderCreateDto.setTotalWithComission(exOrder.getAmountConvert().add(orderCreateDto.getComission()));
+        } else {
+            orderCreateDto.setComissionId(orderCreateDto.getComissionForSellId());
+            orderCreateDto.setComission(exOrder.getAmountConvert().multiply(orderCreateDto.getComissionForSellRate().divide(new BigDecimal(100))));
+            orderCreateDto.setTotalWithComission(exOrder.getAmountConvert().add(orderCreateDto.getComission().negate()));
+        }
+        /**/
+        model.addObject("orderCreateDto", orderCreateDto);
+        /**/
         model.setViewName("submitacceptorder");
-        model.addObject("order", order);
         return model;
     }
 
@@ -142,8 +199,11 @@ public class OrderController {
     @ResponseBody
     public void acceptOrder(@RequestParam int id, ModelAndView model, Principal principal, RedirectAttributes redirectAttributes, HttpServletRequest request) {
         int userId = userService.getIdByEmail(principal.getName());
-        if (!orderService.acceptOrder(userId, id)) {
-            throw new NotAcceptableOrderException(messageSource.getMessage("dberror.text", null, localeResolver.resolveLocale(request)));
+        try {
+            orderService.acceptOrder(userId, id);
+        } catch (Exception e) {
+            throw e;
+//            throw new NotAcceptableOrderException(messageSource.getMessage("dberror.text", null, localeResolver.resolveLocale(request)));
         }
     }
 
@@ -183,8 +243,9 @@ public class OrderController {
             model.setViewName("newordertosell");
         } else {
             //final amounts calculated here (not by javascript) and transfere to submit form
-            OrderValidator.OrderSum orderSum = orderValidator.getCalculatedSum(orderCreateDto);
+            OrderCreateDto.OrderSum orderSum = orderCreateDto.getCalculatedAmounts();
             orderCreateDto.setTotal(orderSum.total);
+            orderCreateDto.setComissionId(orderSum.comissionId);
             orderCreateDto.setComission(orderSum.comission);
             orderCreateDto.setTotalWithComission(orderSum.totalWithComission);
             model.addObject("orderCreateDto", orderCreateDto);
@@ -201,35 +262,8 @@ public class OrderController {
     @RequestMapping(value = "/orders/create")
     @ResponseBody
     public void recordOrderToDB(OrderCreateDto orderCreateDto, Principal principal, HttpServletRequest request) {
-        CurrencyPair currencyPair = orderCreateDto.getCurrencyPair();
-        Currency currencyForBuy = (orderCreateDto.getOperationType() == OperationType.BUY) ?
-                currencyPair.getCurrency1() :
-                currencyPair.getCurrency2();
-        Currency currencyForSell = currencyPair.getAnotherCurrency(currencyForBuy);
-
-        Order order = new Order();
-        order.setOperationType(orderCreateDto.getOperationType());
-        order.setExrate(orderCreateDto.getExchangeRate());
-        order.setCurrencyBuy(currencyForBuy.getId());
-        order.setCurrencySell(currencyForSell.getId());
-        if (orderCreateDto.getOperationType() == OperationType.BUY) {
-            order.setWalletIdBuy(orderCreateDto.getWalletIdCurrency1());
-            order.setWalletIdSell(orderCreateDto.getWalletIdCurrency2());
-            order.setAmountBuy(orderCreateDto.getAmount());
-            order.setAmountSell(orderCreateDto.getTotal());
-            order.setCommissionAmountBuy(orderCreateDto.getComission());
-            //
-            order.setCommissionAmountSell(orderCreateDto.getTotal().multiply(orderCreateDto.getComissionForSell().divide(new BigDecimal(100))));
-        } else {
-            order.setWalletIdSell(orderCreateDto.getWalletIdCurrency1());
-            order.setWalletIdBuy(orderCreateDto.getWalletIdCurrency2());
-            order.setAmountSell(orderCreateDto.getAmount());
-            order.setAmountBuy(orderCreateDto.getTotal());
-            order.setCommissionAmountBuy(orderCreateDto.getComission());
-            //
-            order.setCommissionAmountSell(orderCreateDto.getAmount().multiply(orderCreateDto.getComissionForBuy().divide(new BigDecimal(100))));
-        }
-        if ((orderService.createOrder(order)) <= 0) {
+        int userId = userService.getIdByEmail(principal.getName());
+        if ((orderService.createOrder(userId, orderCreateDto)) <= 0) {
             throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, localeResolver.resolveLocale(request)));
         }
     }
@@ -256,17 +290,17 @@ public class OrderController {
 
     @RequestMapping("/myorders")
     public ModelAndView showMyOrders(Principal principal, ModelAndView model, HttpServletRequest request) {
-        String email = principal.getName();
+        /*String email = principal.getName();
         Map<String, List<Order>> orderMap = orderService.getMyOrders(email, localeResolver.resolveLocale(request));
-        model.addObject("orderMap", orderMap);
+        model.addObject("orderMap", orderMap);*/
         return model;
     }
 
     @RequestMapping("/myorders/submitdelete")
     public ModelAndView submitDeleteOrder(@RequestParam int id, RedirectAttributes redirectAttributes, ModelAndView model) {
-        Order order = orderService.getOrderById(id);
+        /*Order order = orderService.getOrderById(id);
         model.setViewName("submitdeleteorder");
-        model.addObject("order", order);
+        model.addObject("order", order);*/
         return model;
     }
 
@@ -300,9 +334,16 @@ public class OrderController {
     * */
 
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
-    @ExceptionHandler(NotEnoughMoneyException.class)
+     @ExceptionHandler(NotEnoughMoneyException.class)
+     @ResponseBody
+     public ErrorInfo notEnoughMoneyExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+    @ExceptionHandler(NotEnoughUserWalletMoneyException.class)
     @ResponseBody
-    public ErrorInfo notEnoughMoneyExceptionHandler(HttpServletRequest req, Exception exception) {
+    public ErrorInfo NotEnoughUserWalletMoneyExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 
@@ -340,5 +381,6 @@ public class OrderController {
     public ErrorInfo NotConfirmedFinPasswordExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
+
 }
 

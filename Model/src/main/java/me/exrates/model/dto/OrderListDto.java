@@ -6,10 +6,13 @@ import java.math.BigDecimal;
  * Created by Valk on 14.04.16.
  */
 public class OrderListDto {
-    private Integer id;
+    private int id;
+    private int userId;
     private BigDecimal exrate;
-    private BigDecimal currencyAmount1;
-    private BigDecimal currencyAmount2;
+    private BigDecimal amountBase;
+    private BigDecimal amountConvert;
+
+    /*getters setters*/
 
     public Integer getId() {
         return id;
@@ -17,6 +20,14 @@ public class OrderListDto {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public Integer getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Integer userId) {
+        this.userId = userId;
     }
 
     public BigDecimal getExrate() {
@@ -27,19 +38,19 @@ public class OrderListDto {
         this.exrate = exrate;
     }
 
-    public BigDecimal getCurrencyAmount1() {
-        return currencyAmount1;
+    public BigDecimal getAmountBase() {
+        return amountBase;
     }
 
-    public void setCurrencyAmount1(BigDecimal currencyAmount1) {
-        this.currencyAmount1 = currencyAmount1;
+    public void setAmountBase(BigDecimal amountBase) {
+        this.amountBase = amountBase;
     }
 
-    public BigDecimal getCurrencyAmount2() {
-        return currencyAmount2;
+    public BigDecimal getAmountConvert() {
+        return amountConvert;
     }
 
-    public void setCurrencyAmount2(BigDecimal currencyAmount2) {
-        this.currencyAmount2 = currencyAmount2;
+    public void setAmountConvert(BigDecimal amountConvert) {
+        this.amountConvert = amountConvert;
     }
 }

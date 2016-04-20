@@ -42,7 +42,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 	@Override
 	public String getCurrencyName(int currencyId) {
 		String sql = "SELECT name FROM CURRENCY WHERE  id = :id ";
-		Map<String, String> namedParameters = new HashMap<String, String>();
+		Map<String, String> namedParameters = new HashMap<>();
 		namedParameters.put("id", String.valueOf(currencyId));
 		return jdbcTemplate.queryForObject(sql, namedParameters, String.class);
 	}
@@ -71,7 +71,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
 	@Override
 	public List<CurrencyPair> getAllCurrencyPairs() {
-		String sql = "SELECT currency1_id, currency2_id, name, \n" +
+		String sql = "SELECT id, currency1_id, currency2_id, name, \n" +
 				"(select name from CURRENCY where id = currency1_id) as currency1_name,\n" +
 				"(select name from CURRENCY where id = currency2_id) as currency2_name\n" +
 				" FROM CURRENCY_PAIR " +
@@ -79,18 +79,19 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
 		List<CurrencyPair> currencyPairList = jdbcTemplate.query(sql, (rs, row) -> {
 			CurrencyPair currencyPair = new CurrencyPair();
+			currencyPair.setId(rs.getInt("id"));
+			currencyPair.setName(rs.getString("name"));
+			/**/
 			Currency currency1 = new Currency();
 			currency1.setId(rs.getInt("currency1_id"));
 			currency1.setName(rs.getString("currency1_name"));
 			currencyPair.setCurrency1(currency1);
-
+			/**/
 			Currency currency2 = new Currency();
 			currency2.setId(rs.getInt("currency2_id"));
 			currency2.setName(rs.getString("currency2_name"));
 			currencyPair.setCurrency2(currency2);
-
-			currencyPair.setName(rs.getString("name"));
-
+			/**/
 			return currencyPair;
 
 		});
@@ -100,28 +101,55 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
 	@Override
 	public CurrencyPair getCurrencyPairById(int currency1Id, int currency2Id) {
-		String sql = "SELECT currency1_id, currency2_id, name, \n" +
+		String sql = "SELECT id, currency1_id, currency2_id, name, \n" +
 				"(select name from CURRENCY where id = currency1_id) as currency1_name,\n" +
 				"(select name from CURRENCY where id = currency2_id) as currency2_name\n" +
 				" FROM CURRENCY_PAIR WHERE currency1_id = :currency1Id AND currency2_id = :currency2Id";
-
-		Map<String, String> namedParameters = new HashMap<String, String>();
+		Map<String, String> namedParameters = new HashMap<>();
 		namedParameters.put("currency1Id", String.valueOf(currency1Id));
 		namedParameters.put("currency2Id", String.valueOf(currency2Id));
 		return jdbcTemplate.queryForObject(sql, namedParameters,(resultSet, i) -> {
 			CurrencyPair currencyPair = new CurrencyPair();
+			currencyPair.setId(resultSet.getInt("id"));
+			currencyPair.setName(resultSet.getString("name"));
+			/**/
 			Currency currency1 = new Currency();
 			currency1.setId(resultSet.getInt("currency1_id"));
 			currency1.setName(resultSet.getString("currency1_name"));
 			currencyPair.setCurrency1(currency1);
-
+			/**/
 			Currency currency2 = new Currency();
 			currency2.setId(resultSet.getInt("currency2_id"));
 			currency2.setName(resultSet.getString("currency2_name"));
 			currencyPair.setCurrency2(currency2);
+			/**/
+			return currencyPair;
+		});
+	}
 
+	@Override
+	public CurrencyPair findCurrencyPairById(int currencyPairId) {
+		String sql = "SELECT id, currency1_id, currency2_id, name, " +
+				"(select name from CURRENCY where id = currency1_id) as currency1_name, " +
+				"(select name from CURRENCY where id = currency2_id) as currency2_name " +
+				" FROM CURRENCY_PAIR WHERE id = :currencyPairId";
+		Map<String, String> namedParameters = new HashMap<>();
+		namedParameters.put("currencyPairId", String.valueOf(currencyPairId));
+		return jdbcTemplate.queryForObject(sql, namedParameters,(resultSet, i) -> {
+			CurrencyPair currencyPair = new CurrencyPair();
+			currencyPair.setId(resultSet.getInt("id"));
 			currencyPair.setName(resultSet.getString("name"));
-
+			/**/
+			Currency currency1 = new Currency();
+			currency1.setId(resultSet.getInt("currency1_id"));
+			currency1.setName(resultSet.getString("currency1_name"));
+			currencyPair.setCurrency1(currency1);
+			/**/
+			Currency currency2 = new Currency();
+			currency2.setId(resultSet.getInt("currency2_id"));
+			currency2.setName(resultSet.getString("currency2_name"));
+			currencyPair.setCurrency2(currency2);
+			/**/
 			return currencyPair;
 		});
 	}

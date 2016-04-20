@@ -1,8 +1,11 @@
 package me.exrates.service.impl;
 
 import me.exrates.dao.DashboardDao;
+import me.exrates.dao.OrderDao;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.ExOrder;
 import me.exrates.model.Order;
+import me.exrates.model.dto.OrderListDto;
 import me.exrates.service.DashboardService;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -19,24 +22,33 @@ public class DashboardServiceImpl implements DashboardService {
     @Autowired
     DashboardDao dashboardDao;
 
+    @Autowired
+    OrderDao orderDao;
+
     private static final Logger logger = LogManager.getLogger(DashboardServiceImpl.class);
 
     @Override
-    public Order getLastClosedOrder(CurrencyPair currencyPair){
+     public ExOrder getLastClosedOrder(){
         logger.info("Begin 'getLastClosedOrder' method");
-        return dashboardDao.getLastClosedOrder(currencyPair);
+        return orderDao.getLastClosedOrder();
     }
 
     @Override
-    public List<Order> getAllBuyOrders(CurrencyPair currencyPair){
+    public ExOrder getLastClosedOrderForCurrencyPair(CurrencyPair currencyPair){
+        logger.info("Begin 'getLastClosedOrder' method");
+        return orderDao.getLastClosedOrderForCurrencyPair(currencyPair);
+    }
+
+    @Override
+    public List<OrderListDto> getAllBuyOrders(CurrencyPair currencyPair){
         logger.info("Begin 'getAllBuyOrders' method");
-        return dashboardDao.getAllBuyOrders(currencyPair);
+        return orderDao.getOrdersBuyForCurrencyPair(currencyPair);
     }
 
     @Override
-    public List<Order> getAllSellOrders(CurrencyPair currencyPair){
+    public List<OrderListDto> getAllSellOrders(CurrencyPair currencyPair){
         logger.info("Begin 'getAllSellOrders' method");
-        return dashboardDao.getAllSellOrders(currencyPair);
+        return orderDao.getOrdersSellForCurrencyPair(currencyPair);
     }
 
     @Override

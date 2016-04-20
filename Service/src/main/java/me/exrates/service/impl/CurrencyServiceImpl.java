@@ -83,3 +83,10 @@ public class CurrencyServiceImpl implements CurrencyService {
         return CRYPTO.contains(currency) ? CRYPTO_PRECISION : DEFAULT_PRECISION;
     }
 }
+
+    @Override
+    public CurrencyPair findCurrencyPairById(int currencyPairId) {
+        logger.info("Begin 'findCurrencyPairById' method");
+        return currencyDao.findCurrencyPairById(currencyPairId);
+    }
+}

@@ -1,31 +1,39 @@
 package me.exrates.dao;
 
-import java.util.List;
-
-import me.exrates.model.Order;
+import me.exrates.model.CurrencyPair;
+import me.exrates.model.ExOrder;
 import me.exrates.model.dto.OrderListDto;
-import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
+
+import java.util.List;
 
 public interface OrderDao {
 
-    int createOrder(Order order);
+    int createOrder(ExOrder order);
 
-    List<Order> getMyOrders(int userId);
+    List<ExOrder> getMyOrders(int userId);
 
-    List<Order> getAllOrders();
+    List<ExOrder> getAllOpenedOrders();
 
     boolean deleteOrder(int orderId);
 
-    Order getOrderById(int orderid);
+    ExOrder getOrderById(int orderid);
 
     boolean setStatus(int orderId, OrderStatus status);
-
-    boolean updateOrder(Order order);
 
     List<OrderListDto> getOrdersSell();
 
     List<OrderListDto> getOrdersBuy();
+
+    boolean updateOrder(ExOrder exOrder);
+
+    List<OrderListDto> getOrdersBuyForCurrencyPair(CurrencyPair currencyPair);
+
+    List<OrderListDto> getOrdersSellForCurrencyPair(CurrencyPair currencyPair);
+
+    ExOrder getLastClosedOrder();
+
+    ExOrder getLastClosedOrderForCurrencyPair(CurrencyPair currencyPair);
 
 
 }
