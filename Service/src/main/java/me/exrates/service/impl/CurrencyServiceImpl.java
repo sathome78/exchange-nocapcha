@@ -36,7 +36,6 @@ public class CurrencyServiceImpl implements CurrencyService {
     private static final int CRYPTO_PRECISION = 9;
     private static final int DEFAULT_PRECISION = 2;
 
-
     @Override
     public String getCurrencyName(int currencyId) {
         logger.info("Begin 'getCurrencyName' method");
@@ -73,6 +72,12 @@ public class CurrencyServiceImpl implements CurrencyService {
         return currencyDao.getCurrencyPairById(currency1Id, currency2Id);
     }
 
+    @Override
+    public CurrencyPair findCurrencyPairById(int currencyPairId) {
+        logger.info("Begin 'findCurrencyPairById' method");
+        return currencyDao.findCurrencyPairById(currencyPairId);
+    }
+}
     @Override
     public String amountToString(final BigDecimal amount, final String currency) {
         return amount.setScale(resolvePrecision(currency), ROUND_CEILING).toString();
