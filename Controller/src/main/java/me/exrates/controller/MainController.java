@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -163,6 +162,12 @@ public class MainController {
     public ModelAndView transactions(Principal principal) {
         List<OperationView> list = transactionService.showMyOperationHistory(principal.getName(), localeResolver.resolveLocale(request));
         return new ModelAndView("transaction", "transactions", list);
+    }
+
+    @RequestMapping("/aboutUs")
+    public ModelAndView aboutUs() {
+        ModelAndView modelAndView = new ModelAndView("aboutUs");
+        return modelAndView;
     }
 
 }  

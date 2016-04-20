@@ -41,6 +41,13 @@
                         <%--<li><a href="#"><loc:message code="dashboard.training"/></a></li>--%>
                         <%--ЛИЧНЫЙ КАБИНЕТ--%>
                         <li>
+                            <a href="<c:url value="http://support.exrates.me/" />"><loc:message code="dashboard.support"/></a>
+                        </li>
+                        <li>
+                            <a href="<c:url value="/aboutUs" />"><loc:message code="dashboard.aboutUs"/></a>
+                        </li>
+
+                        <li>
                             <a href="<c:url value="/mywallets"/>" class="navabr__link"><loc:message
                                     code="dashboard.personalArea"/></a
                         </li>
@@ -72,6 +79,12 @@
                         <%--РЕГИСТРАЦИЯ--%>
                         <li>
                             <a href="<c:url value="/register" />"><loc:message code="dashboard.signUp"/></a>
+                        </li>
+                        <li>
+                            <a href="<c:url value="http://support.exrates.me/" />"><loc:message code="dashboard.support"/></a>
+                        </li>
+                        <li>
+                            <a href="<c:url value="/aboutUs" />"><loc:message code="dashboard.aboutUs"/></a>
                         </li>
                     </sec:authorize>
 

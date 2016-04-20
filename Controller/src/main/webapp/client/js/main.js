@@ -36,6 +36,7 @@ $(function(){
     const EDR_COIN = 'EDR Coin';
     const LIQPAY = 'LiqPay';
     const NIX = 'Nix Money';
+    const YANDEX_KASSA = 'Yandex kassa';
     const NO_ACTION = 'javascript:void(0);';
     
     var currency = $('#currency');
@@ -98,7 +99,8 @@ $(function(){
             perfectDeposit:'https://perfectmoney.is/api/step1.asp',
             advcash:'/merchants/advcash/payment/prepare',
             liqpay:'/merchants/liqpay/payment/prepare',
-            nixmoney:'/merchants/nixmoney/payment/prepare'
+            nixmoney:'/merchants/nixmoney/payment/prepare',
+            yandex_kassa:'/merchants/yandex_kassa/payment/prepare'
 
         };
         if (operationType === 'INPUT') {
@@ -117,6 +119,9 @@ $(function(){
                     break;
                 case NIX :
                     form.attr('action', formAction.nixmoney);
+                    break;
+                case YANDEX_KASSA :
+                    form.attr('action', formAction.yandex_kassa);
                     break;
                 case BLOCKCHAIN:
                 default:
