@@ -118,15 +118,6 @@ public class DashboardController {
         model.addObject("sumAmountBuy", sumAmountBuy);
         model.addObject("sumAmountSell", sumAmountSell);
         /**/
-        /*List<Map<String, BigDecimal>> list = dashboardService.getAmountsFromClosedOrders(currencyPair);
-        BigDecimal sumAmountBuyClosed = new BigDecimal(0.0);
-        BigDecimal sumAmountSellClosed = new BigDecimal(0.0);
-        for (Map<String, BigDecimal> tempRow : list) {
-            sumAmountBuyClosed = tempRow.get("amount_buy");
-            sumAmountSellClosed = tempRow.get("amount_sell");
-        }
-        model.addObject("sumAmountBuyClosed", sumAmountBuyClosed);
-        model.addObject("sumAmountSellClosed", sumAmountSellClosed);*/ //TODO DELETE
         model.addObject("sumAmountBuyClosed", lastOrder == null ? new BigDecimal(0.0) : lastOrder.getAmountBase());
         model.addObject("sumAmountSellClosed", lastOrder == null ? new BigDecimal(0.0) : lastOrder.getAmountConvert());
         /**/
@@ -334,14 +325,7 @@ public class DashboardController {
         df.setMinimumFractionDigits(0);
         df.setGroupingUsed(true);
         currencyPairStatisticsDto.setAmountBuy(lastOrder == null ? "0" : df.format(lastOrder.getAmountBase()));
-        //
-        /*List<Map<String, BigDecimal>> list = dashboardService.getAmountsFromClosedOrders(currencyPair);
-        BigDecimal sumAmountBuyClosed = new BigDecimal(0.0);
-        BigDecimal sumAmountSellClosed = new BigDecimal(0.0);
-        for (Map<String, BigDecimal> tempRow : list) {
-            sumAmountBuyClosed = tempRow.get("amount_buy");
-            sumAmountSellClosed = tempRow.get("amount_sell");
-        }*/ //TODO DELETE
+        /**/
         BigDecimal sumAmountBuyClosed = lastOrder == null ? new BigDecimal(0.0) : lastOrder.getAmountBase();
         BigDecimal sumAmountSellClosed = lastOrder == null ? new BigDecimal(0.0) : lastOrder.getAmountConvert();
         currencyPairStatisticsDto.setSumAmountBuyClosed(lastOrder == null ? "0" : df.format(lastOrder.getAmountBase()));

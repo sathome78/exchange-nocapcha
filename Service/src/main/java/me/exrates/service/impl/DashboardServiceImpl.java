@@ -51,12 +51,6 @@ public class DashboardServiceImpl implements DashboardService {
         return orderDao.getOrdersSellForCurrencyPair(currencyPair);
     }
 
-    /*@Override
-    public List<Map<String, BigDecimal>> getAmountsFromClosedOrders(CurrencyPair currencyPair){
-        logger.info("Begin 'getAmountsFromClosedOrders' method");
-        return dashboardDao.getAmountsFromClosedOrders(currencyPair);
-    }*///TODO DELETE
-
     @Override
     public List<Map<String, Object>> getDataForChart(CurrencyPair currencyPair){
         logger.info("Begin 'getDataForChart' method");
