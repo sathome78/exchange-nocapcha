@@ -51,11 +51,11 @@ public class DashboardServiceImpl implements DashboardService {
         return orderDao.getOrdersSellForCurrencyPair(currencyPair);
     }
 
-    @Override
+    /*@Override
     public List<Map<String, BigDecimal>> getAmountsFromClosedOrders(CurrencyPair currencyPair){
         logger.info("Begin 'getAmountsFromClosedOrders' method");
         return dashboardDao.getAmountsFromClosedOrders(currencyPair);
-    }
+    }*///TODO DELETE
 
     @Override
     public List<Map<String, Object>> getDataForChart(CurrencyPair currencyPair){
@@ -72,12 +72,12 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     public BigDecimal getMinPriceByCurrency(CurrencyPair currencyPair){
         logger.info("Begin 'getMinPriceByCurrency' method");
-        return dashboardDao.getMinPriceByCurrency(currencyPair);
+        return orderDao.getMinExRateByCurrencyPair(currencyPair);
     }
 
     @Override
     public BigDecimal getMaxPriceByCurrency(CurrencyPair currencyPair){
         logger.info("Begin 'getMaxPriceByCurrency' method");
-        return dashboardDao.getMaxPriceByCurrency(currencyPair);
+        return orderDao.getMaxExRateByCurrencyPair(currencyPair);
     }
 }

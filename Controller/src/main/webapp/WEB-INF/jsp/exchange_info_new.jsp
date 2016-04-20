@@ -9,7 +9,7 @@
                 <loc:message code="dashboard.lastOrder"/>
             </span>
             <span>
-                <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountBuy()}"/>
+                <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountBase()}"/>
                 ${lastOrderCurrency}
             </span>
         </li>
@@ -18,7 +18,7 @@
                 <loc:message code="dashboard.priceStart"/>
             </span>
             <span>
-                <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountBuy()}"/>
+                <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountBase()}"/>
                 ${lastOrderCurrency}
             </span>
         </li>
@@ -27,7 +27,7 @@
                 <loc:message code="dashboard.priceEnd"/>
             </span>
             <span>
-                <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountBuy()}"/>
+                <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountBase()}"/>
                 ${lastOrderCurrency}
             </span>
         </li>
@@ -36,14 +36,14 @@
                 <loc:message code="dashboard.volume"/>
             </span>
             <span>
-                <fmt:formatNumber type="number" maxFractionDigits="9" value="${sumAmountBuyClosed}"/>
+                <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountBase()}"/>
                 ${currencyPair.getCurrency1().getName()}
             </span>
         </li>
         <li id="sumAmountSellClosed">
             <span></span>
             <span>
-                <fmt:formatNumber type="number" maxFractionDigits="9" value="${sumAmountSellClosed}"/>
+                <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountConvert()}"/>
                 ${currencyPair.getCurrency2().getName()}
             </span></li>
 

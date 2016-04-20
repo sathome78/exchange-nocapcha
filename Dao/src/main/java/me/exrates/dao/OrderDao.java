@@ -5,6 +5,7 @@ import me.exrates.model.ExOrder;
 import me.exrates.model.dto.OrderListDto;
 import me.exrates.model.enums.OrderStatus;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface OrderDao {
@@ -34,6 +35,10 @@ public interface OrderDao {
     ExOrder getLastClosedOrder();
 
     ExOrder getLastClosedOrderForCurrencyPair(CurrencyPair currencyPair);
+
+    BigDecimal getMinExRateByCurrencyPair(CurrencyPair currencyPair);
+
+    BigDecimal getMaxExRateByCurrencyPair(CurrencyPair currencyPair);
 
 
 }

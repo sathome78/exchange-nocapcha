@@ -100,7 +100,7 @@ public class DashboardController {
         model.addObject("currencyPairs", currencyPairs);
         model.addObject("currencyPair", currencyPair);
         /**/
-        ExOrder lastOrder = dashboardService.getLastClosedOrder();
+        ExOrder lastOrder = dashboardService.getLastClosedOrderForCurrencyPair(currencyPair);
         model.addObject("lastOrder", lastOrder);
         /**/
         if (lastOrder != null) {
@@ -118,7 +118,7 @@ public class DashboardController {
         model.addObject("sumAmountBuy", sumAmountBuy);
         model.addObject("sumAmountSell", sumAmountSell);
         /**/
-        List<Map<String, BigDecimal>> list = dashboardService.getAmountsFromClosedOrders(currencyPair);
+        /*List<Map<String, BigDecimal>> list = dashboardService.getAmountsFromClosedOrders(currencyPair);
         BigDecimal sumAmountBuyClosed = new BigDecimal(0.0);
         BigDecimal sumAmountSellClosed = new BigDecimal(0.0);
         for (Map<String, BigDecimal> tempRow : list) {
@@ -126,7 +126,9 @@ public class DashboardController {
             sumAmountSellClosed = tempRow.get("amount_sell");
         }
         model.addObject("sumAmountBuyClosed", sumAmountBuyClosed);
-        model.addObject("sumAmountSellClosed", sumAmountSellClosed);
+        model.addObject("sumAmountSellClosed", sumAmountSellClosed);*/ //TODO DELETE
+        model.addObject("sumAmountBuyClosed", lastOrder == null ? new BigDecimal(0.0) : lastOrder.getAmountBase());
+        model.addObject("sumAmountSellClosed", lastOrder == null ? new BigDecimal(0.0) : lastOrder.getAmountConvert());
         /**/
         if (principal != null) {
             model.addObject("balanceCurrency1", dashboardService.getBalanceByCurrency(userService.getIdByEmail(principal.getName()), currencyPair.getCurrency1().getId()));
@@ -333,15 +335,17 @@ public class DashboardController {
         df.setGroupingUsed(true);
         currencyPairStatisticsDto.setAmountBuy(lastOrder == null ? "0" : df.format(lastOrder.getAmountBase()));
         //
-        List<Map<String, BigDecimal>> list = dashboardService.getAmountsFromClosedOrders(currencyPair);
+        /*List<Map<String, BigDecimal>> list = dashboardService.getAmountsFromClosedOrders(currencyPair);
         BigDecimal sumAmountBuyClosed = new BigDecimal(0.0);
         BigDecimal sumAmountSellClosed = new BigDecimal(0.0);
         for (Map<String, BigDecimal> tempRow : list) {
             sumAmountBuyClosed = tempRow.get("amount_buy");
             sumAmountSellClosed = tempRow.get("amount_sell");
-        }
-        currencyPairStatisticsDto.setSumAmountBuyClosed(sumAmountBuyClosed == null ? "0" : df.format(sumAmountBuyClosed));
-        currencyPairStatisticsDto.setSumAmountSellClosed(sumAmountSellClosed == null ? "0" : df.format(sumAmountSellClosed));
+        }*/ //TODO DELETE
+        BigDecimal sumAmountBuyClosed = lastOrder == null ? new BigDecimal(0.0) : lastOrder.getAmountBase();
+        BigDecimal sumAmountSellClosed = lastOrder == null ? new BigDecimal(0.0) : lastOrder.getAmountConvert();
+        currencyPairStatisticsDto.setSumAmountBuyClosed(lastOrder == null ? "0" : df.format(lastOrder.getAmountBase()));
+        currencyPairStatisticsDto.setSumAmountSellClosed(lastOrder == null ? "0" : df.format(lastOrder.getAmountConvert()));
 
         return currencyPairStatisticsDto;
     }

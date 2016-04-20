@@ -10,13 +10,7 @@ import java.util.Map;
 
 public interface DashboardDao {
 
-    List<Map<String, BigDecimal>> getAmountsFromClosedOrders(CurrencyPair currencyPair);
-
     List<Map<String, Object>> getDataForChart(CurrencyPair currencyPair);
 
     BigDecimal getBalanceByCurrency(int userId, int currencyId);
-
-    BigDecimal getMinPriceByCurrency(CurrencyPair currencyPair);
-
-    BigDecimal getMaxPriceByCurrency(CurrencyPair currencyPair);
 }

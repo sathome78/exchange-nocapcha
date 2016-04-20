@@ -82,15 +82,17 @@ $(document).ready(function () {
         }
     }();
 
+    //set 'click' handler for container because new '.pair-selector__menu-item' may be added
+    $(".pair-selector__menu").on('click', '.pair-selector__menu-item', function (e) {
+        $('.pair-selector__menu-item').removeClass('active');
+        $(this).addClass('active');
+        $('#pair-selector>div:first-child').text($(this).text());
+        getNewCurrencyPairData($(this).text());
+    });
+
 });
 
-//set 'click' handler for container because new '.pair-selector__menu-item' may be added
-$(".pair-selector__menu").on('click', '.pair-selector__menu-item', function (e) {
-    $('.pair-selector__menu-item').removeClass('active');
-    $(this).addClass('active');
-    $('#pair-selector>div:first-child').text($(this).text());
-    getNewCurrencyPairData($(this).text());
-});
+
 
 function getNewCurrencyPairData(newPairName) {
     var url = '/admin/changeCurrencyPair';

@@ -140,7 +140,8 @@
                     ${currencyPair.getCurrency2().getName()}
                 </div>
             </div>
-            <form:form action="order/submit" method="post" modelAttribute="order" name="formBuy">
+            <%--<form:form action="order/submit" method="post" modelAttribute="order" name="formBuy">--%>
+            <form:form action="/orders" method="post" modelAttribute="order" name="formBuy">
                 <%--количество--%>
                 <label class="col1"><loc:message
                         code="dashboard.amount"/> ${currencyPair.getCurrency1().getName()}:</label>
@@ -196,10 +197,11 @@
                 <div class="col-xs-6"><loc:message code="dashboard.highestPrice"/> <br>
                     <%--${maxPrice} --%>
                     <fmt:formatNumber type="number" maxFractionDigits="9" value="${maxPrice}"/>
-                    ${currencyPair.getCurrency1().getName()}
+                    ${currencyPair.getCurrency2().getName()}
                 </div>
             </div>
-            <form:form action="order/submit" method="post" modelAttribute="order">
+            <%--<form:form action="order/submit" method="post" modelAttribute="order">--%>
+            <form:form action="orders" method="post" modelAttribute="order">
                 <%--Количество--%>
                 <form:errors path="amountSell" style="color:red"/>
                 <form:input type="text" class="col2" path="amountSell" id="amountSellForm2" placeholder="0"/>

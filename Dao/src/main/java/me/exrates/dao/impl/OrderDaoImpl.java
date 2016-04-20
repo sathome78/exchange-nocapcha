@@ -7,6 +7,7 @@ import me.exrates.model.ExOrder;
 import me.exrates.model.dto.OrderListDto;
 import me.exrates.model.enums.OrderStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -15,6 +16,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -200,7 +202,11 @@ public class OrderDaoImpl implements OrderDao {
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("status_id", String.valueOf(3));
-        return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, new OrderRowMapper());
+        try {
+            return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, new OrderRowMapper());
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
     }
 
     @Override
@@ -213,7 +219,39 @@ public class OrderDaoImpl implements OrderDao {
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("status_id", String.valueOf(3));
         namedParameters.put("currency_pair_id", String.valueOf(currencyPair.getId()));
-        return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, new OrderRowMapper());
+        try {
+            return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, new OrderRowMapper());
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
+    }
+
+    @Override
+    public BigDecimal getMinExRateByCurrencyPair(CurrencyPair currencyPair) {
+        String sql = "SELECT MIN(exrate)FROM EXORDERS WHERE status_id=:status_id and currency_pair_id=:currency_pair_id";
+        NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+        Map<String, Integer> namedParameters = new HashMap<>();
+        namedParameters.put("status_id", 2);
+        namedParameters.put("currency_pair_id", currencyPair.getId());
+        try {
+            return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, BigDecimal.class);
+        } catch (Exception e) {
+            return new BigDecimal(0.0);
+        }
+    }
+
+    @Override
+    public BigDecimal getMaxExRateByCurrencyPair(CurrencyPair currencyPair) {
+        String sql = "SELECT MAX(exrate)FROM EXORDERS WHERE status_id=:status_id and currency_pair_id=:currency_pair_id";
+        NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+        Map<String, Integer> namedParameters = new HashMap<>();
+        namedParameters.put("status_id", 2);
+        namedParameters.put("currency_pair_id", currencyPair.getId());
+        try {
+            return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, BigDecimal.class);
+        } catch (Exception e) {
+            return new BigDecimal(0.0);
+        }
     }
 
 }

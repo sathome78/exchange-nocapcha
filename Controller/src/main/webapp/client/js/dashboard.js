@@ -8,7 +8,7 @@ $(function () {
             if (sumBuy != 0 && sumSell != 0) {
                 var computedCommission = Math.ceil(sumBuy * commission) / 100;
                 document.getElementById("buyCommission").innerHTML = computedCommission.toFixed(2);
-                document.getElementById("sumBuyWithCommission").innerHTML = ((sumBuy - computedCommission) * sumSell).toFixed(2);
+                document.getElementById("sumBuyWithCommission").innerHTML = ((+sumBuy + computedCommission) * sumSell).toFixed(2);
                 document.getElementById("sumSellForm1").value = sumBuy * sumSell;
 
             } else {

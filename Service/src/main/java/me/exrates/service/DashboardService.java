@@ -19,7 +19,7 @@ public interface DashboardService {
 
     List<OrderListDto> getAllSellOrders(CurrencyPair currencyPair);
 
-    List<Map<String, BigDecimal>> getAmountsFromClosedOrders(CurrencyPair currencyPair);
+//    List<Map<String, BigDecimal>> getAmountsFromClosedOrders(CurrencyPair currencyPair); //TODO DELETE
 
     List<Map<String, Object>> getDataForChart(CurrencyPair currencyPair);
 

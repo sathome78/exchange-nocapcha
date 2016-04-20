@@ -49,10 +49,10 @@
 
         <div class="col-sm-9 content">
             <%--Создать ордер--%>
-            <form:form action="order/new">
+            <%--<form:form action="order/new">
                 <loc:message code="myorders.create" var="labelCreate"/>
                 <button type="submit">${labelCreate}</button>
-            </form:form>
+            </form:form>--%>
             <c:choose>
 
                 <c:when test="${fn:length(orderMap.sell)==0 && fn:length(orderMap.buy)==0}">
