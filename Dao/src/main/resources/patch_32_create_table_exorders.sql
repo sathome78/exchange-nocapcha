@@ -1,32 +1,33 @@
 DROP TABLE IF EXISTS EXORDERS ;
 
-CREATE TABLE `transaction` (
+CREATE TABLE `exorders` (
   `id` int(40) NOT NULL AUTO_INCREMENT,
-  `user_wallet_id` int(11) NOT NULL,
-  `company_wallet_id` int(11) NOT NULL,
-  `amount` double(40,9) NOT NULL,
-  `commission_amount` double(40,9) NOT NULL,
-  `commission_id` int(11) NOT NULL,
-  `operation_type_id` int(11) NOT NULL,
-  `currency_id` int(11) NOT NULL,
-  `merchant_id` int(11) DEFAULT NULL,
-  `datetime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `provided` tinyint(1) NOT NULL DEFAULT '0',
+  `user_id` int(40) NOT NULL,
+  `currency_pair_id` int(40) NOT NULL,
+  `operation_type_id` int(40) NOT NULL,
+  `exrate` double(40,9) NOT NULL,
+  `amount_base` double(40,9) NOT NULL,
+  `amount_convert` double(40,9) NOT NULL,
+  `commission_id` int(11) DEFAULT NULL,
+  `commission_fixed_amount` double(40,9) NOT NULL,
+  `user_acceptor_id` int(11) DEFAULT NULL,
+  `date_creation` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `date_acception` timestamp NULL DEFAULT NULL,
+  `status_id` int(11) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `id_company_UNIQUE` (`id`),
-  KEY `fk_COMPANY_ACCOUNT_WALLET1_idx` (`user_wallet_id`),
-  KEY `COMPANY_ACCOUNT` (`commission_id`),
-  KEY `TRANSACTION_CURRENCY_ID` (`currency_id`),
-  KEY `Merchant_id` (`merchant_id`),
-  KEY `TRANSACTION` (`operation_type_id`),
-  KEY `TRANSACTION_COMPANY_WALLET` (`company_wallet_id`),
-  CONSTRAINT `fk_COMPANY_ACCOUNT_WALLET1` FOREIGN KEY (`user_wallet_id`) REFERENCES `wallet` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `transaction_ibfk_1` FOREIGN KEY (`commission_id`) REFERENCES `commission` (`id`) ON UPDATE CASCADE,
-  CONSTRAINT `transaction_ibfk_3` FOREIGN KEY (`currency_id`) REFERENCES `currency` (`id`) ON UPDATE CASCADE,
-  CONSTRAINT `transaction_ibfk_4` FOREIGN KEY (`merchant_id`) REFERENCES `merchant` (`id`) ON UPDATE CASCADE,
-  CONSTRAINT `transaction_ibfk_5` FOREIGN KEY (`operation_type_id`) REFERENCES `operation_type` (`id`) ON UPDATE CASCADE,
-  CONSTRAINT `transaction_ibfk_6` FOREIGN KEY (`company_wallet_id`) REFERENCES `company_wallet` (`id`) ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=latin1;
+  KEY `user_id` (`user_id`),
+  KEY `currency_pair` (`currency_pair_id`),
+  KEY `fk_USER_ACCEPTOR` (`user_acceptor_id`),
+  KEY `fk_OPERATION_TYPE` (`operation_type_id`),
+  KEY `status` (`status_id`),
+  KEY `commission_id` (`commission_id`),
+  CONSTRAINT `fk_COMMISSION` FOREIGN KEY (`commission_id`) REFERENCES `commission` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_CURRENCY_PAIR` FOREIGN KEY (`currency_pair_id`) REFERENCES `currency_pair` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_OPERATION_TYPE` FOREIGN KEY (`operation_type_id`) REFERENCES `operation_type` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_ORDER_STATUS` FOREIGN KEY (`status_id`) REFERENCES `order_status` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_USER_ACCEPTOR` FOREIGN KEY (`user_acceptor_id`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `fk_USER_CREATOR` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 
 INSERT INTO DATABASE_PATCH VALUES('patch_32_create_table_exorders',default,1);
 

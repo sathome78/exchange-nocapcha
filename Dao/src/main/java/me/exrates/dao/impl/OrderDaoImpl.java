@@ -195,7 +195,7 @@ public class OrderDaoImpl implements OrderDao {
     public ExOrder getLastClosedOrder(){
         String sql = "SELECT * " +
                 "  FROM EXORDERS " +
-                "  WHERE status_id = satus_id" +
+                "  WHERE status_id = status_id" +
                 "  ORDER BY date_acception DESC LIMIT 1";
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         Map<String, String> namedParameters = new HashMap<>();
