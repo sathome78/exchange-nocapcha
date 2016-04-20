@@ -27,6 +27,8 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -60,6 +62,7 @@ public class TransactionServiceImpl implements TransactionService {
     private MerchantService merchantService;
 
     private static final Logger LOG = LogManager.getLogger(TransactionServiceImpl.class);
+    private static final MathContext MATH_CONTEXT = new MathContext(9, RoundingMode.CEILING);
 
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
@@ -67,8 +70,6 @@ public class TransactionServiceImpl implements TransactionService {
         final Currency currency = creditsOperation.getCurrency();
         final User user = creditsOperation.getUser();
         final String currencyName = currency.getName();
-
-        System.out.println(currency);
 
         CompanyWallet companyWallet = companyWalletService.findByCurrency(currency);
         companyWallet = companyWallet == null ? companyWalletService.create(currency) : companyWallet;
@@ -100,6 +101,18 @@ public class TransactionServiceImpl implements TransactionService {
     @Transactional(propagation = Propagation.REQUIRED,readOnly = true)
     public Transaction findById(int id) {
         return transactionDao.findById(id);
+    }
+
+    @Override
+    public void updateTransactionAmount(final Transaction transaction, final BigDecimal amount) {
+        if (transaction.getOperationType() != OperationType.INPUT) {
+            throw new IllegalArgumentException("Updating amount only available for INPUT operation");
+        }
+        final BigDecimal commission = amount
+                .multiply(transaction.getCommission().getValue()
+                        .divide(BigDecimal.valueOf(100L),MATH_CONTEXT));
+        final BigDecimal newAmount = amount.subtract(commission,MATH_CONTEXT);
+        transactionDao.updateTransactionAmount(transaction.getId(), newAmount, commission);
     }
 
     @Override
@@ -138,7 +151,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional(readOnly = true)
     public List<Transaction> findAllByUserWallets(List<Integer> userWalletsIds) {
-        if (userWalletsIds.size()==0) {
+        if (userWalletsIds.size() == 0) {
             return null;
         }
         return transactionDao.findAllByUserWallets(userWalletsIds);

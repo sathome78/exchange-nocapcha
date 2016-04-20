@@ -100,7 +100,7 @@ public class CommonMerchantsController {
                                       final @RequestParam("amount") BigDecimal amount,
                                       final @RequestParam("currency") String currency)
     {
-        return merchantService.computeCommission(amount, type, currency);
+        return merchantService.computeCommissionAndMapAllToString(amount, type, currency);
     }
 
     @RequestMapping(value="/payment/withdraw", method = POST)

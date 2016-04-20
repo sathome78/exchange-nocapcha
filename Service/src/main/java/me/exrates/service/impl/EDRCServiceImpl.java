@@ -34,6 +34,8 @@ import javax.xml.xpath.XPathFactory;
 import java.io.IOException;
 import java.io.StringReader;
 import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.util.AbstractMap;
 import java.util.Base64;
 import java.util.HashMap;
@@ -60,6 +62,7 @@ public class EDRCServiceImpl implements EDRCService {
 
     private static final String REGEX = ".*";
     private static final Logger LOG = LogManager.getLogger("merchant");
+    private static final MathContext MATH_CONTEXT = new MathContext(9, RoundingMode.CEILING);
 
     @Autowired
     private AlgorithmService algorithmService;
@@ -91,11 +94,7 @@ public class EDRCServiceImpl implements EDRCService {
             if (!isNull(result.get("error"))) {
                 throw new MerchantInternalException("Edr-coin responded with error: " + result.get("error"));
             }
-            final BigDecimal amount = transaction
-                .getAmount()
-                .add(transaction.getCommissionAmount());
-            final String hash = computePaymentHash(transaction.getId(),
-                id, amount);
+            final String hash = computePaymentHash(transaction.getId(), id);
             payment.setAddress(result.get("address"));
             payment.setInvoiceId(transaction.getId());
             payment.setTransactionHash(hash);
@@ -153,15 +152,19 @@ public class EDRCServiceImpl implements EDRCService {
             return false;
         }
         final PendingPayment pending = optional.get();
-        final BigDecimal amount = new BigDecimal(result.get("amount"));
         if (!Objects.equals(pending.getTransactionHash(),
             computePaymentHash(pending.getInvoiceId(),
-                result.get("merchantId"),amount))) {
+                result.get("merchantId")))) {
             LOG.error("Payment hash do not match");
             return false;
         }
         final Transaction transaction = transactionService
             .findById(pending.getInvoiceId());
+        final BigDecimal currentAmount = new BigDecimal(result.get("amount"), MATH_CONTEXT);
+        final BigDecimal targetAmount = transaction.getAmount().add(transaction.getCommissionAmount(), MATH_CONTEXT);
+        if (currentAmount.compareTo(targetAmount)!=0) {
+            transactionService.updateTransactionAmount(transaction, currentAmount);
+        }
         pendingPaymentDao.delete(pending.getInvoiceId());
         transactionService.provideTransaction(transaction);
         return true;
@@ -271,13 +274,11 @@ public class EDRCServiceImpl implements EDRCService {
     }
 
     private String computePaymentHash(final int invoiceId,
-                                      final String merchantId,
-                                      final BigDecimal amount)
+                                      final String merchantId)
     {
         final String target = new StringJoiner(":")
             .add(String.valueOf(invoiceId))
             .add(String.valueOf(merchantId))
-            .add(amount.stripTrailingZeros().toString())
             .add(key)
             .toString();
         return algorithmService.sha256(target);

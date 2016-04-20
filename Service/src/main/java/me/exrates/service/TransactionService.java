@@ -4,6 +4,7 @@ import me.exrates.model.CreditsOperation;
 import me.exrates.model.OperationView;
 import me.exrates.model.Transaction;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 
@@ -15,6 +16,8 @@ public interface TransactionService {
     Transaction createTransactionRequest(CreditsOperation creditsOperation);
 
     Transaction findById(int id);
+
+    void updateTransactionAmount(Transaction transaction, BigDecimal amount);
 
     void updateTransactionConfirmation(int transactionId, int confirmations);
 

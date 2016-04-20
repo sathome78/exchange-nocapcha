@@ -1,4 +1,4 @@
-package me.exrates.model;
+ package me.exrates.model;
 
 import java.util.Optional;
 

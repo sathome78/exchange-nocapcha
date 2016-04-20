@@ -184,8 +184,9 @@ $(function(){
                     });
                     break;
                 case BLOCKCHAIN :
-                    $('#inputPaymentProcess').html($('#mrcht-waiting').html());
-                    $('#inputPaymentProcess').prop('disabled', true);
+                    $('#inputPaymentProcess')
+                        .html($('#mrcht-waiting').val())
+                        .prop('disabled', true);
                     $.ajax('/merchants/blockchain/payment/prepare', {
                         headers: {
                             'X-CSRF-Token': $("input[name='_csrf']").val()
@@ -195,6 +196,9 @@ $(function(){
                         dataType: 'text',
                         data: JSON.stringify($(form).serializeObject())
                     }).done(function (response) {
+                        $('#inputPaymentProcess')
+                            .prop('disabled', false)
+                            .html($('#mrcht-ready').val());
                         $('.paymentInfo').html(response);
                         responseControls();
                     }).fail(function (error, jqXHR, textStatus) {
@@ -204,7 +208,11 @@ $(function(){
                     });
                     break;
                 case EDR_COIN :
-                  $.ajax('/merchants/edrcoin/payment/prepare', {
+                    $('#inputPaymentProcess')
+                        .prop('disabled', true)
+                        .html($('#mrcht-waiting').val());
+                        
+                    $.ajax('/merchants/edrcoin/payment/prepare', {
                       headers: {
                           'X-CSRF-Token': $("input[name='_csrf']").val()
                       },
@@ -212,6 +220,9 @@ $(function(){
                       contentType: 'application/json',
                       data: JSON.stringify($(form).serializeObject()),
                       success:function (response) {
+                          $('#inputPaymentProcess')
+                              .prop('disabled', false)
+                              .html($('#mrcht-ready').val());
                           console.log(response);
                           $('.paymentInfo').html(response);
                           responseControls();

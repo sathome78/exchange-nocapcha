@@ -66,7 +66,7 @@ public class BlockchainController {
                 final String notification = merchantService
                     .sendDepositNotification(pendingPayment
                         .getAddress().orElseThrow(
-                            ()->new MerchantInternalException("Address not presented"))
+                            () ->new MerchantInternalException("Address not presented"))
                         ,email ,locale, creditsOperation);
                 LOG.info("New pending Blockchain payment :"+ pendingPayment);
                 final HttpHeaders httpHeaders = new HttpHeaders();

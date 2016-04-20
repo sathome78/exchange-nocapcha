@@ -26,6 +26,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.util.Map;
 import java.util.Optional;
 import java.util.StringJoiner;
@@ -37,6 +39,7 @@ import static me.exrates.model.enums.OperationType.INPUT;
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
+
 @Service
 @PropertySource("classpath:/merchants/blockchain.properties")
 public class BlockchainServiceImpl implements BlockchainService {
@@ -62,6 +65,8 @@ public class BlockchainServiceImpl implements BlockchainService {
     private BlockchainSDKWrapper blockchainSDKWrapper;
 
     private static final Logger LOG = LogManager.getLogger("merchant");
+    private static final BigDecimal SATOSHI = new BigDecimal(100_000_000L);
+    private static final MathContext MATH_CONTEXT = new MathContext(9, RoundingMode.CEILING);
 
     @Override
     @Transactional
@@ -125,12 +130,21 @@ public class BlockchainServiceImpl implements BlockchainService {
             return "Confirmations not presented";
         }
         final int confirmations = parseInt(params.get("confirmations"));
+        final Transaction transaction = transactionService
+                .findById(payment.getInvoiceId());
+        final BigDecimal targetAmount = transaction.getAmount().add(transaction.getCommissionAmount(), MATH_CONTEXT);
+        final BigDecimal currentAmount = new BigDecimal(params.get("value"), MATH_CONTEXT).divide(SATOSHI, MATH_CONTEXT);
+        if (targetAmount.compareTo(currentAmount) != 0) {
+            if (transaction.getConfirmation() == 0) {
+                transactionService.updateTransactionAmount(transaction, currentAmount);
+            } else {
+                return "Incorrect amount! Amount cannot change since it confirmed at least once";
+            }
+        }
         transactionService.updateTransactionConfirmation(payment.getInvoiceId(), confirmations);
         if (confirmations < CONFIRMATIONS) {
             return "Waiting for confirmations";
         }
-        final Transaction transaction = transactionService
-            .findById(payment.getInvoiceId());
         if (transaction.getOperationType() == INPUT) {
             pendingPaymentDao.delete(payment.getInvoiceId());
         }
@@ -152,14 +166,6 @@ public class BlockchainServiceImpl implements BlockchainService {
         }
         final String target = new StringJoiner(":")
             .add(String.valueOf(request.getId()))
-            .add(request
-                .getAmount()
-                .stripTrailingZeros()
-                .toString())
-            .add(request
-                .getCommissionAmount()
-                .stripTrailingZeros()
-                .toString())
             .add(secret)
             .toString();
         return algorithmService.sha256(target);

@@ -358,9 +358,9 @@ public class MerchantServiceImpl implements MerchantService {
     }
 
     @Override
-    public Map<String, String> computeCommission(final BigDecimal amount,
-                                                 final OperationType type,
-                                                 final String currency)
+    public Map<String, String> computeCommissionAndMapAllToString(final BigDecimal amount,
+                                                                  final OperationType type,
+                                                                  final String currency)
     {
         final Map<String, String> result = new HashMap<>();
         final BigDecimal commission = commissionService.findCommissionByType(type).getValue();

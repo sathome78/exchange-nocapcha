@@ -29,6 +29,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -93,14 +94,12 @@ public class BlockchainServiceImplTest  {
     private static Map<String,String> fakes;
 
     private static final CreditsOperation DUMMY_CREDITS_OPERATION = null;
-
+    private static final Transaction DUMMY_TRANSACTION = null;
+    private static final BigDecimal DUMMY_AMOUNT = null;
     private static final String TRANSACTION_HASH = "0xBBB";
-
     private static final String RECEIVING_ADDRESS = "0x10FF";
-
-    private static final int ID = 1;
-
     private static final MathContext MATH_CONTEXT = new MathContext(9, RoundingMode.CEILING);
+    private static final int ID = 1;
 
 
     @BeforeClass
@@ -119,7 +118,7 @@ public class BlockchainServiceImplTest  {
     public void setup() throws APIException, IOException {
         pretendedPayment = new HashMap<String, String>() {
             {
-                put("value", "1");
+                put("value", "200000000");
                 put("address", "addr");
                 put("secret", fakes.get("secret"));
                 put("confirmations", "4");
@@ -162,6 +161,7 @@ public class BlockchainServiceImplTest  {
         transaction.setOperationType(INPUT);
         transaction.setMerchant(merchant);
         transaction.setDatetime(LocalDateTime.now());
+        transaction.setConfirmation(1);
 
         doWithFields(
                 BlockchainServiceImpl.class,
@@ -171,7 +171,7 @@ public class BlockchainServiceImplTest  {
                 },
                 field -> fakes.containsKey(field.getName()));
 
-        final String seq = "1:1:1:".concat(fakes.get("secret"));
+        final String seq = "1:".concat(fakes.get("secret"));
         callback = UriComponentsBuilder
                 .fromUriString(fakes.get("callbackUrl"))
                 .queryParam("invoice_id", transaction.getId())
@@ -261,6 +261,26 @@ public class BlockchainServiceImplTest  {
         pretendedPayment.put("confirmations", "0");
         assertEquals(blockchainService.approveBlockchainTransaction(pendingPayment, pretendedPayment),
                 "Waiting for confirmations");
+    }
+
+    @Test
+    public void approveBlockchainTransactionShouldReturnIncorrectAmountInCaseOfExistingConfirmations() {
+        pretendedPayment.put("value", "1");
+        assertEquals(blockchainService.approveBlockchainTransaction(pendingPayment, pretendedPayment),
+                "Incorrect amount! Amount cannot change since it confirmed at least once");
+        final InOrder inOrder = inOrder(transactionService);
+        inOrder.verify(transactionService).findById(ID);
+    }
+
+    @Test
+    public void approveBlockchainTransactionShouldReturnWaitingForConfirmationsAndRecalculateAmount() {
+        transaction.setConfirmation(0);
+        pretendedPayment.put("value", "1");
+        pretendedPayment.put("confirmations", "1");
+        assertEquals(blockchainService.approveBlockchainTransaction(pendingPayment, pretendedPayment),
+                "Waiting for confirmations");
+        final InOrder inOrder = inOrder(transactionService);
+        inOrder.verify(transactionService).findById(ID);
     }
 
     @Test

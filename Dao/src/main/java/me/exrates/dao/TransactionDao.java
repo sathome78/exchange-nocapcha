@@ -2,6 +2,7 @@ package me.exrates.dao;
 
 import me.exrates.model.Transaction;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -16,6 +17,8 @@ public interface TransactionDao {
     boolean provide(int id);
 
     boolean delete(int id);
+
+    void updateTransactionAmount(int transactionId, BigDecimal amount, BigDecimal commission);
 
     void updateTransactionConfirmations(int transactionId, int confirmations);
 

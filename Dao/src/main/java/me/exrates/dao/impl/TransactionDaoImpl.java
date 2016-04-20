@@ -16,6 +16,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
@@ -166,6 +167,16 @@ public final class TransactionDaoImpl implements TransactionDao {
             }
         };
         return jdbcTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public void updateTransactionAmount(final int transactionId, final BigDecimal amount, final BigDecimal commission) {
+        final String sql = "UPDATE TRANSACTION SET amount = :amount, commission_amount = :commission WHERE id = :id";
+        final Map<String, Object> params = new HashMap<>();
+        params.put("amount", amount);
+        params.put("commission", commission);
+        params.put("id", transactionId);
+        jdbcTemplate.update(sql, params);
     }
 
     @Override
