@@ -5,34 +5,13 @@ $(function () {
         $('#graphic').hide();
         $.get("/dashboard/chartArray", function (arrayResult) {
             var Combined = new Array();
-            /*for (var i = 0; i < arrayResult.length; i++){
-             Combined[i] = [ arrayResult[i][0], arrayResult[i][1], arrayResult[i][2],  arrayResult[i][3], arrayResult[i][4], arrayResult[i][5]];
-             }
-             var data = google.visualization.arrayToDataTable(Combined, true);*/
-
             for (var i = 0; i < arrayResult.length; i++) {
                 Combined[i] = [arrayResult[i][0], arrayResult[i][1]];
             }
+            if (Combined.length == 0) {
+                Combined[0] = ['',0,0];
+            }
             var data = google.visualization.arrayToDataTable(Combined, true);
-
-            /*var data = google.visualization.arrayToDataTable([
-             [1, 13, 28, 38, 45, 11],
-             [2, 31, 38, 55, 66, 21],
-             [3, 50, 55, 77, 80, 13],
-             [4, 77, 77, 66, 50, 15],
-             [5, 77, 77, 66, 50, 12],
-             [6, 37, 77, 66, 50, 14],
-             [7, 57, 77, 66, 50, 14],
-             [8, 67, 77, 66, 50, 5],
-             [9, 17, 77, 66, 50, 6],
-             [10, 67, 77, 66, 50, 9],
-             [11, 77, 77, 66, 50, 14],
-             [12, 87, 77, 66, 50, 4],
-             [13, 27, 77, 66, 50, 24],
-             [14, 37, 77, 66, 50, 11],
-             [15, 47, 77, 66, 50, 2],
-             [16, 68, 66, 22, 15, 7]
-             ], true);*/
 
             options = {
                 chartArea: {

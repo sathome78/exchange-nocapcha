@@ -263,7 +263,7 @@ public class OrderDaoImpl implements OrderDao {
 
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         Map<String, String> namedParameters = new HashMap<>();
-        namedParameters.put("status_id", String.valueOf(2));
+        namedParameters.put("status_id", String.valueOf(3));
         namedParameters.put("currency_pair_id", String.valueOf(currencyPair.getId()));
 //        namedParameters.put("date_acception_start", String.valueOf(LocalDate.parse("2016-01-20")));
 //        namedParameters.put("date_acception_end", String.valueOf(LocalDate.parse("2016-12-20")));

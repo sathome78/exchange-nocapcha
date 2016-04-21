@@ -222,6 +222,7 @@ public class OrderServiceImpl implements OrderService {
             Transaction transaction = new Transaction();
             if (exOrder.getOperationType() == OperationType.BUY) {
                 /*for creator IN*/
+                transaction.setOperationType(OperationType.INPUT);
                 wallet.setId(walletsForOrderAcceptionDto.getUserCreatorInWalletId());
                 transaction.setUserWallet(wallet);
                 companyWallet.setId(walletsForOrderAcceptionDto.getCompanyWalletCurrencyBase());
@@ -230,7 +231,6 @@ public class OrderServiceImpl implements OrderService {
                 transaction.setCommissionAmount(new BigDecimal(0));
                 commission.setId(exOrder.getComissionId());
                 transaction.setCommission(commission);
-                transaction.setOperationType(exOrder.getOperationType());
                 currency.setId(walletsForOrderAcceptionDto.getCurrencyBase());
                 transaction.setCurrency(currency);
                 transaction.setOrder(exOrder);
@@ -239,6 +239,7 @@ public class OrderServiceImpl implements OrderService {
                     throw new TransactionPersistException("Failed to provide transaction ");
                 }
                 /*for creator OUT*/
+                transaction.setOperationType(OperationType.OUTPUT);
                 wallet.setId(walletsForOrderAcceptionDto.getUserCreatorOutWalletId());
                 transaction.setUserWallet(wallet);
                 companyWallet.setId(walletsForOrderAcceptionDto.getCompanyWalletCurrencyConvert());
@@ -247,7 +248,6 @@ public class OrderServiceImpl implements OrderService {
                 transaction.setCommissionAmount(exOrder.getCommissionFixedAmount());
                 commission.setId(exOrder.getComissionId());
                 transaction.setCommission(commission);
-                transaction.setOperationType(exOrder.getOperationType());
                 currency.setId(walletsForOrderAcceptionDto.getCurrencyConvert());
                 transaction.setCurrency(currency);
                 transaction.setOrder(exOrder);
@@ -256,6 +256,7 @@ public class OrderServiceImpl implements OrderService {
                     throw new TransactionPersistException("Failed to provide transaction ");
                 }
                 /*for acceptor IN*/
+                transaction.setOperationType(OperationType.INPUT);
                 wallet.setId(walletsForOrderAcceptionDto.getUserAcceptorInWalletId());
                 transaction.setUserWallet(wallet);
                 companyWallet.setId(walletsForOrderAcceptionDto.getCompanyWalletCurrencyConvert());
@@ -263,7 +264,6 @@ public class OrderServiceImpl implements OrderService {
                 transaction.setAmount(amountWithComissionForAcceptor);
                 transaction.setCommissionAmount(amountComissionForAcceptor);
                 transaction.setCommission(comissionForAcceptor);
-                transaction.setOperationType(OperationType.SELL);
                 currency.setId(walletsForOrderAcceptionDto.getCurrencyConvert());
                 transaction.setCurrency(currency);
                 transaction.setOrder(exOrder);
@@ -272,6 +272,7 @@ public class OrderServiceImpl implements OrderService {
                     throw new TransactionPersistException("Failed to provide transaction ");
                 }
                 /*for acceptor OUT*/
+                transaction.setOperationType(OperationType.OUTPUT);
                 wallet.setId(walletsForOrderAcceptionDto.getUserAcceptorOutWalletId());
                 transaction.setUserWallet(wallet);
                 companyWallet.setId(walletsForOrderAcceptionDto.getCompanyWalletCurrencyBase());
@@ -279,7 +280,6 @@ public class OrderServiceImpl implements OrderService {
                 transaction.setAmount(exOrder.getAmountBase());
                 transaction.setCommissionAmount(new BigDecimal(0));
                 transaction.setCommission(comissionForAcceptor);
-                transaction.setOperationType(OperationType.SELL);
                 currency.setId(walletsForOrderAcceptionDto.getCurrencyBase());
                 transaction.setCurrency(currency);
                 transaction.setOrder(exOrder);
@@ -290,6 +290,7 @@ public class OrderServiceImpl implements OrderService {
             }
             if (exOrder.getOperationType() == OperationType.SELL) {
                 /*for creator IN*/
+                transaction.setOperationType(OperationType.INPUT);
                 wallet.setId(walletsForOrderAcceptionDto.getUserCreatorInWalletId());
                 transaction.setUserWallet(wallet);
                 companyWallet.setId(walletsForOrderAcceptionDto.getCompanyWalletCurrencyConvert());
@@ -298,7 +299,6 @@ public class OrderServiceImpl implements OrderService {
                 transaction.setCommissionAmount(exOrder.getCommissionFixedAmount());
                 commission.setId(exOrder.getComissionId());
                 transaction.setCommission(commission);
-                transaction.setOperationType(exOrder.getOperationType());
                 currency.setId(walletsForOrderAcceptionDto.getCurrencyConvert());
                 transaction.setCurrency(currency);
                 transaction.setOrder(exOrder);
@@ -307,6 +307,7 @@ public class OrderServiceImpl implements OrderService {
                     throw new TransactionPersistException("Failed to provide transaction ");
                 }
                 /*for creator OUT*/
+                transaction.setOperationType(OperationType.OUTPUT);
                 wallet.setId(walletsForOrderAcceptionDto.getUserCreatorOutWalletId());
                 transaction.setUserWallet(wallet);
                 companyWallet.setId(walletsForOrderAcceptionDto.getCompanyWalletCurrencyBase());
@@ -315,7 +316,6 @@ public class OrderServiceImpl implements OrderService {
                 transaction.setCommissionAmount(new BigDecimal(0));
                 commission.setId(exOrder.getComissionId());
                 transaction.setCommission(commission);
-                transaction.setOperationType(exOrder.getOperationType());
                 currency.setId(walletsForOrderAcceptionDto.getCurrencyBase());
                 transaction.setCurrency(currency);
                 transaction.setOrder(exOrder);
@@ -324,6 +324,7 @@ public class OrderServiceImpl implements OrderService {
                     throw new TransactionPersistException("Failed to provide transaction ");
                 }
                 /*for acceptor IN*/
+                transaction.setOperationType(OperationType.INPUT);
                 wallet.setId(walletsForOrderAcceptionDto.getUserAcceptorInWalletId());
                 transaction.setUserWallet(wallet);
                 companyWallet.setId(walletsForOrderAcceptionDto.getCompanyWalletCurrencyBase());
@@ -331,7 +332,6 @@ public class OrderServiceImpl implements OrderService {
                 transaction.setAmount(exOrder.getAmountBase());
                 transaction.setCommissionAmount(new BigDecimal(0));
                 transaction.setCommission(comissionForAcceptor);
-                transaction.setOperationType(OperationType.BUY);
                 currency.setId(walletsForOrderAcceptionDto.getCurrencyBase());
                 transaction.setCurrency(currency);
                 transaction.setOrder(exOrder);
@@ -340,6 +340,7 @@ public class OrderServiceImpl implements OrderService {
                     throw new TransactionPersistException("Failed to provide transaction ");
                 }
                 /*for acceptor OUT*/
+                transaction.setOperationType(OperationType.OUTPUT);
                 wallet.setId(walletsForOrderAcceptionDto.getUserAcceptorOutWalletId());
                 transaction.setUserWallet(wallet);
                 companyWallet.setId(walletsForOrderAcceptionDto.getCompanyWalletCurrencyConvert());
@@ -347,7 +348,6 @@ public class OrderServiceImpl implements OrderService {
                 transaction.setAmount(amountWithComissionForAcceptor);
                 transaction.setCommissionAmount(amountComissionForAcceptor);
                 transaction.setCommission(comissionForAcceptor);
-                transaction.setOperationType(OperationType.BUY);
                 currency.setId(walletsForOrderAcceptionDto.getCurrencyConvert());
                 transaction.setCurrency(currency);
                 transaction.setOrder(exOrder);

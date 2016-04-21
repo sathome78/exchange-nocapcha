@@ -159,7 +159,7 @@
                 <span class="col2"><b id="sumBuyWithCommission"></b> ${currencyPair.getCurrency2().getName()}</span>
                 <%--комисия--%>
                 <span class="col1"><loc:message code="dashboard.fee"/></span>
-                <span class="col2"><b id="buyCommission"></b> ${currencyPair.getCurrency1().getName()}</span>
+                <span class="col2"><b id="buyCommission"></b> ${currencyPair.getCurrency2().getName()}</span>
 
                 <div class="row">
                     <div class="col-xs-6">
