@@ -13,6 +13,8 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +45,18 @@ public final class TransactionDaoImpl implements TransactionDao {
         merchant.setName(resultSet.getString("MERCHANT.name"));
         merchant.setDescription(resultSet.getString("MERCHANT.description"));
 
+        final ExOrder order = new ExOrder();
+        order.setId(resultSet.getInt("EXORDERS.id"));
+        order.setUserId(resultSet.getInt("EXORDERS.user_id"));
+        order.setCurrencyPairId(resultSet.getInt("EXORDERS.currency_pair_id"));
+        order.setOperationType(OperationType.convert(resultSet.getInt("EXORDERS.operation_type_id")));
+        order.setExRate(resultSet.getBigDecimal("EXORDERS.exrate"));
+        order.setAmountBase(resultSet.getBigDecimal("EXORDERS.amount_base"));
+        order.setAmountConvert(resultSet.getBigDecimal("EXORDERS.amount_convert"));
+        order.setCommissionFixedAmount(resultSet.getBigDecimal("EXORDERS.commission_fixed_amount"));
+        order.setDateCreation(resultSet.getTimestamp("EXORDERS.date_creation").toLocalDateTime());
+        order.setDateAcception(resultSet.getTimestamp("EXORDERS.date_acception").toLocalDateTime());
+
         final Commission commission = new Commission();
         commission.setId(resultSet.getInt("COMMISSION.id"));
         commission.setOperationType(operationType);
@@ -71,6 +85,7 @@ public final class TransactionDaoImpl implements TransactionDao {
         transaction.setUserWallet(userWallet);
         transaction.setOperationType(operationType);
         transaction.setMerchant(merchant);
+        transaction.setOrder(order);
         transaction.setCurrency(currency);
         transaction.setProvided(resultSet.getBoolean("provided"));
         transaction.setConfirmation(resultSet.getInt("confirmation"));
@@ -125,18 +140,25 @@ public final class TransactionDaoImpl implements TransactionDao {
 
     @Override
     public List<Transaction> findAllByUserWallets(List<Integer> walletIds) {
-        final String sql = "SELECT TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime,TRANSACTION.operation_type_id,TRANSACTION.provided, TRANSACTION.confirmation," +
+        final String sql = "SELECT TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime, " +
+                " TRANSACTION.operation_type_id,TRANSACTION.provided, TRANSACTION.confirmation, TRANSACTION.order_id, " +
                 " WALLET.id,WALLET.active_balance,WALLET.reserved_balance,WALLET.currency_id," +
                 " COMPANY_WALLET.id,COMPANY_WALLET.balance,COMPANY_WALLET.commission_balance," +
                 " COMMISSION.id,COMMISSION.date,COMMISSION.value," +
                 " CURRENCY.id,CURRENCY.description,CURRENCY.name," +
-                " MERCHANT.id,MERCHANT.name,MERCHANT.description " +
+                " MERCHANT.id,MERCHANT.name,MERCHANT.description, " +
+                " EXORDERS.id, EXORDERS.user_id, EXORDERS.currency_pair_id, EXORDERS.operation_type_id, EXORDERS.exrate, " +
+                " EXORDERS.amount_base, EXORDERS.amount_convert, EXORDERS.commission_fixed_amount, EXORDERS.date_creation, " +
+                " EXORDERS.date_acception " +
                 " FROM TRANSACTION INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id" +
                 " INNER JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id" +
                 " INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
                 " INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id" +
-                " INNER JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id WHERE TRANSACTION.user_wallet_id in (:ids)";
-        return jdbcTemplate.query(sql, singletonMap("ids", walletIds),transactionRowMapper);
+                " LEFT JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id " +
+                " LEFT JOIN EXORDERS ON TRANSACTION.order_id = EXORDERS.id " +
+                " WHERE TRANSACTION.user_wallet_id in (:ids)" +
+                " ORDER BY TRANSACTION.datetime DESC, EXORDERS.id DESC ";
+        return jdbcTemplate.query(sql, Collections.singletonMap("ids", walletIds), transactionRowMapper);
     }
 
     @Override

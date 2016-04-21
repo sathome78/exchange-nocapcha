@@ -19,15 +19,14 @@ public class OperationView {
     private Merchant merchant;
 	@JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime datetime;
-    private OrderStatus orderStatus;
+    private ExOrder order;
 	private String status;
 
-    
-	public OrderStatus getOrderStatus() {
-		return orderStatus;
+	public ExOrder getOrder() {
+		return order;
 	}
-	public void setOrderStatus(OrderStatus orderStatus) {
-		this.orderStatus = orderStatus;
+	public void setOrder(ExOrder order) {
+		this.order = order;
 	}
 	public BigDecimal getAmount() {
 		return amount;

@@ -159,7 +159,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public List<OperationView> showMyOperationHistory(String email, Locale locale) {
-        /*int id = userService.getIdByEmail(email);
+        int id = userService.getIdByEmail(email);
         final List<Integer> collect = walletService.getAllWallets(id)
             .stream()
             .mapToInt(Wallet::getId)
@@ -167,33 +167,7 @@ public class TransactionServiceImpl implements TransactionService {
             .collect(Collectors.toList());
         final List<Transaction> allByUserId = findAllByUserWallets(collect);
         LOG.info(allByUserId);
-        Map<String, List<Order>> orderMap = orderService.getMyOrders(email, locale);
-        List<Order> orderList = new ArrayList<>();
-        orderList.addAll(orderMap.get("sell"));
-        orderList.addAll(orderMap.get("buy"));
         List<OperationView> list = new ArrayList<>();
-        if(orderList.size() > 0 ) {
-            for(Order order : orderList) {
-                OperationView view = new OperationView();
-                LocalDateTime datetime = order.getDateFinal();
-                if(order.getDateCreation().isAfter(order.getDateFinal())) {
-                    datetime = order.getDateCreation();
-                }
-                view.setDatetime(datetime);
-                view.setAmount(order.getAmountSell());
-                view.setAmountBuy(order.getAmountBuy());
-                BigDecimal commissionAmount = order.getCommissionAmountBuy();
-                if(order.getOperationType().equals(OperationType.SELL)) {
-                    commissionAmount = order.getCommissionAmountSell();
-                }
-                view.setCommissionAmount(commissionAmount);
-                view.setCurrency(order.getCurrencySellString());
-                view.setCurrencyBuy(order.getCurrencyBuyString());
-                view.setOperationType(order.getOperationType());
-                view.setOrderStatus(order.getStatus());
-                list.add(view);
-            }
-        }
         if (allByUserId != null) {
             allByUserId
                 .stream()
@@ -205,13 +179,13 @@ public class TransactionServiceImpl implements TransactionService {
                         view.setCurrency(t.getCurrency().getName());
                         view.setOperationType(t.getOperationType());
                         view.setMerchant(t.getMerchant());
+                        view.setOrder(t.getOrder());
                         view.setStatus(merchantService.resolveTransactionStatus(t, locale));
                         list.add(view);
                 });
         }
         Collections.sort(list, new OperationViewComparator());
-        return list;*/
-        return new ArrayList<OperationView>(); //TODO  !!!
+        return list;
     }
 
     @Override

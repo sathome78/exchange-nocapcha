@@ -35,6 +35,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/menuSwitcher.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
     <%----------%>
 </head>
 
@@ -67,14 +68,11 @@
                             <th><loc:message code="transaction.currency"/></th>
                                 <%--Сумма--%>
                             <th><loc:message code="transaction.amount"/></th>
-                                <%--Валюта <br> покупки--%>
-                            <th><loc:message code="transaction.currencyBuy"/></th>
-                                <%--Сумма <br> покупки--%>
-                            <th><loc:message code="transaction.amountBuy"/></th>
                                 <%--Сумма <br> комиссии--%>
                             <th><loc:message code="transaction.commissionAmount"/></th>
                                 <%--Платежная <br> система--%>
                             <th><loc:message code="transaction.merchant"/></th>
+                            <th><loc:message code="transaction.order"/></th>
                             <th><loc:message code="transaction.status"/></th>
                         </tr>
                         <c:forEach var="transaction" items="${transactions}">
@@ -86,18 +84,7 @@
                                     <fmt:formatDate value="${parsedDate}" pattern="yyyy-MM-dd'<br/>'HH:mm"/>
                                 </td>
                                 <td>
-                                        <%--Принятие <br> ордера--%>
-                                    <c:choose>
-                                        <c:when test="${transaction.operationType.type eq 1 or transaction.operationType.type eq 2}">
-                                            <loc:message code="transaction.operationType${transaction.operationType}"/>
-                                        </c:when>
-                                        <c:when test="${transaction.orderStatus.status eq 2}">
-                                            <loc:message code="transaction.operationTypeCreateOrder"/>
-                                        </c:when>
-                                        <c:when test="${transaction.orderStatus.status eq 3}">
-                                            <loc:message code="transaction.operationTypeAcceptOrder"/>
-                                        </c:when>
-                                    </c:choose>
+                                    <loc:message code="transaction.operationType${transaction.operationType}"/>
                                 </td>
                                     <%--USD--%>
                                 <td>
@@ -107,23 +94,26 @@
                                 <td>
                                     <fmt:formatNumber value="${transaction.amount}" maxFractionDigits="9"/>
                                 </td>
-                                    <%--EUR--%>
-                                <td>
-                                        ${transaction.currencyBuy}
-                                </td>
-                                    <%--сумма--%>
-                                <td>
-                                    <fmt:formatNumber value="${transaction.amountBuy}" maxFractionDigits="9"/>
-                                </td>
                                     <%--комиссия--%>
                                 <td>
                                     <fmt:formatNumber value="${transaction.commissionAmount}" maxFractionDigits="9"/>
                                 </td>
                                     <%--мерч имя--%>
                                 <td>
-                                    <c:if test="${transaction.orderStatus eq null}">
+                                    <c:if test="${transaction.merchant.getId() != null}">
                                         ${transaction.merchant.name}
                                     </c:if>
+                                </td>
+                                <td class="order-noty">
+                                    <c:if test="${transaction.order.getId() != null}">
+                                        ${transaction.order.getId()}
+                                    </c:if>
+                                    <input id="operationType" hidden type="text" value = "${transaction.order.getOperationType().toString()}"/>
+                                    <input id="amountBase" hidden type="text" value = "${transaction.order.getAmountBase()}"/>
+                                    <input id="exRate" hidden type="text" value = "${transaction.order.getExRate()}"/>
+                                    <input id="amountConvert" hidden type="text" value = "${transaction.order.getAmountConvert()}"/>
+                                    <input id="dateCreation" hidden type="text" value = "${transaction.order.getDateCreation()}"/>
+                                    <input id="dateAcception" hidden type="text" value = "${transaction.order.getDateAcception()}"/>
                                 </td>
                                 <td>
                                     <c:if test="${transaction.status != null}">

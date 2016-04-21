@@ -235,6 +235,7 @@ public class OrderServiceImpl implements OrderService {
                 currency.setId(walletsForOrderAcceptionDto.getCurrencyBase());
                 transaction.setCurrency(currency);
                 transaction.setOrder(exOrder);
+                transaction.setProvided(true);
                 transaction = transactionDao.create(transaction);
                 if (transaction == null) {
                     throw new TransactionPersistException("Failed to provide transaction ");
@@ -252,6 +253,7 @@ public class OrderServiceImpl implements OrderService {
                 currency.setId(walletsForOrderAcceptionDto.getCurrencyConvert());
                 transaction.setCurrency(currency);
                 transaction.setOrder(exOrder);
+                transaction.setProvided(true);
                 transaction = transactionDao.create(transaction);
                 if (transaction == null) {
                     throw new TransactionPersistException("Failed to provide transaction ");
@@ -268,6 +270,7 @@ public class OrderServiceImpl implements OrderService {
                 currency.setId(walletsForOrderAcceptionDto.getCurrencyConvert());
                 transaction.setCurrency(currency);
                 transaction.setOrder(exOrder);
+                transaction.setProvided(true);
                 transaction = transactionDao.create(transaction);
                 if (transaction == null) {
                     throw new TransactionPersistException("Failed to provide transaction ");
@@ -284,6 +287,7 @@ public class OrderServiceImpl implements OrderService {
                 currency.setId(walletsForOrderAcceptionDto.getCurrencyBase());
                 transaction.setCurrency(currency);
                 transaction.setOrder(exOrder);
+                transaction.setProvided(true);
                 transaction = transactionDao.create(transaction);
                 if (transaction == null) {
                     throw new TransactionPersistException("Failed to provide transaction ");
@@ -303,6 +307,7 @@ public class OrderServiceImpl implements OrderService {
                 currency.setId(walletsForOrderAcceptionDto.getCurrencyConvert());
                 transaction.setCurrency(currency);
                 transaction.setOrder(exOrder);
+                transaction.setProvided(true);
                 transaction = transactionDao.create(transaction);
                 if (transaction == null) {
                     throw new TransactionPersistException("Failed to provide transaction ");
@@ -320,6 +325,7 @@ public class OrderServiceImpl implements OrderService {
                 currency.setId(walletsForOrderAcceptionDto.getCurrencyBase());
                 transaction.setCurrency(currency);
                 transaction.setOrder(exOrder);
+                transaction.setProvided(true);
                 transaction = transactionDao.create(transaction);
                 if (transaction == null) {
                     throw new TransactionPersistException("Failed to provide transaction ");
@@ -336,6 +342,7 @@ public class OrderServiceImpl implements OrderService {
                 currency.setId(walletsForOrderAcceptionDto.getCurrencyBase());
                 transaction.setCurrency(currency);
                 transaction.setOrder(exOrder);
+                transaction.setProvided(true);
                 transaction = transactionDao.create(transaction);
                 if (transaction == null) {
                     throw new TransactionPersistException("Failed to provide transaction ");
@@ -352,6 +359,7 @@ public class OrderServiceImpl implements OrderService {
                 currency.setId(walletsForOrderAcceptionDto.getCurrencyConvert());
                 transaction.setCurrency(currency);
                 transaction.setOrder(exOrder);
+                transaction.setProvided(true);
                 transaction = transactionDao.create(transaction);
                 if (transaction == null) {
                     throw new TransactionPersistException("Failed to provide transaction ");
