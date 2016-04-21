@@ -7,6 +7,7 @@ import me.exrates.model.enums.OrderStatus;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 public interface OrderDao {
 
@@ -39,6 +40,8 @@ public interface OrderDao {
     BigDecimal getMinExRateByCurrencyPair(CurrencyPair currencyPair);
 
     BigDecimal getMaxExRateByCurrencyPair(CurrencyPair currencyPair);
+
+    List<Map<String, Object>> getDataForChart(CurrencyPair currencyPair);
 
 
 }

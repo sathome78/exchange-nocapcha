@@ -34,6 +34,7 @@ import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -140,31 +141,20 @@ public class DashboardController {
     public
     @ResponseBody
     ArrayList chartArray(HttpServletRequest request) {
-
         CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
-        ;
-        List<Map<String, Object>> list = dashboardService.getDataForChart(currencyPair);
+        List<Map<String, Object>> rows = dashboardService.getDataForChart(currencyPair);
 
-        ArrayList<ArrayList> arrayListMain = new ArrayList<ArrayList>();
+        ArrayList<List> arrayListMain = new ArrayList<>();
+        for (Map<String, Object> row : rows) {
+            Timestamp dateAcception = (Timestamp) row.get("dateAcception");
+            BigDecimal exrate = (BigDecimal) row.get("exrate");
 
-        for (Map<String, Object> tempRow : list) {
-            BigDecimal amount = (BigDecimal) tempRow.get("amount");
-            BigDecimal amountSell = (BigDecimal) tempRow.get("amount_sell");
-            Timestamp timestamp = (Timestamp) tempRow.get("date_final");
-            Date date = new Date(timestamp.getTime());
-
-            if (amount == null) {
-                continue;
+            if (dateAcception !=null) {
+                ArrayList<Object> arrayList = new ArrayList<>();
+                arrayList.add(dateAcception.toString());
+                arrayList.add(exrate.doubleValue());
+                arrayListMain.add(arrayList);
             }
-            ArrayList<Object> arrayList = new ArrayList<Object>();
-            arrayList.add(timestamp.toString());
-            arrayList.add(amount.doubleValue());
-            arrayList.add(amount.doubleValue());
-            arrayList.add(amount.doubleValue());
-            arrayList.add(amount.doubleValue());
-            arrayList.add(amountSell.doubleValue());
-
-            arrayListMain.add(arrayList);
 
         }
         return arrayListMain;

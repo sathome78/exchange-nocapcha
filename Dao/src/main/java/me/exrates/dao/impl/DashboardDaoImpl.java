@@ -22,33 +22,6 @@ public class DashboardDaoImpl implements DashboardDao {
     @Autowired
     DataSource dataSource;
 
-    @Override
-    public List<Map<String, Object>> getDataForChart(CurrencyPair currencyPair) {
-        String sql = "SELECT date_final, " +
-                "CASE WHEN currency_buy = :currency_buy AND currency_sell = :currency_sell THEN\n" +
-                "\t(amount_buy/amount_sell)\n" +
-                "    ELSE CASE WHEN currency_buy = :currency_sell AND currency_sell = :currency_buy THEN\n" +
-                "    (amount_sell/amount_buy) END END as amount,\n" +
-                "CASE WHEN currency_buy = :currency_buy AND currency_sell = :currency_sell THEN\n" +
-                "\tamount_sell\n" +
-                "    ELSE CASE WHEN currency_buy = :currency_sell AND currency_sell = :currency_buy THEN\n" +
-                "    amount_buy END END as amount_sell FROM ORDERS WHERE date_final IS NOT NULL order by date_final limit 12;";
-
-        NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-        Map<String, String> namedParameters = new HashMap<String, String>();
-        namedParameters.put("currency_sell", String.valueOf(currencyPair.getCurrency1().getId()));
-        namedParameters.put("currency_buy", String.valueOf(currencyPair.getCurrency2().getId()));
-        List<Map<String, Object>> rows = namedParameterJdbcTemplate.query(sql, namedParameters, (rs, row) -> {
-            Map<String, Object> map = new HashMap<>();
-            map.put("date_final", rs.getTimestamp("date_final"));
-            map.put("amount", rs.getBigDecimal("amount"));
-            map.put("amount_sell", rs.getBigDecimal("amount_sell"));
-            return map;
-        });
-
-        return rows;
-    }
-
     private BigDecimal getSumOrdersByCurrency(int currencyId) {
         String sql = "SELECT sum(amount_buy) FROM ORDERS;";
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);

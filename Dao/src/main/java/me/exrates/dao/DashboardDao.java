@@ -10,7 +10,5 @@ import java.util.Map;
 
 public interface DashboardDao {
 
-    List<Map<String, Object>> getDataForChart(CurrencyPair currencyPair);
-
     BigDecimal getBalanceByCurrency(int userId, int currencyId);
 }

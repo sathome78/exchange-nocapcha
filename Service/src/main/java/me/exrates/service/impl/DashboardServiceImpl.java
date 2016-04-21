@@ -54,7 +54,7 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     public List<Map<String, Object>> getDataForChart(CurrencyPair currencyPair){
         logger.info("Begin 'getDataForChart' method");
-        return dashboardDao.getDataForChart(currencyPair);
+        return orderDao.getDataForChart(currencyPair);
     }
 
     @Override

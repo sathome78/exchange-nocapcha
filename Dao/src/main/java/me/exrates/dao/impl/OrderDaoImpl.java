@@ -17,6 +17,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -253,6 +254,29 @@ public class OrderDaoImpl implements OrderDao {
             return new BigDecimal(0.0);
         }
     }
+
+    @Override
+    public List<Map<String, Object>> getDataForChart(CurrencyPair currencyPair) {
+        String sql = "SELECT date_acception, exrate FROM EXORDERS " +
+                " WHERE status_id=:status_id AND currency_pair_id=:currency_pair_id ";
+                //+ " AND  date_acception BETWEEN :date_acception_start and :date_acception_end";
+
+        NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+        Map<String, String> namedParameters = new HashMap<>();
+        namedParameters.put("status_id", String.valueOf(2));
+        namedParameters.put("currency_pair_id", String.valueOf(currencyPair.getId()));
+//        namedParameters.put("date_acception_start", String.valueOf(LocalDate.parse("2016-01-20")));
+//        namedParameters.put("date_acception_end", String.valueOf(LocalDate.parse("2016-12-20")));
+        List<Map<String, Object>> rows = namedParameterJdbcTemplate.query(sql, namedParameters, (rs, row) -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("dateAcception", rs.getTimestamp("date_acception"));
+            map.put("exrate", rs.getBigDecimal("exrate"));
+            return map;
+        });
+
+        return rows;
+    }
+
 
 }
 
