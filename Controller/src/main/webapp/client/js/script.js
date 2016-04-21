@@ -110,6 +110,9 @@ function getNewCurrencyPairData(newPairName) {
             if (!$('#pair-selector>div:first-child').text()) {
                 createPairSelectorMenu(data['name']);
             }
+            if (newPairName) {
+                window.location.reload();
+            }
         }
     });
 }
@@ -129,9 +132,18 @@ function createPairSelectorMenu(currencyPairName) {
                     $('.pair-selector__menu').append('<div class="pair-selector__menu-item">' + e + '</div>');
                 }
             });
+        },
+
+        error: function(jqXHR, textStatus, errorThrown){
+            console.log('******************************');
+            console.log(jqXHR);
+            console.log(textStatus);
+            console.log(errorThrown);
+            console.log('******************************');
         }
     });
 }
+
 
 
 

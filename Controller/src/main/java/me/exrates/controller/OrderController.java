@@ -292,7 +292,8 @@ public class OrderController {
     @RequestMapping("/myorders")
     public ModelAndView showMyOrders(Principal principal, ModelAndView model, HttpServletRequest request) {
         String email = principal.getName();
-        Map<String, List<OrderWideListDto>> orderMap = orderService.getMyOrders(email, localeResolver.resolveLocale(request));
+        CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
+        Map<String, List<OrderWideListDto>> orderMap = orderService.getMyOrders(email, currencyPair, localeResolver.resolveLocale(request));
         model.addObject("orderMap", orderMap);
         return model;
     }

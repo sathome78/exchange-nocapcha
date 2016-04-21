@@ -1,5 +1,6 @@
 package me.exrates.service;
 
+import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderListDto;
@@ -14,7 +15,7 @@ public interface OrderService {
 
     int createOrder(int userId, OrderCreateDto order);
 
-    Map<String, List<OrderWideListDto>> getMyOrders(String email, Locale locale);
+    Map<String, List<OrderWideListDto>> getMyOrders(String email, CurrencyPair currencyPair, Locale locale);
 
     Map<String, List<OrderWideListDto>> getAllOpenedOrders(Locale locale);
 

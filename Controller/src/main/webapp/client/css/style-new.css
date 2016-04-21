@@ -1654,6 +1654,8 @@ form#command.submit-order-form button {
     text-decoration: underline;
 }
 
-.modal-amount {
-    text-decoration: underline;
+.order-noty {
+    cursor: pointer;
+    background: #84240f;
+    text-align: center;
 }

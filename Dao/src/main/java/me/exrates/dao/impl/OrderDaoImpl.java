@@ -54,10 +54,11 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<ExOrder> getMyOrders(int userId) {
+    public List<ExOrder> getMyOrders(int userId, CurrencyPair currencyPair) {
         String sql = "SELECT * " +
                 "  FROM EXORDERS " +
                 "  WHERE user_id=:user_id and (status_id = 1 or status_id = 2 or status_id = 3)" +
+                (currencyPair == null ? "" : " and EXORDERS.currency_pair_id=" + currencyPair.getId()) +
                 "  ORDER BY -date_acception ASC, date_creation DESC";
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         Map<String, String> namedParameters = new HashMap<>();
@@ -195,7 +196,7 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public ExOrder getLastClosedOrder(){
+    public ExOrder getLastClosedOrder() {
         String sql = "SELECT * " +
                 "  FROM EXORDERS " +
                 "  WHERE status_id = status_id" +
@@ -211,7 +212,7 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public ExOrder getLastClosedOrderForCurrencyPair(CurrencyPair currencyPair){
+    public ExOrder getLastClosedOrderForCurrencyPair(CurrencyPair currencyPair) {
         String sql = "SELECT * " +
                 "  FROM EXORDERS " +
                 "  WHERE status_id = :status_id and currency_pair_id=:currency_pair_id" +
@@ -259,7 +260,7 @@ public class OrderDaoImpl implements OrderDao {
     public List<Map<String, Object>> getDataForChart(CurrencyPair currencyPair) {
         String sql = "SELECT date_acception, exrate FROM EXORDERS " +
                 " WHERE status_id=:status_id AND currency_pair_id=:currency_pair_id ";
-                //+ " AND  date_acception BETWEEN :date_acception_start and :date_acception_end";
+        //+ " AND  date_acception BETWEEN :date_acception_start and :date_acception_end";
 
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         Map<String, String> namedParameters = new HashMap<>();

@@ -51,17 +51,7 @@
             <div>${currencyPair.getName()}</div>
             <span class="caret"></span>
             <div class="pair-selector__menu">
-                <c:forEach var="curr" items="${currencyPairs}">
-                    <c:choose>
-                        <c:when test="${curr.getName()==currencyPair.getName()}">
-                            <div class="pair-selector__menu-item active" selected>${curr.getName()}
-                            </div>
-                        </c:when>
-                        <c:otherwise>
-                            <div class="pair-selector__menu-item">${curr.getName()}</div>
-                        </c:otherwise>
-                    </c:choose>
-                </c:forEach>
+                <%--items created in createPairSelectorMenu()--%>
             </div>
         </li>
         <div id="pair-selector-arrow"></div>

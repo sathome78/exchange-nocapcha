@@ -13,7 +13,7 @@ public interface OrderDao {
 
     int createOrder(ExOrder order);
 
-    List<ExOrder> getMyOrders(int userId);
+    List<ExOrder> getMyOrders(int userId, CurrencyPair currencyPair);
 
     List<ExOrder> getAllOpenedOrders();
 

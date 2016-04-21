@@ -85,9 +85,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional(readOnly = true)
     @Override
-    public Map<String, List<OrderWideListDto>> getMyOrders(String email, Locale locale) {
+    public Map<String, List<OrderWideListDto>> getMyOrders(String email, CurrencyPair currencyPair, Locale locale) {
         int userId = userService.getIdByEmail(email);
-        List<ExOrder> orderList = orderDao.getMyOrders(userId);
+        List<ExOrder> orderList = orderDao.getMyOrders(userId, currencyPair);
         /**/
         List<OrderWideListDto> sellOrderList = new ArrayList<>();
         List<OrderWideListDto> buyOrderList = new ArrayList<>();
