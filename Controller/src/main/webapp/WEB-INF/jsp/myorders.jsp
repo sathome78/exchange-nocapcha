@@ -61,71 +61,60 @@
                 <c:otherwise>
                     <%--Здесь можно просмотреть и удалить свои ордера--%>
                     <p><loc:message code="myorders.text"/></p>
-                    <%--ОРДЕРА НА ПРОДАЖУ--%>
+                    <%--SELL ORDERS--%>
                     <c:if test="${fn:length(orderMap.sell) ne 0}">
                         <h4><loc:message code="myorders.sellorders"/></h4>
                         <hr>
                         <table>
                             <tbody>
                             <tr>
-                                    <%--Продаю--%>
-                                <th><loc:message code="myorders.currsell"/></th>
-                                    <%--Сумма--%>
-                                <th><loc:message code="myorders.amountsell"/></th>
-                                    <%--Покупаю--%>
-                                <th><loc:message code="myorders.currbuy"/></th>
-                                    <%--Сумма (без <br> комиссии)--%>
-                                <th><loc:message code="myorders.amountbuy"/></th>
-                                    <%--Комиссия %--%>
-                                <th><loc:message code="myorders.commission"/></th>
-                                    <%--Сумма <br> с комиссией--%>
-                                <th><loc:message code="myorders.amountwithcommission"/></th>
-                                    <%--Дата <br> создания--%>
-                                <th><loc:message code="myorders.datecreation"/></th>
-                                    <%--Дата <br> исполнения--%>
-                                <th><loc:message code="myorders.datefinal"/></th>
-                                    <%--Статус--%>
-                                <th><loc:message code="myorders.status"/></th>
+                                <th></th>
+                                    <%--Sell--%>
+                                <th class="allign-center"><loc:message code="myorders.currsell"/></th>
+                                    <%--Buy --%>
+                                <th class="allign-center"><loc:message code="myorders.currbuy"/></th>
+                                    <%--Comission rate %--%>
+                                <th class="allign-center"><loc:message code="myorders.commission"/></th>
+                                    <%--Amount with commission--%>
+                                <th class="allign-center"><loc:message code="myorders.amountwithcommission"/></th>
+                                    <%--creation date--%>
+                                <th class="allign-center"><loc:message code="myorders.datecreation"/></th>
+                                    <%--accepted date--%>
+                                <th class="allign-center"><loc:message code="myorders.datefinal"/></th>
+                                    <%--status--%>
+                                <th class="allign-center"><loc:message code="myorders.status"/></th>
                             </tr>
                             <c:forEach var="myorder" items="${orderMap.sell}">
                                 <tr>
-                                        <%--RUB--%>
-                                    <td> ${myorder.currencySellString} </td>
-                                        <%--сумма--%>
-                                    <td><fmt:formatNumber type="number" maxFractionDigits="9"
-                                                          value="${myorder.amountSell}"/></td>
-                                        <%--USD--%>
-                                    <td> ${myorder.currencyBuyString} </td>
-                                        <%--сумма--%>
-                                    <td><fmt:formatNumber type="number" maxFractionDigits="9"
-                                                          value="${myorder.amountBuy}"/></td>
-                                        <%--комиссия--%>
-                                    <td><fmt:formatNumber type="number" maxFractionDigits="9"
-                                                          value="${myorder.commission}"/>%
+                                        <%--BTC/USD--%>
+                                    <td> ${myorder.getCurrencyPair().getName()} </td>
+                                        <%--amount BTC --%>
+                                    <td class="allign-center"><fmt:formatNumber type="number" maxFractionDigits="9"
+                                                          value="${myorder.getAmountBase()}"/></td>
+                                        <%--amount USD--%>
+                                    <td class="allign-center"><fmt:formatNumber type="number" maxFractionDigits="9"
+                                                          value="${myorder.getAmountConvert()}"/></td>
+                                        <%--commission--%>
+                                    <td class="allign-center"><fmt:formatNumber type="number" maxFractionDigits="9"
+                                                          value="${myorder.getCommissionFixedAmount()}"/>%
                                     </td>
-                                        <%--с комиссией--%>
-                                    <td><fmt:formatNumber type="number" maxFractionDigits="9"
-                                                          value="${myorder.amountBuyWithCommission}"/></td>
+                                        <%--with commission--%>
+                                    <td class="allign-center"><fmt:formatNumber type="number" maxFractionDigits="9"
+                                                          value="${myorder.getAmountConvert().add(myorder.getCommissionFixedAmount().negate())}"/></td>
                                         <%--2016-03-08 14:48:46--%>
-                                    <td>
-                                        <fmt:parseDate value="${myorder.dateCreation}" var="parsedDate"
+                                    <td class="allign-center">
+                                        <fmt:parseDate value="${myorder.getDateCreation()}" var="parsedDate"
                                                        pattern="yyyy-MM-dd'T'HH:mm"/>
                                         <fmt:formatDate value="${parsedDate}" pattern="yyyy-MM-dd'<br/>'HH:mm"/>
                                     </td>
-                                    <td>
+                                    <td class="allign-center">
                                         <c:if test="${myorder.status.status eq 3}">
-                                            <fmt:parseDate value="${myorder.dateFinal}" var="parsedDate"
+                                            <fmt:parseDate value="${myorder.getDateAcception()}" var="parsedDate"
                                                            pattern="yyyy-MM-dd'T'HH:mm"/>
                                             <fmt:formatDate value="${parsedDate}" pattern="yyyy-MM-dd'<br/>'HH:mm"/>
                                         </c:if>
                                     </td>
-                                    <td>
-                                        <c:if test="${myorder.status=='OPENED'}">
-                                            <loc:message code="orderstatus.opened"/>
-                                        </c:if>
-                                        <c:if test="${myorder.status=='CLOSED'}">
-                                            <loc:message code="orderstatus.closed"/>
-                                        </c:if>
+                                    <td class="allign-center">${myorder.getStatusString()}
                                     </td>
                                     <td><c:if test="${(myorder.status.status eq 2)||(myorder.status.status eq 1)}"> <a
                                             href="/myorders/submitdelete?id=${myorder.id}"><loc:message
@@ -142,53 +131,50 @@
                         <table>
                             <tbody>
                             <tr>
-                                <th class="col-xs-4"><loc:message code="myorders.currbuy"/></th>
-                                <th class="col-xs-4"><loc:message code="myorders.amountbuy"/></th>
-                                <th class="col-xs-4"><loc:message code="myorders.currsell"/></th>
-                                <th class="col-xs-4"><loc:message code="myorders.amountsell"/></th>
-                                <th class="col-xs-4"><loc:message code="myorders.commission"/></th>
-                                <th class="col-xs-4"><loc:message code="myorders.amountwithcommission"/></th>
-                                <th class="col-xs-4"><loc:message code="myorders.datecreation"/></th>
-                                <th class="col-xs-4"><loc:message code="myorders.datefinal"/></th>
-                                <th class="col-xs-4"><loc:message code="myorders.status"/></th>
+                                <th></th>
+                                <th class="allign-center"><loc:message code="myorders.currbuy"/></th>
+                                <th class="allign-center"><loc:message code="myorders.currsell"/></th>
+                                <th class="allign-center"><loc:message code="myorders.commission"/></th>
+                                <th class="allign-center"><loc:message code="myorders.amountwithcommission"/></th>
+                                <th class="allign-center"><loc:message code="myorders.datecreation"/></th>
+                                <th class="allign-center"><loc:message code="myorders.datefinal"/></th>
+                                <th class="allign-center"><loc:message code="myorders.status"/></th>
                             </tr>
                             <c:forEach var="myorder" items="${orderMap.buy}">
                                 <tr>
-                                    <td> ${myorder.currencyBuyString} </td>
-                                    <td><fmt:formatNumber type="number" maxFractionDigits="9"
-                                                          value="${myorder.amountBuy}"/></td>
-                                    <td> ${myorder.currencySellString} </td>
-                                    <td><fmt:formatNumber type="number" maxFractionDigits="9"
-                                                          value="${myorder.amountSell}"/></td>
-                                    <td><fmt:formatNumber type="number" maxFractionDigits="9"
-                                                          value="${myorder.commission}"/>%
+                                        <%--BTC/USD--%>
+                                    <td> ${myorder.getCurrencyPair().getName()} </td>
+                                        <%--amount BTC --%>
+                                    <td class="allign-center"><fmt:formatNumber type="number" maxFractionDigits="9"
+                                                          value="${myorder.getAmountBase()}"/></td>
+                                        <%--amount USD--%>
+                                    <td class="allign-center"><fmt:formatNumber type="number" maxFractionDigits="9"
+                                                          value="${myorder.getAmountConvert()}"/></td>
+                                        <%--commission--%>
+                                    <td class="allign-center"><fmt:formatNumber type="number" maxFractionDigits="9"
+                                                          value="${myorder.getCommissionFixedAmount()}"/>%
                                     </td>
-                                    <td><fmt:formatNumber type="number" maxFractionDigits="9"
-                                                          value="${myorder.amountBuyWithCommission}"/></td>
-                                    <td>
-                                        <fmt:parseDate value="${myorder.dateCreation}" var="parsedDate"
+                                        <%--with commission--%>
+                                    <td class="allign-center"><fmt:formatNumber type="number" maxFractionDigits="9"
+                                                          value="${myorder.getAmountConvert().add(myorder.getCommissionFixedAmount())}"/></td>
+                                        <%--2016-03-08 14:48:46--%>
+                                    <td class="allign-center">
+                                        <fmt:parseDate value="${myorder.getDateCreation()}" var="parsedDate"
                                                        pattern="yyyy-MM-dd'T'HH:mm"/>
                                         <fmt:formatDate value="${parsedDate}" pattern="yyyy-MM-dd'<br/>'HH:mm"/>
                                     </td>
-                                    <td>
+                                    <td class="allign-center">
                                         <c:if test="${myorder.status.status eq 3}">
-                                            <fmt:parseDate value="${myorder.dateFinal}" var="parsedDate"
+                                            <fmt:parseDate value="${myorder.getDateAcception()}" var="parsedDate"
                                                            pattern="yyyy-MM-dd'T'HH:mm"/>
                                             <fmt:formatDate value="${parsedDate}" pattern="yyyy-MM-dd'<br/>'HH:mm"/>
                                         </c:if>
                                     </td>
-                                    <td>
-                                        <c:if test="${myorder.status=='OPENED'}">
-                                            <loc:message code="orderstatus.opened"/>
-                                        </c:if>
-                                        <c:if test="${myorder.status=='CLOSED'}">
-                                            <loc:message code="orderstatus.closed"/>
-                                        </c:if>
-                                    <td>
-                                        <c:if test="${(myorder.status.status eq 2)||(myorder.status.status eq 1)}">
-                                            <a href="/myorders/submitdelete?id=${myorder.id}"><loc:message
-                                                    code="myorders.delete"/></a>
-                                        </c:if></td>
+                                    <td class="allign-center">${myorder.getStatusString()}
+                                    </td>
+                                    <td><c:if test="${(myorder.status.status eq 2)||(myorder.status.status eq 1)}"> <a
+                                            href="/myorders/submitdelete?id=${myorder.id}"><loc:message
+                                            code="myorders.delete"/></a> </c:if></td>
                                 </tr>
                             </c:forEach>
                             </tbody>

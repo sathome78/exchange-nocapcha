@@ -4,6 +4,7 @@ import me.exrates.model.CurrencyPair;
 import me.exrates.model.enums.OperationType;
 
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
 
 /**
  * Created by Valk on 13.04.16.
@@ -20,6 +21,7 @@ public class OrderCreateDto {
     private BigDecimal comissionForSellRate;
     private int walletIdCurrencyBase;
     private BigDecimal currencyBaseBalance;
+    private String currencyBaseBalanceString;
     private int walletIdCurrencyConvert;
     private BigDecimal currencyConvertBalance;
     //
@@ -207,5 +209,10 @@ public class OrderCreateDto {
 
     public void setTotalWithComission(BigDecimal totalWithComission) {
         this.totalWithComission = totalWithComission;
+    }
+
+    public String getCurrencyBaseBalanceString() {
+//        DecimalFormat df = new DecimalFormat();
+        return currencyBaseBalance.toString();
     }
 }

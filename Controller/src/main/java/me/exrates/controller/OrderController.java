@@ -6,6 +6,7 @@ import me.exrates.controller.validator.OrderValidator;
 import me.exrates.model.*;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderListDto;
+import me.exrates.model.dto.OrderWideListDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TokenType;
 import me.exrates.service.*;
@@ -290,24 +291,69 @@ public class OrderController {
 
     @RequestMapping("/myorders")
     public ModelAndView showMyOrders(Principal principal, ModelAndView model, HttpServletRequest request) {
-        /*String email = principal.getName();
-        Map<String, List<Order>> orderMap = orderService.getMyOrders(email, localeResolver.resolveLocale(request));
-        model.addObject("orderMap", orderMap);*/
+        String email = principal.getName();
+        Map<String, List<OrderWideListDto>> orderMap = orderService.getMyOrders(email, localeResolver.resolveLocale(request));
+        model.addObject("orderMap", orderMap);
         return model;
     }
 
     @RequestMapping("/myorders/submitdelete")
-    public ModelAndView submitDeleteOrder(@RequestParam int id, RedirectAttributes redirectAttributes, ModelAndView model) {
-        /*Order order = orderService.getOrderById(id);
+    public ModelAndView submitDeleteOrder(Principal principal, @RequestParam int id, RedirectAttributes redirectAttributes, ModelAndView model) {
+        /*ExOrder exOrder = orderService.getOrderById(id);
         model.setViewName("submitdeleteorder");
-        model.addObject("order", order);*/
+        model.addObject("order", exOrder);*/
+
+        /**/
+
+        ExOrder exOrder = orderService.getOrderById(id);
+        CurrencyPair currencyPair = currencyService.findCurrencyPairById(exOrder.getCurrencyPairId());
+        //
+        int userId = userService.getIdByEmail(principal.getName());
+        int currencyBaseId = currencyPair.getCurrency1().getId();
+        int currencyConvertId = currencyPair.getCurrency2().getId();
+        int currencyBaseWalletId = walletService.getWalletId(userId, currencyBaseId);
+        int currencyConvertWalletId = walletService.getWalletId(userId, currencyConvertId);
+        //
+        OrderCreateDto orderCreateDto = new OrderCreateDto();
+        orderCreateDto.setOrderId(exOrder.getId());
+        orderCreateDto.setOperationType(exOrder.getOperationType());
+        orderCreateDto.setExchangeRate(exOrder.getExRate());
+        /**/
+        orderCreateDto.setCurrencyPair(currencyPair);
+        orderCreateDto.setWalletIdCurrencyBase(currencyBaseWalletId);
+        orderCreateDto.setCurrencyBaseBalance(walletService.getWalletABalance(currencyBaseWalletId));
+        orderCreateDto.setWalletIdCurrencyConvert(currencyConvertWalletId);
+        orderCreateDto.setCurrencyConvertBalance(walletService.getWalletABalance(currencyConvertWalletId));
+        Commission commission = commissionService.findCommissionByType(OperationType.BUY);
+        orderCreateDto.setComissionForBuyId(commission.getId());
+        orderCreateDto.setComissionForBuyRate(commission.getValue());
+        commission = commissionService.findCommissionByType(OperationType.SELL);
+        orderCreateDto.setComissionForSellId(commission.getId());
+        orderCreateDto.setComissionForSellRate(commission.getValue());
+        orderCreateDto.setAmount(exOrder.getAmountBase());
+        orderCreateDto.setTotal(exOrder.getAmountConvert());
+        /**/
+        if (orderCreateDto.getOperationType() == OperationType.BUY) {
+            orderCreateDto.setComissionId(orderCreateDto.getComissionForBuyId());
+            orderCreateDto.setComission(exOrder.getAmountConvert().multiply(orderCreateDto.getComissionForBuyRate().divide(new BigDecimal(100))));
+            orderCreateDto.setTotalWithComission(exOrder.getAmountConvert().add(orderCreateDto.getComission()));
+        } else {
+            orderCreateDto.setComissionId(orderCreateDto.getComissionForSellId());
+            orderCreateDto.setComission(exOrder.getAmountConvert().multiply(orderCreateDto.getComissionForSellRate().divide(new BigDecimal(100))));
+            orderCreateDto.setTotalWithComission(exOrder.getAmountConvert().add(orderCreateDto.getComission().negate()));
+        }
+
+        /**/
+        model.addObject("orderCreateDto", orderCreateDto);
+        /**/
+        model.setViewName("submitdeleteorder");
         return model;
     }
 
     @RequestMapping("/myorders/delete")
-    public String deleteOrder(@RequestParam int id, RedirectAttributes redirectAttributes) {
+    public String deleteOrder(@ModelAttribute OrderCreateDto orderCreateDto, RedirectAttributes redirectAttributes) {
         String msg = null;
-        if (orderService.cancellOrder(id)) {
+        if (orderService.cancellOrder(orderCreateDto.getOrderId())) {
             msg = "delete";
         } else {
             msg = "deletefailed";
@@ -334,9 +380,9 @@ public class OrderController {
     * */
 
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
-     @ExceptionHandler(NotEnoughMoneyException.class)
-     @ResponseBody
-     public ErrorInfo notEnoughMoneyExceptionHandler(HttpServletRequest req, Exception exception) {
+    @ExceptionHandler(NotEnoughMoneyException.class)
+    @ResponseBody
+    public ErrorInfo notEnoughMoneyExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 

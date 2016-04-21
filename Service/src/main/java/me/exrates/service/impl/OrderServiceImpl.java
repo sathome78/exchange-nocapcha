@@ -95,6 +95,7 @@ public class OrderServiceImpl implements OrderService {
             OrderWideListDto orderWideListDto = new OrderWideListDto(exOrder);
             orderWideListDto.setCurrencyPair(currencyService.findCurrencyPairById(exOrder.getCurrencyPairId()));
             orderWideListDto.setStatusString(getStatusString(exOrder.getStatus(), locale));
+            /**/
             if (exOrder.getOperationType().equals(OperationType.SELL)) {
                 sellOrderList.add(orderWideListDto);
             } else if (exOrder.getOperationType().equals(OperationType.BUY)) {

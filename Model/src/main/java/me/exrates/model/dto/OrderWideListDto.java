@@ -20,29 +20,32 @@ public class OrderWideListDto {
     private int id;
     private int userId;
     private OperationType operationType;
-    private BigDecimal exRate;
+    private BigDecimal exExchangeRate;
     private BigDecimal amountBase;
     private BigDecimal amountConvert;
+    private int comissionId;
     private BigDecimal commissionFixedAmount;
     private int userAcceptorId;
     private LocalDateTime dateCreation;
     private LocalDateTime dateAcception;
     private OrderStatus status;
     /**/
-    private String statusString;
     private CurrencyPair currencyPair;
+    private String statusString;
 
     /*constructors*/
+
     public OrderWideListDto() {
     }
 
     public OrderWideListDto(ExOrder exOrder) {
-        this.id =exOrder.getId();
-        this.userId= exOrder.getUserId();
-        this.operationType =exOrder.getOperationType();
-        this.exRate = exOrder.getExRate();
+        this.id = exOrder.getId();
+        this.userId = exOrder.getUserId();
+        this.operationType = exOrder.getOperationType();
+        this.exExchangeRate = exOrder.getExRate();
         this.amountBase = exOrder.getAmountBase();
         this.amountConvert = exOrder.getAmountConvert();
+        this.comissionId = exOrder.getComissionId();
         this.commissionFixedAmount = exOrder.getCommissionFixedAmount();
         this.userAcceptorId = exOrder.getUserAcceptorId();
         this.dateCreation = exOrder.getDateCreation();
@@ -77,12 +80,12 @@ public class OrderWideListDto {
         this.operationType = operationType;
     }
 
-    public BigDecimal getExRate() {
-        return exRate;
+    public BigDecimal getExExchangeRate() {
+        return exExchangeRate;
     }
 
-    public void setExRate(BigDecimal exRate) {
-        this.exRate = exRate;
+    public void setExExchangeRate(BigDecimal exExchangeRate) {
+        this.exExchangeRate = exExchangeRate;
     }
 
     public BigDecimal getAmountBase() {
@@ -99,6 +102,14 @@ public class OrderWideListDto {
 
     public void setAmountConvert(BigDecimal amountConvert) {
         this.amountConvert = amountConvert;
+    }
+
+    public int getComissionId() {
+        return comissionId;
+    }
+
+    public void setComissionId(int comissionId) {
+        this.comissionId = comissionId;
     }
 
     public BigDecimal getCommissionFixedAmount() {
@@ -141,19 +152,19 @@ public class OrderWideListDto {
         this.status = status;
     }
 
-    public String getStatusString() {
-        return statusString;
-    }
-
-    public void setStatusString(String statusString) {
-        this.statusString = statusString;
-    }
-
     public CurrencyPair getCurrencyPair() {
         return currencyPair;
     }
 
     public void setCurrencyPair(CurrencyPair currencyPair) {
         this.currencyPair = currencyPair;
+    }
+
+    public String getStatusString() {
+        return statusString;
+    }
+
+    public void setStatusString(String statusString) {
+        this.statusString = statusString;
     }
 }

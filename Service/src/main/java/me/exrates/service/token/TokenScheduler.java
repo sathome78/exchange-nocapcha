@@ -41,7 +41,7 @@ public class TokenScheduler {
         try {
             TokenScheduler.tokenScheduler = this;
             scheduler = new StdSchedulerFactory().getScheduler();
-            //scheduler.start();
+            scheduler.start();
             LOGGER.debug("TokenScheduler is started ");
         } catch (SchedulerException e) {
             LOGGER.error("error while TokenScheduler init " + e.getLocalizedMessage());

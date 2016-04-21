@@ -57,7 +57,11 @@ public class OrderValidator implements Validator {
             boolean ifEnoughMoney = false;
             int outWalletId = (orderCreateDto.getOperationType() == OperationType.BUY) ? orderCreateDto.getWalletIdCurrencyConvert(): orderCreateDto.getWalletIdCurrencyBase();
             if (outWalletId != 0) {
-                ifEnoughMoney = walletService.ifEnoughMoney(outWalletId, orderCreateDto.getCalculatedAmounts().totalWithComission);
+                if (orderCreateDto.getOperationType() == OperationType.BUY) {
+                    ifEnoughMoney = walletService.ifEnoughMoney(outWalletId, orderCreateDto.getCalculatedAmounts().totalWithComission);
+                } else {
+                    ifEnoughMoney = walletService.ifEnoughMoney(outWalletId, orderCreateDto.getAmount());
+                }
             }
             if (!ifEnoughMoney) {
                 errors.rejectValue("amount", "validation.orderNotEnoughMoney");

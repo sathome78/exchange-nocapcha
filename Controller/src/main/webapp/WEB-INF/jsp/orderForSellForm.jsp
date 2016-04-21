@@ -20,22 +20,23 @@
     <form:input hidden="true" path="currencyPair" value="${orderCreateDto.currencyPair}"/>
     <form:input hidden="true" path="walletIdCurrencyBase" value="${orderCreateDto.walletIdCurrencyBase}"/>
     <form:input hidden="true" path="walletIdCurrencyConvert" value="${orderCreateDto.walletIdCurrencyConvert}"/>
+    <form:input hidden="true" path="orderId" value="${orderCreateDto.orderId}"/>
 
     <%--active balance--%>
-    <div class="input-block-wrapper">
-        <div class="col-md-5 input-block-wrapper__label-wrapper">
-            <label class="input-block-wrapper__label"><loc:message
-                    code="mywallets.abalance"/></label>
+    <c:if test="${hideBalance == null && hideBalance != 'true'}">
+        <div class="input-block-wrapper">
+            <div class="col-md-5 input-block-wrapper__label-wrapper">
+                <label class="input-block-wrapper__label"><loc:message
+                        code="mywallets.abalance"/></label>
+            </div>
+            <div class="col-md-7 input-block-wrapper__input-wrapper">
+                <form:input path="currencyBaseBalance" class="input-block-wrapper__input"
+                            value="${orderCreateDto.currencyBaseBalance.stripTrailingZeros().toString()}"
+                            readonly="true"/>
+                <div class="input-block-wrapper__inner-label">${orderCreateDto.currencyPair.getCurrency1().getName()}</div>
+            </div>
         </div>
-        <div class="col-md-7 input-block-wrapper__input-wrapper">
-            <fmt:formatNumber type="number" maxFractionDigits="9"
-                              value="${orderCreateDto.currencyBaseBalance}" var="currencyBaseBalance"
-                              groupingUsed="false"/>
-            <form:input path="currencyBaseBalance" class="input-block-wrapper__input" value="${currencyBaseBalance}"
-                        readonly="true"/>
-            <div class="input-block-wrapper__inner-label">${orderCreateDto.currencyPair.getCurrency1().getName()}</div>
-        </div>
-    </div>
+    </c:if>
     <%--amount--%>
     <div class="input-block-wrapper">
         <div class="col-md-5 input-block-wrapper__label-wrapper">
@@ -121,7 +122,7 @@
 <div class="formButtonWrapper">
     <%--Create--%>
     <div id="submitOrderBuySellWrapper">
-        <c:if test="${formVariant != 'acceptOrder'}">
+        <c:if test="${formVariant != 'acceptOrder' && formVariant != 'deleteOrder'}">
             <c:if test="${submitUrl != null}">
                 <loc:message code="orders.submit" var="labelSubmit"/>
                 <button id="submitOrderSell" onclick="$('#createSellOrderForm').submit()"
@@ -136,6 +137,11 @@
         <c:if test="${formVariant == 'acceptOrder'}">
             <loc:message code="acceptorder.submit" var="labelSubmit"/>
             <button id="submitOrderSell" onclick="finPassCheck(${orderCreateDto.orderId}, submitAcceptOrder)"
+                    type="submit">${labelSubmit}</button>
+        </c:if>
+        <c:if test="${formVariant == 'deleteOrder'}">
+            <loc:message code="deleteorder.submit" var="labelSubmit"/>
+            <button id="submitOrderSell" onclick="$('#createSellOrderForm').submit()"
                     type="submit">${labelSubmit}</button>
         </c:if>
     </div>
