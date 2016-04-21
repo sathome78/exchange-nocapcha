@@ -80,7 +80,7 @@ public class Privat24MerchantController {
         }
 
 
-        if (privat24Service.confirmPayment(params, signature, payment)) {
+        if (privat24Service.confirmPayment(mapResponse, signature, payment)) {
             return response;
         }
 

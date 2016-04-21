@@ -79,6 +79,9 @@ public class Privat24ServiceImpl implements Privat24Service {
         Transaction transaction;
         try{
             transaction = transactionService.findById(Integer.parseInt(params.get("order")));
+            if (transaction.isProvided()){
+                return true;
+            }
         }catch (EmptyResultDataAccessException e){
             LOG.error(e);
             return false;
