@@ -30,7 +30,11 @@
             <%--About us--%>
             <h4><loc:message code="dashboard.aboutUs"/></h4>
             <br/>
-
+                <div class="content">
+                    <h4><loc:message code="about_us.contacts"/></h4>
+                    <h4><loc:message code="about_us.telephone" arguments="${telephone}"/></h4>
+                    <h4><loc:message code="about_us.email" arguments="${email}"/></h4>
+                </div>
         </div>
     </div>
 </main>

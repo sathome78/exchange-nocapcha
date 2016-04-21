@@ -10,7 +10,9 @@ import me.exrates.service.UserService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
@@ -27,7 +29,12 @@ import java.security.Principal;
 import java.util.List;
 
 @Controller
+@PropertySource("classpath:about_us.properties")
 public class MainController {
+
+
+    private @Value("${contacts.telephone}") String telephone;
+    private @Value("${contacts.email}") String email;
 
     @Autowired
     UserService userService;
@@ -167,6 +174,8 @@ public class MainController {
     @RequestMapping("/aboutUs")
     public ModelAndView aboutUs() {
         ModelAndView modelAndView = new ModelAndView("aboutUs");
+        modelAndView.addObject("telephone", telephone);
+        modelAndView.addObject("email", email);
         return modelAndView;
     }
 
