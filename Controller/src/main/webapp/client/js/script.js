@@ -95,7 +95,7 @@ $(document).ready(function () {
 
 
 function getNewCurrencyPairData(newPairName) {
-    var url = '/admin/changeCurrencyPair';
+    var url = '/dashboard/changeCurrencyPair';
     $.ajax({
         url: newPairName ? url + '?currencyPairName=' + newPairName : url,
         type: 'GET',
@@ -120,7 +120,7 @@ function getNewCurrencyPairData(newPairName) {
 function createPairSelectorMenu(currencyPairName) {
     $('.pair-selector__menu').empty();
     $.ajax({
-        url: '/admin/createPairSelectorMenu',
+        url: '/dashboard/createPairSelectorMenu',
         type: 'GET',
 
         success: function (data) {

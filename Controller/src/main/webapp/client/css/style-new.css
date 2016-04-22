@@ -1400,7 +1400,7 @@ form#command.submit-order-form button {
     margin: 0 10px 0 0;
 }
 
-.formButtonWrapper{
+.formButtonWrapper {
     margin: -15px 0 15px 0;
 }
 
@@ -1658,4 +1658,15 @@ form#command.submit-order-form button {
     cursor: pointer;
     background: #84240f;
     text-align: center;
+}
+
+a.button_delete_order {
+    background-color: rgba(229, 7, 22, 0.3);
+    color: #FFF;
+    border: none;
+    width: 47%;
+    padding: 3px 15px;
+    line-height: 2em;
+    outline: 0;
+    text-decoration: none;
 }

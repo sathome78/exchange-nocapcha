@@ -280,7 +280,7 @@ public class DashboardController {
         return model;
     }
 
-    @RequestMapping(value = "/admin/changeCurrencyPair", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/dashboard/changeCurrencyPair", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public CurrencyPairStatisticsDto getNewCurrencyPairData(@RequestParam(required = false) String currencyPairName, HttpServletRequest request) {
         List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs();
@@ -324,7 +324,7 @@ public class DashboardController {
         return currencyPairStatisticsDto;
     }
 
-    @RequestMapping(value = "/admin/createPairSelectorMenu", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/dashboard/createPairSelectorMenu", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public List<String> getCurrencyPairNameList() {
         List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs();
