@@ -43,6 +43,7 @@ $(function(){
     var currency = $('#currency');
     var merchant = $('#merchant');
     var sum = $('#sum');
+    var numericInputField = $(".numericInputField");
     var operationType = $('#operationType');
     var modalTemplate = $('.paymentInfo p');
     var button = $('#payment').find('button');
@@ -368,4 +369,10 @@ $(function(){
             button.prop('disabled',true);
         }
     });
+
+    numericInputField.keypress(
+        function (e) {
+            return e.keyCode>=48&& e.keyCode<=57|| e.keyCode==46;
+        }
+    )
 });

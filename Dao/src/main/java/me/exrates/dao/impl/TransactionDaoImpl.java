@@ -49,7 +49,7 @@ public final class TransactionDaoImpl implements TransactionDao {
         order.setId(resultSet.getInt("EXORDERS.id"));
         order.setUserId(resultSet.getInt("EXORDERS.user_id"));
         order.setCurrencyPairId(resultSet.getInt("EXORDERS.currency_pair_id"));
-        order.setOperationType(OperationType.convert(resultSet.getInt("EXORDERS.operation_type_id")));
+        order.setOperationType(resultSet.getInt("EXORDERS.operation_type_id") == 0 ? null : OperationType.convert(resultSet.getInt("EXORDERS.operation_type_id")));
         order.setExRate(resultSet.getBigDecimal("EXORDERS.exrate"));
         order.setAmountBase(resultSet.getBigDecimal("EXORDERS.amount_base"));
         order.setAmountConvert(resultSet.getBigDecimal("EXORDERS.amount_convert"));

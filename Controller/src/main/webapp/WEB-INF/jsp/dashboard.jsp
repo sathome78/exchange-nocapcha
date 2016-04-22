@@ -24,6 +24,7 @@
     <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/style-new.css'/>" rel="stylesheet">
 
+    <script type="text/javascript" src="<c:url value="/client/js/main.js"/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/dashboard.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/chart/areaChart.js'/>"></script>
     <%----------%>
@@ -146,12 +147,12 @@
                 <label class="col1"><loc:message
                         code="dashboard.amount"/> ${currencyPair.getCurrency1().getName()}:</label>
                 <form:errors path="amountBuy" style="color:red"/>
-                <form:input class="col2" path="amountBuy" type="text" id="amountBuyForm1" placeholder="0"/>
+                <form:input class="col2 numericInputField" path="amountBuy" type="text" id="amountBuyForm1" placeholder="0"/>
                 <%--цена за--%>
                 <label class="col1"><loc:message
                         code="dashboard.priceFor"/> ${currencyPair.getCurrency1().getName()}:</label>
                 <form:errors path="amountSell" style="color:red"/>
-                <input type="text" class="col2" id="amountSellForm1" placeholder="0">
+                <input type="text" class="col2 numericInputField" id="amountSellForm1" placeholder="0">
                 <form:input type="hidden" path="amountSell" class="form-control" id="sumSellForm1"
                             placeholder="0"/>
                 <%--всего--%>
@@ -204,11 +205,11 @@
             <form:form action="orders" method="post" modelAttribute="order">
                 <%--Количество--%>
                 <form:errors path="amountSell" style="color:red"/>
-                <form:input type="text" class="col2" path="amountSell" id="amountSellForm2" placeholder="0"/>
+                <form:input type="text" class="col2 numericInputField" path="amountSell" pattern="/\d*\.\d{1,2}/" id="amountSellForm2" placeholder="0.0"/>
                 <label class="col1"><loc:message
                         code="dashboard.amount"/> ${currencyPair.getCurrency1().getName()}:</label>
                 <%--Цена за--%>
-                <input type="text" class="col2" id="amountBuyForm2" placeholder="0">
+                <input type="text" class="col2 numericInputField" id="amountBuyForm2" placeholder="0">
                 <form:input type="hidden" path="amountBuy" class="form-control" id="sumBuyForm2" placeholder="0"/>
                 <label class="col1"><loc:message
                         code="dashboard.priceFor"/> ${currencyPair.getCurrency1().getName()}:</label>
