@@ -67,12 +67,6 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
 
     @Override
-    public CurrencyPair getCurrencyPairById(int currency1Id, int currency2Id) {
-        logger.info("Begin 'getCurrencyPairById' method");
-        return currencyDao.getCurrencyPairById(currency1Id, currency2Id);
-    }
-
-    @Override
     public CurrencyPair findCurrencyPairById(int currencyPairId) {
         logger.info("Begin 'findCurrencyPairById' method");
         return currencyDao.findCurrencyPairById(currencyPairId);
@@ -87,11 +81,5 @@ public class CurrencyServiceImpl implements CurrencyService {
     public int resolvePrecision(final String currency) {
         return CRYPTO.contains(currency) ? CRYPTO_PRECISION : DEFAULT_PRECISION;
     }
-}
 
-    @Override
-    public CurrencyPair findCurrencyPairById(int currencyPairId) {
-        logger.info("Begin 'findCurrencyPairById' method");
-        return currencyDao.findCurrencyPairById(currencyPairId);
-    }
 }
