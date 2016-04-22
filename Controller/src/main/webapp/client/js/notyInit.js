@@ -73,6 +73,9 @@ function failNoty(jqXHR) {
 var orderNoty;
 
 function showOrderNoty() {
+    if (! $(this).text().trim()) {
+        return;
+    }
     if (orderNoty) {
         orderNoty.close();
         orderNoty = undefined;

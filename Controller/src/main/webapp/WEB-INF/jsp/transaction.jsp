@@ -105,10 +105,10 @@
                                     </c:if>
                                 </td>
                                 <td class="order-noty">
-                                    <c:if test="${transaction.order.getId() != null}">
+                                    <c:if test="${transaction.order.getId() != null && transaction.order.getId() >0}">
                                         ${transaction.order.getId()}
                                     </c:if>
-                                    <input id="operationType" hidden type="text" value = "${transaction.order.getOperationType().toString()}"/>
+                                    <input id="operationType" hidden type="text" value = "${transaction.order.getOperationType()}"/>
                                     <input id="amountBase" hidden type="text" value = "${transaction.order.getAmountBase()}"/>
                                     <input id="exRate" hidden type="text" value = "${transaction.order.getExRate()}"/>
                                     <input id="amountConvert" hidden type="text" value = "${transaction.order.getAmountConvert()}"/>

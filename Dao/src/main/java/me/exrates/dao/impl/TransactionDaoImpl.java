@@ -54,8 +54,8 @@ public final class TransactionDaoImpl implements TransactionDao {
         order.setAmountBase(resultSet.getBigDecimal("EXORDERS.amount_base"));
         order.setAmountConvert(resultSet.getBigDecimal("EXORDERS.amount_convert"));
         order.setCommissionFixedAmount(resultSet.getBigDecimal("EXORDERS.commission_fixed_amount"));
-        order.setDateCreation(resultSet.getTimestamp("EXORDERS.date_creation").toLocalDateTime());
-        order.setDateAcception(resultSet.getTimestamp("EXORDERS.date_acception").toLocalDateTime());
+        order.setDateCreation(resultSet.getTimestamp("EXORDERS.date_creation") == null ? null : resultSet.getTimestamp("EXORDERS.date_creation").toLocalDateTime());
+        order.setDateAcception(resultSet.getTimestamp("EXORDERS.date_creation") == null ? null : resultSet.getTimestamp("EXORDERS.date_acception").toLocalDateTime());
 
         final Commission commission = new Commission();
         commission.setId(resultSet.getInt("COMMISSION.id"));
