@@ -13,7 +13,6 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -128,12 +127,18 @@ public final class TransactionDaoImpl implements TransactionDao {
                 " COMPANY_WALLET.id,COMPANY_WALLET.balance,COMPANY_WALLET.commission_balance," +
                 " COMMISSION.id,COMMISSION.date,COMMISSION.value," +
                 " CURRENCY.id,CURRENCY.description,CURRENCY.name," +
-                " MERCHANT.id,MERCHANT.name,MERCHANT.description " +
-                " FROM TRANSACTION INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id" +
+                " MERCHANT.id,MERCHANT.name,MERCHANT.description, " +
+                " EXORDERS.id, EXORDERS.user_id, EXORDERS.currency_pair_id, EXORDERS.operation_type_id, EXORDERS.exrate, " +
+                " EXORDERS.amount_base, EXORDERS.amount_convert, EXORDERS.commission_fixed_amount, EXORDERS.date_creation, " +
+                " EXORDERS.date_acception " +
+                " FROM TRANSACTION " +
+                " INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id" +
                 " INNER JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id" +
                 " INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
                 " INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id" +
-                " INNER JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id WHERE TRANSACTION.id = :id";
+                " LEFT JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id" +
+                " LEFT JOIN EXORDERS ON TRANSACTION.order_id = EXORDERS.id " +
+                " WHERE TRANSACTION.id = :id";
         final Map<String, Integer> params = singletonMap("id", id);
         return jdbcTemplate.queryForObject(sql, params, transactionRowMapper);
     }
@@ -150,7 +155,8 @@ public final class TransactionDaoImpl implements TransactionDao {
                 " EXORDERS.id, EXORDERS.user_id, EXORDERS.currency_pair_id, EXORDERS.operation_type_id, EXORDERS.exrate, " +
                 " EXORDERS.amount_base, EXORDERS.amount_convert, EXORDERS.commission_fixed_amount, EXORDERS.date_creation, " +
                 " EXORDERS.date_acception " +
-                " FROM TRANSACTION INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id" +
+                " FROM TRANSACTION " +
+                " INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id" +
                 " INNER JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id" +
                 " INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
                 " INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id" +
