@@ -1,18 +1,22 @@
 package me.exrates.config;
 
-import me.exrates.model.converter.CurrencyPairConverter;
-import me.exrates.service.token.TokenScheduler;
 import me.exrates.controller.validator.OrderValidator;
 import me.exrates.controller.validator.RegisterFormValidation;
-
+import me.exrates.model.converter.CurrencyPairConverter;
 import me.exrates.security.filter.VerifyReCaptchaSec;
+import me.exrates.service.token.TokenScheduler;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.core.io.ClassPathResource;
@@ -35,9 +39,7 @@ import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
 
-import javax.annotation.PreDestroy;
 import javax.sql.DataSource;
-
 import java.util.Locale;
 import java.util.Properties;
 

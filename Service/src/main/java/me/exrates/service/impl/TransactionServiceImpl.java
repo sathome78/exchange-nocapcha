@@ -112,6 +112,8 @@ public class TransactionServiceImpl implements TransactionService {
                 .multiply(transaction.getCommission().getValue()
                         .divide(BigDecimal.valueOf(100L),MATH_CONTEXT));
         final BigDecimal newAmount = amount.subtract(commission,MATH_CONTEXT);
+        transaction.setCommissionAmount(commission);
+        transaction.setAmount(newAmount);
         transactionDao.updateTransactionAmount(transaction.getId(), newAmount, commission);
     }
 
