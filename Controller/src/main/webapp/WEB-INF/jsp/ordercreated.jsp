@@ -28,6 +28,11 @@
 	<link href="<c:url value='/client/css/style-new.css'/>" rel="stylesheet">
 
 	<script type="text/javascript" src="<c:url value='/client/js/function.js'/>"></script>
+	<%----------%>
+	<script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
+	<script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
+	<script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
+	<%----------%>
 
 </head>
 
@@ -57,12 +62,6 @@
 	</div>
 </main>
 <%@include file='footer_new.jsp' %>
-
-<%----------%>
-<script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
-<script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
-<script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
-<%----------%>
 </body>
 </html>
 

@@ -9,7 +9,7 @@
                 <loc:message code="dashboard.lastOrder"/>
             </span>
             <span>
-                <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountBuy()}"/>
+                <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountBase()}"/>
                 ${lastOrderCurrency}
             </span>
         </li>
@@ -18,7 +18,7 @@
                 <loc:message code="dashboard.priceStart"/>
             </span>
             <span>
-                <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountBuy()}"/>
+                <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountBase()}"/>
                 ${lastOrderCurrency}
             </span>
         </li>
@@ -27,7 +27,7 @@
                 <loc:message code="dashboard.priceEnd"/>
             </span>
             <span>
-                <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountBuy()}"/>
+                <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountBase()}"/>
                 ${lastOrderCurrency}
             </span>
         </li>
@@ -36,14 +36,14 @@
                 <loc:message code="dashboard.volume"/>
             </span>
             <span>
-                <fmt:formatNumber type="number" maxFractionDigits="9" value="${sumAmountBuyClosed}"/>
+                <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountBase()}"/>
                 ${currencyPair.getCurrency1().getName()}
             </span>
         </li>
         <li id="sumAmountSellClosed">
             <span></span>
             <span>
-                <fmt:formatNumber type="number" maxFractionDigits="9" value="${sumAmountSellClosed}"/>
+                <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountConvert()}"/>
                 ${currencyPair.getCurrency2().getName()}
             </span></li>
 
@@ -51,17 +51,7 @@
             <div>${currencyPair.getName()}</div>
             <span class="caret"></span>
             <div class="pair-selector__menu">
-                <c:forEach var="curr" items="${currencyPairs}">
-                    <c:choose>
-                        <c:when test="${curr.getName()==currencyPair.getName()}">
-                            <div class="pair-selector__menu-item active" selected>${curr.getName()}
-                            </div>
-                        </c:when>
-                        <c:otherwise>
-                            <div class="pair-selector__menu-item">${curr.getName()}</div>
-                        </c:otherwise>
-                    </c:choose>
-                </c:forEach>
+                <%--items created in createPairSelectorMenu()--%>
             </div>
         </li>
         <div id="pair-selector-arrow"></div>

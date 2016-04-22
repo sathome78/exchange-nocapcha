@@ -15,4 +15,6 @@ public interface CompanyWalletDao {
     CompanyWallet findByCurrencyId(Currency currency);
 
     boolean update(CompanyWallet companyWallet);
+
+    CompanyWallet findByWalletId(int walletId);
 }

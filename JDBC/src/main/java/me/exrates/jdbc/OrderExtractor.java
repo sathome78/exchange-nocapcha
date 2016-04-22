@@ -1,5 +1,6 @@
 package me.exrates.jdbc;
 
+import me.exrates.model.ExOrder;
 import me.exrates.model.Order;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
@@ -10,43 +11,27 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 
-  
-public class OrderExtractor implements ResultSetExtractor<Order> {  
-  
- public Order extractData(ResultSet rs) throws SQLException, DataAccessException {  
-    
-    Order order = new Order();  
-	order.setId(rs.getInt("id"));
-	order.setWalletIdSell(rs.getInt("wallet_id_sell"));
-	order.setCurrencySell(rs.getInt("currency_sell"));
-	order.setCommissionAmountBuy(rs.getBigDecimal("commission_amount_buy"));
-	order.setCommissionAmountSell(rs.getBigDecimal("commission_amount_sell"));
-	order.setCurrencyBuy(rs.getInt("currency_buy"));
-	order.setAmountSell(rs.getBigDecimal("amount_sell"));
-	order.setAmountBuy(rs.getBigDecimal("amount_buy"));
-	order.setWalletIdBuy(rs.getInt("wallet_id_buy"));
-	int operationType = rs.getInt("operation_type");
-	OperationType[] typeenum = OperationType.values();
-	for(OperationType t : typeenum) {
-		if(t.type == operationType) {
-			order.setOperationType(t);
-		}
-	}
-	int status = rs.getInt("status");
-	OrderStatus[] statusenum = OrderStatus.values();
-	for(OrderStatus s : statusenum) {
-		if(s.getStatus() == status) {
-			order.setStatus(s);
-		}
-	}
 
-	order.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
-	LocalDateTime dateFinal = LocalDateTime.MIN;
-	if(rs.getTimestamp("date_final") != null){
-		dateFinal = rs.getTimestamp("date_final").toLocalDateTime();
-	}
-	order.setDateFinal(dateFinal);
-	return order;
- }  
-  
-}  
+public class OrderExtractor implements ResultSetExtractor<ExOrder> {
+    public ExOrder extractData(ResultSet rs) throws SQLException, DataAccessException {
+        ExOrder exOrder = new ExOrder();
+        exOrder.setId(rs.getInt("id"));
+        exOrder.setUserId(rs.getInt("user_id"));
+        exOrder.setCurrencyPairId(rs.getInt("currency_pair_id"));
+        exOrder.setOperationType(OperationType.convert(rs.getInt("operation_type_id")));
+        exOrder.setExRate(rs.getBigDecimal("exrate"));
+        exOrder.setAmountBase(rs.getBigDecimal("amount_base"));
+        exOrder.setComissionId(rs.getInt("commission_id"));
+        exOrder.setAmountConvert(rs.getBigDecimal("amount_convert"));
+        exOrder.setCommissionFixedAmount(rs.getBigDecimal("commission_fixed_amount"));
+        exOrder.setUserAcceptorId(rs.getInt("user_acceptor_id"));
+        exOrder.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
+        LocalDateTime dateAcception = LocalDateTime.MIN;
+        if (rs.getTimestamp("date_acception") != null) {
+            dateAcception = rs.getTimestamp("date_acception").toLocalDateTime();
+        }
+        exOrder.setDateAcception(dateAcception);
+        exOrder.setStatus(OrderStatus.convert(rs.getInt("status_id")));
+        return exOrder;
+    }
+}

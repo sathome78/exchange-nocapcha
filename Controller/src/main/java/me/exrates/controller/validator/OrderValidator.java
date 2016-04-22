@@ -1,24 +1,24 @@
 package me.exrates.controller.validator;
 
 import me.exrates.model.Order;
+import me.exrates.model.dto.OrderCreateDto;
+import me.exrates.model.enums.OperationType;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
-import org.springframework.validation.Errors;
-import org.springframework.validation.ValidationUtils;
-import org.springframework.validation.Validator;
+import org.springframework.validation.*;
 
 import java.math.BigDecimal;
-import java.security.Principal;
 
 /**
  * Created by Valk on 31.03.16.
  */
 @Component
 public class OrderValidator implements Validator {
-    private Principal principal;
+
+    private final BigDecimal MAX_ORDER_VALUE = new BigDecimal(10000);
+    private final BigDecimal MIN_ORDER_VALUE = new BigDecimal(0.000000001);
 
     @Autowired
     WalletService walletService;
@@ -31,46 +31,65 @@ public class OrderValidator implements Validator {
         return Order.class.equals(aClass);
     }
 
-    public void validate(Object o, Errors errors, Principal principal) {
-        this.principal = principal;
-        this.validate(o, errors);
-    }
-
     @Override
     public void validate(Object o, Errors errors) {
-        Order order = (Order) o;
-        ValidationUtils.rejectIfEmpty(errors, "amountSell", "order.fillfield");
-        if (order.getAmountSell() != null) {
-            if (order.getAmountSell().compareTo(new BigDecimal(10000)) == 1) {
-                errors.rejectValue("amountSell", "order.maxvalue");
-                errors.rejectValue("amountSell", "order.valuerange");
+        OrderCreateDto orderCreateDto = (OrderCreateDto) o;
+        ValidationUtils.rejectIfEmpty(errors, "amount", "order.fillfield");
+        ValidationUtils.rejectIfEmpty(errors, "exchangeRate", "order.fillfield");
+        if (orderCreateDto.getAmount() != null) {
+            if (orderCreateDto.getAmount().compareTo(MAX_ORDER_VALUE) == 1) {
+                errors.rejectValue("amount", "order.maxvalue");
+                errors.rejectValue("amount", "order.valuerange");
             }
-            if (order.getAmountSell().compareTo(new BigDecimal(0.000000001)) == -1) {
-                errors.rejectValue("amountSell", "order.minvalue");
-                errors.rejectValue("amountSell", "order.valuerange");
-            }
-
-            //check for enoughMoney
-            int walletIdFrom = walletService.getWalletId(userService.getIdByEmail(principal.getName()), order.getCurrencySell());
-            boolean ifEnoughMoney = false;
-            if (walletIdFrom != 0) {
-                ifEnoughMoney = walletService.ifEnoughMoney(walletIdFrom, order.getAmountSell());
-            }
-            if (! ifEnoughMoney) {
-                errors.rejectValue("amountSell", "validation.orderNotEnoughMoney");
+            if (orderCreateDto.getAmount().compareTo(MIN_ORDER_VALUE) == -1) {
+                errors.rejectValue("amount", "order.minvalue");
+                errors.rejectValue("amount", "order.valuerange");
             }
         }
-        /**/
-        ValidationUtils.rejectIfEmpty(errors, "amountBuy", "order.fillfield");
-        if (order.getAmountBuy() != null) {
-            if (order.getAmountBuy().compareTo(new BigDecimal(10000)) == 1) {
-                errors.rejectValue("amountBuy", "order.maxvalue");
-                errors.rejectValue("amountBuy", "order.valuerange");
+        if (orderCreateDto.getExchangeRate() != null) {
+            if (orderCreateDto.getExchangeRate().compareTo(new BigDecimal(0)) < 1) {
+                errors.rejectValue("exchangeRate", "order.minrate");
             }
-            if (order.getAmountBuy().compareTo(new BigDecimal(0.000000001)) == -1) {
-                errors.rejectValue("amountBuy", "order.minvalue");
-                errors.rejectValue("amountBuy", "order.valuerange");
+        }
+
+        //check for enoughMoney
+        if ((orderCreateDto.getAmount() != null) && (orderCreateDto.getExchangeRate() != null)) {
+            boolean ifEnoughMoney = false;
+            int outWalletId = (orderCreateDto.getOperationType() == OperationType.BUY) ? orderCreateDto.getWalletIdCurrencyConvert(): orderCreateDto.getWalletIdCurrencyBase();
+            if (outWalletId != 0) {
+                if (orderCreateDto.getOperationType() == OperationType.BUY) {
+                    ifEnoughMoney = walletService.ifEnoughMoney(outWalletId, orderCreateDto.getCalculatedAmounts().totalWithComission);
+                } else {
+                    ifEnoughMoney = walletService.ifEnoughMoney(outWalletId, orderCreateDto.getAmount());
+                }
+            }
+            if (!ifEnoughMoney) {
+                errors.rejectValue("amount", "validation.orderNotEnoughMoney");
             }
         }
     }
+
+    /*public OrderSum getCalculatedSum(OrderCreateDto orderCreateDto){
+        OrderSum result = new OrderSum();
+        if (orderCreateDto.getOperationType() == OperationType.BUY) {
+            result.total = orderCreateDto.getAmount().multiply(orderCreateDto.getExchangeRate());
+            result.comissionId = orderCreateDto.getComissionForBuyId();
+            result.comission = result.total.multiply(orderCreateDto.getComissionForBuyRate()).divide(new BigDecimal(100));
+            result.totalWithComission = result.total.add(result.comission);
+        } else {
+            result.total = orderCreateDto.getAmount().multiply(orderCreateDto.getExchangeRate());
+            result.comissionId = orderCreateDto.getComissionForSellId();
+            result.comission = result.total.multiply(orderCreateDto.getComissionForSellRate()).divide(new BigDecimal(100));
+            result.totalWithComission = result.total.add(result.comission.negate());
+        }
+        return result;
+    }*/
+
+    /*public class OrderSum{
+        public BigDecimal total;
+        public int comissionId;
+        public BigDecimal comission;
+        public BigDecimal totalWithComission;
+    }*/
+
 }

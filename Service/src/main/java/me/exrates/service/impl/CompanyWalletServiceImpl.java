@@ -58,6 +58,14 @@ public class CompanyWalletServiceImpl implements CompanyWalletService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public CompanyWallet findByWalletId(int walletId) {
+        CompanyWallet result = companyWalletDao.findByWalletId(walletId);
+        result.setCurrency(currencyService.findById(result.getCurrency().getId()));
+        return result;
+    }
+
+    @Override
     @Transactional(propagation = Propagation.NESTED)
     public void deposit(CompanyWallet companyWallet, BigDecimal amount, BigDecimal commissionAmount) {
         final BigDecimal newBalance = companyWallet.getBalance().add(amount);

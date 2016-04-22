@@ -1,6 +1,7 @@
 package me.exrates.model;
 
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.exceptions.UnsupportedOperationTypeException;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -12,7 +13,6 @@ public class Commission {
 	private BigDecimal value;
 	private Date dateOfChange;
 
-	
 	public int getId() {
 		return id;
 	}

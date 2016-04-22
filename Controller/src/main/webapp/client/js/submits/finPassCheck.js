@@ -5,8 +5,9 @@
 var orderId;
 var form;
 var operationFunc;
+var orderType;
 
-function finPassCheck(id, opFunc, event) {
+function finPassCheck(id, opFunc, oType, event) {
     if (id || (id === 0)) {
         //id:
         // - id order to accept
@@ -15,10 +16,11 @@ function finPassCheck(id, opFunc, event) {
         //store parameters for subsequent call of finPassCheck
         operationFunc = opFunc;
         orderId = id;
+        orderType = oType;
         form = $('#submitFinPassForm');
         $('#finPassModal').modal(); //modal must call finPassCheck without parameter
     } else {
-        //to call finPassCheck for check finpass and subsequent (if chec is success) call :
+        //to call finPassCheck for check finpass and subsequent (if check is success) call :
         // - beginAcceptOrder
         // - submitCreateOrder
         // - submitMerchantsOutput
@@ -28,7 +30,7 @@ function finPassCheck(id, opFunc, event) {
             data: form.serialize(),
 
             success: function () {
-                operationFunc(orderId);
+                operationFunc(orderId, orderType);
             },
 
             error: function (event, jqXHR, options, jsExc) {

@@ -8,7 +8,7 @@
 <html>
 <head>
     <title>Exrates</title>
-    <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon" />
+    <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon"/>
 
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -24,14 +24,33 @@
     <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/style-new.css'/>" rel="stylesheet">
 
+    <script type="text/javascript" src="<c:url value="/client/js/main.js"/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/dashboard.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='https://www.google.com/jsapi'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/chart/areaChart.js'/>"></script>
+    <%----------%>
+    <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
+    <%----------%>
+    <!-- Google Charts ... -->
+    <script type="text/javascript" src="<c:url value='https://www.gstatic.com/charts/loader.js'/>"></script>
     <script type="text/javascript">
-        google.load("visualization", "1", {"packages": ["corechart"]});
+        google.charts.load('current', {'packages': ['corechart']});
     </script>
-
-
-
+    <!-- ... Google Charts -->
+    <!-- Google Analytics ... -->
+    <script async src='//www.google-analytics.com/analytics.js'></script>
+    <script>
+        window.ga = window.ga || function () {
+                    (ga.q = ga.q || []).push(arguments)
+                };
+        ga.l = +new Date;
+        ga('create', 'UA-75711135-1', 'auto');
+        ga('send', 'pageview');
+    </script>
+    <!-- ... Google Analytics -->
+    <%--Chat--%>
     <script type="text/javascript">
         window.$zopim || (function (d, s) {
             var z = $zopim = function (c) {
@@ -62,7 +81,7 @@
 
 <main class="container">
     <div class="exchange_data"> <!-- Exchange currencies and graphic -->
-        <ul class="exchange">
+        <ul class="large-pair-selector exchange">
             <c:forEach var="curr" items="${currencyPairs}" begin="0" end="3">
                 <c:choose>
                     <c:when test="${curr.getName()==currencyPair.getName()}">
@@ -95,38 +114,14 @@
             </li>
         </ul>
         <div class="graphic"> <!-- graphic -->
-            <img src="/client/img/graphic.png" alt="Graphic">
-            <%--<div class="chart__section">
-                <div class="chart__section__title"><a id="chartPair"></a> </div>
-                <span style="color:red">${msg}</span><br><br>
-                <c:if test="${not empty sumAmountBuyClosed}">
-                    <div id='chart_div'></div>
-                </c:if>
-            </div>--%>
+            <c:if test="${not empty sumAmountBuyClosed}">
+                <div id='chart_div'></div>
+            </c:if>
+            <img id='graphic' src="/client/img/graphic.png" alt="Graphic">
         </div>
     </div>
 
     <%@include file='exchange_info_new.jsp' %>
-
-    <!-- begin quotes__news__section -->
-    <%--элемент отсутсвует в новом интерфейсе  //TODO --%>
-    <%--отключен до выяснения функциональности--%>
-    <section hidden class="quotes__news__section">
-        <div class="container container_center">
-
-            <!-- begin chart__section -->
-            <div class="chart__section">
-                <div class="chart__section__title"><a id="chartPair"></a></div>
-                <span style="color:red">${msg}</span><br><br>
-                <c:if test="${not empty sumAmountBuyClosed}">
-                    <div id='chart_div'></div>
-                </c:if>
-            </div>
-            <!-- end chart__section -->
-
-        </div>
-    </section>
-    <!-- end quotes__news__section -->
 
     <div class="buy_sell row"> <!-- BUY or SELL BTC -->
         <div class="buy col-sm-4">
@@ -146,17 +141,18 @@
                     ${currencyPair.getCurrency2().getName()}
                 </div>
             </div>
-            <form:form action="order/submit" method="post" modelAttribute="order" name="formBuy">
+            <%--<form:form action="order/submit" method="post" modelAttribute="order" name="formBuy">--%>
+            <form:form action="/orders" method="post" modelAttribute="order" name="formBuy">
                 <%--количество--%>
                 <label class="col1"><loc:message
                         code="dashboard.amount"/> ${currencyPair.getCurrency1().getName()}:</label>
                 <form:errors path="amountBuy" style="color:red"/>
-                <form:input class="col2" path="amountBuy" type="text" id="amountBuyForm1" placeholder="0"/>
+                <form:input class="col2 numericInputField" path="amountBuy" type="text" id="amountBuyForm1" placeholder="0"/>
                 <%--цена за--%>
                 <label class="col1"><loc:message
                         code="dashboard.priceFor"/> ${currencyPair.getCurrency1().getName()}:</label>
                 <form:errors path="amountSell" style="color:red"/>
-                <input type="text" class="col2" id="amountSellForm1" placeholder="0">
+                <input type="text" class="col2 numericInputField" id="amountSellForm1" placeholder="0">
                 <form:input type="hidden" path="amountSell" class="form-control" id="sumSellForm1"
                             placeholder="0"/>
                 <%--всего--%>
@@ -164,7 +160,7 @@
                 <span class="col2"><b id="sumBuyWithCommission"></b> ${currencyPair.getCurrency2().getName()}</span>
                 <%--комисия--%>
                 <span class="col1"><loc:message code="dashboard.fee"/></span>
-                <span class="col2"><b id="buyCommission"></b> ${currencyPair.getCurrency1().getName()}</span>
+                <span class="col2"><b id="buyCommission"></b> ${currencyPair.getCurrency2().getName()}</span>
 
                 <div class="row">
                     <div class="col-xs-6">
@@ -202,17 +198,18 @@
                 <div class="col-xs-6"><loc:message code="dashboard.highestPrice"/> <br>
                     <%--${maxPrice} --%>
                     <fmt:formatNumber type="number" maxFractionDigits="9" value="${maxPrice}"/>
-                    ${currencyPair.getCurrency1().getName()}
+                    ${currencyPair.getCurrency2().getName()}
                 </div>
             </div>
-            <form:form action="order/submit" method="post" modelAttribute="order">
+            <%--<form:form action="order/submit" method="post" modelAttribute="order">--%>
+            <form:form action="orders" method="post" modelAttribute="order">
                 <%--Количество--%>
                 <form:errors path="amountSell" style="color:red"/>
-                <form:input type="text" class="col2" path="amountSell" id="amountSellForm2" placeholder="0"/>
+                <form:input type="text" class="col2 numericInputField" path="amountSell" pattern="/\d*\.\d{1,2}/" id="amountSellForm2" placeholder="0.0"/>
                 <label class="col1"><loc:message
                         code="dashboard.amount"/> ${currencyPair.getCurrency1().getName()}:</label>
                 <%--Цена за--%>
-                <input type="text" class="col2" id="amountBuyForm2" placeholder="0">
+                <input type="text" class="col2 numericInputField" id="amountBuyForm2" placeholder="0">
                 <form:input type="hidden" path="amountBuy" class="form-control" id="sumBuyForm2" placeholder="0"/>
                 <label class="col1"><loc:message
                         code="dashboard.priceFor"/> ${currencyPair.getCurrency1().getName()}:</label>
@@ -254,7 +251,7 @@
             <%--Всего--%>
             <p>
                 <loc:message code="dashboard.total"/>
-                <fmt:formatNumber type="number" maxFractionDigits="9" value="${sumAmountBuy}"/>
+                <fmt:formatNumber type="number" maxFractionDigits="9" value="${sumAmountSell}"/>
                 ${currencyPair.getCurrency1().getName()}
             </p>
         </div>
@@ -265,8 +262,8 @@
             <hr class="display_at_small_width">
             <p>
                 <loc:message code="dashboard.total"/>
-                <fmt:formatNumber type="number" maxFractionDigits="9" value="${sumAmountSell}"/>
-                ${currencyPair.getCurrency2().getName()}
+                <fmt:formatNumber type="number" maxFractionDigits="9" value="${sumAmountBuy}"/>
+                ${currencyPair.getCurrency1().getName()}
             </p>
         </div>
     </div>
@@ -283,13 +280,13 @@
                     <tr>
                         <td>
                             <fmt:formatNumber type="number" maxFractionDigits="9"
-                                              value="${order.amountBuy/order.amountSell}"/>
+                                              value="${order.getExrate()}"/>
                         </td>
                         <td>
-                            <fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountSell}"/>
+                            <fmt:formatNumber type="number" maxFractionDigits="9" value="${order.getAmountBase()}"/>
                         </td>
                         <td>
-                            <fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountBuy}"/>
+                            <fmt:formatNumber type="number" maxFractionDigits="9" value="${order.getAmountConvert()}"/>
                         </td>
                     </tr>
                 </c:forEach>
@@ -306,13 +303,13 @@
                     <tr>
                         <td>
                             <fmt:formatNumber type="number" maxFractionDigits="9"
-                                              value="${order.amountSell/order.amountBuy}"/>
+                                              value="${order.getExrate()}"/>
                         </td>
                         <td>
-                            <fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountBuy}"/>
+                            <fmt:formatNumber type="number" maxFractionDigits="9" value="${order.getAmountBase()}"/>
                         </td>
                         <td>
-                            <fmt:formatNumber type="number" maxFractionDigits="9" value="${order.amountSell}"/>
+                            <fmt:formatNumber type="number" maxFractionDigits="9" value="${order.getAmountConvert()}"/>
                         </td>
                     </tr>
                 </c:forEach>
@@ -326,20 +323,21 @@
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>
 
-<script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
-<script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
-<script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
-<script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
-
 <script>
-    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-                (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-            m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+                    (i[r].q = i[r].q || []).push(arguments)
+                }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
 
     ga('create', 'UA-75711135-1', 'auto');
     ga('send', 'pageview');
-
 </script>
 
 </body>

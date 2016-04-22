@@ -1,10 +1,12 @@
 package me.exrates.controller;
 
 import me.exrates.controller.validator.RegisterFormValidation;
-import me.exrates.dto.CurrencyPairStatisticsDto;
+import me.exrates.model.ExOrder;
+import me.exrates.model.dto.CurrencyPairStatisticsDto;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.Order;
 import me.exrates.model.User;
+import me.exrates.model.dto.OrderListDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.security.filter.VerifyReCaptchaSec;
@@ -20,8 +22,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.ExtendedModelMap;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
@@ -34,16 +34,15 @@ import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 @Controller
 public class DashboardController {
-
     @Autowired
     OrderService orderService;
 
@@ -74,77 +73,66 @@ public class DashboardController {
     @Autowired
     VerifyReCaptchaSec verifyReCaptcha;
 
-    private CurrencyPair currentCurrencyPair;
+//    private CurrencyPair currentCurrencyPair;
 
     @RequestMapping(value = {"/dashboard/locale"})
     public void localeSwitcherCommand() {
     }
 
     @RequestMapping(value = {"/dashboard"})
-    public ModelAndView dashboard(@ModelAttribute CurrencyPair currencyPair, Principal principal, @RequestParam(required = false) String errorNoty, @RequestParam(required = false) String successNoty) {
+    public ModelAndView dashboard(@ModelAttribute CurrencyPair currencyPair, Principal principal, @RequestParam(required = false) String errorNoty, @RequestParam(required = false) String successNoty, HttpServletRequest request) {
         ModelAndView model = new ModelAndView();
         model.addObject("successNoty", successNoty);
         model.addObject("errorNoty", errorNoty);
         model.setViewName("dashboard");
-
+        /**/
         List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs();
         if (currencyPair.getName() == null) {
             currencyPair = currencyPairs.get(0);
         }
-
+        /**/
         for (CurrencyPair currencyPairRecord : currencyPairs) {
             if (currencyPairRecord.getName().equals(currencyPair.getName())) {
                 currencyPair = currencyPairRecord;
             }
         }
-
-        currentCurrencyPair = currencyPair;
+        /**/
+        request.getSession().setAttribute("currentCurrencyPair", currencyPair);
         model.addObject("currencyPairs", currencyPairs);
         model.addObject("currencyPair", currencyPair);
-
-        Order lastOrder = dashboardService.getLastClosedOrder(currencyPair);
+        /**/
+        ExOrder lastOrder = dashboardService.getLastClosedOrderForCurrencyPair(currencyPair);
         model.addObject("lastOrder", lastOrder);
-        if (lastOrder.getCurrencyBuy() != 0) {
-            model.addObject("lastOrderCurrency", currencyService.getCurrencyName(lastOrder.getCurrencyBuy()));
+        /**/
+        if (lastOrder != null) {
+            CurrencyPair cp = currencyService.findCurrencyPairById(lastOrder.getCurrencyPairId());
+            model.addObject("lastOrderCurrency", currencyService.getCurrencyName(cp.getCurrency1().getId()));
         }
-
-
-        List<Order> ordersBuy = dashboardService.getAllBuyOrders(currencyPair);
-        List<Order> ordersSell = dashboardService.getAllSellOrders(currencyPair);
+        /**/
+        List<OrderListDto> ordersBuy = dashboardService.getAllBuyOrders(currencyPair);
+        List<OrderListDto> ordersSell = dashboardService.getAllSellOrders(currencyPair);
         model.addObject("ordersBuy", ordersBuy);
         model.addObject("ordersSell", ordersSell);
-
-        Order order = new Order();
-
-        BigDecimal sumAmountBuy = ordersBuy.stream().map(Order::getAmountBuy).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal sumAmountSell = ordersSell.stream().map(Order::getAmountBuy).reduce(BigDecimal.ZERO, BigDecimal::add);
-
+        /**/
+        BigDecimal sumAmountBuy = ordersBuy.stream().map(OrderListDto::getAmountBase).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal sumAmountSell = ordersSell.stream().map(OrderListDto::getAmountBase).reduce(BigDecimal.ZERO, BigDecimal::add);
         model.addObject("sumAmountBuy", sumAmountBuy);
         model.addObject("sumAmountSell", sumAmountSell);
-
-
-        List<Map<String, BigDecimal>> list = dashboardService.getAmountsFromClosedOrders(currencyPair);
-        BigDecimal sumAmountBuyClosed = new BigDecimal(0.0);
-        BigDecimal sumAmountSellClosed = new BigDecimal(0.0);
-        for (Map<String, BigDecimal> tempRow : list) {
-            sumAmountBuyClosed = tempRow.get("amount_buy");
-            sumAmountSellClosed = tempRow.get("amount_sell");
-        }
-        model.addObject("sumAmountBuyClosed", sumAmountBuyClosed);
-        model.addObject("sumAmountSellClosed", sumAmountSellClosed);
-
+        /**/
+        model.addObject("sumAmountBuyClosed", lastOrder == null ? new BigDecimal(0.0) : lastOrder.getAmountBase());
+        model.addObject("sumAmountSellClosed", lastOrder == null ? new BigDecimal(0.0) : lastOrder.getAmountConvert());
+        /**/
         if (principal != null) {
             model.addObject("balanceCurrency1", dashboardService.getBalanceByCurrency(userService.getIdByEmail(principal.getName()), currencyPair.getCurrency1().getId()));
             model.addObject("balanceCurrency2", dashboardService.getBalanceByCurrency(userService.getIdByEmail(principal.getName()), currencyPair.getCurrency2().getId()));
         }
-
+        /**/
         BigDecimal minPrice = dashboardService.getMinPriceByCurrency(currencyPair);
         BigDecimal maxPrice = dashboardService.getMaxPriceByCurrency(currencyPair);
         model.addObject("minPrice", minPrice);
-//        order.setAmountSell(minPrice);
         model.addObject("maxPrice", maxPrice);
-//        order.setAmountBuy(maxPrice);
-
+        /**/
+        Order order = new Order();
         model.addObject(order);
         return model;
     }
@@ -152,31 +140,21 @@ public class DashboardController {
     @RequestMapping(value = "/dashboard/chartArray", method = RequestMethod.GET)
     public
     @ResponseBody
-    ArrayList chartArray() {
+    ArrayList chartArray(HttpServletRequest request) {
+        CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
+        List<Map<String, Object>> rows = dashboardService.getDataForChart(currencyPair);
 
-        CurrencyPair currencyPair = currentCurrencyPair;
-        List<Map<String, Object>> list = dashboardService.getDataForChart(currencyPair);
+        ArrayList<List> arrayListMain = new ArrayList<>();
+        for (Map<String, Object> row : rows) {
+            Timestamp dateAcception = (Timestamp) row.get("dateAcception");
+            BigDecimal exrate = (BigDecimal) row.get("exrate");
 
-        ArrayList<ArrayList> arrayListMain = new ArrayList<ArrayList>();
-
-        for (Map<String, Object> tempRow : list) {
-            BigDecimal amount = (BigDecimal) tempRow.get("amount");
-            BigDecimal amountSell = (BigDecimal) tempRow.get("amount_sell");
-            Timestamp timestamp = (Timestamp) tempRow.get("date_final");
-            Date date = new Date(timestamp.getTime());
-
-            if (amount == null) {
-                continue;
+            if (dateAcception !=null) {
+                ArrayList<Object> arrayList = new ArrayList<>();
+                arrayList.add(dateAcception.toString());
+                arrayList.add(exrate.doubleValue());
+                arrayListMain.add(arrayList);
             }
-            ArrayList<Object> arrayList = new ArrayList<Object>();
-            arrayList.add(timestamp.toString());
-            arrayList.add(amount.doubleValue());
-            arrayList.add(amount.doubleValue());
-            arrayList.add(amount.doubleValue());
-            arrayList.add(amount.doubleValue());
-            arrayList.add(amountSell.doubleValue());
-
-            arrayListMain.add(arrayList);
 
         }
         return arrayListMain;
@@ -302,16 +280,16 @@ public class DashboardController {
         return model;
     }
 
-    @RequestMapping(value = "/admin/changeCurrencyPair", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/dashboard/changeCurrencyPair", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public CurrencyPairStatisticsDto getNewCurrencyPairData(@RequestParam(required = false) String currencyPairName, HttpServletRequest request) {
         List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs();
         CurrencyPair currencyPair;
-        if (currencyPairName==null) {
-            if (currentCurrencyPair == null) {
+        if (currencyPairName == null) {
+            if (request.getSession().getAttribute("currentCurrencyPair") == null) {
                 currencyPair = currencyPairs.get(0);
             } else {
-                currencyPair = currentCurrencyPair;
+                currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
             }
         } else {
             currencyPair = currencyPairs
@@ -319,14 +297,15 @@ public class DashboardController {
                     .filter(e -> e.getName().equals(currencyPairName))
                     .collect(Collectors.toList()).get(0);
         }
-        currentCurrencyPair = currencyPair;
-        Order lastOrder = dashboardService.getLastClosedOrder(currencyPair);
+        request.getSession().setAttribute("currentCurrencyPair", currencyPair);
+        ExOrder lastOrder = dashboardService.getLastClosedOrderForCurrencyPair(currencyPair);
         CurrencyPairStatisticsDto currencyPairStatisticsDto = new CurrencyPairStatisticsDto();
         currencyPairStatisticsDto.setName(currencyPair.getName());
         currencyPairStatisticsDto.setCurrency1(currencyPair.getCurrency1().getName());
         currencyPairStatisticsDto.setCurrency2(currencyPair.getCurrency2().getName());
-        if (lastOrder.getCurrencyBuy() != 0) {
-            currencyPairStatisticsDto.setLastOrderCurrency(currencyService.getCurrencyName(lastOrder.getCurrencyBuy()));
+        if (lastOrder != null) {
+            CurrencyPair cp = currencyService.findCurrencyPairById(lastOrder.getCurrencyPairId());
+            currencyPairStatisticsDto.setLastOrderCurrency(currencyService.getCurrencyName(cp.getCurrency1().getId()));
         } else {
             currencyPairStatisticsDto.setLastOrderCurrency("");
         }
@@ -335,22 +314,17 @@ public class DashboardController {
         df.setMaximumFractionDigits(9);
         df.setMinimumFractionDigits(0);
         df.setGroupingUsed(true);
-        currencyPairStatisticsDto.setAmountBuy(lastOrder.getAmountBuy() == null ? "0" : df.format(lastOrder.getAmountBuy()));
-        //
-        List<Map<String, BigDecimal>> list = dashboardService.getAmountsFromClosedOrders(currencyPair);
-        BigDecimal sumAmountBuyClosed = new BigDecimal(0.0);
-        BigDecimal sumAmountSellClosed = new BigDecimal(0.0);
-        for (Map<String, BigDecimal> tempRow : list) {
-            sumAmountBuyClosed = tempRow.get("amount_buy");
-            sumAmountSellClosed = tempRow.get("amount_sell");
-        }
-        currencyPairStatisticsDto.setSumAmountBuyClosed(sumAmountBuyClosed == null ? "0" : df.format(sumAmountBuyClosed));
-        currencyPairStatisticsDto.setSumAmountSellClosed(sumAmountSellClosed == null ? "0" : df.format(sumAmountSellClosed));
+        currencyPairStatisticsDto.setAmountBuy(lastOrder == null ? "0" : df.format(lastOrder.getAmountBase()));
+        /**/
+        BigDecimal sumAmountBuyClosed = lastOrder == null ? new BigDecimal(0.0) : lastOrder.getAmountBase();
+        BigDecimal sumAmountSellClosed = lastOrder == null ? new BigDecimal(0.0) : lastOrder.getAmountConvert();
+        currencyPairStatisticsDto.setSumAmountBuyClosed(lastOrder == null ? "0" : df.format(lastOrder.getAmountBase()));
+        currencyPairStatisticsDto.setSumAmountSellClosed(lastOrder == null ? "0" : df.format(lastOrder.getAmountConvert()));
 
         return currencyPairStatisticsDto;
     }
 
-    @RequestMapping(value = "/admin/createPairSelectorMenu", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/dashboard/createPairSelectorMenu", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public List<String> getCurrencyPairNameList() {
         List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs();

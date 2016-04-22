@@ -96,8 +96,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/merchants/liqpay/payment/success",
                         "/merchants/liqpay/payment/failure").permitAll()
                 .antMatchers(HttpMethod.POST, "/merchants/nixmoney/payment/status",
-                        "/merchants/nixmoney/nixmoney/success",
-                        "/merchants/nixmoney/nixmoney/failure").permitAll()
+                        "/merchants/nixmoney/payment/success",
+                        "/merchants/nixmoney/payment/failure").permitAll()
+                .antMatchers(HttpMethod.POST, "/merchants/privat24/payment/status",
+                        "/merchants/privat24/payment/success",
+                        "/merchants/privat24/payment/failure").permitAll()
                 .antMatchers(HttpMethod.POST, "/merchants/edrcoin/payment/received").permitAll()
                 .antMatchers(HttpMethod.GET, "/merchants/blockchain/payment/received").permitAll()
                 .antMatchers("/login", "/register", "/create", "/forgotPassword/**", "/resetPasswordConfirm/**").anonymous()
@@ -136,7 +139,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/merchants/liqpay/payment/status",
                         "/merchants/nixmoney/payment/failure",
                         "/merchants/nixmoney/payment/success",
-                        "/merchants/nixmoney/payment/status");
+                        "/merchants/nixmoney/payment/status",
+                        "/merchants/privat24/payment/failure",
+                        "/merchants/privat24/payment/success",
+                        "/merchants/privat24/payment/status");
     }
 
     private String buildHasIpExpression() {

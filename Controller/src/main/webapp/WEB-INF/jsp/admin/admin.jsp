@@ -27,9 +27,16 @@
 
     <link href="<c:url value='/client/css/jquery.dataTables.min.css'/>" rel="stylesheet" type="text/css"/>
 
-    <%--<script type="text/javascript" src="/client/js/jquery.js"></script>--%>
-    <%--<script type="text/javascript" src="/client/js/tab.js"></script>--%>
     <script type="text/javascript" src="/client/js/jquery.dataTables.min.js"></script>
+    <%----------%>
+    <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/menuSwitcher.js'/>"></script>
+
+    <script type="text/javascript" src="<c:url value='/client/js/dataTable/adminUsersDataTable.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/dataTable/adminAdminsDataTable.js'/>"></script>
+    <%----------%>
 
 </head>
 
@@ -135,15 +142,6 @@
     </div>
     <hr>
 </main>
-<%----------%>
-<script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
-<script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
-<script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
-<script type="text/javascript" src="<c:url value='/client/js/menuSwitcher.js'/>"></script>
-
-<script type="text/javascript" src="<c:url value='/client/js/dataTable/adminUsersDataTable.js'/>"></script>
-<script type="text/javascript" src="<c:url value='/client/js/dataTable/adminAdminsDataTable.js'/>"></script>
-<%----------%>
 </body>
 </html>
 

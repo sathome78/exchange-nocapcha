@@ -37,11 +37,13 @@ $(function(){
     const LIQPAY = 'LiqPay';
     const NIX = 'Nix Money';
     const YANDEX_KASSA = 'Yandex kassa';
+    const PRIVAT24 = 'Privat24';
     const NO_ACTION = 'javascript:void(0);';
     
     var currency = $('#currency');
     var merchant = $('#merchant');
     var sum = $('#sum');
+    var numericInputField = $(".numericInputField");
     var operationType = $('#operationType');
     var modalTemplate = $('.paymentInfo p');
     var button = $('#payment').find('button');
@@ -100,7 +102,8 @@ $(function(){
             advcash:'/merchants/advcash/payment/prepare',
             liqpay:'/merchants/liqpay/payment/prepare',
             nixmoney:'/merchants/nixmoney/payment/prepare',
-            yandex_kassa:'/merchants/yandex_kassa/payment/prepare'
+            yandex_kassa:'/merchants/yandex_kassa/payment/prepare',
+            privat24:'/merchants/privat24/payment/prepare'
 
         };
         if (operationType === 'INPUT') {
@@ -122,6 +125,9 @@ $(function(){
                     break;
                 case YANDEX_KASSA :
                     form.attr('action', formAction.yandex_kassa);
+                    break;
+                case PRIVAT24 :
+                    form.attr('action', formAction.privat24);
                     break;
                 case BLOCKCHAIN:
                 default:
@@ -363,4 +369,10 @@ $(function(){
             button.prop('disabled',true);
         }
     });
+
+    numericInputField.keypress(
+        function (e) {
+            return e.keyCode>=48&& e.keyCode<=57|| e.keyCode==46;
+        }
+    )
 });

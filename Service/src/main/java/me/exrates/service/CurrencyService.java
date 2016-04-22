@@ -21,7 +21,7 @@ public interface CurrencyService {
 
     List<CurrencyPair> getAllCurrencyPairs();
 
-    CurrencyPair getCurrencyPairById(int currency1Id, int currency2Id);
+    CurrencyPair findCurrencyPairById(int currencyPairId);
 
     String amountToString(BigDecimal amount, String currency);
 
