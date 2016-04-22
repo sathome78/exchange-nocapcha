@@ -74,12 +74,13 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     @Override
     public String amountToString(final BigDecimal amount, final String currency) {
-        return amount.setScale(resolvePrecision(currency), ROUND_CEILING).toString();
+        return amount.setScale(resolvePrecision(currency), ROUND_CEILING)
+                .stripTrailingZeros()
+                .toString();
     }
 
     @Override
     public int resolvePrecision(final String currency) {
         return CRYPTO.contains(currency) ? CRYPTO_PRECISION : DEFAULT_PRECISION;
     }
-
 }
