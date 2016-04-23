@@ -153,16 +153,6 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public boolean deleteOrder(int orderId) {
-        String sql = "DELETE FROM EORDERS WHERE id = :id";
-        NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-        Map<String, String> namedParameters = new HashMap<>();
-        namedParameters.put("id", String.valueOf(orderId));
-        int result = namedParameterJdbcTemplate.update(sql, namedParameters);
-        return result > 0;
-    }
-
-    @Override
     public ExOrder getOrderById(int orderId) {
         String sql = "SELECT * FROM EXORDERS WHERE id = :id";
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);

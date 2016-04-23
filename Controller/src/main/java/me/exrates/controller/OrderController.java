@@ -57,7 +57,7 @@ public class OrderController {
     OrderValidator orderValidator;
 
     @RequestMapping(value = "/orders")
-    public ModelAndView myOrders(Principal principal, HttpServletRequest request) {
+    public ModelAndView myOrders(Principal principal, @ModelAttribute ExOrder exOrder, HttpServletRequest request) {
         ModelAndView model = new ModelAndView();
         model.setViewName("orders");
         //
@@ -85,6 +85,12 @@ public class OrderController {
         commission = commissionService.findCommissionByType(OperationType.SELL);
         orderCreateDto.setComissionForSellId(commission.getId());
         orderCreateDto.setComissionForSellRate(commission.getValue());
+        /**/
+        if (exOrder != null) {
+            orderCreateDto.setOperationType(exOrder.getOperationType());
+            orderCreateDto.setAmount(exOrder.getAmountBase());
+            orderCreateDto.setExchangeRate(exOrder.getExRate());
+        }
         model.addObject("orderCreateDto", orderCreateDto);
         //
         return model;
@@ -204,7 +210,6 @@ public class OrderController {
             orderService.acceptOrder(userId, id);
         } catch (Exception e) {
             throw e;
-//            throw new NotAcceptableOrderException(messageSource.getMessage("dberror.text", null, localeResolver.resolveLocale(request)));
         }
     }
 
@@ -299,51 +304,29 @@ public class OrderController {
     }
 
     @RequestMapping("/myorders/submitdelete")
-    public ModelAndView submitDeleteOrder(Principal principal, @RequestParam int id, RedirectAttributes redirectAttributes, ModelAndView model) {
-        /*ExOrder exOrder = orderService.getOrderById(id);
-        model.setViewName("submitdeleteorder");
-        model.addObject("order", exOrder);*/
-
+    public ModelAndView submitDeleteOrder(@RequestParam int id, ModelAndView model) {
         /**/
-
         ExOrder exOrder = orderService.getOrderById(id);
         CurrencyPair currencyPair = currencyService.findCurrencyPairById(exOrder.getCurrencyPairId());
-        //
-        int userId = userService.getIdByEmail(principal.getName());
-        int currencyBaseId = currencyPair.getCurrency1().getId();
-        int currencyConvertId = currencyPair.getCurrency2().getId();
-        int currencyBaseWalletId = walletService.getWalletId(userId, currencyBaseId);
-        int currencyConvertWalletId = walletService.getWalletId(userId, currencyConvertId);
-        //
+        /**/
         OrderCreateDto orderCreateDto = new OrderCreateDto();
         orderCreateDto.setOrderId(exOrder.getId());
+        orderCreateDto.setUserId(exOrder.getUserId());
         orderCreateDto.setOperationType(exOrder.getOperationType());
+        orderCreateDto.setStatus(exOrder.getStatus());
         orderCreateDto.setExchangeRate(exOrder.getExRate());
         /**/
         orderCreateDto.setCurrencyPair(currencyPair);
-        orderCreateDto.setWalletIdCurrencyBase(currencyBaseWalletId);
-        orderCreateDto.setCurrencyBaseBalance(walletService.getWalletABalance(currencyBaseWalletId));
-        orderCreateDto.setWalletIdCurrencyConvert(currencyConvertWalletId);
-        orderCreateDto.setCurrencyConvertBalance(walletService.getWalletABalance(currencyConvertWalletId));
-        Commission commission = commissionService.findCommissionByType(OperationType.BUY);
-        orderCreateDto.setComissionForBuyId(commission.getId());
-        orderCreateDto.setComissionForBuyRate(commission.getValue());
-        commission = commissionService.findCommissionByType(OperationType.SELL);
-        orderCreateDto.setComissionForSellId(commission.getId());
-        orderCreateDto.setComissionForSellRate(commission.getValue());
         orderCreateDto.setAmount(exOrder.getAmountBase());
         orderCreateDto.setTotal(exOrder.getAmountConvert());
         /**/
-        if (orderCreateDto.getOperationType() == OperationType.BUY) {
-            orderCreateDto.setComissionId(orderCreateDto.getComissionForBuyId());
-            orderCreateDto.setComission(exOrder.getAmountConvert().multiply(orderCreateDto.getComissionForBuyRate().divide(new BigDecimal(100))));
-            orderCreateDto.setTotalWithComission(exOrder.getAmountConvert().add(orderCreateDto.getComission()));
-        } else {
-            orderCreateDto.setComissionId(orderCreateDto.getComissionForSellId());
-            orderCreateDto.setComission(exOrder.getAmountConvert().multiply(orderCreateDto.getComissionForSellRate().divide(new BigDecimal(100))));
+        orderCreateDto.setComission(exOrder.getCommissionFixedAmount());
+        if (orderCreateDto.getOperationType() == OperationType.SELL) {
             orderCreateDto.setTotalWithComission(exOrder.getAmountConvert().add(orderCreateDto.getComission().negate()));
-        }
 
+        } else {
+            orderCreateDto.setTotalWithComission(exOrder.getAmountConvert().add(orderCreateDto.getComission()));
+        }
         /**/
         model.addObject("orderCreateDto", orderCreateDto);
         /**/
@@ -354,7 +337,7 @@ public class OrderController {
     @RequestMapping("/myorders/delete")
     public String deleteOrder(@ModelAttribute OrderCreateDto orderCreateDto, RedirectAttributes redirectAttributes) {
         String msg = null;
-        if (orderService.cancellOrder(orderCreateDto.getOrderId())) {
+        if (orderService.cancellOrder(new ExOrder(orderCreateDto))) {
             msg = "delete";
         } else {
             msg = "deletefailed";

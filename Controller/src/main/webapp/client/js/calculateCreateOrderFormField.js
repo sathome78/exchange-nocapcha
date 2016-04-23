@@ -14,6 +14,10 @@ $(function () {
 
 
 function calculateFieldsForBuy() {
+    if ($('#amountBuy').prop('readonly')) {
+        //not calculate if form is only to show order
+        return;
+    }
     var amount = +$('#amountBuy').val();
     var exchangeRate = +$('#exchangeRateBuy').val();
     var totalForBuy = +$('#totalForBuy').val(amount * exchangeRate).val();
@@ -38,6 +42,10 @@ function calculateFieldsForBuy() {
 }
 
 function calculateFieldsForSell() {
+    if ($('#amountSell').prop('readonly')) {
+        //not calculate if form is only to show order
+        return;
+    }
     var amount = +$('#amountSell').val();
     var exchangeRate = +$('#exchangeRateSell').val();
     var totalForSell = +$('#totalForSell').val(amount * exchangeRate).val();

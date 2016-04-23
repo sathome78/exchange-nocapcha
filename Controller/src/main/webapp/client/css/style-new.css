@@ -1670,3 +1670,8 @@ a.button_delete_order {
     outline: 0;
     text-decoration: none;
 }
+
+td.allign-center,
+th.allign-center {
+    text-align: center;
+}

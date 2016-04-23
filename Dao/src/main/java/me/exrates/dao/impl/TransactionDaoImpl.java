@@ -94,9 +94,9 @@ public final class TransactionDaoImpl implements TransactionDao {
     @Override
     public Transaction create(Transaction transaction) {
         final String sql = "INSERT INTO TRANSACTION (user_wallet_id, company_wallet_id, amount, commission_amount, " +
-                "commission_id, operation_type_id, currency_id, merchant_id, datetime, order_id, confirmation)" +
+                "commission_id, operation_type_id, currency_id, merchant_id, datetime, order_id, confirmation, provided)" +
                 "   VALUES (:userWallet,:companyWallet,:amount,:commissionAmount,:commission,:operationType, :currency," +
-                "   :merchant, :datetime, :order_id, :confirmation)";
+                "   :merchant, :datetime, :order_id, :confirmation, :provided)";
         final KeyHolder keyHolder = new GeneratedKeyHolder();
         final Map<String, Object> params = new HashMap<String, Object>() {
             {
@@ -111,6 +111,7 @@ public final class TransactionDaoImpl implements TransactionDao {
                 put("datetime", transaction.getDatetime() == null ? null : Timestamp.valueOf(transaction.getDatetime()));
                 put("order_id", transaction.getOrder() == null ? null : transaction.getOrder().getId());
                 put("confirmation", transaction.getConfirmation());
+                put("provided", transaction.isProvided());
             }
         };
         if (jdbcTemplate.update(sql, new MapSqlParameterSource(params), keyHolder) > 0) {

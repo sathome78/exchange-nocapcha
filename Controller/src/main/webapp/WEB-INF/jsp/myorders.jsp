@@ -173,7 +173,8 @@
                                     </td>
                                     <td class="allign-center">${myorder.getStatusString()}
                                     </td>
-                                    <td><c:if test="${(myorder.status.status eq 2)||(myorder.status.status eq 1)}"> <a
+                                    <td><c:if test="${(myorder.status.status eq 2)||(myorder.status.status eq 1)}">
+                                        <a class="button_delete_order"
                                             href="/myorders/submitdelete?id=${myorder.id}"><loc:message
                                             code="myorders.delete"/></a> </c:if></td>
                                 </tr>

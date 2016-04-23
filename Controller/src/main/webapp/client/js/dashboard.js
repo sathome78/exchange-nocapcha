@@ -10,12 +10,10 @@ $(function () {
                 var computedCommission = (total * commission) / 100;
                 document.getElementById("buyCommission").innerHTML = 1*computedCommission.toFixed(9);
                 document.getElementById("sumBuyWithCommission").innerHTML = total + computedCommission;
-                document.getElementById("sumSellForm1").value = total;
 
             } else {
                 document.getElementById("buyCommission").innerHTML = 0;
                 document.getElementById("sumBuyWithCommission").innerHTML = 0;
-                document.getElementById("sumSellForm1").value = 0;
             }
         })
 
@@ -30,11 +28,9 @@ $(function () {
                 var computedCommission = (total * commission) / 100;
                 document.getElementById("sellCommission").innerHTML = 1*computedCommission.toFixed(9);
                 document.getElementById("sumSellWithCommission").innerHTML = total - computedCommission;
-                document.getElementById("sumSellForm2").value = total;
             } else {
                 document.getElementById("sellCommission").innerHTML = 0;
                 document.getElementById("sumSellWithCommission").innerHTML = 0;
-                document.getElementById("sumBuyForm2").value = 0;
             }
         })
     });

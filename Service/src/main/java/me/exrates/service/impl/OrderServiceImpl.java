@@ -68,7 +68,8 @@ public class OrderServiceImpl implements OrderService {
         int createdOrderId = 0;
         int outWalletId = (orderCreateDto.getOperationType() == OperationType.BUY) ? orderCreateDto.getWalletIdCurrencyConvert() : orderCreateDto.getWalletIdCurrencyBase();
         if (walletService.ifEnoughMoney(outWalletId, orderCreateDto.getTotalWithComission())) {
-            ExOrder exOrder = new ExOrder(userId, orderCreateDto);
+            orderCreateDto.setUserId(userId);
+            ExOrder exOrder = new ExOrder(orderCreateDto);
             if ((createdOrderId = orderDao.createOrder(exOrder)) > 0) {
                 if (orderCreateDto.getOperationType() == OperationType.BUY) {
                     walletService.setWalletRBalance(outWalletId, orderCreateDto.getTotalWithComission());
@@ -141,12 +142,6 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<OrderListDto> getOrdersBuy() {
         return orderDao.getOrdersBuy();
-    }
-
-    @Transactional
-    @Override
-    public boolean deleteOrder(int orderId) {
-        return orderDao.deleteOrder(orderId);
     }
 
     @Transactional(readOnly = true)
@@ -386,21 +381,27 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional(rollbackFor = {Exception.class})
     @Override
-    public boolean cancellOrder(int orderId) {
+    public boolean cancellOrder(ExOrder exOrder) {
+        boolean result = false;
         try {
-            ExOrder exOrder = getOrderById(orderId);
             if (exOrder.getStatus() == OrderStatus.OPENED) {
-                BigDecimal amountWithComissionForCreator = getAmountWithComissionForCreator(exOrder);
-                WalletsForOrderAcceptionDto walletsForOrderAcceptionDto = walletDao.getWalletsForOrderByOrderId(exOrder.getId(), null);
-                walletService.setWalletABalance(walletsForOrderAcceptionDto.getUserCreatorOutWalletId(), amountWithComissionForCreator);
-                walletService.setWalletRBalance(walletsForOrderAcceptionDto.getUserCreatorOutWalletId(), amountWithComissionForCreator.negate());
-                setStatus(orderId, OrderStatus.CANCELLED);
+                CurrencyPair orderCurrencyPair = currencyService.findCurrencyPairById(exOrder.getCurrencyPairId());
+                if (exOrder.getOperationType() == OperationType.SELL) {
+                    Wallet walletForCancelReserv = walletDao.findByUserAndCurrency(exOrder.getUserId(), orderCurrencyPair.getCurrency1().getId());
+                    walletService.setWalletABalance(walletForCancelReserv.getId(), exOrder.getAmountBase());
+                    walletService.setWalletRBalance(walletForCancelReserv.getId(), exOrder.getAmountBase().negate());
+                } else {
+                    Wallet walletForCancelReserv = walletDao.findByUserAndCurrency(exOrder.getUserId(), orderCurrencyPair.getCurrency2().getId());
+                    walletService.setWalletABalance(walletForCancelReserv.getId(), exOrder.getAmountConvert().add(exOrder.getCommissionFixedAmount()));
+                    walletService.setWalletRBalance(walletForCancelReserv.getId(), exOrder.getAmountConvert().add(exOrder.getCommissionFixedAmount()).negate());
+                }
+                result = setStatus(exOrder.getId(), OrderStatus.CANCELLED);
             }
         } catch (Exception e) {
-            logger.error("Error while cancelling order " + orderId + " , " + e.getLocalizedMessage());
+            logger.error("Error while cancelling order " + exOrder.getId() + " , " + e.getLocalizedMessage());
             throw e;
         }
-        return true;
+        return result;
     }
 
     private String getStatusString(OrderStatus status, Locale ru) {

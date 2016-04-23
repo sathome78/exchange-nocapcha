@@ -17,8 +17,6 @@ public interface OrderDao {
 
     List<ExOrder> getAllOpenedOrders();
 
-    boolean deleteOrder(int orderId);
-
     ExOrder getOrderById(int orderid);
 
     boolean setStatus(int orderId, OrderStatus status);

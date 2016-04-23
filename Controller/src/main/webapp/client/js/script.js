@@ -90,6 +90,12 @@ $(document).ready(function () {
         getNewCurrencyPairData($(this).text());
     });
 
+    $(".numericInputField").keypress(
+        function (e) {
+            return e.keyCode>=48&& e.keyCode<=57|| e.keyCode==46;
+        }
+    )
+
 });
 
 

@@ -1,7 +1,9 @@
 package me.exrates.model.dto;
 
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.ExOrder;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderStatus;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
@@ -13,6 +15,8 @@ import java.text.DecimalFormat;
 public class OrderCreateDto {
     /*this field filled from existing order*/
     private int orderId;
+    private int userId;
+    private OrderStatus status;
     /*these fields will be transferred to blank creation form */
     private CurrencyPair currencyPair;
     private int comissionForBuyId;
@@ -21,7 +25,6 @@ public class OrderCreateDto {
     private BigDecimal comissionForSellRate;
     private int walletIdCurrencyBase;
     private BigDecimal currencyBaseBalance;
-    private String currencyBaseBalanceString;
     private int walletIdCurrencyConvert;
     private BigDecimal currencyConvertBalance;
     //
@@ -47,7 +50,7 @@ public class OrderCreateDto {
     }
 
     /*service methods*/
-    public OrderSum getCalculatedAmounts(){
+    public OrderSum getCalculatedAmounts() {
         if (operationType == null) {
             return null;
         }
@@ -66,14 +69,38 @@ public class OrderCreateDto {
         return result;
     }
 
-    public class OrderSum{
+    public class OrderSum {
         public BigDecimal total;
         public int comissionId;
         public BigDecimal comission;
         public BigDecimal totalWithComission;
     }
 
+    public String getTrimmedValue(BigDecimal value) {
+        String sep = "\\.";
+        String result = value.toString().split(sep).length < 2 ? value.toString() : value.toString().split(sep)[0] + "." + value.toString().split(sep)[1].replaceAll("0+$", "");
+        return result.replaceAll("\\.$", "");
+    }
+
+    ;
+
     /*getters setters*/
+
+    public int getUserId() {
+        return userId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
+
+    public OrderStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(OrderStatus status) {
+        this.status = status;
+    }
 
     public int getOrderId() {
         return orderId;
@@ -209,10 +236,5 @@ public class OrderCreateDto {
 
     public void setTotalWithComission(BigDecimal totalWithComission) {
         this.totalWithComission = totalWithComission;
-    }
-
-    public String getCurrencyBaseBalanceString() {
-//        DecimalFormat df = new DecimalFormat();
-        return currencyBaseBalance.toString();
     }
 }

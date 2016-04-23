@@ -19,15 +19,13 @@ public interface OrderService {
 
     Map<String, List<OrderWideListDto>> getAllOpenedOrders(Locale locale);
 
-    boolean deleteOrder(int orderId);
-
     ExOrder getOrderById(int orderId);
 
     boolean setStatus(int orderId, OrderStatus status);
 
     void acceptOrder(int userId, int orderId);
 
-    boolean cancellOrder(int orderId);
+    boolean cancellOrder(ExOrder exOrder);
 
     List<OrderListDto> getOrdersSell();
 

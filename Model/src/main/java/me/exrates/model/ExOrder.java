@@ -31,8 +31,9 @@ public class ExOrder {
     public ExOrder() {
     }
 
-    public ExOrder(int userId, OrderCreateDto orderCreateDto) {
-        this.userId = userId;
+    public ExOrder(OrderCreateDto orderCreateDto) {
+        this.id = orderCreateDto.getOrderId();
+        this.userId = orderCreateDto.getUserId();
         this.currencyPairId = orderCreateDto.getCurrencyPair().getId();
         this.operationType = orderCreateDto.getOperationType();
         this.exRate = orderCreateDto.getExchangeRate();
@@ -40,6 +41,7 @@ public class ExOrder {
         this.amountConvert = orderCreateDto.getTotal();
         this.comissionId = orderCreateDto.getComissionId();
         this.commissionFixedAmount = orderCreateDto.getComission();
+        this.status = orderCreateDto.getStatus();
     }
 
     /*hash equals*/

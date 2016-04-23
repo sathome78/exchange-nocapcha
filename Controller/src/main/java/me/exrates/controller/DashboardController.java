@@ -132,8 +132,8 @@ public class DashboardController {
         model.addObject("minPrice", minPrice);
         model.addObject("maxPrice", maxPrice);
         /**/
-        Order order = new Order();
-        model.addObject(order);
+        ExOrder exOrder = new ExOrder();
+        model.addObject(exOrder);
         return model;
     }
 

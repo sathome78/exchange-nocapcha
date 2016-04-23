@@ -21,7 +21,16 @@
     <form:input hidden="true" path="walletIdCurrencyBase" value="${orderCreateDto.walletIdCurrencyBase}"/>
     <form:input hidden="true" path="walletIdCurrencyConvert" value="${orderCreateDto.walletIdCurrencyConvert}"/>
     <form:input hidden="true" path="orderId" value="${orderCreateDto.orderId}"/>
-
+    <form:input hidden="true" path="userId" value="${orderCreateDto.userId}"/>
+    <form:input hidden="true" path="status" value="${orderCreateDto.status}"/>
+    <%----%>
+    <c:set var="BUY" value="<%=me.exrates.model.enums.OperationType.BUY%>"/>
+    <c:set var="amount" value="0"/>
+    <c:set var="rate" value="0"/>
+    <c:if test="${orderCreateDto.operationType==BUY}">
+        <c:set var="amount" value="${orderCreateDto.amount}"/>
+        <c:set var="rate" value="${orderCreateDto.exchangeRate}"/>
+    </c:if>
     <%--Active balance--%>
     <c:if test="${hideBalance == null && hideBalance != 'true'}">
         <div class="input-block-wrapper">
@@ -31,7 +40,7 @@
             </div>
             <div class="col-md-7 input-block-wrapper__input-wrapper">
                 <form:input id="currencyConvertBalance" path="currencyConvertBalance" class="input-block-wrapper__input"
-                            value="${orderCreateDto.currencyConvertBalance.stripTrailingZeros().toString()}"
+                            value="${orderCreateDto.getTrimmedValue(orderCreateDto.currencyConvertBalance)}"
                             readonly="true"/>
                 <div class="input-block-wrapper__inner-label">${orderCreateDto.currencyPair.getCurrency2().getName()}</div>
             </div>
@@ -43,8 +52,9 @@
             <label class="input-block-wrapper__label"><loc:message code="orders.amountbuy"/></label>
         </div>
         <div class="col-md-7 input-block-wrapper__input-wrapper">
-            <form:input id="amountBuy" pattern="${pattern}" path="amount" class="input-block-wrapper__input"
+            <form:input id="amountBuy" path="amount" class="input-block-wrapper__input numericInputField"
                         placeholder="0.0"
+                        value="${amount}"
                         readonly="${disableEdit}"/>
             <div class="input-block-wrapper__inner-label">${orderCreateDto.currencyPair.getCurrency1().getName()}</div>
         </div>
@@ -58,8 +68,9 @@
             <label class="input-block-wrapper__label"><loc:message code="order.rate"/></label>
         </div>
         <div class="col-md-7 input-block-wrapper__input-wrapper">
-            <form:input id="exchangeRateBuy" pattern="${pattern}" path="exchangeRate" class="input-block-wrapper__input"
+            <form:input id="exchangeRateBuy" path="exchangeRate" class="input-block-wrapper__input numericInputField"
                         placeholder="0.0"
+                        value="${rate}"
                         readonly="${disableEdit}"/>
 
             <div class="input-block-wrapper__inner-label">${orderCreateDto.currencyPair.getCurrency2().getName()}</div>
