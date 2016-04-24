@@ -16,8 +16,20 @@ $(function () {
 function calculateFieldsForBuy() {
     if ($('#amountBuy').prop('readonly')) {
         //not calculate if form is only to show order
+        $('#amountBuy').val(1*$('#amountBuy').val());
+        $('#exchangeRateBuy').val(1*$('#exchangeRateBuy').val());
+        $('#totalForBuy').val(1*$('#totalForBuy').val());
         $('#calculatedComissionForBuy').val(1*$('#calculatedComissionForBuy').val());
         $('#totalWithComissionForBuy').val(1*$('#totalWithComissionForBuy').val());
+        return;
+    }
+    if ($('#amountSell').prop('readonly')) {
+        //not calculate if form is only to show order
+        $('#amountSell').val(1*$('#amountSell').val());
+        $('#exchangeRateSell').val(1*$('#exchangeRateSell').val());
+        $('#totalForSell').val(1*$('#totalForSell').val());
+        $('#calculatedComissionForSell').val(1*$('#calculatedComissionForSell').val());
+        $('#totalWithComissionForSell').val(1*$('#totalWithComissionForSell').val());
         return;
     }
     var amount = +$('#amountBuy').val();
@@ -46,7 +58,20 @@ function calculateFieldsForBuy() {
 function calculateFieldsForSell() {
     if ($('#amountSell').prop('readonly')) {
         //not calculate if form is only to show order
-        $('#comissionForSellRate').val(1*$('#comissionForSellRate').val());
+        $('#amountSell').val(1*$('#amountSell').val());
+        $('#exchangeRateSell').val(1*$('#exchangeRateSell').val());
+        $('#totalForSell').val(1*$('#totalForSell').val());
+        $('#calculatedComissionForSell').val(1*$('#calculatedComissionForSell').val());
+        $('#totalWithComissionForSell').val(1*$('#totalWithComissionForSell').val());
+        return;
+    }
+    if ($('#amountBuy').prop('readonly')) {
+        //not calculate if form is only to show order
+        $('#amountBuy').val(1*$('#amountBuy').val());
+        $('#exchangeRateBuy').val(1*$('#exchangeRateBuy').val());
+        $('#totalForBuy').val(1*$('#totalForBuy').val());
+        $('#calculatedComissionForBuy').val(1*$('#calculatedComissionForBuy').val());
+        $('#totalWithComissionForBuy').val(1*$('#totalWithComissionForBuy').val());
         return;
     }
     var amount = +$('#amountSell').val();

@@ -49,7 +49,9 @@ function finPassCheck(id, opFunc, oType, event) {
         });
     }
     //it's need on case if button is submit
-    event.preventDefault();
+    if (event) {
+        event.preventDefault();
+    }
 }
 /*
  * ORDERS

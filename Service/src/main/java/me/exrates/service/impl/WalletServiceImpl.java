@@ -42,8 +42,8 @@ public final class WalletServiceImpl implements WalletService {
 	@Override
 	public void balanceRepresentation(final Wallet wallet) {
 		wallet
-				.setActiveBalance(wallet.getActiveBalance()
-				.setScale(currencyService.resolvePrecision(wallet.getName()), ROUND_CEILING));
+				.setActiveBalance(wallet.getActiveBalance()   );
+//				.setScale(currencyService.resolvePrecision(wallet.getName()), ROUND_CEILING));
 	}
 
 	@Transactional(readOnly = true)
