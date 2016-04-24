@@ -92,12 +92,11 @@ $(document).ready(function () {
 
     $(".numericInputField").keypress(
         function (e) {
-            return e.keyCode>=48&& e.keyCode<=57|| e.keyCode==46;
+            return e.charCode >= 48 && e.charCode <= 57 || e.charCode == 46 || e.charCode == 0
         }
     )
 
 });
-
 
 
 function getNewCurrencyPairData(newPairName) {
@@ -138,14 +137,6 @@ function createPairSelectorMenu(currencyPairName) {
                     $('.pair-selector__menu').append('<div class="pair-selector__menu-item">' + e + '</div>');
                 }
             });
-        },
-
-        error: function(jqXHR, textStatus, errorThrown){
-            console.log('******************************');
-            console.log(jqXHR);
-            console.log(textStatus);
-            console.log(errorThrown);
-            console.log('******************************');
         }
     });
 }
