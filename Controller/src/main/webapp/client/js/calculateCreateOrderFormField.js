@@ -16,6 +16,8 @@ $(function () {
 function calculateFieldsForBuy() {
     if ($('#amountBuy').prop('readonly')) {
         //not calculate if form is only to show order
+        $('#calculatedComissionForBuy').val(1*$('#calculatedComissionForBuy').val());
+        $('#totalWithComissionForBuy').val(1*$('#totalWithComissionForBuy').val());
         return;
     }
     var amount = +$('#amountBuy').val();
@@ -44,6 +46,7 @@ function calculateFieldsForBuy() {
 function calculateFieldsForSell() {
     if ($('#amountSell').prop('readonly')) {
         //not calculate if form is only to show order
+        $('#comissionForSellRate').val(1*$('#comissionForSellRate').val());
         return;
     }
     var amount = +$('#amountSell').val();
