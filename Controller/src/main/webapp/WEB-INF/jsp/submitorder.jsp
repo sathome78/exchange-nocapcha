@@ -30,6 +30,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/submits/orderSubmitCreate.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/calculateCreateOrderFormField.js'/>"></script>
     <%----------%>
 </head>
 

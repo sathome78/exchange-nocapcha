@@ -12,6 +12,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.HashMap;
@@ -45,16 +46,18 @@ public final class TransactionDaoImpl implements TransactionDao {
         merchant.setDescription(resultSet.getString("MERCHANT.description"));
 
         final ExOrder order = new ExOrder();
-        order.setId(resultSet.getInt("EXORDERS.id"));
-        order.setUserId(resultSet.getInt("EXORDERS.user_id"));
-        order.setCurrencyPairId(resultSet.getInt("EXORDERS.currency_pair_id"));
-        order.setOperationType(resultSet.getInt("EXORDERS.operation_type_id") == 0 ? null : OperationType.convert(resultSet.getInt("EXORDERS.operation_type_id")));
-        order.setExRate(resultSet.getBigDecimal("EXORDERS.exrate"));
-        order.setAmountBase(resultSet.getBigDecimal("EXORDERS.amount_base"));
-        order.setAmountConvert(resultSet.getBigDecimal("EXORDERS.amount_convert"));
-        order.setCommissionFixedAmount(resultSet.getBigDecimal("EXORDERS.commission_fixed_amount"));
-        order.setDateCreation(resultSet.getTimestamp("EXORDERS.date_creation") == null ? null : resultSet.getTimestamp("EXORDERS.date_creation").toLocalDateTime());
-        order.setDateAcception(resultSet.getTimestamp("EXORDERS.date_creation") == null ? null : resultSet.getTimestamp("EXORDERS.date_acception").toLocalDateTime());
+        try {
+            order.setId(resultSet.getInt("EXORDERS.id"));
+            order.setUserId(resultSet.getInt("EXORDERS.user_id"));
+            order.setCurrencyPairId(resultSet.getInt("EXORDERS.currency_pair_id"));
+            order.setOperationType(resultSet.getInt("EXORDERS.operation_type_id") == 0 ? null : OperationType.convert(resultSet.getInt("EXORDERS.operation_type_id")));
+            order.setExRate(resultSet.getBigDecimal("EXORDERS.exrate"));
+            order.setAmountBase(resultSet.getBigDecimal("EXORDERS.amount_base"));
+            order.setAmountConvert(resultSet.getBigDecimal("EXORDERS.amount_convert"));
+            order.setCommissionFixedAmount(resultSet.getBigDecimal("EXORDERS.commission_fixed_amount"));
+            order.setDateCreation(resultSet.getTimestamp("EXORDERS.date_creation") == null ? null : resultSet.getTimestamp("EXORDERS.date_creation").toLocalDateTime());
+            order.setDateAcception(resultSet.getTimestamp("EXORDERS.date_creation") == null ? null : resultSet.getTimestamp("EXORDERS.date_acception").toLocalDateTime());
+        } catch (SQLException e){}
 
         final Commission commission = new Commission();
         commission.setId(resultSet.getInt("COMMISSION.id"));
