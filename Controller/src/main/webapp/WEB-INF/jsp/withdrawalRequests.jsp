@@ -57,9 +57,10 @@
                     <c:forEach items="${requests}" var="requests">
                         <tr class="id_${requests.transaction.id}">
                             <td>
-                                <fmt:parseDate value="${requests.transaction.datetime}" var="parsedDate"
-                                               pattern="yyyy-MM-dd'T'HH:mm:ss"/>
-                                <fmt:formatDate value="${parsedDate}" pattern="yyyy-MM-dd'<br/>'HH:mm:ss"/>
+                                    ${requests.transaction.datetime}
+                                <%--<fmt:parseDate value="${requests.transaction.datetime}" var="parsedDate"--%>
+                                               <%--pattern="yyyy-MM-dd'T'HH:mm:ss"/>--%>
+                                <%--<fmt:formatDate value="${parsedDate}" pattern="yyyy-MM-dd'<br/>'HH:mm:ss"/>--%>
                             </td>
                             <td>
                                 ${requests.userEmail}
@@ -82,9 +83,10 @@
                             <td>
                                 <c:choose>
                                     <c:when test="${not empty requests.acceptance}">
-                                        <fmt:parseDate value="${requests.acceptance}" var="parsedDate"
-                                                       pattern="yyyy-MM-dd'T'HH:mm:ss"/>
-                                        <fmt:formatDate value="${parsedDate}" pattern="yyyy-MM-dd'<br/>'HH:mm:ss"/>
+                                        ${requests.acceptance}
+                                        <%--<fmt:parseDate value="${requests.acceptance}" var="parsedDate"--%>
+                                                       <%--pattern="yyyy-MM-dd'T'HH:mm:ss"/>--%>
+                                        <%--<fmt:formatDate value="${parsedDate}" pattern="yyyy-MM-dd'<br/>'HH:mm:ss"/>--%>
                                     </c:when>
                                     <c:otherwise>
                                         _
