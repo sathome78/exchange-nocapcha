@@ -6,7 +6,6 @@ import me.exrates.model.CreditsOperation;
 import me.exrates.model.Currency;
 import me.exrates.model.OperationView;
 import me.exrates.model.OperationViewComparator;
-import me.exrates.model.Order;
 import me.exrates.model.Transaction;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
@@ -34,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -132,7 +130,7 @@ public class TransactionServiceImpl implements TransactionService {
                     transaction.getCommissionAmount());
                 break;
             case OUTPUT:
-                walletService.withdrawReservedBalance(transaction.getUserWallet(),transaction.getAmount());
+                walletService.withdrawReservedBalance(transaction.getUserWallet(),transaction.getAmount().add(transaction.getCommissionAmount()));
                 companyWalletService.withdraw(transaction.getCompanyWallet(),transaction.getAmount(),
                     transaction.getCommissionAmount());
                 break;
