@@ -140,9 +140,9 @@ public class DashboardController {
     @RequestMapping(value = "/dashboard/chartArray", method = RequestMethod.GET)
     public
     @ResponseBody
-    ArrayList chartArray(HttpServletRequest request) {
+    ArrayList chartArray(@RequestParam String period, HttpServletRequest request) {
         CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
-        List<Map<String, Object>> rows = dashboardService.getDataForChart(currencyPair);
+        List<Map<String, Object>> rows = dashboardService.getDataForChart(currencyPair, period);
 
         ArrayList<List> arrayListMain = new ArrayList<>();
         for (Map<String, Object> row : rows) {
@@ -151,8 +151,12 @@ public class DashboardController {
 
             if (dateAcception !=null) {
                 ArrayList<Object> arrayList = new ArrayList<>();
+                /*values*/
                 arrayList.add(dateAcception.toString());
                 arrayList.add(exrate.doubleValue());
+                /*titles of values for chart tip*/
+                arrayList.add(messageSource.getMessage("orders.date", null, localeResolver.resolveLocale(request)));
+                arrayList.add(messageSource.getMessage("orders.exrate", null, localeResolver.resolveLocale(request)));
                 arrayListMain.add(arrayList);
             }
 

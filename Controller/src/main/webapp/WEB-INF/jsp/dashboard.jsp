@@ -13,7 +13,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="interkassa-verification" content="c4deb5425361141d96dd48d235b6fc4a" />
+    <meta name="interkassa-verification" content="c4deb5425361141d96dd48d235b6fc4a"/>
     <link href='https://fonts.googleapis.com/css?family=Roboto:400,700,300' rel='stylesheet' type='text/css'>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js" type="text/javascript"></script>
@@ -117,8 +117,18 @@
                 <div id='chart_div'></div>
             </c:if>
             <img id='graphic' src="/client/img/graphic.png" alt="Graphic">
+
+            <div class="period-menu">
+                <div id="12hour" class="period-menu__item">12 <loc:message code="chart.hours"/></div>
+                <div id="24hour" class="period-menu__item">24 <loc:message code="chart.hours1"/></div>
+                <div id="7day" class="period-menu__item">7 <loc:message code="chart.days"/></div>
+                <div id="1month" class="period-menu__item">1 <loc:message code="chart.month"/></div>
+                <div id="6month" class="period-menu__item active">6 <loc:message code="chart.months"/></div>
+            </div>
         </div>
+
     </div>
+    <div id="noData" hidden><loc:message code="chart.nodata"/></div>
 
     <%@include file='exchange_info_new.jsp' %>
 
@@ -146,11 +156,13 @@
                 <label class="col1"><loc:message
                         code="dashboard.amount"/> ${currencyPair.getCurrency1().getName()}:</label>
                 <form:errors path="amountBase" style="color:red"/>
-                <form:input class="col2 numericInputField" path="amountBase" type="text" id="amountBuyForm1" placeholder="0"/>
+                <form:input class="col2 numericInputField" path="amountBase" type="text" id="amountBuyForm1"
+                            placeholder="0"/>
                 <%--цена за--%>
                 <label class="col1"><loc:message
                         code="dashboard.priceFor"/> ${currencyPair.getCurrency1().getName()}:</label>
-                <form:input path="exRate" type="text" class="col2 numericInputField" id="amountSellForm1" placeholder="0"/>
+                <form:input path="exRate" type="text" class="col2 numericInputField" id="amountSellForm1"
+                            placeholder="0"/>
                 <%--всего--%>
                 <span class="col1"><loc:message code="dashboard.total"/></span>
                 <span class="col2"><b id="sumBuyWithCommission"></b> ${currencyPair.getCurrency2().getName()}</span>
@@ -199,11 +211,13 @@
             <form:form action="/orders" method="post" modelAttribute="exOrder">
                 <%--Количество--%>
                 <form:errors path="amountBase" style="color:red"/>
-                <form:input type="text" class="col2 numericInputField" path="amountBase" id="amountSellForm2" placeholder="0.0"/>
+                <form:input type="text" class="col2 numericInputField" path="amountBase" id="amountSellForm2"
+                            placeholder="0.0"/>
                 <label class="col1"><loc:message
                         code="dashboard.amount"/> ${currencyPair.getCurrency1().getName()}:</label>
                 <%--Цена за--%>
-                <form:input type="text" path="exRate" class="col2 numericInputField" id="amountBuyForm2" placeholder="0"/>
+                <form:input type="text" path="exRate" class="col2 numericInputField" id="amountBuyForm2"
+                            placeholder="0"/>
                 <label class="col1"><loc:message
                         code="dashboard.priceFor"/> ${currencyPair.getCurrency1().getName()}:</label>
                 <%--ВСЕГО--%>

@@ -19,7 +19,7 @@ public interface DashboardService {
 
     List<OrderListDto> getAllSellOrders(CurrencyPair currencyPair);
 
-    List<Map<String, Object>> getDataForChart(CurrencyPair currencyPair);
+    List<Map<String, Object>> getDataForChart(CurrencyPair currencyPair, String period);
 
     BigDecimal getBalanceByCurrency(int userId, int currencyId);
 
