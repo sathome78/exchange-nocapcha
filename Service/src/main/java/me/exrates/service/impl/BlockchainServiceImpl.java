@@ -130,8 +130,7 @@ public class BlockchainServiceImpl implements BlockchainService {
             return "Confirmations not presented";
         }
         final int confirmations = parseInt(params.get("confirmations"));
-        final Transaction transaction = transactionService
-                .findById(payment.getInvoiceId());
+        final Transaction transaction = transactionService.findById(payment.getInvoiceId());
         final BigDecimal targetAmount = transaction.getAmount().add(transaction.getCommissionAmount(), MATH_CONTEXT);
         final BigDecimal currentAmount = new BigDecimal(params.get("value"), MATH_CONTEXT).divide(SATOSHI, MATH_CONTEXT);
         if (targetAmount.compareTo(currentAmount) != 0) {

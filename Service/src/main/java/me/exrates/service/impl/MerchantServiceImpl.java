@@ -141,7 +141,9 @@ public class MerchantServiceImpl implements MerchantService {
     @Override
     @Transactional
     public Map<String, String> withdrawRequest(final CreditsOperation creditsOperation,
-                                               final Locale locale, final Principal principal) {
+                                               final Locale locale,
+                                               final Principal principal)
+    {
         final Transaction transaction = transactionService.createTransactionRequest(creditsOperation);
         final BigDecimal reserved = transaction
                 .getAmount()
