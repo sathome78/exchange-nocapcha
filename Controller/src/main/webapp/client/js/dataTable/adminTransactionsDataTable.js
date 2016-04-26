@@ -43,7 +43,7 @@ $(function () {
                     "data": "operationType"
                 },
                 {
-                    "data": "orderStatus"
+                    "data": "status"
                 },
                 {
                     "data": "currency"
@@ -61,7 +61,10 @@ $(function () {
                     "data": "commissionAmount"
                 },
                 {
-                    "data": "merchant"
+                    "data": "merchant.description"
+                },
+                {
+                    "data": "order.id"
                 }
             ],
             "order": [

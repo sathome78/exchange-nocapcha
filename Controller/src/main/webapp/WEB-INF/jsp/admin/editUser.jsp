@@ -230,6 +230,7 @@
                                 <th><loc:message code="transaction.commissionAmount"/></th>
                                 <%--Платежная <br> система--%>
                                 <th><loc:message code="transaction.merchant"/></th>
+                                <th><loc:message code="transaction.order"/></th>
                             </tr>
                             </thead>
                         </table>
