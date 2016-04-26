@@ -1,5 +1,9 @@
 package me.exrates.service;
 
+import me.exrates.model.enums.OperationType;
+
+import java.math.BigDecimal;
+
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
@@ -15,9 +19,11 @@ public interface AlgorithmService {
 
     String base64Decode(String string);
 
-//    BigDecimal amountOperationCommission(BigDecimal amount, BigDecimal commission, OperationType type);
-//
-//    BigDecimal computeCommission(BigDecimal amount, OperationType type);
-//
-//    BigDecimal fromSatoshi(String amount);
+    BigDecimal computeAmount(BigDecimal amount, BigDecimal commission, OperationType type);
+
+    BigDecimal computeCommission(BigDecimal amount, OperationType type);
+
+    BigDecimal fromSatoshi(String amount);
+
+    BigDecimal toBigDecimal(String value);
 }
