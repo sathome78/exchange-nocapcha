@@ -77,10 +77,11 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<OrderListDto> getOrdersSell() {
+    public List<OrderListDto> getOrdersSell(CurrencyPair currencyPair) {
         String sql = "SELECT id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, commission_fixed_amount" +
                 "  FROM EXORDERS " +
                 "  WHERE status_id = 2 and operation_type_id= 3 " +
+                (currencyPair == null ? "" : " and EXORDERS.currency_pair_id=" + currencyPair.getId()) +
                 "  ORDER BY -exrate DESC";
         JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
         return jdbcTemplate.query(sql, (rs, row) -> {
@@ -115,10 +116,11 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<OrderListDto> getOrdersBuy() {
+    public List<OrderListDto> getOrdersBuy(CurrencyPair currencyPair) {
         String sql = "SELECT id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, commission_fixed_amount" +
                 "  FROM EXORDERS " +
                 "  WHERE status_id = 2 and operation_type_id= 4 " +
+                (currencyPair == null ? "" : " and EXORDERS.currency_pair_id=" + currencyPair.getId()) +
                 "  ORDER BY exrate DESC";
         JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
         return jdbcTemplate.query(sql, (rs, row) -> {

@@ -134,14 +134,14 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<OrderListDto> getOrdersSell() {
-        return orderDao.getOrdersSell();
+    public List<OrderListDto> getOrdersSell(CurrencyPair currencyPair) {
+        return orderDao.getOrdersSell(currencyPair);
     }
 
     @Transactional(readOnly = true)
     @Override
-    public List<OrderListDto> getOrdersBuy() {
-        return orderDao.getOrdersBuy();
+    public List<OrderListDto> getOrdersBuy(CurrencyPair currencyPair) {
+        return orderDao.getOrdersBuy(currencyPair);
     }
 
     @Transactional(readOnly = true)
