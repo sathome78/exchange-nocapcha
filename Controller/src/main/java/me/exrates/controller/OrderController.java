@@ -57,22 +57,23 @@ public class OrderController {
     OrderValidator orderValidator;
 
     @RequestMapping(value = "/orders")
-    public ModelAndView myOrders(Principal principal, @ModelAttribute ExOrder exOrder, HttpServletRequest request) {
+    public ModelAndView orderBuySellList(Principal principal, @ModelAttribute ExOrder exOrder, HttpServletRequest request) {
         ModelAndView model = new ModelAndView();
         model.setViewName("orders");
         //
-        List<OrderListDto> sellOrdersList = orderService.getOrdersSell();
-        List<OrderListDto> buyOrdersList = orderService.getOrdersBuy();
+        CurrencyPair activeCurrencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
+        //
+        List<OrderListDto> sellOrdersList = orderService.getOrdersSell(activeCurrencyPair);
+        List<OrderListDto> buyOrdersList = orderService.getOrdersBuy(activeCurrencyPair);
         model.addObject("sellOrdersList", sellOrdersList);
         model.addObject("buyOrdersList", buyOrdersList);
         //
         int userId = userService.getIdByEmail(principal.getName());
-        int currencyBaseId = ((CurrencyPair) request.getSession().getAttribute("currentCurrencyPair")).getCurrency1().getId();
-        int currencyConvertId = ((CurrencyPair) request.getSession().getAttribute("currentCurrencyPair")).getCurrency2().getId();
+        int currencyBaseId = activeCurrencyPair.getCurrency1().getId();
+        int currencyConvertId = activeCurrencyPair.getCurrency2().getId();
         int currencyBaseWalletId = walletService.getWalletId(userId, currencyBaseId);
         int currencyConvertWalletId = walletService.getWalletId(userId, currencyConvertId);
         //
-        CurrencyPair activeCurrencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
         OrderCreateDto orderCreateDto = new OrderCreateDto();
         orderCreateDto.setCurrencyPair(activeCurrencyPair);
         orderCreateDto.setWalletIdCurrencyBase(currencyBaseWalletId);

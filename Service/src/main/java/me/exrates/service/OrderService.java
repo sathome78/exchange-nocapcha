@@ -27,9 +27,9 @@ public interface OrderService {
 
     boolean cancellOrder(ExOrder exOrder);
 
-    List<OrderListDto> getOrdersSell();
+    List<OrderListDto> getOrdersSell(CurrencyPair currencyPair);
 
-    List<OrderListDto> getOrdersBuy();
+    List<OrderListDto> getOrdersBuy(CurrencyPair currencyPair);
 
     boolean updateOrder(ExOrder exOrder);
 

@@ -116,7 +116,7 @@
             <c:if test="${not empty sumAmountBuyClosed}">
                 <div id='chart_div'></div>
             </c:if>
-            <img id='graphic' src="/client/img/graphic.png" alt="Graphic">
+            <%--<img id='graphic' src="/client/img/graphic.png" alt="Graphic">--%>
 
             <div class="period-menu">
                 <div id="12hour" class="period-menu__item">12 <loc:message code="chart.hours"/></div>
