@@ -52,9 +52,9 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
-    public List<Map<String, Object>> getDataForChart(CurrencyPair currencyPair){
+    public List<Map<String, Object>> getDataForChart(CurrencyPair currencyPair, String period){
         logger.info("Begin 'getDataForChart' method");
-        return orderDao.getDataForChart(currencyPair);
+        return orderDao.getDataForChart(currencyPair, period);
     }
 
     @Override

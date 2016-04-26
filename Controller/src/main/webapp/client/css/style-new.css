@@ -1675,3 +1675,42 @@ td.allign-center,
 th.allign-center {
     text-align: center;
 }
+
+.areaChartTip {
+    color: #84240f;
+    background: rgba(132, 36, 15, 0.3);
+    height: 100%;
+    padding: 5px;
+}
+
+.areaChartTip span {
+    font-weight: bold;
+}
+
+.areaChartTip__date {
+    white-space: nowrap;
+}
+
+.areaChartTip__rate {
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.period-menu {
+    margin: 0 0 0 20px;
+}
+
+.period-menu__item {
+    display: inline-block;
+    padding: 5px 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid transparent;
+}
+
+.period-menu__item:hover {
+    border: 1px solid #84240f;
+}
+
+.period-menu__item.active {
+    border: 1px solid white;
+}

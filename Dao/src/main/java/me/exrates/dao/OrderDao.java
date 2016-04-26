@@ -39,7 +39,7 @@ public interface OrderDao {
 
     BigDecimal getMaxExRateByCurrencyPair(CurrencyPair currencyPair);
 
-    List<Map<String, Object>> getDataForChart(CurrencyPair currencyPair);
+    List<Map<String, Object>> getDataForChart(CurrencyPair currencyPair, String period);
 
 
 }
