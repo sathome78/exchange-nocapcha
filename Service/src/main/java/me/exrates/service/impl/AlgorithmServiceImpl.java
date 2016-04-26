@@ -1,18 +1,35 @@
 package me.exrates.service.impl;
 
-import static com.yandex.money.api.utils.Numbers.bytesToHex;
+import me.exrates.model.enums.OperationType;
+import me.exrates.service.AlgorithmService;
+import me.exrates.service.CommissionService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
-import me.exrates.service.AlgorithmService;
-import org.springframework.stereotype.Service;
+
+import static com.yandex.money.api.utils.Numbers.bytesToHex;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 @Service
 public class AlgorithmServiceImpl implements AlgorithmService {
+
+    private static final MathContext MATH_CONTEXT = new MathContext(9, RoundingMode.CEILING);
+    private static final BigDecimal HUNDRED = new BigDecimal(100L, MATH_CONTEXT);
+    private static final BigDecimal SATOSHI = new BigDecimal(100_000_000L);
+
+    @Autowired
+    private CommissionService commissionService;
+
+
 
     @Override
     public String computeMD5Hash(String string) {
@@ -57,6 +74,34 @@ public class AlgorithmServiceImpl implements AlgorithmService {
     @Override
     public String base64Decode(final String string) {
         return new String(Base64.getDecoder().decode(string));
+    }
+
+    @Override
+    public BigDecimal computeAmount(final BigDecimal amount, final BigDecimal commission, final OperationType type) {
+        switch (type) {
+            case INPUT:
+                return amount.add(commission, MATH_CONTEXT);
+            case OUTPUT:
+                return amount.subtract(commission, MATH_CONTEXT);
+            default:
+                throw new IllegalArgumentException(type + " is not defined operation for this method");
+        }
+    }
+
+    @Override
+    public BigDecimal computeCommission(final BigDecimal amount, final OperationType type) {
+        BigDecimal commission = commissionService.findCommissionByType(type).getValue();
+        return amount.multiply(commission.divide(HUNDRED,MATH_CONTEXT), MATH_CONTEXT);
+    }
+
+    @Override
+    public BigDecimal fromSatoshi(final String amount) {
+        return new BigDecimal(amount, MATH_CONTEXT).divide(SATOSHI, MATH_CONTEXT);
+    }
+
+    @Override
+    public BigDecimal toBigDecimal(final String value) {
+        return new BigDecimal(value, MATH_CONTEXT);
     }
 
     private String byteArrayToHexString(byte[] bytes) {
