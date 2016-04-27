@@ -3,14 +3,17 @@ $(function () {
 });
 
 function drawChart(period) {
-    if (!period) {
-        period = '6 MONTH';
-    }
     $('#graphic').hide();
-    $.get("/dashboard/chartArray?period=" + period, function (arrayResult) {
+    var url = '/dashboard/chartArray';
+    url = period ? url + '?period=' + period : url;
+    $.get(url, function (arrayResult) {
+        var backDealInterval = arrayResult[0][0]; //BackDealInterval is here
+        setActivePeriodSwitcherButton(backDealInterval);
+        /**/
         var Combined = new Array();
-        for (var i = 0; i < arrayResult.length; i++) {
-            Combined[i] = [arrayResult[i][0], arrayResult[i][1],
+        for (var i = 1; i < arrayResult.length; i++) {
+            /*skip first row - BackDealInterval is there*/
+            Combined[i-1] = [arrayResult[i][0], arrayResult[i][1],
                 /*returns html for tip*/
                 getHtml(
                     /*data for tip:*/
@@ -83,13 +86,20 @@ function getHtml(date, value, dateTitle, valueTitle) {
     var html;
     if (!date) {
         html = '<div class="areaChartTip">' +
-            '<p>' + '<span>' + $('#noData').text() + '</span>' + '</p>' +
-            '</div>';
+        '<p>' + '<span>' + $('#noData').text() + '</span>' + '</p>' +
+        '</div>';
     } else {
         html = '<div class="areaChartTip">' +
-            '<p class="areaChartTip__date">' + '<span>' + dateTitle + '</span>' + ': ' + date + '</p>' +
-            '<p class="areaChartTip__rate">' + '<span>' + valueTitle + '</span>' + ': ' + value + '</p>' +
-            '</div>';
+        '<p class="areaChartTip__date">' + '<span>' + dateTitle + '</span>' + ': ' + date + '</p>' +
+        '<p class="areaChartTip__rate">' + '<span>' + valueTitle + '</span>' + ': ' + value + '</p>' +
+        '</div>';
     }
     return html;
+}
+
+function setActivePeriodSwitcherButton(backDealInterval) {
+    var id = backDealInterval.intervalValue+backDealInterval.intervalType.toLowerCase();
+    $('.period-menu__item').removeClass('active');
+    $('#'+id).addClass('active');
+
 }

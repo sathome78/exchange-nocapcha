@@ -1,7 +1,7 @@
 package me.exrates.controller;
 
 import me.exrates.controller.validator.RegisterFormValidation;
-import me.exrates.model.OperationView;
+import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
 import me.exrates.model.enums.UserRole;
@@ -89,7 +89,7 @@ public class AdminController {
 
     @ResponseBody
     @RequestMapping(value = "/admin/transactions", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Collection<OperationView> getUserTransactions(@RequestParam int id, HttpServletRequest request) {
+    public Collection<OperationViewDto> getUserTransactions(@RequestParam int id, HttpServletRequest request) {
         return transactionService.showUserOperationHistory(id, localeResolver.resolveLocale(request));
     }
 

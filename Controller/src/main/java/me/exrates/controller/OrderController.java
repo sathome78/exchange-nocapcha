@@ -225,21 +225,7 @@ public class OrderController {
     /*... ACCEPT ORDER*/
 
     /*CREATE ORDER....*/
-
-    /* to show form to create order (to fill param fields)
-    * */
-    @RequestMapping(value = "/order/new")
-    public ModelAndView showNewOrderToSellForm(ModelAndView model, @RequestParam(required = false) String walletName) {
-        getCurrenciesAndCommission(model, OperationType.SELL);
-        Order order = new Order();
-        order.setOperationType(OperationType.SELL);
-        model.setViewName("newordertosell");
-        model.addObject(order);
-        model.addObject("walletName", walletName);
-        return model;
-    }
-
-    /* after filling fields of creation form on orders page or on page newordertosell
+    /* after filling fields of creation form on orders page
     shows form to submit new order if all fields are filled correct
     * */
     @RequestMapping(value = "/order/submit", method = RequestMethod.POST)

@@ -1,6 +1,8 @@
-package me.exrates.model;
+package me.exrates.model.dto;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import me.exrates.model.ExOrder;
+import me.exrates.model.Merchant;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
@@ -8,14 +10,13 @@ import me.exrates.model.serializer.LocalDateTimeSerializer;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-public class OperationView {
+public class OperationViewDto {
 
     private BigDecimal amount;
     private BigDecimal amountBuy;
     private BigDecimal commissionAmount;
     private OperationType operationType;
     private String currency;
-    private String currencyBuy;
     private Merchant merchant;
 	@JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime datetime;
@@ -57,12 +58,6 @@ public class OperationView {
 	}
 	public void setCurrency(String currency) {
 		this.currency = currency;
-	}
-	public String getCurrencyBuy() {
-		return currencyBuy;
-	}
-	public void setCurrencyBuy(String currencyBuy) {
-		this.currencyBuy = currencyBuy;
 	}
 	public Merchant getMerchant() {
 		return merchant;

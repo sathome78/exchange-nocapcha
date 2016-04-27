@@ -77,9 +77,7 @@ $(function () {
     });
 
     +function initCurrencyPairData() {
-        if (!$('#pair-selector>div:first-child').text()) {
-            getNewCurrencyPairData();
-        }
+        getStatisticsForCurrency();
     }();
 
     //set 'click' handler for container because new '.pair-selector__menu-item' may be added
@@ -87,7 +85,7 @@ $(function () {
         $('.pair-selector__menu-item').removeClass('active');
         $(this).addClass('active');
         $('#pair-selector>div:first-child').text($(this).text());
-        getNewCurrencyPairData($(this).text());
+        getStatisticsForCurrency($(this).text());
     });
 
     $(".numericInputField").keypress(
@@ -101,23 +99,29 @@ $(function () {
 });
 
 
-function getNewCurrencyPairData(newPairName) {
+function getStatisticsForCurrency(pairName, period) {
     var url = '/dashboard/changeCurrencyPair';
+    url = pairName ? url + '?currencyPairName=' + (pairName+'&') : (url+'?');
+    url = period ? url + 'period=' + period : url;
     $.ajax({
-        url: newPairName ? url + '?currencyPairName=' + newPairName : url,
+        url: url,
         type: 'GET',
 
         success: function (data) {
-            $('#lastOrder>span:nth-child(2)').text(data['amountBuy'] + ' ' + data['lastOrderCurrency']);
-            $('#priceStart>span:nth-child(2)').text(data['amountBuy'] + ' ' + data['lastOrderCurrency']);
-            $('#priceEnd>span:nth-child(2)').text(data['amountBuy'] + ' ' + data['lastOrderCurrency']);
-            $('#sumAmountBuyClosed>span:nth-child(2)').text(data['sumAmountBuyClosed'] + ' ' + data['currency1']);
-            $('#sumAmountSellClosed>span:nth-child(2)').text(data['sumAmountSellClosed'] + ' ' + data['currency2']);
+            $('#lastOrderAmountBase>span:nth-child(2)').text(data.lastOrderAmountBase + ' ' + data.currencyPair.currency1.name);
+            $('#firstOrderRate>span:nth-child(2)').text(data.firstOrderRate + ' ' + data.currencyPair.currency2.name);
+            $('#lastOrderRate>span:nth-child(2)').text(data.lastOrderRate + ' ' + data.currencyPair.currency2.name);
+            $('#sumBase>span:nth-child(2)').text(data.sumBase + ' ' + data.currencyPair.currency1.name);
+            $('#sumConvert>span:nth-child(2)').text(data.sumConvert + ' ' + data.currencyPair.currency2.name);
+            if ($('#minRate').is('div')) {
+                $('#minRate>span').text(data.minRate + ' ' + data.currencyPair.currency2.name);
+                $('#maxRate>span').text(data.maxRate + ' ' + data.currencyPair.currency2.name);
+            }
             //
             if (!$('#pair-selector>div:first-child').text()) {
-                createPairSelectorMenu(data['name']);
+                createPairSelectorMenu(data.currencyPair.name);
             }
-            if (newPairName) {
+            if (pairName) {
                 window.location.reload();
             }
         }
@@ -143,31 +147,37 @@ function createPairSelectorMenu(currencyPairName) {
     });
 }
 
-function redrawChart(){
+function redrawChart() {
     $('.period-menu__item').removeClass('active');
     var period = '6 MONTH';
-    switch($(this).attr('id')){
-        case '12hour': {
+    switch ($(this).attr('id')) {
+        case '12hour':
+        {
             period = '12 HOUR';
             break;
         }
-        case '24hour': {
+        case '24hour':
+        {
             period = '24 HOUR';
             break;
         }
-        case '7day': {
+        case '7day':
+        {
             period = '7 DAY';
             break;
         }
-        case '1month': {
+        case '1month':
+        {
             period = '1 MONTH';
             break;
         }
-        case '6month': {
+        case '6month':
+        {
             period = '6 MONTH';
             break;
         }
     }
     drawChart(period);
     $(this).addClass('active');
+    getStatisticsForCurrency(null, period);
 }

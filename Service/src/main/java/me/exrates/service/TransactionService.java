@@ -1,7 +1,7 @@
 package me.exrates.service;
 
 import me.exrates.model.CreditsOperation;
-import me.exrates.model.OperationView;
+import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.Transaction;
 
 import java.math.BigDecimal;
@@ -27,7 +27,7 @@ public interface TransactionService {
 
     List<Transaction> findAllByUserWallets(List<Integer> userWalletsIds);
     
-    List<OperationView> showMyOperationHistory(String email, Locale locale);
+    List<OperationViewDto> showMyOperationHistory(String email, Locale locale);
 
-    List<OperationView> showUserOperationHistory(int id, Locale locale);
+    List<OperationViewDto> showUserOperationHistory(int id, Locale locale);
 }

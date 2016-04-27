@@ -1,15 +1,15 @@
 package me.exrates.model.enums;
 
-import me.exrates.model.exceptions.UnsupportedOperationTypeException;
+import me.exrates.model.exceptions.UnsupportedOrderStatusException;
 
 public enum OrderStatus {
 
-	INPROCESS(1),
-	OPENED(2),
-	CLOSED(3),
-	CANCELLED(4),
-	DELETED(5),
-	DRAFT(6);
+    INPROCESS(1),
+    OPENED(2),
+    CLOSED(3),
+    CANCELLED(4),
+    DELETED(5),
+    DRAFT(6);
 
     private final int status;
 
@@ -17,20 +17,26 @@ public enum OrderStatus {
         this.status = status;
     }
 
-    public int getStatus() {
-        return status;
-    }
-
     public static OrderStatus convert(int id) {
         switch (id) {
-            case 1 : return INPROCESS;
-            case 2 : return OPENED;
-            case 3 : return CLOSED;
-            case 4 : return CANCELLED;
-            case 5 : return DELETED;
-            case 6 : return DRAFT;
+            case 1:
+                return INPROCESS;
+            case 2:
+                return OPENED;
+            case 3:
+                return CLOSED;
+            case 4:
+                return CANCELLED;
+            case 5:
+                return DELETED;
+            case 6:
+                return DRAFT;
             default:
-                throw new UnsupportedOperationTypeException(id);
+                throw new UnsupportedOrderStatusException(id);
         }
+    }
+
+    public int getStatus() {
+        return status;
     }
 }

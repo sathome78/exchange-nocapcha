@@ -4,48 +4,34 @@
 
 <div class="exchange_info"> <!-- Exchange info -->
     <ul>
-        <li id="lastOrder">
+        <li id="lastOrderAmountBase">
             <span>
                 <loc:message code="dashboard.lastOrder"/>
             </span>
-            <span>
-                <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountBase()}"/>
-                ${lastOrderCurrency}
-            </span>
+            <span>0.0</span>
         </li>
-        <li id="priceStart">
+        <li id="firstOrderRate">
             <span>
                 <loc:message code="dashboard.priceStart"/>
             </span>
-            <span>
-                <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountBase()}"/>
-                ${lastOrderCurrency}
-            </span>
+            <span>0.0</span>
         </li>
-        <li id="priceEnd">
+        <li id="lastOrderRate">
             <span>
                 <loc:message code="dashboard.priceEnd"/>
             </span>
-            <span>
-                <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountBase()}"/>
-                ${lastOrderCurrency}
-            </span>
+            <span>0.0</span>
         </li>
-        <li id="sumAmountBuyClosed">
+        <li id="sumBase">
             <span>
                 <loc:message code="dashboard.volume"/>
             </span>
-            <span>
-                <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountBase()}"/>
-                ${currencyPair.getCurrency1().getName()}
-            </span>
+            <span>0.0</span>
         </li>
-        <li id="sumAmountSellClosed">
+        <li id="sumConvert">
             <span></span>
-            <span>
-                <fmt:formatNumber type="number" maxFractionDigits="9" value="${lastOrder.getAmountConvert()}"/>
-                ${currencyPair.getCurrency2().getName()}
-            </span></li>
+            <span>0.0</span>
+        </li>
 
         <li id="pair-selector">
             <div>${currencyPair.getName()}</div>

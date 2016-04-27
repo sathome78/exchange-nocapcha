@@ -42,8 +42,8 @@
     <script async src='//www.google-analytics.com/analytics.js'></script>
     <script>
         window.ga = window.ga || function () {
-                    (ga.q = ga.q || []).push(arguments)
-                };
+            (ga.q = ga.q || []).push(arguments)
+        };
         ga.l = +new Date;
         ga('create', 'UA-75711135-1', 'auto');
         ga('send', 'pageview');
@@ -113,17 +113,14 @@
             </li>
         </ul>
         <div class="graphic"> <!-- graphic -->
-            <c:if test="${not empty sumAmountBuyClosed}">
-                <div id='chart_div'></div>
-            </c:if>
-            <%--<img id='graphic' src="/client/img/graphic.png" alt="Graphic">--%>
+            <div id='chart_div'></div>
 
             <div class="period-menu">
                 <div id="12hour" class="period-menu__item">12 <loc:message code="chart.hours"/></div>
                 <div id="24hour" class="period-menu__item">24 <loc:message code="chart.hours1"/></div>
                 <div id="7day" class="period-menu__item">7 <loc:message code="chart.days"/></div>
                 <div id="1month" class="period-menu__item">1 <loc:message code="chart.month"/></div>
-                <div id="6month" class="period-menu__item active">6 <loc:message code="chart.months"/></div>
+                <div id="6month" class="period-menu__item">6 <loc:message code="chart.months"/></div>
             </div>
         </div>
 
@@ -143,11 +140,9 @@
                     <fmt:formatNumber type="number" maxFractionDigits="9" value="${balanceCurrency1}"/>
                     ${currencyPair.getCurrency1().getName()}
                 </div>
-                <%--мин цена--%>
-                <div class="col-xs-6"><loc:message code="dashboard.lowestPrice"/><br>
+                <div id ="minRate" class="col-xs-6"><loc:message code="dashboard.lowestPrice"/><br>
                     <%--${minPrice}--%>
-                    <fmt:formatNumber type="number" maxFractionDigits="9" value="${minPrice}"/>
-                    ${currencyPair.getCurrency2().getName()}
+                    <span>0.0</span>
                 </div>
             </div>
             <%--<form:form action="order/submit" method="post" modelAttribute="order" name="formBuy">--%>
@@ -200,11 +195,9 @@
                     <fmt:formatNumber type="number" maxFractionDigits="9" value="${balanceCurrency2}"/>
                     ${currencyPair.getCurrency2().getName()}
                 </div>
-                <%--Мин. Цена--%>
-                <div class="col-xs-6"><loc:message code="dashboard.highestPrice"/> <br>
+                <div id ="maxRate" class="col-xs-6"><loc:message code="dashboard.highestPrice"/> <br>
                     <%--${maxPrice} --%>
-                    <fmt:formatNumber type="number" maxFractionDigits="9" value="${maxPrice}"/>
-                    ${currencyPair.getCurrency2().getName()}
+                    <span>0.0</span>
                 </div>
             </div>
             <%--<form:form action="order/submit" method="post" modelAttribute="order">--%>
@@ -332,8 +325,8 @@
     (function (i, s, o, g, r, a, m) {
         i['GoogleAnalyticsObject'] = r;
         i[r] = i[r] || function () {
-                    (i[r].q = i[r].q || []).push(arguments)
-                }, i[r].l = 1 * new Date();
+            (i[r].q = i[r].q || []).push(arguments)
+        }, i[r].l = 1 * new Date();
         a = s.createElement(o),
                 m = s.getElementsByTagName(o)[0];
         a.async = 1;

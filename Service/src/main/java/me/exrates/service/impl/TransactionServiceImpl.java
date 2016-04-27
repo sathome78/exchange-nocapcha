@@ -4,8 +4,8 @@ import me.exrates.dao.TransactionDao;
 import me.exrates.model.CompanyWallet;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Currency;
-import me.exrates.model.OperationView;
-import me.exrates.model.OperationViewComparator;
+import me.exrates.model.dto.OperationViewDto;
+import me.exrates.model.dto.OperationViewDtoComparator;
 import me.exrates.model.Transaction;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
@@ -158,7 +158,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public List<OperationView> showMyOperationHistory(String email, Locale locale) {
+    public List<OperationViewDto> showMyOperationHistory(String email, Locale locale) {
         int id = userService.getIdByEmail(email);
         final List<Integer> collect = walletService.getAllWallets(id)
             .stream()
@@ -167,12 +167,12 @@ public class TransactionServiceImpl implements TransactionService {
             .collect(Collectors.toList());
         final List<Transaction> allByUserId = findAllByUserWallets(collect);
         LOG.info(allByUserId);
-        List<OperationView> list = new ArrayList<>();
+        List<OperationViewDto> list = new ArrayList<>();
         if (allByUserId != null) {
             allByUserId
                 .stream()
                     .forEach(t -> {
-                        OperationView view = new OperationView();
+                        OperationViewDto view = new OperationViewDto();
                         view.setDatetime(t.getDatetime());
                         view.setAmount(t.getAmount());
                         view.setCommissionAmount(t.getCommissionAmount());
@@ -184,12 +184,12 @@ public class TransactionServiceImpl implements TransactionService {
                         list.add(view);
                 });
         }
-        Collections.sort(list, new OperationViewComparator());
+        Collections.sort(list, new OperationViewDtoComparator());
         return list;
     }
 
     @Override
-    public List<OperationView> showUserOperationHistory(int id, Locale locale) {
+    public List<OperationViewDto> showUserOperationHistory(int id, Locale locale) {
         return showMyOperationHistory(userService.getUserById(id).getEmail(), locale);
     }
 }

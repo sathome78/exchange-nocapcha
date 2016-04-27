@@ -1705,6 +1705,7 @@ th.allign-center {
     padding: 5px 15px;
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid transparent;
+    cursor: pointer;
 }
 
 .period-menu__item:hover {

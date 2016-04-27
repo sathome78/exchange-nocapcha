@@ -1,7 +1,6 @@
 package me.exrates.jdbc;
 
 import me.exrates.model.ExOrder;
-import me.exrates.model.Order;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
 import org.springframework.dao.DataAccessException;

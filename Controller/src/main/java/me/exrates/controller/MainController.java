@@ -1,7 +1,7 @@
 package me.exrates.controller;
 
 import me.exrates.controller.validator.RegisterFormValidation;
-import me.exrates.model.OperationView;
+import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.User;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.security.service.UserSecureService;
@@ -178,7 +178,7 @@ public class MainController {
 
     @RequestMapping(value = "/transaction")
     public ModelAndView transactions(Principal principal) {
-        List<OperationView> list = transactionService.showMyOperationHistory(principal.getName(), localeResolver.resolveLocale(request));
+        List<OperationViewDto> list = transactionService.showMyOperationHistory(principal.getName(), localeResolver.resolveLocale(request));
         return new ModelAndView("transaction", "transactions", list);
     }
 

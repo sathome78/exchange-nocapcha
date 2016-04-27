@@ -2,8 +2,10 @@ package me.exrates.dao;
 
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
+import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.dto.OrderListDto;
 import me.exrates.model.enums.OrderStatus;
+import me.exrates.model.vo.BackDealInterval;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -33,13 +35,15 @@ public interface OrderDao {
 
     ExOrder getLastClosedOrder();
 
-    ExOrder getLastClosedOrderForCurrencyPair(CurrencyPair currencyPair);
+    ExOrder getLastClosedOrderForCurrencyPair(CurrencyPair currencyPair, BackDealInterval backDealInterval);
 
     BigDecimal getMinExRateByCurrencyPair(CurrencyPair currencyPair);
 
     BigDecimal getMaxExRateByCurrencyPair(CurrencyPair currencyPair);
 
-    List<Map<String, Object>> getDataForChart(CurrencyPair currencyPair, String period);
+    List<Map<String, Object>> getDataForChart(CurrencyPair currencyPair, BackDealInterval backDealInterval);
+
+    ExOrderStatisticsDto getOrderStatistic(CurrencyPair currencyPair, BackDealInterval backDealInterval);
 
 
 }

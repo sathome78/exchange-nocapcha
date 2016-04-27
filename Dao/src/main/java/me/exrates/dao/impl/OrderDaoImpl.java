@@ -4,11 +4,14 @@ import me.exrates.dao.OrderDao;
 import me.exrates.jdbc.OrderRowMapper;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
+import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.dto.OrderListDto;
 import me.exrates.model.enums.OrderStatus;
+import me.exrates.model.vo.BackDealInterval;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -17,7 +20,8 @@ import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -204,10 +208,11 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public ExOrder getLastClosedOrderForCurrencyPair(CurrencyPair currencyPair) {
+    public ExOrder getLastClosedOrderForCurrencyPair(CurrencyPair currencyPair, BackDealInterval backDealInterval) {
         String sql = "SELECT * " +
                 "  FROM EXORDERS " +
                 "  WHERE status_id = :status_id and currency_pair_id=:currency_pair_id" +
+                "  AND date_acception >= now() - INTERVAL " + backDealInterval.intervalValue.toString() + " " + backDealInterval.intervalType +
                 "  ORDER BY date_acception DESC LIMIT 1";
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         Map<String, String> namedParameters = new HashMap<>();
@@ -249,10 +254,10 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<Map<String, Object>> getDataForChart(CurrencyPair currencyPair, String period) {
+    public List<Map<String, Object>> getDataForChart(CurrencyPair currencyPair, BackDealInterval backDealInterval) {
         String sql = "SELECT date_acception, exrate FROM EXORDERS " +
                 " WHERE status_id=:status_id AND currency_pair_id=:currency_pair_id " +
-                " AND date_acception>=now()- INTERVAL " + period.split(" ")[0] + " " + period.split(" ")[1] +
+                " AND date_acception >= now() - INTERVAL " + backDealInterval.intervalValue.toString() + " " + backDealInterval.intervalType +
                 " ORDER BY date_acception";
 
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
@@ -267,6 +272,48 @@ public class OrderDaoImpl implements OrderDao {
         });
 
         return rows;
+    }
+
+
+    @Override
+    public ExOrderStatisticsDto getOrderStatistic(CurrencyPair currencyPair, BackDealInterval backDealInterval) {
+        String sql = "SELECT FIRSTORDER.amount_base AS first_amount_base, FIRSTORDER.exrate AS first_exrate," +
+                "            LASTORDER.amount_base AS last_amount_base, LASTORDER.exrate AS last_exrate," +
+                "            AGRIGATE.* " +
+                "     FROM  " +
+                "       (SELECT MIN(EXORDERS.date_acception) AS first_date_acception, MAX(EXORDERS.date_acception) AS last_date_acception,  " +
+                "       MIN(EXORDERS.exrate) AS min_exrate, MAX(EXORDERS.exrate) AS max_exrate,  " +
+                "       SUM(EXORDERS.amount_base) AS deal_sum_base, SUM(EXORDERS.amount_convert) AS deal_sum_convert  " +
+                "       FROM EXORDERS  " +
+                "       WHERE   " +
+                "       EXORDERS.currency_pair_id = :currency_pair_id AND EXORDERS.status_id = :status_id AND   " +
+                "       EXORDERS.date_acception >= now() - INTERVAL " + backDealInterval.intervalValue.toString() + " " + backDealInterval.intervalType +
+                "       ) AGRIGATE " +
+                "     JOIN EXORDERS FIRSTORDER ON (FIRSTORDER.date_acception = AGRIGATE.first_date_acception)  " +
+                "     JOIN EXORDERS LASTORDER ON (LASTORDER.date_acception = AGRIGATE.last_date_acception)";
+        NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+        Map<String, String> namedParameters = new HashMap<>();
+        namedParameters.put("status_id", String.valueOf(3));
+        namedParameters.put("currency_pair_id", String.valueOf(currencyPair.getId()));
+        try {
+            return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, new RowMapper<ExOrderStatisticsDto>(){
+                @Override
+                public ExOrderStatisticsDto mapRow(ResultSet rs, int rowNum) throws SQLException {
+                    ExOrderStatisticsDto exOrderStatisticsDto = new ExOrderStatisticsDto(currencyPair);
+                    exOrderStatisticsDto.setFirstOrderAmountBase(rs.getBigDecimal("first_amount_base"));
+                    exOrderStatisticsDto.setFirstOrderRate(rs.getBigDecimal("first_exrate"));
+                    exOrderStatisticsDto.setLastOrderAmountBase(rs.getBigDecimal("last_amount_base"));
+                    exOrderStatisticsDto.setLastOrderRate(rs.getBigDecimal("last_exrate"));
+                    exOrderStatisticsDto.setMinRate(rs.getBigDecimal("min_exrate"));
+                    exOrderStatisticsDto.setMaxRate(rs.getBigDecimal("max_exrate"));
+                    exOrderStatisticsDto.setSumBase(rs.getBigDecimal("deal_sum_base"));
+                    exOrderStatisticsDto.setSumConvert(rs.getBigDecimal("deal_sum_convert"));
+                    return exOrderStatisticsDto;
+                }
+            });
+        } catch (EmptyResultDataAccessException e) {
+            return new ExOrderStatisticsDto(currencyPair);
+        }
     }
 
 
