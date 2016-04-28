@@ -1,6 +1,7 @@
 package me.exrates.dao;
 
 import java.util.List;
+import java.util.Locale;
 
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
@@ -58,4 +59,8 @@ public interface UserDao {
 	List<TemporalToken> getAllTokens();
 
 	boolean delete(User user);
+
+	String getPreferredLang(int userId);
+
+	boolean setPreferredLang(int userId, Locale locale);
 }

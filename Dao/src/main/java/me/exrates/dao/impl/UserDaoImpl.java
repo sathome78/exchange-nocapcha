@@ -9,6 +9,7 @@ import me.exrates.model.enums.UserStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -16,10 +17,7 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Repository
 public class UserDaoImpl implements UserDao {
@@ -376,6 +374,28 @@ public class UserDaoImpl implements UserDao {
             LOGGER.warn("requested user deleting was not fulfilled. userId = " + user.getId());
         }
         return result;
+    }
+
+    @Override
+    public boolean setPreferredLang(int userId, Locale locale) {
+        String sql = "UPDATE USER SET preferred_lang=:preferred_lang WHERE id = :id";
+        Map<String, String> namedParameters = new HashMap<>();
+        namedParameters.put("id", String.valueOf(userId));
+        namedParameters.put("preferred_lang", locale.toString());
+        int result = jdbcTemplate.update(sql, namedParameters);
+        return result > 0;
+    }
+
+    @Override
+    public String getPreferredLang(int userId) {
+        String sql = "SELECT preferred_lang FROM USER WHERE id = :id";
+        Map<String, Integer> namedParameters = new HashMap<>();
+        namedParameters.put("id", userId);
+        try {
+            return jdbcTemplate.queryForObject(sql, namedParameters, String.class);
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
     }
 
 

@@ -3,6 +3,7 @@ package me.exrates.security.config;
 import me.exrates.model.enums.UserRole;
 import me.exrates.security.filter.CapchaAuthorizationFilter;
 import me.exrates.security.filter.LoginFailureHandler;
+import me.exrates.security.filter.LoginSuccessHandler;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.security.service.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     UserDetailsServiceImpl userDetailsService;
+    private
+    @Value("${ipWhiteList}")
+    String ipWhiteList;
 
     @Bean
     public VerifyReCaptchaSec verifyReCaptcha() {
@@ -41,7 +45,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public CapchaAuthorizationFilter customUsernamePasswordAuthenticationFilter()
+    public LoginSuccessHandler loginSuccessHandler() {
+        return new LoginSuccessHandler("/mywallets");
+    }
+
+    @Bean
+    public LoginFailureHandler loginFailureHandler() {
+        return new LoginFailureHandler("/login?error");
+    }
+
+    @Bean
+     public CapchaAuthorizationFilter customUsernamePasswordAuthenticationFilter()
             throws Exception {
         CapchaAuthorizationFilter customUsernamePasswordAuthenticationFilter = new CapchaAuthorizationFilter();
         customUsernamePasswordAuthenticationFilter
@@ -52,17 +66,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .setUsernameParameter("username");
         customUsernamePasswordAuthenticationFilter
                 .setPasswordParameter("password");
-//        customUsernamePasswordAuthenticationFilter
-//                .setAuthenticationSuccessHandler(new MySuccessHandler("/app"));
         customUsernamePasswordAuthenticationFilter
-                .setAuthenticationFailureHandler(new LoginFailureHandler("/login?error"));
+                .setAuthenticationSuccessHandler(loginSuccessHandler());
+        customUsernamePasswordAuthenticationFilter
+                .setAuthenticationFailureHandler(loginFailureHandler());
+
 
         return customUsernamePasswordAuthenticationFilter;
     }
-
-    private
-    @Value("${ipWhiteList}")
-    String ipWhiteList;
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
@@ -115,8 +126,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .exceptionHandling().accessDeniedPage("/403");
         http.formLogin()
                 .loginPage("/login")
-                .defaultSuccessUrl("/mywallets")
-                .failureUrl("/login?error")
                 .usernameParameter("username")
                 .passwordParameter("password")
                 .permitAll();

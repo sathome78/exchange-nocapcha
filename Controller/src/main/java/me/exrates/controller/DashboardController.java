@@ -31,10 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
@@ -69,10 +66,10 @@ public class DashboardController {
     @Autowired
     VerifyReCaptchaSec verifyReCaptcha;
 
-//    private CurrencyPair currentCurrencyPair;
-
     @RequestMapping(value = {"/dashboard/locale"})
-    public void localeSwitcherCommand() {
+    public void localeSwitcherCommand(Principal principal, HttpServletRequest request) {
+        userService.setPreferedLang(userService.getIdByEmail(principal.getName()), localeResolver.resolveLocale(request));
+        request.getSession(true);
     }
 
     @RequestMapping(value = {"/dashboard"})
@@ -129,7 +126,7 @@ public class DashboardController {
         /**/
         ArrayList<List> arrayListMain = new ArrayList<>();
         /*in first row return backDealInterval - to synchronize period menu with it*/
-        arrayListMain.add(new ArrayList<Object>(){{
+        arrayListMain.add(new ArrayList<Object>() {{
             add(backDealInterval);
         }});
         /**/
@@ -302,7 +299,7 @@ public class DashboardController {
         return currencyPairs.stream().map(e -> e.getName()).collect((Collectors.toList()));
     }
 
-    private BackDealInterval getBackDealInterval(String period, HttpServletRequest request){
+    private BackDealInterval getBackDealInterval(String period, HttpServletRequest request) {
         BackDealInterval result;
         if (period == null) {
             result = (BackDealInterval) request.getSession().getAttribute("currentBackDealInterval");

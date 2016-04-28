@@ -33,14 +33,6 @@ public interface OrderDao {
 
     List<OrderListDto> getOrdersSellForCurrencyPair(CurrencyPair currencyPair);
 
-    ExOrder getLastClosedOrder();
-
-    ExOrder getLastClosedOrderForCurrencyPair(CurrencyPair currencyPair, BackDealInterval backDealInterval);
-
-    BigDecimal getMinExRateByCurrencyPair(CurrencyPair currencyPair);
-
-    BigDecimal getMaxExRateByCurrencyPair(CurrencyPair currencyPair);
-
     List<Map<String, Object>> getDataForChart(CurrencyPair currencyPair, BackDealInterval backDealInterval);
 
     ExOrderStatisticsDto getOrderStatistic(CurrencyPair currencyPair, BackDealInterval backDealInterval);

@@ -44,4 +44,8 @@ public interface UserService {
     boolean deleteExpiredToken(String token) throws UnRegisteredUserDeleteException;
 
     boolean createTemporalToken(TemporalToken token);
+
+    String getPreferedLang(int userId);
+
+    boolean setPreferedLang(int userId, Locale locale);
 }

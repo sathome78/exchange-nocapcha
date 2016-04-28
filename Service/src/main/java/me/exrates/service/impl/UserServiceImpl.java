@@ -29,7 +29,7 @@ import java.util.UUID;
 public class UserServiceImpl implements UserService {
 
     @Autowired
-    UserDao userdao;
+    UserDao userDao;
 
     @Autowired
     SendMailService sendMailService;
@@ -51,7 +51,7 @@ public class UserServiceImpl implements UserService {
         Boolean flag = false;
         if (this.ifEmailIsUnique(user.getEmail())) {
             if (this.ifNicknameIsUnique(user.getNickname())) {
-                if (userdao.create(user)) {
+                if (userDao.create(user)) {
                     int user_id = this.getIdByEmail(user.getEmail());
                     user.setId(user_id);
                     sendEmailWithToken(user, TokenType.REGISTRATION, "/registrationConfirm", "emailsubmitregister.subject", "emailsubmitregister.text", locale);
@@ -69,10 +69,10 @@ public class UserServiceImpl implements UserService {
     @Transactional(rollbackFor = Exception.class)
     public User verifyUserEmail(String token) {
         LOGGER.info("Begin 'verifyUserEmail' method");
-        TemporalToken temporalToken = userdao.verifyToken(token);
+        TemporalToken temporalToken = userDao.verifyToken(token);
         User user = null;
         //deleting all tokens related with current through userId and tokenType
-        if (userdao.deleteTemporalTokensOfTokentypeForUser(temporalToken)) {
+        if (userDao.deleteTemporalTokensOfTokentypeForUser(temporalToken)) {
             //deleting of appropriate jobs
             tokenScheduler.deleteJobsRelatedWithToken(temporalToken);
 
@@ -80,7 +80,7 @@ public class UserServiceImpl implements UserService {
             user.setId(temporalToken.getUserId());
             if (temporalToken.getTokenType() == TokenType.REGISTRATION) {
                 user.setStatus(UserStatus.ACTIVE);
-                userdao.updateUserStatus(user);
+                userDao.updateUserStatus(user);
             }
         }
         return user;
@@ -90,11 +90,11 @@ public class UserServiceImpl implements UserService {
     * for checking if there are open tokens of concrete type for the user
     * */
     public List<TemporalToken> getTokenByUserAndType(User user, TokenType tokenType) {
-        return userdao.getTokenByUserAndType(user.getId(), tokenType);
+        return userDao.getTokenByUserAndType(user.getId(), tokenType);
     }
 
     public List<TemporalToken> getAllTokens() {
-        return userdao.getAllTokens();
+        return userDao.getAllTokens();
     }
 
     /*
@@ -104,12 +104,12 @@ public class UserServiceImpl implements UserService {
     public boolean deleteExpiredToken(String token) throws UnRegisteredUserDeleteException {
         LOGGER.info("Begin 'deleteExpiredToken' method");
         boolean result = false;
-        TemporalToken temporalToken = userdao.verifyToken(token);
-        result = userdao.deleteTemporalToken(temporalToken);
+        TemporalToken temporalToken = userDao.verifyToken(token);
+        result = userDao.deleteTemporalToken(temporalToken);
         if (temporalToken.getTokenType() == TokenType.REGISTRATION) {
-            User user = userdao.getUserById(temporalToken.getUserId());
+            User user = userDao.getUserById(temporalToken.getUserId());
             if (user.getStatus() == UserStatus.REGISTERED) {
-                result = userdao.delete(user);
+                result = userDao.delete(user);
                 if (!result) {
                     throw new UnRegisteredUserDeleteException();
                 }
@@ -120,33 +120,33 @@ public class UserServiceImpl implements UserService {
 
     public int getIdByEmail(String email) {
         LOGGER.info("Begin 'getIdByEmail' method");
-        return userdao.getIdByEmail(email);
+        return userDao.getIdByEmail(email);
     }
 
     @Override
     public User findByEmail(String email) {
         LOGGER.info("Begin 'findByEmail' method");
-        return userdao.findByEmail(email);
+        return userDao.findByEmail(email);
     }
 
     public boolean ifNicknameIsUnique(String nickname) {
         LOGGER.info("Begin 'ifNicknameIsUnique' method");
-        return userdao.ifNicknameIsUnique(nickname);
+        return userDao.ifNicknameIsUnique(nickname);
     }
 
     public boolean ifEmailIsUnique(String email) {
         LOGGER.info("Begin 'ifEmailIsUnique' method");
-        return userdao.ifEmailIsUnique(email);
+        return userDao.ifEmailIsUnique(email);
     }
 
     public String logIP(String email, String host) {
         LOGGER.info("Begin 'logIP' method");
-        int id = userdao.getIdByEmail(email);
-        String userIP = userdao.getIP(id);
+        int id = userDao.getIdByEmail(email);
+        String userIP = userDao.getIP(id);
         if (userIP == null) {
-            userdao.setIP(id, host);
+            userDao.setIP(id, host);
         }
-        userdao.addIPToLog(id, host);
+        userDao.addIPToLog(id, host);
         return userIP;
     }
 
@@ -158,24 +158,24 @@ public class UserServiceImpl implements UserService {
 
     public List<UserRole> getAllRoles() {
         LOGGER.info("Begin 'getAllRoles' method");
-        return userdao.getAllRoles();
+        return userDao.getAllRoles();
     }
 
     public User getUserById(int id) {
         LOGGER.info("Begin 'getUserById' method");
-        return userdao.getUserById(id);
+        return userDao.getUserById(id);
     }
 
     @Transactional(rollbackFor = Exception.class)
     public boolean createUserByAdmin(User user) {
         LOGGER.info("Begin 'createUserByAdmin' method");
-        return userdao.create(user);
+        return userDao.create(user);
     }
 
     @Transactional(rollbackFor = Exception.class)
     public boolean updateUserByAdmin(User user) {
         LOGGER.info("Begin 'createUserByAdmin' method");
-        return userdao.update(user);
+        return userDao.update(user);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -185,7 +185,7 @@ public class UserServiceImpl implements UserService {
         if (changePassword) {
             user.setStatus(UserStatus.REGISTERED);
         }
-        if (userdao.update(user)) {
+        if (userDao.update(user)) {
             if (changePassword) {
                 sendEmailWithToken(user, TokenType.CHANGE_PASSWORD, "/changePasswordConfirm", "emailsubmitChangePassword.subject", "emailsubmitChangePassword.text", locale);
             } else if (changeFinPassword) {
@@ -224,11 +224,22 @@ public class UserServiceImpl implements UserService {
     }
 
     public boolean createTemporalToken(TemporalToken token) {
-        boolean result = userdao.createTemporalToken(token);
+        boolean result = userDao.createTemporalToken(token);
         if (result) {
             tokenScheduler.initTrigers();
         }
         return result;
+    }
+
+
+    @Override
+    public String getPreferedLang(int userId) {
+        return userDao.getPreferredLang(userId);
+    }
+
+    @Override
+    public boolean setPreferedLang(int userId, Locale locale) {
+        return userDao.setPreferredLang(userId, locale);
     }
 
     @PostConstruct

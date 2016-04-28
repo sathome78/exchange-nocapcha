@@ -11,17 +11,13 @@ function onloadCallbackHead() {
         'expired-callback': capExpiredHead
     });
     $('#cpch-head-field').removeClass('passed');
-    //$('#register_button').prop('disabled', true);
 }
 
 function capResultCheckHead(response) {
-    //$('#register_button').prop('disabled', false);
     $('#cpch-head-field').addClass('passed');
-    //$('.cpch-error-message').html('');
 }
 
 function capExpiredHead() {
     $('#cpch-head-field').removeClass('passed');
-    //$('#register_button').prop('disabled', true);
 }
 

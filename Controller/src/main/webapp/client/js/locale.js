@@ -4,6 +4,7 @@ $(function(){
 
 function initLocaleSwitcher() {
     $(".lang__item").click(function (e) {
+        e.preventDefault();
         var localeName = e.target.textContent;
         var localeCode = 'ru';
         if (localeName == 'English') {

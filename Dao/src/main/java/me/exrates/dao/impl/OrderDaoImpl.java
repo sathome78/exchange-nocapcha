@@ -192,68 +192,6 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public ExOrder getLastClosedOrder() {
-        String sql = "SELECT * " +
-                "  FROM EXORDERS " +
-                "  WHERE status_id = status_id" +
-                "  ORDER BY date_acception DESC LIMIT 1";
-        NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-        Map<String, String> namedParameters = new HashMap<>();
-        namedParameters.put("status_id", String.valueOf(3));
-        try {
-            return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, new OrderRowMapper());
-        } catch (EmptyResultDataAccessException e) {
-            return null;
-        }
-    }
-
-    @Override
-    public ExOrder getLastClosedOrderForCurrencyPair(CurrencyPair currencyPair, BackDealInterval backDealInterval) {
-        String sql = "SELECT * " +
-                "  FROM EXORDERS " +
-                "  WHERE status_id = :status_id and currency_pair_id=:currency_pair_id" +
-                "  AND date_acception >= now() - INTERVAL " + backDealInterval.intervalValue.toString() + " " + backDealInterval.intervalType +
-                "  ORDER BY date_acception DESC LIMIT 1";
-        NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-        Map<String, String> namedParameters = new HashMap<>();
-        namedParameters.put("status_id", String.valueOf(3));
-        namedParameters.put("currency_pair_id", String.valueOf(currencyPair.getId()));
-        try {
-            return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, new OrderRowMapper());
-        } catch (EmptyResultDataAccessException e) {
-            return null;
-        }
-    }
-
-    @Override
-    public BigDecimal getMinExRateByCurrencyPair(CurrencyPair currencyPair) {
-        String sql = "SELECT MIN(exrate)FROM EXORDERS WHERE status_id=:status_id and currency_pair_id=:currency_pair_id";
-        NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-        Map<String, Integer> namedParameters = new HashMap<>();
-        namedParameters.put("status_id", 2);
-        namedParameters.put("currency_pair_id", currencyPair.getId());
-        try {
-            return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, BigDecimal.class);
-        } catch (Exception e) {
-            return new BigDecimal(0.0);
-        }
-    }
-
-    @Override
-    public BigDecimal getMaxExRateByCurrencyPair(CurrencyPair currencyPair) {
-        String sql = "SELECT MAX(exrate)FROM EXORDERS WHERE status_id=:status_id and currency_pair_id=:currency_pair_id";
-        NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-        Map<String, Integer> namedParameters = new HashMap<>();
-        namedParameters.put("status_id", 2);
-        namedParameters.put("currency_pair_id", currencyPair.getId());
-        try {
-            return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, BigDecimal.class);
-        } catch (Exception e) {
-            return new BigDecimal(0.0);
-        }
-    }
-
-    @Override
     public List<Map<String, Object>> getDataForChart(CurrencyPair currencyPair, BackDealInterval backDealInterval) {
         String sql = "SELECT date_acception, exrate FROM EXORDERS " +
                 " WHERE status_id=:status_id AND currency_pair_id=:currency_pair_id " +
@@ -273,7 +211,6 @@ public class OrderDaoImpl implements OrderDao {
 
         return rows;
     }
-
 
     @Override
     public ExOrderStatisticsDto getOrderStatistic(CurrencyPair currencyPair, BackDealInterval backDealInterval) {
