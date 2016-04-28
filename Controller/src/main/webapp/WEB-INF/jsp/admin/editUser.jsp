@@ -222,10 +222,6 @@
                                 <th><loc:message code="transaction.currency"/></th>
                                 <%--Сумма--%>
                                 <th><loc:message code="transaction.amount"/></th>
-                                <%--Валюта <br> покупки--%>
-                                <th><loc:message code="transaction.currencyBuy"/></th>
-                                <%--Сумма <br> покупки--%>
-                                <th><loc:message code="transaction.amountBuy"/></th>
                                 <%--Сумма <br> комиссии--%>
                                 <th><loc:message code="transaction.commissionAmount"/></th>
                                 <%--Платежная <br> система--%>

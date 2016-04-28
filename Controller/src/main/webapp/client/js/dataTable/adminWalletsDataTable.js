@@ -4,15 +4,7 @@ $(function () {
     if ($.fn.dataTable.isDataTable('#walletsTable')) {
         walletsDataTable = $('#walletsTable').DataTable();
     } else {
-        var id;
-        window.location.search.substring(1).split('&')
-            .some(function (e, i) {
-                var result;
-                if (result = (e.split('=')[0] == 'id')) {
-                    id = e.split('=')[1];
-                }
-                return result;
-            });
+        var id = $("#user-id").val();
         walletsDataTable = $('#walletsTable').DataTable({
             "ajax": {
                 "url": '/admin/wallets?id=' + id,

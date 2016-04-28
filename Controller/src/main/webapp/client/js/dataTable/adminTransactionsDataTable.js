@@ -4,15 +4,7 @@ $(function () {
     if ($.fn.dataTable.isDataTable('#transactionsTable')) {
         transactionsDataTable = $('#transactionsTable').DataTable();
     } else {
-        var id;
-        window.location.search.substring(1).split('&')
-            .some(function (e, i) {
-                var result;
-                if (result = (e.split('=')[0] == 'id')) {
-                    id = e.split('=')[1];
-                }
-                return result;
-            });
+        var id = $("#user-id").val();
         transactionsDataTable = $('#transactionsTable').DataTable({
             "ajax": {
                 "url": '/admin/transactions?id=' + id,
@@ -50,12 +42,6 @@ $(function () {
                 },
                 {
                     "data": "amount"
-                },
-                {
-                    "data": "currencyBuy"
-                },
-                {
-                    "data": "amountBuy"
                 },
                 {
                     "data": "commissionAmount"

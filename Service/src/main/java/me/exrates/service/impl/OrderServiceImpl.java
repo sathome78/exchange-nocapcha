@@ -30,35 +30,25 @@ import java.util.*;
 @Service
 public class OrderServiceImpl implements OrderService {
 
+    private static final Logger logger = LogManager.getLogger(OrderServiceImpl.class);
     @Autowired
     OrderDao orderDao;
-
     @Autowired
     WalletDao walletDao;
-
     @Autowired
     CommissionDao commissionDao;
-
     @Autowired
     TransactionDao transactionDao;
-
     @Autowired
     UserService userService;
-
     @Autowired
     WalletService walletService;
-
     @Autowired
     CompanyWalletService companyWalletService;
-
     @Autowired
     CommissionService commissionService;
-
     @Autowired
     CurrencyService currencyService;
-
-    private static final Logger logger = LogManager.getLogger(OrderServiceImpl.class);
-
     @Autowired
     MessageSource messageSource;
 
@@ -80,6 +70,9 @@ public class OrderServiceImpl implements OrderService {
                 }
                 setStatus(createdOrderId, OrderStatus.OPENED);
             }
+        } else {
+            //this exception will be caught in controller, populated  with message text  and thrown further
+            throw new NotEnoughUserWalletMoneyException("");
         }
         return createdOrderId;
     }

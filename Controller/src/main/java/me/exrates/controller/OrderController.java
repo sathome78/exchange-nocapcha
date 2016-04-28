@@ -142,7 +142,7 @@ public class OrderController {
             amountForCheck = exOrder.getAmountConvert().add(amountComissionForAcceptor);
         }
         if ((walletForCheck == 0) || !walletService.ifEnoughMoney(walletForCheck, amountForCheck)) {
-            throw new NotEnoughMoneyException(messageSource.getMessage("validation.orderNotEnoughMoney", null, localeResolver.resolveLocale(request)));
+            throw new NotEnoughUserWalletMoneyException(messageSource.getMessage("validation.orderNotEnoughMoney", null, localeResolver.resolveLocale(request)));
         }
     }
 
@@ -256,8 +256,12 @@ public class OrderController {
     @ResponseBody
     public void recordOrderToDB(OrderCreateDto orderCreateDto, Principal principal, HttpServletRequest request) {
         int userId = userService.getIdByEmail(principal.getName());
-        if ((orderService.createOrder(userId, orderCreateDto)) <= 0) {
-            throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, localeResolver.resolveLocale(request)));
+        try {
+            if ((orderService.createOrder(userId, orderCreateDto)) <= 0) {
+                throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, localeResolver.resolveLocale(request)));
+            }
+        } catch (NotEnoughUserWalletMoneyException e) {
+            throw new NotEnoughUserWalletMoneyException(messageSource.getMessage("validation.orderNotEnoughMoney", null, localeResolver.resolveLocale(request)));
         }
     }
 
