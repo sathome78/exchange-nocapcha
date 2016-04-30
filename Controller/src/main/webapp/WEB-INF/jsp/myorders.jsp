@@ -96,7 +96,7 @@
                                                           value="${myorder.getAmountConvert()}"/></td>
                                         <%--commission--%>
                                     <td class="allign-center"><fmt:formatNumber type="number" maxFractionDigits="9"
-                                                          value="${myorder.getCommissionFixedAmount()}"/>%
+                                                          value="${myorder.getCommissionFixedAmount()}"/>
                                     </td>
                                         <%--with commission--%>
                                     <td class="allign-center"><fmt:formatNumber type="number" maxFractionDigits="9"
@@ -153,7 +153,7 @@
                                                           value="${myorder.getAmountConvert()}"/></td>
                                         <%--commission--%>
                                     <td class="allign-center"><fmt:formatNumber type="number" maxFractionDigits="9"
-                                                          value="${myorder.getCommissionFixedAmount()}"/>%
+                                                          value="${myorder.getCommissionFixedAmount()}"/>
                                     </td>
                                         <%--with commission--%>
                                     <td class="allign-center"><fmt:formatNumber type="number" maxFractionDigits="9"

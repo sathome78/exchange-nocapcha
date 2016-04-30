@@ -1,5 +1,7 @@
 package me.exrates.model;
 
+import me.exrates.model.util.BigDecimalProcessing;
+
 import java.math.BigDecimal;
 
 public class Wallet {
@@ -54,7 +56,7 @@ public class Wallet {
 	}
 
 	public BigDecimal getActiveBalance() {
-		return activeBalance;
+		return BigDecimalProcessing.normalize(activeBalance);
 	}
 
 	public void setActiveBalance(BigDecimal activeBalance) {

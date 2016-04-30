@@ -17,20 +17,23 @@
 
     <c:set var="pattern" value="\d+(.\d)*"/>
 
-    <form:input hidden="true" path="currencyPair" value="${orderCreateDto.currencyPair}"/>
-    <form:input hidden="true" path="walletIdCurrencyBase" value="${orderCreateDto.walletIdCurrencyBase}"/>
-    <form:input hidden="true" path="walletIdCurrencyConvert" value="${orderCreateDto.walletIdCurrencyConvert}"/>
-    <form:input hidden="true" path="orderId" value="${orderCreateDto.orderId}"/>
-    <form:input hidden="true" path="userId" value="${orderCreateDto.userId}"/>
-    <form:input hidden="true" path="status" value="${orderCreateDto.status}"/>
+    <form:hidden path="currencyPair"/>
+    <form:hidden path="walletIdCurrencyBase"/>
+    <form:hidden path="walletIdCurrencyConvert"/>
+    <form:hidden path="orderId"/>
+    <form:hidden path="userId"/>
+    <form:hidden path="status"/>
     <%----%>
     <c:set var="BUY" value="<%=me.exrates.model.enums.OperationType.BUY%>"/>
     <c:set var="amount" value="0"/>
     <c:set var="rate" value="0"/>
+    <%--operationType is set if we transfered to form the orders from dashbourd.
+    It's necessary operationType to be set, to correct fill one of two forms (BUY or SELL) by values from page the dashboard  --%>
     <c:if test="${orderCreateDto.operationType==BUY}">
         <c:set var="amount" value="${orderCreateDto.amount}"/>
         <c:set var="rate" value="${orderCreateDto.exchangeRate}"/>
     </c:if>
+    <form:hidden path="operationType" value="${BUY}"/>
     <%--Active balance--%>
     <c:if test="${hideBalance == null && hideBalance != 'true'}">
         <div class="input-block-wrapper">
@@ -40,7 +43,6 @@
             </div>
             <div class="col-md-7 input-block-wrapper__input-wrapper">
                 <form:input id="currencyConvertBalance" path="currencyConvertBalance" class="input-block-wrapper__input"
-                            value="${orderCreateDto.getTrimmedValue(orderCreateDto.currencyConvertBalance)}"
                             readonly="true"/>
                 <div class="input-block-wrapper__inner-label">${orderCreateDto.currencyPair.getCurrency2().getName()}</div>
             </div>
@@ -53,8 +55,8 @@
         </div>
         <div class="col-md-7 input-block-wrapper__input-wrapper">
             <form:input id="amountBuy" path="amount" class="input-block-wrapper__input numericInputField"
-                        placeholder="0.0"
                         value="${amount}"
+                        placeholder="0.0"
                         readonly="${disableEdit}"/>
             <div class="input-block-wrapper__inner-label">${orderCreateDto.currencyPair.getCurrency1().getName()}</div>
         </div>
@@ -69,8 +71,8 @@
         </div>
         <div class="col-md-7 input-block-wrapper__input-wrapper">
             <form:input id="exchangeRateBuy" path="exchangeRate" class="input-block-wrapper__input numericInputField"
-                        placeholder="0.0"
                         value="${rate}"
+                        placeholder="0.0"
                         readonly="${disableEdit}"/>
 
             <div class="input-block-wrapper__inner-label">${orderCreateDto.currencyPair.getCurrency2().getName()}</div>
@@ -96,15 +98,11 @@
             <label class="input-block-wrapper__label"><loc:message code="order.commission"/></label>
         </div>
         <div class="col-md-7 input-block-wrapper__input-wrapper">
-            <form:input hidden="true" path="comissionId" value="${orderCreateDto.comissionId}"/>
-            <form:input hidden="true" id="comissionForBuyId" path="comissionForBuyId"
-                        value="${orderCreateDto.comissionForBuyId}"/>
-            <form:input hidden="true" id="comissionForBuyRate" path="comissionForBuyRate"
-                        value="${orderCreateDto.comissionForBuyRate}"/>
-            <form:input hidden="true" path="comissionForSellId"
-                        value="${orderCreateDto.comissionForSellId}"/>
-            <form:input hidden="true" path="comissionForSellRate"
-                        value="${orderCreateDto.comissionForSellRate}"/>
+            <form:hidden path="comissionId"/>
+            <form:hidden id="comissionForBuyId" path="comissionForBuyId"/>
+            <form:hidden id="comissionForBuyRate" path="comissionForBuyRate"/>
+            <form:hidden path="comissionForSellId"/>
+            <form:hidden path="comissionForSellRate"/>
             <form:input id="calculatedComissionForBuy" path="comission" class="input-block-wrapper__input"
                         readonly="true"/>
 
@@ -124,8 +122,6 @@
             <div class="input-block-wrapper__inner-label">${orderCreateDto.currencyPair.getCurrency2().getName()}</div>
         </div>
     </div>
-    <c:set var="BUY" value="<%=me.exrates.model.enums.OperationType.BUY%>"/>
-    <form:hidden path="operationType" value="${BUY}"/>
 </form:form>
 <hr/>
 
@@ -159,21 +155,22 @@
     <%--Edit--%>
     <c:if test="${editUrl != null}">
         <form:form id="editOrderBuySellWrapper" action="${editUrl}" modelAttribute="orderCreateDto" method="post">
-            <form:input hidden="true" path="currencyPair" value="${orderCreateDto.currencyPair}"/>
-            <form:input hidden="true" path="walletIdCurrencyBase" value="${orderCreateDto.walletIdCurrencyBase}"/>
-            <form:input hidden="true" path="walletIdCurrencyConvert" value="${orderCreateDto.walletIdCurrencyConvert}"/>
-            <form:input hidden="true" path="currencyBaseBalance" value="${orderCreateDto.currencyBaseBalance}"/>
-            <form:input hidden="true" path="currencyConvertBalance" value="${orderCreateDto.currencyConvertBalance}"/>
-            <form:input hidden="true" path="comissionForBuyId" value="${orderCreateDto.comissionForBuyId}"/>
-            <form:input hidden="true" path="comissionForBuyRate" value="${orderCreateDto.comissionForBuyRate}"/>
-            <form:input hidden="true" path="comissionForSellId" value="${orderCreateDto.comissionForSellId}"/>
-            <form:input hidden="true" path="comissionForSellRate" value="${orderCreateDto.comissionForSellRate}"/>
-            <form:input hidden="true" path="operationType" value="${orderCreateDto.operationType}"/>
-            <form:input hidden="true" path="exchangeRate" value="${orderCreateDto.exchangeRate}"/>
-            <form:input hidden="true" path="amount" value="${orderCreateDto.amount}"/>
-            <form:input hidden="true" path="total" value="${orderCreateDto.total}"/>
-            <form:input hidden="true" path="comission" value="${orderCreateDto.comission}"/>
-            <form:input hidden="totalWithComission" path="comission" value="${orderCreateDto.totalWithComission}"/>
+            <form:hidden path="currencyPair"/>
+            <form:hidden path="operationType"/>
+            <form:hidden path="walletIdCurrencyBase"/>
+            <form:hidden path="walletIdCurrencyConvert"/>
+            <form:hidden path="currencyBaseBalance"/>
+            <form:hidden path="currencyConvertBalance"/>
+            <form:hidden path="comissionForBuyId"/>
+            <form:hidden path="comissionForBuyRate"/>
+            <form:hidden path="comissionForSellId"/>
+            <form:hidden path="comissionForSellRate"/>
+            <form:hidden path="exchangeRate"/>
+            <form:hidden path="amount"/>
+            <form:hidden path="total"/>
+            <form:hidden path="comission"/>
+            <%--<form:input hidden="totalWithComission" path="comission"/>--%>
+            <form:hidden path="comission"/>
             <loc:message code="submitorder.edit" var="labelEdit"/>
             <button type="submit" id="editOrderBuySell" type="button">${labelEdit}</button>
         </form:form>

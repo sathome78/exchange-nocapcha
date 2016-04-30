@@ -7,8 +7,10 @@ import me.exrates.model.*;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderListDto;
 import me.exrates.model.dto.OrderWideListDto;
+import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TokenType;
+import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.*;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.security.Principal;
@@ -57,7 +60,7 @@ public class OrderController {
     OrderValidator orderValidator;
 
     @RequestMapping(value = "/orders")
-    public ModelAndView orderBuySellList(Principal principal, @ModelAttribute ExOrder exOrder, HttpServletRequest request) {
+    public ModelAndView orderBuySellList(Principal principal, @ModelAttribute ExOrder exOrder, HttpServletRequest request, HttpServletResponse response) {
         ModelAndView model = new ModelAndView();
         model.setViewName("orders");
         //
@@ -138,8 +141,8 @@ public class OrderController {
             Currency currencyConvert = currencyService.findCurrencyPairById(exOrder.getCurrencyPairId()).getCurrency2();
             walletForCheck = walletService.getWalletId(userId, currencyConvert.getId());
             BigDecimal comissionRateForAcceptor = commissionService.findCommissionByType(OperationType.BUY).getValue();
-            BigDecimal amountComissionForAcceptor = exOrder.getAmountConvert().multiply(comissionRateForAcceptor);
-            amountForCheck = exOrder.getAmountConvert().add(amountComissionForAcceptor);
+            BigDecimal amountComissionForAcceptor = BigDecimalProcessing.doAction(exOrder.getAmountConvert(), comissionRateForAcceptor, ActionType.MULTIPLY_PERCENT);
+            amountForCheck = BigDecimalProcessing.doAction(exOrder.getAmountConvert(), amountComissionForAcceptor, ActionType.ADD);
         }
         if ((walletForCheck == 0) || !walletService.ifEnoughMoney(walletForCheck, amountForCheck)) {
             throw new NotEnoughUserWalletMoneyException(messageSource.getMessage("validation.orderNotEnoughMoney", null, localeResolver.resolveLocale(request)));
@@ -185,12 +188,12 @@ public class OrderController {
         /**/
         if (orderCreateDto.getOperationType() == OperationType.BUY) {
             orderCreateDto.setComissionId(orderCreateDto.getComissionForBuyId());
-            orderCreateDto.setComission(exOrder.getAmountConvert().multiply(orderCreateDto.getComissionForBuyRate().divide(new BigDecimal(100))));
-            orderCreateDto.setTotalWithComission(exOrder.getAmountConvert().add(orderCreateDto.getComission()));
+            orderCreateDto.setComission(BigDecimalProcessing.doAction(exOrder.getAmountConvert(), orderCreateDto.getComissionForBuyRate(), ActionType.MULTIPLY_PERCENT));
+            orderCreateDto.setTotalWithComission(BigDecimalProcessing.doAction(exOrder.getAmountConvert(), orderCreateDto.getComission(), ActionType.ADD));
         } else {
             orderCreateDto.setComissionId(orderCreateDto.getComissionForSellId());
-            orderCreateDto.setComission(exOrder.getAmountConvert().multiply(orderCreateDto.getComissionForSellRate().divide(new BigDecimal(100))));
-            orderCreateDto.setTotalWithComission(exOrder.getAmountConvert().add(orderCreateDto.getComission().negate()));
+            orderCreateDto.setComission(BigDecimalProcessing.doAction(exOrder.getAmountConvert(), orderCreateDto.getComissionForSellRate(), ActionType.MULTIPLY_PERCENT));
+            orderCreateDto.setTotalWithComission(BigDecimalProcessing.doAction(exOrder.getAmountConvert(), orderCreateDto.getComission().negate(), ActionType.ADD));
         }
         /**/
         model.addObject("orderCreateDto", orderCreateDto);
@@ -236,11 +239,7 @@ public class OrderController {
             model.setViewName("newordertosell");
         } else {
             //final amounts calculated here (not by javascript) and transfere to submit form
-            OrderCreateDto.OrderSum orderSum = orderCreateDto.getCalculatedAmounts();
-            orderCreateDto.setTotal(orderSum.total);
-            orderCreateDto.setComissionId(orderSum.comissionId);
-            orderCreateDto.setComission(orderSum.comission);
-            orderCreateDto.setTotalWithComission(orderSum.totalWithComission);
+            orderCreateDto.calculateAmounts();
             model.addObject("orderCreateDto", orderCreateDto);
             //
             model.setViewName("submitorder");
@@ -313,10 +312,9 @@ public class OrderController {
         /**/
         orderCreateDto.setComission(exOrder.getCommissionFixedAmount());
         if (orderCreateDto.getOperationType() == OperationType.SELL) {
-            orderCreateDto.setTotalWithComission(exOrder.getAmountConvert().add(orderCreateDto.getComission().negate()));
-
+            orderCreateDto.setTotalWithComission(BigDecimalProcessing.doAction(exOrder.getAmountConvert(), orderCreateDto.getComission().negate(), ActionType.ADD));
         } else {
-            orderCreateDto.setTotalWithComission(exOrder.getAmountConvert().add(orderCreateDto.getComission()));
+            orderCreateDto.setTotalWithComission(BigDecimalProcessing.doAction(exOrder.getAmountConvert(), orderCreateDto.getComission(), ActionType.ADD));
         }
         /**/
         model.addObject("orderCreateDto", orderCreateDto);

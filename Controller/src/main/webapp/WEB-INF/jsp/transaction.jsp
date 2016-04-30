@@ -78,11 +78,11 @@
                         <c:forEach var="transaction" items="${transactions}">
                             <tr>
                                     <%--2016-03-08 <br> 14:48:46--%>
-                                <td>
-                                        ${transaction.datetime}
-                                    <%--<fmt:parseDate value="${transaction.datetime}" var="parsedDate"--%>
-                                                   <%--pattern="yyyy-MM-dd'T'HH:mm"/>--%>
-                                    <%--<fmt:formatDate value="${parsedDate}" pattern="yyyy-MM-dd'<br/>'HH:mm"/>--%>
+                                <td style="white-space: nowrap;">
+                                        <%--${transaction.datetime}--%>
+                                    <fmt:parseDate value="${transaction.datetime}" var="parsedDate"
+                                                   pattern="yyyy-MM-dd'T'HH:mm"/>
+                                    <fmt:formatDate value="${parsedDate}" pattern="yyyy-MM-dd'&nbsp;&nbsp;&nbsp;'HH:mm"/>
                                 </td>
                                 <td>
                                     <loc:message code="transaction.operationType${transaction.operationType}"/>

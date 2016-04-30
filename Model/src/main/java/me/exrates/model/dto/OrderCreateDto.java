@@ -1,12 +1,14 @@
 package me.exrates.model.dto;
 
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.ExOrder;
+import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
 
 import java.math.BigDecimal;
-import java.text.DecimalFormat;
+
+import static me.exrates.model.util.BigDecimalProcessing.doAction;
+import static me.exrates.model.util.BigDecimalProcessing.normalize;
 
 /**
  * Created by Valk on 13.04.16.
@@ -29,6 +31,11 @@ public class OrderCreateDto {
     private BigDecimal currencyConvertBalance;
     //
     /*these fields will be returned from creation form after submitting*/
+    /*IMPORTANT: operationType is not populated because OrderCreateDto is used for page the orders,
+that consists two forms: for BUY and for SELL. After submit this field will be set because we submit concrete form: BUY or SELL.
+However if we transfered to form the orders from dashboard, the fields one form (of two forms: SELL or BUY) must be filled.
+To determine which of these forms to be filled, we must set field operationType
+*/
     private OperationType operationType;
     private BigDecimal exchangeRate;
     private BigDecimal amount; //amount of base currency: base currency can be bought or sold dependending on operationType
@@ -50,42 +57,25 @@ public class OrderCreateDto {
     }
 
     /*service methods*/
-    public OrderSum getCalculatedAmounts() {
+    public OrderCreateDto calculateAmounts() {
         if (operationType == null) {
-            return null;
+            return this;
         }
-        OrderSum result = new OrderSum();
         if (operationType == OperationType.BUY) {
-            result.total = amount.multiply(exchangeRate);
-            result.comissionId = comissionForBuyId;
-            result.comission = result.total.multiply(comissionForBuyRate).divide(new BigDecimal(100));
-            result.totalWithComission = result.total.add(result.comission);
+            this.total = doAction(this.amount, this.exchangeRate, ActionType.MULTIPLY);
+            this.comissionId = this.comissionForBuyId;
+            this.comission = doAction(this.total, this.comissionForBuyRate, ActionType.MULTIPLY_PERCENT);
+            this.totalWithComission = doAction(this.total, this.comission, ActionType.ADD);
         } else {
-            result.total = amount.multiply(exchangeRate);
-            result.comissionId = comissionForSellId;
-            result.comission = result.total.multiply(comissionForSellRate).divide(new BigDecimal(100));
-            result.totalWithComission = result.total.add(result.comission.negate());
+            this.total = doAction(this.amount, this.exchangeRate, ActionType.MULTIPLY);
+            this.comissionId = this.comissionForSellId;
+            this.comission = doAction(this.total, this.comissionForSellRate, ActionType.MULTIPLY_PERCENT);
+            this.totalWithComission = doAction(this.total, this.comission.negate(), ActionType.ADD);
         }
-        return result;
+        return this;
     }
-
-    public class OrderSum {
-        public BigDecimal total;
-        public int comissionId;
-        public BigDecimal comission;
-        public BigDecimal totalWithComission;
-    }
-
-    public String getTrimmedValue(BigDecimal value) {
-        String sep = "\\.";
-        String result = value.toString().split(sep).length < 2 ? value.toString() : value.toString().split(sep)[0] + "." + value.toString().split(sep)[1].replaceAll("0+$", "");
-        return result.replaceAll("\\.$", "");
-    }
-
-    ;
 
     /*getters setters*/
-
     public int getUserId() {
         return userId;
     }
@@ -127,7 +117,7 @@ public class OrderCreateDto {
     }
 
     public BigDecimal getComissionForBuyRate() {
-        return comissionForBuyRate;
+        return normalize(comissionForBuyRate);
     }
 
     public void setComissionForBuyRate(BigDecimal comissionForBuyRate) {
@@ -143,7 +133,7 @@ public class OrderCreateDto {
     }
 
     public BigDecimal getComissionForSellRate() {
-        return comissionForSellRate;
+        return normalize(comissionForSellRate);
     }
 
     public void setComissionForSellRate(BigDecimal comissionForSellRate) {
@@ -159,7 +149,7 @@ public class OrderCreateDto {
     }
 
     public BigDecimal getCurrencyBaseBalance() {
-        return currencyBaseBalance;
+        return normalize(currencyBaseBalance);
     }
 
     public void setCurrencyBaseBalance(BigDecimal currencyBaseBalance) {
@@ -175,7 +165,7 @@ public class OrderCreateDto {
     }
 
     public BigDecimal getCurrencyConvertBalance() {
-        return currencyConvertBalance;
+        return normalize(currencyConvertBalance);
     }
 
     public void setCurrencyConvertBalance(BigDecimal currencyConvertBalance) {
@@ -191,7 +181,7 @@ public class OrderCreateDto {
     }
 
     public BigDecimal getExchangeRate() {
-        return exchangeRate;
+        return normalize(exchangeRate);
     }
 
     public void setExchangeRate(BigDecimal exchangeRate) {
@@ -199,7 +189,7 @@ public class OrderCreateDto {
     }
 
     public BigDecimal getAmount() {
-        return amount;
+        return normalize(amount);
     }
 
     public void setAmount(BigDecimal amount) {
@@ -207,7 +197,7 @@ public class OrderCreateDto {
     }
 
     public BigDecimal getTotal() {
-        return total;
+        return normalize(total);
     }
 
     public void setTotal(BigDecimal total) {
@@ -223,7 +213,7 @@ public class OrderCreateDto {
     }
 
     public BigDecimal getComission() {
-        return comission;
+        return (comission);
     }
 
     public void setComission(BigDecimal comission) {
@@ -231,10 +221,11 @@ public class OrderCreateDto {
     }
 
     public BigDecimal getTotalWithComission() {
-        return totalWithComission;
+        return normalize(totalWithComission);
     }
 
     public void setTotalWithComission(BigDecimal totalWithComission) {
         this.totalWithComission = totalWithComission;
     }
+
 }

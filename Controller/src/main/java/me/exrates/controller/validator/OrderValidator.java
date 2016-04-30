@@ -60,7 +60,7 @@ public class OrderValidator implements Validator {
             int outWalletId = (orderCreateDto.getOperationType() == OperationType.BUY) ? orderCreateDto.getWalletIdCurrencyConvert() : orderCreateDto.getWalletIdCurrencyBase();
             if (outWalletId != 0) {
                 if (orderCreateDto.getOperationType() == OperationType.BUY) {
-                    ifEnoughMoney = walletService.ifEnoughMoney(outWalletId, orderCreateDto.getCalculatedAmounts().totalWithComission);
+                    ifEnoughMoney = walletService.ifEnoughMoney(outWalletId, orderCreateDto.calculateAmounts().getTotalWithComission());
                 } else {
                     ifEnoughMoney = walletService.ifEnoughMoney(outWalletId, orderCreateDto.getAmount());
                 }
@@ -70,28 +70,4 @@ public class OrderValidator implements Validator {
             }
         }
     }
-
-    /*public OrderSum getCalculatedSum(OrderCreateDto orderCreateDto){
-        OrderSum result = new OrderSum();
-        if (orderCreateDto.getOperationType() == OperationType.BUY) {
-            result.total = orderCreateDto.getAmount().multiply(orderCreateDto.getExchangeRate());
-            result.comissionId = orderCreateDto.getComissionForBuyId();
-            result.comission = result.total.multiply(orderCreateDto.getComissionForBuyRate()).divide(new BigDecimal(100));
-            result.totalWithComission = result.total.add(result.comission);
-        } else {
-            result.total = orderCreateDto.getAmount().multiply(orderCreateDto.getExchangeRate());
-            result.comissionId = orderCreateDto.getComissionForSellId();
-            result.comission = result.total.multiply(orderCreateDto.getComissionForSellRate()).divide(new BigDecimal(100));
-            result.totalWithComission = result.total.add(result.comission.negate());
-        }
-        return result;
-    }*/
-
-    /*public class OrderSum{
-        public BigDecimal total;
-        public int comissionId;
-        public BigDecimal comission;
-        public BigDecimal totalWithComission;
-    }*/
-
 }
