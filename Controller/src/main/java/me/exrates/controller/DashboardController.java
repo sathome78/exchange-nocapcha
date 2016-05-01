@@ -205,7 +205,7 @@ public class DashboardController {
     public ModelAndView resetPasswordConfirm(@RequestParam("token") String token) {
         ModelAndView model = new ModelAndView();
         try {
-            int userId = userService.verifyUserEmail(token).getId();
+            int userId = userService.verifyUserEmail(token);
             User user = userService.getUserById(userId);
             model.addObject("user", user);
             model.setViewName("updatePassword");

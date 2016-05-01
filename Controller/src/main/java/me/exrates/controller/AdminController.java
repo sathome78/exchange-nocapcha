@@ -261,7 +261,7 @@ public class AdminController {
     public ModelAndView verifyEmail(@RequestParam("token") String token, HttpServletRequest req) {
         ModelAndView model = new ModelAndView();
         try {
-            if (userService.verifyUserEmail(token) != null) {
+            if (userService.verifyUserEmail(token) != 0) {
                 model.addObject("successNoty", messageSource.getMessage("admin.passwordproved", null, localeResolver.resolveLocale(req)));
             } else {
                 model.addObject("errorNoty", messageSource.getMessage("admin.passwordnotproved", null, localeResolver.resolveLocale(req)));
@@ -278,12 +278,29 @@ public class AdminController {
     public ModelAndView verifyEmailForFinPassword(HttpServletRequest request, @RequestParam("token") String token) {
         ModelAndView model = new ModelAndView();
         try {
-            if (userService.verifyUserEmail(token) != null) {
+            if (userService.verifyUserEmail(token) != 0) {
                 model.addObject("successNoty", messageSource.getMessage("admin.finpasswordproved", null, localeResolver.resolveLocale(request)));
             } else {
                 model.addObject("errorNoty", messageSource.getMessage("admin.finpasswordnotproved", null, localeResolver.resolveLocale(request)));
             }
             model.setViewName("redirect:/dashboard");
+        } catch (Exception e) {
+            model.setViewName("DBError");
+            e.printStackTrace();
+        }
+        return model;
+    }
+
+    @RequestMapping(value = "/newIpConfirm")
+    public ModelAndView verifyEmailForNewIp(@RequestParam("token") String token, HttpServletRequest req) {
+        ModelAndView model = new ModelAndView();
+        try {
+            if (userService.verifyUserEmail(token) != 0) {
+                req.getSession().setAttribute("successNoty", messageSource.getMessage("admin.newipproved", null, localeResolver.resolveLocale(req)));
+            } else {
+                req.getSession().setAttribute("errorNoty", messageSource.getMessage("admin.newipnotproved", null, localeResolver.resolveLocale(req)));
+            }
+            model.setViewName("redirect:/login");
         } catch (Exception e) {
             model.setViewName("DBError");
             e.printStackTrace();

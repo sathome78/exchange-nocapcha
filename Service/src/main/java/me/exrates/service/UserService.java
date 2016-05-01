@@ -3,6 +3,7 @@ package me.exrates.service;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.dto.UpdateUserDto;
+import me.exrates.model.dto.UserIpDto;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.service.exception.UnRegisteredUserDeleteException;
@@ -26,7 +27,7 @@ public interface UserService {
 
     List<TemporalToken> getTokenByUserAndType(User user, TokenType tokenType);
 
-    User verifyUserEmail(String token);
+    int verifyUserEmail(String token);
 
     List<UserRole> getAllRoles();
 
@@ -51,4 +52,8 @@ public interface UserService {
     String getPreferedLang(int userId);
 
     boolean setPreferedLang(int userId, Locale locale);
+
+    boolean insertIp(String email, String ip);
+
+    public UserIpDto getUserIpState(String email, String ip);
 }

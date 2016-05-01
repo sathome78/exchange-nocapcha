@@ -71,16 +71,6 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<ExOrder> getAllOpenedOrders() {
-        String sql = "SELECT * " +
-                "  FROM EXORDERS " +
-                "  WHERE status_id = 2" +
-                "  ORDER BY date_creation DESC";
-        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-        return jdbcTemplate.query(sql, new OrderRowMapper());
-    }
-
-    @Override
     public List<OrderListDto> getOrdersSell(CurrencyPair currencyPair) {
         String sql = "SELECT id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, commission_fixed_amount" +
                 "  FROM EXORDERS " +

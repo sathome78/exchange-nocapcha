@@ -6,6 +6,7 @@ import me.exrates.model.Email;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.dto.UpdateUserDto;
+import me.exrates.model.dto.UserIpDto;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
@@ -47,10 +48,11 @@ public class UserServiceImpl implements UserService {
         Boolean flag = false;
         if (this.ifEmailIsUnique(user.getEmail())) {
             if (this.ifNicknameIsUnique(user.getNickname())) {
-                if (userDao.create(user)) {
+                if (userDao.create(user) && userDao.insertIp(user.getEmail(), user.getIp())) {
                     int user_id = this.getIdByEmail(user.getEmail());
                     user.setId(user_id);
                     sendEmailWithToken(user, TokenType.REGISTRATION, "/registrationConfirm", "emailsubmitregister.subject", "emailsubmitregister.text", locale);
+                    flag = true;
                 }
             }
         }
@@ -63,23 +65,27 @@ public class UserServiceImpl implements UserService {
      * if there are jobs for deleted tokens in scheduler, they will be deleted from queue.
      */
     @Transactional(rollbackFor = Exception.class)
-    public User verifyUserEmail(String token) {
+    public int verifyUserEmail(String token) {
         LOGGER.info("Begin 'verifyUserEmail' method");
         TemporalToken temporalToken = userDao.verifyToken(token);
-        User user = null;
         //deleting all tokens related with current through userId and tokenType
         if (userDao.deleteTemporalTokensOfTokentypeForUser(temporalToken)) {
             //deleting of appropriate jobs
             tokenScheduler.deleteJobsRelatedWithToken(temporalToken);
             /**/
-            user = new User();
+            User user = new User();
             user.setId(temporalToken.getUserId());
-//            if (temporalToken.getTokenType() == TokenType.REGISTRATION) {
-            user.setStatus(UserStatus.ACTIVE);
-            userDao.updateUserStatus(user);
-//            }
+            if (temporalToken.getTokenType() == TokenType.REGISTRATION ||
+                    temporalToken.getTokenType() == TokenType.CHANGE_PASSWORD) {
+                user.setStatus(UserStatus.ACTIVE);
+                if (!userDao.updateUserStatus(user)) return 0;
+            }
+            if (temporalToken.getTokenType() == TokenType.REGISTRATION ||
+                    temporalToken.getTokenType() == TokenType.CONFIRM_NEW_IP) {
+                if (!userDao.setIpStateConfirmed(temporalToken.getUserId(), temporalToken.getCheckIp())) return 0;
+            }
         }
-        return user;
+        return temporalToken.getUserId();
     }
 
     /*
@@ -177,8 +183,8 @@ public class UserServiceImpl implements UserService {
     @Transactional(rollbackFor = Exception.class)
     public boolean update(UpdateUserDto user, boolean resetPassword, Locale locale) {
         LOGGER.info("Begin 'updateUserByAdmin' method");
-        boolean changePassword = user.getPassword() != null && ! user.getPassword().isEmpty();
-        boolean changeFinPassword = user.getFinpassword() != null && ! user.getFinpassword().isEmpty();
+        boolean changePassword = user.getPassword() != null && !user.getPassword().isEmpty();
+        boolean changeFinPassword = user.getFinpassword() != null && !user.getFinpassword().isEmpty();
         if (changePassword) {
             user.setStatus(UserStatus.REGISTERED);
         }
@@ -190,7 +196,7 @@ public class UserServiceImpl implements UserService {
                 sendEmailWithToken(u, TokenType.CHANGE_PASSWORD, "/changePasswordConfirm", "emailsubmitChangePassword.subject", "emailsubmitChangePassword.text", locale);
             } else if (changeFinPassword) {
                 sendEmailWithToken(u, TokenType.CHANGE_FIN_PASSWORD, "/changeFinPasswordConfirm", "emailsubmitChangeFinPassword.subject", "emailsubmitChangeFinPassword.text", locale);
-            } else if (resetPassword){
+            } else if (resetPassword) {
                 sendEmailWithToken(u, TokenType.CHANGE_PASSWORD, "/resetPasswordConfirm", "emailsubmitResetPassword.subject", "emailsubmitResetPassword.text", locale);
             }
         }
@@ -202,19 +208,25 @@ public class UserServiceImpl implements UserService {
         return update(user, false, locale);
     }
 
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public void sendEmailWithToken(User user, TokenType tokenType, String tokenLink, String emailSubject, String emailText, Locale locale) {
         TemporalToken token = new TemporalToken();
         token.setUserId(user.getId());
         token.setValue(generateRegistrationToken());
         token.setTokenType(tokenType);
+        token.setCheckIp(user.getIp());
 
         createTemporalToken(token);
 
         Email email = new Email();
         String confirmationUrl = tokenLink + "?token=" + token.getValue();
-        String rootUrl = request.getScheme() + "://" + request.getServerName() +
-                ":" + request.getServerPort();
+        String rootUrl = "";
+        if (!confirmationUrl.contains("//")) {
+            rootUrl = request.getScheme() + "://" + request.getServerName() +
+                    ":" + request.getServerPort();
+        }
         email.setMessage(
                 messageSource.getMessage(emailText, null, locale) +
                         " <a href='" +
@@ -245,6 +257,16 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean setPreferedLang(int userId, Locale locale) {
         return userDao.setPreferredLang(userId, locale);
+    }
+
+    @Override
+    public boolean insertIp(String email, String ip) {
+        return userDao.insertIp(email, ip);
+    }
+
+    @Override
+    public UserIpDto getUserIpState(String email, String ip) {
+        return userDao.getUserIpState(email, ip);
     }
 
     @PostConstruct

@@ -3,6 +3,7 @@ package me.exrates.dao;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.dto.UpdateUserDto;
+import me.exrates.model.dto.UserIpDto;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 
@@ -64,4 +65,10 @@ public interface UserDao {
     String getPreferredLang(int userId);
 
     boolean setPreferredLang(int userId, Locale locale);
+
+    boolean insertIp(String email, String ip);
+
+    public UserIpDto getUserIpState(String email, String ip);
+
+    boolean setIpStateConfirmed(int userId, String ip);
 }
