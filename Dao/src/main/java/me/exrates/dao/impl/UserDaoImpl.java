@@ -21,6 +21,7 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.*;
 
 @Repository
@@ -423,7 +424,10 @@ public class UserDaoImpl implements UserDao {
                 public UserIpDto mapRow(ResultSet rs, int rowNum) throws SQLException {
                     UserIpDto userIpDto = new UserIpDto(rs.getInt("user_id"));
                     userIpDto.setRegistrationDate(rs.getTimestamp("registration_date").toLocalDateTime());
-                    userIpDto.setConfirmDate(rs.getTimestamp("confirm_date").toLocalDateTime());
+                    Timestamp ts = rs.getTimestamp("confirm_date");
+                    if (ts != null) userIpDto.setConfirmDate(ts.toLocalDateTime());
+                    ts = rs.getTimestamp("last_registration_date");
+                    if (ts != null) userIpDto.setLastRegistrationDate(ts.toLocalDateTime());
                     if (rs.getInt("confirmed") == 1) {
                         userIpDto.setUserIpState(UserIpState.CONFIRMED);
                     } else {
@@ -448,5 +452,15 @@ public class UserDaoImpl implements UserDao {
         return jdbcTemplate.update(sql, namedParameters) > 0;
     }
 
+    @Override
+    public boolean setLastRegistrationDate(int userId, String ip) {
+        String sql = "UPDATE USER_IP " +
+                " SET last_registration_date = NOW() " +
+                " WHERE user_id = :user_id AND ip = :ip";
+        Map<String, String> namedParameters = new HashMap<>();
+        namedParameters.put("user_id", String.valueOf(userId));
+        namedParameters.put("ip", ip);
+        return jdbcTemplate.update(sql, namedParameters) > 0;
+    }
 
 }

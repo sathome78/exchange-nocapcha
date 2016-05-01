@@ -12,6 +12,7 @@ public class UserIpDto {
     private UserIpState userIpState;
     private LocalDateTime registrationDate;
     private LocalDateTime confirmDate;
+    private LocalDateTime LastRegistrationDate;
 
     /*constructors*/
     private UserIpDto(){};
@@ -53,5 +54,13 @@ public class UserIpDto {
 
     public void setConfirmDate(LocalDateTime confirmDate) {
         this.confirmDate = confirmDate;
+    }
+
+    public LocalDateTime getLastRegistrationDate() {
+        return LastRegistrationDate;
+    }
+
+    public void setLastRegistrationDate(LocalDateTime lastRegistrationDate) {
+        LastRegistrationDate = lastRegistrationDate;
     }
 }

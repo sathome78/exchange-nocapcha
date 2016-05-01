@@ -5,6 +5,8 @@ import me.exrates.dao.WalletDao;
 import me.exrates.model.Currency;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
+import me.exrates.model.dto.UsersWalletsDto;
+import me.exrates.model.dto.UsersWalletsSummaryDto;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.WalletService;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
@@ -19,7 +21,6 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 import java.util.List;
 
-import static java.math.BigDecimal.ROUND_CEILING;
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.CEILING;
 
@@ -185,5 +186,13 @@ public final class WalletServiceImpl implements WalletService {
 		}
 		walletDao.update(wallet);
 		LOGGER.info("Successful reserved balance deposit on wallet " + wallet);
+	}
+
+	public List<UsersWalletsSummaryDto> getUsersWalletsSummary() {
+		return walletDao.getUsersWalletsSummary();
+	}
+
+	public List<UsersWalletsDto> getUsersWalletsList() {
+		return walletDao.getUsersWalletsList();
 	}
 }

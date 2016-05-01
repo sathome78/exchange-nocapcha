@@ -101,7 +101,7 @@ $(function () {
 
 function getStatisticsForCurrency(pairName, period) {
     var url = '/dashboard/changeCurrencyPair';
-    url = pairName ? url + '?currencyPairName=' + (pairName+'&') : (url+'?');
+    url = pairName ? url + '?currencyPairName=' + (pairName + '&') : (url + '?');
     url = period ? url + 'period=' + period : url;
     $.ajax({
         url: url,

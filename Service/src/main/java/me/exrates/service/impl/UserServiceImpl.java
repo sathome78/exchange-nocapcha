@@ -269,6 +269,11 @@ public class UserServiceImpl implements UserService {
         return userDao.getUserIpState(email, ip);
     }
 
+    @Override
+    public boolean setLastRegistrationDate(int userId, String ip) {
+        return userDao.setLastRegistrationDate(userId, ip);
+    }
+
     @PostConstruct
     private void initTokenTriggers() {
         tokenScheduler.initTrigers();

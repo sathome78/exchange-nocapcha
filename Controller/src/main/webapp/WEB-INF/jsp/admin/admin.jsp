@@ -134,6 +134,7 @@
                     <div id="panel3" class="tab-pane">
                         <h4>
                             <p><a class="link" href="companywallet"><loc:message code="admin.companyWallet"/></a></p>
+                            <p><a class="link" href="userswallets"><loc:message code="admin.usersWallet"/></a></p>
                         </h4>
                     </div>
                 </sec:authorize>

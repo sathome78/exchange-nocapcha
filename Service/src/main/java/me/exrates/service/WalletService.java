@@ -3,10 +3,11 @@ package me.exrates.service;
 import me.exrates.model.Currency;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
+import me.exrates.model.dto.UsersWalletsDto;
+import me.exrates.model.dto.UsersWalletsSummaryDto;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.function.Consumer;
 
 public interface WalletService {
 
@@ -47,4 +48,8 @@ public interface WalletService {
 	void depositReservedBalance(Wallet wallet, BigDecimal sum);
 
 	void withdrawReservedBalance(Wallet wallet,BigDecimal sum);
+
+	List<UsersWalletsSummaryDto> getUsersWalletsSummary();
+
+	List<UsersWalletsDto> getUsersWalletsList();
 }

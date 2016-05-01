@@ -4,11 +4,11 @@ CREATE TABLE USER_IP (
   confirmed tinyint(1) DEFAULT NULL COMMENT '1 if ip is confirmed',
   registration_date timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'date when user has registered from this ip',
   confirm_date timestamp NULL DEFAULT NULL COMMENT 'date when user has cofirmed this ip',
+  last_registration_date timestamp NULL DEFAULT NULL COMMENT 'дата последней регистрации',
   PRIMARY KEY (user_id,ip),
   KEY user_id (user_id),
-  CONSTRAINT user_ip_fk FOREIGN KEY (user_id) REFERENCES USER (id) ON DELETE NO ACTION ON UPDATE NO ACTION
+  CONSTRAINT user_ip_fk FOREIGN KEY (user_id) REFERENCES USER (id) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
 
 ALTER TABLE TEMPORAL_TOKEN
   ADD COLUMN check_ip VARCHAR(45) DEFAULT NULL;

@@ -71,4 +71,6 @@ public interface UserDao {
     public UserIpDto getUserIpState(String email, String ip);
 
     boolean setIpStateConfirmed(int userId, String ip);
+
+    boolean setLastRegistrationDate(int userId, String ip);
 }

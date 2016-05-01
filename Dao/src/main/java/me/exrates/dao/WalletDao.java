@@ -1,6 +1,8 @@
 package me.exrates.dao;
 
 import me.exrates.model.Wallet;
+import me.exrates.model.dto.UsersWalletsDto;
+import me.exrates.model.dto.UsersWalletsSummaryDto;
 import me.exrates.model.dto.WalletsForOrderAcceptionDto;
 
 import java.math.BigDecimal;
@@ -8,27 +10,32 @@ import java.util.List;
 
 public interface WalletDao {
 
-	BigDecimal getWalletABalance(int walletId);
+    BigDecimal getWalletABalance(int walletId);
 
-	BigDecimal getWalletRBalance(int walletId);
+    BigDecimal getWalletRBalance(int walletId);
 
-	boolean setWalletABalance(int walletId, BigDecimal newBalance);
+    boolean setWalletABalance(int walletId, BigDecimal newBalance);
 
-	boolean setWalletRBalance(int walletId, BigDecimal newBalance);
+    boolean setWalletRBalance(int walletId, BigDecimal newBalance);
 
-	int getWalletId(int userId, int currencyId);
+    int getWalletId(int userId, int currencyId);
 
-	int createNewWallet(Wallet wallet);
+    int createNewWallet(Wallet wallet);
 
-	int getUserIdFromWallet(int walletId);
+    int getUserIdFromWallet(int walletId);
 
-	List<Wallet> findAllByUser(int userId);
+    List<Wallet> findAllByUser(int userId);
 
-	Wallet findByUserAndCurrency(int userId,int currencyId);
+    Wallet findByUserAndCurrency(int userId, int currencyId);
 
-	Wallet createWallet(int userId,int currencyId);
+    Wallet createWallet(int userId, int currencyId);
 
-	boolean update(Wallet wallet);
+    boolean update(Wallet wallet);
 
-	WalletsForOrderAcceptionDto getWalletsForOrderByOrderId(Integer orderId, Integer userAcceptorId);
+    WalletsForOrderAcceptionDto getWalletsForOrderByOrderId(Integer orderId, Integer userAcceptorId);
+
+    List<UsersWalletsSummaryDto> getUsersWalletsSummary();
+
+    List<UsersWalletsDto> getUsersWalletsList();
+
 }

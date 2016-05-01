@@ -56,4 +56,6 @@ public interface UserService {
     boolean insertIp(String email, String ip);
 
     public UserIpDto getUserIpState(String email, String ip);
+
+    boolean setLastRegistrationDate(int userId, String ip);
 }

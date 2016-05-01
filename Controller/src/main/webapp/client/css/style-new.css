@@ -30,7 +30,6 @@ html, body {
 }
 
 body {
-
     font-family: Calibri, 'Roboto', sans-serif;
     background: #6a1c0b;
     color: #ebeef7;
@@ -1720,3 +1719,28 @@ th.allign-center {
 .period-menu__item.active {
     border: 1px solid white;
 }
+
+
+.info-item {
+    display: inline-block;
+    color: white;
+}
+
+.info-item-title {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+}
+.next_item {
+    margin-left: 20px;
+}
+
+.simple-button{
+    float: right;
+    margin: 10px 0 0 0;
+    background: #6c1e0c;
+    padding: 5px 30px;
+    outline: 0;
+    border: none;
+    display: block;
+    cursor: pointer;
+}
+
