@@ -1,9 +1,10 @@
 package me.exrates.controller;
 
 import me.exrates.controller.validator.RegisterFormValidation;
-import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
+import me.exrates.model.dto.OperationViewDto;
+import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.security.service.UserSecureServiceImpl;
@@ -34,14 +35,11 @@ import static java.util.Arrays.asList;
 public class AdminController {
 
     @Autowired
+    MessageSource messageSource;
+    @Autowired
     private UserSecureServiceImpl userSecureService;
-
     @Autowired
     private UserService userService;
-
-    @Autowired
-    MessageSource messageSource;
-
     @Autowired
     private LocaleResolver localeResolver;
 
@@ -171,7 +169,6 @@ public class AdminController {
 
     @RequestMapping(value = "/admin/edituser/submit", method = RequestMethod.POST)
     public ModelAndView submitedit(@Valid @ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request, HttpServletResponse response) {
-
         if (!currentRole.equals(UserRole.ADMINISTRATOR.name()) && !user.getRole().name().equals(UserRole.USER.name())) {
             return new ModelAndView("403");
         }
@@ -179,18 +176,26 @@ public class AdminController {
         if (user.getFinpassword() == null) {
             user.setFinpassword("");
         }
+        /**/
         registerFormValidation.validateEditUser(user, result, localeResolver.resolveLocale(request));
         if (result.hasErrors()) {
             model.addObject("statusList", UserStatus.values());
             model.addObject("roleList", userService.getAllRoles());
             model.setViewName("admin/editUser");
         } else {
-            userService.updateUserByAdmin(user);
+            UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
+            updateUserDto.setEmail(user.getEmail());
+            updateUserDto.setPassword(user.getPassword());
+            updateUserDto.setPhone(user.getPhone());
+            updateUserDto.setRole(user.getRole());
+            updateUserDto.setStatus(user.getStatus());
+            userService.updateUserByAdmin(updateUserDto);
+
             model.setViewName("redirect:/admin");
         }
-
+        /**/
         model.addObject("user", user);
-
+        /**/
         return model;
     }
 
@@ -217,7 +222,10 @@ public class AdminController {
             model.setViewName("settings");
             model.addObject("tabIdx", 1);
         } else {
-            userService.update(user, true, false, false, localeResolver.resolveLocale(request));
+            UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
+            updateUserDto.setPassword(user.getPassword());
+            updateUserDto.setEmail(user.getEmail()); //need for send the email
+            userService.update(updateUserDto, localeResolver.resolveLocale(request));
             new SecurityContextLogoutHandler().logout(request, null, null);
             model.setViewName("redirect:/dashboard");
         }
@@ -231,12 +239,16 @@ public class AdminController {
     public ModelAndView submitsettingsFinPassword(@Valid @ModelAttribute User user, BindingResult result,
                                                   ModelAndView model, HttpServletRequest request) {
 
+
         registerFormValidation.validateResetFinPassword(user, result, localeResolver.resolveLocale(request));
         if (result.hasErrors()) {
             model.setViewName("settings");
             model.addObject("tabIdx", 2);
         } else {
-            userService.update(user, false, true, false, localeResolver.resolveLocale(request));
+            UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
+            updateUserDto.setFinpassword(user.getFinpassword());
+            updateUserDto.setEmail(user.getEmail()); //need for send the email
+            userService.update(updateUserDto, localeResolver.resolveLocale(request));
             model.setViewName("redirect:/mywallets");
         }
 
@@ -249,7 +261,7 @@ public class AdminController {
     public ModelAndView verifyEmail(@RequestParam("token") String token, HttpServletRequest req) {
         ModelAndView model = new ModelAndView();
         try {
-            if (userService.verifyUserEmail(token) != null){
+            if (userService.verifyUserEmail(token) != null) {
                 model.addObject("successNoty", messageSource.getMessage("admin.passwordproved", null, localeResolver.resolveLocale(req)));
             } else {
                 model.addObject("errorNoty", messageSource.getMessage("admin.passwordnotproved", null, localeResolver.resolveLocale(req)));

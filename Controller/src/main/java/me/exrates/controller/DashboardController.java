@@ -6,6 +6,7 @@ import me.exrates.model.ExOrder;
 import me.exrates.model.User;
 import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.dto.OrderListDto;
+import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
@@ -31,7 +32,10 @@ import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Controller
@@ -172,7 +176,6 @@ public class DashboardController {
 
     @RequestMapping(value = "/forgotPassword/submit", method = RequestMethod.POST)
     public ModelAndView forgotPasswordSubmit(@ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request) {
-
         String recapchaResponse = request.getParameter("g-recaptcha-response");
         if (!verifyReCaptcha.verify(recapchaResponse)) {
             String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
@@ -180,19 +183,21 @@ public class DashboardController {
             modelAndView.addObject("cpch", correctCapchaRequired);
             return modelAndView;
         }
-
-        String email = user.getEmail();
+        /**/
         registerFormValidation.validateEmail(user, result, localeResolver.resolveLocale(request));
         if (result.hasErrors()) {
             model.addObject("user", user);
             model.setViewName("/forgotPassword");
             return model;
         }
+        String email = user.getEmail();
         user = userService.findByEmail(email);
-        userService.update(user, false, false, true, localeResolver.resolveLocale(request));
-
+        UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
+        updateUserDto.setEmail(email);
+        userService.update(updateUserDto, true, localeResolver.resolveLocale(request));
+        /**/
         model.setViewName("redirect:/dashboard");
-
+        /**/
         return model;
     }
 
@@ -220,7 +225,7 @@ public class DashboardController {
     }
 
     @RequestMapping(value = "/dashboard/updatePassword", method = RequestMethod.POST)
-    public ModelAndView updatePassword(@ModelAttribute User user, BindingResult result, HttpServletRequest request) {
+    public ModelAndView updatePassword(@ModelAttribute User user, BindingResult result, HttpServletRequest request, Principal principal) {
 
         String recapchaResponse = request.getParameter("g-recaptcha-response");
         if (!verifyReCaptcha.verify(recapchaResponse)) {
@@ -231,16 +236,15 @@ public class DashboardController {
         }
 
         registerFormValidation.validateResetPassword(user, result, localeResolver.resolveLocale(request));
-        user.setPhone("");
         if (result.hasErrors()) {
             return new ModelAndView("/updatePassword", "user", user);
         } else {
             String password = user.getPassword();
             ModelAndView model = new ModelAndView();
-            org.springframework.security.core.userdetails.User userSpring = (org.springframework.security.core.userdetails.User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            user = userService.findByEmail(userSpring.getUsername());
-            user.setPassword(password);
-            userService.updateUserByAdmin(user);
+            UpdateUserDto updateUserDto = new UpdateUserDto(userService.findByEmail(principal.getName()).getId());
+            updateUserDto.setPassword(password);
+            userService.updateUserByAdmin(updateUserDto);
+            /**/
             new SecurityContextLogoutHandler().logout(request, null, null);
             model.setViewName("redirect:/dashboard");
             return model;
@@ -250,20 +254,18 @@ public class DashboardController {
     @RequestMapping(value = "/forgotPassword/submitUpdate", method = RequestMethod.POST)
     public ModelAndView submitUpdate(@ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request) {
         registerFormValidation.validateResetPassword(user, result, localeResolver.resolveLocale(request));
-
+        /**/
         if (result.hasErrors()) {
             model.addObject("user", user);
             model.setViewName("updatePassword");
             return model;
         } else {
-
-            User userUpdate = userService.getUserById(user.getId());
-            userUpdate.setPassword(user.getPassword());
-
-            userService.updateUserByAdmin(userUpdate);
+            UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
+            updateUserDto.setPassword(user.getPassword());
+            userService.updateUserByAdmin(updateUserDto);
             model.setViewName("redirect:/dashboard");
         }
-
+        /**/
         return model;
     }
 

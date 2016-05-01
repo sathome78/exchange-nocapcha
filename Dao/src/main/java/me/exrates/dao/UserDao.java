@@ -1,66 +1,67 @@
 package me.exrates.dao;
 
-import java.util.List;
-import java.util.Locale;
-
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
+import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 
+import java.util.List;
+import java.util.Locale;
+
 public interface UserDao {
 
-	boolean create(User user);
+    boolean create(User user);
 
-	List<UserRole> getAllRoles();
+    List<UserRole> getAllRoles();
 
-	List<User> getUsersByRoles(List<UserRole> listRoles);
+    List<User> getUsersByRoles(List<UserRole> listRoles);
 
-	boolean addUserRoles(String email, String role);
+    boolean addUserRoles(String email, String role);
 
-	User findByEmail(String email);
+    User findByEmail(String email);
 
-	String getBriefInfo(int login);
+    String getBriefInfo(int login);
 
-	boolean ifNicknameIsUnique(String nickname);
+    boolean ifNicknameIsUnique(String nickname);
 
-	boolean ifPhoneIsUnique(int phone);
+    boolean ifPhoneIsUnique(int phone);
 
-	boolean ifEmailIsUnique(String email);
+    boolean ifEmailIsUnique(String email);
 
-	String getIP(int userId);
+    String getIP(int userId);
 
-	boolean setIP(int id, String ip);
+    boolean setIP(int id, String ip);
 
-	int getIdByEmail(String email);
+    int getIdByEmail(String email);
 
-	boolean addIPToLog(int userId, String ip);
+    boolean addIPToLog(int userId, String ip);
 
-	boolean update(User user);
+    boolean update(UpdateUserDto user);
 
-	List<User> getAllUsers();
+    List<User> getAllUsers();
 
-	User getUserById(int id);
+    User getUserById(int id);
 
-	UserRole getUserRoles(String email);
+    UserRole getUserRoles(String email);
 
-	boolean createTemporalToken(TemporalToken token);
+    boolean createTemporalToken(TemporalToken token);
 
-	TemporalToken verifyToken(String token);
+    TemporalToken verifyToken(String token);
 
-	boolean deleteTemporalToken(TemporalToken token);
+    boolean deleteTemporalToken(TemporalToken token);
 
-	boolean deleteTemporalTokensOfTokentypeForUser(TemporalToken token);
+    boolean deleteTemporalTokensOfTokentypeForUser(TemporalToken token);
 
-	List<TemporalToken> getTokenByUserAndType(int userId, TokenType tokenType);
+    List<TemporalToken> getTokenByUserAndType(int userId, TokenType tokenType);
 
-	boolean updateUserStatus(User user);
+    boolean updateUserStatus(User user);
 
-	List<TemporalToken> getAllTokens();
+    List<TemporalToken> getAllTokens();
 
-	boolean delete(User user);
+    boolean delete(User user);
 
-	String getPreferredLang(int userId);
+    String getPreferredLang(int userId);
 
-	boolean setPreferredLang(int userId, Locale locale);
+    boolean setPreferredLang(int userId, Locale locale);
 }

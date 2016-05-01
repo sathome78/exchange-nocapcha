@@ -5,6 +5,7 @@ import me.exrates.dao.UserDao;
 import me.exrates.model.Email;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
+import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
@@ -28,22 +29,17 @@ import java.util.UUID;
 @Service
 public class UserServiceImpl implements UserService {
 
+    private static final Logger LOGGER = LogManager.getLogger(UserServiceImpl.class);
     @Autowired
     UserDao userDao;
-
     @Autowired
     SendMailService sendMailService;
-
     @Autowired
     MessageSource messageSource;
-
     @Autowired
     HttpServletRequest request;
-
     @Autowired
     TokenScheduler tokenScheduler;
-
-    private static final Logger LOGGER = LogManager.getLogger(UserServiceImpl.class);
 
     @Transactional(rollbackFor = Exception.class)
     public boolean create(User user, Locale locale) {
@@ -75,13 +71,13 @@ public class UserServiceImpl implements UserService {
         if (userDao.deleteTemporalTokensOfTokentypeForUser(temporalToken)) {
             //deleting of appropriate jobs
             tokenScheduler.deleteJobsRelatedWithToken(temporalToken);
-
+            /**/
             user = new User();
             user.setId(temporalToken.getUserId());
-            if (temporalToken.getTokenType() == TokenType.REGISTRATION) {
-                user.setStatus(UserStatus.ACTIVE);
-                userDao.updateUserStatus(user);
-            }
+//            if (temporalToken.getTokenType() == TokenType.REGISTRATION) {
+            user.setStatus(UserStatus.ACTIVE);
+            userDao.updateUserStatus(user);
+//            }
         }
         return user;
     }
@@ -173,28 +169,37 @@ public class UserServiceImpl implements UserService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public boolean updateUserByAdmin(User user) {
+    public boolean updateUserByAdmin(UpdateUserDto user) {
         LOGGER.info("Begin 'createUserByAdmin' method");
         return userDao.update(user);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public boolean update(User user, boolean changePassword, boolean changeFinPassword, boolean resetPassword, Locale locale) {
+    public boolean update(UpdateUserDto user, boolean resetPassword, Locale locale) {
         LOGGER.info("Begin 'updateUserByAdmin' method");
-
+        boolean changePassword = user.getPassword() != null && ! user.getPassword().isEmpty();
+        boolean changeFinPassword = user.getFinpassword() != null && ! user.getFinpassword().isEmpty();
         if (changePassword) {
             user.setStatus(UserStatus.REGISTERED);
         }
         if (userDao.update(user)) {
+            User u = new User();
+            u.setId(user.getId());
+            u.setEmail(user.getEmail());
             if (changePassword) {
-                sendEmailWithToken(user, TokenType.CHANGE_PASSWORD, "/changePasswordConfirm", "emailsubmitChangePassword.subject", "emailsubmitChangePassword.text", locale);
+                sendEmailWithToken(u, TokenType.CHANGE_PASSWORD, "/changePasswordConfirm", "emailsubmitChangePassword.subject", "emailsubmitChangePassword.text", locale);
             } else if (changeFinPassword) {
-                sendEmailWithToken(user, TokenType.CHANGE_FIN_PASSWORD, "/changeFinPasswordConfirm", "emailsubmitChangeFinPassword.subject", "emailsubmitChangeFinPassword.text", locale);
-            } else {
-                sendEmailWithToken(user, TokenType.CHANGE_PASSWORD, "/resetPasswordConfirm", "emailsubmitResetPassword.subject", "emailsubmitResetPassword.text", locale);
+                sendEmailWithToken(u, TokenType.CHANGE_FIN_PASSWORD, "/changeFinPasswordConfirm", "emailsubmitChangeFinPassword.subject", "emailsubmitChangeFinPassword.text", locale);
+            } else if (resetPassword){
+                sendEmailWithToken(u, TokenType.CHANGE_PASSWORD, "/resetPasswordConfirm", "emailsubmitResetPassword.subject", "emailsubmitResetPassword.text", locale);
             }
         }
         return true;
+    }
+
+    @Override
+    public boolean update(UpdateUserDto user, Locale locale) {
+        return update(user, false, locale);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -215,7 +220,7 @@ public class UserServiceImpl implements UserService {
                         " <a href='" +
                         rootUrl +
                         confirmationUrl +
-                        "'>"+messageSource.getMessage("admin.ref", null, locale)+"</a>"
+                        "'>" + messageSource.getMessage("admin.ref", null, locale) + "</a>"
         );
         email.setSubject(messageSource.getMessage(emailSubject, null, locale));
 

@@ -56,18 +56,21 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public int createOrder(int userId, OrderCreateDto orderCreateDto) {
         int createdOrderId = 0;
-        int outWalletId = (orderCreateDto.getOperationType() == OperationType.BUY) ? orderCreateDto.getWalletIdCurrencyConvert() : orderCreateDto.getWalletIdCurrencyBase();
-        if (walletService.ifEnoughMoney(outWalletId, orderCreateDto.getTotalWithComission())) {
+        int outWalletId;
+        BigDecimal outAmount;
+        if (orderCreateDto.getOperationType() == OperationType.BUY) {
+            outWalletId = orderCreateDto.getWalletIdCurrencyConvert();
+            outAmount = orderCreateDto.getTotalWithComission();
+        } else {
+            outWalletId = orderCreateDto.getWalletIdCurrencyBase();
+            outAmount = orderCreateDto.getAmount();
+        }
+        if (walletService.ifEnoughMoney(outWalletId, outAmount)) {
             orderCreateDto.setUserId(userId);
             ExOrder exOrder = new ExOrder(orderCreateDto);
             if ((createdOrderId = orderDao.createOrder(exOrder)) > 0) {
-                if (orderCreateDto.getOperationType() == OperationType.BUY) {
-                    walletService.setWalletRBalance(outWalletId, orderCreateDto.getTotalWithComission());
-                    walletService.setWalletABalance(outWalletId, orderCreateDto.getTotalWithComission().negate());
-                } else {
-                    walletService.setWalletRBalance(outWalletId, orderCreateDto.getAmount());
-                    walletService.setWalletABalance(outWalletId, orderCreateDto.getAmount().negate());
-                }
+                walletService.setWalletRBalance(outWalletId, outAmount);
+                walletService.setWalletABalance(outWalletId, outAmount.negate());
                 setStatus(createdOrderId, OrderStatus.OPENED);
             }
         } else {

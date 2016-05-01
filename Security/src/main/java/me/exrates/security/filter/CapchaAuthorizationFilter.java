@@ -25,11 +25,10 @@ public class CapchaAuthorizationFilter extends UsernamePasswordAuthenticationFil
     VerifyReCaptchaSec verifyReCaptchaSec;
 
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
-
         String recapchaResponse = request.getParameter("g-recaptcha-response");
         if ((recapchaResponse != null) && !verifyReCaptchaSec.verify(recapchaResponse)) {
             String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
-            throw new NotVerifiedCaptchaError("capcha error");
+            throw new NotVerifiedCaptchaError(correctCapchaRequired);
         }
         return super.attemptAuthentication(request, response);
     }

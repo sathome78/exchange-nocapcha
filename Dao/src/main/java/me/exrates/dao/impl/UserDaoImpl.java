@@ -3,6 +3,7 @@ package me.exrates.dao.impl;
 import me.exrates.dao.UserDao;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
+import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
@@ -229,41 +230,32 @@ public class UserDaoImpl implements UserDao {
         return jdbcTemplate.update(sql, namedParameters) > 0;
     }
 
-    public boolean update(User user) {
-        String sql = "UPDATE USER SET nickname = :nickname, email = :email, password = :password," +
-                "phone = :phone, status = :status, roleid = :roleid, " +
-                "finpassword = :finpassword WHERE USER.id = :id; ";
-
-        Map<String, String> namedParameters = new HashMap<String, String>();
-        namedParameters.put("id", String.valueOf(user.getId()));
-        namedParameters.put("nickname", user.getNickname());
-        namedParameters.put("email", user.getEmail());
+    public boolean update(UpdateUserDto user) {
+        String sql = "UPDATE USER SET";
+        StringBuilder fieldsStr = new StringBuilder(" ");
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        String hashedPassword;
-        String currentPassword = getUserById(user.getId()).getPassword();
-        if (user.getPassword() == "" || user.getPassword() == null ||
-                user.getPassword().equals(currentPassword)) {
-            hashedPassword = currentPassword;
-        } else {
-            hashedPassword = passwordEncoder.encode(user.getPassword());
+        /*email is present in UpdateUserDto but used for hold email to send notification only, not for update email*/
+        if (user.getPhone() != null) {
+            fieldsStr.append("phone = '" + user.getPhone()).append("',");
         }
-        namedParameters.put("password", hashedPassword);
-        String hashedFinPassword;
-        if (user.getFinpassword() == "" || user.getFinpassword() == null) {
-            hashedFinPassword = getUserById(user.getId()).getFinpassword();
-        } else {
-            hashedFinPassword = passwordEncoder.encode(user.getFinpassword());
+        if (user.getStatus() != null) {
+            fieldsStr.append("status = " + user.getStatus().getStatus()).append(",");
         }
-        namedParameters.put("finpassword", hashedFinPassword);
-
-        String phone = user.getPhone();
-        if (user.getPhone() != null && user.getPhone().equals("")) {
-            phone = null;
+        if (user.getRole() != null) {
+            fieldsStr.append("roleid = " + user.getRole().getRole()).append(",");
         }
-        namedParameters.put("phone", phone);
-        namedParameters.put("status", String.valueOf(user.getStatus().getStatus()));
-        namedParameters.put("roleid", String.valueOf(user.getRole().getRole()));
-
+        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+            fieldsStr.append("password = '" + passwordEncoder.encode(user.getPassword())).append("',");
+        }
+        if (user.getFinpassword() != null && !user.getFinpassword().isEmpty()) {
+            fieldsStr.append("finpassword = '" + passwordEncoder.encode(user.getFinpassword())).append("',");
+        }
+        if (fieldsStr.toString().trim().length()==0) {
+            return true;
+        }
+        sql = sql+fieldsStr.toString().replaceAll(",$", " ")+ "WHERE USER.id = :id";
+        Map<String, Integer> namedParameters = new HashMap<>();
+        namedParameters.put("id", user.getId());
         return jdbcTemplate.update(sql, namedParameters) > 0;
     }
 

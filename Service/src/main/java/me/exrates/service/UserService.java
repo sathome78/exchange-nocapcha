@@ -2,6 +2,7 @@ package me.exrates.service;
 
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
+import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.service.exception.UnRegisteredUserDeleteException;
@@ -33,9 +34,11 @@ public interface UserService {
 
     boolean createUserByAdmin(User user);
 
-    boolean updateUserByAdmin(User user);
+    boolean updateUserByAdmin(UpdateUserDto user);
 
-    boolean update(User user, boolean changePassword, boolean changeFinPassword, boolean resetPassword, Locale locale);
+    boolean update(UpdateUserDto user, boolean resetPassword, Locale locale);
+
+    boolean update(UpdateUserDto user, Locale locale);
 
     void sendEmailWithToken(User user, TokenType tokenType, String tokenLink, String emailSubject, String emailText, Locale locale);
 

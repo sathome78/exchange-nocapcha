@@ -3,7 +3,6 @@ package me.exrates.model.util;
 import me.exrates.model.enums.ActionType;
 
 import java.math.BigDecimal;
-import java.math.MathContext;
 import java.math.RoundingMode;
 
 /**
@@ -47,17 +46,18 @@ public class BigDecimalProcessing {
         if (bigDecimal == null) {
             return null;
         }
-        bigDecimal = bigDecimal.setScale(SCALE, ROUND_TYPE);
+        return bigDecimal.setScale(SCALE, ROUND_TYPE).stripTrailingZeros().add(BigDecimal.ZERO);
+        /*bigDecimal = bigDecimal.setScale(SCALE, ROUND_TYPE);
         if (SCALE == 0) {
-            /*if no "."*/
+            *//*if no "."*//*
             return bigDecimal;
         }
-        /*"." is always present, so next operation is safe*/
+        *//*"." is always present, so next operation is safe*//*
         String trimmedValueString = bigDecimal.toString()
                 .replaceAll("0+$", "")
                 .replaceAll("\\.", "")
                 .replaceAll("^0+", "");
         int precision = trimmedValueString.length();
-        return bigDecimal.add(BigDecimal.ZERO, new MathContext(precision, RoundingMode.HALF_UP));
+        return bigDecimal.add(BigDecimal.ZERO, new MathContext(precision, RoundingMode.HALF_UP));*/
     }
 }
