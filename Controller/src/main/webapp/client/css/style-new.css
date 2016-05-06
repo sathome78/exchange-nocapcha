@@ -1720,6 +1720,15 @@ th.allign-center {
     border: 1px solid white;
 }
 
+.usr_doc_row {
+    margin-bottom: 20px;
+}
+
+#prompt_delete_rqst {
+    display: none;
+}
+
+
 
 .info-item {
     display: inline-block;

@@ -29,6 +29,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -48,13 +49,15 @@ import java.util.Properties;
 @EnableTransactionManagement
 @ComponentScan({ "me.exrates" })
 @Import({ me.exrates.security.config.SecurityConfig.class })
-@PropertySource(value = "classpath:/db.properties")
+@PropertySource(value = {"classpath:/db.properties", "classpath:/uploadfiles.properties"})
 public class WebAppConfig extends WebMvcConfigurerAdapter {
 
 	private @Value("${db.user}") String dbUser;
 	private @Value("${db.password}") String dbPassword;
 	private @Value("${db.url}") String dbUrl;
 	private @Value("${db.classname}") String dbClassname;
+	private @Value("${upload.userFilesDir}") String userFilesDir;
+	private @Value("${upload.userFilesLogicalDir}") String userFilesLogicalDir;
 
 	private static final Logger logger = LogManager.getLogger(WebAppConfig.class);
 
@@ -124,9 +127,12 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 		return new VerifyReCaptchaSec();
 	}
 
+
+
 	@Override
 	public void addResourceHandlers(ResourceHandlerRegistry registry) {
 		registry.addResourceHandler("/client/**").addResourceLocations("/client/");
+		registry.addResourceHandler(userFilesLogicalDir+"/**").addResourceLocations("file:" + userFilesDir);
 	}
 
 	@Override
@@ -202,5 +208,8 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 		super.addFormatters(registry);
 	}
 
-
+	@Bean(name = "multipartResolver")
+	public StandardServletMultipartResolver resolver() {
+		return new StandardServletMultipartResolver();
+	}
 }

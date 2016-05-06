@@ -1,4 +1,24 @@
+$(document).delegate('*[data-toggle="lightbox"]', 'click', function(event) {
+    event.preventDefault();
+    $(this).ekkoLightbox();
+    if ($(".delete_img").length !==0) {
+        $(".delete_img").submit(function (e) {
+            e.preventDefault();
+            var array = $(this).serializeArray();
+            var id = array[0]['value'];
+            var path = array[1]['value'];
+            var userId = array[2]['value'];
+            promptDeleteDoc(id, path, userId);
+        });        
+    }
+
+    if ($('#usersTable').length !== 0) {
+        $('#usersTable').DataTable();
+    }
+});
+
 $(function () {
+
     $(".reveal").click(function () {
         $('.reveal ul').slideToggle();
     });
@@ -35,8 +55,7 @@ $(function () {
             $('.tab-pane:eq(' + idx + ')').addClass('active');
         }
     });
-
-
+    
     //Enable REGISTER button if pass == repass when entering repass
     /*Activates submit button if all field filled correct and capcha is passed
      * */
@@ -180,4 +199,25 @@ function redrawChart() {
     drawChart(period);
     $(this).addClass('active');
     getStatisticsForCurrency(null, period);
+}
+
+function promptDeleteDoc(id, path, userId) {
+    if (confirm($('#prompt_delete_rqst').html())) {
+        var data = "fileId=" + id + "&path=" + path + "&userId=" + userId;
+        $.ajax('/admin/users/deleteUserFile',{
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            type: 'POST',
+            dataType: 'json',
+            data: data
+        }).done(function(result) {
+            alert(result['success']);
+            $('.modal').modal('toggle');
+            $('#_' + id).remove();
+        }).fail(function(error){
+            console.log(JSON.stringify(error));
+            alert(error['responseJSON']['error'])
+        });
+    }
 }

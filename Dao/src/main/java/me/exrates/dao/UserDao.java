@@ -2,10 +2,14 @@ package me.exrates.dao;
 
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
+import me.exrates.model.UserFile;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserIpDto;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
+
+import java.nio.file.Path;
+import java.util.List;
 
 import java.util.List;
 import java.util.Locale;
@@ -14,7 +18,13 @@ public interface UserDao {
 
     boolean create(User user);
 
-    List<UserRole> getAllRoles();
+	void createUserDoc(int userId, List<Path> paths);
+
+	List<UserFile> findUserDoc(int userId);
+
+	void deleteUserDoc(int docId);
+
+	List<UserRole> getAllRoles();
 
     List<User> getUsersByRoles(List<UserRole> listRoles);
 

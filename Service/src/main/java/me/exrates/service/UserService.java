@@ -2,12 +2,14 @@ package me.exrates.service;
 
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
+import me.exrates.model.UserFile;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserIpDto;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.service.exception.UnRegisteredUserDeleteException;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 
@@ -16,6 +18,12 @@ public interface UserService {
     int getIdByEmail(String email);
 
     User findByEmail(String email);
+
+    void createUserFile(int userId, List<Path> paths);
+
+    void deleteUserFile(int docId);
+
+    List<UserFile> findUserDoc(int userId);
 
     boolean create(User user, Locale locale);
 

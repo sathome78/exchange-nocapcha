@@ -3,6 +3,7 @@ package me.exrates.dao.impl;
 import me.exrates.dao.UserDao;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
+import me.exrates.model.UserFile;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserIpDto;
 import me.exrates.model.enums.TokenType;
@@ -19,8 +20,17 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Repository;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static java.util.Collections.singletonMap;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -30,7 +40,7 @@ public class UserDaoImpl implements UserDao {
     private static final Logger LOGGER = LogManager.getLogger(UserDaoImpl.class);
 
     @Autowired
-    NamedParameterJdbcTemplate jdbcTemplate;
+    private NamedParameterJdbcTemplate jdbcTemplate;
 
     public int getIdByEmail(String email) {
         String sql = "SELECT id FROM USER WHERE email = :email";
@@ -58,11 +68,41 @@ public class UserDaoImpl implements UserDao {
         return jdbcTemplate.update(sql, namedParameters) > 0;
     }
 
+    @Override
+    public void createUserDoc(final int userId, final List<Path> paths) {
+        final String sql = "INSERT INTO USER_DOC (user_id, path) VALUES (:userId, :path)";
+        List<HashMap<String, Object>> collect = paths.stream()
+                .map(path -> new HashMap<String, Object>() {
+                    {
+                        put("userId", userId);
+                        put("path", path.toString());
+                    }
+                }).collect(Collectors.toList());
+        jdbcTemplate.batchUpdate(sql, collect.toArray(new HashMap[paths.size()]));
+    }
+
+    @Override
+    public List<UserFile> findUserDoc(final int userId) {
+        final String sql = "SELECT * FROM USER_DOC where user_id = :userId";
+        return jdbcTemplate.query(sql, singletonMap("userId", userId), (resultSet, i) -> {
+            final UserFile userFile = new UserFile();
+            userFile.setId(resultSet.getInt("id"));
+            userFile.setUserId(resultSet.getInt("user_id"));
+            userFile.setPath(Paths.get(resultSet.getString("path")));
+            return userFile;
+        });
+    }
+
+    @Override
+    public void deleteUserDoc(final int docId) {
+        final String sql = "DELETE FROM USER_DOC where id = :id";
+        jdbcTemplate.update(sql, singletonMap("id", docId));
+    }
+
     public List<UserRole> getAllRoles() {
         String sql = "select name from USER_ROLE";
         return jdbcTemplate.query(sql, (rs, row) -> {
             UserRole role = UserRole.valueOf(rs.getString("name"));
-            ;
             return role;
         });
     }
@@ -95,7 +135,11 @@ public class UserDaoImpl implements UserDao {
                 put("email", email);
             }
         };
-        return jdbcTemplate.queryForObject(sql, params, (resultSet, i) -> {
+        return jdbcTemplate.queryForObject(sql, params, getUserRowMapper());
+    }
+
+    private RowMapper<User> getUserRowMapper() {
+        return (resultSet, i) -> {
             final User user = new User();
             user.setId(resultSet.getInt("id"));
             user.setNickname(resultSet.getString("nickname"));
@@ -106,9 +150,8 @@ public class UserDaoImpl implements UserDao {
             user.setStatus(UserStatus.values()[resultSet.getInt("status") - 1]);
             user.setRole(UserRole.valueOf(resultSet.getString("role_name")));
 
-
             return user;
-        });
+        };
     }
 
 
@@ -157,19 +200,7 @@ public class UserDaoImpl implements UserDao {
         }
         namedParameters.put("roles", stringList);
 
-        return jdbcTemplate.query(sql, namedParameters, (resultSet, row) -> {
-            final User user = new User();
-            user.setId(resultSet.getInt("id"));
-            user.setNickname(resultSet.getString("nickname"));
-            user.setEmail(resultSet.getString("email"));
-            user.setPassword(resultSet.getString("password"));
-            user.setRegdate(resultSet.getDate("regdate"));
-            user.setPhone(resultSet.getString("phone"));
-            user.setStatus(UserStatus.values()[resultSet.getInt("status") - 1]);
-            user.setRole(UserRole.valueOf(resultSet.getString("role_name")));
-
-            return user;
-        });
+        return jdbcTemplate.query(sql, namedParameters, getUserRowMapper());
     }
 
     public String getBriefInfo(int login) {

@@ -3,7 +3,9 @@ package me.exrates.model;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 public class User  {
 
@@ -20,6 +22,7 @@ public class User  {
 	private String confirmFinPassword;
 	private boolean readRules;
 	private UserRole role = UserRole.USER;
+	private List<UserFile> userFiles = Collections.emptyList();
 
 	public UserRole getRole() {
 		return role;

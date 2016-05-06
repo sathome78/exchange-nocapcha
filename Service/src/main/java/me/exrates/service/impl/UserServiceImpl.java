@@ -5,6 +5,7 @@ import me.exrates.dao.UserDao;
 import me.exrates.model.Email;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
+import me.exrates.model.UserFile;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserIpDto;
 import me.exrates.model.enums.TokenType;
@@ -23,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -30,17 +32,24 @@ import java.util.UUID;
 @Service
 public class UserServiceImpl implements UserService {
 
+    @Autowired
+    private UserDao userDao;
+
+    @Autowired
+    private SendMailService sendMailService;
+
+    @Autowired
+    private MessageSource messageSource;
+
+    @Autowired
+    private HttpServletRequest request;
+
+    @Autowired
+    private TokenScheduler tokenScheduler;
+
+    private final int USER_FILES_THRESHOLD = 3;
+
     private static final Logger LOGGER = LogManager.getLogger(UserServiceImpl.class);
-    @Autowired
-    UserDao userDao;
-    @Autowired
-    SendMailService sendMailService;
-    @Autowired
-    MessageSource messageSource;
-    @Autowired
-    HttpServletRequest request;
-    @Autowired
-    TokenScheduler tokenScheduler;
 
     @Transactional(rollbackFor = Exception.class)
     public boolean create(User user, Locale locale) {
@@ -129,6 +138,25 @@ public class UserServiceImpl implements UserService {
     public User findByEmail(String email) {
         LOGGER.info("Begin 'findByEmail' method");
         return userDao.findByEmail(email);
+    }
+
+    @Override
+    public void createUserFile(final int userId, final List<Path> paths) {
+        if (findUserDoc(userId).size() == USER_FILES_THRESHOLD) {
+            throw new IllegalStateException("User (id:" + userId + ") can not have more than 3 docs on the server ");
+        }
+        userDao.createUserDoc(userId, paths);
+    }
+
+    @Override
+    public void deleteUserFile(final int docId) {
+
+        userDao.deleteUserDoc(docId);
+    }
+
+    @Override
+    public List<UserFile> findUserDoc(final int userId) {
+        return userDao.findUserDoc(userId);
     }
 
     public boolean ifNicknameIsUnique(String nickname) {
