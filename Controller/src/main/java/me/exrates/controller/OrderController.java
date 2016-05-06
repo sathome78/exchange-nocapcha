@@ -95,6 +95,8 @@ public class OrderController {
             orderCreateDto.setAmount(exOrder.getAmountBase());
             orderCreateDto.setExchangeRate(exOrder.getExRate());
         }
+        /*protect orderCreateDto*/
+        request.getSession().setAttribute("/orders/orderCreateDto", orderCreateDto);
         model.addObject("orderCreateDto", orderCreateDto);
         //
         return model;
@@ -233,13 +235,24 @@ public class OrderController {
     * */
     @RequestMapping(value = "/order/submit", method = RequestMethod.POST)
     public ModelAndView submitNewOrderToSell(@Valid @ModelAttribute OrderCreateDto orderCreateDto,
-                                             BindingResult result, ModelAndView model) {
+                                             BindingResult result, ModelAndView model, HttpServletRequest request, Principal principal) {
         orderValidator.validate(orderCreateDto, result);
         if (result.hasErrors()) {
             model.setViewName("newordertosell");
         } else {
-            //final amounts calculated here (not by javascript) and transfere to submit form
+            /*restore protected orderCreateDto*/
+            BigDecimal amount = orderCreateDto.getAmount();
+            BigDecimal exchangeRate = orderCreateDto.getExchangeRate();
+            OperationType operationType = orderCreateDto.getOperationType();
+            orderCreateDto = (OrderCreateDto)request.getSession().getAttribute("/orders/orderCreateDto");
+            orderCreateDto.setAmount(amount);
+            orderCreateDto.setExchangeRate(exchangeRate);
+            orderCreateDto.setOperationType(operationType);
+            request.getSession().removeAttribute("/orders/orderCreateDto");
+            /*final amounts calculated here (not by javascript) and transfere to submit form*/
             orderCreateDto.calculateAmounts();
+            /*protect orderCreateDto*/
+            request.getSession().setAttribute("/order/submit/orderCreateDto", orderCreateDto);
             model.addObject("orderCreateDto", orderCreateDto);
             //
             model.setViewName("submitorder");
@@ -256,6 +269,9 @@ public class OrderController {
     public void recordOrderToDB(OrderCreateDto orderCreateDto, Principal principal, HttpServletRequest request) {
         int userId = userService.getIdByEmail(principal.getName());
         try {
+            /*restore protected orderCreateDto*/
+            orderCreateDto = (OrderCreateDto)request.getSession().getAttribute("/order/submit/orderCreateDto");
+            request.getSession().removeAttribute("/order/submit/orderCreateDto");
             if ((orderService.createOrder(userId, orderCreateDto)) <= 0) {
                 throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, localeResolver.resolveLocale(request)));
             }
@@ -278,8 +294,10 @@ public class OrderController {
     if need to edit created order before final submit
     * */
     @RequestMapping(value = "/order/edit", method = RequestMethod.POST)
-    public ModelAndView showEditOrderToSellForm(@Valid @ModelAttribute OrderCreateDto orderCreateDto, ModelAndView model) {
+    public ModelAndView showEditOrderToSellForm(@Valid @ModelAttribute OrderCreateDto orderCreateDto, ModelAndView model, HttpServletRequest request) {
         model.setViewName("newordertosell");
+        /*protect orderCreateDto*/
+        request.getSession().setAttribute("/orders/orderCreateDto", orderCreateDto);
         model.addObject("orderCreateDto", orderCreateDto);
         return model;
     }
@@ -294,7 +312,7 @@ public class OrderController {
     }
 
     @RequestMapping("/myorders/submitdelete")
-    public ModelAndView submitDeleteOrder(@RequestParam int id, ModelAndView model) {
+    public ModelAndView submitDeleteOrder(@RequestParam int id, ModelAndView model, HttpServletRequest request) {
         /**/
         ExOrder exOrder = orderService.getOrderById(id);
         CurrencyPair currencyPair = currencyService.findCurrencyPairById(exOrder.getCurrencyPairId());
@@ -317,6 +335,8 @@ public class OrderController {
             orderCreateDto.setTotalWithComission(BigDecimalProcessing.doAction(exOrder.getAmountConvert(), orderCreateDto.getComission(), ActionType.ADD));
         }
         /**/
+        /*protect orderCreateDto*/
+        request.getSession().setAttribute("/myorders/submitdelete/orderCreateDto", orderCreateDto);
         model.addObject("orderCreateDto", orderCreateDto);
         /**/
         model.setViewName("submitdeleteorder");
@@ -324,8 +344,11 @@ public class OrderController {
     }
 
     @RequestMapping("/myorders/delete")
-    public String deleteOrder(@ModelAttribute OrderCreateDto orderCreateDto, RedirectAttributes redirectAttributes) {
+    public String deleteOrder(RedirectAttributes redirectAttributes, HttpServletRequest request) {
         String msg = null;
+        /*restore protected orderCreateDto*/
+        OrderCreateDto orderCreateDto = (OrderCreateDto)request.getSession().getAttribute("/myorders/submitdelete/orderCreateDto");
+        request.getSession().removeAttribute("/myorders/submitdelete/orderCreateDto");
         if (orderService.cancellOrder(new ExOrder(orderCreateDto))) {
             msg = "delete";
         } else {

@@ -12,6 +12,7 @@ public class TemporalToken {
 	private boolean expired;
 	private LocalDateTime dateCreation;
 	private TokenType tokenType;
+	private String checkIp;
 
 	public int getId() {
 		return id;
@@ -48,5 +49,13 @@ public class TemporalToken {
 	}
 	public void setTokenType(TokenType tokenType) {
 		this.tokenType = tokenType;
+	}
+
+	public String getCheckIp() {
+		return checkIp;
+	}
+
+	public void setCheckIp(String checkIp) {
+		this.checkIp = checkIp;
 	}
 }

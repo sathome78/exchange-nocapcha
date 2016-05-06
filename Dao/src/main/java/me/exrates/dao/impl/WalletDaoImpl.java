@@ -2,7 +2,11 @@ package me.exrates.dao.impl;
 
 import me.exrates.dao.WalletDao;
 import me.exrates.model.Wallet;
+import me.exrates.model.dto.UsersWalletsDto;
+import me.exrates.model.dto.UsersWalletsSummaryDto;
 import me.exrates.model.dto.WalletsForOrderAcceptionDto;
+import me.exrates.model.enums.ActionType;
+import me.exrates.model.util.BigDecimalProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -13,6 +17,9 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -169,7 +176,7 @@ public class WalletDaoImpl implements WalletDao {
     public WalletsForOrderAcceptionDto getWalletsForOrderByOrderId(Integer orderId, Integer userAcceptorId) {
         String sql = "SELECT " +
                 " (SELECT currency1_id FROM CURRENCY_PAIR WHERE CURRENCY_PAIR.id = EXORDERS.currency_pair_id) AS currency_base, " +
-                " (SELECT currency2_id FROM CURRENCY_PAIR WHERE CURRENCY_PAIR.id = EXORDERS.currency_pair_id) AS currency_convert, "+
+                " (SELECT currency2_id FROM CURRENCY_PAIR WHERE CURRENCY_PAIR.id = EXORDERS.currency_pair_id) AS currency_convert, " +
                 " cw1.id AS company_wallet_currency_base, " +
                 " cw2.id AS company_wallet_currency_convert, " +
                 " IF (EXORDERS.operation_type_id=4, w1.id, w2.id) AS wallet_in_for_creator, " +
@@ -180,7 +187,7 @@ public class WalletDaoImpl implements WalletDao {
                 " IF (EXORDERS.operation_type_id=3, w2a.reserved_balance, w1a.reserved_balance) AS wallet_out_reserv_for_acceptor" +
                 " FROM EXORDERS  " +
                 " LEFT JOIN COMPANY_WALLET cw1 ON (cw1.currency_id= (SELECT currency1_id FROM CURRENCY_PAIR WHERE CURRENCY_PAIR.id = EXORDERS.currency_pair_id)) " +
-                " LEFT JOIN COMPANY_WALLET cw2 ON (cw2.currency_id= (SELECT currency2_id FROM CURRENCY_PAIR WHERE CURRENCY_PAIR.id = EXORDERS.currency_pair_id)) "+
+                " LEFT JOIN COMPANY_WALLET cw2 ON (cw2.currency_id= (SELECT currency2_id FROM CURRENCY_PAIR WHERE CURRENCY_PAIR.id = EXORDERS.currency_pair_id)) " +
                 " LEFT JOIN WALLET w1 ON \t(w1.user_id = EXORDERS.user_id) AND " +
                 "             (w1.currency_id= (SELECT currency1_id FROM CURRENCY_PAIR WHERE CURRENCY_PAIR.id = EXORDERS.currency_pair_id)) " +
                 " LEFT JOIN WALLET w2 ON \t(w2.user_id = EXORDERS.user_id) AND " +
@@ -210,5 +217,49 @@ public class WalletDaoImpl implements WalletDao {
             /**/
             return walletsForOrderAcceptionDto;
         });
+    }
+
+    @Override
+    public List<UsersWalletsSummaryDto> getUsersWalletsSummary() {
+        String sql = "SELECT CURRENCY.name as currency_name, COUNT(*) as wallets_amount, SUM(WALLET.active_balance) as active_balance, SUM(WALLET.reserved_balance) as reserved_balance " +
+                " FROM WALLET " +
+                " JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
+                " GROUP BY CURRENCY.name";
+        ArrayList<UsersWalletsSummaryDto> result = (ArrayList<UsersWalletsSummaryDto>) jdbcTemplate.query(sql, new BeanPropertyRowMapper<UsersWalletsSummaryDto>() {
+            @Override
+            public UsersWalletsSummaryDto mapRow(ResultSet rs, int rowNumber) throws SQLException {
+                UsersWalletsSummaryDto usersWalletsSummaryDto = new UsersWalletsSummaryDto();
+                usersWalletsSummaryDto.setCurrencyName(rs.getString("currency_name"));
+                usersWalletsSummaryDto.setWalletsAmount(rs.getInt("wallets_amount"));
+                usersWalletsSummaryDto.setActiveBalance(rs.getBigDecimal("active_balance"));
+                usersWalletsSummaryDto.setReservedBalance(rs.getBigDecimal("reserved_balance"));
+                usersWalletsSummaryDto.setActiveBalancePerWallet(BigDecimalProcessing.doAction(usersWalletsSummaryDto.getActiveBalance(), BigDecimal.valueOf(usersWalletsSummaryDto.getWalletsAmount()), ActionType.DEVIDE));
+                usersWalletsSummaryDto.setReservedBalancePerWallet(BigDecimalProcessing.doAction(usersWalletsSummaryDto.getReservedBalance(), BigDecimal.valueOf(usersWalletsSummaryDto.getWalletsAmount()), ActionType.DEVIDE));
+                return usersWalletsSummaryDto;
+            }
+        });
+        return result;
+    }
+
+    @Override
+    public List<UsersWalletsDto> getUsersWalletsList() {
+        String sql = "SELECT USER.nickname as user_nickname, USER.email as user_email, CURRENCY.name as currency_name, SUM(WALLET.active_balance) as active_balance, SUM(WALLET.reserved_balance) as reserved_balance " +
+                " FROM WALLET " +
+                " JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
+                " JOIN USER ON (USER.id = WALLET.user_id) " +
+                " GROUP BY USER.nickname, USER.email, CURRENCY.name";
+        ArrayList<UsersWalletsDto> result = (ArrayList<UsersWalletsDto>) jdbcTemplate.query(sql, new BeanPropertyRowMapper<UsersWalletsDto>() {
+            @Override
+            public UsersWalletsDto mapRow(ResultSet rs, int rowNumber) throws SQLException {
+                UsersWalletsDto usersWalletsDto = new UsersWalletsDto();
+                usersWalletsDto.setCurrencyName(rs.getString("currency_name"));
+                usersWalletsDto.setUserNickname(rs.getString("user_nickname"));
+                usersWalletsDto.setUserEmail(rs.getString("user_email"));
+                usersWalletsDto.setActiveBalance(rs.getBigDecimal("active_balance"));
+                usersWalletsDto.setReservedBalance(rs.getBigDecimal("reserved_balance"));
+                return usersWalletsDto;
+            }
+        });
+        return result;
     }
 }

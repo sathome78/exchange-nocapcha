@@ -17,8 +17,6 @@ public interface OrderDao {
 
     List<ExOrder> getMyOrders(int userId, CurrencyPair currencyPair);
 
-    List<ExOrder> getAllOpenedOrders();
-
     ExOrder getOrderById(int orderid);
 
     boolean setStatus(int orderId, OrderStatus status);

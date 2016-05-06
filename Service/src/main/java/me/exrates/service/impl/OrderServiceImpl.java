@@ -107,29 +107,6 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional(readOnly = true)
     @Override
-    public Map<String, List<OrderWideListDto>> getAllOpenedOrders(Locale locale) {
-        List<ExOrder> orderList = orderDao.getAllOpenedOrders();
-        /**/
-        List<OrderWideListDto> sellOrderList = new ArrayList<>();
-        List<OrderWideListDto> buyOrderList = new ArrayList<>();
-        for (ExOrder exOrder : orderList) {
-            OrderWideListDto orderWideListDto = new OrderWideListDto(exOrder);
-            orderWideListDto.setCurrencyPair(currencyService.findCurrencyPairById(exOrder.getCurrencyPairId()));
-            orderWideListDto.setStatusString(getStatusString(exOrder.getStatus(), locale));
-            if (exOrder.getOperationType().equals(OperationType.SELL)) {
-                sellOrderList.add(orderWideListDto);
-            } else if (exOrder.getOperationType().equals(OperationType.BUY)) {
-                buyOrderList.add(orderWideListDto);
-            }
-        }
-        Map<String, List<OrderWideListDto>> orderMap = new HashMap<>();
-        orderMap.put("sell", sellOrderList);
-        orderMap.put("buy", buyOrderList);
-        return orderMap;
-    }
-
-    @Transactional(readOnly = true)
-    @Override
     public List<OrderListDto> getOrdersSell(CurrencyPair currencyPair) {
         return orderDao.getOrdersSell(currencyPair);
     }

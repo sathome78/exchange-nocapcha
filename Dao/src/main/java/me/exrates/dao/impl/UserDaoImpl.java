@@ -4,7 +4,9 @@ import me.exrates.dao.UserDao;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.dto.UpdateUserDto;
+import me.exrates.model.dto.UserIpDto;
 import me.exrates.model.enums.TokenType;
+import me.exrates.model.enums.UserIpState;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import org.apache.logging.log4j.LogManager;
@@ -12,12 +14,14 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.*;
 
 @Repository
@@ -250,21 +254,22 @@ public class UserDaoImpl implements UserDao {
         if (user.getFinpassword() != null && !user.getFinpassword().isEmpty()) {
             fieldsStr.append("finpassword = '" + passwordEncoder.encode(user.getFinpassword())).append("',");
         }
-        if (fieldsStr.toString().trim().length()==0) {
+        if (fieldsStr.toString().trim().length() == 0) {
             return true;
         }
-        sql = sql+fieldsStr.toString().replaceAll(",$", " ")+ "WHERE USER.id = :id";
+        sql = sql + fieldsStr.toString().replaceAll(",$", " ") + "WHERE USER.id = :id";
         Map<String, Integer> namedParameters = new HashMap<>();
         namedParameters.put("id", user.getId());
         return jdbcTemplate.update(sql, namedParameters) > 0;
     }
 
     public boolean createTemporalToken(TemporalToken token) {
-        String sql = "insert into TEMPORAL_TOKEN(value,user_id,token_type_id) values(:value,:user_id,:token_type_id)";
+        String sql = "insert into TEMPORAL_TOKEN(value,user_id,token_type_id,check_ip) values(:value,:user_id,:token_type_id,:check_ip)";
         Map<String, String> namedParameters = new HashMap<String, String>();
         namedParameters.put("value", token.getValue());
         namedParameters.put("user_id", String.valueOf(token.getUserId()));
         namedParameters.put("token_type_id", String.valueOf(token.getTokenType().getTokenType()));
+        namedParameters.put("check_ip", token.getCheckIp());
         return jdbcTemplate.update(sql, namedParameters) > 0;
     }
 
@@ -281,7 +286,8 @@ public class UserDaoImpl implements UserDao {
                 temporalToken.setValue(token);
                 temporalToken.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
                 temporalToken.setExpired(rs.getBoolean("expired"));
-                temporalToken.setTokenType(TokenType.values()[rs.getInt("token_type_id") - 1]);
+                temporalToken.setTokenType(TokenType.convert(rs.getInt("token_type_id")));
+                temporalToken.setCheckIp(rs.getString("check_ip"));
                 return temporalToken;
             }
         });
@@ -323,7 +329,8 @@ public class UserDaoImpl implements UserDao {
                 temporalToken.setValue(rs.getString("value"));
                 temporalToken.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
                 temporalToken.setExpired(rs.getBoolean("expired"));
-                temporalToken.setTokenType(TokenType.values()[rs.getInt("token_type_id") - 1]);
+                temporalToken.setTokenType(TokenType.convert(rs.getInt("token_type_id")));
+                temporalToken.setCheckIp(rs.getString("check_ip"));
                 return temporalToken;
             }
         });
@@ -349,7 +356,8 @@ public class UserDaoImpl implements UserDao {
                 temporalToken.setValue(rs.getString("value"));
                 temporalToken.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
                 temporalToken.setExpired(rs.getBoolean("expired"));
-                temporalToken.setTokenType(TokenType.values()[rs.getInt("token_type_id") - 1]);
+                temporalToken.setTokenType(TokenType.convert(rs.getInt("token_type_id")));
+                temporalToken.setCheckIp(rs.getString("check_ip"));
                 return temporalToken;
             }
         });
@@ -390,5 +398,69 @@ public class UserDaoImpl implements UserDao {
         }
     }
 
+    @Override
+    public boolean insertIp(String email, String ip) {
+        String sql = "INSERT INTO USER_IP (user_id, ip)" +
+                " SELECT id, '" + ip + "'" +
+                " FROM USER " +
+                " WHERE USER.email = :email";
+        Map<String, String> namedParameters = new HashMap<>();
+        namedParameters.put("email", email);
+        return jdbcTemplate.update(sql, namedParameters) > 0;
+    }
+
+    @Override
+    public UserIpDto getUserIpState(String email, String ip) {
+        String sql = "SELECT * FROM USER_IP " +
+                " WHERE " +
+                " user_id = (SELECT USER.id FROM USER WHERE USER.email = :email)" +
+                " AND ip=:ip";
+        Map<String, String> namedParameters = new HashMap<>();
+        namedParameters.put("email", email);
+        namedParameters.put("ip", ip);
+        try {
+            return jdbcTemplate.queryForObject(sql, namedParameters, new RowMapper<UserIpDto>() {
+                @Override
+                public UserIpDto mapRow(ResultSet rs, int rowNum) throws SQLException {
+                    UserIpDto userIpDto = new UserIpDto(rs.getInt("user_id"));
+                    userIpDto.setRegistrationDate(rs.getTimestamp("registration_date").toLocalDateTime());
+                    Timestamp ts = rs.getTimestamp("confirm_date");
+                    if (ts != null) userIpDto.setConfirmDate(ts.toLocalDateTime());
+                    ts = rs.getTimestamp("last_registration_date");
+                    if (ts != null) userIpDto.setLastRegistrationDate(ts.toLocalDateTime());
+                    if (rs.getInt("confirmed") == 1) {
+                        userIpDto.setUserIpState(UserIpState.CONFIRMED);
+                    } else {
+                        userIpDto.setUserIpState(UserIpState.NOT_CONFIRMED);
+                    }
+                    return userIpDto;
+                }
+            });
+        } catch (EmptyResultDataAccessException e) {
+            return new UserIpDto(findByEmail(email).getId());
+        }
+    }
+
+    @Override
+    public boolean setIpStateConfirmed(int userId, String ip) {
+        String sql = "UPDATE USER_IP " +
+                " SET confirmed = true, confirm_date = NOW() " +
+                " WHERE user_id = :user_id AND ip = :ip";
+        Map<String, String> namedParameters = new HashMap<>();
+        namedParameters.put("user_id", String.valueOf(userId));
+        namedParameters.put("ip", ip);
+        return jdbcTemplate.update(sql, namedParameters) > 0;
+    }
+
+    @Override
+    public boolean setLastRegistrationDate(int userId, String ip) {
+        String sql = "UPDATE USER_IP " +
+                " SET last_registration_date = NOW() " +
+                " WHERE user_id = :user_id AND ip = :ip";
+        Map<String, String> namedParameters = new HashMap<>();
+        namedParameters.put("user_id", String.valueOf(userId));
+        namedParameters.put("ip", ip);
+        return jdbcTemplate.update(sql, namedParameters) > 0;
+    }
 
 }

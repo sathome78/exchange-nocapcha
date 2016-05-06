@@ -1,5 +1,6 @@
 package me.exrates.controller;
 
+import me.exrates.controller.exception.NotCreateUserException;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.User;
@@ -109,16 +110,24 @@ public class MainController {
         if (result.hasErrors()) {
             return new ModelAndView("register", "user", user);
         } else {
-            user = (User) result.getModel().get("user");
+            user = (User) result.getModel().get("user"); 
             try {
-                userService.create(user, localeResolver.resolveLocale(request));
-                flag = true;
-                logger.info("User registered with parameters = " + user.toString());
+                user.setIp(request.getRemoteHost());
+                if (userService.create(user, localeResolver.resolveLocale(request))) {
+                    flag = true;
+                    logger.info("User registered with parameters = " + user.toString());
+                } else {
+                    throw new NotCreateUserException("Error while user creation");
+                }
             } catch (Exception e) {
                 e.printStackTrace();
                 logger.error("User can't be registered with parameters = " + user.toString() + "  " + e.getMessage());
             }
-            if (flag) return new ModelAndView("ProveRegistration", "user", user);
+            if (flag) {
+                ModelAndView modelAndView = new ModelAndView("redirect:/dashboard");
+                modelAndView.addObject("successNoty", messageSource.getMessage("register.sendletter", null, localeResolver.resolveLocale(request)));
+                return  modelAndView;
+            }
             else return new ModelAndView("DBError", "user", user);
         }
     }
@@ -127,7 +136,7 @@ public class MainController {
     public ModelAndView verifyEmail(HttpServletRequest request, @RequestParam("token") String token) {
         ModelAndView model = new ModelAndView();
         try {
-            if (userService.verifyUserEmail(token) != null){
+            if (userService.verifyUserEmail(token) != 0){
                 model.addObject("successNoty", messageSource.getMessage("register.successfullyproved", null, localeResolver.resolveLocale(request)));
             } else {
                 model.addObject("errorNoty", messageSource.getMessage("register.unsuccessfullyproved", null, localeResolver.resolveLocale(request)));
@@ -152,7 +161,6 @@ public class MainController {
     @RequestMapping(value = "/login", method = RequestMethod.GET)
     public ModelAndView login(HttpSession httpSession,
                               @RequestParam(value = "error", required = false) String error) {
-
         ModelAndView model = new ModelAndView();
         if (error != null) {
             if (httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION") != null) {

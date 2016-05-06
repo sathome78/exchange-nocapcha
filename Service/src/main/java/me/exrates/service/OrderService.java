@@ -17,8 +17,6 @@ public interface OrderService {
 
     Map<String, List<OrderWideListDto>> getMyOrders(String email, CurrencyPair currencyPair, Locale locale);
 
-    Map<String, List<OrderWideListDto>> getAllOpenedOrders(Locale locale);
-
     ExOrder getOrderById(int orderId);
 
     boolean setStatus(int orderId, OrderStatus status);

@@ -14,7 +14,7 @@ $(function () {
                 failedNote = noty({
                     text: msg,
                     type: 'error',
-                    layout: 'bottomRight',
+                    layout: 'bottomLeft',
                     timeout: false
                 });
             }
@@ -54,7 +54,7 @@ function successNoty(text) {
     successNote = noty({
         text: text,
         type: 'success',
-        layout: 'bottomRight',
+        layout: 'bottomLeft',
         timeout: false
     });
 }
@@ -65,7 +65,7 @@ function failNoty(jqXHR) {
     failedNote = noty({
         text: errorInfo.detail,
         type: 'error',
-        layout: 'bottomRight',
+        layout: 'bottomLeft',
         timeout: false
     });
 }
@@ -95,7 +95,7 @@ function showOrderNoty() {
     orderNoty = noty({
         text: text,
         type: 'info',
-        layout: 'bottomRight',
+        layout: 'bottomLeft',
         timeout: false
     });
 }

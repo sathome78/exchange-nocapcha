@@ -4,6 +4,9 @@ import me.exrates.model.enums.ActionType;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
 
 /**
  * Created by Valk on 30.04.2016.
@@ -11,6 +14,7 @@ import java.math.RoundingMode;
 public class BigDecimalProcessing {
     protected static final int SCALE = 9;
     protected static final RoundingMode ROUND_TYPE = RoundingMode.HALF_UP;
+    protected static final String PATTERN = "###,###."+new String(new char[SCALE]).replace("\0","#");
 
     /*method executes arithmetic operation and returns normalized BigDecimal*/
     public static BigDecimal doAction(BigDecimal value1, BigDecimal value2, ActionType actionType) {
@@ -30,11 +34,11 @@ public class BigDecimalProcessing {
                 break;
             }
             case MULTIPLY_PERCENT: {
-                result = value1.multiply(value2).divide(new BigDecimal(100));
+                result = value1.multiply(value2).divide(new BigDecimal(100), ROUND_TYPE);
                 break;
             }
             case DEVIDE: {
-                result = value1.divide(value2);
+                result = value1.divide(value2, ROUND_TYPE);
                 break;
             }
         }
@@ -47,17 +51,31 @@ public class BigDecimalProcessing {
             return null;
         }
         return bigDecimal.setScale(SCALE, ROUND_TYPE).stripTrailingZeros().add(BigDecimal.ZERO);
-        /*bigDecimal = bigDecimal.setScale(SCALE, ROUND_TYPE);
-        if (SCALE == 0) {
-            *//*if no "."*//*
-            return bigDecimal;
-        }
-        *//*"." is always present, so next operation is safe*//*
-        String trimmedValueString = bigDecimal.toString()
-                .replaceAll("0+$", "")
-                .replaceAll("\\.", "")
-                .replaceAll("^0+", "");
-        int precision = trimmedValueString.length();
-        return bigDecimal.add(BigDecimal.ZERO, new MathContext(precision, RoundingMode.HALF_UP));*/
     }
+
+    public static String formatSpaceComma(BigDecimal bigDecimal){
+        DecimalFormat df = new DecimalFormat(PATTERN);
+        DecimalFormatSymbols dfs = df.getDecimalFormatSymbols();
+        dfs.setGroupingSeparator(' ');
+        dfs.setDecimalSeparator(',');
+        df.setDecimalFormatSymbols(dfs);
+        return df.format(bigDecimal);
+    }
+
+    public static String formatNoneComma(BigDecimal bigDecimal){
+        DecimalFormat df = new DecimalFormat(PATTERN);
+        DecimalFormatSymbols dfs = df.getDecimalFormatSymbols();
+        df.setGroupingUsed(false);
+        dfs.setDecimalSeparator(',');
+        df.setDecimalFormatSymbols(dfs);
+        return df.format(bigDecimal);
+    }
+
+    public static String formatLocale(BigDecimal bigDecimal, Locale locale){
+        DecimalFormat df = new DecimalFormat(PATTERN);
+        DecimalFormatSymbols dfs = new DecimalFormatSymbols(locale);
+        df.setDecimalFormatSymbols(dfs);
+        return df.format(bigDecimal);
+    }
+
 }
