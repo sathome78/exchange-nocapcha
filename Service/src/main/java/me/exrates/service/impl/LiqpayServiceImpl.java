@@ -66,7 +66,8 @@ public class LiqpayServiceImpl implements LiqpayService {
         params.put("currency", creditsOperation.getCurrency().getName());
         params.put("description", "Order: " + transaction.getId());
         params.put("order_id", transaction.getId());
-        String hash = algorithmService.base64Encode(transaction.getId() + private_key);
+        byte[] hashSha1 = sha1(transaction.getId() + private_key);
+        String hash = base64_encode(hashSha1);
         params.put("info", hash);
 
 
