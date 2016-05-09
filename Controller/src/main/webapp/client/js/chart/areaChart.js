@@ -4,7 +4,7 @@ $(function () {
 
 function drawChart(period) {
     $('#graphic').hide();
-    var url = '/dashboard/chartArray';
+    var url = '/dashboard/chartArray/area';
     url = period ? url + '?period=' + period : url;
     $.get(url, function (arrayResult) {
         var backDealInterval = arrayResult[0][0]; //BackDealInterval is here
@@ -50,7 +50,6 @@ function drawChart(period) {
                 }
             },
             hAxis: {
-                //ticks: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
                 textStyle: {
                     color: '#65180a',
                     opacity: 0,

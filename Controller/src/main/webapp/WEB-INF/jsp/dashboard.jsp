@@ -25,7 +25,8 @@
     <link href="<c:url value='/client/css/style-new.css'/>" rel="stylesheet">
 
     <script type="text/javascript" src="<c:url value='/client/js/dashboard.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/chart/areaChart.js'/>"></script>
+    <%--<script type="text/javascript" src="<c:url value='/client/js/chart/areaChart.js'/>"></script>--%>
+    <script type="text/javascript" src="<c:url value='/client/js/chart/candleChart.js'/>"></script>
     <%----------%>
     <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
@@ -50,7 +51,7 @@
     </script>
     <!-- ... Google Analytics -->
     <%--Chat--%>
-    <script type="text/javascript">
+    <%--<script type="text/javascript">
         window.$zopim || (function (d, s) {
             var z = $zopim = function (c) {
                 z._.push(c)
@@ -66,11 +67,10 @@
             $.setAttribute("charset", "utf-8");
             $.src = "//v2.zopim.com/?3n4rzwKe0WvQGt1TDMpL8gvMRIUvgCjX";
             z.t = +new Date;
-            $.
-                    type = "text/javascript";
+            $.type = "text/javascript";
             e.parentNode.insertBefore($, e)
         })(document, "script");
-    </script>
+    </script>--%>
 
 </head>
 <body>
@@ -112,15 +112,32 @@
                 </ul>
             </li>
         </ul>
-        <div class="graphic"> <!-- graphic -->
-            <div id='chart_div'></div>
+        <div class="graphic-wrapper">
+            <div class="candle-description">
+                <div id="candle-open" class="candle-description__item"></div>
+                <div id="candle-close" class="candle-description__item"></div>
+                <div id="candle-low" class="candle-description__item"></div>
+                <div id="candle-high" class="candle-description__item"></div>
+                <div id="candle-volume" class="candle-description__item"></div>
+                <div id="candle-date" class="candle-description__item"></div>
+            </div>
+            <div class="graphic"> <!-- graphic -->
+                <canvas id="graphic-canvas"></canvas>
+                <div class="candle-chart-tip-wrapper">
 
-            <div class="period-menu">
-                <div id="12hour" class="period-menu__item">12 <loc:message code="chart.hours"/></div>
-                <div id="24hour" class="period-menu__item">24 <loc:message code="chart.hours1"/></div>
-                <div id="7day" class="period-menu__item">7 <loc:message code="chart.days"/></div>
-                <div id="1month" class="period-menu__item">1 <loc:message code="chart.month"/></div>
-                <div id="6month" class="period-menu__item">6 <loc:message code="chart.months"/></div>
+                </div>
+                <div id='candle-chart_div'>
+
+                </div>
+                <div id='bar-chart_div'></div>
+
+                <div class="period-menu">
+                    <div id="12hour" class="period-menu__item">12 <loc:message code="chart.hours"/></div>
+                    <div id="24hour" class="period-menu__item">24 <loc:message code="chart.hours1"/></div>
+                    <div id="7day" class="period-menu__item">7 <loc:message code="chart.days"/></div>
+                    <div id="1month" class="period-menu__item">1 <loc:message code="chart.month"/></div>
+                    <div id="6month" class="period-menu__item">6 <loc:message code="chart.months"/></div>
+                </div>
             </div>
         </div>
 
@@ -140,7 +157,7 @@
                     <fmt:formatNumber type="number" maxFractionDigits="9" value="${balanceCurrency1}"/>
                     ${currencyPair.getCurrency1().getName()}
                 </div>
-                <div id ="minRate" class="col-xs-6"><loc:message code="dashboard.lowestPrice"/><br>
+                <div id="minRate" class="col-xs-6"><loc:message code="dashboard.lowestPrice"/><br>
                     <%--${minPrice}--%>
                     <span>0.0</span>
                 </div>
@@ -195,7 +212,7 @@
                     <fmt:formatNumber type="number" maxFractionDigits="9" value="${balanceCurrency2}"/>
                     ${currencyPair.getCurrency2().getName()}
                 </div>
-                <div id ="maxRate" class="col-xs-6"><loc:message code="dashboard.highestPrice"/> <br>
+                <div id="maxRate" class="col-xs-6"><loc:message code="dashboard.highestPrice"/> <br>
                     <%--${maxPrice} --%>
                     <span>0.0</span>
                 </div>
