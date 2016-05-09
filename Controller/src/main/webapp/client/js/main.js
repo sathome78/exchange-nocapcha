@@ -271,7 +271,7 @@ $(function(){
             url: '/merchants/commission',
             type: "get",
             contentType: "application/json",
-            data : {"type":type, "amount":amount, "currency":currency}
+            data : {"type":type, "amount":amount, "currency":currency, "merchant":merchant.find(':selected').html()}
         }).done(function (response) {
             var templateVariables = {
                 amount: '__amount',

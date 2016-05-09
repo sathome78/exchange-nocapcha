@@ -49,7 +49,7 @@ public interface MerchantService {
 
     Map<String, String> formatResponseMessage(Transaction transaction);
 
-    Map<String, String> computeCommissionAndMapAllToString(BigDecimal amount, OperationType operationType, String currency);
+    Map<String, String> computeCommissionAndMapAllToString(BigDecimal amount, OperationType operationType, String currency, String merchant);
 
     Optional<CreditsOperation> prepareCreditsOperation(Payment payment, String userEmail);
 }

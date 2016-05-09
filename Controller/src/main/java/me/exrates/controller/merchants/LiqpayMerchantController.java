@@ -81,13 +81,15 @@ public class LiqpayMerchantController {
 
         Transaction transaction = transactionService.findById(Integer.parseInt(String.valueOf(responseData.get("order_id"))));
 
-        if ((responseData.get("status").equals("success")||responseData.get("status").equals("wait_accept")) && liqpayService.checkHashTransactionByTransactionId(transaction.getId(), (String) responseData.get("info"))){
+        if ((responseData.get("status").equals("success")) && liqpayService.checkHashTransactionByTransactionId(transaction.getId(), (String) responseData.get("info"))){
             merchantService.formatResponseMessage(transaction)
                     .entrySet()
                     .forEach(entry->redir.addFlashAttribute(entry.getKey(),entry.getValue()));
             final String message = "merchants.successfulBalanceDeposit";
             redir.addFlashAttribute("message", message);
-            liqpayService.provideTransaction(transaction);
+            if (!transaction.isProvided()){
+                liqpayService.provideTransaction(transaction);
+            }
 
             return new RedirectView("/mywallets");
 
@@ -102,8 +104,33 @@ public class LiqpayMerchantController {
     @RequestMapping(value = "payment/status",method = RequestMethod.POST)
     public RedirectView statusPayment(@RequestParam Map<String,String> response, RedirectAttributes redir) {
 
-        Transaction transaction = transactionService.findById(Integer.parseInt(response.get("ac_order_id")));
+        String signature = response.get("signature");
+        String data = response.get("data");;
 
+
+        data = data.replace("%3D","=");
+
+
+        Map responseData = liqpayService.getResponse(data);
+
+        Transaction transaction = transactionService.findById(Integer.parseInt(String.valueOf(responseData.get("order_id"))));
+
+        if ((responseData.get("status").equals("success")) && liqpayService.checkHashTransactionByTransactionId(transaction.getId(), (String) responseData.get("info"))){
+            merchantService.formatResponseMessage(transaction)
+                    .entrySet()
+                    .forEach(entry->redir.addFlashAttribute(entry.getKey(),entry.getValue()));
+            final String message = "merchants.successfulBalanceDeposit";
+            redir.addFlashAttribute("message", message);
+            if (!transaction.isProvided()){
+                liqpayService.provideTransaction(transaction);
+            }
+
+            return new RedirectView("/mywallets");
+
+        }
+
+        final String message = "merchants.internalError";
+        redir.addFlashAttribute("message", message);
 
         return new RedirectView("/mywallets");
     }
