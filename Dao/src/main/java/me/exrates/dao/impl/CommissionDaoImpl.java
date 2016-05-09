@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 
 @Repository
@@ -31,5 +32,15 @@ public class CommissionDaoImpl implements CommissionDao{
 		});
 	}
 
-	
+	@Override
+	public BigDecimal getCommissionMerchant(String merchant, String currency) {
+		final String sql = "SELECT merchant_commission FROM birzha.merchant_currency " +
+				"where merchant_id = (select id from MERCHANT where name = :merchant) \n" +
+				"and currency_id = (select id from CURRENCY where name = :currency)";
+		final HashMap<String, String> params = new HashMap<>();
+		params.put("currency", currency);
+		params.put("merchant", merchant);
+
+		return jdbcTemplate.queryForObject(sql, params, BigDecimal.class);
+	}
 }

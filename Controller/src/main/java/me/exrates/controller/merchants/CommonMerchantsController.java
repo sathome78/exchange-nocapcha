@@ -98,9 +98,10 @@ public class CommonMerchantsController {
     @ResponseBody
     public Map<String,String> getCommissions(final @RequestParam("type") OperationType type,
                                       final @RequestParam("amount") BigDecimal amount,
-                                      final @RequestParam("currency") String currency)
+                                      final @RequestParam("currency") String currency,
+                                      final @RequestParam("merchant") String merchant)
     {
-        return merchantService.computeCommissionAndMapAllToString(amount, type, currency);
+        return merchantService.computeCommissionAndMapAllToString(amount, type, currency, merchant);
     }
 
     @RequestMapping(value="/payment/withdraw", method = POST)
