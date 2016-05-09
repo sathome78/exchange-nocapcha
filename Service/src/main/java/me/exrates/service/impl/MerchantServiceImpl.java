@@ -362,15 +362,18 @@ public class MerchantServiceImpl implements MerchantService {
     @Override
     public Map<String, String> computeCommissionAndMapAllToString(final BigDecimal amount,
                                                                   final OperationType type,
-                                                                  final String currency)
+                                                                  final String currency,
+                                                                  final String merchant)
     {
         final Map<String, String> result = new HashMap<>();
         final BigDecimal commission = commissionService.findCommissionByType(type).getValue();
-        final BigDecimal commissionAmount = amount.multiply(commission, MATH_CONTEXT).divide(HUNDREDTH, MATH_CONTEXT);
+        final BigDecimal commissionMerchant = commissionService.getCommissionMerchant(merchant, currency);
+        final BigDecimal commissionTotal = commission.add(commissionMerchant,MATH_CONTEXT);
+        final BigDecimal commissionAmount = amount.multiply(commissionTotal, MATH_CONTEXT).divide(HUNDREDTH, MATH_CONTEXT);
         final BigDecimal resultAmount = type == INPUT ? amount.add(commissionAmount,MATH_CONTEXT) :
                 amount.subtract(commissionAmount, MATH_CONTEXT);
-        result.put("commission", commission.stripTrailingZeros().toString());
-        result.put("commissionAmount", currencyService.amountToString(amount.divide(HUNDREDTH, MATH_CONTEXT),currency));
+        result.put("commission", commissionTotal.stripTrailingZeros().toString());
+        result.put("commissionAmount", currencyService.amountToString(commissionAmount, currency));
         result.put("amount", currencyService.amountToString(resultAmount, currency));
         return result;
     }
@@ -392,8 +395,10 @@ public class MerchantServiceImpl implements MerchantService {
             throw new UnsupportedMerchantException(exceptionMessage);
         }
         final Commission commissionByType = commissionService.findCommissionByType(operationType);
-        final BigDecimal commissionAmount = 
-                 commissionByType.getValue()
+        final BigDecimal commissionMerchant = commissionService.getCommissionMerchant(merchant.getName(), currency.getName());
+        final BigDecimal commissionTotal = commissionByType.getValue().add(commissionMerchant,MATH_CONTEXT);
+        final BigDecimal commissionAmount =
+                commissionTotal
                 .setScale(9, ROUND_CEILING)
                 .multiply(amount)
                 .divide(valueOf(100), ROUND_CEILING);
