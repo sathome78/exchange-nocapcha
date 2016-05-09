@@ -4,6 +4,7 @@ import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.User;
+import me.exrates.model.dto.CandleChartItemDto;
 import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.dto.OrderListDto;
 import me.exrates.model.dto.UpdateUserDto;
@@ -118,36 +119,55 @@ public class DashboardController {
         return model;
     }
 
-    @RequestMapping(value = "/dashboard/chartArray", method = RequestMethod.GET)
+    @RequestMapping(value = "/dashboard/chartArray/{type}", method = RequestMethod.GET)
     public
     @ResponseBody
-    ArrayList chartArray(@RequestParam(required = false) String period, HttpServletRequest request) {
+    ArrayList chartArray(@PathVariable("type") String chartType, @RequestParam(required = false) String period, HttpServletRequest request) {
         CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
         /**/
         BackDealInterval backDealInterval = getBackDealInterval(period, request);
-        List<Map<String, Object>> rows = dashboardService.getDataForChart(currencyPair, backDealInterval);
-        request.getSession().setAttribute("currentBackDealInterval", backDealInterval);
-        /**/
         ArrayList<List> arrayListMain = new ArrayList<>();
         /*in first row return backDealInterval - to synchronize period menu with it*/
         arrayListMain.add(new ArrayList<Object>() {{
             add(backDealInterval);
         }});
         /**/
-        for (Map<String, Object> row : rows) {
-            Timestamp dateAcception = (Timestamp) row.get("dateAcception");
-            BigDecimal exrate = (BigDecimal) row.get("exrate");
-            if (dateAcception != null) {
+        if ("area".equals(chartType)) {
+            List<Map<String, Object>> rows = dashboardService.getDataForAreaChart(currencyPair, backDealInterval);
+            for (Map<String, Object> row : rows) {
+                Timestamp dateAcception = (Timestamp) row.get("dateAcception");
+                BigDecimal exrate = (BigDecimal) row.get("exrate");
+                if (dateAcception != null) {
+                    ArrayList<Object> arrayList = new ArrayList<>();
+                /*values*/
+                    arrayList.add(dateAcception.toString());
+                    arrayList.add(exrate.doubleValue());
+                /*titles of values for chart tip*/
+                    arrayList.add(messageSource.getMessage("orders.date", null, localeResolver.resolveLocale(request)));
+                    arrayList.add(messageSource.getMessage("orders.exrate", null, localeResolver.resolveLocale(request)));
+                    arrayListMain.add(arrayList);
+                }
+            }
+        } else if ("candle".equals(chartType)) {
+            List<CandleChartItemDto> rows = dashboardService.getDataForCandleChart(currencyPair, backDealInterval);
+            for (CandleChartItemDto candle : rows) {
                 ArrayList<Object> arrayList = new ArrayList<>();
                 /*values*/
-                arrayList.add(dateAcception.toString());
-                arrayList.add(exrate.doubleValue());
+                arrayList.add(candle.getBeginPeriod().toString());
+                arrayList.add(candle.getEndPeriod().toString());
+                arrayList.add(candle.getOpenRate());
+                arrayList.add(candle.getCloseRate());
+                arrayList.add(candle.getLowRate());
+                arrayList.add(candle.getHighRate());
+                arrayList.add(candle.getBaseVolume());
                 /*titles of values for chart tip*/
                 arrayList.add(messageSource.getMessage("orders.date", null, localeResolver.resolveLocale(request)));
                 arrayList.add(messageSource.getMessage("orders.exrate", null, localeResolver.resolveLocale(request)));
+                arrayList.add(messageSource.getMessage("orders.volume", null, localeResolver.resolveLocale(request)));
                 arrayListMain.add(arrayList);
             }
         }
+        request.getSession().setAttribute("currentBackDealInterval", backDealInterval);
         return arrayListMain;
     }
 

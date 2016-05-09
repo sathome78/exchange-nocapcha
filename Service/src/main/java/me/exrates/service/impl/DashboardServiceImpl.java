@@ -3,6 +3,7 @@ package me.exrates.service.impl;
 import me.exrates.dao.DashboardDao;
 import me.exrates.dao.OrderDao;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.dto.CandleChartItemDto;
 import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.dto.OrderListDto;
 import me.exrates.model.vo.BackDealInterval;
@@ -39,9 +40,15 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
-    public List<Map<String, Object>> getDataForChart(CurrencyPair currencyPair, BackDealInterval interval) {
-        logger.info("Begin 'getDataForChart' method");
-        return orderDao.getDataForChart(currencyPair, interval);
+    public List<Map<String, Object>> getDataForAreaChart(CurrencyPair currencyPair, BackDealInterval interval) {
+        logger.info("Begin 'getDataForAreaChart' method");
+        return orderDao.getDataForAreaChart(currencyPair, interval);
+    }
+
+    @Override
+    public List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval interval) {
+        logger.info("Begin 'getDataForCandleChart' method");
+        return orderDao.getDataForCandleChart(currencyPair, interval);
     }
 
     @Override
