@@ -2,6 +2,7 @@ package me.exrates.controller;
 
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.User;
+import me.exrates.model.UserFile;
 import me.exrates.model.Wallet;
 import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.dto.UpdateUserDto;
@@ -10,8 +11,11 @@ import me.exrates.model.enums.UserStatus;
 import me.exrates.security.service.UserSecureServiceImpl;
 import me.exrates.service.MerchantService;
 import me.exrates.service.TransactionService;
+import me.exrates.service.UserFilesService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.MediaType;
@@ -19,17 +23,30 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.support.RequestContextUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.io.IOException;
 import java.security.Principal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import static java.util.Arrays.asList;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 @Controller
 public class AdminController {
@@ -55,6 +72,12 @@ public class AdminController {
     @Autowired
     private TransactionService transactionService;
 
+    @Autowired
+    private UserFilesService userFilesService;
+
+    private static final Logger LOG = LogManager.getLogger(AdminController.class);
+
+
     private String currentRole;
 
     @RequestMapping("/admin")
@@ -69,7 +92,7 @@ public class AdminController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "/admin/users", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/admin/users", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<User> getAllUsers() {
         List<UserRole> userRoles = new ArrayList<>();
         userRoles.add(UserRole.USER);
@@ -77,7 +100,7 @@ public class AdminController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "/admin/admins", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/admin/admins", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<User> getAllAdmins() {
         List<UserRole> adminRoles = new ArrayList<>();
         adminRoles.add(UserRole.ADMINISTRATOR);
@@ -87,13 +110,13 @@ public class AdminController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "/admin/transactions", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/admin/transactions", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<OperationViewDto> getUserTransactions(@RequestParam int id, HttpServletRequest request) {
         return transactionService.showUserOperationHistory(id, localeResolver.resolveLocale(request));
     }
 
     @ResponseBody
-    @RequestMapping(value = "/admin/wallets", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/admin/wallets", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<Wallet> getUserWalletss(@RequestParam int id, HttpServletRequest request) {
         return walletService.getAllWallets(id);
     }
@@ -114,7 +137,7 @@ public class AdminController {
         return model;
     }
 
-    @RequestMapping(value = "/admin/adduser/submit", method = RequestMethod.POST)
+    @RequestMapping(value = "/admin/adduser/submit", method = POST)
     public ModelAndView submitcreate(@Valid @ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request) {
 
         if (!currentRole.equals(UserRole.ADMINISTRATOR.name())) {
@@ -157,7 +180,7 @@ public class AdminController {
         user.setId(id);
         model.addObject("user", user);
         model.setViewName("admin/editUser");
-
+        model.addObject("userFiles", userService.findUserDoc(id));
         return model;
     }
 
@@ -167,7 +190,7 @@ public class AdminController {
         return model;
     }
 
-    @RequestMapping(value = "/admin/edituser/submit", method = RequestMethod.POST)
+    @RequestMapping(value = "/admin/edituser/submit", method = POST)
     public ModelAndView submitedit(@Valid @ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request, HttpServletResponse response) {
         if (!currentRole.equals(UserRole.ADMINISTRATOR.name()) && !user.getRole().name().equals(UserRole.USER.name())) {
             return new ModelAndView("403");
@@ -201,19 +224,45 @@ public class AdminController {
 
     @RequestMapping("/settings")
     public ModelAndView settings(Principal principal, @RequestParam(required = false) Integer tabIdx, @RequestParam(required = false) String msg, HttpServletRequest request) {
-
-        ModelAndView model = new ModelAndView();
-
-        User user = userService.getUserById(userService.getIdByEmail(principal.getName()));
-        model.addObject("user", user);
-        model.addObject("tabIdx", tabIdx);
-        model.addObject("errorNoty", msg);
-        model.setViewName("settings");
-
-        return model;
+        final User user = userService.getUserById(userService.getIdByEmail(principal.getName()));
+        final ModelAndView mav = new ModelAndView("settings");
+        final List<UserFile> userFile = userService.findUserDoc(user.getId());
+        final Map<String, ?> map = RequestContextUtils.getInputFlashMap(request);
+        mav.addObject("user", user);
+        mav.addObject("tabIdx", tabIdx);
+        mav.addObject("errorNoty", map != null ? map.get("msg") : msg);
+        mav.addObject("userFiles", userFile);
+        return mav;
     }
 
-    @RequestMapping(value = "settings/changePassword/submit", method = RequestMethod.POST)
+    @RequestMapping(value = "/settings/uploadFile", method = POST)
+    public ModelAndView uploadUserDocs(final @RequestParam("file") MultipartFile[] multipartFiles,
+                                       final Principal principal,
+                                       final Locale locale)
+    {
+        final ModelAndView mav = new ModelAndView("settings");
+        final User user = userService.getUserById(userService.getIdByEmail(principal.getName()));
+        final List<MultipartFile> uploaded = userFilesService.reduceInvalidFiles(multipartFiles);
+        mav.addObject("user", user);
+        if (uploaded.isEmpty()) {
+            mav.addObject("userFiles", userService.findUserDoc(user.getId()));
+            mav.addObject("errorNoty", messageSource.getMessage("admin.errorUploadFiles", null, locale));
+            return mav;
+        }
+        try {
+            userFilesService.createUserFiles(user.getId(), uploaded);
+        } catch (final IOException e) {
+            LOG.error(e);
+            mav.addObject("errorNoty", messageSource.getMessage("admin.internalError", null, locale));
+            return mav;
+        }
+        mav.addObject("successNoty", messageSource.getMessage("admin.successUploadFiles", null, locale));
+        mav.addObject("userFiles", userService.findUserDoc(user.getId()));
+        return mav;
+    }
+
+
+    @RequestMapping(value = "settings/changePassword/submit", method = POST)
     public ModelAndView submitsettingsPassword(@Valid @ModelAttribute User user, BindingResult result,
                                                ModelAndView model, HttpServletRequest request) {
 
@@ -235,7 +284,7 @@ public class AdminController {
         return model;
     }
 
-    @RequestMapping(value = "settings/changeFinPassword/submit", method = RequestMethod.POST)
+    @RequestMapping(value = "settings/changeFinPassword/submit", method = POST)
     public ModelAndView submitsettingsFinPassword(@Valid @ModelAttribute User user, BindingResult result,
                                                   ModelAndView model, HttpServletRequest request) {
 
