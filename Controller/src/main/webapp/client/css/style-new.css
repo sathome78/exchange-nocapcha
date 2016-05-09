@@ -199,17 +199,6 @@ ul.nav .margin-left {
     padding: 2px 10px;
 }
 
-.exchange_data .graphic {
-    width: 80%;
-    float: left;
-    overflow: hidden;
-    padding-bottom: 15px;
-}
-
-.exchange_data .graphic img {
-    max-width: 100%;
-}
-
 .whiter {
     background: rgba(255, 255, 255, .5);
 }
@@ -1455,7 +1444,7 @@ form#command.submit-order-form button {
     color: #fff;
 }
 
-.input-block-wrapper .input-block-wrapper__input-wrapper .input-block-wrapper__input:nth-child(2){
+.input-block-wrapper .input-block-wrapper__input-wrapper .input-block-wrapper__input:nth-child(2) {
     border-top: 1px solid #a56650;
     width: 100%;
 }
@@ -1680,24 +1669,96 @@ th.allign-center {
     text-align: center;
 }
 
-.areaChartTip {
-    color: #84240f;
-    background: rgba(132, 36, 15, 0.3);
-    height: 100%;
-    padding: 5px;
+.graphic-wrapper{
+    float: left;
+    width: 80%;
 }
 
-.areaChartTip span {
+.exchange_data .graphic {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
+.candle-description {
+    width: 100%;
+    color: #fca791;
+}
+
+.candle-description__item {
+    display: inline-block;
+    font-size: 12px;
+    margin: 0 10px 0 0;
+    width: 10%
+}
+
+.candle-description__item span{
+    font-weight: bold;
+    color: white;
+}
+
+.candle-description__item#candle-date {
+    text-align: right;
+    width: 40%;
+    margin: 0 0 0 0;
+}
+
+.candle-description__item#candle-date .date{
+    font-size: 14px;
+}
+
+.area-chart-tip {
+    color: #84240f;
+    background: rgba(132, 36, 15, 0.3);
+    /*background: rgba(255, 255, 255, 0.7);*/
+    height: 100%;
+    padding: 0 10px;
+}
+
+.candle-chart-tip-wrapper{
+    background: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+}
+
+.cross-close {
+    position: absolute;
+    top: -7px;
+    right: -7px;
+    text-decoration: none;
+    color: white;
+    border: 1px solid white;
+    width: 14px;
+    border-radius: 100%;
+    line-height: 13px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 10px;
+    background: rgba(132, 36, 15, 0.7);
+    cursor: pointer;
+}
+
+.area-chart-tip span {
     font-weight: bold;
 }
 
-.areaChartTip__date {
+.area-chart-tip__date {
     white-space: nowrap;
 }
 
-.areaChartTip__rate {
+.area-chart-tip__rate {
+    margin-bottom: 0;
     font-size: 12px;
     font-weight: bold;
+}
+
+.area-chart-tip__candle {
+    margin: 0 0 0 20px;
+    font-size: 12px;
+}
+
+.area-chart-tip .area-chart-tip__candle span {
+    display: inline-block;
+    width: 35px;
 }
 
 .period-menu {
@@ -1720,7 +1781,6 @@ th.allign-center {
     border: 1px solid white;
 }
 
-
 .info-item {
     display: inline-block;
     color: white;
@@ -1729,11 +1789,12 @@ th.allign-center {
 .info-item-title {
     border-bottom: 1px solid rgba(255, 255, 255, 0.5);
 }
+
 .next_item {
     margin-left: 20px;
 }
 
-.simple-button{
+.simple-button {
     float: right;
     margin: 10px 0 0 0;
     background: #6c1e0c;

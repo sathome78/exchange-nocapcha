@@ -4,13 +4,16 @@ import me.exrates.dao.OrderDao;
 import me.exrates.jdbc.OrderRowMapper;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
+import me.exrates.model.dto.CandleChartItemDto;
 import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.dto.OrderListDto;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.vo.BackDealInterval;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -19,9 +22,10 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
-import java.math.BigDecimal;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -182,7 +186,7 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<Map<String, Object>> getDataForChart(CurrencyPair currencyPair, BackDealInterval backDealInterval) {
+    public List<Map<String, Object>> getDataForAreaChart(CurrencyPair currencyPair, BackDealInterval backDealInterval) {
         String sql = "SELECT date_acception, exrate FROM EXORDERS " +
                 " WHERE status_id=:status_id AND currency_pair_id=:currency_pair_id " +
                 " AND date_acception >= now() - INTERVAL " + backDealInterval.intervalValue.toString() + " " + backDealInterval.intervalType +
@@ -203,6 +207,33 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
+    public List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval backDealInterval) {
+        String s = "{call GET_DATA_FOR_CANDLE(NOW(), " + backDealInterval.intervalValue + ", '" + backDealInterval.intervalType.name() + "', " + currencyPair.getId() + ")}";
+        NamedParameterJdbcTemplate jdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+        List<CandleChartItemDto> result = jdbcTemplate.execute(s, new PreparedStatementCallback<List<CandleChartItemDto>>() {
+            @Override
+            public List<CandleChartItemDto> doInPreparedStatement(PreparedStatement ps) throws SQLException, DataAccessException {
+                ResultSet rs = ps.executeQuery();
+                List<CandleChartItemDto> list = new ArrayList();
+                while (rs.next()) {
+                    CandleChartItemDto candleChartItemDto = new CandleChartItemDto();
+                    candleChartItemDto.setBeginPeriod(rs.getTimestamp("pred_point").toLocalDateTime());
+                    candleChartItemDto.setEndPeriod(rs.getTimestamp("current_point").toLocalDateTime());
+                    candleChartItemDto.setOpenRate(rs.getBigDecimal("open_rate"));
+                    candleChartItemDto.setCloseRate(rs.getBigDecimal("close_rate"));
+                    candleChartItemDto.setLowRate(rs.getBigDecimal("low_rate"));
+                    candleChartItemDto.setHighRate(rs.getBigDecimal("high_rate"));
+                    candleChartItemDto.setBaseVolume(rs.getBigDecimal("base_volume"));
+                    list.add(candleChartItemDto);
+                }
+                rs.close();
+                return list;
+            }
+        });
+        return result;
+    }
+
+    @Override
     public ExOrderStatisticsDto getOrderStatistic(CurrencyPair currencyPair, BackDealInterval backDealInterval) {
         String sql = "SELECT FIRSTORDER.amount_base AS first_amount_base, FIRSTORDER.exrate AS first_exrate," +
                 "            LASTORDER.amount_base AS last_amount_base, LASTORDER.exrate AS last_exrate," +
@@ -217,13 +248,14 @@ public class OrderDaoImpl implements OrderDao {
                 "       EXORDERS.date_acception >= now() - INTERVAL " + backDealInterval.intervalValue.toString() + " " + backDealInterval.intervalType +
                 "       ) AGRIGATE " +
                 "     JOIN EXORDERS FIRSTORDER ON (FIRSTORDER.date_acception = AGRIGATE.first_date_acception)  " +
-                "     JOIN EXORDERS LASTORDER ON (LASTORDER.date_acception = AGRIGATE.last_date_acception)";
+                "     JOIN EXORDERS LASTORDER ON (LASTORDER.date_acception = AGRIGATE.last_date_acception)" +
+                "  ORDER BY FIRSTORDER.id ASC, LASTORDER.id DESC LIMIT 1";
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("status_id", String.valueOf(3));
         namedParameters.put("currency_pair_id", String.valueOf(currencyPair.getId()));
         try {
-            return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, new RowMapper<ExOrderStatisticsDto>(){
+            return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, new RowMapper<ExOrderStatisticsDto>() {
                 @Override
                 public ExOrderStatisticsDto mapRow(ResultSet rs, int rowNum) throws SQLException {
                     ExOrderStatisticsDto exOrderStatisticsDto = new ExOrderStatisticsDto(currencyPair);
