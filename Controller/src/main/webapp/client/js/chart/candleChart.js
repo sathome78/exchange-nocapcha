@@ -1,7 +1,8 @@
 var canvas;
 var ctx;
-var chartAreaLeft = 40;
-var chartAreaRight = 20;
+var candleChartAreaHeight = 160;
+var chartAreaLeft = 50;
+var chartAreaRight = 30;
 var candleChartAreaTop = 5;
 var candleChartAreaBottom = 3;
 var barChartAreaTop = 3;
@@ -10,11 +11,7 @@ var candleDataTable;
 var candleChart;
 var queryResultArray;
 
-$(function () {
-    google.charts.setOnLoadCallback(drawChart);
-});
-
-function drawChart(period) {
+function drawChartCandle(period) {
     $('.candle-description').css('padding-left', chartAreaLeft + 'px');
     $('#candle-open').html('open: ');
     $('#candle-close').html('close: ');
@@ -25,6 +22,7 @@ function drawChart(period) {
     /**/
     var url = '/dashboard/chartArray/candle';
     url = period ? url + '?period=' + period : url;
+    waiterSwitch(true);
     $.get(url, function (data) {
         queryResultArray = data;
         var backDealInterval = queryResultArray[0][0]; //BackDealInterval is here
@@ -37,6 +35,8 @@ function drawChart(period) {
         var barChartDataArray = prepareBarData(queryResultArray);
         var barOptions = prepareBarOptions();
         drawBarChart(barChartDataArray, barOptions, "bar-chart_div");
+        /**/
+        waiterSwitch(false);
         /*CANVAS*/
         canvas = document.getElementById('graphic-canvas');
         var $candleChartDiv = $('#candle-chart_div');
@@ -66,10 +66,11 @@ function drawCrosshair(e) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.beginPath();
     ctx.moveTo(Xinner - chartAreaLeft - 1, 0);
-    ctx.lineTo(Xinner - chartAreaLeft - 1, canvas.height);
+    ctx.lineTo(Xinner - chartAreaLeft - 1, canvas.height - barChartAreaBottom);
     ctx.stroke();
-    ctx.moveTo(0, Yinner - candleChartAreaTop);
-    ctx.lineTo(canvas.width, Yinner - candleChartAreaTop);
+    var y = Math.min(candleChartAreaHeight-candleChartAreaTop-candleChartAreaBottom, Yinner - candleChartAreaTop);
+    ctx.moveTo(0, y);
+    ctx.lineTo(canvas.width, y);
     ctx.stroke();
     ctx.closePath();
     /**/
@@ -87,12 +88,6 @@ function drawCrosshair(e) {
         ((candle.beginDate.split(' ')[0] === candle.endDate.split(' ')[0]) ? '' : '<span class="date">' + candle.endDate.split(' ')[0] + '</span>') +
         ' ' + candle.endDate.split(' ')[1]);
     }
-}
-
-function setActivePeriodSwitcherButton(backDealInterval) {
-    var id = backDealInterval.intervalValue + backDealInterval.intervalType.toLowerCase();
-    $('.period-menu__item').removeClass('active');
-    $('#' + id).addClass('active');
 }
 
 /*CANDLE*/
@@ -138,7 +133,7 @@ function prepareCandleData(queryResultArray) {
 
 function prepareCandleOptions() {
     return {
-        height: 160,
+        height: candleChartAreaHeight,
         chartArea: {
             left: chartAreaLeft,
             right: chartAreaRight,
@@ -350,11 +345,11 @@ function prepareBarOptions() {
         hAxis: {
             textStyle: {
                 color: '#74210D',
-                fontSize: 12
+                fontSize: 11
             },
             allowContainerBoundaryTextCufoff: true,
             slantedText: false,
-            minTextSpacing: 30
+            minTextSpacing: '2%'
         },
         enableInteractivity: false,
         colors: ['#65180a'],
