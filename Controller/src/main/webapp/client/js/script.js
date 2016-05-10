@@ -113,8 +113,6 @@ $(function () {
         }
     );
 
-    $('.period-menu__item').on('click', redrawChart);
-
 });
 
 
@@ -166,39 +164,10 @@ function createPairSelectorMenu(currencyPairName) {
     });
 }
 
-function redrawChart() {
+function setActivePeriodSwitcherButton(backDealInterval) {
+    var id = backDealInterval.intervalValue + backDealInterval.intervalType.toLowerCase();
     $('.period-menu__item').removeClass('active');
-    var period = '6 MONTH';
-    switch ($(this).attr('id')) {
-        case '12hour':
-        {
-            period = '12 HOUR';
-            break;
-        }
-        case '24hour':
-        {
-            period = '24 HOUR';
-            break;
-        }
-        case '7day':
-        {
-            period = '7 DAY';
-            break;
-        }
-        case '1month':
-        {
-            period = '1 MONTH';
-            break;
-        }
-        case '6month':
-        {
-            period = '6 MONTH';
-            break;
-        }
-    }
-    drawChart(period);
-    $(this).addClass('active');
-    getStatisticsForCurrency(null, period);
+    $('#' + id).addClass('active');
 }
 
 function promptDeleteDoc(id, path, userId) {
@@ -221,3 +190,4 @@ function promptDeleteDoc(id, path, userId) {
         });
     }
 }
+
