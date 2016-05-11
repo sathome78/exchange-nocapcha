@@ -8,8 +8,10 @@ import me.exrates.model.dto.CandleChartItemDto;
 import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.dto.OrderListDto;
+import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
+import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -285,7 +287,6 @@ public class OrderDaoImpl implements OrderDao {
           "    AGRIGATE.last AS last, " +
           "    MIN(LOWESTASKORDER.exrate) AS lowestAsk, " +
           "    MAX(HIGHESTBIDCORDER.exrate) AS highestBid, " +
-          "    LAST/FIRST*100-100 AS percentChange, " +
           "    AGRIGATE.baseVolume AS baseVolume, " +
           "    0 as quoteVolume, " +
           "    0 as isFrozen, " +
@@ -351,7 +352,7 @@ public class OrderDaoImpl implements OrderDao {
                     coinmarketApiDto.setLast(rs.getBigDecimal("last"));
                     coinmarketApiDto.setLowestAsk(rs.getBigDecimal("lowestAsk"));
                     coinmarketApiDto.setHighestBid(rs.getBigDecimal("highestBid"));
-                    coinmarketApiDto.setPercentChange(rs.getBigDecimal("percentChange"));
+                    coinmarketApiDto.setPercentChange(BigDecimalProcessing.doAction(coinmarketApiDto.getFirst(), coinmarketApiDto.getLast(), ActionType.PERCENT_GROWTH));
                     coinmarketApiDto.setBaseVolume(rs.getBigDecimal("baseVolume"));
                     coinmarketApiDto.setQuoteVolume(rs.getBigDecimal("quoteVolume"));
                     coinmarketApiDto.setIsFrozen(rs.getInt("isFrozen"));

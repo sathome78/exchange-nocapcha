@@ -7,5 +7,6 @@ public enum ActionType {
     ADD,
     MULTIPLY,
     MULTIPLY_PERCENT,
+    PERCENT_GROWTH,
     DEVIDE
 }

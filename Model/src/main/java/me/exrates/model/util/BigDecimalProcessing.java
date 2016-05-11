@@ -33,8 +33,15 @@ public class BigDecimalProcessing {
                 result = value1.multiply(value2);
                 break;
             }
+            /*calculate value2 percent from value1*/
             case MULTIPLY_PERCENT: {
                 result = value1.multiply(value2).divide(new BigDecimal(100), ROUND_TYPE);
+                break;
+            }
+            /*calculate the growth in percent value2 relative value1
+            * 50, 120 -> 120/50*100-100 -> 140*/
+            case PERCENT_GROWTH: {
+                result = value2.divide(value1, ROUND_TYPE).multiply(BigDecimal.valueOf(100)).add(BigDecimal.valueOf(100).negate());
                 break;
             }
             case DEVIDE: {
@@ -79,11 +86,11 @@ public class BigDecimalProcessing {
     }
 
     public static String formatToPlainString(BigDecimal bigDecimal) {
-        return bigDecimal == null ? BigDecimal.ZERO.setScale(SCALE).toPlainString() : bigDecimal.setScale(SCALE).toPlainString();
+        return bigDecimal == null ? BigDecimal.ZERO.setScale(SCALE, ROUND_TYPE).toPlainString() : bigDecimal.setScale(SCALE, ROUND_TYPE).toPlainString();
     }
 
     public static String formatToPlainStringQuotes(BigDecimal bigDecimal) {
-        return bigDecimal == null ? '"'+BigDecimal.ZERO.setScale(SCALE).toPlainString()+'"' : '"'+bigDecimal.setScale(SCALE).toPlainString()+'"';
+        return bigDecimal == null ? '"'+BigDecimal.ZERO.setScale(SCALE, ROUND_TYPE).toPlainString()+'"' : '"'+bigDecimal.setScale(SCALE, ROUND_TYPE).toPlainString()+'"';
     }
 
 }
