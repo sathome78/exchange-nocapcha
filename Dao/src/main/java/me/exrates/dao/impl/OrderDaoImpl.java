@@ -5,8 +5,10 @@ import me.exrates.jdbc.OrderRowMapper;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.dto.CandleChartItemDto;
+import me.exrates.model.dto.CoinmarketApiDto;
 import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.dto.OrderListDto;
+import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.vo.BackDealInterval;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -275,6 +277,94 @@ public class OrderDaoImpl implements OrderDao {
         }
     }
 
+    @Override
+    public List<CoinmarketApiDto> getCoinmarketData(String currencyPairName, BackDealInterval backDealInterval){
+        String sql = "SELECT " +
+          "    CURRENCY_PAIR.name AS currency_pair_name, " +
+          "    AGRIGATE.first AS FIRST, " +
+          "    AGRIGATE.last AS last, " +
+          "    MIN(LOWESTASKORDER.exrate) AS lowestAsk, " +
+          "    MAX(HIGHESTBIDCORDER.exrate) AS highestBid, " +
+          "    LAST/FIRST*100-100 AS percentChange, " +
+          "    AGRIGATE.baseVolume AS baseVolume, " +
+          "    0 as quoteVolume, " +
+          "    0 as isFrozen, " +
+          "    MAX(HIGH24ORDER.exrate) AS high24hr, " +
+          "    MIN(LOW24ORDER.exrate) AS low24hr " +
+          " FROM " +
+          "    (SELECT " +
+          "        EO.currency_pair_id, EO.status_id, " +
+          "        MIN(EO.date_acception) AS first_date_acception, " +
+          "        MAX(EO.date_acception) AS last_date_acception, " +
+          "        SUM(EO.amount_base) AS baseVolume, " +
+          "        ( " +
+          "        SELECT FIRSTORDER.exrate FROM EXORDERS FIRSTORDER WHERE " +
+          "                                    (FIRSTORDER.date_acception = MIN(EO.date_acception)) AND " +
+          "                                    (FIRSTORDER.currency_pair_id=EO.currency_pair_id) AND " +
+          "                                    (FIRSTORDER.status_id=EO.status_id) " +
+          "                                    ORDER BY FIRSTORDER.id ASC LIMIT 1 " +
+          "        ) AS first, " +
+          "        ( " +
+          "        SELECT LASTORDER.exrate FROM EXORDERS LASTORDER WHERE " +
+          "                                    (LASTORDER.date_acception = MAX(EO.date_acception)) AND " +
+          "                                    (LASTORDER.currency_pair_id=EO.currency_pair_id) AND " +
+          "                                    (LASTORDER.status_id=EO.status_id) " +
+          "                                    ORDER BY LASTORDER.id DESC LIMIT 1 " +
+          "        ) AS LAST " +
+          "    FROM EXORDERS  EO " +
+          "    WHERE " +
+                (currencyPairName!=null && !"".equals(currencyPairName) ?
+                        "EO.currency_pair_id=(SELECT CURRENCY_PAIR.id FROM CURRENCY_PAIR WHERE CURRENCY_PAIR.name = '"+currencyPairName+"') AND" :
+                        "") +
+          "        EO.status_id = :closed_status_id AND " +
+          "        EO.date_acception >= now() - INTERVAL "+backDealInterval.intervalValue.toString() + " " + backDealInterval.intervalType +
+          "    GROUP BY EO.currency_pair_id, EO.status_id) " +
+          "    AGRIGATE " +
+          "    JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = AGRIGATE.currency_pair_id) " +
+          "    LEFT JOIN EXORDERS LOWESTASKORDER ON (LOWESTASKORDER.date_acception >= AGRIGATE.first_date_acception) AND " +
+          "                                    (LOWESTASKORDER.currency_pair_id=AGRIGATE.currency_pair_id) AND " +
+          "                                    (LOWESTASKORDER.status_id=AGRIGATE.status_id) AND " +
+          "                                    (LOWESTASKORDER.operation_type_id=:sell_operation_type) " +
+          "    LEFT JOIN EXORDERS HIGHESTBIDCORDER ON (HIGHESTBIDCORDER.date_acception >= AGRIGATE.first_date_acception) AND " +
+          "                                    (HIGHESTBIDCORDER.currency_pair_id=AGRIGATE.currency_pair_id) AND " +
+          "                                    (HIGHESTBIDCORDER.status_id=AGRIGATE.status_id) AND " +
+          "                                    (HIGHESTBIDCORDER.operation_type_id=:buy_operation_type) " +
+          "    LEFT JOIN EXORDERS LOW24ORDER ON (LOW24ORDER.date_acception >= now() - INTERVAL 24 HOUR) AND " +
+          "                                    (LOW24ORDER.currency_pair_id=AGRIGATE.currency_pair_id) AND " +
+          "                                    (LOW24ORDER.status_id=AGRIGATE.status_id) " +
+          "    LEFT JOIN EXORDERS HIGH24ORDER ON (HIGH24ORDER.date_acception >= now() - INTERVAL 24 HOUR) AND " +
+          "                                    (HIGH24ORDER.currency_pair_id=AGRIGATE.currency_pair_id) AND " +
+          "                                    (HIGH24ORDER.status_id=AGRIGATE.status_id) " +
+          " GROUP BY currency_pair_name, first, LAST, baseVolume";
+        NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+        Map<String, String> namedParameters = new HashMap<>();
+        namedParameters.put("closed_status_id", String.valueOf(OrderStatus.CLOSED.getStatus()));
+        namedParameters.put("sell_operation_type", String.valueOf(OperationType.SELL.getType()));
+        namedParameters.put("buy_operation_type", String.valueOf(OperationType.BUY.getType()));
+        try {
+            return namedParameterJdbcTemplate.query(sql, namedParameters, new RowMapper<CoinmarketApiDto>() {
+                @Override
+                public CoinmarketApiDto mapRow(ResultSet rs, int rowNum) throws SQLException {
+                    CoinmarketApiDto coinmarketApiDto = new CoinmarketApiDto();
+                    coinmarketApiDto.setCurrency_pair_name(rs.getString("currency_pair_name"));
+                    coinmarketApiDto.setFirst(rs.getBigDecimal("first"));
+                    coinmarketApiDto.setLast(rs.getBigDecimal("last"));
+                    coinmarketApiDto.setLowestAsk(rs.getBigDecimal("lowestAsk"));
+                    coinmarketApiDto.setHighestBid(rs.getBigDecimal("highestBid"));
+                    coinmarketApiDto.setPercentChange(rs.getBigDecimal("percentChange"));
+                    coinmarketApiDto.setBaseVolume(rs.getBigDecimal("baseVolume"));
+                    coinmarketApiDto.setQuoteVolume(rs.getBigDecimal("quoteVolume"));
+                    coinmarketApiDto.setIsFrozen(rs.getInt("isFrozen"));
+                    coinmarketApiDto.setHigh24hr(rs.getBigDecimal("high24hr"));
+                    coinmarketApiDto.setLow24hr(rs.getBigDecimal("low24hr"));
+                    return coinmarketApiDto;
+                }
+            });
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
+
+    }
 
 }
 

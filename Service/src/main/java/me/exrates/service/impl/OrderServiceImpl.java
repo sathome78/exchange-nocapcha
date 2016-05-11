@@ -6,12 +6,10 @@ import me.exrates.dao.TransactionDao;
 import me.exrates.dao.WalletDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
-import me.exrates.model.dto.OrderCreateDto;
-import me.exrates.model.dto.OrderListDto;
-import me.exrates.model.dto.OrderWideListDto;
-import me.exrates.model.dto.WalletsForOrderAcceptionDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
+import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.*;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.TransactionPersistException;
@@ -398,5 +396,12 @@ public class OrderServiceImpl implements OrderService {
     public boolean updateOrder(ExOrder exOrder) {
         return orderDao.updateOrder(exOrder);
     }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<CoinmarketApiDto> getCoinmarketData(String currencyPairName, BackDealInterval backDealInterval) {
+        return orderDao.getCoinmarketData(currencyPairName, backDealInterval);
+    }
+
 
 }

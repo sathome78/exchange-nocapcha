@@ -145,8 +145,3 @@ function createPairSelectorMenu(currencyPairName) {
     });
 }
 
-function setActivePeriodSwitcherButton(backDealInterval) {
-    var id = backDealInterval.intervalValue + backDealInterval.intervalType.toLowerCase();
-    $('.period-menu__item').removeClass('active');
-    $('#' + id).addClass('active');
-}

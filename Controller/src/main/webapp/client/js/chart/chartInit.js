@@ -122,3 +122,9 @@ function areaChartSwitch(state){
 function waiterSwitch(state){
     $('#graphic-wait').toggle(state);
 }
+
+function setActivePeriodSwitcherButton(backDealInterval) {
+    var id = backDealInterval.intervalValue + backDealInterval.intervalType.toLowerCase();
+    $('.period-menu__item').removeClass('active');
+    $('#' + id).addClass('active');
+}
