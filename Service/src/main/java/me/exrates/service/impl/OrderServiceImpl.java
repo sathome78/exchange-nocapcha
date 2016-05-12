@@ -403,5 +403,20 @@ public class OrderServiceImpl implements OrderService {
         return orderDao.getCoinmarketData(currencyPairName, backDealInterval);
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public OrderInfoDto getOrderInfo(int orderId) {
+        return orderDao.getOrderInfo(orderId);
+    }
 
+    @Override
+    public Integer deleteOrderByAdmin(int orderId) {
+        return orderDao.deleteOrderByAdmin(orderId);
+    }
+
+    @Override
+    public Integer searchOrderByAdmin(Integer currencyPair, String orderType, String orderDate, BigDecimal orderRate, BigDecimal orderVolume) {
+        Integer ot = OperationType.valueOf(orderType).getType();
+        return orderDao.searchOrderByAdmin(currencyPair, ot, orderDate, orderRate, orderVolume);
+    }
 }
