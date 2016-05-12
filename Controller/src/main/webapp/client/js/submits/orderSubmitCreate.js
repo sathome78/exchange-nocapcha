@@ -15,7 +15,10 @@ function submitCreateOrder(orderId, orderType) {
         type: 'POST',
         data: form.serialize(),
         success: function () {
-            window.location = '/orders/createordersuccess';
+            window.location = '/orders?result=createsuccess';
+        },
+        error: function () {
+
         }
     });
 }

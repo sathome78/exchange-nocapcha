@@ -72,8 +72,8 @@ function redrawChart() {
         }
         default:
         {
-            id = 'candle';
-            chartType = 'CANDLE';
+            id = 'area';
+            chartType = 'AREA';
             break;
         }
     }
@@ -85,7 +85,7 @@ function redrawChart() {
 
 function drawChart(period, chartType){
     if (! chartType) {
-        chartType = 'CANDLE';
+        chartType = 'AREA';
     }
     switch (chartType) {
         case 'CANDLE':

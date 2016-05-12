@@ -145,3 +145,4 @@ function createPairSelectorMenu(currencyPairName) {
     });
 }
 
+

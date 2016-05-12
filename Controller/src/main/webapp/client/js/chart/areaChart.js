@@ -18,9 +18,9 @@ function drawChartArea(period) {
                 /*returns html for tip*/
                 getAreaHtml(
                     /*data for tip:*/
-                    arrayResult[i][0], arrayResult[i][1],
+                    arrayResult[i][0], arrayResult[i][1], arrayResult[i][2],
                     /*titles for tip data:*/
-                    arrayResult[i][2], arrayResult[i][3]
+                    arrayResult[i][3], arrayResult[i][4], arrayResult[i][5]
                 )];
         }
         if (Combined.length == 0) {
@@ -83,7 +83,7 @@ function drawChartArea(period) {
     });
 }
 
-function getAreaHtml(date, value, dateTitle, valueTitle) {
+function getAreaHtml(date, rate, value, dateTitle, rateTitle, valueTitle) {
     var html;
     if (!date) {
         html = '<div class="area-chart-tip">' +
@@ -92,6 +92,7 @@ function getAreaHtml(date, value, dateTitle, valueTitle) {
     } else {
         html = '<div class="area-chart-tip">' +
         '<p class="areaChartTip__date">' + '<span>' + dateTitle + '</span>' + ': ' + date + '</p>' +
+        '<p class="areaChartTip__rate">' + '<span>' + rateTitle + '</span>' + ': ' + rate + '</p>' +
         '<p class="areaChartTip__rate">' + '<span>' + valueTitle + '</span>' + ': ' + value + '</p>' +
         '</div>';
     }

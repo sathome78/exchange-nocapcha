@@ -7,7 +7,7 @@ function submitAcceptOrder(id) {
         url: '/orders/accept?id=' + id,
         type: 'GET',
         success: function(){
-            window.location = '/orders/acceptordersuccess';
+            window.location = '/orders?result=acceptsuccess';
         }
     });
     return false;

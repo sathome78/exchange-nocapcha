@@ -263,6 +263,10 @@
     </div>
     <hr>
 </main>
+
+<%@include file='order_delete.jsp' %>
+
+
 </body>
 </html>
 

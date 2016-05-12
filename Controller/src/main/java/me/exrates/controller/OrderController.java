@@ -60,9 +60,23 @@ public class OrderController {
     OrderValidator orderValidator;
 
     @RequestMapping(value = "/orders")
-    public ModelAndView orderBuySellList(Principal principal, @ModelAttribute ExOrder exOrder, HttpServletRequest request, HttpServletResponse response) {
+    public ModelAndView orderBuySellList(Principal principal, @RequestParam(required = false, defaultValue = "") String result, @ModelAttribute ExOrder exOrder, HttpServletRequest request, HttpServletResponse response) {
         ModelAndView model = new ModelAndView();
         model.setViewName("orders");
+        switch (result) {
+            case "createsuccess": {
+                String msg = messageSource.getMessage("createdorder.text", null, localeResolver.resolveLocale(request));
+                msg += String.format("</br></br><a href='/myorders'>%s</a>", messageSource.getMessage("createdorder.edit", null, localeResolver.resolveLocale(request)));
+                model.addObject("successNoty", msg);
+                break;
+            }
+            case "acceptsuccess": {
+                String msg = messageSource.getMessage("acceptordersuccess.text", null, localeResolver.resolveLocale(request));
+                msg += String.format("</br></br><a href='/myorders'>%s</a>", messageSource.getMessage("createdorder.edit", null, localeResolver.resolveLocale(request)));
+                model.addObject("successNoty", msg);
+                break;
+            }
+        }
         //
         CurrencyPair activeCurrencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
         //
@@ -421,6 +435,13 @@ public class OrderController {
     @ExceptionHandler(NotConfirmedFinPasswordException.class)
     @ResponseBody
     public ErrorInfo NotConfirmedFinPasswordExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(RuntimeException.class)
+    @ResponseBody
+    public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 

@@ -22,16 +22,16 @@ public class CoinmarketApiDto {
 
     @Override
     public String toString() {
-        return '"'+currency_pair_name.replace('/','_')+'"'+":" +
-                "{ "+'"'+"last"+'"'+":"+ BigDecimalProcessing.formatToPlainStringQuotes(last) +
-                ", "+'"'+"lowestAsk"+'"'+":" + BigDecimalProcessing.formatToPlainStringQuotes(lowestAsk) +
-                ", "+'"'+"highestBid"+'"'+":" + BigDecimalProcessing.formatToPlainStringQuotes(highestBid) +
-                ", "+'"'+"percentChange"+'"'+":" + BigDecimalProcessing.formatToPlainStringQuotes(percentChange) +
-                ", "+'"'+"baseVolume"+'"'+":" + BigDecimalProcessing.formatToPlainStringQuotes(baseVolume) +
-                ", "+'"'+"quoteVolume"+'"'+":" + BigDecimalProcessing.formatToPlainStringQuotes(quoteVolume) +
-                ", "+'"'+"isFrozen"+'"'+":" + isFrozen +
-                ", "+'"'+"high24hr"+'"'+":" + BigDecimalProcessing.formatToPlainStringQuotes(high24hr) +
-                ", "+'"'+"low24hr"+'"'+":" + BigDecimalProcessing.formatToPlainStringQuotes(low24hr) +
+        return '"'+currency_pair_name.replace('/','_')+"\":" +
+                "{\"last\":"+ BigDecimalProcessing.formatToPlainStringQuotes(last) +
+                ", \"lowestAsk\":" + BigDecimalProcessing.formatToPlainStringQuotes(lowestAsk) +
+                ", \"highestBid\":" + BigDecimalProcessing.formatToPlainStringQuotes(highestBid) +
+                ", \"percentChange\":" + BigDecimalProcessing.formatToPlainStringQuotes(percentChange) +
+                ", \"baseVolume\":" + BigDecimalProcessing.formatToPlainStringQuotes(baseVolume) +
+                ", \"quoteVolume\":" + BigDecimalProcessing.formatToPlainStringQuotes(quoteVolume) +
+                ", \"isFrozen\":" + '"'+isFrozen+'"' +
+                ", \"high24hr\":" + BigDecimalProcessing.formatToPlainStringQuotes(high24hr) +
+                ", \"low24hr\":" + BigDecimalProcessing.formatToPlainStringQuotes(low24hr) +
                 '}';
     }
 
