@@ -50,7 +50,14 @@ $(function () {
                     "data": "merchant.description"
                 },
                 {
-                    "data": "order.id"
+                    "data": "order",
+                    "render": function (data, type, row) {
+                        if (data && data.id > 0) {
+                            return '<button id="transactionlist-delete-order-button" onclick=getOrderDetailedInfo(' + data.id + ')>' + data.id + '</button>';
+                        } else {
+                            return '';
+                        }
+                    }
                 }
             ],
             "order": [
@@ -62,3 +69,4 @@ $(function () {
         });
     }
 });
+

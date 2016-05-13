@@ -2,11 +2,10 @@ package me.exrates.dao;
 
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
-import me.exrates.model.dto.CandleChartItemDto;
-import me.exrates.model.dto.ExOrderStatisticsDto;
-import me.exrates.model.dto.OrderListDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.vo.BackDealInterval;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -37,6 +36,14 @@ public interface OrderDao {
     List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval backDealInterval);
 
     ExOrderStatisticsDto getOrderStatistic(CurrencyPair currencyPair, BackDealInterval backDealInterval);
+
+    List<CoinmarketApiDto> getCoinmarketData(String currencyPairName, BackDealInterval backDealInterval);
+
+    OrderInfoDto getOrderInfo(int orderId);
+
+    Integer deleteOrderByAdmin(int orderId);
+
+    int searchOrderByAdmin(Integer currencyPair, Integer orderType, String orderDate, BigDecimal orderRate, BigDecimal orderVolume);
 
 
 }

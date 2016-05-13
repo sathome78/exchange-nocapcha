@@ -1,17 +1,16 @@
 package me.exrates.controller;
 
 import me.exrates.controller.validator.RegisterFormValidation;
+import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
 import me.exrates.model.dto.OperationViewDto;
+import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.security.service.UserSecureServiceImpl;
-import me.exrates.service.MerchantService;
-import me.exrates.service.TransactionService;
-import me.exrates.service.UserService;
-import me.exrates.service.WalletService;
+import me.exrates.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.MediaType;
@@ -26,6 +25,7 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.*;
 
@@ -47,10 +47,16 @@ public class AdminController {
     private MerchantService merchantService;
 
     @Autowired
+    private CurrencyService currencyService;
+
+    @Autowired
     private RegisterFormValidation registerFormValidation;
 
     @Autowired
     private WalletService walletService;
+
+    @Autowired
+    private OrderService orderService;
 
     @Autowired
     private TransactionService transactionService;
@@ -63,6 +69,8 @@ public class AdminController {
         currentRole = ((UsernamePasswordAuthenticationToken) principal).getAuthorities().iterator().next().getAuthority();
 
         ModelAndView model = new ModelAndView();
+        List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairs();
+        model.addObject("currencyPairList", currencyPairList);
         model.setViewName("admin/admin");
 
         return model;
@@ -318,4 +326,29 @@ public class AdminController {
         return new ModelAndView("withdrawalRequests", params);
     }
 
+    @ResponseBody
+    @RequestMapping(value = "/admin/orderinfo", method = RequestMethod.GET)
+    public OrderInfoDto getOrderInfo(@RequestParam int id) {
+        return orderService.getOrderInfo(id);
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/admin/orderdelete", method = RequestMethod.POST)
+    public Integer deleteOrderByAdmin(@RequestParam int id) {
+        return orderService.deleteOrderByAdmin(id);
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/admin/searchorder", method = RequestMethod.GET)
+    public Integer searchOrderByAdmin(@RequestParam Integer currencyPair,
+                                      @RequestParam String orderType,
+                                      @RequestParam String orderDate,
+                                      @RequestParam BigDecimal orderRate,
+                                      @RequestParam BigDecimal orderVolume) {
+        return orderService.searchOrderByAdmin(currencyPair, orderType, orderDate, orderRate, orderVolume);
+    }
+
 }
+
+
+//currencyPair=1&orderType=SELL&orderDate=2016-05-12+14%3A07&orderRate=11&orderVolume=22

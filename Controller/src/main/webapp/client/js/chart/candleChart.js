@@ -92,11 +92,19 @@ function drawCrosshair(e) {
 
 /*CANDLE*/
 
+var candleMinMax = {min: Number.MAX_VALUE, max: 0};
+
+function updateMinMax(item){
+    candleMinMax.min = Math.min(item[2], item[3], item[4], item[5], candleMinMax.min);
+    candleMinMax.max = Math.max(item[2], item[3], item[4], item[5], candleMinMax.min);
+}
+
 function prepareCandleData(queryResultArray) {
     var chartDataArray = [];
     for (var i = 1; i < queryResultArray.length; i++) {
         queryResultArray[i][0] = queryResultArray[i][0].replace('T', ' ');
         queryResultArray[i][1] = queryResultArray[i][1].replace('T', ' ');
+        updateMinMax(queryResultArray[i]);
         /*html for tooltip*/
         var html = getCandleHtml(
             /*data for tip:*/
@@ -128,6 +136,8 @@ function prepareCandleData(queryResultArray) {
     if (chartDataArray.length == 0) {
         chartDataArray[0] = ['', 0, 0, 0, 0, getCandleHtml()];
     }
+    console.log(candleMinMax);
+
     return chartDataArray;
 }
 
@@ -154,7 +164,8 @@ function prepareCandleOptions() {
             textStyle: {
                 color: '#65180a',
                 fontSize: 10
-            }
+            },
+            viewWindowMode: 'pretty'
         },
         hAxis: {
             textStyle: {

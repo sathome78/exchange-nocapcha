@@ -6,12 +6,10 @@ import me.exrates.dao.TransactionDao;
 import me.exrates.dao.WalletDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
-import me.exrates.model.dto.OrderCreateDto;
-import me.exrates.model.dto.OrderListDto;
-import me.exrates.model.dto.OrderWideListDto;
-import me.exrates.model.dto.WalletsForOrderAcceptionDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
+import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.*;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.TransactionPersistException;
@@ -399,4 +397,26 @@ public class OrderServiceImpl implements OrderService {
         return orderDao.updateOrder(exOrder);
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public List<CoinmarketApiDto> getCoinmarketData(String currencyPairName, BackDealInterval backDealInterval) {
+        return orderDao.getCoinmarketData(currencyPairName, backDealInterval);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public OrderInfoDto getOrderInfo(int orderId) {
+        return orderDao.getOrderInfo(orderId);
+    }
+
+    @Override
+    public Integer deleteOrderByAdmin(int orderId) {
+        return orderDao.deleteOrderByAdmin(orderId);
+    }
+
+    @Override
+    public Integer searchOrderByAdmin(Integer currencyPair, String orderType, String orderDate, BigDecimal orderRate, BigDecimal orderVolume) {
+        Integer ot = OperationType.valueOf(orderType).getType();
+        return orderDao.searchOrderByAdmin(currencyPair, ot, orderDate, orderRate, orderVolume);
+    }
 }

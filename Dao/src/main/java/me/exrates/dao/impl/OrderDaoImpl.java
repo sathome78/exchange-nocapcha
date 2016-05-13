@@ -4,10 +4,11 @@ import me.exrates.dao.OrderDao;
 import me.exrates.jdbc.OrderRowMapper;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
-import me.exrates.model.dto.CandleChartItemDto;
-import me.exrates.model.dto.ExOrderStatisticsDto;
-import me.exrates.model.dto.OrderListDto;
+import me.exrates.model.dto.*;
+import me.exrates.model.enums.ActionType;
+import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
+import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -22,6 +23,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
+import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -275,7 +277,206 @@ public class OrderDaoImpl implements OrderDao {
         }
     }
 
+    @Override
+    public List<CoinmarketApiDto> getCoinmarketData(String currencyPairName, BackDealInterval backDealInterval) {
+        String sql = "SELECT " +
+                "    CURRENCY_PAIR.name AS currency_pair_name, " +
+                "    AGRIGATE.first AS FIRST, " +
+                "    AGRIGATE.last AS last, " +
+                "    MIN(LOWESTASKORDER.exrate) AS lowestAsk, " +
+                "    MAX(HIGHESTBIDCORDER.exrate) AS highestBid, " +
+                "    AGRIGATE.baseVolume AS baseVolume, " +
+                "    0 as quoteVolume, " +
+                "    0 as isFrozen, " +
+                "    MAX(HIGH24ORDER.exrate) AS high24hr, " +
+                "    MIN(LOW24ORDER.exrate) AS low24hr " +
+                " FROM " +
+                "    (SELECT " +
+                "        EO.currency_pair_id, EO.status_id, " +
+                "        MIN(EO.date_acception) AS first_date_acception, " +
+                "        MAX(EO.date_acception) AS last_date_acception, " +
+                "        SUM(EO.amount_base) AS baseVolume, " +
+                "        ( " +
+                "        SELECT FIRSTORDER.exrate FROM EXORDERS FIRSTORDER WHERE " +
+                "                                    (FIRSTORDER.date_acception = MIN(EO.date_acception)) AND " +
+                "                                    (FIRSTORDER.currency_pair_id=EO.currency_pair_id) AND " +
+                "                                    (FIRSTORDER.status_id=EO.status_id) " +
+                "                                    ORDER BY FIRSTORDER.id ASC LIMIT 1 " +
+                "        ) AS first, " +
+                "        ( " +
+                "        SELECT LASTORDER.exrate FROM EXORDERS LASTORDER WHERE " +
+                "                                    (LASTORDER.date_acception = MAX(EO.date_acception)) AND " +
+                "                                    (LASTORDER.currency_pair_id=EO.currency_pair_id) AND " +
+                "                                    (LASTORDER.status_id=EO.status_id) " +
+                "                                    ORDER BY LASTORDER.id DESC LIMIT 1 " +
+                "        ) AS LAST " +
+                "    FROM EXORDERS  EO " +
+                "    WHERE " +
+                (currencyPairName != null && !"".equals(currencyPairName) ?
+                        "EO.currency_pair_id=(SELECT CURRENCY_PAIR.id FROM CURRENCY_PAIR WHERE CURRENCY_PAIR.name = '" + currencyPairName + "') AND" :
+                        "") +
+                "        EO.status_id = :closed_status_id AND " +
+                "        EO.date_acception >= now() - INTERVAL " + backDealInterval.intervalValue.toString() + " " + backDealInterval.intervalType +
+                "    GROUP BY EO.currency_pair_id, EO.status_id) " +
+                "    AGRIGATE " +
+                "    JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = AGRIGATE.currency_pair_id) " +
+                "    LEFT JOIN EXORDERS LOWESTASKORDER ON (LOWESTASKORDER.date_acception >= AGRIGATE.first_date_acception) AND " +
+                "                                    (LOWESTASKORDER.currency_pair_id=AGRIGATE.currency_pair_id) AND " +
+                "                                    (LOWESTASKORDER.status_id=AGRIGATE.status_id) AND " +
+                "                                    (LOWESTASKORDER.operation_type_id=:sell_operation_type) " +
+                "    LEFT JOIN EXORDERS HIGHESTBIDCORDER ON (HIGHESTBIDCORDER.date_acception >= AGRIGATE.first_date_acception) AND " +
+                "                                    (HIGHESTBIDCORDER.currency_pair_id=AGRIGATE.currency_pair_id) AND " +
+                "                                    (HIGHESTBIDCORDER.status_id=AGRIGATE.status_id) AND " +
+                "                                    (HIGHESTBIDCORDER.operation_type_id=:buy_operation_type) " +
+                "    LEFT JOIN EXORDERS LOW24ORDER ON (LOW24ORDER.date_acception >= now() - INTERVAL 24 HOUR) AND " +
+                "                                    (LOW24ORDER.currency_pair_id=AGRIGATE.currency_pair_id) AND " +
+                "                                    (LOW24ORDER.status_id=AGRIGATE.status_id) " +
+                "    LEFT JOIN EXORDERS HIGH24ORDER ON (HIGH24ORDER.date_acception >= now() - INTERVAL 24 HOUR) AND " +
+                "                                    (HIGH24ORDER.currency_pair_id=AGRIGATE.currency_pair_id) AND " +
+                "                                    (HIGH24ORDER.status_id=AGRIGATE.status_id) " +
+                " GROUP BY currency_pair_name, first, LAST, baseVolume";
+        NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+        Map<String, String> namedParameters = new HashMap<>();
+        namedParameters.put("closed_status_id", String.valueOf(OrderStatus.CLOSED.getStatus()));
+        namedParameters.put("sell_operation_type", String.valueOf(OperationType.SELL.getType()));
+        namedParameters.put("buy_operation_type", String.valueOf(OperationType.BUY.getType()));
+        try {
+            return namedParameterJdbcTemplate.query(sql, namedParameters, new RowMapper<CoinmarketApiDto>() {
+                @Override
+                public CoinmarketApiDto mapRow(ResultSet rs, int rowNum) throws SQLException {
+                    CoinmarketApiDto coinmarketApiDto = new CoinmarketApiDto();
+                    coinmarketApiDto.setCurrency_pair_name(rs.getString("currency_pair_name"));
+                    coinmarketApiDto.setFirst(rs.getBigDecimal("first"));
+                    coinmarketApiDto.setLast(rs.getBigDecimal("last"));
+                    coinmarketApiDto.setLowestAsk(rs.getBigDecimal("lowestAsk"));
+                    coinmarketApiDto.setHighestBid(rs.getBigDecimal("highestBid"));
+                    coinmarketApiDto.setPercentChange(BigDecimalProcessing.doAction(coinmarketApiDto.getFirst(), coinmarketApiDto.getLast(), ActionType.PERCENT_GROWTH));
+                    coinmarketApiDto.setBaseVolume(rs.getBigDecimal("baseVolume"));
+                    coinmarketApiDto.setQuoteVolume(rs.getBigDecimal("quoteVolume"));
+                    coinmarketApiDto.setIsFrozen(rs.getInt("isFrozen"));
+                    coinmarketApiDto.setHigh24hr(rs.getBigDecimal("high24hr"));
+                    coinmarketApiDto.setLow24hr(rs.getBigDecimal("low24hr"));
+                    return coinmarketApiDto;
+                }
+            });
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
+    }
 
+    @Override
+    public OrderInfoDto getOrderInfo(int orderId) {
+        String sql =
+                " SELECT  " +
+                        "     EXORDERS.id, EXORDERS.date_creation, EXORDERS.date_acception,  " +
+                        "     ORDER_STATUS.name AS order_status_name,  " +
+                        "     CURRENCY_PAIR.name as currency_pair_name,  " +
+                        "     UPPER(ORDER_OPERATION.name) AS order_type_name,  " +
+                        "     EXORDERS.exrate, EXORDERS.amount_base, EXORDERS.amount_convert, " +
+                        "     ORDER_CURRENCY_BASE.name as currency_base_name, ORDER_CURRENCY_CONVERT.name as currency_convert_name, " +
+                        "     CREATOR.email AS order_creator_email, " +
+                        "     ACCEPTOR.email AS order_acceptor_email, " +
+                        "     COUNT(TRANSACTION.id) AS transaction_count,  " +
+                        "     SUM(TRANSACTION.commission_amount) AS company_commission " +
+                        " FROM EXORDERS " +
+                        "      JOIN ORDER_STATUS ON (ORDER_STATUS.id = EXORDERS.status_id) " +
+                        "      JOIN OPERATION_TYPE AS ORDER_OPERATION ON (ORDER_OPERATION.id = EXORDERS.operation_type_id) " +
+                        "      JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) " +
+                        "      JOIN CURRENCY ORDER_CURRENCY_BASE ON (ORDER_CURRENCY_BASE.id = CURRENCY_PAIR.currency1_id)   " +
+                        "      JOIN CURRENCY ORDER_CURRENCY_CONVERT ON (ORDER_CURRENCY_CONVERT.id = CURRENCY_PAIR.currency2_id)  " +
+                        "      JOIN WALLET ORDER_CREATOR_RESERVED_WALLET ON  " +
+                        "              (ORDER_CREATOR_RESERVED_WALLET.user_id=EXORDERS.user_id) AND  " +
+                        "              ( " +
+                        "                  (upper(ORDER_OPERATION.name)='BUY' AND ORDER_CREATOR_RESERVED_WALLET.currency_id = CURRENCY_PAIR.currency2_id)  " +
+                        "                  OR  " +
+                        "                  (upper(ORDER_OPERATION.name)='SELL' AND ORDER_CREATOR_RESERVED_WALLET.currency_id = CURRENCY_PAIR.currency1_id) " +
+                        "              ) " +
+                        "      JOIN USER CREATOR ON (CREATOR.id = EXORDERS.user_id) " +
+                        "      LEFT JOIN USER ACCEPTOR ON (ACCEPTOR.id = EXORDERS.user_acceptor_id) " +
+                        "      LEFT JOIN TRANSACTION ON (TRANSACTION.order_id = EXORDERS.id) " +
+                        "      LEFT JOIN OPERATION_TYPE TRANSACTION_OPERATION ON (TRANSACTION_OPERATION.id = TRANSACTION.operation_type_id) " +
+                        "      LEFT JOIN WALLET USER_WALLET ON (USER_WALLET.id = TRANSACTION.user_wallet_id) " +
+                        "      LEFT JOIN COMPANY_WALLET ON (COMPANY_WALLET.currency_id = TRANSACTION.company_wallet_id) and (TRANSACTION.commission_amount <> 0) " +
+                        "      LEFT JOIN USER ON (USER.id = USER_WALLET.user_id) " +
+                        " WHERE EXORDERS.id=:order_id" +
+                        " GROUP BY EXORDERS.id";
+        Map<String, String> mapParameters = new HashMap<>();
+        mapParameters.put("order_id", String.valueOf(orderId));
+        NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+        try {
+            return namedParameterJdbcTemplate.queryForObject(sql, mapParameters, new RowMapper<OrderInfoDto>() {
+                @Override
+                public OrderInfoDto mapRow(ResultSet rs, int rowNum) throws SQLException {
+                    OrderInfoDto orderInfoDto = new OrderInfoDto();
+                    orderInfoDto.setId(rs.getInt("id"));
+                    orderInfoDto.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
+                    orderInfoDto.setDateAcception(rs.getTimestamp("date_acception") == null ? null : rs.getTimestamp("date_acception").toLocalDateTime());
+                    orderInfoDto.setCurrencyPairName(rs.getString("currency_pair_name"));
+                    orderInfoDto.setOrderTypeName(rs.getString("order_type_name"));
+                    orderInfoDto.setOrderStatusName(rs.getString("order_status_name"));
+                    orderInfoDto.setExrate(rs.getBigDecimal("exrate"));
+                    orderInfoDto.setAmountBase(rs.getBigDecimal("amount_base"));
+                    orderInfoDto.setAmountConvert(rs.getBigDecimal("amount_convert"));
+                    orderInfoDto.setCurrencyBaseName(rs.getString("currency_base_name"));
+                    orderInfoDto.setCurrencyConvertName(rs.getString("currency_convert_name"));
+                    orderInfoDto.setOrderCreatorEmail(rs.getString("order_creator_email"));
+                    orderInfoDto.setOrderAcceptorEmail(rs.getString("order_acceptor_email"));
+                    orderInfoDto.setTransactionCount(rs.getBigDecimal("transaction_count"));
+                    orderInfoDto.setCompanyCommission(rs.getBigDecimal("company_commission"));
+                    return orderInfoDto;
+                }
+            });
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
+    }
+
+    @Override
+    public Integer deleteOrderByAdmin(int orderId) {
+        String s = "{call DELETE_ORDER(" + orderId + ")}";
+        NamedParameterJdbcTemplate jdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+        return jdbcTemplate.execute(s, new PreparedStatementCallback<Integer>() {
+            @Override
+            public Integer doInPreparedStatement(PreparedStatement ps) throws SQLException, DataAccessException {
+                ResultSet rs = ps.executeQuery();
+                rs.next();
+                Integer result = rs.getInt(1);
+                rs.close();
+                return result;
+            }
+        });
+    }
+
+    @Override
+    public int searchOrderByAdmin(Integer currencyPair, Integer orderType, String orderDate, BigDecimal orderRate, BigDecimal orderVolume) {
+        String sql = "SELECT id " +
+                "  FROM EXORDERS" +
+                "  WHERE (    " +
+                "      EXORDERS.currency_pair_id = :currency_pair_id AND " +
+                "      EXORDERS.operation_type_id = :operation_type_id AND " +
+                "      DATE_FORMAT(EXORDERS.date_creation, '%Y-%m-%d %H:%i:%s') = STR_TO_DATE(:date_creation, '%Y-%m-%d %H:%i:%s') AND " +
+                "      EXORDERS.exrate = :exrate AND " +
+                "      EXORDERS.amount_base = :amount_base" +
+                "  )" +
+                "  LIMIT 1";
+        NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+        Map<String, String> namedParameters = new HashMap<>();
+        namedParameters.put("currency_pair_id", String.valueOf(currencyPair));
+        namedParameters.put("operation_type_id", String.valueOf(orderType));
+        namedParameters.put("date_creation", orderDate);
+        namedParameters.put("exrate", String.valueOf(orderRate));
+        namedParameters.put("amount_base", String.valueOf(orderVolume));
+        try {
+            return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, new RowMapper<Integer>() {
+                @Override
+                public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
+                    return rs.getInt(1);
+                }
+            });
+        } catch (EmptyResultDataAccessException e) {
+            return -1;
+        }
+    }
 }
 
 
