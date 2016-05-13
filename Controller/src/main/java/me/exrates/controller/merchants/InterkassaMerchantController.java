@@ -4,8 +4,8 @@ import com.google.gson.Gson;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.model.Transaction;
+import me.exrates.service.InterkassaService;
 import me.exrates.service.MerchantService;
-import me.exrates.service.Privat24Service;
 import me.exrates.service.TransactionService;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -30,13 +30,13 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.OK;
 
 @Controller
-@RequestMapping("/merchants/privat24")
-public class Privat24MerchantController {
+@RequestMapping("/merchants/interkassa")
+public class InterkassaMerchantController {
     @Autowired
     private MerchantService merchantService;
 
     @Autowired
-    private Privat24Service privat24Service;
+    private InterkassaService interkassaService;
 
     @Autowired
     private TransactionService transactionService;
@@ -56,7 +56,7 @@ public class Privat24MerchantController {
             return new ResponseEntity<>(errors, HttpStatus.NO_CONTENT);
         }
 
-        final Map<String, String> params = privat24Service.preparePayment(creditsOperation.get(), principal.getName());
+        final Map<String, String> params = interkassaService.preparePayment(creditsOperation.get(), principal.getName());;
 
         return new ResponseEntity<>(params,HttpStatus.OK);
     }
@@ -68,20 +68,9 @@ public class Privat24MerchantController {
         LOG.debug("Begin method: statusPayment.");
         final ResponseEntity<Void> response = new ResponseEntity<>(OK);
 
-        String signature = params.get("signature");
-        String payment = params.get("payment");
-        LOG.debug("Get status payment: " + payment);
-        String[] arrayResponse = payment.split("&");
-        Map<String,String> mapResponse = new HashMap<>();
-        for (String value : arrayResponse){
-            mapResponse.put(value.split("=")[0], value.split("=")[1]);
-        }
-
-
-        if (privat24Service.confirmPayment(mapResponse, signature, payment)) {
+        if (interkassaService.confirmPayment(params)) {
             return response;
         }
-
 
         return new ResponseEntity<>(BAD_REQUEST);
     }
@@ -91,23 +80,13 @@ public class Privat24MerchantController {
 
         LOG.debug("Begin method: successPayment.");
 
-        String signature = response.get("signature");
-        String payment = response.get("payment");
-        String[] arrayResponse = payment.split("&");
-        Map<String,String> mapResponse = new HashMap<>();
-        for (String value : arrayResponse){
-            mapResponse.put(value.split("=")[0], value.split("=")[1]);
-        }
-
         Transaction transaction;
         try{
-            transaction = transactionService.findById(Integer.parseInt(mapResponse.get("order")));
+            transaction = transactionService.findById(Integer.parseInt(response.get("ik_pm_no")));
             if (!transaction.isProvided()){
-                if (!privat24Service.confirmPayment(mapResponse, signature, payment)) {
-
-                    redir.addFlashAttribute("error", "merchants.authRejected");
-                    return new RedirectView("/merchants/input");
-                }
+                redir.addFlashAttribute("error", "merchants.authRejected");
+                LOG.debug("Transaction is not provided.");
+                return new RedirectView("/merchants/input");
             }
         }catch (EmptyResultDataAccessException e){
             LOG.error(e);
@@ -121,6 +100,7 @@ public class Privat24MerchantController {
         final String message = "merchants.successfulBalanceDeposit";
         redir.addFlashAttribute("message", message);
 
+        LOG.debug("Method successful, redirect /mywallets.");
         return new RedirectView("/mywallets");
     }
 
