@@ -6,4 +6,4 @@ INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum)
           (SELECT id from CURRENCY WHERE name="RUB"),
           0.01000000);
 
-INSERT INTO DATABASE_PATCH VALUES('patch_39_added_interkassa_support',default,1);
+INSERT INTO DATABASE_PATCH VALUES('patch_41_added_interkassa_support',default,1);
