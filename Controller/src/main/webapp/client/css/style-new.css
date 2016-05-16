@@ -1,4 +1,4 @@
-/******************************** 
+/********************************
 
 	1. Navigation
 	2. Exchange Data
@@ -1697,60 +1697,6 @@ th.allign-center {
     width: 85%;
 }
 
-#graphic-wait{
-    position: absolute;
-    width: 100px;
-    height: 50px;
-    line-height: 50px;
-    text-align: center;
-    top: -10px;
-    left: 0;
-    bottom: 0;
-    right: 0;
-    margin: auto;
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 3px;
-}
-
-.exchange_data .graphic {
-    position: relative;
-    width: 100%;
-    overflow: hidden;
-}
-
-.candle-description {
-    width: 100%;
-    color: #fca791;
-}
-
-.candle-description__item {
-    display: inline-block;
-    font-size: 12px;
-    margin: 0 10px 0 0;
-    width: 10%
-}
-
-.candle-description__item span{
-    font-weight: bold;
-    color: white;
-}
-
-.candle-description__item#candle-date {
-    text-align: right;
-    width: 40%;
-    margin: 0 0 0 0;
-}
-
-.candle-description__item#candle-date .date{
-    font-size: 14px;
-}
-
-.area-chart-tip {
-.graphic-wrapper{
-    float: left;
-    width: 85%;
-}
-
 .graphic-wrapper--orders-page{
     float: left;
     width: 100%;
@@ -1889,16 +1835,6 @@ th.allign-center {
     border: 1px solid white;
 }
 
-.usr_doc_row {
-    margin-bottom: 20px;
-}
-
-#prompt_delete_rqst {
-    display: none;
-}
-
-
-
 .info-item {
     display: inline-block;
     color: white;
@@ -2012,3 +1948,7 @@ th.allign-center {
 
 
 /* ... DELETE ORDER*/
+
+#prompt_delete_rqst {
+    display: none;
+}

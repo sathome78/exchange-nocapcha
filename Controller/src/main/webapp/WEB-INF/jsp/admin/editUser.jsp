@@ -192,10 +192,10 @@
                                     </fieldset>
                                 </div>
                             </form:form>
+                            <h4><loc:message code="admin.yourFiles"/></h4>
                             <c:choose>
                                 <c:when test="${userFiles.size() != 0}">
                                     <div class="row usr_doc_row">
-                                        <h4><loc:message code="admin.yourFiles"/></h4>
                                         <div class="col-md-offset-0 col-md-10">
                                             <c:forEach var="image" items="${userFiles}">
                                             <div id="_${image.id}">

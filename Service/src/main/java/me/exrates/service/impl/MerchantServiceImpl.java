@@ -372,9 +372,6 @@ public class MerchantServiceImpl implements MerchantService {
         final BigDecimal commissionTotal = type == INPUT ? commission.add(commissionMerchant,MATH_CONTEXT) :
                 commission;
         final BigDecimal commissionAmount = amount.multiply(commissionTotal, MATH_CONTEXT).divide(HUNDREDTH, MATH_CONTEXT);
-        final BigDecimal commissionMerchant = commissionService.getCommissionMerchant(merchant, currency);
-        final BigDecimal commissionTotal = commission.add(commissionMerchant,MATH_CONTEXT);
-        final BigDecimal commissionAmount = amount.multiply(commissionTotal, MATH_CONTEXT).divide(HUNDREDTH, MATH_CONTEXT);
         final BigDecimal resultAmount = type == INPUT ? amount.add(commissionAmount,MATH_CONTEXT) :
                 amount.subtract(commissionAmount, MATH_CONTEXT);
         result.put("commission", commissionTotal.stripTrailingZeros().toString());

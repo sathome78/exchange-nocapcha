@@ -182,7 +182,7 @@ function promptDeleteDoc(id, path, userId) {
             data: data
         }).done(function(result) {
             alert(result['success']);
-            $('.modal').modal('toggle');
+            $('.modal').modal('hide');
             $('#_' + id).remove();
         }).fail(function(error){
             console.log(JSON.stringify(error));
