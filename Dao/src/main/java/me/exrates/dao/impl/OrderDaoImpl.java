@@ -8,6 +8,7 @@ import me.exrates.model.dto.*;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
+import me.exrates.model.enums.TransactionStatus;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,9 +25,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -433,22 +432,6 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public Integer deleteOrderByAdmin(int orderId) {
-        String s = "{call DELETE_ORDER(" + orderId + ")}";
-        NamedParameterJdbcTemplate jdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-        return jdbcTemplate.execute(s, new PreparedStatementCallback<Integer>() {
-            @Override
-            public Integer doInPreparedStatement(PreparedStatement ps) throws SQLException, DataAccessException {
-                ResultSet rs = ps.executeQuery();
-                rs.next();
-                Integer result = rs.getInt(1);
-                rs.close();
-                return result;
-            }
-        });
-    }
-
-    @Override
     public int searchOrderByAdmin(Integer currencyPair, Integer orderType, String orderDate, BigDecimal orderRate, BigDecimal orderVolume) {
         String sql = "SELECT id " +
                 "  FROM EXORDERS" +
@@ -477,6 +460,137 @@ public class OrderDaoImpl implements OrderDao {
         } catch (EmptyResultDataAccessException e) {
             return -1;
         }
+    }
+
+    @Override
+    public Integer deleteOrderByAdmin(int orderId) {
+        List<OrderDetailDto> list = getOrderDetail(orderId);
+        if (list.isEmpty()) {
+            return 0;
+        }
+        int processedRows = 1;
+        Connection connection = null;
+        try {
+            connection = dataSource.getConnection();
+            connection.setAutoCommit(false);
+            connection.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
+            Statement statement = connection.createStatement();
+            /**/
+            OrderStatus orderStatus = list.get(0).getOrderStatus();
+            /**/
+            String sql = String.format("UPDATE EXORDERS " +
+                            "  SET status_id = %s" +
+                            "  WHERE id = %s ",
+                    OrderStatus.DELETED.getStatus(),
+                    orderId);
+            statement.addBatch(sql);
+            /**/
+            for (OrderDetailDto orderDetailDto : list) {
+                if (orderStatus == OrderStatus.CLOSED) {
+                    sql = String.format("UPDATE COMPANY_WALLET " +
+                                    "  SET commission_balance = commission_balance - %s" +
+                                    "  WHERE id = %s",
+                            orderDetailDto.getCompanyCommission(),
+                            orderDetailDto.getCompanyWalletId());
+                    statement.addBatch(sql);
+                    /**/
+                    OperationType transactionType = orderDetailDto.getTransactionType();
+                    BigDecimal changeBalance = orderDetailDto.getTransactionAmount();
+                    if (transactionType == OperationType.INPUT) {
+                        changeBalance = changeBalance.negate();
+                    }
+                    sql = String.format("UPDATE WALLET \n" +
+                                    "  SET active_balance = active_balance + %s " +
+                                    "  WHERE id = %s",
+                            changeBalance,
+                            orderDetailDto.getUserWalletId());
+                    statement.addBatch(sql);
+                    /**/
+                    sql = String.format("UPDATE TRANSACTION " +
+                                    "  SET status_id = %s" +
+                                    "  WHERE id = %s ",
+                            TransactionStatus.DELETED.getStatus(),
+                            orderDetailDto.getTransactionId());
+                    statement.addBatch(sql);
+                    /**/
+                    processedRows++;
+                    /**/
+                } else if (orderStatus == OrderStatus.OPENED) {
+                    sql = String.format("UPDATE WALLET \n" +
+                                    "  SET active_balance = active_balance + %s," +
+                                    "      reserved_balance = reserved_balance - %s" +
+                                    "  WHERE id = %s",
+                            orderDetailDto.getOrderCreatorReservedAmount(),
+                            orderDetailDto.getOrderCreatorReservedAmount(),
+                            orderDetailDto.getOrderCreatorReservedWalletId());
+                    statement.addBatch(sql);
+                }
+            }
+            statement.executeBatch();
+            connection.commit();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            if (connection != null) {
+                try {
+                    connection.rollback();
+                } catch (SQLException e1) {
+                    e1.printStackTrace();
+                }
+            }
+            return -1;
+        }
+        return processedRows;
+    }
+
+
+    private List<OrderDetailDto> getOrderDetail(int orderId) {
+        String sql =
+                "  SELECT  " +
+                        "    EXORDERS.id AS order_id, " +
+                        "    EXORDERS.status_id AS order_status_id, " +
+                        "    IF (upper(ORDER_OPERATION.name)='SELL', EXORDERS.amount_base, EXORDERS.amount_convert+EXORDERS.commission_fixed_amount) AS order_creator_reserved_amount, " +
+                        "    ORDER_CREATOR_RESERVED_WALLET.id AS order_creator_reserved_wallet_id,  " +
+                        "    TRANSACTION.id AS transaction_id,  " +
+                        "    TRANSACTION.operation_type_id as transaction_type_id,  " +
+                        "    TRANSACTION.amount as transaction_amount, " +
+                        "    USER_WALLET.id as user_wallet_id,  " +
+                        "    COMPANY_WALLET.id as company_wallet_id, " +
+                        "    TRANSACTION.commission_amount AS company_commission " +
+                        "  FROM EXORDERS " +
+                        "    JOIN OPERATION_TYPE AS ORDER_OPERATION ON (ORDER_OPERATION.id = EXORDERS.operation_type_id) " +
+                        "    JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) " +
+                        "    JOIN WALLET ORDER_CREATOR_RESERVED_WALLET ON  " +
+                        "            (ORDER_CREATOR_RESERVED_WALLET.user_id=EXORDERS.user_id) AND  " +
+                        "            ( " +
+                        "                (upper(ORDER_OPERATION.name)='BUY' AND ORDER_CREATOR_RESERVED_WALLET.currency_id = CURRENCY_PAIR.currency2_id)  " +
+                        "                OR  " +
+                        "                (upper(ORDER_OPERATION.name)='SELL' AND ORDER_CREATOR_RESERVED_WALLET.currency_id = CURRENCY_PAIR.currency1_id) " +
+                        "            ) " +
+                        "    LEFT JOIN TRANSACTION ON (TRANSACTION.order_id = EXORDERS.id) " +
+                        "    LEFT JOIN WALLET USER_WALLET ON (USER_WALLET.id = TRANSACTION.user_wallet_id) " +
+                        "    LEFT JOIN COMPANY_WALLET ON (COMPANY_WALLET.currency_id = TRANSACTION.company_wallet_id) and (TRANSACTION.commission_amount <> 0) " +
+                        "  WHERE EXORDERS.id=:deleted_order_id AND EXORDERS.status_id IN (2, 3)";
+        NamedParameterJdbcTemplate jdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+        Map<String, String> namedParameters = new HashMap<String, String>() {{
+            put("deleted_order_id", String.valueOf(orderId));
+        }};
+        return jdbcTemplate.query(sql, namedParameters, new RowMapper<OrderDetailDto>() {
+            @Override
+            public OrderDetailDto mapRow(ResultSet rs, int rowNum) throws SQLException {
+                return new OrderDetailDto(
+                        rs.getInt("order_id"),
+                        rs.getInt("order_status_id"),
+                        rs.getBigDecimal("order_creator_reserved_amount"),
+                        rs.getInt("order_creator_reserved_wallet_id"),
+                        rs.getInt("transaction_id"),
+                        rs.getInt("transaction_type_id"),
+                        rs.getBigDecimal("transaction_amount"),
+                        rs.getInt("user_wallet_id"),
+                        rs.getInt("company_wallet_id"),
+                        rs.getBigDecimal("company_commission")
+                );
+            }
+        });
     }
 }
 

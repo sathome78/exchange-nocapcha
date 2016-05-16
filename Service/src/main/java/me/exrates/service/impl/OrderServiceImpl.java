@@ -18,6 +18,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -403,12 +404,13 @@ public class OrderServiceImpl implements OrderService {
         return orderDao.getCoinmarketData(currencyPairName, backDealInterval);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, isolation = Isolation.READ_UNCOMMITTED)
     @Override
     public OrderInfoDto getOrderInfo(int orderId) {
         return orderDao.getOrderInfo(orderId);
     }
 
+    @Transactional(readOnly = true, isolation = Isolation.READ_UNCOMMITTED)
     @Override
     public Integer deleteOrderByAdmin(int orderId) {
         return orderDao.deleteOrderByAdmin(orderId);

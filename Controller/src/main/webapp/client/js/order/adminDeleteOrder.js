@@ -63,11 +63,13 @@ function searchAndDeleteOrderByAdmin() {
 function searchOrder() {
     var isError = false;
     $('.input-block-wrapper__error-wrapper').toggle(false);
-    if (!$('#orderRate').val().match(/\d+(\.{1,1}\d+)*/)){
+    var match = $('#orderRate').val().match(/^\d+(\.{1,1}\d+)?/);
+    if (!match || match[0] !== $('#orderRate').val()){
         $('.input-block-wrapper__error-wrapper[for=orderRate]').toggle(true);
         isError = true;
     }
-    if (!$('#orderVolume').val().match(/\d+(\.{1,1}\d+)*/)){
+    match = $('#orderVolume').val().match(/^\d+(\.{1,1}\d+)?/);
+    if (!match || match[0] !== $('#orderVolume').val()){
         $('.input-block-wrapper__error-wrapper[for=orderVolume]').toggle(true);
         isError = true;
     }
