@@ -14,7 +14,7 @@ import java.util.Locale;
 public class BigDecimalProcessing {
     protected static final int SCALE = 9;
     protected static final RoundingMode ROUND_TYPE = RoundingMode.HALF_UP;
-    protected static final String PATTERN = "###,###."+new String(new char[SCALE]).replace("\0","#");
+    protected static final String PATTERN = "###,###." + new String(new char[SCALE]).replace("\0", "#");
 
     /*method executes arithmetic operation and returns normalized BigDecimal*/
     public static BigDecimal doAction(BigDecimal value1, BigDecimal value2, ActionType actionType) {
@@ -33,8 +33,15 @@ public class BigDecimalProcessing {
                 result = value1.multiply(value2);
                 break;
             }
+            /*calculate value2 percent from value1*/
             case MULTIPLY_PERCENT: {
                 result = value1.multiply(value2).divide(new BigDecimal(100), ROUND_TYPE);
+                break;
+            }
+            /*calculate the growth in percent value2 relative value1
+            * 50, 120 -> 120/50*100-100 -> 140*/
+            case PERCENT_GROWTH: {
+                result = value2.divide(value1, ROUND_TYPE).multiply(BigDecimal.valueOf(100)).add(BigDecimal.valueOf(100).negate());
                 break;
             }
             case DEVIDE: {
@@ -53,29 +60,37 @@ public class BigDecimalProcessing {
         return bigDecimal.setScale(SCALE, ROUND_TYPE).stripTrailingZeros().add(BigDecimal.ZERO);
     }
 
-    public static String formatSpaceComma(BigDecimal bigDecimal){
+    public static String formatSpaceComma(BigDecimal bigDecimal) {
         DecimalFormat df = new DecimalFormat(PATTERN);
         DecimalFormatSymbols dfs = df.getDecimalFormatSymbols();
         dfs.setGroupingSeparator(' ');
         dfs.setDecimalSeparator(',');
         df.setDecimalFormatSymbols(dfs);
-        return df.format(bigDecimal);
+        return df.format(bigDecimal == null ? BigDecimal.ZERO : bigDecimal);
     }
 
-    public static String formatNoneComma(BigDecimal bigDecimal){
+    public static String formatNoneComma(BigDecimal bigDecimal) {
         DecimalFormat df = new DecimalFormat(PATTERN);
         DecimalFormatSymbols dfs = df.getDecimalFormatSymbols();
         df.setGroupingUsed(false);
         dfs.setDecimalSeparator(',');
         df.setDecimalFormatSymbols(dfs);
-        return df.format(bigDecimal);
+        return df.format(bigDecimal == null ? BigDecimal.ZERO : bigDecimal);
     }
 
-    public static String formatLocale(BigDecimal bigDecimal, Locale locale){
+    public static String formatLocale(BigDecimal bigDecimal, Locale locale) {
         DecimalFormat df = new DecimalFormat(PATTERN);
         DecimalFormatSymbols dfs = new DecimalFormatSymbols(locale);
         df.setDecimalFormatSymbols(dfs);
-        return df.format(bigDecimal);
+        return df.format(bigDecimal == null ? BigDecimal.ZERO : bigDecimal);
+    }
+
+    public static String formatToPlainString(BigDecimal bigDecimal) {
+        return bigDecimal == null ? BigDecimal.ZERO.setScale(SCALE, ROUND_TYPE).toPlainString() : bigDecimal.setScale(SCALE, ROUND_TYPE).toPlainString();
+    }
+
+    public static String formatToPlainStringQuotes(BigDecimal bigDecimal) {
+        return bigDecimal == null ? '"'+BigDecimal.ZERO.setScale(SCALE, ROUND_TYPE).toPlainString()+'"' : '"'+bigDecimal.setScale(SCALE, ROUND_TYPE).toPlainString()+'"';
     }
 
 }

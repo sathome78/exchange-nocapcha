@@ -112,8 +112,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, "/merchants/privat24/payment/status",
                         "/merchants/privat24/payment/success",
                         "/merchants/privat24/payment/failure").permitAll()
+                .antMatchers(HttpMethod.POST, "/merchants/interkassa/payment/status",
+                        "/merchants/interkassa/payment/success",
+                        "/merchants/interkassa/payment/failure").permitAll()
                 .antMatchers(HttpMethod.POST, "/merchants/edrcoin/payment/received").permitAll()
                 .antMatchers(HttpMethod.GET, "/merchants/blockchain/payment/received").permitAll()
+                .antMatchers(HttpMethod.GET, "/public/**").permitAll()
 //                .antMatchers("/login", "/register", "/create", "/forgotPassword/**", "/resetPasswordConfirm/**").anonymous()
 //                .antMatchers("/updatePassword").hasAnyAuthority(UserRole.ROLE_CHANGE_PASSWORD.name())
 //                .anyRequest().authenticated()
@@ -151,7 +155,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/merchants/nixmoney/payment/status",
                         "/merchants/privat24/payment/failure",
                         "/merchants/privat24/payment/success",
-                        "/merchants/privat24/payment/status");
+                        "/merchants/privat24/payment/status",
+                        "/merchants/interkassa/payment/failure",
+                        "/merchants/interkassa/payment/success",
+                        "/merchants/interkassa/payment/status");
     }
 
     private String buildHasIpExpression() {

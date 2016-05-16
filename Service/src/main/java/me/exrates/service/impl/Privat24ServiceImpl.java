@@ -14,11 +14,10 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.servlet.view.RedirectView;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 
 @Service
 @PropertySource("classpath:/merchants/privat24.properties")
@@ -45,30 +44,26 @@ public class Privat24ServiceImpl implements Privat24Service {
 
 
     @Override
-    public RedirectView preparePayment(CreditsOperation creditsOperation, String email) {
+    public Map<String, String> preparePayment(CreditsOperation creditsOperation, String email) {
 
         LOG.debug("Begin method: preparePayment.");
         Transaction transaction = transactionService.createTransactionRequest(creditsOperation);
         BigDecimal sum = transaction.getAmount().add(transaction.getCommissionAmount());
         final Number amountToPay = sum.setScale(2, BigDecimal.ROUND_CEILING);
 
-        Properties properties = new Properties();
+        Map<String, String> properties = new HashMap<>();
 
-        properties.put("amt", amountToPay);
+        properties.put("amt", String.valueOf(amountToPay));
         properties.put("ccy", creditsOperation.getCurrency().getName());
         properties.put("merchant", merchant);
-        properties.put("order", transaction.getId());
+        properties.put("order", String.valueOf(transaction.getId()));
         properties.put("details", details);
         properties.put("ext_details", ext_details + transaction.getId());
         properties.put("pay_way", pay_way);
         properties.put("return_url", return_url);
         properties.put("server_url", server_url);
 
-        RedirectView redirectView = new RedirectView(url);
-        redirectView.setAttributes(properties);
-
-
-        return redirectView;
+        return properties;
     }
 
     @Override

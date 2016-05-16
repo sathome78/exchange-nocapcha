@@ -2,11 +2,11 @@ package me.exrates.service;
 
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
-import me.exrates.model.dto.OrderCreateDto;
-import me.exrates.model.dto.OrderListDto;
-import me.exrates.model.dto.OrderWideListDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.enums.OrderStatus;
+import me.exrates.model.vo.BackDealInterval;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -31,4 +31,11 @@ public interface OrderService {
 
     boolean updateOrder(ExOrder exOrder);
 
+    List<CoinmarketApiDto> getCoinmarketData(String currencyPairName, BackDealInterval backDealInterval);
+
+    OrderInfoDto getOrderInfo(int orderId);
+
+    Integer deleteOrderByAdmin(int orderId);
+
+    Integer searchOrderByAdmin(Integer currencyPair, String orderType, String orderDate, BigDecimal orderRate, BigDecimal orderVolume);
 }

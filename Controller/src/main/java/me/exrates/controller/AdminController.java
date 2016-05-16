@@ -1,16 +1,20 @@
 package me.exrates.controller;
 
 import me.exrates.controller.validator.RegisterFormValidation;
+import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
 import me.exrates.model.Wallet;
 import me.exrates.model.dto.DataTable;
 import me.exrates.model.dto.OperationViewDto;
+import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.security.service.UserSecureServiceImpl;
+import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
+import me.exrates.service.OrderService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.UserFilesService;
 import me.exrates.service.UserService;
@@ -27,6 +31,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,6 +43,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -69,10 +75,16 @@ public class AdminController {
     private MerchantService merchantService;
 
     @Autowired
+    private CurrencyService currencyService;
+
+    @Autowired
     private RegisterFormValidation registerFormValidation;
 
     @Autowired
     private WalletService walletService;
+
+    @Autowired
+    private OrderService orderService;
 
     @Autowired
     private TransactionService transactionService;
@@ -91,6 +103,8 @@ public class AdminController {
         currentRole = ((UsernamePasswordAuthenticationToken) principal).getAuthorities().iterator().next().getAuthority();
 
         ModelAndView model = new ModelAndView();
+        List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairs();
+        model.addObject("currencyPairList", currencyPairList);
         model.setViewName("admin/admin");
 
         return model;
@@ -391,4 +405,29 @@ public class AdminController {
         return new ModelAndView("withdrawalRequests", params);
     }
 
+    @ResponseBody
+    @RequestMapping(value = "/admin/orderinfo", method = RequestMethod.GET)
+    public OrderInfoDto getOrderInfo(@RequestParam int id) {
+        return orderService.getOrderInfo(id);
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/admin/orderdelete", method = RequestMethod.POST)
+    public Integer deleteOrderByAdmin(@RequestParam int id) {
+        return orderService.deleteOrderByAdmin(id);
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/admin/searchorder", method = RequestMethod.GET)
+    public Integer searchOrderByAdmin(@RequestParam Integer currencyPair,
+                                      @RequestParam String orderType,
+                                      @RequestParam String orderDate,
+                                      @RequestParam BigDecimal orderRate,
+                                      @RequestParam BigDecimal orderVolume) {
+        return orderService.searchOrderByAdmin(currencyPair, orderType, orderDate, orderRate, orderVolume);
+    }
+
 }
+
+
+//currencyPair=1&orderType=SELL&orderDate=2016-05-12+14%3A07&orderRate=11&orderVolume=22

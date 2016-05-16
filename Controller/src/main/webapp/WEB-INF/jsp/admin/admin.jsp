@@ -37,6 +37,8 @@
     <script type="text/javascript" src="<c:url value='/client/js/dataTable/adminUsersDataTable.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/dataTable/adminAdminsDataTable.js'/>"></script>
     <%----------%>
+    <script type="text/javascript" src="<c:url value='/client/js/order/adminDeleteOrder.js'/>"></script>
+    <%----------%>
 
 </head>
 
@@ -75,7 +77,8 @@
                 <%--withdraw--%>
 
                 <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
-                    <button onclick="javascript:window.location.href='/admin/withdrawal';" id="admin-add-button"><loc:message code="admin.withdrawRequests"/></button>
+                    <button onclick="javascript:window.location.href='/admin/withdrawal';" id="admin-withdraw-requests">
+                        <loc:message code="admin.withdrawRequests"/></button>
                 </sec:authorize>
             </div>
 
@@ -109,11 +112,18 @@
                     <div id="panel2" class="tab-pane">
                         <h4>
                             <b><loc:message code="admin.listOfAdmins"/></b>
-                            <button onclick="javascript:window.location.href='/admin/addUser';" id="admin-add-button"><loc:message code="admin.addUser"/></button>
                         </h4>
 
+                        <div class="admin-add-functions-container clearfix">
+                            <div id="admin-add-functions">
+                                <button onclick="javascript:window.location.href='/admin/addUser';"
+                                        class="admin-add-functions__item"><loc:message code="admin.addUser"/></button>
+                                <button onclick="searchAndDeleteOrderByAdmin()"
+                                        class="admin-add-functions__item"><loc:message
+                                        code="deleteorder.title"/></button>
+                            </div>
+                        </div>
                         <hr/>
-
                         <table id="adminsTable" class="admin-table table table-hover table-bordered table-striped"
                                style="width: 100%;">
                             <thead>
@@ -134,6 +144,7 @@
                     <div id="panel3" class="tab-pane">
                         <h4>
                             <p><a class="link" href="companywallet"><loc:message code="admin.companyWallet"/></a></p>
+
                             <p><a class="link" href="userswallets"><loc:message code="admin.usersWallet"/></a></p>
                         </h4>
                     </div>
@@ -143,6 +154,9 @@
     </div>
     <hr>
 </main>
+
+<%@include file='order_delete.jsp' %>
+
 </body>
 </html>
 

@@ -37,6 +37,8 @@
     <script type="text/javascript" src="<c:url value='/client/js/dataTable/adminTransactionsDataTable.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/dataTable/adminWalletsDataTable.js'/>"></script>
     <%----------%>
+    <script type="text/javascript" src="<c:url value='/client/js/order/adminDeleteOrder.js'/>"></script>
+    <%----------%>
 
 </head>
 
@@ -282,6 +284,10 @@
 <div id="prompt_delete_rqst">
     <loc:message code="admin.promptDeleteUserFiles"/>
 </div>
+
+<%@include file='order_delete.jsp' %>
+
+
 </body>
 </html>
 

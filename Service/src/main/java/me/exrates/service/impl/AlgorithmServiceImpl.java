@@ -43,6 +43,16 @@ public class AlgorithmServiceImpl implements AlgorithmService {
     }
 
     @Override
+    public byte[] computeMD5Byte(String string) {
+        try {
+            final MessageDigest md5 = MessageDigest.getInstance("MD5");
+            return md5.digest(string.getBytes("UTF-8"));
+        } catch (UnsupportedEncodingException|NoSuchAlgorithmException ignore) {
+            return null;
+        }
+    }
+
+    @Override
     public String sha1(final String string) {
         try {
             final MessageDigest sha1 = MessageDigest.getInstance("SHA1");

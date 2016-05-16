@@ -367,6 +367,11 @@ public class MerchantServiceImpl implements MerchantService {
     {
         final Map<String, String> result = new HashMap<>();
         final BigDecimal commission = commissionService.findCommissionByType(type).getValue();
+
+        final BigDecimal commissionMerchant = commissionService.getCommissionMerchant(merchant, currency);
+        final BigDecimal commissionTotal = type == INPUT ? commission.add(commissionMerchant,MATH_CONTEXT) :
+                commission;
+        final BigDecimal commissionAmount = amount.multiply(commissionTotal, MATH_CONTEXT).divide(HUNDREDTH, MATH_CONTEXT);
         final BigDecimal commissionMerchant = commissionService.getCommissionMerchant(merchant, currency);
         final BigDecimal commissionTotal = commission.add(commissionMerchant,MATH_CONTEXT);
         final BigDecimal commissionAmount = amount.multiply(commissionTotal, MATH_CONTEXT).divide(HUNDREDTH, MATH_CONTEXT);
@@ -396,7 +401,8 @@ public class MerchantServiceImpl implements MerchantService {
         }
         final Commission commissionByType = commissionService.findCommissionByType(operationType);
         final BigDecimal commissionMerchant = commissionService.getCommissionMerchant(merchant.getName(), currency.getName());
-        final BigDecimal commissionTotal = commissionByType.getValue().add(commissionMerchant,MATH_CONTEXT);
+        final BigDecimal commissionTotal = operationType == INPUT ? commissionByType.getValue().add(commissionMerchant,MATH_CONTEXT) :
+                commissionByType.getValue();
         final BigDecimal commissionAmount =
                 commissionTotal
                 .setScale(9, ROUND_CEILING)

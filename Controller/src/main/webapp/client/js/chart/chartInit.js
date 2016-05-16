@@ -72,8 +72,8 @@ function redrawChart() {
         }
         default:
         {
-            id = 'candle';
-            chartType = 'CANDLE';
+            id = 'area';
+            chartType = 'AREA';
             break;
         }
     }
@@ -85,7 +85,7 @@ function redrawChart() {
 
 function drawChart(period, chartType){
     if (! chartType) {
-        chartType = 'CANDLE';
+        chartType = 'AREA';
     }
     switch (chartType) {
         case 'CANDLE':
@@ -121,4 +121,10 @@ function areaChartSwitch(state){
 
 function waiterSwitch(state){
     $('#graphic-wait').toggle(state);
+}
+
+function setActivePeriodSwitcherButton(backDealInterval) {
+    var id = backDealInterval.intervalValue + backDealInterval.intervalType.toLowerCase();
+    $('.period-menu__item').removeClass('active');
+    $('#' + id).addClass('active');
 }

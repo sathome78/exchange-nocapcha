@@ -38,6 +38,8 @@ $(function(){
     const NIX = 'Nix Money';
     const YANDEX_KASSA = 'Yandex kassa';
     const PRIVAT24 = 'Privat24';
+    const INTERKASSA = 'Interkassa';
+
     const NO_ACTION = 'javascript:void(0);';
     
     var currency = $('#currency');
@@ -101,8 +103,9 @@ $(function(){
             advcash:'/merchants/advcash/payment/prepare',
             liqpay:'/merchants/liqpay/payment/prepare',
             nixmoney:'/merchants/nixmoney/payment/prepare',
-            yandex_kassa:'/merchants/yandex_kassa/payment/prepare',
-            privat24:'/merchants/privat24/payment/prepare'
+            yandex_kassa:'http://shop.itfoxy.com/index.php?route=acc/success/order',
+            privat24:'https://api.privatbank.ua/p24api/ishop',
+            interkassa:'https://sci.interkassa.com/'
 
         };
         if (operationType === 'INPUT') {
@@ -127,6 +130,9 @@ $(function(){
                     break;
                 case PRIVAT24 :
                     form.attr('action', formAction.privat24);
+                    break;
+                case INTERKASSA :
+                    form.attr('action', formAction.interkassa);
                     break;
                 case BLOCKCHAIN:
                 default:
@@ -246,6 +252,58 @@ $(function(){
                       }
                   });
                       break;
+                case PRIVAT24 :
+                    $.ajax('/merchants/privat24/payment/prepare', {
+                        headers: {
+                            'X-CSRF-Token': $("input[name='_csrf']").val()
+                        },
+                        type: 'POST',
+                        contentType: 'application/json',
+                        dataType: 'json',
+                        data: JSON.stringify($(form).serializeObject())
+                    }).done(function (response) {
+                        var inputsHTML = '';
+                        $new_form = $("<form></form>");
+                        $.each(response, function (key) {
+                            $new_form.append('<input type="hidden" name="' + key + '" value="' + response[key] + '">');
+                        });
+                        var targetCurrentHTML = $new_form.html();
+                        var targetNewHTML = targetCurrentHTML + inputsHTML;
+                        $(form).html(targetNewHTML);
+                        callback();
+                    }).fail(function (error) {
+                        responseControls();
+                        $('.paymentInfo').html(error.responseText);
+                        console.log(error);
+                    });
+                    break;
+
+                case INTERKASSA :
+                    $.ajax('/merchants/interkassa/payment/prepare', {
+                        headers: {
+                            'X-CSRF-Token': $("input[name='_csrf']").val()
+                        },
+                        type: 'POST',
+                        contentType: 'application/json',
+                        dataType: 'json',
+                        data: JSON.stringify($(form).serializeObject())
+                    }).done(function (response) {
+                        var inputsHTML = '';
+                        $new_form = $("<form></form>");
+                        $.each(response, function (key) {
+                            $new_form.append('<input type="hidden" name="' + key + '" value="' + response[key] + '">');
+                        });
+                        var targetCurrentHTML = $new_form.html();
+                        var targetNewHTML = targetCurrentHTML + inputsHTML;
+                        $(form).html(targetNewHTML);
+                        callback();
+                    }).fail(function (error) {
+                        responseControls();
+                        $('.paymentInfo').html(error.responseText);
+                        console.log(error);
+                    });
+                    break;
+
                 default:
                     callback();
             }
@@ -336,7 +394,7 @@ $(function(){
             $('.wallet_input').show();
             setTimeout("$('.wallet_input>input').focus().val('')",200);
             requestControls();
-            fillModalWindow('OUTPUT',sum.val(),getCurrentCurrency());
+            fillModalWindow('OUTPUT',sum.val(),$('select[name="currency"]').find(':selected').data('currency'));
         });
     }
 

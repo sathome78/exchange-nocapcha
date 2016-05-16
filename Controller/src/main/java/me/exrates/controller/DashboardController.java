@@ -137,14 +137,17 @@ public class DashboardController {
             for (Map<String, Object> row : rows) {
                 Timestamp dateAcception = (Timestamp) row.get("dateAcception");
                 BigDecimal exrate = (BigDecimal) row.get("exrate");
+                BigDecimal volume = (BigDecimal) row.get("volume");
                 if (dateAcception != null) {
                     ArrayList<Object> arrayList = new ArrayList<>();
                 /*values*/
                     arrayList.add(dateAcception.toString());
                     arrayList.add(exrate.doubleValue());
+                    arrayList.add(volume.doubleValue());
                 /*titles of values for chart tip*/
                     arrayList.add(messageSource.getMessage("orders.date", null, localeResolver.resolveLocale(request)));
                     arrayList.add(messageSource.getMessage("orders.exrate", null, localeResolver.resolveLocale(request)));
+                    arrayList.add(messageSource.getMessage("orders.volume", null, localeResolver.resolveLocale(request)));
                     arrayListMain.add(arrayList);
                 }
             }
