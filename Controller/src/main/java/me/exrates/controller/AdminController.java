@@ -4,6 +4,7 @@ import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
 import me.exrates.model.Wallet;
+import me.exrates.model.dto.DataTable;
 import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.enums.UserRole;
@@ -135,13 +136,13 @@ public class AdminController {
 
     @ResponseBody
     @RequestMapping(value = "/admin/transactions", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Collection<OperationViewDto> getUserTransactions(@RequestParam int id, HttpServletRequest request) {
-        return transactionService.showUserOperationHistory(id, localeResolver.resolveLocale(request));
+    public DataTable<List<OperationViewDto>> getUserTransactions(final @RequestParam int id, final @RequestParam Map<String,String> params, final HttpServletRequest request) {
+        return transactionService.showUserOperationHistory(id, localeResolver.resolveLocale(request), params);
     }
 
     @ResponseBody
     @RequestMapping(value = "/admin/wallets", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Collection<Wallet> getUserWalletss(@RequestParam int id, HttpServletRequest request) {
+    public Collection<Wallet> getUserWallets(@RequestParam int id, HttpServletRequest request) {
         return walletService.getAllWallets(id);
     }
 

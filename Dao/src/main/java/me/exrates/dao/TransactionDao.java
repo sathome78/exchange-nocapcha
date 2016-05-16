@@ -1,5 +1,6 @@
 package me.exrates.dao;
 
+import me.exrates.model.PagingData;
 import me.exrates.model.Transaction;
 
 import java.math.BigDecimal;
@@ -23,4 +24,6 @@ public interface TransactionDao {
     void updateTransactionConfirmations(int transactionId, int confirmations);
 
     List<Transaction> findAllByUserWallets(List<Integer> walletIds);
+
+    PagingData<List<Transaction>> findAllByUserWallets(List<Integer> walletIds, int offset, int limit);
 }

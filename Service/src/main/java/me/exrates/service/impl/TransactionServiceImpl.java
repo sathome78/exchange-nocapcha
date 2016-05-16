@@ -4,11 +4,12 @@ import me.exrates.dao.TransactionDao;
 import me.exrates.model.CompanyWallet;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Currency;
-import me.exrates.model.dto.OperationViewDto;
-import me.exrates.model.dto.OperationViewDtoComparator;
+import me.exrates.model.PagingData;
 import me.exrates.model.Transaction;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
+import me.exrates.model.dto.DataTable;
+import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.service.CompanyWalletService;
 import me.exrates.service.MerchantService;
@@ -30,10 +31,13 @@ import java.math.MathContext;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
+
+import static java.lang.Integer.MAX_VALUE;
+import static java.lang.Integer.valueOf;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -158,38 +162,52 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public List<OperationViewDto> showMyOperationHistory(String email, Locale locale) {
-        int id = userService.getIdByEmail(email);
-        final List<Integer> collect = walletService.getAllWallets(id)
-            .stream()
+    public DataTable<List<OperationViewDto>> showMyOperationHistory(String email, Locale locale, int offset, int limit) {
+        final int id = userService.getIdByEmail(email);
+        final List<Integer> wallets = walletService.getAllWallets(id).stream()
             .mapToInt(Wallet::getId)
             .boxed()
             .collect(Collectors.toList());
-        final List<Transaction> allByUserId = findAllByUserWallets(collect);
-        LOG.info(allByUserId);
-        List<OperationViewDto> list = new ArrayList<>();
-        if (allByUserId != null) {
-            allByUserId
-                .stream()
-                    .forEach(t -> {
-                        OperationViewDto view = new OperationViewDto();
-                        view.setDatetime(t.getDatetime());
-                        view.setAmount(t.getAmount());
-                        view.setCommissionAmount(t.getCommissionAmount());
-                        view.setCurrency(t.getCurrency().getName());
-                        view.setOperationType(t.getOperationType());
-                        view.setMerchant(t.getMerchant());
-                        view.setOrder(t.getOrder());
-                        view.setStatus(merchantService.resolveTransactionStatus(t, locale));
-                        list.add(view);
-                });
+        final DataTable<List<OperationViewDto>> result = new DataTable<>();
+        if (wallets.isEmpty()) {
+            result.setData(new ArrayList<>());
+            return result;
         }
-        Collections.sort(list, new OperationViewDtoComparator());
-        return list;
+        final PagingData<List<Transaction>> transactions = transactionDao.findAllByUserWallets(wallets, offset, limit);
+        final List<OperationViewDto> operationViews= new ArrayList<>();
+        for (final Transaction t : transactions.getData()) {
+                OperationViewDto view = new OperationViewDto();
+                view.setDatetime(t.getDatetime());
+                view.setAmount(t.getAmount());
+                view.setCommissionAmount(t.getCommissionAmount());
+                view.setCurrency(t.getCurrency().getName());
+                view.setOperationType(t.getOperationType());
+                view.setMerchant(t.getMerchant());
+                view.setOrder(t.getOrder());
+                view.setStatus(merchantService.resolveTransactionStatus(t, locale));
+                operationViews.add(view);
+        }
+        result.setData(operationViews);
+        result.setRecordsFiltered(transactions.getFiltered());
+        result.setRecordsTotal(transactions.getTotal());
+        return result;
     }
 
     @Override
-    public List<OperationViewDto> showUserOperationHistory(int id, Locale locale) {
+    public DataTable<List<OperationViewDto>> showMyOperationHistory(final String email, final Locale locale) {
+        return showMyOperationHistory(email, locale, 0, MAX_VALUE);
+    }
+
+    @Override
+    public DataTable<List<OperationViewDto>> showUserOperationHistory(final int id, final Locale locale) {
         return showMyOperationHistory(userService.getUserById(id).getEmail(), locale);
+    }
+
+    @Override
+    public DataTable<List<OperationViewDto>> showUserOperationHistory(final int id, final Locale locale, final Map<String, String> viewParams) {
+        if (viewParams.containsKey("start") && viewParams.containsKey("length")) {
+            return showMyOperationHistory(userService.getUserById(id).getEmail(), locale, valueOf(viewParams.get("start")), valueOf(viewParams.get("length")));
+        }
+        return showUserOperationHistory(id, locale);
     }
 }

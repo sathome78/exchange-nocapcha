@@ -68,7 +68,7 @@
                                     </label>
                                     <select name="currency" id="currency" class="select currency-for-output-select">
                                         <c:forEach items="${wallets}" var="wallet">
-                                            <option value='<c:out value="${wallet.currencyId}"/>'>
+                                            <option data-currency="UAH" value='<c:out value="${wallet.currencyId}"/>'>
                                                 <c:out value="${wallet.name}"/>
                                                 <c:out value="${wallet.activeBalance}"/>
                                             </option>

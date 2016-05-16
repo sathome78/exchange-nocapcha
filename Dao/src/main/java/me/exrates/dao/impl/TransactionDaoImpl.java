@@ -1,7 +1,14 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.TransactionDao;
-import me.exrates.model.*;
+import me.exrates.model.Commission;
+import me.exrates.model.CompanyWallet;
+import me.exrates.model.Currency;
+import me.exrates.model.ExOrder;
+import me.exrates.model.Merchant;
+import me.exrates.model.PagingData;
+import me.exrates.model.Transaction;
+import me.exrates.model.Wallet;
 import me.exrates.model.enums.OperationType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
@@ -18,6 +25,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 
 import static java.util.Collections.singletonMap;
 
@@ -29,6 +37,35 @@ public final class TransactionDaoImpl implements TransactionDao {
 
     @Autowired
     private NamedParameterJdbcTemplate jdbcTemplate;
+
+    private final String SELECT_COUNT =
+            " SELECT COUNT(*)" +
+            " FROM TRANSACTION " +
+            " INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id" +
+            " INNER JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id" +
+            " INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
+            " INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id" +
+            " LEFT JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id " +
+            " LEFT JOIN EXORDERS ON TRANSACTION.order_id = EXORDERS.id ";
+
+    private final String SELECT_ALL =
+            " SELECT TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime, " +
+            " TRANSACTION.operation_type_id,TRANSACTION.provided, TRANSACTION.confirmation, TRANSACTION.order_id, " +
+            " WALLET.id,WALLET.active_balance,WALLET.reserved_balance,WALLET.currency_id," +
+            " COMPANY_WALLET.id,COMPANY_WALLET.balance,COMPANY_WALLET.commission_balance," +
+            " COMMISSION.id,COMMISSION.date,COMMISSION.value," +
+            " CURRENCY.id,CURRENCY.description,CURRENCY.name," +
+            " MERCHANT.id,MERCHANT.name,MERCHANT.description, " +
+            " EXORDERS.id, EXORDERS.user_id, EXORDERS.currency_pair_id, EXORDERS.operation_type_id, EXORDERS.exrate, " +
+            " EXORDERS.amount_base, EXORDERS.amount_convert, EXORDERS.commission_fixed_amount, EXORDERS.date_creation, " +
+            " EXORDERS.date_acception " +
+            " FROM TRANSACTION " +
+            " INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id" +
+            " INNER JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id" +
+            " INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
+            " INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id" +
+            " LEFT JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id " +
+            " LEFT JOIN EXORDERS ON TRANSACTION.order_id = EXORDERS.id ";
 
     protected static RowMapper<Transaction> transactionRowMapper = (resultSet, i) -> {
 
@@ -149,26 +186,28 @@ public final class TransactionDaoImpl implements TransactionDao {
 
     @Override
     public List<Transaction> findAllByUserWallets(List<Integer> walletIds) {
-        final String sql = "SELECT TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime, " +
-                " TRANSACTION.operation_type_id,TRANSACTION.provided, TRANSACTION.confirmation, TRANSACTION.order_id, " +
-                " WALLET.id,WALLET.active_balance,WALLET.reserved_balance,WALLET.currency_id," +
-                " COMPANY_WALLET.id,COMPANY_WALLET.balance,COMPANY_WALLET.commission_balance," +
-                " COMMISSION.id,COMMISSION.date,COMMISSION.value," +
-                " CURRENCY.id,CURRENCY.description,CURRENCY.name," +
-                " MERCHANT.id,MERCHANT.name,MERCHANT.description, " +
-                " EXORDERS.id, EXORDERS.user_id, EXORDERS.currency_pair_id, EXORDERS.operation_type_id, EXORDERS.exrate, " +
-                " EXORDERS.amount_base, EXORDERS.amount_convert, EXORDERS.commission_fixed_amount, EXORDERS.date_creation, " +
-                " EXORDERS.date_acception " +
-                " FROM TRANSACTION " +
-                " INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id" +
-                " INNER JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id" +
-                " INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
-                " INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id" +
-                " LEFT JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id " +
-                " LEFT JOIN EXORDERS ON TRANSACTION.order_id = EXORDERS.id " +
-                " WHERE TRANSACTION.user_wallet_id in (:ids)" +
-                " ORDER BY TRANSACTION.datetime DESC, EXORDERS.id DESC ";
-        return jdbcTemplate.query(sql, Collections.singletonMap("ids", walletIds), transactionRowMapper);
+        return findAllByUserWallets(walletIds, 0, Integer.MAX_VALUE).getData();
+    }
+
+    @Override
+    public PagingData<List<Transaction>> findAllByUserWallets(final List<Integer> walletIds, final int offset, final int limit) {
+        final String whereClause = "WHERE TRANSACTION.user_wallet_id in (:ids)";
+        final String selectLimitedAllSql = new StringJoiner(" ")
+                .add(SELECT_ALL)
+                .add(whereClause)
+                .add("ORDER BY TRANSACTION.datetime DESC, EXORDERS.id DESC LIMIT " + limit + " OFFSET " + offset)
+                .toString();
+        final String selectAllCountSql = new StringJoiner(" ")
+                .add(SELECT_COUNT)
+                .add(whereClause)
+                .toString();
+        final Map<String, List<Integer>> params = Collections.singletonMap("ids", walletIds);
+        final PagingData<List<Transaction>> result = new PagingData<>();
+        final int total = jdbcTemplate.queryForObject(selectAllCountSql, params, Integer.class);
+        result.setData(jdbcTemplate.query(selectLimitedAllSql, params, transactionRowMapper));
+        result.setFiltered(total);
+        result.setTotal(total);
+        return result;
     }
 
     @Override
