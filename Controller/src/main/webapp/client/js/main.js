@@ -394,7 +394,7 @@ $(function(){
             $('.wallet_input').show();
             setTimeout("$('.wallet_input>input').focus().val('')",200);
             requestControls();
-            fillModalWindow('OUTPUT',sum.val(),getCurrentCurrency());
+            fillModalWindow('OUTPUT',sum.val(),$('select[name="currency"]').find(':selected').data('currency'));
         });
     }
 

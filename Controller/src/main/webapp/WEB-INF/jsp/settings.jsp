@@ -17,14 +17,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href='https://fonts.googleapis.com/css?family=Roboto:400,700,300' rel='stylesheet' type='text/css'>
 
+
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js" type="text/javascript"></script>
     <script src="<c:url value='/client/js/jquery.mCustomScrollbar.concat.min.js'/>" type="text/javascript"></script>
 
+    <link href="<c:url value="/client/css/ekko-lightbox.min.css"/>" rel="stylesheet">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
     <link href="<c:url value='/client/css/jquery.mCustomScrollbar.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/style-new.css'/>" rel="stylesheet">
     <%----------%>
+    <script type="text/javascript" src="<c:url value="/client/js/ekko-lightbox.min.js"/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
@@ -218,6 +221,44 @@
                             <loc:message code="admin.cancel"/></button>
                     </form:form>
                 </div>
+                <c:choose>
+                    <c:when test="${userFiles.size() != 0}">
+                        <h4><loc:message code="admin.yourFiles"/></h4>
+                        <div class="row usr_doc_row">
+                            <div class="col-md-offset-0 col-md-10">
+                                <c:forEach var="image" items="${userFiles}">
+                                    <a href="${image.path}" data-toggle="lightbox" class="col-sm-4">
+                                        <img src="${image.path}" class="img-responsive">
+                                    </a>
+                                </c:forEach>
+                            </div>
+                        </div>
+                    </c:when>
+                </c:choose>
+                <c:choose>
+                    <c:when test="${userFiles.size() < 3}">
+                        <h4><loc:message code="admin.uploadFiles"/></h4>
+                        <form method="post" id="upload" action="/settings/uploadFile" accept="image/x-png, image/jpeg, image/jpg" enctype="multipart/form-data" class="form-horizontal">
+
+                            <c:forEach var="i" varStatus="vs" begin="1" end="${3 - userFiles.size()}">
+
+                                <c:choose>
+
+                                    <c:when test="${i == 1}">
+                                        <input required type="file"name="file"/>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <input type="file" name="file"/>
+                                    </c:otherwise>
+                                </c:choose>
+                            </c:forEach>
+                            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+                            <button type="submit" class="confirm-button"><loc:message code="admin.upload"/></button>
+
+                        </form>
+                        <%--</div>--%>
+                    </c:when>
+                </c:choose>
             </div>
         </div>
     </div>
@@ -225,6 +266,7 @@
 </main>
 <%@include file='footer_new.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>
+<span hidden id="successNoty">${successNoty}</span>
 </body>
 </html>
 

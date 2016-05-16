@@ -1,4 +1,4 @@
-/******************************** 
+/********************************
 
 	1. Navigation
 	2. Exchange Data
@@ -1948,3 +1948,7 @@ th.allign-center {
 
 
 /* ... DELETE ORDER*/
+
+#prompt_delete_rqst {
+    display: none;
+}

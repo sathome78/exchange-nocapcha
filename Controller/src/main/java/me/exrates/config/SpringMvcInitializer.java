@@ -1,10 +1,18 @@
 package me.exrates.config;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
+import javax.servlet.MultipartConfigElement;
+import javax.servlet.ServletRegistration;
+import java.io.IOException;
+import java.util.Properties;
 
-public class SpringMvcInitializer 
-       extends AbstractAnnotationConfigDispatcherServletInitializer {
+
+public class SpringMvcInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
+
+	private static final Logger LOG = LogManager.getLogger(SpringMvcInitializer.class);
 
 	@Override
 	protected Class<?>[] getRootConfigClasses() {
@@ -19,5 +27,26 @@ public class SpringMvcInitializer
 	@Override
 	protected String[] getServletMappings() {
 		return new String[] { "/" };
+	}
+
+	@Override
+	protected void customizeRegistration(ServletRegistration.Dynamic registration) {
+		registration.setMultipartConfig(getMultipartConfigElement());
+	}
+
+	private MultipartConfigElement getMultipartConfigElement() {
+		try {
+			final ClassLoader classLoader = getClass().getClassLoader();
+			final Properties properties = new Properties();
+			properties.load(classLoader.getResourceAsStream("uploadfiles.properties"));
+			final String location = properties.getProperty("upload.uploadDir");
+			final long maxFile = Long.parseLong(properties.getProperty("upload.maxFile"));
+			final long maxRequest = Long.parseLong(properties.getProperty("upload.maxRequest"));
+			final int threshold = Integer.parseInt(properties.getProperty("upload.threshold"));
+			return new MultipartConfigElement(location, maxFile, maxRequest, threshold);
+		} catch (final IOException e) {
+			LOG.error(e);
+			throw new RuntimeException("Can not load uploadfiles.properties." + e);
+		}
 	}
 }

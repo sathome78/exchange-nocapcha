@@ -6,9 +6,10 @@ $(function () {
     } else {
         var id = $("#user-id").val();
         transactionsDataTable = $('#transactionsTable').DataTable({
+            "serverSide": true,
             "ajax": {
                 "url": '/admin/transactions?id=' + id,
-                "dataSrc": ""
+                "dataSrc": "data"
             },
             "paging": true,
             "info": true,

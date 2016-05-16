@@ -7,8 +7,7 @@
 <%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="utf-8">
+ <meta charset="utf-8">
     <title><loc:message code="admin.title"/></title>
     <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon"/>
 
@@ -20,25 +19,21 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js" type="text/javascript"></script>
     <script src="<c:url value='/client/js/jquery.mCustomScrollbar.concat.min.js'/>" type="text/javascript"></script>
 
+
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    <link href="<c:url value="/client/css/ekko-lightbox.min.css"/>" rel="stylesheet">
     <link href="<c:url value='/client/css/jquery.mCustomScrollbar.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/style-new.css'/>" rel="stylesheet">
-
     <link href="<c:url value='/client/css/jquery.dataTables.min.css'/>" rel="stylesheet" type="text/css"/>
 
-    <script type="text/javascript" src="/client/js/jquery.dataTables.min.js"></script>
-    <script type="text/javascript">
-        $(document).ready(function () {
-            $('#usersTable').DataTable();
-        });
-    </script>
     <%----------%>
+    <script type="text/javascript" src="<c:url value="/client/js/ekko-lightbox.min.js"/>"></script>
+    <script type="text/javascript" src="<c:url value="/client/js/jquery.dataTables.min.js"/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/menuSwitcher.js'/>"></script>
-
     <script type="text/javascript" src="<c:url value='/client/js/dataTable/adminTransactionsDataTable.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/dataTable/adminWalletsDataTable.js'/>"></script>
     <%----------%>
@@ -197,6 +192,27 @@
                                     </fieldset>
                                 </div>
                             </form:form>
+                            <h4><loc:message code="admin.yourFiles"/></h4>
+                            <c:choose>
+                                <c:when test="${userFiles.size() != 0}">
+                                    <div class="row usr_doc_row">
+                                        <div class="col-md-offset-0 col-md-10">
+                                            <c:forEach var="image" items="${userFiles}">
+                                            <div id="_${image.id}">
+                                                <a href="${image.path}" class="col-sm-4" data-title="<form class='delete_img'>
+                                                        <input type='hidden' name='id' value='${image.id}'/>
+                                                        <input type='hidden' name='path' value='${image.path}'/>
+                                                        <input type='hidden' name='userId' value='${image.userId}'/>
+                                                        <button id='apr_delete' type='submit' class='btn-md btn-danger'><loc:message code='admin.modal.delete'/></button>
+                                                        </form>" data-toggle="lightbox">
+                                                    <img src="${image.path}" class="img-responsive">
+                                                </a>
+                                            </div>
+                                            </c:forEach>
+                                            </div>
+                                    </div>
+                                </c:when>
+                            </c:choose>
                         </div>
                     </div>
                 </div>
@@ -265,6 +281,9 @@
     </div>
     <hr>
 </main>
+<div id="prompt_delete_rqst">
+    <loc:message code="admin.promptDeleteUserFiles"/>
+</div>
 
 <%@include file='order_delete.jsp' %>
 

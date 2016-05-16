@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import me.exrates.model.ExOrder;
 import me.exrates.model.Merchant;
 import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.math.BigDecimal;
