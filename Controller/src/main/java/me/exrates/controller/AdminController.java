@@ -19,6 +19,7 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
@@ -45,6 +46,9 @@ import java.util.Locale;
 import java.util.Map;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonMap;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -90,6 +94,26 @@ public class AdminController {
 
         return model;
     }
+
+    @ResponseBody
+    @RequestMapping(value = "/admin/users/deleteUserFile", method = POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<Map<String, String>> deleteUserDoc(final @RequestParam("fileId") int fileId,
+                                                             final @RequestParam("userId") int userId,
+                                                             final @RequestParam("path") String path,
+                                                             final Locale locale) {
+        try {
+            final String filename = path.substring(path.lastIndexOf('/') + 1);
+            userFilesService.deleteUserFile(filename, userId);
+        } catch (IOException e) {
+            LOG.error(e);
+            return new ResponseEntity<>(singletonMap("error",
+                    messageSource.getMessage("admin.internalError", null, locale)), INTERNAL_SERVER_ERROR);
+        }
+        userService.deleteUserFile(fileId);
+        return new ResponseEntity<>(singletonMap("success",
+                messageSource.getMessage("admin.successfulDeleteUserFiles", null, locale)), OK);
+    }
+
 
     @ResponseBody
     @RequestMapping(value = "/admin/users", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -186,8 +210,7 @@ public class AdminController {
 
     @RequestMapping("/admin/userInfo")
     public ModelAndView userInfo(@RequestParam int id, HttpServletRequest request) {
-        ModelAndView model = editUser(id);
-        return model;
+        return editUser(id);
     }
 
     @RequestMapping(value = "/admin/edituser/submit", method = POST)
