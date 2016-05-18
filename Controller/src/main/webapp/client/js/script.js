@@ -107,6 +107,8 @@ $(function () {
         getStatisticsForCurrency($(this).text());
     });
 
+    $(".input-block-wrapper__input").prop("autocomplete","off");
+    $(".numericInputField").prop("autocomplete","off");
     $(".numericInputField").keypress(
         function (e) {
             return e.charCode >= 48 && e.charCode <= 57 || e.charCode == 46 || e.charCode == 0

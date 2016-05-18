@@ -271,29 +271,33 @@ public class OrderController {
     @RequestMapping(value = "/order/submit", method = RequestMethod.POST)
     public ModelAndView submitNewOrderToSell(@Valid @ModelAttribute OrderCreateDto orderCreateDto,
                                              BindingResult result, ModelAndView model, HttpServletRequest request) {
-        orderValidator.validate(orderCreateDto, result);
-        if (result.hasErrors()) {
-            model.setViewName("newordertosell");
-        } else {
+        try {
+            orderValidator.validate(orderCreateDto, result);
+            if (result.hasErrors()) {
+                model.setViewName("newordertosell");
+            } else {
             /*restore protected orderCreateDto*/
-            BigDecimal amount = orderCreateDto.getAmount();
-            BigDecimal exchangeRate = orderCreateDto.getExchangeRate();
-            OperationType operationType = orderCreateDto.getOperationType();
-            orderCreateDto = (OrderCreateDto) request.getSession().getAttribute("/orders/orderCreateDto");
-            orderCreateDto.setAmount(amount);
-            orderCreateDto.setExchangeRate(exchangeRate);
-            orderCreateDto.setOperationType(operationType);
-            request.getSession().removeAttribute("/orders/orderCreateDto");
+                BigDecimal amount = orderCreateDto.getAmount();
+                BigDecimal exchangeRate = orderCreateDto.getExchangeRate();
+                OperationType operationType = orderCreateDto.getOperationType();
+                orderCreateDto = (OrderCreateDto) request.getSession().getAttribute("/orders/orderCreateDto");
+                orderCreateDto.setAmount(amount);
+                orderCreateDto.setExchangeRate(exchangeRate);
+                orderCreateDto.setOperationType(operationType);
+                request.getSession().removeAttribute("/orders/orderCreateDto");
             /*final amounts calculated here (not by javascript) and transfere to submit form*/
-            orderCreateDto.calculateAmounts();
+                orderCreateDto.calculateAmounts();
             /*protect orderCreateDto*/
-            request.getSession().setAttribute("/order/submit/orderCreateDto", orderCreateDto);
+                request.getSession().setAttribute("/order/submit/orderCreateDto", orderCreateDto);
+                model.addObject("orderCreateDto", orderCreateDto);
+                //
+                model.setViewName("submitorder");
+            }
             model.addObject("orderCreateDto", orderCreateDto);
-            //
-            model.setViewName("submitorder");
+            return model;
+        } catch(Exception e){
+            throw new RuntimeException("orderCreateDto: "+orderCreateDto);
         }
-        model.addObject("orderCreateDto", orderCreateDto);
-        return model;
     }
 
     /**

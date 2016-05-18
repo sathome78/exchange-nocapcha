@@ -77,12 +77,8 @@
                         </tr>
                         <c:forEach var="transaction" items="${transactions}">
                             <tr>
-                                    <%--2016-03-08 <br> 14:48:46--%>
                                 <td style="white-space: nowrap;">
-                                        <%--${transaction.datetime}--%>
-                                    <fmt:parseDate value="${transaction.datetime}" var="parsedDate"
-                                                   pattern="yyyy-MM-dd'T'HH:mm"/>
-                                    <fmt:formatDate value="${parsedDate}" pattern="yyyy-MM-dd'&nbsp;&nbsp;&nbsp;'HH:mm"/>
+                                        ${transaction.datetime}
                                 </td>
                                 <td>
                                     <loc:message code="transaction.operationType${transaction.operationType}"/>
@@ -109,12 +105,17 @@
                                     <c:if test="${transaction.order.getId() != null && transaction.order.getId() >0}">
                                         ${transaction.order.getId()}
                                     </c:if>
-                                    <input id="operationType" hidden type="text" value = "${transaction.order.getOperationType()}"/>
-                                    <input id="amountBase" hidden type="text" value = "${transaction.order.getAmountBase()}"/>
-                                    <input id="exRate" hidden type="text" value = "${transaction.order.getExRate()}"/>
-                                    <input id="amountConvert" hidden type="text" value = "${transaction.order.getAmountConvert()}"/>
-                                    <input id="dateCreation" hidden type="text" value = "${transaction.order.getDateCreation()}"/>
-                                    <input id="dateAcception" hidden type="text" value = "${transaction.order.getDateAcception()}"/>
+                                    <input id="operationType" hidden type="text"
+                                           value="${transaction.order.getOperationType()}"/>
+                                    <input id="amountBase" hidden type="text"
+                                           value="${transaction.order.getAmountBase()}"/>
+                                    <input id="exRate" hidden type="text" value="${transaction.order.getExRate()}"/>
+                                    <input id="amountConvert" hidden type="text"
+                                           value="${transaction.order.getAmountConvert()}"/>
+                                    <input id="dateCreation" hidden type="text"
+                                           value="${transaction.order.getDateCreation()}"/>
+                                    <input id="dateAcception" hidden type="text"
+                                           value="${transaction.order.getDateAcception()}"/>
                                 </td>
                                 <td>
                                     <c:if test="${transaction.status != null}">

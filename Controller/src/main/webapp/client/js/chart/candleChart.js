@@ -165,7 +165,8 @@ function prepareCandleOptions() {
                 color: '#65180a',
                 fontSize: 10
             },
-            viewWindowMode: 'pretty'
+            viewWindowMode: 'pretty',
+            format:'##0.###'
         },
         hAxis: {
             textStyle: {

@@ -198,21 +198,5 @@ public class MainController {
         return modelAndView;
     }
 
-    @RequestMapping(value = "yandex_4b3a16d69d4869cb.html", method = RequestMethod.GET)
-    @ResponseBody
-    public FileSystemResource getYandex_4b3a16d69d4869cb() {
-        final ClassLoader classLoader = getClass().getClassLoader();
-        final File file = new File(classLoader.getResource("public/yandex_4b3a16d69d4869cb.html").getFile());
-        return new FileSystemResource(file);
-    }
-
-    @RequestMapping(value = "yandex_7a3c41ddb19f4716.html", method = RequestMethod.GET)
-    @ResponseBody
-    public FileSystemResource getYandex_7a3c41ddb19f4716() {
-        final ClassLoader classLoader = getClass().getClassLoader();
-        final File file = new File(classLoader.getResource("public/yandex_7a3c41ddb19f4716.html").getFile());
-        return new FileSystemResource(file);
-    }
-
 }  
 

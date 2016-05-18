@@ -75,6 +75,31 @@ To determine which of these forms to be filled, we must set field operationType
         return this;
     }
 
+    @Override
+    public String toString() {
+        return "OrderCreateDto{" +
+                "orderId=" + orderId +
+                ", userId=" + userId +
+                ", status=" + status +
+                ", currencyPair=" + currencyPair +
+                ", comissionForBuyId=" + comissionForBuyId +
+                ", comissionForBuyRate=" + comissionForBuyRate +
+                ", comissionForSellId=" + comissionForSellId +
+                ", comissionForSellRate=" + comissionForSellRate +
+                ", walletIdCurrencyBase=" + walletIdCurrencyBase +
+                ", currencyBaseBalance=" + currencyBaseBalance +
+                ", walletIdCurrencyConvert=" + walletIdCurrencyConvert +
+                ", currencyConvertBalance=" + currencyConvertBalance +
+                ", operationType=" + operationType +
+                ", exchangeRate=" + exchangeRate +
+                ", amount=" + amount +
+                ", total=" + total +
+                ", comissionId=" + comissionId +
+                ", comission=" + comission +
+                ", totalWithComission=" + totalWithComission +
+                '}';
+    }
+
     /*getters setters*/
     public int getUserId() {
         return userId;

@@ -8,8 +8,8 @@ function getOrderDetailedInfo(order_id) {
         type: 'GET',
         success: function (data) {
             $("#id").find('span').html(data.id);
-            $("#dateCreation").find('span').html(data.dateCreation.replace('T', ' '));
-            $("#dateAcception").find('span').html(data.dateAcception ? data.dateAcception.replace('T', ' ') : '-');
+            $("#dateCreation").find('span').html(data.dateCreation);
+            $("#dateAcception").find('span').html(data.dateAcception ? data.dateAcception : '-');
             $("#currencyPairName").find('span').html(data.currencyPairName);
             $("#orderStatusName").find('span').html(data.orderStatusName.toUpperCase());
             $("#orderTypeName").find('span').html(data.orderTypeName);

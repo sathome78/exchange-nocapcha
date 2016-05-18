@@ -132,6 +132,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 	@Override
 	public void addResourceHandlers(ResourceHandlerRegistry registry) {
 		registry.addResourceHandler("/client/**").addResourceLocations("/client/");
+		registry.addResourceHandler("/**").addResourceLocations("/public/");
 		registry.addResourceHandler(userFilesLogicalDir+"/**").addResourceLocations("file:" + userFilesDir);
 	}
 

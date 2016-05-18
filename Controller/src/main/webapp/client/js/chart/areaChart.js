@@ -48,7 +48,8 @@ function drawChartArea(period) {
                 textStyle: {
                     color: '#65180a',
                     fontSize: 10
-                }
+                },
+                format:'##0.###'
             },
             hAxis: {
                 textStyle: {

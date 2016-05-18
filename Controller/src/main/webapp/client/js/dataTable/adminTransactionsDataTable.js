@@ -18,7 +18,7 @@ $(function () {
                     "data": "datetime",
                     "render": function (data, type, row) {
                         if (type == 'display') {
-                            return data.split('T')[0];
+                            return data.split(' ')[0];
                         }
                         return data;
                     }
@@ -27,7 +27,7 @@ $(function () {
                     "data": "datetime",
                     "render": function (data, type, row) {
                         if (type == 'display') {
-                            return data.split('T')[1];
+                            return data.split(' ')[1];
                         }
                         return data;
                     }
