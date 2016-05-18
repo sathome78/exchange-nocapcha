@@ -1,32 +1,24 @@
 package me.exrates.model.dto;
 
+import me.exrates.model.Currency;
+import me.exrates.model.User;
 import me.exrates.model.util.BigDecimalProcessing;
 
 import java.math.BigDecimal;
 
 /**
  * Created by Valk on 04.05.2016.
- * <p/>
- * class is used for upload data
  */
-public class UsersWalletsDto {
-    private String userNickname;
-    private String userEmail;
+public class UserWalletSummaryDto {
     private String currencyName;
+    private int walletsAmount;
     private BigDecimal activeBalance;
     private BigDecimal reservedBalance;
-
-    @Override
-    public String toString() {
-        return userNickname + ";" +
-                userEmail + ";" +
-                currencyName + ";" +
-                BigDecimalProcessing.formatNoneComma(activeBalance) + ";" +
-                BigDecimalProcessing.formatNoneComma(reservedBalance) +
-                "\r\n";
-    }
+    private BigDecimal activeBalancePerWallet;
+    private BigDecimal reservedBalancePerWallet;
 
     /*getters setters*/
+
     public String getCurrencyName() {
         return currencyName;
     }
@@ -35,20 +27,12 @@ public class UsersWalletsDto {
         this.currencyName = currencyName;
     }
 
-    public String getUserNickname() {
-        return userNickname;
+    public int getWalletsAmount() {
+        return walletsAmount;
     }
 
-    public void setUserNickname(String userNickname) {
-        this.userNickname = userNickname;
-    }
-
-    public String getUserEmail() {
-        return userEmail;
-    }
-
-    public void setUserEmail(String userEmail) {
-        this.userEmail = userEmail;
+    public void setWalletsAmount(int walletsAmount) {
+        this.walletsAmount = walletsAmount;
     }
 
     public BigDecimal getActiveBalance() {
@@ -67,4 +51,19 @@ public class UsersWalletsDto {
         this.reservedBalance = reservedBalance;
     }
 
+    public BigDecimal getActiveBalancePerWallet() {
+        return activeBalancePerWallet;
+    }
+
+    public void setActiveBalancePerWallet(BigDecimal activeBalancePerWallet) {
+        this.activeBalancePerWallet = activeBalancePerWallet;
+    }
+
+    public BigDecimal getReservedBalancePerWallet() {
+        return reservedBalancePerWallet;
+    }
+
+    public void setReservedBalancePerWallet(BigDecimal reservedBalancePerWallet) {
+        this.reservedBalancePerWallet = reservedBalancePerWallet;
+    }
 }

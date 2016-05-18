@@ -1,6 +1,7 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.OrderDao;
+import me.exrates.jdbc.OrderExtractor;
 import me.exrates.jdbc.OrderRowMapper;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
@@ -63,16 +64,25 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<ExOrder> getMyOrders(int userId, CurrencyPair currencyPair) {
-        String sql = "SELECT * " +
+    public List<OrderWideListDto> getMyOrders(String email, CurrencyPair currencyPair) {
+        String sql = "SELECT EXORDERS.*, CURRENCY_PAIR.name AS currency_pair_name" +
                 "  FROM EXORDERS " +
-                "  WHERE user_id=:user_id and (status_id = 1 or status_id = 2 or status_id = 3)" +
+                "  JOIN USER ON (USER.email = :email) " +
+                "  JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) " +
+                "  WHERE (status_id IN (1, 2, 3))" +
                 (currencyPair == null ? "" : " and EXORDERS.currency_pair_id=" + currencyPair.getId()) +
                 "  ORDER BY -date_acception ASC, date_creation DESC";
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         Map<String, String> namedParameters = new HashMap<>();
-        namedParameters.put("user_id", String.valueOf(userId));
-        return namedParameterJdbcTemplate.query(sql, namedParameters, new OrderRowMapper());
+        namedParameters.put("email", String.valueOf(email));
+        return namedParameterJdbcTemplate.query(sql, namedParameters, new RowMapper<OrderWideListDto>() {
+            @Override
+            public OrderWideListDto mapRow(ResultSet rs, int rowNum) throws SQLException {
+                OrderWideListDto orderWideListDto = new OrderWideListDto(new OrderExtractor().extractData(rs));
+                orderWideListDto.setCurrencyPairName(rs.getString("currency_pair_name"));
+                return orderWideListDto;
+            }
+        });
     }
 
     @Override
@@ -155,11 +165,16 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public ExOrder getOrderById(int orderId) {
+        orderId = orderId;
         String sql = "SELECT * FROM EXORDERS WHERE id = :id";
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("id", String.valueOf(orderId));
-        return namedParameterJdbcTemplate.query(sql, namedParameters, new OrderRowMapper()).get(0);
+        try {
+            return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, new OrderRowMapper());
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
     }
 
     @Override

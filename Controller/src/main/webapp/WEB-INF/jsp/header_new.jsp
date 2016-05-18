@@ -35,11 +35,6 @@
                         <li>
                             <a href="/" class="navabr__link active"><loc:message code="dashboard.general"/></a>
                         </li>
-                        <%--НОВОСТИ--%>
-                        <%--<li><a href="#"><loc:message code="dashboard.news"/></a></li>--%>
-                        <%--ОБУЧЕНИЕ--%>
-                        <%--<li><a href="#"><loc:message code="dashboard.training"/></a></li>--%>
-                        <%--ЛИЧНЫЙ КАБИНЕТ--%>
                         <li>
                             <a href="<c:url value="http://support.exrates.me/" />"><loc:message code="dashboard.support"/></a>
                         </li>
@@ -97,7 +92,8 @@
                         <ul class="dropdown-menu" id="languageUl">
                             <li><a class="lang__item" href="#">English</a></li>
                             <li><a class="lang__item" href="#">Русский</a></li>
-                            <%--<li><a class="lang__item" href="#">Chinese</a></li>--%>
+                            <%--<li><a class="lang__item" href="#">Chinese</a></li>
+                            <li><a class="lang__item" href="#">Thai</a></li>--%>
                         </ul>
                     </li>
                 </ul>

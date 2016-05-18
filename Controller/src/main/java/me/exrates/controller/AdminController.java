@@ -5,10 +5,7 @@ import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
 import me.exrates.model.Wallet;
-import me.exrates.model.dto.DataTable;
-import me.exrates.model.dto.OperationViewDto;
-import me.exrates.model.dto.OrderInfoDto;
-import me.exrates.model.dto.UpdateUserDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.security.service.UserSecureServiceImpl;
@@ -51,6 +48,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonMap;
@@ -427,7 +425,15 @@ public class AdminController {
         return orderService.searchOrderByAdmin(currencyPair, orderType, orderDate, orderRate, orderVolume);
     }
 
+    @RequestMapping(value = "admin/downloadUsersWalletsSummary", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
+    @ResponseBody
+    public String getUsersWalletsSummeryTxt(@RequestParam String startDate, @RequestParam String endDate) {
+        return
+                UserSummaryDto.getTitle()+
+                userService.getUsersSummaryList(startDate, endDate)
+                .stream()
+                .map(e -> e.toString())
+                .collect(Collectors.joining());
+    }
+
 }
-
-
-//currencyPair=1&orderType=SELL&orderDate=2016-05-12+14%3A07&orderRate=11&orderVolume=22

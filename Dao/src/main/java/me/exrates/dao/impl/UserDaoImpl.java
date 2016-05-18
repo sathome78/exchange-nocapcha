@@ -6,10 +6,9 @@ import me.exrates.model.User;
 import me.exrates.model.UserFile;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserIpDto;
-import me.exrates.model.enums.TokenType;
-import me.exrates.model.enums.UserIpState;
-import me.exrates.model.enums.UserRole;
-import me.exrates.model.enums.UserStatus;
+import me.exrates.model.dto.UserSummaryDto;
+import me.exrates.model.enums.*;
+import me.exrates.model.util.BigDecimalProcessing;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,15 +23,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.sql.Timestamp;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonMap;
-import java.sql.Timestamp;
-import java.util.*;
 
 @Repository
 public class UserDaoImpl implements UserDao {
@@ -492,6 +488,55 @@ public class UserDaoImpl implements UserDao {
         namedParameters.put("user_id", String.valueOf(userId));
         namedParameters.put("ip", ip);
         return jdbcTemplate.update(sql, namedParameters) > 0;
+    }
+
+    @Override
+    public List<UserSummaryDto> getUsersSummaryList(String startDate, String endDate) {
+        String sql =
+                " SELECT  " +
+                        "   USER.nickname as user_nickname,  " +
+                        "   USER.email as user_email,  " +
+                        "   USER.regdate as user_register_date,  " +
+                        "   (SELECT ip FROM USER_IP WHERE USER_IP.user_id = USER.id ORDER BY -registration_date DESC LIMIT 1) as user_register_ip, " +
+                        "   (SELECT ip FROM USER_IP WHERE USER_IP.user_id = USER.id ORDER BY last_registration_date DESC LIMIT 1) as user_last_entry_ip, " +
+                        "   CURRENCY.name as currency_name,  " +
+                        "   WALLET.active_balance as active_balance,  " +
+                        "   WALLET.reserved_balance as reserved_balance, " +
+                        "   (SELECT SUM(INPUT.amount) FROM TRANSACTION INPUT WHERE (INPUT.user_wallet_id = WALLET.id)  " +
+                        "         AND (INPUT.operation_type_id=1)  " +
+                        "         AND (INPUT.status_id=1)  " +
+                        "         AND (INPUT.provided=1) " +
+                        "         AND (DATE_FORMAT(INPUT.datetime, '%Y-%m-%d %H:%i:%s') BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))) " +
+                        "   AS input_amount,  " +
+                        "   (SELECT SUM(OUTPUT.amount) FROM TRANSACTION OUTPUT WHERE (OUTPUT.user_wallet_id = WALLET.id)  " +
+                        "         AND (OUTPUT.operation_type_id=2)  " +
+                        "         AND (OUTPUT.status_id=1)  " +
+                        "         AND (OUTPUT.provided=1) " +
+                        "         AND (DATE_FORMAT(OUTPUT.datetime, '%Y-%m-%d %H:%i:%s') BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))) " +
+                        "   AS output_amount     " +
+                        " FROM USER  " +
+                        "   LEFT JOIN WALLET ON (WALLET.user_id = USER.id) " +
+                        "   LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id)";
+        Map<String, String> namedParameters = new HashMap<>();
+        namedParameters.put("start_date", startDate);
+        namedParameters.put("end_date", endDate);
+        ArrayList<UserSummaryDto> result = (ArrayList<UserSummaryDto>) jdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<UserSummaryDto>() {
+            @Override
+            public UserSummaryDto mapRow(ResultSet rs, int rowNumber) throws SQLException {
+                UserSummaryDto userSummaryDto = new UserSummaryDto();
+                userSummaryDto.setUserNickname(rs.getString("user_nickname"));
+                userSummaryDto.setUserEmail(rs.getString("user_email"));
+                userSummaryDto.setCreationDate(rs.getTimestamp("user_register_date") == null ? "" : rs.getTimestamp("user_register_date").toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                userSummaryDto.setRegisteredIp(rs.getString("user_register_ip"));
+                userSummaryDto.setLastIp(rs.getString("user_last_entry_ip"));
+                userSummaryDto.setCurrencyName(rs.getString("currency_name"));
+                userSummaryDto.setActiveBalance(rs.getBigDecimal("active_balance"));
+                userSummaryDto.setReservedBalance(rs.getBigDecimal("reserved_balance"));
+                userSummaryDto.setWalletTurnover(BigDecimalProcessing.doActionLax(rs.getBigDecimal("input_amount"), rs.getBigDecimal("output_amount"), ActionType.SUBTRACT));
+                return userSummaryDto;
+            }
+        });
+        return result;
     }
 
 }

@@ -30,7 +30,7 @@ public class OrderWideListDto {
     private LocalDateTime dateAcception;
     private OrderStatus status;
     /**/
-    private CurrencyPair currencyPair;
+    private String currencyPairName;
     private String statusString;
 
     /*constructors*/
@@ -152,12 +152,12 @@ public class OrderWideListDto {
         this.status = status;
     }
 
-    public CurrencyPair getCurrencyPair() {
-        return currencyPair;
+    public String getCurrencyPairName() {
+        return currencyPairName;
     }
 
-    public void setCurrencyPair(CurrencyPair currencyPair) {
-        this.currencyPair = currencyPair;
+    public void setCurrencyPairName(String currencyPairName) {
+        this.currencyPairName = currencyPairName;
     }
 
     public String getStatusString() {

@@ -206,5 +206,13 @@ public class MainController {
         return new FileSystemResource(file);
     }
 
+    @RequestMapping(value = "yandex_7a3c41ddb19f4716.html", method = RequestMethod.GET)
+    @ResponseBody
+    public FileSystemResource getYandex_7a3c41ddb19f4716() {
+        final ClassLoader classLoader = getClass().getClassLoader();
+        final File file = new File(classLoader.getResource("public/yandex_7a3c41ddb19f4716.html").getFile());
+        return new FileSystemResource(file);
+    }
+
 }  
 

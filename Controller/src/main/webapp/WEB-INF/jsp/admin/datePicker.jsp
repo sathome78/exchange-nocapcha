@@ -1,0 +1,72 @@
+<%--
+  Created by IntelliJ IDEA.
+  User: Valk
+  Date: 18.05.2016
+  Time: 10:19
+  To change this template use File | Settings | File Templates.
+--%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+
+<%----------%>
+<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+<script>
+    $(function () {
+        $(".datepicker").datepicker({
+            dateFormat: "yy-mm-dd"
+        });
+    });
+</script>
+<%----------%>
+
+<div id="order-delete-modal--date-picker" class="modal fade delete-order-info__modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title"><%--<loc:message code="orderinfo.title"/>--%></h4>
+            </div>
+            <div class="modal-body delete-order-info">
+                <form id="datepicker__form" action="#">
+                    <div class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="ordersearch.type"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input id="startDate" name="startDate"
+                                   placeholder="<loc:message code="ordersearch.datelaceholder"/>"
+                                   class="form-control input-block-wrapper__input datepicker"/>
+                        </div>
+                        <div for="startDate" hidden class="col-md-7 input-block-wrapper__error-wrapper" >
+                            <label for="startDate" class="input-block-wrapper__input"><loc:message code="ordersearch.errordate"/></label>
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="ordersearch.type"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input id="endDate" name="endDate"
+                                   placeholder="<loc:message code="ordersearch.datelaceholder"/>"
+                                   class="form-control input-block-wrapper__input datepicker"/>
+                        </div>
+                        <div for="endDate" hidden class="col-md-7 input-block-wrapper__error-wrapper" >
+                            <label for="endDate" class="input-block-wrapper__input"><loc:message code="ordersearch.errordate"/></label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <div class="delete-order-info__button-wrapper">
+                    <button id="delete-order-info__search" class="delete-order-info__button"
+                            onclick="downloadUsersWalletsSummary()"><loc:message
+                            code="wallets.download"/></button>
+                    <button class="delete-order-info__button" data-dismiss="modal"
+                            ><loc:message
+                            code="submitorder.cancell"/></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

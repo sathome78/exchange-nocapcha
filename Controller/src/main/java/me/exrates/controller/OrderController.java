@@ -13,6 +13,7 @@ import me.exrates.model.enums.TokenType;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.*;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
+import me.exrates.service.exception.OrderNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
@@ -92,6 +93,7 @@ public class OrderController {
         int currencyConvertWalletId = walletService.getWalletId(userId, currencyConvertId);
         //
         OrderCreateDto orderCreateDto = new OrderCreateDto();
+        orderCreateDto.setUserId(userId);
         orderCreateDto.setCurrencyPair(activeCurrencyPair);
         orderCreateDto.setWalletIdCurrencyBase(currencyBaseWalletId);
         orderCreateDto.setCurrencyBaseBalance(walletService.getWalletABalance(currencyBaseWalletId));
@@ -147,6 +149,9 @@ public class OrderController {
     public void checkSubmitAcceptOrder(@RequestParam int id, Principal principal, HttpServletRequest request) {
         int userId = userService.getIdByEmail(principal.getName());
         ExOrder exOrder = orderService.getOrderById(id);
+        if (exOrder == null) {
+            throw new OrderNotFoundException(messageSource.getMessage("orders.getordererror", new Object[]{id}, localeResolver.resolveLocale(request)));
+        }
         int walletForCheck;
         BigDecimal amountForCheck;
         if (exOrder.getOperationType() == OperationType.BUY) {
@@ -171,6 +176,9 @@ public class OrderController {
     @RequestMapping(value = "/orders/submitaccept")
     public ModelAndView submitAcceptOrder(@RequestParam int id, ModelAndView model, Principal principal, RedirectAttributes redirectAttributes, HttpServletRequest request) {
         ExOrder exOrder = orderService.getOrderById(id);
+        if (exOrder == null) {
+            throw new OrderNotFoundException(messageSource.getMessage("orders.getordererror", new Object[]{id}, localeResolver.resolveLocale(request)));
+        }
         CurrencyPair currencyPair = currencyService.findCurrencyPairById(exOrder.getCurrencyPairId());
         //
         int userId = userService.getIdByEmail(principal.getName());
@@ -227,7 +235,7 @@ public class OrderController {
     public void acceptOrder(@RequestParam int id, ModelAndView model, Principal principal, RedirectAttributes redirectAttributes, HttpServletRequest request) {
         int userId = userService.getIdByEmail(principal.getName());
         try {
-            orderService.acceptOrder(userId, id);
+            orderService.acceptOrder(userId, id, localeResolver.resolveLocale(request));
         } catch (Exception e) {
             throw e;
         }
@@ -244,12 +252,25 @@ public class OrderController {
     /*... ACCEPT ORDER*/
 
     /*CREATE ORDER....*/
-    /* after filling fields of creation form on orders page
-    shows form to submit new order if all fields are filled correct
-    * */
+
+    /**
+     * Shows form to submit new order if all fields are populated correct by user
+     * This is next step after filling fields of creation form on orders page
+     *
+     * @param orderCreateDto object that contains parameters for newly created order.
+     *                       This object returned from the form (see request mapping for  "/orders")
+     *                       on which user filled fields of the blank order and pressed button the create.
+     *                       As among fields of the object there are critical fields that can be replaced
+     *                       by editing the html, the values of these fields wil be restored from session variable
+     * @param result         BindingResult for form validation. If there are errors while validation the fields of created order
+     *                       user will be redirected to form for editing fields
+     * @param model          ModelAndView
+     * @param request        ModelAndView
+     * @return ModelAndView
+     */
     @RequestMapping(value = "/order/submit", method = RequestMethod.POST)
     public ModelAndView submitNewOrderToSell(@Valid @ModelAttribute OrderCreateDto orderCreateDto,
-                                             BindingResult result, ModelAndView model, HttpServletRequest request, Principal principal) {
+                                             BindingResult result, ModelAndView model, HttpServletRequest request) {
         orderValidator.validate(orderCreateDto, result);
         if (result.hasErrors()) {
             model.setViewName("newordertosell");
@@ -258,7 +279,7 @@ public class OrderController {
             BigDecimal amount = orderCreateDto.getAmount();
             BigDecimal exchangeRate = orderCreateDto.getExchangeRate();
             OperationType operationType = orderCreateDto.getOperationType();
-            orderCreateDto = (OrderCreateDto)request.getSession().getAttribute("/orders/orderCreateDto");
+            orderCreateDto = (OrderCreateDto) request.getSession().getAttribute("/orders/orderCreateDto");
             orderCreateDto.setAmount(amount);
             orderCreateDto.setExchangeRate(exchangeRate);
             orderCreateDto.setOperationType(operationType);
@@ -275,18 +296,21 @@ public class OrderController {
         return model;
     }
 
-    /* after submit create order
-    to try to fix operation in db. It's possible that error occures (for example because balance has changed)
-    * */
+    /**
+     * Is called by ajax to to try to fix new order in db.
+     * It's possible that error NotEnoughUserWalletMoneyException occurres (for example because balance has changed).
+     * If order can not be created because some error occurred, then NotCreatableOrderException will be thrown
+     *
+     * @param request
+     */
     @RequestMapping(value = "/orders/create")
     @ResponseBody
-    public void recordOrderToDB(OrderCreateDto orderCreateDto, Principal principal, HttpServletRequest request) {
-        int userId = userService.getIdByEmail(principal.getName());
+    public void recordOrderToDB(HttpServletRequest request) {
         try {
             /*restore protected orderCreateDto*/
-            orderCreateDto = (OrderCreateDto)request.getSession().getAttribute("/order/submit/orderCreateDto");
+            OrderCreateDto orderCreateDto = (OrderCreateDto) request.getSession().getAttribute("/order/submit/orderCreateDto");
             request.getSession().removeAttribute("/order/submit/orderCreateDto");
-            if ((orderService.createOrder(userId, orderCreateDto)) <= 0) {
+            if ((orderService.createOrder(orderCreateDto)) <= 0) {
                 throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, localeResolver.resolveLocale(request)));
             }
         } catch (NotEnoughUserWalletMoneyException e) {
@@ -329,6 +353,9 @@ public class OrderController {
     public ModelAndView submitDeleteOrder(@RequestParam int id, ModelAndView model, HttpServletRequest request) {
         /**/
         ExOrder exOrder = orderService.getOrderById(id);
+        if (exOrder == null) {
+            throw new OrderNotFoundException(messageSource.getMessage("orders.getordererror", new Object[]{id}, localeResolver.resolveLocale(request)));
+        }
         CurrencyPair currencyPair = currencyService.findCurrencyPairById(exOrder.getCurrencyPairId());
         /**/
         OrderCreateDto orderCreateDto = new OrderCreateDto();
@@ -361,7 +388,7 @@ public class OrderController {
     public String deleteOrder(RedirectAttributes redirectAttributes, HttpServletRequest request) {
         String msg = null;
         /*restore protected orderCreateDto*/
-        OrderCreateDto orderCreateDto = (OrderCreateDto)request.getSession().getAttribute("/myorders/submitdelete/orderCreateDto");
+        OrderCreateDto orderCreateDto = (OrderCreateDto) request.getSession().getAttribute("/myorders/submitdelete/orderCreateDto");
         request.getSession().removeAttribute("/myorders/submitdelete/orderCreateDto");
         if (orderService.cancellOrder(new ExOrder(orderCreateDto))) {
             msg = "delete";
@@ -435,6 +462,13 @@ public class OrderController {
     @ExceptionHandler(NotConfirmedFinPasswordException.class)
     @ResponseBody
     public ErrorInfo NotConfirmedFinPasswordExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(OrderNotFoundException.class)
+    @ResponseBody
+    public ErrorInfo OrderNotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 

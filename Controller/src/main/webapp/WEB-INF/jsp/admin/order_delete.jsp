@@ -7,18 +7,6 @@
 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
-<%--<script type="text/javascript" src="<c:url value='/client/js/bootstrap-datetimepicker.min.js'/>"></script>
-<link href="<c:url value='/client/css/bootstrap-datetimepicker.css'/>" rel="stylesheet" type="text/css"/>
-
-<script type="text/javascript">
-    $(function () {
-        $('#orderDate').datetimepicker({
-            format: 'yyyy-mm-dd hh:ii', autoclose: true,
-            todayBtn: true
-        });
-    });
-</script>--%>
-
 <%----------%>
 <script type="text/javascript" src="<c:url value='/client/js/order/adminDeleteOrder.js'/>"></script>
 <%----------%>
@@ -143,11 +131,11 @@
                             <label class="input-block-wrapper__label"><loc:message code="ordersearch.date"/></label>
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input id="orderDate" name="orderDate" placeholder="<loc:message code="ordersearch.dateplaceholder"/>"
+                            <input id="orderDate" name="orderDate" placeholder="<loc:message code="ordersearch.datetimeplaceholder"/>"
                                    class="form-control input-block-wrapper__input"/>
                         </div>
                         <div for="orderDate" hidden class="col-md-7 input-block-wrapper__error-wrapper" >
-                            <label for="orderDate" class="input-block-wrapper__input"><loc:message code="ordersearch.errordate"/></label>
+                            <label for="orderDate" class="input-block-wrapper__input"><loc:message code="ordersearch.errordatetime"/></label>
                         </div>
                     </div>
                     <div class="input-block-wrapper">
