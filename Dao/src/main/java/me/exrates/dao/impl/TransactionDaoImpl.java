@@ -40,32 +40,32 @@ public final class TransactionDaoImpl implements TransactionDao {
 
     private final String SELECT_COUNT =
             " SELECT COUNT(*)" +
-            " FROM TRANSACTION " +
-            " INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id" +
-            " INNER JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id" +
-            " INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
-            " INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id" +
-            " LEFT JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id " +
-            " LEFT JOIN EXORDERS ON TRANSACTION.order_id = EXORDERS.id ";
+                    " FROM TRANSACTION " +
+                    " INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id" +
+                    " INNER JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id" +
+                    " INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
+                    " INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id" +
+                    " LEFT JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id " +
+                    " LEFT JOIN EXORDERS ON TRANSACTION.order_id = EXORDERS.id ";
 
     private final String SELECT_ALL =
             " SELECT TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime, " +
-            " TRANSACTION.operation_type_id,TRANSACTION.provided, TRANSACTION.confirmation, TRANSACTION.order_id, " +
-            " WALLET.id,WALLET.active_balance,WALLET.reserved_balance,WALLET.currency_id," +
-            " COMPANY_WALLET.id,COMPANY_WALLET.balance,COMPANY_WALLET.commission_balance," +
-            " COMMISSION.id,COMMISSION.date,COMMISSION.value," +
-            " CURRENCY.id,CURRENCY.description,CURRENCY.name," +
-            " MERCHANT.id,MERCHANT.name,MERCHANT.description, " +
-            " EXORDERS.id, EXORDERS.user_id, EXORDERS.currency_pair_id, EXORDERS.operation_type_id, EXORDERS.exrate, " +
-            " EXORDERS.amount_base, EXORDERS.amount_convert, EXORDERS.commission_fixed_amount, EXORDERS.date_creation, " +
-            " EXORDERS.date_acception " +
-            " FROM TRANSACTION " +
-            " INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id" +
-            " INNER JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id" +
-            " INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
-            " INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id" +
-            " LEFT JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id " +
-            " LEFT JOIN EXORDERS ON TRANSACTION.order_id = EXORDERS.id ";
+                    " TRANSACTION.operation_type_id,TRANSACTION.provided, TRANSACTION.confirmation, TRANSACTION.order_id, " +
+                    " WALLET.id,WALLET.active_balance,WALLET.reserved_balance,WALLET.currency_id," +
+                    " COMPANY_WALLET.id,COMPANY_WALLET.balance,COMPANY_WALLET.commission_balance," +
+                    " COMMISSION.id,COMMISSION.date,COMMISSION.value," +
+                    " CURRENCY.id,CURRENCY.description,CURRENCY.name," +
+                    " MERCHANT.id,MERCHANT.name,MERCHANT.description, " +
+                    " EXORDERS.id, EXORDERS.user_id, EXORDERS.currency_pair_id, EXORDERS.operation_type_id, EXORDERS.exrate, " +
+                    " EXORDERS.amount_base, EXORDERS.amount_convert, EXORDERS.commission_fixed_amount, EXORDERS.date_creation, " +
+                    " EXORDERS.date_acception " +
+                    " FROM TRANSACTION " +
+                    " INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id" +
+                    " INNER JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id" +
+                    " INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
+                    " INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id" +
+                    " LEFT JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id " +
+                    " LEFT JOIN EXORDERS ON TRANSACTION.order_id = EXORDERS.id ";
 
     protected static RowMapper<Transaction> transactionRowMapper = (resultSet, i) -> {
 
