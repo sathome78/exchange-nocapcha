@@ -12,12 +12,14 @@ import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.*;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
+import me.exrates.service.exception.OrderAcceptionException;
 import me.exrates.service.exception.TransactionPersistException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,7 +54,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public int createOrder(int userId, OrderCreateDto orderCreateDto) {
+    public int createOrder(OrderCreateDto orderCreateDto) {
         int createdOrderId = 0;
         int outWalletId;
         BigDecimal outAmount;
@@ -64,7 +66,6 @@ public class OrderServiceImpl implements OrderService {
             outAmount = orderCreateDto.getAmount();
         }
         if (walletService.ifEnoughMoney(outWalletId, outAmount)) {
-            orderCreateDto.setUserId(userId);
             ExOrder exOrder = new ExOrder(orderCreateDto);
             if ((createdOrderId = orderDao.createOrder(exOrder)) > 0) {
                 walletService.setWalletRBalance(outWalletId, outAmount);
@@ -81,20 +82,17 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     @Override
     public Map<String, List<OrderWideListDto>> getMyOrders(String email, CurrencyPair currencyPair, Locale locale) {
-        int userId = userService.getIdByEmail(email);
-        List<ExOrder> orderList = orderDao.getMyOrders(userId, currencyPair);
+        List<OrderWideListDto> orderList = orderDao.getMyOrders(email, currencyPair);
         /**/
         List<OrderWideListDto> sellOrderList = new ArrayList<>();
         List<OrderWideListDto> buyOrderList = new ArrayList<>();
-        for (ExOrder exOrder : orderList) {
-            OrderWideListDto orderWideListDto = new OrderWideListDto(exOrder);
-            orderWideListDto.setCurrencyPair(currencyService.findCurrencyPairById(exOrder.getCurrencyPairId()));
-            orderWideListDto.setStatusString(getStatusString(exOrder.getStatus(), locale));
+        for (OrderWideListDto order : orderList) {
+            order.setStatusString(getStatusString(order.getStatus(), locale));
             /**/
-            if (exOrder.getOperationType().equals(OperationType.SELL)) {
-                sellOrderList.add(orderWideListDto);
-            } else if (exOrder.getOperationType().equals(OperationType.BUY)) {
-                buyOrderList.add(orderWideListDto);
+            if (order.getOperationType().equals(OperationType.SELL)) {
+                sellOrderList.add(order);
+            } else if (order.getOperationType().equals(OperationType.BUY)) {
+                buyOrderList.add(order);
             }
         }
         Map<String, List<OrderWideListDto>> orderMap = new HashMap<>();
@@ -127,7 +125,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional(rollbackFor = {Exception.class})
     @Override
-    public void acceptOrder(int userAcceptorId, int orderId) {
+    public void acceptOrder(int userAcceptorId, int orderId, Locale locale) {
         try {
             ExOrder exOrder = this.getOrderById(orderId);
             WalletsForOrderAcceptionDto walletsForOrderAcceptionDto = walletDao.getWalletsForOrderByOrderId(exOrder.getId(), userAcceptorId);
@@ -150,7 +148,7 @@ public class OrderServiceImpl implements OrderService {
                 }
                 walletService.setWalletABalance(walletsForOrderAcceptionDto.getUserCreatorInWalletId(), exOrder.getAmountBase());
                 if (!walletService.setWalletRBalance(walletsForOrderAcceptionDto.getUserCreatorOutWalletId(), amountWithComissionForCreator.negate())) {
-                    throw new NotEnoughUserWalletMoneyException("not enough reserved money for creator when accept the order " + orderId);
+                    throw new NotEnoughUserWalletMoneyException(messageSource.getMessage("order.notenoughreservedmoneyforcreator", new Object[]{orderId}, locale));
                 }
                 /**/
                 if (walletsForOrderAcceptionDto.getUserAcceptorInWalletId() == 0) {
@@ -158,7 +156,7 @@ public class OrderServiceImpl implements OrderService {
                 }
                 walletService.setWalletABalance(walletsForOrderAcceptionDto.getUserAcceptorInWalletId(), amountWithComissionForAcceptor);
                 if (!walletService.setWalletABalance(walletsForOrderAcceptionDto.getUserAcceptorOutWalletId(), exOrder.getAmountBase().negate())) {
-                    throw new NotEnoughUserWalletMoneyException("not enough available money for acceptor when accept the order " + orderId);
+                    throw new NotEnoughUserWalletMoneyException(messageSource.getMessage("order.notenoughmoneyforacceptor", new Object[]{orderId}, locale));
                 }
             }
             if (exOrder.getOperationType() == OperationType.SELL) {
@@ -167,7 +165,7 @@ public class OrderServiceImpl implements OrderService {
                 }
                 walletService.setWalletABalance(walletsForOrderAcceptionDto.getUserCreatorInWalletId(), amountWithComissionForCreator);
                 if (!walletService.setWalletRBalance(walletsForOrderAcceptionDto.getUserCreatorOutWalletId(), exOrder.getAmountBase().negate())) {
-                    throw new NotEnoughUserWalletMoneyException("not enough reserved money for creator when accept the order " + orderId);
+                    throw new NotEnoughUserWalletMoneyException(messageSource.getMessage("order.notenoughreservedmoneyforcreator", new Object[]{orderId}, locale));
                 }
                 /**/
                 if (walletsForOrderAcceptionDto.getUserAcceptorInWalletId() == 0) {
@@ -175,7 +173,7 @@ public class OrderServiceImpl implements OrderService {
                 }
                 walletService.setWalletABalance(walletsForOrderAcceptionDto.getUserAcceptorInWalletId(), exOrder.getAmountBase());
                 if (!walletService.setWalletABalance(walletsForOrderAcceptionDto.getUserAcceptorOutWalletId(), amountWithComissionForAcceptor.negate())) {
-                    throw new NotEnoughUserWalletMoneyException("not enough available money for acceptor when accept the order " + orderId);
+                    throw new NotEnoughUserWalletMoneyException(messageSource.getMessage("order.notenoughmoneyforacceptor", new Object[]{orderId}, locale));
                 }
             }
             /**/
@@ -204,7 +202,7 @@ public class OrderServiceImpl implements OrderService {
                 transaction.setProvided(true);
                 transaction = transactionDao.create(transaction);
                 if (transaction == null) {
-                    throw new TransactionPersistException("Failed to provide transaction ");
+                    throw new TransactionPersistException(messageSource.getMessage("transaction.providerror", null, locale));
                 }
                 /*for creator OUT*/
                 transaction.setOperationType(OperationType.OUTPUT);
@@ -222,7 +220,7 @@ public class OrderServiceImpl implements OrderService {
                 transaction.setProvided(true);
                 transaction = transactionDao.create(transaction);
                 if (transaction == null) {
-                    throw new TransactionPersistException("Failed to provide transaction ");
+                    throw new TransactionPersistException(messageSource.getMessage("transaction.providerror", null, locale));
                 }
                 /*for acceptor IN*/
                 transaction.setOperationType(OperationType.INPUT);
@@ -239,7 +237,7 @@ public class OrderServiceImpl implements OrderService {
                 transaction.setProvided(true);
                 transaction = transactionDao.create(transaction);
                 if (transaction == null) {
-                    throw new TransactionPersistException("Failed to provide transaction ");
+                    throw new TransactionPersistException(messageSource.getMessage("transaction.providerror", null, locale));
                 }
                 /*for acceptor OUT*/
                 transaction.setOperationType(OperationType.OUTPUT);
@@ -256,7 +254,7 @@ public class OrderServiceImpl implements OrderService {
                 transaction.setProvided(true);
                 transaction = transactionDao.create(transaction);
                 if (transaction == null) {
-                    throw new TransactionPersistException("Failed to provide transaction ");
+                    throw new TransactionPersistException(messageSource.getMessage("transaction.providerror", null, locale));
                 }
             }
             if (exOrder.getOperationType() == OperationType.SELL) {
@@ -276,7 +274,7 @@ public class OrderServiceImpl implements OrderService {
                 transaction.setProvided(true);
                 transaction = transactionDao.create(transaction);
                 if (transaction == null) {
-                    throw new TransactionPersistException("Failed to provide transaction ");
+                    throw new TransactionPersistException(messageSource.getMessage("transaction.providerror", null, locale));
                 }
                 /*for creator OUT*/
                 transaction.setOperationType(OperationType.OUTPUT);
@@ -294,7 +292,7 @@ public class OrderServiceImpl implements OrderService {
                 transaction.setProvided(true);
                 transaction = transactionDao.create(transaction);
                 if (transaction == null) {
-                    throw new TransactionPersistException("Failed to provide transaction ");
+                    throw new TransactionPersistException(messageSource.getMessage("transaction.providerror", null, locale));
                 }
                 /*for acceptor IN*/
                 transaction.setOperationType(OperationType.INPUT);
@@ -311,7 +309,7 @@ public class OrderServiceImpl implements OrderService {
                 transaction.setProvided(true);
                 transaction = transactionDao.create(transaction);
                 if (transaction == null) {
-                    throw new TransactionPersistException("Failed to provide transaction ");
+                    throw new TransactionPersistException(messageSource.getMessage("transaction.providerror", null, locale));
                 }
                 /*for acceptor OUT*/
                 transaction.setOperationType(OperationType.OUTPUT);
@@ -328,14 +326,16 @@ public class OrderServiceImpl implements OrderService {
                 transaction.setProvided(true);
                 transaction = transactionDao.create(transaction);
                 if (transaction == null) {
-                    throw new TransactionPersistException("Failed to provide transaction ");
+                    throw new TransactionPersistException(messageSource.getMessage("transaction.providerror", null, locale));
                 }
             }
             /**/
             exOrder.setStatus(OrderStatus.CLOSED);
             exOrder.setDateAcception(LocalDateTime.now());
             exOrder.setUserAcceptorId(userAcceptorId);
-            updateOrder(exOrder);
+            if (!updateOrder(exOrder)) {
+                throw new OrderAcceptionException(messageSource.getMessage("orders.acceptsaveerror", null, locale));
+            }
         } catch (Exception e) {
             logger.error("Error while accepting order with id = " + orderId + " exception: " + e.getLocalizedMessage());
             throw e;
@@ -403,12 +403,13 @@ public class OrderServiceImpl implements OrderService {
         return orderDao.getCoinmarketData(currencyPairName, backDealInterval);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, isolation = Isolation.READ_UNCOMMITTED)
     @Override
     public OrderInfoDto getOrderInfo(int orderId) {
         return orderDao.getOrderInfo(orderId);
     }
 
+    @Transactional(readOnly = true, isolation = Isolation.READ_UNCOMMITTED)
     @Override
     public Integer deleteOrderByAdmin(int orderId) {
         return orderDao.deleteOrderByAdmin(orderId);

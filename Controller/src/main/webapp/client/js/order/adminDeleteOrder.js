@@ -29,11 +29,10 @@ function getOrderDetailedInfo(order_id) {
 }
 
 function deleteOrderByAdmin(order_id) {
-    $('#order-delete-modal').on('hidden.bs.modal', function (e) {
+    $('#order-delete-modal').one('hidden.bs.modal', function (e) {
         /*placed in close callback because we must give time for #order-delete-modal to restore parameters of <body>
          * otherwise we get the shift of the window to the left every time when open and then close #order-delete-modal--ok
          */
-        $(this).off('hidden.bs.modal');
         $.ajax({
                 headers: {
                     'X-CSRF-Token': $("input[name='_csrf']").val()
@@ -63,11 +62,13 @@ function searchAndDeleteOrderByAdmin() {
 function searchOrder() {
     var isError = false;
     $('.input-block-wrapper__error-wrapper').toggle(false);
-    if (!$('#orderRate').val().match(/\d+(\.{1,1}\d+)*/)){
+    var match = $('#orderRate').val().match(/^\d+(\.{1,1}\d+)?/);
+    if (!match || match[0] !== $('#orderRate').val()){
         $('.input-block-wrapper__error-wrapper[for=orderRate]').toggle(true);
         isError = true;
     }
-    if (!$('#orderVolume').val().match(/\d+(\.{1,1}\d+)*/)){
+    match = $('#orderVolume').val().match(/^\d+(\.{1,1}\d+)?/);
+    if (!match || match[0] !== $('#orderVolume').val()){
         $('.input-block-wrapper__error-wrapper[for=orderVolume]').toggle(true);
         isError = true;
     }
@@ -89,8 +90,7 @@ function searchOrder() {
                 $('#order-delete-modal--result-info').find('.error-search').toggle(true);
                 $('#order-delete-modal--result-info').modal();
             } else {
-                $('#order-delete-modal--search').on('hidden.bs.modal', function (e) {
-                    $(this).off('hidden.bs.modal');
+                $('#order-delete-modal--search').one('hidden.bs.modal', function (e) {
                     getOrderDetailedInfo(data);
                 });
                 $('#order-delete-modal--search').modal('hide');

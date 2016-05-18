@@ -23,15 +23,15 @@ public class CoinmarketApiDto {
     @Override
     public String toString() {
         return '"'+currency_pair_name.replace('/','_')+"\":" +
-                "{\"last\":"+ BigDecimalProcessing.formatToPlainStringQuotes(last) +
-                ", \"lowestAsk\":" + BigDecimalProcessing.formatToPlainStringQuotes(lowestAsk) +
-                ", \"highestBid\":" + BigDecimalProcessing.formatToPlainStringQuotes(highestBid) +
-                ", \"percentChange\":" + BigDecimalProcessing.formatToPlainStringQuotes(percentChange) +
-                ", \"baseVolume\":" + BigDecimalProcessing.formatToPlainStringQuotes(baseVolume) +
-                ", \"quoteVolume\":" + BigDecimalProcessing.formatToPlainStringQuotes(quoteVolume) +
+                "{\"last\":"+ BigDecimalProcessing.formatNonePointQuoted(last, true) +
+                ", \"lowestAsk\":" + BigDecimalProcessing.formatNonePointQuoted(lowestAsk, true) +
+                ", \"highestBid\":" + BigDecimalProcessing.formatNonePointQuoted(highestBid, true) +
+                ", \"percentChange\":" + BigDecimalProcessing.formatNonePointQuoted(percentChange, true) +
+                ", \"baseVolume\":" + BigDecimalProcessing.formatNonePointQuoted(baseVolume, true) +
+                ", \"quoteVolume\":" + BigDecimalProcessing.formatNonePointQuoted(quoteVolume, true) +
                 ", \"isFrozen\":" + '"'+isFrozen+'"' +
-                ", \"high24hr\":" + BigDecimalProcessing.formatToPlainStringQuotes(high24hr) +
-                ", \"low24hr\":" + BigDecimalProcessing.formatToPlainStringQuotes(low24hr) +
+                ", \"high24hr\":" + BigDecimalProcessing.formatNonePointQuoted(high24hr, true) +
+                ", \"low24hr\":" + BigDecimalProcessing.formatNonePointQuoted(low24hr, true) +
                 '}';
     }
 

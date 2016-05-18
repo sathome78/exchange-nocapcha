@@ -48,13 +48,7 @@
         <%@include file='usermenu_new.jsp' %>
 
         <div class="col-sm-9 content">
-            <%--Создать ордер--%>
-            <%--<form:form action="order/new">
-                <loc:message code="myorders.create" var="labelCreate"/>
-                <button type="submit">${labelCreate}</button>
-            </form:form>--%>
             <c:choose>
-
                 <c:when test="${fn:length(orderMap.sell)==0 && fn:length(orderMap.buy)==0}">
                     <loc:message code="myorders.noorders"/>
                 </c:when>
@@ -87,7 +81,7 @@
                             <c:forEach var="myorder" items="${orderMap.sell}">
                                 <tr>
                                         <%--BTC/USD--%>
-                                    <td> ${myorder.getCurrencyPair().getName()} </td>
+                                    <td> ${myorder.getCurrencyPairName()} </td>
                                         <%--amount BTC --%>
                                     <td class="allign-center"><fmt:formatNumber type="number" maxFractionDigits="9"
                                                           value="${myorder.getAmountBase()}"/></td>
@@ -144,7 +138,7 @@
                             <c:forEach var="myorder" items="${orderMap.buy}">
                                 <tr>
                                         <%--BTC/USD--%>
-                                    <td> ${myorder.getCurrencyPair().getName()} </td>
+                                    <td> ${myorder.getCurrencyPairName()} </td>
                                         <%--amount BTC --%>
                                     <td class="allign-center"><fmt:formatNumber type="number" maxFractionDigits="9"
                                                           value="${myorder.getAmountBase()}"/></td>

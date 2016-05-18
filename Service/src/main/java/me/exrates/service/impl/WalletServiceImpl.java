@@ -5,11 +5,9 @@ import me.exrates.dao.WalletDao;
 import me.exrates.model.Currency;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
-import me.exrates.model.dto.UsersWalletsDto;
-import me.exrates.model.dto.UsersWalletsSummaryDto;
+import me.exrates.model.dto.UserWalletSummaryDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.util.BigDecimalProcessing;
-import me.exrates.service.CurrencyService;
 import me.exrates.service.WalletService;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.OperationCausedNegativeBalance;
@@ -37,8 +35,6 @@ public final class WalletServiceImpl implements WalletService {
     private WalletDao walletDao;
     @Autowired
     private CurrencyDao currencyDao;
-    @Autowired
-    private CurrencyService currencyService;
 
     @Override
     public void balanceRepresentation(final Wallet wallet) {
@@ -194,11 +190,8 @@ public final class WalletServiceImpl implements WalletService {
         LOGGER.info("Successful reserved balance deposit on wallet " + wallet);
     }
 
-    public List<UsersWalletsSummaryDto> getUsersWalletsSummary() {
+    public List<UserWalletSummaryDto> getUsersWalletsSummary() {
         return walletDao.getUsersWalletsSummary();
     }
 
-    public List<UsersWalletsDto> getUsersWalletsList() {
-        return walletDao.getUsersWalletsList();
-    }
 }

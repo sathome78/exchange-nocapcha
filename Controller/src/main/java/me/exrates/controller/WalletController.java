@@ -2,9 +2,7 @@ package me.exrates.controller;
 
 import me.exrates.model.CompanyWallet;
 import me.exrates.model.Wallet;
-import me.exrates.model.dto.UsersWalletsSummaryDto;
-import me.exrates.model.enums.ActionType;
-import me.exrates.model.util.BigDecimalProcessing;
+import me.exrates.model.dto.UserWalletSummaryDto;
 import me.exrates.service.CompanyWalletService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
@@ -47,16 +45,7 @@ public class WalletController {
 
     @RequestMapping("/userswallets")
     public ModelAndView showUsersWalletsSummary() {
-        List<UsersWalletsSummaryDto> usersWalletsSummaryList = walletService.getUsersWalletsSummary();
+        List<UserWalletSummaryDto> usersWalletsSummaryList = walletService.getUsersWalletsSummary();
         return new ModelAndView("UsersWallets", "usersWalletsSummaryList", usersWalletsSummaryList);
-    }
-
-    @RequestMapping(value = "admin/uploadUsersWalletsSummary", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
-    @ResponseBody
-    public String getUsersWalletsSummeryTxt() {
-        return walletService.getUsersWalletsList()
-                .stream()
-                .map(e -> e.toString())
-                .collect(Collectors.joining());
     }
 }

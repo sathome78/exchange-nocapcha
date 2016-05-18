@@ -3,8 +3,7 @@ package me.exrates.service;
 import me.exrates.model.Currency;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
-import me.exrates.model.dto.UsersWalletsDto;
-import me.exrates.model.dto.UsersWalletsSummaryDto;
+import me.exrates.model.dto.UserWalletSummaryDto;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -49,7 +48,12 @@ public interface WalletService {
 
 	void withdrawReservedBalance(Wallet wallet,BigDecimal sum);
 
-	List<UsersWalletsSummaryDto> getUsersWalletsSummary();
+	/**
+	 * Returns user's wallets info
+	 *
+	 * @return list the UserWalletSummaryDto
+	 * @author ValkSam
+	 */
+	List<UserWalletSummaryDto> getUsersWalletsSummary();
 
-	List<UsersWalletsDto> getUsersWalletsList();
 }

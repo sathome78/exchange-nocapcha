@@ -2,8 +2,7 @@ package me.exrates.dao.impl;
 
 import me.exrates.dao.WalletDao;
 import me.exrates.model.Wallet;
-import me.exrates.model.dto.UsersWalletsDto;
-import me.exrates.model.dto.UsersWalletsSummaryDto;
+import me.exrates.model.dto.UserWalletSummaryDto;
 import me.exrates.model.dto.WalletsForOrderAcceptionDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.util.BigDecimalProcessing;
@@ -220,46 +219,25 @@ public class WalletDaoImpl implements WalletDao {
     }
 
     @Override
-    public List<UsersWalletsSummaryDto> getUsersWalletsSummary() {
+    public List<UserWalletSummaryDto> getUsersWalletsSummary() {
         String sql = "SELECT CURRENCY.name as currency_name, COUNT(*) as wallets_amount, SUM(WALLET.active_balance) as active_balance, SUM(WALLET.reserved_balance) as reserved_balance " +
                 " FROM WALLET " +
                 " JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
                 " GROUP BY CURRENCY.name";
-        ArrayList<UsersWalletsSummaryDto> result = (ArrayList<UsersWalletsSummaryDto>) jdbcTemplate.query(sql, new BeanPropertyRowMapper<UsersWalletsSummaryDto>() {
+        ArrayList<UserWalletSummaryDto> result = (ArrayList<UserWalletSummaryDto>) jdbcTemplate.query(sql, new BeanPropertyRowMapper<UserWalletSummaryDto>() {
             @Override
-            public UsersWalletsSummaryDto mapRow(ResultSet rs, int rowNumber) throws SQLException {
-                UsersWalletsSummaryDto usersWalletsSummaryDto = new UsersWalletsSummaryDto();
-                usersWalletsSummaryDto.setCurrencyName(rs.getString("currency_name"));
-                usersWalletsSummaryDto.setWalletsAmount(rs.getInt("wallets_amount"));
-                usersWalletsSummaryDto.setActiveBalance(rs.getBigDecimal("active_balance"));
-                usersWalletsSummaryDto.setReservedBalance(rs.getBigDecimal("reserved_balance"));
-                usersWalletsSummaryDto.setActiveBalancePerWallet(BigDecimalProcessing.doAction(usersWalletsSummaryDto.getActiveBalance(), BigDecimal.valueOf(usersWalletsSummaryDto.getWalletsAmount()), ActionType.DEVIDE));
-                usersWalletsSummaryDto.setReservedBalancePerWallet(BigDecimalProcessing.doAction(usersWalletsSummaryDto.getReservedBalance(), BigDecimal.valueOf(usersWalletsSummaryDto.getWalletsAmount()), ActionType.DEVIDE));
-                return usersWalletsSummaryDto;
+            public UserWalletSummaryDto mapRow(ResultSet rs, int rowNumber) throws SQLException {
+                UserWalletSummaryDto userWalletSummaryDto = new UserWalletSummaryDto();
+                userWalletSummaryDto.setCurrencyName(rs.getString("currency_name"));
+                userWalletSummaryDto.setWalletsAmount(rs.getInt("wallets_amount"));
+                userWalletSummaryDto.setActiveBalance(rs.getBigDecimal("active_balance"));
+                userWalletSummaryDto.setReservedBalance(rs.getBigDecimal("reserved_balance"));
+                userWalletSummaryDto.setActiveBalancePerWallet(BigDecimalProcessing.doAction(userWalletSummaryDto.getActiveBalance(), BigDecimal.valueOf(userWalletSummaryDto.getWalletsAmount()), ActionType.DEVIDE));
+                userWalletSummaryDto.setReservedBalancePerWallet(BigDecimalProcessing.doAction(userWalletSummaryDto.getReservedBalance(), BigDecimal.valueOf(userWalletSummaryDto.getWalletsAmount()), ActionType.DEVIDE));
+                return userWalletSummaryDto;
             }
         });
         return result;
     }
 
-    @Override
-    public List<UsersWalletsDto> getUsersWalletsList() {
-        String sql = "SELECT USER.nickname as user_nickname, USER.email as user_email, CURRENCY.name as currency_name, SUM(WALLET.active_balance) as active_balance, SUM(WALLET.reserved_balance) as reserved_balance " +
-                " FROM WALLET " +
-                " JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
-                " JOIN USER ON (USER.id = WALLET.user_id) " +
-                " GROUP BY USER.nickname, USER.email, CURRENCY.name";
-        ArrayList<UsersWalletsDto> result = (ArrayList<UsersWalletsDto>) jdbcTemplate.query(sql, new BeanPropertyRowMapper<UsersWalletsDto>() {
-            @Override
-            public UsersWalletsDto mapRow(ResultSet rs, int rowNumber) throws SQLException {
-                UsersWalletsDto usersWalletsDto = new UsersWalletsDto();
-                usersWalletsDto.setCurrencyName(rs.getString("currency_name"));
-                usersWalletsDto.setUserNickname(rs.getString("user_nickname"));
-                usersWalletsDto.setUserEmail(rs.getString("user_email"));
-                usersWalletsDto.setActiveBalance(rs.getBigDecimal("active_balance"));
-                usersWalletsDto.setReservedBalance(rs.getBigDecimal("reserved_balance"));
-                return usersWalletsDto;
-            }
-        });
-        return result;
-    }
 }

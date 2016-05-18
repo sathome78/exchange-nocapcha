@@ -15,7 +15,7 @@ public interface OrderDao {
 
     int createOrder(ExOrder order);
 
-    List<ExOrder> getMyOrders(int userId, CurrencyPair currencyPair);
+    List<OrderWideListDto> getMyOrders(String email, CurrencyPair currencyPair);
 
     ExOrder getOrderById(int orderid);
 

@@ -8,6 +8,7 @@ import me.exrates.model.User;
 import me.exrates.model.UserFile;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserIpDto;
+import me.exrates.model.dto.UserSummaryDto;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
@@ -300,6 +301,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean setLastRegistrationDate(int userId, String ip) {
         return userDao.setLastRegistrationDate(userId, ip);
+    }
+
+    @Override
+    public List<UserSummaryDto> getUsersSummaryList(String startDate, String endDate) {
+        return userDao.getUsersSummaryList(startDate, endDate);
     }
 
     @PostConstruct

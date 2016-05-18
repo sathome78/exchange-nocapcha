@@ -5,6 +5,7 @@ import me.exrates.model.User;
 import me.exrates.model.UserFile;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserIpDto;
+import me.exrates.model.dto.UserSummaryDto;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 
@@ -83,4 +84,6 @@ public interface UserDao {
     boolean setIpStateConfirmed(int userId, String ip);
 
     boolean setLastRegistrationDate(int userId, String ip);
+
+    List<UserSummaryDto> getUsersSummaryList(String startDate, String endDate);
 }

@@ -33,7 +33,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/menuSwitcher.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/upload.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/download.js'/>"></script>
     <%----------%>
 </head>
 
@@ -47,7 +47,7 @@
         <%@include file='usermenu_new.jsp' %>
         <div class="col-sm-9">
             <button id="upload-users-wallets" class="simple-button" type="submit"><loc:message
-                    code="wallets.upload"/></button>
+                    code="wallets.download"/></button>
             </form>
         </div>
         <div class="col-sm-9 content">
@@ -87,6 +87,7 @@
     <hr>
 </main>
 <%@include file='footer_new.jsp' %>
+<%@include file='admin/datePicker.jsp' %>
 </body>
 </html>
 
