@@ -73,7 +73,9 @@ public class DashboardController {
 
     @RequestMapping(value = {"/dashboard/locale"})
     public void localeSwitcherCommand(Principal principal, HttpServletRequest request) {
-        userService.setPreferedLang(userService.getIdByEmail(principal.getName()), localeResolver.resolveLocale(request));
+        if (principal != null) {
+            userService.setPreferedLang(userService.getIdByEmail(principal.getName()), localeResolver.resolveLocale(request));
+        }
         request.getSession(true);
     }
 

@@ -13,6 +13,8 @@ function initLocaleSwitcher() {
             localeCode = 'ru';
         } else if (localeName == 'Chinese') {
             localeCode = 'cn';
+        } else if (localeName == 'Thai') {
+            localeCode = 'th';
         }
         var ref = '/dashboard/locale?locale=' + localeCode;
         $.get(ref)

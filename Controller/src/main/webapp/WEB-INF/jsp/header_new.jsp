@@ -92,8 +92,8 @@
                         <ul class="dropdown-menu" id="languageUl">
                             <li><a class="lang__item" href="#">English</a></li>
                             <li><a class="lang__item" href="#">Русский</a></li>
-                            <%--<li><a class="lang__item" href="#">Chinese</a></li>
-                            <li><a class="lang__item" href="#">Thai</a></li>--%>
+                            <li><a class="lang__item" href="#">Chinese</a></li>
+                            <li><a class="lang__item" href="#">Thai</a></li>
                         </ul>
                     </li>
                 </ul>
