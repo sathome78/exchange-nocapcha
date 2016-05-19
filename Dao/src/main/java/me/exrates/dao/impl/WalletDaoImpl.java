@@ -36,14 +36,22 @@ public class WalletDaoImpl implements WalletDao {
         String sql = "SELECT active_balance FROM WALLET WHERE id = :walletId";
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("walletId", String.valueOf(walletId));
+        try {
         return jdbcTemplate.queryForObject(sql, namedParameters, BigDecimal.class);
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
     }
 
     public BigDecimal getWalletRBalance(int walletId) {
         String sql = "SELECT reserved_balance FROM WALLET WHERE id = :walletId";
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("walletId", String.valueOf(walletId));
-        return jdbcTemplate.queryForObject(sql, namedParameters, BigDecimal.class);
+        try {
+            return jdbcTemplate.queryForObject(sql, namedParameters, BigDecimal.class);
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
     }
 
     @Override
@@ -174,8 +182,8 @@ public class WalletDaoImpl implements WalletDao {
     @Override
     public WalletsForOrderAcceptionDto getWalletsForOrderByOrderId(Integer orderId, Integer userAcceptorId) {
         String sql = "SELECT " +
-                " (SELECT currency1_id FROM CURRENCY_PAIR WHERE CURRENCY_PAIR.id = EXORDERS.currency_pair_id) AS currency_base, " +
-                " (SELECT currency2_id FROM CURRENCY_PAIR WHERE CURRENCY_PAIR.id = EXORDERS.currency_pair_id) AS currency_convert, " +
+                " CURRENCY_PAIR.currency1_id AS currency_base, " +
+                " CURRENCY_PAIR.currency2_id AS currency_convert, " +
                 " cw1.id AS company_wallet_currency_base, " +
                 " cw2.id AS company_wallet_currency_convert, " +
                 " IF (EXORDERS.operation_type_id=4, w1.id, w2.id) AS wallet_in_for_creator, " +
@@ -185,15 +193,16 @@ public class WalletDaoImpl implements WalletDao {
                 " IF (EXORDERS.operation_type_id=3, w2a.id, w1a.id) AS wallet_out_for_acceptor, " +
                 " IF (EXORDERS.operation_type_id=3, w2a.reserved_balance, w1a.reserved_balance) AS wallet_out_reserv_for_acceptor" +
                 " FROM EXORDERS  " +
-                " LEFT JOIN COMPANY_WALLET cw1 ON (cw1.currency_id= (SELECT currency1_id FROM CURRENCY_PAIR WHERE CURRENCY_PAIR.id = EXORDERS.currency_pair_id)) " +
-                " LEFT JOIN COMPANY_WALLET cw2 ON (cw2.currency_id= (SELECT currency2_id FROM CURRENCY_PAIR WHERE CURRENCY_PAIR.id = EXORDERS.currency_pair_id)) " +
-                " LEFT JOIN WALLET w1 ON \t(w1.user_id = EXORDERS.user_id) AND " +
+                " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) " +
+                " LEFT JOIN COMPANY_WALLET cw1 ON (cw1.currency_id= CURRENCY_PAIR.currency1_id) " +
+                " LEFT JOIN COMPANY_WALLET cw2 ON (cw2.currency_id= CURRENCY_PAIR.currency2_id) " +
+                " LEFT JOIN WALLET w1 ON  (w1.user_id = EXORDERS.user_id) AND " +
                 "             (w1.currency_id= (SELECT currency1_id FROM CURRENCY_PAIR WHERE CURRENCY_PAIR.id = EXORDERS.currency_pair_id)) " +
-                " LEFT JOIN WALLET w2 ON \t(w2.user_id = EXORDERS.user_id) AND " +
+                " LEFT JOIN WALLET w2 ON  (w2.user_id = EXORDERS.user_id) AND " +
                 "             (w2.currency_id= (SELECT currency2_id FROM CURRENCY_PAIR WHERE CURRENCY_PAIR.id = EXORDERS.currency_pair_id)) " +
-                " LEFT JOIN WALLET w1a ON \t(w1a.user_id = " + (userAcceptorId == null ? "EXORDERS.user_acceptor_id" : ":user_acceptor_id") + ") AND " +
+                " LEFT JOIN WALLET w1a ON  (w1a.user_id = " + (userAcceptorId == null ? "EXORDERS.user_acceptor_id" : ":user_acceptor_id") + ") AND " +
                 "             (w1a.currency_id= (SELECT currency1_id FROM CURRENCY_PAIR WHERE CURRENCY_PAIR.id = EXORDERS.currency_pair_id))" +
-                " LEFT JOIN WALLET w2a ON \t(w2a.user_id = " + (userAcceptorId == null ? "EXORDERS.user_acceptor_id" : ":user_acceptor_id") + ") AND " +
+                " LEFT JOIN WALLET w2a ON  (w2a.user_id = " + (userAcceptorId == null ? "EXORDERS.user_acceptor_id" : ":user_acceptor_id") + ") AND " +
                 "             (w2a.currency_id= (SELECT currency2_id FROM CURRENCY_PAIR WHERE CURRENCY_PAIR.id = EXORDERS.currency_pair_id)) " +
                 " WHERE (EXORDERS.id = :order_id)";
         Map<String, String> namedParameters = new HashMap<>();

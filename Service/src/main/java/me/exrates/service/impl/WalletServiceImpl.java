@@ -118,7 +118,7 @@ public final class WalletServiceImpl implements WalletService {
     @Override
     public boolean setWalletABalance(int walletId, BigDecimal amount) {
         final BigDecimal oldBalance = walletDao.getWalletABalance(walletId);
-        final BigDecimal newBalance = BigDecimalProcessing.doAction(oldBalance, amount, ActionType.ADD);
+        final BigDecimal newBalance = BigDecimalProcessing.doActionLax(oldBalance, amount, ActionType.ADD);
         if (newBalance.signum() == -1) {
             throw new OperationCausedNegativeBalance(String.format("Operation of amount %s caused a negative active balance on wallet: %s", amount.toPlainString(), String.valueOf(walletId)));
         }
@@ -129,7 +129,7 @@ public final class WalletServiceImpl implements WalletService {
     @Override
     public boolean setWalletRBalance(int walletId, BigDecimal amount) {
         final BigDecimal oldBalance = walletDao.getWalletRBalance(walletId);
-        final BigDecimal newBalance = BigDecimalProcessing.doAction(oldBalance, amount, ActionType.ADD);
+        final BigDecimal newBalance = BigDecimalProcessing.doActionLax(oldBalance, amount, ActionType.ADD);
         if (newBalance.signum() == -1) {
             throw new OperationCausedNegativeBalance(String.format("Operation of amount %s caused a negative reserved balance on wallet: %s", amount.toPlainString(), String.valueOf(walletId)));
         }
