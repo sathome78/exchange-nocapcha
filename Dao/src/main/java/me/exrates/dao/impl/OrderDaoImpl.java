@@ -67,7 +67,7 @@ public class OrderDaoImpl implements OrderDao {
     public List<OrderWideListDto> getMyOrders(String email, CurrencyPair currencyPair) {
         String sql = "SELECT EXORDERS.*, CURRENCY_PAIR.name AS currency_pair_name" +
                 "  FROM EXORDERS " +
-                "  JOIN USER ON (USER.email = :email) " +
+                "  JOIN USER ON (USER.id=EXORDERS.user_id AND USER.email = :email) " +
                 "  JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) " +
                 "  WHERE (status_id IN (1, 2, 3))" +
                 (currencyPair == null ? "" : " and EXORDERS.currency_pair_id=" + currencyPair.getId()) +
