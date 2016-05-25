@@ -6,11 +6,10 @@ import me.exrates.model.Currency;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
 import me.exrates.model.dto.UserWalletSummaryDto;
-import me.exrates.model.enums.ActionType;
-import me.exrates.model.util.BigDecimalProcessing;
+import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.service.WalletService;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
-import me.exrates.service.exception.OperationCausedNegativeBalance;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,16 +72,6 @@ public final class WalletServiceImpl implements WalletService {
         return walletDao.getWalletRBalance(walletId);
     }
 
-    @Override
-    public int getCurrencyId(int walletId) {
-        return currencyDao.getCurrencyId(walletId);
-    }
-
-    @Override
-    public String getCurrencyName(int currencyId) {
-        return currencyDao.getCurrencyName(currencyId);
-    }
-
     @Transactional(readOnly = true)
     @Override
     public boolean ifEnoughMoney(int walletId, BigDecimal amountForCheck) {
@@ -113,29 +102,6 @@ public final class WalletServiceImpl implements WalletService {
         wallet.setName(currency.getName());
         return wallet;
     }
-
-    @Transactional(propagation = Propagation.NESTED)
-    @Override
-    public boolean setWalletABalance(int walletId, BigDecimal amount) {
-        final BigDecimal oldBalance = walletDao.getWalletABalance(walletId);
-        final BigDecimal newBalance = BigDecimalProcessing.doActionLax(oldBalance, amount, ActionType.ADD);
-        if (newBalance.signum() == -1) {
-            throw new OperationCausedNegativeBalance(String.format("Operation of amount %s caused a negative active balance on wallet: %s", amount.toPlainString(), String.valueOf(walletId)));
-        }
-        return walletDao.setWalletABalance(walletId, newBalance);
-    }
-
-    @Transactional(propagation = Propagation.NESTED)
-    @Override
-    public boolean setWalletRBalance(int walletId, BigDecimal amount) {
-        final BigDecimal oldBalance = walletDao.getWalletRBalance(walletId);
-        final BigDecimal newBalance = BigDecimalProcessing.doActionLax(oldBalance, amount, ActionType.ADD);
-        if (newBalance.signum() == -1) {
-            throw new OperationCausedNegativeBalance(String.format("Operation of amount %s caused a negative reserved balance on wallet: %s", amount.toPlainString(), String.valueOf(walletId)));
-        }
-        return walletDao.setWalletRBalance(walletId, newBalance);
-    }
-
 
     @Override
     @Transactional(propagation = Propagation.NESTED)
@@ -194,4 +160,8 @@ public final class WalletServiceImpl implements WalletService {
         return walletDao.getUsersWalletsSummary();
     }
 
+    @Override
+    public WalletTransferStatus walletInnerTransfer(int walletId, BigDecimal amount, TransactionSourceType sourceType, int sourceId) {
+        return walletDao.walletInnerTransfer(walletId, amount, sourceType, sourceId);
+    }
 }

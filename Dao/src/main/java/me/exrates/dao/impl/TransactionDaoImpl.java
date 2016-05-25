@@ -134,9 +134,15 @@ public final class TransactionDaoImpl implements TransactionDao {
     @Override
     public Transaction create(Transaction transaction) {
         final String sql = "INSERT INTO TRANSACTION (user_wallet_id, company_wallet_id, amount, commission_amount, " +
-                "commission_id, operation_type_id, currency_id, merchant_id, datetime, order_id, confirmation, provided)" +
+                " commission_id, operation_type_id, currency_id, merchant_id, datetime, order_id, confirmation, provided," +
+                " active_balance_before, reserved_balance_before, company_balance_before, company_commission_balance_before, " +
+                " source_type, " +
+                " source_id)" +
                 "   VALUES (:userWallet,:companyWallet,:amount,:commissionAmount,:commission,:operationType, :currency," +
-                "   :merchant, :datetime, :order_id, :confirmation, :provided)";
+                "   :merchant, :datetime, :order_id, :confirmation, :provided," +
+                "   :active_balance_before, :reserved_balance_before, :company_balance_before, :company_commission_balance_before," +
+                "   :source_type, " +
+                "   :source_id)";
         final KeyHolder keyHolder = new GeneratedKeyHolder();
         final Map<String, Object> params = new HashMap<String, Object>() {
             {
@@ -152,6 +158,12 @@ public final class TransactionDaoImpl implements TransactionDao {
                 put("order_id", transaction.getOrder() == null ? null : transaction.getOrder().getId());
                 put("confirmation", transaction.getConfirmation());
                 put("provided", transaction.isProvided());
+                put("active_balance_before", transaction.getActiveBalanceBefore());
+                put("reserved_balance_before", transaction.getReservedBalanceBefore());
+                put("company_balance_before", transaction.getCompanyBalanceBefore());
+                put("company_commission_balance_before", transaction.getCompanyCommissionBalanceBefore());
+                put("source_type", transaction.getSourceType().toString());
+                put("source_id", transaction.getSourceId());
             }
         };
         if (jdbcTemplate.update(sql, new MapSqlParameterSource(params), keyHolder) > 0) {

@@ -50,7 +50,7 @@ function closeNote() {
 }
 
 function successNoty(text) {
-    closeNote();
+    //closeNote();
     successNote = noty({
         text: text,
         type: 'success',
@@ -60,7 +60,7 @@ function successNoty(text) {
 }
 
 function failNoty(jqXHR) {
-    closeNote();
+    //closeNote();
     var errorInfo = $.parseJSON(jqXHR.responseText);
     failedNote = noty({
         text: errorInfo.detail,
@@ -77,7 +77,7 @@ function showOrderNoty() {
         return;
     }
     if (orderNoty) {
-        orderNoty.close();
+        //orderNoty.close();
         orderNoty = undefined;
     }
     var operationType = $(this).find('#operationType').val();

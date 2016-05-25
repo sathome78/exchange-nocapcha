@@ -3,21 +3,62 @@ package me.exrates.model.dto;
 import java.math.BigDecimal;
 
 /**
- * Created by Valk on 19.04.16.
+ * Contains
+ * - IDs the currency
+ * - IDs the wallets -
+ * - balances the wallets of participants the order: user-creator, user-acceptor, company
+ * - status the order
+ *
+ * @author ValkSam
  */
 public class WalletsForOrderAcceptionDto {
+    int orderId;
+    int orderStatusId;
+    /**/
     int currencyBase;
     int currencyConvert;
+    /**/
     int companyWalletCurrencyBase;
+    BigDecimal companyWalletCurrencyBaseBalance;
+    BigDecimal companyWalletCurrencyBaseCommissionBalance;
+    /**/
     int companyWalletCurrencyConvert;
+    BigDecimal companyWalletCurrencyConvertBalance;
+    BigDecimal companyWalletCurrencyConvertCommissionBalance;
+    /**/
     int userCreatorInWalletId;
+    BigDecimal userCreatorInWalletActiveBalance;
+    BigDecimal userCreatorInWalletReservedBalance;
+    /**/
     int userCreatorOutWalletId;
-    BigDecimal userCreatorOutWalletReserv;
+    BigDecimal userCreatorOutWalletActiveBalance;
+    BigDecimal userCreatorOutWalletReservedBalance;
+    /**/
     int userAcceptorInWalletId;
+    BigDecimal userAcceptorInWalletActiveBalance;
+    BigDecimal userAcceptorInWalletReservedBalance;
+    /**/
     int userAcceptorOutWalletId;
-    BigDecimal userAcceptorOutWalletReserv;
+    BigDecimal userAcceptorOutWalletActiveBalance;
+    BigDecimal userAcceptorOutWalletReservedBalance;
 
     /*getters setters*/
+
+    public int getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(int orderId) {
+        this.orderId = orderId;
+    }
+
+    public int getOrderStatusId() {
+        return orderStatusId;
+    }
+
+    public void setOrderStatusId(int orderStatusId) {
+        this.orderStatusId = orderStatusId;
+    }
 
     public int getCurrencyBase() {
         return currencyBase;
@@ -43,12 +84,44 @@ public class WalletsForOrderAcceptionDto {
         this.companyWalletCurrencyBase = companyWalletCurrencyBase;
     }
 
+    public BigDecimal getCompanyWalletCurrencyBaseBalance() {
+        return companyWalletCurrencyBaseBalance;
+    }
+
+    public void setCompanyWalletCurrencyBaseBalance(BigDecimal companyWalletCurrencyBaseBalance) {
+        this.companyWalletCurrencyBaseBalance = companyWalletCurrencyBaseBalance;
+    }
+
+    public BigDecimal getCompanyWalletCurrencyBaseCommissionBalance() {
+        return companyWalletCurrencyBaseCommissionBalance;
+    }
+
+    public void setCompanyWalletCurrencyBaseCommissionBalance(BigDecimal companyWalletCurrencyBaseCommissionBalance) {
+        this.companyWalletCurrencyBaseCommissionBalance = companyWalletCurrencyBaseCommissionBalance;
+    }
+
     public int getCompanyWalletCurrencyConvert() {
         return companyWalletCurrencyConvert;
     }
 
     public void setCompanyWalletCurrencyConvert(int companyWalletCurrencyConvert) {
         this.companyWalletCurrencyConvert = companyWalletCurrencyConvert;
+    }
+
+    public BigDecimal getCompanyWalletCurrencyConvertBalance() {
+        return companyWalletCurrencyConvertBalance;
+    }
+
+    public void setCompanyWalletCurrencyConvertBalance(BigDecimal companyWalletCurrencyConvertBalance) {
+        this.companyWalletCurrencyConvertBalance = companyWalletCurrencyConvertBalance;
+    }
+
+    public BigDecimal getCompanyWalletCurrencyConvertCommissionBalance() {
+        return companyWalletCurrencyConvertCommissionBalance;
+    }
+
+    public void setCompanyWalletCurrencyConvertCommissionBalance(BigDecimal companyWalletCurrencyConvertCommissionBalance) {
+        this.companyWalletCurrencyConvertCommissionBalance = companyWalletCurrencyConvertCommissionBalance;
     }
 
     public int getUserCreatorInWalletId() {
@@ -59,6 +132,22 @@ public class WalletsForOrderAcceptionDto {
         this.userCreatorInWalletId = userCreatorInWalletId;
     }
 
+    public BigDecimal getUserCreatorInWalletActiveBalance() {
+        return userCreatorInWalletActiveBalance;
+    }
+
+    public void setUserCreatorInWalletActiveBalance(BigDecimal userCreatorInWalletActiveBalance) {
+        this.userCreatorInWalletActiveBalance = userCreatorInWalletActiveBalance;
+    }
+
+    public BigDecimal getUserCreatorInWalletReservedBalance() {
+        return userCreatorInWalletReservedBalance;
+    }
+
+    public void setUserCreatorInWalletReservedBalance(BigDecimal userCreatorInWalletReservedBalance) {
+        this.userCreatorInWalletReservedBalance = userCreatorInWalletReservedBalance;
+    }
+
     public int getUserCreatorOutWalletId() {
         return userCreatorOutWalletId;
     }
@@ -67,12 +156,20 @@ public class WalletsForOrderAcceptionDto {
         this.userCreatorOutWalletId = userCreatorOutWalletId;
     }
 
-    public BigDecimal getUserCreatorOutWalletReserv() {
-        return userCreatorOutWalletReserv;
+    public BigDecimal getUserCreatorOutWalletActiveBalance() {
+        return userCreatorOutWalletActiveBalance;
     }
 
-    public void setUserCreatorOutWalletReserv(BigDecimal userCreatorOutWalletReserv) {
-        this.userCreatorOutWalletReserv = userCreatorOutWalletReserv;
+    public void setUserCreatorOutWalletActiveBalance(BigDecimal userCreatorOutWalletActiveBalance) {
+        this.userCreatorOutWalletActiveBalance = userCreatorOutWalletActiveBalance;
+    }
+
+    public BigDecimal getUserCreatorOutWalletReservedBalance() {
+        return userCreatorOutWalletReservedBalance;
+    }
+
+    public void setUserCreatorOutWalletReservedBalance(BigDecimal userCreatorOutWalletReservedBalance) {
+        this.userCreatorOutWalletReservedBalance = userCreatorOutWalletReservedBalance;
     }
 
     public int getUserAcceptorInWalletId() {
@@ -83,6 +180,22 @@ public class WalletsForOrderAcceptionDto {
         this.userAcceptorInWalletId = userAcceptorInWalletId;
     }
 
+    public BigDecimal getUserAcceptorInWalletActiveBalance() {
+        return userAcceptorInWalletActiveBalance;
+    }
+
+    public void setUserAcceptorInWalletActiveBalance(BigDecimal userAcceptorInWalletActiveBalance) {
+        this.userAcceptorInWalletActiveBalance = userAcceptorInWalletActiveBalance;
+    }
+
+    public BigDecimal getUserAcceptorInWalletReservedBalance() {
+        return userAcceptorInWalletReservedBalance;
+    }
+
+    public void setUserAcceptorInWalletReservedBalance(BigDecimal userAcceptorInWalletReservedBalance) {
+        this.userAcceptorInWalletReservedBalance = userAcceptorInWalletReservedBalance;
+    }
+
     public int getUserAcceptorOutWalletId() {
         return userAcceptorOutWalletId;
     }
@@ -91,11 +204,19 @@ public class WalletsForOrderAcceptionDto {
         this.userAcceptorOutWalletId = userAcceptorOutWalletId;
     }
 
-    public BigDecimal getUserAcceptorOutWalletReserv() {
-        return userAcceptorOutWalletReserv;
+    public BigDecimal getUserAcceptorOutWalletActiveBalance() {
+        return userAcceptorOutWalletActiveBalance;
     }
 
-    public void setUserAcceptorOutWalletReserv(BigDecimal userAcceptorOutWalletReserv) {
-        this.userAcceptorOutWalletReserv = userAcceptorOutWalletReserv;
+    public void setUserAcceptorOutWalletActiveBalance(BigDecimal userAcceptorOutWalletActiveBalance) {
+        this.userAcceptorOutWalletActiveBalance = userAcceptorOutWalletActiveBalance;
+    }
+
+    public BigDecimal getUserAcceptorOutWalletReservedBalance() {
+        return userAcceptorOutWalletReservedBalance;
+    }
+
+    public void setUserAcceptorOutWalletReservedBalance(BigDecimal userAcceptorOutWalletReservedBalance) {
+        this.userAcceptorOutWalletReservedBalance = userAcceptorOutWalletReservedBalance;
     }
 }

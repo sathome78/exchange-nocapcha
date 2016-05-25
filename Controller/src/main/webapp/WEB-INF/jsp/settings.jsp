@@ -46,13 +46,11 @@
     <div class="row">
         <%@include file='usermenu_new.jsp' %>
 
-        <%--взял из старого - не понял для чего он... //TODO--%>
         <div>
             <c:if test="${msq ne ''}">
                 <span style="color:red">${msg}</span><br><br>
             </c:if>
         </div>
-        <%-- ... взял из старого - не понял для чего он--%>
 
         <div class="col-sm-9 content">
             <% String tabIdx = request.getParameter("tabIdx");%>

@@ -48,6 +48,10 @@ function deleteOrderByAdmin(order_id) {
                         $("#order-delete-modal--result-info").find('.success').find('span').html(data);
                     }
                     $('#order-delete-modal--result-info').modal();
+                },
+                error: function(){
+                    $('#order-delete-modal--result-info').find('.error-delete').toggle(true);
+                    $('#order-delete-modal--result-info').modal();
                 }
             }
         );

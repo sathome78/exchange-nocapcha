@@ -15,6 +15,7 @@ public interface OrderService {
 
     /**
      * Returns the ID of the newly created and saved in DB order
+     * Generates transaction of transferring money from active balance to reserved balance the corresponding wallet
      *
      * @param order OrderCreateDto, that passed from frontend and that will be converted to entity ExOrder to save in DB
      * @return generated ID of the newly created order, or 0 if order was not be created
@@ -52,7 +53,7 @@ public interface OrderService {
 
     /**
      * Accepts the order
-     * and generate set of transactions for creator-user and acceptor-user
+     * and generates set of transactions for creator-user and acceptor-user
      * and modifies wallets for users and company
      * If there were errors while accept, errors will be thrown:
      * - NotEnoughUserWalletMoneyException
@@ -68,12 +69,12 @@ public interface OrderService {
     /**
      * Cancels the order and set status "CANCELLED"
      * Only order with status "OPENED" can be cancelled
-     * This method for cancel order by creator-user?
+     * This method for cancel order by creator-user
      *
      * @param exOrder is the entity ExOrder of order that must be cancelled
      * @return "true" if the order can be cancelled and has been cancelled successfully, "false" in other cases
      */
-    boolean cancellOrder(ExOrder exOrder);
+    boolean cancellOrder(ExOrder exOrder, Locale locale);
 
     /**
      * Returns list all orders with type "SELL" and status "OPENED"
@@ -123,7 +124,7 @@ public interface OrderService {
     OrderInfoDto getOrderInfo(int orderId);
 
     /**
-     * Delets the order by admin.
+     * Deletes the order by admin.
      * If the order has status "CLOSED" then:
      * - deletes the order and related transactions and corrects the users' wallets and company's wallets
      * If the order has status "OPENED" then:
@@ -131,15 +132,16 @@ public interface OrderService {
      * Deleting the order and transactions means setting status "DELETED"
      *
      * @param orderId is ID the order
-     * @return -1: error
-     * 0: no rows were obtained for the deleted_order_id: order has not status OPENED or CLOSED
+     * @return 0: no rows were obtained for the deleted_order_id: order has not status OPENED or CLOSED
      * 1: exorder were not be accepted (status "OPENED") - there were no associated transaction
      * n: number of processed rows (including exorders and transaction)
+     * throws OrderDeletingException with OrderDeleteStatus in message
      */
     Integer deleteOrderByAdmin(int orderId);
 
     /**
      * Searches order by its params:
+     *
      * @param currencyPair
      * @param orderType
      * @param orderDate

@@ -1,5 +1,6 @@
 package me.exrates.controller;
 
+import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
@@ -9,28 +10,20 @@ import me.exrates.model.dto.*;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.security.service.UserSecureServiceImpl;
-import me.exrates.service.CurrencyService;
-import me.exrates.service.MerchantService;
-import me.exrates.service.OrderService;
-import me.exrates.service.TransactionService;
-import me.exrates.service.UserFilesService;
-import me.exrates.service.UserService;
-import me.exrates.service.WalletService;
+import me.exrates.service.*;
+import me.exrates.service.exception.OrderDeletingException;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
@@ -42,12 +35,7 @@ import javax.validation.Valid;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
@@ -60,6 +48,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 @Controller
 public class AdminController {
 
+    private static final Logger LOG = LogManager.getLogger(AdminController.class);
     @Autowired
     MessageSource messageSource;
     @Autowired
@@ -68,31 +57,20 @@ public class AdminController {
     private UserService userService;
     @Autowired
     private LocaleResolver localeResolver;
-
     @Autowired
     private MerchantService merchantService;
-
     @Autowired
     private CurrencyService currencyService;
-
     @Autowired
     private RegisterFormValidation registerFormValidation;
-
     @Autowired
     private WalletService walletService;
-
     @Autowired
     private OrderService orderService;
-
     @Autowired
     private TransactionService transactionService;
-
     @Autowired
     private UserFilesService userFilesService;
-
-    private static final Logger LOG = LogManager.getLogger(AdminController.class);
-
-
     private String currentRole;
 
     @RequestMapping("/admin")
@@ -148,7 +126,7 @@ public class AdminController {
 
     @ResponseBody
     @RequestMapping(value = "/admin/transactions", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public DataTable<List<OperationViewDto>> getUserTransactions(final @RequestParam int id, final @RequestParam Map<String,String> params, final HttpServletRequest request) {
+    public DataTable<List<OperationViewDto>> getUserTransactions(final @RequestParam int id, final @RequestParam Map<String, String> params, final HttpServletRequest request) {
         return transactionService.showUserOperationHistory(id, localeResolver.resolveLocale(request), params);
     }
 
@@ -274,8 +252,7 @@ public class AdminController {
     @RequestMapping(value = "/settings/uploadFile", method = POST)
     public ModelAndView uploadUserDocs(final @RequestParam("file") MultipartFile[] multipartFiles,
                                        final Principal principal,
-                                       final Locale locale)
-    {
+                                       final Locale locale) {
         final ModelAndView mav = new ModelAndView("settings");
         final User user = userService.getUserById(userService.getIdByEmail(principal.getName()));
         final List<MultipartFile> uploaded = userFilesService.reduceInvalidFiles(multipartFiles);
@@ -412,7 +389,12 @@ public class AdminController {
     @ResponseBody
     @RequestMapping(value = "/admin/orderdelete", method = RequestMethod.POST)
     public Integer deleteOrderByAdmin(@RequestParam int id) {
-        return orderService.deleteOrderByAdmin(id);
+        try {
+            return orderService.deleteOrderByAdmin(id);
+        } catch (Exception e) {
+            LOG.error(e);
+            throw e;
+        }
     }
 
     @ResponseBody
@@ -429,11 +411,25 @@ public class AdminController {
     @ResponseBody
     public String getUsersWalletsSummeryTxt(@RequestParam String startDate, @RequestParam String endDate) {
         return
-                UserSummaryDto.getTitle()+
-                userService.getUsersSummaryList(startDate, endDate)
-                .stream()
-                .map(e -> e.toString())
-                .collect(Collectors.joining());
+                UserSummaryDto.getTitle() +
+                        userService.getUsersSummaryList(startDate, endDate)
+                                .stream()
+                                .map(e -> e.toString())
+                                .collect(Collectors.joining());
+    }
+
+    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+    @ExceptionHandler(OrderDeletingException.class)
+    @ResponseBody
+    public ErrorInfo OrderDeletingExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(RuntimeException.class)
+    @ResponseBody
+    public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
     }
 
 }

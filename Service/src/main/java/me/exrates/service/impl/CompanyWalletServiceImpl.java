@@ -24,13 +24,11 @@ import java.util.List;
 @Service
 public class CompanyWalletServiceImpl implements CompanyWalletService {
 
+    private static final Logger logger = LogManager.getLogger(CompanyWalletServiceImpl.class);
     @Autowired
     private CompanyWalletDao companyWalletDao;
-    
     @Autowired
     private CurrencyService currencyService;
-
-    private static final Logger logger = LogManager.getLogger(CompanyWalletServiceImpl.class);
 
     @Override
     public CompanyWallet create(Currency currency) {
@@ -39,19 +37,19 @@ public class CompanyWalletServiceImpl implements CompanyWalletService {
 
     @Override
     @Transactional(readOnly = true)
-	public List<CompanyWallet> getCompanyWallets() {
-    	List<CompanyWallet> compWalletList = new ArrayList<CompanyWallet>();
-    	List<Currency> currList = currencyService.getAllCurrencies();
-    	for(Currency c : currList) {
-    		CompanyWallet cw = this.findByCurrency(c);
-    		if(cw != null) {
-    			compWalletList.add(cw);
-    		}
-    	}
-    	return compWalletList;
-	}
+    public List<CompanyWallet> getCompanyWallets() {
+        List<CompanyWallet> compWalletList = new ArrayList<CompanyWallet>();
+        List<Currency> currList = currencyService.getAllCurrencies();
+        for (Currency c : currList) {
+            CompanyWallet cw = this.findByCurrency(c);
+            if (cw != null) {
+                compWalletList.add(cw);
+            }
+        }
+        return compWalletList;
+    }
 
-	@Override
+    @Override
     @Transactional(readOnly = true)
     public CompanyWallet findByCurrency(Currency currency) {
         return companyWalletDao.findByCurrencyId(currency);

@@ -1,17 +1,18 @@
 package me.exrates.dao.impl;
 
+import me.exrates.dao.CommissionDao;
 import me.exrates.dao.OrderDao;
+import me.exrates.dao.WalletDao;
 import me.exrates.jdbc.OrderExtractor;
 import me.exrates.jdbc.OrderRowMapper;
+import me.exrates.model.Commission;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.dto.*;
-import me.exrates.model.enums.ActionType;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.OrderStatus;
-import me.exrates.model.enums.TransactionStatus;
+import me.exrates.model.enums.*;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
+import me.exrates.model.vo.WalletOperationData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -26,7 +27,9 @@ import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,6 +40,12 @@ public class OrderDaoImpl implements OrderDao {
 
     @Autowired
     DataSource dataSource;
+
+    @Autowired
+    CommissionDao commissionDao;
+
+    @Autowired
+    WalletDao walletDao;
 
     public int createOrder(ExOrder exOrder) {
         String sql = "INSERT INTO EXORDERS" +
@@ -408,7 +417,7 @@ public class OrderDaoImpl implements OrderDao {
                         "              ) " +
                         "      JOIN USER CREATOR ON (CREATOR.id = EXORDERS.user_id) " +
                         "      LEFT JOIN USER ACCEPTOR ON (ACCEPTOR.id = EXORDERS.user_acceptor_id) " +
-                        "      LEFT JOIN TRANSACTION ON (TRANSACTION.order_id = EXORDERS.id) " +
+                        "      LEFT JOIN TRANSACTION ON (TRANSACTION.source_type='ORDER') AND (TRANSACTION.source_id = EXORDERS.id) " +
                         "      LEFT JOIN OPERATION_TYPE TRANSACTION_OPERATION ON (TRANSACTION_OPERATION.id = TRANSACTION.operation_type_id) " +
                         "      LEFT JOIN WALLET USER_WALLET ON (USER_WALLET.id = TRANSACTION.user_wallet_id) " +
                         "      LEFT JOIN COMPANY_WALLET ON (COMPANY_WALLET.currency_id = TRANSACTION.company_wallet_id) and (TRANSACTION.commission_amount <> 0) " +
@@ -478,87 +487,102 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public Integer deleteOrderByAdmin(int orderId) {
-        List<OrderDetailDto> list = getOrderDetail(orderId);
+    public Object deleteOrderByAdmin(int orderId) {
+        List<OrderDetailDto> list = getOrderRelatedDataAndBlock(orderId);
         if (list.isEmpty()) {
-            return 0;
+            return OrderDeleteStatus.NOT_FOUND;
         }
         int processedRows = 1;
-        Connection connection = null;
-        try {
-            connection = dataSource.getConnection();
-            connection.setAutoCommit(false);
-            connection.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
-            Statement statement = connection.createStatement();
-            /**/
-            OrderStatus orderStatus = list.get(0).getOrderStatus();
-            /**/
-            String sql = String.format("UPDATE EXORDERS " +
-                            "  SET status_id = %s" +
-                            "  WHERE id = %s ",
-                    OrderStatus.DELETED.getStatus(),
-                    orderId);
-            statement.addBatch(sql);
-            /**/
-            for (OrderDetailDto orderDetailDto : list) {
-                if (orderStatus == OrderStatus.CLOSED) {
-                    sql = String.format("UPDATE COMPANY_WALLET " +
-                                    "  SET commission_balance = commission_balance - %s" +
-                                    "  WHERE id = %s",
-                            orderDetailDto.getCompanyCommission(),
-                            orderDetailDto.getCompanyWalletId());
-                    statement.addBatch(sql);
-                    /**/
-                    OperationType transactionType = orderDetailDto.getTransactionType();
-                    BigDecimal changeBalance = orderDetailDto.getTransactionAmount();
-                    if (transactionType == OperationType.INPUT) {
-                        changeBalance = changeBalance.negate();
+        /**/
+        NamedParameterJdbcTemplate jdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+        OrderStatus orderStatus = list.get(0).getOrderStatus();
+        /**/
+        String sql = "UPDATE EXORDERS " +
+                " SET status_id = :status_id" +
+                " WHERE id = :order_id ";
+        Map<String, Object> params = new HashMap<>();
+        params.put("status_id", OrderStatus.DELETED.getStatus());
+        params.put("order_id", orderId);
+        if (jdbcTemplate.update(sql, params) <= 0) {
+            return OrderDeleteStatus.ORDER_UPDATE_ERROR;
+        }
+        /**/
+        for (OrderDetailDto orderDetailDto : list) {
+            if (orderStatus == OrderStatus.CLOSED) {
+                if (orderDetailDto.getCompanyCommission().compareTo(BigDecimal.ZERO) != 0) {
+                    sql = "UPDATE COMPANY_WALLET " +
+                            " SET commission_balance = commission_balance - :amount" +
+                            " WHERE id = :company_wallet_id ";
+                    params = new HashMap<>();
+                    params.put("amount", orderDetailDto.getCompanyCommission());
+                    params.put("company_wallet_id", orderDetailDto.getCompanyWalletId());
+                    if (orderDetailDto.getCompanyWalletId() != 0 && jdbcTemplate.update(sql, params) <= 0) {
+                        return OrderDeleteStatus.COMPANY_WALLET_UPDATE_ERROR;
                     }
-                    sql = String.format("UPDATE WALLET \n" +
-                                    "  SET active_balance = active_balance + %s " +
-                                    "  WHERE id = %s",
-                            changeBalance,
-                            orderDetailDto.getUserWalletId());
-                    statement.addBatch(sql);
-                    /**/
-                    sql = String.format("UPDATE TRANSACTION " +
-                                    "  SET status_id = %s" +
-                                    "  WHERE id = %s ",
-                            TransactionStatus.DELETED.getStatus(),
-                            orderDetailDto.getTransactionId());
-                    statement.addBatch(sql);
-                    /**/
-                    processedRows++;
-                    /**/
-                } else if (orderStatus == OrderStatus.OPENED) {
-                    sql = String.format("UPDATE WALLET \n" +
-                                    "  SET active_balance = active_balance + %s," +
-                                    "      reserved_balance = reserved_balance - %s" +
-                                    "  WHERE id = %s",
-                            orderDetailDto.getOrderCreatorReservedAmount(),
-                            orderDetailDto.getOrderCreatorReservedAmount(),
-                            orderDetailDto.getOrderCreatorReservedWalletId());
-                    statement.addBatch(sql);
+                }
+                /**/
+                WalletOperationData walletOperationData = new WalletOperationData();
+                OperationType operationType = null;
+                if (orderDetailDto.getTransactionType() == OperationType.OUTPUT) {
+                    operationType = OperationType.INPUT;
+                } else if (orderDetailDto.getTransactionType() == OperationType.INPUT) {
+                    operationType = OperationType.OUTPUT;
+                }
+                if (operationType != null) {
+                    walletOperationData.setOperationType(operationType);
+                    walletOperationData.setWalletId(orderDetailDto.getUserWalletId());
+                    walletOperationData.setAmount(orderDetailDto.getTransactionAmount());
+                    walletOperationData.setBalanceType(WalletOperationData.BalanceType.ACTIVE);
+                    Commission commission = commissionDao.getCommission(OperationType.STORNO);
+                    walletOperationData.setCommission(commission);
+                    walletOperationData.setCommmissionAmount(commission.getValue());
+                    walletOperationData.setSourceType(TransactionSourceType.ORDER);
+                    walletOperationData.setSourceId(orderId);
+                    WalletTransferStatus walletTransferStatus = walletDao.walletBalanceChange(walletOperationData);
+                    if (walletTransferStatus != WalletTransferStatus.SUCCESS) {
+                        return OrderDeleteStatus.TRANSACTION_CREATE_ERROR;
+                    }
+                }
+                /**/
+                sql = "UPDATE TRANSACTION " +
+                        " SET status_id = :status_id" +
+                        " WHERE id = :transaction_id ";
+                params = new HashMap<>();
+                params.put("status_id", TransactionStatus.DELETED.getStatus());
+                params.put("transaction_id", orderDetailDto.getTransactionId());
+                if (jdbcTemplate.update(sql, params) <= 0) {
+                    return OrderDeleteStatus.TRANSACTION_UPDATE_ERROR;
+                }
+                /**/
+                processedRows++;
+            } else if (orderStatus == OrderStatus.OPENED) {
+                sql = "UPDATE WALLET " +
+                        " SET  active_balance = active_balance + :active_balance, " +
+                        "      reserved_balance = reserved_balance - :reserved_balance" +
+                        " WHERE id = :wallet_id ";
+                params = new HashMap<>();
+                params.put("active_balance", orderDetailDto.getOrderCreatorReservedAmount());
+                params.put("reserved_balance", orderDetailDto.getOrderCreatorReservedAmount());
+                params.put("wallet_id", orderDetailDto.getOrderCreatorReservedWalletId());
+                if (jdbcTemplate.update(sql, params) <= 0) {
+                    return OrderDeleteStatus.WALLET_UPDATE_ERROR;
+                }
+                /**/
+                sql = "UPDATE TRANSACTION " +
+                        " SET status_id = :status_id" +
+                        " WHERE id = :transaction_id ";
+                params = new HashMap<>();
+                params.put("status_id", TransactionStatus.DELETED.getStatus());
+                params.put("transaction_id", orderDetailDto.getTransactionId());
+                if (jdbcTemplate.update(sql, params) <= 0) {
+                    return OrderDeleteStatus.TRANSACTION_UPDATE_ERROR;
                 }
             }
-            statement.executeBatch();
-            connection.commit();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            if (connection != null) {
-                try {
-                    connection.rollback();
-                } catch (SQLException e1) {
-                    e1.printStackTrace();
-                }
-            }
-            return -1;
         }
         return processedRows;
     }
 
-
-    private List<OrderDetailDto> getOrderDetail(int orderId) {
+    private List<OrderDetailDto> getOrderRelatedDataAndBlock(int orderId) {
         String sql =
                 "  SELECT  " +
                         "    EXORDERS.id AS order_id, " +
@@ -581,10 +605,11 @@ public class OrderDaoImpl implements OrderDao {
                         "                OR  " +
                         "                (upper(ORDER_OPERATION.name)='SELL' AND ORDER_CREATOR_RESERVED_WALLET.currency_id = CURRENCY_PAIR.currency1_id) " +
                         "            ) " +
-                        "    LEFT JOIN TRANSACTION ON (TRANSACTION.order_id = EXORDERS.id) " +
+                        "    LEFT JOIN TRANSACTION ON (TRANSACTION.source_type='ORDER') AND (TRANSACTION.source_id = EXORDERS.id) " +
                         "    LEFT JOIN WALLET USER_WALLET ON (USER_WALLET.id = TRANSACTION.user_wallet_id) " +
-                        "    LEFT JOIN COMPANY_WALLET ON (COMPANY_WALLET.currency_id = TRANSACTION.company_wallet_id) and (TRANSACTION.commission_amount <> 0) " +
-                        "  WHERE EXORDERS.id=:deleted_order_id AND EXORDERS.status_id IN (2, 3)";
+                        "    LEFT JOIN COMPANY_WALLET ON (COMPANY_WALLET.id = TRANSACTION.company_wallet_id) and (TRANSACTION.commission_amount <> 0) " +
+                        "  WHERE EXORDERS.id=:deleted_order_id AND EXORDERS.status_id IN (2, 3)" +
+                        "  FOR UPDATE "; //FOR UPDATE !Impotant
         NamedParameterJdbcTemplate jdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         Map<String, String> namedParameters = new HashMap<String, String>() {{
             put("deleted_order_id", String.valueOf(orderId));

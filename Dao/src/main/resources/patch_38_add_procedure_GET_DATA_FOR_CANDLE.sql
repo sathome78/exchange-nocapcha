@@ -42,22 +42,22 @@ READS SQL DATA
 /*SET step_type = 'HOUR';
 /*... FOR TEST*/
       ELSEIF (interval_value = 24) THEN
-        SET step_value = 20;
+        SET step_value = 40;
         SET step_type = 'MINUTE';
       END IF;
     ELSEIF (interval_type = 'DAY') THEN
       SELECT DATE_SUB(end_point, INTERVAL interval_value DAY) INTO start_point;
       IF (interval_value = 7) THEN
-        SET step_value = 2;
+        SET step_value = 4;
         SET step_type = 'HOUR';
       END IF;
     ELSEIF (interval_type = 'MONTH') THEN
       SELECT DATE_SUB(end_point, INTERVAL interval_value MONTH) INTO start_point;
       IF (interval_value = 1) THEN
-        SET step_value = 9;
+        SET step_value = 18;
         SET step_type = 'HOUR';
       ELSEIF (interval_value = 6) THEN
-        SET step_value = 3;
+        SET step_value = 6;
         SET step_type = 'DAY';
       END IF;
     END IF;

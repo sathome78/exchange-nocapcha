@@ -13,6 +13,8 @@ import me.exrates.model.enums.TokenType;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.*;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
+import me.exrates.service.exception.OrderCancellingException;
+import me.exrates.service.exception.OrderCreationException;
 import me.exrates.service.exception.OrderNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -284,19 +286,19 @@ public class OrderController {
                 orderCreateDto.setAmount(amount);
                 orderCreateDto.setExchangeRate(exchangeRate);
                 orderCreateDto.setOperationType(operationType);
-                request.getSession().removeAttribute("/orders/orderCreateDto");
             /*final amounts calculated here (not by javascript) and transfere to submit form*/
                 orderCreateDto.calculateAmounts();
             /*protect orderCreateDto*/
                 request.getSession().setAttribute("/order/submit/orderCreateDto", orderCreateDto);
+
                 model.addObject("orderCreateDto", orderCreateDto);
                 //
                 model.setViewName("submitorder");
             }
             model.addObject("orderCreateDto", orderCreateDto);
             return model;
-        } catch(Exception e){
-            throw new RuntimeException("orderCreateDto: "+orderCreateDto);
+        } catch (Exception e) {
+            throw new RuntimeException("orderCreateDto: " + orderCreateDto + " request.getSession().getAttribute: " + request.getSession().getAttribute("/orders/orderCreateDto"));
         }
     }
 
@@ -313,12 +315,19 @@ public class OrderController {
         try {
             /*restore protected orderCreateDto*/
             OrderCreateDto orderCreateDto = (OrderCreateDto) request.getSession().getAttribute("/order/submit/orderCreateDto");
+            if (orderCreateDto == null) {
+                /*it may be if user twice click the create button from the current submit form. After first click orderCreateDto wil be cleaned*/
+                throw new OrderCreationException(messageSource.getMessage("order.recreateerror", null, localeResolver.resolveLocale(request)));
+            }
+            /*clear orderCreateDto: it's necessary to prevent re-creating order from the current submit form */
             request.getSession().removeAttribute("/order/submit/orderCreateDto");
             if ((orderService.createOrder(orderCreateDto)) <= 0) {
                 throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, localeResolver.resolveLocale(request)));
             }
         } catch (NotEnoughUserWalletMoneyException e) {
             throw new NotEnoughUserWalletMoneyException(messageSource.getMessage("validation.orderNotEnoughMoney", null, localeResolver.resolveLocale(request)));
+        } catch (OrderCreationException e) {
+            throw new OrderCreationException(messageSource.getMessage("order.createerror", new Object[]{e.getLocalizedMessage()}, localeResolver.resolveLocale(request)));
         }
     }
 
@@ -350,6 +359,11 @@ public class OrderController {
         CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
         Map<String, List<OrderWideListDto>> orderMap = orderService.getMyOrders(email, currencyPair, localeResolver.resolveLocale(request));
         model.addObject("orderMap", orderMap);
+        model.addObject("successNoty", request.getSession().getAttribute("successNoty"));
+        request.getSession().removeAttribute("successNoty");
+        model.addObject("errorNoty", request.getSession().getAttribute("errorNoty"));
+        request.getSession().removeAttribute("errorNoty");
+        model.setViewName("myorders");
         return model;
     }
 
@@ -389,18 +403,27 @@ public class OrderController {
     }
 
     @RequestMapping("/myorders/delete")
-    public String deleteOrder(RedirectAttributes redirectAttributes, HttpServletRequest request) {
-        String msg = null;
-        /*restore protected orderCreateDto*/
-        OrderCreateDto orderCreateDto = (OrderCreateDto) request.getSession().getAttribute("/myorders/submitdelete/orderCreateDto");
-        request.getSession().removeAttribute("/myorders/submitdelete/orderCreateDto");
-        if (orderService.cancellOrder(new ExOrder(orderCreateDto))) {
-            msg = "delete";
-        } else {
-            msg = "deletefailed";
+    public ModelAndView deleteOrder(HttpServletRequest request) {
+        ModelAndView model = new ModelAndView();
+        try {
+            /*restore protected orderCreateDto*/
+            OrderCreateDto orderCreateDto = (OrderCreateDto) request.getSession().getAttribute("/myorders/submitdelete/orderCreateDto");
+            if (orderCreateDto == null) {
+            /*it may be if user twice click the create button from the current submit form. After first click orderCreateDto wil be cleaned*/
+                throw new OrderCancellingException(messageSource.getMessage("order.redeleteerror", null, localeResolver.resolveLocale(request)));
+            }
+            /*clear orderCreateDto: it's necessary to prevent re-deleting order from the current submit form */
+            request.getSession().removeAttribute("/myorders/submitdelete/orderCreateDto");
+            if (!orderService.cancellOrder(new ExOrder(orderCreateDto), localeResolver.resolveLocale(request))) {
+                throw new OrderCancellingException(messageSource.getMessage("myorders.deletefailed", null, localeResolver.resolveLocale(request)));
+            }
+            String successNoty = messageSource.getMessage("myorders.deletesuccess", null, localeResolver.resolveLocale(request));
+            request.getSession().setAttribute("successNoty", successNoty);
+        } catch (Exception e) {
+            request.getSession().setAttribute("errorNoty", e.getLocalizedMessage());
         }
-        redirectAttributes.addFlashAttribute("msg", msg);
-        return "redirect:/myorders";
+        model.setViewName("redirect:/myorders");
+        return model;
     }
 
 
@@ -431,6 +454,20 @@ public class OrderController {
     @ExceptionHandler(NotEnoughUserWalletMoneyException.class)
     @ResponseBody
     public ErrorInfo NotEnoughUserWalletMoneyExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+    @ExceptionHandler(OrderCreationException.class)
+    @ResponseBody
+    public ErrorInfo OrderCreationExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+    @ExceptionHandler(OrderCancellingException.class)
+    @ResponseBody
+    public ErrorInfo OrderCancellingExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 

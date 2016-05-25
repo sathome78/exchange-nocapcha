@@ -22,6 +22,7 @@ public class BigDecimalProcessing {
 
     /**
      * Checks operands and if operand is "null" sets it to 0
+     *
      * @param value1
      * @param value2
      * @param actionType
@@ -37,8 +38,9 @@ public class BigDecimalProcessing {
      * Executes arithmetic operation and returns BigDecimal value with applied <b>SCALE</b> and <b>ROUND_TYPE</b>
      * and removed trailing zeros. Or "null" if at least one of operands is "null"
      * Before execution operation to operands apply <b>SCALE</b> and <b>ROUND_TYPE</b>
-     * @param value1 is the first operand for operation
-     * @param value2 is the second operand for operation
+     *
+     * @param value1     is the first operand for operation
+     * @param value2     is the second operand for operation
      * @param actionType
      * @return BigDecimal value with applied <b>SCALE</b> and <b>ROUND_TYPE</b>
      * and removed trailing zeros. Or "null" if at least one of operands is "null"
@@ -169,7 +171,7 @@ public class BigDecimalProcessing {
      * without trailing zeros
      *
      * @param bigDecimal value to convert
-     * @param locale to convert format
+     * @param locale     to convert format
      * @return string ov value or "0" if value is null
      * - ru: 67553.116000000 => 67 553,116 or 67 553,116000000 (depending on trailingZeros)
      * - en: 67553.116000000 => 67,553.116 or 67,553.116000000 (depending on trailingZeros)

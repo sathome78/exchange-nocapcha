@@ -5,7 +5,6 @@ import me.exrates.model.ExOrder;
 import me.exrates.model.dto.*;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.vo.BackDealInterval;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -41,7 +40,7 @@ public interface OrderDao {
 
     OrderInfoDto getOrderInfo(int orderId);
 
-    Integer deleteOrderByAdmin(int orderId);
+    Object deleteOrderByAdmin(int orderId);
 
     int searchOrderByAdmin(Integer currencyPair, Integer orderType, String orderDate, BigDecimal orderRate, BigDecimal orderVolume);
 

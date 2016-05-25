@@ -14,7 +14,7 @@ public interface CompanyWalletService {
     CompanyWallet create(Currency currency);
 
     CompanyWallet findByCurrency(Currency currency);
-    
+
     List<CompanyWallet> getCompanyWallets();
 
     void withdraw(CompanyWallet companyWallet, BigDecimal amount, BigDecimal commissionAmount);

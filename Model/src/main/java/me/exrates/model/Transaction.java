@@ -1,6 +1,7 @@
 package me.exrates.model;
 
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.TransactionSourceType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -23,6 +24,12 @@ public class Transaction {
     private ExOrder order;
     private boolean provided;
     private Integer confirmation;
+    private BigDecimal activeBalanceBefore;
+    private BigDecimal reservedBalanceBefore;
+    private BigDecimal companyBalanceBefore;
+    private BigDecimal companyCommissionBalanceBefore;
+    private TransactionSourceType sourceType;
+    private Integer sourceId;
 
     public int getId() {
         return id;
@@ -128,29 +135,88 @@ public class Transaction {
         this.confirmation = confirmation;
     }
 
+    public BigDecimal getActiveBalanceBefore() {
+        return activeBalanceBefore;
+    }
+
+    public void setActiveBalanceBefore(BigDecimal activeBalanceBefore) {
+        this.activeBalanceBefore = activeBalanceBefore;
+    }
+
+    public BigDecimal getReservedBalanceBefore() {
+        return reservedBalanceBefore;
+    }
+
+    public void setReservedBalanceBefore(BigDecimal reservedBalanceBefore) {
+        this.reservedBalanceBefore = reservedBalanceBefore;
+    }
+
+    public BigDecimal getCompanyBalanceBefore() {
+        return companyBalanceBefore;
+    }
+
+    public void setCompanyBalanceBefore(BigDecimal companyBalanceBefore) {
+        this.companyBalanceBefore = companyBalanceBefore;
+    }
+
+    public BigDecimal getCompanyCommissionBalanceBefore() {
+        return companyCommissionBalanceBefore;
+    }
+
+    public void setCompanyCommissionBalanceBefore(BigDecimal companyCommissionBalanceBefore) {
+        this.companyCommissionBalanceBefore = companyCommissionBalanceBefore;
+    }
+
+    public TransactionSourceType getSourceType() {
+        return sourceType;
+    }
+
+    public void setSourceType(TransactionSourceType sourceType) {
+        this.sourceType = sourceType;
+    }
+
+    public Integer getSourceId() {
+        return sourceId;
+    }
+
+    public void setSourceId(Integer sourceId) {
+        this.sourceId = sourceId;
+    }
+
     @Override
-    public boolean equals(final Object o) {
+    public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        final Transaction that = (Transaction) o;
+        Transaction that = (Transaction) o;
 
         if (id != that.id) return false;
         if (provided != that.provided) return false;
-        if (confirmation != that.confirmation) return false;
-        if (userWallet != null ? !userWallet.equals(that.userWallet) : that.userWallet != null) return false;
-        if (companyWallet != null ? !companyWallet.equals(that.companyWallet) : that.companyWallet != null)
+        if (activeBalanceBefore != null ? !activeBalanceBefore.equals(that.activeBalanceBefore) : that.activeBalanceBefore != null)
             return false;
         if (amount != null ? !amount.equals(that.amount) : that.amount != null) return false;
+        if (commission != null ? !commission.equals(that.commission) : that.commission != null) return false;
         if (commissionAmount != null ? !commissionAmount.equals(that.commissionAmount) : that.commissionAmount != null)
             return false;
-        if (commission != null ? !commission.equals(that.commission) : that.commission != null) return false;
-        if (operationType != that.operationType) return false;
+        if (companyBalanceBefore != null ? !companyBalanceBefore.equals(that.companyBalanceBefore) : that.companyBalanceBefore != null)
+            return false;
+        if (companyCommissionBalanceBefore != null ? !companyCommissionBalanceBefore.equals(that.companyCommissionBalanceBefore) : that.companyCommissionBalanceBefore != null)
+            return false;
+        if (companyWallet != null ? !companyWallet.equals(that.companyWallet) : that.companyWallet != null)
+            return false;
+        if (confirmation != null ? !confirmation.equals(that.confirmation) : that.confirmation != null) return false;
         if (currency != null ? !currency.equals(that.currency) : that.currency != null) return false;
+        if (datetime != null ? !datetime.equals(that.datetime) : that.datetime != null) return false;
         if (merchant != null ? !merchant.equals(that.merchant) : that.merchant != null) return false;
+        if (operationType != that.operationType) return false;
         if (order != null ? !order.equals(that.order) : that.order != null) return false;
-        return datetime != null ? datetime.equals(that.datetime) : that.datetime == null;
+        if (reservedBalanceBefore != null ? !reservedBalanceBefore.equals(that.reservedBalanceBefore) : that.reservedBalanceBefore != null)
+            return false;
+        if (sourceId != null ? !sourceId.equals(that.sourceId) : that.sourceId != null) return false;
+        if (sourceType != that.sourceType) return false;
+        if (userWallet != null ? !userWallet.equals(that.userWallet) : that.userWallet != null) return false;
 
+        return true;
     }
 
     @Override
@@ -167,7 +233,13 @@ public class Transaction {
         result = 31 * result + (datetime != null ? datetime.hashCode() : 0);
         result = 31 * result + (order != null ? order.hashCode() : 0);
         result = 31 * result + (provided ? 1 : 0);
-        result = 31 * result + confirmation;
+        result = 31 * result + (confirmation != null ? confirmation.hashCode() : 0);
+        result = 31 * result + (activeBalanceBefore != null ? activeBalanceBefore.hashCode() : 0);
+        result = 31 * result + (reservedBalanceBefore != null ? reservedBalanceBefore.hashCode() : 0);
+        result = 31 * result + (companyBalanceBefore != null ? companyBalanceBefore.hashCode() : 0);
+        result = 31 * result + (companyCommissionBalanceBefore != null ? companyCommissionBalanceBefore.hashCode() : 0);
+        result = 31 * result + (sourceType != null ? sourceType.hashCode() : 0);
+        result = 31 * result + (sourceId != null ? sourceId.hashCode() : 0);
         return result;
     }
 
@@ -187,6 +259,12 @@ public class Transaction {
                 ", order=" + order +
                 ", provided=" + provided +
                 ", confirmation=" + confirmation +
+                ", activeBalanceBefore=" + activeBalanceBefore +
+                ", reservedBalanceBefore=" + reservedBalanceBefore +
+                ", companyBalanceBefore=" + companyBalanceBefore +
+                ", companyCommissionBalanceBefore=" + companyCommissionBalanceBefore +
+                ", sourceType=" + sourceType +
+                ", sourceId=" + sourceId +
                 '}';
     }
 }

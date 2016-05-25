@@ -167,7 +167,6 @@
         </div>
     </div>
     <hr>
-    <%--not used. might come useful for future (send startup message)--%>
     <span hidden id="errorNoty">${errorNoty}</span>
     <span hidden id="successNoty">${successNoty}</span>
 </main>
