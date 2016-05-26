@@ -11,6 +11,7 @@ import me.exrates.model.Wallet;
 import me.exrates.model.dto.DataTable;
 import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.service.CompanyWalletService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.OrderService;
@@ -91,6 +92,7 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setOperationType(creditsOperation.getOperationType());
         transaction.setProvided(false);
         transaction.setConfirmation((currencyName).equals("BTC") ? 0 : -1);
+        transaction.setSourceType(TransactionSourceType.MERCHANT);
         transaction = transactionDao.create(transaction);
         if (transaction==null) {
             throw new TransactionPersistException("Failed to provide transaction ");
