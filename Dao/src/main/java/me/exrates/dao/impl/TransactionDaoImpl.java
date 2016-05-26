@@ -162,7 +162,7 @@ public final class TransactionDaoImpl implements TransactionDao {
                 put("reserved_balance_before", transaction.getReservedBalanceBefore());
                 put("company_balance_before", transaction.getCompanyBalanceBefore());
                 put("company_commission_balance_before", transaction.getCompanyCommissionBalanceBefore());
-                put("source_type", transaction.getSourceType().toString());
+                put("source_type", transaction.getSourceType() == null ? null : transaction.getSourceType().toString());
                 put("source_id", transaction.getSourceId());
             }
         };

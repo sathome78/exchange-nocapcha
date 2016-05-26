@@ -55,7 +55,7 @@ public class WalletDaoImpl implements WalletDao {
     }
 
     public BigDecimal getWalletRBalance(int walletId) {
-        String sql = "SELECT reserved_balance FROM WALLET WHERE id = :walletId FOR UPDATE";
+        String sql = "SELECT reserved_balance FROM WALLET WHERE id = :walletId";
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("walletId", String.valueOf(walletId));
         try {
