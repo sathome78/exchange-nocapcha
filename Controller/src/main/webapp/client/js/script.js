@@ -193,5 +193,3 @@ function promptDeleteDoc(id, path, userId) {
     }
 }
 
-
-

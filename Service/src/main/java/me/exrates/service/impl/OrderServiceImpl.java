@@ -376,6 +376,10 @@ public class OrderServiceImpl implements OrderService {
         Integer ot = OperationType.valueOf(orderType).getType();
         return orderDao.searchOrderByAdmin(currencyPair, ot, orderDate, orderRate, orderVolume);
     }
+
+    public void setMessageSource(final MessageSource messageSource) {
+        this.messageSource = messageSource;
+    }
 }
 
 

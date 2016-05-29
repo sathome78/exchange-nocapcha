@@ -58,6 +58,10 @@ public interface UserService {
 
     boolean createTemporalToken(TemporalToken token);
 
+    User getCommonReferralRoot();
+
+    void updateCommonReferralRoot(int userId);
+
     /**
      * Returns preferred locale for user stored in DB
      * @param userId

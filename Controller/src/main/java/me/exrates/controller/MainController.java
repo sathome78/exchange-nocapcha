@@ -2,10 +2,11 @@ package me.exrates.controller;
 
 import me.exrates.controller.exception.NotCreateUserException;
 import me.exrates.controller.validator.RegisterFormValidation;
-import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.User;
+import me.exrates.model.dto.OperationViewDto;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.security.service.UserSecureService;
+import me.exrates.service.ReferralService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.UserService;
 import org.apache.logging.log4j.LogManager;
@@ -31,6 +32,8 @@ import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.security.Principal;
 import java.util.List;
+
+import static java.util.Objects.isNull;
 
 @Controller
 @PropertySource("classpath:about_us.properties")
@@ -66,6 +69,9 @@ public class MainController {
     @Autowired
     VerifyReCaptchaSec verifyReCaptcha;
 
+    @Autowired
+    ReferralService referralService;
+
     @RequestMapping(value = "57163a9b3d1eafe27b8b456a.txt", method = RequestMethod.GET)
     @ResponseBody
     public FileSystemResource getFile() {
@@ -80,17 +86,24 @@ public class MainController {
     }
 
     @RequestMapping("/register")
-    public ModelAndView registerUser(HttpServletRequest request) {
+    public ModelAndView registerUser(@RequestParam(value = "ref", required = false) String refReference, HttpServletRequest request) {
         User user = new User();
-        ModelAndView modelAndView = new ModelAndView("register", "user", user);
-        modelAndView.addObject("cpch", "");
-        return modelAndView;
+        ModelAndView mav = new ModelAndView("register", "user", user);
+        mav.addObject("cpch", "");
+        if (!isNull(refReference)) {
+            final String parentId = refReference.substring(3).substring(0, refReference.length() - 6);
+            if (parentId.matches("[0-9]+")) {
+                user.setParentEmail(userService.getUserById(Integer.valueOf(parentId)).getEmail());
+                return mav;
+            }
+        }
+        user.setParentEmail(userService.getCommonReferralRoot().getEmail());
+        return mav;
     }
 
     @RequestMapping(value = "/create", method = RequestMethod.POST)
-    public ModelAndView createUser(@ModelAttribute User user, BindingResult result, ModelMap model, HttpServletRequest request) {
+    public ModelAndView createUser(@ModelAttribute("user") User user, BindingResult result, ModelMap model, HttpServletRequest request) {
         boolean flag = false;
-
         String recapchaResponse = request.getParameter("g-recaptcha-response");
         if (!verifyReCaptcha.verify(recapchaResponse)) {
             String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
@@ -124,6 +137,9 @@ public class MainController {
                 logger.error("User can't be registered with parameters = " + user.toString() + "  " + e.getMessage());
             }
             if (flag) {
+                final int child = userService.getIdByEmail(user.getEmail());
+                final int parent = userService.getIdByEmail(user.getParentEmail());
+                referralService.bindChildAndParent(child, parent);
                 ModelAndView modelAndView = new ModelAndView("redirect:/dashboard");
                 modelAndView.addObject("successNoty", messageSource.getMessage("register.sendletter", null, localeResolver.resolveLocale(request)));
                 return  modelAndView;
@@ -190,12 +206,24 @@ public class MainController {
         return new ModelAndView("transaction", "transactions", list);
     }
 
+    @RequestMapping(value = "referral")
+    public ModelAndView referral() {
+        return new ModelAndView("referral");
+    }
+
     @RequestMapping("/aboutUs")
     public ModelAndView aboutUs() {
         ModelAndView modelAndView = new ModelAndView("aboutUs");
         modelAndView.addObject("telephone", telephone);
         modelAndView.addObject("email", email);
         return modelAndView;
+    }
+
+    public static void main(String[] args) {
+        String s = "abc123123a212312bca";
+        final String substring = s.substring(3).substring(0, s.length() - 6);
+        System.out.println(substring);
+        System.out.println(substring.matches("[0-9]+"));
     }
 
 }  

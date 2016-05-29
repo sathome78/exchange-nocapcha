@@ -13,6 +13,7 @@
         <li><a class="side_menu__item side_menu--merchants-output" href="<c:url value="/merchants/output"/>"><loc:message code="usermenu.outputCredits"/></a></li>
         <li><a class="side_menu__item side_menu--transaction" href="<c:url value="/transaction"/>"><loc:message code="usermenu.history"/></a></li>
         <li><a class="side_menu__item side_menu--settings" href="<c:url value="/settings"/>" class="navabr__link"><loc:message code="usermenu.settings"/></a></li>
+        <li><a class="side_menu__item side_menu--referral" href="<c:url value="/referral"/>"><loc:message code="usermenu.referral"/></a></li>
 
         <li>
             <c:set var="adminEnum" value="<%=me.exrates.model.enums.UserRole.ADMINISTRATOR%>"/>

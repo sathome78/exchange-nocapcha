@@ -186,6 +186,23 @@ public class UserDaoImpl implements UserDao {
         });
     }
 
+    @Override
+    public User getCommonReferralRoot() {
+        final String sql = "SELECT USER.id, nickname, email, password, regdate, phone, status, USER_ROLE.name as role_name FROM COMMON_REFERRAL_ROOT INNER JOIN USER ON COMMON_REFERRAL_ROOT.user_id = USER.id INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id LIMIT 1";
+        final List<User> result = jdbcTemplate.query(sql, getUserRowMapper());
+        if (result.isEmpty()) {
+            return null;
+        }
+        return result.get(0);
+    }
+
+    @Override
+    public void updateCommonReferralRoot(final int userId) {
+        final String sql = "UPDATE COMMON_REFERRAL_ROOT SET user_id = :id";
+        final Map<String, Integer> params = singletonMap("id", userId);
+        jdbcTemplate.update(sql, params);
+    }
+
     public List<User> getUsersByRoles(List<UserRole> listRoles) {
         String sql = "select USER.id, nickname, email, password, regdate, status, phone, USER_ROLE.name as role_name" +
                 " from USER inner join USER_ROLE on USER.roleid = USER_ROLE.id where USER_ROLE.name IN (:roles)";

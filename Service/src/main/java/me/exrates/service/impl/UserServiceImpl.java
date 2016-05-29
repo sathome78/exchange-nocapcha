@@ -20,6 +20,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -277,6 +278,19 @@ public class UserServiceImpl implements UserService {
         return result;
     }
 
+    @Override
+    public User getCommonReferralRoot() {
+        try {
+            return userDao.getCommonReferralRoot();
+        } catch (final EmptyResultDataAccessException e) {
+            return null;
+        }
+    }
+
+    @Override
+    public void updateCommonReferralRoot(final int userId) {
+        userDao.updateCommonReferralRoot(userId);
+    }
 
     @Override
     public String getPreferedLang(int userId) {

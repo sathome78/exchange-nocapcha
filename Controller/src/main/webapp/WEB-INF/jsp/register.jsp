@@ -54,7 +54,8 @@
             <h4><loc:message code="register.title"/></h4>
             <br/>
 
-            <registrationform:form method="post" action="create" modelAttribute="user">
+            <registrationform:form method="post" action="create" modelAttribute="user" methodParam="abc">
+                <registrationform:input id="parentEmail" path="parentEmail" value="${user.parentEmail}" required="required" readonly="true"/>
                 <%--Логин--%>
                 <loc:message code="register.nickname" var="login"/>
                 <registrationform:input id="login" path="nickname" placeholder="${login}"

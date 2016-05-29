@@ -39,6 +39,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/dataTable/adminAdminsDataTable.js'/>"></script>
     <%----------%>
     <script type="text/javascript" src="<c:url value='/client/js/order/adminDeleteOrder.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/changeRefSystemOptions.js'/>"></script>
     <%----------%>
 
 </head>
@@ -75,8 +76,13 @@
                         <loc:message code="admin.finance"/>
                     </button>
                 </sec:authorize>
+                <%--referral--%>
+                <sec:authorize access="hasAnyAuthority('${adminEnum}')">
+                    <button class="adminForm-toggler">
+                        <loc:message code="admin.referral"/>
+                    </button>
+                </sec:authorize>
                 <%--withdraw--%>
-
                 <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
                     <button onclick="javascript:window.location.href='/admin/withdrawal';" id="admin-withdraw-requests">
                         <loc:message code="admin.withdrawRequests"/></button>
@@ -150,6 +156,58 @@
                         </h4>
                     </div>
                 </sec:authorize>
+
+                    <sec:authorize access="hasAnyAuthority('${adminEnum}')">
+                        <div id="panel4 row" class="tab-pane">
+                            <div class="col-sm-4">
+                                <h4>
+                                    <loc:message code="admin.companyWallet"/>
+                                </h4>
+                                <table class="col-sm-4 ref-lvl-table">
+                                    <thead>
+                                    <tr>
+                                        <th>Level</th>
+                                        <th>Percent</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <c:forEach items="${referralLevels}" var="level">
+                                        <tr class="table-row" data-percent="${level.percent}" data-id="${level.id}" data-level="${level.level}" data-toggle="modal" data-target="#edit-ref-lvl">
+                                            <td>
+                                                    ${level.level}
+                                            </td>
+                                            <td id="_${level.level}">
+                                                <span class="lvl-percent">${level.percent}</span>%
+                                            </td>
+                                        </tr>
+                                    </c:forEach>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="col-sm-4">
+                               <h4>
+                                   <loc:message code="admin.refCommonRoot"/>
+                                   <c:choose>
+                                       <c:when test="${commonRefRoot != null}">
+                                           <span data-id="${commonRefRoot.id}" id="ref-root-info">(${commonRefRoot.email})</span>
+                                       </c:when>
+                                       <c:otherwise>
+                                           <span id="current-ref-root">(<loc:message code="admin.refAbsentCommonRoot"/>)</span>
+                                       </c:otherwise>
+                                   </c:choose>
+                               </h4>
+                                <form id="edit-cmn-ref-root">
+                                    <select name="ref-root">
+                                        <c:forEach items="${admins}" var="admin">
+                                            <option value="${admin.id}">${admin.email}</option>
+                                        </c:forEach>
+                                    </select>
+                                    <button type="submit"><loc:message code="admin.refSubmitEditCommonRoot"/></button>
+                                </form>
+                            </div>
+                        </div>
+                    </sec:authorize>
+
             </div>
         </div>
     </div>
@@ -157,7 +215,26 @@
 </main>
 
 <%@include file='order_delete.jsp' %>
-
+<div id="edit-ref-lvl" class="modal fade delete-order-info__modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title"><loc:message code="orderinfo.title"/></h4>
+            </div>
+            <div class="modal-body delete-order-info">
+                <form id="edit-ref-lvl-form">
+                    <loc:message code="admin.referralLevel"/> <span class="lvl-id"></span>
+                    <input type="hidden" name="level">
+                    <input type="hidden" name="id">
+                    <input name="percent" type="text">
+                    <input type="submit">
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 </body>
 </html>
 

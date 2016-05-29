@@ -22,6 +22,7 @@ public class User  {
 	private String confirmFinPassword;
 	private boolean readRules;
 	private UserRole role = UserRole.USER;
+	private String parentEmail;
 	private List<UserFile> userFiles = Collections.emptyList();
 
 	public UserRole getRole() {
@@ -129,23 +130,32 @@ public class User  {
 		this.confirmFinPassword = confirmFinPassword;
 	}
 
+	public String getParentEmail() {
+		return parentEmail;
+	}
+
+	public void setParentEmail(final String parentEmail) {
+		this.parentEmail = parentEmail;
+	}
+
 	@Override
 	public String toString() {
 		return "User{" +
 				"id=" + id +
 				", nickname='" + nickname + '\'' +
 				", email='" + email + '\'' +
-				", phone=" + phone +
-				", status='" + status.toString() + '\'' +
+				", phone='" + phone + '\'' +
+				", status=" + status +
 				", password='" + password + '\'' +
 				", finpassword='" + finpassword + '\'' +
 				", regdate=" + regdate +
-				", ip='" + ipaddress + '\'' +
+				", ipaddress='" + ipaddress + '\'' +
 				", confirmPassword='" + confirmPassword + '\'' +
-				", confirmPassword='" + confirmFinPassword + '\'' +
+				", confirmFinPassword='" + confirmFinPassword + '\'' +
 				", readRules=" + readRules +
-				", role='" + role + '\'' +
+				", role=" + role +
+				", parentEmail='" + parentEmail + '\'' +
+				", userFiles=" + userFiles +
 				'}';
 	}
-
 }

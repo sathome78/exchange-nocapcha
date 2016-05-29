@@ -1952,3 +1952,8 @@ th.allign-center {
 #prompt_delete_rqst {
     display: none;
 }
+
+.ref-lvl-table {
+    cursor:pointer;
+
+}

@@ -11,8 +11,6 @@ import me.exrates.model.enums.UserRole;
 
 import java.nio.file.Path;
 import java.util.List;
-
-import java.util.List;
 import java.util.Locale;
 
 public interface UserDao {
@@ -55,6 +53,10 @@ public interface UserDao {
 
     User getUserById(int id);
 
+    User getCommonReferralRoot();
+
+    void updateCommonReferralRoot(int userId);
+
     UserRole getUserRoles(String email);
 
     boolean createTemporalToken(TemporalToken token);
@@ -79,7 +81,7 @@ public interface UserDao {
 
     boolean insertIp(String email, String ip);
 
-    public UserIpDto getUserIpState(String email, String ip);
+    UserIpDto getUserIpState(String email, String ip);
 
     boolean setIpStateConfirmed(int userId, String ip);
 
