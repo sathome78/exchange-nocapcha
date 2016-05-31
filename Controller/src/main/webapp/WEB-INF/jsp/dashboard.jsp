@@ -107,7 +107,6 @@
 <body>
 
 <%@include file="header_new.jsp" %>
-</div>
 
 <main class="container">
     <div class="exchange_data"> <!-- Exchange currencies and graphic -->

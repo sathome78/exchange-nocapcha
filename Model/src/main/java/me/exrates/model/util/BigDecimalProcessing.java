@@ -98,7 +98,7 @@ public class BigDecimalProcessing {
     }
 
     /**
-     * Returns BigDecimal value converted to string
+     * Returns String converted from BigDecimal value
      * with <b>Space</b> as group separator and <b>Comma</b> as decimal separator
      * with trailing zeros if trailingZeros is "true" or without if "false"
      *
@@ -117,7 +117,7 @@ public class BigDecimalProcessing {
     }
 
     /**
-     * Returns BigDecimal value converted to string
+     * Returns String converted from BigDecimal value
      * with <b>No</b> group separator and <b>Comma</b> as decimal separator
      * with trailing zeros if trailingZeros is "true" or without if "false"
      *
@@ -136,7 +136,7 @@ public class BigDecimalProcessing {
     }
 
     /**
-     * Returns BigDecimal value converted to string
+     * Returns String converted from BigDecimal value
      * with <b>No</b> group separator and <b>Point</b> as decimal separator
      * with trailing zeros if trailingZeros is "true" or without if "false"
      *
@@ -155,7 +155,7 @@ public class BigDecimalProcessing {
     }
 
     /**
-     * Returns BigDecimal value converted to string by formatNonePoint method
+     * Returns String converted from BigDecimal value by formatNonePoint method
      * but result is quoted
      *
      * @param bigDecimal value to convert
@@ -167,7 +167,8 @@ public class BigDecimalProcessing {
     }
 
     /**
-     * Returns BigDecimal value converted to string with group and decimal separators according to locale
+     * Returns String converted from BigDecimal value
+     * with group and decimal separators according to locale
      * without trailing zeros
      *
      * @param bigDecimal value to convert

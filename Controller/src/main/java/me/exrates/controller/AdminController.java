@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.*;
@@ -320,13 +321,18 @@ public class AdminController {
     }
 
     @RequestMapping(value = "/changePasswordConfirm")
-    public ModelAndView verifyEmail(@RequestParam("token") String token, HttpServletRequest req) {
+    public ModelAndView verifyEmail(@RequestParam("token") String token, HttpServletRequest request) {
+        try {
+            request.setCharacterEncoding("utf-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
         ModelAndView model = new ModelAndView();
         try {
             if (userService.verifyUserEmail(token) != 0) {
-                model.addObject("successNoty", messageSource.getMessage("admin.passwordproved", null, localeResolver.resolveLocale(req)));
+                model.addObject("successNoty", messageSource.getMessage("admin.passwordproved", null, localeResolver.resolveLocale(request)));
             } else {
-                model.addObject("errorNoty", messageSource.getMessage("admin.passwordnotproved", null, localeResolver.resolveLocale(req)));
+                model.addObject("errorNoty", messageSource.getMessage("admin.passwordnotproved", null, localeResolver.resolveLocale(request)));
             }
             model.setViewName("redirect:/dashboard");
         } catch (Exception e) {
@@ -338,6 +344,11 @@ public class AdminController {
 
     @RequestMapping(value = "/changeFinPasswordConfirm")
     public ModelAndView verifyEmailForFinPassword(HttpServletRequest request, @RequestParam("token") String token) {
+        try {
+            request.setCharacterEncoding("utf-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
         ModelAndView model = new ModelAndView();
         try {
             if (userService.verifyUserEmail(token) != 0) {

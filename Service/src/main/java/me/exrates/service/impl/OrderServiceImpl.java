@@ -220,7 +220,8 @@ public class OrderServiceImpl implements OrderService {
             WalletTransferStatus walletTransferStatus;
             /**/
             /*for creator OUT*/
-            walletDao.walletInnerTransfer(walletsForOrderAcceptionDto.getUserCreatorOutWalletId(), creatorForOutAmount, TransactionSourceType.ORDER, exOrder.getId());
+            walletDao.walletInnerTransfer(walletsForOrderAcceptionDto.getUserCreatorOutWalletId(),
+                    creatorForOutAmount, TransactionSourceType.ORDER, exOrder.getId());
             walletOperationData.setOperationType(OperationType.OUTPUT);
             walletOperationData.setWalletId(walletsForOrderAcceptionDto.getUserCreatorOutWalletId());
             walletOperationData.setAmount(creatorForOutAmount);

@@ -268,8 +268,10 @@ public class WalletDaoImpl implements WalletDao {
                 userWalletSummaryDto.setWalletsAmount(rs.getInt("wallets_amount"));
                 userWalletSummaryDto.setActiveBalance(rs.getBigDecimal("active_balance"));
                 userWalletSummaryDto.setReservedBalance(rs.getBigDecimal("reserved_balance"));
+                userWalletSummaryDto.setBalance(BigDecimalProcessing.doAction(userWalletSummaryDto.getActiveBalance(), userWalletSummaryDto.getReservedBalance(), ActionType.ADD));
                 userWalletSummaryDto.setActiveBalancePerWallet(BigDecimalProcessing.doAction(userWalletSummaryDto.getActiveBalance(), BigDecimal.valueOf(userWalletSummaryDto.getWalletsAmount()), ActionType.DEVIDE));
                 userWalletSummaryDto.setReservedBalancePerWallet(BigDecimalProcessing.doAction(userWalletSummaryDto.getReservedBalance(), BigDecimal.valueOf(userWalletSummaryDto.getWalletsAmount()), ActionType.DEVIDE));
+                userWalletSummaryDto.setBalancePerWallet(BigDecimalProcessing.doAction(userWalletSummaryDto.getBalance(), BigDecimal.valueOf(userWalletSummaryDto.getWalletsAmount()), ActionType.DEVIDE));
                 return userWalletSummaryDto;
             }
         });
