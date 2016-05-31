@@ -60,6 +60,17 @@
                     </p>
 
                     <p class="info-item col-sm-4">
+                        <loc:message code="wallets.balance"/>:
+                        <fmt:formatNumber type="number" maxFractionDigits="9" value="${wallet.balance}"/>
+                    </p>
+
+                    <p class="info-item next_item">
+                        <loc:message code="wallets.average"/>:
+                        <fmt:formatNumber type="number" maxFractionDigits="9" value="${wallet.balancePerWallet}"/>
+                    </p>
+                    <br/>
+
+                    <p class="info-item col-sm-4">
                         <loc:message code="wallets.abalance"/>:
                         <fmt:formatNumber type="number" maxFractionDigits="9" value="${wallet.activeBalance}"/>
                     </p>

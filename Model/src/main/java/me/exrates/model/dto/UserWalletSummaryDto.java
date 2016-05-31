@@ -12,8 +12,10 @@ import java.math.BigDecimal;
 public class UserWalletSummaryDto {
     private String currencyName;
     private int walletsAmount;
+    private BigDecimal balance;
     private BigDecimal activeBalance;
     private BigDecimal reservedBalance;
+    private BigDecimal balancePerWallet;
     private BigDecimal activeBalancePerWallet;
     private BigDecimal reservedBalancePerWallet;
 
@@ -35,6 +37,14 @@ public class UserWalletSummaryDto {
         this.walletsAmount = walletsAmount;
     }
 
+    public BigDecimal getBalance() {
+        return BigDecimalProcessing.normalize(balance);
+    }
+
+    public void setBalance(BigDecimal balance) {
+        this.balance = balance;
+    }
+
     public BigDecimal getActiveBalance() {
         return BigDecimalProcessing.normalize(activeBalance);
     }
@@ -49,6 +59,14 @@ public class UserWalletSummaryDto {
 
     public void setReservedBalance(BigDecimal reservedBalance) {
         this.reservedBalance = reservedBalance;
+    }
+
+    public BigDecimal getBalancePerWallet() {
+        return balancePerWallet;
+    }
+
+    public void setBalancePerWallet(BigDecimal balancePerWallet) {
+        this.balancePerWallet = balancePerWallet;
     }
 
     public BigDecimal getActiveBalancePerWallet() {

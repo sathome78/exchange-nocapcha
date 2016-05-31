@@ -556,17 +556,8 @@ public class OrderDaoImpl implements OrderDao {
                 /**/
                 processedRows++;
             } else if (orderStatus == OrderStatus.OPENED) {
-                sql = "UPDATE WALLET " +
-                        " SET  active_balance = active_balance + :active_balance, " +
-                        "      reserved_balance = reserved_balance - :reserved_balance" +
-                        " WHERE id = :wallet_id ";
-                params = new HashMap<>();
-                params.put("active_balance", orderDetailDto.getOrderCreatorReservedAmount());
-                params.put("reserved_balance", orderDetailDto.getOrderCreatorReservedAmount());
-                params.put("wallet_id", orderDetailDto.getOrderCreatorReservedWalletId());
-                if (jdbcTemplate.update(sql, params) <= 0) {
-                    return OrderDeleteStatus.WALLET_UPDATE_ERROR;
-                }
+                walletDao.walletInnerTransfer(orderDetailDto.getOrderCreatorReservedWalletId(),
+                        orderDetailDto.getOrderCreatorReservedAmount(), TransactionSourceType.ORDER, orderId);
                 /**/
                 sql = "UPDATE TRANSACTION " +
                         " SET status_id = :status_id" +
@@ -609,7 +600,7 @@ public class OrderDaoImpl implements OrderDao {
                         "    LEFT JOIN WALLET USER_WALLET ON (USER_WALLET.id = TRANSACTION.user_wallet_id) " +
                         "    LEFT JOIN COMPANY_WALLET ON (COMPANY_WALLET.id = TRANSACTION.company_wallet_id) and (TRANSACTION.commission_amount <> 0) " +
                         "  WHERE EXORDERS.id=:deleted_order_id AND EXORDERS.status_id IN (2, 3)" +
-                        "  FOR UPDATE "; //FOR UPDATE !Impotant
+                        "  FOR UPDATE "; //FOR UPDATE !Important
         NamedParameterJdbcTemplate jdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         Map<String, String> namedParameters = new HashMap<String, String>() {{
             put("deleted_order_id", String.valueOf(orderId));

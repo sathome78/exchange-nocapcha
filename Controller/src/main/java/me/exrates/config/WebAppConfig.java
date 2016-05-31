@@ -11,12 +11,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.*;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.core.io.ClassPathResource;
@@ -29,6 +24,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -47,9 +43,9 @@ import java.util.Properties;
 @Configuration
 @EnableWebMvc
 @EnableTransactionManagement
-@ComponentScan({ "me.exrates" })
-@Import({ me.exrates.security.config.SecurityConfig.class })
-@PropertySource(value = {"classpath:/db.properties", "classpath:/uploadfiles.properties"})
+@ComponentScan({"me.exrates"})
+@Import({me.exrates.security.config.SecurityConfig.class})
+@PropertySource(value = {"classpath:/db.properties", "classpath:/uploadfiles.properties", "classpath:/news.properties"})
 public class WebAppConfig extends WebMvcConfigurerAdapter {
 
 	private @Value("${db.user}") String dbUser;
@@ -58,125 +54,127 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 	private @Value("${db.classname}") String dbClassname;
 	private @Value("${upload.userFilesDir}") String userFilesDir;
 	private @Value("${upload.userFilesLogicalDir}") String userFilesLogicalDir;
+    private @Value("${news.locationDir}") String newsLocationDir;
+    private @Value("${news.urlPath}") String newsUrlPath;
 
-	private static final Logger logger = LogManager.getLogger(WebAppConfig.class);
+    private static final Logger logger = LogManager.getLogger(WebAppConfig.class);
 
-	@Bean
-	public DataSource dataSource() {
-		final BasicDataSource dataSource = new BasicDataSource();
-		dataSource.setDriverClassName(dbClassname);
-		dataSource.setUrl(dbUrl);
-		dataSource.setUsername(dbUser);
-		dataSource.setPassword(dbPassword);
-		return dataSource;
-	}
+    @Bean
+    public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
+        return new PropertySourcesPlaceholderConfigurer();
+    }
 
-	@DependsOn("dataSource")
-	@Bean
-	public NamedParameterJdbcTemplate namedParameterJdbcTemplate(DataSource dataSource) {
-		return new NamedParameterJdbcTemplate(dataSource);
-	}
+    @Bean
+    public DataSource dataSource() {
+        final BasicDataSource dataSource = new BasicDataSource();
+        dataSource.setDriverClassName(dbClassname);
+        dataSource.setUrl(dbUrl);
+        dataSource.setUsername(dbUser);
+        dataSource.setPassword(dbPassword);
+        return dataSource;
+    }
 
-	@DependsOn("dataSource")
-	@Bean
-	public JdbcTemplate jdbcTemplate(DataSource dataSource) {
-		return new JdbcTemplate(dataSource);
-	}
+    @DependsOn("dataSource")
+    @Bean
+    public NamedParameterJdbcTemplate namedParameterJdbcTemplate(DataSource dataSource) {
+        return new NamedParameterJdbcTemplate(dataSource);
+    }
 
+    @DependsOn("dataSource")
+    @Bean
+    public JdbcTemplate jdbcTemplate(DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
+    }
 
-	@Bean
-	public InternalResourceViewResolver viewResolver() {
-		InternalResourceViewResolver viewResolver = new InternalResourceViewResolver();
-		viewResolver.setViewClass(JstlView.class);
-		viewResolver.setPrefix("/WEB-INF/jsp/");
-		viewResolver.setSuffix(".jsp");
-		viewResolver.setExposedContextBeanNames("captchaProperties");
-		return viewResolver;
-	}
+    @Bean
+    public InternalResourceViewResolver viewResolver() {
+        InternalResourceViewResolver viewResolver = new InternalResourceViewResolver();
+        viewResolver.setViewClass(JstlView.class);
+        viewResolver.setPrefix("/WEB-INF/jsp/");
+        viewResolver.setSuffix(".jsp");
+        viewResolver.setExposedContextBeanNames("captchaProperties");
+        return viewResolver;
+    }
 
-	@Bean(name = "captchaProperties")
-	public PropertiesFactoryBean captchaProperties() {
-		PropertiesFactoryBean prop = new PropertiesFactoryBean();
-		prop.setLocation(new ClassPathResource("captcha.properties"));
-		return prop;
-	}
+    @Bean(name = "captchaProperties")
+    public PropertiesFactoryBean captchaProperties() {
+        PropertiesFactoryBean prop = new PropertiesFactoryBean();
+        prop.setLocation(new ClassPathResource("captcha.properties"));
+        return prop;
+    }
 
-	@Bean
-	public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
-		return new PropertySourcesPlaceholderConfigurer();
-	}
+    @Bean
+    public MessageSource messageSource() {
+        ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
+        messageSource.setBasename("classpath:messages");
+        messageSource.setDefaultEncoding("UTF-8");
+        messageSource.setFallbackToSystemLocale(false);
+        return messageSource;
+    }
 
-	@Bean
-	public MessageSource messageSource() {
-		ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
-		messageSource.setBasename("classpath:messages");
-		messageSource.setDefaultEncoding("UTF-8");
-		messageSource.setFallbackToSystemLocale(false);
-		return messageSource;
-	}
-	@Bean
-	public LocaleResolver localeResolver(){
-		CookieLocaleResolver resolver = new CookieLocaleResolver();
-		resolver.setDefaultLocale(new Locale("en"));
-		resolver.setCookieName("myAppLocaleCookie");
-		resolver.setCookieMaxAge(3600);
-		return resolver;
-	}
-	@Bean
-	public VerifyReCaptchaSec verifyReCaptcha(){
-		return new VerifyReCaptchaSec();
-	}
+    @Bean
+    public LocaleResolver localeResolver() {
+        CookieLocaleResolver resolver = new CookieLocaleResolver();
+        resolver.setDefaultLocale(new Locale("en"));
+        resolver.setCookieName("myAppLocaleCookie");
+        resolver.setCookieMaxAge(3600);
+        return resolver;
+    }
 
+    @Bean
+    public VerifyReCaptchaSec verifyReCaptcha() {
+        return new VerifyReCaptchaSec();
+    }
 
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/client/**").addResourceLocations("/client/");
+        registry.addResourceHandler("/**").addResourceLocations("/public/");
+        registry.addResourceHandler(newsUrlPath + "/**").addResourceLocations("file:" + newsLocationDir);
+        registry.addResourceHandler(userFilesLogicalDir + "/**").addResourceLocations("file:" + userFilesDir);
+    }
 
-	@Override
-	public void addResourceHandlers(ResourceHandlerRegistry registry) {
-		registry.addResourceHandler("/client/**").addResourceLocations("/client/");
-		registry.addResourceHandler("/**").addResourceLocations("/public/");
-		registry.addResourceHandler(userFilesLogicalDir+"/**").addResourceLocations("file:" + userFilesDir);
-	}
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        LocaleChangeInterceptor interceptor = new LocaleChangeInterceptor();
+        interceptor.setParamName("locale");
+        registry.addInterceptor(interceptor);
+    }
 
-	@Override
-	public void addInterceptors(InterceptorRegistry registry) {
-		LocaleChangeInterceptor interceptor = new LocaleChangeInterceptor();
-		interceptor.setParamName("locale");
-		registry.addInterceptor(interceptor);
-	}
+    @Bean
+    public PlatformTransactionManager platformTransactionManager() {
+        return new DataSourceTransactionManager(dataSource());
+    }
 
-	@Bean
-	public PlatformTransactionManager platformTransactionManager() {
-		return new DataSourceTransactionManager(dataSource());
-	}
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
-	@Bean
-	public PasswordEncoder passwordEncoder(){
-		return new BCryptPasswordEncoder();
-	}
+    //Validation
+    @Bean
+    public RegisterFormValidation getRegisterFormValidation() {
+        return new RegisterFormValidation();
+    }
 
-	//Validation
-	@Bean
-	public RegisterFormValidation getRegisterFormValidation(){
-		return new RegisterFormValidation();
-	}
+    @Bean
+    public OrderValidator orderValidator() {
+        return new OrderValidator();
+    }
 
-	@Bean
-	public OrderValidator orderValidator(){
-		return new OrderValidator();
-	}
+    @Bean
+    public JavaMailSenderImpl javaMailSenderImpl() {
+        final JavaMailSenderImpl mailSenderImpl = new JavaMailSenderImpl();
+        mailSenderImpl.setHost("smtp.gmail.com");
+        mailSenderImpl.setPort(587);
+        //mailSenderImpl.setUsername("195.154.176.137");;
 
-	@Bean
-	public JavaMailSenderImpl javaMailSenderImpl() {
-		final JavaMailSenderImpl mailSenderImpl = new JavaMailSenderImpl();
-		mailSenderImpl.setHost("smtp.gmail.com");
-		mailSenderImpl.setPort(587);
-		//mailSenderImpl.setUsername("195.154.176.137");;
-		
-		mailSenderImpl.setProtocol("smtp");
-		mailSenderImpl.setUsername("support@exrates.me");
-		mailSenderImpl.setPassword("Hgdr35lKN103b");
-		final Properties javaMailProps = new Properties();
- 		javaMailProps.put("mail.smtp.auth", true);
-		javaMailProps.put("mail.smtp.starttls.enable", true);
+        mailSenderImpl.setProtocol("smtp");
+        mailSenderImpl.setUsername("support@exrates.me");
+        mailSenderImpl.setPassword("Hgdr35lKN103b");
+        final Properties javaMailProps = new Properties();
+        javaMailProps.put("mail.smtp.auth", true);
+        javaMailProps.put("mail.smtp.starttls.enable", true);
 //		//javaMailProps.put("mail.smtp.socketFactory.port", 587);
 //	//	javaMailProps.put("mail.smtp.socketFactory.fallback", false);
 //		//javaMailProps.put("mail.smtp.starttls.required", true);
@@ -194,23 +192,25 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 //		javaMailProps.put("mail.smtp.auth", true);
 //		javaMailProps.put("mail.smtp.starttls.enable", true);
 //		
-		mailSenderImpl.setJavaMailProperties(javaMailProps);
-		return mailSenderImpl;
-	}
+        mailSenderImpl.setJavaMailProperties(javaMailProps);
+        return mailSenderImpl;
+    }
 
-	@Bean (name = "tokenScheduler", initMethod = "init", destroyMethod = "destroy")
-	public TokenScheduler tokenScheduler(){
-		return new TokenScheduler();
-	}
+    @Bean(name = "tokenScheduler", initMethod = "init", destroyMethod = "destroy")
+    public TokenScheduler tokenScheduler() {
+        return new TokenScheduler();
+    }
 
-	@Override
-	public void addFormatters(FormatterRegistry registry) {
-		registry.addConverter(new CurrencyPairConverter());
-		super.addFormatters(registry);
-	}
+    @Override
+    public void addFormatters(FormatterRegistry registry) {
+        registry.addConverter(new CurrencyPairConverter());
+        super.addFormatters(registry);
+    }
 
-	@Bean(name = "multipartResolver")
-	public StandardServletMultipartResolver resolver() {
-		return new StandardServletMultipartResolver();
-	}
+    @Bean(name = "multipartResolver")
+    public CommonsMultipartResolver multipartResolver() {
+        CommonsMultipartResolver commonsMultipartResolver = new CommonsMultipartResolver();
+        commonsMultipartResolver.setMaxUploadSize(5000000);
+        return commonsMultipartResolver;
+    }
 }
