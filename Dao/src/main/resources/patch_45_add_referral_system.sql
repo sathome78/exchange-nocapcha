@@ -14,7 +14,7 @@ INSERT INTO REFERRAL_LEVEL (level, percent) VALUES (5, 0);
 INSERT INTO REFERRAL_LEVEL (level, percent) VALUES (6, 0);
 INSERT INTO REFERRAL_LEVEL (level, percent) VALUES (7, 0);
 
-
+#IMPORTANT! To be able to work with this table (COMMON_REFERRAL_ROOT) -  you have to add explicitly one and only one user to this table
 CREATE TABLE IF NOT EXISTS COMMON_REFERRAL_ROOT (
   user_id INT,
   FOREIGN KEY COMMON_REFERRAL_ROOT(user_id) REFERENCES USER(id) ON UPDATE CASCADE ON DELETE RESTRICT
@@ -44,3 +44,5 @@ CREATE TABLE IF NOT EXISTS REFERRAL_TRANSACTION (
 INSERT INTO COMMISSION (operation_type, value) VALUES (6, 0);
 
 ALTER TABLE TRANSACTION CHANGE COLUMN source_type source_type enum('ORDER','MERCHANT','REFERRAL','ACCRUAL') DEFAULT NULL;
+
+INSERT INTO DATABASE_PATCH VALUES('patch_45_added_referral_system',default,1);
