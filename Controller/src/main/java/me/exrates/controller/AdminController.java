@@ -6,22 +6,11 @@ import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
 import me.exrates.model.Wallet;
-import me.exrates.model.dto.DataTable;
-import me.exrates.model.dto.OperationViewDto;
-import me.exrates.model.dto.OrderInfoDto;
-import me.exrates.model.dto.UpdateUserDto;
-import me.exrates.model.dto.UserSummaryDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.security.service.UserSecureServiceImpl;
-import me.exrates.service.CurrencyService;
-import me.exrates.service.MerchantService;
-import me.exrates.service.OrderService;
-import me.exrates.service.ReferralService;
-import me.exrates.service.TransactionService;
-import me.exrates.service.UserFilesService;
-import me.exrates.service.UserService;
-import me.exrates.service.WalletService;
+import me.exrates.service.*;
 import me.exrates.service.exception.OrderDeletingException;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -34,40 +23,29 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.RequestContextUtils;
+import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static me.exrates.model.enums.UserRole.ADMINISTRATOR;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -112,12 +90,13 @@ public class AdminController {
 
     private static final Logger LOG = LogManager.getLogger(AdminController.class);
 
-    private String currentRole;
-
     @RequestMapping("/admin")
-    public ModelAndView admin(Principal principal) {
+    public ModelAndView admin(Principal principal, HttpSession httpSession) {
 
-        currentRole = ((UsernamePasswordAuthenticationToken) principal).getAuthorities().iterator().next().getAuthority();
+        final Object mutex = WebUtils.getSessionMutex(httpSession);
+        synchronized (mutex) {
+            httpSession.setAttribute("currentRole",((UsernamePasswordAuthenticationToken) principal).getAuthorities().iterator().next().getAuthority());
+        }
 
         ModelAndView model = new ModelAndView();
         List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairs();
@@ -204,8 +183,13 @@ public class AdminController {
     }
 
     @RequestMapping("/admin/addUser")
-    public ModelAndView addUser() {
+    public ModelAndView addUser(HttpSession httpSession) {
 
+        final Object mutex = WebUtils.getSessionMutex(httpSession);
+        String currentRole = "";
+        synchronized (mutex) {
+            currentRole = (String) httpSession.getAttribute("currentRole");
+        }
         if (!currentRole.equals(UserRole.ADMINISTRATOR.name())) {
             return new ModelAndView("403");
         }
@@ -219,9 +203,15 @@ public class AdminController {
         return model;
     }
 
-    @RequestMapping(value = "/admin/adduser/submit", method = POST)
-    public ModelAndView submitcreate(@Valid @ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request) {
+    @RequestMapping(value = "/admin/adduser/submit", method = RequestMethod.POST)
+    public ModelAndView submitcreate(@Valid @ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request,
+            HttpSession httpSession) {
 
+        final Object mutex = WebUtils.getSessionMutex(httpSession);
+        String currentRole = "";
+        synchronized (mutex) {
+            currentRole = (String) httpSession.getAttribute("currentRole");
+        }
         if (!currentRole.equals(UserRole.ADMINISTRATOR.name())) {
             return new ModelAndView("403");
         }
@@ -243,12 +233,17 @@ public class AdminController {
     }
 
     @RequestMapping("/admin/editUser")
-    public ModelAndView editUser(@RequestParam int id) {
+    public ModelAndView editUser(@RequestParam int id, HttpSession httpSession) {
 
         ModelAndView model = new ModelAndView();
 
         model.addObject("statusList", UserStatus.values());
         List<UserRole> roleList = new ArrayList<>();
+        final Object mutex = WebUtils.getSessionMutex(httpSession);
+        String currentRole = "";
+        synchronized (mutex) {
+            currentRole = (String) httpSession.getAttribute("currentRole");
+        }
         if (currentRole.equals(UserRole.ADMIN_USER.name()) || currentRole.equals(UserRole.ACCOUNTANT.name())) {
             roleList.add(UserRole.USER);
         } else {
@@ -267,12 +262,19 @@ public class AdminController {
     }
 
     @RequestMapping("/admin/userInfo")
-    public ModelAndView userInfo(@RequestParam int id, HttpServletRequest request) {
-        return editUser(id);
+    public ModelAndView userInfo(@RequestParam int id, HttpServletRequest request, HttpSession httpSession) {
+        ModelAndView model = editUser(id, httpSession);
+        return model;
     }
 
-    @RequestMapping(value = "/admin/edituser/submit", method = POST)
-    public ModelAndView submitedit(@Valid @ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request, HttpServletResponse response) {
+    @RequestMapping(value = "/admin/edituser/submit", method = RequestMethod.POST)
+    public ModelAndView submitedit(@Valid @ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request, HttpServletResponse response,
+                    HttpSession httpSession) {
+        final Object mutex = WebUtils.getSessionMutex(httpSession);
+        String currentRole = "";
+        synchronized (mutex) {
+            currentRole = (String) httpSession.getAttribute("currentRole");
+        }
         if (!currentRole.equals(UserRole.ADMINISTRATOR.name()) && !user.getRole().name().equals(UserRole.USER.name())) {
             return new ModelAndView("403");
         }
