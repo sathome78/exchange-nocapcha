@@ -196,5 +196,4 @@ public class ExOrder {
     public void setStatus(OrderStatus status) {
         this.status = status;
     }
-
 }

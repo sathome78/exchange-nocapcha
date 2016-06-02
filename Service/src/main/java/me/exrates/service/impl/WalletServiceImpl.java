@@ -8,6 +8,7 @@ import me.exrates.model.Wallet;
 import me.exrates.model.dto.UserWalletSummaryDto;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.WalletTransferStatus;
+import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.WalletService;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import org.apache.logging.log4j.LogManager;
@@ -163,5 +164,10 @@ public final class WalletServiceImpl implements WalletService {
     @Override
     public WalletTransferStatus walletInnerTransfer(int walletId, BigDecimal amount, TransactionSourceType sourceType, int sourceId) {
         return walletDao.walletInnerTransfer(walletId, amount, sourceType, sourceId);
+    }
+
+    @Override
+    public WalletTransferStatus walletBalanceChange(final WalletOperationData walletOperationData) {
+        return walletDao.walletBalanceChange(walletOperationData);
     }
 }

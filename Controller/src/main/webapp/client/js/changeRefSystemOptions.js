@@ -4,11 +4,10 @@ $(function () {
         const level = $(this).data("level");
         const percent = $(this).data("percent");
         const oldLevelId = $(this).attr("data-id");
-        console.log(oldLevelId);
+        $('.lvl-id').val(level);
         $('input[name="level"]').val(level);
         $('input[name="percent"]').val(percent);
         $('input[name="id"]').val(oldLevelId);
-        $('.lvl-id').html();
     });
 
     $('select[name="ref-root"]').val($('#ref-root-info').data('id'));
@@ -40,10 +39,9 @@ function changeRefLevelPercent(refLevel, oldLevelId, percent) {
         type: 'POST',
         data: data
     }).done(function (e) {
-        alert(e['id']);
         $('#_' + refLevel + ' .lvl-percent').html(percent);
         $(".table-row[data-id='" + oldLevelId + "'").attr('data-id', e['id']);
-        $('#edit-ref-lvl').modal('hide');
+        $('#myModal').modal('hide');
     }).fail(function (error) {
         console.log(JSON.stringify(error));
         alert(error['responseJSON']['error'])

@@ -1955,5 +1955,16 @@ th.allign-center {
 
 .ref-lvl-table {
     cursor:pointer;
+}
 
+.ref-button {
+    display: inline !important;
+}
+
+.ref-reference {
+    padding-left: 10px;
+}
+
+.edit-ref-lvl-modal {
+    max-height: 250px !important;
 }

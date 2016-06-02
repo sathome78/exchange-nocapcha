@@ -9,11 +9,9 @@ import java.util.List;
  */
 public interface ReferralTransactionDao {
 
-    List<ReferralTransaction> findAll();
+    List<ReferralTransaction> findAll(int userId);
 
-    List<ReferralTransaction> findAll(int offset, int limit);
+    List<ReferralTransaction> findAll(int userId, int offset, int limit);
 
-    void create(ReferralTransaction referralTransaction);
-
-    void delete(ReferralTransaction referralTransaction);
+    ReferralTransaction create(ReferralTransaction referralTransaction);
 }

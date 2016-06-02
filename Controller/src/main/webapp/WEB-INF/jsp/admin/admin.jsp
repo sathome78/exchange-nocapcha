@@ -161,7 +161,7 @@
                         <div id="panel4 row" class="tab-pane">
                             <div class="col-sm-4">
                                 <h4>
-                                    <loc:message code="admin.companyWallet"/>
+                                    <loc:message code="admin.referralLevels"/>
                                 </h4>
                                 <table class="col-sm-4 ref-lvl-table">
                                     <thead>
@@ -172,7 +172,7 @@
                                     </thead>
                                     <tbody>
                                     <c:forEach items="${referralLevels}" var="level">
-                                        <tr class="table-row" data-percent="${level.percent}" data-id="${level.id}" data-level="${level.level}" data-toggle="modal" data-target="#edit-ref-lvl">
+                                        <tr class="table-row" data-percent="${level.percent}" data-id="${level.id}" data-level="${level.level}" data-toggle="modal" data-target="#myModal">
                                             <td>
                                                     ${level.level}
                                             </td>
@@ -215,21 +215,36 @@
 </main>
 
 <%@include file='order_delete.jsp' %>
-<div id="edit-ref-lvl" class="modal fade delete-order-info__modal" tabindex="-1" role="dialog">
-    <div class="modal-dialog">
+
+<div id="myModal" class="modal fade edit-ref-lvl-modal">
+    <div class="modal-dialog modal-sm">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
                         aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title"><loc:message code="orderinfo.title"/></h4>
+                <h4 class="modal-title"><loc:message code="admin.referralLevelEdit"/></h4>
             </div>
-            <div class="modal-body delete-order-info">
+            <div class="modal-body">
                 <form id="edit-ref-lvl-form">
-                    <loc:message code="admin.referralLevel"/> <span class="lvl-id"></span>
-                    <input type="hidden" name="level">
+                    <input class="" type="hidden" name="level">
                     <input type="hidden" name="id">
-                    <input name="percent" type="text">
-                    <input type="submit">
+                    <div class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="admin.referralLevel"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input  name="" class="input-block-wrapper__input lvl-id" readonly type="text">
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="admin.referralPercent"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input  name="percent" class="input-block-wrapper__input" type="text">
+                        </div>
+                    </div>
+                    <button class="delete-order-info__button" type="submit"><loc:message code="admin.refSubmitEditCommonRoot"/></button>
                 </form>
             </div>
         </div>

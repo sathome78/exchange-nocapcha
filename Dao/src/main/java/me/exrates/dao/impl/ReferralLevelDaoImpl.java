@@ -4,7 +4,7 @@ import me.exrates.dao.ReferralLevelDao;
 import me.exrates.model.ReferralLevel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -27,7 +27,13 @@ public class ReferralLevelDaoImpl implements ReferralLevelDao {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    private final BeanPropertyRowMapper<ReferralLevel> referralLevelRowMapper = new BeanPropertyRowMapper<>(ReferralLevel.class);
+    protected static RowMapper<ReferralLevel> referralLevelRowMapper = (resultSet, i) -> {
+        final ReferralLevel result = new ReferralLevel();
+        result.setPercent(resultSet.getBigDecimal("REFERRAL_LEVEL.percent"));
+        result.setLevel(resultSet.getInt("REFERRAL_LEVEL.level"));
+        result.setId(resultSet.getInt("REFERRAL_LEVEL.id"));
+        return result;
+    };
 
     @Autowired
     public ReferralLevelDaoImpl(final NamedParameterJdbcTemplate jdbcTemplate) {
@@ -36,7 +42,7 @@ public class ReferralLevelDaoImpl implements ReferralLevelDao {
 
     @Override
     public List<ReferralLevel> findAll() {
-        final String sql = "SELECT o.*  FROM REFERRAL_LEVEL o LEFT JOIN REFERRAL_LEVEL b ON o.level = b.level AND o.datetime < b.datetime WHERE b.datetime is NULL ORDER BY level";
+        final String sql = "SELECT REFERRAL_LEVEL.*  FROM REFERRAL_LEVEL REFERRAL_LEVEL LEFT JOIN REFERRAL_LEVEL b ON REFERRAL_LEVEL.level = b.level AND REFERRAL_LEVEL.datetime < b.datetime WHERE b.datetime is NULL ORDER BY level;";
         try {
             return jdbcTemplate.query(sql, referralLevelRowMapper);
         } catch (final EmptyResultDataAccessException ignore) {

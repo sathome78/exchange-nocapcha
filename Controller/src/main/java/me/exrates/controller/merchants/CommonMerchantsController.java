@@ -61,11 +61,6 @@ public class CommonMerchantsController {
 
     private static final Logger LOG = LogManager.getLogger("merchant");
 
-    @RequestMapping("test")
-    public void test() {
-        System.out.println(userService.findUserDoc(1));
-    }
-
     @RequestMapping(value = "/input", method = GET)
     public ModelAndView inputCredits() {
         final ModelAndView modelAndView = new ModelAndView("merchantsInputCredits");

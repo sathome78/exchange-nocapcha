@@ -1,6 +1,7 @@
 package me.exrates.model.vo;
 
 import me.exrates.model.Commission;
+import me.exrates.model.Transaction;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 
@@ -10,14 +11,16 @@ import java.math.BigDecimal;
  * Created by Valk on 24.05.2016.
  */
 public class WalletOperationData {
+
     private OperationType operationType;
     private int walletId;
     private BigDecimal amount;
     private BalanceType balanceType;
     private Commission commission;
-    private BigDecimal commmissionAmount;
+    private BigDecimal commissionAmount;
     private TransactionSourceType sourceType;
     private int sourceId;
+    private Transaction transaction;
 
     public int getWalletId() {
         return walletId;
@@ -68,12 +71,12 @@ public class WalletOperationData {
         this.commission = commission;
     }
 
-    public BigDecimal getCommmissionAmount() {
-        return commmissionAmount;
+    public BigDecimal getCommissionAmount() {
+        return commissionAmount;
     }
 
-    public void setCommmissionAmount(BigDecimal commmissionAmount) {
-        this.commmissionAmount = commmissionAmount;
+    public void setCommissionAmount(BigDecimal commissionAmount) {
+        this.commissionAmount = commissionAmount;
     }
 
     public BalanceType getBalanceType() {
@@ -84,10 +87,17 @@ public class WalletOperationData {
         this.balanceType = balanceType;
     }
 
+    public Transaction getTransaction() {
+        return transaction;
+    }
+
+    public void setTransaction(final Transaction transaction) {
+        this.transaction = transaction;
+    }
+
     /**/
-    public static enum BalanceType {
+    public enum BalanceType {
         ACTIVE,
         RESERVED
     }
-
 }

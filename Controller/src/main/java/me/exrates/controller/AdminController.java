@@ -14,8 +14,6 @@ import me.exrates.model.dto.UserSummaryDto;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.security.service.UserSecureServiceImpl;
-import me.exrates.service.*;
-import me.exrates.service.exception.OrderDeletingException;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.OrderService;
@@ -24,6 +22,7 @@ import me.exrates.service.TransactionService;
 import me.exrates.service.UserFilesService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
+import me.exrates.service.exception.OrderDeletingException;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,11 +34,13 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
@@ -51,16 +52,18 @@ import javax.validation.Valid;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.Principal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
-import static me.exrates.model.enums.UserRole.ACCOUNTANT;
 import static me.exrates.model.enums.UserRole.ADMINISTRATOR;
-import static me.exrates.model.enums.UserRole.ADMIN_USER;
-import static me.exrates.model.enums.UserRole.USER;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.OK;
@@ -71,11 +74,14 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 public class AdminController {
 
     @Autowired
-    MessageSource messageSource;
+    private MessageSource messageSource;
+
     @Autowired
     private UserSecureServiceImpl userSecureService;
+
     @Autowired
     private UserService userService;
+
     @Autowired
     private LocaleResolver localeResolver;
 
@@ -101,7 +107,7 @@ public class AdminController {
     private UserFilesService userFilesService;
 
     @Autowired
-    private ReferralService referralLevelService;
+    private ReferralService referralService;
 
     private static final Logger LOG = LogManager.getLogger(AdminController.class);
 
@@ -115,7 +121,7 @@ public class AdminController {
         ModelAndView model = new ModelAndView();
         List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairs();
         model.addObject("currencyPairList", currencyPairList);
-        model.addObject("referralLevels", referralLevelService.findAllReferralLevels());
+        model.addObject("referralLevels", referralService.findAllReferralLevels());
         model.addObject("commonRefRoot", userService.getCommonReferralRoot());
         model.addObject("admins", userSecureService.getUsersByRoles(singletonList(ADMINISTRATOR)));
         model.setViewName("admin/admin");
@@ -133,10 +139,9 @@ public class AdminController {
     @RequestMapping(value = "/admin/editLevel", method = POST)
     @ResponseBody
     public ResponseEntity<Map<String, String>> editReferralLevel(final @RequestParam("level") int level, final @RequestParam("oldLevelId") int oldLevelId, final @RequestParam("percent") BigDecimal percent, final Locale locale) {
-        System.out.println("ID " + oldLevelId);
         final int result;
         try {
-            result = referralLevelService.updateReferralLevel(level, oldLevelId, percent);
+            result = referralService.updateReferralLevel(level, oldLevelId, percent);
             return new ResponseEntity<>(singletonMap("id", String.valueOf(result)), OK);
         } catch (final IllegalStateException e) {
             LOG.error(e);

@@ -6,6 +6,7 @@ import me.exrates.model.Wallet;
 import me.exrates.model.dto.UserWalletSummaryDto;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.WalletTransferStatus;
+import me.exrates.model.vo.WalletOperationData;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -62,5 +63,7 @@ public interface WalletService {
      * @author ValkSam
      */
     WalletTransferStatus walletInnerTransfer(int walletId, BigDecimal amount, TransactionSourceType sourceType, int sourceId);
+
+    WalletTransferStatus walletBalanceChange(WalletOperationData walletOperationData);
 
 }

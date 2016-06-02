@@ -4,15 +4,40 @@ import me.exrates.dao.CommissionDao;
 import me.exrates.dao.OrderDao;
 import me.exrates.dao.TransactionDao;
 import me.exrates.dao.WalletDao;
-import me.exrates.model.*;
+import me.exrates.model.Commission;
+import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
-import me.exrates.model.dto.*;
-import me.exrates.model.enums.*;
+import me.exrates.model.CurrencyPair;
+import me.exrates.model.ExOrder;
+import me.exrates.model.Wallet;
+import me.exrates.model.dto.CoinmarketApiDto;
+import me.exrates.model.dto.OrderCreateDto;
+import me.exrates.model.dto.OrderInfoDto;
+import me.exrates.model.dto.OrderListDto;
+import me.exrates.model.dto.OrderWideListDto;
+import me.exrates.model.dto.WalletsForOrderAcceptionDto;
+import me.exrates.model.enums.ActionType;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderDeleteStatus;
+import me.exrates.model.enums.OrderStatus;
+import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.WalletOperationData;
-import me.exrates.service.*;
-import me.exrates.service.exception.*;
+import me.exrates.service.CommissionService;
+import me.exrates.service.CompanyWalletService;
+import me.exrates.service.CurrencyService;
+import me.exrates.service.OrderService;
+import me.exrates.service.ReferralService;
+import me.exrates.service.UserService;
+import me.exrates.service.WalletService;
+import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
+import me.exrates.service.exception.OrderAcceptionException;
+import me.exrates.service.exception.OrderCancellingException;
+import me.exrates.service.exception.OrderCreationException;
+import me.exrates.service.exception.OrderDeletingException;
+import me.exrates.service.exception.WalletCreationException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,32 +48,49 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 @Service
 public class OrderServiceImpl implements OrderService {
 
     private static final Logger logger = LogManager.getLogger(OrderServiceImpl.class);
+
     @Autowired
-    OrderDao orderDao;
+    private OrderDao orderDao;
+
     @Autowired
-    WalletDao walletDao;
+    private WalletDao walletDao;
+
     @Autowired
-    CommissionDao commissionDao;
+    private CommissionDao commissionDao;
+
     @Autowired
-    TransactionDao transactionDao;
+    private TransactionDao transactionDao;
+
     @Autowired
-    UserService userService;
+    private UserService userService;
+
     @Autowired
-    WalletService walletService;
+    private WalletService walletService;
+
     @Autowired
-    CompanyWalletService companyWalletService;
+    private CompanyWalletService companyWalletService;
+
     @Autowired
-    CommissionService commissionService;
+    private CommissionService commissionService;
+
     @Autowired
-    CurrencyService currencyService;
+    private CurrencyService currencyService;
+
     @Autowired
-    MessageSource messageSource;
+    private MessageSource messageSource;
+
+    @Autowired
+    private ReferralService referralService;
 
     @Override
     @Transactional(rollbackFor = {Exception.class})
@@ -193,7 +235,6 @@ public class OrderServiceImpl implements OrderService {
             BigDecimal commissionForCreatorInWallet = null;
             BigDecimal commissionForAcceptorOutWallet = null;
             BigDecimal commissionForAcceptorInWallet = null;
-            Currency currency = null;
             if (exOrder.getOperationType() == OperationType.BUY) {
                 commissionForCreatorOutWallet = exOrder.getCommissionFixedAmount();
                 commissionForCreatorInWallet = BigDecimal.ZERO;
@@ -226,7 +267,7 @@ public class OrderServiceImpl implements OrderService {
             walletOperationData.setAmount(creatorForOutAmount);
             walletOperationData.setBalanceType(WalletOperationData.BalanceType.ACTIVE);
             walletOperationData.setCommission(comissionForCreator);
-            walletOperationData.setCommmissionAmount(commissionForCreatorOutWallet);
+            walletOperationData.setCommissionAmount(commissionForCreatorOutWallet);
             walletOperationData.setSourceType(TransactionSourceType.ORDER);
             walletOperationData.setSourceId(exOrder.getId());
             walletTransferStatus = walletDao.walletBalanceChange(walletOperationData);
@@ -239,7 +280,7 @@ public class OrderServiceImpl implements OrderService {
             walletOperationData.setAmount(creatorForInAmount);
             walletOperationData.setBalanceType(WalletOperationData.BalanceType.ACTIVE);
             walletOperationData.setCommission(comissionForCreator);
-            walletOperationData.setCommmissionAmount(commissionForCreatorInWallet);
+            walletOperationData.setCommissionAmount(commissionForCreatorInWallet);
             walletOperationData.setSourceType(TransactionSourceType.ORDER);
             walletOperationData.setSourceId(exOrder.getId());
             walletTransferStatus = walletDao.walletBalanceChange(walletOperationData);
@@ -252,7 +293,7 @@ public class OrderServiceImpl implements OrderService {
             walletOperationData.setAmount(acceptorForOutAmount);
             walletOperationData.setBalanceType(WalletOperationData.BalanceType.ACTIVE);
             walletOperationData.setCommission(comissionForAcceptor);
-            walletOperationData.setCommmissionAmount(commissionForAcceptorOutWallet);
+            walletOperationData.setCommissionAmount(commissionForAcceptorOutWallet);
             walletOperationData.setSourceType(TransactionSourceType.ORDER);
             walletOperationData.setSourceId(exOrder.getId());
             walletTransferStatus = walletDao.walletBalanceChange(walletOperationData);
@@ -265,7 +306,7 @@ public class OrderServiceImpl implements OrderService {
             walletOperationData.setAmount(acceptorForInAmount);
             walletOperationData.setBalanceType(WalletOperationData.BalanceType.ACTIVE);
             walletOperationData.setCommission(comissionForAcceptor);
-            walletOperationData.setCommmissionAmount(commissionForAcceptorInWallet);
+            walletOperationData.setCommissionAmount(commissionForAcceptorInWallet);
             walletOperationData.setSourceType(TransactionSourceType.ORDER);
             walletOperationData.setSourceId(exOrder.getId());
             walletTransferStatus = walletDao.walletBalanceChange(walletOperationData);
@@ -282,6 +323,10 @@ public class OrderServiceImpl implements OrderService {
             exOrder.setStatus(OrderStatus.CLOSED);
             exOrder.setDateAcception(LocalDateTime.now());
             exOrder.setUserAcceptorId(userAcceptorId);
+            final Currency currency = currencyService.findCurrencyPairById(exOrder.getCurrencyPairId())
+                    .getCurrency2();
+            referralService.processReferral(exOrder, exOrder.getCommissionFixedAmount(), currency.getId(), exOrder.getUserId()); //Processing referral for Order Creator
+            referralService.processReferral(exOrder, amountComissionForAcceptor, currency.getId(), exOrder.getUserAcceptorId()); //Processing referral for Order Acceptor
             if (!updateOrder(exOrder)) {
                 throw new OrderAcceptionException(messageSource.getMessage("orders.acceptsaveerror", null, locale));
             }

@@ -50,8 +50,44 @@
     <div class="row">
         <%@include file='usermenu_new.jsp' %>
         <div class="col-sm-9 content">
-            <loc:message code="refferal.generate"/>
+            <button class="ref-button"><loc:message code="refferal.generate"/></button><span class="ref-reference"></span>
         </div>
+            <div class="col-sm-9">
+                <c:choose>
+                    <c:when test="${fn:length(referralTxs)!=0}">
+                        <h4><loc:message code="transactions.referralTransactionTitle"/></h4>
+                        <table>
+                            <tbody>
+                            <tr>
+                                <th><loc:message code="transaction.datetime"/></th>
+                                <th><loc:message code="transaction.initiatorEmail"/></th>
+                                <th><loc:message code="transaction.referralLevel"/></th>
+                                <th><loc:message code="transaction.amount"/></th>
+                                <th><loc:message code="transaction.currency"/></th>
+                                <c:forEach var="tx" items="${referralTxs}">
+                            <tr>
+                                <td style="white-space: nowrap;">
+                                        ${tx.transaction.datetime}
+                                </td>
+                                <td>
+                                        ${tx.initiatorEmail}
+                                </td>
+                                <td>
+                                        ${tx.referralLevel.level}(${tx.referralLevel.percent}%)
+                                </td>
+                                <td>
+                                        <fmt:formatNumber value="${tx.transaction.amount}" maxFractionDigits="9"/>
+                                </td>
+                                <td>
+                                        ${tx.transaction.currency.name}
+                                </td>
+                            </tr>
+                            </c:forEach>
+                            </tbody>
+                        </table>
+                    </c:when>
+                </c:choose>
+         </div>
     </div>
     <hr/>
 </main>

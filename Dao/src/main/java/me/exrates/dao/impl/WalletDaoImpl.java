@@ -3,7 +3,11 @@ package me.exrates.dao.impl;
 import me.exrates.dao.CommissionDao;
 import me.exrates.dao.TransactionDao;
 import me.exrates.dao.WalletDao;
-import me.exrates.model.*;
+import me.exrates.model.Commission;
+import me.exrates.model.CompanyWallet;
+import me.exrates.model.Currency;
+import me.exrates.model.Transaction;
+import me.exrates.model.Wallet;
 import me.exrates.model.dto.UserWalletSummaryDto;
 import me.exrates.model.dto.WalletsForOrderAcceptionDto;
 import me.exrates.model.enums.ActionType;
@@ -12,6 +16,8 @@ import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.WalletOperationData;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -34,11 +40,15 @@ import java.util.Map;
 public class WalletDaoImpl implements WalletDao {
 
     @Autowired
-    CommissionDao commissionDao;
+    private CommissionDao commissionDao;
+
     @Autowired
-    TransactionDao transactionDao;
+    private TransactionDao transactionDao;
+
     @Autowired
     private NamedParameterJdbcTemplate jdbcTemplate;
+
+    private static final Logger LOG = LogManager.getLogger(WalletDaoImpl.class);
 
     public BigDecimal getWalletABalance(int walletId) {
         if (walletId == 0) {
@@ -372,25 +382,23 @@ public class WalletDaoImpl implements WalletDao {
         namedParameters.put("walletId", String.valueOf(walletOperationData.getWalletId()));
         Wallet wallet = null;
         try {
-            wallet = jdbcTemplate.queryForObject(sql, namedParameters, new RowMapper<Wallet>() {
-                @Override
-                public Wallet mapRow(ResultSet rs, int rowNum) throws SQLException {
-                    Wallet result = new Wallet();
-                    result.setId(rs.getInt("wallet_id"));
-                    result.setCurrencyId(rs.getInt("currency_id"));
-                    result.setActiveBalance(rs.getBigDecimal("active_balance"));
-                    result.setReservedBalance(rs.getBigDecimal("reserved_balance"));
-                    /**/
-                    companyWallet.setId(rs.getInt("company_wallet_id"));
-                    Currency currency = new Currency();
-                    currency.setId(rs.getInt("currency_id"));
-                    companyWallet.setCurrency(currency);
-                    companyWallet.setBalance(rs.getBigDecimal("balance"));
-                    companyWallet.setCommissionBalance(rs.getBigDecimal("commission_balance"));
-                    return result;
-                }
+            wallet = jdbcTemplate.queryForObject(sql, namedParameters, (rs, rowNum) -> {
+                Wallet result = new Wallet();
+                result.setId(rs.getInt("wallet_id"));
+                result.setCurrencyId(rs.getInt("currency_id"));
+                result.setActiveBalance(rs.getBigDecimal("active_balance"));
+                result.setReservedBalance(rs.getBigDecimal("reserved_balance"));
+                /**/
+                companyWallet.setId(rs.getInt("company_wallet_id"));
+                Currency currency = new Currency();
+                currency.setId(rs.getInt("currency_id"));
+                companyWallet.setCurrency(currency);
+                companyWallet.setBalance(rs.getBigDecimal("balance"));
+                companyWallet.setCommissionBalance(rs.getBigDecimal("commission_balance"));
+                return result;
             });
         } catch (EmptyResultDataAccessException e) {
+            LOG.error(e);
             return WalletTransferStatus.NOT_FOUND;
         }
         /**/
@@ -424,7 +432,7 @@ public class WalletDaoImpl implements WalletDao {
         transaction.setUserWallet(wallet);
         transaction.setCompanyWallet(companyWallet);
         transaction.setAmount(walletOperationData.getAmount());
-        transaction.setCommissionAmount(walletOperationData.getCommmissionAmount());
+        transaction.setCommissionAmount(walletOperationData.getCommissionAmount());
         transaction.setCommission(walletOperationData.getCommission());
         transaction.setCurrency(companyWallet.getCurrency());
         transaction.setProvided(true);
@@ -437,8 +445,10 @@ public class WalletDaoImpl implements WalletDao {
         try {
             transactionDao.create(transaction);
         } catch (Exception e) {
+            LOG.error(e);
             return WalletTransferStatus.TRANSACTION_CREATION_ERROR;
         }
+        walletOperationData.setTransaction(transaction);
         /**/
         return WalletTransferStatus.SUCCESS;
     }

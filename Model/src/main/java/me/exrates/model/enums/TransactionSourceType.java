@@ -6,6 +6,6 @@ package me.exrates.model.enums;
 public enum TransactionSourceType {
     ORDER,
     MERCHANT,
-    REFERAL,
+    REFERRAL,
     ACCRUAL
 }

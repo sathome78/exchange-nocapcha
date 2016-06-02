@@ -49,7 +49,7 @@ public final class TransactionDaoImpl implements TransactionDao {
                     " LEFT JOIN EXORDERS ON TRANSACTION.order_id = EXORDERS.id ";
 
     private final String SELECT_ALL =
-            " SELECT TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime, " +
+                    " SELECT TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime, " +
                     " TRANSACTION.operation_type_id,TRANSACTION.provided, TRANSACTION.confirmation, TRANSACTION.order_id, " +
                     " WALLET.id,WALLET.active_balance,WALLET.reserved_balance,WALLET.currency_id," +
                     " COMPANY_WALLET.id,COMPANY_WALLET.balance,COMPANY_WALLET.commission_balance," +
@@ -69,8 +69,7 @@ public final class TransactionDaoImpl implements TransactionDao {
 
     protected static RowMapper<Transaction> transactionRowMapper = (resultSet, i) -> {
 
-        final OperationType operationType = resultSet.getInt("TRANSACTION.operation_type_id") == 1 ? OperationType.INPUT :
-                OperationType.OUTPUT;
+        final OperationType operationType = OperationType.convert(resultSet.getInt("TRANSACTION.operation_type_id"));
 
         final Currency currency = new Currency();
         currency.setId(resultSet.getInt("CURRENCY.id"));

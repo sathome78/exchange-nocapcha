@@ -2,10 +2,13 @@ package me.exrates.controller;
 
 import me.exrates.controller.exception.NotCreateUserException;
 import me.exrates.controller.validator.RegisterFormValidation;
+import me.exrates.dao.ReferralLevelDao;
+import me.exrates.dao.ReferralTransactionDao;
+import me.exrates.model.ReferralTransaction;
 import me.exrates.model.User;
 import me.exrates.model.dto.OperationViewDto;
 import me.exrates.security.filter.VerifyReCaptchaSec;
-import me.exrates.security.service.UserSecureService;
+import me.exrates.service.OrderService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.UserService;
@@ -20,6 +23,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -32,45 +36,59 @@ import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
+import static java.util.Collections.singletonMap;
 import static java.util.Objects.isNull;
 
 @Controller
 @PropertySource("classpath:about_us.properties")
 public class MainController {
 
-
     private @Value("${contacts.telephone}") String telephone;
     private @Value("${contacts.email}") String email;
 
     @Autowired
-    UserService userService;
+    private UserService userService;
 
     @Autowired
-    UserSecureService userSecureService;
+    private RegisterFormValidation registerFormValidation;
 
     @Autowired
-    RegisterFormValidation registerFormValidation;
-
-    @Autowired
-    HttpServletRequest request;
-
-    private static final Logger logger = LogManager.getLogger(MainController.class);
+    private HttpServletRequest request;
 
     @Autowired
     private TransactionService transactionService;
 
     @Autowired
-    MessageSource messageSource;
+    private MessageSource messageSource;
 
     @Autowired
-    LocaleResolver localeResolver;
+    private LocaleResolver localeResolver;
 
     @Autowired
-    VerifyReCaptchaSec verifyReCaptcha;
+    private VerifyReCaptchaSec verifyReCaptcha;
 
     @Autowired
-    ReferralService referralService;
+    private ReferralService referralService;
+
+    @Autowired
+    private ReferralTransactionDao referralTransactionDao;
+
+    @Autowired
+    private OrderService orderService;
+
+    @Autowired
+    private ReferralLevelDao referralLevelDao;
+
+    private static final Logger logger = LogManager.getLogger(MainController.class);
+
+    @RequestMapping(value = "/test{id}")
+    @ResponseBody
+    public List<ReferralTransaction> f(@PathVariable("id") int id) {
+        return referralTransactionDao.findAll(id);
+    }
 
     @RequestMapping(value = "57163a9b3d1eafe27b8b456a.txt", method = RequestMethod.GET)
     @ResponseBody
@@ -91,14 +109,22 @@ public class MainController {
         ModelAndView mav = new ModelAndView("register", "user", user);
         mav.addObject("cpch", "");
         if (!isNull(refReference)) {
-            final String parentId = refReference.substring(3).substring(0, refReference.length() - 6);
-            if (parentId.matches("[0-9]+")) {
-                user.setParentEmail(userService.getUserById(Integer.valueOf(parentId)).getEmail());
-                return mav;
+            final Optional<Integer> parentId = referralService.reduceReferralRef(refReference);
+            if (parentId.isPresent()) {
+                final String email = userService.getUserById(parentId.get()).getEmail();
+                if (email != null) {
+                    user.setParentEmail(email);
+                    return mav;
+                }
             }
         }
         user.setParentEmail(userService.getCommonReferralRoot().getEmail());
         return mav;
+    }
+
+    @RequestMapping("/generateReferral")
+    public @ResponseBody Map<String,String> generateReferral(final Principal principal) {
+        return singletonMap("referral",referralService.generateReferral(principal.getName()));
     }
 
     @RequestMapping(value = "/create", method = RequestMethod.POST)
@@ -206,9 +232,10 @@ public class MainController {
         return new ModelAndView("transaction", "transactions", list);
     }
 
-    @RequestMapping(value = "referral")
-    public ModelAndView referral() {
-        return new ModelAndView("referral");
+    @RequestMapping(value = "/referral")
+    public ModelAndView referral(final Principal principal) {
+        final int id = userService.getIdByEmail(principal.getName());
+        return new ModelAndView("referral", singletonMap("referralTxs", referralService.findAll(id)));
     }
 
     @RequestMapping("/aboutUs")
@@ -218,13 +245,4 @@ public class MainController {
         modelAndView.addObject("email", email);
         return modelAndView;
     }
-
-    public static void main(String[] args) {
-        String s = "abc123123a212312bca";
-        final String substring = s.substring(3).substring(0, s.length() - 6);
-        System.out.println(substring);
-        System.out.println(substring.matches("[0-9]+"));
-    }
-
-}  
-
+}

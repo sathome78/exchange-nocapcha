@@ -6,4 +6,6 @@ package me.exrates.dao;
 public interface ReferralUserGraphDao {
 
     void create(int child, int parent);
+
+    Integer getParent(Integer child);
 }

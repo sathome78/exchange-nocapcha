@@ -535,7 +535,7 @@ public class OrderDaoImpl implements OrderDao {
                     walletOperationData.setBalanceType(WalletOperationData.BalanceType.ACTIVE);
                     Commission commission = commissionDao.getCommission(OperationType.STORNO);
                     walletOperationData.setCommission(commission);
-                    walletOperationData.setCommmissionAmount(commission.getValue());
+                    walletOperationData.setCommissionAmount(commission.getValue());
                     walletOperationData.setSourceType(TransactionSourceType.ORDER);
                     walletOperationData.setSourceId(orderId);
                     WalletTransferStatus walletTransferStatus = walletDao.walletBalanceChange(walletOperationData);
