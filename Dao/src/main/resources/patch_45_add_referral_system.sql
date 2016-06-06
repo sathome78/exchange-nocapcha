@@ -47,16 +47,3 @@ INSERT INTO COMMISSION (operation_type, value) VALUES (6, 0);
 ALTER TABLE TRANSACTION CHANGE COLUMN source_type source_type enum('ORDER','MERCHANT','REFERRAL','ACCRUAL') DEFAULT NULL;
 
 INSERT INTO DATABASE_PATCH VALUES('patch_45_added_referral_system',default,1);
-
-SELECT id FROM USER where USER.email <> 'dima.kolesnik@gmail.com';
-
-INSERT IGNORE INTO REFERRAL_USER_GRAPH (child) SELECT id FROM USER where USER.email <> 'dima.kolesnik@gmail.com';
-
-SELECT * FROM REFERRAL_USER_GRAPH;
-
-SELECT id FROM USER;
-
-insert into birzha.REFERRAL_USER_GRAPH(child, parent) select id, '43' from birzha.user WHERE USER.email <> 'dima.kolesnik@gmail.com';
-
-SELECT *
-FROM REFERRAL_USER_GRAPH;

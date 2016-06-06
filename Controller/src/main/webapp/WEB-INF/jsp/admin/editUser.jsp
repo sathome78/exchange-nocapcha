@@ -96,6 +96,7 @@
                                                 <label for="user-name" class="input-block-wrapper__label"><loc:message
                                                         code="admin.login"/></label>
                                             </div>
+
                                             <div class="col-md-8 input-block-wrapper__input-wrapper">
                                                 <form:input path="id" type="hidden" class="input-block-wrapper__input"
                                                             id="user-id"/>
@@ -179,6 +180,17 @@
                                             </div>
                                         </div>
 
+                                        <div class="input-block-wrapper">
+                                            <div class="col-md-4 input-block-wrapper__label-wrapper">
+                                                <label for="user-name" class="input-block-wrapper__label"><loc:message
+                                                        code="register.sponsor"/></label>
+                                            </div>
+
+                                            <div class="col-md-8 input-block-wrapper__input-wrapper">
+                                                <form:input path="parentEmail" readonly="true" class="input-block-wrapper__input"
+                                                            id="parentEmail"/>
+                                            </div>
+                                        </div>
                                         <div class="form-group">
                                             <div>
                                                 <loc:message code="admin.save" var="saveSubmit"></loc:message>

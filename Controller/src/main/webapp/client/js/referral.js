@@ -7,4 +7,6 @@ $(function () {
             $('.ref-reference').html(e['referral']);
         });
     });
+
+    $('.ref-button').click(); // This is for generating referral reference on page load
 });

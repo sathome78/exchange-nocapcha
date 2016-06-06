@@ -7,7 +7,11 @@ import me.exrates.model.UserFile;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserIpDto;
 import me.exrates.model.dto.UserSummaryDto;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.ActionType;
+import me.exrates.model.enums.TokenType;
+import me.exrates.model.enums.UserIpState;
+import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.UserStatus;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -25,7 +29,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonMap;
@@ -35,8 +43,33 @@ public class UserDaoImpl implements UserDao {
 
     private static final Logger LOGGER = LogManager.getLogger(UserDaoImpl.class);
 
+    private final String SELECT_USER =
+            "SELECT USER.id, u.email AS parent_email, USER.finpassword, USER.nickname, USER.email, USER.password, USER.regdate, " +
+            "USER.phone, USER.status, USER_ROLE.name AS role_name FROM USER " +
+            "INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id LEFT JOIN REFERRAL_USER_GRAPH " +
+            "ON USER.id = REFERRAL_USER_GRAPH.child LEFT JOIN USER AS u ON REFERRAL_USER_GRAPH.parent = u.id ";
+
     @Autowired
     private NamedParameterJdbcTemplate jdbcTemplate;
+
+    private RowMapper<User> getUserRowMapper() {
+        return (resultSet, i) -> {
+            final User user = new User();
+            user.setId(resultSet.getInt("id"));
+            user.setNickname(resultSet.getString("nickname"));
+            user.setEmail(resultSet.getString("email"));
+            user.setPassword(resultSet.getString("password"));
+            user.setRegdate(resultSet.getDate("regdate"));
+            user.setPhone(resultSet.getString("phone"));
+            user.setStatus(UserStatus.values()[resultSet.getInt("status") - 1]);
+            user.setRole(UserRole.valueOf(resultSet.getString("role_name")));
+            user.setFinpassword(resultSet.getString("finpassword"));
+            try {
+                user.setParentEmail(resultSet.getString("parent_email")); // May not exist for some users
+            } catch (final SQLException e) {/*NOP*/}
+            return user;
+        };
+    }
 
     public int getIdByEmail(String email) {
         String sql = "SELECT id FROM USER WHERE email = :email";
@@ -124,8 +157,7 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public User findByEmail(String email) {
-        String sql = "select USER.id, nickname, email, password, regdate, phone, status, USER_ROLE.name as role_name from USER " +
-                "inner join USER_ROLE on USER.roleid = USER_ROLE.id where USER.email = :email";
+        String sql = SELECT_USER + "WHERE USER.email = ':email'";
         final Map<String, String> params = new HashMap<String, String>() {
             {
                 put("email", email);
@@ -133,23 +165,6 @@ public class UserDaoImpl implements UserDao {
         };
         return jdbcTemplate.queryForObject(sql, params, getUserRowMapper());
     }
-
-    private RowMapper<User> getUserRowMapper() {
-        return (resultSet, i) -> {
-            final User user = new User();
-            user.setId(resultSet.getInt("id"));
-            user.setNickname(resultSet.getString("nickname"));
-            user.setEmail(resultSet.getString("email"));
-            user.setPassword(resultSet.getString("password"));
-            user.setRegdate(resultSet.getDate("regdate"));
-            user.setPhone(resultSet.getString("phone"));
-            user.setStatus(UserStatus.values()[resultSet.getInt("status") - 1]);
-            user.setRole(UserRole.valueOf(resultSet.getString("role_name")));
-
-            return user;
-        };
-    }
-
 
     public List<User> getAllUsers() {
         String sql = "select email, password, status, nickname, id from USER";
@@ -165,30 +180,15 @@ public class UserDaoImpl implements UserDao {
     }
 
     public User getUserById(int id) {
-        String sql = "select USER.id, nickname, email, password, finpassword, regdate, phone, status, USER_ROLE.name as role_name from USER " +
-                "inner join USER_ROLE on USER.roleid = USER_ROLE.id where USER.id = :id";
-        Map<String, String> namedParameters = new HashMap<String, String>();
+        String sql = SELECT_USER + "WHERE USER.id = :id";
+        Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("id", String.valueOf(id));
-
-        return jdbcTemplate.queryForObject(sql, namedParameters, (resultSet, i) -> {
-            final User user = new User();
-            user.setId(resultSet.getInt("id"));
-            user.setNickname(resultSet.getString("nickname"));
-            user.setEmail(resultSet.getString("email"));
-            user.setPassword(resultSet.getString("password"));
-            user.setFinpassword(resultSet.getString("finpassword"));
-            user.setRegdate(resultSet.getDate("regdate"));
-            user.setPhone(resultSet.getString("phone"));
-            user.setStatus(UserStatus.values()[resultSet.getInt("status") - 1]);
-            user.setRole(UserRole.valueOf(resultSet.getString("role_name")));
-
-            return user;
-        });
+        return jdbcTemplate.queryForObject(sql, namedParameters, getUserRowMapper());
     }
 
     @Override
     public User getCommonReferralRoot() {
-        final String sql = "SELECT USER.id, nickname, email, password, regdate, phone, status, USER_ROLE.name as role_name FROM COMMON_REFERRAL_ROOT INNER JOIN USER ON COMMON_REFERRAL_ROOT.user_id = USER.id INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id LIMIT 1";
+        final String sql = "SELECT USER.id, nickname, email, password, finpassword, regdate, phone, status, USER_ROLE.name as role_name FROM COMMON_REFERRAL_ROOT INNER JOIN USER ON COMMON_REFERRAL_ROOT.user_id = USER.id INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id LIMIT 1";
         final List<User> result = jdbcTemplate.query(sql, getUserRowMapper());
         if (result.isEmpty()) {
             return null;
@@ -204,15 +204,10 @@ public class UserDaoImpl implements UserDao {
     }
 
     public List<User> getUsersByRoles(List<UserRole> listRoles) {
-        String sql = "select USER.id, nickname, email, password, regdate, status, phone, USER_ROLE.name as role_name" +
-                " from USER inner join USER_ROLE on USER.roleid = USER_ROLE.id where USER_ROLE.name IN (:roles)";
-        Map<String, List> namedParameters = new HashMap<String, List>();
-        List<String> stringList = new ArrayList<>();
-        for (UserRole userRole : listRoles) {
-            stringList.add(userRole.name());
-        }
+        String sql = SELECT_USER + " WHERE USER_ROLE.name IN (:roles)";
+        Map<String, List> namedParameters = new HashMap<>();
+        List<String> stringList = listRoles.stream().map(Enum::name).collect(Collectors.toList());
         namedParameters.put("roles", stringList);
-
         return jdbcTemplate.query(sql, namedParameters, getUserRowMapper());
     }
 

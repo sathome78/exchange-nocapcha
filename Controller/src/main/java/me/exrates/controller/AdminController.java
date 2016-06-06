@@ -254,6 +254,7 @@ public class AdminController {
         if (!currentRole.equals(UserRole.ADMINISTRATOR.name()) && !user.getRole().name().equals(UserRole.USER.name())) {
             return new ModelAndView("403");
         }
+
         user.setId(id);
         model.addObject("user", user);
         model.setViewName("admin/editUser");

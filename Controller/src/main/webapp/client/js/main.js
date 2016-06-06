@@ -79,7 +79,7 @@ $(function(){
                optionsHTML+='<option value="'+merchantsData[index].merchantId+'">'+merchantsData[index].description+'</option>';
            }
         });
-        if (optionsHTML==='') {
+        if (optionsHTML==='' || optionsHTML.search('Blockchain') !== -1) {
             merchant.fadeOut();
             button.prop('disabled', true);
         } else {
@@ -313,7 +313,7 @@ $(function(){
     function isCorrectSum() {
         var result = false;
         $.each(merchantsData,function(index) {
-            if (merchantsData[index].merchantId == merchant.val()) {
+            if (merchantsData[index].merchantId == merchant.val() && merchantsData[index].name !== 'Blockchain') {
                 var minSum = parseFloat(merchantsData[index].minSum);
                 var targetSum = parseFloat(sum.val());
                 if (targetSum >= minSum) {

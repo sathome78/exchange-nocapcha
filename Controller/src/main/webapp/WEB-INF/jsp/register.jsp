@@ -1,3 +1,4 @@
+
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@taglib uri="http://www.springframework.org/tags" prefix="loc" %>
@@ -55,7 +56,6 @@
             <br/>
 
             <registrationform:form method="post" action="create" modelAttribute="user" methodParam="abc">
-                <registrationform:input id="parentEmail" path="parentEmail" value="${user.parentEmail}" required="required" readonly="true"/>
                 <%--Логин--%>
                 <loc:message code="register.nickname" var="login"/>
                 <registrationform:input id="login" path="nickname" placeholder="${login}"
@@ -79,6 +79,10 @@
                                         required="required"/>
                 <span class='repass'><i class="fa fa-check"></i></span>
                 <registrationform:errors path="confirmPassword" style="color:red" class="form-login-error-message"/>
+                <br/>
+                <br/>
+                <loc:message code="register.sponsor"/>
+                <registrationform:input id="parentEmail" path="parentEmail" value="${user.parentEmail}" required="required" readonly="true"/>
                 <br/>
                 <br/>
                 <%--CAPCHA--%>

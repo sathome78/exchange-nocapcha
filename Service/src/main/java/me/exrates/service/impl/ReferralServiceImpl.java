@@ -7,6 +7,7 @@ import me.exrates.model.Commission;
 import me.exrates.model.ExOrder;
 import me.exrates.model.ReferralLevel;
 import me.exrates.model.ReferralTransaction;
+import me.exrates.model.User;
 import me.exrates.model.Wallet;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.OperationType;
@@ -29,7 +30,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
-import static java.math.BigDecimal.*;
+import static java.math.BigDecimal.ZERO;
+import static java.math.BigDecimal.valueOf;
+import static java.util.Objects.isNull;
 import static me.exrates.model.enums.OperationType.REFERRAL;
 import static me.exrates.model.vo.WalletOperationData.BalanceType.RESERVED;
 
@@ -139,6 +142,16 @@ public class ReferralServiceImpl implements ReferralService {
     @Override
     public List<ReferralLevel> findAllReferralLevels() {
         return referralLevelDao.findAll();
+    }
+
+    @Override
+    public String getParentEmail(final int childId) {
+        final Integer parent = referralUserGraphDao.getParent(childId);
+        final User user = userService.getUserById(parent);
+        if (!isNull(user)) {
+            return user.getEmail();
+        }
+        return null;
     }
 
     @Override

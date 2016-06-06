@@ -2,13 +2,9 @@ package me.exrates.controller;
 
 import me.exrates.controller.exception.NotCreateUserException;
 import me.exrates.controller.validator.RegisterFormValidation;
-import me.exrates.dao.ReferralLevelDao;
-import me.exrates.dao.ReferralTransactionDao;
-import me.exrates.model.ReferralTransaction;
 import me.exrates.model.User;
 import me.exrates.model.dto.OperationViewDto;
 import me.exrates.security.filter.VerifyReCaptchaSec;
-import me.exrates.service.OrderService;
 import me.exrates.service.ReferralService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.UserService;
@@ -23,7 +19,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -73,22 +68,7 @@ public class MainController {
     @Autowired
     private ReferralService referralService;
 
-    @Autowired
-    private ReferralTransactionDao referralTransactionDao;
-
-    @Autowired
-    private OrderService orderService;
-
-    @Autowired
-    private ReferralLevelDao referralLevelDao;
-
     private static final Logger logger = LogManager.getLogger(MainController.class);
-
-    @RequestMapping(value = "/test{id}")
-    @ResponseBody
-    public List<ReferralTransaction> f(@PathVariable("id") int id) {
-        return referralTransactionDao.findAll(id);
-    }
 
     @RequestMapping(value = "57163a9b3d1eafe27b8b456a.txt", method = RequestMethod.GET)
     @ResponseBody

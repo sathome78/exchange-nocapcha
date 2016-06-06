@@ -23,6 +23,8 @@ public interface ReferralService {
 
     List<ReferralLevel> findAllReferralLevels();
 
+    String getParentEmail(int childId);
+
     int updateReferralLevel(int level, int oldLevelId, BigDecimal percent);
 
     void bindChildAndParent(int childUserId, int parentUserId);
