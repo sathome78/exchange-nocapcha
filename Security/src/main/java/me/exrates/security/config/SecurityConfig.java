@@ -115,6 +115,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, "/merchants/interkassa/payment/status",
                         "/merchants/interkassa/payment/success",
                         "/merchants/interkassa/payment/failure").permitAll()
+                .antMatchers(HttpMethod.POST, "/merchants/yandex_kassa/payment/status",
+                        "/merchants/yandex_kassa/payment/success",
+                        "/merchants/yandex_kassa/payment/failure").permitAll()
                 .antMatchers(HttpMethod.POST, "/merchants/edrcoin/payment/received").permitAll()
                 .antMatchers(HttpMethod.GET, "/merchants/blockchain/payment/received").permitAll()
                 .antMatchers(HttpMethod.GET, "/public/**").permitAll()
@@ -162,7 +165,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/merchants/privat24/payment/status",
                         "/merchants/interkassa/payment/failure",
                         "/merchants/interkassa/payment/success",
-                        "/merchants/interkassa/payment/status");
+                        "/merchants/interkassa/payment/status",
+                        "/merchants/yandex_kassa/payment/failure",
+                        "/merchants/yandex_kassa/payment/success",
+                        "/merchants/yandex_kassa/payment/status");
     }
 
     private String buildHasIpExpression() {

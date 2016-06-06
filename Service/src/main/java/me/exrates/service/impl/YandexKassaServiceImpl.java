@@ -8,27 +8,29 @@ import me.exrates.service.YandexKassaService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
-import org.springframework.web.servlet.view.RedirectView;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.Properties;
+import java.util.Map;
+import java.util.TreeMap;
 
 @Service
-//@PropertySource("classpath:/merchants/yandex_kassa.properties")
+@PropertySource("classpath:/merchants/yandex_kassa.properties")
 public class YandexKassaServiceImpl implements YandexKassaService {
 
-//    private @Value("${nixmoney.url}") String url;
-//    private @Value("${nixmoney.payeeAccountUSD}") String payeeAccountUSD;
-//    private @Value("${nixmoney.payeeAccountEUR}") String payeeAccountEUR;
-//    private @Value("${nixmoney.payeeName}") String payeeName;
-//    private @Value("${nixmoney.payeePassword}") String payeePassword;
-//    private @Value("${nixmoney.paymentUrl}") String paymentUrl;
-//    private @Value("${nixmoney.noPaymentUrl}") String noPaymentUrl;
-//    private @Value("${nixmoney.statustUrl}") String statustUrl;
+    private @Value("${yandex_kassa.shopId}") String shopId;
+    private @Value("${yandex_kassa.scid}") String scid;
+    private @Value("${yandex_kassa.shopSuccessURL}") String shopSuccessURL;
+    private @Value("${yandex_kassa.paymentType}") String paymentType;
+    private @Value("${yandex_kassa.key}") String key;
+    private @Value("${yandex_kassa.password}") String password;
 
 
-    private static final Logger logger = LogManager.getLogger(YandexKassaServiceImpl.class);
+    private static final Logger LOG = LogManager.getLogger("merchant");
 
     @Autowired
     private TransactionService transactionService;
@@ -38,59 +40,56 @@ public class YandexKassaServiceImpl implements YandexKassaService {
 
 
     @Override
-    public RedirectView preparePayment(CreditsOperation creditsOperation, String email) {
+    public Map<String, String> preparePayment(CreditsOperation creditsOperation, String email) {
 
+        LOG.debug("Begin method: preparePayment.");
         Transaction transaction = transactionService.createTransactionRequest(creditsOperation);
         BigDecimal sum = transaction.getAmount().add(transaction.getCommissionAmount());
         final Number amountToPay = sum.setScale(2, BigDecimal.ROUND_CEILING);
 
+        final Map<String, String> properties = new TreeMap<>();
 
-        Properties properties = new Properties();
-
-
-        String url = "";
-        properties.put("shopId", "12345");
-        properties.put("scid", "678");
-        properties.put("sum", amountToPay);
+        properties.put("shopId", shopId);
+        properties.put("scid", scid);
+        properties.put("sum", String.valueOf(amountToPay));
         properties.put("customerNumber", email);
-        properties.put("orderNumber", transaction.getId());
-        properties.put("hash", algorithmService.computeMD5Hash("secret"));
+        properties.put("orderNumber", String.valueOf(transaction.getId()));
+        properties.put("shopSuccessURL", shopSuccessURL);
+        properties.put("paymentType", paymentType);
+        properties.put("key", key);
 
-        RedirectView redirectView = new RedirectView(url);
-        redirectView.setAttributes(properties);
-
-
-        return redirectView;
+        return properties;
     }
 
-//    @Override
-//    @Transactional
-//    public boolean confirmPayment(Map<String,String> params) {
-//
-//        Transaction transaction;
-//        try{
-//            transaction = transactionService.findById(Integer.parseInt(params.get("PAYMENT_ID")));
-//        }catch (EmptyResultDataAccessException e){
-//            logger.error(e);
-//            return false;
-//        }
-//
-//        String passwordMD5 = algorithmService.computeMD5Hash(payeePassword).toUpperCase();;
-//        String V2_HASH = algorithmService.computeMD5Hash(params.get("PAYMENT_ID") + ":" + params.get("PAYEE_ACCOUNT")
-//                + ":" + params.get("PAYMENT_AMOUNT") + ":" + params.get("PAYMENT_UNITS") + ":" + params.get("PAYMENT_BATCH_NUM")
-//                + ":" + params.get("PAYER_ACCOUNT") + ":" + passwordMD5 + ":" + params.get("TIMESTAMPGMT")).toUpperCase();;
-//
-//        if (V2_HASH.equals(params.get("V2_HASH"))){
-//            transactionService.provideTransaction(transaction);
-//        }
-//
-//        return true;
-//    }
-//
-//    @Override
-//    @Transactional
-//    public void invalidateTransaction(Transaction transaction) {
-//        transactionService.invalidateTransaction(transaction);
-//    }
+    @Override
+    @Transactional
+    public boolean confirmPayment(final Map<String,String> params) {
+
+        LOG.debug("Begin method: confirmPayment.");
+        Transaction transaction;
+        try{
+            transaction = transactionService.findById(Integer.parseInt(params.get("orderNumber")));
+            if (transaction.isProvided()){
+                return true;
+            }
+        }catch (EmptyResultDataAccessException e){
+            LOG.error(e);
+            return false;
+        }
+
+        String checkSignature = algorithmService.computeMD5Hash(params.get("action") + ";" + params.get("orderSumAmount") + ";" + params.get("orderSumCurrencyPaycash") + ";"
+                + params.get("orderSumBankPaycash") + ";" + params.get("shopId") + ";" + params.get("invoiceId") + ";"
+                + params.get("customerNumber") + ";" + password).toUpperCase();
+
+        if(checkSignature.equals(params.get("md5")))
+        {
+            transactionService.provideTransaction(transaction);
+            LOG.debug("Payment successful.");
+            return true;
+        }
+
+        LOG.debug("Payment failure.");
+        return false;
+    }
 
 }

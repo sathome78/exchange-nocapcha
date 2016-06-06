@@ -103,7 +103,7 @@ $(function(){
             advcash:'/merchants/advcash/payment/prepare',
             liqpay:'/merchants/liqpay/payment/prepare',
             nixmoney:'/merchants/nixmoney/payment/prepare',
-            yandex_kassa:'http://shop.itfoxy.com/index.php?route=acc/success/order',
+            yandex_kassa:'http://din24.net/index.php?route=acc/success/order',
             privat24:'https://api.privatbank.ua/p24api/ishop',
             interkassa:'https://sci.interkassa.com/'
 
@@ -304,6 +304,31 @@ $(function(){
                     });
                     break;
 
+                case YANDEX_KASSA :
+                    $.ajax('/merchants/yandex_kassa/payment/prepare', {
+                        headers: {
+                            'X-CSRF-Token': $("input[name='_csrf']").val()
+                        },
+                        type: 'POST',
+                        contentType: 'application/json',
+                        dataType: 'json',
+                        data: JSON.stringify($(form).serializeObject())
+                    }).done(function (response) {
+                        var inputsHTML = '';
+                        $new_form = $("<form></form>");
+                        $.each(response, function (key) {
+                            $new_form.append('<input type="hidden" name="' + key + '" value="' + response[key] + '">');
+                        });
+                        var targetCurrentHTML = $new_form.html();
+                        var targetNewHTML = targetCurrentHTML + inputsHTML;
+                        $(form).html(targetNewHTML);
+                        callback();
+                    }).fail(function (error) {
+                        responseControls();
+                        $('.paymentInfo').html(error.responseText);
+                        console.log(error);
+                    });
+                    break;
                 default:
                     callback();
             }
