@@ -1,10 +1,24 @@
 package me.exrates.service;
 
 import me.exrates.model.CreditsOperation;
-import org.springframework.web.servlet.view.RedirectView;
+
+import java.util.Map;
 
 public interface YandexKassaService {
 
-    RedirectView preparePayment(CreditsOperation creditsOperation, String email);
+    /**
+     * This method of prepearing parameters for the payment form
+     * @param creditsOperation
+     * @param email
+     * @return Map with parameters
+     */
+    Map<String, String> preparePayment(CreditsOperation creditsOperation, String email);
+
+    /**
+     * Confirms payment in DB
+     * @param params
+     * @return true if checks accepted, false if none
+     */
+    boolean confirmPayment(final Map<String,String> params);
 
 }
