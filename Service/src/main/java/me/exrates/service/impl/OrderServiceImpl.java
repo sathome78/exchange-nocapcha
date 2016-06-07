@@ -326,8 +326,12 @@ public class OrderServiceImpl implements OrderService {
             exOrder.setUserAcceptorId(userAcceptorId);
             final Currency currency = currencyService.findCurrencyPairById(exOrder.getCurrencyPairId())
                     .getCurrency2();
-            referralService.processReferral(exOrder, exOrder.getCommissionFixedAmount(), currency.getId(), exOrder.getUserId()); //Processing referral for Order Creator
-            referralService.processReferral(exOrder, amountComissionForAcceptor, currency.getId(), exOrder.getUserAcceptorId()); //Processing referral for Order Acceptor
+
+            /** TODO: 6/7/16 Temporarily disable the referral program
+             * referralService.processReferral(exOrder, exOrder.getCommissionFixedAmount(), currency.getId(), exOrder.getUserId()); //Processing referral for Order Creator
+             * referralService.processReferral(exOrder, amountComissionForAcceptor, currency.getId(), exOrder.getUserAcceptorId()); //Processing referral for Order Acceptor
+             */
+
             if (!updateOrder(exOrder)) {
                 throw new OrderAcceptionException(messageSource.getMessage("orders.acceptsaveerror", null, locale));
             }
