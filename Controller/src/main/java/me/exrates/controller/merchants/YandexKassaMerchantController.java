@@ -65,7 +65,7 @@ public class YandexKassaMerchantController {
     @RequestMapping(value = "payment/status",method = RequestMethod.POST)
     public ResponseEntity<Void> statusPayment(final @RequestParam Map<String,String> params) {
 
-        LOG.debug("Begin method: successPayment.");
+        LOG.debug("Begin method: statusPayment.");
         final ResponseEntity<Void> response = new ResponseEntity<>(OK);
 
         if (yandexKassaService.confirmPayment(params)) {
@@ -78,6 +78,7 @@ public class YandexKassaMerchantController {
     @RequestMapping(value = "payment/success",method = RequestMethod.GET)
     public RedirectView successPayment(@RequestParam final Map<String,String> response, final RedirectAttributes redir) {
 
+        LOG.debug("Begin method: successPayment.");
         Transaction transaction = transactionService.findById(Integer.parseInt(response.get("orderNumber")));
 
         if (transaction.isProvided()){
