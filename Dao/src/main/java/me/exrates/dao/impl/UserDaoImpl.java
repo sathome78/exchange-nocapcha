@@ -157,7 +157,7 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public User findByEmail(String email) {
-        String sql = SELECT_USER + "WHERE USER.email = ':email'";
+        String sql = SELECT_USER + "WHERE USER.email = :email";
         final Map<String, String> params = new HashMap<String, String>() {
             {
                 put("email", email);
