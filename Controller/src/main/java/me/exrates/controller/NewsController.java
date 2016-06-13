@@ -56,7 +56,7 @@ public class NewsController {
     @Autowired
     private UserFilesService userFilesService;
 
-    @RequestMapping("/news")
+    @RequestMapping("/ne--ws")
     public ModelAndView newsList(@RequestParam(required = false) Integer pageNumber,
                                  @RequestParam(required = false) Integer pageSize, HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView("news/news");
@@ -71,25 +71,25 @@ public class NewsController {
     }
 
     /*skip resources: img, css, js*/
-    @RequestMapping("/news/**/newstopic.html")
+    @RequestMapping("/ne-ws/**/newstopic.html")
     public ModelAndView newsSingle(HttpServletRequest request) {
         try {
             ModelAndView modelAndView = new ModelAndView();
             modelAndView.setViewName("news/newstopic");
-            String path = request.getServletPath();
-            int newsId = Integer.valueOf(path.split("\\/{1}[^\\/]*$")[0].split("^.*[\\/]")[1]);
+            String path = request.getServletPath(); //   /news/2015/MAY/27/48/newstopic.html
+            int newsId = Integer.valueOf(path.split("\\/{1}[^\\/]*$")[0].split("^.*[\\/]")[1]); // =>  /news/2015/MAY/27/48  => 48
             News news = newsService.getNews(newsId, localeResolver.resolveLocale(request));
             if (news != null) {
                 String newsContentPath = new StringBuilder()
-                        .append(newsLocationDir)
-                        .append(news.getResource())
-                        .append(newsId)
-                        .append("/")
-                        .append(localeResolver.resolveLocale(request).toString())
-                        .append("/newstopic.html")
-                        .toString();
+                        .append(newsLocationDir)    //    /Users/Public/news/
+                        .append(news.getResource()) //                      2015/MAY/27/
+                        .append(newsId)             //                                  48
+                        .append("/")                //                                     /
+                        .append(localeResolver.resolveLocale(request).toString())   //      ru
+                        .append("/newstopic.html")  //                                          /newstopic.html
+                        .toString();                //  /Users/Public/news/2015/MAY/27/48/ru/newstopic.html
                 try {
-                    String newsContent = new String(Files.readAllBytes(Paths.get(newsContentPath)), "UTF-8");
+                    String newsContent = new String(Files.readAllBytes(Paths.get(newsContentPath)), "UTF-8"); //content of the newstopic.html
                     news.setContent(newsContent);
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -106,7 +106,7 @@ public class NewsController {
         }
     }
 
-    @RequestMapping(value = "/news/addNewsVariant", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+    @RequestMapping(value = "/ne--ws/addNewsVariant", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
     @ResponseBody
     public String uploadNewsVariant(HttpServletRequest request, HttpServletResponse response,
                                     @RequestParam(value = "file", required = false) MultipartFile[] multipartFiles,

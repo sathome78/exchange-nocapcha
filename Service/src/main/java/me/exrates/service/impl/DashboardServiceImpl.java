@@ -30,6 +30,7 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     public BigDecimal getBalanceByCurrency(int userId, int currencyId) {
+        logger.info("Begin 'getBalanceByCurrency' method");
         return dashboardDao.getBalanceByCurrency(userId, currencyId);
     }
 

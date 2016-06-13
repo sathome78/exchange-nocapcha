@@ -12,7 +12,9 @@ import me.exrates.model.vo.BackDealInterval;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -38,6 +40,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Controller
+@PropertySource("classpath:/captcha.properties")
 public class DashboardController {
     @Autowired
     OrderService orderService;
@@ -72,6 +75,9 @@ public class DashboardController {
     @Autowired
     VerifyReCaptchaSec verifyReCaptcha;
 
+    @Value("${captcha.type}")
+    String CAPTCHA_TYPE;
+
     @RequestMapping(value = {"/dashboard/locale"})
     public void localeSwitcherCommand(Principal principal, HttpServletRequest request) {
         if (principal != null) {
@@ -93,6 +99,7 @@ public class DashboardController {
             request.getSession().removeAttribute("errorNoty");
         }
         model.addObject("errorNoty", errorNoty);
+        model.addObject("captchaType", CAPTCHA_TYPE);
         model.setViewName("dashboard");
         OrderCreateDto orderCreateDto = new OrderCreateDto();
         model.addObject(orderCreateDto);

@@ -24,10 +24,6 @@
     <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet">
     <%----------%>
-    <script type="text/javascript" src="<c:url value='/client/js/chart/chartInit.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/chart/areaChart.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/chart/candleChart.js'/>"></script>
-    <%----------%>
     <script type="text/javascript" src="<c:url value='/client/js/tmpl.js'/>"></script>
     <%----%>
     <script type="text/javascript" src="<c:url value='/client/js/generalPage/leftSider.js'/>"></script>
@@ -38,20 +34,13 @@
     <script type="text/javascript" src="<c:url value='/client/js/order/orders.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/currencypair/currencyPairSelector.js'/>"></script>
     <%----%>
-    <%----------%>
     <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
     <%----------%>
-    <!-- Google Charts ... -->
-    <script type="text/javascript" src="<c:url value='https://www.gstatic.com/charts/loader.js'/>"></script>
-    <script type="text/javascript">
-        google.charts.load('current', {'packages': ['corechart']});
-    </script>
-    <!-- ... Google Charts -->
     <!-- Google Analytics ... -->
-    <script async src='//www.google-analytics.com/analytics.js'></script>
+    <%--<script async src='//www.google-analytics.com/analytics.js'></script>
     <script>
         window.ga = window.ga || function () {
             (ga.q = ga.q || []).push(arguments)
@@ -59,7 +48,7 @@
         ga.l = +new Date;
         ga('create', 'UA-75711135-1', 'auto');
         ga('send', 'pageview');
-    </script>
+    </script>--%>
     <!-- ... Google Analytics -->
     <!-- Yandex.Metrika counter -->
     <script type="text/javascript">
@@ -132,6 +121,7 @@
             <%@include file="fragments/mywallets-center.jsp" %>
             <%@include file="fragments/history-center.jsp" %>
             <%@include file="fragments/orders-center.jsp" %>
+            <%--<%@include file="fragments/news-center.jsp" %>--%> <%--TODO news--%>
         </div>
         <%@include file="fragments/right-sider.jsp" %>
     </div>

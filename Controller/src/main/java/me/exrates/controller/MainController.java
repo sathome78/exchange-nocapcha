@@ -23,11 +23,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -43,37 +39,35 @@ import static java.util.Collections.singletonMap;
 import static java.util.Objects.isNull;
 
 @Controller
-@PropertySource("classpath:about_us.properties")
+@PropertySource(value = {"classpath:about_us.properties", "classpath:/captcha.properties"})
 public class MainController {
 
-    private @Value("${contacts.telephone}") String telephone;
-    private @Value("${contacts.email}") String email;
-
+    private static final Logger logger = LogManager.getLogger(MainController.class);
+    private
+    @Value("${contacts.telephone}")
+    String telephone;
+    private
+    @Value("${contacts.email}")
+    String email;
     @Autowired
     private UserService userService;
-
     @Autowired
     private RegisterFormValidation registerFormValidation;
-
     @Autowired
     private HttpServletRequest request;
-
     @Autowired
     private TransactionService transactionService;
-
     @Autowired
     private MessageSource messageSource;
-
     @Autowired
     private LocaleResolver localeResolver;
-
     @Autowired
     private VerifyReCaptchaSec verifyReCaptcha;
-
     @Autowired
     private ReferralService referralService;
 
-    private static final Logger logger = LogManager.getLogger(MainController.class);
+    @Value("${captcha.type}")
+    String CAPTCHA_TYPE;
 
     @RequestMapping(value = "57163a9b3d1eafe27b8b456a.txt", method = RequestMethod.GET)
     @ResponseBody
@@ -112,8 +106,10 @@ public class MainController {
     }
 
     @RequestMapping("/generateReferral")
-    public @ResponseBody Map<String,String> generateReferral(final Principal principal) {
-        return singletonMap("referral",referralService.generateReferral(principal.getName()));
+    public
+    @ResponseBody
+    Map<String, String> generateReferral(final Principal principal) {
+        return singletonMap("referral", referralService.generateReferral(principal.getName()));
     }
 
     @RequestMapping(value = "/create", method = RequestMethod.POST)
@@ -138,7 +134,7 @@ public class MainController {
         if (result.hasErrors()) {
             return new ModelAndView("register", "user", user);
         } else {
-            user = (User) result.getModel().get("user"); 
+            user = (User) result.getModel().get("user");
             try {
                 user.setIp(request.getRemoteHost());
                 if (userService.create(user, localeResolver.resolveLocale(request))) {
@@ -155,14 +151,13 @@ public class MainController {
                 final int child = userService.getIdByEmail(user.getEmail());
                 final int parent = userService.getIdByEmail(user.getParentEmail());
                 //TODO for Denis
-                if (child>0 && parent>0) {
+                if (child > 0 && parent > 0) {
                     referralService.bindChildAndParent(child, parent);
                 }
                 ModelAndView modelAndView = new ModelAndView("redirect:/dashboard");
                 modelAndView.addObject("successNoty", messageSource.getMessage("register.sendletter", null, localeResolver.resolveLocale(request)));
-                return  modelAndView;
-            }
-            else return new ModelAndView("DBError", "user", user);
+                return modelAndView;
+            } else return new ModelAndView("DBError", "user", user);
         }
     }
 
@@ -170,7 +165,7 @@ public class MainController {
     public ModelAndView verifyEmail(HttpServletRequest request, @RequestParam("token") String token) {
         ModelAndView model = new ModelAndView();
         try {
-            if (userService.verifyUserEmail(token) != 0){
+            if (userService.verifyUserEmail(token) != 0) {
                 model.addObject("successNoty", messageSource.getMessage("register.successfullyproved", null, localeResolver.resolveLocale(request)));
             } else {
                 model.addObject("errorNoty", messageSource.getMessage("register.unsuccessfullyproved", null, localeResolver.resolveLocale(request)));
@@ -196,6 +191,7 @@ public class MainController {
     public ModelAndView login(HttpSession httpSession,
                               @RequestParam(value = "error", required = false) String error) {
         ModelAndView model = new ModelAndView();
+        model.addObject("captchaType", CAPTCHA_TYPE);
         if (error != null) {
             if (httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION") != null) {
                 String[] parts = httpSession.getAttribute("SPRING_SECURITY_LAST_EXCEPTION").getClass().getName().split("\\.");
