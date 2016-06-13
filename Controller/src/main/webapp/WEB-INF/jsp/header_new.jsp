@@ -145,7 +145,11 @@
 <%--capcha--%>
 <c:if test="${showEntrance && !isAuth}">
     <script type="text/javascript" src="<c:url value='/client/js/capchahead.js'/>"></script>
-    <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallbackHead&render=explicit&hl=${pageContext.response.locale}"
+    <c:set value="${pageContext.response.locale}" var="locale"></c:set>
+    <c:if test="${locale=='cn'}">
+        <c:set value="zh-CN" var="locale"></c:set>
+    </c:if>
+    <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallbackHead&render=explicit&hl=${locale}"
             async defer>
     </script>
 </c:if>
