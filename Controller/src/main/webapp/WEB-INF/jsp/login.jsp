@@ -24,7 +24,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
     <link href="<c:url value='/client/css/jquery.mCustomScrollbar.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
-    <link href="<c:url value='/client/css/style-new.css'/>" rel="stylesheet">
+    <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet">
 
     <script type="text/javascript" src="<c:url value="/client/js/function.js"/>"></script>
     <%----------%>
@@ -44,43 +44,71 @@
 
 <body>
 
-<%@include file='header_new.jsp' %>
+<%@include file="fragments/header.jsp" %>
 
-<main class="container register">
-    <hr>
+<main class="container">
     <div class="row">
-        <div class="col-sm-4">
-            <%--РЕГИСТРАЦИЯ НОВОГО ПОЛЬЗОВАТЕЛЯ--%>
-            <h5><loc:message code="login.title"/></h5>
-
-            <p style="color:red">${error}</p>
-
+        <div class="col-sm-4 login__container">
+            <hr>
+            <h4 class=""><loc:message code="login.title"/></h4>
+            <hr>
             <c:url value="/login" var="loginUrl"/>
-            <form action="${loginUrl}" method="post">
-                <%--Логин/email--%>
-                <loc:message code="login.email" var="login"/>
-                <input name="username" placeholder="${login}"
-                       required autofocus/>
-                <%--Пароль--%>
-                <loc:message code="login.password" var="password"/>
-                <input name="password" type="password" placeholder="${password}"
-                       required="required"/>
-                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
-                <br/>
-                <br/>
-                <%--CAPCHA--%>
-                <div id="cpch-field" class="g-recaptcha" data-sitekey=${captchaProperties.get("captcha.key")}></div>
-                <p class='cpch-error-message' style="color:red">${cpch}</p>
-                <br/>
-                <%--ВОЙТИ--%>
-                <br/>
-                <button type="submit"><loc:message
-                        code="login.submit"/></button>
-            </form>
+            <div class="clearfix">
+                <p class="login__error">${error}</p>
+
+                <form action="${loginUrl}" method="post">
+                    <div class="input-block-wrapper clearfix">
+                        <loc:message code="login.email" var="login"/>
+                        <div class="col-md-3 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label">
+                                ${login}
+                            </label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input id="login__name" name="username"
+                                   required autofocus
+                                   placeholder="${login}"
+                                   class="form-control input-block-wrapper__input"/>
+                        </div>
+                    </div>
+                    <%--Пароль--%>
+                    <div class="input-block-wrapper clearfix">
+                        <loc:message code="login.password" var="password"/>
+                        <div class="col-md-3 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label">
+                                ${password}
+                            </label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input id="login__password" name="password"
+                                   required
+                                   type="password"
+                                   placeholder="${password}"
+                                   class="form-control input-block-wrapper__input"/>
+                        </div>
+                    </div>
+                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+                    <%--CAPCHA--%>
+                    <div class="col-md-10 login__captcha-wrapper">
+                        <div id="cpch-field" class="login__captcha g-recaptcha"
+                             data-sitekey=${captchaProperties.get("captcha.key")}></div>
+                        <%--<p class='cpch-error-message' style="color:red">${cpch}</p>--%>
+                        <br/>
+                    </div>
+                    <div class="col-md-10 input-block-wrapper__error-wrapper">
+                        <p class='cpch-error-message' style="color:red">${cpch}</p>
+                    </div>
+                    <%----%>
+                    <div class="col-md-10 login__button-wrapper">
+                        <button class="login__button" type="submit"><loc:message
+                                code="login.submit"/></button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </main>
-<%@include file='footer_new.jsp' %>
+<%@include file='fragments/footer.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>
 

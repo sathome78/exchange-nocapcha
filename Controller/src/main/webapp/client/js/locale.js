@@ -3,17 +3,17 @@ $(function(){
 });
 
 function initLocaleSwitcher() {
-    $(".lang__item").click(function (e) {
+    $(".language").click(function (e) {
         e.preventDefault();
-        var localeName = e.target.textContent;
+        var localeName = e.target.textContent.toUpperCase();
         var localeCode = 'ru';
-        if (localeName == 'English') {
+        if (localeName == 'EN') {
             localeCode = 'en';
-        } else if (localeName == 'Русский') {
+        } else if (localeName == 'RU') {
             localeCode = 'ru';
-        } else if (localeName == 'Chinese') {
+        } else if (localeName == 'CH') {
             localeCode = 'cn';
-        } else if (localeName == 'Thai') {
+        } else if (localeName == 'TH') {
             localeCode = 'th';
         }
         var ref = '/dashboard/locale?locale=' + localeCode;

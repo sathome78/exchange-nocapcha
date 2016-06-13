@@ -62,6 +62,7 @@ function successNoty(text) {
 function failNoty(jqXHR) {
     //closeNote();
     var errorInfo = $.parseJSON(jqXHR.responseText);
+    if (!errorInfo.detail) return;
     failedNote = noty({
         text: errorInfo.detail,
         type: 'error',

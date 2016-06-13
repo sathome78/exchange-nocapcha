@@ -1,56 +1,88 @@
 package me.exrates.model.dto;
 
-import java.math.BigDecimal;
+import me.exrates.model.enums.OperationType;
 
 /**
  * Created by Valk on 14.04.16.
  */
 public class OrderListDto {
+    private boolean needRefresh;
     private int id;
     private int userId;
-    private BigDecimal exrate;
-    private BigDecimal amountBase;
-    private BigDecimal amountConvert;
+    private OperationType orderType;
+    private String exrate;
+    private String amountBase;
+    private String amountConvert;
 
+    public OrderListDto() {
+        this.needRefresh = true;
+    }
+
+    public OrderListDto(boolean needRefresh) {
+        this.needRefresh = needRefresh;
+    }
+
+    /*hash*/
+
+    @Override
+    public int hashCode() {
+        return id;
+    }
     /*getters setters*/
 
-    public Integer getId() {
+    public boolean isNeedRefresh() {
+        return needRefresh;
+    }
+
+    public void setNeedRefresh(boolean needRefresh) {
+        this.needRefresh = needRefresh;
+    }
+
+    public int getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(int id) {
         this.id = id;
     }
 
-    public Integer getUserId() {
+    public int getUserId() {
         return userId;
     }
 
-    public void setUserId(Integer userId) {
+    public void setUserId(int userId) {
         this.userId = userId;
     }
 
-    public BigDecimal getExrate() {
+    public OperationType getOrderType() {
+        return orderType;
+    }
+
+    public void setOrderType(OperationType orderType) {
+        this.orderType = orderType;
+    }
+
+    public String getExrate() {
         return exrate;
     }
 
-    public void setExrate(BigDecimal exrate) {
+    public void setExrate(String exrate) {
         this.exrate = exrate;
     }
 
-    public BigDecimal getAmountBase() {
+    public String getAmountBase() {
         return amountBase;
     }
 
-    public void setAmountBase(BigDecimal amountBase) {
+    public void setAmountBase(String amountBase) {
         this.amountBase = amountBase;
     }
 
-    public BigDecimal getAmountConvert() {
+    public String getAmountConvert() {
         return amountConvert;
     }
 
-    public void setAmountConvert(BigDecimal amountConvert) {
+    public void setAmountConvert(String amountConvert) {
         this.amountConvert = amountConvert;
     }
 }

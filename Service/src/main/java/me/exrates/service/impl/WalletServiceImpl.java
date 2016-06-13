@@ -5,6 +5,8 @@ import me.exrates.dao.WalletDao;
 import me.exrates.model.Currency;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
+import me.exrates.model.dto.MyWalletsDetailedDto;
+import me.exrates.model.dto.MyWalletsStatisticsDto;
 import me.exrates.model.dto.UserWalletSummaryDto;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.WalletTransferStatus;
@@ -21,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.util.List;
+import java.util.Locale;
 
 import static java.math.BigDecimal.ZERO;
 import static java.math.RoundingMode.CEILING;
@@ -49,6 +52,18 @@ public final class WalletServiceImpl implements WalletService {
         final List<Wallet> wallets = walletDao.findAllByUser(userId);
         wallets.forEach(this::balanceRepresentation);
         return wallets;
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, Locale locale) {
+        return walletDao.getAllWalletsForUserDetailed(email, locale);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale) {
+        return walletDao.getAllWalletsForUserReduced(email, locale);
     }
 
     @Override

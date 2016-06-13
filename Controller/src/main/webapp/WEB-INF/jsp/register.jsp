@@ -1,4 +1,3 @@
-
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@taglib uri="http://www.springframework.org/tags" prefix="loc" %>
@@ -26,7 +25,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
     <link href="<c:url value='/client/css/jquery.mCustomScrollbar.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
-    <link href="<c:url value='/client/css/style-new.css'/>" rel="stylesheet">
+    <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet">
 
     <script type="text/javascript" src="<c:url value="/client/js/function.js"/>"></script>
     <%----------%>
@@ -45,58 +44,104 @@
 
 <body>
 
-<%@include file='header_new.jsp' %>
+<%@include file="fragments/header.jsp" %>
 
-<main class="container register">
-    <hr>
+<main class="container">
     <div class="row">
-        <div class="col-sm-4">
-            <%--РЕГИСТРАЦИЯ НОВОГО ПОЛЬЗОВАТЕЛЯ--%>
-            <h4><loc:message code="register.title"/></h4>
-            <br/>
+        <div class="col-sm-4 login__container">
+            <hr>
+            <h4 class=""><loc:message code="register.title"/></h4>
+            <hr>
 
             <registrationform:form method="post" action="create" modelAttribute="user" methodParam="abc">
-                <%--Логин--%>
-                <loc:message code="register.nickname" var="login"/>
-                <registrationform:input id="login" path="nickname" placeholder="${login}"
-                                        required="required"/>
-                <%--<registrationform:errors path="nickname" style="color:red" class="form-control"/>--%>
-                <form:errors class="form-login-error-message" path="nickname" style="color:red"/>
-                <span><loc:message code="register.loginLabel"/></span>
+                <%--nickname--%>
+                <div class="input-block-wrapper clearfix">
+                    <loc:message code="register.nickname" var="login"/>
+                    <div class="col-md-11 input-block-wrapper__input-wrapper">
+                        <registrationform:input id="login" path="nickname"
+                                                required="required"
+                                                placeholder="${login}"
+                                                class="form-control input-block-wrapper__input"/>
+                    </div>
+                    <div class="col-md-11 input-block-wrapper__error-wrapper">
+                        <form:errors path="nickname" class="input-block-wrapper__input"/>
+                    </div>
+                    <div class="col-md-11">
+                        <loc:message code="register.loginLabel"/>
+                    </div>
+                </div>
                 <%--email--%>
-                <loc:message code="register.email" var="email"/>
-                <registrationform:input id="email" path="email" placeholder="${email}"
-                                        required="required"/>
-                <registrationform:errors path="email" style="color:red" class="form-login-error-message"/>
-                <%--Пароль--%>
-                <loc:message code="register.password" var="password"/>
-                <registrationform:input id="pass" path="password" type="password" placeholder="${password}"
-                                        required="required"/>
-                <registrationform:errors path="password" style="color:red" class="form-login-error-message"/>
-                <%--Повторите пароль--%>
-                <loc:message code="register.repeatpassword" var="repassword"/>
-                <registrationform:input id="repass" path="confirmPassword" type="password" placeholder="${repassword}"
-                                        required="required"/>
-                <span class='repass'><i class="fa fa-check"></i></span>
-                <registrationform:errors path="confirmPassword" style="color:red" class="form-login-error-message"/>
-                <br/>
-                <br/>
-                <loc:message code="register.sponsor"/>
-                <registrationform:input id="parentEmail" path="parentEmail" value="${user.parentEmail}" required="required" readonly="true"/>
-                <br/>
-                <br/>
+                <div class="input-block-wrapper clearfix">
+                    <loc:message code="register.email" var="email"/>
+                    <div class="col-md-11 input-block-wrapper__input-wrapper">
+                        <registrationform:input id="email" path="email"
+                                                required="required"
+                                                placeholder="${email}"
+                                                class="form-control input-block-wrapper__input"/>
+                    </div>
+                    <div class="col-md-11 input-block-wrapper__error-wrapper">
+                        <form:errors path="email" class="input-block-wrapper__input"/>
+                    </div>
+                </div>
+                <%--Password--%>
+                <div class="input-block-wrapper clearfix">
+                    <loc:message code="register.password" var="password"/>
+                    <div class="col-md-11 input-block-wrapper__input-wrapper">
+                        <registrationform:input id="pass" path="password"
+                                                required="required"
+                                                placeholder="${password}"
+                                                class="form-control input-block-wrapper__input"/>
+                    </div>
+                    <div class="col-md-11 input-block-wrapper__error-wrapper">
+                        <form:errors path="password" class="input-block-wrapper__input"/>
+                    </div>
+                </div>
+                <%--Re password--%>
+                <div class="input-block-wrapper clearfix">
+                    <loc:message code="register.repeatpassword" var="repassword"/>
+                    <div class="col-md-11 input-block-wrapper__input-wrapper">
+                        <registrationform:input id="repass" path="confirmPassword"
+                                                required="required"
+                                                placeholder="${repassword}"
+                                                class="form-control input-block-wrapper__input"/>
+                    </div>
+                    <span class='repass'><i class="fa fa-check"></i></span>
+
+                    <div class="col-md-11 input-block-wrapper__error-wrapper">
+                        <form:errors path="confirmPassword" class="input-block-wrapper__input"/>
+                    </div>
+                </div>
+                <%--refferal--%>
+                <div class="input-block-wrapper clearfix">
+                    <div class="col-md-11 input-block-wrapper__label-wrapper">
+                        <loc:message code="register.sponsor"/>
+                    </div>
+
+                    <div class="col-md-11 input-block-wrapper__input-wrapper">
+                        <registrationform:input id="parentEmail" path="parentEmail"
+                                                readonly="true"
+                                                class="form-control input-block-wrapper__input"/>
+                    </div>
+                </div>
                 <%--CAPCHA--%>
-                <div id="cpch-field" class="g-recaptcha" data-sitekey=${captchaProperties.get("captcha.key")}></div>
-                <p class='cpch-error-message' style="color:red">${cpch}</p>
-                <br/>
-                <%--ЗАРЕГИСТРИРОВАТЬСЯ--%>
-                <button id="register_button" type="submit"><loc:message
-                        code="register.submit"/></button>
+                <div class="col-md-11 login__captcha-wrapper">
+                    <div id="cpch-field" class="login__captcha g-recaptcha"
+                         data-sitekey=${captchaProperties.get("captcha.key")}></div>
+                    <br/>
+                </div>
+                <div class="col-md-11 input-block-wrapper__error-wrapper">
+                    <p class='cpch-error-message' style="color:red">${cpch}</p>
+                </div>
+                <%----%>
+                <div class="col-md-11 login__button-wrapper">
+                    <button id="register_button" class="login__button" type="submit"><loc:message
+                            code="register.submit"/></button>
+                </div>
             </registrationform:form>
         </div>
     </div>
 </main>
-<%@include file='footer_new.jsp' %>
+<%@include file='fragments/footer.jsp' %>
 </body>
 </html>
 

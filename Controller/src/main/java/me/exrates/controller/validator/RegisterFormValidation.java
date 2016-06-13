@@ -214,7 +214,7 @@ public class RegisterFormValidation implements Validator {
     public void validateEmail(User user, Errors errors, Locale ru) {
         String emailIncorrect = messageSource.getMessage("validation.emailincorrect", null, ru);
 
-        if (userService.ifEmailIsUnique(user.getEmail())) {
+        if (userService.getIdByEmail(user.getEmail())<=0) {
             errors.rejectValue("email", "email.incorrect", emailIncorrect);
         }
     }
