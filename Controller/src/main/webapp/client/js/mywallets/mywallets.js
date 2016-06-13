@@ -13,7 +13,7 @@ function MyWalletsClass() {
     var that = this;
     /**/
     var timeOutIdForMyWalletsData;
-    var refreshIntervalForMyWalletsData = 5000;
+    var refreshIntervalForMyWalletsData = 5000*REFRESH_INTERVAL_MULTIPLIER;
     /**/
     var showLog = false;
     /**/

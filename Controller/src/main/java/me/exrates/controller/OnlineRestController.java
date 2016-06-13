@@ -44,7 +44,7 @@ public class OnlineRestController {
     /*default limit the data fetching for all tables. (-1) means no limit*/
     final public Integer TABLES_LIMIT_DEFAULT = -1;
     /*default type of the chart*/
-    final public ChartType CHART_TYPE_DEFAULT = ChartType.AREA;
+    final public ChartType CHART_TYPE_DEFAULT = ChartType.STOCK;
 
     @Autowired
     OrderService orderService;
@@ -102,7 +102,7 @@ public class OnlineRestController {
     @RequestMapping(value = "/dashboard/chartArray/{type}", method = RequestMethod.GET)
     public ArrayList chartArray(HttpServletRequest request) {
         CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
-        BackDealInterval backDealInterval = (BackDealInterval) request.getSession().getAttribute("currentBackDealInterval");
+        final BackDealInterval backDealInterval = (BackDealInterval) request.getSession().getAttribute("currentBackDealInterval");
         ChartType chartType = (ChartType) request.getSession().getAttribute("chartType");
         /**/
         ArrayList<List> arrayListMain = new ArrayList<>();
@@ -112,6 +112,7 @@ public class OnlineRestController {
         }});
         /**/
         if (chartType == ChartType.AREA) {
+            /*GOOGLE*/
             List<Map<String, Object>> rows = orderService.getDataForAreaChart(currencyPair, backDealInterval);
             for (Map<String, Object> row : rows) {
                 Timestamp dateAcception = (Timestamp) row.get("dateAcception");
@@ -131,6 +132,7 @@ public class OnlineRestController {
                 }
             }
         } else if (chartType == ChartType.CANDLE) {
+            /*GOOGLE*/
             List<CandleChartItemDto> rows = orderService.getDataForCandleChart(currencyPair, backDealInterval);
             for (CandleChartItemDto candle : rows) {
                 ArrayList<Object> arrayList = new ArrayList<>();
@@ -142,10 +144,21 @@ public class OnlineRestController {
                 arrayList.add(candle.getLowRate());
                 arrayList.add(candle.getHighRate());
                 arrayList.add(candle.getBaseVolume());
-                /*titles of values for chart tip*/
-                arrayList.add(messageSource.getMessage("orders.date", null, localeResolver.resolveLocale(request)));
-                arrayList.add(messageSource.getMessage("orders.exrate", null, localeResolver.resolveLocale(request)));
-                arrayList.add(messageSource.getMessage("orders.volume", null, localeResolver.resolveLocale(request)));
+                arrayListMain.add(arrayList);
+            }
+        } else if (chartType == ChartType.STOCK) {
+            /*AMCHARTS*/
+            List<CandleChartItemDto> rows = orderService.getDataForCandleChart(currencyPair, backDealInterval);
+            for (CandleChartItemDto candle : rows) {
+                ArrayList<Object> arrayList = new ArrayList<>();
+                /*values*/
+                arrayList.add(candle.getBeginDate().toString());
+                arrayList.add(candle.getEndDate().toString());
+                arrayList.add(candle.getOpenRate());
+                arrayList.add(candle.getCloseRate());
+                arrayList.add(candle.getLowRate());
+                arrayList.add(candle.getHighRate());
+                arrayList.add(candle.getBaseVolume());
                 arrayListMain.add(arrayList);
             }
         }
@@ -324,7 +337,7 @@ public class OnlineRestController {
                                                Principal principal, HttpServletRequest request) {
         CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
         String email = principal == null ? "" : principal.getName();
-        List<OrderListDto>  result = orderService.getAllBuyOrders(currencyPair, email, localeResolver.resolveLocale(request));
+        List<OrderListDto> result = orderService.getAllBuyOrders(currencyPair, email, localeResolver.resolveLocale(request));
         /**/
         int resultHash = result.hashCode();
         String cacheKey = "BuyOrders";
@@ -345,7 +358,7 @@ public class OnlineRestController {
             return null;
         }
         String email = principal.getName();
-        List<MyWalletsDetailedDto> result =  walletService.getAllWalletsForUserDetailed(email, localeResolver.resolveLocale(request));
+        List<MyWalletsDetailedDto> result = walletService.getAllWalletsForUserDetailed(email, localeResolver.resolveLocale(request));
         /**/
         int resultHash = result.hashCode();
         String cacheKey = "myWalletsData";
@@ -380,7 +393,7 @@ public class OnlineRestController {
         List<OrderWideListDto> result = orderService.getMyOrdersWithState(email, currencyPair, status, type, offset, tableParams.getPageSize(), localeResolver.resolveLocale(request));
         /**/
         int resultHash = result.hashCode();
-        String cacheKey = "myOrdersData"+tableId+status;
+        String cacheKey = "myOrdersData" + tableId + status;
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
         if (checkCache(request, cacheKey, resultHash, !refreshIfNeeded)) {
             result = new ArrayList<OrderWideListDto>() {{
@@ -411,7 +424,7 @@ public class OnlineRestController {
     }
 
     /**/
-    private boolean checkCache(HttpServletRequest request, String cacheKey, int resultHash, Boolean forceUpdate){
+    private boolean checkCache(HttpServletRequest request, String cacheKey, int resultHash, Boolean forceUpdate) {
         Map<String, Integer> cacheHashMap = (Map) request.getSession().getAttribute("cacheHashMap");
         if (cacheHashMap == null) {
             cacheHashMap = new HashMap<>();

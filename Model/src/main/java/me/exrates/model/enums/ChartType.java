@@ -5,7 +5,8 @@ import me.exrates.model.exceptions.UnsupportedChartTypeException;
 public enum ChartType {
 
     AREA("AREA"),
-    CANDLE("CANDLE");
+    CANDLE("CANDLE"),
+    STOCK("STOCK");
 
     private final String chartType;
 
@@ -19,6 +20,8 @@ public enum ChartType {
                 return AREA;
             case "CANDLE":
                 return CANDLE;
+            case "STOCK":
+                return STOCK;
             default:
                 throw new UnsupportedChartTypeException(typeName);
         }

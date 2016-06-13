@@ -114,6 +114,8 @@ var dashboard;
 var myWallets;
 var myHistory;
 var orders;
+/*for testing*/
+var REFRESH_INTERVAL_MULTIPLIER = 1;
 
 $(function init() {
     try {
@@ -157,7 +159,7 @@ $(function init() {
 
         /*FOR CENTER ON START UP ...*/
         syncCurrentParams(null, null, null, function (data) {
-            dashboard = new DashboardClass(data.chartType, data.currencyPair.name);
+            dashboard = new DashboardClass(data.period, data.chartType, data.currencyPair.name);
             myWallets = new MyWalletsClass();
             myHistory = new MyHistoryClass(data.currencyPair.name);
             orders = new OrdersClass(data.currencyPair.name);
@@ -234,7 +236,6 @@ function parseNumber(numberStr) {
         /*100 000,12 -> 100000.12*/
         numberStr = numberStr.replace(/\s/g, '').replace(/\,/g, '.');
     }
-    ;
     numberStr = numberStr.replace(/\s/g, '').replace(/\,/g, '.');
     return parseFloat(numberStr);
 }
@@ -246,5 +247,27 @@ function blink($element) {
     }, 250);
 }
 
+
+/*$(function news(){
+    var $newsContentPlace = $('#newstopic');
+    var url = '/news/2015/MAY/27/48/newstopic.html';
+    //var url = '/news/2015/MAY/27/48/newstopic';
+    *//*$.ajax({
+        url: url,
+        type: 'GET',
+       *//**//* headers: {
+            Accept : "application/json; charset=utf-8",
+            "Content-Type": "application/json; charset=utf-8"
+        },
+        contentType: "application/json; charset=utf-8",*//**//*
+
+        success: function (data) {
+
+            $newsContentPlace.append(data.content);
+            //$newsContentPlace.append(data);
+        }
+    });*//*
+    $newsContentPlace.load(url);
+});*/
 
 

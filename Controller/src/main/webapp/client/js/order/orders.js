@@ -13,7 +13,7 @@ function OrdersClass(currentCurrencyPair) {
     var that = this;
     /**/
     var timeOutIdForOrdersData;
-    var refreshIntervalForOrdersData = 5000;
+    var refreshIntervalForOrdersData = 5000*REFRESH_INTERVAL_MULTIPLIER;
     /**/
     var showLog = false;
     /**/
