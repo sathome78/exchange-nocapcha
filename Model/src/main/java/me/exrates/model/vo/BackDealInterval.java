@@ -13,6 +13,7 @@ public class BackDealInterval {
     public Integer intervalValue;
     public IntervalType intervalType;
 
+    /*constructor*/
     public BackDealInterval(String intervalString) {
         try {
             this.intervalValue = Integer.valueOf(intervalString.split(" ")[0]);
@@ -23,4 +24,10 @@ public class BackDealInterval {
             throw new UnsupportedIntervalFormatException(intervalString);
         }
     }
+    /**/
+    public String getInterval(){
+        return intervalValue+" "+intervalType;
+    }
+    /*getters setters*/
+
 }

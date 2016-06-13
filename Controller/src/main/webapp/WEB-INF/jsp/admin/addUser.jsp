@@ -50,7 +50,6 @@
 <%@include file='../header_new.jsp' %>
 
 <main class="container orders_new admin side_menu">
-    <%@include file='../exchange_info_new.jsp' %>
     <div class="row">
         <%@include file='../usermenu_new.jsp' %>
         <%--<div class="col-sm-6 content">--%>

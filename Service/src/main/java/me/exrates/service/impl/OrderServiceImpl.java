@@ -4,24 +4,9 @@ import me.exrates.dao.CommissionDao;
 import me.exrates.dao.OrderDao;
 import me.exrates.dao.TransactionDao;
 import me.exrates.dao.WalletDao;
-import me.exrates.model.Commission;
-import me.exrates.model.CompanyWallet;
-import me.exrates.model.Currency;
-import me.exrates.model.CurrencyPair;
-import me.exrates.model.ExOrder;
-import me.exrates.model.Wallet;
-import me.exrates.model.dto.CoinmarketApiDto;
-import me.exrates.model.dto.OrderCreateDto;
-import me.exrates.model.dto.OrderInfoDto;
-import me.exrates.model.dto.OrderListDto;
-import me.exrates.model.dto.OrderWideListDto;
-import me.exrates.model.dto.WalletsForOrderAcceptionDto;
-import me.exrates.model.enums.ActionType;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.OrderDeleteStatus;
-import me.exrates.model.enums.OrderStatus;
-import me.exrates.model.enums.TransactionSourceType;
-import me.exrates.model.enums.WalletTransferStatus;
+import me.exrates.model.*;
+import me.exrates.model.dto.*;
+import me.exrates.model.enums.*;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.WalletOperationData;
@@ -48,8 +33,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -89,8 +72,35 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private MessageSource messageSource;
 
+
     @Autowired
     private ReferralService referralService;
+    
+    @Transactional
+    @Override
+    public ExOrderStatisticsDto getOrderStatistic(CurrencyPair currencyPair, BackDealInterval backDealInterval, Locale locale) {
+        return orderDao.getOrderStatistic(currencyPair, backDealInterval, locale);
+    }
+
+    @Transactional
+    @Override
+    public List<Map<String, Object>> getDataForAreaChart(CurrencyPair currencyPair, BackDealInterval interval) {
+        logger.info("Begin 'getDataForAreaChart' method");
+        return orderDao.getDataForAreaChart(currencyPair, interval);
+    }
+
+    @Transactional
+    @Override
+    public List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval interval) {
+        logger.info("Begin 'getDataForCandleChart' method");
+        return orderDao.getDataForCandleChart(currencyPair, interval);
+    }
+
+    @Transactional
+    @Override
+    public List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairs(Locale locale) {
+        return orderDao.getOrderStatisticByPairs(locale);
+    }
 
     @Override
     @Transactional(rollbackFor = {Exception.class})
@@ -124,36 +134,23 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional(readOnly = true)
     @Override
-    public Map<String, List<OrderWideListDto>> getMyOrders(String email, CurrencyPair currencyPair, Locale locale) {
-        List<OrderWideListDto> orderList = orderDao.getMyOrders(email, currencyPair);
-        /**/
-        List<OrderWideListDto> sellOrderList = new ArrayList<>();
-        List<OrderWideListDto> buyOrderList = new ArrayList<>();
-        for (OrderWideListDto order : orderList) {
-            order.setStatusString(getStatusString(order.getStatus(), locale));
-            /**/
-            if (order.getOperationType().equals(OperationType.SELL)) {
-                sellOrderList.add(order);
-            } else if (order.getOperationType().equals(OperationType.BUY)) {
-                buyOrderList.add(order);
-            }
-        }
-        Map<String, List<OrderWideListDto>> orderMap = new HashMap<>();
-        orderMap.put("sell", sellOrderList);
-        orderMap.put("buy", buyOrderList);
-        return orderMap;
+    public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
+                                                       OperationType operationType,
+                                                       Integer offset, Integer limit, Locale locale) {
+        return orderDao.getMyOrdersWithState(email, currencyPair, status, operationType, offset, limit, locale);
+    }
+
+    @Override
+    public OrderCreateDto getMyOrderById(int orderId) {
+        return orderDao.getMyOrderById(orderId);
     }
 
     @Transactional(readOnly = true)
     @Override
-    public List<OrderListDto> getOrdersSell(CurrencyPair currencyPair) {
-        return orderDao.getOrdersSell(currencyPair);
-    }
-
-    @Transactional(readOnly = true)
-    @Override
-    public List<OrderListDto> getOrdersBuy(CurrencyPair currencyPair) {
-        return orderDao.getOrdersBuy(currencyPair);
+    public List<OrderWideListDto> getOrdersForAccept(String email, CurrencyPair currencyPair,
+                                                     OperationType operationType, Integer offset,
+                                                     Integer limit, Locale locale) {
+        return orderDao.getOrdersForAccept(email, currencyPair, operationType, offset, limit, locale);
     }
 
     @Transactional(readOnly = true)
@@ -164,6 +161,17 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(propagation = Propagation.NESTED)
     public boolean setStatus(int orderId, OrderStatus status) {
         return orderDao.setStatus(orderId, status);
+    }
+
+    @Transactional(rollbackFor = {Exception.class})
+    public void acceptOrdersList(int userAcceptorId, List<Integer> ordersList, Locale locale) {
+      if (orderDao.lockOrdersListForAcception(ordersList)){
+          for (Integer orderId: ordersList){
+              acceptOrder(userAcceptorId, orderId, locale);
+          }
+      } else {
+          throw new OrderAcceptionException(messageSource.getMessage("order.lockerror", null, locale));
+      }
     }
 
     @Transactional(rollbackFor = {Exception.class})
@@ -257,10 +265,11 @@ public class OrderServiceImpl implements OrderService {
                 acceptorForOutAmount = amountWithComissionForAcceptor;
                 acceptorForInAmount = exOrder.getAmountBase();
             }
-            WalletOperationData walletOperationData = new WalletOperationData();
+            WalletOperationData walletOperationData;
             WalletTransferStatus walletTransferStatus;
             /**/
             /*for creator OUT*/
+            walletOperationData = new WalletOperationData();
             walletDao.walletInnerTransfer(walletsForOrderAcceptionDto.getUserCreatorOutWalletId(),
                     creatorForOutAmount, TransactionSourceType.ORDER, exOrder.getId());
             walletOperationData.setOperationType(OperationType.OUTPUT);
@@ -276,6 +285,7 @@ public class OrderServiceImpl implements OrderService {
                 throw new OrderAcceptionException(walletTransferStatus.toString());
             }
             /*for creator IN*/
+            walletOperationData = new WalletOperationData();
             walletOperationData.setOperationType(OperationType.INPUT);
             walletOperationData.setWalletId(walletsForOrderAcceptionDto.getUserCreatorInWalletId());
             walletOperationData.setAmount(creatorForInAmount);
@@ -289,6 +299,7 @@ public class OrderServiceImpl implements OrderService {
                 throw new OrderAcceptionException(walletTransferStatus.toString());
             }
             /*for acceptor OUT*/
+            walletOperationData = new WalletOperationData();
             walletOperationData.setOperationType(OperationType.OUTPUT);
             walletOperationData.setWalletId(walletsForOrderAcceptionDto.getUserAcceptorOutWalletId());
             walletOperationData.setAmount(acceptorForOutAmount);
@@ -302,6 +313,7 @@ public class OrderServiceImpl implements OrderService {
                 throw new OrderAcceptionException(walletTransferStatus.toString());
             }
             /*for acceptor IN*/
+            walletOperationData = new WalletOperationData();
             walletOperationData.setOperationType(OperationType.INPUT);
             walletOperationData.setWalletId(walletsForOrderAcceptionDto.getUserAcceptorInWalletId());
             walletOperationData.setAmount(acceptorForInAmount);
@@ -424,10 +436,42 @@ public class OrderServiceImpl implements OrderService {
         return (Integer) result;
     }
 
+    @Transactional
     @Override
     public Integer searchOrderByAdmin(Integer currencyPair, String orderType, String orderDate, BigDecimal orderRate, BigDecimal orderVolume) {
         Integer ot = OperationType.valueOf(orderType).getType();
         return orderDao.searchOrderByAdmin(currencyPair, ot, orderDate, orderRate, orderVolume);
+    }
+
+    @Transactional
+    @Override
+    public List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriod(BackDealInterval backDealInterval, Integer limit, CurrencyPair currencyPair, Locale locale) {
+        return orderDao.getOrderAcceptedForPeriod(backDealInterval, limit, currencyPair, locale);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public OrderCommissionsDto getCommissionForOrder() {
+        return orderDao.getCommissionForOrder();
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<OrderListDto> getAllBuyOrders(CurrencyPair currencyPair, String email, Locale locale) {
+        return orderDao.getOrdersBuyForCurrencyPair(currencyPair, email, locale);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<OrderListDto> getAllSellOrders(CurrencyPair currencyPair, String email, Locale locale) {
+        return orderDao.getOrdersSellForCurrencyPair(currencyPair, email, locale);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public WalletsAndCommissionsForOrderCreationDto getWalletAndCommission(String email, Currency currency,
+                                                                    OperationType operationType){
+        return orderDao.getWalletAndCommission(email, currency, operationType);
     }
 
     public void setMessageSource(final MessageSource messageSource) {

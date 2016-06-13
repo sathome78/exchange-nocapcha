@@ -3,6 +3,8 @@ package me.exrates.service;
 import me.exrates.model.Currency;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
+import me.exrates.model.dto.MyWalletsDetailedDto;
+import me.exrates.model.dto.MyWalletsStatisticsDto;
 import me.exrates.model.dto.UserWalletSummaryDto;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.WalletTransferStatus;
@@ -10,12 +12,22 @@ import me.exrates.model.vo.WalletOperationData;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Locale;
 
 public interface WalletService {
 
     void balanceRepresentation(Wallet wallet);
 
     List<Wallet> getAllWallets(int userId);
+
+    /**
+     * Return list the user wallets data
+     * @param email is email to determine user
+     * @return list the user wallets data
+     */
+    List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, Locale locale);
+
+    List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale);
 
     List<Currency> getCurrencyList();
 

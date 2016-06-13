@@ -25,7 +25,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
     <link href="<c:url value='/client/css/jquery.mCustomScrollbar.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
-    <link href="<c:url value='/client/css/style-new.css'/>" rel="stylesheet">
+    <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet">
 
     <%----------%>
     <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
@@ -44,39 +44,58 @@
 
 <body>
 
-<%@include file='header_new.jsp' %>
+<%@include file="fragments/header.jsp" %>
 
-<main class="container register">
-    <hr>
+<main class="container">
     <div class="row">
         <div class="col-sm-4">
-            <%--ФОРМА ВОССТАНОВЛЕНИЯ ПАРОЛЯ--%>
-            <h5><loc:message code="dashboard.resetPasswordTitle"/></h5>
+            <hr>
+            <h4 class=""><loc:message code="dashboard.resetPasswordTitle"/></h4>
+            <hr>
+            <div class="clearfix">
+                <form:form id="settings-user-form"
+                           action="/forgotPassword/submit" method="post" modelAttribute="user">
+                    <div class="input-block-wrapper clearfix">
+                        <loc:message code="login.email" var="adminEmail"/>
+                        <div class="col-md-10 input-block-wrapper__input-wrapper">
+                            <form:input id="user-email" path="email"
+                                   required="required"
+                                   placeholder="${adminEmail}"
+                                   class="form-control input-block-wrapper__input"/>
+                        </div>
+                        <div class="col-md-10 input-block-wrapper__error-wrapper">
+                            <form:errors path="email" class="input-block-wrapper__input"/>
+                        </div>
+                    </div>
+                    <%--CAPCHA--%>
+                    <div class="col-md-10 login__captcha-wrapper">
+                        <div id="cpch-field" class="login__captcha g-recaptcha"
+                             data-sitekey=${captchaProperties.get("captcha.key")}></div>
+                        <br/>
+                    </div>
+                    <div class="col-md-10 input-block-wrapper__error-wrapper">
+                        <p class='cpch-error-message' style="color:red">${cpch}</p>
+                    </div>
+                    <%----%>
+                    <div class="col-md-10 login__button-wrapper">
+                        <button class="login__button" type="submit">
+                            <loc:message code="dashboard.resetPasswordButton"/>
+                        </button>
+                    </div>
+                </form:form>
+            </div>
+            <br/>
+            <br/>
+            <br/>
 
-            <form:form class="form-inline" id="settings-user-form"
-                       action="/forgotPassword/submit" method="post" modelAttribute="user">
-
-                <loc:message code="admin.email" var="adminEmail"/>
-                <form:input path="email" id="user-email"
-                            placeholder="${adminEmail}"/>
-                <br/>
-                <br/>
-                <%--CAPCHA--%>
-                <div id="cpch-field" class="g-recaptcha" data-sitekey=${captchaProperties.get("captcha.key")}></div>
-                <p class='cpch-error-message' style="color:red">${cpch}</p>
-                <br/>
-                <%--ВОССТАНОВИТЬ ПАРОЛЬ--%>
-                <button type="submit"><loc:message code="dashboard.resetPasswordButton"></loc:message></button>
-            </form:form>
-            <br/>
-            <br/>
-            <br/>
-            <h4><loc:message
-                    code="admin.changePasswordSendEmail"/></h4>
+            <div>
+                <h5><loc:message
+                        code="admin.changePasswordSendEmail"/></h5>
+            </div>
         </div>
     </div>
 </main>
-<%@include file='footer_new.jsp' %>
+<%@include file='fragments/footer.jsp' %>
 </body>
 </html>
 

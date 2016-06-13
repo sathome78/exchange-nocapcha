@@ -1,34 +1,36 @@
 package me.exrates.model.dto;
 
-import me.exrates.model.CurrencyPair;
-import me.exrates.model.ExOrder;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
-import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.LocaleResolver;
+import me.exrates.model.serializer.LocalDateTimeSerializer;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Locale;
 
 /**
  * Created by Valk on 19.04.16.
  */
 public class OrderWideListDto {
+    private boolean needRefresh;
     private int id;
     private int userId;
     private OperationType operationType;
-    private BigDecimal exExchangeRate;
-    private BigDecimal amountBase;
-    private BigDecimal amountConvert;
+    private String exExchangeRate;
+    private String amountBase;
+    private String amountConvert;
     private int comissionId;
-    private BigDecimal commissionFixedAmount;
+    private String commissionFixedAmount;
+    private String amountWithCommission;
     private int userAcceptorId;
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime dateCreation;
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime dateAcception;
     private OrderStatus status;
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    private LocalDateTime dateStatusModification;
+    private String commissionAmountForAcceptor;
+    private String amountWithCommissionForAcceptor;
     /**/
     private String currencyPairName;
     private String statusString;
@@ -36,25 +38,31 @@ public class OrderWideListDto {
     /*constructors*/
 
     public OrderWideListDto() {
+        this.needRefresh = true;
     }
 
-    public OrderWideListDto(ExOrder exOrder) {
-        this.id = exOrder.getId();
-        this.userId = exOrder.getUserId();
-        this.operationType = exOrder.getOperationType();
-        this.exExchangeRate = exOrder.getExRate();
-        this.amountBase = exOrder.getAmountBase();
-        this.amountConvert = exOrder.getAmountConvert();
-        this.comissionId = exOrder.getComissionId();
-        this.commissionFixedAmount = exOrder.getCommissionFixedAmount();
-        this.userAcceptorId = exOrder.getUserAcceptorId();
-        this.dateCreation = exOrder.getDateCreation();
-        this.dateAcception = exOrder.getDateAcception();
-        this.status = exOrder.getStatus();
+    public OrderWideListDto(boolean needRefresh) {
+        this.needRefresh = needRefresh;
     }
 
-    /**/
+    /*hash*/
+
+    @Override
+    public int hashCode() {
+        int result = id;
+        result = 31 * result + (dateAcception != null ? dateAcception.hashCode() : 0);
+        result = 31 * result + (status != null ? status.hashCode() : 0);
+        return result;
+    }
     /*getters setters*/
+
+    public boolean isNeedRefresh() {
+        return needRefresh;
+    }
+
+    public void setNeedRefresh(boolean needRefresh) {
+        this.needRefresh = needRefresh;
+    }
 
     public int getId() {
         return id;
@@ -80,27 +88,27 @@ public class OrderWideListDto {
         this.operationType = operationType;
     }
 
-    public BigDecimal getExExchangeRate() {
+    public String getExExchangeRate() {
         return exExchangeRate;
     }
 
-    public void setExExchangeRate(BigDecimal exExchangeRate) {
+    public void setExExchangeRate(String exExchangeRate) {
         this.exExchangeRate = exExchangeRate;
     }
 
-    public BigDecimal getAmountBase() {
+    public String getAmountBase() {
         return amountBase;
     }
 
-    public void setAmountBase(BigDecimal amountBase) {
+    public void setAmountBase(String amountBase) {
         this.amountBase = amountBase;
     }
 
-    public BigDecimal getAmountConvert() {
+    public String getAmountConvert() {
         return amountConvert;
     }
 
-    public void setAmountConvert(BigDecimal amountConvert) {
+    public void setAmountConvert(String amountConvert) {
         this.amountConvert = amountConvert;
     }
 
@@ -112,12 +120,20 @@ public class OrderWideListDto {
         this.comissionId = comissionId;
     }
 
-    public BigDecimal getCommissionFixedAmount() {
+    public String getCommissionFixedAmount() {
         return commissionFixedAmount;
     }
 
-    public void setCommissionFixedAmount(BigDecimal commissionFixedAmount) {
+    public void setCommissionFixedAmount(String commissionFixedAmount) {
         this.commissionFixedAmount = commissionFixedAmount;
+    }
+
+    public String getAmountWithCommission() {
+        return amountWithCommission;
+    }
+
+    public void setAmountWithCommission(String amountWithCommission) {
+        this.amountWithCommission = amountWithCommission;
     }
 
     public int getUserAcceptorId() {
@@ -150,6 +166,30 @@ public class OrderWideListDto {
 
     public void setStatus(OrderStatus status) {
         this.status = status;
+    }
+
+    public LocalDateTime getDateStatusModification() {
+        return dateStatusModification;
+    }
+
+    public void setDateStatusModification(LocalDateTime dateStatusModification) {
+        this.dateStatusModification = dateStatusModification;
+    }
+
+    public String getCommissionAmountForAcceptor() {
+        return commissionAmountForAcceptor;
+    }
+
+    public void setCommissionAmountForAcceptor(String commissionAmountForAcceptor) {
+        this.commissionAmountForAcceptor = commissionAmountForAcceptor;
+    }
+
+    public String getAmountWithCommissionForAcceptor() {
+        return amountWithCommissionForAcceptor;
+    }
+
+    public void setAmountWithCommissionForAcceptor(String amountWithCommissionForAcceptor) {
+        this.amountWithCommissionForAcceptor = amountWithCommissionForAcceptor;
     }
 
     public String getCurrencyPairName() {

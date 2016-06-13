@@ -46,6 +46,8 @@ To determine which of these forms to be filled, we must set field operationType
     * These amounts calculated directly in java (after check the order parameters in java validator) and will be persistented in db
     * (before this step these amounts were being calculated by javascript and may be occur some difference)
     * */
+    private BigDecimal spentWalletBalance;
+    private BigDecimal spentAmount;
     private BigDecimal total; //calculated amount of currency conversion = amount * exchangeRate
     private int comissionId;
     private BigDecimal comission; //calculated comission amount depending on operationType and corresponding comission rate
@@ -61,16 +63,20 @@ To determine which of these forms to be filled, we must set field operationType
         if (operationType == null) {
             return this;
         }
-        if (operationType == OperationType.BUY) {
-            this.total = doAction(this.amount, this.exchangeRate, ActionType.MULTIPLY);
-            this.comissionId = this.comissionForBuyId;
-            this.comission = doAction(this.total, this.comissionForBuyRate, ActionType.MULTIPLY_PERCENT);
-            this.totalWithComission = doAction(this.total, this.comission, ActionType.ADD);
-        } else {
+        if (operationType == OperationType.SELL) {
+            this.spentWalletBalance = this.currencyBaseBalance == null ? BigDecimal.ZERO : this.currencyBaseBalance;
             this.total = doAction(this.amount, this.exchangeRate, ActionType.MULTIPLY);
             this.comissionId = this.comissionForSellId;
             this.comission = doAction(this.total, this.comissionForSellRate, ActionType.MULTIPLY_PERCENT);
             this.totalWithComission = doAction(this.total, this.comission.negate(), ActionType.ADD);
+            this.spentAmount = this.amount;
+        } else if (operationType == OperationType.BUY) {
+            this.spentWalletBalance = this.currencyConvertBalance == null ? BigDecimal.ZERO : this.currencyConvertBalance;
+            this.total = doAction(this.amount, this.exchangeRate, ActionType.MULTIPLY);
+            this.comissionId = this.comissionForBuyId;
+            this.comission = doAction(this.total, this.comissionForBuyRate, ActionType.MULTIPLY_PERCENT);
+            this.totalWithComission = doAction(this.total, this.comission, ActionType.ADD);
+            this.spentAmount = doAction(this.total, this.comission, ActionType.ADD);
         }
         return this;
     }
@@ -92,6 +98,8 @@ To determine which of these forms to be filled, we must set field operationType
                 ", currencyConvertBalance=" + currencyConvertBalance +
                 ", operationType=" + operationType +
                 ", exchangeRate=" + exchangeRate +
+                ", spentWalletBalance=" + spentWalletBalance +
+                ", spentAmount=" + spentAmount +
                 ", amount=" + amount +
                 ", total=" + total +
                 ", comissionId=" + comissionId +
@@ -211,6 +219,22 @@ To determine which of these forms to be filled, we must set field operationType
 
     public void setExchangeRate(BigDecimal exchangeRate) {
         this.exchangeRate = exchangeRate;
+    }
+
+    public BigDecimal getSpentWalletBalance() {
+        return normalize(spentWalletBalance);
+    }
+
+    public void setSpentWalletBalance(BigDecimal balance) {
+        this.spentWalletBalance = balance;
+    }
+
+    public BigDecimal getSpentAmount() {
+        return spentAmount;
+    }
+
+    public void setSpentAmount(BigDecimal spentAmount) {
+        this.spentAmount = normalize(spentAmount);
     }
 
     public BigDecimal getAmount() {

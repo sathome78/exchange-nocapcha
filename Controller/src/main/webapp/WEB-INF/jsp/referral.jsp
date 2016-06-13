@@ -46,7 +46,6 @@
 <%@include file='header_new.jsp' %>
 
 <main class="container orders_new transaction my_orders orders .container_footer_bottom my_wallets">
-    <%@include file='exchange_info_new.jsp' %>
     <div class="row">
         <%@include file='usermenu_new.jsp' %>
         <div class="col-sm-9 content">
@@ -91,7 +90,7 @@
     </div>
     <hr/>
 </main>
-<%@include file='footer_new.jsp' %>
+<%@include file='fragments/footer.jsp' %>
 </body>
 </html>
 

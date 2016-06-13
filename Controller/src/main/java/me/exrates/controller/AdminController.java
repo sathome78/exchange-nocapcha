@@ -381,7 +381,7 @@ public class AdminController {
             updateUserDto.setFinpassword(user.getFinpassword());
             updateUserDto.setEmail(user.getEmail()); //need for send the email
             userService.update(updateUserDto, localeResolver.resolveLocale(request));
-            model.setViewName("redirect:/mywallets");
+            model.setViewName("redirect:/settings");
         }
 
         model.addObject("user", user);

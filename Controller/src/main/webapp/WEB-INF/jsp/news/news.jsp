@@ -127,7 +127,7 @@
         </div>
     </div>
 </main>
-<%@include file='../footer_new.jsp' %>
+<%@include file='../fragments/footer.jsp' %>
 <%@include file='news_add.jsp' %>
 
 <span hidden id="errorNoty">${errorNoty}</span>

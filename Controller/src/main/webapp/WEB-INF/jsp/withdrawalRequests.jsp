@@ -15,7 +15,7 @@
 
     <link href="<c:url value='/client/css/bootstrap.css'/>" rel="stylesheet" type="text/css" />
     <link href="<c:url value='/client/css/chosen.css'/>" rel="stylesheet" type="text/css" />
-    <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet" type="text/css" />
+    <link href="<c:url value='/client/css/style-old.css'/>" rel="stylesheet" type="text/css" />
     <link href="<c:url value='/client/css/jquery.dataTables.min.css'/>" rel="stylesheet" type="text/css"/>
 
     <script type="text/javascript" src="<c:url value='/client/js/jquery.js'/>"></script>

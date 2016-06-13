@@ -9,14 +9,14 @@ import java.math.BigDecimal;
  */
 public class ExOrderStatisticsDto {
     private CurrencyPair currencyPair;
-    private BigDecimal firstOrderAmountBase = BigDecimal.ZERO;
-    private BigDecimal firstOrderRate = BigDecimal.ZERO;
-    private BigDecimal lastOrderAmountBase = BigDecimal.ZERO;
-    private BigDecimal lastOrderRate = BigDecimal.ZERO;
-    private BigDecimal minRate = BigDecimal.ZERO;
-    private BigDecimal maxRate = BigDecimal.ZERO;
-    private BigDecimal sumBase = BigDecimal.ZERO;
-    private BigDecimal sumConvert = BigDecimal.ZERO;
+    private String firstOrderAmountBase;
+    private String firstOrderRate;
+    private String lastOrderAmountBase;
+    private String lastOrderRate;
+    private String minRate;
+    private String maxRate;
+    private String sumBase;
+    private String sumConvert;
 
     /*constructors*/
 
@@ -28,6 +28,7 @@ public class ExOrderStatisticsDto {
     }
 
     /*getters setters*/
+
     public CurrencyPair getCurrencyPair() {
         return currencyPair;
     }
@@ -36,67 +37,67 @@ public class ExOrderStatisticsDto {
         this.currencyPair = currencyPair;
     }
 
-    public BigDecimal getFirstOrderAmountBase() {
+    public String getFirstOrderAmountBase() {
         return firstOrderAmountBase;
     }
 
-    public void setFirstOrderAmountBase(BigDecimal firstOrderAmountBase) {
+    public void setFirstOrderAmountBase(String firstOrderAmountBase) {
         this.firstOrderAmountBase = firstOrderAmountBase;
     }
 
-    public BigDecimal getFirstOrderRate() {
+    public String getFirstOrderRate() {
         return firstOrderRate;
     }
 
-    public void setFirstOrderRate(BigDecimal firstOrderRate) {
+    public void setFirstOrderRate(String firstOrderRate) {
         this.firstOrderRate = firstOrderRate;
     }
 
-    public BigDecimal getLastOrderAmountBase() {
+    public String getLastOrderAmountBase() {
         return lastOrderAmountBase;
     }
 
-    public void setLastOrderAmountBase(BigDecimal lastOrderAmountBase) {
+    public void setLastOrderAmountBase(String lastOrderAmountBase) {
         this.lastOrderAmountBase = lastOrderAmountBase;
     }
 
-    public BigDecimal getLastOrderRate() {
+    public String getLastOrderRate() {
         return lastOrderRate;
     }
 
-    public void setLastOrderRate(BigDecimal lastOrderRate) {
+    public void setLastOrderRate(String lastOrderRate) {
         this.lastOrderRate = lastOrderRate;
     }
 
-    public BigDecimal getMinRate() {
+    public String getMinRate() {
         return minRate;
     }
 
-    public void setMinRate(BigDecimal minRate) {
+    public void setMinRate(String minRate) {
         this.minRate = minRate;
     }
 
-    public BigDecimal getMaxRate() {
+    public String getMaxRate() {
         return maxRate;
     }
 
-    public void setMaxRate(BigDecimal maxRate) {
+    public void setMaxRate(String maxRate) {
         this.maxRate = maxRate;
     }
 
-    public BigDecimal getSumBase() {
+    public String getSumBase() {
         return sumBase;
     }
 
-    public void setSumBase(BigDecimal sumBase) {
+    public void setSumBase(String sumBase) {
         this.sumBase = sumBase;
     }
 
-    public BigDecimal getSumConvert() {
+    public String getSumConvert() {
         return sumConvert;
     }
 
-    public void setSumConvert(BigDecimal sumConvert) {
+    public void setSumConvert(String sumConvert) {
         this.sumConvert = sumConvert;
     }
 }
