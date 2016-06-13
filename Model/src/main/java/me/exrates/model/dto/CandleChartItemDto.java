@@ -1,6 +1,7 @@
 package me.exrates.model.dto;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 /**
@@ -14,6 +15,8 @@ public class CandleChartItemDto {
     private BigDecimal lowRate;
     private BigDecimal highRate;
     private BigDecimal baseVolume;
+    private Timestamp beginDate;
+    private Timestamp endDate;
 
     /*getters setters*/
 
@@ -71,5 +74,21 @@ public class CandleChartItemDto {
 
     public void setBaseVolume(BigDecimal baseVolume) {
         this.baseVolume = baseVolume;
+    }
+
+    public Timestamp getBeginDate() {
+        return beginDate;
+    }
+
+    public void setBeginDate(Timestamp beginDate) {
+        this.beginDate = beginDate;
+    }
+
+    public Timestamp getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(Timestamp endDate) {
+        this.endDate = endDate;
     }
 }

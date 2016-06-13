@@ -15,7 +15,7 @@ public class News implements Cloneable{
     private String content;
     private String newsVariant;
 
-    @Override
+    /*@Override
     public String toString() {
         return "News{" +
                 "id=" + id +
@@ -26,7 +26,7 @@ public class News implements Cloneable{
                 ", content='" + content + '\'' +
                 ", newsVariant='" + newsVariant + '\'' +
                 '}';
-    }
+    }*/
 
     @Override
     public Object clone() throws CloneNotSupportedException {

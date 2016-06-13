@@ -1,7 +1,7 @@
-$(document).delegate('*[data-toggle="lightbox"]', 'click', function(event) {
+$(document).delegate('*[data-toggle="lightbox"]', 'click', function (event) {
     event.preventDefault();
     $(this).ekkoLightbox();
-    if ($(".delete_img").length !==0) {
+    if ($(".delete_img").length !== 0) {
         $(".delete_img").submit(function (e) {
             e.preventDefault();
             var array = $(this).serializeArray();
@@ -9,7 +9,7 @@ $(document).delegate('*[data-toggle="lightbox"]', 'click', function(event) {
             var path = array[1]['value'];
             var userId = array[2]['value'];
             promptDeleteDoc(id, path, userId);
-        });        
+        });
     }
 
     if ($('#usersTable').length !== 0) {
@@ -55,7 +55,7 @@ $(function () {
             $('.tab-pane:eq(' + idx + ')').addClass('active');
         }
     });
-    
+
     //Enable REGISTER button if pass == repass when entering repass
     /*Activates submit button if all field filled correct and capcha is passed
      * */
@@ -82,114 +82,192 @@ $(function () {
             $("#register_button").prop('disabled', true);
         }
     });
-
-    +function switchPairSelector() {
-        if ($('ul').is('.large-pair-selector')) {
-            $("#pair-selector").css('display', 'none');
-            $("#pair-selector-arrow").css('display', 'none');
-        }
-    }();
-
-    $("#pair-selector").click(function (e) {
-        e.preventDefault();
-        $('.pair-selector__menu').slideToggle();
-    });
-
-    +function initCurrencyPairData() {
-        getStatisticsForCurrency();
-    }();
-
-    //set 'click' handler for container because new '.pair-selector__menu-item' may be added
-    $(".pair-selector__menu").on('click', '.pair-selector__menu-item', function (e) {
-        $('.pair-selector__menu-item').removeClass('active');
-        $(this).addClass('active');
-        $('#pair-selector>div:first-child').text($(this).text());
-        getStatisticsForCurrency($(this).text());
-    });
-
-    $(".input-block-wrapper__input").prop("autocomplete","off");
-    $(".numericInputField").prop("autocomplete","off");
-    $(".numericInputField").keypress(
-        function (e) {
-            return e.charCode >= 48 && e.charCode <= 57 || e.charCode == 46 || e.charCode == 0
-        }
-    );
-
 });
 
-
-function getStatisticsForCurrency(pairName, period) {
-    var url = '/dashboard/changeCurrencyPair';
-    url = pairName ? url + '?currencyPairName=' + (pairName + '&') : (url + '?');
-    url = period ? url + 'period=' + period : url;
-    $.ajax({
-        url: url,
-        type: 'GET',
-
-        success: function (data) {
-            $('#lastOrderAmountBase>span:nth-child(2)').text(data.lastOrderAmountBase + ' ' + data.currencyPair.currency1.name);
-            $('#firstOrderRate>span:nth-child(2)').text(data.firstOrderRate + ' ' + data.currencyPair.currency2.name);
-            $('#lastOrderRate>span:nth-child(2)').text(data.lastOrderRate + ' ' + data.currencyPair.currency2.name);
-            $('#sumBase>span:nth-child(2)').text(data.sumBase + ' ' + data.currencyPair.currency1.name);
-            $('#sumConvert>span:nth-child(2)').text(data.sumConvert + ' ' + data.currencyPair.currency2.name);
-            if ($('#minRate').is('div')) {
-                $('#minRate>span').text(data.minRate + ' ' + data.currencyPair.currency2.name);
-                $('#maxRate>span').text(data.maxRate + ' ' + data.currencyPair.currency2.name);
-            }
-            //
-            if (!$('#pair-selector>div:first-child').text()) {
-                createPairSelectorMenu(data.currencyPair.name);
-            }
-            if (pairName) {
-                window.location.reload();
-            }
-        }
-    });
-}
-
-function createPairSelectorMenu(currencyPairName) {
-    $('.pair-selector__menu').empty();
-    $.ajax({
-        url: '/dashboard/createPairSelectorMenu',
-        type: 'GET',
-
-        success: function (data) {
-            data.forEach(function (e) {
-                if (e === currencyPairName) {
-                    $('.pair-selector__menu').append('<div class="pair-selector__menu-item active">' + e + '</div>');
-                    $('#pair-selector>div:first-child').text(e);
-                } else {
-                    $('.pair-selector__menu').append('<div class="pair-selector__menu-item">' + e + '</div>');
-                }
-            });
-        }
-    });
-}
-
-function setActivePeriodSwitcherButton(backDealInterval) {
-    var id = backDealInterval.intervalValue + backDealInterval.intervalType.toLowerCase();
-    $('.period-menu__item').removeClass('active');
-    $('#' + id).addClass('active');
-}
 
 function promptDeleteDoc(id, path, userId) {
     if (confirm($('#prompt_delete_rqst').html())) {
         var data = "fileId=" + id + "&path=" + path + "&userId=" + userId;
-        $.ajax('/admin/users/deleteUserFile',{
+        $.ajax('/admin/users/deleteUserFile', {
             headers: {
                 'X-CSRF-Token': $("input[name='_csrf']").val()
             },
             type: 'POST',
             dataType: 'json',
             data: data
-        }).done(function(result) {
+        }).done(function (result) {
             alert(result['success']);
             $('.modal').modal('hide');
             $('#_' + id).remove();
-        }).fail(function(error){
+        }).fail(function (error) {
             console.log(JSON.stringify(error));
             alert(error['responseJSON']['error'])
         });
     }
 }
+
+/**************************
+
+ **************************/
+var leftSider;
+var dashboard;
+var myWallets;
+var myHistory;
+var orders;
+/*for testing*/
+var REFRESH_INTERVAL_MULTIPLIER = 1;
+
+$(function init() {
+    try {
+        /* better in css - for more fluent
+        $('.graphic-wrapper').css({'min-height': '238px'});
+        */
+        /*FOR EVERYWHERE ... */
+        $(".input-block-wrapper__input").prop("autocomplete", "off");
+        $(".numericInputField").prop("autocomplete", "off");
+        $(".numericInputField").keypress(
+            function (e) {
+                return e.charCode >= 48 && e.charCode <= 57 || e.charCode == 46 || e.charCode == 0
+            }
+        );
+        /*... FOR EVERYWHERE*/
+
+        /*FOR HEADER...*/
+        $('#menu-traiding').on('click', function () {
+            dashboard.syncCurrencyPairSelector();
+            showPage('dashboard');
+            dashboard.updateAndShowAll();
+        });
+        $('#menu-mywallets').on('click', function () {
+            showPage('balance-page');
+            myWallets.getAndShowMyWalletsData();
+        });
+        $('#menu-myhistory').on('click', function () {
+            showPage('myhistory');
+            myHistory.updateAndShowAll();
+        });
+        $('#menu-orders').on('click', function () {
+            orders.syncCurrencyPairSelector();
+            showPage('orders');
+            orders.updateAndShowAll();
+        });
+        /*...FOR HEADER*/
+
+        /*FOR LEFT-SIDER ...*/
+        leftSider = new LeftSiderClass();
+        /*...FOR LEFT-SIDER*/
+
+        /*FOR CENTER ON START UP ...*/
+        syncCurrentParams(null, null, null, function (data) {
+            dashboard = new DashboardClass(data.period, data.chartType, data.currencyPair.name);
+            myWallets = new MyWalletsClass();
+            myHistory = new MyHistoryClass(data.currencyPair.name);
+            orders = new OrdersClass(data.currencyPair.name);
+        });
+        /*...FOR CENTER ON START UP*/
+
+        /*FOR RIGHT-SIDER ...*/
+
+        /*...FOR RIGHT-SIDER*/
+    } catch (e) {
+        /*it's need for ignoring error from old interface*/
+    }
+});
+
+function showPage(pageId) {
+    if (!pageId) {
+        return;
+    }
+    $('.center-frame-container').addClass('hidden');
+    $('#' + pageId).removeClass('hidden');
+}
+
+function syncCurrentParams(currencyPairName, period, chart, callback) {
+    var url = '/dashboard/currentParams?';
+    /*if parameter is empty, in response will be retrieved current value is set or default if non*/
+    url = url + (currencyPairName ? '&currencyPairName=' + currencyPairName : '');
+    url = url + (period ? '&period=' + period : '');
+    url = url + (chart ? '&chart=' + chart : '');
+    $.ajax({
+        url: url,
+        type: 'GET',
+        success: function (data) {
+            /*sets currencyBaseName for all pages*/
+            $('.currencyBaseName').text(data.currencyPair.currency1.name);
+            $('.currencyConvertName').text(data.currencyPair.currency2.name);
+            /**/
+            if (callback) {
+                callback(data);
+            }
+        }
+    });
+}
+
+function syncTableParams(tableId, limit, callback) {
+    var url = '/dashboard/tableParams/' + tableId + '?';
+    /*if parameter is empty, in response will be retrieved current value is set or default if non*/
+    url = url + (limit ? '&limit=' + limit : '');
+    $.ajax({
+        url: url,
+        type: 'GET',
+        success: function (data) {
+            if (callback) {
+                callback(data);
+            }
+        }
+    });
+}
+
+function parseNumber(numberStr) {
+    /*ATTENTION: this func wil by work correctly if number always has decimal separator
+     * for this reason we use BigDecimalProcessing.formatLocale(rs.getBigDecimal("some value"), locale, 2)
+     * which makes 1000.00 from 1000 or 1000.00000
+     * or we can use igDecimalProcessing.formatLocale(rs.getBigDecimal("some value"), locale, true)*/
+    if (numberStr.search(/\,.*\..*/) != -1) {
+        /*100,000.12 -> 100000.12*/
+        numberStr = numberStr.replace(/\,/g, '');
+    } else if (numberStr.search(/\..*\,.*/) != -1) {
+        /*100.000,12 -> 100000.12*/
+        numberStr = numberStr.replace(/\./g, '').replace(/\,/g, '.');
+    } else if (numberStr.search(/\s.*\..*/) != -1) {
+        /*100 000.12 -> 100000.12*/
+        numberStr = numberStr.replace(/\s/g, '');
+    } else if (numberStr.search(/\s.*\,.*/) != -1) {
+        /*100 000,12 -> 100000.12*/
+        numberStr = numberStr.replace(/\s/g, '').replace(/\,/g, '.');
+    }
+    numberStr = numberStr.replace(/\s/g, '').replace(/\,/g, '.');
+    return parseFloat(numberStr);
+}
+
+function blink($element) {
+    $element.addClass('blink');
+    setTimeout(function () {
+        $element.removeClass('blink');
+    }, 250);
+}
+
+
+/*$(function news(){
+    var $newsContentPlace = $('#newstopic');
+    var url = '/news/2015/MAY/27/48/newstopic.html';
+    //var url = '/news/2015/MAY/27/48/newstopic';
+    *//*$.ajax({
+        url: url,
+        type: 'GET',
+       *//**//* headers: {
+            Accept : "application/json; charset=utf-8",
+            "Content-Type": "application/json; charset=utf-8"
+        },
+        contentType: "application/json; charset=utf-8",*//**//*
+
+        success: function (data) {
+
+            $newsContentPlace.append(data.content);
+            //$newsContentPlace.append(data);
+        }
+    });*//*
+    $newsContentPlace.load(url);
+});*/
+
 

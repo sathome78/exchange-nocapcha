@@ -140,7 +140,8 @@ public class BigDecimalProcessing {
      * with <b>No</b> group separator and <b>Point</b> as decimal separator
      * with trailing zeros if trailingZeros is "true" or without if "false"
      *
-     * @param bigDecimal value to convert
+     * @param bigDecimal    value to convert
+     * @param trailingZeros determines if trailing zeros will be added
      * @return string ov value or "0" if value is null
      * 67553.116000000 => 67553.116 or 67553.116000000 (depending on trailingZeros)
      */
@@ -158,9 +159,10 @@ public class BigDecimalProcessing {
      * Returns String converted from BigDecimal value by formatNonePoint method
      * but result is quoted
      *
-     * @param bigDecimal value to convert
+     * @param bigDecimal    value to convert
+     * @param trailingZeros determines if trailing zeros will be added
+     *                      67553.116000000 => "67553.116" or "67553.116000000" (depending on trailingZeros)
      * @return string ov value or "0" if value is null
-     * 67553.116000000 => "67553.116" or "67553.116000000" (depending on trailingZeros)
      */
     public static String formatNonePointQuoted(BigDecimal bigDecimal, boolean trailingZeros) {
         return toQuoted(formatNonePoint(bigDecimal, trailingZeros));
@@ -169,16 +171,41 @@ public class BigDecimalProcessing {
     /**
      * Returns String converted from BigDecimal value
      * with group and decimal separators according to locale
-     * without trailing zeros
+     * with trailing zeros if trailingZeros is "true" or without if "false"
      *
-     * @param bigDecimal value to convert
-     * @param locale     to convert format
-     * @return string ov value or "0" if value is null
+     * @param bigDecimal    value to convert
+     * @param locale        to convert format
+     * @param trailingZeros determines if trailing zeros will be added
+     * @return string of value or "0" if value is null
      * - ru: 67553.116000000 => 67 553,116 or 67 553,116000000 (depending on trailingZeros)
      * - en: 67553.116000000 => 67,553.116 or 67,553.116000000 (depending on trailingZeros)
      */
-    public static String formatLocale(BigDecimal bigDecimal, Locale locale, boolean trailingZero) {
-        DecimalFormat df = new DecimalFormat(trailingZero ? PATTERN : PATTERN_SHORT);
+    public static String formatLocale(BigDecimal bigDecimal, Locale locale, boolean trailingZeros) {
+        DecimalFormat df = new DecimalFormat(trailingZeros ? PATTERN : PATTERN_SHORT);
+        DecimalFormatSymbols dfs = new DecimalFormatSymbols(locale);
+        df.setDecimalFormatSymbols(dfs);
+        return df.format(bigDecimal == null ? BigDecimal.ZERO : bigDecimal);
+    }
+
+    /**
+     * Returns String converted from BigDecimal value
+     * with group and decimal separators according to locale
+     * with trailing zeros length of max <b>minDecimalPlace<b/> and max <b>SCALE<b/>
+     *
+     * @param bigDecimal      value to convert
+     * @param locale          to convert format
+     * @param minDecimalPlace determines the minimal trailing zeros that will be added
+     * @return string of value or "0" if value is null
+     * Examples for the minDecimalPlace equals 3 and the locale equals "ru"
+     * - ru: 67553 => 67 553,000
+     * - ru: 67553.1234 => 67 553,1234
+     * - ru: 67553.1234567895 => 67 553,1345679
+     */
+    public static String formatLocale(BigDecimal bigDecimal, Locale locale, Integer minDecimalPlace) {
+        minDecimalPlace = Math.min(minDecimalPlace, SCALE);
+        DecimalFormat df = new DecimalFormat("###,##0." +
+                new String(new char[minDecimalPlace]).replace("\0", "0") +
+                new String(new char[SCALE - minDecimalPlace]).replace("\0", "#"));
         DecimalFormatSymbols dfs = new DecimalFormatSymbols(locale);
         df.setDecimalFormatSymbols(dfs);
         return df.format(bigDecimal == null ? BigDecimal.ZERO : bigDecimal);

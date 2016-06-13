@@ -75,7 +75,11 @@ public class UserDaoImpl implements UserDao {
         String sql = "SELECT id FROM USER WHERE email = :email";
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("email", email);
-        return jdbcTemplate.queryForObject(sql, namedParameters, Integer.class);
+        try {
+            return jdbcTemplate.queryForObject(sql, namedParameters, Integer.class);
+        } catch (EmptyResultDataAccessException e){
+            return 0;
+        }
     }
 
     public boolean create(User user) {

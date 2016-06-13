@@ -35,7 +35,7 @@ READS SQL DATA
     IF (interval_type = 'HOUR') THEN
       SELECT DATE_SUB(end_point, INTERVAL interval_value HOUR) INTO start_point;
       IF (interval_value = 12) THEN
-        SET step_value = 10;
+        SET step_value = 20;
         SET step_type = 'MINUTE';
 /*FOR TEST ... */
 /*SET step_value = 1;*/

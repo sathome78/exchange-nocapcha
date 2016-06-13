@@ -46,7 +46,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public LoginSuccessHandler loginSuccessHandler() {
-        return new LoginSuccessHandler("/mywallets");
+        return new LoginSuccessHandler("/dashboard");
     }
 
     @Bean
@@ -121,7 +121,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, "/merchants/edrcoin/payment/received").permitAll()
                 .antMatchers(HttpMethod.GET, "/merchants/blockchain/payment/received").permitAll()
                 .antMatchers(HttpMethod.GET, "/public/**").permitAll()
-                .antMatchers(HttpMethod.GET, "/news/**").authenticated()
+                .antMatchers(HttpMethod.GET, "/news/**").permitAll()
+                .antMatchers("/stickyImg").permitAll()
+                .antMatchers("/simpleCaptcha").permitAll()
+                .antMatchers("/botdetectcaptcha").permitAll()
+                .antMatchers(HttpMethod.POST, "/captchaSubmit").permitAll()
                 .antMatchers(HttpMethod.POST, "/news/addNewsVariant").authenticated()
                 .antMatchers("/yandex_4b3a16d69d4869cb.html").permitAll()
                 .antMatchers("/yandex_7a3c41ddb19f4716.html").permitAll()
