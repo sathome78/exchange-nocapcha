@@ -1,6 +1,8 @@
 package me.exrates.dao;
 
 import me.exrates.model.Wallet;
+import me.exrates.model.dto.MyWalletsDetailedDto;
+import me.exrates.model.dto.MyWalletsStatisticsDto;
 import me.exrates.model.dto.UserWalletSummaryDto;
 import me.exrates.model.dto.WalletsForOrderAcceptionDto;
 import me.exrates.model.enums.TransactionSourceType;
@@ -9,6 +11,7 @@ import me.exrates.model.vo.WalletOperationData;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Locale;
 
 public interface WalletDao {
 
@@ -23,6 +26,10 @@ public interface WalletDao {
     int getUserIdFromWallet(int walletId);
 
     List<Wallet> findAllByUser(int userId);
+
+    List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, Locale locale);
+
+    List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale);
 
     Wallet findByUserAndCurrency(int userId, int currencyId);
 

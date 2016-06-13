@@ -1,9 +1,13 @@
 package me.exrates.controller;
 
+import me.exrates.controller.exception.AbsentFinPasswordException;
+import me.exrates.controller.exception.NotConfirmedFinPasswordException;
 import me.exrates.controller.exception.NotCreateUserException;
+import me.exrates.controller.exception.WrongFinPasswordException;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.User;
 import me.exrates.model.dto.OperationViewDto;
+import me.exrates.model.enums.TokenType;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.ReferralService;
 import me.exrates.service.TransactionService;
@@ -15,6 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
@@ -98,7 +103,11 @@ public class MainController {
                 }
             }
         }
-        user.setParentEmail(userService.getCommonReferralRoot().getEmail());
+        //TODO for Denis
+        User refferalRoot = userService.getCommonReferralRoot();
+        if (refferalRoot != null) {
+            user.setParentEmail(refferalRoot.getEmail());
+        }
         return mav;
     }
 
@@ -145,7 +154,10 @@ public class MainController {
             if (flag) {
                 final int child = userService.getIdByEmail(user.getEmail());
                 final int parent = userService.getIdByEmail(user.getParentEmail());
-                referralService.bindChildAndParent(child, parent);
+                //TODO for Denis
+                if (child>0 && parent>0) {
+                    referralService.bindChildAndParent(child, parent);
+                }
                 ModelAndView modelAndView = new ModelAndView("redirect:/dashboard");
                 modelAndView.addObject("successNoty", messageSource.getMessage("register.sendletter", null, localeResolver.resolveLocale(request)));
                 return  modelAndView;
@@ -224,5 +236,27 @@ public class MainController {
         modelAndView.addObject("telephone", telephone);
         modelAndView.addObject("email", email);
         return modelAndView;
+    }
+
+    /*CHECK FIN PASSWORD*/
+
+    @RequestMapping(value = "/checkfinpass", method = RequestMethod.POST)
+    @ResponseBody
+    public void checkFinPassword(User user, HttpServletRequest request) {
+        String enteredFinPassword = user.getFinpassword();
+        User storedUser = userService.getUserById(userService.getIdByEmail(user.getEmail()));
+        boolean isNotConfirmedToken = userService.getTokenByUserAndType(storedUser, TokenType.CHANGE_FIN_PASSWORD).size() > 0;
+        if (isNotConfirmedToken) {
+            throw new NotConfirmedFinPasswordException(messageSource.getMessage("admin.notconfirmedfinpassword", null, localeResolver.resolveLocale(request)));
+        }
+        String currentFinPassword = storedUser.getFinpassword();
+        if (currentFinPassword == null || currentFinPassword.isEmpty()) {
+            throw new AbsentFinPasswordException(messageSource.getMessage("admin.absentfinpassword", null, localeResolver.resolveLocale(request)));
+        }
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        boolean authSuccess = passwordEncoder.matches(enteredFinPassword, currentFinPassword);
+        if (!authSuccess) {
+            throw new WrongFinPasswordException(messageSource.getMessage("admin.wrongfinpassword", null, localeResolver.resolveLocale(request)));
+        }
     }
 }

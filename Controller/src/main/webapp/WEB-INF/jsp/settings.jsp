@@ -42,7 +42,6 @@
 <%@include file='header_new.jsp' %>
 
 <main class="container orders_new transaction my_orders orders">
-    <%@include file='exchange_info_new.jsp' %>
     <div class="row">
         <%@include file='usermenu_new.jsp' %>
 
@@ -262,7 +261,7 @@
     </div>
     <hr/>
 </main>
-<%@include file='footer_new.jsp' %>
+<%@include file='fragments/footer.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>
 </body>

@@ -26,14 +26,6 @@ public class WalletController {
     @Autowired
     CompanyWalletService companyWalletService;
 
-    @RequestMapping("/mywallets")
-    public ModelAndView viewMyWallets(Principal principal) {
-        String email = principal.getName();
-        int userId = userService.getIdByEmail(email);
-        List<Wallet> walletList = walletService.getAllWallets(userId);
-        return new ModelAndView("mywallets", "walletList", walletList);
-    }
-
     @RequestMapping("/companywallet")
     public ModelAndView showCompanyWalletForTesting() {
         List<CompanyWallet> companyWalletList = companyWalletService.getCompanyWallets();

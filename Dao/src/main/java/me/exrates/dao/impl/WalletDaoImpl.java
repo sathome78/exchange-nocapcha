@@ -3,11 +3,10 @@ package me.exrates.dao.impl;
 import me.exrates.dao.CommissionDao;
 import me.exrates.dao.TransactionDao;
 import me.exrates.dao.WalletDao;
-import me.exrates.model.Commission;
-import me.exrates.model.CompanyWallet;
+import me.exrates.model.*;
 import me.exrates.model.Currency;
-import me.exrates.model.Transaction;
-import me.exrates.model.Wallet;
+import me.exrates.model.dto.MyWalletsDetailedDto;
+import me.exrates.model.dto.MyWalletsStatisticsDto;
 import me.exrates.model.dto.UserWalletSummaryDto;
 import me.exrates.model.dto.WalletsForOrderAcceptionDto;
 import me.exrates.model.enums.ActionType;
@@ -31,24 +30,18 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Repository
 public class WalletDaoImpl implements WalletDao {
 
+    private static final Logger LOG = LogManager.getLogger(WalletDaoImpl.class);
     @Autowired
     private CommissionDao commissionDao;
-
     @Autowired
     private TransactionDao transactionDao;
-
     @Autowired
     private NamedParameterJdbcTemplate jdbcTemplate;
-
-    private static final Logger LOG = LogManager.getLogger(WalletDaoImpl.class);
 
     public BigDecimal getWalletABalance(int walletId) {
         if (walletId == 0) {
@@ -113,6 +106,74 @@ public class WalletDaoImpl implements WalletDao {
             }
         };
         return jdbcTemplate.query(sql, params, new BeanPropertyRowMapper<>(Wallet.class));
+    }
+
+    @Override
+    public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale) {
+        final String sql =
+                " SELECT CURRENCY.name, WALLET.active_balance " +
+                        " FROM USER " +
+                        "   JOIN WALLET ON (WALLET.user_id = USER.id) " +
+                        "   LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
+                        " WHERE USER.email = :email ";
+        final Map<String, String> params = new HashMap<String, String>() {{
+            put("email", email);
+        }};
+        return jdbcTemplate.query(sql, params, new RowMapper<MyWalletsStatisticsDto>() {
+            @Override
+            public MyWalletsStatisticsDto mapRow(ResultSet rs, int rowNum) throws SQLException {
+                MyWalletsStatisticsDto myWalletsStatisticsDto = new MyWalletsStatisticsDto();
+                myWalletsStatisticsDto.setCurrencyName(rs.getString("name"));
+                myWalletsStatisticsDto.setActiveBalance(BigDecimalProcessing.formatLocale(rs.getBigDecimal("active_balance"), locale, true));
+                return myWalletsStatisticsDto;
+            }
+        });
+    }
+
+    @Override
+    public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, Locale locale) {
+        final String sql =
+                " SELECT wallet_id, currency_name, active_balance, reserved_balance, SUM(amount_base+amount_convert+commission_fixed_amount) AS reserved_balance_by_orders " +
+                        " FROM " +
+                        " ( " +
+                        " SELECT WALLET.id AS wallet_id, CURRENCY.name AS currency_name, WALLET.active_balance AS active_balance, WALLET.reserved_balance AS reserved_balance,   " +
+                        " IFNULL(SELL.amount_base,0) as amount_base, 0 as amount_convert, 0 AS commission_fixed_amount " +
+                        " FROM USER " +
+                        " JOIN WALLET ON (WALLET.user_id = USER.id)  " +
+                        " LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
+                        " LEFT JOIN CURRENCY_PAIR CP1 ON (CP1.currency1_id = WALLET.currency_id) " +
+                        " LEFT JOIN EXORDERS SELL ON (SELL.operation_type_id=3) AND (SELL.user_id=USER.id) AND (SELL.currency_pair_id = CP1.id) AND (SELL.status_id = 2) " +
+                        " WHERE USER.email =  'user@user.com' " +
+                        "  " +
+                        " UNION ALL " +
+                        "  " +
+                        " SELECT WALLET.id, CURRENCY.name, WALLET.active_balance, WALLET.reserved_balance,   " +
+                        " 0, IFNULL(BUY.amount_convert,0), IFNULL(BUY.commission_fixed_amount,0) " +
+                        " FROM USER " +
+                        " JOIN WALLET ON (WALLET.user_id = USER.id)  " +
+                        " LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
+                        " LEFT JOIN CURRENCY_PAIR CP2 ON (CP2.currency2_id = WALLET.currency_id) " +
+                        " LEFT JOIN EXORDERS BUY ON (BUY.operation_type_id=4) AND (BUY.user_id=USER.id) AND (BUY.currency_pair_id = CP2.id) AND (BUY.status_id = 2) " +
+                        " WHERE USER.email =  'user@user.com' " +
+                        " ) W " +
+                        " GROUP BY currency_name, active_balance, reserved_balance";
+        final Map<String, String> params = new HashMap<String, String>() {{
+            put("email", email);
+        }};
+        return jdbcTemplate.query(sql, params, new RowMapper<MyWalletsDetailedDto>() {
+            @Override
+            public MyWalletsDetailedDto mapRow(ResultSet rs, int rowNum) throws SQLException {
+                MyWalletsDetailedDto myWalletsDetailedDto = new MyWalletsDetailedDto();
+                myWalletsDetailedDto.setId(rs.getInt("wallet_id"));
+                myWalletsDetailedDto.setCurrencyName(rs.getString("currency_name"));
+                myWalletsDetailedDto.setActiveBalance(BigDecimalProcessing.formatLocale(rs.getBigDecimal("active_balance"), locale, 2));
+                myWalletsDetailedDto.setOnConfirmation(BigDecimalProcessing.formatLocale(BigDecimal.ZERO, locale, 2));
+                myWalletsDetailedDto.setReservedBalance(BigDecimalProcessing.formatLocale(rs.getBigDecimal("reserved_balance"), locale, 2));
+                myWalletsDetailedDto.setReservedByOrders(BigDecimalProcessing.formatLocale(rs.getBigDecimal("reserved_balance_by_orders"), locale, 2));
+                myWalletsDetailedDto.setReservedByMerchant(BigDecimalProcessing.formatLocale(BigDecimal.ZERO, locale, 2));
+                return myWalletsDetailedDto;
+            }
+        });
     }
 
     @Override

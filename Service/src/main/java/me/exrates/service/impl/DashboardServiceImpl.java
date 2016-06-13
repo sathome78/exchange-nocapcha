@@ -5,6 +5,7 @@ import me.exrates.dao.OrderDao;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.CandleChartItemDto;
 import me.exrates.model.dto.ExOrderStatisticsDto;
+import me.exrates.model.dto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.OrderListDto;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.service.DashboardService;
@@ -28,33 +29,9 @@ public class DashboardServiceImpl implements DashboardService {
     OrderDao orderDao;
 
     @Override
-    public List<OrderListDto> getAllBuyOrders(CurrencyPair currencyPair) {
-        return orderDao.getOrdersBuyForCurrencyPair(currencyPair);
-    }
-
-    @Override
-    public List<OrderListDto> getAllSellOrders(CurrencyPair currencyPair) {
-        return orderDao.getOrdersSellForCurrencyPair(currencyPair);
-    }
-
-    @Override
-    public List<Map<String, Object>> getDataForAreaChart(CurrencyPair currencyPair, BackDealInterval interval) {
-        return orderDao.getDataForAreaChart(currencyPair, interval);
-    }
-
-    @Override
-    public List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval interval) {
-        return orderDao.getDataForCandleChart(currencyPair, interval);
-    }
-
-    @Override
     public BigDecimal getBalanceByCurrency(int userId, int currencyId) {
+        logger.info("Begin 'getBalanceByCurrency' method");
         return dashboardDao.getBalanceByCurrency(userId, currencyId);
-    }
-
-    @Override
-    public ExOrderStatisticsDto getOrderStatistic(CurrencyPair currencyPair, BackDealInterval backDealInterval) {
-        return orderDao.getOrderStatistic(currencyPair, backDealInterval);
     }
 
 }

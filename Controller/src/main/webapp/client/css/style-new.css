@@ -720,6 +720,7 @@ footer p {
 			10. Register
 ****************************************/
 
+/*
 #register {
     min-width: 320px;
 }
@@ -782,7 +783,7 @@ footer p {
 
 .register form button:disabled {
     color: #777;
-}
+}*/
 
 @media only screen and (max-width: 990px) {
     .register hr {
@@ -1600,7 +1601,7 @@ form#command.submit-order-form button {
     position: relative;
 }
 
-#pair-selector {
+/*#pair-selector {
     background-color: #7d3320;
     margin: 0;
     width: 10%;
@@ -1660,7 +1661,7 @@ form#command.submit-order-form button {
 #pair-selector .pair-selector__menu-item.active {
     background: #6b1d0c;
     color: white;
-}
+}*/
 
 .paymentInfo {
     font-size: 1.3em;

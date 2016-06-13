@@ -1,8 +1,10 @@
 package me.exrates.service;
 
+import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.dto.*;
+import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.vo.BackDealInterval;
 
@@ -22,17 +24,26 @@ public interface OrderService {
      */
     int createOrder(OrderCreateDto order);
 
-    /**
-     * Returns TWO list the information of user orders: BUY and SELL.
-     * These lists used for display user's orders on the MyOrders page
-     *
-     * @param email        used for identifacation the user
-     * @param currencyPair is the current currency pair for which orders will be included in the MyOrders lists.
-     *                     For all currency pairs if null
-     * @param locale       is current locale. It's nessary to desplay title of order status
-     * @return map of two list of user's orders with keys "sell" and "buy"
+     /**
+     * TODO ADD JAVADOC
      */
-    Map<String, List<OrderWideListDto>> getMyOrders(String email, CurrencyPair currencyPair, Locale locale);
+    List<OrderWideListDto> getMyOrdersWithState(
+            String email, CurrencyPair currencyPair, OrderStatus status,
+            OperationType operationType,
+            Integer offset, Integer limit, Locale locale);
+
+    /**
+     * TODO ADD JAVADOC
+     */
+    public OrderCreateDto getMyOrderById(int orderId);
+
+    /**
+     * TODO ADD JAVADOC
+     */
+    List<OrderWideListDto> getOrdersForAccept(
+            String email, CurrencyPair currencyPair,
+            OperationType operationType,
+            Integer offset, Integer limit, Locale locale);
 
     /**
      * Returns entity ExOrder by its ID
@@ -50,6 +61,18 @@ public interface OrderService {
      * @return
      */
     boolean setStatus(int orderId, OrderStatus status);
+
+    /**
+     * Accepts the list of orders
+     * The method <b>acceptOrdersList</b> is used to accept each orders from <b>ordersList</b>
+     * Before the method <b>acceptOrdersList</b will be called, this method tries to lock the <b>ordersList</b>
+     * If not success lock, the OrderAcceptionException will be thrown.
+     *
+     * @param userAcceptorId  is ID of acceptor-user
+     * @param ordersList is list the ID of order that must be accepted
+     * @param locale  is current locale. Used to generate messages
+     */
+    void acceptOrdersList(int userAcceptorId, List<Integer> ordersList, Locale locale);
 
     /**
      * Accepts the order
@@ -75,24 +98,6 @@ public interface OrderService {
      * @return "true" if the order can be cancelled and has been cancelled successfully, "false" in other cases
      */
     boolean cancellOrder(ExOrder exOrder, Locale locale);
-
-    /**
-     * Returns list all orders with type "SELL" and status "OPENED"
-     *
-     * @param currencyPair is the current currency pair for which orders will be included in the list.
-     *                     For all currency pairs if null
-     * @return list the OrderListDto for all orders with type "SELL" and status "OPENED"
-     */
-    List<OrderListDto> getOrdersSell(CurrencyPair currencyPair);
-
-    /**
-     * Returns list all orders with type "BUY" and status "OPENED"
-     *
-     * @param currencyPair is the current currency pair for which orders will be included in the list.
-     *                     For all currency pairs if null
-     * @return list the OrderListDto for all orders with type "BUY" and status "OPENED"
-     */
-    List<OrderListDto> getOrdersBuy(CurrencyPair currencyPair);
 
     /**
      * Updates order's fields:
@@ -150,4 +155,85 @@ public interface OrderService {
      * @return ID the found order, or -1 if order with the parameters has not be found
      */
     Integer searchOrderByAdmin(Integer currencyPair, String orderType, String orderDate, BigDecimal orderRate, BigDecimal orderVolume);
+
+    /**
+     * Returns object that contains data with statistics of orders for currencyPair.
+     * Statistics formed by data for certain period: from current moment to <i></>backDealInterval</i> back
+     * @author ValkSam
+     * @param currencyPair
+     * @param backDealInterval is the length of interval
+     * @return statistics of orders for currencyPair
+     */
+    ExOrderStatisticsDto getOrderStatistic(CurrencyPair currencyPair, BackDealInterval backDealInterval, Locale locale);
+
+    /**
+     * Returns statistics of orders by currency pairs.
+     * Statistics contains last and pred last rates for each currency pair
+     * @author ValkSam
+     * @return statistics of orders by currency pairs
+     */
+    List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairs(Locale locale);
+
+    /**
+     * Returns data for candle chart for <i>currencyPair</i> for for period: from current moment to <i></>interval</i> back
+     * @author ValkSam
+     * @param currencyPair
+     * @param interval
+     * @return data for candle chart
+     */
+    List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval interval);
+
+    /**
+     * Returns data for area type chart for <i>currencyPair</i> for for period: from current moment to <i></>interval</i> back
+     * @author ValkSam
+     * @param currencyPair
+     * @param interval
+     * @return data for area chart
+     */
+    List<Map<String, Object>> getDataForAreaChart(CurrencyPair currencyPair, BackDealInterval interval);
+
+    /**
+     * Returns data for the history of accepted orders
+     * @param backDealInterval
+     * @param limit
+     * @param locale
+     * @return
+     */
+    List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriod(BackDealInterval backDealInterval, Integer limit, CurrencyPair currencyPair, Locale locale);
+
+    /**
+     * Returns SELL and BUY commissions for orders
+     * @return
+     */
+    OrderCommissionsDto getCommissionForOrder();
+
+    /**
+     * Returns list of Buy orders of status open
+     * @param currencyPair
+     * @param email is the email of current user
+     * @return list of Buy orders
+     */
+    List<OrderListDto> getAllBuyOrders(CurrencyPair currencyPair, String email, Locale locale);
+
+    /**
+     * Returns list of Sell orders of status open, exclude the orders of current user
+     * @param currencyPair
+     * @param email is the email of current user
+     * @return list of Sell orders
+     */
+    List<OrderListDto> getAllSellOrders(CurrencyPair currencyPair, String email, Locale locale);
+
+    /**
+     * Returns data of
+     * - userId by email,
+     * - wallet by currency id
+     * - commission by operation type
+     * Used for creation order with corresponding parameters
+     * @param email
+     * @param currency
+     * @param operationType
+     * @return
+     */
+    WalletsAndCommissionsForOrderCreationDto getWalletAndCommission(String email, Currency currency,
+                                                                           OperationType operationType);
 }

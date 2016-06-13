@@ -39,7 +39,6 @@
 <%@include file='header_new.jsp' %>
 
 <main class="container orders_new output">
-    <%@include file='exchange_info_new.jsp' %>
     <div class="row">
         <%@include file='usermenu_new.jsp' %>
 
@@ -91,7 +90,7 @@
     <hr>
 </main>
 
-<%@include file='footer_new.jsp' %>
+<%@include file='fragments/footer.jsp' %>
 
 <%--MODAL ... --%>
 <div class="modal fade merchant-input" id="myModal">
