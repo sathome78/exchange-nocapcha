@@ -19,6 +19,8 @@ public interface CompanyWalletService {
 
     void withdraw(CompanyWallet companyWallet, BigDecimal amount, BigDecimal commissionAmount);
 
+    void withdrawReservedBalance(CompanyWallet companyWallet, BigDecimal amount);
+
     void deposit(CompanyWallet companyWallet, BigDecimal amount, BigDecimal commissionAmount);
 
     CompanyWallet findByWalletId(int walletId);

@@ -3,21 +3,13 @@ package me.exrates.service.impl;
 import me.exrates.dao.ReferralLevelDao;
 import me.exrates.dao.ReferralTransactionDao;
 import me.exrates.dao.ReferralUserGraphDao;
-import me.exrates.model.Commission;
-import me.exrates.model.ExOrder;
-import me.exrates.model.ReferralLevel;
-import me.exrates.model.ReferralTransaction;
-import me.exrates.model.User;
-import me.exrates.model.Wallet;
+import me.exrates.model.*;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.WalletOperationData;
-import me.exrates.service.CommissionService;
-import me.exrates.service.ReferralService;
-import me.exrates.service.UserService;
-import me.exrates.service.WalletService;
+import me.exrates.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -56,6 +48,7 @@ public class ReferralServiceImpl implements ReferralService {
     private final WalletService walletService;
     private final UserService userService;
     private final Commission commission;
+    private final CompanyWalletService companyWalletService;
 
     /**
      * Maximum amount of percents
@@ -68,7 +61,8 @@ public class ReferralServiceImpl implements ReferralService {
                                final ReferralTransactionDao referralTransactionDao,
                                final WalletService walletService,
                                final UserService userService,
-                               final CommissionService commissionService)
+                               final CommissionService commissionService,
+                               final CompanyWalletService companyWalletService)
     {
         this.referralLevelDao = referralLevelDao;
         this.referralUserGraphDao = referralUserGraphDao;
@@ -76,6 +70,7 @@ public class ReferralServiceImpl implements ReferralService {
         this.walletService = walletService;
         this.userService = userService;
         this.commission = commissionService.findCommissionByType(REFERRAL);
+        this.companyWalletService = companyWalletService;
     }
 
     /**
@@ -108,8 +103,9 @@ public class ReferralServiceImpl implements ReferralService {
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
-    public void processReferral(final ExOrder exOrder, final BigDecimal commissionAmount, int currencyId, int userId) {
+    public void processReferral(final ExOrder exOrder, final BigDecimal commissionAmount, Currency currency, int userId) {
         final List<ReferralLevel> levels = referralLevelDao.findAll();
+        CompanyWallet cWallet = companyWalletService.findByCurrency(currency);
         Integer parent = null;
         for (ReferralLevel level : levels) {
             if (parent == null) {
@@ -123,11 +119,11 @@ public class ReferralServiceImpl implements ReferralService {
                 referralTransaction.setReferralLevel(level);
                 referralTransaction.setUserId(parent);
                 referralTransaction.setInitiatorId(userId);
-                int walletId = walletService.getWalletId(parent, currencyId); // Mutable variable
+                int walletId = walletService.getWalletId(parent, currency.getId()); // Mutable variable
                 if (walletId == 0) { // Wallet is absent, creating new wallet
                     final Wallet wallet = new Wallet();
                     wallet.setActiveBalance(ZERO);
-                    wallet.setCurrencyId(currencyId);
+                    wallet.setCurrencyId(currency.getId());
                     wallet.setUserId(parent);
                     wallet.setReservedBalance(ZERO);
                     walletId = walletService.createNewWallet(wallet); // Changing mutable variable state
@@ -144,6 +140,7 @@ public class ReferralServiceImpl implements ReferralService {
                 wod.setSourceType(TransactionSourceType.REFERRAL);
                 wod.setSourceId(createdRefTransaction.getId());
                 walletService.walletBalanceChange(wod);
+                companyWalletService.withdrawReservedBalance(cWallet, amount);
             } else {
                 break;
             }

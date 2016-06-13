@@ -3,6 +3,8 @@ package me.exrates.service.impl;
 import me.exrates.dao.CompanyWalletDao;
 import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
+import me.exrates.model.enums.ActionType;
+import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.CompanyWalletService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
@@ -17,6 +19,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
+
+import static me.exrates.model.enums.ActionType.*;
+import static me.exrates.model.util.BigDecimalProcessing.*;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -85,6 +91,19 @@ public class CompanyWalletServiceImpl implements CompanyWalletService {
         }
         companyWallet.setBalance(newBalance);
         companyWallet.setCommissionBalance(newCommissionBalance);
+        if (!companyWalletDao.update(companyWallet)) {
+            throw new WalletPersistException("Failed withdraw on company wallet " + companyWallet.toString());
+        }
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.NESTED)
+    public void withdrawReservedBalance(CompanyWallet companyWallet, BigDecimal amount) {
+        BigDecimal newReservedBalance = doAction(companyWallet.getCommissionBalance(), amount, SUBTRACT);
+        if (newReservedBalance.compareTo(BigDecimal.ZERO) < 0) {
+            throw new NotEnoughUserWalletMoneyException("POTENTIAL HACKING! Not enough money on Company Account for operation!" + companyWallet.toString());
+        }
+        companyWallet.setCommissionBalance(newReservedBalance);
         if (!companyWalletDao.update(companyWallet)) {
             throw new WalletPersistException("Failed withdraw on company wallet " + companyWallet.toString());
         }

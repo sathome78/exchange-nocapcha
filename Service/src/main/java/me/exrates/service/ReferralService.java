@@ -1,5 +1,6 @@
 package me.exrates.service;
 
+import me.exrates.model.Currency;
 import me.exrates.model.ExOrder;
 import me.exrates.model.ReferralLevel;
 import me.exrates.model.ReferralTransaction;
@@ -17,7 +18,7 @@ public interface ReferralService {
 
     Optional<Integer> reduceReferralRef(String ref);
 
-    void processReferral(ExOrder exOrder, final BigDecimal commissionAmount, int currencyId, int userId);
+    void processReferral(ExOrder exOrder, final BigDecimal commissionAmount, Currency currency, int userId);
 
     List<ReferralTransaction> findAll(int userId);
 
