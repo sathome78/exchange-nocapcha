@@ -42,7 +42,6 @@ public class YandexKassaServiceImpl implements YandexKassaService {
     @Override
     public Map<String, String> preparePayment(CreditsOperation creditsOperation, String email) {
 
-        LOG.debug("Begin method: preparePayment.");
         Transaction transaction = transactionService.createTransactionRequest(creditsOperation);
         BigDecimal sum = transaction.getAmount().add(transaction.getCommissionAmount());
         final Number amountToPay = sum.setScale(2, BigDecimal.ROUND_CEILING);
@@ -65,7 +64,6 @@ public class YandexKassaServiceImpl implements YandexKassaService {
     @Transactional
     public boolean confirmPayment(final Map<String,String> params) {
 
-        LOG.debug("Begin method: confirmPayment.");
         Transaction transaction;
         try{
             transaction = transactionService.findById(Integer.parseInt(params.get("orderNumber")));

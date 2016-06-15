@@ -67,7 +67,6 @@ public class InterkassaServiceImpl implements InterkassaService {
     @Transactional
     public boolean confirmPayment(final Map<String,String> params) {
 
-        LOG.debug("Begin method: confirmPayment.");
         Transaction transaction;
         try{
             transaction = transactionService.findById(Integer.parseInt(params.get("ik_pm_no")));
@@ -97,7 +96,6 @@ public class InterkassaServiceImpl implements InterkassaService {
 
     private String getSignature(final Map<String, String> params){
 
-        LOG.debug("Begin method: getSignature.");
         List<String> listValues = new ArrayList<String>(params.values());
 
         listValues.add(secretKey);

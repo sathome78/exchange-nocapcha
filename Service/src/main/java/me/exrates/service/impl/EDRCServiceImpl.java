@@ -79,13 +79,9 @@ public class EDRCServiceImpl implements EDRCService {
         final Transaction transaction = transactionService
             .createTransactionRequest(creditsOperation);
         final String xml = buildEDRCAddressXML(transaction.getId());
-        LOG.debug("Builded xml request: " + xml);
         final String response = sendRequest(xml,
             "http://api.blockchain.mn/merchant/coin/get_new_address");
-        LOG.debug("key = "+ key);
-        LOG.debug("keyLength = "+ key.length());
         try {
-            LOG.debug("EDR-Coin response: " + response);
             final PendingPayment payment = new PendingPayment();
             final Map<String, String> params = new HashMap<>();
             params.put("address", "//address/text()");
@@ -227,8 +223,6 @@ public class EDRCServiceImpl implements EDRCService {
             .url(url)
             .post(body)
             .build();
-        LOG.info("Request: " + request.toString() +
-            ", body {"+ stringifyBody(request)+"}");
         try {
             return client
                 .newCall(request)

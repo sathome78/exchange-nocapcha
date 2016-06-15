@@ -46,7 +46,6 @@ public class Privat24ServiceImpl implements Privat24Service {
     @Override
     public Map<String, String> preparePayment(CreditsOperation creditsOperation, String email) {
 
-        LOG.debug("Begin method: preparePayment.");
         Transaction transaction = transactionService.createTransactionRequest(creditsOperation);
         BigDecimal sum = transaction.getAmount().add(transaction.getCommissionAmount());
         final Number amountToPay = sum.setScale(2, BigDecimal.ROUND_CEILING);
@@ -70,7 +69,6 @@ public class Privat24ServiceImpl implements Privat24Service {
     @Transactional
     public boolean confirmPayment(Map<String,String> params, String signature, String payment) {
 
-        LOG.debug("Begin method: confirmPayment.");
         Transaction transaction;
         try{
             transaction = transactionService.findById(Integer.parseInt(params.get("order")));

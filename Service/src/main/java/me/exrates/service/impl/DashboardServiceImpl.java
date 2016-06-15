@@ -29,31 +29,26 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     public List<OrderListDto> getAllBuyOrders(CurrencyPair currencyPair) {
-        logger.info("Begin 'getAllBuyOrders' method");
         return orderDao.getOrdersBuyForCurrencyPair(currencyPair);
     }
 
     @Override
     public List<OrderListDto> getAllSellOrders(CurrencyPair currencyPair) {
-        logger.info("Begin 'getAllSellOrders' method");
         return orderDao.getOrdersSellForCurrencyPair(currencyPair);
     }
 
     @Override
     public List<Map<String, Object>> getDataForAreaChart(CurrencyPair currencyPair, BackDealInterval interval) {
-        logger.info("Begin 'getDataForAreaChart' method");
         return orderDao.getDataForAreaChart(currencyPair, interval);
     }
 
     @Override
     public List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval interval) {
-        logger.info("Begin 'getDataForCandleChart' method");
         return orderDao.getDataForCandleChart(currencyPair, interval);
     }
 
     @Override
     public BigDecimal getBalanceByCurrency(int userId, int currencyId) {
-        logger.info("Begin 'getBalanceByCurrency' method");
         return dashboardDao.getBalanceByCurrency(userId, currencyId);
     }
 

@@ -107,20 +107,15 @@ public final class WalletServiceImpl implements WalletService {
     @Override
     @Transactional(propagation = Propagation.NESTED)
     public void depositActiveBalance(final Wallet wallet, final BigDecimal sum) {
-        LOGGER.info("Trying deposit active balance on wallet  " + wallet +
-                ", amount: " + sum);
         final BigDecimal newBalance =
                 wallet.getActiveBalance().add(sum, MATH_CONTEXT);
         wallet.setActiveBalance(newBalance);
         walletDao.update(wallet);
-        LOGGER.info("Successful active balance deposit on wallet " + wallet);
     }
 
     @Override
     @Transactional(propagation = Propagation.NESTED)
     public void withdrawActiveBalance(final Wallet wallet, final BigDecimal sum) {
-        LOGGER.info("Trying withdraw active balance on wallet " + wallet +
-                ", amount: " + sum);
         final BigDecimal newBalance = wallet.getActiveBalance().subtract(sum, MATH_CONTEXT);
         if (newBalance.compareTo(ZERO) < 0) {
             throw new NotEnoughUserWalletMoneyException("Not enough money to withdraw on user wallet " +
@@ -128,33 +123,27 @@ public final class WalletServiceImpl implements WalletService {
         }
         wallet.setActiveBalance(newBalance);
         walletDao.update(wallet);
-        LOGGER.info("Successful active balance withdraw on wallet " + wallet);
     }
 
     @Override
     @Transactional(propagation = Propagation.NESTED)
     public void depositReservedBalance(final Wallet wallet, final BigDecimal sum) {
-        LOGGER.info("Trying deposit reserved balance on wallet " + wallet +
-                ", amount: " + sum);
         wallet.setActiveBalance(wallet.getActiveBalance().subtract(sum, MATH_CONTEXT));
         if (wallet.getActiveBalance().compareTo(ZERO) < 0) {
             throw new NotEnoughUserWalletMoneyException("Not enough money to withdraw on user wallet " + wallet);
         }
         wallet.setReservedBalance(wallet.getReservedBalance().add(sum, MATH_CONTEXT));
         walletDao.update(wallet);
-        LOGGER.info("Successful reserved balance deposit on wallet " + wallet);
     }
 
     @Override
     @Transactional(propagation = Propagation.NESTED)
     public void withdrawReservedBalance(final Wallet wallet, final BigDecimal sum) {
-        LOGGER.info("Trying withdraw reserved balance on wallet " + wallet + ", amount: " + sum);
         wallet.setReservedBalance(wallet.getReservedBalance().subtract(sum, MATH_CONTEXT));
         if (wallet.getReservedBalance().compareTo(ZERO) < 0) {
             throw new NotEnoughUserWalletMoneyException("Not enough money to withdraw on user wallet " + wallet);
         }
         walletDao.update(wallet);
-        LOGGER.info("Successful reserved balance deposit on wallet " + wallet);
     }
 
     public List<UserWalletSummaryDto> getUsersWalletsSummary() {

@@ -99,7 +99,6 @@ public class YandexMoneyServiceImpl implements YandexMoneyService {
         final OAuth2Session session = new OAuth2Session(apiClient);
         final OAuth2Authorization oAuth2Authorization = session.createOAuth2Authorization();
         final com.squareup.okhttp.OkHttpClient httpClient = apiClient.getHttpClient();
-        session.setDebugLogging(true);
         final byte[] params = oAuth2Authorization.getAuthorizeParams()
                 .addScope(Scope.ACCOUNT_INFO)
                 .addScope(Scope.PAYMENT_P2P)
