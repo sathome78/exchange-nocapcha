@@ -82,10 +82,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .passwordEncoder(passwordEncoder);
     }
 
-    //// TODO: 3/4/16 Access to perfectmoney[status/success/failure] need to be protected by list of while ip addrs
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.addFilterBefore(customUsernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+        http
+                .csrf()
+                    .ignoringAntMatchers("/chat/**")
+                    .and()
+                .headers()
+                    .frameOptions().sameOrigin();
         http
                 .authorizeRequests()
                 .antMatchers("/admin/withdrawal").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name())
@@ -118,6 +123,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, "/merchants/yandex_kassa/payment/status",
                         "/merchants/yandex_kassa/payment/success",
                         "/merchants/yandex_kassa/payment/failure").permitAll()
+                .antMatchers(HttpMethod.POST, "/chat/**").permitAll()
                 .antMatchers(HttpMethod.POST, "/merchants/edrcoin/payment/received").permitAll()
                 .antMatchers(HttpMethod.GET, "/merchants/blockchain/payment/received").permitAll()
                 .antMatchers(HttpMethod.GET, "/public/**").permitAll()
@@ -148,7 +154,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .invalidateHttpSession(true)
                 .and()
                 .csrf()
-                .ignoringAntMatchers("/merchants/perfectmoney/payment/status",
+                .ignoringAntMatchers("/chat","/merchants/perfectmoney/payment/status",
                         "/merchants/perfectmoney/payment/failure",
                         "/merchants/perfectmoney/payment/success", "/merchants/advcash/payment/status",
                         "/merchants/advcash/payment/failure",

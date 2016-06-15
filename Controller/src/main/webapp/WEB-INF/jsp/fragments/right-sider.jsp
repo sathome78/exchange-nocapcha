@@ -34,8 +34,11 @@
         <p class="nickname">Никнейм_6</p>
         <p class="message">Какое-нибудь сообщение, например - Всем привет!</p>
     </div>
-    <input type="text" class="message_text" placeholder='<loc:message code="dashboard.onlinechatenter"/>'>
-    <button class="send_button"><loc:message code="dashboard.onlinechatsend"/></button>
+    <sec:authorize access="isAuthenticated()">
+        <input type="text" class="message_text" placeholder='<loc:message code="dashboard.onlinechatenter"/>'>
+        <button class="send_button"><loc:message code="dashboard.onlinechatsend"/></button>
+    </sec:authorize>
+
 
     <h4 class="h4_green"><loc:message code="news.title"/></h4>
     <hr class="under_h4">
@@ -56,3 +59,4 @@
         <p>Краткий текст новости в несколько строчек + ссылка <a href="#"> yandex.ru</a></p>
     </div>
 </div>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-scrollTo/2.1.0/jquery.scrollTo.min.js"></script>

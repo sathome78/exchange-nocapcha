@@ -1,12 +1,10 @@
 package me.exrates.config;
 
-import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.converter.CurrencyPairConverter;
+import me.exrates.security.config.SecurityConfig;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.token.TokenScheduler;
 import org.apache.commons.dbcp2.BasicDataSource;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.MessageSource;
@@ -33,6 +31,7 @@ import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
+import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 
 import javax.sql.DataSource;
 import java.util.Locale;
@@ -42,35 +41,23 @@ import java.util.Properties;
 @EnableWebMvc
 @EnableTransactionManagement
 @ComponentScan({"me.exrates"})
-@Import({me.exrates.security.config.SecurityConfig.class})
+@Import(
+    {
+        SecurityConfig.class,
+        WebSocketConfig.class
+    }
+)
 @PropertySource(value = {"classpath:/db.properties", "classpath:/uploadfiles.properties", "classpath:/news.properties"})
 public class WebAppConfig extends WebMvcConfigurerAdapter {
 
-    private static final Logger logger = LogManager.getLogger(WebAppConfig.class);
-    private
-    @Value("${db.user}")
-    String dbUser;
-    private
-    @Value("${db.password}")
-    String dbPassword;
-    private
-    @Value("${db.url}")
-    String dbUrl;
-    private
-    @Value("${db.classname}")
-    String dbClassname;
-    private
-    @Value("${upload.userFilesDir}")
-    String userFilesDir;
-    private
-    @Value("${upload.userFilesLogicalDir}")
-    String userFilesLogicalDir;
-    private
-    @Value("${news.locationDir}")
-    String newsLocationDir;
-    private
-    @Value("${news.urlPath}")
-    String newsUrlPath;
+    private @Value("${db.user}") String dbUser;
+    private @Value("${db.password}") String dbPassword;
+    private @Value("${db.url}") String dbUrl;
+    private @Value("${db.classname}") String dbClassname;
+    private @Value("${upload.userFilesDir}") String userFilesDir;
+    private @Value("${upload.userFilesLogicalDir}") String userFilesLogicalDir;
+    private @Value("${news.locationDir}") String newsLocationDir;
+    private @Value("${news.urlPath}") String newsUrlPath;
 
     @Bean
     public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
@@ -162,12 +149,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
-    }
-
-    //Validation
-    @Bean
-    public RegisterFormValidation getRegisterFormValidation() {
-        return new RegisterFormValidation();
     }
 
     @Bean

@@ -16,7 +16,7 @@ public class SpringMvcInitializer extends AbstractAnnotationConfigDispatcherServ
 
 	@Override
 	protected Class<?>[] getRootConfigClasses() {
-		return new Class[] { WebAppConfig.class };
+		return new Class[] { WebAppConfig.class, WebSocketConfig.class };
 	}
 
 	@Override
@@ -32,6 +32,8 @@ public class SpringMvcInitializer extends AbstractAnnotationConfigDispatcherServ
 	@Override
 	protected void customizeRegistration(ServletRegistration.Dynamic registration) {
 		registration.setMultipartConfig(getMultipartConfigElement());
+		registration.setInitParameter("dispatchOptionsRequest", "true");
+		registration.setAsyncSupported(true);
 	}
 
 	private MultipartConfigElement getMultipartConfigElement() {

@@ -133,7 +133,7 @@ public class AdminController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "/admin/users/deleteUserFile", method = POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @RequestMapping(value = "/admin/users/deleteUserFile", method = POST)
     public ResponseEntity<Map<String, String>> deleteUserDoc(final @RequestParam("fileId") int fileId,
                                                              final @RequestParam("userId") int userId,
                                                              final @RequestParam("path") String path,
