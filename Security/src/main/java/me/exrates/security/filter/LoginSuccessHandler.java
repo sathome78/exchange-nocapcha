@@ -51,6 +51,9 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
             String email = authentication.getName();
 //            String ip = request.getRemoteHost();
             String ip = request.getHeader("X-FORWARDED-FOR");
+            if (ip == null) {
+                ip = request.getRemoteHost();
+            }
             UserIpDto userIpDto = userService.getUserIpState(email, ip);
             if (userIpDto.getUserIpState() != UserIpState.CONFIRMED) {
                 authentication.setAuthenticated(false);
