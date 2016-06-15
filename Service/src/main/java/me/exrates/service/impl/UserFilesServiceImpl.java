@@ -46,6 +46,11 @@ public class UserFilesServiceImpl implements UserFilesService {
         contentTypes.addAll(asList("image/jpg", "image/jpeg", "image/png"));
     }
 
+    /**
+     * Removes empty files and files with invalid extension from an input array
+     * @param files - Uploaded files
+     * @return - ArrayList with valid uploaded files
+     */
     @Override
     public List<MultipartFile> reduceInvalidFiles(final MultipartFile[] files) {
         return Stream.of(files)
@@ -53,6 +58,13 @@ public class UserFilesServiceImpl implements UserFilesService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Moves uploaded files to user dir on the server ({@link UserFilesServiceImpl#userFilesDir} + userId) and persist File names in DB (table USER_DOC)
+     * If only one file failed to move - deletes all uploaded files and throws IOException
+     * @param userId - UserId who uploads the files
+     * @param files - uploaded files
+     * @throws IOException
+     */
     @Override
     public void createUserFiles(final int userId, final List<MultipartFile> files) throws IOException {
         final Path path = Paths.get(userFilesDir + userId);
@@ -99,6 +111,10 @@ public class UserFilesServiceImpl implements UserFilesService {
         return file.getContentType().toLowerCase();
     }
 
+    /**
+     * @param file - Uploaded file
+     * @return - Uploaded files extension
+     */
     private String extractFileExtension (final MultipartFile file) {
         return extractContentType(file).substring(6); //Index of dash in Content-Type
     }
