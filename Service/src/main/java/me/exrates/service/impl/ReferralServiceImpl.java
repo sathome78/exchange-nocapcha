@@ -27,6 +27,7 @@ import static java.math.BigDecimal.valueOf;
 import static java.util.Objects.isNull;
 import static me.exrates.model.enums.OperationType.REFERRAL;
 import static me.exrates.model.util.BigDecimalProcessing.*;
+import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 import static me.exrates.model.vo.WalletOperationData.BalanceType.RESERVED;
 
 /**
@@ -135,7 +136,7 @@ public class ReferralServiceImpl implements ReferralService {
                 wod.setCommission(this.commission);
                 wod.setAmount(amount);
                 wod.setWalletId(walletId);
-                wod.setBalanceType(RESERVED);
+                wod.setBalanceType(ACTIVE);
                 wod.setOperationType(OperationType.REFERRAL);
                 wod.setSourceType(TransactionSourceType.REFERRAL);
                 wod.setSourceId(createdRefTransaction.getId());
