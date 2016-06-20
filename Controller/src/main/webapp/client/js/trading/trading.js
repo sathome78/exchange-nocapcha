@@ -2,13 +2,13 @@
  * Created by Valk on 02.06.2016.
  */
 
-function DashboardClass(period, chartType, currentCurrencyPair) {
-    if (DashboardClass.__instance) {
-        return DashboardClass.__instance;
+function TradingClass(period, chartType, currentCurrencyPair) {
+    if (TradingClass.__instance) {
+        return TradingClass.__instance;
     } else if (this === window) {
-        return new DashboardClass();
+        return new TradingClass();
     }
-    DashboardClass.__instance = this;
+    TradingClass.__instance = this;
     /**/
     var that = this;
     var chart = null;

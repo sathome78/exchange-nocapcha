@@ -664,7 +664,7 @@ td.blue-white {
 }
 
 .cols-md-8 {
-    max-height: 700px;
+    /*max-height: 700px; me */
     display: block;
     overflow-y: scroll
 }
@@ -1137,6 +1137,10 @@ tr:hover .table-button-block .table-button-block__button {
     font-size: 1.4rem;
 }
 
+.input-block-wrapper__radio{
+    padding: 0 10px 0 0;
+}
+
 .input-block-wrapper__error-wrapper {
     text-align: right;
     color: rgba(232, 0, 0, 0.93);
@@ -1160,6 +1164,12 @@ tr:hover .table-button-block .table-button-block__button {
     margin: 0;
     height: 30px;
     outline: none;
+}
+
+.modal-form-dialog #uploadFile.file-choice__input {
+    color: #969faf;
+    font-weight: 300;
+    font-size: 1.4rem;
 }
 
 #orders-history-table {
@@ -1245,6 +1255,35 @@ form span.repass {
 
 .BDC_CaptchaImageDiv ~ a{
     opacity: 0;
+}
+
+/********************************
+            NEWS
+********************************/
+.news_item {
+    font-size: 1.1rem;
+}
+
+.news_item__ref{
+    text-decoration: none;
+    color: inherit;
+}
+
+.news_item__ref:hover{
+    text-decoration: none;
+    color: #0000FF;
+}
+
+.news_item__header{
+    font-weight: bold;
+    margin: 5px 0 0 0 ;
+}
+
+.news_item__brief{
+    line-height: 1.3rem;
+    height: 2.6rem;
+    overflow: hidden;
+    margin: 0 0 10px 0 ;
 }
 
 /********************************

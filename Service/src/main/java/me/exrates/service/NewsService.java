@@ -1,6 +1,8 @@
 package me.exrates.service;
 
 import me.exrates.model.News;
+import me.exrates.model.dto.NewsDto;
+import me.exrates.model.vo.CacheData;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collection;
@@ -19,7 +21,7 @@ public interface NewsService {
      * @param locale is current locale
      * @return list the news
      */
-    List<News> getNewsBriefList(final Integer offset, final Integer limit, Locale locale);
+    List<NewsDto> getNewsBriefList(CacheData cacheData, final Integer offset, final Integer limit, Locale locale);
 
     /**
      * Returns news with given ID in variant of current locale
@@ -39,4 +41,8 @@ public interface NewsService {
      * @return true is success
      */
     boolean uploadNews(Collection<News> variants, MultipartFile multipartFile, String newsLocationDir);
+
+    int deleteNewsVariant(News news);
+
+    int deleteNews(News news);
 }

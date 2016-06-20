@@ -71,7 +71,7 @@ function ChartAmchartsClass(type, period) {
         syncCurrentParams(null, period, null, function (data) {
             $(button).siblings().removeClass('active');
             $(button).toggleClass('active');
-            dashboard.getAndShowStatisticsForCurrency();
+            trading.getAndShowStatisticsForCurrency();
             that.drawChart(data.chartType);
         });
     }

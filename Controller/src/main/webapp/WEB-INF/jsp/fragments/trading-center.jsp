@@ -11,7 +11,15 @@
 <%@ taglib uri="http://www.springframework.org/tags" prefix="loc" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<div id="dashboard" class="dashboard center-frame-container">
+<%----%>
+<script type="text/javascript" src="<c:url value='/client/js/trading/trading.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/mywallets/mywallets.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/history/history.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/myorders/myorders.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/order/orders.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/currencypair/currencyPairSelector.js'/>"></script>
+<%----%>
+<div id="trading" class="dashboard center-frame-container">
     <div class="graphInfo__wrapper clearfix">
         <div id="dashboard-currency-pair-selector" class="currency-pair-selector dropdown">
             <%@include file="currencyPairSelector.jsp" %>

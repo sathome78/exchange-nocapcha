@@ -2,11 +2,14 @@ package me.exrates.service.impl;
 
 import me.exrates.dao.NewsDao;
 import me.exrates.model.News;
+import me.exrates.model.dto.MyWalletsDetailedDto;
+import me.exrates.model.dto.NewsDto;
+import me.exrates.model.vo.CacheData;
 import me.exrates.service.NewsService;
 import me.exrates.service.exception.FileLoadingException;
 import me.exrates.service.exception.NewsCreationException;
+import me.exrates.service.util.Cache;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,6 +19,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
@@ -31,8 +35,14 @@ public class NewsServiceImpl implements NewsService {
     private NewsDao newsDao;
 
     @Override
-    public List<News> getNewsBriefList(Integer offset, Integer limit, Locale locale) {
-        return newsDao.getNewsBriefList(offset, limit, locale);
+    public List<NewsDto> getNewsBriefList(CacheData cacheData, Integer offset, Integer limit, Locale locale) {
+        List<NewsDto> result = newsDao.getNewsBriefList(offset, limit, locale);
+        if (Cache.checkCache(cacheData, result)) {
+            result = new ArrayList<NewsDto>() {{
+                add(new NewsDto(false));
+            }};
+        }
+        return result;
     }
 
     @Override
@@ -62,11 +72,7 @@ public class NewsServiceImpl implements NewsService {
                 .toString();
         try {
             for (News v : variants) {
-                try {
-                    newsDao.addNewsVariant(v);
-                } catch (DuplicateKeyException e) {
-                    //provide an opportunity to update the file
-                }
+                newsDao.addNewsVariant(v);
             }
             Path op = Paths.get(newsRootContentPath);
             if (!op.toFile().exists()) {
@@ -95,5 +101,15 @@ public class NewsServiceImpl implements NewsService {
             throw new FileLoadingException(e.getLocalizedMessage());
         }
         return true;
+    }
+
+    @Override
+    public int deleteNewsVariant(News news) {
+        return newsDao.deleteNewsVariant(news);
+    }
+
+    @Override
+    public int deleteNews(News news) {
+        return newsDao.deleteNews(news);
     }
 }

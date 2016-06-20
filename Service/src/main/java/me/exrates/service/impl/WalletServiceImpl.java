@@ -10,9 +10,11 @@ import me.exrates.model.dto.MyWalletsStatisticsDto;
 import me.exrates.model.dto.UserWalletSummaryDto;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.WalletTransferStatus;
+import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.WalletService;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
+import me.exrates.service.util.Cache;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -56,14 +59,27 @@ public final class WalletServiceImpl implements WalletService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, Locale locale) {
-        return walletDao.getAllWalletsForUserDetailed(email, locale);
+    public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(CacheData cacheData,
+                                                                   String email, Locale locale) {
+        List<MyWalletsDetailedDto> result = walletDao.getAllWalletsForUserDetailed(email, locale);
+        if (Cache.checkCache(cacheData, result)) {
+            result = new ArrayList<MyWalletsDetailedDto>() {{
+                add(new MyWalletsDetailedDto(false));
+            }};
+        }
+        return result;
     }
 
     @Transactional(readOnly = true)
     @Override
-    public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale) {
-        return walletDao.getAllWalletsForUserReduced(email, locale);
+    public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(CacheData cacheData, String email, Locale locale) {
+        List<MyWalletsStatisticsDto> result =  walletDao.getAllWalletsForUserReduced(email, locale);
+        if (Cache.checkCache(cacheData, result)) {
+            result = new ArrayList<MyWalletsStatisticsDto>() {{
+                add(new MyWalletsStatisticsDto(false));
+            }};
+        }
+        return result;
     }
 
     @Override

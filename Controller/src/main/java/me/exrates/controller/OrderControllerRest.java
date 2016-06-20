@@ -10,9 +10,7 @@ import me.exrates.model.ExOrder;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderCreateSummaryDto;
 import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
-import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.OperationType;
-import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,56 +62,51 @@ public class OrderControllerRest {
                                                 BigDecimal rate,
                                                 HttpServletRequest request) {
         OrderCreateSummaryDto orderCreateSummaryDto;
-        try {
-            if (amount == null) amount = BigDecimal.ZERO;
-            if (rate == null) rate = BigDecimal.ZERO;
-            CurrencyPair activeCurrencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
-            Currency spendCurrency = null;
-            if (orderType == OperationType.SELL) {
-                spendCurrency = activeCurrencyPair.getCurrency1();
-            } else if (orderType == OperationType.BUY) {
-                spendCurrency = activeCurrencyPair.getCurrency2();
-            }
-            WalletsAndCommissionsForOrderCreationDto walletsAndCommissions = orderService.getWalletAndCommission(principal.getName(), spendCurrency, orderType);
-        /**/
-            OrderCreateDto orderCreateDto = new OrderCreateDto();
-            orderCreateDto.setOperationType(orderType);
-            orderCreateDto.setCurrencyPair(activeCurrencyPair);
-            orderCreateDto.setAmount(amount);
-            orderCreateDto.setExchangeRate(rate);
-            orderCreateDto.setUserId(walletsAndCommissions.getUserId());
-            orderCreateDto.setCurrencyPair(activeCurrencyPair);
-            if (orderType == OperationType.SELL) {
-                orderCreateDto.setWalletIdCurrencyBase(walletsAndCommissions.getSpendWalletId());
-                orderCreateDto.setCurrencyBaseBalance(walletsAndCommissions.getSpendWalletActiveBalance());
-                orderCreateDto.setComissionForSellId(walletsAndCommissions.getCommissionId());
-                orderCreateDto.setComissionForSellRate(walletsAndCommissions.getCommissionValue());
-            } else if (orderType == OperationType.BUY) {
-                orderCreateDto.setWalletIdCurrencyConvert(walletsAndCommissions.getSpendWalletId());
-                orderCreateDto.setCurrencyConvertBalance(walletsAndCommissions.getSpendWalletActiveBalance());
-                orderCreateDto.setComissionForBuyId(walletsAndCommissions.getCommissionId());
-                orderCreateDto.setComissionForBuyRate(walletsAndCommissions.getCommissionValue());
-            }
-        /**/
-            orderCreateDto.calculateAmounts();
-        /**/
-            Map<String, Object> result = validate(orderCreateDto);
-            orderCreateSummaryDto = new OrderCreateSummaryDto(orderCreateDto, localeResolver.resolveLocale(request));
-            if (!result.isEmpty()) {
-                for (Map.Entry<String, Object> pair : result.entrySet()) {
-                    pair.setValue(messageSource.getMessage((String) pair.getValue(), null, localeResolver.resolveLocale(request)));
-                }
-                result.put("order", orderCreateSummaryDto);
-                request.getSession().setAttribute("orderCreationError", result);
-                throw new OrderParamsWrongException();
-            } else {
-            /*protect orderCreateDto*/
-                request.getSession().setAttribute("/order/submitnew/orderCreateDto", orderCreateDto);
-            }
-        } catch (OrderParamsWrongException e) {
-            throw e;
+        if (amount == null) amount = BigDecimal.ZERO;
+        if (rate == null) rate = BigDecimal.ZERO;
+        CurrencyPair activeCurrencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
+        Currency spendCurrency = null;
+        if (orderType == OperationType.SELL) {
+            spendCurrency = activeCurrencyPair.getCurrency1();
+        } else if (orderType == OperationType.BUY) {
+            spendCurrency = activeCurrencyPair.getCurrency2();
         }
-        //throw new RuntimeException("orderCreateDto: " + orderCreateDto + " request.getSession().getAttribute: " + request.getSession().getAttribute("/orders/orderCreateDto"));
+        WalletsAndCommissionsForOrderCreationDto walletsAndCommissions = orderService.getWalletAndCommission(principal.getName(), spendCurrency, orderType);
+        /**/
+        OrderCreateDto orderCreateDto = new OrderCreateDto();
+        orderCreateDto.setOperationType(orderType);
+        orderCreateDto.setCurrencyPair(activeCurrencyPair);
+        orderCreateDto.setAmount(amount);
+        orderCreateDto.setExchangeRate(rate);
+        orderCreateDto.setUserId(walletsAndCommissions.getUserId());
+        orderCreateDto.setCurrencyPair(activeCurrencyPair);
+        if (orderType == OperationType.SELL) {
+            orderCreateDto.setWalletIdCurrencyBase(walletsAndCommissions.getSpendWalletId());
+            orderCreateDto.setCurrencyBaseBalance(walletsAndCommissions.getSpendWalletActiveBalance());
+            orderCreateDto.setComissionForSellId(walletsAndCommissions.getCommissionId());
+            orderCreateDto.setComissionForSellRate(walletsAndCommissions.getCommissionValue());
+        } else if (orderType == OperationType.BUY) {
+            orderCreateDto.setWalletIdCurrencyConvert(walletsAndCommissions.getSpendWalletId());
+            orderCreateDto.setCurrencyConvertBalance(walletsAndCommissions.getSpendWalletActiveBalance());
+            orderCreateDto.setComissionForBuyId(walletsAndCommissions.getCommissionId());
+            orderCreateDto.setComissionForBuyRate(walletsAndCommissions.getCommissionValue());
+        }
+        /**/
+        orderCreateDto.calculateAmounts();
+        /**/
+        Map<String, Object> result = validate(orderCreateDto);
+        orderCreateSummaryDto = new OrderCreateSummaryDto(orderCreateDto, localeResolver.resolveLocale(request));
+        if (!result.isEmpty()) {
+            for (Map.Entry<String, Object> pair : result.entrySet()) {
+                pair.setValue(messageSource.getMessage((String) pair.getValue(), null, localeResolver.resolveLocale(request)));
+            }
+            result.put("order", orderCreateSummaryDto);
+            request.getSession().setAttribute("orderCreationError", result);
+            throw new OrderParamsWrongException();
+        } else {
+            /*protect orderCreateDto*/
+            request.getSession().setAttribute("/order/submitnew/orderCreateDto", orderCreateDto);
+        }
         return orderCreateSummaryDto;
     }
 
