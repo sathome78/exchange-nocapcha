@@ -1,26 +1,41 @@
-package me.exrates.model;
+package me.exrates.model.dto;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 /**
  * Created by Valk on 27.05.2016.
  */
-public class News implements Cloneable{
+public class NewsDto{
+    private boolean needRefresh;
     private Integer id;
     private String title;
-    private LocalDate date;
     private String brief;
     private String resource;
-    private String content;
-    private String newsVariant;
+    private String variant;
+    private String ref;
+
+    public NewsDto() {
+        this.needRefresh = true;
+    }
+
+    public NewsDto(boolean needRefresh) {
+        this.needRefresh = needRefresh;
+    }
 
     @Override
-    public Object clone() throws CloneNotSupportedException {
-        return super.clone();
+    public int hashCode() {
+        return id != null ? id.hashCode() : 0;
     }
 
     /*getters setters*/
+
+    public boolean isNeedRefresh() {
+        return needRefresh;
+    }
+
+    public void setNeedRefresh(boolean needRefresh) {
+        this.needRefresh = needRefresh;
+    }
 
     public Integer getId() {
         return id;
@@ -36,14 +51,6 @@ public class News implements Cloneable{
 
     public void setTitle(String title) {
         this.title = title;
-    }
-
-    public LocalDate getDate() {
-        return date;
-    }
-
-    public void setDate(LocalDate date) {
-        this.date = date;
     }
 
     public String getBrief() {
@@ -62,19 +69,19 @@ public class News implements Cloneable{
         this.resource = resource;
     }
 
-    public String getContent() {
-        return content;
+    public String getRef() {
+        return ref;
     }
 
-    public void setContent(String content) {
-        this.content = content;
+    public void setRef(String ref) {
+        this.ref = ref;
     }
 
-    public String getNewsVariant() {
-        return newsVariant;
+    public String getVariant() {
+        return variant;
     }
 
-    public void setNewsVariant(String newsVariant) {
-        this.newsVariant = newsVariant;
+    public void setVariant(String variant) {
+        this.variant = variant;
     }
 }

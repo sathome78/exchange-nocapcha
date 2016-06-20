@@ -9,6 +9,7 @@ import me.exrates.model.dto.*;
 import me.exrates.model.enums.*;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
+import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.CommissionService;
 import me.exrates.service.CompanyWalletService;
@@ -23,6 +24,7 @@ import me.exrates.service.exception.OrderCancellingException;
 import me.exrates.service.exception.OrderCreationException;
 import me.exrates.service.exception.OrderDeletingException;
 import me.exrates.service.exception.WalletCreationException;
+import me.exrates.service.util.Cache;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -98,8 +101,14 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     @Override
-    public List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairs(Locale locale) {
-        return orderDao.getOrderStatisticByPairs(locale);
+    public List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairs(CacheData cacheData, Locale locale) {
+        List<ExOrderStatisticsShortByPairsDto> result = orderDao.getOrderStatisticByPairs(locale);
+        if (Cache.checkCache(cacheData, result)) {
+            result = new ArrayList<ExOrderStatisticsShortByPairsDto>() {{
+                add(new ExOrderStatisticsShortByPairsDto(false));
+            }};
+        }
+        return result;
     }
 
     @Override
@@ -134,10 +143,17 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
+    public List<OrderWideListDto> getMyOrdersWithState(CacheData cacheData,
+                                                       String email, CurrencyPair currencyPair, OrderStatus status,
                                                        OperationType operationType,
                                                        Integer offset, Integer limit, Locale locale) {
-        return orderDao.getMyOrdersWithState(email, currencyPair, status, operationType, offset, limit, locale);
+        List<OrderWideListDto> result = orderDao.getMyOrdersWithState(email, currencyPair, status, operationType, offset, limit, locale);
+        if (Cache.checkCache(cacheData, result)) {
+            result = new ArrayList<OrderWideListDto>() {{
+                add(new OrderWideListDto(false));
+            }};
+        }
+        return result;
     }
 
     @Override
@@ -445,8 +461,16 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     @Override
-    public List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriod(BackDealInterval backDealInterval, Integer limit, CurrencyPair currencyPair, Locale locale) {
-        return orderDao.getOrderAcceptedForPeriod(backDealInterval, limit, currencyPair, locale);
+    public List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriod(CacheData cacheData,
+                                                                   BackDealInterval backDealInterval,
+                                                                   Integer limit, CurrencyPair currencyPair, Locale locale) {
+        List<OrderAcceptedHistoryDto> result = orderDao.getOrderAcceptedForPeriod(backDealInterval, limit, currencyPair, locale);
+        if (Cache.checkCache(cacheData, result)) {
+            result = new ArrayList<OrderAcceptedHistoryDto>() {{
+                add(new OrderAcceptedHistoryDto(false));
+            }};
+        }
+        return result;
     }
 
     @Transactional(readOnly = true)
@@ -457,14 +481,28 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<OrderListDto> getAllBuyOrders(CurrencyPair currencyPair, String email, Locale locale) {
-        return orderDao.getOrdersBuyForCurrencyPair(currencyPair, email, locale);
+    public List<OrderListDto> getAllBuyOrders(CacheData cacheData,
+                                              CurrencyPair currencyPair, String email, Locale locale) {
+        List<OrderListDto> result = orderDao.getOrdersBuyForCurrencyPair(currencyPair, email, locale);
+        if (Cache.checkCache(cacheData, result)) {
+            result = new ArrayList<OrderListDto>() {{
+                add(new OrderListDto(false));
+            }};
+        }
+        return result;
     }
 
     @Transactional(readOnly = true)
     @Override
-    public List<OrderListDto> getAllSellOrders(CurrencyPair currencyPair, String email, Locale locale) {
-        return orderDao.getOrdersSellForCurrencyPair(currencyPair, email, locale);
+    public List<OrderListDto> getAllSellOrders(CacheData cacheData,
+                                               CurrencyPair currencyPair, String email, Locale locale) {
+        List<OrderListDto> result = orderDao.getOrdersSellForCurrencyPair(currencyPair, email, locale);
+        if (Cache.checkCache(cacheData, result)) {
+            result = new ArrayList<OrderListDto>() {{
+                add(new OrderListDto(false));
+            }};
+        }
+        return result;
     }
 
     @Transactional(readOnly = true)

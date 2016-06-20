@@ -1,34 +1,31 @@
 package me.exrates.controller;
 
-import me.exrates.controller.exception.ErrorInfo;
-import me.exrates.controller.exception.FileLoadingException;
-import me.exrates.controller.exception.NewsCreationException;
-import me.exrates.controller.exception.NoFileForLoadingException;
+import me.exrates.controller.exception.*;
+import me.exrates.model.vo.CacheData;
+import me.exrates.service.util.Cache;
 import me.exrates.model.News;
+import me.exrates.model.dto.NewsDto;
+import me.exrates.model.dto.TableParams;
 import me.exrates.service.NewsService;
 import me.exrates.service.UserFilesService;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.apache.logging.log4j.core.util.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.LocaleResolver;
-import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,10 +33,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
-/*
-* DRAFT ONLY //TODO
-* */
 
 @RestController
 @PropertySource(value = {"classpath:/news.properties"})
@@ -61,50 +54,28 @@ public class NewsControllerRest {
     @Autowired
     private UserFilesService userFilesService;
 
-    /*skip resources: img, css, js*/
-//    @RequestMapping(value = "/news/**/newstopic", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    @RequestMapping(value = "/news/**/newstopic.html")
-    public String newsSingle(HttpServletRequest request) {
-        try {
-            ModelAndView modelAndView = new ModelAndView();
-            modelAndView.setViewName("news/newstopic");
-            String path = request.getServletPath(); //   /news/2015/MAY/27/48/newstopic.html
-            int newsId = Integer.valueOf(path.split("\\/{1}[^\\/]*$")[0].split("^.*[\\/]")[1]); // =>  /news/2015/MAY/27/48  => 48
-            News news = newsService.getNews(newsId, localeResolver.resolveLocale(request));
-            if (news != null) {
-                String newsContentPath = new StringBuilder()
-                        .append(newsLocationDir)    //    /Users/Public/news/
-                        .append(news.getResource()) //                      2015/MAY/27/
-                        .append(newsId)             //                                  48
-                        .append("/")                //                                     /
-                        .append(localeResolver.resolveLocale(request).toString())   //      ru
-                        .append("/newstopic.html")  //                                          /newstopic.html
-                        .toString();                //  /Users/Public/news/2015/MAY/27/48/ru/newstopic.html
-                try {
-                    String newsContent = new String(Files.readAllBytes(Paths.get(newsContentPath)), "UTF-8"); //content of the newstopic.html 
-                    news.setContent(newsContent);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                String newsContent = messageSource.getMessage("news.absent", null, localeResolver.resolveLocale(request));
-                news = new News();
-                news.setContent(newsContent);
-            }
-            return news.getContent();
-        } catch (Exception e) {
-            return null;
-        }
+    @RequestMapping(value = "/dashboard/news/{tableId}", method = RequestMethod.GET)
+    public List<NewsDto> getNewsList(
+            @PathVariable("tableId") String tableId,
+            @RequestParam(required = false) Boolean refreshIfNeeded,
+            @RequestParam(required = false) Integer page,
+            HttpServletRequest request) {
+        String attributeName = tableId + "Params";
+        TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
+        Assert.requireNonNull(tableParams, "Не установлены параметры для " + tableId);
+        Integer offset = page == null || tableParams.getPageSize() == -1 ? 0 : (page - 1) * tableParams.getPageSize();
+        String cacheKey = "newsList";
+        refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
+        CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
+        return newsService.getNewsBriefList(cacheData, offset, tableParams.getPageSize(), localeResolver.resolveLocale(request));
     }
 
     @RequestMapping(value = "/news/addNewsVariant", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-    @ResponseBody
     public String uploadNewsVariant(HttpServletRequest request, HttpServletResponse response,
                                     @RequestParam(value = "file", required = false) MultipartFile[] multipartFiles,
                                     @RequestParam(value = "id", required = false) Integer newsId,
                                     @RequestParam(value = "date", required = false) String date,
-                                    @RequestParam(value = "resource", required = false) String resource,
-                                    @RequestParam(value = "newsVariant", required = false) String newsVariant) {
+                                    @RequestParam(value = "resource", required = false) String resource) {
         MultipartFile multipartFile = multipartFiles[0];
         if (multipartFile.isEmpty() ||
                 Stream.of(multipartFiles)
@@ -182,6 +153,33 @@ public class NewsControllerRest {
         }
     }
 
+    @RequestMapping(value = "/news/deleteNews", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
+    public String uploadNewsVariant(HttpServletRequest request, HttpServletResponse response,
+                                    @RequestParam(value = "id", required = false) Integer newsId,
+                                    @RequestParam(value = "removingType", required = false) String removingType,
+                                    @RequestParam(value = "variant", required = false) String variant,
+                                    @RequestParam(value = "resource", required = false) String resource) {
+        try {
+            News news = new News();
+            news.setId(newsId);
+            int result = 0;
+            if ("news".equals(removingType)) {
+                result = newsService.deleteNews(news);
+            } else if ("variant".equals(removingType)) {
+                news.setNewsVariant(variant);
+                result = newsService.deleteNewsVariant(news);
+            }
+            if (result <= 0) {
+                throw new NewsRemovingException("");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new NewsRemovingException(messageSource.getMessage("news.errordelete", null, localeResolver.resolveLocale(request)));
+        }
+        return "{\"result\":\"" + messageSource.getMessage("news.successdelete", null, localeResolver.resolveLocale(request)) + "\"}";
+    }
+
+
     @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
     @ExceptionHandler(NoFileForLoadingException.class)
     @ResponseBody
@@ -200,6 +198,13 @@ public class NewsControllerRest {
     @ExceptionHandler(NewsCreationException.class)
     @ResponseBody
     public ErrorInfo NewsCreationExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
+    @ExceptionHandler(NewsRemovingException.class)
+    @ResponseBody
+    public ErrorInfo NewsRemovingException(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 

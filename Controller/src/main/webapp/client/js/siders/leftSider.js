@@ -73,7 +73,7 @@ function LeftSiderClass() {
         });
     };
     /*===========================================================*/
-    (this.init = function () {
+    (function init () {
         that.getStatisticsForAllCurrencies();
         that.getStatisticsForMyWallets();
     })();

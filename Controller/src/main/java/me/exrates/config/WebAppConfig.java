@@ -215,14 +215,14 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         super.addFormatters(registry);
     }
 
-//    @Bean(name = "multipartResolver")
-//    public CommonsMultipartResolver multipartResolver() {
-//        CommonsMultipartResolver commonsMultipartResolver = new CommonsMultipartResolver();
-//        commonsMultipartResolver.setMaxUploadSize(5000000);
-//        return commonsMultipartResolver;
-//    }
     @Bean(name = "multipartResolver")
+    public CommonsMultipartResolver multipartResolver() {
+        CommonsMultipartResolver commonsMultipartResolver = new CommonsMultipartResolver();
+        commonsMultipartResolver.setMaxUploadSize(5000000);
+        return commonsMultipartResolver;
+    }
+    /*@Bean(name = "multipartResolver")
     	public StandardServletMultipartResolver resolver() {
         		return new StandardServletMultipartResolver();
-        	}
+        	}*/
 }

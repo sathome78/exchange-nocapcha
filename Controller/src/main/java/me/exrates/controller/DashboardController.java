@@ -29,7 +29,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.sql.Timestamp;
@@ -87,7 +90,7 @@ public class DashboardController {
     }
 
     @RequestMapping(value = {"/dashboard"})
-    public ModelAndView dashboard(@ModelAttribute CurrencyPair currencyPair, @RequestParam(required = false) String errorNoty, @RequestParam(required = false) String successNoty, HttpServletRequest request) {
+    public ModelAndView dashboard(@RequestParam(required = false) String errorNoty, @RequestParam(required = false) String successNoty, HttpServletRequest request) {
         ModelAndView model = new ModelAndView();
         if (successNoty == null) {
             successNoty = (String)request.getSession().getAttribute("successNoty");
@@ -100,24 +103,10 @@ public class DashboardController {
         }
         model.addObject("errorNoty", errorNoty);
         model.addObject("captchaType", CAPTCHA_TYPE);
-        model.setViewName("dashboard");
+        model.setViewName("globalPages/dashboard");
         OrderCreateDto orderCreateDto = new OrderCreateDto();
         model.addObject(orderCreateDto);
         return model;
-    }
-
-    @RequestMapping(value = "/dashboard/commission/{type}", method = RequestMethod.GET)
-    public
-    @ResponseBody
-    BigDecimal getCommissions(@PathVariable("type") String type) {
-        switch (type) {
-            case "sell":
-                return commissionService.findCommissionByType(OperationType.SELL).getValue();
-            case "buy":
-                return commissionService.findCommissionByType(OperationType.BUY).getValue();
-            default:
-                return null;
-        }
     }
 
     @RequestMapping(value = "/forgotPassword")
