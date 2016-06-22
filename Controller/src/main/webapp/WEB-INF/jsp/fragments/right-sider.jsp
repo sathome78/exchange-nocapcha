@@ -8,35 +8,21 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <div class="cols-md-2">
     <h4 class="h4_green"><loc:message code="dashboard.onlinechat"/></h4>
+    <div class="chat-locales">
+        <a href="javascript:void(0)" onclick="changeChatLocale('ru')">RU</a>
+        <a href="javascript:void(0)" onclick="changeChatLocale('en')">EN</a>
+        <a href="javascript:void(0)" onclick="changeChatLocale('cn')">CN</a>
+    </div>
     <hr class="under_h4">
     <div id="chat" class="chat">
-        <p class="nickname">Никнейм_Пользователя</p>
-        <p class="message">Какое-нибудь сообщение, например - Всем привет!</p>
 
-        <p class="nickname nickname_active">Ваше_имя_в_чате</p>
-        <p class="message">И тебе привет</p>
-
-        <p class="nickname">Никнейм_Пользователя</p>
-        <p class="message">Как дела?</p>
-
-        <p class="nickname">Никнейм_2</p>
-        <p class="message">продайте yacoin кто-нибудь по 116</p>
-
-        <p class="nickname">Никнейм_3</p>
-        <p class="message">Какое-нибудь сообщение, например - Всем привет!</p>
-
-        <p class="nickname">Никнейм_4</p>
-        <p class="message">Какое-нибудь сообщение, например - Всем привет!</p>
-
-        <p class="nickname">Никнейм_5</p>
-        <p class="message">Какое-нибудь сообщение, например - Всем привет!</p>
-
-        <p class="nickname">Никнейм_6</p>
-        <p class="message">Какое-нибудь сообщение, например - Всем привет!</p>
     </div>
     <sec:authorize access="isAuthenticated()">
-        <input type="text" class="message_text" placeholder='<loc:message code="dashboard.onlinechatenter"/>'>
-        <button class="send_button"><loc:message code="dashboard.onlinechatsend"/></button>
+        <form id="new_mess" action="/chat/new-message" method="POST">
+            <input type="text" name="body" class="message_text" placeholder='<loc:message code="dashboard.onlinechatenter"/>'>
+            <input type="hidden" name="lang" value="EN"/>
+            <button class="send_button" type="submit"><loc:message code="dashboard.onlinechatsend"/></button>
+        </form>
     </sec:authorize>
 
 

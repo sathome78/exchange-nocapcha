@@ -17,6 +17,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -40,11 +41,11 @@ import java.util.Properties;
 @Configuration
 @EnableWebMvc
 @EnableTransactionManagement
+@EnableScheduling
 @ComponentScan({"me.exrates"})
 @Import(
     {
-        SecurityConfig.class,
-        WebSocketConfig.class
+        SecurityConfig.class, WebSocketConfig.class
     }
 )
 @PropertySource(value = {"classpath:/db.properties", "classpath:/uploadfiles.properties", "classpath:/news.properties"})

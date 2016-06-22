@@ -4,10 +4,17 @@ import me.exrates.dao.ChatDao;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.enums.ChatLang;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.jdbc.core.namedparam.SqlParameterSourceUtils;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+
+import static java.util.Collections.*;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -23,15 +30,23 @@ public class ChatDaoImpl implements ChatDao {
     }
 
     @Override
-    public List<ChatMessage> findLastMessages(ChatLang lang) {
-        final String sql = "SELECT c.user_id, c.message, USER.nickname FROM CHAT_".concat(lang.val)
-                            .concat(" as c INNER JOIN USER ON c.user_id = USER.id ORDER BY c.datetime DESC LIMIT 50");
-        return jdbcTemplate.query(sql, (resultSet, i) -> {
+    public List<ChatMessage> findLastMessages(final ChatLang lang, final int messageCount) {
+        final String sql = "SELECT c.id, c.user_id, c.body, USER.nickname FROM CHAT_" + lang.val +
+                            " as c INNER JOIN USER ON c.user_id = USER.id ORDER BY c.id DESC LIMIT :limit";
+        return jdbcTemplate.query(sql, singletonMap("limit", messageCount), (resultSet, i) -> {
             final ChatMessage message = new ChatMessage();
+            message.setId(resultSet.getLong("id"));
             message.setNickname(resultSet.getString("nickname"));
             message.setUserId(resultSet.getInt("user_id"));
-            message.setBody(resultSet.getString("message"));
+            message.setBody(resultSet.getString("body"));
             return message;
         });
+    }
+
+    @Override
+    public void persist(final ChatLang lang, final Set<ChatMessage> message) {
+        final String sql = "INSERT INTO CHAT_" + lang.val + "(id, user_id, body) VALUES (:id, :userId, :body)";
+        final SqlParameterSource[] batch = SqlParameterSourceUtils.createBatch(message.toArray());
+        jdbcTemplate.batchUpdate(sql, batch);
     }
 }

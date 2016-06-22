@@ -1,15 +1,9 @@
 package me.exrates.config;
 
+import me.exrates.controller.handler.ChatWebSocketHandler;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.messaging.simp.config.MessageBrokerRegistry;
-import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.config.annotation.*;
-import org.springframework.web.socket.handler.TextWebSocketHandler;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -18,29 +12,25 @@ import java.util.List;
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
 
-    List<WebSocketSession> list = new ArrayList<>();
-
     @Override
-    public void registerWebSocketHandlers(WebSocketHandlerRegistry webSocketHandlerRegistry) {
-        webSocketHandlerRegistry.addHandler(new Handler(), "/chat").withSockJS();
+    public void registerWebSocketHandlers(final WebSocketHandlerRegistry registry) {
+        registry.addHandler(chatENWebSocketHandler(), "/chat-en").withSockJS();
+        registry.addHandler(chatRUWebSocketHandler(), "/chat-ru").withSockJS();
+        registry.addHandler(chatCNWebSocketHandler(), "/chat-cn").withSockJS();
     }
 
-    class Handler extends TextWebSocketHandler {
-        @Override
-        protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-            System.out.println(message);
-            list.forEach(webSocketSession -> {
-                try {
-                    webSocketSession.sendMessage(new TextMessage(message.getPayload()));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
-        }
+    @Bean(name = "chatEN")
+    public ChatWebSocketHandler chatENWebSocketHandler() {
+        return new ChatWebSocketHandler();
+    }
 
-        @Override
-        public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-            list.add(session);
-        }
+    @Bean(name = "chatRU")
+    public ChatWebSocketHandler chatRUWebSocketHandler() {
+        return new ChatWebSocketHandler();
+    }
+
+    @Bean(name = "chatCN")
+    public ChatWebSocketHandler chatCNWebSocketHandler() {
+        return new ChatWebSocketHandler();
     }
 }

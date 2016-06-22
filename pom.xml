@@ -141,6 +141,11 @@
 				<artifactId>spring-expression</artifactId>
 				<version>${spring-expression.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>org.springframework.security</groupId>
+				<artifactId>spring-security-messaging</artifactId>
+				<version>RELEASE</version>
+			</dependency>
 		<!--Spring framework-->
 
 		<!--Servlet-->

@@ -16,7 +16,7 @@ public class SpringMvcInitializer extends AbstractAnnotationConfigDispatcherServ
 
 	@Override
 	protected Class<?>[] getRootConfigClasses() {
-		return new Class[] { WebAppConfig.class, WebSocketConfig.class };
+		return new Class[] { WebAppConfig.class};
 	}
 
 	@Override
