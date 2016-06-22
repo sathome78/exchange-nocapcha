@@ -10,9 +10,11 @@ import me.exrates.model.dto.MyWalletsStatisticsDto;
 import me.exrates.model.dto.UserWalletSummaryDto;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.WalletTransferStatus;
+import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.WalletService;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
+import me.exrates.service.util.Cache;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -56,14 +59,27 @@ public final class WalletServiceImpl implements WalletService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, Locale locale) {
-        return walletDao.getAllWalletsForUserDetailed(email, locale);
+    public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(CacheData cacheData,
+                                                                   String email, Locale locale) {
+        List<MyWalletsDetailedDto> result = walletDao.getAllWalletsForUserDetailed(email, locale);
+        if (Cache.checkCache(cacheData, result)) {
+            result = new ArrayList<MyWalletsDetailedDto>() {{
+                add(new MyWalletsDetailedDto(false));
+            }};
+        }
+        return result;
     }
 
     @Transactional(readOnly = true)
     @Override
-    public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale) {
-        return walletDao.getAllWalletsForUserReduced(email, locale);
+    public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(CacheData cacheData, String email, Locale locale) {
+        List<MyWalletsStatisticsDto> result =  walletDao.getAllWalletsForUserReduced(email, locale);
+        if (Cache.checkCache(cacheData, result)) {
+            result = new ArrayList<MyWalletsStatisticsDto>() {{
+                add(new MyWalletsStatisticsDto(false));
+            }};
+        }
+        return result;
     }
 
     @Override
@@ -122,20 +138,15 @@ public final class WalletServiceImpl implements WalletService {
     @Override
     @Transactional(propagation = Propagation.NESTED)
     public void depositActiveBalance(final Wallet wallet, final BigDecimal sum) {
-        LOGGER.info("Trying deposit active balance on wallet  " + wallet +
-                ", amount: " + sum);
         final BigDecimal newBalance =
                 wallet.getActiveBalance().add(sum, MATH_CONTEXT);
         wallet.setActiveBalance(newBalance);
         walletDao.update(wallet);
-        LOGGER.info("Successful active balance deposit on wallet " + wallet);
     }
 
     @Override
     @Transactional(propagation = Propagation.NESTED)
     public void withdrawActiveBalance(final Wallet wallet, final BigDecimal sum) {
-        LOGGER.info("Trying withdraw active balance on wallet " + wallet +
-                ", amount: " + sum);
         final BigDecimal newBalance = wallet.getActiveBalance().subtract(sum, MATH_CONTEXT);
         if (newBalance.compareTo(ZERO) < 0) {
             throw new NotEnoughUserWalletMoneyException("Not enough money to withdraw on user wallet " +
@@ -143,33 +154,27 @@ public final class WalletServiceImpl implements WalletService {
         }
         wallet.setActiveBalance(newBalance);
         walletDao.update(wallet);
-        LOGGER.info("Successful active balance withdraw on wallet " + wallet);
     }
 
     @Override
     @Transactional(propagation = Propagation.NESTED)
     public void depositReservedBalance(final Wallet wallet, final BigDecimal sum) {
-        LOGGER.info("Trying deposit reserved balance on wallet " + wallet +
-                ", amount: " + sum);
         wallet.setActiveBalance(wallet.getActiveBalance().subtract(sum, MATH_CONTEXT));
         if (wallet.getActiveBalance().compareTo(ZERO) < 0) {
             throw new NotEnoughUserWalletMoneyException("Not enough money to withdraw on user wallet " + wallet);
         }
         wallet.setReservedBalance(wallet.getReservedBalance().add(sum, MATH_CONTEXT));
         walletDao.update(wallet);
-        LOGGER.info("Successful reserved balance deposit on wallet " + wallet);
     }
 
     @Override
     @Transactional(propagation = Propagation.NESTED)
     public void withdrawReservedBalance(final Wallet wallet, final BigDecimal sum) {
-        LOGGER.info("Trying withdraw reserved balance on wallet " + wallet + ", amount: " + sum);
         wallet.setReservedBalance(wallet.getReservedBalance().subtract(sum, MATH_CONTEXT));
         if (wallet.getReservedBalance().compareTo(ZERO) < 0) {
             throw new NotEnoughUserWalletMoneyException("Not enough money to withdraw on user wallet " + wallet);
         }
         walletDao.update(wallet);
-        LOGGER.info("Successful reserved balance deposit on wallet " + wallet);
     }
 
     public List<UserWalletSummaryDto> getUsersWalletsSummary() {

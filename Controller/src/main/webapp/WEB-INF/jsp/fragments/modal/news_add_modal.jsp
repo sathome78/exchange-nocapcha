@@ -6,16 +6,15 @@
 
 <%----------%>
 <script src="http://malsup.github.com/jquery.form.js"></script>
-<script type="text/javascript" src="<c:url value='/client/js/order/adminDeleteOrder.js'/>"></script>
 <%----------%>
 
-<div id="news-add-modal" class="modal fade delete-order-info__modal" tabindex="-1" role="dialog">
+<div id="news-add-modal" class="modal fade modal-form-dialog" tabindex="-1" role="dialog">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
                         aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title"><loc:message code="ordersearch.title"/></h4>
+                <h4 class="modal-title"><loc:message code="news.add"/></h4>
             </div>
             <div class="modal-body news-add-info">
                 <form id="news-add-info__form" action="" method="post"
@@ -37,7 +36,7 @@
                     </div>
                     <br/>
                     <br/>
-                    <input id="uploadFile" required type="file" name="file"/>
+                    <input id="uploadFile" class="file-choice__input" required type="file" name="file"/>
                     <input id="newsId" hidden name="id"/>
                     <input id="resource" hidden name="resource"/>
                 </form>
@@ -45,7 +44,7 @@
             <div class="modal-footer">
                 <div class="news-add-info__button-wrapper">
                     <button id="news-add-info__add-news" class="delete-order-info__button">
-                        <loc:message code="news.addvariant"/></button>
+                        <loc:message code="news.add"/></button>
                     <button class="delete-order-info__button" data-dismiss="modal"
                             ><loc:message
                             code="submitorder.cancell"/></button>

@@ -1,4 +1,4 @@
-﻿html,
+﻿﻿﻿html,
 body {
     width: 100%;
     background: #e2ebf9;
@@ -219,9 +219,8 @@ header li {
     color: white;
     text-align: center;
     border: none;
-    margin: 10px 0 0px -15px;
+    margin: 10px 0 0 -15px;
     padding: 15px;
-    width: 280px;
     position: absolute;
 }
 
@@ -665,7 +664,7 @@ td.blue-white {
 }
 
 .cols-md-8 {
-    max-height: 700px;
+    /*max-height: 700px; me */
     display: block;
     overflow-y: scroll
 }
@@ -846,7 +845,7 @@ td.blue-white {
 }
 
 /********************************
-			GRAPHICS (me)
+			GOOGLE GRAPHICS (me)
 ********************************/
 
 .graphics {
@@ -923,7 +922,7 @@ td.blue-white {
 
 .area-chart-tip {
     color: black;
-    background: rgba(150, 159, 175, 0.4);
+    background: rgba(188, 199, 219, 0.40);
     height: 100%;
     padding: 0 10px;
     white-space: nowrap;
@@ -969,6 +968,12 @@ td.blue-white {
 
 .area-chart-tip__candle {
     margin: 0 0 0 20px;
+    font-size: 1.1rem;
+}
+
+.area-chart-tip__stock {
+    text-align: left;
+    margin: 0 0 0 0;
     font-size: 1.1rem;
 }
 
@@ -1132,6 +1137,10 @@ tr:hover .table-button-block .table-button-block__button {
     font-size: 1.4rem;
 }
 
+.input-block-wrapper__radio{
+    padding: 0 10px 0 0;
+}
+
 .input-block-wrapper__error-wrapper {
     text-align: right;
     color: rgba(232, 0, 0, 0.93);
@@ -1155,6 +1164,12 @@ tr:hover .table-button-block .table-button-block__button {
     margin: 0;
     height: 30px;
     outline: none;
+}
+
+.modal-form-dialog #uploadFile.file-choice__input {
+    color: #969faf;
+    font-weight: 300;
+    font-size: 1.4rem;
 }
 
 #orders-history-table {
@@ -1184,9 +1199,13 @@ table tbody .blink,
 }
 
 
-.login__captcha{
+.login__captcha--recaptcha{
     float: right;
     padding: 0 15px 0 0;
+}
+
+.login__captcha--botdetect{
+    padding: 15px 0 15px 15px;
 }
 
 .login__button {
@@ -1233,3 +1252,40 @@ form span.repass {
     float: right;
     margin: 0 0 0 5px;
 }
+
+.BDC_CaptchaImageDiv ~ a{
+    opacity: 0;
+}
+
+/********************************
+            NEWS
+********************************/
+.news_item {
+    font-size: 1.1rem;
+}
+
+.news_item__ref{
+    text-decoration: none;
+    color: inherit;
+}
+
+.news_item__ref:hover{
+    text-decoration: none;
+    color: #0000FF;
+}
+
+.news_item__header{
+    font-weight: bold;
+    margin: 5px 0 0 0 ;
+}
+
+.news_item__brief{
+    line-height: 1.3rem;
+    height: 2.6rem;
+    overflow: hidden;
+    margin: 0 0 10px 0 ;
+}
+
+/********************************
+			www.amcharts.com GRAPHICS (me)
+********************************/

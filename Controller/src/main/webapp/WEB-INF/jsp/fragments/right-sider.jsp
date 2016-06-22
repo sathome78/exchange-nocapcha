@@ -1,12 +1,12 @@
 <%--
-  Created by IntelliJ IDEA.
   User: Valk
-  Date: 01.06.2016
-  Time: 12:30
-  To change this template use File | Settings | File Templates.
 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<div class="cols-md-2">
+<%----%>
+<script type="text/javascript" src="<c:url value='/client/js/news/news.js'/>"></script>
+<%----%>
+<div id="right-sider" class="cols-md-2">
+    <%--CHAT TODO REMOVE TO SEPARATE jsp--%>
     <h4 class="h4_green"><loc:message code="dashboard.onlinechat"/></h4>
     <div class="chat-locales">
         <a href="javascript:void(0)" onclick="changeChatLocale('ru')">RU</a>
@@ -44,5 +44,9 @@
         <h5 class="news_title">Заголовок новости в несколько строк</h5>
         <p>Краткий текст новости в несколько строчек + ссылка <a href="#"> yandex.ru</a></p>
     </div>
+    <input type="text" class="message_text" placeholder='<loc:message code="dashboard.onlinechatenter"/>'>
+    <button class="send_button"><loc:message code="dashboard.onlinechatsend"/></button>
+    <%--NEWS LIST--%>
+    <%@include file="right-sider-news-list.jsp" %>
 </div>
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-scrollTo/2.1.0/jquery.scrollTo.min.js"></script>

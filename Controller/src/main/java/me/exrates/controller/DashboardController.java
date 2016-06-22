@@ -12,7 +12,9 @@ import me.exrates.model.vo.BackDealInterval;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -27,7 +29,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.sql.Timestamp;
@@ -38,6 +43,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Controller
+@PropertySource("classpath:/captcha.properties")
 public class DashboardController {
     @Autowired
     OrderService orderService;
@@ -72,6 +78,9 @@ public class DashboardController {
     @Autowired
     VerifyReCaptchaSec verifyReCaptcha;
 
+    @Value("${captcha.type}")
+    String CAPTCHA_TYPE;
+
     @RequestMapping(value = {"/dashboard/locale"})
     public void localeSwitcherCommand(Principal principal, HttpServletRequest request) {
         if (principal != null) {
@@ -81,7 +90,7 @@ public class DashboardController {
     }
 
     @RequestMapping(value = {"/dashboard"})
-    public ModelAndView dashboard(@ModelAttribute CurrencyPair currencyPair, @RequestParam(required = false) String errorNoty, @RequestParam(required = false) String successNoty, HttpServletRequest request) {
+    public ModelAndView dashboard(@RequestParam(required = false) String errorNoty, @RequestParam(required = false) String successNoty, HttpServletRequest request) {
         ModelAndView model = new ModelAndView();
         if (successNoty == null) {
             successNoty = (String)request.getSession().getAttribute("successNoty");
@@ -93,24 +102,11 @@ public class DashboardController {
             request.getSession().removeAttribute("errorNoty");
         }
         model.addObject("errorNoty", errorNoty);
-        model.setViewName("dashboard");
+        model.addObject("captchaType", CAPTCHA_TYPE);
+        model.setViewName("globalPages/dashboard");
         OrderCreateDto orderCreateDto = new OrderCreateDto();
         model.addObject(orderCreateDto);
         return model;
-    }
-
-    @RequestMapping(value = "/dashboard/commission/{type}", method = RequestMethod.GET)
-    public
-    @ResponseBody
-    BigDecimal getCommissions(@PathVariable("type") String type) {
-        switch (type) {
-            case "sell":
-                return commissionService.findCommissionByType(OperationType.SELL).getValue();
-            case "buy":
-                return commissionService.findCommissionByType(OperationType.BUY).getValue();
-            default:
-                return null;
-        }
     }
 
     @RequestMapping(value = "/forgotPassword")

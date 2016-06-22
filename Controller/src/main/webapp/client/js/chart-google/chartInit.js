@@ -2,7 +2,17 @@
  * Created by Valk on 09.05.2016.
  */
 
-function ChartClass() {
+function ChartGoogleClass() {
+    if( $('.google-graphics').css('display') == 'none'){
+        throw new Error('google chart is switched off');
+    }
+    if (ChartGoogleClass.__instance) {
+        return ChartGoogleClass.__instance;
+    } else if (this === window) {
+        return new ChartGoogleClass();
+    }
+    ChartGoogleClass.__instance = this;
+
     var that = this;
     var chartType;
     var areaChart = new ChartAreaClass();
@@ -68,7 +78,7 @@ function ChartClass() {
         syncCurrentParams(null, period, null, function (data) {
             $(this).siblings().removeClass('active');
             $(this).siblings().toggleClass('active');
-            dashboard.getAndShowStatisticsForCurrency();
+            trading.getAndShowStatisticsForCurrency();
             that.drawChart(data.chartType);
         });
     }

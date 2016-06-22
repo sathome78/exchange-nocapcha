@@ -237,7 +237,6 @@ public class MerchantServiceImpl implements MerchantService {
         email.setTo(withdrawRequest.getUserEmail());
         try {
             sendMailService.sendMail(email);
-            LOG.info("Sanded email :"+email);
         } catch (MailException e) {
             LOG.error(e);
         }
@@ -268,7 +267,6 @@ public class MerchantServiceImpl implements MerchantService {
         mail.setMessage(notification);
         try {
             sendMailService.sendMail(mail);
-            LOG.info("Sanded email :" + email);
         } catch (MailException e) {
             LOG.error(e);
         }

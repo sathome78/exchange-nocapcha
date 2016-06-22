@@ -7,6 +7,7 @@ import me.exrates.model.dto.*;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.vo.BackDealInterval;
+import me.exrates.model.vo.CacheData;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -28,6 +29,7 @@ public interface OrderService {
      * TODO ADD JAVADOC
      */
     List<OrderWideListDto> getMyOrdersWithState(
+            CacheData cacheData,
             String email, CurrencyPair currencyPair, OrderStatus status,
             OperationType operationType,
             Integer offset, Integer limit, Locale locale);
@@ -172,7 +174,7 @@ public interface OrderService {
      * @author ValkSam
      * @return statistics of orders by currency pairs
      */
-    List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairs(Locale locale);
+    List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairs(CacheData cacheData, Locale locale);
 
     /**
      * Returns data for candle chart for <i>currencyPair</i> for for period: from current moment to <i></>interval</i> back
@@ -199,7 +201,7 @@ public interface OrderService {
      * @param locale
      * @return
      */
-    List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriod(BackDealInterval backDealInterval, Integer limit, CurrencyPair currencyPair, Locale locale);
+    List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriod(CacheData cacheData, BackDealInterval backDealInterval, Integer limit, CurrencyPair currencyPair, Locale locale);
 
     /**
      * Returns SELL and BUY commissions for orders
@@ -213,7 +215,7 @@ public interface OrderService {
      * @param email is the email of current user
      * @return list of Buy orders
      */
-    List<OrderListDto> getAllBuyOrders(CurrencyPair currencyPair, String email, Locale locale);
+    List<OrderListDto> getAllBuyOrders(CacheData cacheData, CurrencyPair currencyPair, String email, Locale locale);
 
     /**
      * Returns list of Sell orders of status open, exclude the orders of current user
@@ -221,7 +223,7 @@ public interface OrderService {
      * @param email is the email of current user
      * @return list of Sell orders
      */
-    List<OrderListDto> getAllSellOrders(CurrencyPair currencyPair, String email, Locale locale);
+    List<OrderListDto> getAllSellOrders(CacheData cacheData, CurrencyPair currencyPair, String email, Locale locale);
 
     /**
      * Returns data of

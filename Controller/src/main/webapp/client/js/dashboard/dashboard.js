@@ -2,7 +2,7 @@
  * Created by Valk on 02.06.2016.
  */
 
-function DashboardClass(chartType, currentCurrencyPair) {
+function DashboardClass(period, chartType, currentCurrencyPair) {
     if (DashboardClass.__instance) {
         return DashboardClass.__instance;
     } else if (this === window) {
@@ -11,10 +11,11 @@ function DashboardClass(chartType, currentCurrencyPair) {
     DashboardClass.__instance = this;
     /**/
     var that = this;
-    var chart = new ChartClass();
+    var chart = null;
+
     var $dashboardContainer = $('#dashboard');
     var dashboardCurrencyPairSelector;
-    var refreshInterval = 5000;
+    var refreshInterval = 5000*REFRESH_INTERVAL_MULTIPLIER;
     var timeOutId;
     /**/
     var showLog = false;
@@ -41,7 +42,7 @@ function DashboardClass(chartType, currentCurrencyPair) {
         that.getAndShowBuyOrders(refreshIfNeeded);
     };
 
-    this.getAndShowStatisticsForCurrency = function (pairName, period) {
+    this.getAndShowStatisticsForCurrency = function () {
         if ($dashboardContainer.hasClass('hidden')) {
             return;
         }
@@ -65,7 +66,9 @@ function DashboardClass(chartType, currentCurrencyPair) {
         if ($dashboardContainer.hasClass('hidden')) {
             return;
         }
-        chart.drawChart();
+        if (chart) {
+            chart.drawChart();
+        }
     };
 
     this.getAndShowAcceptedOrdersHistory = function (refreshIfNeeded, callback) {
@@ -199,11 +202,21 @@ function DashboardClass(chartType, currentCurrencyPair) {
     }
 
     /*=========================================================*/
-    (function init(chartType, currentCurrencyPair) {
+    (function init(period, chartType, currentCurrencyPair) {
         getOrderCommissions();
         dashboardCurrencyPairSelector = new CurrencyPairSelectorClass('dashboard-currency-pair-selector', currentCurrencyPair);
         dashboardCurrencyPairSelector.init(onCurrencyPairChange);
-        chart.init(chartType);
+        try {
+            chart = new ChartGoogleClass();
+        } catch (e){}
+        try {
+            chart = new ChartAmchartsClass("STOCK", period);
+        } catch (e){}
+        if (chart) {
+            try {
+                chart.init(chartType);
+            } catch(e) {}
+        }
         that.updateAndShowAll(false);
         /**/
         $('#amountBuy').on('keyup', calculateFieldsForBuy).on('keydown', resetOrdersListForAccept);
@@ -222,7 +235,7 @@ function DashboardClass(chartType, currentCurrencyPair) {
         $('#order-create-confirm__submit').on('click', orderCreate);
         /**/
         switchCreateOrAcceptButtons();
-    })(chartType, currentCurrencyPair);
+    })(period, chartType, currentCurrencyPair);
 
     function fillOrdersFormFromCurrentOrder() {
         that.ordersListForAccept = [];

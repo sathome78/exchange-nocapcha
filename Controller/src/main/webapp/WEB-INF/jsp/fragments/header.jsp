@@ -2,6 +2,9 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
+<%--CAPTCHA--%>
+<%@ taglib prefix="botDetect" uri="botDetect" %>
+<%--CAPTCHA--%>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-noty/2.3.7/packaged/jquery.noty.packaged.min.js"></script>
 
@@ -78,10 +81,22 @@
                                                 code="dashboard.passwordText"/> class="form_input">
                                     <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                                     <br/>
-                                        <%--CAPTCHA--%>
-                                    <div id="cpch-head-field" class="g-recaptcha"
-                                         data-sitekey=${captchaProperties.get("captcha.key")}></div>
-                                    <p class='cpch-error-message' style="color:red">${cpch}</p>
+                                    <c:if test="${captchaType==\"RECAPTCHA\"}">
+                                        <%--CAPTCHA GOOGLE--%>
+                                        <div id="cpch-head-field" class="g-recaptcha"
+                                             data-sitekey=${captchaProperties.get("captcha.key")}></div>
+                                        <p class='cpch-error-message' style="color:red">${cpch}</p>
+                                    </c:if>
+                                    <c:if test="${captchaType==\"BOTDETECT\"}">
+                                        <%--CAPTCHA BotDetect--%>
+                                        <div class="validationDiv">
+                                            <botDetect:captcha id="headerRegCaptcha" userInputID="captchaCode"/>
+                                            <input name="captchaCode" type="text" id="captchaCode"/>
+                                            <input type="hidden" name="captchaId" value="headerRegCaptcha"/>
+                                        </div>
+                                    </c:if>
+                                    <input type="hidden" name="captchaType" value="${captchaType}"/>
+                                        <%----%>
                                     <button type="submit" class="login_button"><loc:message
                                             code="dashboard.entrance"/></button>
                                     <a href="/forgotPassword" class="white forgot-password"><loc:message
@@ -136,7 +151,7 @@
 </header>
 
 <%--capcha--%>
-<c:if test="${showEntrance && !isAuth}">
+<c:if test="${showEntrance && !isAuth && captchaType==\"RECAPTCHA\"}">
     <script type="text/javascript" src="<c:url value='/client/js/capchahead.js'/>"></script>
     <c:set value="${pageContext.response.locale}" var="locale"></c:set>
     <c:if test="${locale=='cn'}">

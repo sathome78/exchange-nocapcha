@@ -37,7 +37,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 @Controller
-@PropertySource(value = {"classpath:/news.properties"})
+@PropertySource(value = {"classpath:/news.properties", "classpath:/captcha.properties"})
 public class NewsController {
     private static final Logger LOG = LogManager.getLogger(NewsController.class);
     private final int DEAFAULT_PAGE_SIZE = 20;
@@ -56,40 +56,31 @@ public class NewsController {
     @Autowired
     private UserFilesService userFilesService;
 
-    @RequestMapping("/news")
-    public ModelAndView newsList(@RequestParam(required = false) Integer pageNumber,
-                                 @RequestParam(required = false) Integer pageSize, HttpServletRequest request) {
-        ModelAndView modelAndView = new ModelAndView("news/news");
-        HttpSession session = request.getSession();
-        Integer limit = pageSize == null ? DEAFAULT_PAGE_SIZE : pageSize;
-        Integer offset = pageNumber == null ? 0 : (pageNumber - 1) * pageSize;
-        List<News> newsList = newsService.getNewsBriefList(offset, limit, localeResolver.resolveLocale(request));
-        session.setAttribute("newsPaginatorOffset", offset);
-        session.setAttribute("newsPaginatorLimit", limit);
-        modelAndView.addObject("newsList", newsList);
-        return modelAndView;
-    }
+    @Value("${captcha.type}")
+    String CAPTCHA_TYPE;
 
     /*skip resources: img, css, js*/
-    @RequestMapping("/news/**/newstopic.html")
+    @RequestMapping("/news/**/newstopic")
     public ModelAndView newsSingle(HttpServletRequest request) {
         try {
             ModelAndView modelAndView = new ModelAndView();
-            modelAndView.setViewName("news/newstopic");
-            String path = request.getServletPath();
-            int newsId = Integer.valueOf(path.split("\\/{1}[^\\/]*$")[0].split("^.*[\\/]")[1]);
+            modelAndView.setViewName("globalPages/newstopic");
+            String path = request.getServletPath(); //   /news/2015/MAY/27/48/ru/newstopic.html
+            int newsId = Integer.valueOf(path.split("\\/\\p{Alpha}+\\/{1}[^\\/]*$")[0].split("^.*[\\/]")[1]); // =>  /news/2015/MAY/27/48  => 48
+//            String locale = path.split("\\/{1}[^\\/]*$")[0].split("^.*[\\/]")[1];
             News news = newsService.getNews(newsId, localeResolver.resolveLocale(request));
             if (news != null) {
                 String newsContentPath = new StringBuilder()
-                        .append(newsLocationDir)
-                        .append(news.getResource())
-                        .append(newsId)
-                        .append("/")
-                        .append(localeResolver.resolveLocale(request).toString())
-                        .append("/newstopic.html")
-                        .toString();
+                        .append(newsLocationDir)    //    /Users/Public/news/
+                        .append(news.getResource()) //                      2015/MAY/27/
+                        .append(newsId)             //                                  48
+                        .append("/")                //                                     /
+                        .append(localeResolver.resolveLocale(request).toString())   //      ru
+                        //ignore locale from path and take it from fact locale .append(locale)   //                                                ru
+                        .append("/newstopic.html")  //                                          /newstopic.html
+                        .toString();                //  /Users/Public/news/2015/MAY/27/48/ru/newstopic.html
                 try {
-                    String newsContent = new String(Files.readAllBytes(Paths.get(newsContentPath)), "UTF-8");
+                    String newsContent = new String(Files.readAllBytes(Paths.get(newsContentPath)), "UTF-8"); //content of the newstopic.html
                     news.setContent(newsContent);
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -99,95 +90,11 @@ public class NewsController {
                 news = new News();
                 news.setContent(newsContent);
             }
+            modelAndView.addObject("captchaType", CAPTCHA_TYPE);
             modelAndView.addObject("news", news);
             return modelAndView;
         } catch (Exception e) {
             return null;
-        }
-    }
-
-    @RequestMapping(value = "/news/addNewsVariant", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
-    @ResponseBody
-    public String uploadNewsVariant(HttpServletRequest request, HttpServletResponse response,
-                                    @RequestParam(value = "file", required = false) MultipartFile[] multipartFiles,
-                                    @RequestParam(value = "id", required = false) Integer newsId,
-                                    @RequestParam(value = "date", required = false) String date,
-                                    @RequestParam(value = "resource", required = false) String resource,
-                                    @RequestParam(value = "newsVariant", required = false) String newsVariant) {
-        MultipartFile multipartFile = multipartFiles[0];
-        if (multipartFile.isEmpty() ||
-                Stream.of(multipartFiles)
-                        .filter(file -> file.getOriginalFilename().substring(multipartFile.getOriginalFilename().lastIndexOf(".") + 1).toUpperCase().equals("ZIP"))
-                        .collect(Collectors.toList()).isEmpty()) {
-            throw new NoFileForLoadingException(messageSource.getMessage("news.nofilesforloading", null, localeResolver.resolveLocale(request)));
-        } else {
-            News news = new News();
-            news.setId(newsId);
-            if (newsId == null) {
-                /*new News. Requires date.*/
-                try {
-                    news.setDate(LocalDate.parse(date));
-                } catch (Exception e) {
-                    throw new NewsCreationException(messageSource.getMessage("news.dateerror", null, localeResolver.resolveLocale(request)));
-                }
-                resource = String.valueOf(news.getDate().getYear()) + "/" + String.valueOf(news.getDate().getMonth()) + "/" + String.valueOf(news.getDate().getDayOfMonth()) + "/";
-            }
-            news.setResource(resource);
-            /*populate title, brief and collect locale from archive file*/
-            Map<String, News> variants = new HashMap<>();
-            try {
-                ZipInputStream zis = new ZipInputStream(multipartFile.getInputStream(), Charset.forName("CP866"));
-                ZipEntry ze;
-                while ((ze = zis.getNextEntry()) != null) {
-                    if (ze.getName().contains(TITLE_DESCRIPTION_FILE_NAME)) {
-                        byte[] buff = new byte[(int) ze.getSize()];
-                        zis.read(buff);
-                        news.setTitle(new String(buff, "UTF-8"));
-                        /**/
-                        String locale = ze.getName().split("\\/")[ze.getName().split("\\/").length - 2];
-                        News n = variants.get(locale);
-                        if (n == null) {
-                            try {
-                                news.setNewsVariant(locale);
-                                variants.put(locale, (News) news.clone());
-                            } catch (CloneNotSupportedException e) {
-                                e.printStackTrace();
-                            }
-                        } else {
-                            n.setTitle(news.getTitle());
-                        }
-                    }
-                    if (ze.getName().contains(BRIEF_DESCRIPTION_FILE_NAME)) {
-                        byte[] buff = new byte[(int) ze.getSize()];
-                        zis.read(buff);
-                        news.setBrief(new String(buff, "UTF-8"));
-                        /**/
-                        String locale = ze.getName().split("\\/")[ze.getName().split("\\/").length - 2];
-                        News n = variants.get(locale);
-                        if (n == null) {
-                            try {
-                                news.setNewsVariant(locale);
-                                variants.put(locale, (News) news.clone());
-                            } catch (CloneNotSupportedException e) {
-                                e.printStackTrace();
-                            }
-                        } else {
-                            n.setTitle(news.getBrief());
-                        }
-                    }
-                }
-                /**/
-                if (variants.isEmpty()) {
-                    throw new FileLoadingException("");
-                }
-                newsService.uploadNews(variants.values(), multipartFile, newsLocationDir);
-                /**/
-            } catch (NewsCreationException e) {
-                throw new NewsCreationException(messageSource.getMessage("news.errorcreate", null, localeResolver.resolveLocale(request)));
-            } catch (FileLoadingException | IOException e) {
-                throw new FileLoadingException(String.format("%s </br> %s", messageSource.getMessage("news.errorload", null, localeResolver.resolveLocale(request)), e.getLocalizedMessage()));
-            }
-            return "{\"result\":\"" + messageSource.getMessage("news.successload", null, localeResolver.resolveLocale(request)) + "\"}";
         }
     }
 

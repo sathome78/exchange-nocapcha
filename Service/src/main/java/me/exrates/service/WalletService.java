@@ -8,6 +8,7 @@ import me.exrates.model.dto.MyWalletsStatisticsDto;
 import me.exrates.model.dto.UserWalletSummaryDto;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.WalletTransferStatus;
+import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WalletOperationData;
 
 import java.math.BigDecimal;
@@ -25,9 +26,9 @@ public interface WalletService {
      * @param email is email to determine user
      * @return list the user wallets data
      */
-    List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, Locale locale);
+    List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(CacheData cacheData, String email, Locale locale);
 
-    List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale);
+    List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(CacheData cacheData, String email, Locale locale);
 
     List<Currency> getCurrencyList();
 

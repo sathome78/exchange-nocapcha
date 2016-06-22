@@ -28,9 +28,19 @@
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Merchants"/>
         </Logger>
+        <logger name="org.quartz" level="ERROR" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="Logs"/>
+        </logger>
         <logger name="org.springframework" level="ERROR" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Logs"/>
+        </logger>
+        <logger name="org.springframework.jdbc.core.JdbcTemplate" level="OFF" additivity="false">
+            <appender-ref ref="Console" />
+        </logger>
+        <logger name="org.springframework.jdbc.core.StatementCreatorUtils" level="OFF" additivity="false">
+            <appender-ref ref="Console" />
         </logger>
         <Root level="TRACE">
             <AppenderRef ref="Console"/>

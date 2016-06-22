@@ -6,9 +6,8 @@ import me.exrates.model.enums.ChartType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.vo.BackDealInterval;
-import me.exrates.service.CurrencyService;
-import me.exrates.service.OrderService;
-import me.exrates.service.WalletService;
+import me.exrates.model.vo.CacheData;
+import me.exrates.service.*;
 import org.apache.logging.log4j.core.util.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -24,7 +23,6 @@ import java.math.BigDecimal;
 import java.security.Principal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -44,7 +42,10 @@ public class OnlineRestController {
     /*default limit the data fetching for all tables. (-1) means no limit*/
     final public Integer TABLES_LIMIT_DEFAULT = -1;
     /*default type of the chart*/
-    final public ChartType CHART_TYPE_DEFAULT = ChartType.AREA;
+    final public ChartType CHART_TYPE_DEFAULT = ChartType.STOCK;
+
+    @Autowired
+    CommissionService commissionService;
 
     @Autowired
     OrderService orderService;
@@ -56,10 +57,25 @@ public class OnlineRestController {
     CurrencyService currencyService;
 
     @Autowired
+    NewsService newsService;
+
+    @Autowired
     MessageSource messageSource;
 
     @Autowired
     LocaleResolver localeResolver;
+
+    @RequestMapping(value = "/dashboard/commission/{type}", method = RequestMethod.GET)
+    public BigDecimal getCommissions(@PathVariable("type") String type) {
+        switch (type) {
+            case "sell":
+                return commissionService.findCommissionByType(OperationType.SELL).getValue();
+            case "buy":
+                return commissionService.findCommissionByType(OperationType.BUY).getValue();
+            default:
+                return null;
+        }
+    }
 
     @RequestMapping(value = "/dashboard/myWalletsStatistic", method = RequestMethod.GET)
     public List<MyWalletsStatisticsDto> getStatisticsForAllCurrencies(@RequestParam(required = false) Boolean refreshIfNeeded,
@@ -68,41 +84,25 @@ public class OnlineRestController {
             return null;
         }
         String email = principal.getName();
-        List<MyWalletsStatisticsDto> result = walletService.getAllWalletsForUserReduced(email, localeResolver.resolveLocale(request));
-        /**/
-        int resultHash = result.hashCode();
         String cacheKey = "myWalletsStatistic";
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
-        if (checkCache(request, cacheKey, resultHash, !refreshIfNeeded)) {
-            result = new ArrayList<MyWalletsStatisticsDto>() {{
-                add(new MyWalletsStatisticsDto(false));
-            }};
-        }
-        /**/
-        return result;
+        CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
+        return walletService.getAllWalletsForUserReduced(cacheData, email, localeResolver.resolveLocale(request));
     }
 
     @RequestMapping(value = "/dashboard/currencyPairStatistic", method = RequestMethod.GET)
     public List<ExOrderStatisticsShortByPairsDto> getStatisticsForAllCurrencies(@RequestParam(required = false) Boolean refreshIfNeeded,
                                                                                 HttpServletRequest request) {
-        List<ExOrderStatisticsShortByPairsDto> result = orderService.getOrdersStatisticByPairs(localeResolver.resolveLocale(request));
-        /**/
-        int resultHash = result.hashCode();
         String cacheKey = "currencyPairStatistic";
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
-        if (checkCache(request, cacheKey, resultHash, !refreshIfNeeded)) {
-            result = new ArrayList<ExOrderStatisticsShortByPairsDto>() {{
-                add(new ExOrderStatisticsShortByPairsDto(false));
-            }};
-        }
-        /**/
-        return result;
+        CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
+        return orderService.getOrdersStatisticByPairs(cacheData, localeResolver.resolveLocale(request));
     }
 
     @RequestMapping(value = "/dashboard/chartArray/{type}", method = RequestMethod.GET)
     public ArrayList chartArray(HttpServletRequest request) {
         CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
-        BackDealInterval backDealInterval = (BackDealInterval) request.getSession().getAttribute("currentBackDealInterval");
+        final BackDealInterval backDealInterval = (BackDealInterval) request.getSession().getAttribute("currentBackDealInterval");
         ChartType chartType = (ChartType) request.getSession().getAttribute("chartType");
         /**/
         ArrayList<List> arrayListMain = new ArrayList<>();
@@ -112,6 +112,7 @@ public class OnlineRestController {
         }});
         /**/
         if (chartType == ChartType.AREA) {
+            /*GOOGLE*/
             List<Map<String, Object>> rows = orderService.getDataForAreaChart(currencyPair, backDealInterval);
             for (Map<String, Object> row : rows) {
                 Timestamp dateAcception = (Timestamp) row.get("dateAcception");
@@ -131,6 +132,7 @@ public class OnlineRestController {
                 }
             }
         } else if (chartType == ChartType.CANDLE) {
+            /*GOOGLE*/
             List<CandleChartItemDto> rows = orderService.getDataForCandleChart(currencyPair, backDealInterval);
             for (CandleChartItemDto candle : rows) {
                 ArrayList<Object> arrayList = new ArrayList<>();
@@ -142,10 +144,21 @@ public class OnlineRestController {
                 arrayList.add(candle.getLowRate());
                 arrayList.add(candle.getHighRate());
                 arrayList.add(candle.getBaseVolume());
-                /*titles of values for chart tip*/
-                arrayList.add(messageSource.getMessage("orders.date", null, localeResolver.resolveLocale(request)));
-                arrayList.add(messageSource.getMessage("orders.exrate", null, localeResolver.resolveLocale(request)));
-                arrayList.add(messageSource.getMessage("orders.volume", null, localeResolver.resolveLocale(request)));
+                arrayListMain.add(arrayList);
+            }
+        } else if (chartType == ChartType.STOCK) {
+            /*AMCHARTS*/
+            List<CandleChartItemDto> rows = orderService.getDataForCandleChart(currencyPair, backDealInterval);
+            for (CandleChartItemDto candle : rows) {
+                ArrayList<Object> arrayList = new ArrayList<>();
+                /*values*/
+                arrayList.add(candle.getBeginDate().toString());
+                arrayList.add(candle.getEndDate().toString());
+                arrayList.add(candle.getOpenRate());
+                arrayList.add(candle.getCloseRate());
+                arrayList.add(candle.getLowRate());
+                arrayList.add(candle.getHighRate());
+                arrayList.add(candle.getBaseVolume());
                 arrayListMain.add(arrayList);
             }
         }
@@ -281,18 +294,10 @@ public class OnlineRestController {
                 e.printStackTrace();
             }
         }
-        List<OrderAcceptedHistoryDto> result = orderService.getOrderAcceptedForPeriod(ORDER_HISTORY_INTERVAL, ORDER_HISTORY_LIMIT, currencyPair, localeResolver.resolveLocale(request));
-        /**/
-        int resultHash = result.hashCode();
         String cacheKey = "acceptedOrderHistory";
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
-        if (checkCache(request, cacheKey, resultHash, !refreshIfNeeded)) {
-            result = new ArrayList<OrderAcceptedHistoryDto>() {{
-                add(new OrderAcceptedHistoryDto(false));
-            }};
-        }
-        /**/
-        return result;
+        CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
+        return orderService.getOrderAcceptedForPeriod(cacheData, ORDER_HISTORY_INTERVAL, ORDER_HISTORY_LIMIT, currencyPair, localeResolver.resolveLocale(request));
     }
 
     @RequestMapping(value = "/dashboard/orderCommissions", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -305,18 +310,10 @@ public class OnlineRestController {
                                                 Principal principal, HttpServletRequest request) {
         CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
         String email = principal == null ? "" : principal.getName();
-        List<OrderListDto> result = orderService.getAllSellOrders(currencyPair, email, localeResolver.resolveLocale(request));
-        /**/
-        int resultHash = result.hashCode();
         String cacheKey = "sellOrders";
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
-        if (checkCache(request, cacheKey, resultHash, !refreshIfNeeded)) {
-            result = new ArrayList<OrderListDto>() {{
-                add(new OrderListDto(false));
-            }};
-        }
-        /**/
-        return result;
+        CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
+        return orderService.getAllSellOrders(cacheData, currencyPair, email, localeResolver.resolveLocale(request));
     }
 
     @RequestMapping(value = "/dashboard/BuyOrders", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -324,18 +321,10 @@ public class OnlineRestController {
                                                Principal principal, HttpServletRequest request) {
         CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
         String email = principal == null ? "" : principal.getName();
-        List<OrderListDto>  result = orderService.getAllBuyOrders(currencyPair, email, localeResolver.resolveLocale(request));
-        /**/
-        int resultHash = result.hashCode();
         String cacheKey = "BuyOrders";
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
-        if (checkCache(request, cacheKey, resultHash, !refreshIfNeeded)) {
-            result = new ArrayList<OrderListDto>() {{
-                add(new OrderListDto(false));
-            }};
-        }
-        /**/
-        return result;
+        CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
+        return orderService.getAllBuyOrders(cacheData, currencyPair, email, localeResolver.resolveLocale(request));
     }
 
     @RequestMapping(value = "/dashboard/myWalletsData", method = RequestMethod.GET)
@@ -345,18 +334,10 @@ public class OnlineRestController {
             return null;
         }
         String email = principal.getName();
-        List<MyWalletsDetailedDto> result =  walletService.getAllWalletsForUserDetailed(email, localeResolver.resolveLocale(request));
-        /**/
-        int resultHash = result.hashCode();
         String cacheKey = "myWalletsData";
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
-        if (checkCache(request, cacheKey, resultHash, !refreshIfNeeded)) {
-            result = new ArrayList<MyWalletsDetailedDto>() {{
-                add(new MyWalletsDetailedDto(false));
-            }};
-        }
-        /**/
-        return result;
+        CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
+        return walletService.getAllWalletsForUserDetailed(cacheData, email, localeResolver.resolveLocale(request));
     }
 
     @RequestMapping(value = "/dashboard/myOrdersData/{tableId}", method = RequestMethod.GET)
@@ -377,18 +358,10 @@ public class OnlineRestController {
         TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
         Assert.requireNonNull(tableParams, "Не установлены параметры для " + tableId);
         Integer offset = page == null || tableParams.getPageSize() == -1 ? 0 : (page - 1) * tableParams.getPageSize();
-        List<OrderWideListDto> result = orderService.getMyOrdersWithState(email, currencyPair, status, type, offset, tableParams.getPageSize(), localeResolver.resolveLocale(request));
-        /**/
-        int resultHash = result.hashCode();
-        String cacheKey = "myOrdersData"+tableId+status;
+        String cacheKey = "myOrdersData" + tableId + status;
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
-        if (checkCache(request, cacheKey, resultHash, !refreshIfNeeded)) {
-            result = new ArrayList<OrderWideListDto>() {{
-                add(new OrderWideListDto(false));
-            }};
-        }
-        /**/
-        return result;
+        CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
+        return orderService.getMyOrdersWithState(cacheData, email, currencyPair, status, type, offset, tableParams.getPageSize(), localeResolver.resolveLocale(request));
     }
 
     @RequestMapping(value = "/dashboard/ordersData/{tableId}", method = RequestMethod.GET)
@@ -408,22 +381,5 @@ public class OnlineRestController {
         Assert.requireNonNull(tableParams, "Не установлены параметры для " + tableId);
         Integer offset = page == null || tableParams.getPageSize() == -1 ? 0 : (page - 1) * tableParams.getPageSize();
         return orderService.getOrdersForAccept(email, currencyPair, type, offset, tableParams.getPageSize(), localeResolver.resolveLocale(request));
-    }
-
-    /**/
-    private boolean checkCache(HttpServletRequest request, String cacheKey, int resultHash, Boolean forceUpdate){
-        Map<String, Integer> cacheHashMap = (Map) request.getSession().getAttribute("cacheHashMap");
-        if (cacheHashMap == null) {
-            cacheHashMap = new HashMap<>();
-            cacheHashMap.put(cacheKey, 0);
-            request.getSession().setAttribute("cacheHashMap", cacheHashMap);
-        }
-        Integer currentHash = cacheHashMap.get(cacheKey);
-        if (!forceUpdate && resultHash == currentHash) {
-            return true;
-        } else {
-            cacheHashMap.put(cacheKey, resultHash);
-            return false;
-        }
     }
 }

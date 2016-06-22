@@ -49,7 +49,6 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
             request.getSession().removeAttribute("successNoty");
         /**/
             String email = authentication.getName();
-//            String ip = request.getRemoteHost();
             String ip = request.getHeader("X-FORWARDED-FOR");
             if (ip == null) {
                 ip = request.getRemoteHost();

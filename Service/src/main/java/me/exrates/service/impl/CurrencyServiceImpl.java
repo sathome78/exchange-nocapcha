@@ -38,37 +38,31 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     @Override
     public String getCurrencyName(int currencyId) {
-        logger.info("Begin 'getCurrencyName' method");
         return currencyDao.getCurrencyName(currencyId);
     }
 
     @Override
     public List<Currency> getAllCurrencies() {
-        logger.info("Begin 'getAllCurrencies' method");
         return currencyDao.getCurrList();
     }
 
     @Override
     public Currency findByName(String name) {
-        logger.info("Begin 'findByName' method");
         return currencyDao.findByName(name);
     }
 
     @Override
     public Currency findById(int id) {
-        logger.info("Begin 'findById' method");
         return currencyDao.findById(id);
     }
 
     @Override
     public List<CurrencyPair> getAllCurrencyPairs() {
-        logger.info("Begin 'getAllCurrencyPairs' method");
         return currencyDao.getAllCurrencyPairs();
     }
 
     @Override
     public CurrencyPair findCurrencyPairById(int currencyPairId) {
-        logger.info("Begin 'findCurrencyPairById' method");
         return currencyDao.findCurrencyPairById(currencyPairId);
     }
 

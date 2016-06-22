@@ -8,6 +8,7 @@ import me.exrates.model.exceptions.UnsupportedIntervalTypeException;
 public enum IntervalType {
     HOUR,
     DAY,
+    YEAR,
     MONTH;
 
     public static IntervalType convert(String str) {
@@ -18,6 +19,8 @@ public enum IntervalType {
                 return DAY;
             case "MONTH":
                 return MONTH;
+            case "YEAR":
+                return YEAR;
             default:
                 throw new UnsupportedIntervalTypeException(str);
         }

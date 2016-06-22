@@ -203,4 +203,8 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         commonsMultipartResolver.setMaxUploadSize(5000000);
         return commonsMultipartResolver;
     }
+    /*@Bean(name = "multipartResolver")
+    	public StandardServletMultipartResolver resolver() {
+        		return new StandardServletMultipartResolver();
+        	}*/
 }

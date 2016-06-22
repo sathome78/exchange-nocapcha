@@ -188,7 +188,9 @@ public class OrderDaoImpl implements OrderDao {
                 List<CandleChartItemDto> list = new ArrayList();
                 while (rs.next()) {
                     CandleChartItemDto candleChartItemDto = new CandleChartItemDto();
+                    candleChartItemDto.setBeginDate(rs.getTimestamp("pred_point"));
                     candleChartItemDto.setBeginPeriod(rs.getTimestamp("pred_point").toLocalDateTime());
+                    candleChartItemDto.setEndDate(rs.getTimestamp("current_point"));
                     candleChartItemDto.setEndPeriod(rs.getTimestamp("current_point").toLocalDateTime());
                     candleChartItemDto.setOpenRate(rs.getBigDecimal("open_rate"));
                     candleChartItemDto.setCloseRate(rs.getBigDecimal("close_rate"));
