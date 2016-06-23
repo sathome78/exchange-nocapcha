@@ -7,10 +7,8 @@ import me.exrates.security.filter.LoginSuccessHandler;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.security.service.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -21,27 +19,18 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(securedEnabled = true)
-@PropertySource("classpath:/merchants/perfectmoney.properties")
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Autowired
-    PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
+    private final UserDetailsServiceImpl userDetailsService;
 
     @Autowired
-    UserDetailsServiceImpl userDetailsService;
-    private
-    @Value("${ipWhiteList}")
-    String ipWhiteList;
-
-    @Bean
-    public VerifyReCaptchaSec verifyReCaptcha() {
-        return new VerifyReCaptchaSec();
+    public SecurityConfig(PasswordEncoder passwordEncoder, UserDetailsServiceImpl userDetailsService) {
+        this.passwordEncoder = passwordEncoder;
+        this.userDetailsService = userDetailsService;
     }
 
     @Bean
@@ -82,7 +71,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .passwordEncoder(passwordEncoder);
     }
 
-    //// TODO: 3/4/16 Access to perfectmoney[status/success/failure] need to be protected by list of while ip addrs
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.addFilterBefore(customUsernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
@@ -118,6 +106,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, "/merchants/yandex_kassa/payment/status",
                         "/merchants/yandex_kassa/payment/success",
                         "/merchants/yandex_kassa/payment/failure").permitAll()
+                .antMatchers(HttpMethod.POST, "/chat-en/**", "/chat-ru/**", "/chat-cn/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat/history").permitAll()
                 .antMatchers(HttpMethod.POST, "/merchants/edrcoin/payment/received").permitAll()
                 .antMatchers(HttpMethod.GET, "/merchants/blockchain/payment/received").permitAll()
                 .antMatchers(HttpMethod.GET, "/public/**").permitAll()
@@ -152,7 +142,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .invalidateHttpSession(true)
                 .and()
                 .csrf()
-                .ignoringAntMatchers("/merchants/perfectmoney/payment/status",
+                .ignoringAntMatchers("/chat-en/**", "/chat-ru/**", "/chat-cn/**",
+                        "/merchants/perfectmoney/payment/status",
                         "/merchants/perfectmoney/payment/failure",
                         "/merchants/perfectmoney/payment/success", "/merchants/advcash/payment/status",
                         "/merchants/advcash/payment/failure",
@@ -173,11 +164,5 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/merchants/yandex_kassa/payment/failure",
                         "/merchants/yandex_kassa/payment/success",
                         "/merchants/yandex_kassa/payment/status");
-    }
-
-    private String buildHasIpExpression() {
-        return Stream.of(ipWhiteList.split(";"))
-                .map(ip -> String.format("hasIpAddress('%s')", ip))
-                .collect(Collectors.joining(" or "));
     }
 }
