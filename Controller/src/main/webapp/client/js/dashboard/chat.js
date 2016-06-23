@@ -28,15 +28,14 @@ function toJson(a) {
 
 function formatNewMessage(o) {
     return '<p class="nickname">' + o['nickname']  + '</p>' +
-           '<p class="message">'  + o['body']      + '</p>' ;
+           '<p class="message"><span class="message_body">'  + o['body']      + '</span></p>' ;
 
 }
 
 function appendNewMessage(messageObj) {
     const newMessage = formatNewMessage(JSON.parse(messageObj));
-    $('#chat')
-        .append(newMessage)
-        .scrollTo('max');
+    $('#chat').append(newMessage);
+    scrollChat();
     $('#new_mess').find('input[name="body"]').val('');
 }
 
@@ -48,6 +47,7 @@ function loadChatHistory(lang) {
         for (var i = data.length - 1; i >=0; i--) {
             $('#chat').append(formatNewMessage(data[i]));
         }
+        scrollChat();
     }).fail(function(e){
         console.log(e)
     })
@@ -63,9 +63,7 @@ function changeChatLocale(lang) {
 
 $(function () {
 
-    connect('en');
-
-    loadChatHistory('EN');
+    $('.chat-locales>a:first-child').click(); // Connect to websocket and load chat history
 
     $('#new_mess').submit(function (e) {
         e.preventDefault();
@@ -85,3 +83,9 @@ $(function () {
         });
     })
 });
+
+function scrollChat() {
+    $('#chat')
+        .scrollTo('max')
+        .scrollLeft(0);
+}

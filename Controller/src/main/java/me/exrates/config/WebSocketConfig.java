@@ -1,9 +1,18 @@
 package me.exrates.config;
 
 import me.exrates.controller.handler.ChatWebSocketHandler;
+import me.exrates.model.enums.ChatLang;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.*;
+
+import java.util.EnumMap;
+import java.util.stream.Stream;
+
+import static me.exrates.model.enums.ChatLang.CN;
+import static me.exrates.model.enums.ChatLang.EN;
+import static me.exrates.model.enums.ChatLang.RU;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -12,11 +21,18 @@ import org.springframework.web.socket.config.annotation.*;
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
 
+    private final EnumMap<ChatLang, ChatWebSocketHandler> handlers;
+
+    @Autowired
+    public WebSocketConfig(EnumMap<ChatLang, ChatWebSocketHandler> handlers) {
+        this.handlers = handlers;
+    }
+
     @Override
     public void registerWebSocketHandlers(final WebSocketHandlerRegistry registry) {
-        registry.addHandler(chatENWebSocketHandler(), "/chat-en").withSockJS();
-        registry.addHandler(chatRUWebSocketHandler(), "/chat-ru").withSockJS();
-        registry.addHandler(chatCNWebSocketHandler(), "/chat-cn").withSockJS();
+        registry.addHandler(handlers.get(EN), "/chat-en").withSockJS();
+        registry.addHandler(handlers.get(RU), "/chat-ru").withSockJS();
+        registry.addHandler(handlers.get(CN), "/chat-cn").withSockJS();
     }
 
     @Bean(name = "chatEN")

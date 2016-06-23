@@ -477,6 +477,10 @@ news_title {
     overflow-y: scroll;
 }
 
+.chat {
+    width: 100%;
+}
+
 .message_text {
     width: 100%;
     border: none;
@@ -1289,3 +1293,19 @@ form span.repass {
 /********************************
 			www.amcharts.com GRAPHICS (me)
 ********************************/
+
+/********************************
+            DASHBOARD CHAT
+********************************/
+
+.chat-locales {
+    float: right;
+    margin: 10px;
+    font-size: 14px;
+}
+
+#chat > p {
+    max-width: inherit;
+    text-overflow: clip;
+    word-break: normal;
+}

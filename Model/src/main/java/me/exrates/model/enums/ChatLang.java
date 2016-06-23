@@ -1,5 +1,9 @@
 package me.exrates.model.enums;
 
+import java.util.List;
+
+import static java.util.Arrays.asList;
+
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */

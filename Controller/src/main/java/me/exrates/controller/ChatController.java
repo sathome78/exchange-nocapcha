@@ -10,7 +10,6 @@ import me.exrates.service.exception.IllegalChatMessageException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.context.MessageSource;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -20,7 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
-import javax.annotation.Resource;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.*;
@@ -41,22 +39,18 @@ public class ChatController {
 
     private final ChatService chatService;
     private final MessageSource messageSource;
-
-    @Resource(name = "chatEN")
-    private ChatWebSocketHandler enHandler;
-    @Resource(name = "chatRU")
-    private ChatWebSocketHandler ruHandler;
-    @Resource(name = "chatCN")
-    private ChatWebSocketHandler cnHandler;
-
-
+    private final EnumMap<ChatLang, ChatWebSocketHandler> handlers;
     private final Gson gson = new Gson();
     private final Logger LOG = LogManager.getLogger(ChatController.class);
 
 
-    public ChatController(final ChatService chatService, final MessageSource messageSource) {
+    public ChatController(final ChatService chatService,
+                          final MessageSource messageSource,
+                          final EnumMap<ChatLang, ChatWebSocketHandler> handlers)
+    {
         this.chatService = chatService;
         this.messageSource = messageSource;
+        this.handlers = handlers;
     }
 
     @RequestMapping(value = "/chat/new-message", method = POST)
@@ -65,7 +59,7 @@ public class ChatController {
                                              final Principal principal,
                                              final Locale locale)
     {
-        ChatLang chatLang = ChatLang.toInstance(lang);
+        final ChatLang chatLang = ChatLang.toInstance(lang);
         final ChatMessage message;
         try {
             message = chatService.persistMessage(body, principal.getName(), chatLang);
@@ -76,15 +70,7 @@ public class ChatController {
             return new ResponseEntity<>(singletonMap("errorInfo",
                     messageSource.getMessage("chat.invalidSymbols", null, locale)), headers, BAD_REQUEST);
         }
-        final List<WebSocketSession> sessions;
-        if (chatLang.equals(RU)) {
-            sessions = ruHandler.getSessions();
-        } else if (chatLang.equals(EN)) {
-            sessions = enHandler.getSessions();
-        } else {
-            sessions = cnHandler.getSessions();
-        }
-        sessions.forEach(webSocketSession -> {
+        handlers.get(chatLang).getSessions().forEach(webSocketSession -> {
             try {
                 webSocketSession.sendMessage(new TextMessage(gson.toJson(message)));
             } catch (IOException e) {

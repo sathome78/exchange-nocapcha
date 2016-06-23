@@ -1,6 +1,9 @@
 package me.exrates.config;
 
+import me.exrates.controller.handler.ChatWebSocketHandler;
+import me.exrates.service.util.ChatComponent;
 import me.exrates.model.converter.CurrencyPairConverter;
+import me.exrates.model.enums.ChatLang;
 import me.exrates.security.config.SecurityConfig;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.token.TokenScheduler;
@@ -32,11 +35,10 @@ import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
-import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 
 import javax.sql.DataSource;
-import java.util.Locale;
-import java.util.Properties;
+import java.util.*;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 @Configuration
 @EnableWebMvc
@@ -203,6 +205,26 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         commonsMultipartResolver.setMaxUploadSize(5000000);
         return commonsMultipartResolver;
     }
+
+    @Bean
+    public EnumMap<ChatLang, ChatWebSocketHandler> handlers (){
+        final EnumMap<ChatLang, ChatWebSocketHandler> handlers = new EnumMap<>(ChatLang.class);
+        for (ChatLang lang : ChatLang.values()) {
+            handlers.put(lang, new ChatWebSocketHandler());
+        }
+        return handlers;
+    }
+
+    @Bean
+    public EnumMap<ChatLang, ChatComponent> chatComponents() {
+        final EnumMap<ChatLang, ChatComponent> handlers = new EnumMap<>(ChatLang.class);
+        for (ChatLang lang : ChatLang.values()) {
+            final ChatComponent chatComponent = new ChatComponent(new ReentrantReadWriteLock(), new TreeSet<>());
+            handlers.put(lang, chatComponent);
+        }
+        return handlers;
+    }
+
     /*@Bean(name = "multipartResolver")
     	public StandardServletMultipartResolver resolver() {
         		return new StandardServletMultipartResolver();

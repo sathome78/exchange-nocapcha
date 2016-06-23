@@ -1,29 +1,29 @@
 package me.exrates.service.impl;
 
+import javafx.util.Pair;
 import me.exrates.dao.ChatDao;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.User;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.service.ChatService;
 import me.exrates.service.UserService;
-import me.exrates.service.annotation.Mutable;
 import me.exrates.service.exception.IllegalChatMessageException;
+import me.exrates.service.util.ChatComponent;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.util.EnumMap;
-import java.util.NavigableSet;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import static java.util.Objects.isNull;
-import static me.exrates.model.enums.ChatLang.*;
+import static me.exrates.model.enums.ChatLang.RU;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -31,55 +31,61 @@ import static me.exrates.model.enums.ChatLang.*;
 @Service
 public class ChatServiceImpl implements ChatService {
 
-    private final EnumMap<ChatLang, Triplet> chats = new EnumMap<>(ChatLang.class);
-
     private final int MESSAGE_BARRIER = 50;
     private final int CACHE_BARRIER = 150;
+    private final int MAX_MESSAGE = 256;
     private final boolean INCLUSIVE = true;
 
     private final ChatDao chatDao;
     private final UserService userService;
+    private final EnumMap<ChatLang,ChatComponent> chats;
 
     private AtomicLong GENERATOR;
     private long flushCursor;
 
-    private final Predicate<String> deprecatedChars = Pattern.compile("^[^<>{}&*'\"/;`%]*${1,256}$").asPredicate();
+    private final Predicate<String> deprecatedChars = Pattern.compile("^[^<>{}&*\"/;`]*$").asPredicate();
+
+    private final Logger LOG = LogManager.getLogger(ChatServiceImpl.class);
 
     @Autowired
-    public ChatServiceImpl(final ChatDao chatDao, final UserService userService) {
+    public ChatServiceImpl(final ChatDao chatDao,
+                           final UserService userService,
+                           final EnumMap<ChatLang, ChatComponent> chats)
+    {
         this.chatDao = chatDao;
         this.userService = userService;
+        this.chats = chats;
     }
 
     @PostConstruct
     public void cacheWarm() {
-        final TreeSet<ChatMessage> enMessages = new TreeSet<>(chatDao.findLastMessages(EN, MESSAGE_BARRIER));
-        final TreeSet<ChatMessage> ruMessages = new TreeSet<>(chatDao.findLastMessages(RU, MESSAGE_BARRIER));
-        final TreeSet<ChatMessage> cnMessages = new TreeSet<>(chatDao.findLastMessages(CN, MESSAGE_BARRIER));
+        final List<Long> ids = new ArrayList<>();
+        System.out.println(chatDao.findLastMessages(RU, MESSAGE_BARRIER));
 
-        final ChatMessage enTail = enMessages.isEmpty() ? null : enMessages.last();
-        final ChatMessage ruTail = ruMessages.isEmpty() ? null : ruMessages.last();
-        final ChatMessage cnTail = cnMessages.isEmpty() ? null : cnMessages.last();
-
-        final Triplet en = new Triplet(new ReentrantReadWriteLock(), enMessages, enTail);
-        final Triplet ru = new Triplet(new ReentrantReadWriteLock(), ruMessages, ruTail);
-        final Triplet cn = new Triplet(new ReentrantReadWriteLock(), cnMessages, cnTail);
-
-        chats.put(EN, en);
-        chats.put(RU, ru);
-        chats.put(CN, cn);
-
-        final long enId = enMessages.isEmpty() ? 0 : enMessages.first().getId();
-        final long ruId = ruMessages.isEmpty() ? 0 : ruMessages.first().getId();
-        final long cnId = cnMessages.isEmpty() ? 0 : cnMessages.first().getId();
-
-        GENERATOR = new AtomicLong(Math.max(Math.max(enId, ruId), cnId));
+        Stream.of(ChatLang.values())
+                .map(lang -> new Pair<>(lang,new TreeSet<>(chatDao.findLastMessages(lang, MESSAGE_BARRIER))))
+                .forEach(pair -> {
+                    final ChatComponent comp = chats.get(pair.getKey());
+                    final NavigableSet<ChatMessage> cache = pair.getValue();
+                    final ChatMessage tail;
+                    if (cache.isEmpty()) {
+                        tail = null;
+                        ids.add(0L);
+                    } else {
+                        tail = cache.last();
+                        ids.add(cache.first().getId());
+                    }
+                    System.out.println(cache);
+                    comp.setCache(cache);
+                    comp.setTail(tail);
+                });
+        GENERATOR = new AtomicLong(ids.stream().reduce(Long::max).orElse(0L));
         flushCursor = GENERATOR.get();
     }
 
     @Override
     public ChatMessage persistMessage(final String body, final String email, ChatLang lang) throws IllegalChatMessageException {
-        if (!deprecatedChars.test(body)) {
+        if (body.isEmpty() || body.length() > MAX_MESSAGE || !deprecatedChars.test(body)) {
             throw new IllegalChatMessageException("Message contains invalid symbols : " + body);
         }
         final User user = userService.findByEmail(email);
@@ -88,47 +94,43 @@ public class ChatServiceImpl implements ChatService {
         message.setUserId(user.getId());
         message.setNickname(user.getNickname());
         message.setId(GENERATOR.incrementAndGet());
-        final Triplet tri = chats.get(lang);
+        final ChatComponent comp = chats.get(lang);
         try {
-            tri.lock.writeLock().lock();
-            tri.cache.add(message);
-            if (isNull(tri.tail)) {
-                tri.tail = tri.cache.last();
+            comp.getLock().writeLock().lock();
+            comp.getCache().add(message);
+            if (isNull(comp.getTail())) {
+                comp.setTail(message);
             }
-            if (tri.cache.size() > MESSAGE_BARRIER) {
-                tri.tail = tri.cache.lower(tri.tail);
+            if (comp.getCache().size() > MESSAGE_BARRIER) {
+                comp.setTail(comp.getCache().lower(comp.getTail()));
             }
-            if (tri.cache.size() == CACHE_BARRIER) {
-                tri.cache = new TreeSet<>(tri.cache.headSet(tri.tail, INCLUSIVE));
+            if (comp.getCache().size() == CACHE_BARRIER) {
+                comp.setCache(new TreeSet<>(comp.getCache().headSet(comp.getTail(), INCLUSIVE)));
             }
         } finally {
-            tri.lock.writeLock().unlock();
+            comp.getLock().writeLock().unlock();
         }
         return message;
     }
 
     public NavigableSet<ChatMessage> getLastMessages(final ChatLang lang) {
-        final Triplet tri = chats.get(lang);
-        if (tri.cache.size() == 0) {
+        final ChatComponent comp = chats.get(lang);
+        if (comp.getCache().size() == 0) {
             return new TreeSet<>();
         }
         final NavigableSet<ChatMessage> result;
         try {
-            tri.lock.readLock().lock();
-            result = new TreeSet<>(tri.cache.headSet(tri.tail, INCLUSIVE));
+            comp.getLock().readLock().lock();
+            result = new TreeSet<>(comp.getCache().headSet(comp.getTail(), INCLUSIVE));
         } finally {
-            tri.lock.readLock().unlock();
+            comp.getLock().readLock().unlock();
         }
         return result;
     }
 
     @Scheduled(fixedDelay = 60000L, initialDelay = 60000L)
     public void flushCache() {
-        flushNewData(EN,RU,CN);
-    }
-
-    private void flushNewData(final ChatLang ...chatLangs) {
-        for (ChatLang lang : chatLangs) {
+        for (ChatLang lang : ChatLang.values()) {
             final ChatMessage cacheCeil = new ChatMessage();
             cacheCeil.setId(flushCursor);
             final ChatMessage higher = getLastMessages(lang).lower(cacheCeil);
@@ -140,19 +142,6 @@ public class ChatServiceImpl implements ChatService {
                     flushCursor = newFlushCursor;
                 }
             }
-        }
-    }
-
-    private static class Triplet {
-
-        private final ReadWriteLock lock;
-        private NavigableSet<ChatMessage> cache;
-        private ChatMessage tail;
-
-        Triplet(final ReadWriteLock lock, @Mutable NavigableSet<ChatMessage> cache, @Mutable ChatMessage tail) {
-            this.lock = lock;
-            this.cache = cache;
-            this.tail = tail;
         }
     }
 }
