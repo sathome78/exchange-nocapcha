@@ -1,6 +1,5 @@
 package me.exrates.model.dto.onlineTableDto;
 
-import me.exrates.model.dto.onlineTableDto.OnlineTableDto;
 import me.exrates.model.enums.OperationType;
 
 /**

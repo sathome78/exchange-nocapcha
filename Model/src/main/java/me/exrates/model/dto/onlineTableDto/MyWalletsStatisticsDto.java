@@ -1,7 +1,5 @@
 package me.exrates.model.dto.onlineTableDto;
 
-import me.exrates.model.dto.onlineTableDto.OnlineTableDto;
-
 /**
  * Created by Valk
  */

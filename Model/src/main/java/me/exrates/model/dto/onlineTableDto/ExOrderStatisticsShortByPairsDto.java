@@ -1,10 +1,5 @@
 package me.exrates.model.dto.onlineTableDto;
 
-import me.exrates.model.CurrencyPair;
-import me.exrates.model.dto.onlineTableDto.OnlineTableDto;
-
-import java.math.BigDecimal;
-
 /**
  * Created by Valk
  */
