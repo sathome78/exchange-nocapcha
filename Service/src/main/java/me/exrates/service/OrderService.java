@@ -44,14 +44,6 @@ public interface OrderService {
     public OrderCreateDto getMyOrderById(int orderId);
 
     /**
-     * TODO ADD JAVADOC
-     */
-    List<OrderWideListDto> getOrdersForAccept(
-            String email, CurrencyPair currencyPair,
-            OperationType operationType,
-            Integer offset, Integer limit, Locale locale);
-
-    /**
      * Returns entity ExOrder by its ID
      *
      * @param orderId

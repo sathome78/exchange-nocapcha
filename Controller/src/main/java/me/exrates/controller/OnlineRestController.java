@@ -312,6 +312,9 @@ public class OnlineRestController {
                                                 Principal principal, HttpServletRequest request) {
         CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
         String email = principal == null ? "" : principal.getName();
+        /*unlock the displaying of own orders*/
+        email = null;
+        /**/
         String cacheKey = "sellOrders";
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
         CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
@@ -323,6 +326,9 @@ public class OnlineRestController {
                                                Principal principal, HttpServletRequest request) {
         CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
         String email = principal == null ? "" : principal.getName();
+        /*unlock the displaying of own orders*/
+        email = null;
+        /**/
         String cacheKey = "BuyOrders";
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
         CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);

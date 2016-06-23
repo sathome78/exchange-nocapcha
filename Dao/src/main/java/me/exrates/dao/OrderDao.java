@@ -57,10 +57,6 @@ public interface OrderDao {
 
     OrderCreateDto getMyOrderById(int orderId);
 
-    List<OrderWideListDto> getOrdersForAccept(String email, CurrencyPair currencyPair,
-                                              OperationType operationType,
-                                              Integer offset, Integer limit, Locale locale);
-
     WalletsAndCommissionsForOrderCreationDto getWalletAndCommission(String email, Currency currency,
                                                                     OperationType operationType);
 

@@ -166,14 +166,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Transactional(readOnly = true)
-    @Override
-    public List<OrderWideListDto> getOrdersForAccept(String email, CurrencyPair currencyPair,
-                                                     OperationType operationType, Integer offset,
-                                                     Integer limit, Locale locale) {
-        return orderDao.getOrdersForAccept(email, currencyPair, operationType, offset, limit, locale);
-    }
-
-    @Transactional(readOnly = true)
     public ExOrder getOrderById(int orderId) {
         return orderDao.getOrderById(orderId);
     }
@@ -302,7 +294,7 @@ public class OrderServiceImpl implements OrderService {
             walletOperationData.setSourceId(exOrder.getId());
             walletTransferStatus = walletDao.walletBalanceChange(walletOperationData);
             if (walletTransferStatus != WalletTransferStatus.SUCCESS) {
-                throw new OrderAcceptionException(walletTransferStatus.toString());
+                throw new OrderAcceptionException("creator out wallet: "+walletTransferStatus.toString());
             }
             /*for creator IN*/
             walletOperationData = new WalletOperationData();
@@ -316,7 +308,7 @@ public class OrderServiceImpl implements OrderService {
             walletOperationData.setSourceId(exOrder.getId());
             walletTransferStatus = walletDao.walletBalanceChange(walletOperationData);
             if (walletTransferStatus != WalletTransferStatus.SUCCESS) {
-                throw new OrderAcceptionException(walletTransferStatus.toString());
+                throw new OrderAcceptionException("creator input wallet: "+walletTransferStatus.toString());
             }
             /*for acceptor OUT*/
             walletOperationData = new WalletOperationData();
@@ -330,7 +322,7 @@ public class OrderServiceImpl implements OrderService {
             walletOperationData.setSourceId(exOrder.getId());
             walletTransferStatus = walletDao.walletBalanceChange(walletOperationData);
             if (walletTransferStatus != WalletTransferStatus.SUCCESS) {
-                throw new OrderAcceptionException(walletTransferStatus.toString());
+                throw new OrderAcceptionException("acceptor out wallet: "+walletTransferStatus.toString());
             }
             /*for acceptor IN*/
             walletOperationData = new WalletOperationData();
@@ -344,7 +336,7 @@ public class OrderServiceImpl implements OrderService {
             walletOperationData.setSourceId(exOrder.getId());
             walletTransferStatus = walletDao.walletBalanceChange(walletOperationData);
             if (walletTransferStatus != WalletTransferStatus.SUCCESS) {
-                throw new OrderAcceptionException(walletTransferStatus.toString());
+                throw new OrderAcceptionException("acceptor input wallet: "+walletTransferStatus.toString());
             }
             /**/
             CompanyWallet companyWallet = new CompanyWallet();
