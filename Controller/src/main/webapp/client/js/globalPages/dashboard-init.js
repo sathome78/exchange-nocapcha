@@ -9,7 +9,7 @@ var myWallets;
 var myHistory;
 var orders;
 /*for testing*/
-var REFRESH_INTERVAL_MULTIPLIER =1000;
+var REFRESH_INTERVAL_MULTIPLIER = 1;
 
 $(function dashdoardInit() {
     try {
