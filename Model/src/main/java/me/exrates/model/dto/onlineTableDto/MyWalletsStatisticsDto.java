@@ -1,10 +1,9 @@
-package me.exrates.model.dto;
+package me.exrates.model.dto.onlineTableDto;
 
 /**
  * Created by Valk
  */
-public class MyWalletsStatisticsDto {
-    private boolean needRefresh;
+public class MyWalletsStatisticsDto extends OnlineTableDto {
     private String currencyName;
     private String activeBalance;
 

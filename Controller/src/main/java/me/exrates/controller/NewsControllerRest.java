@@ -2,9 +2,8 @@ package me.exrates.controller;
 
 import me.exrates.controller.exception.*;
 import me.exrates.model.vo.CacheData;
-import me.exrates.service.util.Cache;
 import me.exrates.model.News;
-import me.exrates.model.dto.NewsDto;
+import me.exrates.model.dto.onlineTableDto.NewsDto;
 import me.exrates.model.dto.TableParams;
 import me.exrates.service.NewsService;
 import me.exrates.service.UserFilesService;
@@ -25,7 +24,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

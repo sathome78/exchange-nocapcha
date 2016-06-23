@@ -5,10 +5,9 @@ import me.exrates.dao.TransactionDao;
 import me.exrates.dao.WalletDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
-import me.exrates.model.dto.MyWalletsDetailedDto;
-import me.exrates.model.dto.MyWalletsStatisticsDto;
-import me.exrates.model.dto.UserWalletSummaryDto;
-import me.exrates.model.dto.WalletsForOrderAcceptionDto;
+import me.exrates.model.dto.*;
+import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
+import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
@@ -133,30 +132,63 @@ public class WalletDaoImpl implements WalletDao {
     @Override
     public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, Locale locale) {
         final String sql =
-                " SELECT wallet_id, currency_name, active_balance, reserved_balance, SUM(amount_base+amount_convert+commission_fixed_amount) AS reserved_balance_by_orders " +
+                " SELECT wallet_id, currency_name, active_balance, reserved_balance, " +
+                        "   SUM(amount_base+amount_convert+commission_fixed_amount) AS reserved_balance_by_orders, " +
+                        "   SUM(withdraw_amount+withdraw_commission) AS reserved_balance_by_withdraw, " +
+                        "   SUM(input_confirmation_amount+input_confirmation_commission) AS on_input_cofirmation, " +
+                        "   SUM(input_confirmation_stage) AS input_confirmation_stage, SUM(input_count) AS input_count" +
                         " FROM " +
                         " ( " +
                         " SELECT WALLET.id AS wallet_id, CURRENCY.name AS currency_name, WALLET.active_balance AS active_balance, WALLET.reserved_balance AS reserved_balance,   " +
-                        " IFNULL(SELL.amount_base,0) as amount_base, 0 as amount_convert, 0 AS commission_fixed_amount " +
+                        " IFNULL(SELL.amount_base,0) as amount_base, 0 as amount_convert, 0 AS commission_fixed_amount, " +
+                        " 0 AS withdraw_amount, 0 AS withdraw_commission,  " +
+                        " 0 AS input_confirmation_amount, 0 AS input_confirmation_commission, 0 AS input_confirmation_stage, 0 AS input_count  " +
                         " FROM USER " +
                         " JOIN WALLET ON (WALLET.user_id = USER.id)  " +
                         " LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
                         " LEFT JOIN CURRENCY_PAIR CP1 ON (CP1.currency1_id = WALLET.currency_id) " +
                         " LEFT JOIN EXORDERS SELL ON (SELL.operation_type_id=3) AND (SELL.user_id=USER.id) AND (SELL.currency_pair_id = CP1.id) AND (SELL.status_id = 2) " +
-                        " WHERE USER.email =  'user@user.com' " +
+                        " WHERE USER.email =  :email " +
                         "  " +
                         " UNION ALL " +
                         "  " +
                         " SELECT WALLET.id, CURRENCY.name, WALLET.active_balance, WALLET.reserved_balance,   " +
-                        " 0, IFNULL(BUY.amount_convert,0), IFNULL(BUY.commission_fixed_amount,0) " +
+                        " 0, IFNULL(BUY.amount_convert,0), IFNULL(BUY.commission_fixed_amount,0), " +
+                        " 0, 0, " +
+                        " 0, 0, 0, 0 " +
                         " FROM USER " +
                         " JOIN WALLET ON (WALLET.user_id = USER.id)  " +
                         " LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
                         " LEFT JOIN CURRENCY_PAIR CP2 ON (CP2.currency2_id = WALLET.currency_id) " +
                         " LEFT JOIN EXORDERS BUY ON (BUY.operation_type_id=4) AND (BUY.user_id=USER.id) AND (BUY.currency_pair_id = CP2.id) AND (BUY.status_id = 2) " +
-                        " WHERE USER.email =  'user@user.com' " +
+                        " WHERE USER.email =  :email " +
+                        "  " +
+                        " UNION ALL " +
+                        "  " +
+                        " SELECT WALLET.id, CURRENCY.name, WALLET.active_balance, WALLET.reserved_balance,   " +
+                        " 0, 0, 0, " +
+                        " IFNULL(TRANSACTION.amount, 0), IFNULL(TRANSACTION.commission_amount, 0), " +
+                        " 0, 0, 0, 0 " +
+                        " FROM USER " +
+                        " JOIN WALLET ON (WALLET.user_id = USER.id)  " +
+                        " LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
+                        " JOIN TRANSACTION ON (TRANSACTION.operation_type_id=2) AND (TRANSACTION.user_wallet_id = WALLET.id) AND (TRANSACTION.provided = 0)  " +
+                        " WHERE USER.email =  :email " +
+                        "  " +
+                        " UNION ALL " +
+                        "  " +
+                        " SELECT WALLET.id, CURRENCY.name, WALLET.active_balance, WALLET.reserved_balance,   " +
+                        " 0, 0, 0, " +
+                        " 0, 0, " +
+                        " SUM(TRANSACTION.amount), SUM(TRANSACTION.commission_amount), SUM(TRANSACTION.confirmation), COUNT(TRANSACTION.id) " +
+                        " FROM USER " +
+                        " JOIN WALLET ON (WALLET.user_id = USER.id)  " +
+                        " JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
+                        " JOIN TRANSACTION ON (TRANSACTION.operation_type_id=1) AND (TRANSACTION.user_wallet_id = WALLET.id) AND (TRANSACTION.confirmation BETWEEN 0 AND 3)  " +
+                        " WHERE USER.email =  :email " +
+                        " GROUP BY WALLET.id " +
                         " ) W " +
-                        " GROUP BY currency_name, active_balance, reserved_balance";
+                        " GROUP BY wallet_id, currency_name, active_balance, reserved_balance";
         final Map<String, String> params = new HashMap<String, String>() {{
             put("email", email);
         }};
@@ -167,11 +199,36 @@ public class WalletDaoImpl implements WalletDao {
                 myWalletsDetailedDto.setId(rs.getInt("wallet_id"));
                 myWalletsDetailedDto.setCurrencyName(rs.getString("currency_name"));
                 myWalletsDetailedDto.setActiveBalance(BigDecimalProcessing.formatLocale(rs.getBigDecimal("active_balance"), locale, 2));
-                myWalletsDetailedDto.setOnConfirmation(BigDecimalProcessing.formatLocale(BigDecimal.ZERO, locale, 2));
+                myWalletsDetailedDto.setOnConfirmation(BigDecimalProcessing.formatLocale(rs.getBigDecimal("on_input_cofirmation"), locale, 2));
+                myWalletsDetailedDto.setOnConfirmationStage(BigDecimalProcessing.formatLocale(rs.getBigDecimal("input_confirmation_stage"), locale, 0));
+                myWalletsDetailedDto.setOnConfirmationCount(BigDecimalProcessing.formatLocale(rs.getBigDecimal("input_count"), locale, 0));
                 myWalletsDetailedDto.setReservedBalance(BigDecimalProcessing.formatLocale(rs.getBigDecimal("reserved_balance"), locale, 2));
                 myWalletsDetailedDto.setReservedByOrders(BigDecimalProcessing.formatLocale(rs.getBigDecimal("reserved_balance_by_orders"), locale, 2));
-                myWalletsDetailedDto.setReservedByMerchant(BigDecimalProcessing.formatLocale(BigDecimal.ZERO, locale, 2));
+                myWalletsDetailedDto.setReservedByMerchant(BigDecimalProcessing.formatLocale(rs.getBigDecimal("reserved_balance_by_withdraw"), locale, 2));
                 return myWalletsDetailedDto;
+            }
+        });
+    }
+
+    @Override
+    public List<MyWalletConfirmationDetailDto> getWalletConfirmationDetail(Integer walletId, Locale locale) {
+        final String sql =
+                " SELECT TRANSACTION.amount, TRANSACTION.commission_amount, TRANSACTION.amount+TRANSACTION.commission_amount AS total, TRANSACTION.confirmation " +
+                        "  FROM WALLET  " +
+                        "  JOIN TRANSACTION ON (TRANSACTION.operation_type_id=1) AND (TRANSACTION.user_wallet_id = WALLET.id) AND (TRANSACTION.confirmation BETWEEN 0 AND 3) " +
+                        "  WHERE WALLET.id = :wallet_id";
+        final Map<String, Object> params = new HashMap<String, Object>() {{
+            put("wallet_id", walletId);
+        }};
+        return jdbcTemplate.query(sql, params, new RowMapper<MyWalletConfirmationDetailDto>() {
+            @Override
+            public MyWalletConfirmationDetailDto mapRow(ResultSet rs, int rowNum) throws SQLException {
+                MyWalletConfirmationDetailDto myWalletConfirmationDetailDto = new MyWalletConfirmationDetailDto();
+                myWalletConfirmationDetailDto.setAmount(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount"), locale, 2));
+                myWalletConfirmationDetailDto.setCommission(BigDecimalProcessing.formatLocale(rs.getBigDecimal("commission_amount"), locale, 2));
+                myWalletConfirmationDetailDto.setTotal(BigDecimalProcessing.formatLocale(rs.getBigDecimal("total"), locale, 2));
+                myWalletConfirmationDetailDto.setStage(BigDecimalProcessing.formatLocale(rs.getBigDecimal("confirmation"), locale, 0));
+                return myWalletConfirmationDetailDto;
             }
         });
     }

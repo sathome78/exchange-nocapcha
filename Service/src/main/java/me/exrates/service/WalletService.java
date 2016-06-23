@@ -3,8 +3,9 @@ package me.exrates.service;
 import me.exrates.model.Currency;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
-import me.exrates.model.dto.MyWalletsDetailedDto;
-import me.exrates.model.dto.MyWalletsStatisticsDto;
+import me.exrates.model.dto.MyWalletConfirmationDetailDto;
+import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
+import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
 import me.exrates.model.dto.UserWalletSummaryDto;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.WalletTransferStatus;
@@ -78,5 +79,7 @@ public interface WalletService {
     WalletTransferStatus walletInnerTransfer(int walletId, BigDecimal amount, TransactionSourceType sourceType, int sourceId);
 
     WalletTransferStatus walletBalanceChange(WalletOperationData walletOperationData);
+
+    List<MyWalletConfirmationDetailDto> getWalletConfirmationDetail(Integer walletId, Locale locale);
 
 }

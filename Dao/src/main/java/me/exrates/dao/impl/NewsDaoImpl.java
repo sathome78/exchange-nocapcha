@@ -2,7 +2,7 @@ package me.exrates.dao.impl;
 
 import me.exrates.dao.NewsDao;
 import me.exrates.model.News;
-import me.exrates.model.dto.NewsDto;
+import me.exrates.model.dto.onlineTableDto.NewsDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;

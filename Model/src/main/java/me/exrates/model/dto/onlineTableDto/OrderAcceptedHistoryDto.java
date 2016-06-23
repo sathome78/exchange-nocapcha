@@ -1,12 +1,11 @@
-package me.exrates.model.dto;
+package me.exrates.model.dto.onlineTableDto;
 
 import me.exrates.model.enums.OperationType;
 
 /**
  * Created by Valk on 03.06.2016.
  */
-public class OrderAcceptedHistoryDto {
-    private boolean needRefresh;
+public class OrderAcceptedHistoryDto extends OnlineTableDto {
     private Integer orderId;
     private String dateAcceptionTime;
     private String rate;

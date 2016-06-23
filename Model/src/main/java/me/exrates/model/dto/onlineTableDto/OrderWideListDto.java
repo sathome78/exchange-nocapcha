@@ -1,6 +1,7 @@
-package me.exrates.model.dto;
+package me.exrates.model.dto.onlineTableDto;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import me.exrates.model.dto.onlineTableDto.OnlineTableDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
@@ -10,8 +11,7 @@ import java.time.LocalDateTime;
 /**
  * Created by Valk on 19.04.16.
  */
-public class OrderWideListDto {
-    private boolean needRefresh;
+public class OrderWideListDto extends OnlineTableDto{
     private int id;
     private int userId;
     private OperationType operationType;
@@ -55,6 +55,14 @@ public class OrderWideListDto {
         return result;
     }
     /*getters setters*/
+
+    public int getPage() {
+        return page;
+    }
+
+    public void setPage(int page) {
+        this.page = page;
+    }
 
     public boolean isNeedRefresh() {
         return needRefresh;

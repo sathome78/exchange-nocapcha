@@ -1,10 +1,9 @@
 package me.exrates.dao;
 
 import me.exrates.model.Wallet;
-import me.exrates.model.dto.MyWalletsDetailedDto;
-import me.exrates.model.dto.MyWalletsStatisticsDto;
-import me.exrates.model.dto.UserWalletSummaryDto;
-import me.exrates.model.dto.WalletsForOrderAcceptionDto;
+import me.exrates.model.dto.*;
+import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
+import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.vo.WalletOperationData;
@@ -28,6 +27,8 @@ public interface WalletDao {
     List<Wallet> findAllByUser(int userId);
 
     List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, Locale locale);
+
+    List<MyWalletConfirmationDetailDto> getWalletConfirmationDetail(Integer walletId, Locale locale);
 
     List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale);
 

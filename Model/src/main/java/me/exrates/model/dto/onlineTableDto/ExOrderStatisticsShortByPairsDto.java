@@ -1,14 +1,9 @@
-package me.exrates.model.dto;
-
-import me.exrates.model.CurrencyPair;
-
-import java.math.BigDecimal;
+package me.exrates.model.dto.onlineTableDto;
 
 /**
  * Created by Valk
  */
-public class ExOrderStatisticsShortByPairsDto {
-    private boolean needRefresh;
+public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
     private String currencyPairName;
     private String lastOrderRate;
     private String predLastOrderRate;
