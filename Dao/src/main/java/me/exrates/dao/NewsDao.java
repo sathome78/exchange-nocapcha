@@ -1,7 +1,7 @@
 package me.exrates.dao;
 
 import me.exrates.model.News;
-import me.exrates.model.dto.NewsDto;
+import me.exrates.model.dto.onlineTableDto.NewsDto;
 
 import java.util.List;
 import java.util.Locale;

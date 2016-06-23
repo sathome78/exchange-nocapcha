@@ -2,8 +2,7 @@ package me.exrates.service.impl;
 
 import me.exrates.dao.NewsDao;
 import me.exrates.model.News;
-import me.exrates.model.dto.MyWalletsDetailedDto;
-import me.exrates.model.dto.NewsDto;
+import me.exrates.model.dto.onlineTableDto.NewsDto;
 import me.exrates.model.vo.CacheData;
 import me.exrates.service.NewsService;
 import me.exrates.service.exception.FileLoadingException;

@@ -13,7 +13,7 @@ function OrdersClass(currentCurrencyPair) {
     var that = this;
     /**/
     var timeOutIdForOrdersData;
-    var refreshIntervalForOrdersData = 5000*REFRESH_INTERVAL_MULTIPLIER;
+    var refreshIntervalForOrdersData = 5000 * REFRESH_INTERVAL_MULTIPLIER;
     /**/
     var showLog = false;
     /**/
@@ -21,8 +21,8 @@ function OrdersClass(currentCurrencyPair) {
     var tableBuyId = "orders-buy-table";
     var $ordersContainer = $('#orders');
     var ordersCurrencyPairSelector;
-    var tableSellPageNumber = 1;
-    var tableBuyPageNumber = 1;
+    var tableSellPageSize = 5;
+    var tableBuyPageSize = 5;
     var myordersStatusForShow = 'OPENED';
 
     function onCurrencyPairChange(currentCurrencyPair) {
@@ -39,7 +39,7 @@ function OrdersClass(currentCurrencyPair) {
     };
 
 
-    this.getAndShowSellOrdersData = function (refreshIfNeeded) {
+    this.getAndShowSellOrdersData = function (refreshIfNeeded, page, direction) {
         if ($ordersContainer.hasClass('hidden')) {
             return;
         }
@@ -47,7 +47,12 @@ function OrdersClass(currentCurrencyPair) {
             console.log(new Date() + '  ' + refreshIfNeeded + ' ' + 'getAndShowSellOrdersData');
         }
         var $ordersSellTable = $('#' + tableSellId).find('tbody');
-        var url = '/dashboard/myOrdersData/' + tableSellId + '?type=SELL&status=' + myordersStatusForShow + '&page=' + tableSellPageNumber + '&refreshIfNeeded=' + (refreshIfNeeded ? 'true' : 'false');
+        var url = '/dashboard/myOrdersData/' + tableSellId + '' +
+            '?type=SELL' +
+            '&status=' + myordersStatusForShow + '' +
+            '&page=' + (page ? page : '') +
+            '&direction=' + (direction ? direction : '') +
+            '&refreshIfNeeded=' + (refreshIfNeeded ? 'true' : 'false');
         $.ajax({
             url: url,
             type: 'GET',
@@ -61,6 +66,12 @@ function OrdersClass(currentCurrencyPair) {
                     });
                     blink($ordersSellTable.find('td:not(:first-child)'));
                 }
+                if (data.length > 0) {
+                    $('.orders-sell-table__page').text(data[0].page);
+                } else if (refreshIfNeeded){
+                    var p = parseInt($('.orders-sell-table__page').text());
+                    $('.orders-sell-table__page').text(++p);
+                }
                 clearTimeout(timeOutIdForOrdersData);
                 timeOutIdForOrdersData = setTimeout(function () {
                     that.updateAndShowAll(true);
@@ -69,7 +80,7 @@ function OrdersClass(currentCurrencyPair) {
         });
     };
 
-    this.getAndShowBuyOrdersData = function (refreshIfNeeded) {
+    this.getAndShowBuyOrdersData = function (refreshIfNeeded, page, direction) {
         if ($ordersContainer.hasClass('hidden')) {
             return;
         }
@@ -77,7 +88,12 @@ function OrdersClass(currentCurrencyPair) {
             console.log(new Date() + '  ' + refreshIfNeeded + ' ' + 'getAndShowSellOrdersData');
         }
         var $ordersBuyTable = $('#' + tableBuyId).find('tbody');
-        var url = '/dashboard/myOrdersData/' + tableBuyId + '?type=BUY&status=' + myordersStatusForShow + '&page=' + tableBuyPageNumber + '&refreshIfNeeded=' + (refreshIfNeeded ? 'true' : 'false');
+        var url = '/dashboard/myOrdersData/' + tableBuyId + '' +
+            '?type=BUY' +
+            '&status=' + myordersStatusForShow +
+            '&page=' + (page ? page : '') +
+            '&direction=' + (direction ? direction : '') +
+            '&refreshIfNeeded=' + (refreshIfNeeded ? 'true' : 'false');
         $.ajax({
             url: url,
             type: 'GET',
@@ -90,6 +106,12 @@ function OrdersClass(currentCurrencyPair) {
                         $ordersBuyTable.append(tmpl($tmpl, e));
                     });
                     blink($ordersBuyTable.find('td:not(:first-child)'));
+                }
+                if (data.length > 0) {
+                    $('.orders-buy-table__page').text(data[0].page);
+                } else if (refreshIfNeeded){
+                    var p = parseInt($('.orders-buy-table__page').text());
+                    $('.orders-buy-table__page').text(++p);
                 }
                 clearTimeout(timeOutIdForOrdersData);
                 timeOutIdForOrdersData = setTimeout(function () {
@@ -154,16 +176,30 @@ function OrdersClass(currentCurrencyPair) {
         ordersCurrencyPairSelector = new CurrencyPairSelectorClass('orders-currency-pair-selector', currentCurrencyPair);
         ordersCurrencyPairSelector.init(onCurrencyPairChange);
         /**/
-        syncTableParams(tableSellId, -1, function (data) {
+        syncTableParams(tableSellId, tableSellPageSize, function (data) {
             that.getAndShowSellOrdersData();
         });
-        syncTableParams(tableBuyId, -1, function (data) {
+        syncTableParams(tableBuyId, tableBuyPageSize, function (data) {
             that.getAndShowBuyOrdersData();
         });
         /**/
         $('#orders-sell-table').on('click', '.button_delete_order', submitOrderDeleting);
         $('#orders-buy-table').on('click', '.button_delete_order', submitOrderDeleting);
         $('#order-delete-confirm__submit').on('click', deletingOrder);
+        /**/
+        $('.orders-sell-table__backward').on('click', function(){
+            that.getAndShowSellOrdersData(true, null, 'BACKWARD');
+        });
+        $('.orders-sell-table__forward').on('click', function(){
+            that.getAndShowSellOrdersData(true, null, 'FORWARD');
+        });
+        /**/
+        $('.orders-buy-table__backward').on('click', function(){
+            that.getAndShowBuyOrdersData(true, null, 'BACKWARD');
+        });
+        $('.orders-buy-table__forward').on('click', function(){
+            that.getAndShowBuyOrdersData(true, null, 'FORWARD');
+        });
     })(currentCurrencyPair);
 
     /*PREPARE DATA FOR MODAL DIALOG FOR DELETING ORDER ... */
@@ -181,7 +217,7 @@ function OrdersClass(currentCurrencyPair) {
             headers: {
                 'X-CSRF-Token': $("input[name='_csrf']").val()
             },
-            url: '/order/submitdelete/'+data.orderId,
+            url: '/order/submitdelete/' + data.orderId,
             type: 'POST',
             success: function (data) {
                 $('#order-delete-confirm__modal').find('#operationTypeName').val(data.operationTypeName);
@@ -200,7 +236,7 @@ function OrdersClass(currentCurrencyPair) {
     /*... MODAL DIALOG FOR DELETING ORDER*/
 
     /*CALL DELETING THE ORDER AND CONTROL RESULT ... */
-    function deletingOrder (event) {
+    function deletingOrder(event) {
         event.preventDefault();
         $('#order-delete-confirm__modal').one('hidden.bs.modal', function (e) {
             that.deleteOrder(onDeleteOrderSuccess, onDeleteOrderError)

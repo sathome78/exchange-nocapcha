@@ -5,7 +5,7 @@
 function syncTableParams(tableId, limit, callback) {
     var url = '/dashboard/tableParams/' + tableId + '?';
     /*if parameter is empty, in response will be retrieved current value is set or default if non*/
-    url = url + (limit ? '&limit=' + limit : '');
+    url = url + (limit ? '&limitValue=' + limit : '');
     $.ajax({
         url: url,
         type: 'GET',

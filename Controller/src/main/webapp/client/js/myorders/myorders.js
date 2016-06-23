@@ -21,8 +21,8 @@ function MyOrdersClass(currentCurrencyPair) {
     var $myordersContainer = $('#myorders');
     var myordersCurrencyPairSelector;
     var myordersStatusForShow;
-    var tableSellPageNumber = 1;
-    var tableBuyPageNumber = 1;
+    var tableSellPageSize = 5;
+    var tableBuyPageSize = 5;
     var fieldVisibleForOpenStatus = [
         'myo_orid',
         'myo_dcrt',
@@ -64,7 +64,7 @@ function MyOrdersClass(currentCurrencyPair) {
     };
 
 
-    this.getAndShowMySellOrdersData = function (refreshIfNeeded) {
+    this.getAndShowMySellOrdersData = function (refreshIfNeeded, page, direction) {
         if ($myordersContainer.hasClass('hidden')) {
             return;
         }
@@ -72,7 +72,11 @@ function MyOrdersClass(currentCurrencyPair) {
             console.log(new Date() + '  ' + refreshIfNeeded + ' ' + 'getAndShowMySellOrdersData');
         }
         var $myordersSellTable = $('#'+tableSellId).find('tbody');
-        var url = '/dashboard/myOrdersData/' + tableSellId + '?type=SELL&status=' + myordersStatusForShow + '&page=' + tableSellPageNumber+'&refreshIfNeeded=' + (refreshIfNeeded ? 'true' : 'false');
+        var url = '/dashboard/myOrdersData/' + tableSellId + '' +
+            '?type=SELL&status=' + myordersStatusForShow + '' +
+            '&page=' + (page ? page : '') +
+            '&direction=' + (direction ? direction : '') +
+            '&refreshIfNeeded=' + (refreshIfNeeded ? 'true' : 'false');
         $.ajax({
             url: url,
             type: 'GET',
@@ -89,6 +93,12 @@ function MyOrdersClass(currentCurrencyPair) {
                     $('#' + tableSellId).removeClass('hidden');
                     blink($myordersSellTable.find('td:not(:first-child)'));
                 }
+                if (data.length > 0) {
+                    $('.myorders-sell-table__page').text(data[0].page);
+                } else if (refreshIfNeeded){
+                    var p = parseInt($('.myorders-sell-table__page').text());
+                    $('.myorders-sell-table__page').text(++p);
+                }
                 clearTimeout(timeOutIdForMyOrdersData);
                 timeOutIdForMyOrdersData = setTimeout(function () {
                     that.updateAndShowAll(true);
@@ -97,7 +107,7 @@ function MyOrdersClass(currentCurrencyPair) {
         });
     };
 
-    this.getAndShowMyBuyOrdersData = function (refreshIfNeeded) {
+    this.getAndShowMyBuyOrdersData = function (refreshIfNeeded, page, direction) {
         if ($myordersContainer.hasClass('hidden')) {
             return;
         }
@@ -105,7 +115,11 @@ function MyOrdersClass(currentCurrencyPair) {
             console.log(new Date() + '  ' + refreshIfNeeded + ' ' + 'getAndShowMyBuyOrdersData');
         }
         var $myordersBuyTable = $('#'+tableBuyId).find('tbody');
-        var url = '/dashboard/myOrdersData/' + tableBuyId + '?type=BUY&status=' + myordersStatusForShow + '&page=' + tableBuyPageNumber+'&refreshIfNeeded=' + (refreshIfNeeded ? 'true' : 'false');
+        var url = '/dashboard/myOrdersData/' + tableBuyId + '' +
+            '?type=BUY&status=' + myordersStatusForShow + '' +
+            '&page=' + (page ? page : '') +
+            '&direction=' + (direction ? direction : '') +
+            '&refreshIfNeeded=' + (refreshIfNeeded ? 'true' : 'false');
         $.ajax({
             url: url,
             type: 'GET',
@@ -121,6 +135,12 @@ function MyOrdersClass(currentCurrencyPair) {
                     showFields(myordersStatusForShow, tableBuyId);
                     $('#' + tableBuyId).removeClass('hidden');
                     blink($myordersBuyTable.find('td:not(:first-child)'));
+                }
+                if (data.length > 0) {
+                    $('.myorders-buy-table__page').text(data[0].page);
+                } else if (refreshIfNeeded){
+                    var p = parseInt($('.myorders-buy-table__page').text());
+                    $('.myorders-buy-table__page').text(++p);
                 }
                 clearTimeout(timeOutIdForMyOrdersData);
                 timeOutIdForMyOrdersData = setTimeout(function () {
@@ -166,24 +186,34 @@ function MyOrdersClass(currentCurrencyPair) {
             $('.myorders__button').removeClass('active');
             $(this).addClass('active');
             myordersStatusForShow = 'CANCELLED';
-            tableSellPageNumber = 1;
-            tableBuyPageNumber = 1;
             that.updateAndShowAll();
         });
         $('#myorders-button-deal').on('click', function () {
             $('.myorders__button').removeClass('active');
             $(this).addClass('active');
             myordersStatusForShow = 'CLOSED';
-            tableSellPageNumber = 1;
-            tableBuyPageNumber = 1;
             that.updateAndShowAll();
         });
         /**/
-        syncTableParams(tableSellId, -1, function (data) {
+        syncTableParams(tableSellId, tableSellPageSize, function (data) {
             that.getAndShowMySellOrdersData();
         });
-        syncTableParams(tableBuyId, -1, function (data) {
+        syncTableParams(tableBuyId, tableBuyPageSize, function (data) {
             that.getAndShowMyBuyOrdersData();
+        });
+        /**/
+        $('.myorders-sell-table__backward').on('click', function(){
+            that.getAndShowMySellOrdersData(true, null, 'BACKWARD');
+        });
+        $('.myorders-sell-table__forward').on('click', function(){
+            that.getAndShowMySellOrdersData(true, null, 'FORWARD');
+        });
+        /**/
+        $('.myorders-buy-table__backward').on('click', function(){
+            that.getAndShowMyBuyOrdersData(true, null, 'BACKWARD');
+        });
+        $('.myorders-buy-table__forward').on('click', function(){
+            that.getAndShowMyBuyOrdersData(true, null, 'FORWARD');
         });
     })(currentCurrencyPair);
 }

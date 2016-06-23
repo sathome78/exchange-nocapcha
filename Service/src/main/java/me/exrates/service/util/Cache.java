@@ -1,13 +1,10 @@
 package me.exrates.service.util;
 
-import me.exrates.model.dto.MyWalletsStatisticsDto;
 import me.exrates.model.vo.CacheData;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Created by Valk on 20.06.2016.

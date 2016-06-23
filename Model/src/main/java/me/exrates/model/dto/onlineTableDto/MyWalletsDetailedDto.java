@@ -1,16 +1,19 @@
-package me.exrates.model.dto;
+package me.exrates.model.dto.onlineTableDto;
+
+import me.exrates.model.dto.onlineTableDto.OnlineTableDto;
 
 import java.math.BigDecimal;
 
 /**
  * Created by Valk
  */
-public class MyWalletsDetailedDto {
-    private boolean needRefresh;
+public class MyWalletsDetailedDto extends OnlineTableDto {
     private Integer id;
     private String currencyName;
     private String activeBalance;
     private String onConfirmation;
+    private String onConfirmationStage;
+    private String onConfirmationCount;
     private String reservedBalance;
     private String reservedByOrders;
     private String reservedByMerchant;
@@ -29,6 +32,7 @@ public class MyWalletsDetailedDto {
         int result = id != null ? id.hashCode() : 0;
         result = 31 * result + (activeBalance != null ? activeBalance.hashCode() : 0);
         result = 31 * result + (onConfirmation != null ? onConfirmation.hashCode() : 0);
+        result = 31 * result + (onConfirmationStage != null ? onConfirmationStage.hashCode() : 0);
         result = 31 * result + (reservedBalance != null ? reservedBalance.hashCode() : 0);
         result = 31 * result + (reservedByOrders != null ? reservedByOrders.hashCode() : 0);
         result = 31 * result + (reservedByMerchant != null ? reservedByMerchant.hashCode() : 0);
@@ -74,6 +78,22 @@ public class MyWalletsDetailedDto {
 
     public void setOnConfirmation(String onConfirmation) {
         this.onConfirmation = onConfirmation;
+    }
+
+    public String getOnConfirmationStage() {
+        return onConfirmationStage;
+    }
+
+    public void setOnConfirmationStage(String onConfirmationStage) {
+        this.onConfirmationStage = onConfirmationStage;
+    }
+
+    public String getOnConfirmationCount() {
+        return onConfirmationCount;
+    }
+
+    public void setOnConfirmationCount(String onConfirmationCount) {
+        this.onConfirmationCount = onConfirmationCount;
     }
 
     public String getReservedBalance() {

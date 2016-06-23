@@ -15,10 +15,20 @@
             <th class="right blue-white"></th>
         </tr>
         <script type="text/template" id="balance-table_row">
-            <tr>
+            <tr class="balance-table__row">
+                <%--<td class="mywallet-item-id" hidden><@=id@></td>--%>
                 <td class="left blue-white"><@=currencyName@></td>
                 <td class="right"><@=activeBalance@></td>
-                <td class="right"><@=onConfirmation@></td>
+                <td class="right"><@=onConfirmation@><div class="on-confirmation-detail">
+                    <@=
+                    (function(){
+                    if((+onConfirmationCount)==1){
+                        return '('+onConfirmationStage+'/4)';
+                    }else if((+onConfirmationCount)>1){
+                        return '<span class="glyphicon glyphicon-search mywallet-item-detail" data-walletid='+id+'></span>';
+                    }
+                    })()
+                    @></div></td>
                 <td class="right"><@=reservedBalance@></td>
                 <td class="right"><@=reservedByOrders@></td>
                 <td class="right"><@=reservedByMerchant@></td>
@@ -41,4 +51,6 @@
         </tbody>
     </table>
 </div>
+
+
 

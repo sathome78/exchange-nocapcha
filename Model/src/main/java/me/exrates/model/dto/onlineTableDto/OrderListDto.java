@@ -1,12 +1,12 @@
-package me.exrates.model.dto;
+package me.exrates.model.dto.onlineTableDto;
 
+import me.exrates.model.dto.onlineTableDto.OnlineTableDto;
 import me.exrates.model.enums.OperationType;
 
 /**
  * Created by Valk on 14.04.16.
  */
-public class OrderListDto {
-    private boolean needRefresh;
+public class OrderListDto extends OnlineTableDto {
     private int id;
     private int userId;
     private OperationType orderType;

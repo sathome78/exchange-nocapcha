@@ -1,12 +1,13 @@
-package me.exrates.model.dto;
+package me.exrates.model.dto.onlineTableDto;
+
+import me.exrates.model.dto.onlineTableDto.OnlineTableDto;
 
 import java.time.LocalDate;
 
 /**
  * Created by Valk on 27.05.2016.
  */
-public class NewsDto{
-    private boolean needRefresh;
+public class NewsDto extends OnlineTableDto {
     private Integer id;
     private String title;
     private String brief;

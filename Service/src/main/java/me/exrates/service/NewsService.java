@@ -1,7 +1,7 @@
 package me.exrates.service;
 
 import me.exrates.model.News;
-import me.exrates.model.dto.NewsDto;
+import me.exrates.model.dto.onlineTableDto.NewsDto;
 import me.exrates.model.vo.CacheData;
 import org.springframework.web.multipart.MultipartFile;
 

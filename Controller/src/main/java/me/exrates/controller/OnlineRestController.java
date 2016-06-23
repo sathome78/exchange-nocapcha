@@ -2,9 +2,11 @@ package me.exrates.controller;
 
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.onlineTableDto.*;
 import me.exrates.model.enums.ChartType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
+import me.exrates.model.enums.PagingDirection;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
 import me.exrates.service.*;
@@ -347,6 +349,7 @@ public class OnlineRestController {
             @RequestParam(required = false) OperationType type,
             @RequestParam(required = false) OrderStatus status,
             @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) PagingDirection direction,
             Principal principal,
             HttpServletRequest request) {
         if (principal == null) {
@@ -355,31 +358,20 @@ public class OnlineRestController {
         String email = principal.getName();
         CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
         String attributeName = tableId + "Params";
+
         TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
-        Assert.requireNonNull(tableParams, "Не установлены параметры для " + tableId);
-        Integer offset = page == null || tableParams.getPageSize() == -1 ? 0 : (page - 1) * tableParams.getPageSize();
+        Assert.requireNonNull(tableParams, "The parameters are not populated for the " + tableId);
+        tableParams.setOffsetAndLimitForSql(page, direction);
+
         String cacheKey = "myOrdersData" + tableId + status;
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
         CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
-        return orderService.getMyOrdersWithState(cacheData, email, currencyPair, status, type, offset, tableParams.getPageSize(), localeResolver.resolveLocale(request));
+        List<OrderWideListDto> result = orderService.getMyOrdersWithState(cacheData, email, currencyPair, status, type, tableParams.getOffset(), tableParams.getLimit(), localeResolver.resolveLocale(request));
+        if (!result.isEmpty()) {
+            result.get(0).setPage(tableParams.getPageNumber());
+        }
+        tableParams.updateEofState(result);
+        return result;
     }
 
-    @RequestMapping(value = "/dashboard/ordersData/{tableId}", method = RequestMethod.GET)
-    public List<OrderWideListDto> getOrdersData(
-            @PathVariable("tableId") String tableId,
-            @RequestParam(required = false) OperationType type,
-            @RequestParam(required = false) Integer page,
-            Principal principal,
-            HttpServletRequest request) {
-        if (principal == null) {
-            return null;
-        }
-        String email = principal.getName();
-        CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
-        String attributeName = tableId + "Params";
-        TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
-        Assert.requireNonNull(tableParams, "Не установлены параметры для " + tableId);
-        Integer offset = page == null || tableParams.getPageSize() == -1 ? 0 : (page - 1) * tableParams.getPageSize();
-        return orderService.getOrdersForAccept(email, currencyPair, type, offset, tableParams.getPageSize(), localeResolver.resolveLocale(request));
-    }
 }
