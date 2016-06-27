@@ -106,33 +106,6 @@ function promptDeleteDoc(id, path, userId) {
     }
 }
 
-/**************************
-
- **************************/
-
-
-
-$(function news(){
-    var $newsContentPlace = $('#newstopic');
-    var url = '/news/2015/MAY/27/48/newstopic.html';
-    //var url = '/news/2015/MAY/27/48/newstopic';
-    /*$.ajax({
-        url: url,
-        type: 'GET',
-        headers: {
-            Accept : "application/json; charset=utf-8",
-            "Content-Type": "application/json; charset=utf-8"
-        },
-        contentType: "application/json; charset=utf-8",
-
-        success: function (data) {
-
-            //$newsContentPlace.append(data.content);
-            $newsContentPlace.append(data);
-        }
-    });*/
-    //$newsContentPlace.load(url);
-});
 
 
 

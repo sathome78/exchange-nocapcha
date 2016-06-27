@@ -62,7 +62,7 @@ public class NewsControllerRest {
         TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
         Assert.requireNonNull(tableParams, "Не установлены параметры для " + tableId);
         Integer offset = page == null || tableParams.getPageSize() == -1 ? 0 : (page - 1) * tableParams.getPageSize();
-        String cacheKey = "newsList";
+        String cacheKey = "newsList" + request.getHeader("windowid");
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
         CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
         return newsService.getNewsBriefList(cacheData, offset, tableParams.getPageSize(), localeResolver.resolveLocale(request));

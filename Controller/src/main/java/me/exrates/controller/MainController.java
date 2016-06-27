@@ -1,5 +1,6 @@
 package me.exrates.controller;
 
+import com.captcha.botdetect.web.servlet.Captcha;
 import me.exrates.controller.exception.AbsentFinPasswordException;
 import me.exrates.controller.exception.NotConfirmedFinPasswordException;
 import me.exrates.controller.exception.NotCreateUserException;
@@ -30,6 +31,8 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +46,8 @@ import static java.util.Objects.isNull;
 public class MainController {
 
     private static final Logger logger = LogManager.getLogger(MainController.class);
+    @Value("${captcha.type}")
+    String CAPTCHA_TYPE;
     private
     @Value("${contacts.telephone}")
     String telephone;
@@ -62,12 +67,9 @@ public class MainController {
     @Autowired
     private LocaleResolver localeResolver;
     @Autowired
-    private VerifyReCaptchaSec verifyReCaptcha;
+    private VerifyReCaptchaSec verifyReCaptchaSec;
     @Autowired
     private ReferralService referralService;
-
-    @Value("${captcha.type}")
-    String CAPTCHA_TYPE;
 
     @RequestMapping(value = "57163a9b3d1eafe27b8b456a.txt", method = RequestMethod.GET)
     @ResponseBody
@@ -87,6 +89,7 @@ public class MainController {
         User user = new User();
         ModelAndView mav = new ModelAndView("register", "user", user);
         mav.addObject("cpch", "");
+        mav.addObject("captchaType", CAPTCHA_TYPE);
         if (!isNull(refReference)) {
             final Optional<Integer> parentId = referralService.reduceReferralRef(refReference);
             if (parentId.isPresent()) {
@@ -115,24 +118,48 @@ public class MainController {
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     public ModelAndView createUser(@ModelAttribute("user") User user, BindingResult result, ModelMap model, HttpServletRequest request) {
         boolean flag = false;
-        String recapchaResponse = request.getParameter("g-recaptcha-response");
-        if (!verifyReCaptcha.verify(recapchaResponse)) {
-            String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
-            ModelAndView modelAndView = new ModelAndView("register", "user", user);
-            modelAndView.addObject("cpch", correctCapchaRequired);
-            return modelAndView;
+        String captchaType = request.getParameter("captchaType");
+        switch (captchaType) {
+            case "BOTDETECT": {
+                String captchaId = request.getParameter("captchaId");
+                Captcha captcha = Captcha.load(request, captchaId);
+                String captchaCode = request.getParameter("captchaCode");
+                if (!captcha.validate(captchaCode)) {
+                    String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
+                    ModelAndView modelAndView = new ModelAndView("register", "user", user);
+                    modelAndView.addObject("cpch", correctCapchaRequired);
+                    modelAndView.addObject("captchaType", CAPTCHA_TYPE);
+                    return modelAndView;
+                }
+                break;
+            }
+            case "RECAPTCHA": {
+                String recapchaResponse = request.getParameter("g-recaptcha-response");
+                if ((recapchaResponse != null) && !verifyReCaptchaSec.verify(recapchaResponse)) {
+                    String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
+                    ModelAndView modelAndView = new ModelAndView("register", "user", user);
+                    modelAndView.addObject("cpch", correctCapchaRequired);
+                    modelAndView.addObject("captchaType", CAPTCHA_TYPE);
+                    return modelAndView;
+                }
+                break;
+            }
         }
 
         if (result.hasErrors()) {
             ModelAndView modelAndView = new ModelAndView("register", "user", user);
             modelAndView.addObject("cpch", "");
+            modelAndView.addObject("captchaType", CAPTCHA_TYPE);
             return modelAndView;
         }
 
         registerFormValidation.validate(user, result, localeResolver.resolveLocale(request));
         user.setPhone("");
         if (result.hasErrors()) {
-            return new ModelAndView("register", "user", user);
+            ModelAndView modelAndView = new ModelAndView("register", "user", user);
+            modelAndView.addObject("cpch", "");
+            modelAndView.addObject("captchaType", CAPTCHA_TYPE);
+            return modelAndView;
         } else {
             user = (User) result.getModel().get("user");
             try {
@@ -154,8 +181,13 @@ public class MainController {
                 if (child > 0 && parent > 0) {
                     referralService.bindChildAndParent(child, parent);
                 }
-                ModelAndView modelAndView = new ModelAndView("redirect:/dashboard");
-                modelAndView.addObject("successNoty", messageSource.getMessage("register.sendletter", null, localeResolver.resolveLocale(request)));
+                String successNoty = null;
+                try {
+                    successNoty = URLEncoder.encode(messageSource.getMessage("register.sendletter", null, localeResolver.resolveLocale(request)), "utf-8");
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+                ModelAndView modelAndView = new ModelAndView("redirect:/dashboard?successNoty=" + successNoty);
                 return modelAndView;
             } else return new ModelAndView("DBError", "user", user);
         }

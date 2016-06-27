@@ -1,21 +1,16 @@
 package me.exrates.controller;
 
 import me.exrates.controller.validator.RegisterFormValidation;
-import me.exrates.model.CurrencyPair;
-import me.exrates.model.ExOrder;
 import me.exrates.model.User;
-import me.exrates.model.Wallet;
-import me.exrates.model.dto.*;
-import me.exrates.model.enums.OperationType;
+import me.exrates.model.dto.OrderCreateDto;
+import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.enums.UserRole;
-import me.exrates.model.vo.BackDealInterval;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -25,22 +20,17 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.math.BigDecimal;
 import java.security.Principal;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Controller
 @PropertySource("classpath:/captcha.properties")
@@ -90,19 +80,24 @@ public class DashboardController {
     }
 
     @RequestMapping(value = {"/dashboard"})
-    public ModelAndView dashboard(@RequestParam(required = false) String errorNoty, @RequestParam(required = false) String successNoty, HttpServletRequest request) {
+    public ModelAndView dashboard(
+            @RequestParam(required = false) String errorNoty,
+            @RequestParam(required = false) String successNoty,
+            @RequestParam(required = false) String startupPage,
+            HttpServletRequest request) {
         ModelAndView model = new ModelAndView();
         if (successNoty == null) {
-            successNoty = (String)request.getSession().getAttribute("successNoty");
+            successNoty = (String) request.getSession().getAttribute("successNoty");
             request.getSession().removeAttribute("successNoty");
         }
         model.addObject("successNoty", successNoty);
         if (errorNoty == null) {
-            errorNoty = (String)request.getSession().getAttribute("errorNoty");
+            errorNoty = (String) request.getSession().getAttribute("errorNoty");
             request.getSession().removeAttribute("errorNoty");
         }
         model.addObject("errorNoty", errorNoty);
         model.addObject("captchaType", CAPTCHA_TYPE);
+        model.addObject("startupPage", startupPage == null ? "trading" : startupPage);
         model.setViewName("globalPages/dashboard");
         OrderCreateDto orderCreateDto = new OrderCreateDto();
         model.addObject(orderCreateDto);

@@ -295,23 +295,5 @@ public class OrderControllerRest {
         }
         return errors;
     }
-
-    @JsonAutoDetect
-    class OrdersList {
-        @JsonProperty
-        public List<Integer> ordersList;
-
-        public OrdersList() {
-        }
-
-        public List<Integer> getOrdersList() {
-            return ordersList;
-        }
-
-        public void setOrdersList(List<Integer> ordersList) {
-            this.ordersList = ordersList;
-        }
-    }
-
 }
 

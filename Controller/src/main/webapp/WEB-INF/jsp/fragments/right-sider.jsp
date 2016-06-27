@@ -28,27 +28,6 @@
         </form>
     </sec:authorize>
 
-
-    <h4 class="h4_green"><loc:message code="news.title"/></h4>
-    <hr class="under_h4">
-    <div class="news">
-        <h5 class="news_title">Заголовок новости</h5>
-        <p>Краткий текст новости в несколько строчек + ссылка <a href="#">yandex.ru</a></p>
-
-        <h5 class="news_title">Заголовок новости в несколько строк</h5>
-        <p>Краткий текст новости в несколько строчек</p>
-
-        <h5 class="news_title">Заголовок новости в несколько строк</h5>
-        <p>Краткий текст новости в несколько строчек + какая-нибудь ссылка <a href="#">google.com</a> и ещё немного текста</p>
-
-        <h5 class="news_title">Заголовок новости</h5>
-        <p>Краткий текст новости в несколько строчек</p>
-
-        <h5 class="news_title">Заголовок новости в несколько строк</h5>
-        <p>Краткий текст новости в несколько строчек + ссылка <a href="#"> yandex.ru</a></p>
-    </div>
-    <input type="text" class="message_text" placeholder='<loc:message code="dashboard.onlinechatenter"/>'>
-    <button class="send_button"><loc:message code="dashboard.onlinechatsend"/></button>
     <%--NEWS LIST--%>
     <%@include file="right-sider-news-list.jsp" %>
 </div>

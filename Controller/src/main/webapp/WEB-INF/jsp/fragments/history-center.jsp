@@ -11,9 +11,12 @@
                 code="history.orders"/></button>
         <button id="myhistory-button-inputoutput" class="myhistory__button blue-box"><loc:message
                 code="history.inputoutput"/></button>
+        <button id="myhistory-button-referral" class="myhistory__button blue-box"><loc:message
+                code="history.referral"/></button>
     </div>
     <%----%>
     <%@include file="myorders-center.jsp" %>
     <%@include file="inputoutput-center.jsp" %>
+    <%@include file="myreferral-center.jsp" %>
 </div>
 

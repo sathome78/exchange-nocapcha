@@ -34,10 +34,16 @@
     <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
     <%----------%>
     <%--capcha--%>
-    <script type="text/javascript" src="<c:url value='/client/js/capcha.js'/>"></script>
-    <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit&hl=${pageContext.response.locale}"
-            async defer>
-    </script>
+    <c:if test="${captchaType==\"RECAPTCHA\"}">
+        <script type="text/javascript" src="<c:url value='/client/js/capcha.js'/>"></script>
+        <c:set value="${pageContext.response.locale}" var="locale"></c:set>
+        <c:if test="${locale=='cn'}">
+            <c:set value="zh-CN" var="locale"></c:set>
+        </c:if>
+        <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit&hl=${locale}"
+                async defer>
+        </script>
+    </c:if>
 
 </head>
 
@@ -59,7 +65,6 @@
                     <loc:message code="register.nickname" var="login"/>
                     <div class="col-md-11 input-block-wrapper__input-wrapper">
                         <registrationform:input id="login" path="nickname"
-                                                required="required"
                                                 placeholder="${login}"
                                                 class="form-control input-block-wrapper__input"/>
                     </div>
@@ -75,7 +80,6 @@
                     <loc:message code="register.email" var="email"/>
                     <div class="col-md-11 input-block-wrapper__input-wrapper">
                         <registrationform:input id="email" path="email"
-                                                required="required"
                                                 placeholder="${email}"
                                                 class="form-control input-block-wrapper__input"/>
                     </div>
@@ -88,7 +92,7 @@
                     <loc:message code="register.password" var="password"/>
                     <div class="col-md-11 input-block-wrapper__input-wrapper">
                         <registrationform:input id="pass" path="password"
-                                                required="required"
+                                                type="password"
                                                 placeholder="${password}"
                                                 class="form-control input-block-wrapper__input"/>
                     </div>
@@ -101,7 +105,7 @@
                     <loc:message code="register.repeatpassword" var="repassword"/>
                     <div class="col-md-11 input-block-wrapper__input-wrapper">
                         <registrationform:input id="repass" path="confirmPassword"
-                                                required="required"
+                                                type="password"
                                                 placeholder="${repassword}"
                                                 class="form-control input-block-wrapper__input"/>
                     </div>
@@ -123,15 +127,30 @@
                                                 class="form-control input-block-wrapper__input"/>
                     </div>
                 </div>
-                <%--CAPCHA--%>
-                <div class="col-md-11 login__captcha-wrapper">
-                    <div id="cpch-field" class="login__captcha g-recaptcha"
-                         data-sitekey=${captchaProperties.get("captcha.key")}></div>
-                    <br/>
-                </div>
-                <div class="col-md-11 input-block-wrapper__error-wrapper">
-                    <p class='cpch-error-message' style="color:red">${cpch}</p>
-                </div>
+                <c:if test="${captchaType==\"RECAPTCHA\"}">
+                    <%--CAPTCHA GOOGLE--%>
+                    <div class="col-md-11 login__captcha-wrapper">
+                        <div id="cpch-field" class="login__captcha--recaptcha g-recaptcha"
+                             data-sitekey=${captchaProperties.get("captcha.key")}></div>
+                            <%--<p class='cpch-error-message' style="color:red">${cpch}</p>--%>
+                        <br/>
+                    </div>
+                    <div class="col-md-11 input-block-wrapper__error-wrapper">
+                        <p class='cpch-error-message' style="color:red">${cpch}</p>
+                    </div>
+                </c:if>
+                <c:if test="${captchaType==\"BOTDETECT\"}">
+                    <%--CAPTCHA BotDetect--%>
+                    <div id="cpch-field" class="col-md-11 login__captcha--botdetect passed">
+                        <botDetect:captcha id="loginFormRegCaptcha" userInputID="captchaCode"/>
+                        <input name="captchaCode" type="text" id="captchaCode"/>
+                        <input type="hidden" name="captchaId" value="loginFormRegCaptcha"/>
+                    </div>
+                    <div class="col-md-11 input-block-wrapper__error-wrapper">
+                        <p class='cpch-error-message' style="color:red">${cpch}</p>
+                    </div>
+                </c:if>
+                <input type="hidden" name="captchaType" value="${captchaType}"/>
                 <%----%>
                 <div class="col-md-11 login__button-wrapper">
                     <button id="register_button" class="login__button" type="submit"><loc:message

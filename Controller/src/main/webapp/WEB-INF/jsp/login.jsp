@@ -107,10 +107,13 @@
                     </c:if>
                     <c:if test="${captchaType==\"BOTDETECT\"}">
                         <%--CAPTCHA BotDetect--%>
-                        <div class="col-md-10 login__captcha--botdetect">
+                        <div id="cpch-field" class="col-md-10 login__captcha--botdetect passed">
                             <botDetect:captcha id="loginFormRegCaptcha" userInputID="captchaCode"/>
                             <input name="captchaCode" type="text" id="captchaCode"/>
                             <input type="hidden" name="captchaId" value="loginFormRegCaptcha"/>
+                        </div>
+                        <div class="col-md-10 input-block-wrapper__error-wrapper">
+                            <p class='cpch-error-message' style="color:red">${cpch}</p>
                         </div>
                     </c:if>
                     <input type="hidden" name="captchaType" value="${captchaType}"/>

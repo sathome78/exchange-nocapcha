@@ -32,6 +32,14 @@
     <script type="text/javascript" src="<c:url value='/client/js/siders/leftSider.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/siders/rightSider.js'/>"></script>
     <%----%>
+    <script type="text/javascript" src="<c:url value='/client/js/trading/trading.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/mywallets/mywallets.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/history/history.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/myorders/myorders.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/myreferral/myreferral.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/order/orders.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/currencypair/currencyPairSelector.js'/>"></script>
+    <%----%>
     <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
@@ -42,9 +50,9 @@
     <!-- Google Analytics-->
     <%--<%@include file="../tools/google.jsp"%>--%>
     <!-- Yandex.Metrika counter -->
-    <%@include file="../tools/yandex.jsp"%>
+    <%@include file="../tools/yandex.jsp" %>
     <%--ZOPIM CHAT--%>
-    <%@include file="../tools/zopim.jsp"%>
+    <%@include file="../tools/zopim.jsp" %>
     <%-- ... TOOLS--%>
 </head>
 <body>
@@ -55,6 +63,11 @@
     <div class="row_big">
         <%@include file="../fragments/left-sider.jsp" %>
         <div class="cols-md-8 background_white">
+            <div id="startup-page-id" class="center-dummy" style="height: 1px; visibility: hidden">
+                <%--to keep panel when all pages are hidden--%>
+                <%--and to keep startup page ID--%>
+                ${startupPage}
+            </div>
             <%@include file="../fragments/trading-center.jsp" %>
             <%@include file="../fragments/mywallets-center.jsp" %>
             <%@include file="../fragments/history-center.jsp" %>

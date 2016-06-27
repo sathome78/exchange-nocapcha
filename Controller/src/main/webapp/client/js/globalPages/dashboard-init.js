@@ -8,39 +8,97 @@ var trading;
 var myWallets;
 var myHistory;
 var orders;
+/**/
+/*it's need to distinguish different windows (tab) of the browser*/
+var windowId = Math.floor((Math.random()) * 10000).toString(36) + Math.floor((Math.random()) * 10000).toString(36);
+/*it's need to prevent ajax request if window (tab) is not active*/
+var windowIsActive = true;
 /*for testing*/
 var REFRESH_INTERVAL_MULTIPLIER = 1;
 
 $(function dashdoardInit() {
     try {
         /*FOR EVERYWHERE ... */
+        window.onblur = function () {
+            windowIsActive = false;
+        };
+        window.onfocus = function () {
+            windowIsActive = true;
+        };
         $(".input-block-wrapper__input").prop("autocomplete", "off");
         $(".numericInputField").prop("autocomplete", "off");
-        $(".numericInputField").keypress(
+        $(".numericInputField")
+            .keypress(
             function (e) {
-                return e.charCode >= 48 && e.charCode <= 57 || e.charCode == 46 || e.charCode == 0
+                var decimal = $(this).val().split('.')[1];
+                if (decimal && decimal.length >= trading.ROUND_SCALE) {
+                    return false;
+                }
+                if (e.charCode >= 48 && e.charCode <= 57 || e.charCode == 46 || e.charCode == 0) {
+                    if (e.key == '.' && $(this).val().indexOf('.') >= 0) {
+                        return false;
+                    }
+                    var str = $(this).val() + e.key;
+                    if (str.length > 1 && str.indexOf('0') == 0 && str.indexOf('.') != 1) {
+                        return false
+                    }
+                } else {
+                    return false;
+                }
+                return true;
             }
-        );
+        )
+            .on('input', function (e) {
+                var val = $(this).val();
+                var regx = /^(^[1-9]+\d*((\.{1}\d*)|(\d*)))|(^0{1}\.{1}\d*)|(^0{1})$/;
+                var result = val.match(regx);
+                if (!result || result[0] != val) {
+                    $(this).val('');
+                }
+                var decimal = $(this).val().split('.')[1];
+                if (decimal && decimal.length >= trading.ROUND_SCALE) {
+                    $(this).val(+(+$(this).val()).toFixed(trading.ROUND_SCALE));
+                }
+            });
         /*... FOR EVERYWHERE*/
 
         /*FOR HEADER...*/
-        $('#menu-traiding').on('click', function () {
+        $('#menu-traiding').on('click', function (e) {
+            e.preventDefault();
             trading.syncCurrencyPairSelector();
             showPage('trading');
             trading.updateAndShowAll();
         });
-        $('#menu-mywallets').on('click', function () {
-            showPage('balance-page');
-            myWallets.getAndShowMyWalletsData();
+        $('#menu-mywallets').on('click', function (e) {
+            e.preventDefault();
+            if (!e.ctrlKey) {
+                showPage('balance-page');
+                myWallets.getAndShowMyWalletsData();
+            } else {
+                window.open('/dashboard?startupPage=balance-page', '_blank');
+                return false;
+            }
         });
-        $('#menu-myhistory').on('click', function () {
-            showPage('myhistory');
-            myHistory.updateAndShowAll();
+        $('#menu-myhistory').on('click', function (e) {
+            e.preventDefault();
+            if (!e.ctrlKey) {
+                showPage('myhistory');
+                myHistory.updateAndShowAll();
+            } else {
+                window.open('/dashboard?startupPage=myhistory', '_blank');
+                return false;
+            }
         });
-        $('#menu-orders').on('click', function () {
-            orders.syncCurrencyPairSelector();
-            showPage('orders');
-            orders.updateAndShowAll();
+        $('#menu-orders').on('click', function (e) {
+            e.preventDefault();
+            if (!e.ctrlKey) {
+                orders.syncCurrencyPairSelector();
+                showPage('orders');
+                orders.updateAndShowAll();
+            } else {
+                window.open('/dashboard?startupPage=orders', '_blank');
+                return false;
+            }
         });
         /*...FOR HEADER*/
 
@@ -50,6 +108,7 @@ $(function dashdoardInit() {
 
         /*FOR CENTER ON START UP ...*/
         syncCurrentParams(null, null, null, function (data) {
+            showPage($('#startup-page-id').text().trim());
             trading = new TradingClass(data.period, data.chartType, data.currencyPair.name);
             myWallets = new MyWalletsClass();
             myHistory = new MyHistoryClass(data.currencyPair.name);

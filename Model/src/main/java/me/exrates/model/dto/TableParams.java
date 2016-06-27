@@ -19,7 +19,9 @@ public class TableParams {
     /**/
     /*service methods*/
     public void setOffsetAndLimitForSql(Integer requestedPageNumber, PagingDirection requestedDirection) {
-        requestedPageNumber = requestedPageNumber == null ? 1 : requestedPageNumber;
+        requestedPageNumber = requestedPageNumber == null ?
+                pageNumber == null ? 1 : pageNumber
+                : requestedPageNumber;
         if (pageSize == -1) {
             /*ignore pageNumber and direction if the page has no size (unlimited)*/
             offset = 0;

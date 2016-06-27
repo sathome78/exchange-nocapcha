@@ -13,13 +13,20 @@ function LeftSiderClass() {
     var that = this;
     /**/
     var timeOutIdForStatisticsForMyWallets;
-    var refreshIntervalForStatisticsForMyWallets = 5000*REFRESH_INTERVAL_MULTIPLIER;
+    var refreshIntervalForStatisticsForMyWallets = 5000 * REFRESH_INTERVAL_MULTIPLIER;
     var timeOutIdForStatisticsForAllCurrencies;
-    var refreshIntervalForStatisticsForAllCurrencies = 5000*REFRESH_INTERVAL_MULTIPLIER;
+    var refreshIntervalForStatisticsForAllCurrencies = 5000 * REFRESH_INTERVAL_MULTIPLIER;
     /**/
     var showLog = false;
 
     this.getStatisticsForMyWallets = function (refreshIfNeeded) {
+        if (!windowIsActive) {
+            clearTimeout(timeOutIdForStatisticsForMyWallets);
+            timeOutIdForStatisticsForMyWallets = setTimeout(function () {
+                that.getStatisticsForMyWallets(true);
+            }, refreshIntervalForStatisticsForMyWallets);
+            return;
+        }
         if (showLog) {
             console.log(new Date() + '  ' + refreshIfNeeded + ' ' + 'getStatisticsForMyWallets');
         }
@@ -28,6 +35,9 @@ function LeftSiderClass() {
         $.ajax({
             url: url,
             type: 'GET',
+            headers: {
+                "windowid": windowId
+            },
             success: function (data) {
                 if (!data) return;
                 if (data.length == 0 || data[0].needRefresh) {
@@ -47,6 +57,13 @@ function LeftSiderClass() {
     };
 
     this.getStatisticsForAllCurrencies = function (refreshIfNeeded) {
+        if (!windowIsActive) {
+            clearTimeout(timeOutIdForStatisticsForAllCurrencies);
+            timeOutIdForStatisticsForAllCurrencies = setTimeout(function () {
+                that.getStatisticsForAllCurrencies(true);
+            }, refreshIntervalForStatisticsForAllCurrencies);
+            return;
+        }
         if (showLog) {
             console.log(new Date() + '  ' + refreshIfNeeded + ' ' + 'getStatisticsForAllCurrencies');
         }
@@ -55,6 +72,9 @@ function LeftSiderClass() {
         $.ajax({
             url: url,
             type: 'GET',
+            headers: {
+                "windowid": windowId
+            },
             success: function (data) {
                 if (!data) return;
                 if (data.length == 0 || data[0].needRefresh) {
@@ -73,8 +93,33 @@ function LeftSiderClass() {
         });
     };
     /*===========================================================*/
-    (function init () {
+    (function init() {
         that.getStatisticsForAllCurrencies();
         that.getStatisticsForMyWallets();
+        $('#refferal-generate').on('click', generateReferral);
+        $('#refferal-copy').on('click', function () {
+            selectAndCopyText($('#refferal-reference')[0]);
+        });
+        generateReferral();
     })();
+
+    function selectAndCopyText(e) {
+        var range = document.createRange();
+        range.selectNodeContents(e);
+        var selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        document.execCommand("copy");
+        selection.removeAllRanges();
+        blink_green($('#refferal-reference'));
+    }
+
+    function generateReferral() {
+        $.ajax('/generateReferral', {
+            method: 'get'
+        }).done(function (e) {
+            $('#refferal-reference').html(e['referral']);
+        });
+        blink($('#refferal-reference'));
+    }
 }

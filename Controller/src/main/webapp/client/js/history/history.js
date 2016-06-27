@@ -17,6 +17,8 @@ function MyHistoryClass(currentCurrencyPair) {
     var $myordersContainer = $('#myorders');
     var inputOutput;
     var $inputOutputContainer = $('#myinputoutput');
+    var myReferral;
+    var $myreferralContainer = $('#myreferral');
     /**/
     function showMyHistoryPage($myHistoryActivePage) {
         if ($myhistoryContainer.hasClass('hidden')) {
@@ -30,6 +32,7 @@ function MyHistoryClass(currentCurrencyPair) {
         showMyHistoryPage($myHistoryActivePage);
         that.getAndShowMyOrdersPage();
         that.getAndShowInputOutputPage();
+        that.getAndShowMyReferralPage();
     };
 
     this.getAndShowMyOrdersPage = function () {
@@ -38,6 +41,14 @@ function MyHistoryClass(currentCurrencyPair) {
         }
         myOrders.syncCurrencyPairSelector();
         myOrders.updateAndShowAll();
+    };
+
+    this.getAndShowMyReferralPage = function () {
+        if ($myhistoryContainer.hasClass('hidden')) {
+            return;
+        }
+        myReferral.syncCurrencyPairSelector();
+        myReferral.updateAndShowAll();
     };
 
     this.getAndShowInputOutputPage = function () {
@@ -49,6 +60,7 @@ function MyHistoryClass(currentCurrencyPair) {
     /*=====================================================*/
     (function init (currentCurrencyPair) {
         myOrders = new MyOrdersClass(currentCurrencyPair);
+        myReferral = new MyReferralClass(currentCurrencyPair);
         inputOutput = 'тут new InputOutputClass(currentCurrencyPair)';
         /**/
         $('#myhistory-button-orders').addClass('active');
@@ -64,6 +76,13 @@ function MyHistoryClass(currentCurrencyPair) {
             $('.myhistory__button').removeClass('active');
             $(this).addClass('active');
             $myHistoryActivePage = $inputOutputContainer;
+            showMyHistoryPage($myHistoryActivePage);
+            that.updateAndShowAll();
+        });
+        $('#myhistory-button-referral').on('click', function () {
+            $('.myhistory__button').removeClass('active');
+            $(this).addClass('active');
+            $myHistoryActivePage = $myreferralContainer;
             showMyHistoryPage($myHistoryActivePage);
             that.updateAndShowAll();
         });

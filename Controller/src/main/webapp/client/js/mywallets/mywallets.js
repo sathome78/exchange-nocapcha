@@ -20,7 +20,11 @@ function MyWalletsClass() {
     var $balanceContainer = $('#balance-page');
 
     this.getAndShowMyWalletsData = function (refreshIfNeeded) {
-        if ($balanceContainer.hasClass('hidden')) {
+        if ($balanceContainer.hasClass('hidden') || !windowIsActive) {
+            clearTimeout(timeOutIdForMyWalletsData);
+            timeOutIdForMyWalletsData = setTimeout(function () {
+                that.getAndShowMyWalletsData(true);
+            }, refreshIntervalForMyWalletsData);
             return;
         }
         if (showLog) {
@@ -31,6 +35,9 @@ function MyWalletsClass() {
         $.ajax({
             url: url,
             type: 'GET',
+            headers: {
+                "windowid": windowId
+            },
             success: function (data) {
                 if (!data) return;
                 if (data.length == 0 || data[0].needRefresh) {

@@ -23,3 +23,10 @@ function blink($element) {
         $element.removeClass('blink');
     }, 250);
 }
+
+function blink_green($element) {
+    $element.addClass('blink_green');
+    setTimeout(function () {
+        $element.removeClass('blink_green');
+    }, 250);
+}

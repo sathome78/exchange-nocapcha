@@ -13,7 +13,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
     var that = this;
     var chart = null;
 
-    var $dashboardContainer = $('#dashboard');
+    var $tradingContainer = $('#trading');
     var dashboardCurrencyPairSelector;
     var refreshInterval = 5000*REFRESH_INTERVAL_MULTIPLIER;
     var timeOutId;
@@ -24,6 +24,8 @@ function TradingClass(period, chartType, currentCurrencyPair) {
     /**/
     this.commissionSell;
     this.commissionBuy;
+
+    this.ROUND_SCALE = 9;
 
     function onCurrencyPairChange() {
         that.updateAndShowAll();
@@ -43,7 +45,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
     };
 
     this.getAndShowStatisticsForCurrency = function () {
-        if ($dashboardContainer.hasClass('hidden')) {
+        if ($tradingContainer.hasClass('hidden') || !windowIsActive) {
             return;
         }
         var url = '/dashboard/ordersForPairStatistics';
@@ -63,7 +65,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
     };
 
     this.getAndShowChart = function () {
-        if ($dashboardContainer.hasClass('hidden')) {
+        if ($tradingContainer.hasClass('hidden') || !windowIsActive) {
             return;
         }
         if (chart) {
@@ -72,7 +74,11 @@ function TradingClass(period, chartType, currentCurrencyPair) {
     };
 
     this.getAndShowAcceptedOrdersHistory = function (refreshIfNeeded, callback) {
-        if ($dashboardContainer.hasClass('hidden')) {
+        if ($tradingContainer.hasClass('hidden') || !windowIsActive) {
+            clearTimeout(timeOutId);
+            timeOutId = setTimeout(function () {
+                that.updateAndShowAll(true);
+            }, refreshInterval);
             return;
         }
         if (showLog) {
@@ -83,6 +89,9 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         $.ajax({
             url: url,
             type: 'GET',
+            headers: {
+                "windowid": windowId
+            },
             success: function (data) {
                 if (!data) return;
                 if (data.length == 0 || data[0].needRefresh) {
@@ -103,7 +112,11 @@ function TradingClass(period, chartType, currentCurrencyPair) {
     };
 
     this.getAndShowSellOrders = function (refreshIfNeeded) {
-        if ($dashboardContainer.hasClass('hidden')) {
+        if ($tradingContainer.hasClass('hidden') || !windowIsActive) {
+            clearTimeout(timeOutId);
+            timeOutId = setTimeout(function () {
+                that.updateAndShowAll(true);
+            }, refreshInterval);
             return;
         }
         if (showLog) {
@@ -114,6 +127,9 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         $.ajax({
             url: url,
             type: 'GET',
+            headers: {
+                "windowid": windowId
+            },
             success: function (data) {
                 if (!data) return;
                 if (data.length == 0 || data[0].needRefresh) {
@@ -133,7 +149,11 @@ function TradingClass(period, chartType, currentCurrencyPair) {
     };
 
     this.getAndShowBuyOrders = function (refreshIfNeeded) {
-        if ($dashboardContainer.hasClass('hidden')) {
+        if ($tradingContainer.hasClass('hidden') || !windowIsActive) {
+            clearTimeout(timeOutId);
+            timeOutId = setTimeout(function () {
+                that.updateAndShowAll(true);
+            }, refreshInterval);
             return;
         }
         if (showLog) {
@@ -144,6 +164,9 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         $.ajax({
             url: url,
             type: 'GET',
+            headers: {
+                "windowid": windowId
+            },
             success: function (data) {
                 if (!data) return;
                 if (data.length == 0 || data[0].needRefresh) {
@@ -177,16 +200,16 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         });
     }
 
-    function calculateFieldsForBuy() {
+    function calculateFieldsForBuy(e) {
         var amount = +$('#amountBuy').val();
         var exchangeRate = +$('#exchangeRateBuy').val();
         var totalForBuy = +$('#totalForBuy').val(amount * exchangeRate).val();
         var commission = that.commissionBuy;
-        var calculatedCommissionForBuy = totalForBuy * commission / 100;
-        var totalWithCommissionForBuy = totalForBuy + calculatedCommissionForBuy;
-        $('#totalForBuy>span:first').text(totalForBuy.toFixed(9));
-        $('#calculatedCommissionForBuy>span:first').text(calculatedCommissionForBuy.toFixed(9));
-        $('#totalWithCommissionForBuy>span:first').text(totalWithCommissionForBuy.toFixed(9));
+        var calculatedCommissionForBuy = +(totalForBuy * commission / 100).toFixed(that.ROUND_SCALE);
+        var totalWithCommissionForBuy = +(totalForBuy + calculatedCommissionForBuy).toFixed(that.ROUND_SCALE);
+        $('#totalForBuy>span:first').text(totalForBuy.toFixed(that.ROUND_SCALE));
+        $('#calculatedCommissionForBuy>span:first').text(calculatedCommissionForBuy.toFixed(that.ROUND_SCALE));
+        $('#totalWithCommissionForBuy>span:first').text(totalWithCommissionForBuy.toFixed(that.ROUND_SCALE));
     }
 
     function calculateFieldsForSell() {
@@ -194,11 +217,11 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         var exchangeRate = +$('#exchangeRateSell').val();
         var totalForSell = +$('#totalForSell').val(amount * exchangeRate).val();
         var commission = that.commissionSell;
-        var calculatedCommissionForSell = totalForSell * commission / 100;
-        var totalWithCommissionForSell = totalForSell - calculatedCommissionForSell;
-        $('#totalForSell>span:first').text(totalForSell.toFixed(9));
-        $('#calculatedCommissionForSell>span:first').text(calculatedCommissionForSell.toFixed(9));
-        $('#totalWithCommissionForSell>span:first').text(totalWithCommissionForSell.toFixed(9));
+        var calculatedCommissionForSell = +(totalForSell * commission / 100).toFixed(that.ROUND_SCALE);
+        var totalWithCommissionForSell = +(totalForSell - calculatedCommissionForSell).toFixed(that.ROUND_SCALE);
+        $('#totalForSell>span:first').text(totalForSell.toFixed(that.ROUND_SCALE));
+        $('#calculatedCommissionForSell>span:first').text(calculatedCommissionForSell.toFixed(that.ROUND_SCALE));
+        $('#totalWithCommissionForSell>span:first').text(totalWithCommissionForSell.toFixed(that.ROUND_SCALE));
     }
 
     /*=========================================================*/

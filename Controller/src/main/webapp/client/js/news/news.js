@@ -19,6 +19,13 @@ function NewsClass() {
     var showLog = false;
 
     this.getNewsList = function (refreshIfNeeded) {
+        if (!windowIsActive) {
+            clearTimeout(timeOutIdForStatisticsForNews);
+            timeOutIdForStatisticsForNews = setTimeout(function () {
+                that.getNewsList(true);
+            }, refreshIntervalForStatisticsForNews);
+            return;
+        }
         if (showLog) {
             console.log(new Date() + '  ' + refreshIfNeeded + ' ' + 'getNewsList');
         }
@@ -27,6 +34,9 @@ function NewsClass() {
         $.ajax({
             url: url,
             type: 'GET',
+            headers: {
+                "windowid": windowId
+            },
             success: function (data) {
                 if (!data) return;
                 if (data.length == 0 || data[0].needRefresh) {

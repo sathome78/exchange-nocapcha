@@ -62,6 +62,9 @@ public class OnlineRestController {
     NewsService newsService;
 
     @Autowired
+    ReferralService referralService;
+
+    @Autowired
     MessageSource messageSource;
 
     @Autowired
@@ -86,7 +89,7 @@ public class OnlineRestController {
             return null;
         }
         String email = principal.getName();
-        String cacheKey = "myWalletsStatistic";
+        String cacheKey = "myWalletsStatistic" + request.getHeader("windowid");
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
         CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
         return walletService.getAllWalletsForUserReduced(cacheData, email, localeResolver.resolveLocale(request));
@@ -95,7 +98,7 @@ public class OnlineRestController {
     @RequestMapping(value = "/dashboard/currencyPairStatistic", method = RequestMethod.GET)
     public List<ExOrderStatisticsShortByPairsDto> getStatisticsForAllCurrencies(@RequestParam(required = false) Boolean refreshIfNeeded,
                                                                                 HttpServletRequest request) {
-        String cacheKey = "currencyPairStatistic";
+        String cacheKey = "currencyPairStatistic" + request.getHeader("windowid");
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
         CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
         return orderService.getOrdersStatisticByPairs(cacheData, localeResolver.resolveLocale(request));
@@ -296,7 +299,7 @@ public class OnlineRestController {
                 e.printStackTrace();
             }
         }
-        String cacheKey = "acceptedOrderHistory";
+        String cacheKey = "acceptedOrderHistory" + request.getHeader("windowid");
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
         CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
         return orderService.getOrderAcceptedForPeriod(cacheData, ORDER_HISTORY_INTERVAL, ORDER_HISTORY_LIMIT, currencyPair, localeResolver.resolveLocale(request));
@@ -315,7 +318,7 @@ public class OnlineRestController {
         /*unlock the displaying of own orders*/
         email = null;
         /**/
-        String cacheKey = "sellOrders";
+        String cacheKey = "sellOrders" + request.getHeader("windowid");
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
         CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
         return orderService.getAllSellOrders(cacheData, currencyPair, email, localeResolver.resolveLocale(request));
@@ -329,7 +332,7 @@ public class OnlineRestController {
         /*unlock the displaying of own orders*/
         email = null;
         /**/
-        String cacheKey = "BuyOrders";
+        String cacheKey = "BuyOrders" + request.getHeader("windowid");
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
         CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
         return orderService.getAllBuyOrders(cacheData, currencyPair, email, localeResolver.resolveLocale(request));
@@ -342,7 +345,7 @@ public class OnlineRestController {
             return null;
         }
         String email = principal.getName();
-        String cacheKey = "myWalletsData";
+        String cacheKey = "myWalletsData" + request.getHeader("windowid");
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
         CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
         return walletService.getAllWalletsForUserDetailed(cacheData, email, localeResolver.resolveLocale(request));
@@ -363,16 +366,45 @@ public class OnlineRestController {
         }
         String email = principal.getName();
         CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
+        /**/
         String attributeName = tableId + "Params";
-
         TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
         Assert.requireNonNull(tableParams, "The parameters are not populated for the " + tableId);
         tableParams.setOffsetAndLimitForSql(page, direction);
-
-        String cacheKey = "myOrdersData" + tableId + status;
+        /**/
+        String cacheKey = "myOrdersData" + tableId + status + request.getHeader("windowid");
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
         CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
         List<OrderWideListDto> result = orderService.getMyOrdersWithState(cacheData, email, currencyPair, status, type, tableParams.getOffset(), tableParams.getLimit(), localeResolver.resolveLocale(request));
+        if (!result.isEmpty()) {
+            result.get(0).setPage(tableParams.getPageNumber());
+        }
+        tableParams.updateEofState(result);
+        return result;
+    }
+
+    @RequestMapping(value = "/dashboard/myReferralData/{tableId}", method = RequestMethod.GET)
+    public List<MyReferralDetailedDto> getMyReferralData(
+            @RequestParam(required = false) Boolean refreshIfNeeded,
+            @PathVariable("tableId") String tableId,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) PagingDirection direction,
+            Principal principal,
+            HttpServletRequest request) {
+        if (principal == null) {
+            return null;
+        }
+        String email = principal.getName();
+        /**/
+        String attributeName = tableId + "Params";
+        TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
+        Assert.requireNonNull(tableParams, "The parameters are not populated for the " + tableId);
+        tableParams.setOffsetAndLimitForSql(page, direction);
+        /**/
+        String cacheKey = "myReferralData" + request.getHeader("windowid");
+        refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
+        CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
+        List<MyReferralDetailedDto> result = referralService.findAllMyReferral(cacheData, email, tableParams.getOffset(), tableParams.getLimit(), localeResolver.resolveLocale(request));
         if (!result.isEmpty()) {
             result.get(0).setPage(tableParams.getPageNumber());
         }

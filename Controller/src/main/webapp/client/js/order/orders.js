@@ -40,7 +40,11 @@ function OrdersClass(currentCurrencyPair) {
 
 
     this.getAndShowSellOrdersData = function (refreshIfNeeded, page, direction) {
-        if ($ordersContainer.hasClass('hidden')) {
+        if ($ordersContainer.hasClass('hidden') || !windowIsActive) {
+            clearTimeout(timeOutIdForOrdersData);
+            timeOutIdForOrdersData = setTimeout(function () {
+                that.updateAndShowAll(true);
+            }, refreshIntervalForOrdersData);
             return;
         }
         if (showLog) {
@@ -56,6 +60,9 @@ function OrdersClass(currentCurrencyPair) {
         $.ajax({
             url: url,
             type: 'GET',
+            headers: {
+                "windowid": windowId
+            },
             success: function (data) {
                 if (!data) return;
                 if (data.length == 0 || data[0].needRefresh) {
@@ -81,7 +88,11 @@ function OrdersClass(currentCurrencyPair) {
     };
 
     this.getAndShowBuyOrdersData = function (refreshIfNeeded, page, direction) {
-        if ($ordersContainer.hasClass('hidden')) {
+        if ($ordersContainer.hasClass('hidden') || !windowIsActive) {
+            clearTimeout(timeOutIdForOrdersData);
+            timeOutIdForOrdersData = setTimeout(function () {
+                that.updateAndShowAll(true);
+            }, refreshIntervalForOrdersData);
             return;
         }
         if (showLog) {
@@ -97,6 +108,9 @@ function OrdersClass(currentCurrencyPair) {
         $.ajax({
             url: url,
             type: 'GET',
+            headers: {
+                "windowid": windowId
+            },
             success: function (data) {
                 if (!data) return;
                 if (data.length == 0 || data[0].needRefresh) {

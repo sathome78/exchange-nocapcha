@@ -28,8 +28,9 @@ function StockChartAmchartsClass() {
                 queryResultArray.forEach(function (item, i) {
                     //if (item[6] != 0)
                     chartData.push({
-                        preddate: new Date(item[0]),
-                        date: new Date(item[1]),
+                        /*.replace... - for Safari browser*/
+                        preddate: new Date(item[0].replace(/-/g, '/').replace(/\.\d$/,'')),
+                        date: new Date(item[1].replace(/-/g, '/').replace(/\.\d$/,'')),
                         open: item[2],
                         close: item[3],
                         high: item[5],
@@ -56,6 +57,7 @@ function StockChartAmchartsClass() {
     /*=================================================*/
     (function init() {
         chart = new AmCharts.AmStockChart();
+        //chart.dataDateFormat = "YYYY-MM-DD HH:NN:SS";
         /*CANDLE*/
         candleDataSet = new AmCharts.DataSet();
         candleDataSet.fieldMappings = [

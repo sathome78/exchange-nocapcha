@@ -4,12 +4,17 @@ import me.exrates.dao.ReferralLevelDao;
 import me.exrates.dao.ReferralTransactionDao;
 import me.exrates.dao.ReferralUserGraphDao;
 import me.exrates.model.*;
+import me.exrates.model.Currency;
+import me.exrates.model.dto.onlineTableDto.MyReferralDetailedDto;
+import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.util.BigDecimalProcessing;
+import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.*;
+import me.exrates.service.util.Cache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -18,9 +23,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 
 import static java.math.BigDecimal.ZERO;
 import static java.math.BigDecimal.valueOf;
@@ -201,5 +204,16 @@ public class ReferralServiceImpl implements ReferralService {
     @Override
     public void bindChildAndParent(final int childUserId, final int parentUserId) {
         referralUserGraphDao.create(childUserId, parentUserId);
+    }
+
+    @Override
+    public List<MyReferralDetailedDto> findAllMyReferral(CacheData cacheData, String email, Integer offset, Integer limit, Locale locale) {
+        List<MyReferralDetailedDto> result = referralTransactionDao.findAllMyRefferal(email, offset, limit, locale);
+        if (Cache.checkCache(cacheData, result)) {
+            result = new ArrayList<MyReferralDetailedDto>() {{
+                add(new MyReferralDetailedDto(false));
+            }};
+        }
+        return result;
     }
 }
