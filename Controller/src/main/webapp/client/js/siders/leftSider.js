@@ -57,7 +57,7 @@ function LeftSiderClass() {
     };
 
     this.getStatisticsForAllCurrencies = function (refreshIfNeeded) {
-        if (!windowIsActive) {
+        if (false && !windowIsActive) {
             clearTimeout(timeOutIdForStatisticsForAllCurrencies);
             timeOutIdForStatisticsForAllCurrencies = setTimeout(function () {
                 that.getStatisticsForAllCurrencies(true);
@@ -77,6 +77,7 @@ function LeftSiderClass() {
             },
             success: function (data) {
                 if (!data) return;
+                data = data['list'];
                 if (data.length == 0 || data[0].needRefresh) {
                     var $tmpl = $('#currency_table_row').html().replace(/@/g, '%');
                     $currencyTable.find('tr').has('td').remove();

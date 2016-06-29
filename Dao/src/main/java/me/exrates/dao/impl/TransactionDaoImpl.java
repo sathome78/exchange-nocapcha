@@ -1,16 +1,16 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.TransactionDao;
-import me.exrates.model.Commission;
-import me.exrates.model.CompanyWallet;
+import me.exrates.model.*;
 import me.exrates.model.Currency;
-import me.exrates.model.ExOrder;
-import me.exrates.model.Merchant;
-import me.exrates.model.PagingData;
-import me.exrates.model.Transaction;
-import me.exrates.model.Wallet;
+import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
+import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.enums.TransactionStatus;
+import me.exrates.model.util.BigDecimalProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -19,13 +19,10 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.StringJoiner;
+import java.util.*;
 
 import static java.util.Collections.singletonMap;
 
@@ -34,38 +31,6 @@ import static java.util.Collections.singletonMap;
  */
 @Repository
 public final class TransactionDaoImpl implements TransactionDao {
-
-    @Autowired
-    private NamedParameterJdbcTemplate jdbcTemplate;
-
-    private final String SELECT_COUNT =
-            " SELECT COUNT(*)" +
-                    " FROM TRANSACTION " +
-                    " INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id" +
-                    " INNER JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id" +
-                    " INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
-                    " INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id" +
-                    " LEFT JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id " +
-                    " LEFT JOIN EXORDERS ON TRANSACTION.order_id = EXORDERS.id ";
-
-    private final String SELECT_ALL =
-                    " SELECT TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime, " +
-                    " TRANSACTION.operation_type_id,TRANSACTION.provided, TRANSACTION.confirmation, TRANSACTION.order_id, " +
-                    " WALLET.id,WALLET.active_balance,WALLET.reserved_balance,WALLET.currency_id," +
-                    " COMPANY_WALLET.id,COMPANY_WALLET.balance,COMPANY_WALLET.commission_balance," +
-                    " COMMISSION.id,COMMISSION.date,COMMISSION.value," +
-                    " CURRENCY.id,CURRENCY.description,CURRENCY.name," +
-                    " MERCHANT.id,MERCHANT.name,MERCHANT.description, " +
-                    " EXORDERS.id, EXORDERS.user_id, EXORDERS.currency_pair_id, EXORDERS.operation_type_id, EXORDERS.exrate, " +
-                    " EXORDERS.amount_base, EXORDERS.amount_convert, EXORDERS.commission_fixed_amount, EXORDERS.date_creation, " +
-                    " EXORDERS.date_acception " +
-                    " FROM TRANSACTION " +
-                    " INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id" +
-                    " INNER JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id" +
-                    " INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
-                    " INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id" +
-                    " LEFT JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id " +
-                    " LEFT JOIN EXORDERS ON TRANSACTION.order_id = EXORDERS.id ";
 
     protected static RowMapper<Transaction> transactionRowMapper = (resultSet, i) -> {
 
@@ -93,7 +58,7 @@ public final class TransactionDaoImpl implements TransactionDao {
             order.setCommissionFixedAmount(resultSet.getBigDecimal("EXORDERS.commission_fixed_amount"));
             order.setDateCreation(resultSet.getTimestamp("EXORDERS.date_creation") == null ? null : resultSet.getTimestamp("EXORDERS.date_creation").toLocalDateTime());
             order.setDateAcception(resultSet.getTimestamp("EXORDERS.date_creation") == null ? null : resultSet.getTimestamp("EXORDERS.date_acception").toLocalDateTime());
-        } catch (SQLException e){}
+        } catch (SQLException e) {}
 
         final Commission commission = new Commission();
         commission.setId(resultSet.getInt("COMMISSION.id"));
@@ -129,6 +94,37 @@ public final class TransactionDaoImpl implements TransactionDao {
         transaction.setConfirmation(resultSet.getInt("confirmation"));
         return transaction;
     };
+    private final String SELECT_COUNT =
+            " SELECT COUNT(*)" +
+                    " FROM TRANSACTION " +
+                    " INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id" +
+                    " INNER JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id" +
+                    " INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
+                    " INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id" +
+                    " LEFT JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id " +
+                    " LEFT JOIN EXORDERS ON TRANSACTION.order_id = EXORDERS.id ";
+    private final String SELECT_ALL =
+            " SELECT TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime, " +
+                    " TRANSACTION.operation_type_id,TRANSACTION.provided, TRANSACTION.confirmation, TRANSACTION.order_id, " +
+                    " WALLET.id,WALLET.active_balance,WALLET.reserved_balance,WALLET.currency_id," +
+                    " COMPANY_WALLET.id,COMPANY_WALLET.balance,COMPANY_WALLET.commission_balance," +
+                    " COMMISSION.id,COMMISSION.date,COMMISSION.value," +
+                    " CURRENCY.id,CURRENCY.description,CURRENCY.name," +
+                    " MERCHANT.id,MERCHANT.name,MERCHANT.description, " +
+                    " EXORDERS.id, EXORDERS.user_id, EXORDERS.currency_pair_id, EXORDERS.operation_type_id, EXORDERS.exrate, " +
+                    " EXORDERS.amount_base, EXORDERS.amount_convert, EXORDERS.commission_fixed_amount, EXORDERS.date_creation, " +
+                    " EXORDERS.date_acception " +
+                    " FROM TRANSACTION " +
+                    " INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id" +
+                    " INNER JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id" +
+                    " INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
+                    " INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id" +
+                    " LEFT JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id " +
+                    " LEFT JOIN EXORDERS ON TRANSACTION.order_id = EXORDERS.id ";
+    @Autowired
+    MessageSource messageSource;
+    @Autowired
+    private NamedParameterJdbcTemplate jdbcTemplate;
 
     @Override
     public Transaction create(Transaction transaction) {
@@ -263,4 +259,92 @@ public final class TransactionDaoImpl implements TransactionDao {
         params.put("confirmations", confirmations);
         jdbcTemplate.update(sql, params);
     }
+
+    @Override
+    public List<AccountStatementDto> getAccountStatement(Integer walletId, Integer offset, Integer limit, Locale locale) {
+        String sql = " SELECT * " +
+                "  FROM " +
+                "  ( " +
+                "    SELECT null AS date_time, null as transaction_id, " +
+                "      WALLET.active_balance AS active_balance_before, WALLET.reserved_balance AS reserved_balance_before, " +
+                "      CURRENCY.name AS operation_type_id, " +
+                "      null AS amount, null AS commission_amount, " +
+                "      null AS source_type, null AS source_id, " +
+                "      null AS status_id " +
+                "    FROM WALLET  " +
+                "    JOIN CURRENCY ON CURRENCY.id=WALLET.currency_id  " +
+                "    WHERE WALLET.id=:wallet_id " +
+                "  UNION ALL " +
+                "    (" +
+                "    SELECT TRANSACTION.datetime, TRANSACTION.id, " +
+                "      TRANSACTION.active_balance_before, TRANSACTION.reserved_balance_before, " +
+                "      TRANSACTION.operation_type_id, " +
+                "      TRANSACTION.amount, TRANSACTION.commission_amount, " +
+                "      TRANSACTION.source_type, TRANSACTION.source_id, " +
+                "      TRANSACTION.status_id " +
+                "    FROM TRANSACTION " +
+                "    WHERE TRANSACTION.provided=1 AND TRANSACTION.user_wallet_id = :wallet_id " +
+                "    ORDER BY -TRANSACTION.datetime ASC, -TRANSACTION.id ASC " +
+                (limit == -1 ? "" : "  LIMIT " + limit + " OFFSET " + offset)+
+                "    )" +
+                "  ) T " +
+                "  ORDER BY -date_time ASC, -transaction_id ASC";
+        final Map<String, Object> params = new HashMap<>();
+        params.put("wallet_id", walletId);
+        return jdbcTemplate.query(sql, params, new RowMapper<AccountStatementDto>() {
+            @Override
+            public AccountStatementDto mapRow(ResultSet rs, int i) throws SQLException {
+                AccountStatementDto accountStatementDto = new AccountStatementDto();
+                accountStatementDto.setDatetime(rs.getTimestamp("date_time") == null ? null : rs.getTimestamp("date_time").toLocalDateTime());
+                accountStatementDto.setTransactionId(rs.getInt("transaction_id"));
+                accountStatementDto.setActiveBalanceBefore(BigDecimalProcessing.formatLocale(rs.getBigDecimal("active_balance_before"), locale, true));
+                accountStatementDto.setReservedBalanceBefore(BigDecimalProcessing.formatLocale(rs.getBigDecimal("reserved_balance_before"), locale, true));
+                accountStatementDto.setOperationType(rs.getObject("date_time") == null ? null : OperationType.convert(rs.getInt("operation_type_id")).toString(messageSource, locale));
+                accountStatementDto.setAmount(rs.getTimestamp("date_time") == null ? null : BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount"), locale, true));
+                accountStatementDto.setCommissionAmount(rs.getTimestamp("date_time") == null ? null : BigDecimalProcessing.formatLocale(rs.getBigDecimal("commission_amount"), locale, true));
+                accountStatementDto.setSourceType(rs.getObject("source_type") == null ? "" : TransactionSourceType.convert(rs.getString("source_type")).toString(messageSource, locale));
+                accountStatementDto.setSourceTypeId(rs.getString("source_type"));
+                accountStatementDto.setSourceId(rs.getInt("source_id"));
+                accountStatementDto.setTransactionStatus(rs.getObject("status_id") == null ? null : TransactionStatus.convert(rs.getInt("status_id")));
+                /**/
+                int otid = rs.getObject("date_time") == null? 0: rs.getInt("operation_type_id");
+                if (otid != 0) {
+                    OperationType ot = OperationType.convert(otid);
+                    switch (ot) {
+                        case INPUT: {
+                            accountStatementDto.setActiveBalanceAfter(BigDecimalProcessing
+                                    .formatLocale(BigDecimalProcessing
+                                            .doAction(rs.getBigDecimal("active_balance_before"), rs.getBigDecimal("amount"), ActionType.ADD)
+                                            , locale, true));
+                            accountStatementDto.setReservedBalanceAfter(accountStatementDto.getReservedBalanceBefore());
+                            break;
+                        }
+                        case OUTPUT: {
+                            accountStatementDto.setActiveBalanceAfter(BigDecimalProcessing
+                                    .formatLocale(BigDecimalProcessing
+                                            .doAction(rs.getBigDecimal("active_balance_before"), rs.getBigDecimal("amount"), ActionType.SUBTRACT)
+                                            , locale, true));
+                            accountStatementDto.setReservedBalanceAfter(accountStatementDto.getReservedBalanceBefore());
+                            break;
+                        }
+                        case WALLET_INNER_TRANSFER: {
+                            accountStatementDto.setActiveBalanceAfter(BigDecimalProcessing
+                                    .formatLocale(BigDecimalProcessing
+                                            .doAction(rs.getBigDecimal("active_balance_before"), rs.getBigDecimal("amount"), ActionType.ADD)
+                                            , locale, true));
+                            accountStatementDto.setReservedBalanceAfter(BigDecimalProcessing
+                                    .formatLocale(BigDecimalProcessing
+                                            .doAction(rs.getBigDecimal("reserved_balance_before"), rs.getBigDecimal("amount"), ActionType.SUBTRACT)
+                                            , locale, true));
+                            break;
+                        }
+                    }
+                }
+                /**/
+                return accountStatementDto;
+            }
+        });
+    }
+
+
 }

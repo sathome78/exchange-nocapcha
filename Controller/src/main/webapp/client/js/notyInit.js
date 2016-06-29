@@ -74,6 +74,7 @@ function failNoty(jqXHR) {
 var orderNoty;
 
 function showOrderNoty() {
+    //TODO DELETE
     if (! $(this).text().trim()) {
         return;
     }
@@ -102,6 +103,7 @@ function showOrderNoty() {
 }
 
 function closeOrderNoty() {
+    //TODO DELETE
     if (orderNoty) {
         orderNoty.close();
         orderNoty = undefined;

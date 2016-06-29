@@ -37,6 +37,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/history/history.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/myorders/myorders.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/myreferral/myreferral.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/mywallets/statements.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/order/orders.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/currencypair/currencyPairSelector.js'/>"></script>
     <%----%>
@@ -70,6 +71,7 @@
             </div>
             <%@include file="../fragments/trading-center.jsp" %>
             <%@include file="../fragments/mywallets-center.jsp" %>
+            <%@include file="../fragments/statement-center.jsp" %>
             <%@include file="../fragments/history-center.jsp" %>
             <%@include file="../fragments/orders-center.jsp" %>
         </div>

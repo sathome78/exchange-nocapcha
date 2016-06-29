@@ -123,6 +123,10 @@
                                     class="dashboard-sell-buy__button dashboard-accept__button hidden">
                                 <loc:message code="orders.accept"/>
                             </button>
+                            <button id="dashboard-buy-accept-reset"
+                                    class="dashboard-sell-buy__button dashboard-accept-reset__button hidden">
+                                X
+                            </button>
                         </sec:authorize>
                     </div>
                 </form:form>
@@ -215,6 +219,10 @@
                             <button id="dashboard-sell-accept"
                                     class="dashboard-sell-buy__button dashboard-accept__button hidden">
                                 <loc:message code="orders.accept"/>
+                            </button>
+                            <button id="dashboard-sell-accept-reset"
+                                    class="dashboard-sell-buy__button dashboard-accept-reset__button hidden">
+                                X
                             </button>
                         </sec:authorize>
                     </div>

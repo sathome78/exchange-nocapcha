@@ -17,14 +17,15 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -65,6 +66,9 @@ public class OnlineRestController {
     ReferralService referralService;
 
     @Autowired
+    TransactionService transactionService;
+
+    @Autowired
     MessageSource messageSource;
 
     @Autowired
@@ -96,12 +100,14 @@ public class OnlineRestController {
     }
 
     @RequestMapping(value = "/dashboard/currencyPairStatistic", method = RequestMethod.GET)
-    public List<ExOrderStatisticsShortByPairsDto> getStatisticsForAllCurrencies(@RequestParam(required = false) Boolean refreshIfNeeded,
-                                                                                HttpServletRequest request) {
+    public Map<String, List<ExOrderStatisticsShortByPairsDto>> getStatisticsForAllCurrencies(@RequestParam(required = false) Boolean refreshIfNeeded,
+                                                                                             HttpServletRequest request) throws IOException {
         String cacheKey = "currencyPairStatistic" + request.getHeader("windowid");
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
         CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
-        return orderService.getOrdersStatisticByPairs(cacheData, localeResolver.resolveLocale(request));
+        return new HashMap() {{
+            put("list", orderService.getOrdersStatisticByPairs(cacheData, localeResolver.resolveLocale(request)));
+        }};
     }
 
     @RequestMapping(value = "/dashboard/chartArray/{type}", method = RequestMethod.GET)
@@ -292,13 +298,6 @@ public class OnlineRestController {
     public List<OrderAcceptedHistoryDto> getOrderHistory(@RequestParam(required = false) Boolean refreshIfNeeded,
                                                          HttpServletRequest request, HttpServletResponse response) {
         CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
-        if (currencyPair == null) {
-            try {
-                request.getRequestDispatcher("/dashboard/currentParams").forward(request, response);
-            } catch (ServletException | IOException e) {
-                e.printStackTrace();
-            }
-        }
         String cacheKey = "acceptedOrderHistory" + request.getHeader("windowid");
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
         CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
@@ -401,10 +400,35 @@ public class OnlineRestController {
         Assert.requireNonNull(tableParams, "The parameters are not populated for the " + tableId);
         tableParams.setOffsetAndLimitForSql(page, direction);
         /**/
-        String cacheKey = "myReferralData" + request.getHeader("windowid");
+        String cacheKey = "myReferralData" + tableId + request.getHeader("windowid");
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
         CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
         List<MyReferralDetailedDto> result = referralService.findAllMyReferral(cacheData, email, tableParams.getOffset(), tableParams.getLimit(), localeResolver.resolveLocale(request));
+        if (!result.isEmpty()) {
+            result.get(0).setPage(tableParams.getPageNumber());
+        }
+        tableParams.updateEofState(result);
+        return result;
+    }
+
+    @RequestMapping(value = "/dashboard/myStatementData/{tableId}/{walletId}", method = RequestMethod.GET)
+    public List<AccountStatementDto> getMyAccountStatementData(
+            @RequestParam(required = false) Boolean refreshIfNeeded,
+            @PathVariable("tableId") String tableId,
+            @PathVariable("walletId") String walletId,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) PagingDirection direction,
+            HttpServletRequest request) {
+        /**/
+        String attributeName = tableId + "Params";
+        TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
+        Assert.requireNonNull(tableParams, "The parameters are not populated for the " + tableId);
+        tableParams.setOffsetAndLimitForSql(page, direction);
+        /**/
+        String cacheKey = "myAccountStatement" + tableId + walletId + request.getHeader("windowid");
+        refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
+        CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
+        List<AccountStatementDto> result = transactionService.getAccountStatement(cacheData, Integer.valueOf(walletId), tableParams.getOffset(), tableParams.getLimit(), localeResolver.resolveLocale(request));
         if (!result.isEmpty()) {
             result.get(0).setPage(tableParams.getPageNumber());
         }

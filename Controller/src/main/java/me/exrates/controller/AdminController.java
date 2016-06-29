@@ -462,8 +462,8 @@ public class AdminController {
 
     @ResponseBody
     @RequestMapping(value = "/admin/orderinfo", method = RequestMethod.GET)
-    public OrderInfoDto getOrderInfo(@RequestParam int id) {
-        return orderService.getOrderInfo(id);
+    public OrderInfoDto getOrderInfo(@RequestParam int id, HttpServletRequest request) {
+        return orderService.getOrderInfo(id, localeResolver.resolveLocale(request));
     }
 
     @ResponseBody

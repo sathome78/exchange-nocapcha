@@ -41,7 +41,7 @@ public interface OrderDao {
 
     List<CoinmarketApiDto> getCoinmarketData(String currencyPairName, BackDealInterval backDealInterval);
 
-    OrderInfoDto getOrderInfo(int orderId);
+    OrderInfoDto getOrderInfo(int orderId, Locale locale);
 
     Object deleteOrderByAdmin(int orderId);
 

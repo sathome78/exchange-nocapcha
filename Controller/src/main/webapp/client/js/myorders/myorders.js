@@ -216,17 +216,21 @@ function MyOrdersClass(currentCurrencyPair) {
             that.getAndShowMyBuyOrdersData();
         });
         /**/
-        $('.myorders-sell-table__backward').on('click', function(){
+        $('.myorders-sell-table__backward').on('click', function(e){
+            e.preventDefault();
             that.getAndShowMySellOrdersData(true, null, 'BACKWARD');
         });
-        $('.myorders-sell-table__forward').on('click', function(){
+        $('.myorders-sell-table__forward').on('click', function(e){
+            e.preventDefault();
             that.getAndShowMySellOrdersData(true, null, 'FORWARD');
         });
         /**/
-        $('.myorders-buy-table__backward').on('click', function(){
+        $('.myorders-buy-table__backward').on('click', function(e){
+            e.preventDefault();
             that.getAndShowMyBuyOrdersData(true, null, 'BACKWARD');
         });
-        $('.myorders-buy-table__forward').on('click', function(){
+        $('.myorders-buy-table__forward').on('click', function(e){
+            e.preventDefault();
             that.getAndShowMyBuyOrdersData(true, null, 'FORWARD');
         });
     })(currentCurrencyPair);

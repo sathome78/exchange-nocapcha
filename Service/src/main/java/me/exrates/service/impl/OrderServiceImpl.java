@@ -431,8 +431,8 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     @Override
-    public OrderInfoDto getOrderInfo(int orderId) {
-        return orderDao.getOrderInfo(orderId);
+    public OrderInfoDto getOrderInfo(int orderId, Locale locale) {
+        return orderDao.getOrderInfo(orderId, locale);
     }
 
     @Transactional(rollbackFor = {Exception.class})

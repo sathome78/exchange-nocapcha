@@ -201,17 +201,21 @@ function OrdersClass(currentCurrencyPair) {
         $('#orders-buy-table').on('click', '.button_delete_order', submitOrderDeleting);
         $('#order-delete-confirm__submit').on('click', deletingOrder);
         /**/
-        $('.orders-sell-table__backward').on('click', function(){
+        $('.orders-sell-table__backward').on('click', function(e){
+            e.preventDefault();
             that.getAndShowSellOrdersData(true, null, 'BACKWARD');
         });
-        $('.orders-sell-table__forward').on('click', function(){
+        $('.orders-sell-table__forward').on('click', function(e){
+            e.preventDefault();
             that.getAndShowSellOrdersData(true, null, 'FORWARD');
         });
         /**/
-        $('.orders-buy-table__backward').on('click', function(){
+        $('.orders-buy-table__backward').on('click', function(e){
+            e.preventDefault();
             that.getAndShowBuyOrdersData(true, null, 'BACKWARD');
         });
-        $('.orders-buy-table__forward').on('click', function(){
+        $('.orders-buy-table__forward').on('click', function(e){
+            e.preventDefault();
             that.getAndShowBuyOrdersData(true, null, 'FORWARD');
         });
     })(currentCurrencyPair);

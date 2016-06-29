@@ -382,7 +382,7 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public OrderInfoDto getOrderInfo(int orderId) {
+    public OrderInfoDto getOrderInfo(int orderId, Locale locale) {
         String sql =
                 " SELECT  " +
                         "     EXORDERS.id, EXORDERS.date_creation, EXORDERS.date_acception,  " +
@@ -431,15 +431,15 @@ public class OrderDaoImpl implements OrderDao {
                     orderInfoDto.setCurrencyPairName(rs.getString("currency_pair_name"));
                     orderInfoDto.setOrderTypeName(rs.getString("order_type_name"));
                     orderInfoDto.setOrderStatusName(rs.getString("order_status_name"));
-                    orderInfoDto.setExrate(rs.getBigDecimal("exrate"));
-                    orderInfoDto.setAmountBase(rs.getBigDecimal("amount_base"));
-                    orderInfoDto.setAmountConvert(rs.getBigDecimal("amount_convert"));
+                    orderInfoDto.setExrate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("exrate"), locale, 2));
+                    orderInfoDto.setAmountBase(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount_base"), locale, 2));
+                    orderInfoDto.setAmountConvert(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount_convert"), locale, 2));
                     orderInfoDto.setCurrencyBaseName(rs.getString("currency_base_name"));
                     orderInfoDto.setCurrencyConvertName(rs.getString("currency_convert_name"));
                     orderInfoDto.setOrderCreatorEmail(rs.getString("order_creator_email"));
                     orderInfoDto.setOrderAcceptorEmail(rs.getString("order_acceptor_email"));
-                    orderInfoDto.setTransactionCount(rs.getBigDecimal("transaction_count"));
-                    orderInfoDto.setCompanyCommission(rs.getBigDecimal("company_commission"));
+                    orderInfoDto.setTransactionCount(BigDecimalProcessing.formatLocale(rs.getBigDecimal("transaction_count"), locale, 2));
+                    orderInfoDto.setCompanyCommission(BigDecimalProcessing.formatLocale(rs.getBigDecimal("company_commission"), locale, 2));
                     return orderInfoDto;
                 }
             });

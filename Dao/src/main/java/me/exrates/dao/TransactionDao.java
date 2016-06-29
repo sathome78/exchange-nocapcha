@@ -2,9 +2,11 @@ package me.exrates.dao;
 
 import me.exrates.model.PagingData;
 import me.exrates.model.Transaction;
+import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -26,4 +28,6 @@ public interface TransactionDao {
     List<Transaction> findAllByUserWallets(List<Integer> walletIds);
 
     PagingData<List<Transaction>> findAllByUserWallets(List<Integer> walletIds, int offset, int limit);
+
+    List<AccountStatementDto> getAccountStatement(Integer walletId, Integer offset, Integer limit, Locale locale);
 }

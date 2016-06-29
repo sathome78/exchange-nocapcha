@@ -18,15 +18,15 @@ public class OrderInfoDto {
     private String currencyPairName;
     private String orderTypeName;
     private String orderStatusName;
-    private BigDecimal exrate;
-    private BigDecimal amountBase;
-    private BigDecimal amountConvert;
+    private String exrate;
+    private String amountBase;
+    private String amountConvert;
     private String currencyBaseName;
     private String currencyConvertName;
     private String orderCreatorEmail;
     private String orderAcceptorEmail;
-    private BigDecimal transactionCount;
-    private BigDecimal companyCommission;
+    private String transactionCount;
+    private String companyCommission;
 
     /*getters setters*/
 
@@ -78,27 +78,27 @@ public class OrderInfoDto {
         this.orderStatusName = orderStatusName;
     }
 
-    public BigDecimal getExrate() {
+    public String getExrate() {
         return exrate;
     }
 
-    public void setExrate(BigDecimal exrate) {
+    public void setExrate(String exrate) {
         this.exrate = exrate;
     }
 
-    public BigDecimal getAmountBase() {
+    public String getAmountBase() {
         return amountBase;
     }
 
-    public void setAmountBase(BigDecimal amountBase) {
+    public void setAmountBase(String amountBase) {
         this.amountBase = amountBase;
     }
 
-    public BigDecimal getAmountConvert() {
+    public String getAmountConvert() {
         return amountConvert;
     }
 
-    public void setAmountConvert(BigDecimal amountConvert) {
+    public void setAmountConvert(String amountConvert) {
         this.amountConvert = amountConvert;
     }
 
@@ -134,19 +134,19 @@ public class OrderInfoDto {
         this.orderAcceptorEmail = orderAcceptorEmail;
     }
 
-    public BigDecimal getTransactionCount() {
+    public String getTransactionCount() {
         return transactionCount;
     }
 
-    public void setTransactionCount(BigDecimal transactionCount) {
+    public void setTransactionCount(String transactionCount) {
         this.transactionCount = transactionCount;
     }
 
-    public BigDecimal getCompanyCommission() {
+    public String getCompanyCommission() {
         return companyCommission;
     }
 
-    public void setCompanyCommission(BigDecimal companyCommission) {
+    public void setCompanyCommission(String companyCommission) {
         this.companyCommission = companyCommission;
     }
 };

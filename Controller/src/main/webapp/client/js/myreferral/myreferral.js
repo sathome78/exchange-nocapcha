@@ -89,10 +89,12 @@ function MyReferralClass(currentCurrencyPair) {
             that.getAndShowMyReferralData();
         });
         /**/
-        $('.myreferral-table__backward').on('click', function () {
+        $('.myreferral-table__backward').on('click', function (e) {
+            e.preventDefault();
             that.getAndShowMyReferralData(true, null, 'BACKWARD');
         });
-        $('.myreferral-table__forward').on('click', function () {
+        $('.myreferral-table__forward').on('click', function (e) {
+            e.preventDefault();
             that.getAndShowMyReferralData(true, null, 'FORWARD');
         });
     })(currentCurrencyPair);

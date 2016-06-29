@@ -124,7 +124,7 @@ public interface OrderService {
      * @param orderId is ID the order
      * @return OrderInfoDto containing detailed info about the order
      */
-    OrderInfoDto getOrderInfo(int orderId);
+    OrderInfoDto getOrderInfo(int orderId, Locale locale);
 
     /**
      * Deletes the order by admin.

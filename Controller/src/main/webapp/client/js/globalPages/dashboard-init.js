@@ -6,15 +6,9 @@ var leftSider;
 var rightSider;
 var trading;
 var myWallets;
+var myStatements;
 var myHistory;
 var orders;
-/**/
-/*it's need to distinguish different windows (tab) of the browser*/
-var windowId = Math.floor((Math.random()) * 10000).toString(36) + Math.floor((Math.random()) * 10000).toString(36);
-/*it's need to prevent ajax request if window (tab) is not active*/
-var windowIsActive = true;
-/*for testing*/
-var REFRESH_INTERVAL_MULTIPLIER = 1;
 
 $(function dashdoardInit() {
     try {
@@ -111,6 +105,7 @@ $(function dashdoardInit() {
             showPage($('#startup-page-id').text().trim());
             trading = new TradingClass(data.period, data.chartType, data.currencyPair.name);
             myWallets = new MyWalletsClass();
+            myStatements = new MyStatementsClass();
             myHistory = new MyHistoryClass(data.currencyPair.name);
             orders = new OrdersClass(data.currencyPair.name);
         });

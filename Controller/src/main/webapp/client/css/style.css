@@ -384,7 +384,7 @@ th, td {
     width: 100%;
     text-align: left;
     font-size: 1rem;
-    overflow: auto;
+    overflow: hidden;
     margin: 4px 0;
 }
 
@@ -749,8 +749,11 @@ td.blue-white {
     padding-right: 5px;
 }
 
-.center {
+.center,
+.center.blue-white {
     text-align: center;
+    padding-right: 5px;
+    padding-left: 5px;
 }
 
 .left {
@@ -758,9 +761,19 @@ td.blue-white {
     padding-left: 5px;
 }
 
+.col-0 {
+    width: 0;
+    max-width: 0;
+}
+
 .col-1 {
     width: 5%;
     max-width: 5%;
+}
+
+.col-06 {
+    width: 6%;
+    max-width: 6%;
 }
 
 .col-2 {
@@ -768,9 +781,19 @@ td.blue-white {
     max-width: 10%;
 }
 
+.col-13 {
+    width: 13%;
+    max-width: 13%;
+}
+
 .col-3 {
     width: 15%;
     max-width: 15%;
+}
+
+.col-17 {
+    width: 17%;
+    max-width: 17%;
 }
 
 .col-4 {
@@ -781,14 +804,15 @@ td.blue-white {
 /********************************
 			LEFT-SIDER (me)
 ********************************/
-.refferal__reference{
+.refferal__reference {
     font-size: 11px;
     height: 13px;
     font-weight: 400;
     margin: 5px 0;
     white-space: nowrap;
 }
-.refferal__button{
+
+.refferal__button {
     display: inline-block;
     width: 47%;
     font-weight: 300;
@@ -800,7 +824,7 @@ td.blue-white {
     outline: none;
 }
 
-.refferal__button:first-child{
+.refferal__button:first-child {
     margin-right: 4%;
 }
 
@@ -820,7 +844,7 @@ td.blue-white {
     color: #d9dbff;
 }
 
-.nav.header__nav .nav__link{
+.nav.header__nav .nav__link {
     padding: 10px 10px;
 }
 
@@ -882,6 +906,13 @@ td.blue-white {
 
 .dashboard-accept__button {
     color: #ffff00;
+    width: 85%;
+}
+
+.dashboard-accept-reset__button {
+    width: 12%;
+    float: right;
+    border-radius: 5px;
 }
 
 /********************************
@@ -1098,13 +1129,13 @@ tr:hover .table-button-block .table-button-block__button {
     margin: 0;
 }
 
-.on-confirmation-detail{
+.on-confirmation-detail {
     display: inline-block;
     cursor: pointer;
     padding: 0 0 0 5px;
 }
 
-.mywallet-detail-tooltip{
+.mywallet-detail-tooltip {
     font-size: 1.1rem;
     line-height: 2rem;
     padding: 10px;
@@ -1192,7 +1223,7 @@ tr:hover .table-button-block .table-button-block__button {
     font-size: 1.4rem;
 }
 
-.input-block-wrapper__radio{
+.input-block-wrapper__radio {
     padding: 0 10px 0 0;
 }
 
@@ -1243,7 +1274,7 @@ table tbody .blink,
 /********************************
 			LOGIN (me)
 ********************************/
-.login__container{
+.login__container {
     margin: 0 0 0 5%;
 }
 
@@ -1253,17 +1284,16 @@ table tbody .blink,
     padding: 0 0 0 15px;
 }
 
-.login__captcha-wrapper{
+.login__captcha-wrapper {
     margin: 15px;
 }
 
-
-.login__captcha--recaptcha{
+.login__captcha--recaptcha {
     float: right;
     padding: 0 15px 0 0;
 }
 
-.login__captcha--botdetect{
+.login__captcha--botdetect {
     padding: 15px 0 15px 15px;
 }
 
@@ -1312,7 +1342,7 @@ form span.repass {
     margin: 0 0 0 5px;
 }
 
-.BDC_CaptchaImageDiv ~ a{
+.BDC_CaptchaImageDiv ~ a {
     opacity: 0;
 }
 
@@ -1323,26 +1353,26 @@ form span.repass {
     font-size: 1.1rem;
 }
 
-.news_item__ref{
+.news_item__ref {
     text-decoration: none;
     color: inherit;
 }
 
-.news_item__ref:hover{
+.news_item__ref:hover {
     text-decoration: none;
     color: #0000FF;
 }
 
-.news_item__header{
+.news_item__header {
     font-weight: bold;
-    margin: 5px 0 0 0 ;
+    margin: 5px 0 0 0;
 }
 
-.news_item__brief{
+.news_item__brief {
     line-height: 1.3rem;
     height: 2.6rem;
     overflow: hidden;
-    margin: 0 0 10px 0 ;
+    margin: 0 0 10px 0;
 }
 
 /********************************
@@ -1367,4 +1397,53 @@ form span.repass {
     max-width: inherit;
     text-overflow: clip;
     word-break: normal;
+}
+
+/********************************
+           STATEMENT
+********************************/
+.mystatement__table tr:nth-child(3) td {
+    border-bottom-width: 10px;
+    background: #969faf;
+    color: #fff;
+}
+
+.source-type-button {
+    cursor: pointer;
+    color: #fff;
+    background: #337ab7;
+    border: 1px solid #2e6da4;
+    border-radius: 4px;
+    padding: 0 10px;
+}
+
+/********************************
+           ORDER-INFO-MODAL
+********************************/
+
+#order-info-modal button{
+    height: 25px;
+    padding: 0;
+}
+#order-info-modal .modal-dialog{
+    width: 410px;
+}
+#order-info-modal .input-block-wrapper{
+    margin: 5px 0 0 0;
+}
+#order-info-modal .input-block-wrapper__label{
+    line-height: 2.5rem;
+    height: 2.5rem;
+}
+
+#order-info-modal .input-block-wrapper__input-wrapper{
+    line-height: 2.5rem;
+    height: 2.5rem;
+}
+
+#order-info-modal .input-block-wrapper__input{
+    line-height: 2.5rem;
+    height: 2.5rem;
+    padding-top: 3px;
+    padding-bottom: 3px;
 }

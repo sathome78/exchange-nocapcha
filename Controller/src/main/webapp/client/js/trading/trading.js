@@ -257,6 +257,8 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         /**/
         $('#order-create-confirm__submit').on('click', orderCreate);
         /**/
+        $('.dashboard-accept-reset__button').on('click', resetOrdersListForAcceptOnClick);
+        /**/
         switchCreateOrAcceptButtons();
     })(period, chartType, currentCurrencyPair);
 
@@ -277,6 +279,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
             };
             that.ordersListForAccept.unshift(data);
             orderAmountSumm += parseNumber(orderAmount);
+            orderAmountSumm = (+orderAmountSumm.toFixed(that.ROUND_SCALE));
         });
         var orderId = $(this).find('.order_id').text();
         var orderType = $(this).find('.order_type').text();
@@ -291,9 +294,9 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         that.ordersListForAccept.push(data);
         orderAmountSumm += parseNumber(orderAmount);
         /**/
-        $('#amountBuy').val(orderAmountSumm);
+        $('#amountBuy').val(orderAmountSumm.toFixed(that.ROUND_SCALE));
         $('#exchangeRateBuy').val(orderExRate);
-        $('#amountSell').val(orderAmountSumm);
+        $('#amountSell').val(orderAmountSumm.toFixed(that.ROUND_SCALE));
         $('#exchangeRateSell').val(orderExRate);
         /**/
         calculateFieldsForSell();
@@ -311,24 +314,34 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         $('#dashboard-buy-accept').text(s);
         if (!acceptedOrderType) {
             $('#dashboard-sell-accept').addClass('hidden');
+            $('#dashboard-sell-accept-reset').addClass('hidden');
             $('#dashboard-buy-accept').addClass('hidden');
+            $('#dashboard-buy-accept-reset').addClass('hidden');
             $('#dashboard-sell').removeClass('hidden');
             $('#dashboard-buy').removeClass('hidden');
         }
         if (acceptedOrderType == 'BUY') {
             $('#dashboard-sell-accept').removeClass('hidden');
+            $('#dashboard-sell-accept-reset').removeClass('hidden');
             $('#dashboard-buy-accept').addClass('hidden');
+            $('#dashboard-buy-accept-reset').addClass('hidden');
             $('#dashboard-sell').addClass('hidden');
             $('#dashboard-buy').removeClass('hidden');
         }
         if (acceptedOrderType == 'SELL') {
             $('#dashboard-sell-accept').addClass('hidden');
+            $('#dashboard-sell-accept-reset').addClass('hidden');
             $('#dashboard-buy-accept').removeClass('hidden');
+            $('#dashboard-buy-accept-reset').removeClass('hidden');
             $('#dashboard-sell').removeClass('hidden');
             $('#dashboard-buy').addClass('hidden');
         }
     }
 
+    function resetOrdersListForAcceptOnClick(e) {
+        e.preventDefault();
+        resetOrdersListForAccept();
+    }
     function resetOrdersListForAccept() {
         if (that.ordersListForAccept.length != 0) {
             that.ordersListForAccept = [];

@@ -16,7 +16,6 @@
         </tr>
         <script type="text/template" id="balance-table_row">
             <tr class="balance-table__row">
-                <%--<td class="mywallet-item-id" hidden><@=id@></td>--%>
                 <td class="left blue-white"><@=currencyName@></td>
                 <td class="right"><@=activeBalance@></td>
                 <td class="right"><@=onConfirmation@><div class="on-confirmation-detail">
@@ -43,7 +42,9 @@
                     </form>
                     <form class="table-button-block__form" action="<c:url value="#"/>">
                         <loc:message code="mywallets.history" var="historyButton"/>
-                        <button class="table-button-block__button btn btn-primary" type="submit">${historyButton}</button>
+                        <@=
+                        '<button data-walletid='+id+' class="wallet-mystatement-button table-button-block__button btn btn-primary" type="submit">${historyButton}</button>'
+                        @>
                     </form>
                 </td>
             </tr>
