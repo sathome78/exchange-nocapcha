@@ -22,7 +22,6 @@
     <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/style-new.css'/>" rel="stylesheet">
 
-    <script type="text/javascript" src="<c:url value="/client/js/main.js"/>"></script>
     <script type="text/javascript" src="<c:url value="/client/js/function.js"/>"></script>
     <%----------%>
     <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
@@ -54,37 +53,20 @@
             </label>
             <div class="row">
                 <div class="col-sm-9">
-                    <paymentForm:form class="form-horizontal withdraw__money" id="payment" name="payment" method="post"
-                                      modelAttribute="payment" action="">
+                    <paymentForm:form class="form-horizontal input__money" id="currency" name="currency" method="get"
+                                      modelAttribute="currency" action="/merchants/inputCurrencyMerchant">
                         <div>
                                 <%--Currency to deposit--%>
                             <label>
                                 <loc:message code="merchants.inputCurrency"/>
                             </label>
-                                    <input id="currency" name="currency" hidden="true" value="${currency}" />
-                                    <input id="currencyName" readonly="true" value="${currencyName}" />
+                                    <paymentForm:select name="currency" id="currency" class="select currency-for-output-select" path="id">
+                                        <c:forEach items="${currencies}" var="currency">
+                                            <paymentForm:option value="${currency.id}">${currency.name}</paymentForm:option>
+                                        </c:forEach>
+                                    </paymentForm:select>
                         </div>
-                        <div>
-                            <label for="sum"><loc:message code="merchants.sum"/></label>
-                            <paymentForm:input class="form-control" placeholder="0.0"
-                                               id="sum" path="sum"/>
-                        </div>
-                        <b hidden id="buttonMessage"><loc:message code="merchants.deposit" /></b>
-                        <div id="merchantList">
-                            <c:forEach var="merchantCurrency" items="${merchantCurrencyData}" >
-                                <c:forEach var="merchantImage" items="${merchantCurrency.listMerchantImage}" >
-                                    <div id="test" style=" width: 480px; height: 48px; ">
-                                        <div style="float: left; width: 326px; text-align: right; margin-right: 10px; ">
-                                            <img src="${merchantImage.image_path}" style="width: 168px; height: 48px"/>
-
-                                        </div>
-                                            <button style="position: relative; top: 50%; -webkit-transform: translateY(-50%); -ms-transform: translateY(-50%); transform: translateY(-50%);" type="button" value="${merchantCurrency.merchantId}:${merchantCurrency.name}:${merchantCurrency.minSum}"  name="assertInputPay"
-                                                    data-toggle="modal" data-target="#myModal" class="btn btn-primary btn-lg"><loc:message code="merchants.deposit"/></button>
-                                    </div>
-                                </c:forEach>
-                            </c:forEach>
-                        </div>
-                        <paymentForm:hidden path="operationType"/>
+                        <button type="submit" class="btn btn-primary"><loc:message code="merchants.next"/></button>
                     </paymentForm:form>
                 </div>
                 <div class="col-sm-3"></div>
@@ -132,5 +114,4 @@
 
 <%--... MODAL--%>
 </body>
-
 </html>

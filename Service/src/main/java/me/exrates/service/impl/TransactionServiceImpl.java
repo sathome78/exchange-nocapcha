@@ -212,4 +212,9 @@ public class TransactionServiceImpl implements TransactionService {
         }
         return showUserOperationHistory(id, locale);
     }
+
+    @Override
+    public List<Transaction> getInvoiceOpenTransactions(){
+        return transactionDao.getInvoiceOpenTransactions();
+    }
 }

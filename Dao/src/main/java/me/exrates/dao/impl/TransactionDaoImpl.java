@@ -1,14 +1,8 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.TransactionDao;
-import me.exrates.model.Commission;
-import me.exrates.model.CompanyWallet;
+import me.exrates.model.*;
 import me.exrates.model.Currency;
-import me.exrates.model.ExOrder;
-import me.exrates.model.Merchant;
-import me.exrates.model.PagingData;
-import me.exrates.model.Transaction;
-import me.exrates.model.Wallet;
 import me.exrates.model.enums.OperationType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
@@ -21,11 +15,7 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.StringJoiner;
+import java.util.*;
 
 import static java.util.Collections.singletonMap;
 
@@ -51,7 +41,7 @@ public final class TransactionDaoImpl implements TransactionDao {
     private final String SELECT_ALL =
                     " SELECT TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime, " +
                     " TRANSACTION.operation_type_id,TRANSACTION.provided, TRANSACTION.confirmation, TRANSACTION.order_id, " +
-                    " WALLET.id,WALLET.active_balance,WALLET.reserved_balance,WALLET.currency_id," +
+                    " WALLET.id,WALLET.active_balance,WALLET.reserved_balance,WALLET.currency_id,WALLET.user_id," +
                     " COMPANY_WALLET.id,COMPANY_WALLET.balance,COMPANY_WALLET.commission_balance," +
                     " COMMISSION.id,COMMISSION.date,COMMISSION.value," +
                     " CURRENCY.id,CURRENCY.description,CURRENCY.name," +
@@ -112,6 +102,7 @@ public final class TransactionDaoImpl implements TransactionDao {
         userWallet.setReservedBalance(resultSet.getBigDecimal("WALLET.reserved_balance"));
         userWallet.setId(resultSet.getInt("WALLET.id"));
         userWallet.setCurrencyId(currency.getId());
+        userWallet.setUserId(resultSet.getInt("WALLET.user_id"));
 
         final Transaction transaction = new Transaction();
         transaction.setId(resultSet.getInt("TRANSACTION.id"));
@@ -175,7 +166,7 @@ public final class TransactionDaoImpl implements TransactionDao {
     @Override
     public Transaction findById(int id) {
         final String sql = "SELECT TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime,TRANSACTION.operation_type_id,TRANSACTION.provided, TRANSACTION.confirmation," +
-                " WALLET.id,WALLET.active_balance,WALLET.reserved_balance,WALLET.currency_id," +
+                " WALLET.id,WALLET.active_balance,WALLET.reserved_balance,WALLET.currency_id,WALLET.user_id," +
                 " COMPANY_WALLET.id,COMPANY_WALLET.balance,COMPANY_WALLET.commission_balance," +
                 " COMMISSION.id,COMMISSION.date,COMMISSION.value," +
                 " CURRENCY.id,CURRENCY.description,CURRENCY.name," +
@@ -262,5 +253,14 @@ public final class TransactionDaoImpl implements TransactionDao {
         params.put("id", transactionId);
         params.put("confirmations", confirmations);
         jdbcTemplate.update(sql, params);
+    }
+
+    public List<Transaction> getInvoiceOpenTransactions(){
+        String sql = SELECT_ALL + " where TRANSACTION.merchant_id = (select MERCHANT.id " +
+                "from MERCHANT where MERCHANT.name = 'Invoice' ) and TRANSACTION.provided = 0  ";
+        Map<String, String> namedParameters = new HashMap<String, String>();
+        ArrayList<Transaction> result = (ArrayList<Transaction>) jdbcTemplate.query(sql, new HashMap<String, String>(),
+                transactionRowMapper);
+        return result;
     }
 }

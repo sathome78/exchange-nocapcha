@@ -24,6 +24,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -61,13 +62,28 @@ public class CommonMerchantsController {
 
     private static final Logger LOG = LogManager.getLogger("merchant");
 
-    @RequestMapping(value = "/input", method = GET)
-    public ModelAndView inputCredits() {
-        final ModelAndView modelAndView = new ModelAndView("merchantsInputCredits");
+    @RequestMapping(value = "/inputCurrency", method = GET)
+    public ModelAndView inputCurrency() {
+        final ModelAndView modelAndView = new ModelAndView("merchantsInput");
         modelAndView.addObject("currencies",currencyService.getAllCurrencies());
+        modelAndView.addObject("currency",new Currency());
+
+        return modelAndView;
+    }
+
+    @RequestMapping(value = "/inputCurrencyMerchant", method = GET)
+    public ModelAndView inputCurrencyMerchant(final @RequestParam("id") int currencyId) {
+        final ModelAndView modelAndView = new ModelAndView("merchantsInputCredits");
+        modelAndView.addObject("currency",currencyId);
+        modelAndView.addObject("currencyName",currencyService.getCurrencyName(currencyId));
         Payment payment = new Payment();
         payment.setOperationType(INPUT);
         modelAndView.addObject("payment", payment);
+
+        final List<Integer> currenciesId = new ArrayList<>();
+        currenciesId.add(currencyId);
+        modelAndView.addObject("merchantCurrencyData",merchantService.findAllByCurrencies(currenciesId));
+
         return modelAndView;
     }
 

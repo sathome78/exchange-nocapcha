@@ -25,7 +25,7 @@
                 <a href="<c:url value="/myorders"/>" class="navabr__link"><loc:message code="usermenu.myorders"/></a>
             </li>
             <li class="navabr__item">
-                <a href="<c:url value="/merchants/input"/>" class="navabr__link"><loc:message code="usermenu.inputCredits"/></a>
+                <a href="<c:url value="/merchants/inputCurrency"/>" class="navabr__link"><loc:message code="usermenu.inputCredits"/></a>
             </li>
             <li class="navabr__item">
                 <a href="<c:url value="/merchants/output"/>" class="navabr__link"><loc:message code="usermenu.outputCredits"/></a>

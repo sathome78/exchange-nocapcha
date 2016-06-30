@@ -36,4 +36,6 @@ public interface TransactionService {
     DataTable<List<OperationViewDto>> showUserOperationHistory(int id, Locale locale);
 
     DataTable<List<OperationViewDto>> showUserOperationHistory(int id, Locale locale, Map<String,String> viewParams);
+
+    List<Transaction> getInvoiceOpenTransactions();
 }
