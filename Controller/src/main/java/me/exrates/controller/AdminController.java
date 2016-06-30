@@ -52,50 +52,38 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 @Controller
 public class AdminController {
 
+    private static final Logger LOG = LogManager.getLogger(AdminController.class);
     @Autowired
     private MessageSource messageSource;
-
     @Autowired
     private UserSecureServiceImpl userSecureService;
-
     @Autowired
     private UserService userService;
-
     @Autowired
     private LocaleResolver localeResolver;
-
     @Autowired
     private MerchantService merchantService;
-
     @Autowired
     private CurrencyService currencyService;
-
     @Autowired
     private RegisterFormValidation registerFormValidation;
-
     @Autowired
     private WalletService walletService;
-
     @Autowired
     private OrderService orderService;
-
     @Autowired
     private TransactionService transactionService;
-
     @Autowired
     private UserFilesService userFilesService;
-
     @Autowired
     private ReferralService referralService;
-
-    private static final Logger LOG = LogManager.getLogger(AdminController.class);
 
     @RequestMapping("/admin")
     public ModelAndView admin(Principal principal, HttpSession httpSession) {
 
         final Object mutex = WebUtils.getSessionMutex(httpSession);
         synchronized (mutex) {
-            httpSession.setAttribute("currentRole",((UsernamePasswordAuthenticationToken) principal).getAuthorities().iterator().next().getAuthority());
+            httpSession.setAttribute("currentRole", ((UsernamePasswordAuthenticationToken) principal).getAuthorities().iterator().next().getAuthority());
         }
 
         ModelAndView model = new ModelAndView();
@@ -172,7 +160,7 @@ public class AdminController {
 
     @ResponseBody
     @RequestMapping(value = "/admin/transactions", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public DataTable<List<OperationViewDto>> getUserTransactions(final @RequestParam int id, final @RequestParam Map<String,String> params, final HttpServletRequest request) {
+    public DataTable<List<OperationViewDto>> getUserTransactions(final @RequestParam int id, final @RequestParam Map<String, String> params, final HttpServletRequest request) {
         return transactionService.showUserOperationHistory(id, localeResolver.resolveLocale(request), params);
     }
 
@@ -205,7 +193,7 @@ public class AdminController {
 
     @RequestMapping(value = "/admin/adduser/submit", method = RequestMethod.POST)
     public ModelAndView submitcreate(@Valid @ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request,
-            HttpSession httpSession) {
+                                     HttpSession httpSession) {
 
         final Object mutex = WebUtils.getSessionMutex(httpSession);
         String currentRole = "";
@@ -270,7 +258,7 @@ public class AdminController {
 
     @RequestMapping(value = "/admin/edituser/submit", method = RequestMethod.POST)
     public ModelAndView submitedit(@Valid @ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request, HttpServletResponse response,
-                    HttpSession httpSession) {
+                                   HttpSession httpSession) {
         final Object mutex = WebUtils.getSessionMutex(httpSession);
         String currentRole = "";
         synchronized (mutex) {
@@ -306,19 +294,6 @@ public class AdminController {
         return model;
     }
 
-    @RequestMapping("/settings")
-    public ModelAndView settings(Principal principal, @RequestParam(required = false) Integer tabIdx, @RequestParam(required = false) String msg, HttpServletRequest request) {
-        final User user = userService.getUserById(userService.getIdByEmail(principal.getName()));
-        final ModelAndView mav = new ModelAndView("settings");
-        final List<UserFile> userFile = userService.findUserDoc(user.getId());
-        final Map<String, ?> map = RequestContextUtils.getInputFlashMap(request);
-        mav.addObject("user", user);
-        mav.addObject("tabIdx", tabIdx);
-        mav.addObject("errorNoty", map != null ? map.get("msg") : msg);
-        mav.addObject("userFiles", userFile);
-        return mav;
-    }
-
     @RequestMapping(value = "/settings/uploadFile", method = POST)
     public ModelAndView uploadUserDocs(final @RequestParam("file") MultipartFile[] multipartFiles,
                                        final Principal principal,
@@ -345,14 +320,29 @@ public class AdminController {
     }
 
 
+    @RequestMapping("/settings")
+    public ModelAndView settings(Principal principal, @RequestParam(required = false) Integer tabIdx, @RequestParam(required = false) String msg, HttpServletRequest request) {
+        final User user = userService.getUserById(userService.getIdByEmail(principal.getName()));
+        final ModelAndView mav = new ModelAndView("globalPages/settings");
+        final List<UserFile> userFile = userService.findUserDoc(user.getId());
+        final Map<String, ?> map = RequestContextUtils.getInputFlashMap(request);
+        mav.addObject("user", user);
+        mav.addObject("tabIdx", tabIdx);
+        mav.addObject("sectionid", null);
+        mav.addObject("errorNoty", map != null ? map.get("msg") : msg);
+        mav.addObject("userFiles", userFile);
+        return mav;
+    }
+
     @RequestMapping(value = "settings/changePassword/submit", method = POST)
     public ModelAndView submitsettingsPassword(@Valid @ModelAttribute User user, BindingResult result,
                                                ModelAndView model, HttpServletRequest request) {
-
+        user.setStatus(user.getUserStatus());
         registerFormValidation.validateResetPassword(user, result, localeResolver.resolveLocale(request));
         if (result.hasErrors()) {
-            model.setViewName("settings");
-            model.addObject("tabIdx", 1);
+            model.setViewName("globalPages/settings");
+            model.addObject("sectionid", "passwords-changing");
+            model.addObject("tabIdx", 0);
         } else {
             UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
             updateUserDto.setPassword(user.getPassword());
@@ -370,12 +360,12 @@ public class AdminController {
     @RequestMapping(value = "settings/changeFinPassword/submit", method = POST)
     public ModelAndView submitsettingsFinPassword(@Valid @ModelAttribute User user, BindingResult result,
                                                   ModelAndView model, HttpServletRequest request) {
-
-
+        user.setStatus(user.getUserStatus());
         registerFormValidation.validateResetFinPassword(user, result, localeResolver.resolveLocale(request));
         if (result.hasErrors()) {
-            model.setViewName("settings");
-            model.addObject("tabIdx", 2);
+            model.setViewName("globalPages/settings");
+            model.addObject("sectionid", "passwords-changing");
+            model.addObject("tabIdx", 1);
         } else {
             UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
             updateUserDto.setFinpassword(user.getFinpassword());

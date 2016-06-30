@@ -299,7 +299,7 @@ public final class TransactionDaoImpl implements TransactionDao {
                 accountStatementDto.setTransactionId(rs.getInt("transaction_id"));
                 accountStatementDto.setActiveBalanceBefore(BigDecimalProcessing.formatLocale(rs.getBigDecimal("active_balance_before"), locale, true));
                 accountStatementDto.setReservedBalanceBefore(BigDecimalProcessing.formatLocale(rs.getBigDecimal("reserved_balance_before"), locale, true));
-                accountStatementDto.setOperationType(rs.getObject("date_time") == null ? null : OperationType.convert(rs.getInt("operation_type_id")).toString(messageSource, locale));
+                accountStatementDto.setOperationType(rs.getObject("date_time") == null ? rs.getString("operation_type_id") : OperationType.convert(rs.getInt("operation_type_id")).toString(messageSource, locale));
                 accountStatementDto.setAmount(rs.getTimestamp("date_time") == null ? null : BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount"), locale, true));
                 accountStatementDto.setCommissionAmount(rs.getTimestamp("date_time") == null ? null : BigDecimalProcessing.formatLocale(rs.getBigDecimal("commission_amount"), locale, true));
                 accountStatementDto.setSourceType(rs.getObject("source_type") == null ? "" : TransactionSourceType.convert(rs.getString("source_type")).toString(messageSource, locale));

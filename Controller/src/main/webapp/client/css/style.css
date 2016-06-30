@@ -14,7 +14,7 @@ body {
 .container {
     position: relative;
     width: 100%;
-    min-width: 1200px;
+    /*min-width: 1200px;*/
 }
 
 .cols-md-1 {
@@ -76,9 +76,8 @@ body {
 }
 
 .cols-md-12 {
-    ßwidth: 100%;
+    width: 100%;
     float: left;
-    s
 }
 
 .row {
@@ -173,7 +172,9 @@ header li {
 }
 
 .nav__link {
-    padding: 15px;
+    padding: 10px 15px;
+    line-height: 1.8rem;
+    font-size: 1.3rem;
 }
 
 .focus-white:focus {
@@ -254,8 +255,7 @@ header li {
     background-color: #fff;
 }
 
-.lightblue,
-nav__link_active {
+.lightblue {
     color: #969faf;
 }
 
@@ -276,7 +276,13 @@ nav__link_active {
     margin: 0;
     margin-top: -1px;
     border-top: 1px solid #b0bccf;
+}
 
+.under_h4_margin {
+    margin: 0;
+    margin-bottom: 15px;
+    margin-top: -1px;
+    border-top: 1px solid #b0bccf;
 }
 
 .table {
@@ -319,6 +325,11 @@ th, td {
     height: 310px;
     overflow-x: scroll;
     display: block;
+}
+
+.settings-menu-item,
+.home-menu-item{
+    float: right;
 }
 
 /**********************************
@@ -459,9 +470,9 @@ input.item_input,
 			RIGHT SIDEBAR
 *********************************/
 .nickname,
-news_title {
+.news_title {
     color: #525f74;
-    margin: 10px 0 0px;
+    margin: 10px 0 0;
     font-weight: 700;
 }
 
@@ -1095,7 +1106,8 @@ td.blue-white {
 #myhistory button,
 #myorders button,
 #orders button,
-#mywallets button {
+#mywallets button,
+#passwords-changing button{
     font-size: 1.3rem;
 }
 
@@ -1205,11 +1217,11 @@ tr:hover .table-button-block .table-button-block__button {
 
 .input-block-wrapper__input-wrapper {
     overflow: hidden;
-    height: 30px;
+    height: 3rem;
 }
 
 .input-block-wrapper__label-wrapper {
-    line-height: 30px;
+    line-height: 3rem;
     font-size: 1.1rem;
 }
 
@@ -1218,8 +1230,8 @@ tr:hover .table-button-block .table-button-block__button {
 }
 
 .input-block-wrapper__input {
-    line-height: 30px;
-    height: 30px;
+    line-height: 3rem;
+    height: 3rem;
     font-size: 1.4rem;
 }
 
@@ -1237,7 +1249,9 @@ tr:hover .table-button-block .table-button-block__button {
     padding: 0 15px 0 0;
 }
 
-.modal-form-dialog .modal-footer button {
+.modal-form-dialog
+.modal-footer button,
+.confirm-button {
     background: #969faf;
     color: #fff;
     padding: 5px 25px;
@@ -1250,6 +1264,10 @@ tr:hover .table-button-block .table-button-block__button {
     margin: 0;
     height: 30px;
     outline: none;
+}
+
+.confirm-button-wrapper{
+    margin: 10px 0;
 }
 
 .modal-form-dialog #uploadFile.file-choice__input {
@@ -1446,4 +1464,13 @@ form span.repass {
     height: 2.5rem;
     padding-top: 3px;
     padding-bottom: 3px;
+}
+
+/********************************
+           SETTINGS
+********************************/
+
+.settings-upload-files {
+    font-size: 1.3rem;
+    margin: 5px;
 }

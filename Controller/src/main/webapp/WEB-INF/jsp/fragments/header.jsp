@@ -145,6 +145,13 @@
                         <li><a href="#" class="language">TH</a></li>
                     </ul>
                 </li>
+                <sec:authorize access="isAuthenticated()">
+                    <li class="settings-menu-item">
+                        <a href="<c:url value="/settings"/>">
+                            <span class="glyphicon glyphicon-cog nav__link"></span>
+                        </a>
+                    </li>
+                </sec:authorize>
             </ul>
         </div>
     </div>

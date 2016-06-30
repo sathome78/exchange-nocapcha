@@ -18,32 +18,6 @@ $(document).delegate('*[data-toggle="lightbox"]', 'click', function (event) {
 });
 
 $(function () {
-
-    $(".reveal").click(function () {
-        $('.reveal ul').slideToggle();
-    });
-
-    $("#other_pairs").click(function (e) {
-        $('#other_pairs ul').slideToggle();
-        $("#other_pairs").toggleClass("whiter");
-    });
-
-    $('.orderForm-toggler').click(function () {
-        if ($(this).hasClass('active')) {
-            return;
-        }
-        $('.tab-pane').toggleClass('active');
-        $('.orderForm-toggler').toggleClass('active');
-    });
-
-    +function syncOrderFormTabPane() {
-        var idx = $('.orderForm-toggler.active').index();
-        if (idx >= 0) {
-            $('.tab-pane').removeClass('active');
-            $('.tab-pane:eq(' + idx + ')').addClass('active');
-        }
-    }();
-
     $('.adminForm-toggler').click(function () {
         if ($(this).hasClass('active')) {
             return;

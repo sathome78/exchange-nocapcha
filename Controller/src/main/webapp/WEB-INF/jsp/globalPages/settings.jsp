@@ -28,7 +28,8 @@
     <%----%>
     <script type="text/javascript" src="<c:url value='/client/js/sockjs.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/app.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/globalPages/news-init.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/globalPages/settings-init.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/settings/settings.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/siders/leftSider.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/siders/rightSider.js'/>"></script>
     <%----%>
@@ -55,7 +56,7 @@
     <div class="row_big">
         <%@include file="../fragments/left-sider.jsp" %>
         <div class="cols-md-8 background_white">
-            <%@include file="../fragments/news-center.jsp" %>
+            <%@include file="../fragments/settings-center.jsp" %>
         </div>
         <%@include file="../fragments/right-sider.jsp" %>
     </div>
@@ -63,6 +64,7 @@
 <%@include file='../fragments/footer.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>
+<span hidden id="tabIdx">${tabIdx}</span>
 
 </body>
 </html>

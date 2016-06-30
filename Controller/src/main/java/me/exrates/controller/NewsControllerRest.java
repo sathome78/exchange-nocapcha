@@ -60,7 +60,7 @@ public class NewsControllerRest {
             HttpServletRequest request) {
         String attributeName = tableId + "Params";
         TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
-        Assert.requireNonNull(tableParams, "Не установлены параметры для " + tableId);
+        Assert.requireNonNull(tableParams, "The parameters are not populated for the " + tableId);
         Integer offset = page == null || tableParams.getPageSize() == -1 ? 0 : (page - 1) * tableParams.getPageSize();
         String cacheKey = "newsList" + request.getHeader("windowid");
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;

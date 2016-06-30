@@ -1,12 +1,12 @@
 package me.exrates.config;
 
 import me.exrates.controller.handler.ChatWebSocketHandler;
-import me.exrates.service.util.ChatComponent;
 import me.exrates.model.converter.CurrencyPairConverter;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.security.config.SecurityConfig;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.token.TokenScheduler;
+import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
@@ -37,7 +37,10 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
 
 import javax.sql.DataSource;
-import java.util.*;
+import java.util.EnumMap;
+import java.util.Locale;
+import java.util.Properties;
+import java.util.TreeSet;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 @Configuration
@@ -46,21 +49,37 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 @EnableScheduling
 @ComponentScan({"me.exrates"})
 @Import(
-    {
-        SecurityConfig.class, WebSocketConfig.class
-    }
+        {
+                SecurityConfig.class, WebSocketConfig.class
+        }
 )
 @PropertySource(value = {"classpath:/db.properties", "classpath:/uploadfiles.properties", "classpath:/news.properties"})
 public class WebAppConfig extends WebMvcConfigurerAdapter {
 
-    private @Value("${db.user}") String dbUser;
-    private @Value("${db.password}") String dbPassword;
-    private @Value("${db.url}") String dbUrl;
-    private @Value("${db.classname}") String dbClassname;
-    private @Value("${upload.userFilesDir}") String userFilesDir;
-    private @Value("${upload.userFilesLogicalDir}") String userFilesLogicalDir;
-    private @Value("${news.locationDir}") String newsLocationDir;
-    private @Value("${news.urlPath}") String newsUrlPath;
+    private
+    @Value("${db.user}")
+    String dbUser;
+    private
+    @Value("${db.password}")
+    String dbPassword;
+    private
+    @Value("${db.url}")
+    String dbUrl;
+    private
+    @Value("${db.classname}")
+    String dbClassname;
+    private
+    @Value("${upload.userFilesDir}")
+    String userFilesDir;
+    private
+    @Value("${upload.userFilesLogicalDir}")
+    String userFilesLogicalDir;
+    private
+    @Value("${news.locationDir}")
+    String newsLocationDir;
+    private
+    @Value("${news.urlPath}")
+    String newsUrlPath;
 
     @Bean
     public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
@@ -207,7 +226,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
     @Bean
-    public EnumMap<ChatLang, ChatWebSocketHandler> handlers (){
+    public EnumMap<ChatLang, ChatWebSocketHandler> handlers() {
         final EnumMap<ChatLang, ChatWebSocketHandler> handlers = new EnumMap<>(ChatLang.class);
         for (ChatLang lang : ChatLang.values()) {
             handlers.put(lang, new ChatWebSocketHandler());
@@ -226,7 +245,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
 
     /*@Bean(name = "multipartResolver")
-    	public StandardServletMultipartResolver resolver() {
+        public StandardServletMultipartResolver resolver() {
         		return new StandardServletMultipartResolver();
         	}*/
 }

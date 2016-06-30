@@ -47,10 +47,10 @@
             <th><loc:message code="currency.rate"/></th>
         </tr>
         <script type="text/template" id="currency_table_row">
+            <@var c = lastOrderRate == predLastOrderRate ? "black" : lastOrderRate < predLastOrderRate ? "red" :
+            "green";@>
             <tr>
                 <td><@=currencyPairName@></td>
-                <@var c = lastOrderRate == predLastOrderRate ? 'black' : lastOrderRate < predLastOrderRate ? 'red' :
-                'green';@>
                 <td class="right <@=c@>"><@=lastOrderRate@></td>
             </tr>
         </script>

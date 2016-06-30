@@ -2,6 +2,7 @@ package me.exrates.controller;
 
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.User;
+import me.exrates.model.UserFile;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.enums.UserRole;
@@ -26,11 +27,14 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.support.RequestContextUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 @Controller
 @PropertySource("classpath:/captcha.properties")
@@ -103,6 +107,7 @@ public class DashboardController {
         model.addObject(orderCreateDto);
         return model;
     }
+
 
     @RequestMapping(value = "/forgotPassword")
     public ModelAndView forgotPassword() {
