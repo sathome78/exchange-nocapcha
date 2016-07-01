@@ -28,10 +28,6 @@ $(function () {
             }
         }();
 
-
-        $('.order-noty').hover(
-            showOrderNoty,
-            closeOrderNoty)
     }
 );
 
