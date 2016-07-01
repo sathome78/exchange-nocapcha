@@ -10,6 +10,13 @@ var windowIsActive = true;
 /*for testing*/
 var REFRESH_INTERVAL_MULTIPLIER = 1;
 
+window.onblur = function () {
+    windowIsActive = false;
+};
+window.onfocus = function () {
+    windowIsActive = true;
+};
+
 function syncTableParams(tableId, limit, callback) {
     var url = '/dashboard/tableParams/' + tableId + '?';
     /*if parameter is empty, in response will be retrieved current value is set or default if non*/

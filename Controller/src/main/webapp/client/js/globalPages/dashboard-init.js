@@ -13,12 +13,6 @@ var orders;
 $(function dashdoardInit() {
     try {
         /*FOR EVERYWHERE ... */
-        window.onblur = function () {
-            windowIsActive = false;
-        };
-        window.onfocus = function () {
-            windowIsActive = true;
-        };
         $(".input-block-wrapper__input").prop("autocomplete", "off");
         $(".numericInputField").prop("autocomplete", "off");
         $(".numericInputField")
