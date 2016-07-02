@@ -1,3 +1,4 @@
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%--
   User: Valk
 --%>
@@ -5,7 +6,7 @@
 <div class="google-graphics graphic-wrapper">
   <div>
     <!-- Google Charts ... -->
-    <script type="text/javascript" src="<c:url value='https://www.gstatic.com/charts/loader.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/charts_loader.js'/>"></script>
     <script type="text/javascript">
       google.charts.load('current', {'packages': ['corechart']});
     </script>
