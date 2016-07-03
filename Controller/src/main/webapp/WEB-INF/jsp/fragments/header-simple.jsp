@@ -6,7 +6,7 @@
 <%@ taglib prefix="botDetect" uri="botDetect" %>
 <%--CAPTCHA--%>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-noty/2.3.7/packaged/jquery.noty.packaged.min.js"></script>
+<script src="<c:url value="/client/js/jquery.noty.packaged.min.js"/>"></script>
 
 <c:set var="path" value="${fn:replace(pageContext.request.requestURI, '/WEB-INF/jsp', '')}"/>
 <c:set var="path" value="${fn:replace(path, '.jsp', '')}"/>

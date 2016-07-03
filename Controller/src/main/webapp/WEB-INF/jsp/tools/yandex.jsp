@@ -24,7 +24,7 @@
             };
     s.type = "text/javascript";
     s.async = true;
-    s.src = "https://mc.yandex.ru/metrika/watch.js";
+    s.src = "client/js/yandex-metrica-watch.js";
 
     if (w.opera == "[object Opera]") {
       d.addEventListener("DOMContentLoaded", f, false);

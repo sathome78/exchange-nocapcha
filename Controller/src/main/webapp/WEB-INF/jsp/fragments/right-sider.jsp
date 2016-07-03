@@ -31,4 +31,4 @@
     <%--NEWS LIST--%>
     <%@include file="right-sider-news-list.jsp" %>
 </div>
-<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-scrollTo/2.1.0/jquery.scrollTo.min.js"></script>
+<script src="<c:url value="/client/js/jquery.scrollTo.min.js"/>"></script>

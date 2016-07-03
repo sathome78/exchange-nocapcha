@@ -5,7 +5,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%----------%>
-<script src="http://malsup.github.com/jquery.form.js"></script>
+<script src="<c:url value="/client/js/jquery.form.js"/>"></script>
 <%----------%>
 
 <div id="news-delete-modal" class="modal fade modal-form-dialog" tabindex="-1" role="dialog">

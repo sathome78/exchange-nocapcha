@@ -1,8 +1,9 @@
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%--
   User: Valk
 --%>
   <!-- Google Analytics ... -->
-  <script async src='//www.google-analytics.com/analytics.js'></script>
+  <script async src='<c:url value="/client/js/google-analytics.js"/>'></script>
   <script>
       window.ga = window.ga || function () {
           (ga.q = ga.q || []).push(arguments)
