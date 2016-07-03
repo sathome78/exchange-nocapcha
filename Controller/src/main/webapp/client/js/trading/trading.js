@@ -21,6 +21,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
     var showLog = false;
     /**/
     this.ordersListForAccept = [];
+    this.$graphicsLoadingImg = $('#graphics-container').find('.loading');
     /**/
     this.commissionSell;
     this.commissionBuy;

@@ -21,6 +21,8 @@ function StockChartAmchartsClass() {
     var chart = null;
 
     this.draw = function () {
+        trading.$graphicsLoadingImg.removeClass('hidden');
+        /**/
         $.get(candleDataSourceUrl, function (queryResultArray) {
                 backDealInterval = queryResultArray[0][0]; //BackDealInterval is here
                 queryResultArray.splice(0, 1);
@@ -29,8 +31,8 @@ function StockChartAmchartsClass() {
                     //if (item[6] != 0)
                     chartData.push({
                         /*.replace... - for Safari browser*/
-                        preddate: new Date(item[0].replace(/-/g, '/').replace(/\.\d$/,'')),
-                        date: new Date(item[1].replace(/-/g, '/').replace(/\.\d$/,'')),
+                        preddate: new Date(item[0].replace(/-/g, '/').replace(/\.\d$/, '')),
+                        date: new Date(item[1].replace(/-/g, '/').replace(/\.\d$/, '')),
                         open: item[2],
                         close: item[3],
                         high: item[5],
@@ -40,16 +42,28 @@ function StockChartAmchartsClass() {
                     });
                 });
                 switch (backDealInterval.intervalType) {
-                    case 'MONTH':  {chart.categoryAxesSettings.minPeriod = "DD"; break;}
-                    case 'DAY':  {chart.categoryAxesSettings.minPeriod = "hh"; break;}
-                    case 'HOUR':  {chart.categoryAxesSettings.minPeriod = "mm"; break;}
+                    case 'MONTH':
+                    {
+                        chart.categoryAxesSettings.minPeriod = "DD";
+                        break;
+                    }
+                    case 'DAY':
+                    {
+                        chart.categoryAxesSettings.minPeriod = "hh";
+                        break;
+                    }
+                    case 'HOUR':
+                    {
+                        chart.categoryAxesSettings.minPeriod = "mm";
+                        break;
+                    }
                 }
-
                 if (!chart.div) {
                     chart.write(stockChartDivId);
                 } else {
                     chart.validateData();
                 }
+                trading.$graphicsLoadingImg.addClass('hidden');
             }
         );
     };
@@ -118,7 +132,7 @@ function StockChartAmchartsClass() {
                 {period: 'MM', format: 'MMM'},
                 {period: 'YYYY', format: 'YYYY'}];
         chart.categoryAxesSettings = categoryAxesSettings;
-        chart.addListener("dataUpdated", function(e){
+        chart.addListener("dataUpdated", function (e) {
             chart.zoomOut();
         });
 
@@ -126,7 +140,8 @@ function StockChartAmchartsClass() {
         var stockPanel = new AmCharts.StockPanel();
         stockPanel.title = "";
         stockPanel.showCategoryAxis = true;
-        stockPanel.percentHeight = 80; /*%*/
+        stockPanel.percentHeight = 80;
+        /*%*/
 
         var valueAxis = new AmCharts.ValueAxis();
         valueAxis.dashLength = 5;
@@ -213,7 +228,7 @@ function StockChartAmchartsClass() {
         sbsettings.graph = new AmCharts.StockGraph();
         sbsettings.graph.valueField = "volume";
         sbsettings.graphType = "column";
-        sbsettings.height=45;
+        sbsettings.height = 45;
         //sbsettings.usePeriod = "hh";
         sbsettings.updateOnReleaseOnly = false;
         chart.chartScrollbarSettings = sbsettings;

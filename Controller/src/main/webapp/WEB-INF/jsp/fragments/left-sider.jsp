@@ -38,7 +38,6 @@
             </tbody>
         </table>
     </sec:authorize>
-
     <h4 class="h4_green"><loc:message code="currency.pairs"/></h4>
     <hr class="under_h4">
     <table id="currency_table" class="table currency_table">

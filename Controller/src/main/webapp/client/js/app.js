@@ -9,7 +9,7 @@ var windowId = Math.floor((Math.random()) * 10000).toString(36) + Math.floor((Ma
 var windowIsActive = true;
 /*for testing*/
 var REFRESH_INTERVAL_MULTIPLIER = 1;
-
+/**/
 window.onblur = function () {
     windowIsActive = false;
 };
