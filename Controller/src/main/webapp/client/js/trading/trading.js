@@ -17,11 +17,11 @@ function TradingClass(period, chartType, currentCurrencyPair) {
     var dashboardCurrencyPairSelector;
     var refreshInterval = 5000*REFRESH_INTERVAL_MULTIPLIER;
     var timeOutId;
+    var $graphicsLoadingImg = $('#graphics-container').find('.loading');
     /**/
     var showLog = false;
     /**/
     this.ordersListForAccept = [];
-    this.$graphicsLoadingImg = $('#graphics-container').find('.loading');
     /**/
     this.commissionSell;
     this.commissionBuy;
@@ -234,7 +234,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
             chart = new ChartGoogleClass();
         } catch (e){}
         try {
-            chart = new ChartAmchartsClass("STOCK", period);
+            chart = new ChartAmchartsClass("STOCK", period, $graphicsLoadingImg);
         } catch (e){}
         if (chart) {
             try {

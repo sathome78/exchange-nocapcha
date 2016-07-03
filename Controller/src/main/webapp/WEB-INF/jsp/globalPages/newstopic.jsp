@@ -41,9 +41,9 @@
     <!-- Google Analytics-->
     <%--<%@include file="../tools/google.jsp"%>--%>
     <!-- Yandex.Metrika counter -->
-    <%@include file="../tools/yandex.jsp" %>
+    <%--<%@include file="../tools/yandex.jsp" %>--%>
     <%--ZOPIM CHAT--%>
-    <%@include file="../tools/zopim.jsp" %>
+    <%--<%@include file="../tools/zopim.jsp" %>--%>
     <%-- ... TOOLS--%>
 
 </head>

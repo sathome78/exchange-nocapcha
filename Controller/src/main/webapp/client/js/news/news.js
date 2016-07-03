@@ -1,7 +1,7 @@
 /**
  * Created by Valk on 20.06.2016.
  */
-function NewsClass() {
+function NewsClass($loadingImg) {
     if (NewsClass.__instance) {
         return NewsClass.__instance;
     } else if (this === window) {
@@ -18,6 +18,8 @@ function NewsClass() {
     /**/
     var showLog = false;
 
+    this.$loadingImg = $loadingImg;
+
     this.getNewsList = function (refreshIfNeeded) {
         if (!windowIsActive) {
             clearTimeout(timeOutIdForStatisticsForNews);
@@ -31,6 +33,7 @@ function NewsClass() {
         }
         var $newsTable = $('#' + tableNewsId);
         var url = '/dashboard/news/' + tableNewsId + '?refreshIfNeeded=' + (refreshIfNeeded ? 'true' : 'false');
+        if (that.$loadingImg) that.$loadingImg.removeClass('hidden');
         $.ajax({
             url: url,
             type: 'GET',
@@ -50,10 +53,14 @@ function NewsClass() {
                     });
                     blink($newsTable);
                 }
+
                 clearTimeout(timeOutIdForStatisticsForNews);
                 timeOutIdForStatisticsForNews = setTimeout(function () {
                     that.getNewsList(true);
                 }, refreshIntervalForStatisticsForNews);
+            },
+            complete: function(){
+                if (that.$loadingImg) that.$loadingImg.addClass('hidden');
             }
         });
     };
@@ -138,6 +145,7 @@ function NewsClass() {
     (function init() {
         syncTableParams(tableNewsId, -1, function (data) {
             that.getNewsList();
+            if (that.$loadingImg) that.$loadingImg.addClass('hidden');
         });
         $('#add-news-button').on('click', that.addNews);
     })();

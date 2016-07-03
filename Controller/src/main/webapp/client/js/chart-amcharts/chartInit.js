@@ -2,7 +2,7 @@
  * Created by Valk on 09.05.2016.
  */
 
-function ChartAmchartsClass(type, period) {
+function ChartAmchartsClass(type, period, $loadingImg) {
     if ($('.amcharts-graphics').css('display') == 'none') {
         throw new Error('Amcharts chart is switched off');
     }
@@ -30,13 +30,13 @@ function ChartAmchartsClass(type, period) {
     };
 
     /*==========================================*/
-    (function init(type, period) {
-        stockChart = new StockChartAmchartsClass();
+    (function init(type, period, $loadingImg) {
+        stockChart = new StockChartAmchartsClass($loadingImg);
         that.chartType = type;
         $('.period-menu__item').on('click', setPeriod);
         $('.chart-type-menu__item').on('click', setChart);
         syncButtonToPeriod(period);
-    })(type, period);
+    })(type, period, $loadingImg);
 
     function setPeriod() {
         var period;

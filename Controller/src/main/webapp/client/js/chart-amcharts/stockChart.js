@@ -2,7 +2,7 @@
  * Created by Valk on 15.06.2016.
  */
 
-function StockChartAmchartsClass() {
+function StockChartAmchartsClass($loadingImg) {
     if (StockChartAmchartsClass.__instance) {
         return StockChartAmchartsClass.__instance;
     } else if (this === window) {
@@ -20,10 +20,15 @@ function StockChartAmchartsClass() {
 
     var chart = null;
 
+    this.$loadingImg = $loadingImg;
+
     this.draw = function () {
-        trading.$graphicsLoadingImg.removeClass('hidden');
+        that.$loadingImg.removeClass('hidden');
         /**/
-        $.get(candleDataSourceUrl, function (queryResultArray) {
+        $.ajax({
+            url: candleDataSourceUrl,
+            type: 'GET',
+            success: function (queryResultArray) {
                 backDealInterval = queryResultArray[0][0]; //BackDealInterval is here
                 queryResultArray.splice(0, 1);
                 chartData.length = 0;
@@ -63,9 +68,11 @@ function StockChartAmchartsClass() {
                 } else {
                     chart.validateData();
                 }
-                trading.$graphicsLoadingImg.addClass('hidden');
+            },
+            complete: function () {
+                that.$loadingImg.addClass('hidden');
             }
-        );
+        });
     };
 
     /*=================================================*/
@@ -256,6 +263,7 @@ function StockChartAmchartsClass() {
             label: "MAX"
         }];
         //chart.periodSelector = periodSelector;
+        that.$loadingImg.addClass('hidden');
     })();
 
     function getBalloonText(graphDataItem, graph) {

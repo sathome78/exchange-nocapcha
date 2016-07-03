@@ -14,8 +14,12 @@ function RightSiderClass() {
     var rightSiderId = "right-sider";
     /**/
     this.newsList = null;
+    var $newsLoadingImg = $('#new-list-container').find('.loading');
+    if ($newsLoadingImg.length == 0 || $newsLoadingImg.hasClass('hidden')) {
+        $newsLoadingImg = null;
+    }
     /*===========================================================*/
-    (function init () {
-        that.newsList = new NewsClass();
+    (function init() {
+        that.newsList = new NewsClass($newsLoadingImg);
     })();
 }
