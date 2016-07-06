@@ -24,6 +24,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -62,23 +63,34 @@ public class CommonMerchantsController {
     private static final Logger LOG = LogManager.getLogger("merchant");
 
     @RequestMapping(value = "/input", method = GET)
-    public ModelAndView inputCredits() {
-        final ModelAndView modelAndView = new ModelAndView("merchantsInputCredits");
-        modelAndView.addObject("currencies",currencyService.getAllCurrencies());
+    public ModelAndView inputCredits(@RequestParam("currency") String currency) {
+
+        final ModelAndView modelAndView = new ModelAndView("globalPages/merchantsInput");
+        int currencyId = currencyService.findByName(currency).getId();
+
+        modelAndView.addObject("currency",currencyId);
+        modelAndView.addObject("currencyName",currency);
         Payment payment = new Payment();
         payment.setOperationType(INPUT);
         modelAndView.addObject("payment", payment);
+
+        final List<Integer> currenciesId = new ArrayList<>();
+        currenciesId.add(currencyId);
+        modelAndView.addObject("merchantCurrencyData",merchantService.findAllByCurrencies(currenciesId));
+
         return modelAndView;
     }
 
     @RequestMapping(value = "/output", method = GET)
-    public ModelAndView outputCredits(Principal principal) {
-        final ModelAndView modelAndView = new ModelAndView("merchantsOutputCredits");
+    public ModelAndView outputCredits(@RequestParam("currency") String currency, Principal principal) {
+        final ModelAndView modelAndView = new ModelAndView("globalPages/merchantsOutput");
         final List<Wallet> wallets = walletService.getAllWallets(userService.getIdByEmail(principal.getName()));
         final Payment payment = new Payment();
         payment.setOperationType(OUTPUT);
         modelAndView.addObject("wallets",wallets);
         modelAndView.addObject("payment", payment);
+        modelAndView.addObject("currentCurrency",currencyService.findByName(currency));
+
         return modelAndView;
     }
 

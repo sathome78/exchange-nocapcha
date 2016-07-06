@@ -32,12 +32,14 @@
                 <td class="right"><@=reservedByOrders@></td>
                 <td class="right"><@=reservedByMerchant@></td>
                 <td class="table-button-block table-button-block--wallets">
-                    <form class="table-button-block__form" action="<c:url value="/merchants/input"/>">
+                    <form class="table-button-block__form" action="/merchants/input">
                         <loc:message code="mywallets.input" var="inputButton"/>
+                        <input type="text" hidden value=<@=currencyName@> name="currency" >
                         <button class="table-button-block__button btn btn-success" type="submit">${inputButton}</button>
                     </form>
                     <form class="table-button-block__form" action="<c:url value="/merchants/output"/>">
                         <loc:message code="mywallets.output" var="outputButton"/>
+                        <input type="text" hidden value=<@=currencyName@> name="currency" >
                         <button class="table-button-block__button btn btn-danger" type="submit">${outputButton}</button>
                     </form>
                     <form class="table-button-block__form" action="<c:url value="#"/>">

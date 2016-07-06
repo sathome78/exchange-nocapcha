@@ -61,7 +61,7 @@ public class LiqpayMerchantController {
         } else {
             // TODO questions about output
 //            url = "/advcash/output";
-            return new RedirectView("dashboard");
+            return new RedirectView("/dashboard");
         }
 
 
@@ -91,14 +91,14 @@ public class LiqpayMerchantController {
                 liqpayService.provideTransaction(transaction);
             }
 
-            return new RedirectView("/mywallets");
+            return new RedirectView("/dashboard");
 
         }
 
         final String message = "merchants.internalError";
         redir.addFlashAttribute("message", message);
 
-        return new RedirectView("/mywallets");
+        return new RedirectView("/dashboard");
     }
 
     @RequestMapping(value = "payment/status",method = RequestMethod.POST)
@@ -125,13 +125,13 @@ public class LiqpayMerchantController {
                 liqpayService.provideTransaction(transaction);
             }
 
-            return new RedirectView("/mywallets");
+            return new RedirectView("/dashboard");
 
         }
 
         final String message = "merchants.internalError";
         redir.addFlashAttribute("message", message);
 
-        return new RedirectView("/mywallets");
+        return new RedirectView("/dashboard");
     }
 }
