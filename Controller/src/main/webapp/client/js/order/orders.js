@@ -28,7 +28,7 @@ function OrdersClass(currentCurrencyPair) {
     function onCurrencyPairChange(currentCurrencyPair) {
         that.updateAndShowAll(currentCurrencyPair);
     }
-
+    /**/
     this.syncCurrencyPairSelector = function () {
         ordersCurrencyPairSelector.syncState();
     };

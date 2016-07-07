@@ -2,7 +2,7 @@
   User: Valk
 --%>
 
-<div id="myhistory" class="myhistory center-frame-container hidden">
+<div id="myhistory" data-menuitemid="menu-myhistory" class="myhistory center-frame-container hidden">
     <%----%>
     <h4 class="h4_green"><loc:message code="history.title"/></h4>
 

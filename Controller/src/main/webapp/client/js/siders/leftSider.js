@@ -86,10 +86,19 @@ function LeftSiderClass() {
                     });
                     blink($('#currency_table'));
                 }
+                setPairFilter();
                 clearTimeout(timeOutIdForStatisticsForAllCurrencies);
                 timeOutIdForStatisticsForAllCurrencies = setTimeout(function () {
                     that.getStatisticsForAllCurrencies(true);
                 }, refreshIntervalForStatisticsForAllCurrencies);
+                if (showLog) {
+                    console.log(new Date() + ' getStatisticsForAllCurrencies '+ ' success');
+                }
+            },
+            error: function (jqXHR, status, error) {
+                if (showLog) {
+                    console.log(new Date() + ' getStatisticsForAllCurrencies '+ ' error: '+jqXHR+' | '+status+' | '+error);
+                }
             }
         });
     };
@@ -101,8 +110,23 @@ function LeftSiderClass() {
         $('#refferal-copy').on('click', function () {
             selectAndCopyText($('#refferal-reference')[0]);
         });
+        $('#pair-filter').on('keyup', function(e){
+            setPairFilter();
+        });
         generateReferral();
     })();
+
+    function setPairFilter(){
+        var str = $('#pair-filter').val().toUpperCase();
+        $('#currency_table').find('td:first-child').each(function(idx){
+            var pair = $(this).text();
+            if (!pair || pair.indexOf(str) != -1){
+                $(this).parent().removeClass('hidden');
+            } else {
+                $(this).parent().addClass('hidden');
+            }
+        })
+    }
 
     function selectAndCopyText(e) {
         var range = document.createRange();

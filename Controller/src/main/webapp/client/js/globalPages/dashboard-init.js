@@ -9,8 +9,10 @@ var myWallets;
 var myStatements;
 var myHistory;
 var orders;
+var $currentPageMenuItem;
 
 $(function dashdoardInit() {
+    console.log('started');
     try {
         /*FOR EVERYWHERE ... */
         $(".input-block-wrapper__input").prop("autocomplete", "off");
@@ -51,12 +53,13 @@ $(function dashdoardInit() {
         /*... FOR EVERYWHERE*/
 
         /*FOR HEADER...*/
-        $('#menu-traiding').on('click', function (e) {
-            e.preventDefault();
+        $('#menu-traiding').on('click', onMenuTraidingItemClick);
+        function onMenuTraidingItemClick (e) {
+            if (e) e.preventDefault();
             trading.syncCurrencyPairSelector();
             showPage('trading');
             trading.updateAndShowAll();
-        });
+        }
         $('#menu-mywallets').on('click', function (e) {
             e.preventDefault();
             if (!e.ctrlKey) {
@@ -92,6 +95,16 @@ $(function dashdoardInit() {
 
         /*FOR LEFT-SIDER ...*/
         leftSider = new LeftSiderClass();
+        $('#currency_table').on('click', 'td:first-child', function (e) {
+            var newCurrentCurrencyPairName = $(this).text().trim();
+            syncCurrentParams(newCurrentCurrencyPairName, null, null, function (data) {
+                if ($currentPageMenuItem.length) {
+                    $currentPageMenuItem.click();
+                } else {
+                    onMenuTraidingItemClick();
+                }
+            });
+        });
         /*...FOR LEFT-SIDER*/
 
         /*FOR CENTER ON START UP ...*/
@@ -119,6 +132,7 @@ function showPage(pageId) {
     }
     $('.center-frame-container').addClass('hidden');
     $('#' + pageId).removeClass('hidden');
+    $currentPageMenuItem = $('#' + $('#' + pageId).data('menuitemid'));
 }
 
 function syncCurrentParams(currencyPairName, period, chart, callback) {

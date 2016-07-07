@@ -197,7 +197,7 @@ public interface OrderService {
      * @param locale
      * @return
      */
-    List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriod(CacheData cacheData, BackDealInterval backDealInterval, Integer limit, CurrencyPair currencyPair, Locale locale);
+    List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriod(CacheData cacheData, String email, BackDealInterval backDealInterval, Integer limit, CurrencyPair currencyPair, Locale locale);
 
     /**
      * Returns SELL and BUY commissions for orders

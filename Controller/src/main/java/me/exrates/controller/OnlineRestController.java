@@ -19,7 +19,6 @@ import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.Principal;
@@ -294,14 +293,17 @@ public class OnlineRestController {
         return currencyPairs.stream().map(e -> e.getName()).collect((Collectors.toList()));
     }
 
-    @RequestMapping(value = "/dashboard/acceptedOrderHistory", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/dashboard/acceptedOrderHistory/{scope}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public List<OrderAcceptedHistoryDto> getOrderHistory(@RequestParam(required = false) Boolean refreshIfNeeded,
-                                                         HttpServletRequest request, HttpServletResponse response) {
+                                                         @PathVariable String scope,
+                                                         Principal principal,
+                                                         HttpServletRequest request) {
+        String email = principal == null || "ALL".equals(scope.toUpperCase()) ? "" : principal.getName();
         CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
-        String cacheKey = "acceptedOrderHistory" + request.getHeader("windowid");
+        String cacheKey = "acceptedOrderHistory" + email + request.getHeader("windowid");
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
         CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
-        return orderService.getOrderAcceptedForPeriod(cacheData, ORDER_HISTORY_INTERVAL, ORDER_HISTORY_LIMIT, currencyPair, localeResolver.resolveLocale(request));
+        return orderService.getOrderAcceptedForPeriod(cacheData, email, ORDER_HISTORY_INTERVAL, ORDER_HISTORY_LIMIT, currencyPair, localeResolver.resolveLocale(request));
     }
 
     @RequestMapping(value = "/dashboard/orderCommissions", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)

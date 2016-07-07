@@ -27,7 +27,7 @@ function MyHistoryClass(currentCurrencyPair) {
         $myHistoryActivePage.siblings('.center-frame-container').addClass('hidden');
         $myHistoryActivePage.removeClass('hidden');
     }
-
+    /**/
     this.updateAndShowAll = function () {
         showMyHistoryPage($myHistoryActivePage);
         that.getAndShowMyOrdersPage();

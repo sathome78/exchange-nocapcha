@@ -22,7 +22,7 @@ function MyStatementsClass(currentCurrencyPair) {
     var tablePageSize = 19;
     /**/
     this.walletId = null;
-
+    /**/
     function onCurrencyPairChange(currentCurrencyPair) {
         that.updateAndShowAll(currentCurrencyPair);
     }

@@ -18,7 +18,7 @@ function MyWalletsClass() {
     var showLog = false;
     /**/
     var $balanceContainer = $('#balance-page');
-
+    /**/
     this.getAndShowMyWalletsData = function (refreshIfNeeded) {
         if ($balanceContainer.hasClass('hidden') || !windowIsActive) {
             clearTimeout(timeOutIdForMyWalletsData);

@@ -12,7 +12,7 @@
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%----%>
-<div id="trading" class="dashboard center-frame-container hidden">
+<div id="trading" data-menuitemid="menu-traiding" class="dashboard center-frame-container hidden">
     <div class="graphInfo__wrapper clearfix">
         <div id="dashboard-currency-pair-selector" class="currency-pair-selector dropdown">
             <%@include file="currencyPairSelector.jsp" %>
@@ -46,11 +46,20 @@
 
     <div class="row">
         <div class="cols-md-4">
-
-            <div class="ht ht-active"><loc:message code="dashboard.dealshistory"/></div>
-            <div class="ht"><loc:message code="dashboard.transactions"/></div>
-
-            <table id="orders-history-table" class="table_middle">
+            <div class="deals-scope-switcher__wrapper">
+                <div id="all-deals" class="deals-scope-switcher__button ht ht-active"
+                     data-tableId="orders-history-table">
+                    <loc:message code="dashboard.dealshistory"/>
+                </div>
+                <sec:authorize access="isAuthenticated()">
+                    <div id="my-deals" class="deals-scope-switcher__button ht"
+                         data-tableId="orders-history-table__my-deals">
+                        <loc:message code="dashboard.transactions"/>
+                    </div>
+                </sec:authorize>
+            </div>
+            <%--ALL TRADES TABLE --%>
+            <table id="orders-history-table" class="orders-history-table table_middle">
                 <tbody>
                 <tr class="ht__theader">
                     <th class="center"><loc:message code="dashboard.time"/></th>
@@ -58,6 +67,24 @@
                     <th class="center currencyBaseName"></th>
                 </tr>
                 <script type="text/template" id="orders-history-table_row">
+                    <tr>
+                        <td><@=dateAcceptionTime@></td>
+                        <td><@=rate@></td>
+                        <@var c = operationType == 'BUY' ? 'green' : 'red';@>
+                        <td class=<@=c@>><@=amountBase@></td>
+                    </tr>
+                </script>
+                </tbody>
+            </table>
+            <%--MY TRADES ONLY TABLE --%>
+            <table id="orders-history-table__my-deals" class="orders-history-table table_middle hidden">
+                <tbody>
+                <tr class="ht__theader">
+                    <th class="center"><loc:message code="dashboard.time"/></th>
+                    <th class="center"><loc:message code="dashboard.price"/></th>
+                    <th class="center currencyBaseName"></th>
+                </tr>
+                <script type="text/template" id="orders-history-table_row__my-deals">
                     <tr>
                         <td><@=dateAcceptionTime@></td>
                         <td><@=rate@></td>

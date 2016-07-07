@@ -12,7 +12,7 @@
         <hr class="under_h4">
         <div class="refferal clearfix">
             <div id="refferal-reference" class="refferal__reference"></div>
-            <div>
+            <div class="refferal__button-wrapper">
                 <button id="refferal-generate" class="refferal__button">
                     <loc:message code="refferal.generate"/>
                 </button>
@@ -39,6 +39,11 @@
         </table>
     </sec:authorize>
     <h4 class="h4_green"><loc:message code="currency.pairs"/></h4>
+    <div id="trade_market_filter" class="table-filter__wrapper">
+        <span class="glyphicon glyphicon-search"></span>
+        <input id="pair-filter"  class="table-filter__input"
+               placeholder=<loc:message code="currency.search"/>>
+    </div>
     <hr class="under_h4">
     <table id="currency_table" class="table currency_table">
         <tr>

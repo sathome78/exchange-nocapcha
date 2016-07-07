@@ -78,7 +78,7 @@ public class OrderDaoImpl implements OrderDao {
     public List<OrderListDto> getOrdersSellForCurrencyPair(CurrencyPair currencyPair, String email, Locale locale) {
         String sql = "SELECT EXORDERS.id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, commission_fixed_amount" +
                 "  FROM EXORDERS " +
-                (email == null || email.isEmpty() ? "" : " JOIN USER ON (USER.id=EXORDERS.user_id)  AND (USER.email != '"+email+"') ") +
+                (email == null || email.isEmpty() ? "" : " JOIN USER ON (USER.id=EXORDERS.user_id)  AND (USER.email != '" + email + "') ") +
                 "  WHERE status_id = 2 and operation_type_id= 3 and currency_pair_id=:currency_pair_id" +
                 "  ORDER BY exrate ASC";
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
@@ -100,7 +100,7 @@ public class OrderDaoImpl implements OrderDao {
     public List<OrderListDto> getOrdersBuyForCurrencyPair(CurrencyPair currencyPair, String email, Locale locale) {
         String sql = "SELECT EXORDERS.id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, commission_fixed_amount" +
                 "  FROM EXORDERS " +
-                (email == null || email.isEmpty() ? "" : " JOIN USER ON (USER.id=EXORDERS.user_id)  AND (USER.email != '"+email+"') ") +
+                (email == null || email.isEmpty() ? "" : " JOIN USER ON (USER.id=EXORDERS.user_id)  AND (USER.email != '" + email + "') ") +
                 "  WHERE status_id = 2 and operation_type_id= 4 and currency_pair_id=:currency_pair_id" +
                 "  ORDER BY exrate DESC";
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
@@ -618,9 +618,10 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriod(BackDealInterval backDealInterval, Integer limit, CurrencyPair currencyPair, Locale locale) {
+    public List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriod(String email, BackDealInterval backDealInterval, Integer limit, CurrencyPair currencyPair, Locale locale) {
         String sql = "SELECT EXORDERS.id, EXORDERS.date_acception, EXORDERS.exrate, EXORDERS.amount_base, EXORDERS.operation_type_id " +
                 "  FROM EXORDERS " +
+                (email == null || email.isEmpty() ? "" : " JOIN USER ON ((USER.id = EXORDERS.user_id) OR (USER.id = EXORDERS.user_acceptor_id)) AND USER.email='" + email + "'") +
                 "  WHERE EXORDERS.status_id = :status " +
                 "  AND EXORDERS.date_acception >= now() - INTERVAL " + backDealInterval.getInterval() +
                 "  AND EXORDERS.currency_pair_id = :currency_pair_id " +

@@ -1,7 +1,7 @@
 <%--
   User: Valk
 --%>
-<div id="balance-page" class="balance center-frame-container hidden">
+<div id="balance-page" data-menuitemid="menu-mywallets" class="balance center-frame-container hidden">
     <h4 class="h4_green"><loc:message code="mywallets.title"/></h4>
     <table id="balance-table" class="balance__table">
         <tbody>

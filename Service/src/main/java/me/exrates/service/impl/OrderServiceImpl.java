@@ -458,9 +458,10 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     @Override
     public List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriod(CacheData cacheData,
+                                                                   String email,
                                                                    BackDealInterval backDealInterval,
                                                                    Integer limit, CurrencyPair currencyPair, Locale locale) {
-        List<OrderAcceptedHistoryDto> result = orderDao.getOrderAcceptedForPeriod(backDealInterval, limit, currencyPair, locale);
+        List<OrderAcceptedHistoryDto> result = orderDao.getOrderAcceptedForPeriod(email, backDealInterval, limit, currencyPair, locale);
         if (Cache.checkCache(cacheData, result)) {
             result = new ArrayList<OrderAcceptedHistoryDto>() {{
                 add(new OrderAcceptedHistoryDto(false));

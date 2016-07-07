@@ -15,7 +15,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
 
     var $tradingContainer = $('#trading');
     var dashboardCurrencyPairSelector;
-    var refreshInterval = 5000*REFRESH_INTERVAL_MULTIPLIER;
+    var refreshInterval = 5000 * REFRESH_INTERVAL_MULTIPLIER;
     var timeOutId;
     var $graphicsLoadingImg = $('#graphics-container').find('.loading');
     /**/
@@ -25,7 +25,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
     /**/
     this.commissionSell;
     this.commissionBuy;
-
+    /**/
     this.ROUND_SCALE = 9;
 
     function onCurrencyPairChange() {
@@ -38,6 +38,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
 
     this.updateAndShowAll = function (refreshIfNeeded) {
         that.getAndShowAcceptedOrdersHistory(refreshIfNeeded, function () {
+            that.getAndShowAcceptedOrdersHistory_myDeals(refreshIfNeeded);
             that.getAndShowStatisticsForCurrency();
             that.getAndShowChart();
         });
@@ -83,10 +84,10 @@ function TradingClass(period, chartType, currentCurrencyPair) {
             return;
         }
         if (showLog) {
-            console.log(new Date() + '  ' + refreshIfNeeded + ' ' + 'getAndShowAcceptedOrdersHistory');
+            console.log(new Date() + '  ' + refreshIfNeeded + ' ' + 'getAndShowAcceptedOrdersHistory/ALL');
         }
         var $ordersHistoryTable = $('#orders-history-table').find('tbody');
-        var url = '/dashboard/acceptedOrderHistory?refreshIfNeeded=' + (refreshIfNeeded ? 'true' : 'false');
+        var url = '/dashboard/acceptedOrderHistory/ALL?refreshIfNeeded=' + (refreshIfNeeded ? 'true' : 'false');
         $.ajax({
             url: url,
             type: 'GET',
@@ -102,7 +103,46 @@ function TradingClass(period, chartType, currentCurrencyPair) {
                         $ordersHistoryTable.append(tmpl($tmpl, e));
                     });
                     blink($ordersHistoryTable);
-                    callback();
+                    if (callback) {
+                        callback();
+                    }
+                }
+                clearTimeout(timeOutId);
+                timeOutId = setTimeout(function () {
+                    that.updateAndShowAll(true);
+                }, refreshInterval);
+            }
+        });
+    };
+
+    this.getAndShowAcceptedOrdersHistory_myDeals = function (refreshIfNeeded) {
+        if ($tradingContainer.hasClass('hidden') || !windowIsActive || $('#orders-history-table__my-deals').hasClass('hidden')) {
+            clearTimeout(timeOutId);
+            timeOutId = setTimeout(function () {
+                that.updateAndShowAll(true);
+            }, refreshInterval);
+            return;
+        }
+        if (showLog) {
+            console.log(new Date() + '  ' + refreshIfNeeded + ' ' + 'getAndShowAcceptedOrdersHistory/MY');
+        }
+        var $ordersHistoryTable = $('#orders-history-table__my-deals').find('tbody');
+        var url = '/dashboard/acceptedOrderHistory/MY?refreshIfNeeded=' + (refreshIfNeeded ? 'true' : 'false');
+        $.ajax({
+            url: url,
+            type: 'GET',
+            headers: {
+                "windowid": windowId
+            },
+            success: function (data) {
+                if (!data) return;
+                if (data.length == 0 || data[0].needRefresh) {
+                    var $tmpl = $('#orders-history-table_row__my-deals').html().replace(/@/g, '%');
+                    $ordersHistoryTable.find('tr').has('td').remove();
+                    data.forEach(function (e) {
+                        $ordersHistoryTable.append(tmpl($tmpl, e));
+                    });
+                    blink($ordersHistoryTable);
                 }
                 clearTimeout(timeOutId);
                 timeOutId = setTimeout(function () {
@@ -232,14 +272,17 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         dashboardCurrencyPairSelector.init(onCurrencyPairChange);
         try {
             chart = new ChartGoogleClass();
-        } catch (e){}
+        } catch (e) {
+        }
         try {
             chart = new ChartAmchartsClass("STOCK", period, $graphicsLoadingImg);
-        } catch (e){}
+        } catch (e) {
+        }
         if (chart) {
             try {
                 chart.init(chartType);
-            } catch(e) {}
+            } catch (e) {
+            }
         }
         that.updateAndShowAll(false);
         /**/
@@ -259,6 +302,16 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         $('#order-create-confirm__submit').on('click', orderCreate);
         /**/
         $('.dashboard-accept-reset__button').on('click', resetOrdersListForAcceptOnClick);
+        /**/
+        $('.deals-scope-switcher__wrapper').on('click', '.deals-scope-switcher__button', function (e) {
+            $(this).siblings().removeClass('ht-active');
+            $(this).addClass('ht-active');
+            var $tableId = $('#' + $(this).data('tableid'));
+            $('.orders-history-table').addClass('hidden');
+            $tableId.removeClass('hidden');
+            that.getAndShowAcceptedOrdersHistory();
+            that.getAndShowAcceptedOrdersHistory_myDeals();
+        });
         /**/
         switchCreateOrAcceptButtons();
     })(period, chartType, currentCurrencyPair);
@@ -343,6 +396,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         e.preventDefault();
         resetOrdersListForAccept();
     }
+
     function resetOrdersListForAccept() {
         if (that.ordersListForAccept.length != 0) {
             that.ordersListForAccept = [];

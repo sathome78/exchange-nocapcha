@@ -2,7 +2,7 @@
   User: Valk
 --%>
 
-<div id="orders" class="orders center-frame-container hidden">
+<div id="orders" data-menuitemid="menu-orders" class="orders center-frame-container hidden">
     <%----%>
     <div id="orders-currency-pair-selector" class="currency-pair-selector dropdown">
         <%@include file="currencyPairSelector.jsp" %>

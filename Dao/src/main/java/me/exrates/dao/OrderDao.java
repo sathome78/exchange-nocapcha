@@ -47,7 +47,7 @@ public interface OrderDao {
 
     int searchOrderByAdmin(Integer currencyPair, Integer orderType, String orderDate, BigDecimal orderRate, BigDecimal orderVolume);
 
-    List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriod(BackDealInterval backDealInterval, Integer limit, CurrencyPair currencyPair, Locale locale);
+    List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriod(String email, BackDealInterval backDealInterval, Integer limit, CurrencyPair currencyPair, Locale locale);
 
     OrderCommissionsDto getCommissionForOrder();
 
