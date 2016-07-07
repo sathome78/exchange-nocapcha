@@ -74,8 +74,9 @@
 
                             <div class="buttons1">
                                     <%--Пополнить--%>
-                                <form class="form" action="<c:url value="/merchants/input"/>">
+                                <form class="form" action="<c:url value="/merchants/inputCurrencyMerchant"/>">
                                     <loc:message code="mywallets.input" var="inputButton"/>
+                                    <input name="id" value="${wallet.currencyId}" hidden/>
                                     <button type="submit">${inputButton}</button>
                                 </form>
                                     <%--Вывести--%>
