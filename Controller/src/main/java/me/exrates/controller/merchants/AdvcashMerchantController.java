@@ -45,13 +45,10 @@ public class AdvcashMerchantController {
     public RedirectView preparePayment(@Valid @ModelAttribute("payment") Payment payment,
                                        BindingResult result, Principal principal, RedirectAttributes redir) {
 
-        final String errorRedirectView = "/merchants/".concat(payment.getOperationType() == OperationType.INPUT ?
-                "/input": "/output");
-
         final Optional<CreditsOperation> creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName());
         if (!creditsOperation.isPresent()) {
             redir.addFlashAttribute("error", "merchants.invalidSum");
-            return new RedirectView(errorRedirectView);
+            return new RedirectView("/dashboard");
         }
 
         final OperationType operationType = creditsOperation.get().getOperationType();
@@ -61,7 +58,7 @@ public class AdvcashMerchantController {
         }else {
             // TODO questions about output
 //            url = "/advcash/output";
-            return new RedirectView("dashboard");
+            return new RedirectView("/dashboard");
         }
 
         }
@@ -79,7 +76,7 @@ public class AdvcashMerchantController {
             redir.addFlashAttribute("message", message);
             advcashService.provideTransaction(transaction);
 
-            return new RedirectView("/mywallets");
+            return new RedirectView("/dashboard");
 
         }
 //        advcashService.invalidateTransaction(transaction);
@@ -87,6 +84,6 @@ public class AdvcashMerchantController {
         final String message = "merchants.internalError";
         redir.addFlashAttribute("message", message);
 
-        return new RedirectView("/mywallets");
+        return new RedirectView("/dashboard");
         }
     }

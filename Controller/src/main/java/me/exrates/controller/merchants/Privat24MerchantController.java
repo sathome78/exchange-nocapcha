@@ -106,13 +106,13 @@ public class Privat24MerchantController {
                 if (!privat24Service.confirmPayment(mapResponse, signature, payment)) {
 
                     redir.addFlashAttribute("error", "merchants.authRejected");
-                    return new RedirectView("/merchants/input");
+                    return new RedirectView("/dashboard");
                 }
             }
         }catch (EmptyResultDataAccessException e){
             LOG.error(e);
             redir.addFlashAttribute("error", "merchants.incorrectPaymentDetails");
-            return new RedirectView("/merchants/input");
+            return new RedirectView("/dashboard");
         }
 
         merchantService.formatResponseMessage(transaction)
@@ -121,7 +121,7 @@ public class Privat24MerchantController {
         final String message = "merchants.successfulBalanceDeposit";
         redir.addFlashAttribute("message", message);
 
-        return new RedirectView("/mywallets");
+        return new RedirectView("/dashboard");
     }
 
     }

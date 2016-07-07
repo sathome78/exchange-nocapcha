@@ -3,6 +3,7 @@ package me.exrates.dao.impl;
 import me.exrates.dao.MerchantDao;
 import me.exrates.model.Merchant;
 import me.exrates.model.MerchantCurrency;
+import me.exrates.model.MerchantImage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -91,6 +92,26 @@ public class MerchantDaoImpl implements MerchantDao {
         final String sql = "SELECT MERCHANT.id as merchant_id,MERCHANT.name,MERCHANT.description,MERCHANT_CURRENCY.min_sum," +
                 " MERCHANT_CURRENCY.currency_id FROM MERCHANT JOIN MERCHANT_CURRENCY" +
                 " ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id WHERE MERCHANT_CURRENCY.currency_id in (:currenciesId)";
-        return jdbcTemplate.query(sql, Collections.singletonMap("currenciesId",currenciesId), new BeanPropertyRowMapper<>(MerchantCurrency.class));
+        try {
+            return jdbcTemplate.query(sql, Collections.singletonMap("currenciesId",currenciesId), (resultSet, i) -> {
+                MerchantCurrency merchantCurrency = new MerchantCurrency();
+                merchantCurrency.setMerchantId(resultSet.getInt("merchant_id"));
+                merchantCurrency.setName(resultSet.getString("name"));
+                merchantCurrency.setDescription(resultSet.getString("description"));
+                merchantCurrency.setMinSum(resultSet.getBigDecimal("min_sum"));
+                merchantCurrency.setCurrencyId(resultSet.getInt("currency_id"));
+                final String sqlInner = "SELECT * FROM birzha.MERCHANT_IMAGE where merchant_id = :merchant_id" +
+                        " AND currency_id = :currency_id;";
+                Map<String, Integer> params = new HashMap<String, Integer>();
+                params.put("merchant_id", resultSet.getInt("merchant_id"));
+                params.put("currency_id", resultSet.getInt("currency_id"));
+                merchantCurrency.setListMerchantImage(jdbcTemplate.query(sqlInner, params, new BeanPropertyRowMapper<>(MerchantImage.class)));
+
+                return merchantCurrency;
+            });
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
+
     }
 }

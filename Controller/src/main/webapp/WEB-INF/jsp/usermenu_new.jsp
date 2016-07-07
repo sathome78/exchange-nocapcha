@@ -6,8 +6,6 @@
 
 <div class="side_menu col-sm-3"> <!-- Side Menu -->
     <ul>
-        <li><a class="side_menu__item side_menu--merchants-input" href="<c:url value="/merchants/input"/>"><loc:message code="usermenu.inputCredits"/></a></li>
-        <li><a class="side_menu__item side_menu--merchants-output" href="<c:url value="/merchants/output"/>"><loc:message code="usermenu.outputCredits"/></a></li>
         <li>
             <c:set var="adminEnum" value="<%=me.exrates.model.enums.UserRole.ADMINISTRATOR%>"/>
             <c:set var="accountantEnum" value="<%=me.exrates.model.enums.UserRole.ACCOUNTANT%>"/>

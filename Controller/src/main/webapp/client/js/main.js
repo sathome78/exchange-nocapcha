@@ -16,7 +16,7 @@ $.fn.serializeObject = function()
         }
     });
     return o;
-    
+
 };
 
 
@@ -41,9 +41,11 @@ $(function(){
     const INTERKASSA = 'Interkassa';
 
     const NO_ACTION = 'javascript:void(0);';
-    
+
     var currency = $('#currency');
     var merchant = $('#merchant');
+    var merchantName;
+    var merchantMinSum;
     var sum = $('#sum');
     var operationType = $('#operationType');
     var modalTemplate = $('.paymentInfo p');
@@ -71,13 +73,13 @@ $(function(){
         });
     })('/merchants/data');
 
-    
+
     function resetMerchantsList(currency) {
         var optionsHTML = '';
         $.each(merchantsData,function(index){
             if (merchantsData[index].currencyId == currency) {
-               optionsHTML+='<option value="'+merchantsData[index].merchantId+'">'+merchantsData[index].description+'</option>';
-           }
+                optionsHTML+='<option value="'+merchantsData[index].merchantId+'">'+merchantsData[index].description+'</option>';
+            }
         });
         if (optionsHTML==='' || optionsHTML.search('Blockchain') !== -1) {
             merchant.fadeOut();
@@ -227,31 +229,31 @@ $(function(){
                     $('#inputPaymentProcess')
                         .prop('disabled', true)
                         .html($('#mrcht-waiting').val());
-                        
+
                     $.ajax('/merchants/edrcoin/payment/prepare', {
-                      headers: {
-                          'X-CSRF-Token': $("input[name='_csrf']").val()
-                      },
-                      type: 'POST',
-                      contentType: 'application/json',
-                      data: JSON.stringify($(form).serializeObject()),
-                      success:function (response) {
-                          $('#inputPaymentProcess')
-                              .prop('disabled', false)
-                              .html($('#mrcht-ready').val());
-                          console.log(response);
-                          $('.paymentInfo').html(response);
-                          responseControls();
-                      },
-                      error:function (jqXHR, textStatus, errorThrown) {
-                          console.log(jqXHR);
-                          console.log(textStatus);
-                          console.log(errorThrown);
-                          $('.paymentInfo').html(error.responseText);
-                          responseControls();
-                      }
-                  });
-                      break;
+                        headers: {
+                            'X-CSRF-Token': $("input[name='_csrf']").val()
+                        },
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify($(form).serializeObject()),
+                        success:function (response) {
+                            $('#inputPaymentProcess')
+                                .prop('disabled', false)
+                                .html($('#mrcht-ready').val());
+                            console.log(response);
+                            $('.paymentInfo').html(response);
+                            responseControls();
+                        },
+                        error:function (jqXHR, textStatus, errorThrown) {
+                            console.log(jqXHR);
+                            console.log(textStatus);
+                            console.log(errorThrown);
+                            $('.paymentInfo').html(error.responseText);
+                            responseControls();
+                        }
+                    });
+                    break;
                 case PRIVAT24 :
                     $.ajax('/merchants/privat24/payment/prepare', {
                         headers: {
@@ -334,27 +336,36 @@ $(function(){
             }
         }
     }
-    
+
     function isCorrectSum() {
         var result = false;
-        $.each(merchantsData,function(index) {
-            if (merchantsData[index].merchantId == merchant.val() && merchantsData[index].name !== 'Blockchain') {
-                var minSum = parseFloat(merchantsData[index].minSum);
+        if (operationType.val() === 'INPUT') {
+            if (merchantName !== 'Blockchain'){
                 var targetSum = parseFloat(sum.val());
-                if (targetSum >= minSum) {
+                if (targetSum >= merchantMinSum) {
                     return result = true;
                 }
             }
-        });
+        }else {
+            $.each(merchantsData,function(index) {
+                if (merchantsData[index].merchantId == merchant.val() && merchantsData[index].name !== 'Blockchain') {
+                    var minSum = parseFloat(merchantsData[index].minSum);
+                    var targetSum = parseFloat(sum.val());
+                    if (targetSum >= minSum) {
+                        return result = true;
+                    }
+                }
+            });
+        }
         return result;
     }
-    
+
     function fillModalWindow(type,amount,currency) {
         $.ajax({
             url: '/merchants/commission',
             type: "get",
             contentType: "application/json",
-            data : {"type":type, "amount":amount, "currency":currency, "merchant":merchant.find(':selected').html()}
+            data : {"type":type, "amount":amount, "currency":currency, "merchant":merchantName}
         }).done(function (response) {
             var templateVariables = {
                 amount: '__amount',
@@ -362,14 +373,14 @@ $(function(){
                 merchant: '__merchant',
                 percent: '__percent'
             };
-            var newHTMLElements = []; 
-              modalTemplate.slice().each(function(index,val){
-                  newHTMLElements[index] = '<p>'+$(val).html()+'</p>';
-              });
+            var newHTMLElements = [];
+            modalTemplate.slice().each(function(index,val){
+                newHTMLElements[index] = '<p>'+$(val).html()+'</p>';
+            });
             newHTMLElements[0] = newHTMLElements[0]
                 .replace(templateVariables.amount, "<span class='modal-amount'>"+amount+"</span>")
                 .replace(templateVariables.currency, "<span class='modal-amount'>"+getCurrentCurrency()+"</span>")
-                .replace(templateVariables.merchant, "<span class='modal-merchant'>"+merchant.find(':selected').html()+"</span>");
+                .replace(templateVariables.merchant, "<span class='modal-merchant'>"+merchantName+"</span>");
             newHTMLElements[1] = newHTMLElements[1]
                 .replace(templateVariables.amount, "<span class='modal-amount'>" + response['commissionAmount'] + "</span>")
                 .replace(templateVariables.currency, "<span class='modal-amount'>" + getCurrentCurrency() + "</span>")
@@ -395,8 +406,11 @@ $(function(){
     });
 
     function submitProcess() {
-        var targetMerchant = merchant.find(':selected').html();
+        var targetMerchant = merchantName;
         var paymentForm = $('#payment');
+        if (operationType.val() === 'INPUT') {
+            paymentForm.append('<input type="hidden" name="merchant" value="' + merchant + '">');
+        }
         resetFormAction(operationType.val(), targetMerchant,paymentForm);
         resetPaymentFormData(targetMerchant,paymentForm,function(){
             paymentForm.submit();
@@ -404,21 +418,29 @@ $(function(){
     }
 
     function getCurrentCurrency() {
+        if (operationType.val() === 'INPUT') {
+            return $("#currencyName").val();
+        }
         return $("#currency").find(":selected").html().trim().split(' ')[0];
     }
-    
-    if ($("#assertInputPay").length) {
-        $("#assertInputPay").bind('click',function(){
-            requestControls();
-            fillModalWindow('INPUT',sum.val(),getCurrentCurrency());
-        });
-    }
-    
+
+    $('button[name=assertInputPay]').click(function()  {
+        var arr = this.value.split(':');
+        merchant = arr[0];
+        merchantName = arr[1];
+        merchantMinSum = parseFloat(arr[2]);
+
+        if (isCorrectSum()) {
+            fillModalWindow('INPUT', sum.val(), getCurrentCurrency());
+        }
+    });
+
     if ($("#assertOutputPay").length) {
         $("#assertOutputPay").bind('click',function() {
             $('.wallet_input').show();
             setTimeout("$('.wallet_input>input').focus().val('')",200);
             requestControls();
+            merchantName = merchant.find(':selected').html();
             fillModalWindow('OUTPUT',sum.val(),$('select[name="currency"]').find(':selected').data('currency'));
         });
     }
@@ -445,10 +467,19 @@ $(function(){
     });
 
     sum.on('keyup', function (e) {
-        if (isCorrectSum()) {
-            button.prop('disabled',false);
-        } else {
-            button.prop('disabled',true);
+        if (operationType.val() === 'INPUT') {
+            if (parseFloat(sum.val()) >= 0.01){
+                button.prop('disabled',false);
+            }else {
+                button.prop('disabled',true);
+            }
+        }else {
+            if (isCorrectSum()) {
+                button.prop('disabled',false);
+            } else {
+                button.prop('disabled',true);
+            }
         }
+
     });
 });

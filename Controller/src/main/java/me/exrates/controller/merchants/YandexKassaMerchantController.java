@@ -88,14 +88,14 @@ public class YandexKassaMerchantController {
             final String message = "merchants.successfulBalanceDeposit";
             redir.addFlashAttribute("message", message);
 
-            return new RedirectView("/mywallets");
+            return new RedirectView("/dashboard");
 
         }
 
         final String message = "merchants.internalError";
         redir.addFlashAttribute("message", message);
 
-        return new RedirectView("/mywallets");
+        return new RedirectView("/dashboard");
     }
 
     }

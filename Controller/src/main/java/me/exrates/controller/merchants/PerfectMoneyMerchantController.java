@@ -47,7 +47,7 @@ public class PerfectMoneyMerchantController {
         final Optional<CreditsOperation> creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName());
         if (!creditsOperation.isPresent()) {
             redir.addFlashAttribute("error", "merchants.invalidSum");
-            return new RedirectView("/merchants/output");
+            return new RedirectView("/dashboard");
         }
         perfectMoneyService.provideOutputPayment(payment, creditsOperation.get());
         merchantService.formatResponseMessage(creditsOperation.get())
@@ -55,7 +55,7 @@ public class PerfectMoneyMerchantController {
                 .forEach(entry->redir.addFlashAttribute(entry.getKey(),entry.getValue()));
         final String message = "merchants.successfulBalanceWithdraw";
             redir.addFlashAttribute("message",message);
-        return new RedirectView("/mywallets");
+        return new RedirectView("/dashboard");
     }
 
     @RequestMapping(value = "payment/prepare",method = RequestMethod.POST)
@@ -103,13 +103,13 @@ public class PerfectMoneyMerchantController {
             final String message = openTransaction.getOperationType() == OperationType.INPUT ? "merchants.successfulBalanceDeposit"
                     : "merchants.successfulBalanceWithdraw";
             redir.addFlashAttribute("message", message);
-            return new RedirectView("/mywallets");
+            return new RedirectView("/dashboard");
         }
         perfectMoneyService.invalidateTransaction(openTransaction);
         synchronized (mutex) {
             httpSession.setAttribute("error", "merchants.incorrectPaymentDetails");
         }
-        return new RedirectView("/merchants/input");
+        return new RedirectView("/dashboard");
     }
 
     @RequestMapping(value = "payment/failure",method = RequestMethod.POST)
@@ -123,6 +123,6 @@ public class PerfectMoneyMerchantController {
         }
         perfectMoneyService.invalidateTransaction(openTransaction);
         redir.addFlashAttribute("error", "merchants.authRejected");
-        return new RedirectView("/merchants/input");
+        return new RedirectView("/dashboard");
     }
 }
