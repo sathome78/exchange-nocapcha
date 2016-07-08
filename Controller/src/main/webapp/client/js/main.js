@@ -39,6 +39,7 @@ $(function(){
     const YANDEX_KASSA = 'Yandex kassa';
     const PRIVAT24 = 'Privat24';
     const INTERKASSA = 'Interkassa';
+    const INVOICE = 'Invoice';
 
     const NO_ACTION = 'javascript:void(0);';
 
@@ -329,6 +330,30 @@ $(function(){
                         responseControls();
                         $('.paymentInfo').html(error.responseText);
                         console.log(error);
+                    });
+                    break;
+                case INVOICE :
+                    $('#inputPaymentProcess')
+                        .html($('#mrcht-waiting').val())
+                        .prop('disabled', true);
+                    $.ajax('/merchants/invoice/payment/prepare', {
+                        headers: {
+                            'X-CSRF-Token': $("input[name='_csrf']").val()
+                        },
+                        type: 'POST',
+                        contentType: 'application/json;charset=utf-8',
+                        dataType: 'text',
+                        data: JSON.stringify($(form).serializeObject())
+                    }).done(function (response) {
+                        $('#inputPaymentProcess')
+                            .prop('disabled', false)
+                            .html($('#mrcht-ready').val());
+                        $('.paymentInfo').html(response);
+                        responseControls();
+                    }).fail(function (error, jqXHR, textStatus) {
+                        responseControls();
+                        $('.paymentInfo').html(error.responseText);
+                        console.log(textStatus);
                     });
                     break;
                 default:

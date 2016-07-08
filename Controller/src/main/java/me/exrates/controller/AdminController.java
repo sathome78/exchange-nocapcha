@@ -2,10 +2,7 @@ package me.exrates.controller;
 
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.validator.RegisterFormValidation;
-import me.exrates.model.CurrencyPair;
-import me.exrates.model.User;
-import me.exrates.model.UserFile;
-import me.exrates.model.Wallet;
+import me.exrates.model.*;
 import me.exrates.model.dto.*;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
@@ -502,4 +499,24 @@ public class AdminController {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 
+    @RequestMapping(value = "/transaction_invoice")
+    public ModelAndView transactions(HttpSession httpSession) {
+        final Object mutex = WebUtils.getSessionMutex(httpSession);
+        String currentRole = "";
+        synchronized (mutex) {
+            currentRole = (String) httpSession.getAttribute("currentRole");
+        }
+        if (currentRole == null){
+            return new ModelAndView("403");
+        }
+        List<Transaction> list;
+
+        if (currentRole.equals(UserRole.ADMINISTRATOR.name()) || currentRole.equals(UserRole.ACCOUNTANT.name())) {
+            list = transactionService.getInvoiceOpenTransactions();
+        } else {
+            return new ModelAndView("403");
+        }
+
+        return new ModelAndView("admin/transaction_invoice", "transactions", list);
+    }
 }

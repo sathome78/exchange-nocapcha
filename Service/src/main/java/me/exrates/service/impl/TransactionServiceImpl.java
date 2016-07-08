@@ -209,4 +209,9 @@ public class TransactionServiceImpl implements TransactionService {
         }
         return result;
     }
+
+    @Override
+    public List<Transaction> getInvoiceOpenTransactions(){
+        return transactionDao.getInvoiceOpenTransactions();
+    }
 }

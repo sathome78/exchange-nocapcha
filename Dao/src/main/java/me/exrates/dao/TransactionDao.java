@@ -30,4 +30,6 @@ public interface TransactionDao {
     PagingData<List<Transaction>> findAllByUserWallets(List<Integer> walletIds, int offset, int limit);
 
     List<AccountStatementDto> getAccountStatement(Integer walletId, Integer offset, Integer limit, Locale locale);
+
+    List<Transaction> getInvoiceOpenTransactions();
 }
