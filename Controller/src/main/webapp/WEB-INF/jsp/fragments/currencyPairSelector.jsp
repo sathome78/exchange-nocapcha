@@ -10,7 +10,14 @@
 
 <script type="text/template" class="currency-pair-selector_row">
     <ul class="dropdown-menu currency-pair-selector__menu" aria-labelledby="dLabel">
-        <@for(var i=0; i<data.length; i++){@>
+        <c:if test="${showAllPairsEnabled == true}">
+            <li class="currency-pair-selector__menu-item all-pairs-item">
+                <a href="#"><loc:message code="currency.allpairs"/></a>
+            </li>
+        </c:if>
+        <@for(var i=0; i
+        <data.length
+        ; i++){@>
         <li class="currency-pair-selector__menu-item <@=data[i]===currentCurrencyPair ? 'active':''@>">
             <a href="#"><@=data[i]@></a>
         </li>

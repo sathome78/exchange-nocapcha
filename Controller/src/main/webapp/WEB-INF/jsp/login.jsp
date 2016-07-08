@@ -61,7 +61,7 @@
             <div class="clearfix">
                 <p class="login__error">${error}</p>
 
-                <form action="${loginUrl}" method="post">
+                <form action="${loginUrl}" method="post" class="clearfix">
                     <div class="input-block-wrapper clearfix">
                         <loc:message code="login.email" var="login"/>
                         <div class="col-md-3 input-block-wrapper__label-wrapper">
@@ -91,6 +91,10 @@
                                    placeholder="${password}"
                                    class="form-control input-block-wrapper__input"/>
                         </div>
+                    </div>
+                    <div>
+                        <a href="/forgotPassword" class="darkblue forgot-password forgot-password--largeform"><loc:message
+                                code="dashboard.forgotPassword"/></a>
                     </div>
                     <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                     <c:if test="${captchaType==\"RECAPTCHA\"}">

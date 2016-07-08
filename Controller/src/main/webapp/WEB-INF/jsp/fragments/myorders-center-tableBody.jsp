@@ -4,7 +4,7 @@
 <tbody>
 <tr>
     <th class="col-2 myo_orid center blue-white"><loc:message code="myorders.id"/></th>
-    <th class="col-4 myo_dcrt center blue-white"><loc:message code="myorders.datecreation"/></th>
+    <th class="col-3 myo_dcrt center blue-white"><loc:message code="myorders.datecreation"/></th>
     <th class="col-2 myo_crpr center blue-white"><loc:message code="myorders.currencypair"/></th>
     <th class="col-2 myo_amnt right blue-white"><loc:message code="myorders.amount"/></th>
     <th class="col-2 myo_rate right blue-white"><loc:message code="myorders.rate"/></th>

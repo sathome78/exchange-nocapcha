@@ -30,14 +30,20 @@
     <%----------%>
     <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
-
     <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
     <%----------%>
     <%--capcha--%>
-    <script type="text/javascript" src="<c:url value='/client/js/capcha.js'/>"></script>
-    <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit&hl=${pageContext.response.locale}"
-            async defer>
-    </script>
+    <c:if test="${captchaType==\"RECAPTCHA\"}">
+        <script type="text/javascript" src="<c:url value='/client/js/capcha.js'/>"></script>
+        <c:set value="${pageContext.response.locale}" var="locale"></c:set>
+        <c:if test="${locale=='cn'}">
+            <c:set value="zh-CN" var="locale"></c:set>
+        </c:if>
+        <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit&hl=${locale}"
+                async defer>
+        </script>
+    </c:if>
 
 </head>
 
@@ -67,15 +73,30 @@
                             <form:errors path="email" class="input-block-wrapper__input"/>
                         </div>
                     </div>
-                    <%--CAPCHA--%>
-                    <div class="col-md-10 login__captcha-wrapper">
-                        <div id="cpch-field" class="login__captcha g-recaptcha"
-                             data-sitekey=${captchaProperties.get("captcha.key")}></div>
-                        <br/>
-                    </div>
-                    <div class="col-md-10 input-block-wrapper__error-wrapper">
-                        <p class='cpch-error-message' style="color:red">${cpch}</p>
-                    </div>
+                    <c:if test="${captchaType==\"RECAPTCHA\"}">
+                        <%--CAPTCHA GOOGLE--%>
+                        <div class="col-md-10 login__captcha-wrapper">
+                            <div id="cpch-field" class="login__captcha--recaptcha g-recaptcha"
+                                 data-sitekey=${captchaProperties.get("captcha.key")}></div>
+                                <%--<p class='cpch-error-message' style="color:red">${cpch}</p>--%>
+                            <br/>
+                        </div>
+                        <div class="col-md-10 input-block-wrapper__error-wrapper">
+                            <p class='cpch-error-message' style="color:red">${cpch}</p>
+                        </div>
+                    </c:if>
+                    <c:if test="${captchaType==\"BOTDETECT\"}">
+                        <%--CAPTCHA BotDetect--%>
+                        <div id="cpch-field" class="col-md-10 login__captcha--botdetect passed">
+                            <botDetect:captcha id="loginFormRegCaptcha" userInputID="captchaCode"/>
+                            <input name="captchaCode" type="text" id="captchaCode"/>
+                            <input type="hidden" name="captchaId" value="loginFormRegCaptcha"/>
+                        </div>
+                        <div class="col-md-10 input-block-wrapper__error-wrapper">
+                            <p class='cpch-error-message' style="color:red">${cpch}</p>
+                        </div>
+                    </c:if>
+                    <input type="hidden" name="captchaType" value="${captchaType}"/>
                     <%----%>
                     <div class="col-md-10 login__button-wrapper">
                         <button class="login__button" type="submit">

@@ -111,6 +111,7 @@ public class DashboardController {
     public ModelAndView forgotPassword() {
         ModelAndView model = new ModelAndView();
         model.addObject("user", new User());
+        model.addObject("captchaType", CAPTCHA_TYPE);
         model.setViewName("forgotPassword");
 
         return model;

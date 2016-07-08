@@ -5,6 +5,7 @@
 <div id="myorders" class="myorders center-frame-container hidden">
     <%----%>
     <div id="myorders-currency-pair-selector" class="currency-pair-selector dropdown">
+        <c:set value="true" var="showAllPairsEnabled"/>
         <%@include file="currencyPairSelector.jsp" %>
     </div>
     <h4 class="h4_green"><loc:message code="myorders.title"/></h4>

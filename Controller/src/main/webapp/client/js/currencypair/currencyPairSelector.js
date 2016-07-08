@@ -9,9 +9,16 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair) 
 
     this.init = function (onChangeHandler) {
         that.$currencyPairSelector.on('click', '.currency-pair-selector__menu-item', function (e) {
-            var newCurrentCurrencyPairName = $(this).text().trim();
+            e.preventDefault();
             var $item = $(this);
-            syncCurrentParams(newCurrentCurrencyPairName, null, null, function(data){
+            var showAllPairs;
+            if (that.$currencyPairSelector.find('.currency-pair-selector__menu-item').hasClass('all-pairs-item')) {
+                showAllPairs = $item.hasClass('all-pairs-item');
+            } else {
+                showAllPairs = null;
+            }
+            var newCurrentCurrencyPairName = showAllPairs ? null : $(this).text().trim();
+            syncCurrentParams(newCurrentCurrencyPairName, null, null, showAllPairs, function (data) {
                 $item.siblings().removeClass('active');
                 $item.addClass('active');
                 that.currentCurrencyPair = $item.text();
@@ -22,13 +29,21 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair) 
         that.getAndShowCurrencySelector();
     };
 
-    this.syncState = function(){
-        syncCurrentParams(null, null, null, function(data){
-            var $item = that.$currencyPairSelector.find('.currency-pair-selector__menu-item:contains('+data.currencyPair.name+')');
+    this.syncState = function (callback) {
+        syncCurrentParams(null, null, null, null, function (data) {
+            var $item;
+            if (data.showAllPairs && that.$currencyPairSelector.find('.currency-pair-selector__menu-item').hasClass('all-pairs-item')) {
+                $item = that.$currencyPairSelector.find('.currency-pair-selector__menu-item.all-pairs-item');
+            } else {
+                $item = that.$currencyPairSelector.find('.currency-pair-selector__menu-item:contains(' + data.currencyPair.name + ')');
+            }
             $item.siblings().removeClass('active');
             $item.addClass('active');
             that.currentCurrencyPair = $item.text();
-            setButtonTitle();
+            var pairHasChanged = setButtonTitle();
+            if (callback) {
+                callback(pairHasChanged);
+            }
         });
     };
 
@@ -49,7 +64,9 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair) 
         });
     };
 
-    function setButtonTitle(){
+    function setButtonTitle() {
+        var prevTitle = that.$currencyPairSelector.find('button:first-child').text();
         that.$currencyPairSelector.find('button:first-child').text(that.currentCurrencyPair).append('<span class="caret"></span>');
+        return prevTitle != that.$currencyPairSelector.find('button:first-child').text();
     }
 }

@@ -9,6 +9,7 @@ public class CurrentParams {
     private CurrencyPair currencyPair;
     private String period;
     private String chartType;
+    private Boolean showAllPairs;
 
     /*getters setters*/
 
@@ -34,5 +35,13 @@ public class CurrentParams {
 
     public void setChartType(String chartType) {
         this.chartType = chartType;
+    }
+
+    public Boolean getShowAllPairs() {
+        return showAllPairs;
+    }
+
+    public void setShowAllPairs(Boolean showAllPairs) {
+        this.showAllPairs = showAllPairs;
     }
 }

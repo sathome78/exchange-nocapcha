@@ -244,10 +244,18 @@ header li {
     color: #fff;
 }
 
+.forgot-password--largeform{
+    font-size: 1.3rem;
+    text-align: right;
+    display: inline-block;
+    margin: 5px 0 0 0;
+    width: 80% ;
+}
+
 .forgot-password:hover,
 .forgot-password:focus {
-    color: #fff;
-    text-decoration: none;
+    color: #337ab7;
+    text-decoration: underline;
 }
 
 .background_white {
@@ -256,6 +264,9 @@ header li {
 
 .lightblue {
     color: #969faf;
+}
+.darkblue {
+    color: #525f74;
 }
 
 /***********************************

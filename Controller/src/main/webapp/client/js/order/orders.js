@@ -26,16 +26,21 @@ function OrdersClass(currentCurrencyPair) {
     var myordersStatusForShow = 'OPENED';
 
     function onCurrencyPairChange(currentCurrencyPair) {
-        that.updateAndShowAll(currentCurrencyPair);
+        that.updateAndShowAll(false, 1, null);
     }
+
     /**/
     this.syncCurrencyPairSelector = function () {
-        ordersCurrencyPairSelector.syncState();
+        ordersCurrencyPairSelector.syncState(function (pairHasChanged) {
+            if (pairHasChanged) {
+                that.updateAndShowAll(false, 1, null);
+            }
+        });
     };
 
-    this.updateAndShowAll = function (refreshIfNeeded) {
-        that.getAndShowSellOrdersData(refreshIfNeeded);
-        that.getAndShowBuyOrdersData(refreshIfNeeded);
+    this.updateAndShowAll = function (refreshIfNeeded, page, direction) {
+        that.getAndShowSellOrdersData(refreshIfNeeded, page, direction);
+        that.getAndShowBuyOrdersData(refreshIfNeeded, page, direction);
     };
 
 
@@ -75,7 +80,7 @@ function OrdersClass(currentCurrencyPair) {
                 }
                 if (data.length > 0) {
                     $('.orders-sell-table__page').text(data[0].page);
-                } else if (refreshIfNeeded){
+                } else if (refreshIfNeeded) {
                     var p = parseInt($('.orders-sell-table__page').text());
                     $('.orders-sell-table__page').text(++p);
                 }
@@ -123,7 +128,7 @@ function OrdersClass(currentCurrencyPair) {
                 }
                 if (data.length > 0) {
                     $('.orders-buy-table__page').text(data[0].page);
-                } else if (refreshIfNeeded){
+                } else if (refreshIfNeeded) {
                     var p = parseInt($('.orders-buy-table__page').text());
                     $('.orders-buy-table__page').text(++p);
                 }
@@ -201,20 +206,20 @@ function OrdersClass(currentCurrencyPair) {
         $('#orders-buy-table').on('click', '.button_delete_order', submitOrderDeleting);
         $('#order-delete-confirm__submit').on('click', deletingOrder);
         /**/
-        $('.orders-sell-table__backward').on('click', function(e){
+        $('.orders-sell-table__backward').on('click', function (e) {
             e.preventDefault();
             that.getAndShowSellOrdersData(true, null, 'BACKWARD');
         });
-        $('.orders-sell-table__forward').on('click', function(e){
+        $('.orders-sell-table__forward').on('click', function (e) {
             e.preventDefault();
             that.getAndShowSellOrdersData(true, null, 'FORWARD');
         });
         /**/
-        $('.orders-buy-table__backward').on('click', function(e){
+        $('.orders-buy-table__backward').on('click', function (e) {
             e.preventDefault();
             that.getAndShowBuyOrdersData(true, null, 'BACKWARD');
         });
-        $('.orders-buy-table__forward').on('click', function(e){
+        $('.orders-buy-table__forward').on('click', function (e) {
             e.preventDefault();
             that.getAndShowBuyOrdersData(true, null, 'FORWARD');
         });

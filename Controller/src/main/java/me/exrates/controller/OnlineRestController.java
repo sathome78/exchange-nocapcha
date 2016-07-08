@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.Principal;
@@ -192,6 +191,7 @@ public class OnlineRestController {
             @RequestParam(required = false) String currencyPairName,
             @RequestParam(required = false) String period,
             @RequestParam(required = false) String chart,
+            @RequestParam(required = false) Boolean showAllPairs,
             HttpServletRequest request) {
         CurrencyPair currencyPair;
         if (currencyPairName == null) {
@@ -209,6 +209,15 @@ public class OnlineRestController {
                     .collect(Collectors.toList()).get(0);
         }
         request.getSession().setAttribute("currentCurrencyPair", currencyPair);
+        /**/
+        if (showAllPairs == null) {
+            if (request.getSession().getAttribute("showAllPairs") == null) {
+                showAllPairs = false;
+            } else {
+                showAllPairs = (Boolean) request.getSession().getAttribute("showAllPairs");
+            }
+        }
+        request.getSession().setAttribute("showAllPairs", showAllPairs);
         /**/
         BackDealInterval backDealInterval;
         if (period == null) {
@@ -236,6 +245,7 @@ public class OnlineRestController {
         currentParams.setCurrencyPair((CurrencyPair) request.getSession().getAttribute("currentCurrencyPair"));
         currentParams.setPeriod(((BackDealInterval) request.getSession().getAttribute("currentBackDealInterval")).getInterval());
         currentParams.setChartType(((ChartType) request.getSession().getAttribute("chartType")).getTypeName());
+        currentParams.setShowAllPairs(((Boolean) request.getSession().getAttribute("showAllPairs")));
         return currentParams;
     }
 
@@ -367,6 +377,7 @@ public class OnlineRestController {
         }
         String email = principal.getName();
         CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
+        Boolean showAllPairs = (Boolean) request.getSession().getAttribute("showAllPairs");
         /**/
         String attributeName = tableId + "Params";
         TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
@@ -376,7 +387,9 @@ public class OnlineRestController {
         String cacheKey = "myOrdersData" + tableId + status + request.getHeader("windowid");
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
         CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
-        List<OrderWideListDto> result = orderService.getMyOrdersWithState(cacheData, email, currencyPair, status, type, tableParams.getOffset(), tableParams.getLimit(), localeResolver.resolveLocale(request));
+        List<OrderWideListDto> result = orderService.getMyOrdersWithState(cacheData, email,
+                showAllPairs == null || !showAllPairs ? currencyPair : null,
+                status, type, tableParams.getOffset(), tableParams.getLimit(), localeResolver.resolveLocale(request));
         if (!result.isEmpty()) {
             result.get(0).setPage(tableParams.getPageNumber());
         }

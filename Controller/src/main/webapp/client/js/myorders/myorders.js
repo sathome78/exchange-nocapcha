@@ -26,7 +26,8 @@ function MyOrdersClass(currentCurrencyPair) {
     var fieldVisibleForOpenStatus = [
         'myo_orid',
         'myo_dcrt',
-        'myo_amnt',
+        'myo_dcrt',
+        'myo_crpr',
         'myo_rate',
         'myo_totl',
         'myo_comm',
@@ -35,6 +36,7 @@ function MyOrdersClass(currentCurrencyPair) {
     var fieldVisibleForCancelledStatus = [
         'myo_orid',
         'myo_dcrt',
+        'myo_crpr',
         'myo_amnt',
         'myo_rate',
         'myo_totl',
@@ -42,6 +44,7 @@ function MyOrdersClass(currentCurrencyPair) {
     var fieldVisibleForClosedStatus = [
         'myo_orid',
         'myo_dcrt',
+        'myo_crpr',
         'myo_amnt',
         'myo_rate',
         'myo_totl',
@@ -51,16 +54,20 @@ function MyOrdersClass(currentCurrencyPair) {
 
 
     function onCurrencyPairChange(currentCurrencyPair) {
-        that.updateAndShowAll(currentCurrencyPair);
+        that.updateAndShowAll(false, 1, null);
     }
 
     this.syncCurrencyPairSelector = function () {
-        myordersCurrencyPairSelector.syncState();
+        myordersCurrencyPairSelector.syncState(function (pairHasChanged) {
+            if (pairHasChanged) {
+                that.updateAndShowAll(false, 1, null);
+            }
+        });
     };
 
-    this.updateAndShowAll = function (refreshIfNeeded) {
-        that.getAndShowMySellOrdersData(refreshIfNeeded);
-        that.getAndShowMyBuyOrdersData(refreshIfNeeded);
+    this.updateAndShowAll = function (refreshIfNeeded, page, direction) {
+        that.getAndShowMySellOrdersData(refreshIfNeeded, page, direction);
+        that.getAndShowMyBuyOrdersData(refreshIfNeeded, page, direction);
     };
 
 
