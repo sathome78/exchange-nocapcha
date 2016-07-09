@@ -25,6 +25,7 @@ $.fn.serializeObject = function()
 $(function(){
     $('.merchantError').hide();
     $('.response_money_operation_btn').hide();
+
 });
 
 $(function(){
@@ -51,7 +52,51 @@ $(function(){
     var operationType = $('#operationType');
     var modalTemplate = $('.paymentInfo p');
     var button = $('#payment').find('button');
+    button.prop('disabled',true);
     var merchantsData;
+
+    $(".input-block-wrapper__input").prop("autocomplete", "off");
+    $(".numericInputField").prop("autocomplete", "off");
+    $(".numericInputField")
+        .keypress(
+            function (e) {
+                var decimal = $(this).val().split('.')[1];
+                if (decimal && decimal.length >= 3) {
+                    return false;
+                }
+                if (e.charCode >= 48 && e.charCode <= 57 || e.charCode == 46 || e.charCode == 0) {
+                    if (e.key == '.' && $(this).val().indexOf('.') >= 0) {
+                        return false;
+                    }
+                    var str = $(this).val() + e.key;
+                    if (str.length > 1 && str.indexOf('0') == 0 && str.indexOf('.') != 1) {
+                        $(this).val("");
+                        return false
+                    }
+                } else {
+                    return false;
+                }
+                return true;
+            }
+        )
+        .on('input', function (e) {
+            var val = $(this).val();
+            var regx = /^(^[1-9]+\d*((\.{1}\d*)|(\d*)))|(^0{1}\.{1}\d*)|(^0{1})$/;
+            var result = val.match(regx);
+            if (!result || result[0] != val) {
+                $(this).val('');
+            }
+            var decimal = $(this).val().split('.')[1];
+            if (decimal && decimal.length >= 2) {
+                $(this).val(+(+$(this).val()).toFixed(2));
+
+            }
+            if (parseFloat(sum.val()) > 0){
+                button.prop('disabled',false);
+            }else {
+                button.prop('disabled',true);
+            }
+        });
 
     (function loadData(dataUrl) {
         $.ajax({
@@ -87,12 +132,12 @@ $(function(){
             button.prop('disabled', true);
         } else {
             merchant.fadeIn();
-            button.prop('disabled', false);
+            //button.prop('disabled', false);
         }
         merchant.empty();
         merchant.html(optionsHTML);
         if (isCorrectSum()) {
-            button.prop('disabled',false);
+            //button.prop('disabled',false);
         } else {
             button.prop('disabled',true);
         }
@@ -382,7 +427,8 @@ $(function(){
                 }
             });
         }
-        return result;
+        //return result;
+        return true;
     }
 
     function fillModalWindow(type,amount,currency) {
@@ -482,29 +528,4 @@ $(function(){
         }
     });
 
-    sum.on('keydown', function (e) {
-        var k = e.which;
-        /* numeric inputs can come from the keypad or the numeric row at the top */
-        if (k != 37 && k != 39 && k != 8 && k != 190 && (k < 48 || k > 57) && (k < 96 || k > 105)) {
-            e.preventDefault();
-            return false;
-        }
-    });
-
-    sum.on('keyup', function (e) {
-        if (operationType.val() === 'INPUT') {
-            if (parseFloat(sum.val()) >= 0.01){
-                button.prop('disabled',false);
-            }else {
-                button.prop('disabled',true);
-            }
-        }else {
-            if (isCorrectSum()) {
-                button.prop('disabled',false);
-            } else {
-                button.prop('disabled',true);
-            }
-        }
-
-    });
 });

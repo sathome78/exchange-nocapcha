@@ -69,7 +69,7 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Override
     public String amountToString(final BigDecimal amount, final String currency) {
         return amount.setScale(resolvePrecision(currency), ROUND_CEILING)
-                .stripTrailingZeros()
+//                .stripTrailingZeros()
                 .toString();
     }
 

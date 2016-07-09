@@ -41,7 +41,7 @@
                             <label style="font-size: 15px"><loc:message code="merchants.sum"/></label>
                         </div>
                         <div class="col-md-8 input-block-wrapper__input-wrapper" style="margin-bottom: 15px; height: auto">
-                            <form:input class="form-control" pattern="/\d*\.\d{1,2}/" placeholder="0.0"
+                            <form:input class="form-control input-block-wrapper__input numericInputField"
                                         id="sum" path="sum"/>
                         </div>
                         <div style="text-align: center;">

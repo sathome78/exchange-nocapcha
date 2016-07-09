@@ -35,7 +35,7 @@
                                 <label style="font-size: 15px" for="sum"><loc:message code="merchants.sum"/></label>
                             </div>
                             <div class="col-md-8 input-block-wrapper__input-wrapper">
-                                <form:input class="form-control input-block-wrapper__input" placeholder="0.0"
+                                <form:input class="form-control input-block-wrapper__input numericInputField"
                                             id="sum" path="sum"/>
                             </div>
                         </div>
