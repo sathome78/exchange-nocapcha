@@ -23,8 +23,7 @@
                                 <select name="currency" id="currency" class="form-control">
                                     <c:forEach items="${wallets}" var="wallet">
                                         <option data-currency="${wallet.name}" value='<c:out value="${wallet.currencyId}"/>'<c:if test="${wallet.currencyId eq currentCurrency.getId()}">SELECTED</c:if>>
-                                            <c:out value="${wallet.name}"/>
-                                            <c:out value="${wallet.activeBalance}"/>
+                                            <c:out value='${wallet.name} ${wallet.activeBalance}'/>
                                         </option>
                                     </c:forEach>
                                 </select>

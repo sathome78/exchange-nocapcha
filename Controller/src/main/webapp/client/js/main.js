@@ -83,12 +83,22 @@ $(function(){
             var val = $(this).val();
             var regx = /^(^[1-9]+\d*((\.{1}\d*)|(\d*)))|(^0{1}\.{1}\d*)|(^0{1})$/;
             var result = val.match(regx);
+            var maxSum = 999999.99;
             if (!result || result[0] != val) {
                 $(this).val('');
             }
+            if ( val >= maxSum){
+                $(this).val(maxSum);
+            }
+            if (operationType.val() === 'OUTPUT') {
+                maxWalletSum = parseFloat($("#currency").find(":selected").html().trim().split(' ')[1]);
+                if ( val >= maxWalletSum){
+                    $(this).val(maxWalletSum);
+                }
+            }
             var decimal = $(this).val().split('.')[1];
-            if (decimal && decimal.length >= 2) {
-                $(this).val(+(+$(this).val()).toFixed(2));
+            if (decimal && decimal.length > 2) {
+                $(this).val($(this).val().slice(0,-1));
 
             }
             if (parseFloat(sum.val()) > 0){

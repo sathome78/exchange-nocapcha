@@ -36,7 +36,7 @@
                             </div>
                             <div class="col-md-8 input-block-wrapper__input-wrapper">
                                 <form:input class="form-control input-block-wrapper__input numericInputField"
-                                            id="sum" path="sum"/>
+                                            id="sum" path="sum" />
                             </div>
                         </div>
 
