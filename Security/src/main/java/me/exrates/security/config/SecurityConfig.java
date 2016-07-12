@@ -111,6 +111,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, "/merchants/edrcoin/payment/received").permitAll()
                 .antMatchers(HttpMethod.GET, "/merchants/blockchain/payment/received").permitAll()
                 .antMatchers(HttpMethod.GET, "/public/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/favicon.ico").permitAll()
                 .antMatchers(HttpMethod.GET, "/news/**").permitAll()
                 .antMatchers("/stickyImg").permitAll()
                 .antMatchers("/simpleCaptcha").permitAll()

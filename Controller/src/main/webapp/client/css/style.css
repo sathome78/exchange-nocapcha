@@ -329,8 +329,9 @@ th, td {
     cursor: pointer;
 }
 
-.currency_table th:first-child {
-    width: 133px;
+.currency_table th:first-child,
+.currency_table tr td:first-child {
+    width: 90px;
 }
 
 /*my*/
@@ -339,8 +340,9 @@ th, td {
     text-align: center;
 }
 
-.currency_table th:last-child {
-    width: 79px;
+.currency_table th:last-child,
+.currency_table tr td:last-child {
+    width: 122px;
 }
 
 .currency_table {
@@ -838,17 +840,16 @@ td.blue-white {
 			LEFT-SIDER (me)
 ********************************/
 .refferal__reference {
-    position: absolute;
     font-size: 11px;
     height: 13px;
     font-weight: 400;
     margin: 5px 0;
     white-space: nowrap;
     overflow: hidden;
-    max-width: 220px;
 }
 
 .refferal__reference:hover{
+    position: absolute;
     min-width: 300px;
 }
 
@@ -856,9 +857,10 @@ td.blue-white {
     color: #ffff00;
 }
 
-.refferal__button-wrapper{
-    margin: 20px 0 0 0;
+.refferal__reference:hover ~ .refferal__button-wrapper{
+    margin: 23px 0 0 0;
 }
+
 .refferal__button {
     display: inline-block;
     width: 47%;

@@ -77,6 +77,11 @@ function LeftSiderClass() {
             },
             success: function (data) {
                 if (!data) return;
+                if ('redirect' in data) {
+                    var registered = $('#hello-my-friend')[0];
+                    window.location = data.redirect.url + (data.redirect.urlParam1 && registered ? "?errorNoty=" + data.redirect.urlParam1 : '');
+                    return;
+                }
                 data = data['list'];
                 if (data.length == 0 || data[0].needRefresh) {
                     var $tmpl = $('#currency_table_row').html().replace(/@/g, '%');
@@ -92,12 +97,12 @@ function LeftSiderClass() {
                     that.getStatisticsForAllCurrencies(true);
                 }, refreshIntervalForStatisticsForAllCurrencies);
                 if (showLog) {
-                    console.log(new Date() + ' getStatisticsForAllCurrencies '+ ' success');
+                    console.log(new Date() + ' getStatisticsForAllCurrencies ' + ' success');
                 }
             },
             error: function (jqXHR, status, error) {
                 if (showLog) {
-                    console.log(new Date() + ' getStatisticsForAllCurrencies '+ ' error: '+jqXHR+' | '+status+' | '+error);
+                    console.log(new Date() + ' getStatisticsForAllCurrencies ' + ' error: ' + jqXHR + ' | ' + status + ' | ' + error);
                 }
             }
         });
@@ -110,17 +115,17 @@ function LeftSiderClass() {
         $('#refferal-copy').on('click', function () {
             selectAndCopyText($('#refferal-reference')[0]);
         });
-        $('#pair-filter').on('keyup', function(e){
+        $('#pair-filter').on('keyup', function (e) {
             setPairFilter();
         });
         generateReferral();
     })();
 
-    function setPairFilter(){
+    function setPairFilter() {
         var str = $('#pair-filter').val().toUpperCase();
-        $('#currency_table').find('td:first-child').each(function(idx){
+        $('#currency_table').find('td:first-child').each(function (idx) {
             var pair = $(this).text();
-            if (!pair || pair.indexOf(str) != -1){
+            if (!pair || pair.indexOf(str) != -1) {
                 $(this).parent().removeClass('hidden');
             } else {
                 $(this).parent().addClass('hidden');

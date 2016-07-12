@@ -78,7 +78,7 @@ public class DashboardController {
         if (principal != null) {
             userService.setPreferedLang(userService.getIdByEmail(principal.getName()), localeResolver.resolveLocale(request));
         }
-        request.getSession(true);
+        request.getSession();
     }
 
     @RequestMapping(value = {"/dashboard"})

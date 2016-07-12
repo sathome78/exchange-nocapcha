@@ -278,7 +278,7 @@ public class OrderDaoImpl implements OrderDao {
                 "   GROUP BY currency_pair_id          " +
                 "   ) " +
                 " AGRIGATE " +
-                " LEFT JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = AGRIGATE.currency_pair_id)";
+                " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = AGRIGATE.currency_pair_id) AND (CURRENCY_PAIR.hidden IS NOT TRUE)";
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("status_id", String.valueOf(3));
@@ -336,7 +336,7 @@ public class OrderDaoImpl implements OrderDao {
                 "        EO.date_acception >= now() - INTERVAL " + backDealInterval.getInterval() +
                 "    GROUP BY EO.currency_pair_id, EO.status_id) " +
                 "    AGRIGATE " +
-                "    JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = AGRIGATE.currency_pair_id) " +
+                "    JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = AGRIGATE.currency_pair_id) AND (CURRENCY_PAIR.hidden IS NOT TRUE) " +
                 "    LEFT JOIN EXORDERS LOWESTASKORDER ON (LOWESTASKORDER.date_acception >= AGRIGATE.first_date_acception) AND " +
                 "                                    (LOWESTASKORDER.currency_pair_id=AGRIGATE.currency_pair_id) AND " +
                 "                                    (LOWESTASKORDER.status_id=AGRIGATE.status_id) AND " +

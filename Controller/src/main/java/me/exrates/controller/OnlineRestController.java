@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.Principal;
@@ -85,8 +86,8 @@ public class OnlineRestController {
     }
 
     @RequestMapping(value = "/dashboard/myWalletsStatistic", method = RequestMethod.GET)
-    public List<MyWalletsStatisticsDto> getStatisticsForAllCurrencies(@RequestParam(required = false) Boolean refreshIfNeeded,
-                                                                      Principal principal, HttpServletRequest request) {
+    public List<MyWalletsStatisticsDto> getMyWalletsStatisticsForAllCurrencies(@RequestParam(required = false) Boolean refreshIfNeeded,
+                                                                               Principal principal, HttpServletRequest request) {
         if (principal == null) {
             return null;
         }
@@ -98,12 +99,23 @@ public class OnlineRestController {
     }
 
     @RequestMapping(value = "/dashboard/currencyPairStatistic", method = RequestMethod.GET)
-    public Map<String, List<ExOrderStatisticsShortByPairsDto>> getStatisticsForAllCurrencies(@RequestParam(required = false) Boolean refreshIfNeeded,
-                                                                                             HttpServletRequest request) throws IOException {
+    public Map<String, ?> getCurrencyPairStatisticsForAllCurrencies(
+            @RequestParam(required = false) Boolean refreshIfNeeded,
+            Principal principal,
+            HttpServletRequest request) throws IOException {
+        HttpSession session = request.getSession(true);
+        if (session.isNew()) {
+            return new HashMap<String, HashMap<String, String>>() {{
+                put("redirect", new HashMap<String, String>() {{
+                    put("url", "/dashboard");
+                    put("urlParam1", messageSource.getMessage("session.expire", null, localeResolver.resolveLocale(request)));
+                }});
+            }};
+        }
         String cacheKey = "currencyPairStatistic" + request.getHeader("windowid");
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
         CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
-        return new HashMap() {{
+        return new HashMap<String, List<ExOrderStatisticsShortByPairsDto>>() {{
             put("list", orderService.getOrdersStatisticByPairs(cacheData, localeResolver.resolveLocale(request)));
         }};
     }
@@ -450,5 +462,11 @@ public class OnlineRestController {
         tableParams.updateEofState(result);
         return result;
     }
+
+    @RequestMapping("dashboard/evictsession")
+    public void evictSession(HttpServletRequest request) {
+        request.getSession().invalidate();
+    }
+
 
 }

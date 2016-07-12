@@ -75,6 +75,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 				"(select name from CURRENCY where id = currency1_id) as currency1_name,\n" +
 				"(select name from CURRENCY where id = currency2_id) as currency2_name\n" +
 				" FROM CURRENCY_PAIR " +
+				" WHERE hidden IS NOT TRUE " +
 				" ORDER BY -pair_order DESC";
 
 		List<CurrencyPair> currencyPairList = jdbcTemplate.query(sql, (rs, row) -> {
