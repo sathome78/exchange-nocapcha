@@ -41,6 +41,6 @@ public class CommissionDaoImpl implements CommissionDao{
 		params.put("currency", currency);
 		params.put("merchant", merchant);
 
-		return jdbcTemplate.queryForObject(sql, params, BigDecimal.class);
+		return BigDecimal.valueOf(jdbcTemplate.queryForObject(sql, params, Double.class));
 	}
 }

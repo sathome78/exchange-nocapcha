@@ -23,8 +23,7 @@
                                 <select name="currency" id="currency" class="form-control">
                                     <c:forEach items="${wallets}" var="wallet">
                                         <option data-currency="${wallet.name}" value='<c:out value="${wallet.currencyId}"/>'<c:if test="${wallet.currencyId eq currentCurrency.getId()}">SELECTED</c:if>>
-                                            <c:out value="${wallet.name}"/>
-                                            <c:out value="${wallet.activeBalance}"/>
+                                            <c:out value='${wallet.name} ${wallet.activeBalance}'/>
                                         </option>
                                     </c:forEach>
                                 </select>
@@ -41,7 +40,7 @@
                             <label style="font-size: 15px"><loc:message code="merchants.sum"/></label>
                         </div>
                         <div class="col-md-8 input-block-wrapper__input-wrapper" style="margin-bottom: 15px; height: auto">
-                            <form:input class="form-control" pattern="/\d*\.\d{1,2}/" placeholder="0.0"
+                            <form:input class="form-control input-block-wrapper__input numericInputField"
                                         id="sum" path="sum"/>
                         </div>
                         <div style="text-align: center;">

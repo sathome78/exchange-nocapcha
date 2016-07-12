@@ -40,4 +40,6 @@ public interface TransactionService {
     DataTable<List<OperationViewDto>> showUserOperationHistory(int id, Locale locale, Map<String,String> viewParams);
 
     List<AccountStatementDto> getAccountStatement (CacheData cacheData, Integer walletId, Integer offset, Integer limit, Locale locale);
+
+    List<Transaction> getInvoiceOpenTransactions();
 }

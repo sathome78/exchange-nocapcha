@@ -74,7 +74,7 @@
                         </div>
                         <div>
                             <label for="sum"><loc:message code="merchants.sum"/></label>
-                            <paymentForm:input class="form-control" placeholder="0.0"
+                            <paymentForm:input class="form-control numericInputField" placeholder="0.0"
                                                id="sum" path="sum"/>
                         </div>
                         <button type="button" data-toggle="modal" id="assertInputPay" name="assertInputPay"

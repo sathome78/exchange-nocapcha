@@ -148,6 +148,8 @@
                 <%--форма финансисты--%>
                 <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
                     <div id="panel3" class="tab-pane">
+                        <button onclick="javascript:window.location.href='/transaction_invoice';" id="admin-transaction-invoices">
+                            <loc:message code="transaction.titleInvoice"/></button>
                         <h4>
                             <p><a class="link" href="companywallet"><loc:message code="admin.companyWallet"/></a></p>
 
