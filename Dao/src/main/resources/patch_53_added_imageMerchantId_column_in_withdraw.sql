@@ -10,4 +10,4 @@ ADD CONSTRAINT `withdraw_request_ibfk_3`
 
 
 
-INSERT INTO DATABASE_PATCH VALUES('patch_51_added_imageMerchantId_column_in_withdraw',default,1);
+INSERT INTO DATABASE_PATCH VALUES('patch_53_added_imageMerchantId_column_in_withdraw',default,1);
