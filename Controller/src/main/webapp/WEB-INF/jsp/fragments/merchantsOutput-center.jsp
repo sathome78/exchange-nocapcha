@@ -6,59 +6,60 @@
         </label>
     </c:if>
     <c:choose>
-        <c:when test="${empty wallets}">
+        <c:when test="${empty merchantCurrencyData}">
             <loc:message code="merchants.noWallet"/>
         </c:when>
         <c:otherwise>
             <div class="row">
-                <div class="col-sm-9" style="margin-bottom: 15px;">
+                <div >
                     <form:form id="payment" class="form-horizontal withdraw__money" name="payment" method="post"
                                       modelAttribute="payment" action="/merchants/payment/withdraw">
                         <div class="input-block-wrapper clearfix" >
                                 <%--Currency to withdraw--%>
-                            <div class="col-md-4 input-block-wrapper__label-wrapper">
-                                <label style="font-size: 15px" class="input-block-wrapper__label" ><loc:message code="merchants.currencyforoutput"/></label>
-                            </div>
-                            <div class="col-md-8 input-block-wrapper__input-wrapper" style="margin-bottom: 15px; height: auto">
-                                <select name="currency" id="currency" class="form-control">
-                                    <c:forEach items="${wallets}" var="wallet">
-                                        <option data-currency="${wallet.name}" value='<c:out value="${wallet.currencyId}"/>'<c:if test="${wallet.currencyId eq currentCurrency.getId()}">SELECTED</c:if>>
-                                            <c:out value='${wallet.name} ${wallet.activeBalance}'/>
-                                        </option>
-                                    </c:forEach>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-4 input-block-wrapper__label-wrapper" >
-                            <label for="merchant" style="font-size: 15px" class="input-block-wrapper__label" ><loc:message code="merchants.meansOfPayment"/></label>
-                        </div>
-                        <div class="col-md-8 input-block-wrapper__input-wrapper" style="margin-bottom: 15px; height: auto">
-                            <form:select id="merchant" path="merchant" class="form-control"/>
-                        </div>
-
-                        <div class="col-md-4 input-block-wrapper__label-wrapper" >
-                            <label style="font-size: 15px"><loc:message code="merchants.sum"/></label>
-                        </div>
-                        <div class="col-md-8 input-block-wrapper__input-wrapper" style="margin-bottom: 15px; height: auto">
-                            <form:input class="form-control input-block-wrapper__input numericInputField"
-                                        id="sum" path="sum"/>
-                        </div>
-                        <div style="text-align: center;">
-                            <form:hidden path="operationType"/>
-                            <form:hidden id="destination" path="destination"/>
-                                <%--Withdraw--%>
-                            <div class="col-md-8 input-block-wrapper__input-wrapper" style="height: auto; float: right">
-                                <button onclick="finPassCheck('myModal', submitMerchantsOutput)" type="button" id="assertOutputPay"
-                                <%--<button type="button" id="assertOutputPay" data-toggle="modal" data-target="#myModal"--%>
-                                        class="btn btn-primary">
-                                    <loc:message code="merchants.withdraw"/>
-                                </button>
+                            <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:160px">
+                                <label style="font-size: 15px" for="currencyFull" class="input-block-wrapper__label" ><loc:message code="merchants.currencyforoutput"/></label>
                             </div>
 
+                            <div class="col-md-8 input-block-wrapper__input-wrapper">
+                                <input id="currency" name="currency" hidden="true" value="${currency.getId()}" />
+                                <input id="currencyName" name="currencyName" hidden="true" value="${currency.getName()}" />
+                                <input class="form-control input-block-wrapper__input"
+                                       style="float: left; width: auto" id="currencyFull" readonly="true" value="<c:out value='${wallet.name} ${wallet.activeBalance}'/>" />
+                            </div>
+                            <br>
+                            <br>
+                            <br>
+                            <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:160px">
+                                <label style="font-size: 15px" for="sum"><loc:message code="merchants.sum"/></label>
+                            </div>
+                            <div style="width: auto; " class="col-md-8 input-block-wrapper__input-wrapper">
+                                <form:input class="form-control input-block-wrapper__input numericInputField"
+                                          id="sum" path="sum" />
+                            </div>
                         </div>
+
+                        <b hidden id="buttonMessage"><loc:message code="merchants.withdraw" /></b>
+                        <div id="merchantList">
+                            <br>
+                            <c:forEach var="merchantCurrency" items="${merchantCurrencyData}" >
+                                <c:forEach var="merchantImage" items="${merchantCurrency.listMerchantImage}" >
+                                    <div style=" width: 700px; height: 48px; ">
+                                        <div style="float: left; width: 341px; text-align: right; margin-right: 10px; ">
+                                            <img class="img-thumbnail" src="${merchantImage.image_path}" style="width: 168px; height: 52px"/>
+
+                                        </div>
+                                        <button style="position: relative; top: 50%; -webkit-transform: translateY(-50%); -ms-transform: translateY(-50%); transform: translateY(-50%);" type="button" value="${merchantCurrency.merchantId}:${merchantCurrency.name}:${merchantCurrency.minSum}:${merchantImage.id}"  name="assertOutputPay"
+                                                onclick="finPassCheck('myModal', submitMerchantsOutput)" class="btn btn-primary btn-lg"><loc:message code="merchants.withdraw"/></button>
+                                    </div>
+                                    <br>
+                                </c:forEach>
+                            </c:forEach>
+                        </div>
+                        <form:hidden path="operationType"/>
+                        <form:hidden id="destination" path="destination"/>
                     </form:form>
                 </div>
-                <div class="col-sm-3"></div>
+                <%--<div class="col-sm-3"></div>--%>
             </div>
         </c:otherwise>
     </c:choose>

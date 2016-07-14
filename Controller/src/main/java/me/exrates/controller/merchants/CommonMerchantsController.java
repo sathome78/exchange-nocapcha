@@ -82,14 +82,21 @@ public class CommonMerchantsController {
     }
 
     @RequestMapping(value = "/output", method = GET)
-    public ModelAndView outputCredits(@RequestParam("currency") String currency, Principal principal) {
+    public ModelAndView outputCredits(@RequestParam("currency") String currencyName, Principal principal) {
         final ModelAndView modelAndView = new ModelAndView("globalPages/merchantsOutput");
         final List<Wallet> wallets = walletService.getAllWallets(userService.getIdByEmail(principal.getName()));
+        final Currency currency = currencyService.findByName(currencyName);
+        final Wallet wallet = walletService.findByUserAndCurrency(userService.findByEmail(principal.getName()), currency);
         final Payment payment = new Payment();
         payment.setOperationType(OUTPUT);
-        modelAndView.addObject("wallets",wallets);
+
+        modelAndView.addObject("currency",currency);
+
+        modelAndView.addObject("wallet",wallet);
         modelAndView.addObject("payment", payment);
-        modelAndView.addObject("currentCurrency",currencyService.findByName(currency));
+        final List<Integer> currenciesId = new ArrayList<>();
+        currenciesId.add(currency.getId());
+        modelAndView.addObject("merchantCurrencyData",merchantService.findAllByCurrencies(currenciesId));
 
         return modelAndView;
     }

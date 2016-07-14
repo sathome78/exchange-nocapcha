@@ -48,6 +48,7 @@ $(function(){
     var merchant = $('#merchant');
     var merchantName;
     var merchantMinSum;
+    var merchantImageId;
     var sum = $('#sum');
     var operationType = $('#operationType');
     var modalTemplate = $('.paymentInfo p');
@@ -91,7 +92,7 @@ $(function(){
                 $(this).val(maxSum);
             }
             if (operationType.val() === 'OUTPUT') {
-                maxWalletSum = parseFloat($("#currency").find(":selected").html().trim().split(' ')[1]);
+                maxWalletSum = parseFloat($("#currencyFull").val().split(' ')[1]);
                 if ( val >= maxWalletSum){
                     $(this).val(maxWalletSum);
                 }
@@ -220,7 +221,8 @@ $(function(){
                 dataType: 'json',
                 data: JSON.stringify($(form).serializeObject())
             }).done(function (response) {
-                $('#currency').find(':selected').html(response['balance']);
+                //$('#currency').find(':selected').html(response['balance']);
+                //$('#currencyFull')..html(response['balance']);
                 responseControls();
                 $('.paymentInfo').html(response['success']);
                 $('.wallet_input').hide();
@@ -419,25 +421,12 @@ $(function(){
 
     function isCorrectSum() {
         var result = false;
-        if (operationType.val() === 'INPUT') {
             if (merchantName !== 'Blockchain'){
                 var targetSum = parseFloat(sum.val());
                 if (targetSum >= merchantMinSum) {
                     return result = true;
                 }
             }
-        }else {
-            $.each(merchantsData,function(index) {
-                if (merchantsData[index].merchantId == merchant.val() && merchantsData[index].name !== 'Blockchain') {
-                    var minSum = parseFloat(merchantsData[index].minSum);
-                    var targetSum = parseFloat(sum.val());
-                    if (targetSum >= minSum) {
-                        return result = true;
-                    }
-                }
-            });
-        }
-        //return result;
         return true;
     }
 
@@ -489,9 +478,8 @@ $(function(){
     function submitProcess() {
         var targetMerchant = merchantName;
         var paymentForm = $('#payment');
-        if (operationType.val() === 'INPUT') {
-            paymentForm.append('<input type="hidden" name="merchant" value="' + merchant + '">');
-        }
+        paymentForm.append('<input type="hidden" name="merchant" value="' + merchant + '">');
+        paymentForm.append('<input type="hidden" name="merchantImage" value="' + merchantImageId + '">');
         resetFormAction(operationType.val(), targetMerchant,paymentForm);
         resetPaymentFormData(targetMerchant,paymentForm,function(){
             paymentForm.submit();
@@ -499,10 +487,7 @@ $(function(){
     }
 
     function getCurrentCurrency() {
-        if (operationType.val() === 'INPUT') {
-            return $("#currencyName").val();
-        }
-        return $("#currency").find(":selected").html().trim().split(' ')[0];
+        return $("#currencyName").val();
     }
 
     $('button[name=assertInputPay]').click(function()  {
@@ -510,21 +495,25 @@ $(function(){
         merchant = arr[0];
         merchantName = arr[1];
         merchantMinSum = parseFloat(arr[2]);
+        merchantImageId = parseFloat(arr[3]);
 
         if (isCorrectSum()) {
             fillModalWindow('INPUT', sum.val(), getCurrentCurrency());
         }
     });
 
-    if ($("#assertOutputPay").length) {
-        $("#assertOutputPay").bind('click',function() {
+        $('button[name=assertOutputPay]').click(function()  {
+            var arr = this.value.split(':');
+            merchant = arr[0];
+            merchantName = arr[1];
+            merchantMinSum = parseFloat(arr[2]);
+            merchantImageId = parseFloat(arr[3]);
+
             $('.wallet_input').show();
             setTimeout("$('.wallet_input>input').focus().val('')",200);
             requestControls();
-            merchantName = merchant.find(':selected').html();
-            fillModalWindow('OUTPUT',sum.val(),$('select[name="currency"]').find(':selected').data('currency'));
+            fillModalWindow('OUTPUT',sum.val(),getCurrentCurrency());
         });
-    }
 
     $('#inputPaymentProcess').on('click', function () {
         submitProcess();

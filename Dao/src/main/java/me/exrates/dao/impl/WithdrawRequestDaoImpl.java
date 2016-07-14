@@ -1,6 +1,7 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.WithdrawRequestDao;
+import me.exrates.model.MerchantImage;
 import me.exrates.model.Transaction;
 import me.exrates.model.WithdrawRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,10 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
         final WithdrawRequest request = new WithdrawRequest();
         request.setUserEmail(resultSet.getString("email"));
         request.setWallet(resultSet.getString("wallet"));
+        MerchantImage merchantImage = new MerchantImage();
+        merchantImage.setId(resultSet.getInt("merchant_image_id"));
+        merchantImage.setImage_name(resultSet.getString("image_name"));
+        request.setMerchantImage(merchantImage);
         request.setTransaction(transaction);
         request.setProcessedBy(resultSet.getString("admin_email"));
         request.setAcceptance(resultSet
@@ -43,6 +48,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
 
     private final static String SELECT_ALL_REQUESTS =
             " SELECT WITHDRAW_REQUEST.acceptance, WITHDRAW_REQUEST.wallet, WITHDRAW_REQUEST.processed_by, " +
+                    "WITHDRAW_REQUEST.merchant_image_id, MERCHANT_IMAGE.image_name, " +
                     "USER.email,(SELECT EMAIL from USER WHERE id = WITHDRAW_REQUEST.processed_by) as admin_email, " +
                     "TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime, " +
                     "TRANSACTION.operation_type_id,TRANSACTION.provided,TRANSACTION.confirmation, WALLET.id,WALLET.active_balance, " +
@@ -56,17 +62,19 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
                     "INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id " +
                     "INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id " +
                     "INNER JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id " +
-                    "INNER JOIN USER ON WALLET.user_id = USER.id";
+                    "INNER JOIN USER ON WALLET.user_id = USER.id " +
+                    "LEFT JOIN MERCHANT_IMAGE ON WITHDRAW_REQUEST.merchant_image_id = MERCHANT_IMAGE.id";
 
     @Override
     public void create(WithdrawRequest withdrawRequest) {
-        final String sql = "INSERT INTO WITHDRAW_REQUEST (transaction_id,wallet) VALUES (:id,:wallet)";
+        final String sql = "INSERT INTO WITHDRAW_REQUEST (transaction_id,wallet, merchant_image_id) VALUES (:id,:wallet, :merchant_image_id)";
         final Map<String, Object> params = new HashMap<String,Object>(){
             {
                 put("id", withdrawRequest
                         .getTransaction()
                         .getId());
                 put("wallet", withdrawRequest.getWallet());
+                put("merchant_image_id", withdrawRequest.getMerchantImage().getId());
             }
         };
         jdbcTemplate.update(sql, params);

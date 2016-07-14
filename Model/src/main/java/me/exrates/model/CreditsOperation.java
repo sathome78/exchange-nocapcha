@@ -18,6 +18,7 @@ public class CreditsOperation {
     private final Currency currency;
     private final Merchant merchant;
     private final Optional<String> destination;
+    private final Optional<MerchantImage> merchantImage;
 
     private CreditsOperation(Builder builder) {
         this.user = builder.user;
@@ -29,6 +30,9 @@ public class CreditsOperation {
         this.merchant = builder.merchant;
         this.destination = builder.destination == null ?
                 Optional.empty() : builder.destination;
+        this.merchantImage = builder.merchantImage == null ?
+                Optional.empty() : builder.merchantImage;
+
     }
 
     public User getUser() {
@@ -63,6 +67,10 @@ public class CreditsOperation {
         return destination;
     }
 
+    public Optional<MerchantImage> getMerchantImage() {
+        return merchantImage;
+    }
+
     public static class Builder {
 
         private User user;
@@ -73,6 +81,7 @@ public class CreditsOperation {
         private Currency currency;
         private Merchant merchant;
         private Optional<String> destination;
+        private Optional<MerchantImage> merchantImage;
 
         public Builder user(User user) {
             this.user = user;
@@ -114,6 +123,11 @@ public class CreditsOperation {
             return this;
         }
 
+        public Builder merchantImage(MerchantImage merchantImage) {
+            this.merchantImage = Optional.ofNullable(merchantImage);
+            return this;
+        }
+
         public CreditsOperation build() {
             return new CreditsOperation(this);
         }
@@ -134,7 +148,8 @@ public class CreditsOperation {
         if (commission != null ? !commission.equals(that.commission) : that.commission != null) return false;
         if (currency != null ? !currency.equals(that.currency) : that.currency != null) return false;
         if (merchant != null ? !merchant.equals(that.merchant) : that.merchant != null) return false;
-        return destination != null ? destination.equals(that.destination) : that.destination == null;
+        if (destination != null ? !destination.equals(that.destination) : that.destination != null) return false;
+        return merchantImage != null ? merchantImage.equals(that.merchantImage) : that.merchantImage == null;
 
     }
 
@@ -148,20 +163,22 @@ public class CreditsOperation {
         result = 31 * result + (currency != null ? currency.hashCode() : 0);
         result = 31 * result + (merchant != null ? merchant.hashCode() : 0);
         result = 31 * result + (destination != null ? destination.hashCode() : 0);
+        result = 31 * result + (merchantImage != null ? merchantImage.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString() {
         return "CreditsOperation{" +
-            "user=" + user +
-            ", amount=" + amount +
-            ", commissionAmount=" + commissionAmount +
-            ", operationType=" + operationType +
-            ", commission=" + commission +
-            ", currency=" + currency +
-            ", merchant=" + merchant +
-            ", destination=" + destination +
-            '}';
+                "user=" + user +
+                ", amount=" + amount +
+                ", commissionAmount=" + commissionAmount +
+                ", operationType=" + operationType +
+                ", commission=" + commission +
+                ", currency=" + currency +
+                ", merchant=" + merchant +
+                ", destination=" + destination +
+                ", merchantImage=" + merchantImage +
+                '}';
     }
 }

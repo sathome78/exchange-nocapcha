@@ -12,6 +12,7 @@ public class WithdrawRequest {
     private String processedBy;
     private String wallet;
     private String userEmail;
+    private MerchantImage merchantImage;
 
     public Transaction getTransaction() {
         return transaction;
@@ -53,18 +54,27 @@ public class WithdrawRequest {
         this.userEmail = userEmail;
     }
 
+    public MerchantImage getMerchantImage() {
+        return merchantImage;
+    }
+
+    public void setMerchantImage(MerchantImage merchantImage) {
+        this.merchantImage = merchantImage;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        WithdrawRequest request = (WithdrawRequest) o;
+        WithdrawRequest that = (WithdrawRequest) o;
 
-        if (transaction != null ? !transaction.equals(request.transaction) : request.transaction != null) return false;
-        if (acceptance != null ? !acceptance.equals(request.acceptance) : request.acceptance != null) return false;
-        if (processedBy != null ? !processedBy.equals(request.processedBy) : request.processedBy != null) return false;
-        if (wallet != null ? !wallet.equals(request.wallet) : request.wallet != null) return false;
-        return userEmail != null ? userEmail.equals(request.userEmail) : request.userEmail == null;
+        if (transaction != null ? !transaction.equals(that.transaction) : that.transaction != null) return false;
+        if (acceptance != null ? !acceptance.equals(that.acceptance) : that.acceptance != null) return false;
+        if (processedBy != null ? !processedBy.equals(that.processedBy) : that.processedBy != null) return false;
+        if (wallet != null ? !wallet.equals(that.wallet) : that.wallet != null) return false;
+        if (userEmail != null ? !userEmail.equals(that.userEmail) : that.userEmail != null) return false;
+        return merchantImage != null ? merchantImage.equals(that.merchantImage) : that.merchantImage == null;
 
     }
 
@@ -75,6 +85,7 @@ public class WithdrawRequest {
         result = 31 * result + (processedBy != null ? processedBy.hashCode() : 0);
         result = 31 * result + (wallet != null ? wallet.hashCode() : 0);
         result = 31 * result + (userEmail != null ? userEmail.hashCode() : 0);
+        result = 31 * result + (merchantImage != null ? merchantImage.hashCode() : 0);
         return result;
     }
 
@@ -86,6 +97,8 @@ public class WithdrawRequest {
                 ", processedBy='" + processedBy + '\'' +
                 ", wallet='" + wallet + '\'' +
                 ", userEmail='" + userEmail + '\'' +
+                ", merchantImage=" + merchantImage +
                 '}';
     }
+
 }

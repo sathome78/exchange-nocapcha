@@ -17,24 +17,24 @@
                 </c:if>
             </label>
             <div class="row">
-                <div class="col-sm-9">
+                <div >
                     <form:form class="form-horizontal withdraw__money" id="payment" name="payment" method="post"
                                       modelAttribute="payment" action="">
                         <div class="input-block-wrapper clearfix">
-                            <div class="col-md-4 input-block-wrapper__label-wrapper">
+                            <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:160px">
                                 <label style="font-size: 15px" for="currencyName" class="input-block-wrapper__label" ><loc:message code="merchants.inputCurrency"/></label>
                             </div>
-                            <div class="col-md-8 input-block-wrapper__input-wrapper">
+                            <div class="col-md-8 input-block-wrapper__input-wrapper" >
                                 <input id="currency" name="currency" hidden="true" value="${currency}" />
-                                <input class="form-control input-block-wrapper__input" id="currencyName" readonly="true" value="${currencyName}" />
+                                <input style="float: left; width: auto"  class="form-control input-block-wrapper__input" id="currencyName" readonly="true" value="${currencyName}" />
                             </div>
                             <br>
                             <br>
                             <br>
-                            <div class="col-md-4 input-block-wrapper__label-wrapper">
+                            <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:160px">
                                 <label style="font-size: 15px" for="sum"><loc:message code="merchants.sum"/></label>
                             </div>
-                            <div class="col-md-8 input-block-wrapper__input-wrapper">
+                            <div style="width: auto; " class="col-md-8 input-block-wrapper__input-wrapper">
                                 <form:input class="form-control input-block-wrapper__input numericInputField"
                                             id="sum" path="sum" />
                             </div>
@@ -46,12 +46,12 @@
                             <br>
                             <c:forEach var="merchantCurrency" items="${merchantCurrencyData}" >
                                 <c:forEach var="merchantImage" items="${merchantCurrency.listMerchantImage}" >
-                                    <div id="test" style=" width: 480px; height: 48px; ">
-                                        <div style="float: left; width: 326px; text-align: right; margin-right: 10px; ">
+                                    <div style=" width: 700px; height: 48px; ">
+                                        <div style="float: left; width: 341px; text-align: right; margin-right: 10px; ">
                                             <img class="img-thumbnail" src="${merchantImage.image_path}" style="width: 168px; height: 52px"/>
 
                                         </div>
-                                        <button style="position: relative; top: 50%; -webkit-transform: translateY(-50%); -ms-transform: translateY(-50%); transform: translateY(-50%);" type="button" value="${merchantCurrency.merchantId}:${merchantCurrency.name}:${merchantCurrency.minSum}"  name="assertInputPay"
+                                        <button style="position: relative; top: 50%; -webkit-transform: translateY(-50%); -ms-transform: translateY(-50%); transform: translateY(-50%);" type="button" value="${merchantCurrency.merchantId}:${merchantCurrency.name}:${merchantCurrency.minSum}:${merchantImage.id}"  name="assertInputPay"
                                                 data-toggle="modal" data-target="#myModal" class="btn btn-primary btn-lg"><loc:message code="merchants.deposit"/></button>
                                     </div>
                                     <br>
@@ -61,7 +61,7 @@
                         <form:hidden path="operationType"/>
                     </form:form>
                 </div>
-                <div class="col-sm-3"></div>
+                <%--<div class="col-sm-3"></div>--%>
             </div>
         </div>
         <div class="col-sm-3"></div>

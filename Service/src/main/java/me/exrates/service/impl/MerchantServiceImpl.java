@@ -3,16 +3,7 @@ package me.exrates.service.impl;
 import javafx.util.Pair;
 import me.exrates.dao.MerchantDao;
 import me.exrates.dao.WithdrawRequestDao;
-import me.exrates.model.Commission;
-import me.exrates.model.CreditsOperation;
-import me.exrates.model.Currency;
-import me.exrates.model.Email;
-import me.exrates.model.Merchant;
-import me.exrates.model.MerchantCurrency;
-import me.exrates.model.Payment;
-import me.exrates.model.Transaction;
-import me.exrates.model.User;
-import me.exrates.model.WithdrawRequest;
+import me.exrates.model.*;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.WithdrawalRequestStatus;
 import me.exrates.service.BlockchainService;
@@ -154,6 +145,9 @@ public class MerchantServiceImpl implements MerchantService {
         creditsOperation
                 .getDestination()
                 .ifPresent(request::setWallet);
+        creditsOperation
+                .getMerchantImage()
+                .ifPresent(request::setMerchantImage);
         request.setTransaction(transaction);
         withdrawRequestDao.create(request);
         String notification = null;
@@ -384,6 +378,8 @@ public class MerchantServiceImpl implements MerchantService {
         final Merchant merchant = merchantDao.findById(payment.getMerchant());
         final Currency currency = currencyService.findById(payment.getCurrency());
         final String destination = payment.getDestination();
+        final MerchantImage merchantImage = new MerchantImage();
+        merchantImage.setId(payment.getMerchantImage());
         try {
             if (!isPayable(merchant,currency,amount)) {
                 LOG.warn("Merchant respond as not support this pay " + payment);
@@ -416,6 +412,7 @@ public class MerchantServiceImpl implements MerchantService {
                 .currency(currency)
                 .merchant(merchant)
                 .destination(destination)
+                .merchantImage(merchantImage)
                 .build();
         return Optional.of(creditsOperation);
     }

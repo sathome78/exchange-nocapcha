@@ -76,6 +76,8 @@
                             </td>
                             <td>
                                 ${requests.transaction.merchant.name}
+                                ${requests.merchantImage.image_name}
+
                             </td>
                             <td>
                                 ${requests.wallet}
