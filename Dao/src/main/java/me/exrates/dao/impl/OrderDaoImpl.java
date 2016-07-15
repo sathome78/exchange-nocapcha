@@ -278,7 +278,8 @@ public class OrderDaoImpl implements OrderDao {
                 "   GROUP BY currency_pair_id          " +
                 "   ) " +
                 " AGRIGATE " +
-                " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = AGRIGATE.currency_pair_id) AND (CURRENCY_PAIR.hidden IS NOT TRUE)";
+                " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = AGRIGATE.currency_pair_id) AND (CURRENCY_PAIR.hidden IS NOT TRUE)"+
+                " ORDER BY -CURRENCY_PAIR.pair_order DESC ";
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("status_id", String.valueOf(3));
