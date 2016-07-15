@@ -1,4 +1,4 @@
-<div class="col-sm-9 content">
+<div>
     <%--Deposit--%>
     <h4><loc:message code="merchants.inputTitle"/></h4>
 
@@ -8,7 +8,6 @@
         </c:if>
     </label>
     <div class="row">
-        <div class="col-sm-9 content">
             <%--Deposit--%>
 
             <label class="alert-danger has-error">
@@ -17,7 +16,6 @@
                 </c:if>
             </label>
             <div class="row">
-                <div >
                     <form:form class="form-horizontal withdraw__money" id="payment" name="payment" method="post"
                                       modelAttribute="payment" action="">
                         <div class="input-block-wrapper clearfix">
@@ -60,11 +58,7 @@
                         </div>
                         <form:hidden path="operationType"/>
                     </form:form>
-                </div>
-                <%--<div class="col-sm-3"></div>--%>
             </div>
-        </div>
-        <div class="col-sm-3"></div>
     </div>
 </div>
 

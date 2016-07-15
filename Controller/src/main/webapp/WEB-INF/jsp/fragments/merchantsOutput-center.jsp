@@ -1,4 +1,4 @@
-<div class="col-sm-9 content">
+<div>
     <h4><loc:message code="merchants.outputTitle"/></h4>
     <c:if test="${error!=null}">
         <label class="alert-danger has-error">
@@ -11,7 +11,6 @@
         </c:when>
         <c:otherwise>
             <div class="row">
-                <div >
                     <form:form id="payment" class="form-horizontal withdraw__money" name="payment" method="post"
                                       modelAttribute="payment" action="/merchants/payment/withdraw">
                         <div class="input-block-wrapper clearfix" >
@@ -58,8 +57,6 @@
                         <form:hidden path="operationType"/>
                         <form:hidden id="destination" path="destination"/>
                     </form:form>
-                </div>
-                <%--<div class="col-sm-3"></div>--%>
             </div>
         </c:otherwise>
     </c:choose>
