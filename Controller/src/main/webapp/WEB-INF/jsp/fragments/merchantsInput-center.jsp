@@ -30,7 +30,7 @@
                             <br>
                             <br>
                             <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:160px">
-                                <label style="font-size: 15px" for="sum"><loc:message code="merchants.sum"/></label>
+                                <label style="font-size: 15px" for="sum"><loc:message code="withdrawal.amount"/></label>
                             </div>
                             <div style="width: auto; " class="col-md-8 input-block-wrapper__input-wrapper">
                                 <form:input class="form-control input-block-wrapper__input numericInputField"
