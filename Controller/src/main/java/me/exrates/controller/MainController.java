@@ -112,6 +112,7 @@ public class MainController {
     public
     @ResponseBody
     Map<String, String> generateReferral(final Principal principal) {
+        if (principal == null) return null;
         return singletonMap("referral", referralService.generateReferral(principal.getName()));
     }
 

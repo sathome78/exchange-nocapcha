@@ -29,7 +29,7 @@ public class GlobalControllerExceptionHandler {
         this.userService = userService;
     }
 
-    @ExceptionHandler(MultipartException.class)
+    /*@ExceptionHandler(MultipartException.class)
     public ModelAndView handleMultipartConflict(final Locale locale) {
         final User principal = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         final me.exrates.model.User user = userService.findByEmail(principal.getUsername());
@@ -39,5 +39,5 @@ public class GlobalControllerExceptionHandler {
         mav.addObject("errorNoty", messageSource.getMessage("admin.errorUploadFiles", null, locale));
         mav.addObject("userFiles", userFiles);
         return mav;
-    }
+    }*/
 }

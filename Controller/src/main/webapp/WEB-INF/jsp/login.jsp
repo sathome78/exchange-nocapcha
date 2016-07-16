@@ -71,7 +71,7 @@
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
                             <input id="login__name" name="username"
-                                   required autofocus
+                                   autofocus
                                    placeholder="${login}"
                                    class="form-control input-block-wrapper__input"/>
                         </div>
@@ -86,7 +86,6 @@
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
                             <input id="login__password" name="password"
-                                   required
                                    type="password"
                                    placeholder="${password}"
                                    class="form-control input-block-wrapper__input"/>

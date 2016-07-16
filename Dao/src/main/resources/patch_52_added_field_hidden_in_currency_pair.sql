@@ -22,4 +22,4 @@ UPDATE CURRENCY_PAIR SET pair_order = 7 WHERE name = 'BTC/UAH';
 UPDATE CURRENCY_PAIR SET pair_order = 8 WHERE name = 'BTC/EUR';
 
 
-INSERT INTO DATABASE_PATCH VALUES('patch_51_added_field_hidden_in_currency_pair',default,1);
+INSERT INTO DATABASE_PATCH VALUES('patch_52_added_field_hidden_in_currency_pair',default,1);

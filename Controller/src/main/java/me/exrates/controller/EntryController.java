@@ -5,8 +5,12 @@ import me.exrates.controller.exception.FileLoadingException;
 import me.exrates.controller.exception.NewsCreationException;
 import me.exrates.controller.exception.NoFileForLoadingException;
 import me.exrates.model.News;
+import me.exrates.model.User;
+import me.exrates.model.UserFile;
+import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.service.NewsService;
 import me.exrates.service.UserFilesService;
+import me.exrates.service.UserService;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,33 +20,31 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.support.RequestContextUtils;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.time.LocalDate;
-import java.util.HashMap;
+import java.security.Principal;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
+/**
+ * The Controller contains methods, which mapped to entry points (main pages):
+ * - dashboard
+ * - settings
+ * - news
+ * First entry to this pages starts new session
+ */
 @Controller
 @PropertySource(value = {"classpath:/news.properties", "classpath:/captcha.properties"})
-public class NewsController {
-    private static final Logger LOG = LogManager.getLogger(NewsController.class);
-    private final int DEAFAULT_PAGE_SIZE = 20;
-    private final String TITLE_DESCRIPTION_FILE_NAME = "title.md";
-    private final String BRIEF_DESCRIPTION_FILE_NAME = "brief.md";
+public class EntryController {
+    public static final long SESSION_LIFETIME = 30*60*1000;
 
     @Autowired
     MessageSource messageSource;
@@ -54,10 +56,54 @@ public class NewsController {
     @Autowired
     private NewsService newsService;
     @Autowired
-    private UserFilesService userFilesService;
+    private UserService userService;
 
     @Value("${captcha.type}")
     String CAPTCHA_TYPE;
+
+    @RequestMapping(value = {"/dashboard"})
+    public ModelAndView dashboard(
+            @RequestParam(required = false) String errorNoty,
+            @RequestParam(required = false) String successNoty,
+            @RequestParam(required = false) String startupPage,
+            HttpServletRequest request) {
+        HttpSession session = request.getSession();
+//        session.setMaxInactiveInterval(10); TODO ME
+        if (session.getAttribute("sessionEndTime") == null) {
+            session.setAttribute("sessionEndTime", new Date().getTime()+SESSION_LIFETIME);
+        }
+        ModelAndView model = new ModelAndView();
+        if (successNoty == null) {
+            successNoty = (String) request.getSession().getAttribute("successNoty");
+            request.getSession().removeAttribute("successNoty");
+        }
+        model.addObject("successNoty", successNoty);
+        if (errorNoty == null) {
+            errorNoty = (String) request.getSession().getAttribute("errorNoty");
+            request.getSession().removeAttribute("errorNoty");
+        }
+        model.addObject("errorNoty", errorNoty);
+        model.addObject("captchaType", CAPTCHA_TYPE);
+        model.addObject("startupPage", startupPage == null ? "trading" : startupPage);
+        model.setViewName("globalPages/dashboard");
+        OrderCreateDto orderCreateDto = new OrderCreateDto();
+        model.addObject(orderCreateDto);
+        return model;
+    }
+
+    @RequestMapping("/settings")
+    public ModelAndView settings(Principal principal, @RequestParam(required = false) Integer tabIdx, @RequestParam(required = false) String msg, HttpServletRequest request) {
+        final User user = userService.getUserById(userService.getIdByEmail(principal.getName()));
+        final ModelAndView mav = new ModelAndView("globalPages/settings");
+        final List<UserFile> userFile = userService.findUserDoc(user.getId());
+        final Map<String, ?> map = RequestContextUtils.getInputFlashMap(request);
+        mav.addObject("user", user);
+        mav.addObject("tabIdx", tabIdx);
+        mav.addObject("sectionid", null);
+        mav.addObject("errorNoty", map != null ? map.get("msg") : msg);
+        mav.addObject("userFiles", userFile);
+        return mav;
+    }
 
     /*skip resources: img, css, js*/
     @RequestMapping("/news/**/newstopic")

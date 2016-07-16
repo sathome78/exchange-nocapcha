@@ -316,21 +316,6 @@ public class AdminController {
         return mav;
     }
 
-
-    @RequestMapping("/settings")
-    public ModelAndView settings(Principal principal, @RequestParam(required = false) Integer tabIdx, @RequestParam(required = false) String msg, HttpServletRequest request) {
-        final User user = userService.getUserById(userService.getIdByEmail(principal.getName()));
-        final ModelAndView mav = new ModelAndView("globalPages/settings");
-        final List<UserFile> userFile = userService.findUserDoc(user.getId());
-        final Map<String, ?> map = RequestContextUtils.getInputFlashMap(request);
-        mav.addObject("user", user);
-        mav.addObject("tabIdx", tabIdx);
-        mav.addObject("sectionid", null);
-        mav.addObject("errorNoty", map != null ? map.get("msg") : msg);
-        mav.addObject("userFiles", userFile);
-        return mav;
-    }
-
     @RequestMapping(value = "settings/changePassword/submit", method = POST)
     public ModelAndView submitsettingsPassword(@Valid @ModelAttribute User user, BindingResult result,
                                                ModelAndView model, HttpServletRequest request) {

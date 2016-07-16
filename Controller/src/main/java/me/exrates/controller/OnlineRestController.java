@@ -23,10 +23,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -101,10 +98,15 @@ public class OnlineRestController {
     @RequestMapping(value = "/dashboard/currencyPairStatistic", method = RequestMethod.GET)
     public Map<String, ?> getCurrencyPairStatisticsForAllCurrencies(
             @RequestParam(required = false) Boolean refreshIfNeeded,
-            Principal principal,
             HttpServletRequest request) throws IOException {
         HttpSession session = request.getSession(true);
+        /*if ((!session.isNew()) && (session.getAttribute("sessionEndTime") == null || new Date().getTime() >= (Long) session.getAttribute("sessionEndTime"))) {
+            session.invalidate();
+            session = request.getSession(true);
+        }*/
         if (session.isNew()) {
+            //session.setMaxInactiveInterval(10); TODO ME
+            session.setAttribute("sessionEndTime", new Date().getTime() + EntryController.SESSION_LIFETIME);
             return new HashMap<String, HashMap<String, String>>() {{
                 put("redirect", new HashMap<String, String>() {{
                     put("url", "/dashboard");

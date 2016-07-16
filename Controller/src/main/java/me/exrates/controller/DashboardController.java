@@ -28,10 +28,7 @@ import org.springframework.web.servlet.support.RequestContextUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Controller
 @PropertySource("classpath:/captcha.properties")
@@ -80,32 +77,6 @@ public class DashboardController {
         }
         request.getSession();
     }
-
-    @RequestMapping(value = {"/dashboard"})
-    public ModelAndView dashboard(
-            @RequestParam(required = false) String errorNoty,
-            @RequestParam(required = false) String successNoty,
-            @RequestParam(required = false) String startupPage,
-            HttpServletRequest request) {
-        ModelAndView model = new ModelAndView();
-        if (successNoty == null) {
-            successNoty = (String) request.getSession().getAttribute("successNoty");
-            request.getSession().removeAttribute("successNoty");
-        }
-        model.addObject("successNoty", successNoty);
-        if (errorNoty == null) {
-            errorNoty = (String) request.getSession().getAttribute("errorNoty");
-            request.getSession().removeAttribute("errorNoty");
-        }
-        model.addObject("errorNoty", errorNoty);
-        model.addObject("captchaType", CAPTCHA_TYPE);
-        model.addObject("startupPage", startupPage == null ? "trading" : startupPage);
-        model.setViewName("globalPages/dashboard");
-        OrderCreateDto orderCreateDto = new OrderCreateDto();
-        model.addObject(orderCreateDto);
-        return model;
-    }
-
 
     @RequestMapping(value = "/forgotPassword")
     public ModelAndView forgotPassword() {

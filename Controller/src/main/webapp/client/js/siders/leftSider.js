@@ -57,7 +57,7 @@ function LeftSiderClass() {
     };
 
     this.getStatisticsForAllCurrencies = function (refreshIfNeeded) {
-        if (false && !windowIsActive) {
+        if (true && !windowIsActive) {
             clearTimeout(timeOutIdForStatisticsForAllCurrencies);
             timeOutIdForStatisticsForAllCurrencies = setTimeout(function () {
                 that.getStatisticsForAllCurrencies(true);

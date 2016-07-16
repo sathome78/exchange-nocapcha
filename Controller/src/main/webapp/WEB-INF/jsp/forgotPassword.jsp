@@ -65,7 +65,6 @@
                         <loc:message code="login.email" var="adminEmail"/>
                         <div class="col-md-10 input-block-wrapper__input-wrapper">
                             <form:input id="user-email" path="email"
-                                   required="required"
                                    placeholder="${adminEmail}"
                                    class="form-control input-block-wrapper__input"/>
                         </div>
