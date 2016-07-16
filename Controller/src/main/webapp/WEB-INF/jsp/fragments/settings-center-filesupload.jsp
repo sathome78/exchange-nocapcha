@@ -27,9 +27,7 @@
                 </c:choose>
                 <c:choose>
                     <c:when test="${userFiles.size() < 3}">
-                        <form method="post" id="upload" action="/settings/uploadFile"
-                              accept="image/x-png, image/jpeg, image/jpg" enctype="multipart/form-data"
-                              class="form-horizontal">
+                        <form method="post" id="upload" action="/settings/uploadFile" enctype="multipart/form-data" class="form-horizontal">
                             <c:forEach var="i" varStatus="vs" begin="1" end="${3 - userFiles.size()}">
                                 <c:choose>
                                     <c:when test="${i == 1}">

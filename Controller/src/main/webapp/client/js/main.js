@@ -132,6 +132,9 @@ $(function(){
 
 
     function resetMerchantsList(currency) {
+        if (getCurrentCurrency() === 'BTC') {
+            $('button[name="assertInputPay"]').hide()
+        }
         var optionsHTML = '';
         $.each(merchantsData,function(index){
             if (merchantsData[index].currencyId == currency) {
@@ -421,7 +424,7 @@ $(function(){
 
     function isCorrectSum() {
         var result = false;
-            if (merchantName !== 'Blockchain'){
+        if (merchantName !== 'Blockchain'){
                 var targetSum = parseFloat(sum.val());
                 if (targetSum >= merchantMinSum) {
                     return result = true;

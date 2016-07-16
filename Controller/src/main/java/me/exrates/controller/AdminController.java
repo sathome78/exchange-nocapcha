@@ -295,7 +295,7 @@ public class AdminController {
     public ModelAndView uploadUserDocs(final @RequestParam("file") MultipartFile[] multipartFiles,
                                        final Principal principal,
                                        final Locale locale) {
-        final ModelAndView mav = new ModelAndView("settings");
+        final ModelAndView mav = new ModelAndView("globalPages/settings");
         final User user = userService.getUserById(userService.getIdByEmail(principal.getName()));
         final List<MultipartFile> uploaded = userFilesService.reduceInvalidFiles(multipartFiles);
         mav.addObject("user", user);
