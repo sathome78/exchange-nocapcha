@@ -26,6 +26,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -245,8 +246,8 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return handlers;
     }
 
-    /*@Bean(name = "multipartResolver")
-        public StandardServletMultipartResolver resolver() {
-        		return new StandardServletMultipartResolver();
-        	}*/
+//    @Bean(name = "multipartResolver")
+//    public StandardServletMultipartResolver resolver() {
+//        return new StandardServletMultipartResolver();
+//    }
 }
