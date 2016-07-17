@@ -57,7 +57,8 @@ function LeftSiderClass() {
     };
 
     this.getStatisticsForAllCurrencies = function (refreshIfNeeded) {
-        if (true && !windowIsActive) {
+        /*change true to false id need to poll always: if window inactive too*/
+        if (false && !windowIsActive) {
             clearTimeout(timeOutIdForStatisticsForAllCurrencies);
             timeOutIdForStatisticsForAllCurrencies = setTimeout(function () {
                 that.getStatisticsForAllCurrencies(true);
@@ -109,7 +110,14 @@ function LeftSiderClass() {
     };
     /*===========================================================*/
     (function init() {
-        that.getStatisticsForAllCurrencies();
+        clearTimeout(timeOutIdForStatisticsForAllCurrencies);
+        $.ajax({
+            url: '/dashboard/firstentry',
+            type: 'GET',
+            success: function () {
+                that.getStatisticsForAllCurrencies();
+            }
+        });
         that.getStatisticsForMyWallets();
         $('#refferal-generate').on('click', generateReferral);
         $('#refferal-copy').on('click', function () {

@@ -17,6 +17,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Date;
 import java.util.Locale;
 
 /**
@@ -75,6 +76,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
             } else {
                 userService.setLastRegistrationDate(userIpDto.getUserId(), ip);
             }
+            request.getSession().setAttribute("resetSessionLifetimeHard", true);
             response.sendRedirect(successUrl);
         } catch (Exception e) {
             LOGGER.error(e);

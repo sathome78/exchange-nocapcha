@@ -42,6 +42,10 @@
         <logger name="org.springframework.jdbc.core.StatementCreatorUtils" level="OFF" additivity="false">
             <appender-ref ref="Console" />
         </logger>
+        <Logger name="me.exrates.controller.OnlineRestController" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="Logs"/>
+        </Logger>
         <Root level="TRACE">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Logs"/>

@@ -9,10 +9,9 @@ import me.exrates.model.User;
 import me.exrates.model.UserFile;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.service.NewsService;
-import me.exrates.service.UserFilesService;
 import me.exrates.service.UserService;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -30,7 +29,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.Principal;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -44,10 +42,12 @@ import java.util.Map;
 @Controller
 @PropertySource(value = {"classpath:/news.properties", "classpath:/captcha.properties"})
 public class EntryController {
-    public static final long SESSION_LIFETIME = 30*60*1000;
+    private static final Logger LOGGER = LogManager.getLogger(EntryController.class);
 
     @Autowired
     MessageSource messageSource;
+    @Value("${captcha.type}")
+    String CAPTCHA_TYPE;
     private
     @Value("${news.locationDir}")
     String newsLocationDir;
@@ -58,20 +58,12 @@ public class EntryController {
     @Autowired
     private UserService userService;
 
-    @Value("${captcha.type}")
-    String CAPTCHA_TYPE;
-
     @RequestMapping(value = {"/dashboard"})
     public ModelAndView dashboard(
             @RequestParam(required = false) String errorNoty,
             @RequestParam(required = false) String successNoty,
             @RequestParam(required = false) String startupPage,
             HttpServletRequest request) {
-        HttpSession session = request.getSession();
-//        session.setMaxInactiveInterval(10); TODO ME
-        if (session.getAttribute("sessionEndTime") == null) {
-            session.setAttribute("sessionEndTime", new Date().getTime()+SESSION_LIFETIME);
-        }
         ModelAndView model = new ModelAndView();
         if (successNoty == null) {
             successNoty = (String) request.getSession().getAttribute("successNoty");
@@ -122,7 +114,7 @@ public class EntryController {
                         .append(newsId)             //                                  48
                         .append("/")                //                                     /
                         .append(localeResolver.resolveLocale(request).toString())   //      ru
-                        //ignore locale from path and take it from fact locale .append(locale)   //                                                ru
+                                //ignore locale from path and take it from fact locale .append(locale)   //                                                ru
                         .append("/newstopic.html")  //                                          /newstopic.html
                         .toString();                //  /Users/Public/news/2015/MAY/27/48/ru/newstopic.html
                 try {
