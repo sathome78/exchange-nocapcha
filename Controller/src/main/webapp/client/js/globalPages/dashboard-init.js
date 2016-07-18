@@ -54,12 +54,13 @@ $(function dashdoardInit() {
 
         /*FOR HEADER...*/
         $('#menu-traiding').on('click', onMenuTraidingItemClick);
-        function onMenuTraidingItemClick (e) {
+        function onMenuTraidingItemClick(e) {
             if (e) e.preventDefault();
             trading.syncCurrencyPairSelector();
             showPage('trading');
             trading.updateAndShowAll();
         }
+
         $('#menu-mywallets').on('click', function (e) {
             e.preventDefault();
             if (!e.ctrlKey) {

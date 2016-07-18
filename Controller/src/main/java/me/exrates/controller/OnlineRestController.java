@@ -10,6 +10,8 @@ import me.exrates.model.enums.PagingDirection;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
 import me.exrates.service.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.util.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -17,6 +19,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
@@ -32,6 +35,13 @@ import java.util.stream.Collectors;
 
 @RestController
 public class OnlineRestController {
+    /* if SESSION_LIFETIME_HARD set, session will be killed after time expired, regardless of activity the session
+    set SESSION_LIFETIME_HARD = 0 to ignore it*/
+    public static final int SESSION_LIFETIME_HARD = 1 * 60; //SECONDS
+    /* if SESSION_LIFETIME_INACTIVE set, session will be killed if it is inactive during the time
+    * set SESSION_LIFETIME_INACTIVE = 0 to ignore it and session lifetime will be set to default value (30 mins)*/
+    public static final int SESSION_LIFETIME_INACTIVE = 0; //SECONDS
+    private static final Logger LOGGER = LogManager.getLogger(OnlineRestController.class);
     /*default depth the interval for chart*/
     final public BackDealInterval BACK_DEAL_INTERVAL_DEFAULT = new BackDealInterval("24 HOUR");
     /*depth the accepted order history*/
@@ -42,7 +52,7 @@ public class OnlineRestController {
     final public Integer TABLES_LIMIT_DEFAULT = -1;
     /*default type of the chart*/
     final public ChartType CHART_TYPE_DEFAULT = ChartType.STOCK;
-
+    /*it's need to install only one: SESSION_LIFETIME_HARD or SESSION_LIFETIME_INACTIVE*/
     @Autowired
     CommissionService commissionService;
 
@@ -100,13 +110,42 @@ public class OnlineRestController {
             @RequestParam(required = false) Boolean refreshIfNeeded,
             HttpServletRequest request) throws IOException {
         HttpSession session = request.getSession(true);
-        /*if ((!session.isNew()) && (session.getAttribute("sessionEndTime") == null || new Date().getTime() >= (Long) session.getAttribute("sessionEndTime"))) {
-            session.invalidate();
+        if (SESSION_LIFETIME_HARD != 0 && session.getAttribute("resetSessionLifetimeHard") != null) {
+            LOGGER.trace(" resetSessionLifetimeHard ");
+            session.removeAttribute("resetSessionLifetimeHard");
+            session.setAttribute("sessionEndTime", new Date().getTime() + SESSION_LIFETIME_HARD * 1000);
+        }
+        if (session.getAttribute("sessionEndTime") == null) {
+            session.setAttribute("sessionEndTime", new Date().getTime() + SESSION_LIFETIME_HARD * 1000);
+        }
+        String s = "";
+        if (SESSION_LIFETIME_HARD != 0) {
+            if (session.getAttribute("sessionEndTime") != null) {
+                s = " Remain to SESSION_LIFETIME_HARD killing: " + ((Long) session.getAttribute("sessionEndTime") - new Date().getTime()) / 1000 + " sec";
+            }
+        }
+        LOGGER.trace(" SESSION: " + session.getId() + " firstEntry: " + session.getAttribute("firstEntry") + s);
+        if ((!session.isNew()) &&
+                (SESSION_LIFETIME_HARD != 0) &&
+                new Date().getTime() >= (Long) session.getAttribute("sessionEndTime")) {
+            long st = (Long) session.getAttribute("sessionEndTime");
+            try {
+                request.logout();
+            } catch (ServletException e) {
+                e.printStackTrace();
+            }
             session = request.getSession(true);
-        }*/
-        if (session.isNew()) {
-            //session.setMaxInactiveInterval(10); TODO ME
-            session.setAttribute("sessionEndTime", new Date().getTime() + EntryController.SESSION_LIFETIME);
+            session.setAttribute("sessionEndTime", new Date().getTime() + SESSION_LIFETIME_HARD * 1000);
+            LOGGER.debug(" SESSION_LIFETIME_HARD. NEW SESSION STARTED: " + session.getId() + " by time: " + st + " new time: " + session.getAttribute("sessionEndTime"));
+        }
+        if (session.isNew() || session.getAttribute("firstEntry") == null) {
+            /*
+            "session.isNew() == true" indicates that "/dashboard/currencyPairStatistic" is called first after previous
+            session has expired, and opened new session (by calling request.getSession(true))
+            "firstEntry" == null indicates that new session was started by other online method
+            * and "/dashboard/currencyPairStatistic" ought to start new session and redirect to "/dashboard"*/
+            session.setAttribute("sessionEndTime", new Date().getTime() + SESSION_LIFETIME_HARD * 1000);
+            LOGGER.debug(" REDIRECT to /dashboard. SESSION: " + session.getId() + " is new: " + session.isNew() + " firstEntry: " + session.getAttribute("firstEntry"));
             return new HashMap<String, HashMap<String, String>>() {{
                 put("redirect", new HashMap<String, String>() {{
                     put("url", "/dashboard");
@@ -114,12 +153,33 @@ public class OnlineRestController {
                 }});
             }};
         }
+        /**/
         String cacheKey = "currencyPairStatistic" + request.getHeader("windowid");
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
         CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
         return new HashMap<String, List<ExOrderStatisticsShortByPairsDto>>() {{
             put("list", orderService.getOrdersStatisticByPairs(cacheData, localeResolver.resolveLocale(request)));
         }};
+    }
+
+    @RequestMapping(value = {"/dashboard/firstentry"})
+    public void setFirstEntryFlag(HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        /*when session has expired, any of online methods can start new session (through calling the request.getSession())
+        * But in this case the started session will not be populated with necessary data.
+        * To populate the session with data, it's need redirection to "/dashboard"
+        * "firstEntry" != null indicates that such redirection happened:
+        *    1. "/dashboard/currencyPairStatistic" catch request.
+        *    2. If new session was started by other online method - firstEntry is null.
+        *    3. In this case "/dashboard/currencyPairStatistic" inits the redirection to "/dashboard", "/dashboard/firstentry" will be
+        *    called and set "firstEntry"
+        * In other words, "firstEntry" == null indicates that new session was started by other online method (not "/dashboard/currencyPairStatistic")
+        * and "/dashboard/currencyPairStatistic" ought to start new session and redirect to "/dashboard"*/
+        session.setAttribute("firstEntry", true);
+        LOGGER.debug(" SESSION: " + session.getId() + " firstEntry: " + session.getAttribute("firstEntry"));
+        if (SESSION_LIFETIME_INACTIVE != 0) {
+            session.setMaxInactiveInterval(SESSION_LIFETIME_INACTIVE);
+        }
     }
 
     @RequestMapping(value = "/dashboard/chartArray/{type}", method = RequestMethod.GET)

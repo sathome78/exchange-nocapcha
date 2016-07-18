@@ -13,6 +13,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import java.util.List;
 import java.util.Locale;
+
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
@@ -32,7 +33,7 @@ public class GlobalControllerExceptionHandler {
     public ModelAndView handleMultipartConflict(final Locale locale) {
         final User principal = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         final me.exrates.model.User user = userService.findByEmail(principal.getUsername());
-        final ModelAndView mav = new ModelAndView("globalPages/settings");
+        final ModelAndView mav = new ModelAndView("settings");
         final List<UserFile> userFiles = userService.findUserDoc(user.getId());
         mav.addObject("user", user);
         mav.addObject("errorNoty", messageSource.getMessage("admin.errorUploadFiles", null, locale));
