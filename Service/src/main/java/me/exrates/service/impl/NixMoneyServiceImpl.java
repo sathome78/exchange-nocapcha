@@ -47,7 +47,7 @@ public class NixMoneyServiceImpl implements NixMoneyService {
 
         Transaction transaction = transactionService.createTransactionRequest(creditsOperation);
         BigDecimal sum = transaction.getAmount().add(transaction.getCommissionAmount());
-        final Number amountToPay = sum.setScale(2, BigDecimal.ROUND_CEILING);
+        final Number amountToPay = sum.setScale(2, BigDecimal.ROUND_HALF_UP);
 
 
         Properties properties = new Properties();

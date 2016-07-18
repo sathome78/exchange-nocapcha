@@ -37,7 +37,7 @@ public interface MerchantService {
     String sendWithdrawalNotification(WithdrawRequest withdrawRequest ,WithdrawalRequestStatus status, Locale locale);
 
     String sendDepositNotification(String toWallet, String email,
-        Locale locale, CreditsOperation creditsOperation);
+        Locale locale, CreditsOperation creditsOperation, String depositNotification);
 
     Map<Integer, List<Merchant>> mapMerchantsToCurrency(List<Currency> currencies);
 

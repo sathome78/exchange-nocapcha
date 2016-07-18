@@ -28,6 +28,24 @@ $(function(){
 
 });
 
+Number.prototype.noExponents= function(){
+    var data= String(this).split(/[eE]/);
+    if(data.length== 1) return data[0];
+
+    var  z= '', sign= this<0? '-':'',
+        str= data[0].replace('.', ''),
+        mag= Number(data[1])+ 1;
+
+    if(mag<0){
+        z= sign + '0.';
+        while(mag++) z += '0';
+        return z + str.replace(/^\-/,'');
+    }
+    mag -= str.length;
+    while(mag--) z += '0';
+    return str + z;
+}
+
 $(function(){
 
     const YANDEX = 'Yandex.Money';
@@ -48,6 +66,7 @@ $(function(){
     var merchant = $('#merchant');
     var merchantName;
     var merchantMinSum;
+    var fractionalAmount;
     var merchantImageId;
     var sum = $('#sum');
     var operationType = $('#operationType');
@@ -62,7 +81,7 @@ $(function(){
         .keypress(
             function (e) {
                 var decimal = $(this).val().split('.')[1];
-                if (decimal && decimal.length >= 3) {
+                if (decimal && decimal.length >= fractionalAmount+1) {
                     return false;
                 }
                 if (e.charCode >= 48 && e.charCode <= 57 || e.charCode == 46 || e.charCode == 0) {
@@ -98,7 +117,7 @@ $(function(){
                 }
             }
             var decimal = $(this).val().split('.')[1];
-            if (decimal && decimal.length > 2) {
+            if (decimal && decimal.length > fractionalAmount) {
                 $(this).val($(this).val().slice(0,-1));
 
             }
@@ -139,6 +158,7 @@ $(function(){
         $.each(merchantsData,function(index){
             if (merchantsData[index].currencyId == currency) {
                 optionsHTML+='<option value="'+merchantsData[index].merchantId+'">'+merchantsData[index].description+'</option>';
+                fractionalAmount = merchantsData[index].minSum.noExponents().split('.')[1].length;
             }
         });
         if (optionsHTML==='' || optionsHTML.search('Blockchain') !== -1) {
@@ -527,6 +547,10 @@ $(function(){
         if (uid.length>5){
             $("#destination").val(uid);
             submitProcess();
+            setTimeout(function()
+            {
+                location.reload();
+            },2000);
         }
     });
 

@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 
-import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.Locale;
 
@@ -58,12 +57,9 @@ public class InvoiceController {
             LOG.debug("Prepared payment: "+creditsOperation);
             try {
                 final Transaction transaction = invoiceService.createPaymentInvoice(creditsOperation);
-                BigDecimal sum = transaction.getAmount().add(transaction.getCommissionAmount());
-                final Number amountToPay = sum.setScale(2, BigDecimal.ROUND_CEILING);
-
-                final String notification = messageSource.getMessage("merchants.depositNotificationWithCurrency.body",
-                        new Object[]{amountToPay, transaction.getCurrency().getName(), "123456789"},
-                        locale);
+                final String notification = merchantService
+                        .sendDepositNotification("123456789",
+                                email , locale, creditsOperation, "merchants.depositNotificationWithCurrency.body");
                 final HttpHeaders httpHeaders = new HttpHeaders();
                 httpHeaders.add("Content-Type", "text/plain; charset=utf-8");
                 return new ResponseEntity<>(notification, httpHeaders, OK);

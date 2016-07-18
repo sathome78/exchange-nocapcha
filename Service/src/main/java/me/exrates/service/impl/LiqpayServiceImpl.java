@@ -56,7 +56,7 @@ public class LiqpayServiceImpl implements LiqpayService {
 
         BigDecimal sum = transaction.getAmount().add(transaction.getCommissionAmount());
         final String currency = transaction.getCurrency().getName();
-        final Number amountToPay = sum.setScale(2, BigDecimal.ROUND_CEILING);
+        final Number amountToPay = sum.setScale(2, BigDecimal.ROUND_HALF_UP);
 
         Map params = new HashMap();
         params.put("version", Integer.parseInt(apiVersion));
