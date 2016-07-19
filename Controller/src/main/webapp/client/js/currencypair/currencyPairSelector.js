@@ -17,6 +17,8 @@ function CurrencyPairSelectorClass(currencyPairSelectorId, currentCurrencyPair) 
             } else {
                 showAllPairs = null;
             }
+            trading.clearOrdersCreationForm();
+            trading.resetOrdersListForAccept();
             var newCurrentCurrencyPairName = showAllPairs ? null : $(this).text().trim();
             syncCurrentParams(newCurrentCurrencyPairName, null, null, showAllPairs, function (data) {
                 $item.siblings().removeClass('active');

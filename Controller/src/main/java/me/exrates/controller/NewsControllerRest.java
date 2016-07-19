@@ -1,5 +1,6 @@
 package me.exrates.controller;
 
+import me.exrates.controller.annotation.OnlineMethod;
 import me.exrates.controller.exception.*;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.News;
@@ -51,22 +52,6 @@ public class NewsControllerRest {
     private NewsService newsService;
     @Autowired
     private UserFilesService userFilesService;
-
-    @RequestMapping(value = "/dashboard/news/{tableId}", method = RequestMethod.GET)
-    public List<NewsDto> getNewsList(
-            @PathVariable("tableId") String tableId,
-            @RequestParam(required = false) Boolean refreshIfNeeded,
-            @RequestParam(required = false) Integer page,
-            HttpServletRequest request) {
-        String attributeName = tableId + "Params";
-        TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
-        Assert.requireNonNull(tableParams, "The parameters are not populated for the " + tableId);
-        Integer offset = page == null || tableParams.getPageSize() == -1 ? 0 : (page - 1) * tableParams.getPageSize();
-        String cacheKey = "newsList" + request.getHeader("windowid");
-        refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
-        CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
-        return newsService.getNewsBriefList(cacheData, offset, tableParams.getPageSize(), localeResolver.resolveLocale(request));
-    }
 
     @RequestMapping(value = "/news/addNewsVariant", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
     public String uploadNewsVariant(HttpServletRequest request, HttpServletResponse response,

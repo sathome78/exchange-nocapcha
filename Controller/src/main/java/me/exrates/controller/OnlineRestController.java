@@ -1,5 +1,6 @@
 package me.exrates.controller;
 
+import me.exrates.controller.annotation.OnlineMethod;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.onlineTableDto.*;
@@ -30,16 +31,29 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Created by Valk on 11.05.2016.
+ * The controller contains online methods. "Online method" is the handler of online requests,
+ * which updates data on browser page in online mode.
+ * The online request is the automatic request and is not sign of user activity and should not update
+ * session param "sessionEndTime", which stores the time of end the current session.
+ * Another (not online) methods, excluding resources request, reset session param "sessionEndTime" and session life starts from begin
+ * Updating session param "sessionEndTime" happens in class RequestFilter.
+ * <p>
+ * IMPORTANT!
+ * The OnlineRestController can contain not online methods. But all online methods must be placed in the OnlineRestController
+ * Online methods must be annotated with @OnlineMethod
+ *
+ * @author ValkSam
  */
 
 @RestController
 public class OnlineRestController {
     /* if SESSION_LIFETIME_HARD set, session will be killed after time expired, regardless of activity the session
     set SESSION_LIFETIME_HARD = 0 to ignore it*/
-    public static final int SESSION_LIFETIME_HARD = 1 * 60; //SECONDS
+    public static final long SESSION_LIFETIME_HARD = Math.round(20 * 60); //SECONDS
     /* if SESSION_LIFETIME_INACTIVE set, session will be killed if it is inactive during the time
-    * set SESSION_LIFETIME_INACTIVE = 0 to ignore it and session lifetime will be set to default value (30 mins)*/
+    * set SESSION_LIFETIME_INACTIVE = 0 to ignore it and session lifetime will be set to default value (30 mins)
+    * The time of end the current session is stored in session param "sessionEndTime", which calculated in millisec as
+    * new Date().getTime() + SESSION_LIFETIME_HARD * 1000*/
     public static final int SESSION_LIFETIME_INACTIVE = 0; //SECONDS
     private static final Logger LOGGER = LogManager.getLogger(OnlineRestController.class);
     /*default depth the interval for chart*/
@@ -92,6 +106,18 @@ public class OnlineRestController {
         }
     }
 
+    /**
+     * it's one of onlines methods, which retrieves data from DB for repaint on view in browser page
+     * returns list the data of user's wallet current statistics
+     *
+     * @param refreshIfNeeded: - "true" if view ought to repainted if data in DB was changed only.
+     *                         - "false" if data must repainted in any cases
+     * @param principal
+     * @param request
+     * @return: "null" if user is not login. List the data of user's wallet current statistics
+     * @author ValkSam
+     */
+    @OnlineMethod
     @RequestMapping(value = "/dashboard/myWalletsStatistic", method = RequestMethod.GET)
     public List<MyWalletsStatisticsDto> getMyWalletsStatisticsForAllCurrencies(@RequestParam(required = false) Boolean refreshIfNeeded,
                                                                                Principal principal, HttpServletRequest request) {
@@ -105,16 +131,47 @@ public class OnlineRestController {
         return walletService.getAllWalletsForUserReduced(cacheData, email, localeResolver.resolveLocale(request));
     }
 
+    /**
+     * this method do two function:
+     * - one of online methods. Retrieves current statistics (states) for all currency pairs
+     * - controls the session state and start new session when necessary
+     * <p>
+     * control the session state:
+     * the method is being called by EACH of main pages (main pages are mapped in class EntryController).
+     * Therefore in it we process the change the session.
+     * <p>
+     * For changing the session two variants a used:
+     * - session lives during fixed time (set in SESSION_LIFETIME_HARD)
+     * - session lives while it is active (lifetime is set in SESSION_LIFETIME_INACTIVE).
+     * As after the start of a new session, it can be intercepted by any of onlne methods in which necessary
+     * data have not been populated, then we use the session parameter "firstEntry", which indicates that new session
+     * starts in correct sequence.
+     * <p>
+     * Sequence of session start is:
+     * url "/dashboard"
+     * -> leftSider.js: LeftSiderClass.init()
+     * -> url "/dashboard/firstentry"  (here the session parameter "firstEntry" will be set)
+     * -> leftSider.js: getStatisticsForAllCurrencies()
+     * -> url "/dashboard/currencyPairStatistic" (mappet to this method)
+     *
+     * @param refreshIfNeeded - if set true, method returns data of currency pair statistics only if data has been changed in DB.
+     *                        if data has not been changed in DB, method returns corresponding
+     *                        info (field class OnlineTableDto.needRefresh" = false) and view on browser will not be repainted
+     *                        - if set false, method returns data of currency pair statistics in any cases (data has been changed in DB or not)
+     *                        and view on browser will be repainted
+     * @param request
+     * @return map with one of two keys:
+     * - "redirect": if new session has started
+     * - "list": data of currency pairs statistics
+     * @throws IOException
+     * @author ValkSam
+     */
+    @OnlineMethod
     @RequestMapping(value = "/dashboard/currencyPairStatistic", method = RequestMethod.GET)
     public Map<String, ?> getCurrencyPairStatisticsForAllCurrencies(
             @RequestParam(required = false) Boolean refreshIfNeeded,
             HttpServletRequest request) throws IOException {
         HttpSession session = request.getSession(true);
-        if (SESSION_LIFETIME_HARD != 0 && session.getAttribute("resetSessionLifetimeHard") != null) {
-            LOGGER.trace(" resetSessionLifetimeHard ");
-            session.removeAttribute("resetSessionLifetimeHard");
-            session.setAttribute("sessionEndTime", new Date().getTime() + SESSION_LIFETIME_HARD * 1000);
-        }
         if (session.getAttribute("sessionEndTime") == null) {
             session.setAttribute("sessionEndTime", new Date().getTime() + SESSION_LIFETIME_HARD * 1000);
         }
@@ -135,7 +192,6 @@ public class OnlineRestController {
                 e.printStackTrace();
             }
             session = request.getSession(true);
-            session.setAttribute("sessionEndTime", new Date().getTime() + SESSION_LIFETIME_HARD * 1000);
             LOGGER.debug(" SESSION_LIFETIME_HARD. NEW SESSION STARTED: " + session.getId() + " by time: " + st + " new time: " + session.getAttribute("sessionEndTime"));
         }
         if (session.isNew() || session.getAttribute("firstEntry") == null) {
@@ -162,19 +218,23 @@ public class OnlineRestController {
         }};
     }
 
+    /**
+     * when session has expired, any of online methods can start new session (through calling the request.getSession())
+     * But in this case the started session will not be populated with necessary data.
+     * To populate the session with necessary data, it's need redirection to "/dashboard"
+     * "firstEntry" != null indicates that such redirection happened:
+     * 1. "/dashboard/currencyPairStatistic" catch request.
+     * 2. If new session was started by other online method - firstEntry is null.
+     * 3. In this case "/dashboard/currencyPairStatistic" inits the redirection to "/dashboard", "/dashboard/firstentry" will be
+     * called and set "firstEntry"
+     * In other words, "firstEntry" == null indicates that new session was started by other online method (not "/dashboard/currencyPairStatistic")
+     * and "/dashboard/currencyPairStatistic" ought to start new session and redirect to "/dashboard"
+     *
+     * @param request
+     */
     @RequestMapping(value = {"/dashboard/firstentry"})
     public void setFirstEntryFlag(HttpServletRequest request) {
         HttpSession session = request.getSession();
-        /*when session has expired, any of online methods can start new session (through calling the request.getSession())
-        * But in this case the started session will not be populated with necessary data.
-        * To populate the session with data, it's need redirection to "/dashboard"
-        * "firstEntry" != null indicates that such redirection happened:
-        *    1. "/dashboard/currencyPairStatistic" catch request.
-        *    2. If new session was started by other online method - firstEntry is null.
-        *    3. In this case "/dashboard/currencyPairStatistic" inits the redirection to "/dashboard", "/dashboard/firstentry" will be
-        *    called and set "firstEntry"
-        * In other words, "firstEntry" == null indicates that new session was started by other online method (not "/dashboard/currencyPairStatistic")
-        * and "/dashboard/currencyPairStatistic" ought to start new session and redirect to "/dashboard"*/
         session.setAttribute("firstEntry", true);
         LOGGER.debug(" SESSION: " + session.getId() + " firstEntry: " + session.getAttribute("firstEntry"));
         if (SESSION_LIFETIME_INACTIVE != 0) {
@@ -182,6 +242,16 @@ public class OnlineRestController {
         }
     }
 
+    /**
+     * it's one of onlines methods, which retrieves data from DB for repaint on view in browser page
+     * returns the data for graphic
+     * method has not param "refreshIfNeeded", but it is called if the data, which indicates that graphic must be repainted, has been changed
+     *
+     * @param request
+     * @return: "null" if user is not login. List the data of user's wallet current statistics
+     * @author ValkSam
+     */
+    @OnlineMethod
     @RequestMapping(value = "/dashboard/chartArray/{type}", method = RequestMethod.GET)
     public ArrayList chartArray(HttpServletRequest request) {
         CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
@@ -254,12 +324,14 @@ public class OnlineRestController {
      * - current currency pair
      * - current period
      * - current chart
+     * - showAllPairs which determines the order for current currency pair only must be shown or for all pairs
      *
      * @param currencyPairName
      * @param period
      * @param request
      * @return object with values of params
      */
+    @OnlineMethod
     @RequestMapping(value = "/dashboard/currentParams", method = RequestMethod.GET)
     public CurrentParams setCurrentParams(
             @RequestParam(required = false) String currencyPairName,
@@ -332,6 +404,7 @@ public class OnlineRestController {
      * @param request
      * @return object with values of params
      */
+    @OnlineMethod
     @RequestMapping(value = "/dashboard/tableParams/{tableId}", method = RequestMethod.GET)
     public TableParams setTableParams(
             @PathVariable String tableId,
@@ -361,7 +434,15 @@ public class OnlineRestController {
         return tableParams;
     }
 
-    /*Retrieves data with statistics for orders of current CurrencyPair*/
+    /**
+     * it's one of onlines methods, which retrieves data from DB for repaint on view in browser page
+     * returns data with statistics for orders of current CurrencyPair to show above the graphics
+     *
+     * @param request
+     * @return: data with statistics for orders of current CurrencyPair
+     * @author ValkSam
+     */
+    @OnlineMethod
     @RequestMapping(value = "/dashboard/ordersForPairStatistics", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ExOrderStatisticsDto getNewCurrencyPairData(HttpServletRequest request) {
         CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
@@ -371,12 +452,32 @@ public class OnlineRestController {
         return exOrderStatisticsDto;
     }
 
+    /**
+     * returns list the data to create currency pairs menu
+     *
+     * @return: list the data to create currency pairs menu
+     * @author ValkSam
+     */
     @RequestMapping(value = "/dashboard/createPairSelectorMenu", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public List<String> getCurrencyPairNameList() {
         List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs();
         return currencyPairs.stream().map(e -> e.getName()).collect((Collectors.toList()));
     }
 
+
+    /**
+     * it's one of onlines methods, which retrieves data from DB for repaint on view in browser page
+     * returns list the data of accepted orders during last 24 hours
+     *
+     * @param refreshIfNeeded: - "true" if view ought to repainted if data in DB was changed only.
+     *                         - "false" if data must repainted in any cases
+     * @param scope:           "ALL" to retrieve all accepted orders. Other value or empty to retrieve "my orders" only
+     * @param principal
+     * @param request
+     * @return list the data of accepted orders during last 24 hours
+     * @author ValkSam
+     */
+    @OnlineMethod
     @RequestMapping(value = "/dashboard/acceptedOrderHistory/{scope}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public List<OrderAcceptedHistoryDto> getOrderHistory(@RequestParam(required = false) Boolean refreshIfNeeded,
                                                          @PathVariable String scope,
@@ -390,11 +491,29 @@ public class OnlineRestController {
         return orderService.getOrderAcceptedForPeriod(cacheData, email, ORDER_HISTORY_INTERVAL, ORDER_HISTORY_LIMIT, currencyPair, localeResolver.resolveLocale(request));
     }
 
+    /**
+     * Returns current commissions for creating and accepting orders
+     *
+     * @return current commissions for operation SELL and BUY
+     * @author ValkSam
+     */
     @RequestMapping(value = "/dashboard/orderCommissions", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public OrderCommissionsDto getOrderCommissions(HttpServletRequest request) {
+    public OrderCommissionsDto getOrderCommissions() {
         return orderService.getCommissionForOrder();
     }
 
+    /**
+     * it's one of onlines methods, which retrieves data from DB for repaint on view in browser page
+     * returns list the data of SELL open orders
+     *
+     * @param refreshIfNeeded: - "true" if view ought to repainted if data in DB was changed only.
+     *                         - "false" if data must repainted in any cases
+     * @param principal
+     * @param request
+     * @return list the data of of SELL open orders
+     * @author ValkSam
+     */
+    @OnlineMethod
     @RequestMapping(value = "/dashboard/sellOrders", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public List<OrderListDto> getSellOrdersList(@RequestParam(required = false) Boolean refreshIfNeeded,
                                                 Principal principal, HttpServletRequest request) {
@@ -409,6 +528,18 @@ public class OnlineRestController {
         return orderService.getAllSellOrders(cacheData, currencyPair, email, localeResolver.resolveLocale(request));
     }
 
+    /**
+     * it's one of onlines methods, which retrieves data from DB for repaint on view in browser page
+     * returns list the data of BUY open orders
+     *
+     * @param refreshIfNeeded: - "true" if view ought to repainted if data in DB was changed only.
+     *                         - "false" if data must repainted in any cases
+     * @param principal
+     * @param request
+     * @return list the data of of BUY open orders
+     * @author ValkSam
+     */
+    @OnlineMethod
     @RequestMapping(value = "/dashboard/BuyOrders", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public List<OrderListDto> getBuyOrdersList(@RequestParam(required = false) Boolean refreshIfNeeded,
                                                Principal principal, HttpServletRequest request) {
@@ -423,6 +554,18 @@ public class OnlineRestController {
         return orderService.getAllBuyOrders(cacheData, currencyPair, email, localeResolver.resolveLocale(request));
     }
 
+    /**
+     * it's one of onlines methods, which retrieves data from DB for repaint on view in browser page
+     * returns list the data of user's wallet to show in page "Balance"
+     *
+     * @param refreshIfNeeded: - "true" if view ought to repainted if data in DB was changed only.
+     *                         - "false" if data must repainted in any cases
+     * @param principal
+     * @param request
+     * @return list the data of user's wallet
+     * @author ValkSam
+     */
+    @OnlineMethod
     @RequestMapping(value = "/dashboard/myWalletsData", method = RequestMethod.GET)
     public List<MyWalletsDetailedDto> getMyWalletsData(@RequestParam(required = false) Boolean refreshIfNeeded,
                                                        Principal principal, HttpServletRequest request) {
@@ -436,6 +579,21 @@ public class OnlineRestController {
         return walletService.getAllWalletsForUserDetailed(cacheData, email, localeResolver.resolveLocale(request));
     }
 
+    /**
+     * it's one of onlines methods, which retrieves data from DB for repaint on view in browser page
+     * returns list the data of user's orders to show in pages "History" and "Orders"
+     *
+     * @param refreshIfNeeded: - "true" if view ought to repainted if data in DB was changed only.
+     *                         - "false" if data must repainted in any cases
+     * @param tableId          determines concrete table o pages "History" and "Orders" to show data
+     * @param status           determines status the order
+     * @param page,            direction - used for pgination. Details see in class TableParams
+     * @param principal
+     * @param request
+     * @return list the data of user's orders
+     * @author ValkSam
+     */
+    @OnlineMethod
     @RequestMapping(value = "/dashboard/myOrdersData/{tableId}", method = RequestMethod.GET)
     public List<OrderWideListDto> getMyOrdersData(
             @RequestParam(required = false) Boolean refreshIfNeeded,
@@ -471,6 +629,34 @@ public class OnlineRestController {
         return result;
     }
 
+
+    /**
+     * it's one of onlines methods, which retrieves data from DB for repaint on view in browser page
+     * returns list the data of user's orders to show in pages "History" and "Orders"
+     * @param refreshIfNeeded:  - "true" if view ought to repainted if data in DB was changed only.
+     *                          - "false" if data must repainted in any cases
+     * @param tableId determines concrete table o pages "History" and "Orders" to show data
+     * @param status determines status the order
+     * @param page, direction - used for pgination. Details see in class TableParams
+     * @param principal
+     * @param request
+     * @return list the data of user's orders
+     * @author ValkSam
+     */
+
+    /**
+     * it's one of onlines methods, which retrieves data from DB for repaint on view in browser page
+     * returns list the data of user's orders to show in pages "History"
+     *
+     * @param refreshIfNeeded: - "true" if view ought to repainted if data in DB was changed only.
+     *                         - "false" if data must repainted in any cases
+     * @param tableId          determines table on pages "History" to show data
+     * @param page,            direction - used for pgination. Details see in class TableParams
+     * @param principal
+     * @param request
+     * @return list the data of user's orders
+     */
+    @OnlineMethod
     @RequestMapping(value = "/dashboard/myReferralData/{tableId}", method = RequestMethod.GET)
     public List<MyReferralDetailedDto> getMyReferralData(
             @RequestParam(required = false) Boolean refreshIfNeeded,
@@ -500,6 +686,19 @@ public class OnlineRestController {
         return result;
     }
 
+    /**
+     * it's one of onlines methods, which retrieves data from DB for repaint on view in browser page
+     * returns list the data of user's wallet statement to show in pages "Balance" button "History"
+     *
+     * @param refreshIfNeeded: - "true" if view ought to repainted if data in DB was changed only.
+     *                         - "false" if data must repainted in any cases
+     * @param tableId          determines table to show data
+     * @param walletId         is id of user's wallet
+     * @param page,            direction - used for pgination. Details see in class TableParams
+     * @param request
+     * @return list the data of user's wallet statement
+     */
+    @OnlineMethod
     @RequestMapping(value = "/dashboard/myStatementData/{tableId}/{walletId}", method = RequestMethod.GET)
     public List<AccountStatementDto> getMyAccountStatementData(
             @RequestParam(required = false) Boolean refreshIfNeeded,
@@ -525,10 +724,32 @@ public class OnlineRestController {
         return result;
     }
 
-    @RequestMapping("dashboard/evictsession")
-    public void evictSession(HttpServletRequest request) {
-        request.getSession().invalidate();
+    /**
+     * it's one of onlines methods, which retrieves data from DB for repaint on view in browser page
+     * returns list the news of current language to show in right sider
+     *
+     * @param refreshIfNeeded: - "true" if view ought to repainted if data in DB was changed only.
+     *                         - "false" if data must repainted in any cases
+     * @param tableId          determines table to show data
+     * @param page,            direction - used for pgination. Details see in class TableParams
+     * @param request
+     * @return list the news
+     */
+    @OnlineMethod
+    @RequestMapping(value = "/dashboard/news/{tableId}", method = RequestMethod.GET)
+    public List<NewsDto> getNewsList(
+            @PathVariable("tableId") String tableId,
+            @RequestParam(required = false) Boolean refreshIfNeeded,
+            @RequestParam(required = false) Integer page,
+            HttpServletRequest request) {
+        String attributeName = tableId + "Params";
+        TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
+        Assert.requireNonNull(tableParams, "The parameters are not populated for the " + tableId);
+        Integer offset = page == null || tableParams.getPageSize() == -1 ? 0 : (page - 1) * tableParams.getPageSize();
+        String cacheKey = "newsList" + request.getHeader("windowid");
+        refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
+        CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
+        return newsService.getNewsBriefList(cacheData, offset, tableParams.getPageSize(), localeResolver.resolveLocale(request));
     }
-
 
 }

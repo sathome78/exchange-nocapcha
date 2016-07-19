@@ -22,10 +22,15 @@ public class Cache {
             request.getSession().setAttribute("cacheHashMap", cacheHashMap);
         }
         Integer currentHash = cacheHashMap.get(cacheKey);
-        if (!forceUpdate && resultHash == currentHash) {
-            return true;
-        } else {
-            cacheHashMap.put(cacheKey, resultHash);
+        try {
+            if (!forceUpdate && resultHash == currentHash) {
+                return true;
+            } else {
+                cacheHashMap.put(cacheKey, resultHash);
+                return false;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
             return false;
         }
     }

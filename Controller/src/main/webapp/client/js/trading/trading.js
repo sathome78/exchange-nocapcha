@@ -226,6 +226,18 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         });
     };
 
+    this.resetOrdersListForAccept = function() {
+        if (that.ordersListForAccept.length != 0) {
+            that.ordersListForAccept = [];
+            switchCreateOrAcceptButtons();
+        }
+    };
+
+    this.clearOrdersCreationForm = function() {
+        $('.item__input').val('');
+        $('.buyBTC__input').val('');
+    };
+
     function getOrderCommissions() {
         var url = '/dashboard/orderCommissions';
         $.ajax({
@@ -286,10 +298,10 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         }
         that.updateAndShowAll(false);
         /**/
-        $('#amountBuy').on('keyup', calculateFieldsForBuy).on('keydown', resetOrdersListForAccept);
-        $('#exchangeRateBuy').on('keyup', calculateFieldsForBuy).on('keydown', resetOrdersListForAccept);
-        $('#amountSell').on('keyup', calculateFieldsForSell).on('keydown', resetOrdersListForAccept);
-        $('#exchangeRateSell').on('keyup', calculateFieldsForSell).on('keydown', resetOrdersListForAccept);
+        $('#amountBuy').on('keyup', calculateFieldsForBuy).on('keydown', that.resetOrdersListForAccept);
+        $('#exchangeRateBuy').on('keyup', calculateFieldsForBuy).on('keydown', that.resetOrdersListForAccept);
+        $('#amountSell').on('keyup', calculateFieldsForSell).on('keydown', that.resetOrdersListForAccept);
+        $('#exchangeRateSell').on('keyup', calculateFieldsForSell).on('keydown', that.resetOrdersListForAccept);
         /**/
         $('.dashboard-order__table').on('click', '.dashboard-order__tr', fillOrdersFormFromCurrentOrder);
         /**/
@@ -394,14 +406,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
 
     function resetOrdersListForAcceptOnClick(e) {
         e.preventDefault();
-        resetOrdersListForAccept();
-    }
-
-    function resetOrdersListForAccept() {
-        if (that.ordersListForAccept.length != 0) {
-            that.ordersListForAccept = [];
-            switchCreateOrAcceptButtons();
-        }
+        that.resetOrdersListForAccept();
     }
 
     /*PREPARE DATA FOR MODAL DIALOG FOR CREATION ORDER ... */
@@ -416,6 +421,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
                 data.rate = e.value;
             }
         });
+        that.clearOrdersCreationForm();
         showOrderCreateDialog(data);
     }
 
@@ -430,6 +436,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
                 data.rate = e.value;
             }
         });
+        that.clearOrdersCreationForm();
         showOrderCreateDialog(data);
     }
 
@@ -535,12 +542,13 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         var ordersList = that.ordersListForAccept.map(function (e) {
             return parseInt(e.orderId);
         });
+        that.clearOrdersCreationForm();
+        switchCreateOrAcceptButtons();
         orders.acceptOrder(ordersList, onAcceptOrderSuccess, onAcceptOrderError);
     }
 
     function onAcceptOrderSuccess(data) {
         that.ordersListForAccept = [];
-        switchCreateOrAcceptButtons();
         that.updateAndShowAll();
         leftSider.getStatisticsForMyWallets();
         leftSider.getStatisticsForAllCurrencies();
@@ -549,7 +557,6 @@ function TradingClass(period, chartType, currentCurrencyPair) {
 
     function onAcceptOrderError(jqXHR, textStatus, errorThrown) {
         that.ordersListForAccept = [];
-        switchCreateOrAcceptButtons();
     }
 
     /*... CALL ACCEPTANCE THE ORDERS LIST AND CONTROL RESULT*/

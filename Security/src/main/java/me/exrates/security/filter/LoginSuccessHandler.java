@@ -76,7 +76,6 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
             } else {
                 userService.setLastRegistrationDate(userIpDto.getUserId(), ip);
             }
-            request.getSession().setAttribute("resetSessionLifetimeHard", true);
             response.sendRedirect(successUrl);
         } catch (Exception e) {
             LOGGER.error(e);

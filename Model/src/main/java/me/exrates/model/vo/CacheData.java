@@ -17,6 +17,15 @@ public class CacheData {
         this.forceUpdate = forceUpdate;
     }
 
+    @Override
+    public String toString() {
+        return "CacheData{" +
+                "request=" + request +
+                ", cacheKey='" + cacheKey + '\'' +
+                ", forceUpdate=" + forceUpdate +
+                '}';
+    }
+
     /*getters*/
 
     public HttpServletRequest getRequest() {

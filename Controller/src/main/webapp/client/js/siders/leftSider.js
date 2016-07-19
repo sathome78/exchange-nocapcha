@@ -58,7 +58,7 @@ function LeftSiderClass() {
 
     this.getStatisticsForAllCurrencies = function (refreshIfNeeded) {
         /*change true to false id need to poll always: if window inactive too*/
-        if (false && !windowIsActive) {
+        if (true && !windowIsActive) {
             clearTimeout(timeOutIdForStatisticsForAllCurrencies);
             timeOutIdForStatisticsForAllCurrencies = setTimeout(function () {
                 that.getStatisticsForAllCurrencies(true);
