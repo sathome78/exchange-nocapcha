@@ -6,9 +6,9 @@ import me.exrates.model.Currency;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
 import me.exrates.model.dto.MyWalletConfirmationDetailDto;
+import me.exrates.model.dto.UserWalletSummaryDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
-import me.exrates.model.dto.UserWalletSummaryDto;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.vo.CacheData;
@@ -24,20 +24,20 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import static java.math.BigDecimal.ROUND_HALF_UP;
 import static java.math.BigDecimal.ZERO;
-import static java.math.RoundingMode.CEILING;
 
 @Service
 @Transactional
 public final class WalletServiceImpl implements WalletService {
 
-    private static final MathContext MATH_CONTEXT = new MathContext(9, CEILING);
+    private static final int decimalPlaces = 9;
     private static final Logger LOGGER = LogManager.getLogger(WalletServiceImpl.class);
+
     @Autowired
     private WalletDao walletDao;
     @Autowired
@@ -140,7 +140,7 @@ public final class WalletServiceImpl implements WalletService {
     @Transactional(propagation = Propagation.NESTED)
     public void depositActiveBalance(final Wallet wallet, final BigDecimal sum) {
         final BigDecimal newBalance =
-                wallet.getActiveBalance().add(sum, MATH_CONTEXT);
+                wallet.getActiveBalance().add(sum).setScale(decimalPlaces, ROUND_HALF_UP);
         wallet.setActiveBalance(newBalance);
         walletDao.update(wallet);
     }
@@ -148,7 +148,7 @@ public final class WalletServiceImpl implements WalletService {
     @Override
     @Transactional(propagation = Propagation.NESTED)
     public void withdrawActiveBalance(final Wallet wallet, final BigDecimal sum) {
-        final BigDecimal newBalance = wallet.getActiveBalance().subtract(sum, MATH_CONTEXT);
+        final BigDecimal newBalance = wallet.getActiveBalance().subtract(sum).setScale(decimalPlaces, ROUND_HALF_UP);
         if (newBalance.compareTo(ZERO) < 0) {
             throw new NotEnoughUserWalletMoneyException("Not enough money to withdraw on user wallet " +
                     wallet.toString());
@@ -160,18 +160,18 @@ public final class WalletServiceImpl implements WalletService {
     @Override
     @Transactional(propagation = Propagation.NESTED)
     public void depositReservedBalance(final Wallet wallet, final BigDecimal sum) {
-        wallet.setActiveBalance(wallet.getActiveBalance().subtract(sum, MATH_CONTEXT));
+        wallet.setActiveBalance(wallet.getActiveBalance().subtract(sum).setScale(decimalPlaces, ROUND_HALF_UP));
         if (wallet.getActiveBalance().compareTo(ZERO) < 0) {
             throw new NotEnoughUserWalletMoneyException("Not enough money to withdraw on user wallet " + wallet);
         }
-        wallet.setReservedBalance(wallet.getReservedBalance().add(sum, MATH_CONTEXT));
+        wallet.setReservedBalance(wallet.getReservedBalance().add(sum).setScale(decimalPlaces, ROUND_HALF_UP));
         walletDao.update(wallet);
     }
 
     @Override
     @Transactional(propagation = Propagation.NESTED)
     public void withdrawReservedBalance(final Wallet wallet, final BigDecimal sum) {
-        wallet.setReservedBalance(wallet.getReservedBalance().subtract(sum, MATH_CONTEXT));
+        wallet.setReservedBalance(wallet.getReservedBalance().subtract(sum).setScale(decimalPlaces, ROUND_HALF_UP));
         if (wallet.getReservedBalance().compareTo(ZERO) < 0) {
             throw new NotEnoughUserWalletMoneyException("Not enough money to withdraw on user wallet " + wallet);
         }

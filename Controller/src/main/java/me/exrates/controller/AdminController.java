@@ -2,7 +2,10 @@ package me.exrates.controller;
 
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.validator.RegisterFormValidation;
-import me.exrates.model.*;
+import me.exrates.model.CurrencyPair;
+import me.exrates.model.Transaction;
+import me.exrates.model.User;
+import me.exrates.model.Wallet;
 import me.exrates.model.dto.*;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
@@ -24,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.support.RequestContextUtils;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -341,7 +344,7 @@ public class AdminController {
 
     @RequestMapping(value = "settings/changeFinPassword/submit", method = POST)
     public ModelAndView submitsettingsFinPassword(@Valid @ModelAttribute User user, BindingResult result,
-                                                  ModelAndView model, HttpServletRequest request) {
+                                                  ModelAndView model, HttpServletRequest request, RedirectAttributes redir) {
         user.setStatus(user.getUserStatus());
         registerFormValidation.validateResetFinPassword(user, result, localeResolver.resolveLocale(request));
         if (result.hasErrors()) {
@@ -353,10 +356,11 @@ public class AdminController {
             updateUserDto.setFinpassword(user.getFinpassword());
             updateUserDto.setEmail(user.getEmail()); //need for send the email
             userService.update(updateUserDto, localeResolver.resolveLocale(request));
+
+            final String message = messageSource.getMessage("admin.changePasswordSendEmail", null, localeResolver.resolveLocale(request));
+            redir.addFlashAttribute("msg", message);
             model.setViewName("redirect:/settings");
         }
-
-        model.addObject("user", user);
 
         return model;
     }

@@ -26,13 +26,12 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.math.MathContext;
-import java.math.RoundingMode;
 import java.util.Map;
 import java.util.Optional;
 import java.util.StringJoiner;
 
-import static java.lang.Integer.*;
+import static java.lang.Integer.parseInt;
+import static java.math.BigDecimal.ROUND_HALF_UP;
 import static java.util.Objects.isNull;
 import static me.exrates.model.enums.OperationType.INPUT;
 
@@ -66,7 +65,7 @@ public class BlockchainServiceImpl implements BlockchainService {
 
     private static final Logger LOG = LogManager.getLogger("merchant");
     private static final BigDecimal SATOSHI = new BigDecimal(100_000_000L);
-    private static final MathContext MATH_CONTEXT = new MathContext(9, RoundingMode.CEILING);
+    private static final int decimalPlaces = 9;
 
     @Override
     @Transactional
@@ -131,8 +130,8 @@ public class BlockchainServiceImpl implements BlockchainService {
         }
         final int confirmations = parseInt(params.get("confirmations"));
         final Transaction transaction = transactionService.findById(payment.getInvoiceId());
-        final BigDecimal targetAmount = transaction.getAmount().add(transaction.getCommissionAmount(), MATH_CONTEXT);
-        final BigDecimal currentAmount = new BigDecimal(params.get("value"), MATH_CONTEXT).divide(SATOSHI, MATH_CONTEXT);
+        final BigDecimal targetAmount = transaction.getAmount().add(transaction.getCommissionAmount()).setScale(decimalPlaces, ROUND_HALF_UP);
+        final BigDecimal currentAmount = new BigDecimal(params.get("value")).setScale(decimalPlaces, ROUND_HALF_UP).divide(SATOSHI).setScale(decimalPlaces, ROUND_HALF_UP);
         if (targetAmount.compareTo(currentAmount) != 0) {
             if (transaction.getConfirmation() == 0) {
                 transactionService.updateTransactionAmount(transaction, currentAmount);

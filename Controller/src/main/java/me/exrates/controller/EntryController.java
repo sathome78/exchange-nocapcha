@@ -24,7 +24,6 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.RequestContextUtils;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -84,7 +83,8 @@ public class EntryController {
     }
 
     @RequestMapping("/settings")
-    public ModelAndView settings(Principal principal, @RequestParam(required = false) Integer tabIdx, @RequestParam(required = false) String msg, HttpServletRequest request) {
+    public ModelAndView settings(Principal principal, @RequestParam(required = false) Integer tabIdx, @RequestParam(required = false) String msg,
+                                 HttpServletRequest request) {
         final User user = userService.getUserById(userService.getIdByEmail(principal.getName()));
         final ModelAndView mav = new ModelAndView("globalPages/settings");
         final List<UserFile> userFile = userService.findUserDoc(user.getId());
@@ -94,6 +94,7 @@ public class EntryController {
         mav.addObject("sectionid", null);
         mav.addObject("errorNoty", map != null ? map.get("msg") : msg);
         mav.addObject("userFiles", userFile);
+
         return mav;
     }
 
