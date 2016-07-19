@@ -43,6 +43,8 @@
             <!--/.nav-collapse -->
         </div>
     </nav>
+    <%--csrf--%>
+    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
 </header>
 
 <!-- Modal SIGN IN -->
@@ -64,8 +66,6 @@
                                 <%--пароль--%>
                             <input type="password" name="password" placeholder=<loc:message
                                     code="dashboard.passwordText"/>>
-                                <%--csrf--%>
-                            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                             <br/>
                                 <%--CAPCHA--%>
                             <div id="cpch-head-field" class="g-recaptcha"
