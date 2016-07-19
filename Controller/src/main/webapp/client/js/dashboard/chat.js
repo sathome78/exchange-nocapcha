@@ -34,9 +34,8 @@ function formatNewMessage(o) {
 
 function appendNewMessage(messageObj) {
     const newMessage = formatNewMessage(JSON.parse(messageObj));
-    $('#chat').append(newMessage);
-    adjustScrollbar();
-    scrollChat();
+    $('#chat .mCSB_container').append(newMessage);
+     scrollChat();
 
     $('#new_mess').find('input[name="body"]').val('');
 }
@@ -86,19 +85,10 @@ $(function () {
     })
 });
 
-function adjustScrollbar() {
 
-    // $("#chat").mCustomScrollbar("update") does not work in any combinations
-
-    $("#chat").mCustomScrollbar("destroy");
-   $("#chat").mCustomScrollbar({
-        theme:"dark",
-        axis:"y"
-    });
-}
 
 function scrollChat() {
-    $('#chat').mCustomScrollbar("scrollTo", "bottom",{
+    $('#chat').mCustomScrollbar("scrollTo", "bottom", {
         scrollInertia:0
     });
 }

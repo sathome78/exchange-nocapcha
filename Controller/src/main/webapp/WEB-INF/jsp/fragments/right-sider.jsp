@@ -53,7 +53,9 @@
                 theme:"dark",
                 axis:"y"
             });
-            $('#chat').mCustomScrollbar("scrollTo", "bottom");
+            $('#chat').mCustomScrollbar("scrollTo", "bottom",  {
+                scrollInertia:0
+            });
         });
     })(jQuery);
 
