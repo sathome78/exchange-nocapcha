@@ -34,8 +34,9 @@ function formatNewMessage(o) {
 
 function appendNewMessage(messageObj) {
     const newMessage = formatNewMessage(JSON.parse(messageObj));
-    $('#chat').append(newMessage);
-    scrollChat();
+    $('#chat .mCSB_container').append(newMessage);
+     scrollChat();
+
     $('#new_mess').find('input[name="body"]').val('');
 }
 
@@ -84,8 +85,10 @@ $(function () {
     })
 });
 
+
+
 function scrollChat() {
-    $('#chat')
-        .scrollTo('max')
-        .scrollLeft(0);
+    $('#chat').mCustomScrollbar("scrollTo", "bottom", {
+        scrollInertia:0
+    });
 }

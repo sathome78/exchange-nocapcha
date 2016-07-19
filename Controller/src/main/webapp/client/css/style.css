@@ -509,7 +509,8 @@ input.item_input,
 .news {
     display: block;
     height: 270px;
-    overflow-y: scroll;
+    overflow-y: hidden;
+    overflow-x: hidden;
 }
 
 .chat {
@@ -892,6 +893,7 @@ td.blue-white {
 #adminka-entry a {
     color: #d9dbff;
 }
+
 
 .nav.header__nav .nav__link {
     padding: 10px 10px;
