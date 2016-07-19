@@ -14,7 +14,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static java.math.BigDecimal.ROUND_CEILING;
+import static java.math.BigDecimal.ROUND_HALF_UP;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -68,7 +68,7 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     @Override
     public String amountToString(final BigDecimal amount, final String currency) {
-        return amount.setScale(resolvePrecision(currency), ROUND_CEILING)
+        return amount.setScale(resolvePrecision(currency), ROUND_HALF_UP)
 //                .stripTrailingZeros()
                 .toString();
     }

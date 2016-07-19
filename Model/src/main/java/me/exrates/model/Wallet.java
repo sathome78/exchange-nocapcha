@@ -83,7 +83,7 @@ public class Wallet {
 			case 1:
 			case 2:
 			case 3:
-				activeBalance = this.activeBalance.setScale(2,BigDecimal.ROUND_CEILING).toString();
+				activeBalance = this.activeBalance.setScale(2,BigDecimal.ROUND_HALF_UP).toString();
 				break;
 			default:
 				activeBalance = this.activeBalance.toString();

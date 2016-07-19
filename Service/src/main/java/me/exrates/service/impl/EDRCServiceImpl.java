@@ -36,16 +36,9 @@ import java.io.StringReader;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
-import java.util.AbstractMap;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.StringJoiner;
+import java.util.*;
 
 import static java.util.Objects.isNull;
-import static me.exrates.service.util.OkHttpUtils.stringifyBody;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -202,7 +195,7 @@ public class EDRCServiceImpl implements EDRCService {
                     .set(address)
                     .up()
                     .add("amount")
-                    .set(amount.setScale(PRECISION,BigDecimal.ROUND_CEILING))
+                    .set(amount.setScale(PRECISION,BigDecimal.ROUND_HALF_UP))
                     .up()
                     .add("description")
                     .set("Exrates EDRC payment"))

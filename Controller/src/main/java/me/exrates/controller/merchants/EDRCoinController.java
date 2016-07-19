@@ -64,7 +64,7 @@ public class EDRCoinController {
             final String notification = merchantService
                 .sendDepositNotification(pendingPayment
                         .getAddress().orElseThrow(() -> new MerchantInternalException("Address not presented")),
-                        email , locale, creditsOperation);
+                        email , locale, creditsOperation, "merchants.depositNotification.body");
             final HttpHeaders httpHeaders = new HttpHeaders();
             httpHeaders.add("Content-Type", "text/plain; charset=utf-8");
             return new ResponseEntity<>(notification, httpHeaders, OK);

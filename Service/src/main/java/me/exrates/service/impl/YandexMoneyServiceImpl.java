@@ -152,7 +152,7 @@ public class YandexMoneyServiceImpl implements YandexMoneyService {
                 creditsOperation.getAmount().add(creditsOperation.getCommissionAmount()) :
                 creditsOperation.getAmount().subtract(creditsOperation.getCommissionAmount());
         final P2pTransferParams p2pTransferParams = new P2pTransferParams.Builder(destination)
-                .setAmount(amount.setScale(2,BigDecimal.ROUND_CEILING))
+                .setAmount(amount.setScale(2,BigDecimal.ROUND_HALF_UP))
                 .create();
         final RequestPayment.Request request = RequestPayment.Request.newInstance(p2pTransferParams);
         try {

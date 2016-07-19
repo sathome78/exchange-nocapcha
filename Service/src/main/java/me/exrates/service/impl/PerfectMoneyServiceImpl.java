@@ -57,7 +57,7 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
                 amountToPay = sum.toBigInteger();
                 break;
             default:
-                amountToPay = sum.setScale(2, BigDecimal.ROUND_CEILING);
+                amountToPay = sum.setScale(2, BigDecimal.ROUND_HALF_UP);
         }
 
         return new HashMap<String,String>(){
@@ -103,7 +103,7 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
                 amountToPay = sum.toBigInteger();
                 break;
             default:
-                amountToPay = sum.setScale(2, BigDecimal.ROUND_CEILING);
+                amountToPay = sum.setScale(2, BigDecimal.ROUND_HALF_UP);
         }
         RequestBody requestBody = new MultipartBuilder()
                 .type(MultipartBuilder.FORM)
