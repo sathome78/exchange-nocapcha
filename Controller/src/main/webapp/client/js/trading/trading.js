@@ -236,6 +236,9 @@ function TradingClass(period, chartType, currentCurrencyPair) {
     this.clearOrdersCreationForm = function() {
         $('.item__input').val('');
         $('.buyBTC__input').val('');
+        calculateFieldsForBuy();
+        calculateFieldsForSell();
+        switchCreateOrAcceptButtons();
     };
 
     function getOrderCommissions() {
