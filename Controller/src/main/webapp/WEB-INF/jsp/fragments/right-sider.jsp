@@ -4,6 +4,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%----%>
 <script type="text/javascript" src="<c:url value='/client/js/news/news.js'/>"></script>
+
 <%----%>
 <div id="right-sider" class="cols-md-2">
     <%--CHAT TODO REMOVE TO SEPARATE jsp--%>
@@ -19,7 +20,7 @@
     </div>
 
     <hr class="under_h4">
-    <div id="chat" class="chat">
+    <div id="chat" class="chat"<%-- mCustomScrollbar" data-mcs-theme="dark" data-mcs-axis="y"--%>>
     </div>
     <sec:authorize access="isAuthenticated()">
         <form id="new_mess" method="POST">
@@ -45,3 +46,16 @@
     </div>
 </div>
 <script src="<c:url value="/client/js/jquery.scrollTo.min.js"/>"></script>
+<script type="text/javascript">
+    (function($){
+        $(window).on("load",function(){
+            $("#chat").mCustomScrollbar({
+                theme:"dark",
+                axis:"y"
+            });
+            $('#chat').mCustomScrollbar("scrollTo", "bottom");
+        });
+    })(jQuery);
+
+
+</script>
