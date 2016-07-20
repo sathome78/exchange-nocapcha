@@ -1455,10 +1455,18 @@ form span.repass {
     font-size: 14px;
 }
 
-#chat > p {
+#chat.chat_message > p {
     max-width: inherit;
     text-overflow: clip;
     word-break: normal;
+}
+
+.chat_message > button {
+    display: none;
+}
+
+.chat_message:hover > button {
+    display: inherit;
 }
 
 /********************************

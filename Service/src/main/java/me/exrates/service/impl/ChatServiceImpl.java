@@ -144,4 +144,17 @@ public class ChatServiceImpl implements ChatService {
             }
         }
     }
+
+    public void deleteMessage(final ChatMessage message, final ChatLang lang) {
+        final ChatComponent comp = chats.get(lang);
+        try {
+            comp.getLock().writeLock().lock();
+            comp.getCache().remove(message);
+        } finally {
+            comp.getLock().writeLock().unlock();
+        }
+
+        chatDao.delete(lang, message);
+
+    }
 }
