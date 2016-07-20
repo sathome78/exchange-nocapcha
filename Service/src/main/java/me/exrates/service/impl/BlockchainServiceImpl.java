@@ -65,7 +65,7 @@ public class BlockchainServiceImpl implements BlockchainService {
 
     private static final Logger LOG = LogManager.getLogger("merchant");
     private static final BigDecimal SATOSHI = new BigDecimal(100_000_000L);
-    private static final int decimalPlaces = 9;
+    private static final int decimalPlaces = 8;
 
     @Override
     @Transactional

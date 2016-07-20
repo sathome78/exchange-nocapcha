@@ -348,9 +348,16 @@ public class MerchantServiceImpl implements MerchantService {
         final BigDecimal commissionMerchant = commissionService.getCommissionMerchant(merchant, currency);
         final BigDecimal commissionTotal = type == INPUT ? commission.add(commissionMerchant).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP) :
                 commission;
-        final BigDecimal commissionAmount = amount.multiply(commissionTotal).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP)
+        BigDecimal commissionAmount = amount.multiply(commissionTotal).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP)
                 .divide(HUNDREDTH).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP).
                 setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP);
+        if (commissionAmount.compareTo(BigDecimal.ZERO) == 0){
+            if (currencyService.resolvePrecision(currency) == 2) {
+                commissionAmount = commissionAmount.add(new BigDecimal("0.01"));
+            }else {
+                commissionAmount = commissionAmount.add(new BigDecimal("0.00000001"));
+            }
+        }
         final BigDecimal resultAmount = type == INPUT ? amount.add(commissionAmount).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP) :
                 amount.subtract(commissionAmount).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP);
         result.put("commission", commissionTotal.stripTrailingZeros().toString());
@@ -382,11 +389,18 @@ public class MerchantServiceImpl implements MerchantService {
         final BigDecimal commissionTotal = operationType == INPUT ? commissionByType.getValue().add(commissionMerchant)
                 .setScale(currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP) :
                 commissionByType.getValue();
-        final BigDecimal commissionAmount =
+         BigDecimal commissionAmount =
                 commissionTotal
                 .setScale(currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP)
                 .multiply(amount)
                 .divide(valueOf(100), currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP);
+        if (commissionAmount.compareTo(BigDecimal.ZERO) == 0){
+            if (currencyService.resolvePrecision(currency.getName()) == 2) {
+                commissionAmount = commissionAmount.add(new BigDecimal("0.01"));
+            }else {
+                commissionAmount = commissionAmount.add(new BigDecimal("0.00000001"));
+            }
+        }
         final User user = userService.findByEmail(userEmail);
         final BigDecimal newAmount = payment.getOperationType() == INPUT ?
                 amount :

@@ -22,7 +22,7 @@ import static java.math.BigDecimal.ROUND_HALF_UP;
 @Service
 public class AlgorithmServiceImpl implements AlgorithmService {
 
-    private static final int decimalPlaces = 9;
+    private static final int decimalPlaces = 8;
     private static final BigDecimal HUNDRED = new BigDecimal(100L).setScale(decimalPlaces, ROUND_HALF_UP);
     private static final BigDecimal SATOSHI = new BigDecimal(100_000_000L);
 

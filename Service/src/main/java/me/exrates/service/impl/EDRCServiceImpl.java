@@ -54,7 +54,7 @@ public class EDRCServiceImpl implements EDRCService {
 
     private static final String REGEX = ".*";
     private static final Logger LOG = LogManager.getLogger("merchant");
-    private static final int decimalPlaces = 9;
+    private static final int decimalPlaces = 8;
 
     @Autowired
     private AlgorithmService algorithmService;

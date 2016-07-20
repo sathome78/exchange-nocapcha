@@ -38,7 +38,7 @@ import static java.math.BigDecimal.ROUND_HALF_UP;
 public class TransactionServiceImpl implements TransactionService {
 
     private static final Logger LOG = LogManager.getLogger(TransactionServiceImpl.class);
-    private static final int decimalPlaces = 9;
+    private static final int decimalPlaces = 8;
 
     @Autowired
     private TransactionDao transactionDao;
