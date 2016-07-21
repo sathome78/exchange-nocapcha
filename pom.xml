@@ -33,6 +33,7 @@
 		<spring-security.version>4.1.0.RELEASE</spring-security.version>
 		<spring-websocket.version>4.1.0.RELEASE</spring-websocket.version>
 		<spring-messaging.version>4.3.0.RELEASE</spring-messaging.version>
+		<bitcoinj.version>0.14.3</bitcoinj.version>
 	</properties>
 
 	<dependencies>
@@ -267,7 +268,14 @@
 			<version>1.0</version>
 			<scope>provided</scope>
 		</dependency>
+
+		<dependency>
+			<groupId>org.bitcoinj</groupId>
+			<artifactId>bitcoinj-core</artifactId>
+			<version>${bitcoinj.version}</version>
+		</dependency>
 	</dependencies>
+
 
 	<!--<dependencyManagement>-->
 		<!--<dependencies>-->

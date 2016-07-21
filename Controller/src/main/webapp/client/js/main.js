@@ -151,9 +151,6 @@ $(function(){
 
 
     function resetMerchantsList(currency) {
-        if (getCurrentCurrency() === 'BTC') {
-            $('button[name="assertInputPay"]').hide()
-        }
         var optionsHTML = '';
         $.each(merchantsData,function(index){
             if (merchantsData[index].currencyId == currency) {
@@ -161,7 +158,7 @@ $(function(){
                 fractionalAmount = merchantsData[index].minSum.noExponents().split('.')[1].length;
             }
         });
-        if (optionsHTML==='' || optionsHTML.search('Blockchain') !== -1) {
+        if (optionsHTML==='') {
             merchant.fadeOut();
             button.prop('disabled', true);
         } else {
@@ -180,7 +177,7 @@ $(function(){
     function resetFormAction(operationType,merchant,form) {
         var formAction = {
             yandex:'/merchants/yandexmoney/payment/prepare',
-            blockchainDeposit:'/merchants/blockchain/payment/provide',
+            blockchainDeposit:'/merchants/bitcoin/payment/provide',
             perfectDeposit:'https://perfectmoney.is/api/step1.asp',
             advcash:'/merchants/advcash/payment/prepare',
             liqpay:'/merchants/liqpay/payment/prepare',
@@ -286,7 +283,7 @@ $(function(){
                     $('#inputPaymentProcess')
                         .html($('#mrcht-waiting').val())
                         .prop('disabled', true);
-                    $.ajax('/merchants/blockchain/payment/prepare', {
+                    $.ajax('/merchants/bitcoin/payment/prepare', {
                         headers: {
                             'X-CSRF-Token': $("input[name='_csrf']").val()
                         },

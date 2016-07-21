@@ -8,6 +8,8 @@ import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
+import org.bitcoinj.core.Context;
+import org.bitcoinj.params.TestNet3Params;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.MessageSource;
@@ -245,6 +247,10 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new StandardServletMultipartResolver();
     }
 
+    @Bean
+    public Context context() {
+        return new Context(TestNet3Params.get());
+    }
 
 
 }
