@@ -20,7 +20,7 @@
     </div>
 
     <hr class="under_h4">
-    <div id="chat" class="chat"<%-- mCustomScrollbar" data-mcs-theme="dark" data-mcs-axis="y"--%>>
+    <div id="chat" class="chat">
     </div>
     <sec:authorize access="isAuthenticated()">
         <form id="new_mess" method="POST">
@@ -28,8 +28,11 @@
                    placeholder='<loc:message code="dashboard.onlinechatenter"/>'>
             <input type="hidden" name="lang" value="EN"/>
             <button class="send_button" type="submit"><loc:message code="dashboard.onlinechatsend"/></button>
+
         </form>
     </sec:authorize>
+
+
 
     <%--NEWS LIST--%>
     <div id="new-list-container" style="position: relative" class="clearfix">
@@ -46,18 +49,3 @@
     </div>
 </div>
 <script src="<c:url value="/client/js/jquery.scrollTo.min.js"/>"></script>
-<script type="text/javascript">
-    (function($){
-        $(window).on("load",function(){
-            $("#chat").mCustomScrollbar({
-                theme:"dark",
-                axis:"y"
-            });
-            $('#chat').mCustomScrollbar("scrollTo", "bottom",  {
-                scrollInertia:0
-            });
-        });
-    })(jQuery);
-
-
-</script>

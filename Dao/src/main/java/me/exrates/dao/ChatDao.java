@@ -14,4 +14,6 @@ public interface ChatDao {
     List<ChatMessage> findLastMessages(ChatLang lang, int messageCount);
 
     void persist(ChatLang lang, Set<ChatMessage> message);
+
+    void delete(ChatLang lang, ChatMessage message);
 }
