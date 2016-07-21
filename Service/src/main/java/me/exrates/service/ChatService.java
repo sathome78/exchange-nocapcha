@@ -17,4 +17,6 @@ public interface ChatService {
     SortedSet<ChatMessage> getLastMessages(ChatLang lang);
 
     void deleteMessage(ChatMessage message, ChatLang lang);
+
+    void flushCache();
 }
