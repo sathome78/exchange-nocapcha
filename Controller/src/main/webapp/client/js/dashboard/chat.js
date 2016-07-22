@@ -7,7 +7,13 @@ function connect(chatLang) {
     }
     ws = new SockJS('/chat-' + chatLang);
     ws.onmessage = function (message) {
-        appendNewMessage(message['data']);
+        const messageObj = JSON.parse(message['data']);
+        if ($.inArray("isRemoved", Object.keys(messageObj)) >= 0) {
+            removeMessageFromChatHistory(messageObj.id);
+        } else {
+            appendNewMessage(messageObj);
+        }
+
     };
 }
 
@@ -40,7 +46,7 @@ function formatNewMessage(o) {
 }
 
 function appendNewMessage(messageObj) {
-    const newMessage = formatNewMessage(JSON.parse(messageObj));
+    const newMessage = formatNewMessage(messageObj);
 
     $('#chat .mCSB_container').append(newMessage);
 
@@ -122,8 +128,6 @@ function deleteMessage(event) {
         body: $chat_message.find('.message_body').text(),
         nickname: $chat_message.find('.nickname').text(),
         lang: $('#new_mess').find('input[name="lang"]').val()
-
-
     };
     $.ajax('/admin/chat/deleteMessage', {
         headers: {
@@ -133,8 +137,15 @@ function deleteMessage(event) {
         data: message,
         dataType: "text"
     }).done(function () {
-        changeChatLocale(message.lang);
+      //  changeChatLocale(message.lang);
     }).fail(function(e){
         console.log(e)
     })
+}
+
+function removeMessageFromChatHistory(id) {
+    var $messageDiv =$('.chat_message').filter(function (index) {
+        return parseInt($(this).find('.message_id').text()) === id;
+    });
+    $messageDiv.remove();
 }
