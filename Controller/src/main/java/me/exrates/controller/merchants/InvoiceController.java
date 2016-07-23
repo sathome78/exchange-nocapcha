@@ -58,7 +58,7 @@ public class InvoiceController {
             try {
                 final Transaction transaction = invoiceService.createPaymentInvoice(creditsOperation);
                 final String notification = merchantService
-                        .sendDepositNotification("123456789",
+                        .sendDepositNotification("",
                                 email , locale, creditsOperation, "merchants.depositNotificationWithCurrency.body");
                 final HttpHeaders httpHeaders = new HttpHeaders();
                 httpHeaders.add("Content-Type", "text/plain; charset=utf-8");
