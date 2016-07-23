@@ -1546,6 +1546,13 @@ form span.repass {
 /********************************
            SEARCH (me)
 ********************************/
+
+.table-header-wrapper {
+    display: inline-block;
+    width: 100%
+}
+
+
 .table-filter__wrapper {
     float: right;
     padding: 11px 0 0 0;
