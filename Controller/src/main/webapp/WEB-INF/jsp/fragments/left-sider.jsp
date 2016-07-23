@@ -45,6 +45,7 @@
                placeholder=<loc:message code="currency.search"/>>
     </div>
     <hr class="under_h4">
+    <div id="currency_table_wrapper">
     <table id="currency_table" class="table currency_table">
         <tr>
             <th><loc:message code="currency.pair"/></th>
@@ -59,4 +60,5 @@
             </tr>
         </script>
     </table>
+    </div>
 </div>

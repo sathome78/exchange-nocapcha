@@ -95,6 +95,11 @@ $(function dashdoardInit() {
         /*...FOR HEADER*/
 
         /*FOR LEFT-SIDER ...*/
+        $('#currency_table_wrapper').mCustomScrollbar({
+            theme: "dark",
+            axis: "yx",
+            live: true
+        });
         leftSider = new LeftSiderClass();
         $('#currency_table').on('click', 'td:first-child', function (e) {
             var newCurrentCurrencyPairName = $(this).text().trim();
@@ -109,6 +114,18 @@ $(function dashdoardInit() {
         /*...FOR LEFT-SIDER*/
 
         /*FOR CENTER ON START UP ...*/
+
+        $('#orders-sell-table-wrapper, #orders-buy-table-wrapper, #orders-history-table-wrapper').mCustomScrollbar({
+            theme: "dark",
+            axis: "y",
+            live: true
+        });
+
+
+
+
+
+
         syncCurrentParams(null, null, null, null, function (data) {
             showPage($('#startup-page-id').text().trim());
             trading = new TradingClass(data.period, data.chartType, data.currencyPair.name);
@@ -120,6 +137,12 @@ $(function dashdoardInit() {
         /*...FOR CENTER ON START UP*/
 
         /*FOR RIGHT-SIDER ...*/
+        $('#news_table_wrapper').mCustomScrollbar({
+            theme: "dark",
+            axis: "yx",
+            live: true
+        });
+
         rightSider = new RightSiderClass();
         /*...FOR RIGHT-SIDER*/
     } catch (e) {
@@ -179,3 +202,4 @@ function parseNumber(numberStr) {
     numberStr = numberStr.replace(/\s/g, '').replace(/\,/g, '.');
     return parseFloat(numberStr);
 }
+

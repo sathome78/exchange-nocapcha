@@ -46,6 +46,7 @@
 
     <div class="row">
         <div class="cols-md-4">
+            <div id="orders-history-table-wrapper">
             <div class="deals-scope-switcher__wrapper">
                 <div id="all-deals" class="deals-scope-switcher__button ht ht-active"
                      data-tableId="orders-history-table">
@@ -59,13 +60,14 @@
                 </sec:authorize>
             </div>
             <%--ALL TRADES TABLE --%>
-            <table id="orders-history-table" class="orders-history-table table_middle">
-                <tbody>
+
+            <table id="orders-history-table" class="orders-history-table table_middle default-skin">
                 <tr class="ht__theader">
                     <th class="center"><loc:message code="dashboard.time"/></th>
                     <th class="center"><loc:message code="dashboard.price"/></th>
                     <th class="center currencyBaseName"></th>
                 </tr>
+                <tbody>
                 <script type="text/template" id="orders-history-table_row">
                     <tr>
                         <td><@=dateAcceptionTime@></td>
@@ -94,6 +96,7 @@
                 </script>
                 </tbody>
             </table>
+            </div>
         </div>
         <!-- end cols-md-2 -->
 
@@ -171,6 +174,7 @@
             </div>
             <!-- end buyBTC -->
             <span class="green marginTop-15"><loc:message code="dashboard.sellOrders"/></span>
+            <div id="orders-sell-table-wrapper">
             <table class="table_middle table_middle2">
                 <table id="dashboard-orders-sell-table" class="dashboard-order__table table_middle">
                     <tbody>
@@ -191,6 +195,8 @@
                     </tbody>
                 </table>
             </table>
+            </div>
+
         </div>
         <!-- end cols-md-4 -->
         <div class="cols-md-4">
@@ -268,6 +274,7 @@
             </div>
             <!-- end buyBTC -->
             <span class="green marginTop-15"><loc:message code="dashboard.buyOrders"/></span>
+            <div id="orders-buy-table-wrapper">
             <table class="table_middle table_middle2">
                 <tbody class="table_middle2">
                 <table id="dashboard-orders-buy-table" class="dashboard-order__table table_middle">
@@ -290,6 +297,7 @@
                 </table>
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 </div>
