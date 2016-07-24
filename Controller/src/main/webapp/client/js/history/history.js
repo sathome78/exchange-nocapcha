@@ -61,7 +61,7 @@ function MyHistoryClass(currentCurrencyPair) {
     (function init (currentCurrencyPair) {
         myOrders = new MyOrdersClass(currentCurrencyPair);
         myReferral = new MyReferralClass(currentCurrencyPair);
-        inputOutput = 'тут new InputOutputClass(currentCurrencyPair)';
+        inputOutput = new InputOutputClass(currentCurrencyPair);
         /**/
         $('#myhistory-button-orders').addClass('active');
         /**/

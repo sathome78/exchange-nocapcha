@@ -5,11 +5,14 @@ import me.exrates.dao.MerchantDao;
 import me.exrates.dao.WithdrawRequestDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
+import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.WithdrawalRequestStatus;
+import me.exrates.model.vo.CacheData;
 import me.exrates.service.*;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.UnsupportedMerchantException;
+import me.exrates.service.util.Cache;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -348,9 +351,7 @@ public class MerchantServiceImpl implements MerchantService {
         final BigDecimal commissionMerchant = commissionService.getCommissionMerchant(merchant, currency);
         final BigDecimal commissionTotal = type == INPUT ? commission.add(commissionMerchant).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP) :
                 commission;
-        BigDecimal commissionAmount = amount.multiply(commissionTotal).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP)
-                .divide(HUNDREDTH).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP).
-                setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP);
+        BigDecimal commissionAmount = amount.multiply(commissionTotal).divide(HUNDREDTH).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP);
         if (commissionAmount.compareTo(BigDecimal.ZERO) == 0){
             if (currencyService.resolvePrecision(currency) == 2) {
                 commissionAmount = commissionAmount.add(new BigDecimal("0.01"));
@@ -391,7 +392,6 @@ public class MerchantServiceImpl implements MerchantService {
                 commissionByType.getValue();
          BigDecimal commissionAmount =
                 commissionTotal
-                .setScale(currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP)
                 .multiply(amount)
                 .divide(valueOf(100), currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP);
         if (commissionAmount.compareTo(BigDecimal.ZERO) == 0){
@@ -422,5 +422,16 @@ public class MerchantServiceImpl implements MerchantService {
     private boolean isPayable(Merchant merchant, Currency currency, BigDecimal sum) {
         final BigDecimal minSum = merchantDao.getMinSum(merchant.getId(), currency.getId());
         return sum.compareTo(minSum) >= 0;
+    }
+
+    @Override
+    public List<MyInputOutputHistoryDto> getMyInputOutputHistory(CacheData cacheData, String email, Integer offset, Integer limit, Locale locale) {
+        List<MyInputOutputHistoryDto> result = merchantDao.getMyInputOutputHistory(email, offset, limit, locale);
+        if (Cache.checkCache(cacheData, result)) {
+            result = new ArrayList<MyInputOutputHistoryDto>() {{
+                add(new MyInputOutputHistoryDto(false));
+            }};
+        }
+        return result;
     }
 }

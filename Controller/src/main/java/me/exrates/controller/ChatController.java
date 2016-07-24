@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.model.ChatMessage;
 import me.exrates.model.dto.ChatDto;
+import me.exrates.model.dto.RemovedMessageDto;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.service.ChatService;
 import me.exrates.service.annotation.ThreadSafe;
@@ -88,14 +89,24 @@ public class ChatController {
 
     @RequestMapping(value = "/admin/chat/deleteMessage", method = POST)
     public @ResponseBody String deleteMessage(HttpServletRequest request) {
+
         Map<String, String[]> params = request.getParameterMap();
         ChatMessage message = new ChatMessage();
         message.setId(Long.parseLong(params.get("id")[0]));
         message.setUserId(Integer.parseInt(params.get("userId")[0]));
         message.setBody(params.get("body")[0]);
         message.setNickname(params.get("nickname")[0]);
+        ChatLang lang = ChatLang.toInstance(params.get("lang")[0]);
 
-        chatService.deleteMessage(message, ChatLang.toInstance(params.get("lang")[0]));
+        chatService.deleteMessage(message, lang);
+        handlers.get(lang).getSessions().forEach(webSocketSession -> {
+            try {
+                webSocketSession.sendMessage(new TextMessage(gson.toJson(new RemovedMessageDto(message.getId()))));
+            } catch (IOException e) {
+                LOG.error(e);
+            }
+        });
+
         return "successful";
 
     }

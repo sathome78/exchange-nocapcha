@@ -22,7 +22,6 @@
     <script src="<c:url value="/client/js/jquery_1.11.3.min.js"/>" type="text/javascript"></script>
     <script src="<c:url value='/client/js/jquery.mCustomScrollbar.concat.min.js'/>" type="text/javascript"></script>
 
-    <link rel="stylesheet" href="<c:url value="/client/css/font-awesome.min.css"/>">
     <link href="<c:url value='/client/css/jquery.mCustomScrollbar.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet">
@@ -109,8 +108,7 @@
                                                 placeholder="${repassword}"
                                                 class="form-control input-block-wrapper__input"/>
                     </div>
-                    <span class='repass'><i class="fa fa-check"></i></span>
-
+                    <span class="repass"><i class="glyphicon glyphicon-ok"></i></span>
                     <div class="col-md-11 input-block-wrapper__error-wrapper">
                         <form:errors path="confirmPassword" class="input-block-wrapper__input"/>
                     </div>
@@ -142,9 +140,9 @@
                 <c:if test="${captchaType==\"BOTDETECT\"}">
                     <%--CAPTCHA BotDetect--%>
                     <div id="cpch-field" class="col-md-11 login__captcha--botdetect passed">
-                        <botDetect:captcha id="loginFormRegCaptcha" userInputID="captchaCode"/>
+                        <botDetect:captcha id="registerFormRegCaptcha" userInputID="captchaCode"/>
                         <input name="captchaCode" type="text" id="captchaCode"/>
-                        <input type="hidden" name="captchaId" value="loginFormRegCaptcha"/>
+                        <input type="hidden" name="captchaId" value="registerFormRegCaptcha"/>
                     </div>
                     <div class="col-md-11 input-block-wrapper__error-wrapper">
                         <p class='cpch-error-message' style="color:red">${cpch}</p>

@@ -38,13 +38,20 @@
             </tbody>
         </table>
     </sec:authorize>
+
+    <div class="table-header-wrapper">
+
     <h4 class="h4_green"><loc:message code="currency.pairs"/></h4>
-    <div id="trade_market_filter" class="table-filter__wrapper">
-        <span class="glyphicon glyphicon-search"></span>
-        <input id="pair-filter"  class="table-filter__input"
-               placeholder=<loc:message code="currency.search"/>>
+        <div id="trade_market_filter" class="table-filter__wrapper">
+            <span class="glyphicon glyphicon-search"></span>
+            <input id="pair-filter"  class="table-filter__input"
+                   placeholder=<loc:message code="currency.search"/>>
+        </div>
     </div>
+
+
     <hr class="under_h4">
+    <div id="currency_table_wrapper">
     <table id="currency_table" class="table currency_table">
         <tr>
             <th><loc:message code="currency.pair"/></th>
@@ -59,4 +66,5 @@
             </tr>
         </script>
     </table>
+    </div>
 </div>

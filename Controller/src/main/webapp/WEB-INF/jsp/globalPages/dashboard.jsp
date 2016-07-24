@@ -36,6 +36,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/mywallets/mywallets.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/history/history.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/myorders/myorders.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/inputOutput/inputOutput.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/myreferral/myreferral.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/mywallets/statements.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/order/orders.js'/>"></script>

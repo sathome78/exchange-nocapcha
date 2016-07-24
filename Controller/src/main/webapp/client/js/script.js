@@ -43,9 +43,9 @@ $(function () {
         var login = $('#login').val();
         var capchaPassed = $('#cpch-field').hasClass('passed');
 
-        if ((pass.length != 0) && (pass === repass)) {
+        if (pass && (pass.length != 0) && (pass === repass)) {
             $('.repass').css("display", "block");
-            if ((email.length != 0) && (login.length != 0) && (capchaPassed)) {
+            if ((!$('#email')[0] || (email.length != 0) && (login.length != 0)) && (capchaPassed)) {
                 $("#register_button").prop('disabled', false);
             } else {
                 $("#register_button").prop('disabled', true);

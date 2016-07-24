@@ -35,7 +35,7 @@ import static java.math.BigDecimal.ZERO;
 @Transactional
 public final class WalletServiceImpl implements WalletService {
 
-    private static final int decimalPlaces = 8;
+    private static final int decimalPlaces = 9;
     private static final Logger LOGGER = LogManager.getLogger(WalletServiceImpl.class);
 
     @Autowired

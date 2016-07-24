@@ -89,6 +89,9 @@ public class OnlineRestController {
     TransactionService transactionService;
 
     @Autowired
+    MerchantService merchantService;
+
+    @Autowired
     MessageSource messageSource;
 
     @Autowired
@@ -717,6 +720,48 @@ public class OnlineRestController {
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
         CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
         List<AccountStatementDto> result = transactionService.getAccountStatement(cacheData, Integer.valueOf(walletId), tableParams.getOffset(), tableParams.getLimit(), localeResolver.resolveLocale(request));
+        if (!result.isEmpty()) {
+            result.get(0).setPage(tableParams.getPageNumber());
+        }
+        tableParams.updateEofState(result);
+        return result;
+    }
+
+    /**
+     * it's one of onlines methods, which retrieves data from DB for repaint on view in browser page
+     * returns list the data of user's input/output orders to show in pages "History input/output"
+     *
+     * @param refreshIfNeeded: - "true" if view ought to repainted if data in DB was changed only.
+     *                         - "false" if data must repainted in any cases
+     * @param tableId          determines table on pages "History" to show data
+     * @param page,            direction - used for pgination. Details see in class TableParams
+     * @param principal
+     * @param request
+     * @return list the data of user's orders
+     */
+    @OnlineMethod
+    @RequestMapping(value = "/dashboard/myInputoutputData/{tableId}", method = RequestMethod.GET)
+    public List<MyInputOutputHistoryDto> getMyInputoutputData(
+            @RequestParam(required = false) Boolean refreshIfNeeded,
+            @PathVariable("tableId") String tableId,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) PagingDirection direction,
+            Principal principal,
+            HttpServletRequest request) {
+        if (principal == null) {
+            return null;
+        }
+        String email = principal.getName();
+        /**/
+        String attributeName = tableId + "Params";
+        TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
+        Assert.requireNonNull(tableParams, "The parameters are not populated for the " + tableId);
+        tableParams.setOffsetAndLimitForSql(page, direction);
+        /**/
+        String cacheKey = "myInputoutputData" + tableId + request.getHeader("windowid");
+        refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
+        CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
+        List<MyInputOutputHistoryDto> result = merchantService.getMyInputOutputHistory(cacheData, email, tableParams.getOffset(), tableParams.getLimit(), localeResolver.resolveLocale(request));
         if (!result.isEmpty()) {
             result.get(0).setPage(tableParams.getPageNumber());
         }
