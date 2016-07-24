@@ -9,6 +9,7 @@ import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.bitcoinj.core.Context;
+import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.TestNet3Params;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
@@ -246,11 +247,4 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     public StandardServletMultipartResolver resolver() {
         return new StandardServletMultipartResolver();
     }
-
-    @Bean
-    public Context context() {
-        return new Context(TestNet3Params.get());
-    }
-
-
 }
