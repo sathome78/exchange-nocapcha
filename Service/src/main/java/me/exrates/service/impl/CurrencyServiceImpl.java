@@ -33,7 +33,7 @@ public class CurrencyServiceImpl implements CurrencyService {
             add("LTC");
         }
     };
-    private static final int CRYPTO_PRECISION = 9;
+    private static final int CRYPTO_PRECISION = 8;
     private static final int DEFAULT_PRECISION = 2;
 
     @Override

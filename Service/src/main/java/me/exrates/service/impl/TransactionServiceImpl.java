@@ -20,8 +20,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.math.MathContext;
-import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +29,7 @@ import java.util.stream.Collectors;
 
 import static java.lang.Integer.MAX_VALUE;
 import static java.lang.Integer.valueOf;
+import static java.math.BigDecimal.ROUND_HALF_UP;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -39,7 +38,8 @@ import static java.lang.Integer.valueOf;
 public class TransactionServiceImpl implements TransactionService {
 
     private static final Logger LOG = LogManager.getLogger(TransactionServiceImpl.class);
-    private static final MathContext MATH_CONTEXT = new MathContext(9, RoundingMode.CEILING);
+    private static final int decimalPlaces = 8;
+
     @Autowired
     private TransactionDao transactionDao;
     @Autowired
@@ -100,8 +100,8 @@ public class TransactionServiceImpl implements TransactionService {
         }
         final BigDecimal commission = amount
                 .multiply(transaction.getCommission().getValue()
-                        .divide(BigDecimal.valueOf(100L), MATH_CONTEXT));
-        final BigDecimal newAmount = amount.subtract(commission, MATH_CONTEXT);
+                        .divide(BigDecimal.valueOf(100L)).setScale(decimalPlaces, ROUND_HALF_UP));
+        final BigDecimal newAmount = amount.subtract(commission).setScale(decimalPlaces, ROUND_HALF_UP);
         transaction.setCommissionAmount(commission);
         transaction.setAmount(newAmount);
         transactionDao.updateTransactionAmount(transaction.getId(), newAmount, commission);

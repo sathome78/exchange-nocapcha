@@ -1,10 +1,7 @@
 package me.exrates.controller;
 
 import com.captcha.botdetect.web.servlet.Captcha;
-import me.exrates.controller.exception.AbsentFinPasswordException;
-import me.exrates.controller.exception.NotConfirmedFinPasswordException;
-import me.exrates.controller.exception.NotCreateUserException;
-import me.exrates.controller.exception.WrongFinPasswordException;
+import me.exrates.controller.exception.*;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.User;
 import me.exrates.model.dto.OperationViewDto;
@@ -20,6 +17,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -34,12 +32,9 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.security.Principal;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static java.util.Collections.singletonMap;
 import static java.util.Objects.isNull;
@@ -290,5 +285,30 @@ public class MainController {
         if (!authSuccess) {
             throw new WrongFinPasswordException(messageSource.getMessage("admin.wrongfinpassword", null, localeResolver.resolveLocale(request)));
         }
+    }
+
+    /*
+    error handlers for this controller
+    * */
+
+    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+    @ExceptionHandler(WrongFinPasswordException.class)
+    @ResponseBody
+    public ErrorInfo WrongFinPasswordExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+    @ExceptionHandler(AbsentFinPasswordException.class)
+    @ResponseBody
+    public ErrorInfo AbsentFinPasswordExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+    @ExceptionHandler(NotConfirmedFinPasswordException.class)
+    @ResponseBody
+    public ErrorInfo NotConfirmedFinPasswordExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
     }
 }

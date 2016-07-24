@@ -65,6 +65,9 @@
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>
 <span hidden id="tabIdx">${tabIdx}</span>
+<c:if test="${message!=null}">
+    <label class="alert-danger"><loc:message code="${message}"/></label>
+</c:if>
 
 </body>
 </html>

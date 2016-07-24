@@ -6,6 +6,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <h4 class="h4_green"><loc:message code="news.title"/></h4>
 <hr class="under_h4">
+<div id="news_table_wrapper">
 <div id="news-table" class="news">
     <c:set var="adminEnum" value="<%=me.exrates.model.enums.UserRole.ADMINISTRATOR%>"/>
     <c:set var="accountantEnum" value="<%=me.exrates.model.enums.UserRole.ACCOUNTANT%>"/>
@@ -27,6 +28,7 @@
             </sec:authorize>
         </div>
     </script>
+</div>
 </div>
 <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
     <button id="add-news-button" class="send_button"><loc:message code="news.addnews"/></button>

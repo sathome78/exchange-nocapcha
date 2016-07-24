@@ -10,9 +10,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSourceUtils;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static java.util.Collections.*;
 
@@ -48,5 +46,15 @@ public class ChatDaoImpl implements ChatDao {
         final String sql = "INSERT INTO CHAT_" + lang.val + "(id, user_id, body) VALUES (:id, :userId, :body)";
         final SqlParameterSource[] batch = SqlParameterSourceUtils.createBatch(message.toArray());
         jdbcTemplate.batchUpdate(sql, batch);
+    }
+
+    @Override
+    public void delete(final ChatLang lang, final ChatMessage message) {
+
+        final String sql = "DELETE FROM CHAT_" + lang.val + " WHERE id = :id";
+        Map<String, Long> namedParameters = new HashMap<>();
+        namedParameters.put("id", message.getId());
+        jdbcTemplate.update(sql, namedParameters);
+
     }
 }

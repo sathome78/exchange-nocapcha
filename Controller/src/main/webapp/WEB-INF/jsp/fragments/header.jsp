@@ -21,7 +21,7 @@
     <div class="container">
         <div class="cols-md-2"><a href="/" class="logo"><img src="/client/img/Logo_blue.png" alt="Exrates Logo"></a>
         </div>
-        <div class="cols-md-8">
+        <div class="cols-md-8" style="overflow-y: hidden;">
             <ul class="nav header__nav">
                 <sec:authorize access="isAuthenticated()">
                     <li id="menu-traiding"><a href="#" class="nav__link nav__link_active "><loc:message
@@ -142,7 +142,6 @@
                         <li><a href="#" class="language">EN</a></li>
                         <li><a href="#" class="language">RU</a></li>
                         <li><a href="#" class="language">CH</a></li>
-                        <li><a href="#" class="language">TH</a></li>
                     </ul>
                 </li>
                 <sec:authorize access="isAuthenticated()">

@@ -14,6 +14,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
@@ -143,5 +144,20 @@ public class ChatServiceImpl implements ChatService {
                 }
             }
         }
+    }
+
+    @Override
+    @Transactional
+    public void deleteMessage(final ChatMessage message, final ChatLang lang) {
+        final ChatComponent comp = chats.get(lang);
+        try {
+            comp.getLock().writeLock().lock();
+            comp.getCache().remove(message);
+        } finally {
+            comp.getLock().writeLock().unlock();
+        }
+
+        chatDao.delete(lang, message);
+
     }
 }

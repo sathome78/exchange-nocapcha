@@ -4,6 +4,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%----%>
 <script type="text/javascript" src="<c:url value='/client/js/news/news.js'/>"></script>
+
 <%----%>
 <div id="right-sider" class="cols-md-2">
     <%--CHAT TODO REMOVE TO SEPARATE jsp--%>
@@ -27,8 +28,11 @@
                    placeholder='<loc:message code="dashboard.onlinechatenter"/>'>
             <input type="hidden" name="lang" value="EN"/>
             <button class="send_button" type="submit"><loc:message code="dashboard.onlinechatsend"/></button>
+
         </form>
     </sec:authorize>
+
+
 
     <%--NEWS LIST--%>
     <div id="new-list-container" style="position: relative" class="clearfix">

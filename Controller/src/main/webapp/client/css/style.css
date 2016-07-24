@@ -344,15 +344,20 @@ th, td {
 .currency_table tr td:last-child {
     width: 122px;
 }
-
-.currency_table {
+#currency_table_wrapper {
     height: 310px;
-    overflow-x: scroll;
+    overflow: hidden;
     display: block;
 }
 
-.settings-menu-item,
-.home-menu-item {
+.currency_table {
+    margin-bottom: 0px;
+/*    height: 310px;
+    overflow: hidden;
+    display: block;*/
+}
+
+.settings-menu-item {
     float: right;
 }
 
@@ -384,9 +389,9 @@ th, td {
 .table_middle {
     width: 100%;
     text-align: center;
-    display: block;
+/*    display: block;
     max-height: 360px;
-    overflow-y: scroll;
+    overflow-y: hidden;*/
 }
 
 .table_middle tbody {
@@ -506,11 +511,13 @@ input.item_input,
 }
 
 .chat,
-.news {
+#news_table_wrapper {
     display: block;
     height: 270px;
-    overflow-y: scroll;
+    overflow-y: hidden;
+    overflow-x: hidden;
 }
+
 
 .chat {
     width: 100%;
@@ -705,7 +712,7 @@ td.blue-white {
 .cols-md-8 {
     /*max-height: 700px; me */
     display: block;
-    overflow-y: scroll
+    overflow-y: hidden
 }
 
 .instructions_button,
@@ -892,6 +899,7 @@ td.blue-white {
 #adminka-entry a {
     color: #d9dbff;
 }
+
 
 .nav.header__nav .nav__link {
     padding: 10px 10px;
@@ -1322,6 +1330,13 @@ tr:hover .table-button-block .table-button-block__button {
     /*transition: background-color 500ms;*/
 }
 
+#orders-buy-table-wrapper, #orders-sell-table-wrapper, #orders-history-table-wrapper {
+    display: block;
+    max-height: 360px;
+    overflow-y: hidden;
+
+}
+
 table tbody .blink,
 .blink {
     background: rgba(255, 0, 0, 0.1);
@@ -1453,10 +1468,18 @@ form span.repass {
     font-size: 14px;
 }
 
-#chat > p {
+#chat.chat_message > p {
     max-width: inherit;
     text-overflow: clip;
     word-break: normal;
+}
+
+.chat_message > button {
+    display: none;
+}
+
+.chat_message:hover > button {
+    display: inherit;
 }
 
 /********************************
@@ -1523,6 +1546,13 @@ form span.repass {
 /********************************
            SEARCH (me)
 ********************************/
+
+.table-header-wrapper {
+    display: inline-block;
+    width: 100%
+}
+
+
 .table-filter__wrapper {
     float: right;
     padding: 11px 0 0 0;
@@ -1536,4 +1566,21 @@ form span.repass {
     padding: 0 0 0 3px;
     border: 1px solid rgb(218, 218, 218);
     outline: none;;
+}
+
+/*mCustomScrollbar container props*/
+.mCSB_container_wrapper > .mCSB_container {
+    padding-right: 5px;
+}
+
+.mCSB_container_wrapper {
+    margin-right: 5px;
+}
+.mCSB_scrollTools {
+    width: 8px;
+    margin-top: 2px;
+}
+
+#mCSB2_container {
+    margin-right: 5px;
 }

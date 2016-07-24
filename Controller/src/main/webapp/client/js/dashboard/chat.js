@@ -7,7 +7,13 @@ function connect(chatLang) {
     }
     ws = new SockJS('/chat-' + chatLang);
     ws.onmessage = function (message) {
-        appendNewMessage(message['data']);
+        const messageObj = JSON.parse(message['data']);
+        if ($.inArray("isRemoved", Object.keys(messageObj)) >= 0) {
+            removeMessageFromChatHistory(messageObj.id);
+        } else {
+            appendNewMessage(messageObj);
+        }
+
     };
 }
 
@@ -27,15 +33,25 @@ function toJson(a) {
 }
 
 function formatNewMessage(o) {
-    return '<p class="nickname">' + o['nickname']  + '</p>' +
-           '<p class="message"><span class="message_body">'  + o['body']      + '</span></p>' ;
+    var deletionButton = '';
+    if ($("a[href='/admin']").length > 0) {
+        deletionButton = '<button class="btn btn-sm btn-danger pull-right" onclick="deleteMessage.call(this, event)">' +
+            '<span class="glyphicon glyphicon-remove"></span></button>';
+    }
+
+    return '<div class="chat_message">' + deletionButton + '<span class="message_id" hidden>' + o['id'] +
+        '</span> <span class="user_id" hidden>' + o['userId'] + '</span> <p class="nickname">' + o['nickname']  +
+        '</p> <p class="message"><span class="message_body">'  + o['body']  + '</span></p></div>' ;
 
 }
 
 function appendNewMessage(messageObj) {
-    const newMessage = formatNewMessage(JSON.parse(messageObj));
-    $('#chat').append(newMessage);
-    scrollChat();
+    const newMessage = formatNewMessage(messageObj);
+
+    $('#chat .mCSB_container').append(newMessage);
+
+     scrollChat();
+
     $('#new_mess').find('input[name="body"]').val('');
 }
 
@@ -45,7 +61,7 @@ function loadChatHistory(lang) {
         data: 'lang=' + lang
     }).done(function (data) {
         for (var i = data.length - 1; i >=0; i--) {
-            $('#chat').append(formatNewMessage(data[i]));
+            $('#chat .mCSB_container').append(formatNewMessage(data[i]));
         }
         scrollChat();
     }).fail(function(e){
@@ -54,7 +70,7 @@ function loadChatHistory(lang) {
 }
 
 function changeChatLocale(lang) {
-    $('#chat').empty();
+    $('#chat .mCSB_container').empty();
     $('#new_mess').find('input[name="lang"]').val(lang);
     connect(lang);
     loadChatHistory(lang);
@@ -62,6 +78,8 @@ function changeChatLocale(lang) {
 
 
 $(function () {
+
+    initScrollbar();
 
     $('.chat-locales>a:first-child').click(); // Connect to websocket and load chat history
 
@@ -84,8 +102,50 @@ $(function () {
     })
 });
 
+function initScrollbar() {
+    $("#chat").mCustomScrollbar({
+        theme:"dark",
+        axis:"y",
+        live: true
+    });
+}
+
 function scrollChat() {
-    $('#chat')
-        .scrollTo('max')
-        .scrollLeft(0);
+    $('#chat').mCustomScrollbar("scrollTo", "bottom", {
+        scrollInertia:0
+    });
+}
+
+
+
+function deleteMessage(event) {
+    var $chat_message = $(this).parent();
+
+
+    var message = {
+        id: parseInt($chat_message.find('.message_id').text()),
+        userId: parseInt($chat_message.find('.user_id').text()),
+        body: $chat_message.find('.message_body').text(),
+        nickname: $chat_message.find('.nickname').text(),
+        lang: $('#new_mess').find('input[name="lang"]').val()
+    };
+    $.ajax('/admin/chat/deleteMessage', {
+        headers: {
+            'X-CSRF-Token': $("input[name='_csrf']").val()
+        },
+        method: 'POST',
+        data: message,
+        dataType: "text"
+    }).done(function () {
+      //  changeChatLocale(message.lang);
+    }).fail(function(e){
+        console.log(e)
+    })
+}
+
+function removeMessageFromChatHistory(id) {
+    var $messageDiv =$('.chat_message').filter(function (index) {
+        return parseInt($(this).find('.message_id').text()) === id;
+    });
+    $messageDiv.remove();
 }

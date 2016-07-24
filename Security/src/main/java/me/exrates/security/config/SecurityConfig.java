@@ -80,6 +80,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/admin/**", "/admin").hasAnyAuthority(UserRole.ADMINISTRATOR.name(),
                 UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
                 .antMatchers("/companywallet").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name())
+                .antMatchers(HttpMethod.POST, "/admin/chat/deleteMessage").hasAnyAuthority(UserRole.ADMINISTRATOR.name(),
+                UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
                 .antMatchers("/index.jsp", "/client/**", "/dashboard/**", "/registrationConfirm/**",
                         "/changePasswordConfirm/**", "/changePasswordConfirm/**", "/aboutUs", "/57163a9b3d1eafe27b8b456a.txt", "/newIpConfirm/**").permitAll()
                 .antMatchers(HttpMethod.POST, "/merchants/withdrawal/request/accept",

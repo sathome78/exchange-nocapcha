@@ -98,7 +98,7 @@ public class BlockchainServiceImplTest  {
     private static final BigDecimal DUMMY_AMOUNT = null;
     private static final String TRANSACTION_HASH = "0xBBB";
     private static final String RECEIVING_ADDRESS = "0x10FF";
-    private static final MathContext MATH_CONTEXT = new MathContext(9, RoundingMode.CEILING);
+    private static final int decimalPlaces = 8;
     private static final int ID = 1;
 
 
@@ -132,7 +132,7 @@ public class BlockchainServiceImplTest  {
         pendingPayment.setTransactionHash(pretendedPayment.get("secret"));
 
         btcTransaction = new BTCTransaction();
-        btcTransaction.setAmount(ONE.add(ONE, MATH_CONTEXT));
+        btcTransaction.setAmount(ONE.add(ONE).setScale(decimalPlaces, ROUND_HALF_UP));
         btcTransaction.setTransactionId(ID);
         btcTransaction.setHash(pretendedPayment.get("transaction_hash"));
 
