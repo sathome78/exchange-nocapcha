@@ -59,7 +59,8 @@ public class BitcoinWalletAppKit {
             kit.awaitRunning();
             LOG.info("Wallet balance in Satoshi : " + kit.wallet().getBalance().longValue());
         } catch (final Exception e) {
-            throw new BeanInitializationException(e.getMessage());
+            LOG.fatal(e);
+            throw new BeanInitializationException("Could not instantiate bitcoin wallet");
         }
     }
 
