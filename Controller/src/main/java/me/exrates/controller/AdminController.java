@@ -283,7 +283,7 @@ public class AdminController {
             updateUserDto.setPassword(user.getPassword());
             updateUserDto.setPhone(user.getPhone());
             updateUserDto.setRole(user.getRole());
-            updateUserDto.setStatus(user.getStatus());
+            updateUserDto.setStatus(user.getUserStatus());
             userService.updateUserByAdmin(updateUserDto);
 
             model.setViewName("redirect:/admin");

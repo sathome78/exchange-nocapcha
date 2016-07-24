@@ -348,9 +348,7 @@ public class MerchantServiceImpl implements MerchantService {
         final BigDecimal commissionMerchant = commissionService.getCommissionMerchant(merchant, currency);
         final BigDecimal commissionTotal = type == INPUT ? commission.add(commissionMerchant).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP) :
                 commission;
-        BigDecimal commissionAmount = amount.multiply(commissionTotal).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP)
-                .divide(HUNDREDTH).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP).
-                setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP);
+        BigDecimal commissionAmount = amount.multiply(commissionTotal).divide(HUNDREDTH).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP);
         if (commissionAmount.compareTo(BigDecimal.ZERO) == 0){
             if (currencyService.resolvePrecision(currency) == 2) {
                 commissionAmount = commissionAmount.add(new BigDecimal("0.01"));
@@ -391,7 +389,6 @@ public class MerchantServiceImpl implements MerchantService {
                 commissionByType.getValue();
          BigDecimal commissionAmount =
                 commissionTotal
-                .setScale(currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP)
                 .multiply(amount)
                 .divide(valueOf(100), currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP);
         if (commissionAmount.compareTo(BigDecimal.ZERO) == 0){
