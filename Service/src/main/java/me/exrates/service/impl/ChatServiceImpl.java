@@ -17,6 +17,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
@@ -95,6 +98,7 @@ public class ChatServiceImpl implements ChatService {
         message.setUserId(user.getId());
         message.setNickname(user.getNickname());
         message.setId(GENERATOR.incrementAndGet());
+        message.setTime(LocalDateTime.now(ZoneOffset.UTC));
         final ChatComponent comp = chats.get(lang);
         try {
             comp.getLock().writeLock().lock();

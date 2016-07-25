@@ -1,5 +1,9 @@
 package me.exrates.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import me.exrates.model.serializer.LocalDateTimeSerializer;
+
+import java.time.LocalDateTime;
 import java.util.Comparator;
 
 /**
@@ -10,6 +14,8 @@ public class ChatMessage implements Comparable<ChatMessage> {
     private Integer userId;
     private String  nickname;
     private String  body;
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    private LocalDateTime time;
     private long id;
 
     private static final Comparator<ChatMessage> comparator = Comparator.comparingLong(ChatMessage::getId);
@@ -46,17 +52,25 @@ public class ChatMessage implements Comparable<ChatMessage> {
         this.id = id;
     }
 
+    public LocalDateTime getTime() {
+        return time;
+    }
+
+    public void setTime(LocalDateTime time) {
+        this.time = time;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        ChatMessage that = (ChatMessage) o;
+        ChatMessage message = (ChatMessage) o;
 
-        if (id != that.id) return false;
-        if (userId != null ? !userId.equals(that.userId) : that.userId != null) return false;
-        if (nickname != null ? !nickname.equals(that.nickname) : that.nickname != null) return false;
-        return body != null ? body.equals(that.body) : that.body == null;
+        if (id != message.id) return false;
+        if (userId != null ? !userId.equals(message.userId) : message.userId != null) return false;
+        if (nickname != null ? !nickname.equals(message.nickname) : message.nickname != null) return false;
+        return body != null ? body.equals(message.body) : message.body == null;
 
     }
 
@@ -75,10 +89,10 @@ public class ChatMessage implements Comparable<ChatMessage> {
                 "userId=" + userId +
                 ", nickname='" + nickname + '\'' +
                 ", body='" + body + '\'' +
+                ", time=" + time +
                 ", id=" + id +
                 '}';
     }
-
 
     @Override
     public int compareTo(final ChatMessage o) {

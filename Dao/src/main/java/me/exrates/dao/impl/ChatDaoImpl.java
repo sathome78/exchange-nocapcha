@@ -29,7 +29,7 @@ public class ChatDaoImpl implements ChatDao {
 
     @Override
     public List<ChatMessage> findLastMessages(final ChatLang lang, final int messageCount) {
-        final String sql = "SELECT c.id, c.user_id, c.body, USER.nickname FROM CHAT_" + lang.val +
+        final String sql = "SELECT c.id, c.user_id, c.body, c.message_time, USER.nickname FROM CHAT_" + lang.val +
                             " as c INNER JOIN USER ON c.user_id = USER.id ORDER BY c.id DESC LIMIT :limit";
         return jdbcTemplate.query(sql, singletonMap("limit", messageCount), (resultSet, i) -> {
             final ChatMessage message = new ChatMessage();
@@ -37,13 +37,14 @@ public class ChatDaoImpl implements ChatDao {
             message.setNickname(resultSet.getString("nickname"));
             message.setUserId(resultSet.getInt("user_id"));
             message.setBody(resultSet.getString("body"));
+            message.setTime(resultSet.getTimestamp("message_time").toLocalDateTime());
             return message;
         });
     }
 
     @Override
     public void persist(final ChatLang lang, final Set<ChatMessage> message) {
-        final String sql = "INSERT INTO CHAT_" + lang.val + "(id, user_id, body) VALUES (:id, :userId, :body)";
+        final String sql = "INSERT INTO CHAT_" + lang.val + "(id, user_id, body, message_time) VALUES (:id, :userId, :body, :time)";
         final SqlParameterSource[] batch = SqlParameterSourceUtils.createBatch(message.toArray());
         jdbcTemplate.batchUpdate(sql, batch);
     }
