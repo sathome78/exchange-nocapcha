@@ -64,19 +64,31 @@
                         <tr>
                                 <%--Дата--%>
                             <th><loc:message code="transaction.datetime"/></th>
+                                <%--Пользователь--%>
+                            <th><loc:message code="transaction.user"/></th>
                                 <%--Валюта--%>
                             <th><loc:message code="transaction.currency"/></th>
                                 <%--Сумма--%>
                             <th><loc:message code="transaction.amount"/></th>
                                 <%--Сумма <br> комиссии--%>
                             <th><loc:message code="transaction.commissionAmount"/></th>
-                                <%--Подтверждение--%>
+                                <%--Дата обработки заявки--%>
+                            <th><loc:message code="transaction.acceptanceDatetime"/></th>
+
+                                <%--Confirmation--%>
                             <th><loc:message code="transaction.сonfirmation"/></th>
+
+                                <%--Пользователь, обработавший заявку--%>
+                            <th><loc:message code="transaction.acceptanceUser"/></th>
+
+
                         </tr>
                         <c:forEach var="transaction" items="${transactions}">
                             <tr>
                                 <td style="white-space: nowrap;">
                                         ${transaction.datetime}
+                                </td>
+                                <td><%--User--%>
                                 </td>
                                     <%--USD--%>
                                 <td>
@@ -90,10 +102,14 @@
                                 <td>
                                     <fmt:formatNumber value="${transaction.commissionAmount}" maxFractionDigits="9"/>
                                 </td>
+                                <td></td>
                                     <%--Подтвердить--%>
                                 <td>
-                                    <button class="acceptbtn" type="submit" onclick="submitAcceptInvoice(${transaction.id})"><loc:message code="transaction.accept"/></button>
+                                    <button class="acceptbtn" type="submit"
+                                            onclick="submitAcceptInvoice(${transaction.id})"><loc:message
+                                            code="transaction.accept"/></button>
                                 </td>
+                                <td></td>
                             </tr>
                         </c:forEach>
                         </tbody>
