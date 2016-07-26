@@ -8,7 +8,7 @@ function connect(chatLang) {
     ws = new SockJS('/chat-' + chatLang);
     ws.onmessage = function (message) {
         const messageObj = JSON.parse(message['data']);
-        if ($.inArray("isRemoved", Object.keys(messageObj)) >= 0) {
+        if ($.inArray("removed", Object.keys(messageObj)) >= 0) {
             removeMessageFromChatHistory(messageObj.id);
         } else {
             appendNewMessage(messageObj);
@@ -38,9 +38,13 @@ function formatNewMessage(o) {
         deletionButton = '<button class="btn btn-sm btn-danger pull-right" onclick="deleteMessage.call(this, event)">' +
             '<span class="glyphicon glyphicon-remove"></span></button>';
     }
-
-    return '<div class="chat_message">' + deletionButton + '<span class="message_id" hidden>' + o['id'] +
-        '</span> <span class="user_id" hidden>' + o['userId'] + '</span> <p class="nickname">' + o['nickname']  +
+    var dateTime = o['time'].split(/[\s.]+/);
+    var previousDate = $('.chat_message .message_date').last().text();
+    var hidden = previousDate === dateTime[0] ? ' invisible' : '';
+    return '<div class="chat_message">' + deletionButton +
+        '<p class="message_date text-center ' + hidden + '">' + dateTime[0] + '</p><span class="message_id invisible">' + o['id'] +
+        '</span> <span class="user_id invisible">' + o['userId'] + '</span> <p class="nickname">' + o['nickname']  +
+         '<span class="message_time text-muted">' + dateTime[1] + '</span>' +
         '</p> <p class="message"><span class="message_body">'  + o['body']  + '</span></p></div>' ;
 
 }
@@ -137,7 +141,7 @@ function deleteMessage(event) {
         data: message,
         dataType: "text"
     }).done(function () {
-      //  changeChatLocale(message.lang);
+      //
     }).fail(function(e){
         console.log(e)
     })
@@ -147,5 +151,11 @@ function removeMessageFromChatHistory(id) {
     var $messageDiv =$('.chat_message').filter(function (index) {
         return parseInt($(this).find('.message_id').text()) === id;
     });
+    var $prevMessageDiv = $messageDiv.prev();
+    var $nextMessageDiv = $messageDiv.next();
+
+    if ($prevMessageDiv.find('.message_date').text() != $nextMessageDiv.find('.message_date').text()) {
+        $nextMessageDiv.find('.message_date').removeClass('invisible');
+    }
     $messageDiv.remove();
 }
