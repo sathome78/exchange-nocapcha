@@ -347,7 +347,7 @@ public final class TransactionDaoImpl implements TransactionDao {
     }
     public List<Transaction> getInvoiceOpenTransactions(){
         String sql = SELECT_ALL + " where TRANSACTION.merchant_id = (select MERCHANT.id " +
-                "from MERCHANT where MERCHANT.name = 'Invoice' ) and TRANSACTION.provided = 0  ";
+                "from MERCHANT where MERCHANT.name = 'Invoice' )";
         Map<String, String> namedParameters = new HashMap<String, String>();
         ArrayList<Transaction> result = (ArrayList<Transaction>) jdbcTemplate.query(sql, new HashMap<String, String>(),
                 transactionRowMapper);
