@@ -88,6 +88,10 @@ a:focus {
     text-decoration: none;
 }
 
+.invisible {
+    display: none;
+}
+
 /********************************
 			HEADER
 ********************************/
@@ -1468,10 +1472,14 @@ form span.repass {
     font-size: 14px;
 }
 
-#chat.chat_message > p {
+#chat .chat_message > p {
     max-width: inherit;
     text-overflow: clip;
     word-break: normal;
+}
+
+.chat_message .message_time {
+    margin: 0px 10px;
 }
 
 .chat_message > button {

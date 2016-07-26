@@ -1,5 +1,6 @@
 package me.exrates.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.model.ChatMessage;
@@ -42,7 +43,8 @@ public class ChatController {
     private final ChatService chatService;
     private final MessageSource messageSource;
     private final EnumMap<ChatLang, ChatWebSocketHandler> handlers;
-    private final Gson gson = new Gson();
+ //   private final Gson gson = new Gson();
+    private final ObjectMapper mapper = new ObjectMapper();
     private final Logger LOG = LogManager.getLogger(ChatController.class);
 
 
@@ -74,7 +76,7 @@ public class ChatController {
         }
         handlers.get(chatLang).getSessions().forEach(webSocketSession -> {
             try {
-                webSocketSession.sendMessage(new TextMessage(gson.toJson(message)));
+                webSocketSession.sendMessage(new TextMessage(mapper.writeValueAsString(message)));
             } catch (IOException e) {
                 LOG.error(e);
             }
@@ -101,7 +103,7 @@ public class ChatController {
         chatService.deleteMessage(message, lang);
         handlers.get(lang).getSessions().forEach(webSocketSession -> {
             try {
-                webSocketSession.sendMessage(new TextMessage(gson.toJson(new RemovedMessageDto(message.getId()))));
+                webSocketSession.sendMessage(new TextMessage(mapper.writeValueAsString(new RemovedMessageDto(message.getId()))));
             } catch (IOException e) {
                 LOG.error(e);
             }
@@ -110,4 +112,6 @@ public class ChatController {
         return "successful";
 
     }
+
+
 }

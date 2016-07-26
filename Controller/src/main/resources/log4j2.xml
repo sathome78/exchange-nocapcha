@@ -32,6 +32,10 @@
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Logs"/>
         </logger>
+        <logger name="org.bitcoinj" level="ERROR" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="Logs"/>
+        </logger>
         <logger name="org.springframework" level="ERROR" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Logs"/>
