@@ -11,7 +11,8 @@ public class ErrorInfo {
     public ErrorInfo(CharSequence url, Throwable ex) {
         this.url = url.toString();
         this.cause = ex.getClass().getSimpleName();
+        String detail = ex.getLocalizedMessage();
         while (ex.getCause() != null) ex = ex.getCause();
-        this.detail = ex.getLocalizedMessage();
+        this.detail = ex.getLocalizedMessage() == null ? detail : ex.getLocalizedMessage();
     }
 }

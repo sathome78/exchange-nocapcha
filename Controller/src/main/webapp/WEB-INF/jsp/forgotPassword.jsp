@@ -17,66 +17,105 @@
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href='https://fonts.googleapis.com/css?family=Roboto:400,700,300' rel='stylesheet' type='text/css'>
+    <link href='<c:url value="/client/css/roboto-font-400_700_300.css"/>' rel='stylesheet' type='text/css'>
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js" type="text/javascript"></script>
+    <script src="<c:url value="/client/js/jquery_1.11.3.min.js"/>" type="text/javascript"></script>
     <script src="<c:url value='/client/js/jquery.mCustomScrollbar.concat.min.js'/>" type="text/javascript"></script>
 
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="<c:url value="/client/css/font-awesome.min.css"/>">
     <link href="<c:url value='/client/css/jquery.mCustomScrollbar.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
-    <link href="<c:url value='/client/css/style-new.css'/>" rel="stylesheet">
+    <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet">
 
     <%----------%>
     <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
-
     <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
     <%----------%>
     <%--capcha--%>
-    <script type="text/javascript" src="<c:url value='/client/js/capcha.js'/>"></script>
-    <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit&hl=${pageContext.response.locale}"
-            async defer>
-    </script>
+    <c:if test="${captchaType==\"RECAPTCHA\"}">
+        <script type="text/javascript" src="<c:url value='/client/js/capcha.js'/>"></script>
+        <c:set value="${pageContext.response.locale}" var="locale"></c:set>
+        <c:if test="${locale=='cn'}">
+            <c:set value="zh-CN" var="locale"></c:set>
+        </c:if>
+        <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit&hl=${locale}"
+                async defer>
+        </script>
+    </c:if>
 
 </head>
 
 
 <body>
 
-<%@include file='header_new.jsp' %>
+<%@include file="fragments/header.jsp" %>
 
-<main class="container register">
-    <hr>
+<main class="container">
     <div class="row">
         <div class="col-sm-4">
-            <%--ФОРМА ВОССТАНОВЛЕНИЯ ПАРОЛЯ--%>
-            <h5><loc:message code="dashboard.resetPasswordTitle"/></h5>
+            <hr>
+            <h4 class=""><loc:message code="dashboard.resetPasswordTitle"/></h4>
+            <hr>
+            <div class="clearfix">
+                <form:form id="settings-user-form"
+                           action="/forgotPassword/submit" method="post" modelAttribute="user">
+                    <div class="input-block-wrapper clearfix">
+                        <loc:message code="login.email" var="adminEmail"/>
+                        <div class="col-md-10 input-block-wrapper__input-wrapper">
+                            <form:input id="user-email" path="email"
+                                   placeholder="${adminEmail}"
+                                   class="form-control input-block-wrapper__input"/>
+                        </div>
+                        <div class="col-md-10 input-block-wrapper__error-wrapper">
+                            <form:errors path="email" class="input-block-wrapper__input"/>
+                        </div>
+                    </div>
+                    <c:if test="${captchaType==\"RECAPTCHA\"}">
+                        <%--CAPTCHA GOOGLE--%>
+                        <div class="col-md-10 login__captcha-wrapper">
+                            <div id="cpch-field" class="login__captcha--recaptcha g-recaptcha"
+                                 data-sitekey=${captchaProperties.get("captcha.key")}></div>
+                                <%--<p class='cpch-error-message' style="color:red">${cpch}</p>--%>
+                            <br/>
+                        </div>
+                        <div class="col-md-10 input-block-wrapper__error-wrapper">
+                            <p class='cpch-error-message' style="color:red">${cpch}</p>
+                        </div>
+                    </c:if>
+                    <c:if test="${captchaType==\"BOTDETECT\"}">
+                        <%--CAPTCHA BotDetect--%>
+                        <div id="cpch-field" class="col-md-10 login__captcha--botdetect passed">
+                            <botDetect:captcha id="forgotFormRegCaptcha" userInputID="captchaCode"/>
+                            <input name="captchaCode" type="text" id="captchaCode"/>
+                            <input type="hidden" name="captchaId" value="forgotFormRegCaptcha"/>
+                        </div>
+                        <div class="col-md-10 input-block-wrapper__error-wrapper">
+                            <p class='cpch-error-message' style="color:red">${cpch}</p>
+                        </div>
+                    </c:if>
+                    <input type="hidden" name="captchaType" value="${captchaType}"/>
+                    <%----%>
+                    <div class="col-md-10 login__button-wrapper">
+                        <button class="login__button" type="submit">
+                            <loc:message code="dashboard.resetPasswordButton"/>
+                        </button>
+                    </div>
+                </form:form>
+            </div>
+            <br/>
+            <br/>
+            <br/>
 
-            <form:form class="form-inline" id="settings-user-form"
-                       action="/forgotPassword/submit" method="post" modelAttribute="user">
-
-                <loc:message code="admin.email" var="adminEmail"/>
-                <form:input path="email" id="user-email"
-                            placeholder="${adminEmail}"/>
-                <br/>
-                <br/>
-                <%--CAPCHA--%>
-                <div id="cpch-field" class="g-recaptcha" data-sitekey=${captchaProperties.get("captcha.key")}></div>
-                <p class='cpch-error-message' style="color:red">${cpch}</p>
-                <br/>
-                <%--ВОССТАНОВИТЬ ПАРОЛЬ--%>
-                <button type="submit"><loc:message code="dashboard.resetPasswordButton"></loc:message></button>
-            </form:form>
-            <br/>
-            <br/>
-            <br/>
-            <h4><loc:message
-                    code="admin.changePasswordSendEmail"/></h4>
+            <div>
+                <h5><loc:message
+                        code="admin.changePasswordSendEmail"/></h5>
+            </div>
         </div>
     </div>
 </main>
-<%@include file='footer_new.jsp' %>
+<%@include file='fragments/footer.jsp' %>
 </body>
 </html>
 

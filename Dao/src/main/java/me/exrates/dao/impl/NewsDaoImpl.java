@@ -2,9 +2,10 @@ package me.exrates.dao.impl;
 
 import me.exrates.dao.NewsDao;
 import me.exrates.model.News;
+import me.exrates.model.dto.onlineTableDto.NewsDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -30,33 +31,34 @@ public class NewsDaoImpl implements NewsDao {
     @Autowired
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
     @Override
     @Transactional
-    public List<News> getNewsBriefList(final Integer offset, final Integer limit, Locale locale) {
-        String sql = "SELECT id, title, date, brief, resource, news_variant" +
+    public List<NewsDto> getNewsBriefList(final Integer offset, final Integer limit, Locale locale) {
+        String sql = "SELECT id, title, brief, resource, news_variant " +
                 " FROM NEWS" +
                 " JOIN NEWS_VARIANTS ON (NEWS_VARIANTS.news_id = NEWS.id) " +
                 " AND (NEWS_VARIANTS.news_variant = :news_variant)" +
                 " AND (NEWS_VARIANTS.active = 1)" +
                 " ORDER BY date DESC, added_date DESC " +
-                " LIMIT :limit OFFSET :offset";
+                (limit == -1 ? "" : "  LIMIT " + limit + " OFFSET " + offset);
         Map<String, Object> params = new HashMap<String, Object>() {{
-            put("offset", offset);
-            put("limit", limit);
             put("news_variant", locale.toString().toUpperCase());
         }};
-        return namedParameterJdbcTemplate.query(sql, params, new RowMapper<News>() {
+        return namedParameterJdbcTemplate.query(sql, params, new RowMapper<NewsDto>() {
             @Override
-            public News mapRow(ResultSet rs, int rowNum) throws SQLException {
-                News result = new News();
+            public NewsDto mapRow(ResultSet rs, int rowNum) throws SQLException {
+                NewsDto result = new NewsDto();
                 result.setId(rs.getInt("id"));
                 result.setTitle(rs.getString("title"));
-                result.setDate(rs.getTimestamp("date").toLocalDateTime().toLocalDate());
                 result.setBrief(rs.getString("brief"));
                 result.setResource(rs.getString("resource"));
+                result.setVariant(rs.getString("news_variant"));
+                result.setRef(new StringBuilder("/news/")
+                        .append(rs.getString("resource"))
+                        .append(rs.getString("id"))
+                        .append("/")
+                        .append(locale.toString())
+                        .append("/").toString());
                 return result;
             }
         });
@@ -125,6 +127,42 @@ public class NewsDaoImpl implements NewsDao {
             put("title", news.getTitle());
             put("news_variant", news.getNewsVariant());
             put("brief", news.getBrief());
+        }};
+        try {
+            return namedParameterJdbcTemplate.update(sql, new MapSqlParameterSource(params));
+        } catch (DuplicateKeyException e) {
+            //provide an opportunity to update the file
+            return 0;
+        }
+    }
+
+    @Override
+    @Transactional
+    public int deleteNewsVariant(News news) {
+        String sql = " DELETE FROM NEWS_VARIANTS " +
+                " WHERE (news_id = :news_id) and (news_variant = :news_variant)";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("news_id", news.getId());
+            put("news_variant", news.getNewsVariant());
+        }};
+        return namedParameterJdbcTemplate.update(sql, new MapSqlParameterSource(params));
+    }
+
+    @Override
+    @Transactional
+    public int deleteNews(News news) {
+        String sql = " DELETE FROM NEWS_VARIANTS " +
+                " WHERE (news_id = :news_id)";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("news_id", news.getId());
+            put("news_variant", news.getNewsVariant());
+        }};
+        namedParameterJdbcTemplate.update(sql, new MapSqlParameterSource(params));
+        /**/
+        sql = " DELETE FROM NEWS " +
+                " WHERE (id = :news_id)";
+        params = new HashMap<String, Object>() {{
+            put("news_id", news.getId());
         }};
         return namedParameterJdbcTemplate.update(sql, new MapSqlParameterSource(params));
     }

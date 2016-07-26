@@ -2,8 +2,10 @@ package me.exrates.service;
 
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Transaction;
+import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.dto.DataTable;
 import me.exrates.model.dto.OperationViewDto;
+import me.exrates.model.vo.CacheData;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -36,6 +38,8 @@ public interface TransactionService {
     DataTable<List<OperationViewDto>> showUserOperationHistory(int id, Locale locale);
 
     DataTable<List<OperationViewDto>> showUserOperationHistory(int id, Locale locale, Map<String,String> viewParams);
+
+    List<AccountStatementDto> getAccountStatement (CacheData cacheData, Integer walletId, Integer offset, Integer limit, Locale locale);
 
     List<Transaction> getInvoiceOpenTransactions();
 }

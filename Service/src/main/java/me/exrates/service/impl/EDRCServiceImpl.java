@@ -34,18 +34,10 @@ import javax.xml.xpath.XPathFactory;
 import java.io.IOException;
 import java.io.StringReader;
 import java.math.BigDecimal;
-import java.math.MathContext;
-import java.math.RoundingMode;
-import java.util.AbstractMap;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.StringJoiner;
+import java.util.*;
 
+import static java.math.BigDecimal.ROUND_HALF_UP;
 import static java.util.Objects.isNull;
-import static me.exrates.service.util.OkHttpUtils.stringifyBody;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -62,7 +54,7 @@ public class EDRCServiceImpl implements EDRCService {
 
     private static final String REGEX = ".*";
     private static final Logger LOG = LogManager.getLogger("merchant");
-    private static final MathContext MATH_CONTEXT = new MathContext(9, RoundingMode.CEILING);
+    private static final int decimalPlaces = 8;
 
     @Autowired
     private AlgorithmService algorithmService;
@@ -156,8 +148,8 @@ public class EDRCServiceImpl implements EDRCService {
         }
         final Transaction transaction = transactionService
             .findById(pending.getInvoiceId());
-        final BigDecimal currentAmount = new BigDecimal(result.get("amount"), MATH_CONTEXT);
-        final BigDecimal targetAmount = transaction.getAmount().add(transaction.getCommissionAmount(), MATH_CONTEXT);
+        final BigDecimal currentAmount = new BigDecimal(result.get("amount")).setScale(decimalPlaces, ROUND_HALF_UP);
+        final BigDecimal targetAmount = transaction.getAmount().add(transaction.getCommissionAmount()).setScale(decimalPlaces, ROUND_HALF_UP);
         if (currentAmount.compareTo(targetAmount)!=0) {
             transactionService.updateTransactionAmount(transaction, currentAmount);
         }
@@ -202,7 +194,7 @@ public class EDRCServiceImpl implements EDRCService {
                     .set(address)
                     .up()
                     .add("amount")
-                    .set(amount.setScale(PRECISION,BigDecimal.ROUND_CEILING))
+                    .set(amount.setScale(PRECISION,BigDecimal.ROUND_HALF_UP))
                     .up()
                     .add("description")
                     .set("Exrates EDRC payment"))

@@ -14,6 +14,7 @@ public class User  {
 	private String email;
 	private String phone;
 	private UserStatus status = UserStatus.REGISTERED;
+	private UserStatus userStatus = UserStatus.REGISTERED;
 	private String password;
 	private String finpassword;
 	private Date regdate;
@@ -157,5 +158,13 @@ public class User  {
 				", parentEmail='" + parentEmail + '\'' +
 				", userFiles=" + userFiles +
 				'}';
+	}
+
+	public UserStatus getUserStatus() {
+		return userStatus;
+	}
+
+	public void setUserStatus(UserStatus userStatus) {
+		this.userStatus = userStatus;
 	}
 }

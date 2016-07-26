@@ -3,7 +3,6 @@ package me.exrates.controller.merchants;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.model.Transaction;
-import me.exrates.model.enums.OperationType;
 import me.exrates.service.MerchantService;
 import me.exrates.service.NixMoneyService;
 import me.exrates.service.TransactionService;
@@ -47,13 +46,10 @@ public class NixMoneyMerchantController {
     public RedirectView preparePayment(@Valid @ModelAttribute("payment") Payment payment,
                                        BindingResult result, Principal principal, RedirectAttributes redir) {
 
-        final String errorRedirectView = "/merchants/".concat(payment.getOperationType() == OperationType.INPUT ?
-                "/input": "/output");
-
         final Optional<CreditsOperation> creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName());
         if (!creditsOperation.isPresent()) {
             redir.addFlashAttribute("error", "merchants.invalidSum");
-            return new RedirectView(errorRedirectView);
+            return new RedirectView("/dashboard");
         }
 
         return nixMoneyService.preparePayment(creditsOperation.get(), principal.getName());
@@ -81,12 +77,12 @@ public class NixMoneyMerchantController {
             transaction = transactionService.findById(Integer.parseInt(response.get("PAYMENT_ID")));
             if (!transaction.isProvided()){
                 redir.addFlashAttribute("error", "merchants.authRejected");
-                return new RedirectView("/merchants/input");
+                return new RedirectView("/dashboard");
             }
         }catch (EmptyResultDataAccessException e){
             logger.error(e);
             redir.addFlashAttribute("error", "merchants.incorrectPaymentDetails");
-            return new RedirectView("/merchants/input");
+            return new RedirectView("/dashboard");
         }
 
         merchantService.formatResponseMessage(transaction)
@@ -95,7 +91,7 @@ public class NixMoneyMerchantController {
         final String message = "merchants.successfulBalanceDeposit";
         redir.addFlashAttribute("message", message);
 
-        return new RedirectView("/mywallets");
+        return new RedirectView("/dashboard");
     }
 
     @RequestMapping(value = "payment/failure",method = RequestMethod.POST)
@@ -109,10 +105,11 @@ public class NixMoneyMerchantController {
             nixMoneyService.invalidateTransaction(transaction);
         } catch (EmptyResultDataAccessException e) {
             logger.error(e);
-            return new RedirectView("/merchants/input");
+            return new RedirectView("/dashboard");
         }
 
-        return new RedirectView("/mywallets");
+        return new RedirectView("/dashboard");
 
         }
+
     }

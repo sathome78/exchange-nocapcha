@@ -3,19 +3,33 @@ package me.exrates.service;
 import me.exrates.model.Currency;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
+import me.exrates.model.dto.MyWalletConfirmationDetailDto;
+import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
+import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
 import me.exrates.model.dto.UserWalletSummaryDto;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.WalletTransferStatus;
+import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WalletOperationData;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Locale;
 
 public interface WalletService {
 
     void balanceRepresentation(Wallet wallet);
 
     List<Wallet> getAllWallets(int userId);
+
+    /**
+     * Return list the user wallets data
+     * @param email is email to determine user
+     * @return list the user wallets data
+     */
+    List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(CacheData cacheData, String email, Locale locale);
+
+    List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(CacheData cacheData, String email, Locale locale);
 
     List<Currency> getCurrencyList();
 
@@ -65,5 +79,7 @@ public interface WalletService {
     WalletTransferStatus walletInnerTransfer(int walletId, BigDecimal amount, TransactionSourceType sourceType, int sourceId);
 
     WalletTransferStatus walletBalanceChange(WalletOperationData walletOperationData);
+
+    List<MyWalletConfirmationDetailDto> getWalletConfirmationDetail(Integer walletId, Locale locale);
 
 }

@@ -4,9 +4,12 @@ import me.exrates.model.Currency;
 import me.exrates.model.ExOrder;
 import me.exrates.model.ReferralLevel;
 import me.exrates.model.ReferralTransaction;
+import me.exrates.model.dto.onlineTableDto.MyReferralDetailedDto;
+import me.exrates.model.vo.CacheData;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 /**
@@ -29,5 +32,17 @@ public interface ReferralService {
     int updateReferralLevel(int level, int oldLevelId, BigDecimal percent);
 
     void bindChildAndParent(int childUserId, int parentUserId);
+
+    /**
+     * Returns the list of commissions charges for user
+     * Used for displaying in History page
+     * @param cacheData stores the cach params and is used for caching result
+     * @param email is user email. Used as the user identifier
+     * @param offset used for pagination
+     * @param limit used for pagination
+     * @param locale used for formatting number
+     * @return list of commissions
+     */
+    List<MyReferralDetailedDto> findAllMyReferral(CacheData cacheData, String email, Integer offset, Integer limit, Locale locale);
 
 }

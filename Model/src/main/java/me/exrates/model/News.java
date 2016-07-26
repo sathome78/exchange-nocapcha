@@ -16,19 +16,6 @@ public class News implements Cloneable{
     private String newsVariant;
 
     @Override
-    public String toString() {
-        return "News{" +
-                "id=" + id +
-                ", title='" + title + '\'' +
-                ", date=" + date +
-                ", brief='" + brief + '\'' +
-                ", resource='" + resource + '\'' +
-                ", content='" + content + '\'' +
-                ", newsVariant='" + newsVariant + '\'' +
-                '}';
-    }
-
-    @Override
     public Object clone() throws CloneNotSupportedException {
         return super.clone();
     }

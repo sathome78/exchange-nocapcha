@@ -62,20 +62,14 @@ public class CommonMerchantsController {
 
     private static final Logger LOG = LogManager.getLogger("merchant");
 
-    @RequestMapping(value = "/inputCurrency", method = GET)
-    public ModelAndView inputCurrency() {
-        final ModelAndView modelAndView = new ModelAndView("merchantsInput");
-        modelAndView.addObject("currencies",currencyService.getAllCurrencies());
-        modelAndView.addObject("currency",new Currency());
+    @RequestMapping(value = "/input", method = GET)
+    public ModelAndView inputCredits(@RequestParam("currency") String currency) {
 
-        return modelAndView;
-    }
+        final ModelAndView modelAndView = new ModelAndView("globalPages/merchantsInput");
+        int currencyId = currencyService.findByName(currency).getId();
 
-    @RequestMapping(value = "/inputCurrencyMerchant", method = GET)
-    public ModelAndView inputCurrencyMerchant(final @RequestParam("id") int currencyId) {
-        final ModelAndView modelAndView = new ModelAndView("merchantsInputCredits");
         modelAndView.addObject("currency",currencyId);
-        modelAndView.addObject("currencyName",currencyService.getCurrencyName(currencyId));
+        modelAndView.addObject("currencyName",currency);
         Payment payment = new Payment();
         payment.setOperationType(INPUT);
         modelAndView.addObject("payment", payment);
@@ -88,13 +82,22 @@ public class CommonMerchantsController {
     }
 
     @RequestMapping(value = "/output", method = GET)
-    public ModelAndView outputCredits(Principal principal) {
-        final ModelAndView modelAndView = new ModelAndView("merchantsOutputCredits");
+    public ModelAndView outputCredits(@RequestParam("currency") String currencyName, Principal principal) {
+        final ModelAndView modelAndView = new ModelAndView("globalPages/merchantsOutput");
         final List<Wallet> wallets = walletService.getAllWallets(userService.getIdByEmail(principal.getName()));
+        final Currency currency = currencyService.findByName(currencyName);
+        final Wallet wallet = walletService.findByUserAndCurrency(userService.findByEmail(principal.getName()), currency);
         final Payment payment = new Payment();
         payment.setOperationType(OUTPUT);
-        modelAndView.addObject("wallets",wallets);
+
+        modelAndView.addObject("currency",currency);
+
+        modelAndView.addObject("wallet",wallet);
         modelAndView.addObject("payment", payment);
+        final List<Integer> currenciesId = new ArrayList<>();
+        currenciesId.add(currency.getId());
+        modelAndView.addObject("merchantCurrencyData",merchantService.findAllByCurrencies(currenciesId));
+
         return modelAndView;
     }
 

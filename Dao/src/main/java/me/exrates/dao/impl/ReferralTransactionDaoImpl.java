@@ -4,6 +4,9 @@ import me.exrates.dao.ReferralTransactionDao;
 import me.exrates.model.ReferralLevel;
 import me.exrates.model.ReferralTransaction;
 import me.exrates.model.Transaction;
+import me.exrates.model.dto.onlineTableDto.MyReferralDetailedDto;
+import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.util.BigDecimalProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -12,8 +15,11 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static java.lang.Integer.MAX_VALUE;
@@ -24,8 +30,20 @@ import static java.lang.Integer.MAX_VALUE;
 @Repository
 public class ReferralTransactionDaoImpl implements ReferralTransactionDao {
 
+    protected static RowMapper<ReferralTransaction> referralTransactionRowMapper = (resultSet, i) -> {
+        final ReferralTransaction result = new ReferralTransaction();
+        final Transaction transaction = TransactionDaoImpl.transactionRowMapper.mapRow(resultSet, i);
+        final ReferralLevel referralLevel = ReferralLevelDaoImpl.referralLevelRowMapper.mapRow(resultSet, i);
+        result.setTransaction(transaction);
+        result.setId(resultSet.getInt("REFERRAL_TRANSACTION.id"));
+        result.setExOrder(transaction.getOrder());
+        result.setReferralLevel(referralLevel);
+        result.setUserId(resultSet.getInt("REFERRAL_TRANSACTION.user_id"));
+        result.setInitiatorId(resultSet.getInt("REFERRAL_TRANSACTION.initiator_id"));
+        result.setInitiatorEmail(resultSet.getString("USER.email"));
+        return result;
+    };
     private final NamedParameterJdbcTemplate jdbcTemplate;
-
     private final String SELECT_ALL = " SELECT REFERRAL_TRANSACTION.id, USER.email, REFERRAL_TRANSACTION.initiator_id, REFERRAL_TRANSACTION.user_id, REFERRAL_LEVEL.id, REFERRAL_LEVEL.level, REFERRAL_LEVEL.percent," +
             " TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime, " +
             " TRANSACTION.operation_type_id,TRANSACTION.provided, TRANSACTION.confirmation, TRANSACTION.order_id, " +
@@ -47,20 +65,6 @@ public class ReferralTransactionDaoImpl implements ReferralTransactionDao {
             " INNER JOIN USER ON REFERRAL_TRANSACTION.initiator_id = USER.id" +
             " LEFT JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id " +
             " LEFT JOIN EXORDERS ON TRANSACTION.order_id = EXORDERS.id ";
-
-    protected static RowMapper<ReferralTransaction> referralTransactionRowMapper = (resultSet, i) -> {
-        final ReferralTransaction result = new ReferralTransaction();
-        final Transaction transaction = TransactionDaoImpl.transactionRowMapper.mapRow(resultSet, i);
-        final ReferralLevel referralLevel = ReferralLevelDaoImpl.referralLevelRowMapper.mapRow(resultSet, i);
-        result.setTransaction(transaction);
-        result.setId(resultSet.getInt("REFERRAL_TRANSACTION.id"));
-        result.setExOrder(transaction.getOrder());
-        result.setReferralLevel(referralLevel);
-        result.setUserId(resultSet.getInt("REFERRAL_TRANSACTION.user_id"));
-        result.setInitiatorId(resultSet.getInt("REFERRAL_TRANSACTION.initiator_id"));
-        result.setInitiatorEmail(resultSet.getString("USER.email"));
-        return result;
-    };
 
     @Autowired
     public ReferralTransactionDaoImpl(final NamedParameterJdbcTemplate jdbcTemplate) {
@@ -94,5 +98,39 @@ public class ReferralTransactionDaoImpl implements ReferralTransactionDao {
         jdbcTemplate.update(sql, new MapSqlParameterSource(params), keyHolder);
         referralTransaction.setId(keyHolder.getKey().intValue());
         return referralTransaction;
+    }
+
+    @Override
+    public List<MyReferralDetailedDto> findAllMyRefferal(String email, Integer offset, Integer limit, Locale locale) {
+        String sql = " SELECT " +
+                "  TRANSACTION.id AS transaction_id, TRANSACTION.datetime, TRANSACTION.amount," +
+                "  INITIATOR.email AS initiator_email, " +
+                "  REFERRAL_LEVEL.id AS referral_id, REFERRAL_LEVEL.level, REFERRAL_LEVEL.percent, " +
+                "  CURRENCY.name AS currency_name " +
+                " FROM REFERRAL_TRANSACTION " +
+                "   JOIN USER ON (USER.id = REFERRAL_TRANSACTION.user_id) AND (USER.email = :email) " +
+                "   JOIN TRANSACTION ON (TRANSACTION.source_type=:source_type) AND (TRANSACTION.source_id = REFERRAL_TRANSACTION.id)" +
+                "   JOIN USER INITIATOR ON (INITIATOR.id = REFERRAL_TRANSACTION.initiator_id) " +
+                "   JOIN REFERRAL_LEVEL ON (REFERRAL_TRANSACTION.referral_level_id = REFERRAL_LEVEL.id)" +
+                "   JOIN CURRENCY ON (CURRENCY.id = TRANSACTION.currency_id)" +
+                (limit == -1 ? "" : "  LIMIT " + limit + " OFFSET " + offset);
+        final Map<String, Object> params = new HashMap<>();
+        params.put("email", email);
+        params.put("source_type", TransactionSourceType.REFERRAL.toString());
+        return jdbcTemplate.query(sql, params, new RowMapper<MyReferralDetailedDto>() {
+            @Override
+            public MyReferralDetailedDto mapRow(ResultSet rs, int i) throws SQLException {
+                MyReferralDetailedDto myReferralDetailedDto = new MyReferralDetailedDto();
+                myReferralDetailedDto.setTransactionId(rs.getInt("transaction_id"));
+                myReferralDetailedDto.setDateTransaction(rs.getTimestamp("datetime").toLocalDateTime());
+                myReferralDetailedDto.setAmount(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount"), locale, 2));
+                myReferralDetailedDto.setInitiatorEmail(rs.getString("initiator_email"));
+                myReferralDetailedDto.setReferralId(rs.getInt("referral_id"));
+                myReferralDetailedDto.setReferralLevel(rs.getInt("level"));
+                myReferralDetailedDto.setReferralPercent(BigDecimalProcessing.formatLocale(rs.getBigDecimal("percent"), locale, 2));
+                myReferralDetailedDto.setCurrencyName(rs.getString("currency_name"));
+                return myReferralDetailedDto;
+            }
+        });
     }
 }

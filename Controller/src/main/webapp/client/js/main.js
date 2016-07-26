@@ -1,3 +1,4 @@
+
 /* --------- Serializes form data to json object -------------- */
 
 $.fn.serializeObject = function()
@@ -24,7 +25,26 @@ $.fn.serializeObject = function()
 $(function(){
     $('.merchantError').hide();
     $('.response_money_operation_btn').hide();
+
 });
+
+Number.prototype.noExponents= function(){
+    var data= String(this).split(/[eE]/);
+    if(data.length== 1) return data[0];
+
+    var  z= '', sign= this<0? '-':'',
+        str= data[0].replace('.', ''),
+        mag= Number(data[1])+ 1;
+
+    if(mag<0){
+        z= sign + '0.';
+        while(mag++) z += '0';
+        return z + str.replace(/^\-/,'');
+    }
+    mag -= str.length;
+    while(mag--) z += '0';
+    return str + z;
+}
 
 $(function(){
 
@@ -38,6 +58,7 @@ $(function(){
     const YANDEX_KASSA = 'Yandex kassa';
     const PRIVAT24 = 'Privat24';
     const INTERKASSA = 'Interkassa';
+    const INVOICE = 'Invoice';
 
     const NO_ACTION = 'javascript:void(0);';
 
@@ -45,11 +66,67 @@ $(function(){
     var merchant = $('#merchant');
     var merchantName;
     var merchantMinSum;
+    var fractionalAmount;
+    var merchantImageId;
     var sum = $('#sum');
     var operationType = $('#operationType');
     var modalTemplate = $('.paymentInfo p');
     var button = $('#payment').find('button');
+    button.prop('disabled',true);
     var merchantsData;
+
+    $(".input-block-wrapper__input").prop("autocomplete", "off");
+    $(".numericInputField").prop("autocomplete", "off");
+    $(".numericInputField")
+        .keypress(
+            function (e) {
+                var decimal = $(this).val().split('.')[1];
+                if (decimal && decimal.length >= fractionalAmount+1) {
+                    return false;
+                }
+                if (e.charCode >= 48 && e.charCode <= 57 || e.charCode == 46 || e.charCode == 0) {
+                    if (e.key == '.' && $(this).val().indexOf('.') >= 0) {
+                        return false;
+                    }
+                    var str = $(this).val() + e.key;
+                    if (str.length > 1 && str.indexOf('0') == 0 && str.indexOf('.') != 1) {
+                        $(this).val("");
+                        return false
+                    }
+                } else {
+                    return false;
+                }
+                return true;
+            }
+        )
+        .on('input', function (e) {
+            var val = $(this).val();
+            var regx = /^(^[1-9]+\d*((\.{1}\d*)|(\d*)))|(^0{1}\.{1}\d*)|(^0{1})$/;
+            var result = val.match(regx);
+            var maxSum = 999999.99;
+            if (!result || result[0] != val) {
+                $(this).val('');
+            }
+            if ( val >= maxSum){
+                $(this).val(maxSum);
+            }
+            if (operationType.val() === 'OUTPUT') {
+                maxWalletSum = parseFloat($("#currencyFull").val().split(' ')[1]);
+                if ( val >= maxWalletSum){
+                    $(this).val(maxWalletSum);
+                }
+            }
+            var decimal = $(this).val().split('.')[1];
+            if (decimal && decimal.length > fractionalAmount) {
+                $(this).val($(this).val().slice(0,-1));
+
+            }
+            if (parseFloat(sum.val()) > 0){
+                button.prop('disabled',false);
+            }else {
+                button.prop('disabled',true);
+            }
+        });
 
     (function loadData(dataUrl) {
         $.ajax({
@@ -74,10 +151,14 @@ $(function(){
 
 
     function resetMerchantsList(currency) {
+        if (getCurrentCurrency() === 'BTC') {
+            $('button[name="assertInputPay"]').hide()
+        }
         var optionsHTML = '';
         $.each(merchantsData,function(index){
             if (merchantsData[index].currencyId == currency) {
                 optionsHTML+='<option value="'+merchantsData[index].merchantId+'">'+merchantsData[index].description+'</option>';
+                fractionalAmount = merchantsData[index].minSum.noExponents().split('.')[1].length;
             }
         });
         if (optionsHTML==='' || optionsHTML.search('Blockchain') !== -1) {
@@ -85,12 +166,12 @@ $(function(){
             button.prop('disabled', true);
         } else {
             merchant.fadeIn();
-            button.prop('disabled', false);
+            //button.prop('disabled', false);
         }
         merchant.empty();
         merchant.html(optionsHTML);
         if (isCorrectSum()) {
-            button.prop('disabled',false);
+            //button.prop('disabled',false);
         } else {
             button.prop('disabled',true);
         }
@@ -163,7 +244,8 @@ $(function(){
                 dataType: 'json',
                 data: JSON.stringify($(form).serializeObject())
             }).done(function (response) {
-                $('#currency').find(':selected').html(response['balance']);
+                //$('#currency').find(':selected').html(response['balance']);
+                //$('#currencyFull')..html(response['balance']);
                 responseControls();
                 $('.paymentInfo').html(response['success']);
                 $('.wallet_input').hide();
@@ -330,6 +412,30 @@ $(function(){
                         console.log(error);
                     });
                     break;
+                case INVOICE :
+                    $('#inputPaymentProcess')
+                        .html($('#mrcht-waiting').val())
+                        .prop('disabled', true);
+                    $.ajax('/merchants/invoice/payment/prepare', {
+                        headers: {
+                            'X-CSRF-Token': $("input[name='_csrf']").val()
+                        },
+                        type: 'POST',
+                        contentType: 'application/json;charset=utf-8',
+                        dataType: 'text',
+                        data: JSON.stringify($(form).serializeObject())
+                    }).done(function (response) {
+                        $('#inputPaymentProcess')
+                            .prop('disabled', false)
+                            .html($('#mrcht-ready').val());
+                        $('.paymentInfo').html(response);
+                        responseControls();
+                    }).fail(function (error, jqXHR, textStatus) {
+                        responseControls();
+                        $('.paymentInfo').html(error.responseText);
+                        console.log(textStatus);
+                    });
+                    break;
                 default:
                     callback();
             }
@@ -338,25 +444,13 @@ $(function(){
 
     function isCorrectSum() {
         var result = false;
-        if (operationType.val() === 'INPUT') {
-            if (merchantName !== 'Blockchain'){
+        if (merchantName !== 'Blockchain'){
                 var targetSum = parseFloat(sum.val());
                 if (targetSum >= merchantMinSum) {
                     return result = true;
                 }
             }
-        }else {
-            $.each(merchantsData,function(index) {
-                if (merchantsData[index].merchantId == merchant.val() && merchantsData[index].name !== 'Blockchain') {
-                    var minSum = parseFloat(merchantsData[index].minSum);
-                    var targetSum = parseFloat(sum.val());
-                    if (targetSum >= minSum) {
-                        return result = true;
-                    }
-                }
-            });
-        }
-        return result;
+        return true;
     }
 
     function fillModalWindow(type,amount,currency) {
@@ -407,9 +501,8 @@ $(function(){
     function submitProcess() {
         var targetMerchant = merchantName;
         var paymentForm = $('#payment');
-        if (operationType.val() === 'INPUT') {
-            paymentForm.append('<input type="hidden" name="merchant" value="' + merchant + '">');
-        }
+        paymentForm.append('<input type="hidden" name="merchant" value="' + merchant + '">');
+        paymentForm.append('<input type="hidden" name="merchantImage" value="' + merchantImageId + '">');
         resetFormAction(operationType.val(), targetMerchant,paymentForm);
         resetPaymentFormData(targetMerchant,paymentForm,function(){
             paymentForm.submit();
@@ -417,10 +510,7 @@ $(function(){
     }
 
     function getCurrentCurrency() {
-        if (operationType.val() === 'INPUT') {
-            return $("#currencyName").val();
-        }
-        return $("#currency").find(":selected").html().trim().split(' ')[0];
+        return $("#currencyName").val();
     }
 
     $('button[name=assertInputPay]').click(function()  {
@@ -428,21 +518,25 @@ $(function(){
         merchant = arr[0];
         merchantName = arr[1];
         merchantMinSum = parseFloat(arr[2]);
+        merchantImageId = parseFloat(arr[3]);
 
         if (isCorrectSum()) {
             fillModalWindow('INPUT', sum.val(), getCurrentCurrency());
         }
     });
 
-    if ($("#assertOutputPay").length) {
-        $("#assertOutputPay").bind('click',function() {
+        $('button[name=assertOutputPay]').click(function()  {
+            var arr = this.value.split(':');
+            merchant = arr[0];
+            merchantName = arr[1];
+            merchantMinSum = parseFloat(arr[2]);
+            merchantImageId = parseFloat(arr[3]);
+
             $('.wallet_input').show();
             setTimeout("$('.wallet_input>input').focus().val('')",200);
             requestControls();
-            merchantName = merchant.find(':selected').html();
-            fillModalWindow('OUTPUT',sum.val(),$('select[name="currency"]').find(':selected').data('currency'));
+            fillModalWindow('OUTPUT',sum.val(),getCurrentCurrency());
         });
-    }
 
     $('#inputPaymentProcess').on('click', function () {
         submitProcess();
@@ -453,32 +547,11 @@ $(function(){
         if (uid.length>5){
             $("#destination").val(uid);
             submitProcess();
+            setTimeout(function()
+            {
+                location.reload();
+            },8000);
         }
     });
 
-    sum.on('keydown', function (e) {
-        var k = e.which;
-        /* numeric inputs can come from the keypad or the numeric row at the top */
-        if (k != 37 && k != 39 && k != 8 && k != 190 && (k < 48 || k > 57) && (k < 96 || k > 105)) {
-            e.preventDefault();
-            return false;
-        }
-    });
-
-    sum.on('keyup', function (e) {
-        if (operationType.val() === 'INPUT') {
-            if (parseFloat(sum.val()) >= 0.01){
-                button.prop('disabled',false);
-            }else {
-                button.prop('disabled',true);
-            }
-        }else {
-            if (isCorrectSum()) {
-                button.prop('disabled',false);
-            } else {
-                button.prop('disabled',true);
-            }
-        }
-
-    });
 });

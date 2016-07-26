@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
     <parent>
@@ -29,7 +30,7 @@
             <artifactId>Dao</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
-         <dependency>
+        <dependency>
             <groupId>kds</groupId>
             <artifactId>Service</artifactId>
             <version>0.0.1-SNAPSHOT</version>
@@ -86,7 +87,21 @@
             <artifactId>commons-fileupload</artifactId>
             <version>1.3.1</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.captcha</groupId>
+            <artifactId>botdetect-jsp20</artifactId>
+            <version>4.0.alpha5</version>
+        </dependency>
     </dependencies>
+
+    <repositories>
+        <repository>
+            <id>captcha</id>
+            <name>BotDetect Captcha Repository</name>
+            <url>https://git.captcha.com/maven.git/blob_plain/HEAD:/</url>
+        </repository>
+    </repositories>
 
     <profiles>
         <profile>

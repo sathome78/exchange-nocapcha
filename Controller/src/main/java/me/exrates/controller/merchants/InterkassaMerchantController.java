@@ -86,12 +86,12 @@ public class InterkassaMerchantController {
             if (!transaction.isProvided()){
                 redir.addFlashAttribute("error", "merchants.authRejected");
                 LOG.debug("Transaction is not provided.");
-                return new RedirectView("/merchants/input");
+                return new RedirectView("/dashboard");
             }
         }catch (EmptyResultDataAccessException e){
             LOG.error(e);
             redir.addFlashAttribute("error", "merchants.incorrectPaymentDetails");
-            return new RedirectView("/merchants/input");
+            return new RedirectView("/dashboard");
         }
 
         merchantService.formatResponseMessage(transaction)
@@ -100,8 +100,8 @@ public class InterkassaMerchantController {
         final String message = "merchants.successfulBalanceDeposit";
         redir.addFlashAttribute("message", message);
 
-        LOG.debug("Method successful, redirect /mywallets.");
-        return new RedirectView("/mywallets");
+        LOG.debug("Method successful, redirect /dashboard.");
+        return new RedirectView("/dashboard");
     }
 
     }

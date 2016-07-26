@@ -1,4 +1,3 @@
-
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@taglib uri="http://www.springframework.org/tags" prefix="loc" %>
@@ -18,15 +17,14 @@
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href='https://fonts.googleapis.com/css?family=Roboto:400,700,300' rel='stylesheet' type='text/css'>
+    <link href='<c:url value="/client/css/roboto-font-400_700_300.css"/>' rel='stylesheet' type='text/css'>
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js" type="text/javascript"></script>
+    <script src="<c:url value="/client/js/jquery_1.11.3.min.js"/>" type="text/javascript"></script>
     <script src="<c:url value='/client/js/jquery.mCustomScrollbar.concat.min.js'/>" type="text/javascript"></script>
 
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
     <link href="<c:url value='/client/css/jquery.mCustomScrollbar.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
-    <link href="<c:url value='/client/css/style-new.css'/>" rel="stylesheet">
+    <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet">
 
     <script type="text/javascript" src="<c:url value="/client/js/function.js"/>"></script>
     <%----------%>
@@ -35,68 +33,132 @@
     <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
     <%----------%>
     <%--capcha--%>
-    <script type="text/javascript" src="<c:url value='/client/js/capcha.js'/>"></script>
-    <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit&hl=${pageContext.response.locale}"
-            async defer>
-    </script>
+    <c:if test="${captchaType==\"RECAPTCHA\"}">
+        <script type="text/javascript" src="<c:url value='/client/js/capcha.js'/>"></script>
+        <c:set value="${pageContext.response.locale}" var="locale"></c:set>
+        <c:if test="${locale=='cn'}">
+            <c:set value="zh-CN" var="locale"></c:set>
+        </c:if>
+        <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit&hl=${locale}"
+                async defer>
+        </script>
+    </c:if>
 
 </head>
 
 
 <body>
 
-<%@include file='header_new.jsp' %>
+<%@include file="fragments/header.jsp" %>
 
-<main class="container register">
-    <hr>
+<main class="container">
     <div class="row">
-        <div class="col-sm-4">
-            <%--РЕГИСТРАЦИЯ НОВОГО ПОЛЬЗОВАТЕЛЯ--%>
-            <h4><loc:message code="register.title"/></h4>
-            <br/>
+        <div class="col-sm-4 login__container">
+            <hr>
+            <h4 class=""><loc:message code="register.title"/></h4>
+            <hr>
 
             <registrationform:form method="post" action="create" modelAttribute="user" methodParam="abc">
-                <%--Логин--%>
-                <loc:message code="register.nickname" var="login"/>
-                <registrationform:input id="login" path="nickname" placeholder="${login}"
-                                        required="required"/>
-                <%--<registrationform:errors path="nickname" style="color:red" class="form-control"/>--%>
-                <form:errors class="form-login-error-message" path="nickname" style="color:red"/>
-                <span><loc:message code="register.loginLabel"/></span>
+                <%--nickname--%>
+                <div class="input-block-wrapper clearfix">
+                    <loc:message code="register.nickname" var="login"/>
+                    <div class="col-md-11 input-block-wrapper__input-wrapper">
+                        <registrationform:input id="login" path="nickname"
+                                                placeholder="${login}"
+                                                class="form-control input-block-wrapper__input"/>
+                    </div>
+                    <div class="col-md-11 input-block-wrapper__error-wrapper">
+                        <form:errors path="nickname" class="input-block-wrapper__input"/>
+                    </div>
+                    <div class="col-md-11">
+                        <loc:message code="register.loginLabel"/>
+                    </div>
+                </div>
                 <%--email--%>
-                <loc:message code="register.email" var="email"/>
-                <registrationform:input id="email" path="email" placeholder="${email}"
-                                        required="required"/>
-                <registrationform:errors path="email" style="color:red" class="form-login-error-message"/>
-                <%--Пароль--%>
-                <loc:message code="register.password" var="password"/>
-                <registrationform:input id="pass" path="password" type="password" placeholder="${password}"
-                                        required="required"/>
-                <registrationform:errors path="password" style="color:red" class="form-login-error-message"/>
-                <%--Повторите пароль--%>
-                <loc:message code="register.repeatpassword" var="repassword"/>
-                <registrationform:input id="repass" path="confirmPassword" type="password" placeholder="${repassword}"
-                                        required="required"/>
-                <span class='repass'><i class="fa fa-check"></i></span>
-                <registrationform:errors path="confirmPassword" style="color:red" class="form-login-error-message"/>
-                <br/>
-                <br/>
-                <loc:message code="register.sponsor"/>
-                <registrationform:input id="parentEmail" path="parentEmail" value="${user.parentEmail}" required="required" readonly="true"/>
-                <br/>
-                <br/>
-                <%--CAPCHA--%>
-                <div id="cpch-field" class="g-recaptcha" data-sitekey=${captchaProperties.get("captcha.key")}></div>
-                <p class='cpch-error-message' style="color:red">${cpch}</p>
-                <br/>
-                <%--ЗАРЕГИСТРИРОВАТЬСЯ--%>
-                <button id="register_button" type="submit"><loc:message
-                        code="register.submit"/></button>
+                <div class="input-block-wrapper clearfix">
+                    <loc:message code="register.email" var="email"/>
+                    <div class="col-md-11 input-block-wrapper__input-wrapper">
+                        <registrationform:input id="email" path="email"
+                                                placeholder="${email}"
+                                                class="form-control input-block-wrapper__input"/>
+                    </div>
+                    <div class="col-md-11 input-block-wrapper__error-wrapper">
+                        <form:errors path="email" class="input-block-wrapper__input"/>
+                    </div>
+                </div>
+                <%--Password--%>
+                <div class="input-block-wrapper clearfix">
+                    <loc:message code="register.password" var="password"/>
+                    <div class="col-md-11 input-block-wrapper__input-wrapper">
+                        <registrationform:input id="pass" path="password"
+                                                type="password"
+                                                placeholder="${password}"
+                                                class="form-control input-block-wrapper__input"/>
+                    </div>
+                    <div class="col-md-11 input-block-wrapper__error-wrapper">
+                        <form:errors path="password" class="input-block-wrapper__input"/>
+                    </div>
+                </div>
+                <%--Re password--%>
+                <div class="input-block-wrapper clearfix">
+                    <loc:message code="register.repeatpassword" var="repassword"/>
+                    <div class="col-md-11 input-block-wrapper__input-wrapper">
+                        <registrationform:input id="repass" path="confirmPassword"
+                                                type="password"
+                                                placeholder="${repassword}"
+                                                class="form-control input-block-wrapper__input"/>
+                    </div>
+                    <span class="repass"><i class="glyphicon glyphicon-ok"></i></span>
+                    <div class="col-md-11 input-block-wrapper__error-wrapper">
+                        <form:errors path="confirmPassword" class="input-block-wrapper__input"/>
+                    </div>
+                </div>
+                <%--refferal--%>
+                <div class="input-block-wrapper clearfix">
+                    <div class="col-md-11 input-block-wrapper__label-wrapper">
+                        <loc:message code="register.sponsor"/>
+                    </div>
+
+                    <div class="col-md-11 input-block-wrapper__input-wrapper">
+                        <registrationform:input id="parentEmail" path="parentEmail"
+                                                readonly="true"
+                                                class="form-control input-block-wrapper__input"/>
+                    </div>
+                </div>
+                <c:if test="${captchaType==\"RECAPTCHA\"}">
+                    <%--CAPTCHA GOOGLE--%>
+                    <div class="col-md-11 login__captcha-wrapper">
+                        <div id="cpch-field" class="login__captcha--recaptcha g-recaptcha"
+                             data-sitekey=${captchaProperties.get("captcha.key")}></div>
+                            <%--<p class='cpch-error-message' style="color:red">${cpch}</p>--%>
+                        <br/>
+                    </div>
+                    <div class="col-md-11 input-block-wrapper__error-wrapper">
+                        <p class='cpch-error-message' style="color:red">${cpch}</p>
+                    </div>
+                </c:if>
+                <c:if test="${captchaType==\"BOTDETECT\"}">
+                    <%--CAPTCHA BotDetect--%>
+                    <div id="cpch-field" class="col-md-11 login__captcha--botdetect passed">
+                        <botDetect:captcha id="registerFormRegCaptcha" userInputID="captchaCode"/>
+                        <input name="captchaCode" type="text" id="captchaCode"/>
+                        <input type="hidden" name="captchaId" value="registerFormRegCaptcha"/>
+                    </div>
+                    <div class="col-md-11 input-block-wrapper__error-wrapper">
+                        <p class='cpch-error-message' style="color:red">${cpch}</p>
+                    </div>
+                </c:if>
+                <input type="hidden" name="captchaType" value="${captchaType}"/>
+                <%----%>
+                <div class="col-md-11 login__button-wrapper">
+                    <button id="register_button" class="login__button" type="submit"><loc:message
+                            code="register.submit"/></button>
+                </div>
             </registrationform:form>
         </div>
     </div>
 </main>
-<%@include file='footer_new.jsp' %>
+<%@include file='fragments/footer.jsp' %>
 </body>
 </html>
 

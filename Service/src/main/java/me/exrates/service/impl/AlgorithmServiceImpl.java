@@ -3,18 +3,18 @@ package me.exrates.service.impl;
 import me.exrates.model.enums.OperationType;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.CommissionService;
+import me.exrates.service.CurrencyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
-import java.math.MathContext;
-import java.math.RoundingMode;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
 import static com.yandex.money.api.utils.Numbers.bytesToHex;
+import static java.math.BigDecimal.ROUND_HALF_UP;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -22,12 +22,15 @@ import static com.yandex.money.api.utils.Numbers.bytesToHex;
 @Service
 public class AlgorithmServiceImpl implements AlgorithmService {
 
-    private static final MathContext MATH_CONTEXT = new MathContext(9, RoundingMode.CEILING);
-    private static final BigDecimal HUNDRED = new BigDecimal(100L, MATH_CONTEXT);
+    private static final int decimalPlaces = 8;
+    private static final BigDecimal HUNDRED = new BigDecimal(100L).setScale(decimalPlaces, ROUND_HALF_UP);
     private static final BigDecimal SATOSHI = new BigDecimal(100_000_000L);
 
     @Autowired
     private CommissionService commissionService;
+
+    @Autowired
+    private CurrencyService currencyService;
 
 
 
@@ -90,9 +93,9 @@ public class AlgorithmServiceImpl implements AlgorithmService {
     public BigDecimal computeAmount(final BigDecimal amount, final BigDecimal commission, final OperationType type) {
         switch (type) {
             case INPUT:
-                return amount.add(commission, MATH_CONTEXT);
+                return amount.add(commission).setScale(decimalPlaces, ROUND_HALF_UP);
             case OUTPUT:
-                return amount.subtract(commission, MATH_CONTEXT);
+                return amount.subtract(commission).setScale(decimalPlaces, ROUND_HALF_UP);
             default:
                 throw new IllegalArgumentException(type + " is not defined operation for this method");
         }
@@ -101,17 +104,17 @@ public class AlgorithmServiceImpl implements AlgorithmService {
     @Override
     public BigDecimal computeCommission(final BigDecimal amount, final OperationType type) {
         BigDecimal commission = commissionService.findCommissionByType(type).getValue();
-        return amount.multiply(commission.divide(HUNDRED,MATH_CONTEXT), MATH_CONTEXT);
+        return amount.multiply(commission.divide(HUNDRED).setScale(decimalPlaces, ROUND_HALF_UP)).setScale(decimalPlaces, ROUND_HALF_UP);
     }
 
     @Override
     public BigDecimal fromSatoshi(final String amount) {
-        return new BigDecimal(amount, MATH_CONTEXT).divide(SATOSHI, MATH_CONTEXT);
+        return new BigDecimal(amount).setScale(decimalPlaces, ROUND_HALF_UP).divide(SATOSHI).setScale(decimalPlaces, ROUND_HALF_UP);
     }
 
     @Override
     public BigDecimal toBigDecimal(final String value) {
-        return new BigDecimal(value, MATH_CONTEXT);
+        return new BigDecimal(value).setScale(decimalPlaces, ROUND_HALF_UP);
     }
 
     private String byteArrayToHexString(byte[] bytes) {

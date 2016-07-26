@@ -16,15 +16,15 @@
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href='https://fonts.googleapis.com/css?family=Roboto:400,700,300' rel='stylesheet' type='text/css'>
+    <link href='<c:url value="/client/css/roboto-font-400_700_300.css"/>' rel='stylesheet' type='text/css'>
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js" type="text/javascript"></script>
+    <script src="<c:url value="/client/js/jquery_1.11.3.min.js"/>" type="text/javascript"></script>
     <script src="<c:url value='/client/js/jquery.mCustomScrollbar.concat.min.js'/>" type="text/javascript"></script>
 
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="<c:url value="/client/css/font-awesome.min.css"/>">
     <link href="<c:url value='/client/css/jquery.mCustomScrollbar.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
-    <link href="<c:url value='/client/css/style-new.css'/>" rel="stylesheet">
+    <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet">
 
     <script type="text/javascript" src="<c:url value="/client/js/function.js"/>"></script>
     <%----------%>
@@ -34,53 +34,103 @@
     <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
     <%----------%>
     <%--capcha--%>
-    <script type="text/javascript" src="<c:url value='/client/js/capcha.js'/>"></script>
-    <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit&hl=${pageContext.response.locale}"
-            async defer>
-    </script>
-
+    <c:if test="${captchaType==\"RECAPTCHA\"}">
+        <script type="text/javascript" src="<c:url value='/client/js/capcha.js'/>"></script>
+        <c:set value="${pageContext.response.locale}" var="locale"></c:set>
+        <c:if test="${locale=='cn'}">
+            <c:set value="zh-CN" var="locale"></c:set>
+        </c:if>
+        <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit&hl=${locale}"
+                async defer>
+        </script>
+    </c:if>
 </head>
 
 
 <body>
 
-<%@include file='header_new.jsp' %>
+<%@include file="fragments/header.jsp" %>
 
-<main class="container register">
-    <hr>
+<main class="container">
     <div class="row">
-        <div class="col-sm-4">
-            <%--РЕГИСТРАЦИЯ НОВОГО ПОЛЬЗОВАТЕЛЯ--%>
-            <h5><loc:message code="login.title"/></h5>
-
-            <p style="color:red">${error}</p>
-
+        <div class="col-sm-4 login__container">
+            <hr>
+            <h4 class=""><loc:message code="login.title"/></h4>
+            <hr>
             <c:url value="/login" var="loginUrl"/>
-            <form action="${loginUrl}" method="post">
-                <%--Логин/email--%>
-                <loc:message code="login.email" var="login"/>
-                <input name="username" placeholder="${login}"
-                       required autofocus/>
-                <%--Пароль--%>
-                <loc:message code="login.password" var="password"/>
-                <input name="password" type="password" placeholder="${password}"
-                       required="required"/>
-                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
-                <br/>
-                <br/>
-                <%--CAPCHA--%>
-                <div id="cpch-field" class="g-recaptcha" data-sitekey=${captchaProperties.get("captcha.key")}></div>
-                <p class='cpch-error-message' style="color:red">${cpch}</p>
-                <br/>
-                <%--ВОЙТИ--%>
-                <br/>
-                <button type="submit"><loc:message
-                        code="login.submit"/></button>
-            </form>
+            <div class="clearfix">
+                <p class="login__error">${error}</p>
+
+                <form action="${loginUrl}" method="post" class="clearfix">
+                    <div class="input-block-wrapper clearfix">
+                        <loc:message code="login.email" var="login"/>
+                        <div class="col-md-3 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label">
+                                ${login}
+                            </label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input id="login__name" name="username"
+                                   autofocus
+                                   placeholder="${login}"
+                                   class="form-control input-block-wrapper__input"/>
+                        </div>
+                    </div>
+                    <%--Пароль--%>
+                    <div class="input-block-wrapper clearfix">
+                        <loc:message code="login.password" var="password"/>
+                        <div class="col-md-3 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label">
+                                ${password}
+                            </label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input id="login__password" name="password"
+                                   type="password"
+                                   placeholder="${password}"
+                                   class="form-control input-block-wrapper__input"/>
+                        </div>
+                    </div>
+                    <div>
+                        <a href="/forgotPassword" class="darkblue forgot-password forgot-password--largeform"><loc:message
+                                code="dashboard.forgotPassword"/></a>
+                    </div>
+                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+                    <c:if test="${captchaType==\"RECAPTCHA\"}">
+                        <%--CAPTCHA GOOGLE--%>
+                        <div class="col-md-10 login__captcha-wrapper">
+                            <div id="cpch-field" class="login__captcha--recaptcha g-recaptcha"
+                                 data-sitekey=${captchaProperties.get("captcha.key")}></div>
+                                <%--<p class='cpch-error-message' style="color:red">${cpch}</p>--%>
+                            <br/>
+                        </div>
+                        <div class="col-md-10 input-block-wrapper__error-wrapper">
+                            <p class='cpch-error-message' style="color:red">${cpch}</p>
+                        </div>
+                    </c:if>
+                    <c:if test="${captchaType==\"BOTDETECT\"}">
+                        <%--CAPTCHA BotDetect--%>
+                        <div id="cpch-field" class="col-md-10 login__captcha--botdetect passed">
+                            <botDetect:captcha id="loginFormRegCaptcha" userInputID="captchaCode"/>
+                            <input name="captchaCode" type="text" id="captchaCode"/>
+                            <input type="hidden" name="captchaId" value="loginFormRegCaptcha"/>
+                        </div>
+                        <div class="col-md-10 input-block-wrapper__error-wrapper">
+                            <p class='cpch-error-message' style="color:red">${cpch}</p>
+                        </div>
+                    </c:if>
+                    <input type="hidden" name="captchaType" value="${captchaType}"/>
+                    <%----%>
+                    <div class="col-md-10 login__button-wrapper">
+                        <button class="login__button" type="submit"><loc:message
+                                code="login.submit"/></button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </main>
-<%@include file='footer_new.jsp' %>
+<%@include file='fragments/footer.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>
 

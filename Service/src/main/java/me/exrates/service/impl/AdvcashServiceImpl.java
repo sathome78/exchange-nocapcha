@@ -61,7 +61,7 @@ public class AdvcashServiceImpl implements AdvcashService{
                 amountToPay = sum.toBigInteger();
                 break;
             default:
-                amountToPay = sum.setScale(2, BigDecimal.ROUND_CEILING);
+                amountToPay = sum.setScale(2, BigDecimal.ROUND_HALF_UP);
         }
 
         return new HashMap<String,String>(){
@@ -86,7 +86,7 @@ public class AdvcashServiceImpl implements AdvcashService{
         Map<String, String> params = getAdvcashParams(transaction);
         BigDecimal sum = transaction.getAmount().add(transaction.getCommissionAmount());
         final String currency = transaction.getCurrency().getName();
-        final Number amountToPay = sum.setScale(2, BigDecimal.ROUND_CEILING);
+        final Number amountToPay = sum.setScale(2, BigDecimal.ROUND_HALF_UP);
 
         Properties properties = new Properties();
         String url = "https://wallet.advcash.com/sci/";

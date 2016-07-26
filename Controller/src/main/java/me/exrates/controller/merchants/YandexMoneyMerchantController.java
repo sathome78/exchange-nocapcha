@@ -70,13 +70,11 @@ public class YandexMoneyMerchantController {
     public RedirectView preparePayment(@Valid @ModelAttribute("payment") Payment payment,
                                        BindingResult result, Principal principal, RedirectAttributes redir,
                                        HttpSession httpSession) {
-        final String errorRedirectView = "/merchants/".concat(payment.getOperationType() == OperationType.INPUT ?
-                "/input": "/output");
         final Map<String, Object> model = result.getModel();
         final Optional<CreditsOperation> creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName());
         if (!creditsOperation.isPresent()) {
             redir.addFlashAttribute("error", "merchants.invalidSum");
-            return new RedirectView(errorRedirectView);
+            return new RedirectView("/dashboard");
         }
         final OperationType operationType = creditsOperation.get().getOperationType();
         String viewName = operationType==OperationType.INPUT ? "/yandexmoney/token/authorization" : "/yandexmoney/payment/process";
@@ -110,8 +108,7 @@ public class YandexMoneyMerchantController {
             return successView;
         }
         final RequestPayment request = requestPayment.get();
-        final RedirectView failureView = new RedirectView("/merchants/".concat(
-                creditsOperation.getOperationType() == OperationType.INPUT ? "input" : "output"));
+        final RedirectView failureView = new RedirectView("/dashboard");
         if (request.status.equals(BaseRequestPayment.Status.REFUSED)) {
             switch (request.error) {
                 case PAYEE_NOT_FOUND:
