@@ -13,39 +13,7 @@
 <head>
     <meta charset="utf-8">
     <title><loc:message code="transactions.title"/></title>
-    <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon"/>
-
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href='https://fonts.googleapis.com/css?family=Roboto:400,700,300' rel='stylesheet' type='text/css'>
-
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js" type="text/javascript"></script>
-    <script src="<c:url value='/client/js/jquery.mCustomScrollbar.concat.min.js'/>" type="text/javascript"></script>
-
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
-    <link href="<c:url value='/client/css/jquery.mCustomScrollbar.min.css'/>" rel="stylesheet">
-    <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
-    <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet">
-    <link href="<c:url value='/client/css/jquery.dataTables.min.css'/>" rel="stylesheet">
-
-    <%--<script type="text/javascript" src="<c:url value='/client/js/jquery.dataTables.min.js'/>"></script>
-
-    <script type="text/javascript" src="<c:url value='/client/js/function.js'/>"></script>--%>
-    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.12/css/jquery.dataTables.css">
-
-    <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.12/js/jquery.dataTables.js"></script>
-
-
-
-<%----------%>
-    <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/menuSwitcher.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/submits/invoiceSubmitAccept.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/dataTable/adminInvoiceDataTable.js'/>"></script>
-    <%----------%>
+    <%@include file='links_scripts.jsp' %>
 </head>
 
 
@@ -55,8 +23,9 @@
 
 <main class="container orders_new transaction my_orders orders .container_footer_bottom my_wallets">
     <%--<%@include file='../exchange_info_new.jsp' %>--%>
-    <div class="row text-center">
-        <div class="col-md-8 col-md-offset-2 content">
+    <div class="row">
+        <%@include file='left_side_menu.jsp' %>
+        <div class="col-md-8 col-md-offset-1 content text-center">
             <c:choose>
                 <c:when test="${fn:length(invoiceRequests)==0}">
                     <loc:message code="transactions.absent"/>

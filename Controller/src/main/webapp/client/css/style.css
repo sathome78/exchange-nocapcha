@@ -1597,3 +1597,24 @@ form span.repass {
     margin-right: 5px;
 }
 
+/*ADMIN SIDEBAR MENU*/
+
+.sidebar {
+    width: 100%;
+    position: relative;
+   /* background-color: #111; */
+    overflow-x: hidden;
+    padding-top: 60px;
+}
+.sidebar li {
+    list-style: none;
+}
+
+/* The navigation menu links */
+.sidebar a {
+    padding: 8px 8px 8px 8px;
+    text-decoration: none;
+    font-size: 16px;
+    /*color: #818181;*/
+    display: block;
+}
