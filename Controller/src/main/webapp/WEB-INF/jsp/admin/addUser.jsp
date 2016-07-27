@@ -16,28 +16,15 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href='<c:url value="/client/css/roboto-font-400_700_300.css"/>' rel='stylesheet' type='text/css'>
+    <%@include file='links_scripts.jsp' %>
 
-    <script src="<c:url value="/client/js/jquery_1.11.3.min.js"/>" type="text/javascript"></script>
-    <script src="<c:url value='/client/js/jquery.mCustomScrollbar.concat.min.js'/>" type="text/javascript"></script>
 
-    <link rel="stylesheet" href="<c:url value="/client/css/font-awesome.min.css"/>">
-    <link href="<c:url value='/client/css/jquery.mCustomScrollbar.min.css'/>" rel="stylesheet">
-    <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
-    <link href="<c:url value='/client/css/style-new.css'/>" rel="stylesheet">
-
-    <link href="<c:url value='/client/css/jquery.dataTables.min.css'/>" rel="stylesheet" type="text/css"/>
-
-    <script type="text/javascript" src="/client/js/jquery.dataTables.min.js"></script>
     <script type="text/javascript">
         $(document).ready(function () {
             $('#usersTable').DataTable();
         });
     </script>
     <%----------%>
-    <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/menuSwitcher.js'/>"></script>
 
     <script type="text/javascript" src="<c:url value='/client/js/dataTable/adminTransactionsDataTable.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/dataTable/adminWalletsDataTable.js'/>"></script>
@@ -47,15 +34,14 @@
 
 <body>
 
-<%@include file='../header_new.jsp' %>
+<%@include file='../fragments/header-simple.jsp' %>
 
 <main class="container orders_new admin side_menu">
     <div class="row">
-        <%@include file='../usermenu_new.jsp' %>
+        <%@include file='left_side_menu.jsp' %>
         <%--<div class="col-sm-6 content">--%>
-        <div class="content">
             <%--форма редактирование пользователя--%>
-            <div class="col-sm-6 content">
+            <div class="col-md-6 col-md-offset-2 content">
                 <h4>
                     <b><loc:message code="admin.addUser"/></b>
                 </h4>
@@ -136,7 +122,6 @@
                     </form:form>
                 </div>
             </div>
-        </div>
     </div>
     <hr>
 </main>

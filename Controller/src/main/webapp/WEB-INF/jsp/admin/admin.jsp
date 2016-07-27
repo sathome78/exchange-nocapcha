@@ -25,41 +25,41 @@
     <div class="row">
         <%@include file='left_side_menu.jsp' %>
 
-        <%--<div class="col-sm-9 content">
+        <div class="col-sm-9 content">
             <div class="buttons">
                 <c:set var="adminEnum" value="<%=me.exrates.model.enums.UserRole.ADMINISTRATOR%>"/>
                 <c:set var="accountantEnum" value="<%=me.exrates.model.enums.UserRole.ACCOUNTANT%>"/>
                 <c:set var="admin_userEnum" value="<%=me.exrates.model.enums.UserRole.ADMIN_USER%>"/>
-                &lt;%&ndash;Пользователи&ndash;%&gt;
+                <%--&lt;%&ndash;Пользователи&ndash;%&gt;--%>
                 <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
                     <button class="active adminForm-toggler">
                         <loc:message code="admin.users"/>
                     </button>
                 </sec:authorize>
-                &lt;%&ndash;Администраторы&ndash;%&gt;
+                <%--&lt;%&ndash;Администраторы&ndash;%&gt;--%>
                 <sec:authorize access="hasAnyAuthority('${adminEnum}')">
                     <button class="adminForm-toggler">
                         <loc:message code="admin.admins"/>
                     </button>
                 </sec:authorize>
-                &lt;%&ndash;Финансисты&ndash;%&gt;
+                <%--&lt;%&ndash;Финансисты&ndash;%&gt;--%>
                 <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
                     <button class="adminForm-toggler">
                         <loc:message code="admin.finance"/>
                     </button>
                 </sec:authorize>
-                &lt;%&ndash;referral&ndash;%&gt;
+                <%--&lt;%&ndash;referral&ndash;%&gt;--%>
                 <sec:authorize access="hasAnyAuthority('${adminEnum}')">
                     <button class="adminForm-toggler">
                         <loc:message code="admin.referral"/>
                     </button>
                 </sec:authorize>
-                &lt;%&ndash;withdraw&ndash;%&gt;
+                <%--&lt;%&ndash;withdraw&ndash;%&gt;--%>
                 <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
                     <button onclick="javascript:window.location.href='/admin/withdrawal';" id="admin-withdraw-requests">
                         <loc:message code="admin.withdrawRequests"/></button>
                 </sec:authorize>
-            </div>--%>
+            </div>
 
             <%--контейнер форм ролей пользователей--%>
             <div class=" col-md-8 col-md-offset-1 tab-content">
