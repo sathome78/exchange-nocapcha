@@ -3,16 +3,12 @@ package me.exrates.model;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bitcoinj.core.Context;
-import org.bitcoinj.core.Utils;
-import org.bitcoinj.crypto.MnemonicCode;
 import org.bitcoinj.kits.WalletAppKit;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.TestNet3Params;
 import org.bitcoinj.utils.BriefLogFormatter;
-import org.bitcoinj.wallet.*;
-import org.bitcoinj.wallet.Wallet;
+import org.bitcoinj.wallet.DeterministicSeed;
 import org.springframework.beans.factory.BeanInitializationException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
@@ -20,9 +16,6 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.File;
-import java.util.Arrays;
-
-import static java.util.Arrays.*;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -49,15 +42,14 @@ public class BitcoinWalletAppKit {
             if (context.getParams().equals(MainNetParams.get())) { // If running main bitcoin network - restore deterministic wallet
                 kit.restoreWalletFromSeed(
                         new DeterministicSeed(
-                                "cool surface park flavor theory liberty action donor unlock toy subway gain",
-                                MnemonicCode.toSeed(Arrays.asList("cool", "surface", "park", "flavor", "theory", "liberty", "action", "donor", "unlock", "toy", "subway", "gain"), null),
+                                "cool surface park flavor theory liberty action donor unlock toy subway gain", // mnemonic code
+                                null, // Should be null, mnemonic code above
                                 "", // Empty passphrase
-                                1469197851L
+                                1469197851L // Creation time (Unix time)
                         ));
             }
             kit.startAsync();
             kit.awaitRunning();
-            LOG.info("Wallet balance in Satoshi : " + kit.wallet().getBalance().longValue());
         } catch (final Exception e) {
             LOG.fatal(e);
             throw new BeanInitializationException("Could not instantiate bitcoin wallet");
