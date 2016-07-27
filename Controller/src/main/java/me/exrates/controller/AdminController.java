@@ -86,13 +86,30 @@ public class AdminController {
         }
 
         ModelAndView model = new ModelAndView();
-        List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairs();
-        model.addObject("currencyPairList", currencyPairList);
+        model.setViewName("admin/admin");
+        return model;
+    }
+
+    @RequestMapping(value = "/admin/administrators", method = GET)
+    public String administrators() {
+        return "admin/administrators";
+    }
+
+    @RequestMapping(value = "/admin/referral", method = GET)
+    public ModelAndView referral() {
+        ModelAndView model = new ModelAndView();
         model.addObject("referralLevels", referralService.findAllReferralLevels());
         model.addObject("commonRefRoot", userService.getCommonReferralRoot());
         model.addObject("admins", userSecureService.getUsersByRoles(singletonList(ADMINISTRATOR)));
-        model.setViewName("admin/admin");
+        return model;
+    }
 
+    @RequestMapping(value = "/admin/orderDeletion", method = GET)
+    public ModelAndView orderDeletion() {
+        ModelAndView model = new ModelAndView();
+        List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairs();
+        model.addObject("currencyPairList", currencyPairList);
+        model.setViewName("admin/orderDeletion");
         return model;
     }
 

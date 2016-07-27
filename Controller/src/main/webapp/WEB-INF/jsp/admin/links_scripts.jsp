@@ -20,11 +20,11 @@
 <link href="<c:url value='/client/css/jquery.mCustomScrollbar.min.css'/>" rel="stylesheet">
 <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
 <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet">
-<link href="<c:url value='/client/css/jquery.dataTables.min.css'/>" rel="stylesheet">
+<%--<link href="<c:url value='/client/css/jquery.dataTables.min.css'/>" rel="stylesheet">
 
-<%--<script type="text/javascript" src="<c:url value='/client/js/jquery.dataTables.min.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/jquery.dataTables.min.js'/>"></script>--%>
 
-<script type="text/javascript" src="<c:url value='/client/js/function.js'/>"></script>--%>
+<script type="text/javascript" src="<c:url value='/client/js/function.js'/>"></script>
 <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.12/css/jquery.dataTables.css">
 
 <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.12/js/jquery.dataTables.js"></script>

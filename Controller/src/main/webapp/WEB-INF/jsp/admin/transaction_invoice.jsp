@@ -21,8 +21,7 @@
 
 <%@include file='../fragments/header-simple.jsp' %>
 
-<main class="container orders_new transaction my_orders orders .container_footer_bottom my_wallets">
-    <%--<%@include file='../exchange_info_new.jsp' %>--%>
+<main class="container">
     <div class="row">
         <%@include file='left_side_menu.jsp' %>
         <div class="col-md-8 col-md-offset-1 content text-center">

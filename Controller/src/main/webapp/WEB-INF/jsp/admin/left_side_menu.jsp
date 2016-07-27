@@ -22,7 +22,7 @@
         <li>
             <%--Пользователи--%>
             <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
-                <a href="#"><loc:message code="admin.users"/></a>
+                <a href="<c:url value='/admin'/>"><loc:message code="admin.users"/></a>
             </sec:authorize>
         </li>
 
@@ -30,7 +30,7 @@
         <li>
             <%--Администраторы--%>
             <sec:authorize access="hasAnyAuthority('${adminEnum}')">
-                <a href="#"><loc:message code="admin.admins"/></a>
+                <a href="<c:url value='/admin/administrators'/>"><loc:message code="admin.admins"/></a>
             </sec:authorize>
         </li>
 
@@ -38,14 +38,14 @@
         <li>
             <%--Заявки на пополнение валюты--%>
             <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
-                <a href="#"><loc:message code="transaction.titleInvoice"/></a>
+                <a href="<c:url value='/transaction_invoice'/>"><loc:message code="transaction.titleInvoice"/></a>
             </sec:authorize>
         </li>
 
         <li>
             <%--withdraw--%>
             <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
-                <a href="#"><loc:message code="admin.withdrawRequests"/></a>
+                <a href="<c:url value='/admin/withdrawal'/>"><loc:message code="admin.withdrawRequests"/></a>
             </sec:authorize>
         </li>
 
@@ -68,7 +68,7 @@
         <li>
             <%--referral--%>
             <sec:authorize access="hasAnyAuthority('${adminEnum}')">
-                <a href="#"><loc:message code="admin.referral"/></a>
+                <a href="/admin/referral"><loc:message code="admin.referral"/></a>
             </sec:authorize>
         </li>
 
