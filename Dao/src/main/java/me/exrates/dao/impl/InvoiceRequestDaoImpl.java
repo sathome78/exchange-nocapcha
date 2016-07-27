@@ -37,7 +37,6 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
         Timestamp acceptanceTimeResult = resultSet.getTimestamp("acceptance_time");
         LocalDateTime acceptanceTime = acceptanceTimeResult == null ? null : acceptanceTimeResult.toLocalDateTime();
         invoiceRequest.setAcceptanceTime(acceptanceTime);
-        System.out.println(invoiceRequest);
         return invoiceRequest;
     };
 
