@@ -25,42 +25,48 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
     <link href="<c:url value='/client/css/jquery.mCustomScrollbar.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
-    <link href="<c:url value='/client/css/style-new.css'/>" rel="stylesheet">
+    <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet">
+    <link href="<c:url value='/client/css/jquery.dataTables.min.css'/>" rel="stylesheet">
 
-    <script type="text/javascript" src="<c:url value='/client/js/dashboard.js'/>"></script>
+    <%--<script type="text/javascript" src="<c:url value='/client/js/jquery.dataTables.min.js'/>"></script>
 
-    <script type="text/javascript" src="<c:url value='/client/js/function.js'/>"></script>
-    <%----------%>
+    <script type="text/javascript" src="<c:url value='/client/js/function.js'/>"></script>--%>
+    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.12/css/jquery.dataTables.css">
+
+    <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.12/js/jquery.dataTables.js"></script>
+
+
+
+<%----------%>
     <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/menuSwitcher.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/submits/invoiceSubmitAccept.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/dataTable/adminInvoiceDataTable.js'/>"></script>
     <%----------%>
 </head>
 
 
 <body>
 
-<%@include file='../header_new.jsp' %>
+<%@include file='../fragments/header-simple.jsp' %>
 
 <main class="container orders_new transaction my_orders orders .container_footer_bottom my_wallets">
     <%--<%@include file='../exchange_info_new.jsp' %>--%>
-    <div class="row">
-        <%@include file='../usermenu_new.jsp' %>
-
-        <div class="col-sm-9 content">
+    <div class="row text-center">
+        <div class="col-md-8 col-md-offset-2 content">
             <c:choose>
-                <c:when test="${fn:length(transactions)==0}">
+                <c:when test="${fn:length(invoiceRequests)==0}">
                     <loc:message code="transactions.absent"/>
                 </c:when>
                 <c:otherwise>
                     <%--СПИСОК ИНВОЙСОВ--%>
                     <h4><loc:message code="transaction.titleInvoice"/></h4>
 
-                    <table>
-                        <tbody>
+                    <table id="invoice_requests">
+                        <thead>
                         <tr>
                                 <%--Дата--%>
                             <th><loc:message code="transaction.datetime"/></th>
@@ -83,33 +89,51 @@
 
 
                         </tr>
-                        <c:forEach var="transaction" items="${transactions}">
+                        </thead>
+                        <tbody>
+
+                        <c:forEach var="invoiceRequest" items="${invoiceRequests}">
                             <tr>
                                 <td style="white-space: nowrap;">
-                                        ${transaction.datetime}
+                                        ${invoiceRequest.transaction.datetime.toLocalDate()}<br/>
+                                        ${invoiceRequest.transaction.datetime.toLocalTime()}
                                 </td>
                                 <td><%--User--%>
+                                        ${invoiceRequest.userEmail}
                                 </td>
                                     <%--USD--%>
                                 <td>
-                                        ${transaction.currency.getName()}
+                                        ${invoiceRequest.transaction.currency.getName()}
                                 </td>
                                     <%--Amount--%>
                                 <td>
-                                    <fmt:formatNumber value="${transaction.amount}" maxFractionDigits="9"/>
+                                    <fmt:formatNumber value="${invoiceRequest.transaction.amount}" maxFractionDigits="9"/>
                                 </td>
                                     <%--комиссия--%>
                                 <td>
-                                    <fmt:formatNumber value="${transaction.commissionAmount}" maxFractionDigits="9"/>
+                                    <fmt:formatNumber value="${invoiceRequest.transaction.commissionAmount}" maxFractionDigits="9"/>
                                 </td>
-                                <td></td>
+                                <td>
+                                        ${invoiceRequest.acceptanceTime.toLocalDate()}<br/>
+                                        ${invoiceRequest.acceptanceTime.toLocalTime()}
+                                </td>
                                     <%--Подтвердить--%>
                                 <td>
-                                    <button class="acceptbtn" type="submit"
-                                            onclick="submitAcceptInvoice(${transaction.id})"><loc:message
-                                            code="transaction.accept"/></button>
+                                    <c:choose>
+                                    <c:when test="${invoiceRequest.acceptanceTime == null}">
+                                        <button class="acceptbtn" type="submit"
+                                                onclick="submitAcceptInvoice(${invoiceRequest.transaction.id})"><loc:message
+                                                code="transaction.accept"/></button>
+                                    </c:when>
+                                    <c:otherwise>
+
+                                        <loc:message code="transaction.provided"/>
+                                    </c:otherwise>
+                                    </c:choose>
                                 </td>
-                                <td></td>
+                                <td>
+                                        ${invoiceRequest.acceptanceUserEmail}
+                                </td>
                             </tr>
                         </c:forEach>
                         </tbody>
