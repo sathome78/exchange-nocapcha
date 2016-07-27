@@ -8,17 +8,17 @@ import java.time.LocalDateTime;
 public class InvoiceRequest {
 
     private Transaction transaction;
-    private User user;
-    private User acceptanceUser;
+    private String userEmail;
+    private String acceptanceUserEmail;
     private LocalDateTime acceptanceTime;
 
     public InvoiceRequest() {
     }
 
-    public InvoiceRequest(Transaction transaction, User user, User acceptanceUser, LocalDateTime acceptanceTime) {
+    public InvoiceRequest(Transaction transaction, String userEmail, String acceptanceUserEmail, LocalDateTime acceptanceTime) {
         this.transaction = transaction;
-        this.user = user;
-        this.acceptanceUser = acceptanceUser;
+        this.userEmail = userEmail;
+        this.acceptanceUserEmail = acceptanceUserEmail;
         this.acceptanceTime = acceptanceTime;
     }
 
@@ -30,20 +30,20 @@ public class InvoiceRequest {
         this.transaction = transaction;
     }
 
-    public User getUser() {
-        return user;
+    public String getUserEmail() {
+        return userEmail;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUserEmail(String userEmail) {
+        this.userEmail = userEmail;
     }
 
-    public User getAcceptanceUser() {
-        return acceptanceUser;
+    public String getAcceptanceUserEmail() {
+        return acceptanceUserEmail;
     }
 
-    public void setAcceptanceUser(User acceptanceUser) {
-        this.acceptanceUser = acceptanceUser;
+    public void setAcceptanceUserEmail(String acceptanceUserEmail) {
+        this.acceptanceUserEmail = acceptanceUserEmail;
     }
 
     public LocalDateTime getAcceptanceTime() {
@@ -62,8 +62,8 @@ public class InvoiceRequest {
         InvoiceRequest that = (InvoiceRequest) o;
 
         if (transaction != null ? !transaction.equals(that.transaction) : that.transaction != null) return false;
-        if (user != null ? !user.equals(that.user) : that.user != null) return false;
-        if (acceptanceUser != null ? !acceptanceUser.equals(that.acceptanceUser) : that.acceptanceUser != null)
+        if (userEmail != null ? !userEmail.equals(that.userEmail) : that.userEmail != null) return false;
+        if (acceptanceUserEmail != null ? !acceptanceUserEmail.equals(that.acceptanceUserEmail) : that.acceptanceUserEmail != null)
             return false;
         return acceptanceTime != null ? acceptanceTime.equals(that.acceptanceTime) : that.acceptanceTime == null;
 
@@ -72,8 +72,8 @@ public class InvoiceRequest {
     @Override
     public int hashCode() {
         int result = transaction != null ? transaction.hashCode() : 0;
-        result = 31 * result + (user != null ? user.hashCode() : 0);
-        result = 31 * result + (acceptanceUser != null ? acceptanceUser.hashCode() : 0);
+        result = 31 * result + (userEmail != null ? userEmail.hashCode() : 0);
+        result = 31 * result + (acceptanceUserEmail != null ? acceptanceUserEmail.hashCode() : 0);
         result = 31 * result + (acceptanceTime != null ? acceptanceTime.hashCode() : 0);
         return result;
     }
@@ -82,8 +82,8 @@ public class InvoiceRequest {
     public String toString() {
         return "InvoiceRequest{" +
                 "transaction=" + transaction +
-                ", user=" + user +
-                ", acceptanceUser=" + acceptanceUser +
+                ", userEmail='" + userEmail + '\'' +
+                ", acceptanceUserEmail='" + acceptanceUserEmail + '\'' +
                 ", acceptanceTime=" + acceptanceTime +
                 '}';
     }

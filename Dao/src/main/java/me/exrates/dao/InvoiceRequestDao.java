@@ -1,6 +1,7 @@
 package me.exrates.dao;
 
 import me.exrates.model.InvoiceRequest;
+import me.exrates.model.User;
 
 import java.util.List;
 import java.util.Optional;
@@ -10,11 +11,11 @@ import java.util.Optional;
  */
 public interface InvoiceRequestDao {
 
-    void create(InvoiceRequest invoiceRequest);
+    void create(InvoiceRequest invoiceRequest, User user);
 
     void delete(InvoiceRequest invoiceRequest);
 
-    void update(InvoiceRequest invoiceRequest);
+    void setAcceptance(InvoiceRequest invoiceRequest);
 
     Optional<InvoiceRequest> findById(int id);
 
