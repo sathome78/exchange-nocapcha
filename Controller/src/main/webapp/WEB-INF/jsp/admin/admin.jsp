@@ -11,7 +11,7 @@
     <meta charset="utf-8">
     <title><loc:message code="admin.title"/></title>
     <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon"/>
-    <link href='https://fonts.googleapis.com/css?family=Roboto:400,700,300' rel='stylesheet' type='text/css'>
+
 
     <%@include file='links_scripts.jsp' %>
 
@@ -24,45 +24,14 @@
 <main class="container orders_new admin side_menu">
     <div class="row">
         <%@include file='left_side_menu.jsp' %>
+        <c:set var="adminEnum" value="<%=me.exrates.model.enums.UserRole.ADMINISTRATOR%>"/>
+        <c:set var="accountantEnum" value="<%=me.exrates.model.enums.UserRole.ACCOUNTANT%>"/>
+        <c:set var="admin_userEnum" value="<%=me.exrates.model.enums.UserRole.ADMIN_USER%>"/>
 
         <div class="col-sm-9 content">
-            <div class="buttons">
-                <c:set var="adminEnum" value="<%=me.exrates.model.enums.UserRole.ADMINISTRATOR%>"/>
-                <c:set var="accountantEnum" value="<%=me.exrates.model.enums.UserRole.ACCOUNTANT%>"/>
-                <c:set var="admin_userEnum" value="<%=me.exrates.model.enums.UserRole.ADMIN_USER%>"/>
-                <%--&lt;%&ndash;Пользователи&ndash;%&gt;--%>
-                <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
-                    <button class="active adminForm-toggler">
-                        <loc:message code="admin.users"/>
-                    </button>
-                </sec:authorize>
-                <%--&lt;%&ndash;Администраторы&ndash;%&gt;--%>
-                <sec:authorize access="hasAnyAuthority('${adminEnum}')">
-                    <button class="adminForm-toggler">
-                        <loc:message code="admin.admins"/>
-                    </button>
-                </sec:authorize>
-                <%--&lt;%&ndash;Финансисты&ndash;%&gt;--%>
-                <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
-                    <button class="adminForm-toggler">
-                        <loc:message code="admin.finance"/>
-                    </button>
-                </sec:authorize>
-                <%--&lt;%&ndash;referral&ndash;%&gt;--%>
-                <sec:authorize access="hasAnyAuthority('${adminEnum}')">
-                    <button class="adminForm-toggler">
-                        <loc:message code="admin.referral"/>
-                    </button>
-                </sec:authorize>
-                <%--&lt;%&ndash;withdraw&ndash;%&gt;--%>
-                <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
-                    <button onclick="javascript:window.location.href='/admin/withdrawal';" id="admin-withdraw-requests">
-                        <loc:message code="admin.withdrawRequests"/></button>
-                </sec:authorize>
-            </div>
 
             <%--контейнер форм ролей пользователей--%>
-            <div class=" col-md-8 col-md-offset-1 tab-content">
+            <div class=" col-md-8 col-md-offset-2 tab-content admin-container">
                 <%--форма Пользователи--%>
                 <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
                     <div id="panel1" class="tab-pane active">
@@ -86,102 +55,6 @@
                     </div>
                 </sec:authorize>
 
-                <%--форма админы--%>
-                <sec:authorize access="hasAnyAuthority('${adminEnum}')">
-                    <div id="panel2" class="tab-pane">
-                        <h4>
-                            <b><loc:message code="admin.listOfAdmins"/></b>
-                        </h4>
-
-                        <div class="admin-add-functions-container clearfix">
-                            <div id="admin-add-functions">
-                                <button onclick="javascript:window.location.href='/admin/addUser';"
-                                        class="admin-add-functions__item"><loc:message code="admin.addUser"/></button>
-                                <button onclick="searchAndDeleteOrderByAdmin()"
-                                        class="admin-add-functions__item"><loc:message
-                                        code="deleteorder.title"/></button>
-                            </div>
-                        </div>
-                        <hr/>
-                        <table id="adminsTable" class="admin-table table table-hover table-bordered table-striped"
-                               style="width: 100%;">
-                            <thead>
-                            <tr>
-                                <th><loc:message code="admin.user"/></th>
-                                <th><loc:message code="admin.email"/></th>
-                                <th><loc:message code="admin.registrationDate"/></th>
-                                <th><loc:message code="admin.role"/></th>
-                                <th><loc:message code="admin.status"/></th>
-                            </tr>
-                            </thead>
-                        </table>
-                    </div>
-                </sec:authorize>
-
-                <%--форма финансисты--%>
-                <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
-                    <div id="panel3" class="tab-pane">
-                        <button onclick="javascript:window.location.href='/transaction_invoice';" id="admin-transaction-invoices">
-                            <loc:message code="transaction.titleInvoice"/></button>
-                        <h4>
-                            <p><a class="link" href="companywallet"><loc:message code="admin.companyWallet"/></a></p>
-
-                            <p><a class="link" href="userswallets"><loc:message code="admin.usersWallet"/></a></p>
-                        </h4>
-                    </div>
-                </sec:authorize>
-
-                    <sec:authorize access="hasAnyAuthority('${adminEnum}')">
-                        <div id="panel4 row" class="tab-pane">
-                            <div class="col-sm-4">
-                                <h4>
-                                    <loc:message code="admin.referralLevels"/>
-                                </h4>
-                                <table class="col-sm-4 ref-lvl-table">
-                                    <thead>
-                                    <tr>
-                                        <th>Level</th>
-                                        <th>Percent</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <c:forEach items="${referralLevels}" var="level">
-                                        <tr class="table-row" data-percent="${level.percent}" data-id="${level.id}" data-level="${level.level}" data-toggle="modal" data-target="#myModal">
-                                            <td>
-                                                    ${level.level}
-                                            </td>
-                                            <td id="_${level.level}">
-                                                <span class="lvl-percent">${level.percent}</span>%
-                                            </td>
-                                        </tr>
-                                    </c:forEach>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div class="col-sm-4">
-                               <h4>
-                                   <loc:message code="admin.refCommonRoot"/>
-                                   <c:choose>
-                                       <c:when test="${commonRefRoot != null}">
-                                           <span data-id="${commonRefRoot.id}" id="ref-root-info">(${commonRefRoot.email})</span>
-                                       </c:when>
-                                       <c:otherwise>
-                                           <span id="current-ref-root">(<loc:message code="admin.refAbsentCommonRoot"/>)</span>
-                                       </c:otherwise>
-                                   </c:choose>
-                               </h4>
-                                <form id="edit-cmn-ref-root">
-                                    <select name="ref-root">
-                                        <c:forEach items="${admins}" var="admin">
-                                            <option value="${admin.id}">${admin.email}</option>
-                                        </c:forEach>
-                                    </select>
-                                    <button type="submit"><loc:message code="admin.refSubmitEditCommonRoot"/></button>
-                                </form>
-                            </div>
-                        </div>
-                    </sec:authorize>
-
             </div>
         </div>
     </div>
@@ -189,41 +62,6 @@
 </main>
 
 <%@include file='order_delete.jsp' %>
-
-<div id="myModal" class="modal fade edit-ref-lvl-modal">
-    <div class="modal-dialog modal-sm">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                        aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title"><loc:message code="admin.referralLevelEdit"/></h4>
-            </div>
-            <div class="modal-body">
-                <form id="edit-ref-lvl-form">
-                    <input class="" type="hidden" name="level">
-                    <input type="hidden" name="id">
-                    <div class="input-block-wrapper">
-                        <div class="col-md-5 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label"><loc:message code="admin.referralLevel"/></label>
-                        </div>
-                        <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input  name="" class="input-block-wrapper__input lvl-id" readonly type="text">
-                        </div>
-                    </div>
-                    <div class="input-block-wrapper">
-                        <div class="col-md-5 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label"><loc:message code="admin.referralPercent"/></label>
-                        </div>
-                        <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input  name="percent" class="input-block-wrapper__input" type="text">
-                        </div>
-                    </div>
-                    <button class="delete-order-info__button" type="submit"><loc:message code="admin.refSubmitEditCommonRoot"/></button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
 </body>
 </html>
 

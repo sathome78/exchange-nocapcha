@@ -101,6 +101,7 @@ public class AdminController {
         model.addObject("referralLevels", referralService.findAllReferralLevels());
         model.addObject("commonRefRoot", userService.getCommonReferralRoot());
         model.addObject("admins", userSecureService.getUsersByRoles(singletonList(ADMINISTRATOR)));
+        model.setViewName("admin/referral");
         return model;
     }
 

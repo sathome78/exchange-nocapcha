@@ -31,21 +31,22 @@
 
         <sec:authorize access="hasAnyAuthority('${adminEnum}')">
 
-            <div id="panel2" class="col-md-8 col-md-offset-1">
+            <div id="panel2" class="col-md-8 col-md-offset-1 admin-container">
+                <div class="col-md-12 text-center">
                 <h4>
                     <b><loc:message code="admin.listOfAdmins"/></b>
                 </h4>
+                </div>
 
                 <div class="admin-add-functions-container clearfix">
                     <div id="admin-add-functions">
                         <button onclick="javascript:window.location.href='/admin/addUser';"
-                                class="admin-add-functions__item"><loc:message code="admin.addUser"/></button>
+                                class="admin-add-functions__item blue-box"><loc:message code="admin.addUser"/></button>
 <%--                        <button onclick="searchAndDeleteOrderByAdmin()"
                                 class="admin-add-functions__item"><loc:message
                                 code="deleteorder.title"/></button>--%>
                     </div>
                 </div>
-                <hr/>
                 <table id="adminsTable" class="admin-table table table-hover table-bordered table-striped">
                     <thead>
                     <tr>

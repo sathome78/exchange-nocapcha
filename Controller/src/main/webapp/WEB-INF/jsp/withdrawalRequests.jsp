@@ -24,7 +24,7 @@
 <main class="container">
     <div class="row">
         <%@include file='admin/left_side_menu.jsp' %>
-        <div class="col-md-9 content text-center">
+        <div class="col-md-10 content text-center admin-container">
             <h4><loc:message code="admin.withdrawRequests"/></h4>
             <table id="withdrawalTable"> <%--class="table table-responsive table-hover table-bordered" border="1" cellpadding="8"
                    cellspacing="0">--%>

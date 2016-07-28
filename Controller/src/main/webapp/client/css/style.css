@@ -1606,22 +1606,33 @@ form span.repass {
     overflow-x: hidden;
     padding-top: 60px;
 }
-.sidebar li {
+.sidebar ul {
     list-style: none;
+    padding-left: 0;
 }
 
 /* The navigation menu links */
 .sidebar a {
-    padding: 8px 8px 8px 8px;
+    padding: 8px 8px 8px 0;
     text-decoration: none;
-    font-size: 16px;
+    font-size: 14px;
     /*color: #818181;*/
     display: block;
 }
 
+#finMenu a {
+    font-size: 12px;
+}
 
 .ref-lvl-table {
     cursor:pointer;
+}
+
+.ref-lvl-table th, td {
+    padding: 10px 5px;
+    text-align: center;
+    vertical-align: middle;
+    font-size: 14px;
 }
 
 .ref-button {
@@ -1634,4 +1645,93 @@ form span.repass {
 
 .edit-ref-lvl-modal {
     max-height: 250px !important;
+}
+
+
+.admin-container {
+    padding-top: 30px;
+}
+
+.admin-form-input,
+.blue-box.admin-form-submit {
+    width: 100%;
+}
+#edit-cmn-ref-root .admin-form-input,
+.blue-box.admin-form-submit {
+    margin: 10px 0px;
+}
+.admin-submit-group {
+    margin-top: 15px;
+}
+
+/****************************************
+			9. Modal Change Referral System
+****************************************/
+
+#refModal {
+    max-width: 380px;
+    max-height: 380px;
+    background-size: cover;
+    margin: 0 auto;
+    margin-top: 100px;
+    padding: 0 10px;
+}
+
+#refModal .modal-header {
+/*    color: rgba(255, 255, 255, .5);
+    border-bottom: solid 1px rgba(255, 255, 255, .25);*/
+    padding: 5px 15px;
+}
+
+#refModal .modal-dialog {
+    width: 100%;
+    margin: 10px auto 0 auto;
+}
+
+#refModal .modal-content {
+    background: #e2ebf9;
+}
+
+#refModal .content form input {
+    display: block;
+    width: 75%;
+    border: none;
+    color: #621609;
+    margin: 10px 0;
+    padding: 0 10px;
+    line-height: 2em;
+    outline: 0;
+}
+
+#user-add-form .input-block-wrapper,
+#user-edit-form .input-block-wrapper {
+    display: inline-block;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    margin: 5px 0;
+}
+
+/*COMPANY WALLET*/
+
+.my_wallets .content > div > div.currency {
+    display: block;
+    background: rgba(82, 95, 116, 0.25);
+    overflow: auto;
+    padding: 5px 20px;
+}
+
+.my_wallets .content .block {
+    overflow: auto;
+    margin-bottom: 20px;
+}
+
+.my_wallets .content p.margin_top {
+
+    display: inline-block;
+    margin-top: 15px;
+}
+
+.my_wallets .info-item-title {
+    border-bottom: 1px solid rgba(82, 95, 116, 0.5);
 }

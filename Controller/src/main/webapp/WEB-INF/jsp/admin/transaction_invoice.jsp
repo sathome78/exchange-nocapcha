@@ -24,7 +24,7 @@
 <main class="container">
     <div class="row">
         <%@include file='left_side_menu.jsp' %>
-        <div class="col-md-8 col-md-offset-1 content text-center">
+        <div class="col-md-8 col-md-offset-1 content text-center admin-container">
             <c:choose>
                 <c:when test="${fn:length(invoiceRequests)==0}">
                     <loc:message code="transactions.absent"/>

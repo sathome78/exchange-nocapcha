@@ -22,14 +22,14 @@
 <main class="container">
     <div class="row">
         <%@include file='left_side_menu.jsp' %>
-        <div class="col-md-6 col-md-offset-2">
+        <div class="col-md-6 col-md-offset-2 admin-container">
             <sec:authorize access="hasAnyAuthority('${adminEnum}')">
                 <div id="panel4 row" class="tab-pane">
-                    <div class="col-sm-4">
+                    <div class="col-sm-4 text-center">
                         <h4>
                             <loc:message code="admin.referralLevels"/>
                         </h4>
-                        <table class="col-sm-4 ref-lvl-table">
+                        <table class="table ref-lvl-table">
                             <thead>
                             <tr>
                                 <th>Level</th>
@@ -38,7 +38,7 @@
                             </thead>
                             <tbody>
                             <c:forEach items="${referralLevels}" var="level">
-                                <tr class="table-row" data-percent="${level.percent}" data-id="${level.id}" data-level="${level.level}" data-toggle="modal" data-target="#myModal">
+                                <tr class="table-row" data-percent="${level.percent}" data-id="${level.id}" data-level="${level.level}" data-toggle="modal" data-target="#refModal">
                                     <td>
                                             ${level.level}
                                     </td>
@@ -63,12 +63,12 @@
                             </c:choose>
                         </h4>
                         <form id="edit-cmn-ref-root">
-                            <select name="ref-root">
+                            <select class="admin-form-input" name="ref-root">
                                 <c:forEach items="${admins}" var="admin">
                                     <option value="${admin.id}">${admin.email}</option>
                                 </c:forEach>
                             </select>
-                            <button type="submit"><loc:message code="admin.refSubmitEditCommonRoot"/></button>
+                            <button class="blue-box admin-form-submit" type="submit"><loc:message code="admin.refSubmitEditCommonRoot"/></button>
                         </form>
                     </div>
                 </div>
@@ -78,8 +78,8 @@
     </div>
 </main>
 
-<div id="myModal" class="modal fade edit-ref-lvl-modal">
-    <div class="modal-dialog modal-sm">
+<div id="refModal" class="modal fade edit-ref-lvl-modal">
+    <div class="modal-dialog modal-md">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
@@ -106,7 +106,7 @@
                             <input  name="percent" class="input-block-wrapper__input" type="text">
                         </div>
                     </div>
-                    <button class="delete-order-info__button" type="submit"><loc:message code="admin.refSubmitEditCommonRoot"/></button>
+                    <button class="blue-box admin-form-submit" type="submit"><loc:message code="admin.refSubmitEditCommonRoot"/></button>
                 </form>
             </div>
         </div>
