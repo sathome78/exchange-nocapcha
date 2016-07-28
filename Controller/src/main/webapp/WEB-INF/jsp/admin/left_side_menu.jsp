@@ -50,12 +50,12 @@
             </sec:authorize>
         </li>
         <%--Удаление ордера--%>
-        <%--<li>
+        <li>
 
             <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
                 <a href="#" onclick="searchAndDeleteOrderByAdmin()"><loc:message code="orderinfo.title"/></a>
             </sec:authorize>
-        </li>--%>
+        </li>
 
 
         <li>

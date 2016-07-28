@@ -86,6 +86,8 @@ public class AdminController {
         }
 
         ModelAndView model = new ModelAndView();
+        List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairs();
+        model.addObject("currencyPairList", currencyPairList);
         model.setViewName("admin/admin");
         return model;
     }
