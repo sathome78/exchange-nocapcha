@@ -13,6 +13,7 @@
 <%@taglib uri="http://www.springframework.org/tags" prefix="spring" %>
 <%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
 
+
 <div id="admin_side_menu" class="col-md-2">
     <c:set var="adminEnum" value="<%=me.exrates.model.enums.UserRole.ADMINISTRATOR%>"/>
     <c:set var="accountantEnum" value="<%=me.exrates.model.enums.UserRole.ACCOUNTANT%>"/>
@@ -48,19 +49,26 @@
                 <a href="<c:url value='/admin/withdrawal'/>"><loc:message code="admin.withdrawRequests"/></a>
             </sec:authorize>
         </li>
+        <%--Удаление ордера--%>
+        <%--<li>
 
-        <li>
-            <%--Удаление ордера--%>
             <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
-                <a href="#"><loc:message code="orderinfo.title"/></a>
+                <a href="#" onclick="searchAndDeleteOrderByAdmin()"><loc:message code="orderinfo.title"/></a>
             </sec:authorize>
-        </li>
+        </li>--%>
 
 
         <li>
             <%--Финансисты--%>
             <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
-                <a href="#"><loc:message code="admin.finance"/></a>
+                <a href="#finMenu"  data-toggle="collapse"><loc:message code="admin.finance"/><i class="fa fa-caret-down"></i></a>
+                <div class="collapse" id="finMenu">
+                    <ul>
+                        <li><a class="link" href="companywallet"><loc:message code="admin.companyWallet"/></a></li>
+                        <li><a class="link" href="userswallets"><loc:message code="admin.usersWallet"/></a></li>
+                    </ul>
+                </div>
+
             </sec:authorize>
         </li>
 

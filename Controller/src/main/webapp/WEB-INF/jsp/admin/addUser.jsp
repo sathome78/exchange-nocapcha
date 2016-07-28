@@ -19,11 +19,7 @@
     <%@include file='links_scripts.jsp' %>
 
 
-    <script type="text/javascript">
-        $(document).ready(function () {
-            $('#usersTable').DataTable();
-        });
-    </script>
+
     <%----------%>
 
     <script type="text/javascript" src="<c:url value='/client/js/dataTable/adminTransactionsDataTable.js'/>"></script>
@@ -41,65 +37,66 @@
         <%@include file='left_side_menu.jsp' %>
         <%--<div class="col-sm-6 content">--%>
             <%--форма редактирование пользователя--%>
-            <div class="col-md-6 col-md-offset-2 content">
-                <h4>
-                    <b><loc:message code="admin.addUser"/></b>
-                </h4>
-                <hr/>
+            <div class="col-md-5 col-md-offset-2 content admin-container">
+                <div class="text-center">
+                    <h4>
+                        <b><loc:message code="admin.addUser"/></b>
+                    </h4>
+                </div>
                 <div class="panel-body">
                     <form:form class="form-horizontal" id="user-add-form" action="/admin/adduser/submit" method="post" modelAttribute="user">
                         <div>
                             <fieldset class="field-user">
 
                                 <div class="input-block-wrapper">
-                                    <div class="col-md-4 input-block-wrapper__label-wrapper">
+                                    <div class="col-md-3 input-block-wrapper__label-wrapper">
                                         <label for="user-name" class="input-block-wrapper__label"><loc:message
                                                 code="admin.login"/></label>
                                     </div>
-                                    <div class="col-md-8 input-block-wrapper__input-wrapper">
-                                        <form:input path="nickname" class="input-block-wrapper__input" id="user-name" required="required"/>
+                                    <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                        <form:input path="nickname" class="input-block-wrapper__input admin-form-input" id="user-name" required="required"/>
                                         <form:errors path="nickname" class="input-block-wrapper__input" style="color:red"/>
                                     </div>
                                 </div>
                                 <div class="input-block-wrapper">
-                                    <div class="col-md-4 input-block-wrapper__label-wrapper">
+                                    <div class="col-md-3 input-block-wrapper__label-wrapper">
                                         <label for="user-email" class="input-block-wrapper__label"><loc:message
                                                 code="admin.email"/></label>
                                     </div>
-                                    <div class="col-md-8 input-block-wrapper__input-wrapper">
-                                        <form:input path="email" class="input-block-wrapper__input" id="user-email" required="required" />
+                                    <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                        <form:input path="email" class="input-block-wrapper__input admin-form-input" id="user-email" required="required" />
                                         <form:errors path="email" class="input-block-wrapper__input" style="color:red"/>
                                     </div>
                                 </div>
                                 <div class="input-block-wrapper">
-                                    <div class="col-md-4 input-block-wrapper__label-wrapper">
+                                    <div class="col-md-3 input-block-wrapper__label-wrapper">
                                         <label for="user-password" path="password"
                                                class="input-block-wrapper__label"><loc:message
                                                 code="admin.password"/></label>
                                     </div>
-                                    <div class="col-md-8 input-block-wrapper__input-wrapper">
-                                        <form:input path="password" type="password" class="input-block-wrapper__input" id="user-password" required="required"/>
+                                    <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                        <form:input path="password" type="password" class="input-block-wrapper__input admin-form-input" id="user-password" required="required"/>
                                         <form:errors path="password" class="input-block-wrapper__input" style="color:red"/>
                                     </div>
                                 </div>
                                 <div class="input-block-wrapper">
-                                    <div class="col-md-4 input-block-wrapper__label-wrapper">
+                                    <div class="col-md-3 input-block-wrapper__label-wrapper">
                                         <label for="user-phone" class="input-block-wrapper__label"><loc:message
                                                 code="admin.phone"/></label>
                                     </div>
-                                    <div class="col-md-8 input-block-wrapper__input-wrapper">
-                                        <form:input path="phone" class="input-block-wrapper__input" id="user-phone" />
+                                    <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                        <form:input path="phone" class="input-block-wrapper__input admin-form-input" id="user-phone" />
                                         <form:errors path="phone" class="input-block-wrapper__input" style="color:red"/>
                                     </div>
                                 </div>
 
                                 <div class="input-block-wrapper">
-                                    <div class="col-md-4 input-block-wrapper__label-wrapper">
+                                    <div class="col-md-3 input-block-wrapper__label-wrapper">
                                         <label for="user-role" class="input-block-wrapper__label"><loc:message
                                                 code="admin.role"/></label>
                                     </div>
-                                    <div class="col-md-8 input-block-wrapper__input-wrapper">
-                                        <form:select path="role" id="user-role" class="input-block-wrapper__input" name="user-role">
+                                    <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                        <form:select path="role" id="user-role" class="input-block-wrapper__input admin-form-input" name="user-role">
                                             <c:forEach items="${roleList}" var="role">
                                                 <option value="${role}">${role}</option>
                                             </c:forEach>
@@ -107,14 +104,14 @@
                                     </div>
                                 </div>
 
-                                <div class="form-group">
+                                <div class="admin-submit-group">
                                     <div>
                                         <loc:message code="admin.save" var="saveSubmit"></loc:message>
-                                        <button type="submit">${saveSubmit}</button>
+                                        <button class="blue-box" type="submit">${saveSubmit}</button>
 
                                         <loc:message code="admin.cancel" var="cancelSubmit"></loc:message>
-                                        <button type="reset"
-                                                onclick="javascript:window.location='/admin';">${cancelSubmit}</button>
+                                        <button class="blue-box" type="reset"
+                                                onclick="javascript:window.location='/administrators';">${cancelSubmit}</button>
                                     </div>
                                 </div>
                             </fieldset>
