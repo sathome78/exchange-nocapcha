@@ -19,10 +19,10 @@
 </head>
 <body>
 <%@include file='../fragments/header-simple.jsp' %>
-<main class="container orders_new transaction my_orders orders .container_footer_bottom my_wallets">
+<main class="container">
     <div class="row">
         <%@include file='left_side_menu.jsp' %>
-        <div class="col-md-8 col-md-offset-1">
+        <div class="col-md-6 col-md-offset-2">
             <sec:authorize access="hasAnyAuthority('${adminEnum}')">
                 <div id="panel4 row" class="tab-pane">
                     <div class="col-sm-4">
@@ -78,7 +78,40 @@
     </div>
 </main>
 
-
+<div id="myModal" class="modal fade edit-ref-lvl-modal">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title"><loc:message code="admin.referralLevelEdit"/></h4>
+            </div>
+            <div class="modal-body">
+                <form id="edit-ref-lvl-form">
+                    <input class="" type="hidden" name="level">
+                    <input type="hidden" name="id">
+                    <div class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="admin.referralLevel"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input  name="" class="input-block-wrapper__input lvl-id" readonly type="text">
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="admin.referralPercent"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input  name="percent" class="input-block-wrapper__input" type="text">
+                        </div>
+                    </div>
+                    <button class="delete-order-info__button" type="submit"><loc:message code="admin.refSubmitEditCommonRoot"/></button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 </body>
 </html>
