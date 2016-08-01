@@ -67,7 +67,9 @@
                                         ${invoiceRequest.transaction.datetime.toLocalTime()}
                                 </td>
                                 <td><%--User--%>
-                                        ${invoiceRequest.userEmail}
+                                    <a href="<c:url value='/admin/userInfo'>
+                                    <c:param name="id" value="${invoiceRequest.userId}"/>
+                                    </c:url>">${invoiceRequest.userEmail}</a>
                                 </td>
                                     <%--USD--%>
                                 <td>
@@ -82,8 +84,16 @@
                                     <fmt:formatNumber value="${invoiceRequest.transaction.commissionAmount}" maxFractionDigits="9"/>
                                 </td>
                                 <td>
-                                        ${invoiceRequest.acceptanceTime.toLocalDate()}<br/>
-                                        ${invoiceRequest.acceptanceTime.toLocalTime()}
+                                    <c:choose>
+                                        <c:when test="${invoiceRequest.acceptanceTime == null}">
+                                            _
+                                        </c:when>
+                                        <c:otherwise>
+                                            ${invoiceRequest.acceptanceTime.toLocalDate()}<br/>
+                                            ${invoiceRequest.acceptanceTime.toLocalTime()}
+                                        </c:otherwise>
+                                    </c:choose>
+
                                 </td>
                                     <%--Подтвердить--%>
                                 <td>
@@ -100,7 +110,17 @@
                                     </c:choose>
                                 </td>
                                 <td>
-                                        ${invoiceRequest.acceptanceUserEmail}
+                                    <c:choose>
+                                        <c:when test="${not empty invoiceRequest.acceptanceUserEmail}">
+                                            <a href="<c:url value='/admin/userInfo'>
+                                            <c:param name="id" value="${invoiceRequest.acceptanceUserId}"/>
+                                            </c:url>">${invoiceRequest.acceptanceUserEmail}</a>
+                                        </c:when>
+                                        <c:otherwise>
+                                            _
+                                        </c:otherwise>
+                                    </c:choose>
+
                                 </td>
                             </tr>
                         </c:forEach>
