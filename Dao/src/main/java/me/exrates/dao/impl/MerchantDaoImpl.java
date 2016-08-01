@@ -8,6 +8,7 @@ import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
@@ -30,6 +31,9 @@ public class MerchantDaoImpl implements MerchantDao {
 
     @Autowired
     private NamedParameterJdbcTemplate jdbcTemplate;
+
+    @Autowired
+    MessageSource messageSource;
 
     @Override
     public Merchant create(Merchant merchant) {
@@ -148,7 +152,9 @@ public class MerchantDaoImpl implements MerchantDao {
                 myInputOutputHistoryDto.setMerchantName(rs.getString("merchant"));
                 myInputOutputHistoryDto.setOperationType(rs.getString("operation_type"));
                 myInputOutputHistoryDto.setTransactionId(rs.getInt("id"));
-                myInputOutputHistoryDto.setTransactionProvided(rs.getInt("provided") == 0 ? "false" : "true");
+                myInputOutputHistoryDto.setTransactionProvided(rs.getInt("provided") == 0 ?
+                        messageSource.getMessage("inputoutput.statusFalse", null, locale) :
+                        messageSource.getMessage("inputoutput.statusTrue", null, locale));
                 return myInputOutputHistoryDto;
             }
         });
