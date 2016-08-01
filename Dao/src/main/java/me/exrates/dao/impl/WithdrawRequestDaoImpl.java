@@ -32,6 +32,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
         final Transaction transaction = TransactionDaoImpl.transactionRowMapper.mapRow(resultSet, i);
         final WithdrawRequest request = new WithdrawRequest();
         request.setUserEmail(resultSet.getString("email"));
+        request.setUserId(resultSet.getInt("user_id"));
         request.setWallet(resultSet.getString("wallet"));
         MerchantImage merchantImage = new MerchantImage();
         merchantImage.setId(resultSet.getInt("merchant_image_id"));
@@ -39,6 +40,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
         request.setMerchantImage(merchantImage);
         request.setTransaction(transaction);
         request.setProcessedBy(resultSet.getString("admin_email"));
+        request.setProcessedById(resultSet.getInt("processed_by"));
         request.setAcceptance(resultSet
                 .getTimestamp("acceptance")
                 .toLocalDateTime()
@@ -52,7 +54,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
                     "USER.email,(SELECT EMAIL from USER WHERE id = WITHDRAW_REQUEST.processed_by) as admin_email, " +
                     "TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime, " +
                     "TRANSACTION.operation_type_id,TRANSACTION.provided,TRANSACTION.confirmation, WALLET.id,WALLET.active_balance, " +
-                    "WALLET.reserved_balance,WALLET.currency_id,COMPANY_WALLET.id,COMPANY_WALLET.balance, " +
+                    "WALLET.user_id, WALLET.reserved_balance,WALLET.currency_id,COMPANY_WALLET.id,COMPANY_WALLET.balance, " +
                     "COMPANY_WALLET.commission_balance,COMMISSION.id,COMMISSION.date,COMMISSION.value," +
                     "CURRENCY.id,CURRENCY.description,CURRENCY.name,MERCHANT.id,MERCHANT.name,MERCHANT.description " +
                     "FROM WITHDRAW_REQUEST " +

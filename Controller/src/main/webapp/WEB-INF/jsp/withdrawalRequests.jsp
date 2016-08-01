@@ -26,8 +26,7 @@
         <%@include file='admin/left_side_menu.jsp' %>
         <div class="col-md-10 content text-center admin-container">
             <h4><loc:message code="admin.withdrawRequests"/></h4>
-            <table id="withdrawalTable"> <%--class="table table-responsive table-hover table-bordered" border="1" cellpadding="8"
-                   cellspacing="0">--%>
+            <table id="withdrawalTable">
                 <thead>
                 <tr>
                     <th><loc:message code="withdrawal.requestDatetime"/></th>
@@ -50,7 +49,9 @@
                                 ${requests.transaction.datetime.toLocalTime()}
                          </td>
                         <td>
-                                ${requests.userEmail}
+                            <a href="<c:url value='/admin/userInfo'>
+                            <c:param name="id" value="${requests.userId}"/>
+                            </c:url>">${requests.userEmail}</a>
                         </td>
                         <td>
                             <fmt:formatNumber value="${requests.transaction.amount}" maxFractionDigits="9"/>
@@ -83,7 +84,9 @@
                         <td>
                             <c:choose>
                                 <c:when test="${not empty requests.processedBy}">
-                                    ${requests.processedBy}
+                                    <a href="<c:url value='/admin/userInfo'>
+                                    <c:param name="id" value="${requests.processedById}"/>
+                                    </c:url>">${requests.processedBy}</a>
                                 </c:when>
                                 <c:otherwise>
                                     _
@@ -129,29 +132,6 @@
     <loc:message code="merchants.promptWithdrawRequestDecline"/>
 </div>
 
-
-<%--
-
-
-<div class="wrapper lk" style="max-width: 1300px">
-
-
-    <div class="container container_center full__height" style="max-width: 1300px">
-
-        <!--#include file="sidebar__lk.shtml" -->
-        <%@include file='usermenu.jsp'%>
-
-        <div class="main__content">
-            <!--#include file="header__lk.shtml" -->
-            <div class="content__page">
-
-            </div>
-            <!--#include file="footer__lk.shtml" -->
-            <%@include file='footer.jsp'%>
-        </div>
-    </div>
-</div>
---%>
 
 </body>
 </html>

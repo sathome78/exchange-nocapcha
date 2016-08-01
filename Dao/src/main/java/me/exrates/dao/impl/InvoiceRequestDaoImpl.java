@@ -33,14 +33,17 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
         Transaction transaction = TransactionDaoImpl.transactionRowMapper.mapRow(resultSet, i);
         invoiceRequest.setTransaction(transaction);
         invoiceRequest.setUserEmail(resultSet.getString("user_email"));
+        invoiceRequest.setUserId(resultSet.getInt("user_id"));
         invoiceRequest.setAcceptanceUserEmail(resultSet.getString("acceptance_user_email"));
+        invoiceRequest.setAcceptanceUserId(resultSet.getInt("acceptance_id"));
         Timestamp acceptanceTimeResult = resultSet.getTimestamp("acceptance_time");
         LocalDateTime acceptanceTime = acceptanceTimeResult == null ? null : acceptanceTimeResult.toLocalDateTime();
         invoiceRequest.setAcceptanceTime(acceptanceTime);
         return invoiceRequest;
     };
 
-    private static final String SELECT_ALL = "SELECT inv.acceptance_time, user.email AS user_email, adm.email AS acceptance_user_email, " +
+    private static final String SELECT_ALL = "SELECT inv.acceptance_time, user.id AS user_id, user.email AS user_email, " +
+            "adm.id AS acceptance_id, adm.email AS acceptance_user_email, " +
             "TRANSACTION.id, TRANSACTION.amount, TRANSACTION.commission_amount, TRANSACTION.datetime, " +
             "                    TRANSACTION.operation_type_id,TRANSACTION.provided,TRANSACTION.confirmation, WALLET.id, WALLET.active_balance, " +
             "                    WALLET.reserved_balance, WALLET.currency_id, COMPANY_WALLET.id, COMPANY_WALLET.balance, " +
