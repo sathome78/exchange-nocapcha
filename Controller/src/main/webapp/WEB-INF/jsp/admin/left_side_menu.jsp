@@ -53,7 +53,7 @@
         <li>
 
             <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
-                <a href="#" onclick="searchAndDeleteOrderByAdmin()"><loc:message code="orderinfo.title"/></a>
+                <a href="<c:url value='/admin/orderDeletion'/>"><loc:message code="orderinfo.title"/></a>
             </sec:authorize>
         </li>
 
@@ -64,8 +64,8 @@
                 <a href="#finMenu"  data-toggle="collapse"><loc:message code="admin.finance"/><i class="fa fa-caret-down"></i></a>
                 <div class="collapse" id="finMenu">
                     <ul>
-                        <li><a class="link" href="companywallet"><loc:message code="admin.companyWallet"/></a></li>
-                        <li><a class="link" href="userswallets"><loc:message code="admin.usersWallet"/></a></li>
+                        <li><a href="<c:url value='/companywallet'/>"><loc:message code="admin.companyWallet"/></a></li>
+                        <li><a href="<c:url value='/userswallets'/>"><loc:message code="admin.usersWallet"/></a></li>
                     </ul>
                 </div>
 

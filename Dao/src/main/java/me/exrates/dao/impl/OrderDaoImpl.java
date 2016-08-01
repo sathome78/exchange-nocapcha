@@ -17,6 +17,8 @@ import me.exrates.model.enums.*;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.WalletOperationData;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -39,6 +41,8 @@ import java.util.*;
 
 @Repository
 public class OrderDaoImpl implements OrderDao {
+
+    private static final Logger logger = LogManager.getLogger(OrderDaoImpl.class);
 
     @Autowired
     DataSource dataSource;
@@ -818,6 +822,82 @@ public class OrderDaoImpl implements OrderDao {
             }
         }
         return true;
+    }
+
+    @Override
+    public List<OrderBasicInfoDto> searchOrders(Integer currencyPair, Integer orderType, String orderDateFrom, String orderDateTo,
+                                           BigDecimal orderRate, BigDecimal orderVolume, String creatorEmail, Locale locale) {
+        String sql =    " SELECT  " +
+                "     EXORDERS.id, EXORDERS.date_creation,  " +
+                "     CURRENCY_PAIR.name as currency_pair_name,  " +
+                "     UPPER(ORDER_OPERATION.name) AS order_type_name,  " +
+                "     EXORDERS.exrate, EXORDERS.amount_base, " +
+                "     CREATOR.email AS order_creator_email " +
+                " FROM EXORDERS " +
+                "      JOIN OPERATION_TYPE AS ORDER_OPERATION ON (ORDER_OPERATION.id = EXORDERS.operation_type_id) " +
+                "      JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) " +
+                "      JOIN USER CREATOR ON (CREATOR.id = EXORDERS.user_id) ";
+
+        StringJoiner stringJoiner = new StringJoiner(" ");
+        stringJoiner.add(sql);
+        NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+        Map<String, String> namedParameters = new HashMap<>();
+        namedParameters.put("currency_pair_id", String.valueOf(currencyPair));
+        namedParameters.put("operation_type_id", String.valueOf(orderType));
+        namedParameters.put("date_from", orderDateFrom);
+        namedParameters.put("date_to", orderDateTo);
+        namedParameters.put("exrate", String.valueOf(orderRate));
+        namedParameters.put("amount_base", String.valueOf(orderVolume));
+        namedParameters.put("creator_email", creatorEmail);
+        String criteria = defineCriteria(namedParameters);
+        if (!criteria.isEmpty()) {
+            stringJoiner.add("WHERE").add(criteria);
+        }
+        String query = stringJoiner.toString();
+        logger.info(query);
+        try {
+            return namedParameterJdbcTemplate.query(query, namedParameters, (rs, rowNum) -> {
+                OrderBasicInfoDto infoDto = new OrderBasicInfoDto();
+                infoDto.setId(rs.getInt("id"));
+                infoDto.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
+                infoDto.setCurrencyPairName(rs.getString("currency_pair_name"));
+                infoDto.setOrderTypeName(rs.getString("order_type_name"));
+                infoDto.setExrate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("exrate"), locale, 2));
+                infoDto.setAmountBase(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount_base"), locale, 2));
+                infoDto.setOrderCreatorEmail(rs.getString("order_creator_email"));
+                return infoDto;
+
+            });
+        } catch (EmptyResultDataAccessException e) {
+            logger.error(e.getMessage(), e);
+            return null;
+        }
+
+    }
+
+
+    private String defineCriteria(Map<String, String> namedParameters) {
+        String  emptyValue = "";
+        StringJoiner stringJoiner = new StringJoiner(" AND ");
+        stringJoiner.setEmptyValue(emptyValue);
+        Map<String, String> clauses = new HashMap();
+        clauses.put("currency_pair_id", "EXORDERS.currency_pair_id = :currency_pair_id");
+        clauses.put("operation_type_id", "EXORDERS.operation_type_id = :operation_type_id");
+        clauses.put("date_from", "EXORDERS.date_creation >= STR_TO_DATE(:date_from, '%Y-%m-%d %H:%i:%s')");
+        clauses.put("date_to", "EXORDERS.date_creation <= STR_TO_DATE(:date_to, '%Y-%m-%d %H:%i:%s')");
+        clauses.put("exrate", "EXORDERS.exrate = :exrate");
+        clauses.put("amount_base", "EXORDERS.amount_base = :amount_base");
+        clauses.put("creator_email", "EXORDERS.user_id = (SELECT id FROM USER WHERE email = :creator_email)");
+        namedParameters.forEach((name, value) -> {
+            if (checkPresent(value)) {
+                stringJoiner.add(clauses.get(name));
+            }
+        });
+        return stringJoiner.toString();
+    }
+
+    private boolean checkPresent(String param) {
+        return !(param == null || param.isEmpty() || "null".equals(param));
     }
 
 }

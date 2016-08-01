@@ -71,7 +71,7 @@
                         </td>
                         <td>
                             <c:choose>
-                                <c:when test="${not empty requests.acceptance}">
+                                <c:when test="${requests.acceptance.isAfter(requests.transaction.datetime)}">
                                     ${requests.acceptance.toLocalDate()}<br/>
                                     ${requests.acceptance.toLocalTime()}
                                  </c:when>

@@ -61,4 +61,7 @@ public interface OrderDao {
                                                                     OperationType operationType);
 
     boolean lockOrdersListForAcception(List<Integer> ordersList);
+
+    List<OrderBasicInfoDto> searchOrders(Integer currencyPair, Integer orderType, String orderDateFrom, String orderDateTo,
+                                    BigDecimal orderRate, BigDecimal orderVolume, String creatorEmail, Locale locale);
 }

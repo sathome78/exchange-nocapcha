@@ -42,9 +42,7 @@
                     <div id="admin-add-functions">
                         <button onclick="javascript:window.location.href='/admin/addUser';"
                                 class="admin-add-functions__item blue-box"><loc:message code="admin.addUser"/></button>
-<%--                        <button onclick="searchAndDeleteOrderByAdmin()"
-                                class="admin-add-functions__item"><loc:message
-                                code="deleteorder.title"/></button>--%>
+
                     </div>
                 </div>
                 <table id="adminsTable" class="admin-table table table-hover table-bordered table-striped">

@@ -234,4 +234,6 @@ public interface OrderService {
      */
     WalletsAndCommissionsForOrderCreationDto getWalletAndCommission(String email, Currency currency,
                                                                            OperationType operationType);
+    List<OrderBasicInfoDto> findOrders(Integer currencyPair, String orderType, String orderDateFrom, String orderDateTo,
+                                  BigDecimal orderRate, BigDecimal orderVolume, String creatorEmail, Locale locale);
 }
