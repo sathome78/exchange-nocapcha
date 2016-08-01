@@ -1,10 +1,3 @@
-<%--
-  Created by IntelliJ IDEA.
-  User: ogolv
-  Date: 30.07.2016
-  Time: 8:48
-  To change this template use File | Settings | File Templates.
---%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@taglib uri="http://www.springframework.org/tags" prefix="loc" %>
@@ -12,15 +5,15 @@
 <%@taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
 <%@taglib uri="http://www.springframework.org/tags" prefix="spring" %>
 <%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
+
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
+
+<!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8" />
-    <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+    <meta charset="utf-8">
     <title><loc:message code="orderinfo.title"/></title>
-    <meta name="keywords" content="" />
-    <meta name="description" content="" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <%@include file='links_scripts.jsp'%>
+    <%@include file='links_scripts.jsp' %>
     <script type="text/javascript" src="<c:url value='/client/js/order/adminDeleteOrder.js'/>"></script>
     <script type="text/javascript">
         $(document).ready(function () {
@@ -30,57 +23,63 @@
             }
         })
     </script>
+
 </head>
+
+
 <body>
-<%@include file='../fragments/header-simple.jsp'%>
+
+<%@include file='../fragments/header-simple.jsp' %>
+
 <main class="container">
     <div class="row">
         <%@include file='left_side_menu.jsp' %>
-            <div class="col-md-8 col-md-offset-1 content admin-container">
-                <c:choose>
-                    <c:when test="${fn:length(orders)==0}">
-                        <div class="text-center">
-                            <h4 class="modal-title"><loc:message code="orderinfo.searcherror"/></h4>
-                        </div>
-                    </c:when>
-                    <c:otherwise>
-                <div class="text-center">
-                    <h4 class="modal-title"><loc:message code="orderinfo.title"/></h4>
-                </div>
-                <table id="order-info-table">
-                    <thead>
-                    <tr>
-                        <th><loc:message code="orderinfo.id"/></th>
-                        <th><loc:message code="orderinfo.createdate"/></th>
-                        <th><loc:message code="orderinfo.currencypair"/></th>
-                        <th><loc:message code="orders.type"/></th>
-                        <th><loc:message code="orderinfo.rate"/></th>
-                        <th><loc:message code="orderinfo.baseamount"/></th>
-                        <th><loc:message code="orderinfo.creator"/></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <c:forEach var="order" items="${orders}">
-                        <tr onclick="getOrderDetailedInfo.call(this, ${order.id}, event)">
-                            <td>${order.id}</td>
-                            <td>${order.dateCreation.toLocalDate()}<br/>
-                                ${order.dateCreation.toLocalTime()}</td>
-                            <td>${order.currencyPairName}</td>
-                            <td>${order.orderTypeName}</td>
-                            <td>${order.exrate}</td>
-                            <td>${order.amountBase}</td>
-                            <td>${order.orderCreatorEmail}</td>
+        <div class="col-md-8 col-md-offset-1 content text-center admin-container">
+            <c:choose>
+                <c:when test="${fn:length(orders)==0}">
+                    <div class="text-center">
+                        <h4><loc:message code="orderinfo.searcherror"/></h4>
+                    </div>
+                </c:when>
+                <c:otherwise>
+                    <%--СПИСОК ИНВОЙСОВ--%>
+                    <div class="text-center">
+                        <h4><loc:message code="orderinfo.title"/></h4>
+                    </div>
+
+                    <table id="order-info-table">
+                        <thead>
+                        <tr>
+                            <th><loc:message code="orderinfo.id"/></th>
+                            <th><loc:message code="orderinfo.createdate"/></th>
+                            <th><loc:message code="orderinfo.currencypair"/></th>
+                            <th><loc:message code="orders.type"/></th>
+                            <th><loc:message code="orderinfo.rate"/></th>
+                            <th><loc:message code="orderinfo.baseamount"/></th>
+                            <th><loc:message code="orderinfo.creator"/></th>
                         </tr>
+                        </thead>
+                        <tbody>
+                        <c:forEach var="order" items="${orders}">
+                            <tr onclick="getOrderDetailedInfo.call(this, ${order.id}, event)">
+                                <td>${order.id}</td>
+                                <td>${order.dateCreation.toLocalDate()}<br/>
+                                        ${order.dateCreation.toLocalTime()}</td>
+                                <td>${order.currencyPairName}</td>
+                                <td>${order.orderTypeName}</td>
+                                <td>${order.exrate}</td>
+                                <td>${order.amountBase}</td>
+                                <td>${order.orderCreatorEmail}</td>
+                            </tr>
+                        </c:forEach>
+                        </tbody>
+                    </table>
 
-                    </c:forEach>
-                    </tbody>
-                </table>
-                    </c:otherwise>
-                </c:choose>
-            </div>
-        <a href="<c:url  value='/admin/orderDeletion'/>"><loc:message code="ordersearch.title"/></a>
-
+                </c:otherwise>
+            </c:choose>
+        </div>
     </div>
+    <hr/>
 </main>
 
 <div id="order-delete-modal" class="modal fade delete-order-info__modal" tabindex="-1" role="dialog">
@@ -162,6 +161,8 @@
         </div>
     </div>
 </div>
-
+<%@include file='../fragments/footer.jsp' %>
+<span hidden id="errorNoty">${errorNoty}</span>
+<span hidden id="successNoty">${successNoty}</span>
 </body>
 </html>

@@ -275,12 +275,13 @@
     </div>
     <hr>
 </main>
-<div id="prompt_delete_rqst">
+<div hidden id="prompt_delete_rqst">
     <loc:message code="admin.promptDeleteUserFiles"/>
 </div>
 
-<%@include file='order_delete.jsp' %>
-
+<%@include file='../fragments/footer.jsp' %>
+<span hidden id="errorNoty">${errorNoty}</span>
+<span hidden id="successNoty">${successNoty}</span>
 
 </body>
 </html>
