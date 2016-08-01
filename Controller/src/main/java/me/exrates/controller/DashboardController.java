@@ -227,6 +227,21 @@ public class DashboardController {
         /**/
         return model;
     }
+
+    @RequestMapping(value = "/termsAndConditions", method = RequestMethod.GET)
+    public String termsAndConditions() {
+        return "/globalPages/termsAndConditions";
+    }
+
+    @RequestMapping(value = "/privacyPolicy", method = RequestMethod.GET)
+    public String privacyPolicy() {
+        return "/globalPages/privacyPolicy";
+    }
+
+    @RequestMapping(value = "/returnPolicy", method = RequestMethod.GET)
+    public String returnPolicy() {
+        return "/globalPages/returnPolicy";
+    }
 }
 
 
