@@ -124,6 +124,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, "/news/addNewsVariant").authenticated()
                 .antMatchers("/yandex_4b3a16d69d4869cb.html").permitAll()
                 .antMatchers("/yandex_7a3c41ddb19f4716.html").permitAll()
+                .antMatchers("/termsAndConditions", "/privacyPolicy", "/returnPolicy").permitAll()
 //                .antMatchers("/login", "/register", "/create", "/forgotPassword/**", "/resetPasswordConfirm/**").anonymous()
 //                .antMatchers("/updatePassword").hasAnyAuthority(UserRole.ROLE_CHANGE_PASSWORD.name())
 //                .anyRequest().authenticated()
