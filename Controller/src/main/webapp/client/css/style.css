@@ -1606,7 +1606,6 @@ form span.repass {
 .sidebar {
     width: 100%;
     position: relative;
-   /* background-color: #111; */
     overflow-x: hidden;
     padding-top: 60px;
 }
