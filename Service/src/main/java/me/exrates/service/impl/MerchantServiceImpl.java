@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -80,11 +81,17 @@ public class MerchantServiceImpl implements MerchantService {
         final WithdrawRequest request = withdraw.get();
         request.setProcessedBy(principal.getName());
         withdrawRequestDao.update(request);
+        final Optional<WithdrawRequest> withdrawUpdated = withdrawRequestDao.findById(requestId);
+        if (!withdrawUpdated.isPresent()) {
+            return singletonMap("error", messageSource.getMessage("merchants.WithdrawRequestError",null,locale));
+        }
+        final WithdrawRequest requestUpdated = withdrawUpdated.get();
         transactionService.provideTransaction(request.getTransaction());
         sendWithdrawalNotification(request, ACCEPTED, locale);
         final HashMap<String, String> params = new HashMap<>();
         final String message = messageSource.getMessage("merchants.WithdrawRequestAccept", null, locale);
         params.put("success", message);
+        params.put("acceptance", requestUpdated.getAcceptance().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         params.put("email", principal.getName());
         return params;
     }

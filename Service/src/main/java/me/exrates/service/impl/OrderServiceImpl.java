@@ -512,6 +512,21 @@ public class OrderServiceImpl implements OrderService {
     public void setMessageSource(final MessageSource messageSource) {
         this.messageSource = messageSource;
     }
+
+    @Transactional
+    @Override
+    public List<OrderBasicInfoDto> findOrders(Integer currencyPair, String orderType, String orderDateFrom, String orderDateTo,
+                                         BigDecimal orderRate, BigDecimal orderVolume, String creatorEmail, Locale locale) {
+        Integer ot = null;
+        if (!"ANY".equals(orderType)) {
+            ot = OperationType.valueOf(orderType).getType();
+        }
+        if (currencyPair.intValue() == -1) {
+            currencyPair = null;
+        }
+        return orderDao.searchOrders(currencyPair, ot, orderDateFrom, orderDateTo, orderRate, orderVolume, creatorEmail, locale);
+
+    }
 }
 
 

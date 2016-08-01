@@ -1624,11 +1624,11 @@ form span.repass {
     font-size: 12px;
 }
 
-.ref-lvl-table {
+.ref-lvl-table, #order-info-table tr {
     cursor:pointer;
 }
 
-.ref-lvl-table th, td {
+.ref-lvl-table th, .ref-lvl-table td {
     padding: 10px 5px;
     text-align: center;
     vertical-align: middle;
@@ -1704,7 +1704,8 @@ form span.repass {
 }
 
 #user-add-form .input-block-wrapper,
-#user-edit-form .input-block-wrapper {
+#user-edit-form .input-block-wrapper,
+#delete-order-info__form .input-block-wrapper {
     display: inline-block;
     height: 100%;
     width: 100%;
@@ -1734,4 +1735,23 @@ form span.repass {
 
 .my_wallets .info-item-title {
     border-bottom: 1px solid rgba(82, 95, 116, 0.5);
+}
+
+#withdrawalTable th, #withdrawalTable td,
+#withdrawalTable td button {
+    font-size: 9px;
+    text-align: center;
+}
+
+#withdrawalTable td {
+    padding: 4px 6px;
+}
+
+.delete-order-info__item {
+    display: inline-block;
+    margin:  0 10px 0 0;
+}
+
+.delete-order-info__item span{
+    margin: 0 0 0 5px;
 }
