@@ -1187,12 +1187,8 @@ td.blue-white {
 
 .table-button-block .table-button-block__button {
     padding: 0 10px;
-    visibility: hidden;
 }
 
-tr:hover .table-button-block .table-button-block__button {
-    visibility: visible;
-}
 
 .table-button-block__form {
     display: inline-block;
