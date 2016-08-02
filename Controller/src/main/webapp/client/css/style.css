@@ -1758,3 +1758,11 @@ form span.repass {
 .delete-order-info__item span{
     margin: 0 0 0 5px;
 }
+
+.legal_content {
+    font-size: 1.4em;
+    margin-top: 20px;
+}
+.legal_content p, .legal_content h5 {
+    margin-top: 15px;
+}
