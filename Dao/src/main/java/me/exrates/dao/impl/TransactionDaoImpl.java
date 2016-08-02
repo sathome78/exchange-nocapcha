@@ -9,6 +9,8 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.TransactionStatus;
 import me.exrates.model.util.BigDecimalProcessing;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.jdbc.core.RowMapper;
@@ -31,6 +33,8 @@ import static java.util.Collections.singletonMap;
  */
 @Repository
 public final class TransactionDaoImpl implements TransactionDao {
+
+    private static final Logger LOG = LogManager.getLogger(TransactionDaoImpl.class);
 
     protected static RowMapper<Transaction> transactionRowMapper = (resultSet, i) -> {
 
@@ -198,7 +202,7 @@ public final class TransactionDaoImpl implements TransactionDao {
 
     @Override
     public PagingData<List<Transaction>> findAllByUserWallets(final List<Integer> walletIds, final int offset, final int limit) {
-        final String whereClause = "WHERE TRANSACTION.user_wallet_id in (:ids)";
+        /*final String whereClause = "WHERE TRANSACTION.user_wallet_id in (:ids)";
         final String selectLimitedAllSql = new StringJoiner(" ")
                 .add(SELECT_ALL)
                 .add(whereClause)
@@ -214,8 +218,52 @@ public final class TransactionDaoImpl implements TransactionDao {
         result.setData(jdbcTemplate.query(selectLimitedAllSql, params, transactionRowMapper));
         result.setFiltered(total);
         result.setTotal(total);
+        return result;*/
+        return findAllByUserWallets(walletIds, offset, limit, "");
+    }
+
+    @Override
+    public PagingData<List<Transaction>> findAllByUserWallets(final List<Integer> walletIds, final int offset,
+                                                              final int limit, final String searchValue) {
+        LOG.debug(searchValue);
+        final String whereClause = "WHERE TRANSACTION.user_wallet_id in (:ids)";
+        String searchClause = "";
+        if (searchValue.length() > 0) {
+            searchClause = " AND (TRANSACTION.datetime LIKE :searchValue " +
+                    "OR (SELECT name FROM OPERATION_TYPE WHERE id = TRANSACTION.operation_type_id) LIKE :searchValue " +
+                    "OR CURRENCY.name LIKE :searchValue " +
+                    "OR TRANSACTION.amount LIKE :searchValue " +
+                    "OR TRANSACTION.commission_amount LIKE :searchValue " +
+                    "OR MERCHANT.name LIKE :searchValue " +
+                    "OR EXORDERS.id LIKE :searchValue ) ";
+        }
+
+        final String selectLimitedAllSql = new StringJoiner(" ")
+                .add(SELECT_ALL)
+                .add(whereClause)
+                .add(searchClause)
+                .add("ORDER BY TRANSACTION.datetime DESC, EXORDERS.id DESC LIMIT " + limit + " OFFSET " + offset)
+                .toString();
+        LOG.debug(selectLimitedAllSql);
+        final String selectAllCountSql = new StringJoiner(" ")
+                .add(SELECT_COUNT)
+                .add(whereClause)
+                .add(searchClause)
+                .toString();
+        Map<String, Object> params = new HashMap<>();
+        params.put("ids", walletIds);
+        params.put("searchValue", "%" + searchValue + "%");
+        final PagingData<List<Transaction>> result = new PagingData<>();
+        final int total = jdbcTemplate.queryForObject(selectAllCountSql, params, Integer.class);
+        result.setData(jdbcTemplate.query(selectLimitedAllSql, params, transactionRowMapper));
+        result.setFiltered(total);
+        result.setTotal(total);
+        LOG.debug(result);
         return result;
     }
+
+
+
 
     @Override
     public boolean provide(int id) {
