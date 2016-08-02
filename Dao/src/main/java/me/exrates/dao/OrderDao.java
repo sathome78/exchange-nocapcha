@@ -16,6 +16,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 public interface OrderDao {
 
@@ -62,6 +63,6 @@ public interface OrderDao {
 
     boolean lockOrdersListForAcception(List<Integer> ordersList);
 
-    List<OrderBasicInfoDto> searchOrders(Integer currencyPair, Integer orderType, String orderDateFrom, String orderDateTo,
-                                    BigDecimal orderRate, BigDecimal orderVolume, String creatorEmail, Locale locale);
+    Optional<List<OrderBasicInfoDto>> searchOrders(Integer currencyPair, Integer orderType, String orderDateFrom, String orderDateTo,
+                                                   BigDecimal orderRate, BigDecimal orderVolume, String creatorEmail, Locale locale);
 }

@@ -5,6 +5,7 @@ import me.exrates.dao.OrderDao;
 import me.exrates.dao.TransactionDao;
 import me.exrates.dao.WalletDao;
 import me.exrates.model.*;
+import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
@@ -39,10 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -524,7 +522,9 @@ public class OrderServiceImpl implements OrderService {
         if (currencyPair.intValue() == -1) {
             currencyPair = null;
         }
-        return orderDao.searchOrders(currencyPair, ot, orderDateFrom, orderDateTo, orderRate, orderVolume, creatorEmail, locale);
+        List<OrderBasicInfoDto> searchResult = orderDao.searchOrders(currencyPair, ot, orderDateFrom,
+                orderDateTo, orderRate, orderVolume, creatorEmail, locale).orElse(Collections.emptyList());
+        return searchResult;
 
     }
 }

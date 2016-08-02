@@ -11,6 +11,7 @@
 <%@ taglib uri="http://www.springframework.org/tags" prefix="loc" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<!DOCTYPE html>
 <html>
 <head>
     <title><loc:message code="dashboard.terms"/></title>
@@ -36,9 +37,11 @@
 <%@include file="../fragments/header-simple.jsp" %>
 <main class="container">
     <div class="row">
-        <div class="col-md-8">
+        <div class="col-md-8 content legal_content">
             <h3><loc:message code="dashboard.terms"/></h3>
-            <loc:message code="dashboard.termsContent"/></div>
+            <hr/>
+            <loc:message code="dashboard.termsContent"/>
+        </div>
 
     </div>
 </main>

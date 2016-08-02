@@ -825,7 +825,7 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<OrderBasicInfoDto> searchOrders(Integer currencyPair, Integer orderType, String orderDateFrom, String orderDateTo,
+    public Optional<List<OrderBasicInfoDto>> searchOrders(Integer currencyPair, Integer orderType, String orderDateFrom, String orderDateTo,
                                            BigDecimal orderRate, BigDecimal orderVolume, String creatorEmail, Locale locale) {
         String sql =    " SELECT  " +
                 "     EXORDERS.id, EXORDERS.date_creation,  " +
@@ -856,7 +856,7 @@ public class OrderDaoImpl implements OrderDao {
         String query = stringJoiner.toString();
         logger.info(query);
         try {
-            return namedParameterJdbcTemplate.query(query, namedParameters, (rs, rowNum) -> {
+            List<OrderBasicInfoDto> results = namedParameterJdbcTemplate.query(query, namedParameters, (rs, rowNum) -> {
                 OrderBasicInfoDto infoDto = new OrderBasicInfoDto();
                 infoDto.setId(rs.getInt("id"));
                 infoDto.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
@@ -868,9 +868,10 @@ public class OrderDaoImpl implements OrderDao {
                 return infoDto;
 
             });
+            return Optional.ofNullable(results);
         } catch (EmptyResultDataAccessException e) {
             logger.error(e.getMessage(), e);
-            return null;
+            return Optional.empty();
         }
 
     }
