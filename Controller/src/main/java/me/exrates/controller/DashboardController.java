@@ -229,18 +229,18 @@ public class DashboardController {
     }
 
     @RequestMapping(value = "/termsAndConditions", method = RequestMethod.GET)
-    public String termsAndConditions() {
-        return "/globalPages/termsAndConditions";
+    public ModelAndView termsAndConditions() {
+        return new ModelAndView("/globalPages/termsAndConditions", "captchaType", CAPTCHA_TYPE);
     }
 
     @RequestMapping(value = "/privacyPolicy", method = RequestMethod.GET)
-    public String privacyPolicy() {
-        return "/globalPages/privacyPolicy";
+    public ModelAndView privacyPolicy() {
+        return new ModelAndView("/globalPages/privacyPolicy", "captchaType", CAPTCHA_TYPE);
     }
 
     @RequestMapping(value = "/returnPolicy", method = RequestMethod.GET)
-    public String returnPolicy() {
-        return "/globalPages/returnPolicy";
+    public ModelAndView returnPolicy() {
+        return new ModelAndView("/globalPages/returnPolicy", "captchaType", CAPTCHA_TYPE);
     }
 }
 
