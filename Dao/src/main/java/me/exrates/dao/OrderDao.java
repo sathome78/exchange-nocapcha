@@ -3,6 +3,7 @@ package me.exrates.dao;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
+import me.exrates.model.PagingData;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
@@ -63,6 +64,7 @@ public interface OrderDao {
 
     boolean lockOrdersListForAcception(List<Integer> ordersList);
 
-    Optional<List<OrderBasicInfoDto>> searchOrders(Integer currencyPair, Integer orderType, String orderDateFrom, String orderDateTo,
-                                                   BigDecimal orderRate, BigDecimal orderVolume, String creatorEmail, Locale locale);
+    PagingData<List<OrderBasicInfoDto>> searchOrders(Integer currencyPair, Integer orderType, String orderDateFrom, String orderDateTo,
+                                                     BigDecimal orderRate, BigDecimal orderVolume, String creatorEmail, Locale locale,
+                                                     int offset, int limit, String orderColumnName, String orderDirection);
 }

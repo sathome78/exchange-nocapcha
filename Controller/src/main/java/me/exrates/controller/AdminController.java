@@ -483,27 +483,31 @@ public class AdminController {
     }
 
 
+    @ResponseBody
     @RequestMapping(value = "/admin/searchorders", method = RequestMethod.GET)
-    public ModelAndView searchOrderByAdmin(@RequestParam(required = false) Integer currencyPair,
+    public DataTable<List<OrderBasicInfoDto>> searchOrderByAdmin(@RequestParam(required = false) Integer currencyPair,
                                       @RequestParam(required = false) String orderType,
                                       @RequestParam(required = false) String orderDateFrom,
                                       @RequestParam(required = false) String orderDateTo,
                                       @RequestParam(required = false) BigDecimal orderRate,
                                       @RequestParam(required = false) BigDecimal orderVolume,
                                       @RequestParam(required = false) String creator,
+                                      @RequestParam Map<String, String> params,
                                       HttpServletRequest request) {
-        ModelAndView model = new ModelAndView("admin/order_search_results");
-
 
         try {
-            List<OrderBasicInfoDto> orderInfo = orderService.findOrders(currencyPair, orderType, orderDateFrom, orderDateTo,
-                    orderRate, orderVolume, creator, localeResolver.resolveLocale(request));
-            model.addObject("orders", orderInfo);
+            DataTable<List<OrderBasicInfoDto>> orderInfo = orderService.searchOrdersByAdmin(currencyPair, orderType,
+                    orderDateFrom, orderDateTo, orderRate, orderVolume, creator, localeResolver.resolveLocale(request), params);
+
+            return orderInfo;
         } catch (Exception ex) {
             LOG.error(ex.getMessage(), ex);
-            model.addObject("errorNoty", messageSource.getMessage("admin.internalError", null, localeResolver.resolveLocale(request)));
+            DataTable<List<OrderBasicInfoDto>> errorResult = new DataTable<>();
+            errorResult.setError(ex.getMessage());
+            errorResult.setData(Collections.EMPTY_LIST);
+            return errorResult;
         }
-        return model;
+
     }
 
     @RequestMapping(value = "admin/downloadUsersWalletsSummary", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")

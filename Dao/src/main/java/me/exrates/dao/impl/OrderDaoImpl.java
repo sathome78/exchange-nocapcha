@@ -4,10 +4,8 @@ import me.exrates.dao.CommissionDao;
 import me.exrates.dao.OrderDao;
 import me.exrates.dao.WalletDao;
 import me.exrates.jdbc.OrderRowMapper;
-import me.exrates.model.Commission;
+import me.exrates.model.*;
 import me.exrates.model.Currency;
-import me.exrates.model.CurrencyPair;
-import me.exrates.model.ExOrder;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
@@ -824,22 +822,29 @@ public class OrderDaoImpl implements OrderDao {
         return true;
     }
 
+
     @Override
-    public Optional<List<OrderBasicInfoDto>> searchOrders(Integer currencyPair, Integer orderType, String orderDateFrom, String orderDateTo,
-                                           BigDecimal orderRate, BigDecimal orderVolume, String creatorEmail, Locale locale) {
-        String sql =    " SELECT  " +
+    public PagingData<List<OrderBasicInfoDto>> searchOrders(Integer currencyPair, Integer orderType, String orderDateFrom, String orderDateTo,
+                                                            BigDecimal orderRate, BigDecimal orderVolume, String creatorEmail, Locale locale,
+                                                            int offset, int limit, String orderColumnName, String orderDirection) {
+        String sqlSelect = " SELECT  " +
                 "     EXORDERS.id, EXORDERS.date_creation,  " +
                 "     CURRENCY_PAIR.name as currency_pair_name,  " +
                 "     UPPER(ORDER_OPERATION.name) AS order_type_name,  " +
                 "     EXORDERS.exrate, EXORDERS.amount_base, " +
-                "     CREATOR.email AS order_creator_email " +
-                " FROM EXORDERS " +
+                "     CREATOR.email AS order_creator_email ";
+         String sqlFrom = "FROM EXORDERS " +
                 "      JOIN OPERATION_TYPE AS ORDER_OPERATION ON (ORDER_OPERATION.id = EXORDERS.operation_type_id) " +
                 "      JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) " +
                 "      JOIN USER CREATOR ON (CREATOR.id = EXORDERS.user_id) ";
+        String sqlSelectCount = "SELECT COUNT(*) ";
+        String orderAndPageClause = new StringJoiner(" ").add(" ORDER BY")
+                .add(orderColumnName)
+                .add(orderDirection)
+                .add("LIMIT").add(String.valueOf(limit))
+                .add("OFFSET").add(String.valueOf(offset)).toString();
 
-        StringJoiner stringJoiner = new StringJoiner(" ");
-        stringJoiner.add(sql);
+
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("currency_pair_id", String.valueOf(currencyPair));
@@ -850,13 +855,18 @@ public class OrderDaoImpl implements OrderDao {
         namedParameters.put("amount_base", String.valueOf(orderVolume));
         namedParameters.put("creator_email", creatorEmail);
         String criteria = defineCriteria(namedParameters);
-        if (!criteria.isEmpty()) {
-            stringJoiner.add("WHERE").add(criteria);
-        }
-        String query = stringJoiner.toString();
-        logger.info(query);
-        try {
-            List<OrderBasicInfoDto> results = namedParameterJdbcTemplate.query(query, namedParameters, (rs, rowNum) -> {
+        String whereClause = criteria.isEmpty() ? "" : "WHERE " + criteria;
+        String selectQuery = new StringJoiner(" ").add(sqlSelect)
+                .add(sqlFrom)
+                .add(whereClause)
+                .add(orderAndPageClause).toString();
+        String selectCountQuery = new StringJoiner(" ").add(sqlSelectCount)
+                .add(sqlFrom)
+                .add(whereClause).toString();
+
+        PagingData<List<OrderBasicInfoDto>> result = new PagingData<>();
+
+            List<OrderBasicInfoDto> infoDtoList = namedParameterJdbcTemplate.query(selectQuery, namedParameters, (rs, rowNum) -> {
                 OrderBasicInfoDto infoDto = new OrderBasicInfoDto();
                 infoDto.setId(rs.getInt("id"));
                 infoDto.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
@@ -868,11 +878,13 @@ public class OrderDaoImpl implements OrderDao {
                 return infoDto;
 
             });
-            return Optional.ofNullable(results);
-        } catch (EmptyResultDataAccessException e) {
-            logger.error(e.getMessage(), e);
-            return Optional.empty();
-        }
+            int total = namedParameterJdbcTemplate.queryForObject(selectCountQuery, namedParameters, Integer.class);
+            result.setData(infoDtoList);
+            result.setTotal(total);
+            result.setFiltered(total);
+
+            return result;
+
 
     }
 

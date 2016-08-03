@@ -110,5 +110,69 @@ function searchOrder() {
     if (isError) {
         return;
     }
-    $('#delete-order-info__form').submit();
+    var data = $('#delete-order-info__form').serialize();
+    var searchUrl = '/admin/searchorders?' + data;
+    var orderDataTable;
+    if ($.fn.dataTable.isDataTable('#order-info-table')) {
+        orderDataTable = $('#order-info-table').DataTable();
+        orderDataTable.ajax.url(searchUrl).load();
+    } else {
+        orderDataTable = $('#order-info-table').DataTable({
+            "serverSide": true,
+            "ajax": {
+                "url": searchUrl,
+                "dataSrc": "data"
+            },
+            "paging": true,
+            "info": true,
+            "bFilter": false,
+            "columns": [
+                {
+                    "data": "id"
+                },
+                {
+                    "data": "dateCreation",
+                    "render": function (data, type, row) {
+                        if (type == 'display') {
+                            return data.split(' ')[0] + '<br/>' + data.split(' ')[1];
+                        }
+                        return data;
+                    }
+                },
+                {
+                    "data": "currencyPairName"
+                },
+                {
+                    "data": "orderTypeName"
+                },
+                {
+                    "data": "exrate"
+                },
+                {
+                    "data": "amountBase"
+                },
+                {
+                    "data": "orderCreatorEmail"
+                }
+
+            ],
+            "order": [
+                [0, 'asc']
+            ]
+        });
+        $('#order-info-table tbody').on('click', 'tr', function () {
+            var currentData = orderDataTable.row( this ).data();
+
+            console.log(currentData);
+            console.log( 'You clicked on '+currentData.id +'\'s row' );
+            getOrderDetailedInfo(currentData.id);
+        } );
+
+
+        $('#order-info-table').toggle(true);
+    }
+
 }
+$(function () {
+    $('#order-info-table').toggle(false);
+});
