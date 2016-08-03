@@ -123,7 +123,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
 
     @Override
     public List<WithdrawRequest> findAll() {
-        final String sql = SELECT_ALL_REQUESTS + " ORDER BY datetime";
+        final String sql = SELECT_ALL_REQUESTS + " ORDER BY provided ASC, datetime DESC";
         return jdbcTemplate.query(sql, withdrawRequestRowMapper);
     }
 }

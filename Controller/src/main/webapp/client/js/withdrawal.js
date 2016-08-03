@@ -12,7 +12,9 @@ $(function () {
         promptDeclineRequest(id);
     });
 
-    $('#withdrawalTable').DataTable();
+    $('#withdrawalTable').DataTable({
+        "order": []
+    });
 });
 
 function promptAcceptRequest(requestId) {
