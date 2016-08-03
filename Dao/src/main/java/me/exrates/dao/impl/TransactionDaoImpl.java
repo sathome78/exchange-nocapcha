@@ -125,6 +125,20 @@ public final class TransactionDaoImpl implements TransactionDao {
                     " INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id" +
                     " LEFT JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id " +
                     " LEFT JOIN EXORDERS ON TRANSACTION.order_id = EXORDERS.id ";
+
+    private static final Map<String, String> TABLE_TO_DB_COLUMN_MAP = new HashMap<String, String>() {{
+
+        put("datetime", "TRANSACTION.datetime");
+        put("operationType", "TRANSACTION.operation_type_id");
+        put("amount", "TRANSACTION.amount");
+        put("status", "TRANSACTION.provided");
+        put("currency", "CURRENCY.name");
+        put("merchant.description", "MERCHANT.description");
+        put("commissionAmount", "TRANSACTION.commission_amount");
+        put("order", "TRANSACTION.order_id");
+
+    }};
+
     @Autowired
     MessageSource messageSource;
     @Autowired
@@ -202,30 +216,15 @@ public final class TransactionDaoImpl implements TransactionDao {
 
     @Override
     public PagingData<List<Transaction>> findAllByUserWallets(final List<Integer> walletIds, final int offset, final int limit) {
-        /*final String whereClause = "WHERE TRANSACTION.user_wallet_id in (:ids)";
-        final String selectLimitedAllSql = new StringJoiner(" ")
-                .add(SELECT_ALL)
-                .add(whereClause)
-                .add("ORDER BY TRANSACTION.datetime DESC, EXORDERS.id DESC LIMIT " + limit + " OFFSET " + offset)
-                .toString();
-        final String selectAllCountSql = new StringJoiner(" ")
-                .add(SELECT_COUNT)
-                .add(whereClause)
-                .toString();
-        final Map<String, List<Integer>> params = Collections.singletonMap("ids", walletIds);
-        final PagingData<List<Transaction>> result = new PagingData<>();
-        final int total = jdbcTemplate.queryForObject(selectAllCountSql, params, Integer.class);
-        result.setData(jdbcTemplate.query(selectLimitedAllSql, params, transactionRowMapper));
-        result.setFiltered(total);
-        result.setTotal(total);
-        return result;*/
-        return findAllByUserWallets(walletIds, offset, limit, "");
+        return findAllByUserWallets(walletIds, offset, limit, "", "", "ASC");
     }
 
     @Override
     public PagingData<List<Transaction>> findAllByUserWallets(final List<Integer> walletIds, final int offset,
-                                                              final int limit, final String searchValue) {
-        LOG.debug(searchValue);
+                                                              final int limit, final String searchValue,
+                                                              String sortColumn, String sortDirection) {
+
+        String sortDBColumn = TABLE_TO_DB_COLUMN_MAP.getOrDefault(sortColumn, "TRANSACTION.datetime DESC, EXORDERS.id DESC");
         final String whereClause = "WHERE TRANSACTION.user_wallet_id in (:ids)";
         String searchClause = "";
         if (searchValue.length() > 0) {
@@ -242,7 +241,8 @@ public final class TransactionDaoImpl implements TransactionDao {
                 .add(SELECT_ALL)
                 .add(whereClause)
                 .add(searchClause)
-                .add("ORDER BY TRANSACTION.datetime DESC, EXORDERS.id DESC LIMIT " + limit + " OFFSET " + offset)
+                .add("ORDER BY").add(sortDBColumn).add(sortDirection)
+                .add("LIMIT").add(String.valueOf(limit)).add("OFFSET").add(String.valueOf(offset))
                 .toString();
         LOG.debug(selectLimitedAllSql);
         final String selectAllCountSql = new StringJoiner(" ")
@@ -258,7 +258,6 @@ public final class TransactionDaoImpl implements TransactionDao {
         result.setData(jdbcTemplate.query(selectLimitedAllSql, params, transactionRowMapper));
         result.setFiltered(total);
         result.setTotal(total);
-        LOG.debug(result);
         return result;
     }
 

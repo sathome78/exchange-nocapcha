@@ -32,7 +32,7 @@ public interface TransactionService {
     List<Transaction> findAllByUserWallets(List<Integer> userWalletsIds);
 
     DataTable<List<OperationViewDto>> showMyOperationHistory(String email, Locale locale, int offset, int limit,
-                                                             String searchValue);
+                                                             String searchValue, String sortColumn, String sortDirection);
 
     DataTable<List<OperationViewDto>> showMyOperationHistory(String email, Locale locale, int offset, int limit);
 
