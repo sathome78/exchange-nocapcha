@@ -9,11 +9,22 @@
 
 <%----------%>
 <script src="<c:url value="/client/js/jquery-ui.js"/>"></script>
+<script src="<c:url value="/client/js/datepicker-local/datepicker-ru.js"/>"></script>
+<script src="<c:url value="/client/js/datepicker-local/datepicker-zh-CN.js"/>"></script>
 <script>
     $(function () {
         $(".datepicker").datepicker({
             dateFormat: "yy-mm-dd"
         });
+        var datePickerLocale = "";
+        var currentLocale = $('#language').text().trim().toLowerCase();
+        if (currentLocale === 'ru') {
+            datePickerLocale = currentLocale;
+        } else if (currentLocale === 'cn') {
+            datePickerLocale = 'zh_CN'
+        }
+        console.log(currentLocale);
+        $.datepicker.setDefaults( $.datepicker.regional[ datePickerLocale ] );
     });
 </script>
 <%----------%>
@@ -24,7 +35,7 @@
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
                         aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title"><%--<loc:message code="orderinfo.title"/>--%></h4>
+                <h4 class="modal-title"><loc:message code="wallets.download"/></h4>
             </div>
             <div class="modal-body delete-order-info">
                 <form id="datepicker__form" action="#">
