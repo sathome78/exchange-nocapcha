@@ -23,7 +23,7 @@
         <li>
             <%--Пользователи--%>
             <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
-                <a href="<c:url value='/admin'/>"><loc:message code="admin.users"/></a>
+                <a href="<c:url value='/admin/users'/>"><loc:message code="admin.users"/></a>
             </sec:authorize>
         </li>
 
@@ -39,7 +39,7 @@
         <li>
             <%--Заявки на пополнение валюты--%>
             <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
-                <a href="<c:url value='/transaction_invoice'/>"><loc:message code="transaction.titleInvoice"/></a>
+                <a href="<c:url value='/admin/invoiceConfirmation'/>"><loc:message code="transaction.titleInvoice"/></a>
             </sec:authorize>
         </li>
 
@@ -53,7 +53,7 @@
         <li>
 
             <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
-                <a href="<c:url value='/admin/orderDeletion'/>"><loc:message code="orderinfo.title"/></a>
+                <a href="<c:url value='/admin/removeOrder'/>"><loc:message code="orderinfo.title"/></a>
             </sec:authorize>
         </li>
 
@@ -76,7 +76,7 @@
         <li>
             <%--referral--%>
             <sec:authorize access="hasAnyAuthority('${adminEnum}')">
-                <a href="/admin/referral"><loc:message code="admin.referral"/></a>
+                <a href="<c:url value='/admin/referral'/>"><loc:message code="admin.referral"/></a>
             </sec:authorize>
         </li>
 

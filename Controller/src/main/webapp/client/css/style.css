@@ -1746,6 +1746,28 @@ form span.repass {
     padding: 4px 6px;
 }
 
+.delete-order-info__modal {
+    max-width: 520px;
+    overflow: hidden;
+    margin: auto;
+    margin-top: 100px;
+    padding: 0 10px;
+    bottom: inherit;
+}
+
+.delete-order-info__modal .modal-header {
+    padding: 5px 15px;
+}
+
+.delete-order-info__modal .modal-dialog {
+    width: 100%;
+    margin: 10px auto 0 auto;
+}
+
+.delete-order-info__modal .content {
+    max-width: 360px;
+}
+
 .delete-order-info__item {
     display: inline-block;
     margin:  0 10px 0 0;

@@ -12,7 +12,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title><loc:message code="mywallets.title"/></title>
+    <title><loc:message code="admin.usersWallet"/></title>
     <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon"/>
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -33,7 +33,12 @@
     <div class="row">
         <%@include file='admin/left_side_menu.jsp' %>
 
-        <div class="col-sm-9 content admin-container">
+        <div class="col-md-8 col-md-offset-1 content admin-container">
+            <div class="text-center">
+                <h4>
+                    <b><loc:message code="admin.usersWallet"/></b>
+                </h4>
+            </div>
             <div class="row">
                 <button id="upload-users-wallets" class="blue-box pull-right" type="submit"><loc:message
                         code="wallets.download"/></button>

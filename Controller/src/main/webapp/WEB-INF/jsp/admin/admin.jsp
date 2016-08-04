@@ -9,7 +9,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title><loc:message code="admin.title"/></title>
+    <title><loc:message code="admin.users"/></title>
     <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon"/>
 
 

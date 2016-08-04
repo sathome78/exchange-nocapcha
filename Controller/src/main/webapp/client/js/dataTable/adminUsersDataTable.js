@@ -6,7 +6,7 @@ $(function () {
     } else {
         usersDataTable = $('#usersTable').DataTable({
             "ajax": {
-                "url": '/admin/users/',
+                "url": '/admin/usersList',
                 "dataSrc": ""
             },
             "paging": true,

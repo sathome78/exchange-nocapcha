@@ -12,7 +12,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title><loc:message code="mywallets.title"/></title>
+    <title><loc:message code="admin.companyWallet"/></title>
     <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon"/>
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -35,6 +35,11 @@
         <%@include file='admin/left_side_menu.jsp' %>
 
         <div class="col-md-8 col-md-offset-1 content admin-container">
+            <div class="text-center">
+                <h4>
+                    <b><loc:message code="admin.companyWallet"/></b>
+                </h4>
+            </div>
             <%--список счетов--%>
 
             <c:forEach var="wallet" items="${companyWalletList}">

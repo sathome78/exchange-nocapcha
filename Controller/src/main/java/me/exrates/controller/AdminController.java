@@ -77,7 +77,7 @@ public class AdminController {
     @Autowired
     private InvoiceService invoiceService;
 
-    @RequestMapping("/admin")
+    @RequestMapping("/admin/users")
     public ModelAndView admin(Principal principal, HttpSession httpSession) {
 
         final Object mutex = WebUtils.getSessionMutex(httpSession);
@@ -107,7 +107,7 @@ public class AdminController {
         return model;
     }
 
-    @RequestMapping(value = "/admin/orderDeletion", method = GET)
+    @RequestMapping(value = "/admin/removeOrder", method = GET)
     public ModelAndView orderDeletion() {
         ModelAndView model = new ModelAndView();
         List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairs();
@@ -160,7 +160,7 @@ public class AdminController {
 
 
     @ResponseBody
-    @RequestMapping(value = "/admin/users", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/admin/usersList", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<User> getAllUsers() {
         List<UserRole> userRoles = new ArrayList<>();
         userRoles.add(UserRole.USER);
@@ -535,7 +535,7 @@ public class AdminController {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 
-    @RequestMapping(value = "/transaction_invoice")
+    @RequestMapping(value = "/admin/invoiceConfirmation")
     public ModelAndView transactions(HttpSession httpSession) {
         final Object mutex = WebUtils.getSessionMutex(httpSession);
         String currentRole = "";

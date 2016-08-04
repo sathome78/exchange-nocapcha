@@ -14,7 +14,7 @@
 <%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
 <html>
 <head>
-    <title><loc:message code="admin.referralLevels"/></title>
+    <title><loc:message code="admin.referral"/></title>
     <%@include file='links_scripts.jsp' %>
 </head>
 <body>
@@ -22,13 +22,15 @@
 <main class="container">
     <div class="row">
         <%@include file='left_side_menu.jsp' %>
-        <div class="col-md-6 col-md-offset-2 admin-container">
+        <div class="col-md-4 col-md-offset-2 admin-container">
+            <div class="text-center"><h4><loc:message code="admin.referral"/></h4></div>
+
             <sec:authorize access="hasAnyAuthority('${adminEnum}')">
                 <div id="panel4 row" class="tab-pane">
-                    <div class="col-sm-4 text-center">
-                        <h4>
+                    <div class="col-sm-6 text-center">
+                        <h5>
                             <loc:message code="admin.referralLevels"/>
-                        </h4>
+                        </h5>
                         <table class="table ref-lvl-table">
                             <thead>
                             <tr>
@@ -50,8 +52,8 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="col-sm-4">
-                        <h4>
+                    <div class="col-sm-6">
+                        <h5>
                             <loc:message code="admin.refCommonRoot"/>
                             <c:choose>
                                 <c:when test="${commonRefRoot != null}">
@@ -61,7 +63,7 @@
                                     <span id="current-ref-root">(<loc:message code="admin.refAbsentCommonRoot"/>)</span>
                                 </c:otherwise>
                             </c:choose>
-                        </h4>
+                        </h5>
                         <form id="edit-cmn-ref-root">
                             <select class="admin-form-input" name="ref-root">
                                 <c:forEach items="${admins}" var="admin">

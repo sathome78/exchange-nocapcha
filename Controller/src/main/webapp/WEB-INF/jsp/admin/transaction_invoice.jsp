@@ -12,7 +12,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title><loc:message code="transactions.title"/></title>
+    <title><loc:message code="transaction.titleInvoice"/></title>
     <%@include file='links_scripts.jsp' %>
 </head>
 
@@ -24,15 +24,14 @@
 <main class="container">
     <div class="row">
         <%@include file='left_side_menu.jsp' %>
-        <div class="col-md-8 col-md-offset-1 content text-center admin-container">
+        <div class="col-md-8 col-md-offset-1 content admin-container">
+            <div class="text-center"><h4><loc:message code="transaction.titleInvoice"/></h4></div>
             <c:choose>
                 <c:when test="${fn:length(invoiceRequests)==0}">
                     <loc:message code="transactions.absent"/>
                 </c:when>
                 <c:otherwise>
                     <%--СПИСОК ИНВОЙСОВ--%>
-                    <h4><loc:message code="transaction.titleInvoice"/></h4>
-
                     <table id="invoice_requests">
                         <thead>
                         <tr>
