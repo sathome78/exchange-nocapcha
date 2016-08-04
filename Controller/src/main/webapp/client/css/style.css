@@ -1704,7 +1704,8 @@ form span.repass {
 
 #user-add-form .input-block-wrapper,
 #user-edit-form .input-block-wrapper,
-#delete-order-info__form .input-block-wrapper {
+#delete-order-info__form .input-block-wrapper,
+#order-delete-modal--date-picker .input-block-wrapper {
     display: inline-block;
     height: 100%;
     width: 100%;
