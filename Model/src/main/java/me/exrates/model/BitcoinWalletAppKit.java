@@ -38,16 +38,24 @@ public class BitcoinWalletAppKit {
         BriefLogFormatter.init();
         try {
             final Context context = new Context(net.equals("main") ? MainNetParams.get() : TestNet3Params.get());
-            kit = new WalletAppKit(context, new File(dumpDir), filePrefix);
-            if (context.getParams().equals(MainNetParams.get())) { // If running main bitcoin network - restore deterministic wallet
-                kit.restoreWalletFromSeed(
-                        new DeterministicSeed(
-                                "cool surface park flavor theory liberty action donor unlock toy subway gain", // mnemonic code
-                                null, // Should be null, mnemonic code above
-                                "", // Empty passphrase
-                                1469197851L // Creation time (Unix time)
-                        ));
+            final long creationTime;
+            final String mnemonic;
+            final DeterministicSeed seed;
+            if (context.getParams().equals(MainNetParams.get())) {
+                creationTime =  1469197851L;
+                mnemonic = "cool surface park flavor theory liberty action donor unlock toy subway gain";
+            } else {
+                creationTime = 1470405562L;
+                mnemonic = "cake diesel gain private room lazy tank online miracle manual economy final";
             }
+            kit = new WalletAppKit(context, new File(dumpDir), filePrefix);
+            kit.restoreWalletFromSeed(
+                    new DeterministicSeed(
+                            mnemonic, // mnemonic code
+                            null, // Should be null, mnemonic code above
+                            "", // Empty passphrase
+                            creationTime // Creation time (Unix time)
+                    ));
             kit.startAsync();
             kit.awaitRunning();
         } catch (final Exception e) {
