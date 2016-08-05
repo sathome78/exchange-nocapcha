@@ -161,7 +161,7 @@ public class TransactionServiceImpl implements TransactionService {
             return result;
         }
         final PagingData<List<Transaction>> transactions = transactionDao.findAllByUserWallets(wallets, offset, limit,
-                searchValue, sortColumn, sortDirection);
+                searchValue, sortColumn, sortDirection, locale);
         final List<OperationViewDto> operationViews = new ArrayList<>();
         for (final Transaction t : transactions.getData()) {
             OperationViewDto view = new OperationViewDto();

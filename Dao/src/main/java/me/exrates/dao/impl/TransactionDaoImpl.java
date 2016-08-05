@@ -216,25 +216,27 @@ public final class TransactionDaoImpl implements TransactionDao {
 
     @Override
     public PagingData<List<Transaction>> findAllByUserWallets(final List<Integer> walletIds, final int offset, final int limit) {
-        return findAllByUserWallets(walletIds, offset, limit, "", "", "ASC");
+        return findAllByUserWallets(walletIds, offset, limit, "", "", "ASC", null);
     }
 
     @Override
     public PagingData<List<Transaction>> findAllByUserWallets(final List<Integer> walletIds, final int offset,
                                                               final int limit, final String searchValue,
-                                                              String sortColumn, String sortDirection) {
+                                                              String sortColumn, String sortDirection, Locale locale) {
 
         String sortDBColumn = TABLE_TO_DB_COLUMN_MAP.getOrDefault(sortColumn, "TRANSACTION.datetime DESC, EXORDERS.id DESC");
         final String whereClause = "WHERE TRANSACTION.user_wallet_id in (:ids)";
         String searchClause = "";
         if (searchValue.length() > 0) {
-            searchClause = " AND (TRANSACTION.datetime LIKE :searchValue " +
-                    "OR (SELECT name FROM OPERATION_TYPE WHERE id = TRANSACTION.operation_type_id) LIKE :searchValue " +
-                    "OR CURRENCY.name LIKE :searchValue " +
-                    "OR TRANSACTION.amount LIKE :searchValue " +
-                    "OR TRANSACTION.commission_amount LIKE :searchValue " +
-                    "OR MERCHANT.name LIKE :searchValue " +
-                    "OR EXORDERS.id LIKE :searchValue ) ";
+            String statusClause = getTransactionStatusClause(searchValue, locale);
+            //CONVERTs required to process non-Latin characters correctly
+            searchClause = " AND (CONVERT(TRANSACTION.datetime USING utf8) LIKE :searchValue " +
+                    "           OR CONVERT((SELECT name FROM OPERATION_TYPE WHERE id = TRANSACTION.operation_type_id) USING utf8) LIKE :searchValue " +
+                    "           OR CONVERT(CURRENCY.name USING utf8) LIKE :searchValue " +
+                    "           OR CONVERT(TRANSACTION.amount USING utf8) LIKE :searchValue " +
+                    "           OR CONVERT(TRANSACTION.commission_amount USING utf8) LIKE :searchValue " +
+                    "           OR CONVERT(MERCHANT.name USING utf8) LIKE :searchValue " +
+                    "           OR CONVERT(EXORDERS.id USING utf8) LIKE :searchValue " + statusClause + " )";
         }
 
         final String selectLimitedAllSql = new StringJoiner(" ")
@@ -259,6 +261,23 @@ public final class TransactionDaoImpl implements TransactionDao {
         result.setFiltered(total);
         result.setTotal(total);
         return result;
+    }
+
+    private String getTransactionStatusClause(final String searchValue, final Locale locale) {
+        StringJoiner statusClause = new StringJoiner(" ");
+        if (locale == null) {
+            return statusClause.toString();
+        }
+        String searchValueLowerCase = searchValue.toLowerCase(locale);
+        String providedStatus = messageSource.getMessage("transaction.provided", null, locale).toLowerCase(locale);
+        String notProvidedStatus = messageSource.getMessage("transaction.notProvided", null, locale).toLowerCase(locale);
+        if (providedStatus.contains(searchValueLowerCase)) {
+            statusClause.add(" OR TRANSACTION.provided = 1 ");
+        }
+        if (notProvidedStatus.contains(searchValueLowerCase)) {
+            statusClause.add(" OR TRANSACTION.provided = 0 ");
+        }
+        return statusClause.toString();
     }
 
 
