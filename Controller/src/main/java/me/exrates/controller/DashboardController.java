@@ -238,10 +238,6 @@ public class DashboardController {
         return new ModelAndView("/globalPages/privacyPolicy", "captchaType", CAPTCHA_TYPE);
     }
 
-    @RequestMapping(value = "/returnPolicy", method = RequestMethod.GET)
-    public ModelAndView returnPolicy() {
-        return new ModelAndView("/globalPages/returnPolicy", "captchaType", CAPTCHA_TYPE);
-    }
 }
 
 
