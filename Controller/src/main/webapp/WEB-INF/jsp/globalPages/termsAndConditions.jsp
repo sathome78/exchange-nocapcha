@@ -11,6 +11,7 @@
 <%@ taglib uri="http://www.springframework.org/tags" prefix="loc" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -38,7 +39,10 @@
 <main class="container">
     <div class="row">
         <div class="col-md-8 content legal_content">
-            <h3><loc:message code="dashboard.terms"/></h3>
+            <c:set var="termsHeading">
+                <loc:message code="dashboard.terms"/>
+            </c:set>
+            <h3>${fn:toUpperCase(termsHeading)}</h3>
             <hr/>
             <loc:message code="dashboard.termsContent"/>
         </div>
