@@ -77,7 +77,7 @@ public class AdminController {
     @Autowired
     private InvoiceService invoiceService;
 
-    @RequestMapping("/admin/users")
+    @RequestMapping(value = {"/admin", "/admin/users"})
     public ModelAndView admin(Principal principal, HttpSession httpSession) {
 
         final Object mutex = WebUtils.getSessionMutex(httpSession);
