@@ -12,7 +12,15 @@
 <%@taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
 <%@taglib uri="http://www.springframework.org/tags" prefix="spring" %>
 <%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
-
+<script type="text/javascript">
+    $(function () {
+        var title = $('title').text().trim();
+        var $menuItem = $('.sidebar > ul li').filter(function (index) {
+            return $(this).text().trim().indexOf(title) >= 0;
+        });
+        $menuItem.children('a').wrapInner('<strong></strong>');
+    })
+</script>
 
 <div id="admin_side_menu" class="col-md-2">
     <c:set var="adminEnum" value="<%=me.exrates.model.enums.UserRole.ADMINISTRATOR%>"/>

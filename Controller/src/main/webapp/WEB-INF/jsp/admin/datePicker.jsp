@@ -23,7 +23,6 @@
         } else if (currentLocale === 'cn') {
             datePickerLocale = 'zh_CN'
         }
-        console.log(currentLocale);
         $.datepicker.setDefaults( $.datepicker.regional[ datePickerLocale ] );
     });
 </script>
