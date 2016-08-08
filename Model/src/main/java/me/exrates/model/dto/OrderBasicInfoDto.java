@@ -18,6 +18,7 @@ public class OrderBasicInfoDto {
     private String exrate;
     private String amountBase;
     private String orderCreatorEmail;
+    private String status;
 
     public int getId() {
         return id;
@@ -75,6 +76,15 @@ public class OrderBasicInfoDto {
         this.orderCreatorEmail = orderCreatorEmail;
     }
 
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
     @Override
     public String toString() {
         return "OrderBasicInfoDto{" +
@@ -85,6 +95,7 @@ public class OrderBasicInfoDto {
                 ", exrate='" + exrate + '\'' +
                 ", amountBase='" + amountBase + '\'' +
                 ", orderCreatorEmail='" + orderCreatorEmail + '\'' +
+                ", status='" + status + '\'' +
                 '}';
     }
 }

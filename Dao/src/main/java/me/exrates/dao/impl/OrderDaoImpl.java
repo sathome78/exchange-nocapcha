@@ -828,7 +828,7 @@ public class OrderDaoImpl implements OrderDao {
                                                             BigDecimal orderRate, BigDecimal orderVolume, String creatorEmail, Locale locale,
                                                             int offset, int limit, String orderColumnName, String orderDirection) {
         String sqlSelect = " SELECT  " +
-                "     EXORDERS.id, EXORDERS.date_creation,  " +
+                "     EXORDERS.id, EXORDERS.date_creation, EXORDERS.status_id AS status, " +
                 "     CURRENCY_PAIR.name as currency_pair_name,  " +
                 "     UPPER(ORDER_OPERATION.name) AS order_type_name,  " +
                 "     EXORDERS.exrate, EXORDERS.amount_base, " +
@@ -875,6 +875,7 @@ public class OrderDaoImpl implements OrderDao {
                 infoDto.setExrate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("exrate"), locale, 2));
                 infoDto.setAmountBase(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount_base"), locale, 2));
                 infoDto.setOrderCreatorEmail(rs.getString("order_creator_email"));
+                infoDto.setStatus(OrderStatus.convert(rs.getInt("status")).toString());
                 return infoDto;
 
             });

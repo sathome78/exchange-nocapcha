@@ -153,7 +153,11 @@ function searchOrder() {
                 },
                 {
                     "data": "orderCreatorEmail"
+                },
+                {
+                    "data": "status"
                 }
+
 
             ],
             "order": [

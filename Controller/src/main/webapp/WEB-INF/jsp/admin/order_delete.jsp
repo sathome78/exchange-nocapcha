@@ -148,6 +148,7 @@
                         <th><loc:message code="orderinfo.rate"/></th>
                         <th><loc:message code="orderinfo.baseamount"/></th>
                         <th><loc:message code="orderinfo.creator"/></th>
+                        <th><loc:message code="orderinfo.status"/></th>
                     </tr>
                     </thead>
                 </table>
