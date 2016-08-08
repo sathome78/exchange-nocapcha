@@ -51,7 +51,7 @@
                 </sec:authorize>
             </ul>
         </div>
-        <div class="cols-md-2">
+        <div class="cols-md-2 right_header_nav">
             <ul class="padding0">
                 <sec:authorize access="! isAuthenticated()">
                     <c:if test="${showEntrance}">

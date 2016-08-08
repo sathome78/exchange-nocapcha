@@ -908,6 +908,9 @@ td.blue-white {
 .nav.header__nav .nav__link {
     padding: 10px 10px;
 }
+.right_header_nav .nav__link {
+    padding: 10px 10px;
+}
 
 .dropdown-menu__logout-form .logout-button {
     background: transparent;
@@ -1421,6 +1424,10 @@ form span.repass {
     opacity: 0;
 }
 
+.footer_link {
+    margin: 0 10px;
+}
+
 /********************************
             NEWS
 ********************************/
@@ -1587,4 +1594,18 @@ form span.repass {
 
 #mCSB2_container {
     margin-right: 5px;
+}
+
+.legal_content {
+    font-size: 1.4em;
+    margin-top: 20px;
+    text-align: justify;
+}
+.legal_content h5, .legal_content h6 {
+    font-size: 1.2em;
+}
+
+
+.legal_content p, .legal_content h5 {
+    margin-top: 15px;
 }
