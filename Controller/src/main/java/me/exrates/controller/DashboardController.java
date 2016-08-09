@@ -228,15 +228,7 @@ public class DashboardController {
         return model;
     }
 
-    @RequestMapping(value = "/termsAndConditions", method = RequestMethod.GET)
-    public ModelAndView termsAndConditions() {
-        return new ModelAndView("/globalPages/termsAndConditions", "captchaType", CAPTCHA_TYPE);
-    }
 
-    @RequestMapping(value = "/privacyPolicy", method = RequestMethod.GET)
-    public ModelAndView privacyPolicy() {
-        return new ModelAndView("/globalPages/privacyPolicy", "captchaType", CAPTCHA_TYPE);
-    }
 }
 
 

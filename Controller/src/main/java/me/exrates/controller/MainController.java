@@ -8,6 +8,7 @@ import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.enums.TokenType;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.ReferralService;
+import me.exrates.service.SendMailService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.UserService;
 import org.apache.logging.log4j.LogManager;
@@ -25,6 +26,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -52,6 +54,8 @@ public class MainController {
     private
     @Value("${contacts.email}")
     String email;
+    @Value("${contacts.feedbackEmail}")
+    String feedbackEmail;
     @Autowired
     private UserService userService;
     @Autowired
@@ -68,6 +72,8 @@ public class MainController {
     private VerifyReCaptchaSec verifyReCaptchaSec;
     @Autowired
     private ReferralService referralService;
+    @Autowired
+    private SendMailService sendMailService;
 
     @RequestMapping(value = "57163a9b3d1eafe27b8b456a.txt", method = RequestMethod.GET)
     @ResponseBody
@@ -311,4 +317,62 @@ public class MainController {
     public ErrorInfo NotConfirmedFinPasswordExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
+
+    @RequestMapping(value = "/termsAndConditions", method = RequestMethod.GET)
+    public ModelAndView termsAndConditions() {
+        return new ModelAndView("/globalPages/termsAndConditions", "captchaType", CAPTCHA_TYPE);
+    }
+
+    @RequestMapping(value = "/privacyPolicy", method = RequestMethod.GET)
+    public ModelAndView privacyPolicy() {
+        return new ModelAndView("/globalPages/privacyPolicy", "captchaType", CAPTCHA_TYPE);
+    }
+
+    @RequestMapping(value = "/contacts", method = RequestMethod.GET)
+    public ModelAndView contacts() {
+        return new ModelAndView("/globalPages/contacts", "captchaType", CAPTCHA_TYPE);
+    }
+
+    @RequestMapping(value = "/sendFeedback", method = RequestMethod.POST)
+    @ResponseBody
+    public ModelAndView sendFeedback( @RequestParam("name") String name,
+                                      @RequestParam("email") String email,
+                                      @RequestParam("text") String messageText,
+                                      HttpServletRequest request, RedirectAttributes redirectAttributes) {
+        ModelAndView modelAndView = new ModelAndView("redirect:/contacts");
+        request.getParameterMap().forEach((key, value) -> logger.debug(key + " :: " + value[0]));
+        logger.debug(name);
+        logger.debug(email);
+        logger.debug(messageText);
+        String captchaType = request.getParameter("captchaType");
+        switch (captchaType) {
+            case "BOTDETECT": {
+                String captchaId = request.getParameter("captchaId");
+                Captcha captcha = Captcha.load(request, captchaId);
+                String captchaCode = request.getParameter("captchaCode");
+                if (!captcha.validate(captchaCode)) {
+                    String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
+                    redirectAttributes.addFlashAttribute("cpch", correctCapchaRequired);
+                    return modelAndView;
+                }
+                break;
+            }
+            case "RECAPTCHA": {
+                String recapchaResponse = request.getParameter("g-recaptcha-response");
+                if ((recapchaResponse != null) && !verifyReCaptchaSec.verify(recapchaResponse)) {
+                    String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
+                    redirectAttributes.addFlashAttribute("cpch", correctCapchaRequired);
+                    return modelAndView;
+                }
+                break;
+            }
+        }
+        sendMailService.sendFeedbackMail(name, email, messageText, feedbackEmail);
+        redirectAttributes.addFlashAttribute("successNoty", "Letter sent");
+
+        return modelAndView;
+    }
+
+
+
 }

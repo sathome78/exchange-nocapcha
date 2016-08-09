@@ -1609,3 +1609,17 @@ form span.repass {
 .legal_content p, .legal_content h5 {
     margin-top: 15px;
 }
+#feedback-form .input-block-wrapper {
+    display: inline-block;
+    width: 100%;
+    overflow: hidden;
+    margin: 5px 0;
+}
+
+.textarea.non-resize {
+    resize: none;
+}
+
+.full-width {
+    width: 100%;
+}

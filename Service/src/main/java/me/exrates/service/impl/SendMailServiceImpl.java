@@ -43,5 +43,16 @@ public class SendMailServiceImpl implements SendMailService{
 			  }
 			});
 }
-	
+
+	@Override
+	public void sendFeedbackMail(String senderName, String senderMail, String messageBody, String mailTo) {
+		Email email = new Email();
+		email.setFrom(senderMail);
+		email.setTo(mailTo);
+		email.setMessage(messageBody);
+		email.setSubject("Feedback from " + senderName + " -- " + senderMail);
+		sendMail(email);
+	}
+
+
 }
