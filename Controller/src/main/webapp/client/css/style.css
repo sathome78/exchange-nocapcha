@@ -1616,6 +1616,11 @@ form span.repass {
     margin: 5px 0;
 }
 
+#feedback-form .input-block-wrapper__input-wrapper {
+    overflow: hidden;
+    height: auto;
+}
+
 .textarea.non-resize {
     resize: none;
 }

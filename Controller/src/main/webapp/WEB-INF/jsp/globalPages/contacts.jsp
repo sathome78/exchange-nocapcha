@@ -40,18 +40,22 @@
         <hr/>
 
         <div class="col-md-6 col-md-offset-3 content">
-           <div class="text-center"></div>
+           <div class="text-center">
+               <h4><loc:message code="contacts.feedback"/></h4>
+           </div>
             <div class="panel-body">
-                <form action="/sendFeedback" id="feedback-form" method="post">
+                <form:form action="/sendFeedback" id="feedback-form" method="post"
+                           modelAttribute="messageForm">
                     <div class="input-block-wrapper">
                         <div class="col-md-3 input-block-wrapper__label-wrapper">
                             <label for="sender-name" class="input-block-wrapper__label"><loc:message
-                                    code="register.nickname"/></label>
+                                    code="contacts.name"/></label>
                         </div>
 
                         <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input name="name" class="input-block-wrapper__input full-width"
+                            <form:input path="senderName" class="input-block-wrapper__input full-width"
                                    id="sender-name"/>
+                            <form:errors path="senderName" class="input-block-wrapper__input red"/>
                         </div>
                     </div>
                     <div class="input-block-wrapper">
@@ -60,19 +64,21 @@
                                     code="login.email"/></label>
                         </div>
                         <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input name="email" class="input-block-wrapper__input full-width"
+                            <form:input path="senderEmail" class="input-block-wrapper__input full-width"
                                    id="sender-email"/>
+                            <form:errors path="senderEmail" class="input-block-wrapper__input red"/>
                         </div>
                     </div>
 
                     <div class="input-block-wrapper">
                         <div class="col-md-3 input-block-wrapper__label-wrapper">
                             <label for="message-text" class="input-block-wrapper__label"><loc:message
-                                    code="admin.phone"/></label>
+                                    code="contacts.messageText"/></label>
                         </div>
                         <div class="col-md-9">
-                            <textarea class="textarea non-resize"
-                                   id="message-text" name="text" form="feedback-form"></textarea>
+                            <form:textarea path="messageText" class="textarea non-resize"
+                                           id="message-text"></form:textarea>
+                            <form:errors path="messageText" class="input-block-wrapper__input red"/>
 
                         </div>
                     </div>
@@ -113,19 +119,19 @@
 
 
 
-                </form>
+                </form:form>
 
         </div>
     </div>
-        <hr/>
-        <div>
-            <p><loc:message code="contacts.contactPhone"/> </p>
-            <loc:message code="contacts.address"/>
-        </div>
 
     </div>
+    <div class="row">
+        <p><loc:message code="contacts.contactPhone"/> </p>
+        <loc:message code="contacts.address"/>
+    </div>
+
 </main>
-<span hidden id="errorNoty">${cpch}</span>
+<span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>
 <%@include file='../fragments/footer.jsp' %>
 </body>

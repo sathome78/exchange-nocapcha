@@ -2,10 +2,12 @@ package me.exrates.controller;
 
 import com.captcha.botdetect.web.servlet.Captcha;
 import me.exrates.controller.exception.*;
+import me.exrates.controller.validator.FeedbackMessageFormValidator;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.User;
 import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.enums.TokenType;
+import me.exrates.model.form.FeedbackMessageForm;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.ReferralService;
 import me.exrates.service.SendMailService;
@@ -30,6 +32,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import javax.validation.Valid;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -60,6 +63,9 @@ public class MainController {
     private UserService userService;
     @Autowired
     private RegisterFormValidation registerFormValidation;
+    @Autowired
+    private FeedbackMessageFormValidator messageFormValidator;
+
     @Autowired
     private HttpServletRequest request;
     @Autowired
@@ -330,20 +336,17 @@ public class MainController {
 
     @RequestMapping(value = "/contacts", method = RequestMethod.GET)
     public ModelAndView contacts() {
-        return new ModelAndView("/globalPages/contacts", "captchaType", CAPTCHA_TYPE);
+        ModelAndView modelAndView = new ModelAndView("globalPages/contacts", "captchaType", CAPTCHA_TYPE);
+        modelAndView.addObject("messageForm", new FeedbackMessageForm());
+        return modelAndView;
     }
 
     @RequestMapping(value = "/sendFeedback", method = RequestMethod.POST)
     @ResponseBody
-    public ModelAndView sendFeedback( @RequestParam("name") String name,
-                                      @RequestParam("email") String email,
-                                      @RequestParam("text") String messageText,
-                                      HttpServletRequest request, RedirectAttributes redirectAttributes) {
+    public ModelAndView sendFeedback(@ModelAttribute("messageForm") @Valid FeedbackMessageForm messageForm, BindingResult result,
+                                     HttpServletRequest request, RedirectAttributes redirectAttributes) {
+        logger.debug(messageForm);
         ModelAndView modelAndView = new ModelAndView("redirect:/contacts");
-        request.getParameterMap().forEach((key, value) -> logger.debug(key + " :: " + value[0]));
-        logger.debug(name);
-        logger.debug(email);
-        logger.debug(messageText);
         String captchaType = request.getParameter("captchaType");
         switch (captchaType) {
             case "BOTDETECT": {
@@ -352,7 +355,8 @@ public class MainController {
                 String captchaCode = request.getParameter("captchaCode");
                 if (!captcha.validate(captchaCode)) {
                     String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
-                    redirectAttributes.addFlashAttribute("cpch", correctCapchaRequired);
+                    redirectAttributes.addFlashAttribute("errorNoty", correctCapchaRequired);
+                    modelAndView.addObject("captchaType", CAPTCHA_TYPE);
                     return modelAndView;
                 }
                 break;
@@ -361,14 +365,22 @@ public class MainController {
                 String recapchaResponse = request.getParameter("g-recaptcha-response");
                 if ((recapchaResponse != null) && !verifyReCaptchaSec.verify(recapchaResponse)) {
                     String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
-                    redirectAttributes.addFlashAttribute("cpch", correctCapchaRequired);
+                    redirectAttributes.addFlashAttribute("errorNoty", correctCapchaRequired);
+                    modelAndView.addObject("captchaType", CAPTCHA_TYPE);
                     return modelAndView;
                 }
                 break;
             }
         }
-        sendMailService.sendFeedbackMail(name, email, messageText, feedbackEmail);
-        redirectAttributes.addFlashAttribute("successNoty", "Letter sent");
+        messageFormValidator.validate(messageForm, result, localeResolver.resolveLocale(request));
+        if (result.hasErrors()) {
+            modelAndView = new ModelAndView("globalPages/contacts", "messageForm", messageForm);
+            modelAndView.addObject("cpch", "");
+            modelAndView.addObject("captchaType", CAPTCHA_TYPE);
+            return modelAndView;
+        }
+        sendMailService.sendFeedbackMail(messageForm.getSenderName(), messageForm.getSenderEmail(), messageForm.getMessageText(), feedbackEmail);
+        redirectAttributes.addFlashAttribute("successNoty", messageSource.getMessage("contacts.lettersent", null, localeResolver.resolveLocale(request)));
 
         return modelAndView;
     }
