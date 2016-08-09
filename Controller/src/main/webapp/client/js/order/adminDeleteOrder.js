@@ -2,7 +2,8 @@
  * Created by Valk on 12.05.2016.
  */
 
-function getOrderDetailedInfo(order_id) {
+function getOrderDetailedInfo(currentRow) {
+    var order_id = currentRow.data().id;
     $.ajax({
         url: '/admin/orderinfo?id=' + order_id,
         type: 'GET',
@@ -25,7 +26,10 @@ function getOrderDetailedInfo(order_id) {
                 $("#delete-order-info__delete").toggle(false);
             } else {
                 $("#delete-order-info__delete").toggle(true);
-                $("#delete-order-info__delete").attr('onclick', 'deleteOrderByAdmin(' + data.id + ')');
+                /*$("#delete-order-info__delete").attr('onclick', 'deleteOrderByAdmin(' + data.id + ')');*/
+                $("#delete-order-info__delete").on('click', function () {
+                    deleteOrderByAdmin(data.id, currentRow);
+                })
             }
 
             /**/
@@ -34,7 +38,7 @@ function getOrderDetailedInfo(order_id) {
     });
 }
 
-function deleteOrderByAdmin(order_id) {
+function deleteOrderByAdmin(order_id, currentRow) {
     $('#order-delete-modal').one('hidden.bs.modal', function (e) {
         /*placed in close callback because we must give time for #order-delete-modal to restore parameters of <body>
          * otherwise we get the shift of the window to the left every time when open and then close #order-delete-modal--ok
@@ -52,6 +56,10 @@ function deleteOrderByAdmin(order_id) {
                     } else {
                         $('#order-delete-modal--result-info').find('.success').toggle(true);
                         $("#order-delete-modal--result-info").find('.success').find('span').html(data);
+                        var updated = currentRow.data();
+                        updated.status = "DELETED";
+                        currentRow.data(updated).draw();
+
                     }
                     $('#order-delete-modal--result-info').modal();
                 },
@@ -165,11 +173,10 @@ function searchOrder() {
             ]
         });
         $('#order-info-table tbody').on('click', 'tr', function () {
-            var currentData = orderDataTable.row( this ).data();
+            var currentRow = orderDataTable.row( this );
+            var currentData = currentRow.data();
 
-            console.log(currentData);
-            console.log( 'You clicked on '+currentData.id +'\'s row' );
-            getOrderDetailedInfo(currentData.id);
+            getOrderDetailedInfo(currentRow);
         } );
 
 
