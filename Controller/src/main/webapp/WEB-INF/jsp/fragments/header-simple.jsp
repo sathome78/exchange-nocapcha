@@ -36,7 +36,7 @@
                             <sec:authorize
                                     access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
 
-                                <a href="<c:url value='/admin/users'/>">
+                                <a href="<c:url value='/admin'/>">
                                     <loc:message code="admin.title"/>
                                 </a>
 
