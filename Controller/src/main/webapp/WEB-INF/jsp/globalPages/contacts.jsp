@@ -113,7 +113,7 @@
                     <%----%>
                     <div class="paddingtop10">
                         <button type="submit" class="blue-box"><loc:message
-                                code="dashboard.entrance"/></button>
+                                code="dashboard.onlinechatsend"/></button>
                     </div>
 
 
