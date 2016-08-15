@@ -336,14 +336,14 @@ public class MainController {
     }
 
     @RequestMapping(value = "/contacts", method = RequestMethod.GET)
-    public ModelAndView contacts(HttpServletRequest request) {
-        Enumeration<String> attributes = request.getAttributeNames();
-        while (attributes.hasMoreElements()) {
-            String attr = attributes.nextElement();
-            logger.debug(attr + " :: " + request.getAttribute(attr));
-        }
+    public ModelAndView contacts(ModelMap model) {
         ModelAndView modelAndView = new ModelAndView("globalPages/contacts", "captchaType", CAPTCHA_TYPE);
-        modelAndView.addObject("messageForm", new FeedbackMessageForm());
+        model.forEach((key, value) -> logger.debug(key + " :: " + value));
+        if (model.containsAttribute("messageForm")) {
+            modelAndView.addObject("messageForm", model.get("messageForm"));
+        } else {
+            modelAndView.addObject("messageForm", new FeedbackMessageForm());
+        }
         return modelAndView;
     }
 
@@ -351,7 +351,6 @@ public class MainController {
     @ResponseBody
     public ModelAndView sendFeedback(@ModelAttribute("messageForm") FeedbackMessageForm messageForm, BindingResult result,
                                      HttpServletRequest request, RedirectAttributes redirectAttributes) {
-        logger.debug(messageForm);
         ModelAndView modelAndView = new ModelAndView("redirect:/contacts");
         String captchaType = request.getParameter("captchaType");
         switch (captchaType) {
@@ -388,7 +387,12 @@ public class MainController {
             modelAndView.addObject("captchaType", CAPTCHA_TYPE);
             return modelAndView;
         }
+        logger.debug(messageForm.getSenderName());
+        logger.debug(messageForm.getSenderEmail());
         sendMailService.sendFeedbackMail(messageForm.getSenderName(), messageForm.getSenderEmail(), messageForm.getMessageText(), feedbackEmail);
+
+
+
         redirectAttributes.addFlashAttribute("successNoty", messageSource.getMessage("contacts.lettersent", null, localeResolver.resolveLocale(request)));
 
         return modelAndView;
