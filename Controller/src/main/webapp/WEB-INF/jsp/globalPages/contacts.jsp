@@ -107,6 +107,14 @@
 
                         </div>
                     </div>
+                    <div class="input-block-wrapper paddingtop10">
+                        <div class="col-md-3 input-block-wrapper__label-wrapper">
+                        </div>
+                        <div class="col-md-9">
+                            <button type="submit" class="blue-box"><loc:message
+                                    code="dashboard.onlinechatsend"/></button>
+                        </div>
+                    </div>
                     <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
 
 
