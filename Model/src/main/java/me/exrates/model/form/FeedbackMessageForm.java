@@ -7,10 +7,8 @@ import javax.validation.constraints.Size;
  */
 public class FeedbackMessageForm {
 
-    @Size(min=2, max=30)
     private String senderName;
     private String senderEmail;
-    @Size(min=2, max=500)
     private String messageText;
 
     public String getSenderName() {

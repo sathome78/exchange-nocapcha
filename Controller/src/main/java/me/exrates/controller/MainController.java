@@ -37,6 +37,7 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.security.Principal;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -335,7 +336,12 @@ public class MainController {
     }
 
     @RequestMapping(value = "/contacts", method = RequestMethod.GET)
-    public ModelAndView contacts() {
+    public ModelAndView contacts(HttpServletRequest request) {
+        Enumeration<String> attributes = request.getAttributeNames();
+        while (attributes.hasMoreElements()) {
+            String attr = attributes.nextElement();
+            logger.debug(attr + " :: " + request.getAttribute(attr));
+        }
         ModelAndView modelAndView = new ModelAndView("globalPages/contacts", "captchaType", CAPTCHA_TYPE);
         modelAndView.addObject("messageForm", new FeedbackMessageForm());
         return modelAndView;
@@ -343,7 +349,7 @@ public class MainController {
 
     @RequestMapping(value = "/sendFeedback", method = RequestMethod.POST)
     @ResponseBody
-    public ModelAndView sendFeedback(@ModelAttribute("messageForm") @Valid FeedbackMessageForm messageForm, BindingResult result,
+    public ModelAndView sendFeedback(@ModelAttribute("messageForm") FeedbackMessageForm messageForm, BindingResult result,
                                      HttpServletRequest request, RedirectAttributes redirectAttributes) {
         logger.debug(messageForm);
         ModelAndView modelAndView = new ModelAndView("redirect:/contacts");
@@ -356,6 +362,8 @@ public class MainController {
                 if (!captcha.validate(captchaCode)) {
                     String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
                     redirectAttributes.addFlashAttribute("errorNoty", correctCapchaRequired);
+                    redirectAttributes.addFlashAttribute("messageForm", messageForm);
+
                     modelAndView.addObject("captchaType", CAPTCHA_TYPE);
                     return modelAndView;
                 }
@@ -366,6 +374,7 @@ public class MainController {
                 if ((recapchaResponse != null) && !verifyReCaptchaSec.verify(recapchaResponse)) {
                     String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
                     redirectAttributes.addFlashAttribute("errorNoty", correctCapchaRequired);
+                    redirectAttributes.addFlashAttribute("messageForm", messageForm);
                     modelAndView.addObject("captchaType", CAPTCHA_TYPE);
                     return modelAndView;
                 }
