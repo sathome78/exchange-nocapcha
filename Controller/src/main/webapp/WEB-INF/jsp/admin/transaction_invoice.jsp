@@ -49,7 +49,7 @@
                             <th><loc:message code="transaction.acceptanceDatetime"/></th>
 
                                 <%--Confirmation--%>
-                            <th><loc:message code="transaction.сonfirmation"/></th>
+                            <th><loc:message code="transaction.confirmation"/></th>
 
                                 <%--Пользователь, обработавший заявку--%>
                             <th><loc:message code="transaction.acceptanceUser"/></th>
