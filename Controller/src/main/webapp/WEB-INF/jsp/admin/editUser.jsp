@@ -39,6 +39,7 @@
     <%----------%>
     <script type="text/javascript" src="<c:url value='/client/js/order/adminDeleteOrder.js'/>"></script>
     <%----------%>
+ <%@include file="../tools/alexa.jsp" %>
 
 </head>
 
