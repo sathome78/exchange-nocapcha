@@ -15,7 +15,12 @@ function initLocaleSwitcher() {
             localeCode = 'cn';
         } else if (localeName == 'TH') {
             localeCode = 'th';
+        } else if (localeName == 'TH') {
+            localeCode = 'th';
+        } else if (localeName == 'ID') {
+            localeCode = 'in';
         }
+
         var ref = '/dashboard/locale?locale=' + localeCode;
         $.get(ref)
             .always(function () {
