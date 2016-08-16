@@ -112,7 +112,7 @@
 
                                         <loc:message code="admin.cancel" var="cancelSubmit"></loc:message>
                                         <button class="blue-box" type="reset"
-                                                onclick="javascript:window.location='/administrators';">${cancelSubmit}</button>
+                                                onclick="javascript:window.location='/admin/administrators';">${cancelSubmit}</button>
                                     </div>
                                 </div>
                             </fieldset>
