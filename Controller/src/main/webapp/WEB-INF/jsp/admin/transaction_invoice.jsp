@@ -72,7 +72,7 @@
                                 <%--Сумма <br> комиссии--%>
                             <th><loc:message code="transaction.commissionAmount"/></th>
                                 <%--Подтверждение--%>
-                            <th><loc:message code="transaction.сonfirmation"/></th>
+                            <th></th>
                         </tr>
                         <c:forEach var="transaction" items="${transactions}">
                             <tr>
