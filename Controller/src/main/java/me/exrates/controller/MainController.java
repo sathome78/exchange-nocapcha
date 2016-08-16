@@ -351,11 +351,9 @@ public class MainController {
     @ResponseBody
     public ModelAndView sendFeedback(@ModelAttribute("messageForm") FeedbackMessageForm messageForm, BindingResult result,
                                      HttpServletRequest request, RedirectAttributes redirectAttributes) {
-        try {
-            request.setCharacterEncoding("UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            logger.error(e);
-        }
+        request.getParameterMap().forEach((key, value) -> logger.debug("param " + key + " :: " + value[0]));
+
+        logger.debug(request.getCharacterEncoding());
         logger.debug(messageForm.getSenderName());
         logger.debug(messageForm.getSenderEmail());
         ModelAndView modelAndView = new ModelAndView("redirect:/contacts");

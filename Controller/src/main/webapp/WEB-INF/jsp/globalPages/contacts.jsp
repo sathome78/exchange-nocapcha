@@ -11,10 +11,12 @@
 <%@ taglib uri="http://www.springframework.org/tags" prefix="loc" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<!DOCTYPE html>
 <html>
 <head>
     <title><loc:message code="dashboard.contactsAndSupport"/></title>
     <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon"/>
+    <meta charset="UTF-8">
 
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
@@ -32,6 +34,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
+
 
 </head>
 <body>
@@ -113,7 +116,7 @@
                         <div class="col-md-3 input-block-wrapper__label-wrapper">
                         </div>
                         <div class="col-md-9">
-                            <button type="submit" class="blue-box"><loc:message
+                            <button id="feedbackSubmit" type="submit" class="blue-box"><loc:message
                                     code="dashboard.onlinechatsend"/></button>
                         </div>
                     </div>

@@ -4,6 +4,7 @@ import me.exrates.controller.filter.EncodingFilter;
 import me.exrates.controller.filter.RequestFilter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
 import javax.servlet.Filter;
@@ -57,6 +58,6 @@ public class SpringMvcInitializer extends AbstractAnnotationConfigDispatcherServ
 
     @Override
     protected Filter[] getServletFilters() {
-        return new Filter[]{new EncodingFilter(), new RequestFilter()};
+        return new Filter[]{new CharacterEncodingFilter("UTF-8", true), new RequestFilter()};
     }
 }
