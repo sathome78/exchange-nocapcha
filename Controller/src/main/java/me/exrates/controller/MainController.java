@@ -351,6 +351,13 @@ public class MainController {
     @ResponseBody
     public ModelAndView sendFeedback(@ModelAttribute("messageForm") FeedbackMessageForm messageForm, BindingResult result,
                                      HttpServletRequest request, RedirectAttributes redirectAttributes) {
+        try {
+            request.setCharacterEncoding("UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            logger.error(e);
+        }
+        logger.debug(messageForm.getSenderName());
+        logger.debug(messageForm.getSenderEmail());
         ModelAndView modelAndView = new ModelAndView("redirect:/contacts");
         String captchaType = request.getParameter("captchaType");
         switch (captchaType) {
@@ -387,8 +394,7 @@ public class MainController {
             modelAndView.addObject("captchaType", CAPTCHA_TYPE);
             return modelAndView;
         }
-        logger.debug(messageForm.getSenderName());
-        logger.debug(messageForm.getSenderEmail());
+
         sendMailService.sendFeedbackMail(messageForm.getSenderName(), messageForm.getSenderEmail(), messageForm.getMessageText(), feedbackEmail);
 
 
