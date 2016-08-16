@@ -31,6 +31,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
+    <%@include file="../tools/alexa.jsp" %>
 </head>
 <body>
 <%@include file="../fragments/header-simple.jsp" %>

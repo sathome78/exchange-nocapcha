@@ -201,7 +201,7 @@ header li {
 .login_button {
     background-color: #b9c4d8;
     color: #434e60;
-    padding: 10px 25px;
+    padding: 10px 20px;
     margin: 10px;
     margin-left: 0px;
     border: none;
@@ -716,7 +716,6 @@ td.blue-white {
 .cols-md-8 {
     /*max-height: 700px; me */
     display: block;
-    overflow-y: hidden
 }
 
 .instructions_button,

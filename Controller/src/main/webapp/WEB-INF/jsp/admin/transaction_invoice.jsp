@@ -38,6 +38,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/submits/invoiceSubmitAccept.js'/>"></script>
     <%----------%>
+    <%@include file="../tools/alexa.jsp" %>
 </head>
 
 
@@ -71,7 +72,7 @@
                                 <%--Сумма <br> комиссии--%>
                             <th><loc:message code="transaction.commissionAmount"/></th>
                                 <%--Подтверждение--%>
-                            <th><loc:message code="transaction.сonfirmation"/></th>
+                            <th></th>
                         </tr>
                         <c:forEach var="transaction" items="${transactions}">
                             <tr>

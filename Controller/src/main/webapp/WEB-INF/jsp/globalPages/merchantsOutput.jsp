@@ -55,6 +55,7 @@
     <%--ZOPIM CHAT--%>
     <%@include file="../tools/zopim.jsp" %>
     <%-- ... TOOLS--%>
+    <%@include file="../tools/alexa.jsp" %>
 
 </head>
 <body>
