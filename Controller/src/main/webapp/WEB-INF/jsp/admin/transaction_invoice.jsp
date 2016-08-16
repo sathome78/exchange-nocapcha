@@ -38,6 +38,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/submits/invoiceSubmitAccept.js'/>"></script>
     <%----------%>
+    <%@include file="../tools/alexa.jsp" %>
 </head>
 
 
