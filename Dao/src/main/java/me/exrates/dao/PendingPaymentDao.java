@@ -1,5 +1,6 @@
 package me.exrates.dao;
 
+import java.util.List;
 import java.util.Optional;
 import me.exrates.model.PendingPayment;
 
@@ -9,6 +10,8 @@ import me.exrates.model.PendingPayment;
 public interface PendingPaymentDao {
 
     void create(PendingPayment pendingPayment);
+
+    List<PendingPayment> findAllByHash(String hash);
 
     Optional<PendingPayment> findByInvoiceId(int invoiceId);
 

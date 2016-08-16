@@ -1,9 +1,7 @@
 package me.exrates.dao.impl;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+
 import me.exrates.dao.PendingPaymentDao;
 import me.exrates.model.PendingPayment;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +32,13 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
             }
         };
         jdbcTemplate.update(sql, params);
+    }
+
+    @Override
+    public List<PendingPayment> findAllByHash(String hash) {
+        final String sql = "SELECT * FROM PENDING_PAYMENT WHERE transaction_hash = :hash";
+        final Map<String, String> params = Collections.singletonMap("hash", hash);
+        return jdbcTemplate.query(sql, params, new BeanPropertyRowMapper<>(PendingPayment.class));
     }
 
     @Override

@@ -47,7 +47,6 @@ public class EDCController {
         this.messageSource = messageSource;
     }
 
-
     @RequestMapping(value = "/payment/prepare", method = POST)
     public ResponseEntity<String> preparePayment(final @RequestBody Payment payment,
                                                  final Principal principal,
@@ -58,12 +57,9 @@ public class EDCController {
                 .prepareCreditsOperation(payment, email)
                 .orElseThrow(InvalidAmountException::new);
         try {
-            final PendingPayment invoice = edcService.createInvoice(creditsOperation);
-            final String notification = merchantService.sendDepositNotification(invoice.getAddress()
-                            .orElseThrow(
-                                    () ->new MerchantInternalException("Address not presented")
-                            )
-                            ,email ,locale, creditsOperation, "merchants.depositNotification.body");
+            final String account = edcService.createInvoice(creditsOperation);
+            final String notification = merchantService
+                    .sendDepositNotification(account,email ,locale, creditsOperation, "merchants.depositNotification.body");
             final HttpHeaders httpHeaders = new HttpHeaders();
             httpHeaders.add("Content-Type", "text/plain; charset=utf-8");
             return new ResponseEntity<>(notification, httpHeaders, OK);

@@ -8,5 +8,7 @@ import me.exrates.model.PendingPayment;
  */
 public interface EDCService {
 
-    PendingPayment createInvoice(CreditsOperation operation) throws Exception;
+    String createInvoice(CreditsOperation operation) throws Exception;
+
+    void submitTransactionsForProcessing(String list);
 }

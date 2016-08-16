@@ -321,7 +321,7 @@ $(function(){
                                 .prop('disabled', false)
                                 .html($('#mrcht-ready').val());
                             console.log(response);
-                            $('.paymentInfo').html(response + "<br> Attention! Transfer of funds will occur within 24 hours! <br> Внимание! Зачисление средств произойдет в течении 24 часов!");
+                            $('.paymentInfo').html(response);
                             responseControls();
                         },
                         error:function (jqXHR, textStatus, errorThrown) {
