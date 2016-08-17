@@ -352,14 +352,12 @@ public class MainController {
 
     @RequestMapping(value = "/sendFeedback", method = RequestMethod.POST)
     @ResponseBody
-    public ModelAndView sendFeedback(@ModelAttribute("messageForm") final FeedbackMessageForm messageForm, BindingResult result,
+    public ModelAndView sendFeedback(@ModelAttribute("messageForm") FeedbackMessageForm messageForm, BindingResult result,
                                      HttpServletRequest request, RedirectAttributes redirectAttributes) {
 
 
-        FeedbackMessageForm decodedForm = new FeedbackMessageForm();
-        decodedForm.setSenderEmail(messageForm.getSenderEmail());
-        decodedForm.setSenderName(decodeToUTF8(messageForm.getSenderName()));
-        decodedForm.setMessageText(decodeToUTF8(messageForm.getMessageText()));
+        messageForm.setSenderName(decodeToUTF8(messageForm.getSenderName()));
+        messageForm.setMessageText(decodeToUTF8(messageForm.getMessageText()));
         ModelAndView modelAndView = new ModelAndView("redirect:/contacts");
         String captchaType = request.getParameter("captchaType");
         switch (captchaType) {
@@ -370,7 +368,7 @@ public class MainController {
                 if (!captcha.validate(captchaCode)) {
                     String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
                     redirectAttributes.addFlashAttribute("errorNoty", correctCapchaRequired);
-                    redirectAttributes.addFlashAttribute("messageForm", decodedForm);
+                    redirectAttributes.addFlashAttribute("messageForm", messageForm);
 
                     modelAndView.addObject("captchaType", CAPTCHA_TYPE);
                     return modelAndView;
@@ -382,22 +380,23 @@ public class MainController {
                 if ((recapchaResponse != null) && !verifyReCaptchaSec.verify(recapchaResponse)) {
                     String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
                     redirectAttributes.addFlashAttribute("errorNoty", correctCapchaRequired);
-                    redirectAttributes.addFlashAttribute("messageForm", decodedForm);
+                    redirectAttributes.addFlashAttribute("messageForm", messageForm);
                     modelAndView.addObject("captchaType", CAPTCHA_TYPE);
                     return modelAndView;
                 }
                 break;
             }
         }
-        messageFormValidator.validate(decodedForm, result, localeResolver.resolveLocale(request));
+        messageFormValidator.validate(messageForm, result, localeResolver.resolveLocale(request));
+        result.getAllErrors().forEach(logger::debug);
         if (result.hasErrors()) {
-            modelAndView = new ModelAndView("globalPages/contacts", "messageForm", decodedForm);
+            modelAndView = new ModelAndView("globalPages/contacts", "messageForm", messageForm);
             modelAndView.addObject("cpch", "");
             modelAndView.addObject("captchaType", CAPTCHA_TYPE);
             return modelAndView;
         }
 
-        sendMailService.sendFeedbackMail(decodedForm.getSenderName(), decodedForm.getSenderEmail(), decodedForm.getMessageText(), feedbackEmail);
+        sendMailService.sendFeedbackMail(messageForm.getSenderName(), messageForm.getSenderEmail(), messageForm.getMessageText(), feedbackEmail);
         redirectAttributes.addFlashAttribute("successNoty", messageSource.getMessage("contacts.lettersent", null, localeResolver.resolveLocale(request)));
 
         return modelAndView;
