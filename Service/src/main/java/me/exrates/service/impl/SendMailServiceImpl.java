@@ -31,6 +31,7 @@ public class SendMailServiceImpl implements SendMailService{
 	private static final Logger logger = LogManager.getLogger(SendMailServiceImpl.class);
 
 	public void sendMail(Email email){
+		logger.debug(email);
 		email.setFrom("support@exrates.me");
         mailSender.send(new MimeMessagePreparator() {
 			  public void prepare(MimeMessage mimeMessage) throws MessagingException {
@@ -43,5 +44,16 @@ public class SendMailServiceImpl implements SendMailService{
 			  }
 			});
 }
-	
+
+	@Override
+	public void sendFeedbackMail(String senderName, String senderMail, String messageBody, String mailTo) {
+		Email email = new Email();
+		email.setFrom(senderMail);
+		email.setTo(mailTo);
+		email.setMessage(messageBody);
+		email.setSubject("Feedback from " + senderName + " -- " + senderMail);
+		sendMail(email);
+	}
+
+
 }
