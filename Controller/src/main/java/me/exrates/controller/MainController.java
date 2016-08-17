@@ -360,9 +360,6 @@ public class MainController {
         decodedForm.setSenderEmail(messageForm.getSenderEmail());
         decodedForm.setSenderName(decodeToUTF8(messageForm.getSenderName()));
         decodedForm.setMessageText(decodeToUTF8(messageForm.getMessageText()));
-        logger.debug(messageForm);
-        logger.debug(decodedForm);
-
         ModelAndView modelAndView = new ModelAndView("redirect:/contacts");
         String captchaType = request.getParameter("captchaType");
         switch (captchaType) {
@@ -401,9 +398,6 @@ public class MainController {
         }
 
         sendMailService.sendFeedbackMail(decodedForm.getSenderName(), decodedForm.getSenderEmail(), decodedForm.getMessageText(), feedbackEmail);
-
-
-
         redirectAttributes.addFlashAttribute("successNoty", messageSource.getMessage("contacts.lettersent", null, localeResolver.resolveLocale(request)));
 
         return modelAndView;
