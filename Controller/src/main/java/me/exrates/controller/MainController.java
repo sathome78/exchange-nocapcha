@@ -34,8 +34,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.Enumeration;
 import java.util.List;
@@ -349,13 +352,17 @@ public class MainController {
 
     @RequestMapping(value = "/sendFeedback", method = RequestMethod.POST)
     @ResponseBody
-    public ModelAndView sendFeedback(@ModelAttribute("messageForm") FeedbackMessageForm messageForm, BindingResult result,
+    public ModelAndView sendFeedback(@ModelAttribute("messageForm") final FeedbackMessageForm messageForm, BindingResult result,
                                      HttpServletRequest request, RedirectAttributes redirectAttributes) {
-        request.getParameterMap().forEach((key, value) -> logger.debug("param " + key + " :: " + value[0]));
 
-        logger.debug(request.getCharacterEncoding());
-        logger.debug(messageForm.getSenderName());
-        logger.debug(messageForm.getSenderEmail());
+
+        FeedbackMessageForm decodedForm = new FeedbackMessageForm();
+        decodedForm.setSenderEmail(messageForm.getSenderEmail());
+        decodedForm.setSenderName(decodeToUTF8(messageForm.getSenderName()));
+        decodedForm.setMessageText(decodeToUTF8(messageForm.getMessageText()));
+        logger.debug(messageForm);
+        logger.debug(decodedForm);
+
         ModelAndView modelAndView = new ModelAndView("redirect:/contacts");
         String captchaType = request.getParameter("captchaType");
         switch (captchaType) {
@@ -366,7 +373,7 @@ public class MainController {
                 if (!captcha.validate(captchaCode)) {
                     String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
                     redirectAttributes.addFlashAttribute("errorNoty", correctCapchaRequired);
-                    redirectAttributes.addFlashAttribute("messageForm", messageForm);
+                    redirectAttributes.addFlashAttribute("messageForm", decodedForm);
 
                     modelAndView.addObject("captchaType", CAPTCHA_TYPE);
                     return modelAndView;
@@ -378,28 +385,33 @@ public class MainController {
                 if ((recapchaResponse != null) && !verifyReCaptchaSec.verify(recapchaResponse)) {
                     String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
                     redirectAttributes.addFlashAttribute("errorNoty", correctCapchaRequired);
-                    redirectAttributes.addFlashAttribute("messageForm", messageForm);
+                    redirectAttributes.addFlashAttribute("messageForm", decodedForm);
                     modelAndView.addObject("captchaType", CAPTCHA_TYPE);
                     return modelAndView;
                 }
                 break;
             }
         }
-        messageFormValidator.validate(messageForm, result, localeResolver.resolveLocale(request));
+        messageFormValidator.validate(decodedForm, result, localeResolver.resolveLocale(request));
         if (result.hasErrors()) {
-            modelAndView = new ModelAndView("globalPages/contacts", "messageForm", messageForm);
+            modelAndView = new ModelAndView("globalPages/contacts", "messageForm", decodedForm);
             modelAndView.addObject("cpch", "");
             modelAndView.addObject("captchaType", CAPTCHA_TYPE);
             return modelAndView;
         }
 
-        sendMailService.sendFeedbackMail(messageForm.getSenderName(), messageForm.getSenderEmail(), messageForm.getMessageText(), feedbackEmail);
+        sendMailService.sendFeedbackMail(decodedForm.getSenderName(), decodedForm.getSenderEmail(), decodedForm.getMessageText(), feedbackEmail);
 
 
 
         redirectAttributes.addFlashAttribute("successNoty", messageSource.getMessage("contacts.lettersent", null, localeResolver.resolveLocale(request)));
 
         return modelAndView;
+    }
+
+    private String decodeToUTF8(String encoded) {
+        byte[] stringBytes = encoded.getBytes(StandardCharsets.ISO_8859_1);
+        return new String(stringBytes, StandardCharsets.UTF_8);
     }
 
 
