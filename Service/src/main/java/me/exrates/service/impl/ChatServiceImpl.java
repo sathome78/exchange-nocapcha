@@ -64,8 +64,6 @@ public class ChatServiceImpl implements ChatService {
     @PostConstruct
     public void cacheWarm() {
         final List<Long> ids = new ArrayList<>();
-        System.out.println(chatDao.findLastMessages(RU, MESSAGE_BARRIER));
-
         Stream.of(ChatLang.values())
                 .map(lang -> new Pair<>(lang,new TreeSet<>(chatDao.findLastMessages(lang, MESSAGE_BARRIER))))
                 .forEach(pair -> {
@@ -79,7 +77,6 @@ public class ChatServiceImpl implements ChatService {
                         tail = cache.last();
                         ids.add(cache.first().getId());
                     }
-                    System.out.println(cache);
                     comp.setCache(cache);
                     comp.setTail(tail);
                 });

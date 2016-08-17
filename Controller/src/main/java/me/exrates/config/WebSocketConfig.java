@@ -5,14 +5,13 @@ import me.exrates.model.enums.ChatLang;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.socket.config.annotation.*;
+import org.springframework.web.socket.config.annotation.EnableWebSocket;
+import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
+import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 
 import java.util.EnumMap;
-import java.util.stream.Stream;
 
-import static me.exrates.model.enums.ChatLang.CN;
-import static me.exrates.model.enums.ChatLang.EN;
-import static me.exrates.model.enums.ChatLang.RU;
+import static me.exrates.model.enums.ChatLang.*;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -24,7 +23,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
     private final EnumMap<ChatLang, ChatWebSocketHandler> handlers;
 
     @Autowired
-    public WebSocketConfig(EnumMap<ChatLang, ChatWebSocketHandler> handlers) {
+    public WebSocketConfig(final EnumMap<ChatLang, ChatWebSocketHandler> handlers) {
         this.handlers = handlers;
     }
 

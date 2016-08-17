@@ -59,6 +59,7 @@ $(function(){
     const PRIVAT24 = 'Privat24';
     const INTERKASSA = 'Interkassa';
     const INVOICE = 'Invoice';
+    const EDC = 'EDC';
 
     const NO_ACTION = 'javascript:void(0);';
 
@@ -214,6 +215,7 @@ $(function(){
                     form.attr('action', formAction.interkassa);
                     break;
                 case BLOCKCHAIN:
+                case EDC:
                 default:
                     form.attr('action', NO_ACTION);
             }
@@ -301,6 +303,34 @@ $(function(){
                         responseControls();
                         $('.paymentInfo').html(error.responseText);
                         console.log(textStatus);
+                    });
+                    break;
+                case EDC :
+                    $('#inputPaymentProcess')
+                        .prop('disabled', true)
+                        .html($('#mrcht-waiting').val());
+                    $.ajax('/merchants/edc/payment/prepare', {
+                        headers: {
+                            'X-CSRF-Token': $("input[name='_csrf']").val()
+                        },
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify($(form).serializeObject()),
+                        success:function (response) {
+                            $('#inputPaymentProcess')
+                                .prop('disabled', false)
+                                .html($('#mrcht-ready').val());
+                            console.log(response);
+                            $('.paymentInfo').html(response);
+                            responseControls();
+                        },
+                        error:function (jqXHR, textStatus, errorThrown) {
+                            console.log(jqXHR);
+                            console.log(textStatus);
+                            console.log(errorThrown);
+                            $('.paymentInfo').html(error.responseText);
+                            responseControls();
+                        }
                     });
                     break;
                 case EDR_COIN :
