@@ -19,6 +19,8 @@ function initLocaleSwitcher() {
             localeCode = 'th';
         } else if (localeName == 'ID') {
             localeCode = 'in';
+        } else if (localeName == 'AR') {
+            localeCode = 'ar';
         }
 
         var ref = '/dashboard/locale?locale=' + localeCode;
