@@ -44,6 +44,7 @@
                 async defer>
         </script>
     </c:if>
+    <%@include file="tools/alexa.jsp" %>
 
 </head>
 
