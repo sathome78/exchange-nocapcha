@@ -3,8 +3,6 @@
  */
 $(function () {
     if ($('#language').text().trim() === 'AR') {
-        console.log($('body').css('direction'));
         $('body').css('direction', 'rtl');
-        console.log($('body').css('direction'));
     }
 });

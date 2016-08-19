@@ -1809,6 +1809,6 @@ form span.repass {
     width: 100%;
 }
 
-input[type=email], #captchaCode {
+input[type=email], .dropdown-menu__form, .input-block-wrapper__label-wrapper, #captchaCode, .BDC_CaptchaDiv {
     direction: ltr !important;
 }
