@@ -72,7 +72,7 @@
                             </label>
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input id="login__name" name="username"
+                            <input id="login__name" name="username" type="email"
                                    autofocus
                                    placeholder="${login}"
                                    class="form-control input-block-wrapper__input"/>

@@ -40,7 +40,7 @@
 <%@include file="../fragments/header-simple.jsp" %>
 <main class="container">
     <div class="row">
-        <div class="col-md-8 content legal_content">
+        <div class="col-md-8 col-md-offset-2 content legal_content">
             <c:set var="termsHeading">
                 <loc:message code="dashboard.terms"/>
             </c:set>

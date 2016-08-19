@@ -1808,3 +1808,7 @@ form span.repass {
 .full-width {
     width: 100%;
 }
+
+input[type=email], #captchaCode {
+    direction: ltr !important;
+}

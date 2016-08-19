@@ -81,7 +81,7 @@
                     <loc:message code="register.email" var="email"/>
                     <div class="col-md-11 input-block-wrapper__input-wrapper">
                         <registrationform:input id="email" path="email"
-                                                placeholder="${email}"
+                                                placeholder="${email}" type="email"
                                                 class="form-control input-block-wrapper__input"/>
                     </div>
                     <div class="col-md-11 input-block-wrapper__error-wrapper">
