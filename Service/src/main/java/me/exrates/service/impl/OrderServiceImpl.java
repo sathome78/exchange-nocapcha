@@ -369,6 +369,31 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
+    private String getWalletTransferStatusMessage(WalletTransferStatus status, Locale locale) {
+        String message = "";
+        switch (status) {
+            case CAUSED_NEGATIVE_BALANCE:
+       //         message = messageSource.getMessage()
+                break;
+            case CORRESPONDING_COMPANY_WALLET_NOT_FOUND:
+
+                break;
+            case NOT_FOUND:
+
+                break;
+            case WALLET_UPDATE_ERROR:
+
+                break;
+            case TRANSACTION_CREATION_ERROR:
+
+                break;
+            default:
+
+        }
+        return message;
+    }
+
+
     private BigDecimal getAmountWithComissionForCreator(ExOrder exOrder) {
         if (exOrder.getOperationType() == OperationType.SELL) {
             return BigDecimalProcessing.doAction(exOrder.getAmountConvert(), exOrder.getCommissionFixedAmount(), ActionType.SUBTRACT);
