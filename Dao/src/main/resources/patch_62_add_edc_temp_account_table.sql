@@ -6,9 +6,4 @@ CREATE TABLE EDC_TEMP_ACCOUNT (
   FOREIGN KEY EDC_TEMP_ACCOUNT(transaction_id) REFERENCES TRANSACTION(id) ON UPDATE RESTRICT ON DELETE RESTRICT
 );
 
-SELECT * FROM TRANSACTION ORDER BY datetime DESC ;
-
-SELECT * FROM PENDING_PAYMENT WHERE invoice_id = 36191;
-SELECT * FROM EDC_TEMP_ACCOUNT;
-
-INSERT INTO EDC_TEMP_ACCOUNT (transaction_id, wif_priv_key, pub_key, brain_priv_key) VALUES (36183 ,'abc', 'abc', 'abc');
+INSERT INTO DATABASE_PATCH (version, datetime, patched) VALUES ('patch_62_add_edc_temp_account_table', DEFAULT, 1);

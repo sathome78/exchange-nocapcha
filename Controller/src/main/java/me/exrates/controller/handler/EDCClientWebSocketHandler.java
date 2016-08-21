@@ -92,10 +92,9 @@ public class EDCClientWebSocketHandler {
             if (blockAppliedPattern.test(message)) {
                 getBlockInfo(message);
             } else if (blockInfoPattern.test(message)) {
-                LOG.debug("BLOCK-INFO:\n" + message);
                 edcService.submitTransactionsForProcessing(message);
             } else {
-                LOG.info("UNKNOWN RESPONSE\n" + message);
+                LOG.info("EDC Blockchain info\n" + message);
             }
         }
     }

@@ -121,8 +121,6 @@ public class EDCServiceImpl implements EDCService {
             }
             transactionService.provideTransaction(tx);
             pendingPayments.remove(accountId);
-        } else {
-            LOG.error("UNKNOWN PAYMENT " + tuple.right + " EDC FROM " + accountId);
         }
     }
 

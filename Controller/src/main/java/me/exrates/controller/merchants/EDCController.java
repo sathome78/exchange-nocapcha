@@ -63,7 +63,7 @@ public class EDCController {
             return new ResponseEntity<>(notification, httpHeaders, OK);
         } catch (Exception e) {
             final String error = messageSource.getMessage("merchants.incorrectPaymentDetails", null, locale);
-            LOG.error(error);
+            LOG.error(e);
             return new ResponseEntity<>(error, NO_CONTENT);
         }
     }
