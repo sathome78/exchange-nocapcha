@@ -61,7 +61,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     
     private boolean ifUserAllowed(User user) {
 		logger.info("Begin 'ifUserAllowed' method");
-		if(user.getStatus().getStatus()==2) {
+		int userStatus = user.getStatus().getStatus();
+		if(userStatus == 2 || userStatus == 4) {
     		return true;
     	}
     	return false;

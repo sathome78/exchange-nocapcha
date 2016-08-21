@@ -6,17 +6,17 @@ $(function () {
     } else {
         usersDataTable = $('#usersTable').DataTable({
             "ajax": {
-                "url": '/admin/users/',
+                "url": '/admin/usersList',
                 "dataSrc": ""
             },
             "paging": true,
             "info": true,
             "columns": [
                 {
-                    "data": "id",
+                    "data": "nickname",
                     "render": function (data, type, row){
-                        if (type == 'display') {
-                            return '<a href="/admin/userInfo?id='+data+'">'+row['nickname']+'</a>';
+                         if (type == 'display') {
+                            return '<a href="/admin/userInfo?id='+row['id']+'">'+data+'</a>';
                         }
                         return data;
                     }

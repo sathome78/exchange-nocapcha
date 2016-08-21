@@ -78,4 +78,19 @@ public class OperationViewDto {
 	public void setStatus(final String status) {
 		this.status = status;
 	}
+
+	@Override
+	public String toString() {
+		return "OperationViewDto{" +
+				"amount=" + amount +
+				", amountBuy=" + amountBuy +
+				", commissionAmount=" + commissionAmount +
+				", operationType=" + operationType +
+				", currency='" + currency + '\'' +
+				", merchant=" + merchant +
+				", datetime=" + datetime +
+				", order=" + order +
+				", status='" + status + '\'' +
+				'}';
+	}
 }

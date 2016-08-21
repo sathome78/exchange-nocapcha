@@ -234,4 +234,14 @@ public interface OrderService {
      */
     WalletsAndCommissionsForOrderCreationDto getWalletAndCommission(String email, Currency currency,
                                                                            OperationType operationType);
+    DataTable<List<OrderBasicInfoDto>> findOrders(Integer currencyPair, String orderType, String orderDateFrom, String orderDateTo,
+                                  BigDecimal orderRate, BigDecimal orderVolume, String creatorEmail, Locale locale);
+
+    DataTable<List<OrderBasicInfoDto>> findOrders(Integer currencyPair, String orderType, String orderDateFrom, String orderDateTo,
+                                                  BigDecimal orderRate, BigDecimal orderVolume, String creatorEmail, Locale locale,
+                                                  int offset, int limit, String orderColumnName, String orderDirection);
+    DataTable<List<OrderBasicInfoDto>> searchOrdersByAdmin(Integer currencyPair, String orderType, String orderDateFrom, String orderDateTo,
+                                                           BigDecimal orderRate, BigDecimal orderVolume, String creatorEmail, Locale locale,
+                                                           Map<String, String> params);
+
 }

@@ -12,44 +12,39 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title><loc:message code="mywallets.title"/></title>
+    <title><loc:message code="admin.usersWallet"/></title>
     <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon"/>
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href='<c:url value="/client/css/roboto-font-400_700_300.css"/>' rel='stylesheet' type='text/css'>
+    <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.0/themes/base/jquery-ui.css" rel='stylesheet' type='text/css'>
+    <%@include file='admin/links_scripts.jsp' %>
 
-    <script src="<c:url value="/client/js/jquery_1.11.3.min.js"/>" type="text/javascript"></script>
-    <script src="<c:url value='/client/js/jquery.mCustomScrollbar.concat.min.js'/>" type="text/javascript"></script>
 
-    <link rel="stylesheet" href="<c:url value="/client/css/font-awesome.min.css"/>">
-    <link href="<c:url value='/client/css/jquery.mCustomScrollbar.min.css'/>" rel="stylesheet">
-    <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
-    <link href="<c:url value='/client/css/style-new.css'/>" rel="stylesheet">
-
-    <script type="text/javascript" src="<c:url value='/client/js/function.js'/>"></script>
-    <%----------%>
-    <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/menuSwitcher.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/download.js'/>"></script>
     <%----------%>
 </head>
 
 <body>
 
-<%@include file='header_new.jsp' %>
+<%@include file='fragments/header-simple.jsp' %>
 
-<main class="container orders_new transaction my_orders orders .container_footer_bottom my_wallets">
+<main class="container my_wallets">
     <div class="row">
-        <%@include file='usermenu_new.jsp' %>
-        <div class="col-sm-9">
-            <button id="upload-users-wallets" class="simple-button" type="submit"><loc:message
-                    code="wallets.download"/></button>
-            </form>
-        </div>
-        <div class="col-sm-9 content">
+        <%@include file='admin/left_side_menu.jsp' %>
+
+        <div class="col-md-8 col-md-offset-1 content admin-container">
+            <div class="text-center">
+                <h4>
+                    <b><loc:message code="admin.usersWallet"/></b>
+                </h4>
+            </div>
+            <div class="row">
+                <button id="upload-users-wallets" class="blue-box pull-right" type="submit"><loc:message
+                        code="wallets.download"/></button>
+            </div>
+
             <c:forEach var="wallet" items="${usersWalletsSummaryList}">
                 <div class="block">
                     <div class="currency">${wallet.currencyName}</div>

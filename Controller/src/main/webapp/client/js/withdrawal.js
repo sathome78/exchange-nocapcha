@@ -12,7 +12,9 @@ $(function () {
         promptDeclineRequest(id);
     });
 
-    $('#withdrawalTable').DataTable();
+    $('#withdrawalTable').DataTable({
+        "order": []
+    });
 });
 
 function promptAcceptRequest(requestId) {
@@ -28,6 +30,8 @@ function promptAcceptRequest(requestId) {
         }).done(function(result) {
             alert(result['success']);
             var classname = '.id_' + requestId;
+            var acceptance = result['acceptance'].split(/\s/);
+            $(classname + ' td:nth-child(8)').html(acceptance[0] + '<br\>' + acceptance[1]);
             $(classname + ' td:nth-child(9)').html(result['email']);
             $(classname + ' td:last-child').html($('#accepted').html());
         }).fail(function(error){

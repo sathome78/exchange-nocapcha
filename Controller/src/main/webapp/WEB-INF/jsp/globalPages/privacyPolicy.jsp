@@ -31,13 +31,14 @@
     <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/loc-direction.js'/>"></script>
     <%@include file="../tools/alexa.jsp" %>
 </head>
 <body>
 <%@include file="../fragments/header-simple.jsp" %>
 <main class="container">
     <div class="row">
-        <div class="col-md-8 content legal_content">
+        <div class="col-md-8 col-md-offset-2 content legal_content">
             <h3><loc:message code="dashboard.privacy"/></h3>
             <hr/>
             <loc:message code="dashboard.privacyContent"/>

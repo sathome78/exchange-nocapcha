@@ -66,7 +66,8 @@ $(function () {
                     0,
                     "asc"
                 ]
-            ]
+            ],
+            "searchDelay": 1000
         });
     }
 });

@@ -23,13 +23,24 @@
     <div id="chat" class="chat">
     </div>
     <sec:authorize access="isAuthenticated()">
-        <form id="new_mess" method="POST">
-            <input type="text" name="body" class="message_text"
-                   placeholder='<loc:message code="dashboard.onlinechatenter"/>'>
-            <input type="hidden" name="lang" value="EN"/>
-            <button class="send_button" type="submit"><loc:message code="dashboard.onlinechatsend"/></button>
+        <c:choose>
+            <c:when test="${userStatus == 4}">
+                <div class="text-center paddingtop10">
+                    <span class="red"><loc:message code="dashboard.onlinechatbanned"/></span>
+                </div>
 
-        </form>
+            </c:when>
+            <c:otherwise>
+                <form id="new_mess" method="POST">
+                    <input type="text" name="body" class="message_text"
+                           placeholder='<loc:message code="dashboard.onlinechatenter"/>'>
+                    <input type="hidden" name="lang" value="EN"/>
+                    <button class="send_button" type="submit"><loc:message code="dashboard.onlinechatsend"/></button>
+
+                </form>
+            </c:otherwise>
+
+        </c:choose>
     </sec:authorize>
 
 

@@ -1,10 +1,12 @@
 package me.exrates.service.impl;
 
+import com.google.common.base.CaseFormat;
 import me.exrates.dao.CommissionDao;
 import me.exrates.dao.OrderDao;
 import me.exrates.dao.TransactionDao;
 import me.exrates.dao.WalletDao;
 import me.exrates.model.*;
+import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
@@ -39,10 +41,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
+
+import static java.lang.Integer.valueOf;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -512,6 +513,57 @@ public class OrderServiceImpl implements OrderService {
     public void setMessageSource(final MessageSource messageSource) {
         this.messageSource = messageSource;
     }
+
+    @Transactional
+    @Override
+    public DataTable<List<OrderBasicInfoDto>> findOrders(Integer currencyPair, String orderType, String orderDateFrom, String orderDateTo,
+                                         BigDecimal orderRate, BigDecimal orderVolume, String creatorEmail, Locale locale) {
+        return findOrders(currencyPair, orderType, orderDateFrom, orderDateTo, orderRate, orderVolume, creatorEmail, locale,
+                0, Integer.MAX_VALUE, "id", "ASC");
+
+    }
+
+    @Transactional
+    @Override
+    public DataTable<List<OrderBasicInfoDto>> findOrders(Integer currencyPair, String orderType, String orderDateFrom, String orderDateTo,
+                                                         BigDecimal orderRate, BigDecimal orderVolume, String creatorEmail, Locale locale,
+                                                         int offset, int limit, String orderColumnName, String orderDirection) {
+        Integer ot = null;
+        if (!"ANY".equals(orderType)) {
+            ot = OperationType.valueOf(orderType).getType();
+        }
+        if (currencyPair.intValue() == -1) {
+            currencyPair = null;
+        }
+        PagingData<List<OrderBasicInfoDto>> searchResult = orderDao.searchOrders(currencyPair, ot, orderDateFrom,
+                orderDateTo, orderRate, orderVolume, creatorEmail, locale, offset, limit, orderColumnName, orderDirection);
+        DataTable<List<OrderBasicInfoDto>> output = new DataTable<>();
+        output.setData(searchResult.getData());
+        output.setRecordsTotal(searchResult.getTotal());
+        output.setRecordsFiltered(searchResult.getFiltered());
+        return output;
+
+    }
+
+    @Transactional
+    @Override
+    public DataTable<List<OrderBasicInfoDto>> searchOrdersByAdmin(Integer currencyPair, String orderType, String orderDateFrom, String orderDateTo,
+                                                                  BigDecimal orderRate, BigDecimal orderVolume, String creatorEmail, Locale locale,
+                                                                  Map<String, String> params) {
+        if (params.containsKey("start") && params.containsKey("length")) {
+            String orderColumnKey = "columns[" + params.getOrDefault("order[0][column]", "0") + "][data]";
+            String orderColumn = params.getOrDefault(orderColumnKey, "id");
+            String orderColumnFormatted = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, orderColumn);
+            String orderDirection = params.getOrDefault("order[0][dir]", "asc").toUpperCase();
+
+
+
+            return findOrders(currencyPair, orderType, orderDateFrom, orderDateTo, orderRate, orderVolume, creatorEmail, locale,
+                    valueOf(params.get("start")), valueOf(params.get("length")), orderColumnFormatted, orderDirection);
+        }
+        return findOrders(currencyPair, orderType, orderDateFrom, orderDateTo, orderRate, orderVolume, creatorEmail, locale);
+    }
+
 }
 
 

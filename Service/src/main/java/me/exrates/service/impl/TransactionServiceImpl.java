@@ -2,6 +2,7 @@ package me.exrates.service.impl;
 
 import me.exrates.dao.TransactionDao;
 import me.exrates.model.*;
+import me.exrates.model.Currency;
 import me.exrates.model.dto.DataTable;
 import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
@@ -21,10 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.Integer.MAX_VALUE;
@@ -150,7 +148,8 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public DataTable<List<OperationViewDto>> showMyOperationHistory(String email, Locale locale, int offset, int limit) {
+    public DataTable<List<OperationViewDto>> showMyOperationHistory(String email, Locale locale, int offset, int limit,
+                                                                    String searchValue, String sortColumn, String sortDirection) {
         final int id = userService.getIdByEmail(email);
         final List<Integer> wallets = walletService.getAllWallets(id).stream()
                 .mapToInt(Wallet::getId)
@@ -161,7 +160,8 @@ public class TransactionServiceImpl implements TransactionService {
             result.setData(new ArrayList<>());
             return result;
         }
-        final PagingData<List<Transaction>> transactions = transactionDao.findAllByUserWallets(wallets, offset, limit);
+        final PagingData<List<Transaction>> transactions = transactionDao.findAllByUserWallets(wallets, offset, limit,
+                searchValue, sortColumn, sortDirection, locale);
         final List<OperationViewDto> operationViews = new ArrayList<>();
         for (final Transaction t : transactions.getData()) {
             OperationViewDto view = new OperationViewDto();
@@ -182,6 +182,11 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
+    public DataTable<List<OperationViewDto>> showMyOperationHistory(String email, Locale locale, int offset, int limit) {
+        return showMyOperationHistory(email, locale, offset, limit, "", "", "ASC");
+}
+
+    @Override
     public DataTable<List<OperationViewDto>> showMyOperationHistory(final String email, final Locale locale) {
         return showMyOperationHistory(email, locale, 0, MAX_VALUE);
     }
@@ -194,7 +199,12 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public DataTable<List<OperationViewDto>> showUserOperationHistory(final int id, final Locale locale, final Map<String, String> viewParams) {
         if (viewParams.containsKey("start") && viewParams.containsKey("length")) {
-            return showMyOperationHistory(userService.getUserById(id).getEmail(), locale, valueOf(viewParams.get("start")), valueOf(viewParams.get("length")));
+            String searchValue = viewParams.getOrDefault("search[value]", "");
+            String sortColumnKey = "columns[" + viewParams.getOrDefault("order[0][column]", "0") + "][data]";
+            String sortColumn = viewParams.getOrDefault(sortColumnKey, "");
+            String sortDirection = viewParams.getOrDefault("order[0][dir]", "asc").toUpperCase();
+            return showMyOperationHistory(userService.getUserById(id).getEmail(), locale,
+                    valueOf(viewParams.get("start")), valueOf(viewParams.get("length")), searchValue, sortColumn, sortDirection);
         }
         return showUserOperationHistory(id, locale);
     }

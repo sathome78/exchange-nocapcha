@@ -143,6 +143,7 @@
                         <li><a href="#" class="language">RU</a></li>
                         <li><a href="#" class="language">CH</a></li>
                         <li><a href="#" class="language">ID</a></li>
+                        <li><a href="#" class="language">AR</a></li>
                     </ul>
                 </li>
                 <sec:authorize access="isAuthenticated()">

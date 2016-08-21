@@ -32,6 +32,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/loc-direction.js'/>"></script>
     <%----------%>
     <%--capcha--%>
     <c:if test="${captchaType==\"RECAPTCHA\"}">
@@ -44,6 +45,7 @@
                 async defer>
         </script>
     </c:if>
+    <%@include file="tools/alexa.jsp" %>
 </head>
 
 
@@ -70,7 +72,7 @@
                             </label>
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input id="login__name" name="username"
+                            <input id="login__name" name="username" type="email"
                                    autofocus
                                    placeholder="${login}"
                                    class="form-control input-block-wrapper__input"/>

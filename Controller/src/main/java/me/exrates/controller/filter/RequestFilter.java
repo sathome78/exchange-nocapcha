@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.Date;
+import java.util.Enumeration;
 
 /**
  * Created by Valk on 18.07.2016.
@@ -19,9 +20,7 @@ public class RequestFilter implements Filter {
     private static final Logger LOGGER = LogManager.getLogger(OnlineRestController.class);
 
     @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
-
-    }
+    public void init(FilterConfig filterConfig) throws ServletException {    }
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {

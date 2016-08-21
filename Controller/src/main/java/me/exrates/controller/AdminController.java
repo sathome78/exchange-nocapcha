@@ -2,10 +2,7 @@ package me.exrates.controller;
 
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.validator.RegisterFormValidation;
-import me.exrates.model.CurrencyPair;
-import me.exrates.model.Transaction;
-import me.exrates.model.User;
-import me.exrates.model.Wallet;
+import me.exrates.model.*;
 import me.exrates.model.dto.*;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
@@ -77,8 +74,10 @@ public class AdminController {
     private UserFilesService userFilesService;
     @Autowired
     private ReferralService referralService;
+    @Autowired
+    private InvoiceService invoiceService;
 
-    @RequestMapping("/admin")
+    @RequestMapping(value = {"/admin", "/admin/users"})
     public ModelAndView admin(Principal principal, HttpSession httpSession) {
 
         final Object mutex = WebUtils.getSessionMutex(httpSession);
@@ -89,11 +88,31 @@ public class AdminController {
         ModelAndView model = new ModelAndView();
         List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairs();
         model.addObject("currencyPairList", currencyPairList);
+        model.setViewName("admin/admin");
+        return model;
+    }
+
+    @RequestMapping(value = "/admin/administrators", method = GET)
+    public String administrators() {
+        return "admin/administrators";
+    }
+
+    @RequestMapping(value = "/admin/referral", method = GET)
+    public ModelAndView referral() {
+        ModelAndView model = new ModelAndView();
         model.addObject("referralLevels", referralService.findAllReferralLevels());
         model.addObject("commonRefRoot", userService.getCommonReferralRoot());
         model.addObject("admins", userSecureService.getUsersByRoles(singletonList(ADMINISTRATOR)));
-        model.setViewName("admin/admin");
+        model.setViewName("admin/referral");
+        return model;
+    }
 
+    @RequestMapping(value = "/admin/removeOrder", method = GET)
+    public ModelAndView orderDeletion() {
+        ModelAndView model = new ModelAndView();
+        List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairs();
+        model.addObject("currencyPairList", currencyPairList);
+        model.setViewName("admin/order_delete");
         return model;
     }
 
@@ -141,7 +160,7 @@ public class AdminController {
 
 
     @ResponseBody
-    @RequestMapping(value = "/admin/users", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/admin/usersList", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<User> getAllUsers() {
         List<UserRole> userRoles = new ArrayList<>();
         userRoles.add(UserRole.USER);
@@ -463,6 +482,34 @@ public class AdminController {
         return orderService.searchOrderByAdmin(currencyPair, orderType, orderDate, orderRate, orderVolume);
     }
 
+
+    @ResponseBody
+    @RequestMapping(value = "/admin/searchorders", method = RequestMethod.GET)
+    public DataTable<List<OrderBasicInfoDto>> searchOrderByAdmin(@RequestParam(required = false) Integer currencyPair,
+                                      @RequestParam(required = false) String orderType,
+                                      @RequestParam(required = false) String orderDateFrom,
+                                      @RequestParam(required = false) String orderDateTo,
+                                      @RequestParam(required = false) BigDecimal orderRate,
+                                      @RequestParam(required = false) BigDecimal orderVolume,
+                                      @RequestParam(required = false) String creator,
+                                      @RequestParam Map<String, String> params,
+                                      HttpServletRequest request) {
+
+        try {
+            DataTable<List<OrderBasicInfoDto>> orderInfo = orderService.searchOrdersByAdmin(currencyPair, orderType,
+                    orderDateFrom, orderDateTo, orderRate, orderVolume, creator, localeResolver.resolveLocale(request), params);
+
+            return orderInfo;
+        } catch (Exception ex) {
+            LOG.error(ex.getMessage(), ex);
+            DataTable<List<OrderBasicInfoDto>> errorResult = new DataTable<>();
+            errorResult.setError(ex.getMessage());
+            errorResult.setData(Collections.EMPTY_LIST);
+            return errorResult;
+        }
+
+    }
+
     @RequestMapping(value = "admin/downloadUsersWalletsSummary", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
     @ResponseBody
     public String getUsersWalletsSummeryTxt(@RequestParam String startDate, @RequestParam String endDate) {
@@ -488,7 +535,7 @@ public class AdminController {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 
-    @RequestMapping(value = "/transaction_invoice")
+    @RequestMapping(value = "/admin/invoiceConfirmation")
     public ModelAndView transactions(HttpSession httpSession) {
         final Object mutex = WebUtils.getSessionMutex(httpSession);
         String currentRole = "";
@@ -498,14 +545,14 @@ public class AdminController {
         if (currentRole == null){
             return new ModelAndView("403");
         }
-        List<Transaction> list;
+        List<InvoiceRequest> list;
 
         if (currentRole.equals(UserRole.ADMINISTRATOR.name()) || currentRole.equals(UserRole.ACCOUNTANT.name())) {
-            list = transactionService.getInvoiceOpenTransactions();
+            list = invoiceService.findAllInvoiceRequests();
         } else {
             return new ModelAndView("403");
         }
 
-        return new ModelAndView("admin/transaction_invoice", "transactions", list);
+        return new ModelAndView("admin/transaction_invoice", "invoiceRequests", list);
     }
 }

@@ -2,12 +2,15 @@ package me.exrates.controller;
 
 import com.captcha.botdetect.web.servlet.Captcha;
 import me.exrates.controller.exception.*;
+import me.exrates.controller.validator.FeedbackMessageFormValidator;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.User;
 import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.enums.TokenType;
+import me.exrates.model.form.FeedbackMessageForm;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.ReferralService;
+import me.exrates.service.SendMailService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.UserService;
 import org.apache.logging.log4j.LogManager;
@@ -25,13 +28,19 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import javax.validation.Valid;
 import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -52,10 +61,15 @@ public class MainController {
     private
     @Value("${contacts.email}")
     String email;
+    @Value("${contacts.feedbackEmail}")
+    String feedbackEmail;
     @Autowired
     private UserService userService;
     @Autowired
     private RegisterFormValidation registerFormValidation;
+    @Autowired
+    private FeedbackMessageFormValidator messageFormValidator;
+
     @Autowired
     private HttpServletRequest request;
     @Autowired
@@ -68,6 +82,8 @@ public class MainController {
     private VerifyReCaptchaSec verifyReCaptchaSec;
     @Autowired
     private ReferralService referralService;
+    @Autowired
+    private SendMailService sendMailService;
 
     @RequestMapping(value = "57163a9b3d1eafe27b8b456a.txt", method = RequestMethod.GET)
     @ResponseBody
@@ -311,4 +327,86 @@ public class MainController {
     public ErrorInfo NotConfirmedFinPasswordExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
+
+    @RequestMapping(value = "/termsAndConditions", method = RequestMethod.GET)
+    public ModelAndView termsAndConditions() {
+        return new ModelAndView("/globalPages/termsAndConditions", "captchaType", CAPTCHA_TYPE);
+    }
+
+    @RequestMapping(value = "/privacyPolicy", method = RequestMethod.GET)
+    public ModelAndView privacyPolicy() {
+        return new ModelAndView("/globalPages/privacyPolicy", "captchaType", CAPTCHA_TYPE);
+    }
+
+    @RequestMapping(value = "/contacts", method = RequestMethod.GET)
+    public ModelAndView contacts(ModelMap model) {
+        ModelAndView modelAndView = new ModelAndView("globalPages/contacts", "captchaType", CAPTCHA_TYPE);
+        model.forEach((key, value) -> logger.debug(key + " :: " + value));
+        if (model.containsAttribute("messageForm")) {
+            modelAndView.addObject("messageForm", model.get("messageForm"));
+        } else {
+            modelAndView.addObject("messageForm", new FeedbackMessageForm());
+        }
+        return modelAndView;
+    }
+
+    @RequestMapping(value = "/sendFeedback", method = RequestMethod.POST)
+    @ResponseBody
+    public ModelAndView sendFeedback(@ModelAttribute("messageForm") FeedbackMessageForm messageForm, BindingResult result,
+                                     HttpServletRequest request, RedirectAttributes redirectAttributes) {
+
+
+        messageForm.setSenderName(decodeToUTF8(messageForm.getSenderName()));
+        messageForm.setMessageText(decodeToUTF8(messageForm.getMessageText()));
+        ModelAndView modelAndView = new ModelAndView("redirect:/contacts");
+        String captchaType = request.getParameter("captchaType");
+        switch (captchaType) {
+            case "BOTDETECT": {
+                String captchaId = request.getParameter("captchaId");
+                Captcha captcha = Captcha.load(request, captchaId);
+                String captchaCode = request.getParameter("captchaCode");
+                if (!captcha.validate(captchaCode)) {
+                    String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
+                    redirectAttributes.addFlashAttribute("errorNoty", correctCapchaRequired);
+                    redirectAttributes.addFlashAttribute("messageForm", messageForm);
+
+                    modelAndView.addObject("captchaType", CAPTCHA_TYPE);
+                    return modelAndView;
+                }
+                break;
+            }
+            case "RECAPTCHA": {
+                String recapchaResponse = request.getParameter("g-recaptcha-response");
+                if ((recapchaResponse != null) && !verifyReCaptchaSec.verify(recapchaResponse)) {
+                    String correctCapchaRequired = messageSource.getMessage("register.capchaincorrect", null, localeResolver.resolveLocale(request));
+                    redirectAttributes.addFlashAttribute("errorNoty", correctCapchaRequired);
+                    redirectAttributes.addFlashAttribute("messageForm", messageForm);
+                    modelAndView.addObject("captchaType", CAPTCHA_TYPE);
+                    return modelAndView;
+                }
+                break;
+            }
+        }
+        messageFormValidator.validate(messageForm, result, localeResolver.resolveLocale(request));
+        result.getAllErrors().forEach(logger::debug);
+        if (result.hasErrors()) {
+            modelAndView = new ModelAndView("globalPages/contacts", "messageForm", messageForm);
+            modelAndView.addObject("cpch", "");
+            modelAndView.addObject("captchaType", CAPTCHA_TYPE);
+            return modelAndView;
+        }
+
+        sendMailService.sendFeedbackMail(messageForm.getSenderName(), messageForm.getSenderEmail(), messageForm.getMessageText(), feedbackEmail);
+        redirectAttributes.addFlashAttribute("successNoty", messageSource.getMessage("contacts.lettersent", null, localeResolver.resolveLocale(request)));
+
+        return modelAndView;
+    }
+
+    private String decodeToUTF8(String encoded) {
+        byte[] stringBytes = encoded.getBytes(StandardCharsets.ISO_8859_1);
+        return new String(stringBytes, StandardCharsets.UTF_8);
+    }
+
+
+
 }

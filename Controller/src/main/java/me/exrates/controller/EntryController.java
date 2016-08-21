@@ -62,7 +62,7 @@ public class EntryController {
             @RequestParam(required = false) String errorNoty,
             @RequestParam(required = false) String successNoty,
             @RequestParam(required = false) String startupPage,
-            HttpServletRequest request) {
+            HttpServletRequest request, Principal principal) {
         ModelAndView model = new ModelAndView();
         if (successNoty == null) {
             successNoty = (String) request.getSession().getAttribute("successNoty");
@@ -79,6 +79,11 @@ public class EntryController {
         model.setViewName("globalPages/dashboard");
         OrderCreateDto orderCreateDto = new OrderCreateDto();
         model.addObject(orderCreateDto);
+        if (principal != null) {
+            int userStatus = userService.findByEmail(principal.getName()).getStatus().getStatus();
+            model.addObject("userStatus", userStatus);
+        }
+
         return model;
     }
 
