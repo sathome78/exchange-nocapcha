@@ -86,8 +86,8 @@ READS SQL DATA
 /**/
     DROP TABLE IF EXISTS CANDLE_TMP_TBL;
     CREATE TEMPORARY TABLE CANDLE_TMP_TBL (
-      pred_point    TIMESTAMP,
-      current_point TIMESTAMP,
+      pred_point    TIMESTAMP DEFAULT NOW(),
+      current_point TIMESTAMP DEFAULT NOW(),
       low_rate      DOUBLE(40, 9),
       high_rate     DOUBLE(40, 9),
       open_rate     DOUBLE(40, 9),
@@ -196,4 +196,5 @@ READS SQL DATA
   END;;
 
 DELIMITER ;
+
 INSERT INTO DATABASE_PATCH VALUES ('patch_47_update_GET_DATA_FOR_CANDLE', default, 1);
