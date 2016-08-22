@@ -76,7 +76,9 @@ public class UserServiceImpl implements UserService {
      */
     @Transactional(rollbackFor = Exception.class)
     public int verifyUserEmail(String token) {
+        LOGGER.debug(token);
         TemporalToken temporalToken = userDao.verifyToken(token);
+        LOGGER.debug(temporalToken);
         //deleting all tokens related with current through userId and tokenType
         if (userDao.deleteTemporalTokensOfTokentypeForUser(temporalToken)) {
             //deleting of appropriate jobs
@@ -91,7 +93,10 @@ public class UserServiceImpl implements UserService {
             }
             if (temporalToken.getTokenType() == TokenType.REGISTRATION ||
                     temporalToken.getTokenType() == TokenType.CONFIRM_NEW_IP) {
-                if (!userDao.setIpStateConfirmed(temporalToken.getUserId(), temporalToken.getCheckIp())) return 0;
+                if (!userDao.setIpStateConfirmed(temporalToken.getUserId(), temporalToken.getCheckIp())) {
+                    LOGGER.debug(userDao.getUserIpState(userDao.getUserById(temporalToken.getUserId()).getEmail(), temporalToken.getCheckIp()));
+                    return 0;
+                }
             }
         }
         return temporalToken.getUserId();

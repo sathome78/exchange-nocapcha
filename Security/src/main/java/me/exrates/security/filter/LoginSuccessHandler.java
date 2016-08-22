@@ -56,8 +56,6 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
             }
             UserIpDto userIpDto = userService.getUserIpState(email, ip);
             if (userIpDto.getUserIpState() != UserIpState.CONFIRMED) {
-                authentication.setAuthenticated(false);
-            /**/
                 if (userIpDto.getUserIpState() == UserIpState.NEW) {
                     userService.insertIp(email, ip);
                 }

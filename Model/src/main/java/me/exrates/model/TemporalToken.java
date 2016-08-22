@@ -58,4 +58,17 @@ public class TemporalToken {
 	public void setCheckIp(String checkIp) {
 		this.checkIp = checkIp;
 	}
+
+	@Override
+	public String toString() {
+		return "TemporalToken{" +
+				"id=" + id +
+				", value='" + value + '\'' +
+				", userId=" + userId +
+				", expired=" + expired +
+				", dateCreation=" + dateCreation +
+				", tokenType=" + tokenType +
+				", checkIp='" + checkIp + '\'' +
+				'}';
+	}
 }

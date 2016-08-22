@@ -457,6 +457,8 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public UserIpDto getUserIpState(String email, String ip) {
+
+
         String sql = "SELECT * FROM USER_IP " +
                 " WHERE " +
                 " user_id = (SELECT USER.id FROM USER WHERE USER.email = :email)" +
@@ -489,6 +491,9 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public boolean setIpStateConfirmed(int userId, String ip) {
+        LOGGER.debug("UID: " + userId);
+        LOGGER.debug("IP: " + ip);
+
         String sql = "UPDATE USER_IP " +
                 " SET confirmed = true, confirm_date = NOW() " +
                 " WHERE user_id = :user_id AND ip = :ip";
