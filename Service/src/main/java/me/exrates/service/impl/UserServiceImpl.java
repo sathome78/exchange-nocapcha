@@ -261,6 +261,15 @@ public class UserServiceImpl implements UserService {
         sendMailService.sendMail(email);
     }
 
+    @Override
+    public void sendUnfamiliarIpNotificationEmail(User user, String emailSubject, String emailText, Locale locale) {
+        Email email = new Email();
+        email.setTo(user.getEmail());
+        email.setMessage(messageSource.getMessage(emailText, new Object[]{user.getIp()}, locale));
+        email.setSubject(messageSource.getMessage(emailSubject, null, locale));
+        sendMailService.sendMail(email);
+    }
+
     public boolean createTemporalToken(TemporalToken token) {
         boolean result = userDao.createTemporalToken(token);
         if (result) {

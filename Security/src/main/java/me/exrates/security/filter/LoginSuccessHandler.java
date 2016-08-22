@@ -55,26 +55,21 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
                 ip = request.getRemoteHost();
             }
             UserIpDto userIpDto = userService.getUserIpState(email, ip);
-            if (userIpDto.getUserIpState() != UserIpState.CONFIRMED) {
-                if (userIpDto.getUserIpState() == UserIpState.NEW) {
-                    userService.insertIp(email, ip);
-                }
+
+            if (userIpDto.getUserIpState() == UserIpState.NEW) {
+                userService.insertIp(email, ip);
                 me.exrates.model.User u = new me.exrates.model.User();
                 u.setId(userIpDto.getUserId());
                 u.setEmail(email);
                 u.setIp(ip);
-                String rootUrl = request.getScheme() + "://" + request.getServerName() +
-                        ":" + request.getServerPort();
-                userService.sendEmailWithToken(u, TokenType.CONFIRM_NEW_IP, rootUrl + "/newIpConfirm", "emailsubmitnewip.subject", "emailsubmitnewip.text", locale);
-            /**/
-                request.getSession().setAttribute("errorNoty", messageSource.getMessage("login.newip", null, locale));
-            /**/
-                response.sendRedirect("/login");
-                return;
-            } else {
-                userService.setLastRegistrationDate(userIpDto.getUserId(), ip);
+                userService.sendUnfamiliarIpNotificationEmail(u, "emailsubmitnewip.subject", "emailsubmitnewip.text", locale);
             }
+            userService.setLastRegistrationDate(userIpDto.getUserId(), ip);
+
             response.sendRedirect(successUrl);
+            return;
+
+
         } catch (Exception e) {
             LOGGER.error(e);
             authentication.setAuthenticated(false);
