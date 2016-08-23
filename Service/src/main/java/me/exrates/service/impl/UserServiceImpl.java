@@ -94,7 +94,6 @@ public class UserServiceImpl implements UserService {
             if (temporalToken.getTokenType() == TokenType.REGISTRATION ||
                     temporalToken.getTokenType() == TokenType.CONFIRM_NEW_IP) {
                 if (!userDao.setIpStateConfirmed(temporalToken.getUserId(), temporalToken.getCheckIp())) {
-                    LOGGER.debug(userDao.getUserIpState(userDao.getUserById(temporalToken.getUserId()).getEmail(), temporalToken.getCheckIp()));
                     return 0;
                 }
             }
