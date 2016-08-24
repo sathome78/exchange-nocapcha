@@ -46,6 +46,7 @@
         </script>
     </c:if>
     <%@include file="tools/alexa.jsp" %>
+    <%@include file="tools/yandex.jsp" %>
 </head>
 
 

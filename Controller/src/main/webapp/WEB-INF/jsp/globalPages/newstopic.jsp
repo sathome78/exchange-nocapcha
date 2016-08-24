@@ -47,6 +47,7 @@
     <%--<%@include file="../tools/zopim.jsp" %>--%>
     <%-- ... TOOLS--%>
     <%@include file="../tools/alexa.jsp" %>
+    <%@include file="../tools/yandex.jsp" %>
 
 </head>
 <body>
