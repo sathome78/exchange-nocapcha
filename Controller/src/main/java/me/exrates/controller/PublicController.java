@@ -25,7 +25,9 @@ public class PublicController {
         if (currencyPair != null) {
             currencyPair = currencyPair.replace('_', '/');
         }
-        List<CoinmarketApiDto> list = orderService.getCoinmarketData(currencyPair, new BackDealInterval("24 HOUR"));
-        return list.toString().replaceAll("\\[", "{").replaceAll("]", "}");
+        return "{\"ERROR\":\"temporary off\"}";
+        /*TODO for monitoring
+        List<CoinmarketApiDto1> list = orderService.getCoinmarketData(currencyPair, new BackDealInterval("24 HOUR"));
+        return list.toString().replaceAll("\\[", "{").replaceAll("]", "}");*/
     }
 }
