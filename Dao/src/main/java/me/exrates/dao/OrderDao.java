@@ -41,7 +41,7 @@ public interface OrderDao {
 
     List<ExOrderStatisticsShortByPairsDto> getOrderStatisticByPairs(Locale locale);
 
-    List<CoinmarketApiDto> getCoinmarketData(String currencyPairName, BackDealInterval backDealInterval);
+    List<CoinmarketApiDto> getCoinmarketData(String currencyPairName);
 
     OrderInfoDto getOrderInfo(int orderId, Locale locale);
 
