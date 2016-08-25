@@ -78,6 +78,9 @@
                     <p><loc:message code="merchants.modalInputFinalSum"/></p>
                     <p><loc:message code="merchants.warn"/></p>
                 </div>
+                <div class="paymentQR">
+
+                </div>
             </div>
             <div class="modal-footer">
                 <div class="add__money__btns request_money_operation_btn">

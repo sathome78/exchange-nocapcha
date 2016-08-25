@@ -13,17 +13,20 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
+import java.util.TreeMap;
 
 import static org.springframework.http.HttpStatus.NO_CONTENT;
-import static org.springframework.http.HttpStatus.OK;
-import static org.springframework.web.bind.annotation.RequestMethod.*;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -49,9 +52,9 @@ public class BitcoinController {
     }
 
     @RequestMapping(value = "/payment/prepare", method = POST)
-    public ResponseEntity<String> preparePayment(final @RequestBody Payment payment,
-                                                 final Principal principal,
-                                                 final Locale locale)
+    public ResponseEntity<Map<String, String>> preparePayment(final @RequestBody Payment payment,
+                                                              final Principal principal,
+                                                              final Locale locale)
     {
         final String email = principal.getName();
         final CreditsOperation creditsOperation = merchantService
@@ -64,11 +67,19 @@ public class BitcoinController {
                                     .getAddress().orElseThrow(
                                     () ->new MerchantInternalException("Address not presented"))
                             ,email ,locale, creditsOperation, "merchants.depositNotification.body");
+
             final HttpHeaders httpHeaders = new HttpHeaders();
             httpHeaders.add("Content-Type", "text/plain; charset=utf-8");
-            return new ResponseEntity<>(notification, httpHeaders, OK);
+            Map<String,String> responseMap = new TreeMap<>();
+            responseMap.put("notification", notification);
+            responseMap.put("qr", "bitcoin:" + pendingPayment.getAddress().orElseThrow(
+                            () ->new MerchantInternalException("Address not presented")) + "?amount="
+                    + creditsOperation.getAmount().doubleValue() + "&message=Donation%20for%20project%20Exrates");
+
+            return new ResponseEntity<>(responseMap, HttpStatus.OK);
         } catch (final InvalidAmountException|RejectedPaymentInvoice e) {
-            final String error = messageSource.getMessage("merchants.incorrectPaymentDetails", null, locale);
+            final Map<String,String> error = new HashMap<>();
+            error.put("error", messageSource.getMessage("merchants.incorrectPaymentDetails", null, locale));
             LOG.warn(error);
             return new ResponseEntity<>(error, NO_CONTENT);
         }
