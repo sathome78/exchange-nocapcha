@@ -61,7 +61,7 @@ public class OnlineRestController {
     /*depth the accepted order history*/
     final public BackDealInterval ORDER_HISTORY_INTERVAL = new BackDealInterval("24 HOUR");
     /*limit the data fetching of order history (additional to ORDER_HISTORY_INTERVAL). (-1) means no limit*/
-    final public Integer ORDER_HISTORY_LIMIT = -1;
+    final public Integer ORDER_HISTORY_LIMIT = 100;
     /*default limit the data fetching for all tables. (-1) means no limit*/
     final public Integer TABLES_LIMIT_DEFAULT = -1;
     /*default type of the chart*/
