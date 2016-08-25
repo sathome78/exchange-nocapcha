@@ -1,16 +1,11 @@
 package me.exrates.controller;
 
-import me.exrates.controller.annotation.OnlineMethod;
 import me.exrates.controller.exception.*;
-import me.exrates.model.vo.CacheData;
 import me.exrates.model.News;
-import me.exrates.model.dto.onlineTableDto.NewsDto;
-import me.exrates.model.dto.TableParams;
 import me.exrates.service.NewsService;
 import me.exrates.service.UserFilesService;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
-import org.apache.logging.log4j.core.util.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -26,7 +21,6 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.time.LocalDate;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -84,7 +78,7 @@ public class NewsControllerRest {
                 ZipInputStream zis = new ZipInputStream(multipartFile.getInputStream(), Charset.forName("CP866"));
                 ZipEntry ze;
                 while ((ze = zis.getNextEntry()) != null) {
-                    if (ze.getName().contains("/"+TITLE_DESCRIPTION_FILE_NAME)) {
+                    if (ze.getName().contains("/" + TITLE_DESCRIPTION_FILE_NAME)) {
                         byte[] buff = new byte[(int) ze.getSize()];
                         zis.read(buff);
                         news.setTitle(new String(buff, "UTF-8"));
@@ -102,7 +96,7 @@ public class NewsControllerRest {
                             n.setTitle(news.getTitle());
                         }
                     }
-                    if (ze.getName().contains("/"+BRIEF_DESCRIPTION_FILE_NAME)) {
+                    if (ze.getName().contains("/" + BRIEF_DESCRIPTION_FILE_NAME)) {
                         byte[] buff = new byte[(int) ze.getSize()];
                         zis.read(buff);
                         news.setBrief(new String(buff, "UTF-8"));

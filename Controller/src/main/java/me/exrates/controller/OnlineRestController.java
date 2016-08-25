@@ -47,6 +47,7 @@ import java.util.stream.Collectors;
 
 @RestController
 public class OnlineRestController {
+    private static final Logger LOGGER = LogManager.getLogger(OnlineRestController.class);
     /* if SESSION_LIFETIME_HARD set, session will be killed after time expired, regardless of activity the session
     set SESSION_LIFETIME_HARD = 0 to ignore it*/
     public static final long SESSION_LIFETIME_HARD = Math.round(30 * 60); //SECONDS
@@ -55,7 +56,6 @@ public class OnlineRestController {
     * The time of end the current session is stored in session param "sessionEndTime", which calculated in millisec as
     * new Date().getTime() + SESSION_LIFETIME_HARD * 1000*/
     public static final int SESSION_LIFETIME_INACTIVE = 0; //SECONDS
-    private static final Logger LOGGER = LogManager.getLogger(OnlineRestController.class);
     /*default depth the interval for chart*/
     final public BackDealInterval BACK_DEAL_INTERVAL_DEFAULT = new BackDealInterval("24 HOUR");
     /*depth the accepted order history*/
@@ -99,13 +99,19 @@ public class OnlineRestController {
 
     @RequestMapping(value = "/dashboard/commission/{type}", method = RequestMethod.GET)
     public BigDecimal getCommissions(@PathVariable("type") String type) {
-        switch (type) {
-            case "sell":
-                return commissionService.findCommissionByType(OperationType.SELL).getValue();
-            case "buy":
-                return commissionService.findCommissionByType(OperationType.BUY).getValue();
-            default:
-                return null;
+        long before = System.currentTimeMillis();
+        try {
+            switch (type) {
+                case "sell":
+                    return commissionService.findCommissionByType(OperationType.SELL).getValue();
+                case "buy":
+                    return commissionService.findCommissionByType(OperationType.BUY).getValue();
+                default:
+                    return null;
+            }
+        } finally {
+            long after = System.currentTimeMillis();
+            LOGGER.debug("completed... ms: " + (after - before));
         }
     }
 
@@ -127,11 +133,15 @@ public class OnlineRestController {
         if (principal == null) {
             return null;
         }
+        long before = System.currentTimeMillis();
         String email = principal.getName();
         String cacheKey = "myWalletsStatistic" + request.getHeader("windowid");
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
         CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
-        return walletService.getAllWalletsForUserReduced(cacheData, email, localeResolver.resolveLocale(request));
+        List<MyWalletsStatisticsDto> result = walletService.getAllWalletsForUserReduced(cacheData, email, localeResolver.resolveLocale(request));
+        long after = System.currentTimeMillis();
+        LOGGER.debug("completed... ms: " + (after - before));
+        return result;
     }
 
     /**
@@ -174,51 +184,63 @@ public class OnlineRestController {
     public Map<String, ?> getCurrencyPairStatisticsForAllCurrencies(
             @RequestParam(required = false) Boolean refreshIfNeeded,
             HttpServletRequest request) throws IOException {
-        HttpSession session = request.getSession(true);
-        if (session.getAttribute("sessionEndTime") == null) {
-            session.setAttribute("sessionEndTime", new Date().getTime() + SESSION_LIFETIME_HARD * 1000);
-        }
-        String s = "";
-        if (SESSION_LIFETIME_HARD != 0) {
-            if (session.getAttribute("sessionEndTime") != null) {
-                s = " Remain to SESSION_LIFETIME_HARD killing: " + ((Long) session.getAttribute("sessionEndTime") - new Date().getTime()) / 1000 + " sec";
+        long before = System.currentTimeMillis();
+        long beforeService = 0;
+        try {
+            HttpSession session = request.getSession(true);
+            if (session.getAttribute("sessionEndTime") == null) {
+                session.setAttribute("sessionEndTime", new Date().getTime() + SESSION_LIFETIME_HARD * 1000);
             }
-        }
-        LOGGER.trace(" SESSION: " + session.getId() + " firstEntry: " + session.getAttribute("firstEntry") + s);
-        if ((!session.isNew()) &&
-                (SESSION_LIFETIME_HARD != 0) &&
-                new Date().getTime() >= (Long) session.getAttribute("sessionEndTime")) {
-            long st = (Long) session.getAttribute("sessionEndTime");
-            try {
-                request.logout();
-            } catch (ServletException e) {
-                e.printStackTrace();
+            String s = "";
+            if (SESSION_LIFETIME_HARD != 0) {
+                if (session.getAttribute("sessionEndTime") != null) {
+                    s = " Remain to SESSION_LIFETIME_HARD killing: " + ((Long) session.getAttribute("sessionEndTime") - new Date().getTime()) / 1000 + " sec";
+                }
             }
-            session = request.getSession(true);
-            LOGGER.debug(" SESSION_LIFETIME_HARD. NEW SESSION STARTED: " + session.getId() + " by time: " + st + " new time: " + session.getAttribute("sessionEndTime"));
-        }
-        if (session.isNew() || session.getAttribute("firstEntry") == null) {
+            LOGGER.trace(" SESSION: " + session.getId() + " firstEntry: " + session.getAttribute("firstEntry") + s);
+            if ((!session.isNew()) &&
+                    (SESSION_LIFETIME_HARD != 0) &&
+                    new Date().getTime() >= (Long) session.getAttribute("sessionEndTime")) {
+                long st = (Long) session.getAttribute("sessionEndTime");
+                try {
+                    request.logout();
+                } catch (ServletException e) {
+                    e.printStackTrace();
+                }
+                session = request.getSession(true);
+                LOGGER.debug(" SESSION_LIFETIME_HARD. NEW SESSION STARTED: " + session.getId() + " by time: " + st + " new time: " + session.getAttribute("sessionEndTime"));
+            }
+            if (session.isNew() || session.getAttribute("firstEntry") == null) {
             /*
             "session.isNew() == true" indicates that "/dashboard/currencyPairStatistic" is called first after previous
             session has expired, and opened new session (by calling request.getSession(true))
             "firstEntry" == null indicates that new session was started by other online method
             * and "/dashboard/currencyPairStatistic" ought to start new session and redirect to "/dashboard"*/
-            session.setAttribute("sessionEndTime", new Date().getTime() + SESSION_LIFETIME_HARD * 1000);
-            LOGGER.debug(" REDIRECT to /dashboard. SESSION: " + session.getId() + " is new: " + session.isNew() + " firstEntry: " + session.getAttribute("firstEntry"));
-            return new HashMap<String, HashMap<String, String>>() {{
-                put("redirect", new HashMap<String, String>() {{
-                    put("url", "/dashboard");
-                    put("urlParam1", messageSource.getMessage("session.expire", null, localeResolver.resolveLocale(request)));
-                }});
-            }};
-        }
+                session.setAttribute("sessionEndTime", new Date().getTime() + SESSION_LIFETIME_HARD * 1000);
+                LOGGER.debug(" REDIRECT to /dashboard. SESSION: " + session.getId() + " is new: " + session.isNew() + " firstEntry: " + session.getAttribute("firstEntry"));
+                return new HashMap<String, HashMap<String, String>>() {{
+                    put("redirect", new HashMap<String, String>() {{
+                        put("url", "/dashboard");
+                        put("urlParam1", messageSource.getMessage("session.expire", null, localeResolver.resolveLocale(request)));
+                    }});
+                }};
+            }
         /**/
-        String cacheKey = "currencyPairStatistic" + request.getHeader("windowid");
-        refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
-        CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
-        return new HashMap<String, List<ExOrderStatisticsShortByPairsDto>>() {{
-            put("list", orderService.getOrdersStatisticByPairs(cacheData, localeResolver.resolveLocale(request)));
-        }};
+            String cacheKey = "currencyPairStatistic" + request.getHeader("windowid");
+            refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
+            CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
+            beforeService = System.currentTimeMillis();
+            return new HashMap<String, List<ExOrderStatisticsShortByPairsDto>>() {{
+                put("list", orderService.getOrdersStatisticByPairs(cacheData, localeResolver.resolveLocale(request)));
+            }};
+        } catch (Exception e) {
+            long after = System.currentTimeMillis();
+            LOGGER.error("error... ms: " + (after - before) + " : " + e);
+            throw e;
+        } finally {
+            long after = System.currentTimeMillis();
+            LOGGER.debug("completed... ms: general: " + (after - before)+" service only: "+(after - beforeService));
+        }
     }
 
     /**
@@ -237,12 +259,15 @@ public class OnlineRestController {
      */
     @RequestMapping(value = {"/dashboard/firstentry"})
     public void setFirstEntryFlag(HttpServletRequest request) {
+        long before = System.currentTimeMillis();
         HttpSession session = request.getSession();
         session.setAttribute("firstEntry", true);
         LOGGER.debug(" SESSION: " + session.getId() + " firstEntry: " + session.getAttribute("firstEntry"));
         if (SESSION_LIFETIME_INACTIVE != 0) {
             session.setMaxInactiveInterval(SESSION_LIFETIME_INACTIVE);
         }
+        long after = System.currentTimeMillis();
+        LOGGER.debug("completed... ms: " + (after - before));
     }
 
     /**
@@ -257,6 +282,7 @@ public class OnlineRestController {
     @OnlineMethod
     @RequestMapping(value = "/dashboard/chartArray/{type}", method = RequestMethod.GET)
     public ArrayList chartArray(HttpServletRequest request) {
+        long before = System.currentTimeMillis();
         CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
         final BackDealInterval backDealInterval = (BackDealInterval) request.getSession().getAttribute("currentBackDealInterval");
         ChartType chartType = (ChartType) request.getSession().getAttribute("chartType");
@@ -319,6 +345,8 @@ public class OnlineRestController {
             }
         }
         request.getSession().setAttribute("currentBackDealInterval", backDealInterval);
+        long after = System.currentTimeMillis();
+        LOGGER.debug("completed... ms: " + (after - before));
         return arrayListMain;
     }
 
@@ -342,6 +370,7 @@ public class OnlineRestController {
             @RequestParam(required = false) String chart,
             @RequestParam(required = false) Boolean showAllPairs,
             HttpServletRequest request) {
+        long before = System.currentTimeMillis();
         CurrencyPair currencyPair;
         if (currencyPairName == null) {
             if (request.getSession().getAttribute("currentCurrencyPair") == null) {
@@ -395,6 +424,8 @@ public class OnlineRestController {
         currentParams.setPeriod(((BackDealInterval) request.getSession().getAttribute("currentBackDealInterval")).getInterval());
         currentParams.setChartType(((ChartType) request.getSession().getAttribute("chartType")).getTypeName());
         currentParams.setShowAllPairs(((Boolean) request.getSession().getAttribute("showAllPairs")));
+        long after = System.currentTimeMillis();
+        LOGGER.debug("completed... ms: " + (after - before));
         return currentParams;
     }
 
@@ -415,6 +446,7 @@ public class OnlineRestController {
             @RequestParam(required = false) OrderStatus orderStatusValue,
             HttpServletRequest request) {
         /**/
+        long before = System.currentTimeMillis();
         String attributeName = tableId + "Params";
         TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
         if (tableParams == null) {
@@ -434,6 +466,8 @@ public class OnlineRestController {
         tableParams.setPageSize(limit);
         /**/
         request.getSession().setAttribute(attributeName, tableParams);
+        long after = System.currentTimeMillis();
+        LOGGER.debug("completed... ms: " + (after - before));
         return tableParams;
     }
 
@@ -448,10 +482,13 @@ public class OnlineRestController {
     @OnlineMethod
     @RequestMapping(value = "/dashboard/ordersForPairStatistics", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ExOrderStatisticsDto getNewCurrencyPairData(HttpServletRequest request) {
+        long before = System.currentTimeMillis();
         CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
         BackDealInterval backDealInterval = (BackDealInterval) request.getSession().getAttribute("currentBackDealInterval");
         /**/
         ExOrderStatisticsDto exOrderStatisticsDto = orderService.getOrderStatistic(currencyPair, backDealInterval, localeResolver.resolveLocale(request));
+        long after = System.currentTimeMillis();
+        LOGGER.debug("completed... ms: " + (after - before));
         return exOrderStatisticsDto;
     }
 
@@ -463,8 +500,12 @@ public class OnlineRestController {
      */
     @RequestMapping(value = "/dashboard/createPairSelectorMenu", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public List<String> getCurrencyPairNameList() {
+        long before = System.currentTimeMillis();
         List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs();
-        return currencyPairs.stream().map(e -> e.getName()).collect((Collectors.toList()));
+        List<String> result = currencyPairs.stream().map(e -> e.getName()).collect((Collectors.toList()));
+        long after = System.currentTimeMillis();
+        LOGGER.debug("completed... ms: " + (after - before));
+        return result;
     }
 
 
@@ -486,12 +527,16 @@ public class OnlineRestController {
                                                          @PathVariable String scope,
                                                          Principal principal,
                                                          HttpServletRequest request) {
+        long before = System.currentTimeMillis();
         String email = principal == null || "ALL".equals(scope.toUpperCase()) ? "" : principal.getName();
         CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
         String cacheKey = "acceptedOrderHistory" + email + request.getHeader("windowid");
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
         CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
-        return orderService.getOrderAcceptedForPeriod(cacheData, email, ORDER_HISTORY_INTERVAL, ORDER_HISTORY_LIMIT, currencyPair, localeResolver.resolveLocale(request));
+        List<OrderAcceptedHistoryDto> result = orderService.getOrderAcceptedForPeriod(cacheData, email, ORDER_HISTORY_INTERVAL, ORDER_HISTORY_LIMIT, currencyPair, localeResolver.resolveLocale(request));
+        long after = System.currentTimeMillis();
+        LOGGER.debug("completed... ms: " + (after - before));
+        return result;
     }
 
     /**
@@ -502,7 +547,11 @@ public class OnlineRestController {
      */
     @RequestMapping(value = "/dashboard/orderCommissions", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public OrderCommissionsDto getOrderCommissions() {
-        return orderService.getCommissionForOrder();
+        long before = System.currentTimeMillis();
+        OrderCommissionsDto result = orderService.getCommissionForOrder();
+        long after = System.currentTimeMillis();
+        LOGGER.debug("completed... ms: " + (after - before));
+        return result;
     }
 
     /**
@@ -520,6 +569,7 @@ public class OnlineRestController {
     @RequestMapping(value = "/dashboard/sellOrders", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public List<OrderListDto> getSellOrdersList(@RequestParam(required = false) Boolean refreshIfNeeded,
                                                 Principal principal, HttpServletRequest request) {
+        long before = System.currentTimeMillis();
         CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
         String email = principal == null ? "" : principal.getName();
         /*unlock the displaying of own orders*/
@@ -528,7 +578,10 @@ public class OnlineRestController {
         String cacheKey = "sellOrders" + request.getHeader("windowid");
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
         CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
-        return orderService.getAllSellOrders(cacheData, currencyPair, email, localeResolver.resolveLocale(request));
+        List<OrderListDto> result = orderService.getAllSellOrders(cacheData, currencyPair, email, localeResolver.resolveLocale(request));
+        long after = System.currentTimeMillis();
+        LOGGER.debug("completed... ms: " + (after - before));
+        return result;
     }
 
     /**
@@ -546,6 +599,7 @@ public class OnlineRestController {
     @RequestMapping(value = "/dashboard/BuyOrders", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public List<OrderListDto> getBuyOrdersList(@RequestParam(required = false) Boolean refreshIfNeeded,
                                                Principal principal, HttpServletRequest request) {
+        long before = System.currentTimeMillis();
         CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
         String email = principal == null ? "" : principal.getName();
         /*unlock the displaying of own orders*/
@@ -554,7 +608,10 @@ public class OnlineRestController {
         String cacheKey = "BuyOrders" + request.getHeader("windowid");
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
         CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
-        return orderService.getAllBuyOrders(cacheData, currencyPair, email, localeResolver.resolveLocale(request));
+        List<OrderListDto> result = orderService.getAllBuyOrders(cacheData, currencyPair, email, localeResolver.resolveLocale(request));
+        long after = System.currentTimeMillis();
+        LOGGER.debug("completed... ms: " + (after - before));
+        return result;
     }
 
     /**
@@ -575,11 +632,15 @@ public class OnlineRestController {
         if (principal == null) {
             return null;
         }
+        long before = System.currentTimeMillis();
         String email = principal.getName();
         String cacheKey = "myWalletsData" + request.getHeader("windowid");
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
         CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
-        return walletService.getAllWalletsForUserDetailed(cacheData, email, localeResolver.resolveLocale(request));
+        List<MyWalletsDetailedDto> result = walletService.getAllWalletsForUserDetailed(cacheData, email, localeResolver.resolveLocale(request));
+        long after = System.currentTimeMillis();
+        LOGGER.debug("completed... ms: " + (after - before));
+        return result;
     }
 
     /**
@@ -610,6 +671,7 @@ public class OnlineRestController {
         if (principal == null) {
             return null;
         }
+        long before = System.currentTimeMillis();
         String email = principal.getName();
         CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
         Boolean showAllPairs = (Boolean) request.getSession().getAttribute("showAllPairs");
@@ -629,6 +691,8 @@ public class OnlineRestController {
             result.get(0).setPage(tableParams.getPageNumber());
         }
         tableParams.updateEofState(result);
+        long after = System.currentTimeMillis();
+        LOGGER.debug("completed... ms: " + (after - before));
         return result;
     }
 
@@ -671,6 +735,7 @@ public class OnlineRestController {
         if (principal == null) {
             return null;
         }
+        long before = System.currentTimeMillis();
         String email = principal.getName();
         /**/
         String attributeName = tableId + "Params";
@@ -686,6 +751,8 @@ public class OnlineRestController {
             result.get(0).setPage(tableParams.getPageNumber());
         }
         tableParams.updateEofState(result);
+        long after = System.currentTimeMillis();
+        LOGGER.debug("completed... ms: " + (after - before));
         return result;
     }
 
@@ -711,6 +778,7 @@ public class OnlineRestController {
             @RequestParam(required = false) PagingDirection direction,
             HttpServletRequest request) {
         /**/
+        long before = System.currentTimeMillis();
         String attributeName = tableId + "Params";
         TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
         Assert.requireNonNull(tableParams, "The parameters are not populated for the " + tableId);
@@ -724,6 +792,8 @@ public class OnlineRestController {
             result.get(0).setPage(tableParams.getPageNumber());
         }
         tableParams.updateEofState(result);
+        long after = System.currentTimeMillis();
+        LOGGER.debug("completed... ms: " + (after - before));
         return result;
     }
 
@@ -751,6 +821,7 @@ public class OnlineRestController {
         if (principal == null) {
             return null;
         }
+        long before = System.currentTimeMillis();
         String email = principal.getName();
         /**/
         String attributeName = tableId + "Params";
@@ -766,6 +837,8 @@ public class OnlineRestController {
             result.get(0).setPage(tableParams.getPageNumber());
         }
         tableParams.updateEofState(result);
+        long after = System.currentTimeMillis();
+        LOGGER.debug("completed... ms: " + (after - before));
         return result;
     }
 
@@ -787,6 +860,7 @@ public class OnlineRestController {
             @RequestParam(required = false) Boolean refreshIfNeeded,
             @RequestParam(required = false) Integer page,
             HttpServletRequest request) {
+        long before = System.currentTimeMillis();
         String attributeName = tableId + "Params";
         TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
         Assert.requireNonNull(tableParams, "The parameters are not populated for the " + tableId);
@@ -794,7 +868,10 @@ public class OnlineRestController {
         String cacheKey = "newsList" + request.getHeader("windowid");
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
         CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
-        return newsService.getNewsBriefList(cacheData, offset, tableParams.getPageSize(), localeResolver.resolveLocale(request));
+        List<NewsDto> result = newsService.getNewsBriefList(cacheData, offset, tableParams.getPageSize(), localeResolver.resolveLocale(request));
+        long after = System.currentTimeMillis();
+        LOGGER.debug("completed... ms: " + (after - before));
+        return result;
     }
 
 }
