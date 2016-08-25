@@ -43,7 +43,7 @@ function MyWalletsClass() {
                 if (data.length == 0 || data[0].needRefresh) {
                     hideConfirmationDetailTooltip();
                     var $tmpl = $('#balance-table_row').html().replace(/@/g, '%');
-                    $balanceTable.find('tr').has('td').remove();
+                    clearTable($balanceTable);
                     data.forEach(function (e) {
                         $balanceTable.append(tmpl($tmpl, e));
                     });

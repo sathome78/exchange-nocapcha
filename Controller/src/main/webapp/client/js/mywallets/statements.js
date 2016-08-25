@@ -64,7 +64,7 @@ function MyStatementsClass(currentCurrencyPair) {
                 if (!data) return;
                 if (data.length == 0 || data[0].needRefresh) {
                     var $tmpl = $('#mystatement-table_row').html().replace(/@/g, '%');
-                    $mystatementsTable.find('tr').has('td').remove();
+                    clearTable($mystatementsTable);
                     data.forEach(function (e) {
                         $mystatementsTable.append(tmpl($tmpl, e));
                     });

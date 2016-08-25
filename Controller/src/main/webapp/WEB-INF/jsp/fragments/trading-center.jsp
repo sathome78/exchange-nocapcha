@@ -62,12 +62,12 @@
             <%--ALL TRADES TABLE --%>
 
             <table id="orders-history-table" class="orders-history-table table_middle default-skin">
+                <tbody>
                 <tr class="ht__theader">
                     <th class="center"><loc:message code="dashboard.time"/></th>
                     <th class="center"><loc:message code="dashboard.price"/></th>
                     <th class="center currencyBaseName"></th>
                 </tr>
-                <tbody>
                 <script type="text/template" id="orders-history-table_row">
                     <tr>
                         <td><@=dateAcceptionTime@></td>

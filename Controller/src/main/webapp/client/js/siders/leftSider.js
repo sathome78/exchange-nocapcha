@@ -42,7 +42,7 @@ function LeftSiderClass() {
                 if (!data) return;
                 if (data.length == 0 || data[0].needRefresh) {
                     var $tmpl = $('#mywallets_table_row').html().replace(/@/g, '%');
-                    $mywalletsTable.find('tr').has('td').remove();
+                    clearTable($mywalletsTable);
                     data.forEach(function (e) {
                         $mywalletsTable.append(tmpl($tmpl, e));
                     });
@@ -86,7 +86,7 @@ function LeftSiderClass() {
                 data = data['list'];
                 if (data.length == 0 || data[0].needRefresh) {
                     var $tmpl = $('#currency_table_row').html().replace(/@/g, '%');
-                    $currencyTable.find('tr').has('td').remove();
+                    clearTable($currencyTable);
                     data.forEach(function (e) {
                         $currencyTable.append(tmpl($tmpl, e));
                     });
