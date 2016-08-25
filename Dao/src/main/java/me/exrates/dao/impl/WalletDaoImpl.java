@@ -177,16 +177,18 @@ public class WalletDaoImpl implements WalletDao {
                         "  " +
                         " UNION ALL " +
                         "  " +
-                        " SELECT WALLET.id, CURRENCY.name, WALLET.active_balance, WALLET.reserved_balance,   " +
-                        " 0, 0, 0, " +
-                        " 0, 0, " +
+                        " SELECT WALLET.id AS wallet_id, CURRENCY.name AS currency_name, WALLET.active_balance AS active_balance, WALLET.reserved_balance AS reserved_balance,   " +
+                        " 0 AS amount_base, 0 AS amount_convert, 0 AS commission_fixed_amount, " +
+                        " 0 AS withdraw_amount, 0 AS withdraw_commission,  " +
                         " SUM(TRANSACTION.amount), SUM(TRANSACTION.commission_amount), SUM(TRANSACTION.confirmation), COUNT(TRANSACTION.id) " +
                         " FROM USER " +
                         " JOIN WALLET ON (WALLET.user_id = USER.id)  " +
                         " JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
                         " JOIN TRANSACTION ON (TRANSACTION.operation_type_id=1) AND (TRANSACTION.user_wallet_id = WALLET.id) AND (TRANSACTION.confirmation BETWEEN 0 AND 3)  " +
                         " WHERE USER.email =  :email " +
-                        " GROUP BY WALLET.id " +
+                        " GROUP BY wallet_id, currency_name,  active_balance, reserved_balance, " +
+                        "          amount_base, amount_convert, commission_fixed_amount, " +
+                        "          withdraw_amount, withdraw_commission " +
                         " ) W " +
                         " GROUP BY wallet_id, currency_name, active_balance, reserved_balance";
         final Map<String, String> params = new HashMap<String, String>() {{

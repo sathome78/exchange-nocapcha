@@ -56,6 +56,8 @@ public interface UserService {
 
     boolean deleteExpiredToken(String token) throws UnRegisteredUserDeleteException;
 
+    void sendUnfamiliarIpNotificationEmail(User user, String emailSubject, String emailText, Locale locale);
+
     boolean createTemporalToken(TemporalToken token);
 
     User getCommonReferralRoot();
