@@ -94,7 +94,7 @@ public class EDCClientWebSocketHandler {
             } else if (blockInfoPattern.test(message)) {
                 edcService.submitTransactionsForProcessing(message);
             } else {
-                LOG.info("UNKNOWN RESPONSE\n" + message);
+                LOG.info("EDC Blockchain info\n" + message);
             }
         }
     }

@@ -84,7 +84,7 @@ public class NewsControllerRest {
                 ZipInputStream zis = new ZipInputStream(multipartFile.getInputStream(), Charset.forName("CP866"));
                 ZipEntry ze;
                 while ((ze = zis.getNextEntry()) != null) {
-                    if (ze.getName().contains(TITLE_DESCRIPTION_FILE_NAME)) {
+                    if (ze.getName().contains("/"+TITLE_DESCRIPTION_FILE_NAME)) {
                         byte[] buff = new byte[(int) ze.getSize()];
                         zis.read(buff);
                         news.setTitle(new String(buff, "UTF-8"));
@@ -102,7 +102,7 @@ public class NewsControllerRest {
                             n.setTitle(news.getTitle());
                         }
                     }
-                    if (ze.getName().contains(BRIEF_DESCRIPTION_FILE_NAME)) {
+                    if (ze.getName().contains("/"+BRIEF_DESCRIPTION_FILE_NAME)) {
                         byte[] buff = new byte[(int) ze.getSize()];
                         zis.read(buff);
                         news.setBrief(new String(buff, "UTF-8"));

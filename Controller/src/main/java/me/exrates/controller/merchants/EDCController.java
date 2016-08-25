@@ -2,11 +2,9 @@ package me.exrates.controller.merchants;
 
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
-import me.exrates.model.PendingPayment;
 import me.exrates.service.EDCService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.exception.InvalidAmountException;
-import me.exrates.service.exception.MerchantInternalException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,7 +63,7 @@ public class EDCController {
             return new ResponseEntity<>(notification, httpHeaders, OK);
         } catch (Exception e) {
             final String error = messageSource.getMessage("merchants.incorrectPaymentDetails", null, locale);
-            LOG.error(error);
+            LOG.error(e);
             return new ResponseEntity<>(error, NO_CONTENT);
         }
     }

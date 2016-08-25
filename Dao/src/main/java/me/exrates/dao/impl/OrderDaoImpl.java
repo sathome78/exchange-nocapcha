@@ -277,7 +277,7 @@ public class OrderDaoImpl implements OrderDao {
                 "   EXORDERS.currency_pair_id AS currency_pair_id " +
                 "   FROM EXORDERS          " +
                 "   WHERE EXORDERS.status_id = :status_id         " +
-                "   GROUP BY currency_pair_id          " +
+                "   GROUP BY status_id, currency_pair_id          " +
                 "   ) " +
                 " AGRIGATE " +
                 " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = AGRIGATE.currency_pair_id) AND (CURRENCY_PAIR.hidden IS NOT TRUE)"+
@@ -354,7 +354,7 @@ public class OrderDaoImpl implements OrderDao {
                 "    LEFT JOIN EXORDERS HIGH24ORDER ON (HIGH24ORDER.date_acception >= now() - INTERVAL 24 HOUR) AND " +
                 "                                    (HIGH24ORDER.currency_pair_id=AGRIGATE.currency_pair_id) AND " +
                 "                                    (HIGH24ORDER.status_id=AGRIGATE.status_id) " +
-                " GROUP BY currency_pair_name, first, LAST, baseVolume";
+                " GROUP BY currency_pair_name, first, LAST, baseVolume, quoteVolume, isFrozen ";
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("closed_status_id", String.valueOf(OrderStatus.CLOSED.getStatus()));
@@ -419,7 +419,15 @@ public class OrderDaoImpl implements OrderDao {
                         "      LEFT JOIN COMPANY_WALLET ON (COMPANY_WALLET.currency_id = TRANSACTION.company_wallet_id) and (TRANSACTION.commission_amount <> 0) " +
                         "      LEFT JOIN USER ON (USER.id = USER_WALLET.user_id) " +
                         " WHERE EXORDERS.id=:order_id" +
-                        " GROUP BY EXORDERS.id";
+                        " GROUP BY "+
+                        "     EXORDERS.id, EXORDERS.date_creation, EXORDERS.date_acception,  " +
+                        "     order_status_name,  " +
+                        "     currency_pair_name,  " +
+                        "     order_type_name,  " +
+                        "     EXORDERS.exrate, EXORDERS.amount_base, EXORDERS.amount_convert, " +
+                        "     currency_base_name, currency_convert_name, " +
+                        "     order_creator_email, " +
+                        "     order_acceptor_email ";
         Map<String, String> mapParameters = new HashMap<>();
         mapParameters.put("order_id", String.valueOf(orderId));
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);

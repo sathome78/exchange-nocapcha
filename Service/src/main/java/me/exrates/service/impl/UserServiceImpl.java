@@ -76,7 +76,9 @@ public class UserServiceImpl implements UserService {
      */
     @Transactional(rollbackFor = Exception.class)
     public int verifyUserEmail(String token) {
+        LOGGER.debug(token);
         TemporalToken temporalToken = userDao.verifyToken(token);
+        LOGGER.debug(temporalToken);
         //deleting all tokens related with current through userId and tokenType
         if (userDao.deleteTemporalTokensOfTokentypeForUser(temporalToken)) {
             //deleting of appropriate jobs
@@ -91,7 +93,9 @@ public class UserServiceImpl implements UserService {
             }
             if (temporalToken.getTokenType() == TokenType.REGISTRATION ||
                     temporalToken.getTokenType() == TokenType.CONFIRM_NEW_IP) {
-                if (!userDao.setIpStateConfirmed(temporalToken.getUserId(), temporalToken.getCheckIp())) return 0;
+                if (!userDao.setIpStateConfirmed(temporalToken.getUserId(), temporalToken.getCheckIp())) {
+                    return 0;
+                }
             }
         }
         return temporalToken.getUserId();
@@ -253,6 +257,15 @@ public class UserServiceImpl implements UserService {
         email.setSubject(messageSource.getMessage(emailSubject, null, locale));
 
         email.setTo(user.getEmail());
+        sendMailService.sendMail(email);
+    }
+
+    @Override
+    public void sendUnfamiliarIpNotificationEmail(User user, String emailSubject, String emailText, Locale locale) {
+        Email email = new Email();
+        email.setTo(user.getEmail());
+        email.setMessage(messageSource.getMessage(emailText, new Object[]{user.getIp()}, locale));
+        email.setSubject(messageSource.getMessage(emailSubject, null, locale));
         sendMailService.sendMail(email);
     }
 

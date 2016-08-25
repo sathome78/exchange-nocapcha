@@ -178,6 +178,8 @@ public class MainController {
         } else {
             user = (User) result.getModel().get("user");
             try {
+                logger.info(request.getRemoteHost());
+                logger.info(request.getRemoteAddr());
                 user.setIp(request.getRemoteHost());
                 if (userService.create(user, localeResolver.resolveLocale(request))) {
                     flag = true;

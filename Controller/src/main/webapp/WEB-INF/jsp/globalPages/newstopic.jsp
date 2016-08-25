@@ -36,6 +36,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/dashboard/chat.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/loc-direction.js'/>"></script>
     <%----------%>
     <%--TOOLS ... --%>
     <!-- Google Analytics-->
@@ -46,6 +47,7 @@
     <%--<%@include file="../tools/zopim.jsp" %>--%>
     <%-- ... TOOLS--%>
     <%@include file="../tools/alexa.jsp" %>
+    <%@include file="../tools/yandex.jsp" %>
 
 </head>
 <body>

@@ -13,10 +13,6 @@ function initLocaleSwitcher() {
             localeCode = 'ru';
         } else if (localeName == 'CH') {
             localeCode = 'cn';
-        } else if (localeName == 'TH') {
-            localeCode = 'th';
-        } else if (localeName == 'TH') {
-            localeCode = 'th';
         } else if (localeName == 'ID') {
             localeCode = 'in';
         } else if (localeName == 'AR') {

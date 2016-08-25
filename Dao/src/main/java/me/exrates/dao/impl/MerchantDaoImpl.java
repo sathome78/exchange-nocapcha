@@ -136,7 +136,7 @@ public class MerchantDaoImpl implements MerchantDao {
                 "left join OPERATION_TYPE on TRANSACTION.operation_type_id=OPERATION_TYPE.id\n" +
                 "left join WALLET on TRANSACTION.user_wallet_id=WALLET.id\n" +
                 "left join USER on WALLET.user_id=USER.id\n" +
-                "where TRANSACTION.source_type=:source_type and USER.email=:email group by datetime DESC" +
+                "where TRANSACTION.source_type=:source_type and USER.email=:email order by datetime DESC" +
                 (limit == -1 ? "" : "  LIMIT " + limit + " OFFSET " + offset);
         final Map<String, Object> params = new HashMap<>();
         params.put("email", email);

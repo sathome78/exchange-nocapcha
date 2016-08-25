@@ -32,6 +32,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/loc-direction.js'/>"></script>
     <%----------%>
     <%--capcha--%>
     <c:if test="${captchaType==\"RECAPTCHA\"}">
@@ -45,6 +46,7 @@
         </script>
     </c:if>
     <%@include file="tools/alexa.jsp" %>
+    <%@include file="tools/yandex.jsp" %>
 
 </head>
 
@@ -65,7 +67,7 @@
                     <div class="input-block-wrapper clearfix">
                         <loc:message code="login.email" var="adminEmail"/>
                         <div class="col-md-10 input-block-wrapper__input-wrapper">
-                            <form:input id="user-email" path="email"
+                            <form:input id="user-email" path="email" type="email"
                                    placeholder="${adminEmail}"
                                    class="form-control input-block-wrapper__input"/>
                         </div>
