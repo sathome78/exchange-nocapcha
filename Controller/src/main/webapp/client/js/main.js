@@ -291,13 +291,21 @@ $(function(){
                         },
                         type: 'POST',
                         contentType: 'application/json;charset=utf-8',
-                        dataType: 'text',
+                        dataType: 'json',
                         data: JSON.stringify($(form).serializeObject())
                     }).done(function (response) {
                         $('#inputPaymentProcess')
                             .prop('disabled', false)
                             .html($('#mrcht-ready').val());
-                        $('.paymentInfo').html(response);
+
+                        $.each(response, function (key) {
+                            if(key=='notification'){
+                                $('.paymentInfo').html(response[key]);
+                            }
+                            if(key=='qr'){
+                                $('.paymentQR').html("<img src='https://chart.googleapis.com/chart?chs=100x100&chld=L|2&cht=qr&chl=" + response[key] + "'>");
+                            }
+                        });
                         responseControls();
                     }).fail(function (error, jqXHR, textStatus) {
                         responseControls();
