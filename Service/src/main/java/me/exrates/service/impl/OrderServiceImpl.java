@@ -415,7 +415,7 @@ public class OrderServiceImpl implements OrderService {
         return orderDao.updateOrder(exOrder);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     @Override
     public List<CoinmarketApiDto> getCoinmarketData(String currencyPairName, BackDealInterval backDealInterval) {
         return orderDao.getCoinmarketData(currencyPairName);
