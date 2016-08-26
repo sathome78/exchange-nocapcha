@@ -1809,6 +1809,8 @@ form span.repass {
     width: 100%;
 }
 
-input[type=email], .dropdown-menu__form, .input-block-wrapper__label-wrapper, #captchaCode, .BDC_CaptchaDiv {
+input[type=email], .dropdown-menu__form,
+.input-block-wrapper__label-wrapper, #captchaCode, .BDC_CaptchaDiv,
+#merchantList {
     direction: ltr !important;
 }

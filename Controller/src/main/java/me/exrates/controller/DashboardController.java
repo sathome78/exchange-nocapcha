@@ -10,6 +10,8 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.security.filter.NotVerifiedCaptchaError;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -35,6 +37,9 @@ import java.util.*;
 @Controller
 @PropertySource("classpath:/captcha.properties")
 public class DashboardController {
+    private static final Logger LOG = LogManager.getLogger(DashboardController.class);
+
+
     @Autowired
     OrderService orderService;
 
@@ -74,6 +79,8 @@ public class DashboardController {
     @RequestMapping(value = {"/dashboard/locale"})
     @ResponseBody
     public void localeSwitcherCommand(Principal principal, HttpServletRequest request) {
+        LOG.debug(principal);
+        LOG.debug(localeResolver.resolveLocale(request));
         if (principal != null) {
             userService.setPreferedLang(userService.getIdByEmail(principal.getName()), localeResolver.resolveLocale(request));
         }

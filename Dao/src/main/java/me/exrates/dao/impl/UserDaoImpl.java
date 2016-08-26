@@ -424,6 +424,8 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public boolean setPreferredLang(int userId, Locale locale) {
+        LOGGER.debug(locale);
+        LOGGER.debug(userId);
         String sql = "UPDATE USER SET preferred_lang=:preferred_lang WHERE id = :id";
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("id", String.valueOf(userId));
