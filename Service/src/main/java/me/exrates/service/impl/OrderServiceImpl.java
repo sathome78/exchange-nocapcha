@@ -373,19 +373,20 @@ public class OrderServiceImpl implements OrderService {
         String message = "";
         switch (status) {
             case CAUSED_NEGATIVE_BALANCE:
-       //         message = messageSource.getMessage()
+                message = messageSource.getMessage("transaction.providerror", null, locale);
                 break;
             case CORRESPONDING_COMPANY_WALLET_NOT_FOUND:
-
+                message = messageSource.getMessage("", null, locale);
                 break;
             case NOT_FOUND:
+                message = messageSource.getMessage("", null, locale);
 
                 break;
             case WALLET_UPDATE_ERROR:
-
+                message = messageSource.getMessage("", null, locale);
                 break;
             case TRANSACTION_CREATION_ERROR:
-
+                message = messageSource.getMessage("", null, locale);
                 break;
             default:
 
