@@ -27,3 +27,11 @@
         return data ? fn(data) : fn;
     };
 })();
+
+function clearTable($table){
+    var $title =$table.find('tr').has('th');
+    var $script = $table.find('script');
+    $table.empty();
+    $table.append($title);
+    $table.append($script);
+}

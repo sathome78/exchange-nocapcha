@@ -22,6 +22,33 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="OnlineServices" fileName="${sys:catalina.home}/logs/online.log"
+                     filePattern="${sys:catalina.home}/logs/online_%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="RestServices" fileName="${sys:catalina.home}/logs/rest.log"
+                     filePattern="${sys:catalina.home}/logs/rest_%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="PublicServices" fileName="${sys:catalina.home}/logs/public.log"
+                     filePattern="${sys:catalina.home}/logs/public_%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
     </Appenders>
     <Loggers>
         <Logger name="merchant" level="TRACE" additivity="false">
@@ -48,7 +75,15 @@
         </logger>
         <Logger name="me.exrates.controller.OnlineRestController" level="DEBUG" additivity="false">
             <AppenderRef ref="Console"/>
-            <AppenderRef ref="Logs"/>
+            <AppenderRef ref="OnlineServices"/>
+        </Logger>
+        <Logger name="me.exrates.controller.OrderControllerRest" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="RestServices"/>
+        </Logger>
+        <Logger name="me.exrates.controller.PublicController" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="PublicServices"/>
         </Logger>
         <Root level="TRACE">
             <AppenderRef ref="Console"/>

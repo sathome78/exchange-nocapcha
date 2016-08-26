@@ -61,7 +61,7 @@ function InputOutputClass(currentCurrencyPair) {
                 if (!data) return;
                 if (data.length == 0 || data[0].needRefresh) {
                     var $tmpl = $('#inputoutput-table_row').html().replace(/@/g, '%');
-                    $inputoutputTable.find('tr').has('td').remove();
+                    clearTable($inputoutputTable);
                     data.forEach(function (e) {
                         $inputoutputTable.append(tmpl($tmpl, e));
                     });

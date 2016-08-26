@@ -99,7 +99,7 @@ function MyOrdersClass(currentCurrencyPair) {
                 if (data.length == 0 || data[0].needRefresh) {
                     $('#' + tableSellId).addClass('hidden');
                     var $tmpl = $('#myorders-sell-table_row').html().replace(/@/g, '%');
-                    $myordersSellTable.find('tr').has('td').remove();
+                    clearTable($myordersSellTable);
                     data.forEach(function (e) {
                         $myordersSellTable.append(tmpl($tmpl, e));
                     });
@@ -149,7 +149,7 @@ function MyOrdersClass(currentCurrencyPair) {
                 if (data.length == 0 || data[0].needRefresh) {
                     $('#' + tableBuyId).addClass('hidden');
                     var $tmpl = $('#myorders-buy-table_row').html().replace(/@/g, '%');
-                    $myordersBuyTable.find('tr').has('td').remove();
+                    clearTable($myordersBuyTable);
                     data.forEach(function (e) {
                         $myordersBuyTable.append(tmpl($tmpl, e));
                     });

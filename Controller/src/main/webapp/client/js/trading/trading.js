@@ -98,7 +98,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
                 if (!data) return;
                 if (data.length == 0 || data[0].needRefresh) {
                     var $tmpl = $('#orders-history-table_row').html().replace(/@/g, '%');
-                    $ordersHistoryTable.find('tr').has('td').remove();
+                    clearTable($ordersHistoryTable);
                     data.forEach(function (e) {
                         $ordersHistoryTable.append(tmpl($tmpl, e));
                     });
@@ -138,7 +138,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
                 if (!data) return;
                 if (data.length == 0 || data[0].needRefresh) {
                     var $tmpl = $('#orders-history-table_row__my-deals').html().replace(/@/g, '%');
-                    $ordersHistoryTable.find('tr').has('td').remove();
+                    clearTable($ordersHistoryTable);
                     data.forEach(function (e) {
                         $ordersHistoryTable.append(tmpl($tmpl, e));
                     });
@@ -175,7 +175,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
                 if (!data) return;
                 if (data.length == 0 || data[0].needRefresh) {
                     var $tmpl = $('#dashboard-orders-sell-table_row').html().replace(/@/g, '%');
-                    $ordersSellTable.find('tr').has('td').remove();
+                    clearTable($ordersSellTable);
                     data.forEach(function (e) {
                         $ordersSellTable.append(tmpl($tmpl, e));
                     });
@@ -212,7 +212,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
                 if (!data) return;
                 if (data.length == 0 || data[0].needRefresh) {
                     var $tmpl = $('#dashboard-orders-buy-table_row').html().replace(/@/g, '%');
-                    $ordersBuyTable.find('tr').has('td').remove();
+                    clearTable($ordersBuyTable);
                     data.forEach(function (e) {
                         $ordersBuyTable.append(tmpl($tmpl, e));
                     });
@@ -517,7 +517,10 @@ function TradingClass(period, chartType, currentCurrencyPair) {
     }
 
     function onCreateOrderSuccess(data) {
+        that.getAndShowSellOrders();
+        that.getAndShowBuyOrders();
         leftSider.getStatisticsForMyWallets();
+        leftSider.getStatisticsForAllCurrencies();
         successNoty(data.result);
     }
 

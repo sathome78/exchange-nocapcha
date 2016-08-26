@@ -1,8 +1,6 @@
 package me.exrates.controller;
 
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import me.exrates.controller.exception.*;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
@@ -14,6 +12,8 @@ import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 
 @RestController
 public class OrderControllerRest {
+    private static final Logger LOGGER = LogManager.getLogger(OrderControllerRest.class);
 
     private final BigDecimal MAX_ORDER_VALUE = new BigDecimal(10000);
     private final BigDecimal MIN_ORDER_VALUE = new BigDecimal(0.000000001);
@@ -62,117 +63,175 @@ public class OrderControllerRest {
                                                 BigDecimal amount,
                                                 BigDecimal rate,
                                                 HttpServletRequest request) {
-        OrderCreateSummaryDto orderCreateSummaryDto;
-        if (amount == null) amount = BigDecimal.ZERO;
-        if (rate == null) rate = BigDecimal.ZERO;
-        CurrencyPair activeCurrencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
-        Currency spendCurrency = null;
-        if (orderType == OperationType.SELL) {
-            spendCurrency = activeCurrencyPair.getCurrency1();
-        } else if (orderType == OperationType.BUY) {
-            spendCurrency = activeCurrencyPair.getCurrency2();
-        }
-        WalletsAndCommissionsForOrderCreationDto walletsAndCommissions = orderService.getWalletAndCommission(principal.getName(), spendCurrency, orderType);
-        /**/
-        OrderCreateDto orderCreateDto = new OrderCreateDto();
-        orderCreateDto.setOperationType(orderType);
-        orderCreateDto.setCurrencyPair(activeCurrencyPair);
-        orderCreateDto.setAmount(amount);
-        orderCreateDto.setExchangeRate(rate);
-        orderCreateDto.setUserId(walletsAndCommissions.getUserId());
-        orderCreateDto.setCurrencyPair(activeCurrencyPair);
-        if (orderType == OperationType.SELL) {
-            orderCreateDto.setWalletIdCurrencyBase(walletsAndCommissions.getSpendWalletId());
-            orderCreateDto.setCurrencyBaseBalance(walletsAndCommissions.getSpendWalletActiveBalance());
-            orderCreateDto.setComissionForSellId(walletsAndCommissions.getCommissionId());
-            orderCreateDto.setComissionForSellRate(walletsAndCommissions.getCommissionValue());
-        } else if (orderType == OperationType.BUY) {
-            orderCreateDto.setWalletIdCurrencyConvert(walletsAndCommissions.getSpendWalletId());
-            orderCreateDto.setCurrencyConvertBalance(walletsAndCommissions.getSpendWalletActiveBalance());
-            orderCreateDto.setComissionForBuyId(walletsAndCommissions.getCommissionId());
-            orderCreateDto.setComissionForBuyRate(walletsAndCommissions.getCommissionValue());
-        }
-        /**/
-        orderCreateDto.calculateAmounts();
-        /**/
-        Map<String, Object> result = validate(orderCreateDto);
-        orderCreateSummaryDto = new OrderCreateSummaryDto(orderCreateDto, localeResolver.resolveLocale(request));
-        if (!result.isEmpty()) {
-            for (Map.Entry<String, Object> pair : result.entrySet()) {
-                pair.setValue(messageSource.getMessage((String) pair.getValue(), null, localeResolver.resolveLocale(request)));
+        long before = System.currentTimeMillis();
+        try {
+            OrderCreateSummaryDto orderCreateSummaryDto;
+            if (amount == null) amount = BigDecimal.ZERO;
+            if (rate == null) rate = BigDecimal.ZERO;
+            CurrencyPair activeCurrencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
+            Currency spendCurrency = null;
+            if (orderType == OperationType.SELL) {
+                spendCurrency = activeCurrencyPair.getCurrency1();
+            } else if (orderType == OperationType.BUY) {
+                spendCurrency = activeCurrencyPair.getCurrency2();
             }
-            result.put("order", orderCreateSummaryDto);
-            request.getSession().setAttribute("orderCreationError", result);
-            throw new OrderParamsWrongException();
-        } else {
+            WalletsAndCommissionsForOrderCreationDto walletsAndCommissions = orderService.getWalletAndCommission(principal.getName(), spendCurrency, orderType);
+        /**/
+            OrderCreateDto orderCreateDto = new OrderCreateDto();
+            orderCreateDto.setOperationType(orderType);
+            orderCreateDto.setCurrencyPair(activeCurrencyPair);
+            orderCreateDto.setAmount(amount);
+            orderCreateDto.setExchangeRate(rate);
+            orderCreateDto.setUserId(walletsAndCommissions.getUserId());
+            orderCreateDto.setCurrencyPair(activeCurrencyPair);
+            if (orderType == OperationType.SELL) {
+                orderCreateDto.setWalletIdCurrencyBase(walletsAndCommissions.getSpendWalletId());
+                orderCreateDto.setCurrencyBaseBalance(walletsAndCommissions.getSpendWalletActiveBalance());
+                orderCreateDto.setComissionForSellId(walletsAndCommissions.getCommissionId());
+                orderCreateDto.setComissionForSellRate(walletsAndCommissions.getCommissionValue());
+            } else if (orderType == OperationType.BUY) {
+                orderCreateDto.setWalletIdCurrencyConvert(walletsAndCommissions.getSpendWalletId());
+                orderCreateDto.setCurrencyConvertBalance(walletsAndCommissions.getSpendWalletActiveBalance());
+                orderCreateDto.setComissionForBuyId(walletsAndCommissions.getCommissionId());
+                orderCreateDto.setComissionForBuyRate(walletsAndCommissions.getCommissionValue());
+            }
+        /**/
+            orderCreateDto.calculateAmounts();
+        /**/
+            Map<String, Object> result = validate(orderCreateDto);
+            orderCreateSummaryDto = new OrderCreateSummaryDto(orderCreateDto, localeResolver.resolveLocale(request));
+            if (!result.isEmpty()) {
+                for (Map.Entry<String, Object> pair : result.entrySet()) {
+                    pair.setValue(messageSource.getMessage((String) pair.getValue(), null, localeResolver.resolveLocale(request)));
+                }
+                result.put("order", orderCreateSummaryDto);
+                request.getSession().setAttribute("orderCreationError", result);
+                throw new OrderParamsWrongException();
+            } else {
             /*protect orderCreateDto*/
-            request.getSession().setAttribute("/order/submitnew/orderCreateDto", orderCreateDto);
+                request.getSession().setAttribute("/order/submitnew/orderCreateDto", orderCreateDto);
+            }
+            return orderCreateSummaryDto;
+        } catch (Exception e) {
+            long after = System.currentTimeMillis();
+            LOGGER.error("error... ms: " + (after - before) + " : " + e);
+            throw e;
+        } finally {
+            long after = System.currentTimeMillis();
+            LOGGER.debug("completed... ms: " + (after - before));
         }
-        return orderCreateSummaryDto;
     }
 
     @RequestMapping(value = "/order/create", produces = "application/json;charset=utf-8")
     public String recordOrderToDB(HttpServletRequest request) {
+        long before = System.currentTimeMillis();
         try {
+            try {
             /*restore protected orderCreateDto*/
-            OrderCreateDto orderCreateDto = (OrderCreateDto) request.getSession().getAttribute("/order/submitnew/orderCreateDto");
+                OrderCreateDto orderCreateDto = (OrderCreateDto) request.getSession().getAttribute("/order/submitnew/orderCreateDto");
             /*clear orderCreateDto: it's necessary to prevent re-creating order from the current submit form */
-            request.getSession().removeAttribute("/order/submitnew/orderCreateDto");
-            if (orderCreateDto == null) {
-                /*it may be if user twice click the create button from the current submit form. After first click orderCreateDto wil be cleaned*/
-                throw new OrderCreationException(messageSource.getMessage("order.recreateerror", null, localeResolver.resolveLocale(request)));
+                request.getSession().removeAttribute("/order/submitnew/orderCreateDto");
+                if (orderCreateDto == null) {
+                    /*it may be if user twice click the create button from the current submit form. After first click orderCreateDto wil be cleaned*/
+                    throw new OrderCreationException(messageSource.getMessage("order.recreateerror", null, localeResolver.resolveLocale(request)));
+                }
+                if ((orderService.createOrder(orderCreateDto)) <= 0) {
+                    throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, localeResolver.resolveLocale(request)));
+                }
+                return "{\"result\":\"" + messageSource.getMessage("createdorder.text", null, localeResolver.resolveLocale(request)) + "\"}";
+            } catch (NotEnoughUserWalletMoneyException e) {
+                throw new NotEnoughUserWalletMoneyException(messageSource.getMessage("validation.orderNotEnoughMoney", null, localeResolver.resolveLocale(request)));
+            } catch (OrderCreationException e) {
+                throw new OrderCreationException(messageSource.getMessage("order.createerror", new Object[]{e.getLocalizedMessage()}, localeResolver.resolveLocale(request)));
+            } catch (NotCreatableOrderException e) {
+                throw e;
             }
-            if ((orderService.createOrder(orderCreateDto)) <= 0) {
-                throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, localeResolver.resolveLocale(request)));
-            }
-            return "{\"result\":\"" + messageSource.getMessage("createdorder.text", null, localeResolver.resolveLocale(request)) + "\"}";
-        } catch (NotEnoughUserWalletMoneyException e) {
-            throw new NotEnoughUserWalletMoneyException(messageSource.getMessage("validation.orderNotEnoughMoney", null, localeResolver.resolveLocale(request)));
-        } catch (OrderCreationException e) {
-            throw new OrderCreationException(messageSource.getMessage("order.createerror", new Object[]{e.getLocalizedMessage()}, localeResolver.resolveLocale(request)));
+        } catch (Exception e) {
+            long after = System.currentTimeMillis();
+            LOGGER.error("error... ms: " + (after - before) + " : " + e);
+            throw e;
+        } finally {
+            long after = System.currentTimeMillis();
+            LOGGER.debug("completed... ms: " + (after - before));
         }
     }
 
     @RequestMapping(value = "/order/accept", produces = "application/json;charset=utf-8")
     public String acceptOrder(@RequestBody String ordersListString, Principal principal, HttpServletRequest request) {
-        List<Integer> ordersList = Arrays.asList(ordersListString.split(" ")).stream().map(e -> Integer.valueOf(e)).collect(Collectors.toList());
+        long before = System.currentTimeMillis();
         try {
-            int userId = userService.getIdByEmail(principal.getName());
-            orderService.acceptOrdersList(userId, ordersList, localeResolver.resolveLocale(request));
+            List<Integer> ordersList = Arrays.asList(ordersListString.split(" ")).stream().map(e -> Integer.valueOf(e)).collect(Collectors.toList());
+            try {
+                int userId = userService.getIdByEmail(principal.getName());
+                orderService.acceptOrdersList(userId, ordersList, localeResolver.resolveLocale(request));
+            } catch (Exception e) {
+                throw e;
+            }
+            return "{\"result\":\"" + messageSource.getMessage("order.acceptsuccess", new Integer[]{ordersList.size()}, localeResolver.resolveLocale(request)) + "\"}";
         } catch (Exception e) {
+            long after = System.currentTimeMillis();
+            LOGGER.error("error... ms: " + (after - before) + " : " + e);
             throw e;
+        } finally {
+            long after = System.currentTimeMillis();
+            LOGGER.debug("completed... ms: " + (after - before));
         }
-        return "{\"result\":\"" + messageSource.getMessage("order.acceptsuccess", new Integer[]{ordersList.size()}, localeResolver.resolveLocale(request)) + "\"}";
     }
 
 
     @RequestMapping("/order/submitdelete/{orderId}")
     public OrderCreateSummaryDto submitDeleteOrder(@PathVariable Integer orderId, HttpServletRequest request) {
-        OrderCreateDto orderCreateDto = orderService.getMyOrderById(orderId);
-        if (orderCreateDto == null) {
-            throw new OrderNotFoundException(messageSource.getMessage("orders.getordererror", new Object[]{orderId}, localeResolver.resolveLocale(request)));
+        long before = System.currentTimeMillis();
+        try {
+            OrderCreateDto orderCreateDto = orderService.getMyOrderById(orderId);
+            if (orderCreateDto == null) {
+                throw new OrderNotFoundException(messageSource.getMessage("orders.getordererror", new Object[]{orderId}, localeResolver.resolveLocale(request)));
+            }
+            request.getSession().setAttribute("/order/submitdelete/orderCreateDto", orderCreateDto);
+            OrderCreateSummaryDto orderForDelete = new OrderCreateSummaryDto(orderCreateDto, localeResolver.resolveLocale(request));
+            return orderForDelete;
+        } catch (Exception e) {
+            long after = System.currentTimeMillis();
+            LOGGER.error("error... ms: " + (after - before) + " : " + e);
+            throw e;
+        } finally {
+            long after = System.currentTimeMillis();
+            LOGGER.debug("completed... ms: " + (after - before));
         }
-        request.getSession().setAttribute("/order/submitdelete/orderCreateDto", orderCreateDto);
-        OrderCreateSummaryDto orderForDelete = new OrderCreateSummaryDto(orderCreateDto, localeResolver.resolveLocale(request));
-        return orderForDelete;
     }
 
     @RequestMapping(value = "/order/delete", produces = "application/json;charset=utf-8")
     public String deleteOrder(HttpServletRequest request) {
-        OrderCreateDto orderCreateDto = (OrderCreateDto) request.getSession().getAttribute("/order/submitdelete/orderCreateDto");
-        request.getSession().removeAttribute("/order/submitdelete/orderCreateDto");
-        if (orderCreateDto == null) {
-            throw new OrderCreationException(messageSource.getMessage("order.redeleteerror", null, localeResolver.resolveLocale(request)));
+        long before = System.currentTimeMillis();
+        try {
+            OrderCreateDto orderCreateDto = (OrderCreateDto) request.getSession().getAttribute("/order/submitdelete/orderCreateDto");
+            request.getSession().removeAttribute("/order/submitdelete/orderCreateDto");
+            if (orderCreateDto == null) {
+                throw new OrderCreationException(messageSource.getMessage("order.redeleteerror", null, localeResolver.resolveLocale(request)));
+            }
+            if (!orderService.cancellOrder(new ExOrder(orderCreateDto), localeResolver.resolveLocale(request))) {
+                throw new OrderCancellingException(messageSource.getMessage("myorders.deletefailed", null, localeResolver.resolveLocale(request)));
+            }
+            return "{\"result\":\"" + messageSource.getMessage("myorders.deletesuccess", null, localeResolver.resolveLocale(request)) + "\"}";
+        } catch (Exception e) {
+            long after = System.currentTimeMillis();
+            LOGGER.error("error... ms: " + (after - before) + " : " + e);
+            throw e;
+        } finally {
+            long after = System.currentTimeMillis();
+            LOGGER.debug("completed... ms: " + (after - before));
         }
-        if (!orderService.cancellOrder(new ExOrder(orderCreateDto), localeResolver.resolveLocale(request))) {
-            throw new OrderCancellingException(messageSource.getMessage("myorders.deletefailed", null, localeResolver.resolveLocale(request)));
-        }
-        return "{\"result\":\"" + messageSource.getMessage("myorders.deletesuccess", null, localeResolver.resolveLocale(request)) + "\"}";
     }
 
     @RequestMapping(value = "/order/orderinfo", method = RequestMethod.GET)
     public OrderInfoDto getOrderInfo(@RequestParam int id, HttpServletRequest request) {
-        return orderService.getOrderInfo(id, localeResolver.resolveLocale(request));
+        long before = System.currentTimeMillis();
+        try {
+            return orderService.getOrderInfo(id, localeResolver.resolveLocale(request));
+        } finally {
+            long after = System.currentTimeMillis();
+            LOGGER.debug("completed... ms: " + (after - before));
+        }
     }
 
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
