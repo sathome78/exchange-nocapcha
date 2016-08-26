@@ -25,9 +25,8 @@
                                 <input class="form-control input-block-wrapper__input"
                                        style="float: left; width: auto" id="currencyFull" readonly="true" value="<c:out value='${wallet.name} ${wallet.activeBalance}'/>" />
                             </div>
-                            <br>
-                            <br>
-                            <br>
+                        </div>
+                        <div class="input-block-wrapper clearfix" >
                             <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:225px">
                                 <label style="font-size: 15px" for="sum"><loc:message code="withdrawal.amount"/></label>
                             </div>

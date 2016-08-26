@@ -19,23 +19,23 @@
                     <form:form class="form-horizontal withdraw__money" id="payment" name="payment" method="post"
                                       modelAttribute="payment" action="">
                         <div class="input-block-wrapper clearfix">
-                            <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:205px">
+                            <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:225px">
                                 <label style="font-size: 15px" for="currencyName" class="input-block-wrapper__label" ><loc:message code="merchants.inputCurrency"/></label>
                             </div>
                             <div class="col-md-8 input-block-wrapper__input-wrapper" >
                                 <input id="currency" name="currency" hidden="true" value="${currency}" />
                                 <input style="float: left; width: auto"  class="form-control input-block-wrapper__input" id="currencyName" readonly="true" value="${currencyName}" />
                             </div>
-                            <br>
-                            <br>
-                            <br>
-                            <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:205px">
-                                <label style="font-size: 15px" for="sum"><loc:message code="withdrawal.amount"/></label>
-                            </div>
-                            <div style="width: auto; " class="col-md-8 input-block-wrapper__input-wrapper">
-                                <form:input class="form-control input-block-wrapper__input numericInputField"
-                                            id="sum" path="sum" />
-                            </div>
+
+                        </div>
+                        <div class="input-block-wrapper clearfix">
+                        <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:225px">
+                            <label style="font-size: 15px" for="sum"><loc:message code="withdrawal.amount"/></label>
+                        </div>
+                        <div style="width: auto; " class="col-md-8 input-block-wrapper__input-wrapper">
+                            <form:input class="form-control input-block-wrapper__input numericInputField"
+                                        id="sum" path="sum" />
+                        </div>
                         </div>
 
 
@@ -45,7 +45,7 @@
                             <c:forEach var="merchantCurrency" items="${merchantCurrencyData}" >
                                 <c:forEach var="merchantImage" items="${merchantCurrency.listMerchantImage}" >
                                     <div style=" width: 700px; height: 48px; ">
-                                        <div style="float: left; width: 386px; text-align: right; margin-right: 10px; ">
+                                        <div style="float: left; width: 408px; text-align: right; margin-right: 10px; ">
                                             <img class="img-thumbnail" src="${merchantImage.image_path}" style="width: 168px; height: 52px"/>
 
                                         </div>
