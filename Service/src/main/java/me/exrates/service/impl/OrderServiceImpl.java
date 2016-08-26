@@ -271,6 +271,7 @@ public class OrderServiceImpl implements OrderService {
             }
             WalletOperationData walletOperationData;
             WalletTransferStatus walletTransferStatus;
+            String exceptionMessage = "";
             /**/
             /*for creator OUT*/
             walletOperationData = new WalletOperationData();
@@ -286,7 +287,8 @@ public class OrderServiceImpl implements OrderService {
             walletOperationData.setSourceId(exOrder.getId());
             walletTransferStatus = walletDao.walletBalanceChange(walletOperationData);
             if (walletTransferStatus != WalletTransferStatus.SUCCESS) {
-                throw new OrderAcceptionException("creator out wallet: " + walletTransferStatus.toString());
+                exceptionMessage = getWalletTransferExceptionMessage(walletTransferStatus, "order.notenoughreservedmoneyforcreator", locale);
+                throw new OrderAcceptionException(exceptionMessage);
             }
             /*for creator IN*/
             walletOperationData = new WalletOperationData();
@@ -300,7 +302,8 @@ public class OrderServiceImpl implements OrderService {
             walletOperationData.setSourceId(exOrder.getId());
             walletTransferStatus = walletDao.walletBalanceChange(walletOperationData);
             if (walletTransferStatus != WalletTransferStatus.SUCCESS) {
-                throw new OrderAcceptionException("creator input wallet: " + walletTransferStatus.toString());
+                exceptionMessage = getWalletTransferExceptionMessage(walletTransferStatus, "orders.acceptsaveerror", locale);
+                throw new OrderAcceptionException(exceptionMessage);
             }
             /*for acceptor OUT*/
             walletOperationData = new WalletOperationData();
@@ -314,7 +317,8 @@ public class OrderServiceImpl implements OrderService {
             walletOperationData.setSourceId(exOrder.getId());
             walletTransferStatus = walletDao.walletBalanceChange(walletOperationData);
             if (walletTransferStatus != WalletTransferStatus.SUCCESS) {
-                throw new OrderAcceptionException("acceptor out wallet: " + walletTransferStatus.toString());
+                exceptionMessage = getWalletTransferExceptionMessage(walletTransferStatus, "order.notenoughmoneyforacceptor", locale);
+                throw new OrderAcceptionException(exceptionMessage);
             }
             /*for acceptor IN*/
             walletOperationData = new WalletOperationData();
@@ -328,7 +332,8 @@ public class OrderServiceImpl implements OrderService {
             walletOperationData.setSourceId(exOrder.getId());
             walletTransferStatus = walletDao.walletBalanceChange(walletOperationData);
             if (walletTransferStatus != WalletTransferStatus.SUCCESS) {
-                throw new OrderAcceptionException("acceptor input wallet: " + walletTransferStatus.toString());
+                exceptionMessage = getWalletTransferExceptionMessage(walletTransferStatus, "orders.acceptsaveerror", locale);
+                throw new OrderAcceptionException(exceptionMessage);
             }
             /**/
             CompanyWallet companyWallet = new CompanyWallet();
@@ -360,26 +365,26 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    private String getWalletTransferStatusMessage(WalletTransferStatus status, Locale locale) {
+    private String getWalletTransferExceptionMessage(WalletTransferStatus status, String negativeBalanceMessageCode, Locale locale) {
         String message = "";
         switch (status) {
             case CAUSED_NEGATIVE_BALANCE:
-                message = messageSource.getMessage("transaction.providerror", null, locale);
+                message = messageSource.getMessage(negativeBalanceMessageCode, null, locale);
                 break;
             case CORRESPONDING_COMPANY_WALLET_NOT_FOUND:
-                message = messageSource.getMessage("", null, locale);
+                message = messageSource.getMessage("orders.companyWalletNotFound", null, locale);
                 break;
             case NOT_FOUND:
-                message = messageSource.getMessage("", null, locale);
-
+                message = messageSource.getMessage("orders.walletNotFound", null, locale);
                 break;
             case WALLET_UPDATE_ERROR:
-                message = messageSource.getMessage("", null, locale);
+                message = messageSource.getMessage("orders.walletUpdateError", null, locale);
                 break;
             case TRANSACTION_CREATION_ERROR:
-                message = messageSource.getMessage("", null, locale);
+                message = messageSource.getMessage("transaction.createerror", null, locale);
                 break;
             default:
+                message = messageSource.getMessage("orders.acceptsaveerror", null, locale);
 
         }
         return message;
