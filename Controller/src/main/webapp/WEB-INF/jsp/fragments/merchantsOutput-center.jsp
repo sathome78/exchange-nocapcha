@@ -15,7 +15,7 @@
                                       modelAttribute="payment" action="/merchants/payment/withdraw">
                         <div class="input-block-wrapper clearfix" >
                                 <%--Currency to withdraw--%>
-                            <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:165px">
+                            <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:225px">
                                 <label style="font-size: 15px" for="currencyFull" class="input-block-wrapper__label" ><loc:message code="merchants.currencyforoutput"/></label>
                             </div>
 
@@ -28,7 +28,7 @@
                             <br>
                             <br>
                             <br>
-                            <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:165px">
+                            <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:225px">
                                 <label style="font-size: 15px" for="sum"><loc:message code="withdrawal.amount"/></label>
                             </div>
                             <div style="width: auto; " class="col-md-8 input-block-wrapper__input-wrapper">
@@ -43,7 +43,7 @@
                             <c:forEach var="merchantCurrency" items="${merchantCurrencyData}" >
                                 <c:forEach var="merchantImage" items="${merchantCurrency.listMerchantImage}" >
                                     <div style=" width: 700px; height: 48px; ">
-                                        <div style="float: left; width: 348px; text-align: right; margin-right: 10px; ">
+                                        <div style="float: left; width: 408px; text-align: right; margin-right: 10px; ">
                                             <img class="img-thumbnail" src="${merchantImage.image_path}" style="width: 168px; height: 52px"/>
 
                                         </div>

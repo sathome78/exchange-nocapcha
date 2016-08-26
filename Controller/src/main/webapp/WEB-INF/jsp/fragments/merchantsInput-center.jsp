@@ -19,7 +19,7 @@
                     <form:form class="form-horizontal withdraw__money" id="payment" name="payment" method="post"
                                       modelAttribute="payment" action="">
                         <div class="input-block-wrapper clearfix">
-                            <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:160px">
+                            <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:205px">
                                 <label style="font-size: 15px" for="currencyName" class="input-block-wrapper__label" ><loc:message code="merchants.inputCurrency"/></label>
                             </div>
                             <div class="col-md-8 input-block-wrapper__input-wrapper" >
@@ -29,7 +29,7 @@
                             <br>
                             <br>
                             <br>
-                            <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:160px">
+                            <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:205px">
                                 <label style="font-size: 15px" for="sum"><loc:message code="withdrawal.amount"/></label>
                             </div>
                             <div style="width: auto; " class="col-md-8 input-block-wrapper__input-wrapper">
@@ -45,7 +45,7 @@
                             <c:forEach var="merchantCurrency" items="${merchantCurrencyData}" >
                                 <c:forEach var="merchantImage" items="${merchantCurrency.listMerchantImage}" >
                                     <div style=" width: 700px; height: 48px; ">
-                                        <div style="float: left; width: 341px; text-align: right; margin-right: 10px; ">
+                                        <div style="float: left; width: 386px; text-align: right; margin-right: 10px; ">
                                             <img class="img-thumbnail" src="${merchantImage.image_path}" style="width: 168px; height: 52px"/>
 
                                         </div>
