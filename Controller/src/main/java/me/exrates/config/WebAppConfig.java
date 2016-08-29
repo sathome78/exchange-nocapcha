@@ -1,6 +1,8 @@
 package me.exrates.config;
 
+import me.exrates.controller.filter.RequestFilter;
 import me.exrates.controller.handler.ChatWebSocketHandler;
+import me.exrates.controller.postprocessor.OnlineMethodPostProcessor;
 import me.exrates.model.converter.CurrencyPairConverter;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.security.config.SecurityConfig;
@@ -8,9 +10,6 @@ import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
-import org.bitcoinj.core.Context;
-import org.bitcoinj.params.MainNetParams;
-import org.bitcoinj.params.TestNet3Params;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.MessageSource;
@@ -58,7 +57,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
         }
 )
 @PropertySource(value = {"classpath:/db.properties", "classpath:/uploadfiles.properties", "classpath:/news.properties"})
-@MultipartConfig(location="/tmp")
+@MultipartConfig(location = "/tmp")
 public class WebAppConfig extends WebMvcConfigurerAdapter {
 
     private
@@ -247,4 +246,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     public StandardServletMultipartResolver resolver() {
         return new StandardServletMultipartResolver();
     }
+
+    @Bean
+    public OnlineMethodPostProcessor onlineMethodPostProcessor() {
+        return new OnlineMethodPostProcessor();
+    }
+
+
+    @Bean
+    public RequestFilter requestFilter() {
+        return RequestFilter.getInstance();
+    }
+
 }

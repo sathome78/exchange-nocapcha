@@ -14,7 +14,7 @@ public class Cache {
         HttpServletRequest request = cacheData.getRequest();
         String cacheKey = cacheData.getCacheKey();
         Boolean forceUpdate = cacheData.getForceUpdate();
-        int resultHash = result.hashCode();
+        Integer resultHash = result.hashCode();
         Map<String, Integer> cacheHashMap = (Map) request.getSession().getAttribute("cacheHashMap");
         if (cacheHashMap == null) {
             cacheHashMap = new HashMap<>();
