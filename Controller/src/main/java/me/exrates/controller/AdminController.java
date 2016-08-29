@@ -87,8 +87,6 @@ public class AdminController {
 
     @RequestMapping(value = {"/admin", "/admin/users"})
     public ModelAndView admin(Principal principal, HttpSession httpSession) {
-        LOG.debug(sessionRegistry);
-        LOG.debug(sessionRegistry.getAllPrincipals().size());
 
         final Object mutex = WebUtils.getSessionMutex(httpSession);
         synchronized (mutex) {
@@ -327,8 +325,6 @@ public class AdminController {
     }
 
     private void invalidateUserSession(String userEmail) {
-        LOG.debug(userEmail);
-        LOG.debug(sessionRegistry);
         LOG.debug(sessionRegistry.getAllPrincipals().size());
         Optional<Object> updatedUser = sessionRegistry.getAllPrincipals().stream()
                 .filter(principalObj -> {
