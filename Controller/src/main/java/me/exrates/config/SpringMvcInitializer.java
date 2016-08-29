@@ -1,6 +1,5 @@
 package me.exrates.config;
 
-import me.exrates.controller.filter.EncodingFilter;
 import me.exrates.controller.filter.RequestFilter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -58,9 +57,10 @@ public class SpringMvcInitializer extends AbstractAnnotationConfigDispatcherServ
         }
     }
 
+
     @Override
-    protected Filter[] getServletFilters() {
-        return new Filter[]{new CharacterEncodingFilter("UTF-8", true), new RequestFilter()};
+    public Filter[] getServletFilters() {
+        return new Filter[]{new CharacterEncodingFilter("UTF-8", true), RequestFilter.getInstance()};
     }
 
     @Override

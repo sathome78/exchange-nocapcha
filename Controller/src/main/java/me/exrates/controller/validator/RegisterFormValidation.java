@@ -1,6 +1,7 @@
 package me.exrates.controller.validator;
 
 import me.exrates.model.User;
+import me.exrates.model.enums.UserStatus;
 import me.exrates.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -9,7 +10,6 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -213,9 +213,15 @@ public class RegisterFormValidation implements Validator {
 
     public void validateEmail(User user, Errors errors, Locale ru) {
         String emailIncorrect = messageSource.getMessage("validation.emailincorrect", null, ru);
+        String statusIncorrect = messageSource.getMessage("login.blocked", null, ru);
 
-        if (userService.getIdByEmail(user.getEmail())<=0) {
+        int userId = userService.getIdByEmail(user.getEmail());
+        if (userId <= 0) {
             errors.rejectValue("email", "email.incorrect", emailIncorrect);
+        }
+        User findUser = userService.getUserById(userId);
+        if (findUser.getStatus() == UserStatus.DELETED){
+            errors.rejectValue("email", "email.incorrect", statusIncorrect);
         }
     }
 }

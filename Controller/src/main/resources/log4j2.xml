@@ -49,6 +49,15 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="SessionLog" fileName="${sys:catalina.home}/logs/session.log"
+                     filePattern="${sys:catalina.home}/logs/session_%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
     </Appenders>
     <Loggers>
         <Logger name="merchant" level="TRACE" additivity="false">
@@ -88,6 +97,10 @@
         <Logger name="me.exrates.controller.PublicController" level="DEBUG" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="PublicServices"/>
+        </Logger>
+        <Logger name="me.exrates.controller.filter.RequestFilter" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="SessionLog"/>
         </Logger>
         <Root level="TRACE">
             <AppenderRef ref="Console"/>
