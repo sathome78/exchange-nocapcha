@@ -7,11 +7,7 @@ import me.exrates.model.UserFile;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserIpDto;
 import me.exrates.model.dto.UserSummaryDto;
-import me.exrates.model.enums.ActionType;
-import me.exrates.model.enums.TokenType;
-import me.exrates.model.enums.UserIpState;
-import me.exrates.model.enums.UserRole;
-import me.exrates.model.enums.UserStatus;
+import me.exrates.model.enums.*;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,6 +16,8 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Repository;
 
@@ -29,11 +27,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonMap;
@@ -281,6 +275,11 @@ public class UserDaoImpl implements UserDao {
     }
 
     public boolean update(UpdateUserDto user) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String currentUser = auth.getName(); //get logged in username
+        LOGGER.debug("Updating user: " + user.getEmail() + " by " + currentUser +
+                ", newRole: " + user.getRole() + ", newStatus: " + user.getStatus());
+
         String sql = "UPDATE USER SET";
         StringBuilder fieldsStr = new StringBuilder(" ");
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();

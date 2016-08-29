@@ -4,7 +4,7 @@ function submitAcceptInvoice(id) {
         url: '/merchants/invoice/payment/accept?id=' + id,
         type: 'GET',
         success: function(){
-            window.location = '/transaction_invoice';
+            window.location = '/admin/invoiceConfirmation';
         }
     });
     return false;
