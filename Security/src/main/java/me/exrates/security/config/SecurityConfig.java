@@ -6,23 +6,40 @@ import me.exrates.security.filter.LoginFailureHandler;
 import me.exrates.security.filter.LoginSuccessHandler;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.security.service.UserDetailsServiceImpl;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.session.CompositeSessionAuthenticationStrategy;
+import org.springframework.security.web.authentication.session.ConcurrentSessionControlAuthenticationStrategy;
+import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.session.ConcurrentSessionFilter;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+
+import java.lang.reflect.Field;
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+    private static final Logger LOGGER = LogManager.getLogger(SecurityConfig.class);
 
     private final PasswordEncoder passwordEncoder;
     private final UserDetailsServiceImpl userDetailsService;
@@ -61,8 +78,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .setAuthenticationFailureHandler(loginFailureHandler());
 
 
+
         return customUsernamePasswordAuthenticationFilter;
     }
+
+    @Bean(name = "ExratesSessionRegistry")
+    public SessionRegistry sessionRegistry() {
+        return new SessionRegistryImpl();
+    }
+
+
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
@@ -136,7 +161,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .anyRequest().hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.USER.name())
                 .and()
                 .exceptionHandling().accessDeniedPage("/403");
-        http.formLogin()
+        SessionManagementConfigurer<HttpSecurity> sessionConfigurer = http.sessionManagement();
+        sessionConfigurer
+                .maximumSessions(1)
+                .sessionRegistry(sessionRegistry())
+                .expiredUrl("/403")
+                .maxSessionsPreventsLogin(true);
+        sessionConfigurer.init(http);
+        sessionConfigurer.configure(http);
+        customUsernamePasswordAuthenticationFilter().setSessionAuthenticationStrategy(http.getSharedObject(SessionAuthenticationStrategy.class));
+
+       http.formLogin()
                 .loginPage("/login")
                 .usernameParameter("username")
                 .passwordParameter("password")
@@ -171,5 +206,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/merchants/yandex_kassa/payment/failure",
                         "/merchants/yandex_kassa/payment/success",
                         "/merchants/yandex_kassa/payment/status");
+
+
     }
 }

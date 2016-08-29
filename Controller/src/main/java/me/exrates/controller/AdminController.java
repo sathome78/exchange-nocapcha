@@ -12,11 +12,15 @@ import me.exrates.service.exception.OrderDeletingException;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.session.SessionInformation;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -77,8 +81,14 @@ public class AdminController {
     @Autowired
     private InvoiceService invoiceService;
 
+    @Autowired
+    @Qualifier("ExratesSessionRegistry")
+    private SessionRegistry sessionRegistry;
+
     @RequestMapping(value = {"/admin", "/admin/users"})
     public ModelAndView admin(Principal principal, HttpSession httpSession) {
+        LOG.debug(sessionRegistry);
+        LOG.debug(sessionRegistry.getAllPrincipals().size());
 
         final Object mutex = WebUtils.getSessionMutex(httpSession);
         synchronized (mutex) {
@@ -304,6 +314,9 @@ public class AdminController {
             updateUserDto.setRole(user.getRole());
             updateUserDto.setStatus(user.getUserStatus());
             userService.updateUserByAdmin(updateUserDto);
+            if (updateUserDto.getStatus() == UserStatus.DELETED) {
+                invalidateUserSession(updateUserDto.getEmail());
+            }
 
             model.setViewName("redirect:/admin");
         }
@@ -311,6 +324,21 @@ public class AdminController {
         model.addObject("user", user);
         /**/
         return model;
+    }
+
+    private void invalidateUserSession(String userEmail) {
+        LOG.debug(userEmail);
+        LOG.debug(sessionRegistry);
+        LOG.debug(sessionRegistry.getAllPrincipals().size());
+        Optional<Object> updatedUser = sessionRegistry.getAllPrincipals().stream()
+                .filter(principalObj -> {
+            UserDetails principal = (UserDetails) principalObj;
+            return userEmail.equals(principal.getUsername());
+        })
+                .findFirst();
+        if (updatedUser.isPresent()) {
+            sessionRegistry.getAllSessions(updatedUser.get(), false).forEach(SessionInformation::expireNow);
+        }
     }
 
     @RequestMapping(value = "/settings/uploadFile", method = POST)

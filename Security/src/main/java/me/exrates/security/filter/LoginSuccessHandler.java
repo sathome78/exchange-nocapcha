@@ -7,8 +7,10 @@ import me.exrates.service.UserService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.web.servlet.LocaleResolver;
@@ -34,6 +36,9 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
     private String successUrl;
     @Autowired
     private UserService userService;
+    @Autowired
+    @Qualifier("ExratesSessionRegistry")
+    private SessionRegistry sessionRegistry;
 
     public LoginSuccessHandler(String successUrl) {
         this.successUrl = successUrl;
@@ -65,6 +70,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
                 userService.sendUnfamiliarIpNotificationEmail(u, "emailsubmitnewip.subject", "emailsubmitnewip.text", locale);
             }
             userService.setLastRegistrationDate(userIpDto.getUserId(), ip);
+   //         sessionRegistry.registerNewSession(request.getSession().getId(), principal);
 
             response.sendRedirect(successUrl);
             return;

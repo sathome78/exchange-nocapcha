@@ -67,6 +67,10 @@
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Logs"/>
         </logger>
+        <logger name="org.springframework.security" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="Logs"/>
+        </logger>
         <logger name="org.springframework.jdbc.core.JdbcTemplate" level="OFF" additivity="false">
             <appender-ref ref="Console" />
         </logger>
