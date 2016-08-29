@@ -4,7 +4,6 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.security.filter.CapchaAuthorizationFilter;
 import me.exrates.security.filter.LoginFailureHandler;
 import me.exrates.security.filter.LoginSuccessHandler;
-import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.security.service.UserDetailsServiceImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -23,16 +21,8 @@ import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.authentication.session.CompositeSessionAuthenticationStrategy;
-import org.springframework.security.web.authentication.session.ConcurrentSessionControlAuthenticationStrategy;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
-import org.springframework.security.web.session.ConcurrentSessionFilter;
-import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-
-import java.lang.reflect.Field;
-import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -40,6 +30,7 @@ import java.util.Arrays;
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private static final Logger LOGGER = LogManager.getLogger(SecurityConfig.class);
+    private static final int MAXIMUM_SESSIONS = 2;
 
     private final PasswordEncoder passwordEncoder;
     private final UserDetailsServiceImpl userDetailsService;
@@ -163,10 +154,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .exceptionHandling().accessDeniedPage("/403");
         SessionManagementConfigurer<HttpSecurity> sessionConfigurer = http.sessionManagement();
         sessionConfigurer
-                .maximumSessions(1)
+                .maximumSessions(MAXIMUM_SESSIONS)
                 .sessionRegistry(sessionRegistry())
                 .expiredUrl("/403")
                 .maxSessionsPreventsLogin(true);
+
+        //init and configure methods are required to instantiate the composite SessionAuthenticationStrategy, which is later passed to custom auth filter
         sessionConfigurer.init(http);
         sessionConfigurer.configure(http);
         customUsernamePasswordAuthenticationFilter().setSessionAuthenticationStrategy(http.getSharedObject(SessionAuthenticationStrategy.class));
