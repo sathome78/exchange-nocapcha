@@ -81,6 +81,6 @@ public class InvoiceController {
             redir.addFlashAttribute("message", message);
         }
 
-        return new RedirectView("/transaction_invoice");
+        return new RedirectView("/admin/invoiceConfirmation");
     }
 }
