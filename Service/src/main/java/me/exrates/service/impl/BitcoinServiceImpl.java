@@ -195,4 +195,26 @@ public class BitcoinServiceImpl implements BitcoinService {
                 .toString();
         return algorithmService.sha256(target);
     }
+
+    @Override
+    @Transactional
+    public boolean provideTransaction(int id, String hash, BigDecimal amount) {
+
+        Transaction tx = transactionService.findById(id);
+
+        PendingPayment payment = paymentDao.findByInvoiceId(id).orElseThrow(() ->
+                new IllegalStateException("Pending payment with invoice_id " + id + " is not exist"));
+
+        try {
+            if (tx.getAmount().compareTo(amount) != 0 ) {
+                transactionService.updateTransactionAmount(tx, amount);
+            }
+            approveBitcoinTransaction(payment.getAddress().get(), hash);
+        }catch (Exception e){
+            LOG.error(e);
+            return false;
+        }
+
+        return true;
+    }
 }
