@@ -579,4 +579,17 @@ public class AdminController {
 
         return new ModelAndView("admin/transaction_invoice", "invoiceRequests", list);
     }
+
+    @RequestMapping(value = "/admin/sessionControl")
+    public ModelAndView sessionControl() {
+        ModelAndView modelAndView = new ModelAndView("admin/sessionControl");
+        sessionRegistry.getAllPrincipals().stream().peek(principal -> {
+            LOG.debug(principal);
+            LOG.debug(principal.getClass());
+        });
+
+
+
+        return modelAndView;
+    }
 }
