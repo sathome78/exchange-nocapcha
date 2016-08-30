@@ -18,7 +18,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.view.RedirectView;
 
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.HashMap;
 import java.util.Locale;
@@ -26,6 +30,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import static org.springframework.http.HttpStatus.NO_CONTENT;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 /**
@@ -83,5 +88,18 @@ public class BitcoinController {
             LOG.warn(error);
             return new ResponseEntity<>(error, NO_CONTENT);
         }
+    }
+
+    @RequestMapping(value = "/payment/accept",method = GET)
+    public RedirectView acceptPayment(@RequestParam int id, @RequestParam String hash,
+                                      @RequestParam Float amount, RedirectAttributes redir){
+
+
+        if (!bitcoinService.provideTransaction(id, hash, BigDecimal.valueOf(amount))){
+            final String message = "merchants.internalError";
+            redir.addFlashAttribute("message", message);
+        }
+
+        return new RedirectView("/admin/bitcoinConfirmation");
     }
 }

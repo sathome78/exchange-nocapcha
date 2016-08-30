@@ -411,11 +411,14 @@ public final class TransactionDaoImpl implements TransactionDao {
             }
         });
     }
-    public List<Transaction> getInvoiceOpenTransactions(){
+
+    @Override
+    public List<Transaction> getOpenTransactionsByMerchant(Merchant merchant){
         String sql = SELECT_ALL + " where TRANSACTION.merchant_id = (select MERCHANT.id " +
-                "from MERCHANT where MERCHANT.name = 'Invoice' )";
+                "from MERCHANT where MERCHANT.name = :merchant)";
         Map<String, String> namedParameters = new HashMap<String, String>();
-        ArrayList<Transaction> result = (ArrayList<Transaction>) jdbcTemplate.query(sql, new HashMap<String, String>(),
+        namedParameters.put("merchant", merchant.getName());
+        ArrayList<Transaction> result = (ArrayList<Transaction>) jdbcTemplate.query(sql, namedParameters,
                 transactionRowMapper);
         return result;
     }
