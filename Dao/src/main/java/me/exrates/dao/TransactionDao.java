@@ -1,5 +1,6 @@
 package me.exrates.dao;
 
+import me.exrates.model.Merchant;
 import me.exrates.model.PagingData;
 import me.exrates.model.Transaction;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
@@ -35,5 +36,5 @@ public interface TransactionDao {
 
     List<AccountStatementDto> getAccountStatement(Integer walletId, Integer offset, Integer limit, Locale locale);
 
-    List<Transaction> getInvoiceOpenTransactions();
+    List<Transaction> getOpenTransactionsByMerchant(Merchant merchant);
 }

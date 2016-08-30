@@ -52,6 +52,13 @@
         </li>
 
         <li>
+            <%--Заявки на пополнение Bitcoin--%>
+            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
+                <a href="<c:url value='/admin/bitcoinConfirmation'/>"><loc:message code="transaction.titleBitcoin"/></a>
+            </sec:authorize>
+        </li>
+
+        <li>
             <%--withdraw--%>
             <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
                 <a href="<c:url value='/admin/withdrawal'/>"><loc:message code="admin.withdrawRequests"/></a>

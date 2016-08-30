@@ -221,7 +221,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public List<Transaction> getInvoiceOpenTransactions(){
-        return transactionDao.getInvoiceOpenTransactions();
+    public List<Transaction> getOpenTransactionsByMerchant(Merchant merchant){
+        return transactionDao.getOpenTransactionsByMerchant(merchant);
     }
 }
