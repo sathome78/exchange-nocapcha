@@ -23,6 +23,9 @@
         </div>
         <div class="cols-md-8" style="overflow-y: hidden;">
             <ul class="nav header__nav">
+                <li><a href="/" class="nav__link">
+                    <loc:message code="dashboard.trading"/></a>
+                </li>
                 <li><a href="<c:url value="http://support.exrates.me/" />" class="nav__link">
                     <loc:message code="dashboard.support"/></a>
                 </li>
