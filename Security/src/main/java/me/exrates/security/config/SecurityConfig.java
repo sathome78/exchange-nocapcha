@@ -199,6 +199,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/merchants/yandex_kassa/payment/failure",
                         "/merchants/yandex_kassa/payment/success",
                         "/merchants/yandex_kassa/payment/status");
+        http
+                .headers()
+                .frameOptions()
+                .sameOrigin();
 
 
     }
