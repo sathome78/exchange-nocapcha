@@ -606,14 +606,32 @@ public class AdminController {
 
     @RequestMapping(value = "/admin/sessionControl")
     public ModelAndView sessionControl() {
-        ModelAndView modelAndView = new ModelAndView("admin/sessionControl");
-        sessionRegistry.getAllPrincipals().stream().peek(principal -> {
-            LOG.debug(principal);
-            LOG.debug(principal.getClass());
-        });
+        return new ModelAndView("admin/sessionControl");
+    }
+    @RequestMapping(value = "/admin/userSessions")
+    @ResponseBody
+    public List<SessionInfoDto> retrieveUserSessionInfo() {
+        List<SessionInfoDto> result = sessionRegistry.getAllPrincipals().stream()
+                .flatMap(principal -> sessionRegistry.getAllSessions(principal, false).stream())
+                .map(sessionInfo -> {
+                    SessionInfoDto dto = new SessionInfoDto();
+                    dto.setSessionId(sessionInfo.getSessionId());
+                    UserDetails user = (UserDetails) sessionInfo.getPrincipal();
+                    dto.setUsername(user.getUsername());
+                    return dto;
+                })
+                .collect(Collectors.toList());
+                return result;
+    }
 
-
-
-        return modelAndView;
+    @RequestMapping(value = "/admin/expireSession", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity<String> expireSession(@RequestParam String sessionId) {
+        SessionInformation sessionInfo = sessionRegistry.getSessionInformation(sessionId);
+        if (sessionInfo == null) {
+            return new ResponseEntity<>("Sesion not found", HttpStatus.NOT_FOUND);
+        }
+        sessionInfo.expireNow();
+        return new ResponseEntity<>("Session " + sessionId + " expired", HttpStatus.OK);
     }
 }

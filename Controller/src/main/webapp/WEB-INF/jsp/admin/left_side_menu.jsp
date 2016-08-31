@@ -95,6 +95,13 @@
             </sec:authorize>
         </li>
 
+        <li>
+            <%--referral--%>
+            <sec:authorize access="hasAnyAuthority('${adminEnum}')">
+                <a href="<c:url value='/admin/sessionControl'/>"><loc:message code="admin.sessionControl"/></a>
+            </sec:authorize>
+        </li>
+
 
 
 
