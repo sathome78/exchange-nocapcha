@@ -535,7 +535,7 @@ $(function(){
 
     function submitProcess() {
         var targetMerchant = merchantName;
-        var paymentForm = $('#payment');
+        var paymentForm = $('#payment').clone();
         paymentForm.append('<input type="hidden" name="merchant" value="' + merchant + '">');
         paymentForm.append('<input type="hidden" name="merchantImage" value="' + merchantImageId + '">');
         resetFormAction(operationType.val(), targetMerchant,paymentForm);
@@ -554,6 +554,17 @@ $(function(){
         merchantName = arr[1];
         merchantMinSum = parseFloat(arr[2]);
         merchantImageId = parseFloat(arr[3]);
+
+        $('.paymentInfo').html("");
+        $('.paymentQR').html("");
+        requestControls();
+        $('#inputPaymentProcess')
+        .html($('#mrcht-waiting').val())
+            .prop('disabled', false);
+
+        $('#inputPaymentProcess')
+            .prop('disabled', false)
+            .html($('#mrcht-ready').val());
 
         if (isCorrectSum()) {
             fillModalWindow('INPUT', sum.val(), getCurrentCurrency());
