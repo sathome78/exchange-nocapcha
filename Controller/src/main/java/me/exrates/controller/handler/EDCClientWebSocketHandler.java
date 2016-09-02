@@ -57,7 +57,7 @@ public class EDCClientWebSocketHandler {
     private void subscribeForBlockchainUpdates() {
         try {
             session = ContainerProvider.getWebSocketContainer()
-                    .connectToServer(this, URI.create("wss://blockchain.e-dinarcoin.com"));
+                    .connectToServer(this, URI.create("wss://blockchain.edinarcoin.com"));
             endpoint = session.getBasicRemote();
             access = true;
             //Auth to Full Node
