@@ -535,9 +535,14 @@ $(function(){
 
     function submitProcess() {
         var targetMerchant = merchantName;
-        var paymentForm = $('#payment').clone();
-        paymentForm.append('<input type="hidden" name="merchant" value="' + merchant + '">');
-        paymentForm.append('<input type="hidden" name="merchantImage" value="' + merchantImageId + '">');
+
+        var paymentForm = $('#payment');
+        if (paymentForm.get(0).merchant == null) {
+            paymentForm.append('<input type="hidden" name="merchant" value="' + merchant + '">');
+        }
+        if (paymentForm.get(0).merchantImage == null) {
+            paymentForm.append('<input type="hidden" name="merchantImage" value="' + merchantImageId + '">');
+        }
         resetFormAction(operationType.val(), targetMerchant,paymentForm);
         resetPaymentFormData(targetMerchant,paymentForm,function(){
             paymentForm.submit();
