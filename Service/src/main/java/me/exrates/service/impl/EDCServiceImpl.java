@@ -128,6 +128,7 @@ public class EDCServiceImpl implements EDCService {
                 transactionService.updateTransactionAmount(tx, currentAmount);
             }
             transactionService.provideTransaction(tx);
+            paymentDao.delete(payment.getInvoiceId());
             pendingPayments.remove(accountId);
         }
     }
