@@ -93,6 +93,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .authorizeRequests()
                 .antMatchers("/admin/withdrawal").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name())
+                .antMatchers("/unsafe/**").hasAnyAuthority(UserRole.ADMINISTRATOR.name())
                 .antMatchers("/admin/**", "/admin").hasAnyAuthority(UserRole.ADMINISTRATOR.name(),
                 UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
                 .antMatchers("/companywallet").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name())

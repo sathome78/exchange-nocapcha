@@ -74,6 +74,7 @@ public class EDCServiceImpl implements EDCService {
     private final String TRANSFER_EDC = "";
     private final Pattern pattern = Pattern.compile("\"brain_priv_key\":\"([\\w\\s]+)+\",\"wif_priv_key\":\"(\\S+)\",\"pub_key\":\"(\\S+)\"");
 
+    private volatile boolean debugLog = true;
 
     @Autowired
     public EDCServiceImpl(final PendingPaymentDao paymentDao,
@@ -83,6 +84,10 @@ public class EDCServiceImpl implements EDCService {
         this.paymentDao = paymentDao;
         this.edcAccountDao = edcAccountDao;
         this.transactionService = transactionService;
+    }
+
+    public void changeDebugLogStatus(final boolean status) {
+        debugLog = true;
     }
 
     private void handleRawTransactions(final String tx) {
@@ -113,6 +118,9 @@ public class EDCServiceImpl implements EDCService {
         final PendingPayment payment = pendingPayments.get(accountId);
         if (payment != null) {
             final Transaction tx = transactionService.findById(payment.getInvoiceId());
+            if (debugLog) {
+                LOG.info("PROVIDING TRANSACTION : " + tx);
+            }
             final EDCAccount edcAccount = edcAccountDao.findByTransactionId(tx.getId());
             final BigDecimal targetAmount = tx.getAmount().add(tx.getCommissionAmount()).setScale(DEC_PLACES, ROUND_HALF_UP);
             final BigDecimal currentAmount = new BigDecimal(tuple.right).setScale(DEC_PLACES, ROUND_HALF_UP).divide(BTS, ROUND_HALF_UP).setScale(DEC_PLACES, ROUND_HALF_UP);

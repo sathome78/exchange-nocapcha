@@ -34,6 +34,7 @@ public class EDCClientWebSocketHandler {
     private final Predicate<String> blockInfoPattern = compile("(\\{\"id\"\\s*:\\s*" + BLOCK_BY_ID + ",\"result\"\\s*:\\S+)").asPredicate();
 
     private final String METHOD_GET_BLOCK_BY_ID = "{\"method\": \"call\", \"params\": [2, \"get_block_by_id\", [\"%s\"]], \"id\": %s}";
+    private final String METHOD_GET_BLOCK = "{\"method\": \"call\", \"params\": [2, \"get_block\", [\"%s\"]], \"id\": %s}";
     private final Logger LOG = LogManager.getLogger("merchant");
 
     private final EDCService edcService;
@@ -75,6 +76,16 @@ public class EDCClientWebSocketHandler {
         if (access && !session.isOpen()) {
             LOG.debug("Disconnected! Reconnecting");
             subscribeForBlockchainUpdates();
+        }
+    }
+
+    public void rescanBlockchain(final int from, final int to) {
+        for (int index = from; index <= to; index++) {
+            try {
+                endpoint.sendText(String.format(METHOD_GET_BLOCK, index, BLOCK_BY_ID));
+            } catch (IOException e) {
+                LOG.error(e);
+            }
         }
     }
 
