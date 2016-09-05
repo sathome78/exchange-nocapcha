@@ -83,15 +83,13 @@ public class EDCClientWebSocketHandler {
     public void rescanBlockchain(final int from, final int to) {
         for (int index = from; index <= to; ) {
             try {
-                endpoint.sendText(String.format(METHOD_GET_BLOCK, index, BLOCK_BY_ID));
+                if (session.isOpen()) {
+                    endpoint.sendText(String.format(METHOD_GET_BLOCK, index, BLOCK_BY_ID));
+                }
+                if (index % 10 == 0)
+                    TimeUnit.SECONDS.sleep(1); // sleep 1 second every 10 requests
                 index++;
-                if (index % 2 == 0 && index % 10 == 0)
-                    try {
-                        TimeUnit.SECONDS.sleep(1);
-                    } catch (InterruptedException e) {
-                        LOG.error(e);
-                    }
-            } catch (IOException e) {
+            } catch (final Exception e) {
                 LOG.error(e);
             }
         }

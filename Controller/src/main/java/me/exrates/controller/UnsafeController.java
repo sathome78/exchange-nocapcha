@@ -32,7 +32,8 @@ public class UnsafeController {
     @RequestMapping(value = "unsafe/rescanEDCBlockchain")
     public ResponseEntity<String> rescanEDCBlockchain(@RequestParam("from") final int from, @RequestParam("to") final int to) {
         LOGGER.info("STARTING EDC BLOCKCHAIN RESCAN");
-        blockchainEDC.rescanBlockchain(Math.abs(from), Math.abs(to));
+        final Thread job = new Thread(() -> blockchainEDC.rescanBlockchain(Math.abs(from), Math.abs(to)));
+        job.start();
         return new ResponseEntity<>("Started blockchain rescan. Checkout merchant.log", HttpStatus.OK);
     }
 }
