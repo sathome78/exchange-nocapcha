@@ -119,7 +119,7 @@ public class EDCServiceImpl implements EDCService {
         if (payment != null) {
             final Transaction tx = transactionService.findById(payment.getInvoiceId());
             if (debugLog) {
-                LOG.info("PROVIDING TRANSACTION : " + tx);
+                LOG.info("PROVIDING EDC TRANSACTION : " + tx);
             }
             final EDCAccount edcAccount = edcAccountDao.findByTransactionId(tx.getId());
             final BigDecimal targetAmount = tx.getAmount().add(tx.getCommissionAmount()).setScale(DEC_PLACES, ROUND_HALF_UP);

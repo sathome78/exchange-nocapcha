@@ -13,6 +13,7 @@ import javax.websocket.*;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 import static java.util.regex.Pattern.compile;
@@ -71,7 +72,7 @@ public class EDCClientWebSocketHandler {
     }
 
 
-    @Scheduled(fixedDelay = 1000L)
+    @Scheduled(fixedDelay = 500L)
     public void sessionMonitor() {
         if (access && !session.isOpen()) {
             LOG.debug("Disconnected! Reconnecting");
@@ -80,9 +81,16 @@ public class EDCClientWebSocketHandler {
     }
 
     public void rescanBlockchain(final int from, final int to) {
-        for (int index = from; index <= to; index++) {
+        for (int index = from; index <= to; ) {
             try {
                 endpoint.sendText(String.format(METHOD_GET_BLOCK, index, BLOCK_BY_ID));
+                index++;
+                if (index % 2 == 0 && index % 10 == 0)
+                    try {
+                        TimeUnit.SECONDS.sleep(1);
+                    } catch (InterruptedException e) {
+                        LOG.error(e);
+                    }
             } catch (IOException e) {
                 LOG.error(e);
             }
