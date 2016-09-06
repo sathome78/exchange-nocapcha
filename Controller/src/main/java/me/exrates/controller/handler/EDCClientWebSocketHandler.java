@@ -13,6 +13,7 @@ import javax.websocket.*;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 import static java.util.regex.Pattern.compile;
@@ -34,6 +35,7 @@ public class EDCClientWebSocketHandler {
     private final Predicate<String> blockInfoPattern = compile("(\\{\"id\"\\s*:\\s*" + BLOCK_BY_ID + ",\"result\"\\s*:\\S+)").asPredicate();
 
     private final String METHOD_GET_BLOCK_BY_ID = "{\"method\": \"call\", \"params\": [2, \"get_block_by_id\", [\"%s\"]], \"id\": %s}";
+    private final String METHOD_GET_BLOCK = "{\"method\": \"call\", \"params\": [2, \"get_block\", [\"%s\"]], \"id\": %s}";
     private final Logger LOG = LogManager.getLogger("merchant");
 
     private final EDCService edcService;
@@ -70,11 +72,26 @@ public class EDCClientWebSocketHandler {
     }
 
 
-    @Scheduled(fixedDelay = 1000L)
+    @Scheduled(fixedDelay = 500L)
     public void sessionMonitor() {
         if (access && !session.isOpen()) {
             LOG.debug("Disconnected! Reconnecting");
             subscribeForBlockchainUpdates();
+        }
+    }
+
+    public void rescanBlockchain(final int from, final int to) {
+        for (int index = from; index <= to; ) {
+            try {
+                if (session.isOpen()) {
+                    endpoint.sendText(String.format(METHOD_GET_BLOCK, index, BLOCK_BY_ID));
+                }
+                if (index % 10 == 0)
+                    TimeUnit.SECONDS.sleep(1); // sleep 1 second every 10 requests
+                index++;
+            } catch (final Exception e) {
+                LOG.error(e);
+            }
         }
     }
 
