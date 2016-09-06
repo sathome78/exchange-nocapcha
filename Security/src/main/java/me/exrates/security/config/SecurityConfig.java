@@ -158,7 +158,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .maximumSessions(MAXIMUM_SESSIONS)
                 .sessionRegistry(sessionRegistry())
                 .expiredUrl("/403")
-                .maxSessionsPreventsLogin(true);
+                .maxSessionsPreventsLogin(false);
 
         //init and configure methods are required to instantiate the composite SessionAuthenticationStrategy, which is later passed to custom auth filter
         sessionConfigurer.init(http);
