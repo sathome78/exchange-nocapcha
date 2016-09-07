@@ -50,7 +50,7 @@ public class OnlineRestController {
     private static final Logger LOGGER = LogManager.getLogger(OnlineRestController.class);
     /* if SESSION_LIFETIME_HARD set, session will be killed after time expired, regardless of activity the session
     set SESSION_LIFETIME_HARD = 0 to ignore it*/
-    public static final long SESSION_LIFETIME_HARD = Math.round(30 * 60); //SECONDS
+    public static final long SESSION_LIFETIME_HARD = Math.round(60 * 60); //SECONDS
     /* if SESSION_LIFETIME_INACTIVE set, session will be killed if it is inactive during the time
     * set SESSION_LIFETIME_INACTIVE = 0 to ignore it and session lifetime will be set to default value (30 mins)
     * The time of end the current session is stored in session param "sessionEndTime", which calculated in millisec as
