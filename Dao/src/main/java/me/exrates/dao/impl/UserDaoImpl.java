@@ -4,9 +4,7 @@ import me.exrates.dao.UserDao;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
-import me.exrates.model.dto.UpdateUserDto;
-import me.exrates.model.dto.UserIpDto;
-import me.exrates.model.dto.UserSummaryDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.enums.*;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.apache.logging.log4j.LogManager;
@@ -562,6 +560,22 @@ public class UserDaoImpl implements UserDao {
             }
         });
         return result;
+    }
+
+    @Override
+    public List<UserSessionInfoDto> getUserSessionInfo(List<String> emails) {
+        String sql = "SELECT USER.id AS user_id, USER.nickname AS user_nickname, USER.email AS user_email, USER_ROLE.name AS user_role FROM USER " +
+                "INNER JOIN USER_ROLE ON USER_ROLE.id = USER.roleid " +
+                "WHERE USER.email IN (:emails)";
+        Map<String, Object> params = Collections.singletonMap("emails", emails);
+        return jdbcTemplate.query(sql, params, (resultSet, i) -> {
+            UserSessionInfoDto userSessionInfoDto = new UserSessionInfoDto();
+            userSessionInfoDto.setUserId(resultSet.getInt("user_id"));
+            userSessionInfoDto.setUserNickname(resultSet.getString("user_nickname"));
+            userSessionInfoDto.setUserEmail(resultSet.getString("user_email"));
+            userSessionInfoDto.setUserRole(UserRole.valueOf(resultSet.getString("user_role")));
+            return  userSessionInfoDto;
+        });
     }
 
 }

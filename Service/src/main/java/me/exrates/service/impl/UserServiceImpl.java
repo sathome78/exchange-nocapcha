@@ -8,6 +8,7 @@ import me.exrates.model.User;
 import me.exrates.model.UserFile;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserIpDto;
+import me.exrates.model.dto.UserSessionInfoDto;
 import me.exrates.model.dto.UserSummaryDto;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
@@ -324,6 +325,11 @@ public class UserServiceImpl implements UserService {
     @PostConstruct
     private void initTokenTriggers() {
         tokenScheduler.initTrigers();
+    }
+
+    @Override
+    public List<UserSessionInfoDto> getUserSessionInfo(List<String> emails) {
+        return userDao.getUserSessionInfo(emails);
     }
 
 }

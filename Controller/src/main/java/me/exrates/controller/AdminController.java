@@ -608,6 +608,8 @@ public class AdminController {
     public ModelAndView sessionControl() {
         return new ModelAndView("admin/sessionControl");
     }
+
+
     @RequestMapping(value = "/admin/userSessions")
     @ResponseBody
     public List<SessionInfoDto> retrieveUserSessionInfo() {

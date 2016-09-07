@@ -5,6 +5,7 @@ import me.exrates.model.User;
 import me.exrates.model.UserFile;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserIpDto;
+import me.exrates.model.dto.UserSessionInfoDto;
 import me.exrates.model.dto.UserSummaryDto;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
@@ -113,4 +114,6 @@ public interface UserService {
      * @author ValkSam
      */
     List<UserSummaryDto> getUsersSummaryList(String startDate, String endDate);
+
+    List<UserSessionInfoDto> getUserSessionInfo(List<String> emails);
 }
