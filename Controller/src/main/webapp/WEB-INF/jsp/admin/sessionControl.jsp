@@ -46,6 +46,8 @@
                         <thead>
                         <tr>
                             <th><loc:message code="admin.user"/></th>
+                            <th><loc:message code="admin.email"/></th>
+                            <th><loc:message code="admin.role"/></th>
                             <th><loc:message code="admin.sessionControl.sessionId"/></th>
                             <th><loc:message code="admin.sessionControl.action"/></th>
                         </tr>

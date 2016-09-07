@@ -3,7 +3,19 @@
  */
 $(function () {
 
-     if ( $.fn.dataTable.isDataTable( '#user_sessions' ) ) {
+     $.ajax({
+         url: '/admin/userSessions',
+         type: 'GET',
+         success: function (data) {
+             console.log(data);
+         },
+         error: function (err) {
+             console.log(err);
+         }
+     });
+
+
+    if ( $.fn.dataTable.isDataTable( '#user_sessions' ) ) {
         usersDataTable = $('#user_sessions').DataTable();
     } else {
         usersDataTable = $('#user_sessions').DataTable({
@@ -15,7 +27,25 @@ $(function () {
             "info": true,
             "columns": [
                 {
-                    "data": "username"
+                    "data": "userNickname",
+                    "render": function (data, type, row){
+                        if (type == 'display') {
+                            return '<a href="/admin/userInfo?id='+row['userId']+'">'+data+'</a>';
+                        }
+                        return data;
+                    }
+                },
+                {
+                    "data": "userEmail",
+                    "render": function (data, type, row) {
+                        if (type == 'display') {
+                            return '<a href="mailto:' + data + '">' + data + '</a>';
+                        }
+                        return data;
+                    }
+                },
+                {
+                    "data": "userRole"
                 },
                 {
                     "data": "sessionId"
@@ -23,11 +53,9 @@ $(function () {
                 {
                     "data":null,
                     "render": function () {
-                        return "<button class='btn btn-danger full-width' onclick='expireSession.call(this, event)'>" +
-                            "<span class='glyphicon glyphicon-remove'></span></button>";
+                        return "<input type='image' src='/client/img/Delete_Icon_48.png' onclick='expireSession.call(this, event)' />" ;
                     }
                 }
-
             ],
             "order": [
                 [
@@ -46,7 +74,7 @@ $(function () {
 
 function expireSession(e) {
     var $button = $(this);
-    var sessionId = $button.parents('tr').children('td:nth-child(2)').text();
+    var sessionId = $button.parents('tr').children('td:nth-child(4)').text();
     var token = $("meta[name='_csrf']").attr("content");
     var header = $("meta[name='_csrf_header']").attr("content");
     console.log(sessionId);
