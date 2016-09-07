@@ -31,7 +31,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     private final static RowMapper<WithdrawRequest> withdrawRequestRowMapper = (resultSet, i) -> {
         final Transaction transaction = TransactionDaoImpl.transactionRowMapper.mapRow(resultSet, i);
         final WithdrawRequest request = new WithdrawRequest();
-        request.setUserEmail(resultSet.getString("email"));
+        request.setUserEmail(resultSet.getString("user_email"));
         request.setUserId(resultSet.getInt("user_id"));
         request.setWallet(resultSet.getString("wallet"));
         MerchantImage merchantImage = new MerchantImage();
@@ -51,7 +51,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     private final static String SELECT_ALL_REQUESTS =
             " SELECT WITHDRAW_REQUEST.acceptance, WITHDRAW_REQUEST.wallet, WITHDRAW_REQUEST.processed_by, " +
                     "WITHDRAW_REQUEST.merchant_image_id, MERCHANT_IMAGE.image_name, " +
-                    "USER.email,(SELECT EMAIL from USER WHERE id = WITHDRAW_REQUEST.processed_by) as admin_email, " +
+                    "USER.id, USER.email as user_email,(SELECT EMAIL from USER WHERE id = WITHDRAW_REQUEST.processed_by) as admin_email, " +
                     "TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime, " +
                     "TRANSACTION.operation_type_id,TRANSACTION.provided,TRANSACTION.confirmation, WALLET.id,WALLET.active_balance, " +
                     "WALLET.user_id, WALLET.reserved_balance,WALLET.currency_id,COMPANY_WALLET.id,COMPANY_WALLET.balance, " +
@@ -60,6 +60,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
                     "FROM WITHDRAW_REQUEST " +
                     "INNER JOIN TRANSACTION ON TRANSACTION.id = WITHDRAW_REQUEST.transaction_id " +
                     "INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id " +
+
                     "INNER JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id " +
                     "INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id " +
                     "INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id " +

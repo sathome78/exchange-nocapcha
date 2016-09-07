@@ -126,7 +126,7 @@ public class ReferralServiceImpl implements ReferralService {
                     final Wallet wallet = new Wallet();
                     wallet.setActiveBalance(ZERO);
                     wallet.setCurrencyId(currency.getId());
-                    wallet.setUserId(parent);
+                    wallet.setUser(userService.getUserById(parent));
                     wallet.setReservedBalance(ZERO);
                     walletId = walletService.createNewWallet(wallet); // Changing mutable variable state
                 }

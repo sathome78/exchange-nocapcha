@@ -1,5 +1,6 @@
 package me.exrates.dao;
 
+import me.exrates.model.User;
 import me.exrates.model.Wallet;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
@@ -34,7 +35,7 @@ public interface WalletDao {
 
     Wallet findByUserAndCurrency(int userId, int currencyId);
 
-    Wallet createWallet(int userId, int currencyId);
+    Wallet createWallet(User user, int currencyId);
 
     boolean update(Wallet wallet);
 

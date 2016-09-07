@@ -25,8 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.StringJoiner;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -216,5 +215,20 @@ public class BitcoinServiceImpl implements BitcoinService {
         }
 
         return true;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<Transaction, BTCTransaction> getBitcoinTransactions(){
+        Merchant merchant = new Merchant();
+        merchant.setName("Blockchain");
+        List<Transaction> list = transactionService.getOpenTransactionsByMerchant(merchant);
+        Map<Transaction,BTCTransaction> map = new LinkedHashMap<>();
+
+        for (Transaction transaction : list){
+            map.put(transaction,btcTransactionDao.findByTransactionId(transaction.getId()));
+        }
+
+        return map;
     }
 }

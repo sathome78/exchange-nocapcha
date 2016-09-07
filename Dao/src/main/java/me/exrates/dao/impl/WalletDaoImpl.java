@@ -2,6 +2,7 @@ package me.exrates.dao.impl;
 
 import me.exrates.dao.CommissionDao;
 import me.exrates.dao.TransactionDao;
+import me.exrates.dao.UserDao;
 import me.exrates.dao.WalletDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
@@ -34,13 +35,30 @@ import java.util.*;
 @Repository
 public class WalletDaoImpl implements WalletDao {
 
-    private static final Logger LOG = LogManager.getLogger(WalletDaoImpl.class);
     @Autowired
     private CommissionDao commissionDao;
     @Autowired
     private TransactionDao transactionDao;
     @Autowired
+    private UserDao userDao;
+    @Autowired
     private NamedParameterJdbcTemplate jdbcTemplate;
+
+    private static final Logger LOG = LogManager.getLogger(WalletDaoImpl.class);
+
+    protected final RowMapper<Wallet> walletRowMapper = (resultSet, i) -> {
+
+        final Wallet userWallet = new Wallet();
+        userWallet.setId(resultSet.getInt("id"));
+        userWallet.setName(resultSet.getString("name"));
+        userWallet.setCurrencyId(resultSet.getInt("currency_id"));
+        userWallet.setUser(userDao.getUserById(resultSet.getInt("user_id")));
+        userWallet.setActiveBalance(resultSet.getBigDecimal("active_balance"));
+        userWallet.setReservedBalance(resultSet.getBigDecimal("reserved_balance"));
+
+        return userWallet;
+    };
+
 
     public BigDecimal getWalletABalance(int walletId) {
         if (walletId == 0) {
@@ -85,7 +103,7 @@ public class WalletDaoImpl implements WalletDao {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         MapSqlParameterSource parameters = new MapSqlParameterSource()
                 .addValue("currId", wallet.getCurrencyId())
-                .addValue("userId", wallet.getUserId())
+                .addValue("userId", wallet.getUser().getId())
                 .addValue("activeBalance", wallet.getActiveBalance());
         int result = jdbcTemplate.update(sql, parameters, keyHolder);
         int id = (int) keyHolder.getKey().longValue();
@@ -104,7 +122,10 @@ public class WalletDaoImpl implements WalletDao {
                 put("userId", userId);
             }
         };
-        return jdbcTemplate.query(sql, params, new BeanPropertyRowMapper<>(Wallet.class));
+        ArrayList<Wallet> result = (ArrayList<Wallet>) jdbcTemplate.query(sql, params,
+                walletRowMapper);
+
+        return result;
     }
 
     @Override
@@ -246,7 +267,7 @@ public class WalletDaoImpl implements WalletDao {
             }
         };
         try {
-            return jdbcTemplate.queryForObject(sql, params, new BeanPropertyRowMapper<>(Wallet.class));
+            return jdbcTemplate.queryForObject(sql, params, walletRowMapper);
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
@@ -254,12 +275,12 @@ public class WalletDaoImpl implements WalletDao {
     }
 
     @Override
-    public Wallet createWallet(int userId, int currencyId) {
+    public Wallet createWallet(User user, int currencyId) {
         final String sql = "INSERT INTO WALLET (currency_id,user_id) VALUES(:currId,:userId)";
         final KeyHolder keyHolder = new GeneratedKeyHolder();
         final MapSqlParameterSource parameters = new MapSqlParameterSource()
                 .addValue("currId", currencyId)
-                .addValue("userId", userId);
+                .addValue("userId", user.getId());
         if (jdbcTemplate.update(sql, parameters, keyHolder) > 0) {
             Wallet wallet = new Wallet();
             wallet.setActiveBalance(BigDecimal.valueOf(0));
