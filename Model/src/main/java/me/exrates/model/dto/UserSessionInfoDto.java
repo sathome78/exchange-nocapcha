@@ -2,13 +2,15 @@ package me.exrates.model.dto;
 
 import me.exrates.model.enums.UserRole;
 
+import java.util.List;
+
 /**
  * Created by OLEG on 06.09.2016.
  */
 public class UserSessionInfoDto {
 
     private int userId;
-    private String sessionId;
+    private List<String> sessionIds;
     private String userNickname;
     private String userEmail;
     private UserRole userRole;
@@ -21,12 +23,12 @@ public class UserSessionInfoDto {
         this.userId = userId;
     }
 
-    public String getSessionId() {
-        return sessionId;
+    public List<String> getSessionIds() {
+        return sessionIds;
     }
 
-    public void setSessionId(String sessionId) {
-        this.sessionId = sessionId;
+    public void setSessionIds(List<String> sessionIds) {
+        this.sessionIds = sessionIds;
     }
 
     public String getUserNickname() {
@@ -53,5 +55,14 @@ public class UserSessionInfoDto {
         this.userRole = userRole;
     }
 
-
+    @Override
+    public String toString() {
+        return "UserSessionInfoDto{" +
+                "userId=" + userId +
+                ", sessionIds=" + sessionIds +
+                ", userNickname='" + userNickname + '\'' +
+                ", userEmail='" + userEmail + '\'' +
+                ", userRole=" + userRole +
+                '}';
+    }
 }

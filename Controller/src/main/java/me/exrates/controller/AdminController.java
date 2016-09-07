@@ -612,8 +612,22 @@ public class AdminController {
 
     @RequestMapping(value = "/admin/userSessions")
     @ResponseBody
-    public List<SessionInfoDto> retrieveUserSessionInfo() {
-        List<SessionInfoDto> result = sessionRegistry.getAllPrincipals().stream()
+    public List<UserSessionInfoDto> retrieveUserSessionInfo() {
+        Map<String, List<String>> usersSessions = sessionRegistry.getAllPrincipals().stream()
+                .flatMap(principal -> sessionRegistry.getAllSessions(principal, false).stream())
+                .collect(Collectors.groupingBy((sessionInfo -> {
+                    UserDetails user = (UserDetails) sessionInfo.getPrincipal();
+                    return user.getUsername();
+                }), Collectors.mapping(SessionInformation::getSessionId, Collectors.toList())));
+        LOG.debug(usersSessions);
+        LOG.debug(usersSessions.getClass());
+        List<UserSessionInfoDto> userSessionInfo = userService.getUserSessionInfo(usersSessions.keySet());
+        userSessionInfo.forEach(userSessionInfoDto -> {
+            userSessionInfoDto.setSessionIds(usersSessions.get(userSessionInfoDto.getUserEmail()));
+        });
+        return userSessionInfo;
+
+        /*List<SessionInfoDto> result = sessionRegistry.getAllPrincipals().stream()
                 .flatMap(principal -> sessionRegistry.getAllSessions(principal, false).stream())
                 .map(sessionInfo -> {
                     SessionInfoDto dto = new SessionInfoDto();
@@ -623,7 +637,7 @@ public class AdminController {
                     return dto;
                 })
                 .collect(Collectors.toList());
-                return result;
+                return result;*/
     }
 
     @RequestMapping(value = "/admin/expireSession", method = RequestMethod.POST)

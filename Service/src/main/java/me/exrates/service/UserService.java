@@ -14,6 +14,7 @@ import me.exrates.service.exception.UnRegisteredUserDeleteException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 public interface UserService {
 
@@ -115,5 +116,5 @@ public interface UserService {
      */
     List<UserSummaryDto> getUsersSummaryList(String startDate, String endDate);
 
-    List<UserSessionInfoDto> getUserSessionInfo(List<String> emails);
+    List<UserSessionInfoDto> getUserSessionInfo(Set<String> emails);
 }

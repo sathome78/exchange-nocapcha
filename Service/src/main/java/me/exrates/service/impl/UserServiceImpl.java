@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -328,7 +329,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserSessionInfoDto> getUserSessionInfo(List<String> emails) {
+    public List<UserSessionInfoDto> getUserSessionInfo(Set<String> emails) {
         return userDao.getUserSessionInfo(emails);
     }
 

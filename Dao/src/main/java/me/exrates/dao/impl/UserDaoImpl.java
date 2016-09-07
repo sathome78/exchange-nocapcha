@@ -563,7 +563,7 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public List<UserSessionInfoDto> getUserSessionInfo(List<String> emails) {
+    public List<UserSessionInfoDto> getUserSessionInfo(Set<String> emails) {
         String sql = "SELECT USER.id AS user_id, USER.nickname AS user_nickname, USER.email AS user_email, USER_ROLE.name AS user_role FROM USER " +
                 "INNER JOIN USER_ROLE ON USER_ROLE.id = USER.roleid " +
                 "WHERE USER.email IN (:emails)";
