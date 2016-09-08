@@ -53,7 +53,7 @@ $(function () {
                 {
                     "data":null,
                     "render": function () {
-                        return "<input type='image' src='/client/img/Delete_Icon_48.png' onclick='expireSession.call(this, event)' />" ;
+                        return "<input type='image' src='/client/img/Delete_Icon_16.png' onclick='expireSession.call(this, event)' />" ;
                     }
                 }
             ],
