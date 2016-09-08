@@ -81,6 +81,10 @@ public final class TransactionDaoImpl implements TransactionDao {
         userWallet.setReservedBalance(resultSet.getBigDecimal("WALLET.reserved_balance"));
         userWallet.setId(resultSet.getInt("WALLET.id"));
         userWallet.setCurrencyId(currency.getId());
+        User user = new User();
+        user.setId(resultSet.getInt("user_id"));
+        user.setEmail(resultSet.getString("user_email"));
+        userWallet.setUser(user);
 
         final Transaction transaction = new Transaction();
         transaction.setId(resultSet.getInt("TRANSACTION.id"));
@@ -111,6 +115,7 @@ public final class TransactionDaoImpl implements TransactionDao {
             " SELECT TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime, " +
                     " TRANSACTION.operation_type_id,TRANSACTION.provided, TRANSACTION.confirmation, TRANSACTION.order_id, " +
                     " WALLET.id,WALLET.active_balance,WALLET.reserved_balance,WALLET.currency_id," +
+                    " USER.id as user_id,USER.email as user_email," +
                     " COMPANY_WALLET.id,COMPANY_WALLET.balance,COMPANY_WALLET.commission_balance," +
                     " COMMISSION.id,COMMISSION.date,COMMISSION.value," +
                     " CURRENCY.id,CURRENCY.description,CURRENCY.name," +
@@ -120,6 +125,7 @@ public final class TransactionDaoImpl implements TransactionDao {
                     " EXORDERS.date_acception " +
                     " FROM TRANSACTION " +
                     " INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id" +
+                    " INNER JOIN USER ON WALLET.user_id = USER.id" +
                     " INNER JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id" +
                     " INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
                     " INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id" +
@@ -190,6 +196,7 @@ public final class TransactionDaoImpl implements TransactionDao {
     public Transaction findById(int id) {
         final String sql = "SELECT TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime,TRANSACTION.operation_type_id,TRANSACTION.provided, TRANSACTION.confirmation," +
                 " WALLET.id,WALLET.active_balance,WALLET.reserved_balance,WALLET.currency_id," +
+                " USER.id as user_id,USER.email as user_email," +
                 " COMPANY_WALLET.id,COMPANY_WALLET.balance,COMPANY_WALLET.commission_balance," +
                 " COMMISSION.id,COMMISSION.date,COMMISSION.value," +
                 " CURRENCY.id,CURRENCY.description,CURRENCY.name," +
@@ -199,6 +206,7 @@ public final class TransactionDaoImpl implements TransactionDao {
                 " EXORDERS.date_acception " +
                 " FROM TRANSACTION " +
                 " INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id" +
+                " INNER JOIN USER ON WALLET.user_id = USER.id" +
                 " INNER JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id" +
                 " INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
                 " INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id" +

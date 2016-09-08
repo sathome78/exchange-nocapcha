@@ -92,10 +92,10 @@ public class BitcoinController {
 
     @RequestMapping(value = "/payment/accept",method = GET)
     public RedirectView acceptPayment(@RequestParam int id, @RequestParam String hash,
-                                      @RequestParam Float amount, RedirectAttributes redir){
+                                      @RequestParam BigDecimal amount, RedirectAttributes redir){
 
 
-        if (!bitcoinService.provideTransaction(id, hash, BigDecimal.valueOf(amount))){
+        if (!bitcoinService.provideTransaction(id, hash, amount)){
             final String message = "merchants.internalError";
             redir.addFlashAttribute("message", message);
         }

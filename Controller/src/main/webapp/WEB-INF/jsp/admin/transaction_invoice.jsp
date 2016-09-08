@@ -132,6 +132,9 @@
     </div>
     <hr/>
 </main>
+<div id="prompt_acc_rqst" style="display: none">
+    <loc:message code="merchants.promptWithdrawRequestAccept"/>
+</div>
 <%@include file='../fragments/footer.jsp' %>
 </body>
 </html>

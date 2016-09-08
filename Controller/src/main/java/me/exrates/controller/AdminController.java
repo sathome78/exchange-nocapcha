@@ -80,6 +80,8 @@ public class AdminController {
     private ReferralService referralService;
     @Autowired
     private InvoiceService invoiceService;
+    @Autowired
+    private BitcoinService bitcoinService;
 
     @Autowired
     @Qualifier("ExratesSessionRegistry")
@@ -590,18 +592,15 @@ public class AdminController {
         if (currentRole == null){
             return new ModelAndView("403");
         }
-        List<Transaction> list;
-        Merchant merchant = new Merchant();
-        merchant.setName("Blockchain");
-        Transaction transaction;
+        Map<Transaction,BTCTransaction> map;
 
         if (currentRole.equals(UserRole.ADMINISTRATOR.name()) || currentRole.equals(UserRole.ACCOUNTANT.name())) {
-            list = transactionService.getOpenTransactionsByMerchant(merchant);
+            map = bitcoinService.getBitcoinTransactions();
         } else {
             return new ModelAndView("403");
         }
 
-        return new ModelAndView("admin/transaction_bitcoin", "bitcoinRequests", list);
+        return new ModelAndView("admin/transaction_bitcoin", "bitcoinRequests", map);
     }
 
     @RequestMapping(value = "/admin/sessionControl")

@@ -8,7 +8,7 @@ public class Wallet {
 	
 	private int id;
 	private int currencyId;
-	private int userId;
+	private User user;
 	private BigDecimal activeBalance;
 	private BigDecimal reservedBalance;
 	private String name;
@@ -17,9 +17,9 @@ public class Wallet {
 
 	}
 
-	public Wallet(int currencyId, int userId, BigDecimal activeBalance) {
+	public Wallet(int currencyId, User user, BigDecimal activeBalance) {
 		this.currencyId = currencyId;
-		this.userId = userId;
+		this.user = user;
 		this.activeBalance = activeBalance;
 	}
 
@@ -47,12 +47,12 @@ public class Wallet {
 		this.currencyId = currencyId;
 	}
 
-	public int getUserId() {
-		return userId;
+	public User getUser() {
+		return user;
 	}
 
-	public void setUserId(int userId) {
-		this.userId = userId;
+	public void setUser(User user) {
+		this.user = user;
 	}
 
 	public BigDecimal getActiveBalance() {
@@ -100,7 +100,7 @@ public class Wallet {
 	
 			if (id != wallet.id) return false;
 			if (currencyId != wallet.currencyId) return false;
-			if (userId != wallet.userId) return false;
+			if (!user.equals(wallet.user)) return false;
 			if (activeBalance != null ? !activeBalance.equals(wallet.activeBalance) : wallet.activeBalance != null) return false;
 			if (reservedBalance != null ? !reservedBalance.equals(wallet.reservedBalance) : wallet.reservedBalance != null) return false;
 			return name != null ? name.equals(wallet.name) : wallet.name == null;
@@ -112,7 +112,6 @@ public class Wallet {
 		int result;
 		result = id;
 		result = 31 * result + currencyId;
-		result = 31 * result + userId;
 		result = 31 * result + (activeBalance != null ? activeBalance.hashCode() : 0);
 		result = 31 * result + (reservedBalance != null ? reservedBalance.hashCode() : 0);
 		result = 31 * result + (name != null ? name.hashCode() : 0);
@@ -124,7 +123,7 @@ public class Wallet {
 		return "Wallet{" +
 				"id=" + id +
 				", currencyId=" + currencyId +
-				", userId=" + userId +
+				", userId=" + user.getEmail() +
 				", activeBalance=" + activeBalance +
 				", reservedBalance=" + reservedBalance +
 				", name='" + name + '\'' +

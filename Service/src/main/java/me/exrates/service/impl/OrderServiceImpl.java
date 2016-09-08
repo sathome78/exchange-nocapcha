@@ -192,14 +192,14 @@ public class OrderServiceImpl implements OrderService {
             int createdWalletId;
             if (exOrder.getOperationType() == OperationType.BUY) {
                 if (walletsForOrderAcceptionDto.getUserCreatorInWalletId() == 0) {
-                    createdWalletId = walletService.createNewWallet(new Wallet(walletsForOrderAcceptionDto.getCurrencyBase(), exOrder.getUserId(), new BigDecimal(0)));
+                    createdWalletId = walletService.createNewWallet(new Wallet(walletsForOrderAcceptionDto.getCurrencyBase(), userService.getUserById(exOrder.getUserId()), new BigDecimal(0)));
                     if (createdWalletId == 0) {
                         throw new WalletCreationException(messageSource.getMessage("order.createwalleterror", new Object[]{exOrder.getUserId()}, locale));
                     }
                     walletsForOrderAcceptionDto.setUserCreatorInWalletId(createdWalletId);
                 }
                 if (walletsForOrderAcceptionDto.getUserAcceptorInWalletId() == 0) {
-                    createdWalletId = walletService.createNewWallet(new Wallet(walletsForOrderAcceptionDto.getCurrencyConvert(), userAcceptorId, new BigDecimal(0)));
+                    createdWalletId = walletService.createNewWallet(new Wallet(walletsForOrderAcceptionDto.getCurrencyConvert(), userService.getUserById(userAcceptorId), new BigDecimal(0)));
                     if (createdWalletId == 0) {
                         throw new WalletCreationException(messageSource.getMessage("order.createwalleterror", new Object[]{userAcceptorId}, locale));
                     }
@@ -208,14 +208,14 @@ public class OrderServiceImpl implements OrderService {
             }
             if (exOrder.getOperationType() == OperationType.SELL) {
                 if (walletsForOrderAcceptionDto.getUserCreatorInWalletId() == 0) {
-                    createdWalletId = walletService.createNewWallet(new Wallet(walletsForOrderAcceptionDto.getCurrencyConvert(), exOrder.getUserId(), new BigDecimal(0)));
+                    createdWalletId = walletService.createNewWallet(new Wallet(walletsForOrderAcceptionDto.getCurrencyConvert(), userService.getUserById(exOrder.getUserId()), new BigDecimal(0)));
                     if (createdWalletId == 0) {
                         throw new WalletCreationException(messageSource.getMessage("order.createwalleterror", new Object[]{exOrder.getUserId()}, locale));
                     }
                     walletsForOrderAcceptionDto.setUserCreatorInWalletId(createdWalletId);
                 }
                 if (walletsForOrderAcceptionDto.getUserAcceptorInWalletId() == 0) {
-                    createdWalletId = walletService.createNewWallet(new Wallet(walletsForOrderAcceptionDto.getCurrencyBase(), userAcceptorId, new BigDecimal(0)));
+                    createdWalletId = walletService.createNewWallet(new Wallet(walletsForOrderAcceptionDto.getCurrencyBase(), userService.getUserById(userAcceptorId), new BigDecimal(0)));
                     if (createdWalletId == 0) {
                         throw new WalletCreationException(messageSource.getMessage("order.createwalleterror", new Object[]{userAcceptorId}, locale));
                     }

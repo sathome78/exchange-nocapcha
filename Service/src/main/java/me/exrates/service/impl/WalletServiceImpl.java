@@ -131,7 +131,7 @@ public final class WalletServiceImpl implements WalletService {
 
     @Override
     public Wallet create(User user, Currency currency) {
-        final Wallet wallet = walletDao.createWallet(user.getId(), currency.getId());
+        final Wallet wallet = walletDao.createWallet(user, currency.getId());
         wallet.setName(currency.getName());
         return wallet;
     }

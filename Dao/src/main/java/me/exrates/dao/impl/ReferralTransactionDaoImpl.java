@@ -40,11 +40,11 @@ public class ReferralTransactionDaoImpl implements ReferralTransactionDao {
         result.setReferralLevel(referralLevel);
         result.setUserId(resultSet.getInt("REFERRAL_TRANSACTION.user_id"));
         result.setInitiatorId(resultSet.getInt("REFERRAL_TRANSACTION.initiator_id"));
-        result.setInitiatorEmail(resultSet.getString("USER.email"));
+        result.setInitiatorEmail(resultSet.getString("user_email"));
         return result;
     };
     private final NamedParameterJdbcTemplate jdbcTemplate;
-    private final String SELECT_ALL = " SELECT REFERRAL_TRANSACTION.id, USER.email, REFERRAL_TRANSACTION.initiator_id, REFERRAL_TRANSACTION.user_id, REFERRAL_LEVEL.id, REFERRAL_LEVEL.level, REFERRAL_LEVEL.percent," +
+    private final String SELECT_ALL = " SELECT REFERRAL_TRANSACTION.id, USER.email as user_email, REFERRAL_TRANSACTION.initiator_id, REFERRAL_TRANSACTION.user_id, REFERRAL_LEVEL.id, REFERRAL_LEVEL.level, REFERRAL_LEVEL.percent," +
             " TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime, " +
             " TRANSACTION.operation_type_id,TRANSACTION.provided, TRANSACTION.confirmation, TRANSACTION.order_id, " +
             " WALLET.id,WALLET.active_balance,WALLET.reserved_balance,WALLET.currency_id," +
