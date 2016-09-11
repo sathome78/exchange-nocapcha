@@ -9,6 +9,7 @@ import me.exrates.model.*;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.TransactionService;
+import me.exrates.service.UserService;
 import me.exrates.service.util.BiTuple;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,6 +19,8 @@ import org.bitcoinj.core.TransactionOutput;
 import org.bitcoinj.kits.WalletAppKit;
 import org.bitcoinj.wallet.Wallet;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,7 +28,10 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.StringJoiner;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -52,6 +58,8 @@ public class BitcoinServiceImpl implements BitcoinService {
     private final TransactionService transactionService;
     private final AlgorithmService algorithmService;
     private final BTCTransactionDao btcTransactionDao;
+    private final UserService userService;
+
 
     private static final BigDecimal SATOSHI = new BigDecimal(100_000_000L);
     private static final int decimalPlaces = 8;
@@ -64,13 +72,15 @@ public class BitcoinServiceImpl implements BitcoinService {
                               final PendingPaymentDao paymentDao,
                               final TransactionService transactionService,
                               final AlgorithmService algorithmService,
-                              final BTCTransactionDao btcTransactionDao)
+                              final BTCTransactionDao btcTransactionDao,
+                              final UserService userService)
     {
         this.kit = kit.kit();
         this.paymentDao = paymentDao;
         this.transactionService = transactionService;
         this.algorithmService = algorithmService;
         this.btcTransactionDao = btcTransactionDao;
+        this.userService = userService;
     }
 
     private String extractRecipientAddress(final List<TransactionOutput> outputs) {
@@ -103,6 +113,13 @@ public class BitcoinServiceImpl implements BitcoinService {
         BTCtx.setAmount(amount);
         BTCtx.setTransactionId(tx.getId());
         BTCtx.setHash(hash);
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            User user = userService.findByEmail(auth.getName());
+            BTCtx.setAcceptanceUser(user);
+        }catch (Exception e){
+            LOG.error(e);
+        }
         btcTransactionDao.create(BTCtx);
     }
 
