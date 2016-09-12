@@ -1,7 +1,5 @@
 package me.exrates.model.dto;
 
-import me.exrates.model.Currency;
-import me.exrates.model.User;
 import me.exrates.model.util.BigDecimalProcessing;
 
 import java.math.BigDecimal;
@@ -18,6 +16,8 @@ public class UserWalletSummaryDto {
     private BigDecimal balancePerWallet;
     private BigDecimal activeBalancePerWallet;
     private BigDecimal reservedBalancePerWallet;
+    private BigDecimal merchantAmountInput;
+    private BigDecimal merchantAmountOutput;
 
     /*getters setters*/
 
@@ -83,5 +83,21 @@ public class UserWalletSummaryDto {
 
     public void setReservedBalancePerWallet(BigDecimal reservedBalancePerWallet) {
         this.reservedBalancePerWallet = reservedBalancePerWallet;
+    }
+
+    public BigDecimal getMerchantAmountInput() {
+        return merchantAmountInput;
+    }
+
+    public void setMerchantAmountInput(BigDecimal merchantAmountInput) {
+        this.merchantAmountInput = merchantAmountInput;
+    }
+
+    public BigDecimal getMerchantAmountOutput() {
+        return merchantAmountOutput;
+    }
+
+    public void setMerchantAmountOutput(BigDecimal merchantAmountOutput) {
+        this.merchantAmountOutput = merchantAmountOutput;
     }
 }
