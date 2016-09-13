@@ -26,7 +26,7 @@
 <main class="container">
     <div class="row">
         <%@include file='left_side_menu.jsp' %>
-        <div class="col-md-8 col-md-offset-1 content admin-container">
+        <div class="col-md-10 content admin-container">
             <div class="text-center"><h4><loc:message code="transaction.titleBitcoin"/></h4></div>
                     <table id="invoice_requests">
                         <thead>
@@ -41,13 +41,14 @@
                             <th><loc:message code="transaction.amount"/></th>
                                 <%--Сумма <br> комиссии--%>
                             <th><loc:message code="transaction.commissionAmount"/></th>
+                                <%--Сумма <br> комиссии--%>
+                            <th><loc:message code="transaction.acceptanceDatetime"/></th>
                                 <%--Hash--%>
                             <th>Hash</th>
                                 <%--Manual amount--%>
                             <th>Manual amount</th>
-
-                                <%--Confirmation--%>
-                            <th><loc:message code="transaction.confirmation"/></th>
+                                <%--Confirmation/Acceptance user--%>
+                            <th><loc:message code="transaction.acceptanceUser"/></th>
 
                         </tr>
                         </thead>
@@ -65,7 +66,10 @@
                                 </td>
                                     <%--Transaction email--%>
                                 <td>
-                                        ${maptransaction.key.userWallet.user.email}
+                                     <a href="<c:url value='/admin/userInfo'>
+                                    <c:param name="id" value="${maptransaction.key.userWallet.user.id}"/>
+                                    </c:url>">${maptransaction.key.userWallet.user.email}</a>
+
                                 </td>
                                     <%--Amount--%>
                                 <td>
@@ -77,9 +81,13 @@
                                 </td>
                                 <c:choose>
                                     <c:when test="${maptransaction.key.isProvided()}">
+                                        <%--Acceptance date--%>
+                                        <td>
+                                            ${maptransaction.value.acceptance_time}
+                                        </td>
                                         <%--Hash--%>
                                         <td>
-                                                ${maptransaction.value.hash}
+                                            <input readonly value="${maptransaction.value.hash}" style="width: 130px" class="form-control input-block-wrapper__input">
                                         </td>
                                         <%--Manual amount--%>
                                         <td>
@@ -87,17 +95,24 @@
                                         </td>
                                         <%--Подтвердить--%>
                                         <td>
-                                            <loc:message code="transaction.provided"/>
+                                            <c:choose>
+                                                <c:when test="${maptransaction.value.acceptanceUser == null}">by service</c:when>
+                                                <c:otherwise>${maptransaction.value.acceptanceUser.email}</c:otherwise>
+                                            </c:choose>
                                         </td>
                                     </c:when>
                                     <c:otherwise>
+                                        <%--Acceptance date--%>
+                                        <td>
+                                                -
+                                        </td>
                                         <%--Hash--%>
                                         <td>
-                                            <input id="bitcoin_hash${maptransaction.key.id}"  style="width: auto" class="form-control input-block-wrapper__input">
+                                            <input id="bitcoin_hash${maptransaction.key.id}"  style="width: 130px" class="form-control input-block-wrapper__input">
                                         </td>
                                         <%--Manual amount--%>
                                         <td>
-                                            <input id="manual_amount${maptransaction.key.id}" value="${maptransaction.key.amount}"  style="width: auto" maxlength="9" class="form-control input-block-wrapper__input numericInputField">
+                                            <input id="manual_amount${maptransaction.key.id}" value="${maptransaction.key.amount}"  style="width: 130px" maxlength="9" class="form-control input-block-wrapper__input numericInputField">
                                         </td>
                                         <%--Подтвердить--%>
                                         <td>

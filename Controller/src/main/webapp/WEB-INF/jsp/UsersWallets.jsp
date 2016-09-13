@@ -85,6 +85,19 @@
                         <fmt:formatNumber type="number" maxFractionDigits="9"
                                           value="${wallet.reservedBalancePerWallet}"/>
                     </p>
+                    <br/>
+
+                    <p class="info-item  col-sm-4">
+                        <loc:message code="wallets.totalInputAmount"/>:
+                        <fmt:formatNumber type="number" maxFractionDigits="9"
+                                          value="${wallet.merchantAmountInput}"/>
+                    </p>
+
+                    <p class="info-item next_item">
+                        <loc:message code="wallets.totalOutputAmount"/>:
+                        <fmt:formatNumber type="number" maxFractionDigits="9"
+                                          value="${wallet.merchantAmountOutput}"/>
+                    </p>
                 </div>
             </c:forEach>
         </div>

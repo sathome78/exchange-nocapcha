@@ -407,7 +407,9 @@ public class WalletDaoImpl implements WalletDao {
 
     @Override
     public List<UserWalletSummaryDto> getUsersWalletsSummary() {
-        String sql = "SELECT CURRENCY.name as currency_name, COUNT(*) as wallets_amount, SUM(WALLET.active_balance) as active_balance, SUM(WALLET.reserved_balance) as reserved_balance " +
+        String sql = "SELECT CURRENCY.name as currency_name, COUNT(*) as wallets_amount, SUM(WALLET.active_balance) as active_balance, SUM(WALLET.reserved_balance) as reserved_balance, " +
+                "(SELECT SUM(amount) FROM birzha.transaction where provided=1 AND merchant_id is not null AND operation_type_id=1 AND currency_id=CURRENCY.id) as merchant_amount_input, " +
+                "(SELECT SUM(amount) FROM birzha.transaction where provided=1 AND merchant_id is not null AND operation_type_id=2 AND currency_id=CURRENCY.id) as merchant_amount_output " +
                 " FROM WALLET " +
                 " JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
                 " GROUP BY CURRENCY.name";
@@ -423,6 +425,8 @@ public class WalletDaoImpl implements WalletDao {
                 userWalletSummaryDto.setActiveBalancePerWallet(BigDecimalProcessing.doAction(userWalletSummaryDto.getActiveBalance(), BigDecimal.valueOf(userWalletSummaryDto.getWalletsAmount()), ActionType.DEVIDE));
                 userWalletSummaryDto.setReservedBalancePerWallet(BigDecimalProcessing.doAction(userWalletSummaryDto.getReservedBalance(), BigDecimal.valueOf(userWalletSummaryDto.getWalletsAmount()), ActionType.DEVIDE));
                 userWalletSummaryDto.setBalancePerWallet(BigDecimalProcessing.doAction(userWalletSummaryDto.getBalance(), BigDecimal.valueOf(userWalletSummaryDto.getWalletsAmount()), ActionType.DEVIDE));
+                userWalletSummaryDto.setMerchantAmountInput(rs.getBigDecimal("merchant_amount_input"));
+                userWalletSummaryDto.setMerchantAmountOutput(rs.getBigDecimal("merchant_amount_output"));
                 return userWalletSummaryDto;
             }
         });
