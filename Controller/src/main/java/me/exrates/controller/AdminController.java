@@ -618,16 +618,13 @@ public class AdminController {
                     UserDetails user = (UserDetails) sessionInformation.getPrincipal();
                     return user.getUsername();
                 }));
-        LOG.debug(usersSessions);
         Map<String, UserSessionInfoDto> userSessionInfo = userService.getUserSessionInfo(usersSessions.values().stream().collect(Collectors.toSet()))
                 .stream().collect(Collectors.toMap(UserSessionInfoDto::getUserEmail, userSessionInfoDto -> userSessionInfoDto));
         List<UserSessionDto> result = usersSessions.entrySet().stream()
                 .map(entry -> {
-                    LOG.debug(entry.getKey());
                     UserSessionDto dto = new UserSessionDto(userSessionInfo.get(entry.getValue()), entry.getKey());
                     return dto;
                 }).collect(Collectors.toList());
-        LOG.debug(result);
         return result;
     }
 

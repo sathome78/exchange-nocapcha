@@ -53,7 +53,7 @@ $(function () {
                 {
                     "data":null,
                     "render": function () {
-                        return "<input type='image' src='/client/img/Delete_Icon_16.png' onclick='expireSession.call(this, event)' />" ;
+                        return "<input type='image' src='/client/img/Delete_Icon_16.png' onclick='showConfirmModal.call(this, event)' />" ;
                     }
                 }
             ],
@@ -72,9 +72,22 @@ $(function () {
 
 });
 
-function expireSession(e) {
-    var $button = $(this);
-    var sessionId = $button.parents('tr').children('td:nth-child(4)').text();
+function showConfirmModal(e) {
+    var element = $(this);
+    var userEmail = element.parents('tr').children('td:nth-child(2)').text();
+    var sessionId = element.parents('tr').children('td:nth-child(4)').text();
+    $('#session-owner').text(userEmail);
+    $('#session-id').text(sessionId);
+
+    $('#expire-session-submit').on('click', function () {
+        console.log(element);
+        expireSession(sessionId);
+        $('#expire-session-modal').modal('hide');
+    });
+    $('#expire-session-modal').modal();
+}
+
+function expireSession(sessionId) {
     var token = $("meta[name='_csrf']").attr("content");
     var header = $("meta[name='_csrf_header']").attr("content");
     console.log(sessionId);

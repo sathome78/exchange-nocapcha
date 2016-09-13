@@ -57,6 +57,36 @@
     </div>
     <hr/>
 </main>
+<div id="expire-session-modal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title"><loc:message code="admin.sessionControl.modalTitle"/></h4>
+            </div>
+            <div class="modal-body">
+                <div class="text-center">
+                    <h5><loc:message code="admin.sessionControl.prompt"/></h5>
+                </div>
+                <div>
+                    <strong><loc:message code="admin.user"/></strong><span style="margin-left: 10px" id="session-owner"></span>
+                </div>
+                <div>
+                    <strong><loc:message code="admin.sessionControl.sessionId"/></strong><span style="margin-left: 10px" id="session-id"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div>
+                    <button id="expire-session-submit" >
+                        <loc:message code="admin.sessionControl.submit"/></button>
+                    <button data-dismiss="modal">
+                        <loc:message code="submitorder.cancell"/></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <%@include file='../fragments/footer.jsp' %>
 </body>
 </html>
