@@ -408,11 +408,12 @@ public class WalletDaoImpl implements WalletDao {
     @Override
     public List<UserWalletSummaryDto> getUsersWalletsSummary() {
         String sql = "SELECT CURRENCY.name as currency_name, COUNT(*) as wallets_amount, SUM(WALLET.active_balance) as active_balance, SUM(WALLET.reserved_balance) as reserved_balance, " +
-                "(SELECT SUM(amount) FROM birzha.transaction where provided=1 AND merchant_id is not null AND operation_type_id=1 AND currency_id=CURRENCY.id) as merchant_amount_input, " +
-                "(SELECT SUM(amount) FROM birzha.transaction where provided=1 AND merchant_id is not null AND operation_type_id=2 AND currency_id=CURRENCY.id) as merchant_amount_output " +
+                "(SELECT SUM(amount) FROM TRANSACTION where provided=1 AND merchant_id is not null AND operation_type_id=1 AND currency_id=CURRENCY.id) as merchant_amount_input, " +
+                "(SELECT SUM(amount) FROM TRANSACTION where provided=1 AND merchant_id is not null AND operation_type_id=2 AND currency_id=CURRENCY.id) as merchant_amount_output " +
                 " FROM WALLET " +
                 " JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
-                " GROUP BY CURRENCY.name";
+                " GROUP BY CURRENCY.name, CURRENCY.id";
+
         ArrayList<UserWalletSummaryDto> result = (ArrayList<UserWalletSummaryDto>) jdbcTemplate.query(sql, new BeanPropertyRowMapper<UserWalletSummaryDto>() {
             @Override
             public UserWalletSummaryDto mapRow(ResultSet rs, int rowNumber) throws SQLException {

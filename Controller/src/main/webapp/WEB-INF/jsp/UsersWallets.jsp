@@ -45,6 +45,11 @@
                         code="wallets.download"/></button>
             </div>
 
+            <div class="row">
+                <button id="upload-users-wallets-inout" class="blue-box pull-right" type="submit"><loc:message
+                        code="wallets.downloadInputOutput"/></button>
+            </div>
+
             <c:forEach var="wallet" items="${usersWalletsSummaryList}">
                 <div class="block">
                     <div class="currency">${wallet.currencyName}</div>

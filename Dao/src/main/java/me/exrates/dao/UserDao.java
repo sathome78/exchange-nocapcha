@@ -7,6 +7,7 @@ import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserIpDto;
 import me.exrates.model.dto.UserSessionInfoDto;
 import me.exrates.model.dto.UserSummaryDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 
@@ -92,4 +93,8 @@ public interface UserDao {
     List<UserSummaryDto> getUsersSummaryList(String startDate, String endDate);
 
     List<UserSessionInfoDto> getUserSessionInfo(Set<String> emails);
+
+    List<UserSummaryInOutDto> getUsersSummaryInOutList(String startDate, String endDate);
+
+    List<UserSummaryTotalInOutDto> getUsersSummaryTotalInOutList(String startDate, String endDate);
 }

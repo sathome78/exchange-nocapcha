@@ -547,6 +547,31 @@ public class AdminController {
                                 .collect(Collectors.joining());
     }
 
+    @RequestMapping(value = "admin/downloadUsersWalletsSummaryInOut", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
+    @ResponseBody
+    public String getUsersWalletsSummeryInOut(@RequestParam String startDate, @RequestParam String endDate) {
+        String value = UserSummaryInOutDto.getTitle() +
+                userService.getUsersSummaryInOutList(startDate, endDate)
+                        .stream()
+                        .map(e -> e.toString())
+                        .collect(Collectors.joining());
+
+        return value;
+    }
+
+    @RequestMapping(value = "admin/downloadUsersWalletsSummaryTotalInOut", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
+    @ResponseBody
+    public String getUsersWalletsSummeryTotalInOut(@RequestParam String startDate, @RequestParam String endDate) {
+        String value = UserSummaryTotalInOutDto.getTitle() +
+                userService.getUsersSummaryTotalInOutList(startDate, endDate)
+                        .stream()
+                        .map(e -> e.toString())
+                        .collect(Collectors.joining());
+
+        return value;
+    }
+
+
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
     @ExceptionHandler(OrderDeletingException.class)
     @ResponseBody

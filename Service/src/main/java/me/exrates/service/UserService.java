@@ -7,6 +7,7 @@ import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserIpDto;
 import me.exrates.model.dto.UserSessionInfoDto;
 import me.exrates.model.dto.UserSummaryDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.service.exception.UnRegisteredUserDeleteException;
@@ -115,6 +116,28 @@ public interface UserService {
      * @author ValkSam
      */
     List<UserSummaryDto> getUsersSummaryList(String startDate, String endDate);
+
+    /**
+     * Returns user's total info, including total input-ouput amounts for period by each records
+     * Used to unload data to csv file
+     *
+     * @param startDate is the begin the period (including)
+     * @param endDate is the end the period (including)
+     * @return list the UserSummaryDto
+     * @author sjet
+     */
+    List<UserSummaryInOutDto> getUsersSummaryInOutList(String startDate, String endDate);
+
+    /**
+     * Returns user's total info, including total input-ouput amounts for period
+     * Used to unload data to csv file
+     *
+     * @param startDate is the begin the period (including)
+     * @param endDate is the end the period (including)
+     * @return list the UserSummaryDto
+     * @author ajet
+     */
+    List<UserSummaryTotalInOutDto> getUsersSummaryTotalInOutList(String startDate, String endDate);
 
     List<UserSessionInfoDto> getUserSessionInfo(Set<String> emails);
 }
