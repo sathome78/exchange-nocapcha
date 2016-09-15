@@ -149,13 +149,31 @@ function StockChartAmchartsClass($loadingImg) {
         stockPanel.showCategoryAxis = true;
         stockPanel.percentHeight = 80;
         /*%*/
+        var panelsSettings = new AmCharts.PanelsSettings();
+        panelsSettings.marginLeft = 30;
+        panelsSettings.marginRight = 50;
+        chart.panelsSettings = panelsSettings;
 
         var valueAxis = new AmCharts.ValueAxis();
         valueAxis.dashLength = 5;
         valueAxis.precision = 9;
-        valueAxis.labelsEnabled = false;
+        valueAxis.labelsEnabled = true;
         valueAxis.gridCount = 3;
+        valueAxis.labelFunction = function (value, valueText, valueAxis) {
+            return value.toFixed(0).toString();
+        };
+        valueAxis.labelOffset = -35;
         stockPanel.addValueAxis(valueAxis);
+
+        var valueAxisRight = new AmCharts.ValueAxis();
+        valueAxisRight.position = "right";
+        valueAxisRight.labelsEnabled = true;
+        valueAxisRight.gridAlpha = 0;
+        valueAxisRight.labelFunction = function (value, valueText, valueAxis) {
+            return value.toFixed(4).toString();
+        };
+        valueAxisRight.labelOffset = -50;
+        stockPanel.addValueAxis(valueAxisRight);
 
         stockPanel.categoryAxis.dashLength = 5;
 
@@ -166,11 +184,11 @@ function StockChartAmchartsClass($loadingImg) {
         graph.highField = "high";
         graph.lowField = "low";
         graph.valueField = "high";
-        graph.lineColor = "#7f8da9";
-        graph.fillColors = "#7f8da9";
-        graph.negativeLineColor = "#db4c3c";
+        graph.lineColor = "#000000"; //7f8da9
+        graph.fillColors = "#6ce123";
+        graph.negativeLineColor = "#000000";
         graph.negativeFillColors = "#db4c3c";
-        graph.proCandlesticks = true;
+     //   graph.proCandlesticks = true;
         graph.fillAlphas = 1;
         graph.useDataSetColors = false;
         //graph.comparable = true;
@@ -189,6 +207,15 @@ function StockChartAmchartsClass($loadingImg) {
         stockPanel.chartCursor = chartCursor;
         chart.panels = [stockPanel];
         /*PANEL 2*/
+        var graph2 = new AmCharts.StockGraph();
+        graph2.type = 'column';
+        graph2.valueField = "volume";
+        graph2.valueAxis = valueAxisRight;
+        graph2.lineAlpha = 0;
+        graph2.fillAlphas = 0;
+        graph2.showBalloon = false;
+  //      graph2.hidden = true;
+        stockPanel.addStockGraph(graph2);
         if (false) {
             var stockPanel2 = new AmCharts.StockPanel();
             stockPanel2.title = "";

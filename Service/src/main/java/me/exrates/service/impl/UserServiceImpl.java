@@ -6,6 +6,10 @@ import me.exrates.model.Email;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
+import me.exrates.model.dto.UpdateUserDto;
+import me.exrates.model.dto.UserIpDto;
+import me.exrates.model.dto.UserSessionInfoDto;
+import me.exrates.model.dto.UserSummaryDto;
 import me.exrates.model.dto.*;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
@@ -26,6 +30,10 @@ import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -330,6 +338,11 @@ public class UserServiceImpl implements UserService {
     @PostConstruct
     private void initTokenTriggers() {
         tokenScheduler.initTrigers();
+    }
+
+    @Override
+    public List<UserSessionInfoDto> getUserSessionInfo(Set<String> emails) {
+        return userDao.getUserSessionInfo(emails);
     }
 
 }

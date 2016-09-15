@@ -3,6 +3,10 @@ package me.exrates.service;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
+import me.exrates.model.dto.UpdateUserDto;
+import me.exrates.model.dto.UserIpDto;
+import me.exrates.model.dto.UserSessionInfoDto;
+import me.exrates.model.dto.UserSummaryDto;
 import me.exrates.model.dto.*;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
@@ -11,6 +15,7 @@ import me.exrates.service.exception.UnRegisteredUserDeleteException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 public interface UserService {
 
@@ -133,4 +138,6 @@ public interface UserService {
      * @author ajet
      */
     List<UserSummaryTotalInOutDto> getUsersSummaryTotalInOutList(String startDate, String endDate);
+
+    List<UserSessionInfoDto> getUserSessionInfo(Set<String> emails);
 }

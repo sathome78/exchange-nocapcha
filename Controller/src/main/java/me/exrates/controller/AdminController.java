@@ -627,4 +627,40 @@ public class AdminController {
 
         return new ModelAndView("admin/transaction_bitcoin", "bitcoinRequests", map);
     }
+
+    @RequestMapping(value = "/admin/sessionControl")
+    public ModelAndView sessionControl() {
+        return new ModelAndView("admin/sessionControl");
+    }
+
+
+    @RequestMapping(value = "/admin/userSessions")
+    @ResponseBody
+    public List<UserSessionDto> retrieveUserSessionInfo() {
+        Map<String, String> usersSessions = sessionRegistry.getAllPrincipals().stream()
+                .flatMap(principal -> sessionRegistry.getAllSessions(principal, false).stream())
+                .collect(Collectors.toMap(SessionInformation::getSessionId, sessionInformation -> {
+                    UserDetails user = (UserDetails) sessionInformation.getPrincipal();
+                    return user.getUsername();
+                }));
+        Map<String, UserSessionInfoDto> userSessionInfo = userService.getUserSessionInfo(usersSessions.values().stream().collect(Collectors.toSet()))
+                .stream().collect(Collectors.toMap(UserSessionInfoDto::getUserEmail, userSessionInfoDto -> userSessionInfoDto));
+        List<UserSessionDto> result = usersSessions.entrySet().stream()
+                .map(entry -> {
+                    UserSessionDto dto = new UserSessionDto(userSessionInfo.get(entry.getValue()), entry.getKey());
+                    return dto;
+                }).collect(Collectors.toList());
+        return result;
+    }
+
+    @RequestMapping(value = "/admin/expireSession", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity<String> expireSession(@RequestParam String sessionId) {
+        SessionInformation sessionInfo = sessionRegistry.getSessionInformation(sessionId);
+        if (sessionInfo == null) {
+            return new ResponseEntity<>("Sesion not found", HttpStatus.NOT_FOUND);
+        }
+        sessionInfo.expireNow();
+        return new ResponseEntity<>("Session " + sessionId + " expired", HttpStatus.OK);
+    }
 }
