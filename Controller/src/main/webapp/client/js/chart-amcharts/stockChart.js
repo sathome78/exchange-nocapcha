@@ -150,8 +150,8 @@ function StockChartAmchartsClass($loadingImg) {
         stockPanel.percentHeight = 80;
         /*%*/
         var panelsSettings = new AmCharts.PanelsSettings();
-        panelsSettings.marginLeft = 30;
-        panelsSettings.marginRight = 50;
+        panelsSettings.marginLeft = 70;
+        panelsSettings.marginRight = 60;
         chart.panelsSettings = panelsSettings;
 
         var valueAxis = new AmCharts.ValueAxis();
@@ -160,9 +160,9 @@ function StockChartAmchartsClass($loadingImg) {
         valueAxis.labelsEnabled = true;
         valueAxis.gridCount = 3;
         valueAxis.labelFunction = function (value, valueText, valueAxis) {
-            return value.toFixed(0).toString();
+            return value.toFixed(5).toString();
         };
-        valueAxis.labelOffset = -35;
+        valueAxis.labelOffset = -70;
         stockPanel.addValueAxis(valueAxis);
 
         var valueAxisRight = new AmCharts.ValueAxis();
@@ -172,7 +172,7 @@ function StockChartAmchartsClass($loadingImg) {
         valueAxisRight.labelFunction = function (value, valueText, valueAxis) {
             return value.toFixed(4).toString();
         };
-        valueAxisRight.labelOffset = -50;
+        valueAxisRight.labelOffset = -60;
         stockPanel.addValueAxis(valueAxisRight);
 
         stockPanel.categoryAxis.dashLength = 5;
