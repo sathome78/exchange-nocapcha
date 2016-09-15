@@ -6,9 +6,7 @@ import me.exrates.model.Email;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
-import me.exrates.model.dto.UpdateUserDto;
-import me.exrates.model.dto.UserIpDto;
-import me.exrates.model.dto.UserSummaryDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
@@ -27,9 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import java.nio.file.Path;
-import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -319,6 +315,16 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserSummaryDto> getUsersSummaryList(String startDate, String endDate) {
         return userDao.getUsersSummaryList(startDate, endDate);
+    }
+
+    @Override
+    public List<UserSummaryInOutDto> getUsersSummaryInOutList(String startDate, String endDate) {
+        return userDao.getUsersSummaryInOutList(startDate, endDate);
+    }
+
+    @Override
+    public List<UserSummaryTotalInOutDto> getUsersSummaryTotalInOutList(String startDate, String endDate) {
+        return userDao.getUsersSummaryTotalInOutList(startDate, endDate);
     }
 
     @PostConstruct

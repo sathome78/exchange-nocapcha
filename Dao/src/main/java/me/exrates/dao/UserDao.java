@@ -3,9 +3,7 @@ package me.exrates.dao;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
-import me.exrates.model.dto.UpdateUserDto;
-import me.exrates.model.dto.UserIpDto;
-import me.exrates.model.dto.UserSummaryDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 
@@ -88,4 +86,8 @@ public interface UserDao {
     boolean setLastRegistrationDate(int userId, String ip);
 
     List<UserSummaryDto> getUsersSummaryList(String startDate, String endDate);
+
+    List<UserSummaryInOutDto> getUsersSummaryInOutList(String startDate, String endDate);
+
+    List<UserSummaryTotalInOutDto> getUsersSummaryTotalInOutList(String startDate, String endDate);
 }

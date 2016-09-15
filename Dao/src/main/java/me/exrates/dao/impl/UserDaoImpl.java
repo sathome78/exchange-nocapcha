@@ -4,9 +4,7 @@ import me.exrates.dao.UserDao;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
-import me.exrates.model.dto.UpdateUserDto;
-import me.exrates.model.dto.UserIpDto;
-import me.exrates.model.dto.UserSummaryDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.enums.*;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.apache.logging.log4j.LogManager;
@@ -559,6 +557,67 @@ public class UserDaoImpl implements UserDao {
                 userSummaryDto.setReservedBalance(rs.getBigDecimal("reserved_balance"));
                 userSummaryDto.setWalletTurnover(BigDecimalProcessing.doActionLax(rs.getBigDecimal("input_amount"), rs.getBigDecimal("output_amount"), ActionType.SUBTRACT));
                 return userSummaryDto;
+            }
+        });
+        return result;
+    }
+
+    @Override
+    public List<UserSummaryInOutDto> getUsersSummaryInOutList(String startDate, String endDate) {
+        String sql =
+                " SELECT USER.nickname as user_nickname, USER.email as user_email, \n" +
+                        "case when operation_type_id=1 then\n" +
+                        "TRANSACTION.datetime end as creationIn, \n" +
+                        "case when operation_type_id=2 then\n" +
+                        "TRANSACTION.datetime end as creationOut, \n" +
+                        "CURRENCY.name as currency_name, TRANSACTION.amount  FROM TRANSACTION \n" +
+                        "JOIN WALLET ON (WALLET.id = TRANSACTION.user_wallet_id)\n" +
+                        "JOIN USER ON (USER.id = WALLET.user_id)  \n" +
+                        "JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id)    \n" +
+                        "where provided=1 AND merchant_id is not null AND (operation_type_id=1 OR operation_type_id=2) " +
+                        "AND (DATE_FORMAT(TRANSACTION.datetime, '%Y-%m-%d %H:%i:%s') BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))";
+        Map<String, String> namedParameters = new HashMap<>();
+        namedParameters.put("start_date", startDate);
+        namedParameters.put("end_date", endDate);
+        ArrayList<UserSummaryInOutDto> result = (ArrayList<UserSummaryInOutDto>) jdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<UserSummaryInOutDto>() {
+            @Override
+            public UserSummaryInOutDto mapRow(ResultSet rs, int rowNumber) throws SQLException {
+                UserSummaryInOutDto userSummaryInOutDto = new UserSummaryInOutDto();
+                userSummaryInOutDto.setUserNickname(rs.getString("user_nickname"));
+                userSummaryInOutDto.setUserEmail(rs.getString("user_email"));
+                userSummaryInOutDto.setCreationIn(rs.getTimestamp("creationIn") == null ? "" : rs.getTimestamp("creationIn").toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                userSummaryInOutDto.setCreationOut(rs.getTimestamp("creationOut") == null ? "" : rs.getTimestamp("creationOut").toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                userSummaryInOutDto.setCurrencyName(rs.getString("currency_name"));
+                userSummaryInOutDto.setAmount(rs.getBigDecimal("amount"));
+                return userSummaryInOutDto;
+            }
+        });
+        return result;
+    }
+
+    @Override
+    public List<UserSummaryTotalInOutDto> getUsersSummaryTotalInOutList(String startDate, String endDate) {
+        String sql = "select CURRENCY.name as currency_name, TRANSACTION.amount,\n " +
+        "sum(case when operation_type_id=1 then\n" +
+                "TRANSACTION.amount end) as amountIn, \n" +
+                "sum(case when operation_type_id=2 then\n" +
+                "TRANSACTION.amount end) as amountOut\n" +
+                "  FROM TRANSACTION \n" +
+                "JOIN CURRENCY ON (CURRENCY.id = TRANSACTION.currency_id)    \n" +
+                "where provided=1 AND merchant_id is not null AND (operation_type_id=1 OR operation_type_id=2)\n" +
+                " AND (DATE_FORMAT(TRANSACTION.datetime, '%Y-%m-%d %H:%i:%s') BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))" +
+                "group by CURRENCY.name, CURRENCY.id";
+        Map<String, String> namedParameters = new HashMap<>();
+        namedParameters.put("start_date", startDate);
+        namedParameters.put("end_date", endDate);
+        ArrayList<UserSummaryTotalInOutDto> result = (ArrayList<UserSummaryTotalInOutDto>) jdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<UserSummaryTotalInOutDto>() {
+            @Override
+            public UserSummaryTotalInOutDto mapRow(ResultSet rs, int rowNumber) throws SQLException {
+                UserSummaryTotalInOutDto userSummaryTotalInOutDto = new UserSummaryTotalInOutDto();
+                userSummaryTotalInOutDto.setCurrency(rs.getString("currency_name"));
+                userSummaryTotalInOutDto.setTotalIn(rs.getBigDecimal("amountIn"));
+                userSummaryTotalInOutDto.setTotalOut(rs.getBigDecimal("amountOut"));
+                return userSummaryTotalInOutDto;
             }
         });
         return result;
