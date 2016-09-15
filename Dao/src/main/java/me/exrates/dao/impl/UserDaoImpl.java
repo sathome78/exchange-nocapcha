@@ -597,16 +597,16 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public List<UserSummaryTotalInOutDto> getUsersSummaryTotalInOutList(String startDate, String endDate) {
-        String sql = "select CURRENCY.name as currency_name, TRANSACTION.amount,\n " +
-        "sum(case when operation_type_id=1 then\n" +
+        String sql = "SELECT CURRENCY.name as currency_name, TRANSACTION.amount,\n " +
+        "SUM(case when operation_type_id=1 then\n" +
                 "TRANSACTION.amount end) as amountIn, \n" +
-                "sum(case when operation_type_id=2 then\n" +
+                "SUM(case when operation_type_id=2 then\n" +
                 "TRANSACTION.amount end) as amountOut\n" +
                 "  FROM TRANSACTION \n" +
                 "JOIN CURRENCY ON (CURRENCY.id = TRANSACTION.currency_id)    \n" +
                 "where provided=1 AND merchant_id is not null AND (operation_type_id=1 OR operation_type_id=2)\n" +
                 " AND (DATE_FORMAT(TRANSACTION.datetime, '%Y-%m-%d %H:%i:%s') BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))" +
-                "group by CURRENCY.name, CURRENCY.id";
+                "GROUP BY CURRENCY.name, CURRENCY.id";
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("start_date", startDate);
         namedParameters.put("end_date", endDate);
