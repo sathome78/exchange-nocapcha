@@ -30,10 +30,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
 
     function onCurrencyPairChange() {
         that.updateAndShowAll();
-        $(document).one("ajaxStop", function () {
-            that.fillOrderCreationFormFields('SELL');
-            that.fillOrderCreationFormFields('BUY');
-        });
+        that.fillOrderCreationFormFields();
     }
 
     this.syncCurrencyPairSelector = function () {
@@ -231,22 +228,20 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         });
     };
 
-    this.fillOrderCreationFormFields = function(orderType) {
-        var initialAmount = 1;
-        var initialAmountString = initialAmount.toFixed(that.ROUND_SCALE);
-        if (orderType === 'BUY') {
+    this.fillOrderCreationFormFields = function() {
+        $(document).one("ajaxStop", function () {
+            var initialAmount = 1;
+            var initialAmountString = initialAmount.toFixed(that.ROUND_SCALE);
             $('#amountBuy').val(initialAmountString);
             var lastBuyExrate = getLastExrate('#dashboard-orders-buy-table .dashboard-order__tr:first');
             $('#exchangeRateBuy').val(lastBuyExrate);
             calculateFieldsForBuy();
-
-        } else if (orderType === 'SELL') {
             $('#amountSell').val(initialAmountString);
             var lastSellExrate = getLastExrate('#dashboard-orders-sell-table .dashboard-order__tr:first');
             $('#exchangeRateSell').val(lastSellExrate);
             calculateFieldsForSell();
+        });
 
-        }
 
     };
 
@@ -342,10 +337,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
             }
         }
         that.updateAndShowAll(false);
-        $(document).one("ajaxStop", function () {
-            that.fillOrderCreationFormFields('SELL');
-            that.fillOrderCreationFormFields('BUY');
-        });
+        that.fillOrderCreationFormFields();
 
         /**/
         $('#amountBuy').on('keyup', calculateFieldsForBuy).on('keydown', that.resetOrdersListForAccept);
