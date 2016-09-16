@@ -253,15 +253,18 @@ function TradingClass(period, chartType, currentCurrencyPair) {
     function getLastExrate($selector) {
         var lastRate;
         if ($($selector).size() === 0) {
-            lastRate = $('#lastOrderRate > span').text().split(" ")[0];
-            if (isNaN(lastRate)) {
-                return ''
+            var currencyPairName = $('.currency-pair-selector__button').first().text().trim();
+            var $cell = $('#currency_table').find("tr td:contains('" + currencyPairName + "')");
+            if ($cell.size() === 0) {
+                return '';
             } else {
-                return (+lastRate).toFixed(that.ROUND_SCALE);
+                lastRate = $cell.next().text()
             }
+            return (parseNumber(lastRate)).toFixed(that.ROUND_SCALE);
+
         } else {
             lastRate = $($selector).find('.order_exrate').text();
-            return (+lastRate).toFixed(that.ROUND_SCALE);
+            return (parseNumber(lastRate)).toFixed(that.ROUND_SCALE);
         }
     }
 
