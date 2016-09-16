@@ -27,6 +27,8 @@
             <c:when test="${userStatus == 4}">
                 <div class="text-center paddingtop10">
                     <span class="red"><loc:message code="dashboard.onlinechatbanned"/></span>
+                    <br/>
+                    <a href="<c:url value='/contacts'/>"><loc:message code="dashboard.contactsAndSupport" /> </a>
                 </div>
 
             </c:when>

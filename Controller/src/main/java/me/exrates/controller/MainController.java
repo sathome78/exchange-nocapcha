@@ -238,7 +238,7 @@ public class MainController {
 
     @RequestMapping(value = "/login", method = RequestMethod.GET)
     public ModelAndView login(HttpSession httpSession,
-                              @RequestParam(value = "error", required = false) String error) {
+                              @RequestParam(value = "error", required = false) String error, HttpServletRequest request) {
         ModelAndView model = new ModelAndView();
         model.addObject("captchaType", CAPTCHA_TYPE);
         if (error != null) {
@@ -247,6 +247,7 @@ public class MainController {
                 String exceptionClass = parts[parts.length - 1];
                 if (exceptionClass.equals("DisabledException")) {
                     model.addObject("error", messageSource.getMessage("login.blocked", null, localeResolver.resolveLocale(request)));
+                    model.addObject("contactsUrl", "/contacts");
                 } else if (exceptionClass.equals("BadCredentialsException")) {
                     model.addObject("error", messageSource.getMessage("login.notFound", null, localeResolver.resolveLocale(request)));
                 } else if (exceptionClass.equals("NotVerifiedCaptchaError")) {

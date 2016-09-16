@@ -62,7 +62,13 @@
             <hr>
             <c:url value="/login" var="loginUrl"/>
             <div class="clearfix">
-                <p class="login__error">${error}</p>
+                <p class="login__error">${error}
+                    <br/>
+                    <c:if test="${not empty contactsUrl}">
+                        <a href="<c:url value='/contacts'/>"><loc:message code="dashboard.contactsAndSupport" /> </a>
+                    </c:if>
+                </p>
+
 
                 <form action="${loginUrl}" method="post" class="clearfix">
                     <div class="input-block-wrapper clearfix">
