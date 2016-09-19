@@ -59,6 +59,7 @@ $(function dashdoardInit() {
             trading.syncCurrencyPairSelector();
             showPage('trading');
             trading.updateAndShowAll();
+            trading.fillOrderCreationFormFields();
         }
 
         $('#menu-mywallets').on('click', function (e) {
@@ -110,6 +111,7 @@ $(function dashdoardInit() {
                     onMenuTraidingItemClick();
                 }
             });
+            trading.fillOrderCreationFormFields();
         });
         /*...FOR LEFT-SIDER*/
 
