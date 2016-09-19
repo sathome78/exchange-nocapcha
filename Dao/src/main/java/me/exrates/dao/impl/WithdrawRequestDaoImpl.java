@@ -4,6 +4,7 @@ import me.exrates.dao.WithdrawRequestDao;
 import me.exrates.model.MerchantImage;
 import me.exrates.model.Transaction;
 import me.exrates.model.WithdrawRequest;
+import me.exrates.model.enums.WithdrawalRequestStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
@@ -45,12 +46,13 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
                 .getTimestamp("acceptance")
                 .toLocalDateTime()
         );
+        request.setStatus(WithdrawalRequestStatus.convert(resultSet.getInt("status")));
         return request;
     };
 
     private final static String SELECT_ALL_REQUESTS =
             " SELECT WITHDRAW_REQUEST.acceptance, WITHDRAW_REQUEST.wallet, WITHDRAW_REQUEST.processed_by, " +
-                    "WITHDRAW_REQUEST.merchant_image_id, MERCHANT_IMAGE.image_name, " +
+                    "WITHDRAW_REQUEST.merchant_image_id, WITHDRAW_REQUEST.status, MERCHANT_IMAGE.image_name, " +
                     "USER.id, USER.email as user_email,(SELECT EMAIL from USER WHERE id = WITHDRAW_REQUEST.processed_by) as admin_email, " +
                     "TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime, " +
                     "TRANSACTION.operation_type_id,TRANSACTION.provided,TRANSACTION.confirmation, WALLET.id,WALLET.active_balance, " +
@@ -95,7 +97,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     @Override
     public void update(WithdrawRequest withdrawRequest) {
         final String sql = "UPDATE WITHDRAW_REQUEST SET " +
-                "acceptance = CURRENT_TIMESTAMP(), processed_by = (SELECT id FROM USER WHERE email=:email) WHERE transaction_id = :id";
+                "acceptance = CURRENT_TIMESTAMP(), processed_by = (SELECT id FROM USER WHERE email=:email), status = :status WHERE transaction_id = :id";
         final Map<String, Object> params = new HashMap<String, Object>() {
             {
                 put("email", withdrawRequest.getProcessedBy());
@@ -103,6 +105,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
                         .getTransaction()
                         .getId()
                 );
+                put("status", withdrawRequest.getStatus().getType());
             }
         };
         jdbcTemplate.update(sql, params);
@@ -124,7 +127,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
 
     @Override
     public List<WithdrawRequest> findAll() {
-        final String sql = SELECT_ALL_REQUESTS + " ORDER BY provided ASC, datetime DESC";
+        final String sql = SELECT_ALL_REQUESTS + " ORDER BY status ASC, datetime DESC";
         return jdbcTemplate.query(sql, withdrawRequestRowMapper);
     }
 }

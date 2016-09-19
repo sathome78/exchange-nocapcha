@@ -80,6 +80,7 @@ public class MerchantServiceImpl implements MerchantService {
         }
         final WithdrawRequest request = withdraw.get();
         request.setProcessedBy(principal.getName());
+        request.setStatus(ACCEPTED);
         withdrawRequestDao.update(request);
         final Optional<WithdrawRequest> withdrawUpdated = withdrawRequestDao.findById(requestId);
         if (!withdrawUpdated.isPresent()) {
@@ -97,20 +98,32 @@ public class MerchantServiceImpl implements MerchantService {
     }
 
     @Override
-    public Map<String, String> declineWithdrawalRequest(final int requestId, final Locale locale) {
+    public Map<String, Object> declineWithdrawalRequest(final int requestId, final Locale locale, String email) {
         final Optional<WithdrawRequest> withdraw = withdrawRequestDao.findById(requestId);
         if (!withdraw.isPresent()) {
             return singletonMap("error", messageSource.getMessage("merchants.WithdrawRequestError",null,locale));
         }
         final WithdrawRequest request = withdraw.get();
+        request.setProcessedBy(email);
+        request.setStatus(DECLINED);
         final Transaction transaction = request.getTransaction();
-        withdrawRequestDao.delete(request);
-        transactionService.invalidateTransaction(request.getTransaction());
+        withdrawRequestDao.update(request);
+        final Optional<WithdrawRequest> withdrawUpdated = withdrawRequestDao.findById(requestId);
+        if (!withdrawUpdated.isPresent()) {
+            return singletonMap("error", messageSource.getMessage("merchants.WithdrawRequestError",null,locale));
+        }
+        final WithdrawRequest requestUpdated = withdrawUpdated.get();
+        transactionService.nullifyTransactionAmountForWithdraw(requestUpdated.getTransaction());
         final BigDecimal amount = transaction.getAmount().add(transaction.getCommissionAmount());
         walletService.withdrawReservedBalance(transaction.getUserWallet(),amount);
         walletService.depositActiveBalance(transaction.getUserWallet(),amount);
         sendWithdrawalNotification(request, DECLINED, locale);
-        return singletonMap("success",messageSource.getMessage("merchants.WithdrawRequestDecline",null,locale));
+        final HashMap<String, Object> params = new HashMap<>();
+        final String message = messageSource.getMessage("merchants.WithdrawRequestDecline", null, locale);
+        params.put("success", message);
+        params.put("acceptance", requestUpdated.getAcceptance().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        params.put("email", email);
+        return params;
     }
 
     @Override

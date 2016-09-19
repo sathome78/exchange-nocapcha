@@ -54,7 +54,10 @@ function promptDeclineRequest(requestId) {
         }).done(function(result) {
             alert(result['success']);
             var classname = '.id_' + requestId;
-            $(classname).remove();
+            var acceptance = result['acceptance'].split(/\s/);
+            $(classname + ' td:nth-child(8)').html(acceptance[0] + '<br\>' + acceptance[1]);
+            $(classname + ' td:nth-child(9)').html(result['email']);
+            $(classname + ' td:last-child').html($('#declined').html());
         }).fail(function(error){
             alert(JSON.stringify(error));
             alert(error['responseJSON']['error'])
