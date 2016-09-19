@@ -268,6 +268,7 @@ public final class TransactionDaoImpl implements TransactionDao {
         result.setData(jdbcTemplate.query(selectLimitedAllSql, params, transactionRowMapper));
         result.setFiltered(total);
         result.setTotal(total);
+        LOG.debug(result);
         return result;
     }
 

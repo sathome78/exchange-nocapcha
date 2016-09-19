@@ -196,4 +196,23 @@ public class ExOrder {
     public void setStatus(OrderStatus status) {
         this.status = status;
     }
+
+    @Override
+    public String toString() {
+        return "ExOrder{" +
+                "id=" + id +
+                ", userId=" + userId +
+                ", currencyPairId=" + currencyPairId +
+                ", operationType=" + operationType +
+                ", exRate=" + exRate +
+                ", amountBase=" + amountBase +
+                ", amountConvert=" + amountConvert +
+                ", comissionId=" + comissionId +
+                ", commissionFixedAmount=" + commissionFixedAmount +
+                ", userAcceptorId=" + userAcceptorId +
+                ", dateCreation=" + dateCreation +
+                ", dateAcception=" + dateAcception +
+                ", status=" + status +
+                '}';
+    }
 }
