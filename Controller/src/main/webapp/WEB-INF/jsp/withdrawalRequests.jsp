@@ -42,39 +42,39 @@
                 </tr>
                 </thead>
                 <tbody>
-                <c:forEach items="${requests}" var="requests">
-                    <tr class="id_${requests.transaction.id}">
+                <c:forEach items="${requests}" var="request">
+                    <tr class="id_${request.transaction.id}">
                         <td>
-                                ${requests.transaction.datetime.toLocalDate()}<br/>
-                                ${requests.transaction.datetime.toLocalTime()}
+                                ${request.transaction.datetime.toLocalDate()}<br/>
+                                ${request.transaction.datetime.toLocalTime()}
                          </td>
                         <td>
                             <a href="<c:url value='/admin/userInfo'>
-                            <c:param name="id" value="${requests.userId}"/>
-                            </c:url>">${requests.userEmail}</a>
+                            <c:param name="id" value="${request.userId}"/>
+                            </c:url>">${request.userEmail}</a>
                         </td>
                         <td>
-                            <fmt:formatNumber value="${requests.transaction.amount}" maxFractionDigits="9"/>
+                            <fmt:formatNumber value="${request.transaction.amount}" maxFractionDigits="9"/>
                         </td>
                         <td>
-                                ${requests.transaction.currency.name}
+                                ${request.transaction.currency.name}
                         </td>
                         <td>
-                            <fmt:formatNumber value="${requests.transaction.commissionAmount}" maxFractionDigits="9"/>
+                            <fmt:formatNumber value="${request.transaction.commissionAmount}" maxFractionDigits="9"/>
                         </td>
                         <td>
-                                ${requests.transaction.merchant.name}
-                                ${requests.merchantImage.image_name}
+                                ${request.transaction.merchant.name}
+                                ${request.merchantImage.image_name}
 
                         </td>
                         <td>
-                                ${requests.wallet}
+                                ${request.wallet}
                         </td>
                         <td>
                             <c:choose>
-                                <c:when test="${requests.acceptance.isAfter(requests.transaction.datetime)}">
-                                    ${requests.acceptance.toLocalDate()}<br/>
-                                    ${requests.acceptance.toLocalTime()}
+                                <c:when test="${request.acceptance.isAfter(request.transaction.datetime)}">
+                                    ${request.acceptance.toLocalDate()}<br/>
+                                    ${request.acceptance.toLocalTime()}
                                  </c:when>
                                 <c:otherwise>
                                     _
@@ -83,10 +83,10 @@
                         </td>
                         <td>
                             <c:choose>
-                                <c:when test="${not empty requests.processedBy}">
+                                <c:when test="${not empty request.processedBy}">
                                     <a href="<c:url value='/admin/userInfo'>
-                                    <c:param name="id" value="${requests.processedById}"/>
-                                    </c:url>">${requests.processedBy}</a>
+                                    <c:param name="id" value="${request.processedById}"/>
+                                    </c:url>">${request.processedBy}</a>
                                 </c:when>
                                 <c:otherwise>
                                     _
@@ -95,18 +95,21 @@
                         </td>
                         <td>
                             <c:choose>
-                                <c:when test="${requests.transaction.provided}">
+                                <c:when test="${request.status.type == 2}">
                                     <loc:message code="merchants.withdrawRequestAccepted"/>
+                                </c:when>
+                                <c:when test="${request.status.type == 3}">
+                                    <loc:message code="merchants.WithdrawRequestDecline"/>
                                 </c:when>
                                 <c:otherwise>
                                     <form class="accept_withdrawal_rqst">
-                                        <input type="hidden" name="requestId" value="${requests.transaction.id}">
+                                        <input type="hidden" name="requestId" value="${request.transaction.id}">
                                         <button type="submit" class="btn btn-link">
                                             <loc:message code="merchants.withdrawRequestAccept"/>
                                         </button>
                                     </form>
                                     <form class="decline_withdrawal_rqst">
-                                        <input type="hidden" name="requestId" value="${requests.transaction.id}">
+                                        <input type="hidden" name="requestId" value="${request.transaction.id}">
                                         <button type="submit" class="btn btn-link">
                                             <loc:message code="merchants.withdrawRequestDecline"/>
                                         </button>
@@ -124,6 +127,9 @@
 </main>
 <div id="accepted" style="display: none">
     <loc:message code="merchants.withdrawRequestAccepted"/>
+</div>
+<div id="declined" style="display: none">
+    <loc:message code="merchants.WithdrawRequestDecline"/>
 </div>
 <div id="prompt_acc_rqst" style="display: none">
     <loc:message code="merchants.promptWithdrawRequestAccept"/>

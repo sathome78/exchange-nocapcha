@@ -151,9 +151,9 @@ public class CommonMerchantsController {
     }
 
     @RequestMapping(value = "/withdrawal/request/decline")
-    public ResponseEntity<Map<String,String>> acceptWithdrawRequest(final @RequestParam("requestId") int request,
-                                                                    final Locale locale) {
-        final Map<String, String> result = merchantService.declineWithdrawalRequest(request, locale);
+    public ResponseEntity<Map<String,Object>> declineWithdrawRequest(final @RequestParam("requestId") int request,
+                                                                    final Locale locale, Principal principal) {
+        final Map<String, Object> result = merchantService.declineWithdrawalRequest(request, locale, principal.getName());
         if (result.containsKey("error")) {
             return new ResponseEntity<>(result, BAD_REQUEST);
         }

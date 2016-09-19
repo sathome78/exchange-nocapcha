@@ -20,7 +20,7 @@ public interface MerchantService {
 
     Map<String, String> acceptWithdrawalRequest(int requestId, Locale locale,Principal principal);
 
-    Map<String, String> declineWithdrawalRequest(int requestId, Locale locale);
+    Map<String, Object> declineWithdrawalRequest(int requestId, Locale locale, String email);
 
     List<WithdrawRequest> findAllWithdrawRequests();
 
