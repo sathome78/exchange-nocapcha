@@ -242,6 +242,19 @@
                                 <th><loc:message code="transaction.order"/></th>
                             </tr>
                             </thead>
+                            <tfoot>
+                            <tr>
+                                <th><loc:message code="transaction.datetime"/></th>
+                                <th></th>
+                                <th><loc:message code="transaction.operationType"/></th>
+                                <th><loc:message code="orderstatus.name"/></th>
+                                <th><loc:message code="transaction.currency"/></th>
+                                <th><loc:message code="transaction.amount"/><div id="amount-slider"></div></th>
+                                <th><loc:message code="transaction.commissionAmount"/><div id="commission-slider"></div></th>
+                                <th><loc:message code="transaction.merchant"/></th>
+                                <th><loc:message code="transaction.order"/></th>
+                            </tr>
+                            </tfoot>
                         </table>
                     </div>
                 </div>

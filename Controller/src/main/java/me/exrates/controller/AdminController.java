@@ -190,6 +190,7 @@ public class AdminController {
     @ResponseBody
     @RequestMapping(value = "/admin/transactions", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public DataTable<List<OperationViewDto>> getUserTransactions(final @RequestParam int id, final @RequestParam Map<String, String> params, final HttpServletRequest request) {
+        params.forEach((key, value) -> LOG.debug(key + " :: " + value));
         return transactionService.showUserOperationHistory(id, localeResolver.resolveLocale(request), params);
     }
 
