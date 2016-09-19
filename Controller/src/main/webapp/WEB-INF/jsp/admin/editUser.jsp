@@ -68,7 +68,11 @@
                         <div class="text-center"> <h4>
                             <b><loc:message code="admin.editUser"/></b>
                         </h4></div>
-
+                        <%--Current user and email--%>
+                        <div>
+                            <h5><b>
+                                ${user.nickname}, ${user.email}
+                        </div>
                         <div class="panel-body">
 
                             <form:form class="form-horizontal" id="user-edit-form" action="/admin/edituser/submit"

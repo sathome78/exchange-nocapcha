@@ -597,7 +597,7 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public List<UserSummaryTotalInOutDto> getUsersSummaryTotalInOutList(String startDate, String endDate) {
-        String sql = "SELECT CURRENCY.name as currency_name, TRANSACTION.amount,\n " +
+        String sql = "SELECT CURRENCY.name as currency_name, \n " +
         "SUM(case when operation_type_id=1 then\n" +
                 "TRANSACTION.amount end) as amountIn, \n" +
                 "SUM(case when operation_type_id=2 then\n" +
