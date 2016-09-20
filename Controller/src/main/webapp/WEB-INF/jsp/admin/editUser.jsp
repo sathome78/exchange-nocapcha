@@ -59,6 +59,11 @@
                         <loc:message code="admin.wallets"/>
                     </button>
                 </sec:authorize>
+
+            <%--Current user and email--%>
+            <div>
+                <h5><b>
+                ${user.nickname}, ${user.email}
             </div>
             <%--контейнер для данных пользователей--%>
             <div class="tab-content">

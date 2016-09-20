@@ -1,5 +1,7 @@
 package me.exrates.model;
 
+import me.exrates.model.enums.WithdrawalRequestStatus;
+
 import java.time.LocalDateTime;
 
 /**
@@ -15,6 +17,7 @@ public class WithdrawRequest {
     private Integer userId;
     private String userEmail;
     private MerchantImage merchantImage;
+    private WithdrawalRequestStatus status;
 
     public Transaction getTransaction() {
         return transaction;
@@ -80,6 +83,14 @@ public class WithdrawRequest {
         this.userId = userId;
     }
 
+    public WithdrawalRequestStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(WithdrawalRequestStatus status) {
+        this.status = status;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -95,7 +106,9 @@ public class WithdrawRequest {
         if (wallet != null ? !wallet.equals(that.wallet) : that.wallet != null) return false;
         if (userId != null ? !userId.equals(that.userId) : that.userId != null) return false;
         if (userEmail != null ? !userEmail.equals(that.userEmail) : that.userEmail != null) return false;
-        return merchantImage != null ? merchantImage.equals(that.merchantImage) : that.merchantImage == null;
+        if (merchantImage != null ? !merchantImage.equals(that.merchantImage) : that.merchantImage != null)
+            return false;
+        return status == that.status;
 
     }
 
@@ -109,6 +122,22 @@ public class WithdrawRequest {
         result = 31 * result + (userId != null ? userId.hashCode() : 0);
         result = 31 * result + (userEmail != null ? userEmail.hashCode() : 0);
         result = 31 * result + (merchantImage != null ? merchantImage.hashCode() : 0);
+        result = 31 * result + (status != null ? status.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "WithdrawRequest{" +
+                "transaction=" + transaction +
+                ", acceptance=" + acceptance +
+                ", processedById=" + processedById +
+                ", processedBy='" + processedBy + '\'' +
+                ", wallet='" + wallet + '\'' +
+                ", userId=" + userId +
+                ", userEmail='" + userEmail + '\'' +
+                ", merchantImage=" + merchantImage +
+                ", status=" + status +
+                '}';
     }
 }

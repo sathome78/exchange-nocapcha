@@ -96,6 +96,10 @@ public class TransactionServiceImpl implements TransactionService {
         if (transaction.getOperationType() != OperationType.INPUT) {
             throw new IllegalArgumentException("Updating amount only available for INPUT operation");
         }
+        updateAmount(transaction, amount);
+    }
+
+    private void updateAmount(Transaction transaction, BigDecimal amount) {
         final BigDecimal commission = amount
                 .multiply(transaction.getCommission().getValue()
                         .divide(BigDecimal.valueOf(100L)).setScale(decimalPlaces, ROUND_HALF_UP));
@@ -103,6 +107,14 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setCommissionAmount(commission);
         transaction.setAmount(newAmount);
         transactionDao.updateTransactionAmount(transaction.getId(), newAmount, commission);
+    }
+
+    @Override
+    public void nullifyTransactionAmountForWithdraw(final Transaction transaction) {
+        if (transaction.getOperationType() != OperationType.OUTPUT) {
+            throw new IllegalArgumentException("Nullifying amount only available for OUTPUT operations");
+        }
+        updateAmount(transaction, BigDecimal.ZERO);
     }
 
     @Override

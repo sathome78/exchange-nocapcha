@@ -30,6 +30,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
 
     function onCurrencyPairChange() {
         that.updateAndShowAll();
+        that.fillOrderCreationFormFields();
     }
 
     this.syncCurrencyPairSelector = function () {
@@ -44,6 +45,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         });
         that.getAndShowSellOrders(refreshIfNeeded);
         that.getAndShowBuyOrders(refreshIfNeeded);
+
     };
 
     this.getAndShowStatisticsForCurrency = function () {
@@ -226,6 +228,41 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         });
     };
 
+    this.fillOrderCreationFormFields = function() {
+        $(document).one("ajaxStop", function () {
+            var initialAmount = 1;
+            var initialAmountString = initialAmount.toFixed(that.ROUND_SCALE);
+            $('#amountBuy').val(initialAmountString);
+            var lastBuyExrate = getLastExrate('#dashboard-orders-buy-table .dashboard-order__tr:first');
+            $('#exchangeRateBuy').val(lastBuyExrate);
+            calculateFieldsForBuy();
+            $('#amountSell').val(initialAmountString);
+            var lastSellExrate = getLastExrate('#dashboard-orders-sell-table .dashboard-order__tr:first');
+            $('#exchangeRateSell').val(lastSellExrate);
+            calculateFieldsForSell();
+        });
+
+
+    };
+
+    function getLastExrate($selector) {
+        var lastRate;
+        if ($($selector).size() === 0) {
+            var currencyPairName = $('.currency-pair-selector__button').first().text().trim();
+            var $cell = $('#currency_table').find("tr td:contains('" + currencyPairName + "')");
+            if ($cell.size() === 0) {
+                return '';
+            } else {
+                lastRate = $cell.next().text()
+            }
+            return (parseNumber(lastRate)).toFixed(that.ROUND_SCALE);
+
+        } else {
+            lastRate = $($selector).find('.order_exrate').text();
+            return (parseNumber(lastRate)).toFixed(that.ROUND_SCALE);
+        }
+    }
+
     this.resetOrdersListForAccept = function() {
         if (that.ordersListForAccept.length != 0) {
             that.ordersListForAccept = [];
@@ -300,6 +337,8 @@ function TradingClass(period, chartType, currentCurrencyPair) {
             }
         }
         that.updateAndShowAll(false);
+        that.fillOrderCreationFormFields();
+
         /**/
         $('#amountBuy').on('keyup', calculateFieldsForBuy).on('keydown', that.resetOrdersListForAccept);
         $('#exchangeRateBuy').on('keyup', calculateFieldsForBuy).on('keydown', that.resetOrdersListForAccept);
