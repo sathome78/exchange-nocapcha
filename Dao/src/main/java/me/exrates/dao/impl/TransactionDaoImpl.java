@@ -61,7 +61,7 @@ public final class TransactionDaoImpl implements TransactionDao {
             order.setAmountConvert(resultSet.getBigDecimal("EXORDERS.amount_convert"));
             order.setCommissionFixedAmount(resultSet.getBigDecimal("EXORDERS.commission_fixed_amount"));
             order.setDateCreation(resultSet.getTimestamp("EXORDERS.date_creation") == null ? null : resultSet.getTimestamp("EXORDERS.date_creation").toLocalDateTime());
-            order.setDateAcception(resultSet.getTimestamp("EXORDERS.date_creation") == null ? null : resultSet.getTimestamp("EXORDERS.date_acception").toLocalDateTime());
+            order.setDateAcception(resultSet.getTimestamp("EXORDERS.date_acception") == null ? null : resultSet.getTimestamp("EXORDERS.date_acception").toLocalDateTime());
         } catch (SQLException e) {}
 
         final Commission commission = new Commission();
@@ -100,6 +100,10 @@ public final class TransactionDaoImpl implements TransactionDao {
         transaction.setCurrency(currency);
         transaction.setProvided(resultSet.getBoolean("provided"));
         transaction.setConfirmation(resultSet.getInt("confirmation"));
+        TransactionSourceType sourceType = resultSet.getString("source_type") == null ?
+                null : TransactionSourceType.convert(resultSet.getString("source_type"));
+        transaction.setSourceType(sourceType);
+        transaction.setSourceId(resultSet.getInt("source_id"));
         return transaction;
     };
     private final String SELECT_COUNT =
@@ -110,12 +114,13 @@ public final class TransactionDaoImpl implements TransactionDao {
                     " INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
                     " INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id" +
                     " LEFT JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id " +
-                    " LEFT JOIN EXORDERS ON TRANSACTION.order_id = EXORDERS.id ";
+                    " LEFT JOIN EXORDERS ON TRANSACTION.source_id = EXORDERS.id ";
     private final String SELECT_ALL =
             " SELECT TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime, " +
                     " TRANSACTION.operation_type_id,TRANSACTION.provided, TRANSACTION.confirmation, TRANSACTION.order_id, " +
-                    " WALLET.id,WALLET.active_balance,WALLET.reserved_balance,WALLET.currency_id," +
-                    " USER.id as user_id,USER.email as user_email," +
+                    " TRANSACTION.source_type, TRANSACTION.source_id, " +
+                    " WALLET.id, WALLET.active_balance, WALLET.reserved_balance, WALLET.currency_id," +
+                    " USER.id as user_id, USER.email as user_email," +
                     " COMPANY_WALLET.id,COMPANY_WALLET.balance,COMPANY_WALLET.commission_balance," +
                     " COMMISSION.id,COMMISSION.date,COMMISSION.value," +
                     " CURRENCY.id,CURRENCY.description,CURRENCY.name," +
@@ -130,7 +135,7 @@ public final class TransactionDaoImpl implements TransactionDao {
                     " INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
                     " INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id" +
                     " LEFT JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id " +
-                    " LEFT JOIN EXORDERS ON TRANSACTION.order_id = EXORDERS.id ";
+                    " LEFT JOIN EXORDERS ON TRANSACTION.source_id = EXORDERS.id";
 
     private static final Map<String, String> TABLE_TO_DB_COLUMN_MAP = new HashMap<String, String>() {{
 
@@ -141,7 +146,7 @@ public final class TransactionDaoImpl implements TransactionDao {
         put("currency", "CURRENCY.name");
         put("merchant.description", "MERCHANT.description");
         put("commissionAmount", "TRANSACTION.commission_amount");
-        put("order", "TRANSACTION.order_id");
+        put("order", "TRANSACTION.source_id");
 
     }};
 
@@ -194,25 +199,7 @@ public final class TransactionDaoImpl implements TransactionDao {
 
     @Override
     public Transaction findById(int id) {
-        final String sql = "SELECT TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime,TRANSACTION.operation_type_id,TRANSACTION.provided, TRANSACTION.confirmation," +
-                " WALLET.id,WALLET.active_balance,WALLET.reserved_balance,WALLET.currency_id," +
-                " USER.id as user_id,USER.email as user_email," +
-                " COMPANY_WALLET.id,COMPANY_WALLET.balance,COMPANY_WALLET.commission_balance," +
-                " COMMISSION.id,COMMISSION.date,COMMISSION.value," +
-                " CURRENCY.id,CURRENCY.description,CURRENCY.name," +
-                " MERCHANT.id,MERCHANT.name,MERCHANT.description, " +
-                " EXORDERS.id, EXORDERS.user_id, EXORDERS.currency_pair_id, EXORDERS.operation_type_id, EXORDERS.exrate, " +
-                " EXORDERS.amount_base, EXORDERS.amount_convert, EXORDERS.commission_fixed_amount, EXORDERS.date_creation, " +
-                " EXORDERS.date_acception " +
-                " FROM TRANSACTION " +
-                " INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id" +
-                " INNER JOIN USER ON WALLET.user_id = USER.id" +
-                " INNER JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id" +
-                " INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
-                " INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id" +
-                " LEFT JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id" +
-                " LEFT JOIN EXORDERS ON TRANSACTION.order_id = EXORDERS.id " +
-                " WHERE TRANSACTION.id = :id";
+        final String sql = SELECT_ALL + " WHERE TRANSACTION.id = :id";
         final Map<String, Integer> params = singletonMap("id", id);
         return jdbcTemplate.queryForObject(sql, params, transactionRowMapper);
     }
@@ -232,7 +219,7 @@ public final class TransactionDaoImpl implements TransactionDao {
                                                               final int limit, final String searchValue,
                                                               String sortColumn, String sortDirection, Locale locale) {
 
-        String sortDBColumn = TABLE_TO_DB_COLUMN_MAP.getOrDefault(sortColumn, "TRANSACTION.datetime DESC, EXORDERS.id DESC");
+        String sortDBColumn = TABLE_TO_DB_COLUMN_MAP.getOrDefault(sortColumn, "TRANSACTION.datetime DESC");
         final String whereClause = "WHERE TRANSACTION.user_wallet_id in (:ids)";
         String searchClause = "";
         if (searchValue.length() > 0) {

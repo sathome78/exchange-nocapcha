@@ -2,10 +2,10 @@
  * Created by Valk on 12.05.2016.
  */
 
-function getOrderDetailedInfo(currentRow) {
-    var order_id = currentRow.data().id;
+function getOrderDetailedInfo(currentRow, orderId, enableDelete) {
+    console.log(orderId);
     $.ajax({
-        url: '/admin/orderinfo?id=' + order_id,
+        url: '/admin/orderinfo?id=' + orderId,
         type: 'GET',
         success: function (data) {
             $("#id").find('span').html(data.id);
@@ -22,7 +22,7 @@ function getOrderDetailedInfo(currentRow) {
             $("#transactionCount").find('span').html(data.transactionCount);
             $("#companyCommission").find('span').html(data.companyCommission?data.companyCommission + ' ' + data.currencyConvertName:'-');
             /**/
-            if (data.orderStatusName.toUpperCase() === 'DELETED') {
+            if (data.orderStatusName.toUpperCase() === 'DELETED' || !enableDelete) {
                 $("#delete-order-info__delete").toggle(false);
             } else {
                 $("#delete-order-info__delete").toggle(true);
@@ -176,7 +176,7 @@ function searchOrder() {
             var currentRow = orderDataTable.row( this );
             var currentData = currentRow.data();
 
-            getOrderDetailedInfo(currentRow);
+            getOrderDetailedInfo(currentRow, currentRow.data().id, true);
         } );
 
 

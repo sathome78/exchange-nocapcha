@@ -38,6 +38,9 @@ public class TransactionServiceImpl implements TransactionService {
     private static final Logger LOG = LogManager.getLogger(TransactionServiceImpl.class);
     private static final int decimalPlaces = 8;
 
+    private static final Merchant ORDER_MERCHANT = new Merchant(0, "ORDER", "ORDER");
+    private static final Merchant REFERRAL_MERCHANT = new Merchant(0, "REFERRAL", "REFERRAL");
+
     @Autowired
     private TransactionDao transactionDao;
     @Autowired
@@ -181,16 +184,37 @@ public class TransactionServiceImpl implements TransactionService {
             view.setAmount(t.getAmount());
             view.setCommissionAmount(t.getCommissionAmount());
             view.setCurrency(t.getCurrency().getName());
-            view.setOperationType(t.getOperationType());
-            view.setMerchant(t.getMerchant());
             view.setOrder(t.getOrder());
             view.setStatus(merchantService.resolveTransactionStatus(t, locale));
+            setTransactionMerchantAndOrder(view, t);
             operationViews.add(view);
         }
         result.setData(operationViews);
         result.setRecordsFiltered(transactions.getFiltered());
         result.setRecordsTotal(transactions.getTotal());
         return result;
+    }
+
+    private void setTransactionMerchantAndOrder(OperationViewDto view, Transaction transaction) {
+        TransactionSourceType sourceType = transaction.getSourceType();
+        OperationType operationType = transaction.getOperationType();
+        if (sourceType == TransactionSourceType.REFERRAL) {
+            view.setMerchant(REFERRAL_MERCHANT);
+            view.setOperationType(sourceType.toString());
+        } else if (sourceType == TransactionSourceType.ORDER) {
+            view.setMerchant(ORDER_MERCHANT);
+            if (operationType == OperationType.INPUT) {
+                view.setOperationType("ORDER_IN");
+            } else if (operationType == OperationType.OUTPUT) {
+                view.setOperationType("ORDER_OUT");
+            } else {
+                view.setOperationType(operationType.toString());
+            }
+        } else {
+            view.setMerchant(transaction.getMerchant());
+            view.setOperationType(operationType.toString());
+        }
+
     }
 
     @Override

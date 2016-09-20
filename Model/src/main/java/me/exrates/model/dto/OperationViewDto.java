@@ -14,7 +14,7 @@ public class OperationViewDto {
     private BigDecimal amount;
     private BigDecimal amountBuy;
     private BigDecimal commissionAmount;
-    private OperationType operationType;
+    private String operationType;
     private String currency;
     private Merchant merchant;
 	@JsonSerialize(using = LocalDateTimeSerializer.class)
@@ -46,10 +46,10 @@ public class OperationViewDto {
 	public void setCommissionAmount(BigDecimal commissionAmount) {
 		this.commissionAmount = commissionAmount;
 	}
-	public OperationType getOperationType() {
+	public String getOperationType() {
 		return operationType;
 	}
-	public void setOperationType(OperationType operationType) {
+	public void setOperationType(String operationType) {
 		this.operationType = operationType;
 	}
 	public String getCurrency() {

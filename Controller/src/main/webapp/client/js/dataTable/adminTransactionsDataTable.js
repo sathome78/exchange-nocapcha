@@ -61,7 +61,7 @@ $(function () {
                     "data": "order",
                     "render": function (data, type, row) {
                         if (data && data.id > 0) {
-                            return '<button id="transactionlist-delete-order-button" onclick=getOrderDetailedInfo(' + data.id + ')>' + data.id + '</button>';
+                            return '<button class="transactionlist-delete-order-button">' + data.id + '</button>';
                         } else {
                             return '';
                         }
@@ -76,17 +76,14 @@ $(function () {
             ],
             "searchDelay": 1000
         });
+        $('#transactionsTable tbody').on('click', '.transactionlist-delete-order-button', function () {
+            var currentRow = transactionsDataTable.row($(this).parents('tr'));
+            getOrderDetailedInfo(currentRow, currentRow.data().order.id, false);
+        });
     }
-    transactionsDataTable.columns().every( function () {
-        var that = this;
-        $( 'input', this.footer() ).on( 'keyup change', function () {
-            if ( that.search() !== this.value ) {
-                that
-                    .search( this.value )
-                    .draw();
-            }
-        } );
-    } );
+
+
+
 
 });
 
