@@ -419,4 +419,19 @@ public final class TransactionDaoImpl implements TransactionDao {
         return result;
     }
 
+    @Override
+    public BigDecimal maxAmount() {
+        String sql = "SELECT MAX(TRANSACTION.amount)" +
+                " FROM TRANSACTION ";
+        return jdbcTemplate.queryForObject(sql, Collections.EMPTY_MAP, BigDecimal.class);
+
+    }
+
+    @Override
+    public BigDecimal maxCommissionAmount() {
+        String sql = "SELECT MAX(TRANSACTION.commission_amount)" +
+                " FROM TRANSACTION ";
+        return jdbcTemplate.queryForObject(sql, Collections.EMPTY_MAP, BigDecimal.class);
+    }
+
 }

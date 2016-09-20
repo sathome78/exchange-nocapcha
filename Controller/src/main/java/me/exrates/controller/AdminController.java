@@ -4,6 +4,7 @@ import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
+import me.exrates.model.enums.TransactionType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.security.service.UserSecureServiceImpl;
@@ -41,6 +42,7 @@ import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -250,8 +252,8 @@ public class AdminController {
         return model;
     }
 
-    @RequestMapping("/admin/editUser")
-    public ModelAndView editUser(@RequestParam int id, HttpSession httpSession) {
+    @RequestMapping({"/admin/editUser", "/admin/userInfo"})
+    public ModelAndView editUser(@RequestParam int id, HttpSession httpSession, HttpServletRequest request) {
 
         ModelAndView model = new ModelAndView();
 
@@ -277,14 +279,23 @@ public class AdminController {
         model.addObject("user", user);
         model.setViewName("admin/editUser");
         model.addObject("userFiles", userService.findUserDoc(id));
+        List<String> transactionStatuses = new ArrayList<>();
+        transactionStatuses.add(messageSource.getMessage("transaction.provided", null, localeResolver.resolveLocale(request)));
+        transactionStatuses.add(messageSource.getMessage("transaction.notProvided", null, localeResolver.resolveLocale(request)));
+        model.addObject("transactionStatuses", transactionStatuses);
+        model.addObject("transactionTypes", Arrays.asList(TransactionType.values()));
+        List<Merchant> merchantList = merchantService.findAll();
+        merchantList.add(new Merchant(0, "REFERRAL", "REFERRAL"));
+        merchantList.add(new Merchant(0, "ORDER", "ORDER"));
+        model.addObject("merchants", merchantList);
+        LOG.debug(transactionService.maxAmount());
+        LOG.debug(transactionService.maxCommissionAmount());
+        model.addObject("maxAmount", transactionService.maxAmount());
+        model.addObject("maxCommissionAmount", transactionService.maxCommissionAmount());
+
         return model;
     }
 
-    @RequestMapping("/admin/userInfo")
-    public ModelAndView userInfo(@RequestParam int id, HttpServletRequest request, HttpSession httpSession) {
-        ModelAndView model = editUser(id, httpSession);
-        return model;
-    }
 
     @RequestMapping(value = "/admin/edituser/submit", method = RequestMethod.POST)
     public ModelAndView submitedit(@Valid @ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request, HttpServletResponse response,

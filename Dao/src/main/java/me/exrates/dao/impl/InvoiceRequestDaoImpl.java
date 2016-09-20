@@ -45,7 +45,8 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
     private static final String SELECT_ALL = "SELECT inv.acceptance_time, user.id AS user_id, user.email AS user_email, " +
             "adm.id AS acceptance_id, adm.email AS acceptance_user_email, " +
             "TRANSACTION.id, TRANSACTION.amount, TRANSACTION.commission_amount, TRANSACTION.datetime, " +
-            "                    TRANSACTION.operation_type_id,TRANSACTION.provided,TRANSACTION.confirmation, WALLET.id, WALLET.active_balance, " +
+            "                    TRANSACTION.operation_type_id,TRANSACTION.provided,TRANSACTION.confirmation, " +
+            "                    TRANSACTION.source_id, TRANSACTION.source_type, WALLET.id, WALLET.active_balance, " +
             "                    WALLET.reserved_balance, WALLET.currency_id, COMPANY_WALLET.id, COMPANY_WALLET.balance, " +
             "                    COMPANY_WALLET.commission_balance, COMMISSION.id, COMMISSION.date, COMMISSION.value, " +
             "                    CURRENCY.id, CURRENCY.description, CURRENCY.name, MERCHANT.id,MERCHANT.name,MERCHANT.description " +

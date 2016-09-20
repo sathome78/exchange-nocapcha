@@ -7,23 +7,30 @@
 <%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
 <!DOCTYPE html>
 <html lang="en">
- <meta charset="utf-8">
-    <title><loc:message code="admin.title"/></title>
-    <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon"/>
+<meta charset="utf-8">
+<title><loc:message code="admin.title"/></title>
+<link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon"/>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href='<c:url value="/client/css/roboto-font-400_700_300.css"/>' rel='stylesheet' type='text/css'>
+<%@include file='links_scripts.jsp' %>
+<link rel="stylesheet" href="<c:url value="/client/css/font-awesome.min.css"/>">
+<link href="<c:url value="/client/css/ekko-lightbox.min.css"/>" rel="stylesheet">
+<%----------%>
+<script type="text/javascript" src="<c:url value="/client/js/ekko-lightbox.min.js"/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/dataTable/adminWalletsDataTable.js'/>"></script>
+<link rel="stylesheet" href="<c:url value="/client/css/jquery-ui.css"/>">
+<script type="text/javascript" src="<c:url value='/client/js/jquery-ui.js'/>"></script>
+<link rel="stylesheet" href="<c:url value="/client/css/jquery.datetimepicker.css"/>">
+<script type="text/javascript" src="<c:url value='/client/js/jquery.datetimepicker.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/moment-with-locales.min.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/dataTable/adminTransactionsDataTable.js'/>"></script>
 
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href='<c:url value="/client/css/roboto-font-400_700_300.css"/>' rel='stylesheet' type='text/css'>
-    <%@include file='links_scripts.jsp' %>
 
-    <link rel="stylesheet" href="<c:url value="/client/css/font-awesome.min.css"/>">
-    <link href="<c:url value="/client/css/ekko-lightbox.min.css"/>" rel="stylesheet">
-    <%----------%>
-    <script type="text/javascript" src="<c:url value="/client/js/ekko-lightbox.min.js"/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/dataTable/adminTransactionsDataTable.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/dataTable/adminWalletsDataTable.js'/>"></script>
-    <%----------%>
+
+
+ <%----------%>
     <%----------%>
  <%@include file="../tools/alexa.jsp" %>
 
@@ -223,6 +230,107 @@
                     <div class="col-md-12 content">
                         <%--ИСТОРИЯ ОПЕРАЦИЙ--%>
                             <div class="text-center"><h4><loc:message code="transactions.title"/></h4></div>
+                        <div id="transaction-filter">
+                            <form id="transaction-search-form" method="get">
+                                <%--STATUS--%>
+                                    <div class="input-block-wrapper">
+                                <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                    <label class="input-block-wrapper__label">
+                                        Status
+                                    </label>
+                                </div>
+                                <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                    <select id="status" class="input-block-wrapper__input admin-form-input" name="status">
+                                        <option value="ALL">ALL</option>
+                                        <c:forEach items="${transactionStatuses}" var="transactionStatus">
+                                            <option value="${transactionStatus}">${transactionStatus}</option>
+                                        </c:forEach>
+                                    </select>
+                                </div>
+                                    </div>
+                                    <%--TYPE--%>
+                                    <div class="input-block-wrapper">
+                                        <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                            <label class="input-block-wrapper__label">
+                                                Type
+                                            </label>
+                                        </div>
+                                        <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                            <select multiple id="type" class="input-block-wrapper__input admin-form-input" name="type">
+                                                <option value="ALL">ALL</option>
+                                                <c:forEach items="${transactionTypes}" var="type">
+                                                    <option value="${type}"><span>${type}</span>
+                                                </c:forEach>
+                                            </select>
+                                        </div>
+
+                                    </div>
+                                    <%--MERCHANT--%>
+                                    <div class="input-block-wrapper">
+                                        <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                            <label class="input-block-wrapper__label">
+                                                Merchant
+                                            </label>
+                                        </div>
+                                        <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                            <select multiple id="merchant" class="input-block-wrapper__input admin-form-input" name="merchant">
+                                                <option value="ALL">ALL</option>
+                                                <c:forEach items="${merchants}" var="merchant">
+                                                <option value="${merchant.name}"><span>${merchant.name}</span>
+                                                    </c:forEach>
+                                            </select>
+
+                                        </div>
+
+                                    </div>
+                                    <%--TIME--%>
+                                    <div class="input-block-wrapper">
+                                        <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                            <label class="input-block-wrapper__label">
+                                                Date
+                                            </label>
+                                        </div>
+                                        <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                            <input id="datetimepicker_start" type="text" name="startDate">
+                                            <input id="datetimepicker_end" type="text" name="endDate">
+                                        </div>
+
+                                    </div>
+                                    <%--AMOUNT--%>
+                                    <div class="input-block-wrapper">
+                                        <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                            <label class="input-block-wrapper__label">
+                                                Amount
+                                            </label>
+                                        </div>
+                                        <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                            <input type="hidden" id="max-amount" value="${maxAmount}">
+                                            <input type="text" readonly id="amount" name="amount">
+                                            <div id="amount-slider"></div>
+
+                                        </div>
+
+                                    </div>
+                                    <%--COMMISSION_AMOUNT--%>
+                                    <div class="input-block-wrapper">
+                                        <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                            <label class="input-block-wrapper__label">
+                                                Commission amount
+                                            </label>
+                                        </div>
+                                        <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                            <input type="hidden" id="max-commission-amount" value="${maxCommissionAmount}">
+                                            <input type="text" readonly id="commission-amount" name="commissionAmount">
+                                            <div id="commission-slider"></div>
+                                        </div>
+
+                                    </div>
+                                <button id="filter-apply">Apply filter</button>
+
+                            </form>
+
+                        </div>
+
 
                         <table id="transactionsTable"
                                class="admin-table table table-hover table-bordered table-striped"

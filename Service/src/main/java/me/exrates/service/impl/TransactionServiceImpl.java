@@ -8,6 +8,7 @@ import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.enums.TransactionType;
 import me.exrates.model.vo.CacheData;
 import me.exrates.service.*;
 import me.exrates.service.exception.TransactionPersistException;
@@ -38,8 +39,6 @@ public class TransactionServiceImpl implements TransactionService {
     private static final Logger LOG = LogManager.getLogger(TransactionServiceImpl.class);
     private static final int decimalPlaces = 8;
 
-    private static final Merchant ORDER_MERCHANT = new Merchant(0, "ORDER", "ORDER");
-    private static final Merchant REFERRAL_MERCHANT = new Merchant(0, "REFERRAL", "REFERRAL");
 
     @Autowired
     private TransactionDao transactionDao;
@@ -199,20 +198,20 @@ public class TransactionServiceImpl implements TransactionService {
         TransactionSourceType sourceType = transaction.getSourceType();
         OperationType operationType = transaction.getOperationType();
         if (sourceType == TransactionSourceType.REFERRAL) {
-            view.setMerchant(REFERRAL_MERCHANT);
-            view.setOperationType(sourceType.toString());
+            view.setMerchant(new Merchant(0, "REFERRAL", "REFERRAL"));
+            view.setOperationType(TransactionType.valueOf(sourceType.toString()));
         } else if (sourceType == TransactionSourceType.ORDER) {
-            view.setMerchant(ORDER_MERCHANT);
+            view.setMerchant(new Merchant(0, "ORDER", "ORDER"));
             if (operationType == OperationType.INPUT) {
-                view.setOperationType("ORDER_IN");
+                view.setOperationType(TransactionType.valueOf("ORDER_IN"));
             } else if (operationType == OperationType.OUTPUT) {
-                view.setOperationType("ORDER_OUT");
+                view.setOperationType(TransactionType.valueOf("ORDER_OUT"));
             } else {
-                view.setOperationType(operationType.toString());
+                view.setOperationType(TransactionType.valueOf(sourceType.toString()));
             }
         } else {
             view.setMerchant(transaction.getMerchant());
-            view.setOperationType(operationType.toString());
+            view.setOperationType(TransactionType.valueOf(sourceType.toString()));
         }
 
     }
@@ -260,4 +259,16 @@ public class TransactionServiceImpl implements TransactionService {
     public List<Transaction> getOpenTransactionsByMerchant(Merchant merchant){
         return transactionDao.getOpenTransactionsByMerchant(merchant);
     }
+
+    @Override
+    public BigDecimal maxAmount() {
+        return transactionDao.maxAmount();
+    }
+
+    @Override
+    public BigDecimal maxCommissionAmount() {
+        return transactionDao.maxCommissionAmount();
+    }
+
+
 }
