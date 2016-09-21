@@ -162,8 +162,13 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public DataTable<List<OperationViewDto>> showMyOperationHistory(String email, Locale locale, int offset, int limit,
-                                                                    String searchValue, String sortColumn, String sortDirection) {
+    public DataTable<List<OperationViewDto>> showMyOperationHistory(String email, final Integer status,
+                                                                    final List<TransactionType> types, final List<Integer> merchantIds,
+                                                                    final String dateFrom, final String dateTo,
+                                                                    final BigDecimal fromAmount, final BigDecimal toAmount,
+                                                                    final BigDecimal fromCommissionAmount, final BigDecimal toCommissionAmount,
+                                                                    int offset, int limit,
+                                                                    String sortColumn, String sortDirection, Locale locale) {
         final int id = userService.getIdByEmail(email);
         final List<Integer> wallets = walletService.getAllWallets(id).stream()
                 .mapToInt(Wallet::getId)
@@ -174,8 +179,8 @@ public class TransactionServiceImpl implements TransactionService {
             result.setData(new ArrayList<>());
             return result;
         }
-        final PagingData<List<Transaction>> transactions = transactionDao.findAllByUserWallets(wallets, offset, limit,
-                searchValue, sortColumn, sortDirection, locale);
+        final PagingData<List<Transaction>> transactions = transactionDao.findAllByUserWallets(wallets, status, types, merchantIds,
+                dateFrom, dateTo, fromAmount, toAmount, fromCommissionAmount, toCommissionAmount, offset, limit, sortColumn, sortDirection, locale);
         final List<OperationViewDto> operationViews = new ArrayList<>();
         for (final Transaction t : transactions.getData()) {
             OperationViewDto view = new OperationViewDto();
@@ -207,23 +212,23 @@ public class TransactionServiceImpl implements TransactionService {
             } else if (operationType == OperationType.OUTPUT) {
                 view.setOperationType(TransactionType.valueOf("ORDER_OUT"));
             } else {
-                view.setOperationType(TransactionType.valueOf(sourceType.toString()));
+                view.setOperationType(TransactionType.valueOf(operationType.toString()));
             }
         } else {
             view.setMerchant(transaction.getMerchant());
-            view.setOperationType(TransactionType.valueOf(sourceType.toString()));
+            view.setOperationType(TransactionType.valueOf(operationType.toString()));
         }
 
     }
 
     @Override
     public DataTable<List<OperationViewDto>> showMyOperationHistory(String email, Locale locale, int offset, int limit) {
-        return showMyOperationHistory(email, locale, offset, limit, "", "", "ASC");
+        return showMyOperationHistory(email, null, null, null, null, null, null, null, null, null, offset, limit, "", "ASC", locale);
 }
 
     @Override
     public DataTable<List<OperationViewDto>> showMyOperationHistory(final String email, final Locale locale) {
-        return showMyOperationHistory(email, locale, 0, MAX_VALUE);
+        return showMyOperationHistory(email, locale, -1, -1);
     }
 
     @Override
@@ -232,17 +237,22 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public DataTable<List<OperationViewDto>> showUserOperationHistory(final int id, final Locale locale, final Map<String, String> viewParams) {
+    public DataTable<List<OperationViewDto>> showUserOperationHistory(final int id, final Integer status,
+                                                                      final List<TransactionType> types, final List<Integer> merchantIds,
+                                                                      final String dateFrom, final String dateTo,
+                                                                      final BigDecimal fromAmount, final BigDecimal toAmount,
+                                                                      final BigDecimal fromCommissionAmount, final BigDecimal toCommissionAmount, final Locale locale, final Map<String, String> viewParams) {
         if (viewParams.containsKey("start") && viewParams.containsKey("length")) {
-            String searchValue = viewParams.getOrDefault("search[value]", "");
             String sortColumnKey = "columns[" + viewParams.getOrDefault("order[0][column]", "0") + "][data]";
             String sortColumn = viewParams.getOrDefault(sortColumnKey, "");
             String sortDirection = viewParams.getOrDefault("order[0][dir]", "asc").toUpperCase();
-            return showMyOperationHistory(userService.getUserById(id).getEmail(), locale,
-                    valueOf(viewParams.get("start")), valueOf(viewParams.get("length")), searchValue, sortColumn, sortDirection);
+            return showMyOperationHistory(userService.getUserById(id).getEmail(), status, types, merchantIds, dateFrom, dateTo, fromAmount, toAmount,
+                    fromCommissionAmount, toCommissionAmount,
+                    valueOf(viewParams.get("start")), valueOf(viewParams.get("length")), sortColumn, sortDirection, locale);
         }
         return showUserOperationHistory(id, locale);
     }
+
 
     @Override
     public List<AccountStatementDto> getAccountStatement(CacheData cacheData, Integer walletId, Integer offset, Integer limit, Locale locale) {

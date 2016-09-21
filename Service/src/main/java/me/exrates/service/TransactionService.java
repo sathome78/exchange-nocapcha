@@ -6,6 +6,7 @@ import me.exrates.model.Transaction;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.dto.DataTable;
 import me.exrates.model.dto.OperationViewDto;
+import me.exrates.model.enums.TransactionType;
 import me.exrates.model.vo.CacheData;
 
 import java.math.BigDecimal;
@@ -34,8 +35,14 @@ public interface TransactionService {
 
     List<Transaction> findAllByUserWallets(List<Integer> userWalletsIds);
 
-    DataTable<List<OperationViewDto>> showMyOperationHistory(String email, Locale locale, int offset, int limit,
-                                                             String searchValue, String sortColumn, String sortDirection);
+
+    DataTable<List<OperationViewDto>> showMyOperationHistory(String email, Integer status,
+                                                             List<TransactionType> types, List<Integer> merchantIds,
+                                                             String dateFrom, String dateTo,
+                                                             BigDecimal fromAmount, BigDecimal toAmount,
+                                                             BigDecimal fromCommissionAmount, BigDecimal toCommissionAmount,
+                                                             int offset, int limit,
+                                                             String sortColumn, String sortDirection, Locale locale);
 
     DataTable<List<OperationViewDto>> showMyOperationHistory(String email, Locale locale, int offset, int limit);
 
@@ -43,7 +50,11 @@ public interface TransactionService {
 
     DataTable<List<OperationViewDto>> showUserOperationHistory(int id, Locale locale);
 
-    DataTable<List<OperationViewDto>> showUserOperationHistory(int id, Locale locale, Map<String,String> viewParams);
+    DataTable<List<OperationViewDto>> showUserOperationHistory(int id, Integer status,
+                                                               List<TransactionType> types, List<Integer> merchantIds,
+                                                               String dateFrom, String dateTo,
+                                                               BigDecimal fromAmount, BigDecimal toAmount,
+                                                               BigDecimal fromCommissionAmount, BigDecimal toCommissionAmount, Locale locale, Map<String, String> viewParams);
 
     List<AccountStatementDto> getAccountStatement (CacheData cacheData, Integer walletId, Integer offset, Integer limit, Locale locale);
 

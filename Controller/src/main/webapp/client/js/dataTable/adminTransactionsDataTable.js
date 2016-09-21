@@ -1,29 +1,7 @@
 var transactionsDataTable;
 
 $(function () {
-    var $amountSlider = $('#amount-slider');
-    $amountSlider.slider({
-        range: true,
-        min: 0,
-        max: 10000000,
-        values: [ 0, 0 ],
-        slide: function( event, ui ) {
-            $( "#amount" ).val( ui.values[ 0 ] + " - " + ui.values[ 1 ] );
-        }
-    });
-    $( "#amount" ).val($amountSlider.slider( "values", 0 ) + " - " + $amountSlider.slider( "values", 1 ) );
 
-    var $commissionSlider = $('#commission-slider');
-    $commissionSlider.slider({
-        range: true,
-        min: 0,
-        max: 10000000,
-        values: [ 0, 0 ],
-        slide: function( event, ui ) {
-            $( "#commission-amount" ).val( ui.values[ 0 ] + " - " + ui.values[ 1 ] );
-        }
-    });
-    $( "#commission-amount" ).val($commissionSlider.slider( "values", 0 ) + " - " + $commissionSlider.slider( "values", 1 ) );
 
     $.datetimepicker.setDateFormatter({
         parseDate: function (date, format) {
@@ -54,11 +32,6 @@ $(function () {
     });
 
 
-
-    $('#transactionsTable tfoot th').each( function () {
-        var title = $(this).text();
-        $(this).html( '<input type="text" style="width: 100%" placeholder="Search" />' );
-    } );
 
 
 
@@ -139,9 +112,21 @@ $(function () {
 
     $('#filter-apply').on('click', function (e) {
         e.preventDefault();
+        reloadTable();
+    });
+
+    $('#filter-reset').on('click', function (e) {
+        e.preventDefault();
+        $('#transaction-search-form')[0].reset();
+        reloadTable();
+
+    });
+
+    function reloadTable() {
         var formParams = $('#transaction-search-form').serialize();
-        console.log(formParams);
-    })
+        var url = '/admin/transactions?id=' + $("#user-id").val() +'&' + formParams;
+        transactionsDataTable.ajax.url(url).load();
+    }
 
 
 

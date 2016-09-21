@@ -191,9 +191,25 @@ public class AdminController {
 
     @ResponseBody
     @RequestMapping(value = "/admin/transactions", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public DataTable<List<OperationViewDto>> getUserTransactions(final @RequestParam int id, final @RequestParam Map<String, String> params, final HttpServletRequest request) {
-        params.forEach((key, value) -> LOG.debug(key + " :: " + value));
-        return transactionService.showUserOperationHistory(id, localeResolver.resolveLocale(request), params);
+    public DataTable<List<OperationViewDto>> getUserTransactions(final @RequestParam(required = false) int id,
+                                                                 final @RequestParam(required = false) Integer status,
+                                                                 final @RequestParam(required = false) String[] type,
+                                                                 final @RequestParam(required = false) Integer[] merchant,
+                                                                 final @RequestParam(required = false) String startDate,
+                                                                 final @RequestParam(required = false) String endDate,
+                                                                 final @RequestParam(required = false) BigDecimal amountFrom,
+                                                                 final @RequestParam(required = false) BigDecimal amountTo,
+                                                                 final @RequestParam(required = false) BigDecimal commissionAmountFrom,
+                                                                 final @RequestParam(required = false) BigDecimal commissionAmountTo,
+                                                                 final @RequestParam Map<String, String> params,
+                                                                 final HttpServletRequest request) {
+
+        Integer transactionStatus = status == null || status == -1 ? null : status;
+        List<TransactionType> types = type == null ? null :
+            Arrays.stream(type).map(TransactionType::valueOf).collect(Collectors.toList());
+        List<Integer> merchantIds = merchant == null ? null :  Arrays.asList(merchant);
+        return transactionService.showUserOperationHistory(id, transactionStatus, types, merchantIds, startDate, endDate,
+                amountFrom, amountTo, commissionAmountFrom, commissionAmountTo,  localeResolver.resolveLocale(request), params);
     }
 
     @ResponseBody
@@ -279,17 +295,9 @@ public class AdminController {
         model.addObject("user", user);
         model.setViewName("admin/editUser");
         model.addObject("userFiles", userService.findUserDoc(id));
-        List<String> transactionStatuses = new ArrayList<>();
-        transactionStatuses.add(messageSource.getMessage("transaction.provided", null, localeResolver.resolveLocale(request)));
-        transactionStatuses.add(messageSource.getMessage("transaction.notProvided", null, localeResolver.resolveLocale(request)));
-        model.addObject("transactionStatuses", transactionStatuses);
         model.addObject("transactionTypes", Arrays.asList(TransactionType.values()));
         List<Merchant> merchantList = merchantService.findAll();
-        merchantList.add(new Merchant(0, "REFERRAL", "REFERRAL"));
-        merchantList.add(new Merchant(0, "ORDER", "ORDER"));
         model.addObject("merchants", merchantList);
-        LOG.debug(transactionService.maxAmount());
-        LOG.debug(transactionService.maxCommissionAmount());
         model.addObject("maxAmount", transactionService.maxAmount());
         model.addObject("maxCommissionAmount", transactionService.maxCommissionAmount());
 

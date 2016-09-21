@@ -1823,3 +1823,17 @@ input[type=email], .dropdown-menu__form,
 #merchantList, #amcharts-stock_chart_div {
     direction: ltr !important;
 }
+
+.checkbox-grid li {
+    display: block;
+    float: left;
+    width: 33%;
+}
+.checkbox-grid li span {
+    margin-left: 5px;
+}
+
+
+#transaction-filter {
+    margin: 10px 0;
+}

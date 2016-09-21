@@ -230,7 +230,8 @@
                     <div class="col-md-12 content">
                         <%--ИСТОРИЯ ОПЕРАЦИЙ--%>
                             <div class="text-center"><h4><loc:message code="transactions.title"/></h4></div>
-                        <div id="transaction-filter">
+                            <button data-toggle="collapse" class="blue-box" style="margin: 10px 0;" data-target="#transaction-filter">Extended filter</button>
+                            <div id="transaction-filter" class="collapse">
                             <form id="transaction-search-form" method="get">
                                 <%--STATUS--%>
                                     <div class="input-block-wrapper">
@@ -240,12 +241,11 @@
                                     </label>
                                 </div>
                                 <div class="col-md-9 input-block-wrapper__input-wrapper">
-                                    <select id="status" class="input-block-wrapper__input admin-form-input" name="status">
-                                        <option value="ALL">ALL</option>
-                                        <c:forEach items="${transactionStatuses}" var="transactionStatus">
-                                            <option value="${transactionStatus}">${transactionStatus}</option>
-                                        </c:forEach>
-                                    </select>
+                                    <ul class="checkbox-grid">
+                                   <li> <input type="radio" name="status" value="-1"><span>ALL</span></li>
+                                   <li><input type="radio" name="status" value="1"><span><loc:message code="transaction.provided" /></span></li>
+                                   <li><input type="radio" name="status" value="0"><span><loc:message code="transaction.notProvided" /></span></li>
+                                   </ul>
                                 </div>
                                     </div>
                                     <%--TYPE--%>
@@ -256,12 +256,11 @@
                                             </label>
                                         </div>
                                         <div class="col-md-9 input-block-wrapper__input-wrapper">
-                                            <select multiple id="type" class="input-block-wrapper__input admin-form-input" name="type">
-                                                <option value="ALL">ALL</option>
-                                                <c:forEach items="${transactionTypes}" var="type">
-                                                    <option value="${type}"><span>${type}</span>
+                                            <ul class="checkbox-grid">
+                                            <c:forEach items="${transactionTypes}" var="type">
+                                                    <li><input type="checkbox" name="type" value="${type}"><span>${type}</span></li>
                                                 </c:forEach>
-                                            </select>
+                                                </ul>
                                         </div>
 
                                     </div>
@@ -273,12 +272,11 @@
                                             </label>
                                         </div>
                                         <div class="col-md-9 input-block-wrapper__input-wrapper">
-                                            <select multiple id="merchant" class="input-block-wrapper__input admin-form-input" name="merchant">
-                                                <option value="ALL">ALL</option>
+                                            <ul class="checkbox-grid">
                                                 <c:forEach items="${merchants}" var="merchant">
-                                                <option value="${merchant.name}"><span>${merchant.name}</span>
+                                                    <li><input type="checkbox" name="merchant" value="${merchant.id}"><span>${merchant.name}</span></li>
                                                     </c:forEach>
-                                            </select>
+                                            </ul>
 
                                         </div>
 
@@ -304,12 +302,9 @@
                                             </label>
                                         </div>
                                         <div class="col-md-9 input-block-wrapper__input-wrapper">
-                                            <input type="hidden" id="max-amount" value="${maxAmount}">
-                                            <input type="text" readonly id="amount" name="amount">
-                                            <div id="amount-slider"></div>
-
+                                            <input type="number" id="amountFrom" name="amountFrom">
+                                            <input type="number" id="amountTo" name="amountTo">
                                         </div>
-
                                     </div>
                                     <%--COMMISSION_AMOUNT--%>
                                     <div class="input-block-wrapper">
@@ -319,13 +314,12 @@
                                             </label>
                                         </div>
                                         <div class="col-md-9 input-block-wrapper__input-wrapper">
-                                            <input type="hidden" id="max-commission-amount" value="${maxCommissionAmount}">
-                                            <input type="text" readonly id="commission-amount" name="commissionAmount">
-                                            <div id="commission-slider"></div>
+                                            <input type="number" id="commission-amount-from" name="commissionAmountFrom">
+                                            <input type="number" id="commission-amount-to" name="commissionAmountTo">
                                         </div>
-
                                     </div>
-                                <button id="filter-apply">Apply filter</button>
+                                <button id="filter-apply" class="blue-box">Apply filter</button>
+                                <button id="filter-reset" class="blue-box">Reset filter</button>
 
                             </form>
 
