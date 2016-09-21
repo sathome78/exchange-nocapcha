@@ -4,6 +4,9 @@ import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.security.service.UserSecureServiceImpl;
@@ -199,6 +202,35 @@ public class AdminController {
         return walletService.getAllWallets(id);
     }
 
+    @ResponseBody
+    @RequestMapping(value = "/admin/orders", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public  List<OrderWideListDto> getUserOrders(final @RequestParam int id, final @RequestParam("tableType") String tableType,
+                             final @RequestParam("currencyPairId") int currencyPairId, final HttpServletRequest request) {
+
+        CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
+        String email = userService.getUserById(id).getEmail();
+        Map<String,List<OrderWideListDto>> resultMap = new HashMap<>();
+
+        List<OrderWideListDto> ordersBuyClosed = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, OperationType.BUY, 0, -1, localeResolver.resolveLocale(request));
+        List<OrderWideListDto> ordersSellClosed = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, OperationType.SELL, 0, -1, localeResolver.resolveLocale(request));
+        List<OrderWideListDto> ordersBuyCancelled = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, OperationType.BUY, 0, -1, localeResolver.resolveLocale(request));
+        List<OrderWideListDto> ordersSellCancelled = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, OperationType.SELL, 0, -1, localeResolver.resolveLocale(request));
+
+        List<OrderWideListDto> result = new ArrayList<>();
+        switch (tableType){
+            case "ordersBuyClosed":     result = ordersBuyClosed;
+                                        break;
+            case "ordersSellClosed":    result = ordersSellClosed;
+                                        break;
+            case "ordersBuyCancelled":  result = ordersBuyCancelled;
+                                        break;
+            case "ordersSellCancelled": result = ordersSellCancelled;
+                                        break;
+        }
+
+        return result;
+    }
+
     @RequestMapping("/admin/addUser")
     public ModelAndView addUser(HttpSession httpSession) {
 
@@ -274,6 +306,7 @@ public class AdminController {
 
         user.setId(id);
         model.addObject("user", user);
+        model.addObject("currencyPairs", currencyService.getAllCurrencyPairs());
         model.setViewName("admin/editUser");
         model.addObject("userFiles", userService.findUserDoc(id));
         return model;

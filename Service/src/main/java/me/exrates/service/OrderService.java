@@ -244,4 +244,8 @@ public interface OrderService {
                                                            BigDecimal orderRate, BigDecimal orderVolume, String creatorEmail, Locale locale,
                                                            Map<String, String> params);
 
+    List<OrderWideListDto> getUsersOrdersWithStateForAdmin(String email, CurrencyPair currencyPair, OrderStatus status,
+                                                           OperationType operationType,
+                                                           Integer offset, Integer limit, Locale locale);
+
 }
