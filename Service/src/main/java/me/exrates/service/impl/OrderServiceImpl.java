@@ -585,6 +585,16 @@ public class OrderServiceImpl implements OrderService {
         return findOrders(currencyPair, orderType, orderDateFrom, orderDateTo, orderRate, orderVolume, creatorEmail, locale);
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public List<OrderWideListDto> getUsersOrdersWithStateForAdmin(String email, CurrencyPair currencyPair, OrderStatus status,
+                                                       OperationType operationType,
+                                                       Integer offset, Integer limit, Locale locale) {
+        List<OrderWideListDto> result = orderDao.getMyOrdersWithState(email, currencyPair, status, operationType, offset, limit, locale);
+
+        return result;
+    }
+
 }
 
 
