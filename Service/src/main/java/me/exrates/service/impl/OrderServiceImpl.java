@@ -536,19 +536,21 @@ public class OrderServiceImpl implements OrderService {
         this.messageSource = messageSource;
     }
 
-    @Transactional
     @Override
+    @Transactional
     public DataTable<List<OrderBasicInfoDto>> findOrders(Integer currencyPair, String orderType, String orderDateFrom, String orderDateTo,
-                                                         BigDecimal orderRate, BigDecimal orderVolume, String creatorEmail, Locale locale) {
-        return findOrders(currencyPair, orderType, orderDateFrom, orderDateTo, orderRate, orderVolume, creatorEmail, locale,
-                0, Integer.MAX_VALUE, "id", "ASC");
+                                                         BigDecimal orderRateFrom, BigDecimal orderRateTo, BigDecimal orderVolumeFrom,
+                                                         BigDecimal orderVolumeTo, String creatorEmail, String acceptorEmail, Locale locale) {
+        return findOrders(currencyPair, orderType, orderDateFrom, orderDateTo, orderRateFrom, orderRateTo, orderVolumeFrom,
+                orderVolumeTo, creatorEmail, acceptorEmail, locale, 0, Integer.MAX_VALUE, "id", "ASC");
 
     }
 
-    @Transactional
     @Override
+    @Transactional
     public DataTable<List<OrderBasicInfoDto>> findOrders(Integer currencyPair, String orderType, String orderDateFrom, String orderDateTo,
-                                                         BigDecimal orderRate, BigDecimal orderVolume, String creatorEmail, Locale locale,
+                                                         BigDecimal orderRateFrom, BigDecimal orderRateTo, BigDecimal orderVolumeFrom,
+                                                         BigDecimal orderVolumeTo, String creatorEmail, String acceptorEmail, Locale locale,
                                                          int offset, int limit, String orderColumnName, String orderDirection) {
         Integer ot = null;
         if (!"ANY".equals(orderType)) {
@@ -558,7 +560,8 @@ public class OrderServiceImpl implements OrderService {
             currencyPair = null;
         }
         PagingData<List<OrderBasicInfoDto>> searchResult = orderDao.searchOrders(currencyPair, ot, orderDateFrom,
-                orderDateTo, orderRate, orderVolume, creatorEmail, locale, offset, limit, orderColumnName, orderDirection);
+                orderDateTo, orderRateFrom, orderRateTo, orderVolumeFrom, orderVolumeTo, creatorEmail,
+                acceptorEmail, locale, offset, limit, orderColumnName, orderDirection);
         DataTable<List<OrderBasicInfoDto>> output = new DataTable<>();
         output.setData(searchResult.getData());
         output.setRecordsTotal(searchResult.getTotal());
@@ -567,10 +570,11 @@ public class OrderServiceImpl implements OrderService {
 
     }
 
-    @Transactional
     @Override
+    @Transactional
     public DataTable<List<OrderBasicInfoDto>> searchOrdersByAdmin(Integer currencyPair, String orderType, String orderDateFrom, String orderDateTo,
-                                                                  BigDecimal orderRate, BigDecimal orderVolume, String creatorEmail, Locale locale,
+                                                                  BigDecimal orderRateFrom, BigDecimal orderRateTo, BigDecimal orderVolumeFrom,
+                                                                  BigDecimal orderVolumeTo, String creatorEmail, String acceptorEmail, Locale locale,
                                                                   Map<String, String> params) {
         if (params.containsKey("start") && params.containsKey("length")) {
             String orderColumnKey = "columns[" + params.getOrDefault("order[0][column]", "0") + "][data]";
@@ -579,10 +583,12 @@ public class OrderServiceImpl implements OrderService {
             String orderDirection = params.getOrDefault("order[0][dir]", "asc").toUpperCase();
 
 
-            return findOrders(currencyPair, orderType, orderDateFrom, orderDateTo, orderRate, orderVolume, creatorEmail, locale,
+            return findOrders(currencyPair, orderType, orderDateFrom, orderDateTo, orderRateFrom, orderRateTo, orderVolumeFrom,
+                    orderVolumeTo, creatorEmail, acceptorEmail, locale,
                     valueOf(params.get("start")), valueOf(params.get("length")), orderColumnFormatted, orderDirection);
         }
-        return findOrders(currencyPair, orderType, orderDateFrom, orderDateTo, orderRate, orderVolume, creatorEmail, locale);
+        return findOrders(currencyPair, orderType, orderDateFrom, orderDateTo, orderRateFrom, orderRateTo, orderVolumeFrom,
+                orderVolumeTo, creatorEmail, acceptorEmail, locale);
     }
 
     @Transactional(readOnly = true)

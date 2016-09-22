@@ -51,6 +51,19 @@ public class OrderDaoImpl implements OrderDao {
     @Autowired
     WalletDao walletDao;
 
+    private static final Map<String, String> SEARCH_CLAUSES = new HashMap<String, String>() {{
+        put("currency_pair_id", "EXORDERS.currency_pair_id = :currency_pair_id");
+        put("operation_type_id", "EXORDERS.operation_type_id = :operation_type_id");
+        put("date_from", "EXORDERS.date_creation >= STR_TO_DATE(:date_from, '%Y-%m-%d %H:%i:%s')");
+        put("date_to", "EXORDERS.date_creation <= STR_TO_DATE(:date_to, '%Y-%m-%d %H:%i:%s')");
+        put("exrate_from", "EXORDERS.exrate >= :exrate_from");
+        put("exrate_to", "EXORDERS.exrate <= :exrate_to");
+        put("amount_base_from", "EXORDERS.amount_base >= :amount_base_from");
+        put("amount_base_to", "EXORDERS.amount_base <= :amount_base_to");
+        put("creator_email", "EXORDERS.user_id = (SELECT id FROM USER WHERE email = :creator_email)");
+        put("acceptor_email", "EXORDERS.user_acceptor_id = (SELECT id FROM USER WHERE email = :acceptor_email)");
+    }};
+
     public int createOrder(ExOrder exOrder) {
         String sql = "INSERT INTO EXORDERS" +
                 "  (user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, commission_id, commission_fixed_amount, status_id)" +
@@ -788,7 +801,8 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public PagingData<List<OrderBasicInfoDto>> searchOrders(Integer currencyPair, Integer orderType, String orderDateFrom, String orderDateTo,
-                                                            BigDecimal orderRate, BigDecimal orderVolume, String creatorEmail, Locale locale,
+                                                            BigDecimal orderRateFrom, BigDecimal orderRateTo, BigDecimal orderVolumeFrom,
+                                                            BigDecimal orderVolumeTo, String creatorEmail, String acceptorEmail, Locale locale,
                                                             int offset, int limit, String orderColumnName, String orderDirection) {
         String sqlSelect = " SELECT  " +
                 "     EXORDERS.id, EXORDERS.date_creation, EXORDERS.status_id AS status, " +
@@ -814,9 +828,12 @@ public class OrderDaoImpl implements OrderDao {
         namedParameters.put("operation_type_id", String.valueOf(orderType));
         namedParameters.put("date_from", orderDateFrom);
         namedParameters.put("date_to", orderDateTo);
-        namedParameters.put("exrate", String.valueOf(orderRate));
-        namedParameters.put("amount_base", String.valueOf(orderVolume));
+        namedParameters.put("exrate_from", String.valueOf(orderRateFrom));
+        namedParameters.put("exrate_to", String.valueOf(orderRateTo));
+        namedParameters.put("amount_base_from", String.valueOf(orderVolumeFrom));
+        namedParameters.put("amount_base_to", String.valueOf(orderVolumeTo));
         namedParameters.put("creator_email", creatorEmail);
+        namedParameters.put("acceptor_email", acceptorEmail);
         String criteria = defineCriteria(namedParameters);
         String whereClause = criteria.isEmpty() ? "" : "WHERE " + criteria;
         String selectQuery = new StringJoiner(" ").add(sqlSelect)
@@ -826,6 +843,8 @@ public class OrderDaoImpl implements OrderDao {
         String selectCountQuery = new StringJoiner(" ").add(sqlSelectCount)
                 .add(sqlFrom)
                 .add(whereClause).toString();
+        LOGGER.debug(selectQuery);
+        LOGGER.debug(selectCountQuery);
 
         PagingData<List<OrderBasicInfoDto>> result = new PagingData<>();
 
@@ -846,6 +865,7 @@ public class OrderDaoImpl implements OrderDao {
         result.setData(infoDtoList);
         result.setTotal(total);
         result.setFiltered(total);
+        LOGGER.debug(result);
 
         return result;
 
@@ -857,17 +877,9 @@ public class OrderDaoImpl implements OrderDao {
         String emptyValue = "";
         StringJoiner stringJoiner = new StringJoiner(" AND ");
         stringJoiner.setEmptyValue(emptyValue);
-        Map<String, String> clauses = new HashMap();
-        clauses.put("currency_pair_id", "EXORDERS.currency_pair_id = :currency_pair_id");
-        clauses.put("operation_type_id", "EXORDERS.operation_type_id = :operation_type_id");
-        clauses.put("date_from", "EXORDERS.date_creation >= STR_TO_DATE(:date_from, '%Y-%m-%d %H:%i:%s')");
-        clauses.put("date_to", "EXORDERS.date_creation <= STR_TO_DATE(:date_to, '%Y-%m-%d %H:%i:%s')");
-        clauses.put("exrate", "EXORDERS.exrate = :exrate");
-        clauses.put("amount_base", "EXORDERS.amount_base = :amount_base");
-        clauses.put("creator_email", "EXORDERS.user_id = (SELECT id FROM USER WHERE email = :creator_email)");
         namedParameters.forEach((name, value) -> {
             if (checkPresent(value)) {
-                stringJoiner.add(clauses.get(name));
+                stringJoiner.add(SEARCH_CLAUSES.get(name));
             }
         });
         return stringJoiner.toString();

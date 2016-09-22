@@ -548,15 +548,29 @@ public class AdminController {
                                       @RequestParam(required = false) String orderType,
                                       @RequestParam(required = false) String orderDateFrom,
                                       @RequestParam(required = false) String orderDateTo,
-                                      @RequestParam(required = false) BigDecimal orderRate,
-                                      @RequestParam(required = false) BigDecimal orderVolume,
+                                      @RequestParam(required = false) BigDecimal orderRateFrom,
+                                      @RequestParam(required = false) BigDecimal orderRateTo,
+                                      @RequestParam(required = false) BigDecimal orderVolumeFrom,
+                                      @RequestParam(required = false) BigDecimal orderVolumeTo,
                                       @RequestParam(required = false) String creator,
+                                      @RequestParam(required = false) String acceptor,
                                       @RequestParam Map<String, String> params,
                                       HttpServletRequest request) {
 
         try {
+            LOG.debug(orderDateFrom);
+            LOG.debug(orderDateTo);
+            LOG.debug(orderRateFrom);
+            LOG.debug(orderRateFrom);
+            LOG.debug(orderVolumeFrom);
+            LOG.debug(orderVolumeTo);
+            LOG.debug(creator);
+            LOG.debug(acceptor);
+
             DataTable<List<OrderBasicInfoDto>> orderInfo = orderService.searchOrdersByAdmin(currencyPair, orderType,
-                    orderDateFrom, orderDateTo, orderRate, orderVolume, creator, localeResolver.resolveLocale(request), params);
+                    orderDateFrom, orderDateTo, orderRateFrom, orderRateTo, orderVolumeFrom,
+                    orderVolumeTo, creator, acceptor, localeResolver.resolveLocale(request), params);
+            LOG.debug(orderInfo);
 
             return orderInfo;
         } catch (Exception ex) {
@@ -616,6 +630,7 @@ public class AdminController {
     @ExceptionHandler(RuntimeException.class)
     @ResponseBody
     public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
+        exception.printStackTrace();
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 
