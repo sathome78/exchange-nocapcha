@@ -34,6 +34,11 @@
                                 <form:input class="form-control input-block-wrapper__input numericInputField"
                                           id="sum" path="sum" />
                             </div>
+                            <div class="col-md-4 input-block-wrapper__label-wrapper">
+                                <div id="min-sum-notification" class="red"><loc:message code="mercnahts.output.minSum"/>
+                                    <strong> ${currency.name} <span id="min-withdraw-sum"><fmt:formatNumber value="${currency.minWithdrawSum}" pattern="###,###.####"/></span>
+                                    </strong></div>
+                            </div>
                         </div>
 
                         <b hidden id="buttonMessage"><loc:message code="merchants.withdraw" /></b>

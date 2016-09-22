@@ -1814,3 +1814,7 @@ input[type=email], .dropdown-menu__form,
 #merchantList, #amcharts-stock_chart_div {
     direction: ltr !important;
 }
+
+#min-sum-notification {
+    display: none; width: auto; font-size: 14px
+}
