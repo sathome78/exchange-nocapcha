@@ -123,9 +123,6 @@ $(function(){
                 $(this).val($(this).val().slice(0,-1));
 
             }
-            console.log($('#min-withdraw-sum').text());
-            console.log(minWithdrawSum); console.log(sum.val());
-            console.log(parseFloat(sum.val()) >= minWithdrawSum);
             if (parseFloat(sum.val()) >= minWithdrawSum){
                 $('#min-sum-notification').hide();
                 button.prop('disabled',false);
