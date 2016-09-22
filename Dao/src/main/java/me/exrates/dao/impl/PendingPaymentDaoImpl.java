@@ -1,7 +1,5 @@
 package me.exrates.dao.impl;
 
-import java.util.*;
-
 import me.exrates.dao.PendingPaymentDao;
 import me.exrates.model.PendingPayment;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +7,8 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
+
+import java.util.*;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -57,7 +57,7 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
 
     @Override
     public Optional<PendingPayment> findByAddress(final String address) {
-        final String sql = "SELECT * FROM PENDING_PAYMENT WHERE address= :address";
+        final String sql = "SELECT * FROM PENDING_PAYMENT WHERE address= :address ORDER BY invoice_id DESC LIMIT 1";
         final Map<String, String> params = Collections.singletonMap("address", address);
         try {
             return Optional.of(

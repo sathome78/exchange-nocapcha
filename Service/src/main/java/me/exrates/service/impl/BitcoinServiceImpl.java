@@ -28,10 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.math.BigDecimal;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.StringJoiner;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -173,7 +170,23 @@ public class BitcoinServiceImpl implements BitcoinService {
     }
 
     private Address address() {
-        return kit.wallet().freshReceiveAddress();
+
+        boolean isFreshAddress = false;
+        Address address = kit.wallet().freshReceiveAddress();
+
+        if (paymentDao.findByAddress(address.toString()).isPresent()){
+            final int LIMIT = 100;
+            int i = 0;
+            while (!isFreshAddress && i++<LIMIT){
+                address = kit.wallet().freshReceiveAddress();
+                isFreshAddress = !paymentDao.findByAddress(address.toString()).isPresent();
+            }
+            if (i >= LIMIT){
+               throw  new IllegalStateException("Can`t generate fresh address");
+            }
+        }
+
+        return address;
     }
 
     private String base58Address() {
