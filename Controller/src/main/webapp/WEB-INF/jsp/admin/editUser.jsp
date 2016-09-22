@@ -249,14 +249,14 @@
                         <div class="col-md-12 content">
                             <%--ИСТОРИЯ ОПЕРАЦИЙ--%>
                             <div class="text-center"><h4><loc:message code="transactions.title"/></h4></div>
-                            <button data-toggle="collapse" class="blue-box" style="margin: 10px 0;" data-target="#transaction-filter">Extended filter</button>
+                            <button data-toggle="collapse" class="blue-box" style="margin: 10px 0;" data-target="#transaction-filter"><loc:message code="admin.user.transactions.extendedFilter"/> </button>
                             <div id="transaction-filter" class="collapse">
                             <form id="transaction-search-form" method="get">
                                 <%--STATUS--%>
                                     <div class="input-block-wrapper">
                                 <div class="col-md-3 input-block-wrapper__label-wrapper">
                                     <label class="input-block-wrapper__label">
-                                        Status
+                                        <loc:message code="admin.status" />
                                     </label>
                                 </div>
                                 <div class="col-md-9 input-block-wrapper__input-wrapper">
@@ -271,7 +271,7 @@
                                     <div class="input-block-wrapper">
                                         <div class="col-md-3 input-block-wrapper__label-wrapper">
                                             <label class="input-block-wrapper__label">
-                                                Type
+                                                <loc:message code="transaction.operationType" />
                                             </label>
                                         </div>
                                         <div class="col-md-9 input-block-wrapper__input-wrapper">
@@ -287,7 +287,7 @@
                                     <div class="input-block-wrapper">
                                         <div class="col-md-3 input-block-wrapper__label-wrapper">
                                             <label class="input-block-wrapper__label">
-                                                Merchant
+                                                <loc:message code="withdrawal.merchant" />
                                             </label>
                                         </div>
                                         <div class="col-md-9 input-block-wrapper__input-wrapper">
@@ -304,7 +304,7 @@
                                     <div class="input-block-wrapper">
                                         <div class="col-md-3 input-block-wrapper__label-wrapper">
                                             <label class="input-block-wrapper__label">
-                                                Date
+                                                <loc:message code="ordersearch.date" />
                                             </label>
                                         </div>
                                         <div class="col-md-9 input-block-wrapper__input-wrapper">
@@ -317,7 +317,7 @@
                                     <div class="input-block-wrapper">
                                         <div class="col-md-3 input-block-wrapper__label-wrapper">
                                             <label class="input-block-wrapper__label">
-                                                Amount
+                                                <loc:message code="orders.amount" />
                                             </label>
                                         </div>
                                         <div class="col-md-9 input-block-wrapper__input-wrapper">
@@ -329,7 +329,7 @@
                                     <div class="input-block-wrapper">
                                         <div class="col-md-3 input-block-wrapper__label-wrapper">
                                             <label class="input-block-wrapper__label">
-                                                Commission amount
+                                                <loc:message code="inputoutput.commissionAmount" />
                                             </label>
                                         </div>
                                         <div class="col-md-9 input-block-wrapper__input-wrapper">
@@ -337,8 +337,8 @@
                                             <input type="number" id="commission-amount-to" name="commissionAmountTo">
                                         </div>
                                     </div>
-                                <button id="filter-apply" class="blue-box">Apply filter</button>
-                                <button id="filter-reset" class="blue-box">Reset filter</button>
+                                <button id="filter-apply" class="blue-box"><loc:message code="admin.user.transactions.applyFilter" /></button>
+                                <button id="filter-reset" class="blue-box"><loc:message code="admin.user.transactions.resetFilter" /></button>
 
                             </form>
 
