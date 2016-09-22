@@ -77,44 +77,32 @@ function searchAndDeleteOrderByAdmin() {
     $('#order-delete-modal--search').modal();
 }
 
-function searchOrder() {
+function validateErrorForm() {
     var isError = false;
     $('.input-block-wrapper__error-wrapper').toggle(false);
-    var orderRate = $('#orderRate').val();
-    var orderVolume = $('#orderVolume').val();
     var creatorEmail = $('#creatorEmail').val();
-
-    if (orderRate.length > 0) {
-        var match = orderRate.match(/^\d+(\.{1,1}\d+)?/);
-        if (!match || match[0] !== orderRate){
-            $('.input-block-wrapper__error-wrapper[for=orderRate]').toggle(true);
-            isError = true;
-        }
-    }
-    if (orderVolume.length > 0) {
-        match = orderVolume.match(/^\d+(\.{1,1}\d+)?/);
-        if (!match || match[0] !== orderVolume){
-            $('.input-block-wrapper__error-wrapper[for=orderVolume]').toggle(true);
-            isError = true;
-        }
-    }
+    var acceptorEmail = $('#acceptorEmail').val();
 
     if (creatorEmail.length > 0) {
         match = creatorEmail.match(/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/);
-        if (!match || match[0] !== creatorEmail){
+        if (!match || match[0] !== creatorEmail) {
             $('.input-block-wrapper__error-wrapper[for=creatorEmail]').toggle(true);
             isError = true;
         }
     }
+    if (acceptorEmail.length > 0) {
+        match = acceptorEmail.match(/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/);
+        if (!match || match[0] !== acceptorEmail) {
+            $('.input-block-wrapper__error-wrapper[for=acceptorEmail]').toggle(true);
+            isError = true;
+        }
+    }
 
-    if ($('#orderDateFrom').val().length > 0 && (!$('#orderDateFrom').val().match(/\d{4}\-\d{2}\-\d{2}\s{1}\d{2}\:\d{2}\:\d{2}/))){
-        $('.input-block-wrapper__error-wrapper[for=orderDateFrom]').toggle(true);
-        isError = true;
-    }
-    if ($('#orderDateTo').val().length > 0 && !($('#orderDateTo').val().match(/\d{4}\-\d{2}\-\d{2}\s{1}\d{2}\:\d{2}\:\d{2}/))){
-        $('.input-block-wrapper__error-wrapper[for=orderDateTo]').toggle(true);
-        isError = true;
-    }
+    return isError;
+}
+
+function searchOrder() {
+    var isError = validateErrorForm();
     if (isError) {
         return;
     }
@@ -186,4 +174,32 @@ function searchOrder() {
 }
 $(function () {
     $('#order-info-table').toggle(false);
+    $.datetimepicker.setDateFormatter({
+        parseDate: function (date, format) {
+            var d = moment(date, format);
+            return d.isValid() ? d.toDate() : false;
+        },
+
+        formatDate: function (date, format) {
+            return moment(date).format(format);
+        }
+    });
+
+    $('#datetimepicker_start').datetimepicker({
+        format: 'YYYY-MM-DD HH:mm:ss',
+        formatDate: 'YYYY-MM-DD',
+        formatTime: 'HH:mm',
+        lang:'ru',
+        defaultDate: new Date(),
+        defaultTime: '00:00'
+    });
+    $('#datetimepicker_end').datetimepicker({
+        format: 'YYYY-MM-DD HH:mm:ss',
+        formatDate: 'YYYY-MM-DD',
+        formatTime: 'HH:mm',
+        lang:'ru',
+        defaultDate: new Date(),
+        defaultTime: '00:00'
+    });
+    $('#delete-order-info__search').on('click', searchOrder)
 });

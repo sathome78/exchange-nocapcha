@@ -558,15 +558,6 @@ public class AdminController {
                                       HttpServletRequest request) {
 
         try {
-            LOG.debug(orderDateFrom);
-            LOG.debug(orderDateTo);
-            LOG.debug(orderRateFrom);
-            LOG.debug(orderRateFrom);
-            LOG.debug(orderVolumeFrom);
-            LOG.debug(orderVolumeTo);
-            LOG.debug(creator);
-            LOG.debug(acceptor);
-
             DataTable<List<OrderBasicInfoDto>> orderInfo = orderService.searchOrdersByAdmin(currencyPair, orderType,
                     orderDateFrom, orderDateTo, orderRateFrom, orderRateTo, orderVolumeFrom,
                     orderVolumeTo, creator, acceptor, localeResolver.resolveLocale(request), params);

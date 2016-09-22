@@ -20,7 +20,9 @@
     <meta name="description" content="" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <%@include file='links_scripts.jsp'%>
-    <script type="text/javascript" src="<c:url value='/client/js/order/adminDeleteOrder.js'/>"></script>
+    <link rel="stylesheet" href="<c:url value="/client/css/jquery.datetimepicker.css"/>">
+    <script type="text/javascript" src="<c:url value='/client/js/jquery.datetimepicker.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/moment-with-locales.min.js'/>"></script>
 </head>
 
 <body>
@@ -65,54 +67,61 @@
                     </div>
                     <div class="input-block-wrapper">
                         <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label"><loc:message code="ordersearch.date"/></label>
+                            <label class="input-block-wrapper__label">
+                                <loc:message code="ordersearch.date" />
+                            </label>
                         </div>
-                        <div class="col-md-4 input-block-wrapper__input-wrapper">
-                            <input id="orderDateFrom" name="orderDateFrom"
-                                   placeholder="<loc:message code="ordersearch.datetimeplaceholder"/>"
-                                   class="form-control input-block-wrapper__input"/>
+                        <div class="col-md-9 input-block-wrapper__input-wrapper">
+                            <input id="datetimepicker_start" type="text" name="orderDateFrom">
+                            <input id="datetimepicker_end" type="text" name="orderDateTo">
                         </div>
-                        <div class="col-md-5 input-block-wrapper__input-wrapper">
-                            <input id="orderDateTo" name="orderDateTo"
-                                   placeholder="<loc:message code="ordersearch.datetimeplaceholder"/>"
-                                   class="form-control input-block-wrapper__input"/>
-                        </div>
-                        <div for="orderDateFrom" hidden class="col-md-6 input-block-wrapper__error-wrapper">
-                            <label for="orderDateFrom" class="input-block-wrapper__input"><loc:message
+                        <div for="datetimepicker_start" hidden class="col-md-7 input-block-wrapper__error-wrapper">
+                            <label for="datetimepicker_start" class="input-block-wrapper__input"><loc:message
                                     code="ordersearch.errordatetime"/></label>
                         </div>
-                        <div for="orderDateTo" hidden class="col-md-6 input-block-wrapper__error-wrapper">
-                            <label for="orderDateTo" class="input-block-wrapper__input"><loc:message
+                        <div for="datetimepicker_end" hidden class="col-md-7 input-block-wrapper__error-wrapper">
+                            <label for="datetimepicker_end" class="input-block-wrapper__input"><loc:message
                                     code="ordersearch.errordatetime"/></label>
                         </div>
+
                     </div>
                     <div class="input-block-wrapper">
                         <div class="col-md-3 input-block-wrapper__label-wrapper">
                             <label class="input-block-wrapper__label"><loc:message code="ordersearch.rate"/></label>
                         </div>
                         <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input id="orderRate" name="orderRate" class="input-block-wrapper__input admin-form-input"
-                                   placeholder="0.0"/>
+                            <input type="number" id="orderRateFrom" name="orderRateFrom" placeholder="0.0"/>
+                            <input type="number" id="orderRateTo" name="orderRateTo" placeholder="0.0"/>
                         </div>
-                        <div for="orderRate" hidden class="col-md-7 input-block-wrapper__error-wrapper">
-                            <label for="orderRate" class="input-block-wrapper__input"><loc:message
+                        <div for="orderRateFrom" hidden class="col-md-7 input-block-wrapper__error-wrapper">
+                            <label for="orderRateFrom" class="input-block-wrapper__input"><loc:message
+                                    code="ordersearch.errornumber"/></label>
+                        </div>
+                        <div for="orderRateTo" hidden class="col-md-7 input-block-wrapper__error-wrapper">
+                            <label for="orderRateTo" class="input-block-wrapper__input"><loc:message
                                     code="ordersearch.errornumber"/></label>
                         </div>
                     </div>
                     <div class="input-block-wrapper">
                         <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label"><loc:message
-                                    code="ordersearch.volume"/></label>
+                            <label class="input-block-wrapper__label"><loc:message code="ordersearch.volume"/></label>
                         </div>
                         <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input id="orderVolume" name="orderVolume" class="input-block-wrapper__input admin-form-input"
+                            <input type="number" id="orderVolumeFrom" name="orderVolumeFrom"
+                                   placeholder="0.0"/>
+                            <input type="number" id="orderVolumeTo" name="orderVolumeTo"
                                    placeholder="0.0"/>
                         </div>
-                        <div for="orderVolume" hidden class="col-md-7 input-block-wrapper__error-wrapper">
-                            <label for="orderVolume" class="input-block-wrapper__input"><loc:message
+                        <div for="orderVolumeFrom" hidden class="col-md-7 input-block-wrapper__error-wrapper">
+                            <label for="orderVolumeFrom" class="input-block-wrapper__input"><loc:message
+                                    code="ordersearch.errornumber"/></label>
+                        </div>
+                        <div for="orderVolumeTo" hidden class="col-md-7 input-block-wrapper__error-wrapper">
+                            <label for="orderVolumeTo" class="input-block-wrapper__input"><loc:message
                                     code="ordersearch.errornumber"/></label>
                         </div>
                     </div>
+
                     <div class="input-block-wrapper">
                         <div class="col-md-3 input-block-wrapper__label-wrapper">
                             <label class="input-block-wrapper__label"><loc:message
@@ -127,10 +136,23 @@
                                     code="ordersearch.erroremail"/></label>
                         </div>
                     </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-3 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message
+                                    code="orderinfo.acceptor"/></label>
+                        </div>
+                        <div class="col-md-9 input-block-wrapper__input-wrapper">
+                            <input id="acceptorEmail" name="acceptor" class="input-block-wrapper__input admin-form-input"
+                                   placeholder="user@user.com"/>
+                        </div>
+                        <div for="acceptorEmail" hidden class="col-md-7 input-block-wrapper__error-wrapper">
+                            <label for="acceptorEmail" class="input-block-wrapper__input"><loc:message
+                                    code="ordersearch.erroremail"/></label>
+                        </div>
+                    </div>
                     <div class="delete-order-info__button-wrapper">
                         <button id="delete-order-info__search" class="delete-order-info__button blue-box"
-                                type="button" onclick="searchOrder()"><loc:message
-                                code="ordersearch.submit"/></button>
+                                type="button"><loc:message code="ordersearch.submit"/></button>
 
                     </div>
 
