@@ -112,6 +112,7 @@ $(function(){
                 $(this).val(maxSum);
             }
             if (operationType.val() === 'OUTPUT') {
+                var minWithdrawSum = parseFloat($('#min-withdraw-sum').text());
                 maxWalletSum = parseFloat($("#currencyFull").val().split(' ')[1]);
                 if ( val >= maxWalletSum){
                     $(this).val(maxWalletSum);
@@ -122,9 +123,11 @@ $(function(){
                 $(this).val($(this).val().slice(0,-1));
 
             }
-            if (parseFloat(sum.val()) > 0){
+            if (parseFloat(sum.val()) >= minWithdrawSum){
+                $('#min-sum-notification').hide();
                 button.prop('disabled',false);
             }else {
+                $('#min-sum-notification').show();
                 button.prop('disabled',true);
             }
         });
@@ -606,3 +609,25 @@ $(function(){
     });
 
 });
+
+function parseNumber(numberStr) {
+    /*ATTENTION: this func wil by work correctly if number always has decimal separator
+     * for this reason we use BigDecimalProcessing.formatLocale(rs.getBigDecimal("some value"), locale, 2)
+     * which makes 1000.00 from 1000 or 1000.00000
+     * or we can use igDecimalProcessing.formatLocale(rs.getBigDecimal("some value"), locale, true)*/
+    if (numberStr.search(/\,.*\..*/) != -1) {
+        /*100,000.12 -> 100000.12*/
+        numberStr = numberStr.replace(/\,/g, '');
+    } else if (numberStr.search(/\..*\,.*/) != -1) {
+        /*100.000,12 -> 100000.12*/
+        numberStr = numberStr.replace(/\./g, '').replace(/\,/g, '.');
+    } else if (numberStr.search(/\s.*\..*/) != -1) {
+        /*100 000.12 -> 100000.12*/
+        numberStr = numberStr.replace(/\s/g, '');
+    } else if (numberStr.search(/\s.*\,.*/) != -1) {
+        /*100 000,12 -> 100000.12*/
+        numberStr = numberStr.replace(/\s/g, '').replace(/\,/g, '.');
+    }
+    numberStr = numberStr.replace(/\s/g, '').replace(/\,/g, '.');
+    return parseFloat(numberStr);
+}

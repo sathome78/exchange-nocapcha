@@ -1837,3 +1837,8 @@ input[type=email], .dropdown-menu__form,
 #transaction-filter {
     margin: 10px 0;
 }
+
+
+#min-sum-notification {
+    display: none; width: auto; font-size: 14px
+}
