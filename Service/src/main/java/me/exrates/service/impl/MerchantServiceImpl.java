@@ -137,6 +137,11 @@ public class MerchantServiceImpl implements MerchantService {
     }
 
     @Override
+    public List<Merchant> findAll() {
+        return merchantDao.findAll();
+    }
+
+    @Override
     @Transactional
     public Map<String, String> withdrawRequest(final CreditsOperation creditsOperation,
                                                final Locale locale,

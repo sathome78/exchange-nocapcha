@@ -1703,11 +1703,19 @@ form span.repass {
 #user-add-form .input-block-wrapper,
 #user-edit-form .input-block-wrapper,
 #delete-order-info__form .input-block-wrapper,
-#order-delete-modal--date-picker .input-block-wrapper {
+#order-delete-modal--date-picker .input-block-wrapper,
+#transaction-search-form .input-block-wrapper{
     display: inline-block;
     height: 100%;
     width: 100%;
     overflow: hidden;
+    margin: 5px 0;
+}
+
+#transaction-search-form .input-block-wrapper{
+    display: inline-block;
+    height: 100%;
+    width: 100%;
     margin: 5px 0;
 }
 
@@ -1796,7 +1804,8 @@ form span.repass {
     margin: 5px 0;
 }
 
-#feedback-form .input-block-wrapper__input-wrapper {
+#feedback-form .input-block-wrapper__input-wrapper,
+#transaction-search-form .input-block-wrapper__input-wrapper{
     overflow: hidden;
     height: auto;
 }
@@ -1813,4 +1822,23 @@ input[type=email], .dropdown-menu__form,
 .input-block-wrapper__label-wrapper, #captchaCode, .BDC_CaptchaDiv,
 #merchantList, #amcharts-stock_chart_div {
     direction: ltr !important;
+}
+
+.checkbox-grid li {
+    display: block;
+    float: left;
+    width: 33%;
+}
+.checkbox-grid li span {
+    margin-left: 5px;
+}
+
+
+#transaction-filter {
+    margin: 10px 0;
+}
+
+
+#min-sum-notification {
+    display: none; width: auto; font-size: 14px
 }

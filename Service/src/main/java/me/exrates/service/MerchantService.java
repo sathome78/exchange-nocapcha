@@ -26,6 +26,8 @@ public interface MerchantService {
 
     List<Merchant> findAllByCurrency(Currency currency);
 
+    List<Merchant> findAll();
+
     Map<String, String> withdrawRequest(CreditsOperation creditsOperation, Locale locale, Principal principal);
 
     String resolveTransactionStatus(Transaction transaction, Locale locale);

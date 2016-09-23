@@ -34,6 +34,11 @@
                                 <form:input class="form-control input-block-wrapper__input numericInputField"
                                           id="sum" path="sum" />
                             </div>
+                            <div class="col-md-6 input-block-wrapper__label-wrapper">
+                                <div id="min-sum-notification" class="red"><loc:message code="mercnahts.output.minSum"/>
+                                    <strong> ${currency.name} <span><fmt:formatNumber value="${currency.minWithdrawSum}" pattern="###,##0.00##"/></span>
+                                    </strong></div>
+                            </div>
                         </div>
 
                         <b hidden id="buttonMessage"><loc:message code="merchants.withdraw" /></b>
@@ -59,6 +64,7 @@
             </div>
         </c:otherwise>
     </c:choose>
+    <span hidden id="min-withdraw-sum">${currency.minWithdrawSum}</span>
 </div>
 
 <div class="modal fade" id="finPassModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">

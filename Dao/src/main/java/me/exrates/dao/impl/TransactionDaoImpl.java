@@ -4,10 +4,7 @@ import me.exrates.dao.TransactionDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
-import me.exrates.model.enums.ActionType;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.TransactionSourceType;
-import me.exrates.model.enums.TransactionStatus;
+import me.exrates.model.enums.*;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -61,7 +58,7 @@ public final class TransactionDaoImpl implements TransactionDao {
             order.setAmountConvert(resultSet.getBigDecimal("EXORDERS.amount_convert"));
             order.setCommissionFixedAmount(resultSet.getBigDecimal("EXORDERS.commission_fixed_amount"));
             order.setDateCreation(resultSet.getTimestamp("EXORDERS.date_creation") == null ? null : resultSet.getTimestamp("EXORDERS.date_creation").toLocalDateTime());
-            order.setDateAcception(resultSet.getTimestamp("EXORDERS.date_creation") == null ? null : resultSet.getTimestamp("EXORDERS.date_acception").toLocalDateTime());
+            order.setDateAcception(resultSet.getTimestamp("EXORDERS.date_acception") == null ? null : resultSet.getTimestamp("EXORDERS.date_acception").toLocalDateTime());
         } catch (SQLException e) {}
 
         final Commission commission = new Commission();
@@ -100,6 +97,10 @@ public final class TransactionDaoImpl implements TransactionDao {
         transaction.setCurrency(currency);
         transaction.setProvided(resultSet.getBoolean("provided"));
         transaction.setConfirmation(resultSet.getInt("confirmation"));
+        TransactionSourceType sourceType = resultSet.getString("source_type") == null ?
+                null : TransactionSourceType.convert(resultSet.getString("source_type"));
+        transaction.setSourceType(sourceType);
+        transaction.setSourceId(resultSet.getInt("source_id"));
         return transaction;
     };
     private final String SELECT_COUNT =
@@ -110,12 +111,13 @@ public final class TransactionDaoImpl implements TransactionDao {
                     " INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
                     " INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id" +
                     " LEFT JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id " +
-                    " LEFT JOIN EXORDERS ON TRANSACTION.order_id = EXORDERS.id ";
+                    " LEFT JOIN EXORDERS ON TRANSACTION.source_id = EXORDERS.id ";
     private final String SELECT_ALL =
             " SELECT TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime, " +
                     " TRANSACTION.operation_type_id,TRANSACTION.provided, TRANSACTION.confirmation, TRANSACTION.order_id, " +
-                    " WALLET.id,WALLET.active_balance,WALLET.reserved_balance,WALLET.currency_id," +
-                    " USER.id as user_id,USER.email as user_email," +
+                    " TRANSACTION.source_type, TRANSACTION.source_id, " +
+                    " WALLET.id, WALLET.active_balance, WALLET.reserved_balance, WALLET.currency_id," +
+                    " USER.id as user_id, USER.email as user_email," +
                     " COMPANY_WALLET.id,COMPANY_WALLET.balance,COMPANY_WALLET.commission_balance," +
                     " COMMISSION.id,COMMISSION.date,COMMISSION.value," +
                     " CURRENCY.id,CURRENCY.description,CURRENCY.name," +
@@ -130,7 +132,7 @@ public final class TransactionDaoImpl implements TransactionDao {
                     " INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
                     " INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id" +
                     " LEFT JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id " +
-                    " LEFT JOIN EXORDERS ON TRANSACTION.order_id = EXORDERS.id ";
+                    " LEFT JOIN EXORDERS ON TRANSACTION.source_id = EXORDERS.id";
 
     private static final Map<String, String> TABLE_TO_DB_COLUMN_MAP = new HashMap<String, String>() {{
 
@@ -141,7 +143,22 @@ public final class TransactionDaoImpl implements TransactionDao {
         put("currency", "CURRENCY.name");
         put("merchant.description", "MERCHANT.description");
         put("commissionAmount", "TRANSACTION.commission_amount");
-        put("order", "TRANSACTION.order_id");
+        put("order", "TRANSACTION.source_id");
+
+    }};
+
+    private static final Map<String, String> SEARCH_CRITERIA = new HashMap<String, String>() {{
+
+        put("provided", "TRANSACTION.provided = :provided");
+        put("source_types", "TRANSACTION.source_type IN (:source_types)");
+        put("operation_types", "TRANSACTION.operation_type_id IN (:operation_types)");
+        put("merchantIds", "TRANSACTION.merchant_id IN (:merchantIds)");
+        put("date_from", "TRANSACTION.datetime >= STR_TO_DATE(:date_from, '%Y-%m-%d %H:%i:%s')");
+        put("date_to", "TRANSACTION.datetime <= STR_TO_DATE(:date_to, '%Y-%m-%d %H:%i:%s')");
+        put("fromAmount", "TRANSACTION.amount >= :fromAmount");
+        put("toAmount", "TRANSACTION.amount <= :toAmount");
+        put("fromCommissionAmount", "TRANSACTION.commission_amount >= :fromCommissionAmount");
+        put("toCommissionAmount", "TRANSACTION.commission_amount <= :toCommissionAmount");
 
     }};
 
@@ -194,99 +211,141 @@ public final class TransactionDaoImpl implements TransactionDao {
 
     @Override
     public Transaction findById(int id) {
-        final String sql = "SELECT TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime,TRANSACTION.operation_type_id,TRANSACTION.provided, TRANSACTION.confirmation," +
-                " WALLET.id,WALLET.active_balance,WALLET.reserved_balance,WALLET.currency_id," +
-                " USER.id as user_id,USER.email as user_email," +
-                " COMPANY_WALLET.id,COMPANY_WALLET.balance,COMPANY_WALLET.commission_balance," +
-                " COMMISSION.id,COMMISSION.date,COMMISSION.value," +
-                " CURRENCY.id,CURRENCY.description,CURRENCY.name," +
-                " MERCHANT.id,MERCHANT.name,MERCHANT.description, " +
-                " EXORDERS.id, EXORDERS.user_id, EXORDERS.currency_pair_id, EXORDERS.operation_type_id, EXORDERS.exrate, " +
-                " EXORDERS.amount_base, EXORDERS.amount_convert, EXORDERS.commission_fixed_amount, EXORDERS.date_creation, " +
-                " EXORDERS.date_acception " +
-                " FROM TRANSACTION " +
-                " INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id" +
-                " INNER JOIN USER ON WALLET.user_id = USER.id" +
-                " INNER JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id" +
-                " INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
-                " INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id" +
-                " LEFT JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id" +
-                " LEFT JOIN EXORDERS ON TRANSACTION.order_id = EXORDERS.id " +
-                " WHERE TRANSACTION.id = :id";
+        final String sql = SELECT_ALL + " WHERE TRANSACTION.id = :id";
         final Map<String, Integer> params = singletonMap("id", id);
         return jdbcTemplate.queryForObject(sql, params, transactionRowMapper);
     }
 
     @Override
     public List<Transaction> findAllByUserWallets(List<Integer> walletIds) {
-        return findAllByUserWallets(walletIds, 0, Integer.MAX_VALUE).getData();
+        return findAllByUserWallets(walletIds, -1, -1).getData();
     }
 
     @Override
     public PagingData<List<Transaction>> findAllByUserWallets(final List<Integer> walletIds, final int offset, final int limit) {
-        return findAllByUserWallets(walletIds, offset, limit, "", "", "ASC", null);
+        return findAllByUserWallets(walletIds, offset, limit, "", "ASC", null);
     }
 
     @Override
     public PagingData<List<Transaction>> findAllByUserWallets(final List<Integer> walletIds, final int offset,
-                                                              final int limit, final String searchValue,
-                                                              String sortColumn, String sortDirection, Locale locale) {
+                                                              final int limit, String sortColumn, String sortDirection, Locale locale) {
 
-        String sortDBColumn = TABLE_TO_DB_COLUMN_MAP.getOrDefault(sortColumn, "TRANSACTION.datetime DESC, EXORDERS.id DESC");
-        final String whereClause = "WHERE TRANSACTION.user_wallet_id in (:ids)";
-        String searchClause = "";
-        if (searchValue.length() > 0) {
-            String statusClause = getTransactionStatusClause(searchValue, locale);
-            //CONVERTs required to process non-Latin characters correctly
-            searchClause = " AND (CONVERT(TRANSACTION.datetime USING utf8) LIKE :searchValue " +
-                    "           OR CONVERT((SELECT name FROM OPERATION_TYPE WHERE id = TRANSACTION.operation_type_id) USING utf8) LIKE :searchValue " +
-                    "           OR CONVERT(CURRENCY.name USING utf8) LIKE :searchValue " +
-                    "           OR CONVERT(TRANSACTION.amount USING utf8) LIKE :searchValue " +
-                    "           OR CONVERT(TRANSACTION.commission_amount USING utf8) LIKE :searchValue " +
-                    "           OR CONVERT(MERCHANT.name USING utf8) LIKE :searchValue " +
-                    "           OR CONVERT(EXORDERS.id USING utf8) LIKE :searchValue " + statusClause + " )";
+        return findAllByUserWallets(walletIds, null, null, null, null, null, null, null, null, null, offset, limit, sortColumn, sortDirection, locale);
+    }
+
+    @Override
+    public PagingData<List<Transaction>> findAllByUserWallets(final List<Integer> walletIds, final Integer status,
+                                                              final List<TransactionType> types, final List<Integer> merchantIds,
+                                                              final String dateFrom, final String dateTo,
+                                                              final BigDecimal fromAmount, final BigDecimal toAmount,
+                                                              final BigDecimal fromCommissionAmount, final BigDecimal toCommissionAmount,
+                                                              final int offset, final int limit,
+                                                              String sortColumn, String sortDirection, Locale locale) {
+        String sortDBColumn = TABLE_TO_DB_COLUMN_MAP.getOrDefault(sortColumn, "TRANSACTION.datetime");
+        final String whereClauseBasic = "WHERE TRANSACTION.user_wallet_id in (:ids)";
+        Map<String, Object> params = new HashMap<>();
+        params.put("provided", status);
+        params.putAll(retrieveTransactionTypeParams(types));
+        params.put("merchantIds", merchantIds);
+        params.put("date_from", dateFrom);
+        params.put("date_to", dateTo);
+        params.put("fromAmount", fromAmount);
+        params.put("toAmount", toAmount);
+        params.put("fromCommissionAmount", fromCommissionAmount);
+        params.put("toCommissionAmount", toCommissionAmount);
+        String criteria = defineFilterClause(params);
+        String filterClause = criteria.isEmpty() ? "" : "AND " + criteria;
+        params.put("ids", walletIds);
+
+        StringJoiner sqlJoiner = new StringJoiner(" ")
+                .add(SELECT_ALL)
+                .add(whereClauseBasic)
+                .add(filterClause)
+                .add("ORDER BY").add(sortDBColumn).add(sortDirection);
+        if (limit > 0) {
+            sqlJoiner.add("LIMIT").add(String.valueOf(limit));
         }
 
-        final String selectLimitedAllSql = new StringJoiner(" ")
-                .add(SELECT_ALL)
-                .add(whereClause)
-                .add(searchClause)
-                .add("ORDER BY").add(sortDBColumn).add(sortDirection)
-                .add("LIMIT").add(String.valueOf(limit)).add("OFFSET").add(String.valueOf(offset))
-                .toString();
-        LOG.debug(selectLimitedAllSql);
+        if (offset > 0) {
+            sqlJoiner.add("OFFSET").add(String.valueOf(offset));
+        }
+
+        final String selectLimitedAllSql = sqlJoiner.toString();
         final String selectAllCountSql = new StringJoiner(" ")
                 .add(SELECT_COUNT)
-                .add(whereClause)
-                .add(searchClause)
+                .add(whereClauseBasic)
+                .add(filterClause)
                 .toString();
-        Map<String, Object> params = new HashMap<>();
-        params.put("ids", walletIds);
-        params.put("searchValue", "%" + searchValue + "%");
         final PagingData<List<Transaction>> result = new PagingData<>();
         final int total = jdbcTemplate.queryForObject(selectAllCountSql, params, Integer.class);
         result.setData(jdbcTemplate.query(selectLimitedAllSql, params, transactionRowMapper));
         result.setFiltered(total);
         result.setTotal(total);
         return result;
+
     }
 
-    private String getTransactionStatusClause(final String searchValue, final Locale locale) {
-        StringJoiner statusClause = new StringJoiner(" ");
-        if (locale == null) {
-            return statusClause.toString();
+    private Map<String, Object> retrieveTransactionTypeParams(final List<TransactionType> types) {
+        Map<String, Object> params = new HashMap<>();
+        Set<String> sourceTypes = new HashSet<>();
+        Set<Integer> operationTypes = new HashSet<>();
+        if (types != null) {
+            types.forEach(item -> {
+               switch (item) {
+                   case INPUT:
+                       sourceTypes.add(TransactionSourceType.MERCHANT.toString());
+                       operationTypes.add(OperationType.INPUT.getType());
+                       break;
+                   case OUTPUT:
+                       sourceTypes.add(TransactionSourceType.MERCHANT.toString());
+                       operationTypes.add(OperationType.OUTPUT.getType());
+                       break;
+                   case ORDER_IN:
+                       sourceTypes.add(TransactionSourceType.ORDER.toString());
+                       operationTypes.add(OperationType.INPUT.getType());
+                       break;
+                   case ORDER_OUT:
+                       sourceTypes.add(TransactionSourceType.ORDER.toString());
+                       operationTypes.add(OperationType.OUTPUT.getType());
+                       break;
+                   case WALLET_INNER_TRANSFER:
+                       operationTypes.add(OperationType.WALLET_INNER_TRANSFER.getType());
+                       break;
+                   case REFERRAL:
+                       sourceTypes.add(TransactionSourceType.REFERRAL.toString());
+                       break;
+                   default:
+                       break;
+               }
+            });
         }
-        String searchValueLowerCase = searchValue.toLowerCase(locale);
-        String providedStatus = messageSource.getMessage("transaction.provided", null, locale).toLowerCase(locale);
-        String notProvidedStatus = messageSource.getMessage("transaction.notProvided", null, locale).toLowerCase(locale);
-        if (providedStatus.contains(searchValueLowerCase)) {
-            statusClause.add(" OR TRANSACTION.provided = 1 ");
+        if (sourceTypes.size() > 0) {
+            params.put("source_types", sourceTypes);
         }
-        if (notProvidedStatus.contains(searchValueLowerCase)) {
-            statusClause.add(" OR TRANSACTION.provided = 0 ");
+        if (operationTypes.size() > 0) {
+            params.put("operation_types", operationTypes);
         }
-        return statusClause.toString();
+        return params;
     }
+
+    private String defineFilterClause(Map<String, Object> namedParameters) {
+        String emptyValue = "";
+        StringJoiner stringJoiner = new StringJoiner(" AND ");
+        stringJoiner.setEmptyValue(emptyValue);
+
+        namedParameters.forEach((name, value) -> {
+            if (checkPresent(value)) {
+                stringJoiner.add(SEARCH_CRITERIA.get(name));
+            }
+        });
+        return stringJoiner.toString();
+
+    }
+
+    private boolean checkPresent(Object param) {
+        return !(param == null || param.toString().isEmpty());
+    }
+
 
 
 
@@ -423,12 +482,27 @@ public final class TransactionDaoImpl implements TransactionDao {
     @Override
     public List<Transaction> getOpenTransactionsByMerchant(Merchant merchant){
         String sql = SELECT_ALL + " where TRANSACTION.merchant_id = (select MERCHANT.id " +
-                "from MERCHANT where MERCHANT.name = :merchant)";
+                "from MERCHANT where MERCHANT.name = :merchant) AND TRANSACTION.operation_type_id = 1";
         Map<String, String> namedParameters = new HashMap<String, String>();
         namedParameters.put("merchant", merchant.getName());
         ArrayList<Transaction> result = (ArrayList<Transaction>) jdbcTemplate.query(sql, namedParameters,
                 transactionRowMapper);
         return result;
+    }
+
+    @Override
+    public BigDecimal maxAmount() {
+        String sql = "SELECT MAX(TRANSACTION.amount)" +
+                " FROM TRANSACTION ";
+        return jdbcTemplate.queryForObject(sql, Collections.EMPTY_MAP, BigDecimal.class);
+
+    }
+
+    @Override
+    public BigDecimal maxCommissionAmount() {
+        String sql = "SELECT MAX(TRANSACTION.commission_amount)" +
+                " FROM TRANSACTION ";
+        return jdbcTemplate.queryForObject(sql, Collections.EMPTY_MAP, BigDecimal.class);
     }
 
 }

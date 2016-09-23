@@ -17,6 +17,8 @@ public interface MerchantDao {
 
     Merchant findById(int id);
 
+    List<Merchant> findAll();
+
     List<Merchant> findAllByCurrency(int currencyId);
 
     BigDecimal getMinSum(int merchant, int currency);

@@ -47,6 +47,7 @@ public class ReferralTransactionDaoImpl implements ReferralTransactionDao {
     private final String SELECT_ALL = " SELECT REFERRAL_TRANSACTION.id, USER.email as user_email, REFERRAL_TRANSACTION.initiator_id, REFERRAL_TRANSACTION.user_id, REFERRAL_LEVEL.id, REFERRAL_LEVEL.level, REFERRAL_LEVEL.percent," +
             " TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime, " +
             " TRANSACTION.operation_type_id,TRANSACTION.provided, TRANSACTION.confirmation, TRANSACTION.order_id, " +
+            " TRANSACTION.source_id, TRANSACTION.source_type, " +
             " WALLET.id,WALLET.active_balance,WALLET.reserved_balance,WALLET.currency_id," +
             " COMPANY_WALLET.id,COMPANY_WALLET.balance,COMPANY_WALLET.commission_balance," +
             " COMMISSION.id,COMMISSION.date,COMMISSION.value," +

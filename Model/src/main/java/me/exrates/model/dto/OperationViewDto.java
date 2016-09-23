@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import me.exrates.model.ExOrder;
 import me.exrates.model.Merchant;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.TransactionType;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.math.BigDecimal;
@@ -14,7 +15,7 @@ public class OperationViewDto {
     private BigDecimal amount;
     private BigDecimal amountBuy;
     private BigDecimal commissionAmount;
-    private OperationType operationType;
+    private TransactionType operationType;
     private String currency;
     private Merchant merchant;
 	@JsonSerialize(using = LocalDateTimeSerializer.class)
@@ -46,10 +47,10 @@ public class OperationViewDto {
 	public void setCommissionAmount(BigDecimal commissionAmount) {
 		this.commissionAmount = commissionAmount;
 	}
-	public OperationType getOperationType() {
+	public TransactionType getOperationType() {
 		return operationType;
 	}
-	public void setOperationType(OperationType operationType) {
+	public void setOperationType(TransactionType operationType) {
 		this.operationType = operationType;
 	}
 	public String getCurrency() {

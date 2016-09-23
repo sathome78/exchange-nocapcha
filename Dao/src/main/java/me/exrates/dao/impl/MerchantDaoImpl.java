@@ -60,6 +60,12 @@ public class MerchantDaoImpl implements MerchantDao {
         return jdbcTemplate.queryForObject(sql,params,new BeanPropertyRowMapper<>(Merchant.class));
     }
 
+    @Override
+    public List<Merchant> findAll() {
+        final String sql = "SELECT * FROM MERCHANT";
+        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Merchant.class));
+    }
+
 
     @Override
     public List<Merchant> findAllByCurrency(int currencyId) {

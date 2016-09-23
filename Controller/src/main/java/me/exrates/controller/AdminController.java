@@ -4,6 +4,7 @@ import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
+import me.exrates.model.enums.TransactionType;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
@@ -44,6 +45,7 @@ import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -192,8 +194,25 @@ public class AdminController {
 
     @ResponseBody
     @RequestMapping(value = "/admin/transactions", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public DataTable<List<OperationViewDto>> getUserTransactions(final @RequestParam int id, final @RequestParam Map<String, String> params, final HttpServletRequest request) {
-        return transactionService.showUserOperationHistory(id, localeResolver.resolveLocale(request), params);
+    public DataTable<List<OperationViewDto>> getUserTransactions(final @RequestParam(required = false) int id,
+                                                                 final @RequestParam(required = false) Integer status,
+                                                                 final @RequestParam(required = false) String[] type,
+                                                                 final @RequestParam(required = false) Integer[] merchant,
+                                                                 final @RequestParam(required = false) String startDate,
+                                                                 final @RequestParam(required = false) String endDate,
+                                                                 final @RequestParam(required = false) BigDecimal amountFrom,
+                                                                 final @RequestParam(required = false) BigDecimal amountTo,
+                                                                 final @RequestParam(required = false) BigDecimal commissionAmountFrom,
+                                                                 final @RequestParam(required = false) BigDecimal commissionAmountTo,
+                                                                 final @RequestParam Map<String, String> params,
+                                                                 final HttpServletRequest request) {
+
+        Integer transactionStatus = status == null || status == -1 ? null : status;
+        List<TransactionType> types = type == null ? null :
+            Arrays.stream(type).map(TransactionType::valueOf).collect(Collectors.toList());
+        List<Integer> merchantIds = merchant == null ? null :  Arrays.asList(merchant);
+        return transactionService.showUserOperationHistory(id, transactionStatus, types, merchantIds, startDate, endDate,
+                amountFrom, amountTo, commissionAmountFrom, commissionAmountTo,  localeResolver.resolveLocale(request), params);
     }
 
     @ResponseBody
@@ -281,8 +300,8 @@ public class AdminController {
         return model;
     }
 
-    @RequestMapping("/admin/editUser")
-    public ModelAndView editUser(@RequestParam int id, HttpSession httpSession) {
+    @RequestMapping({"/admin/editUser", "/admin/userInfo"})
+    public ModelAndView editUser(@RequestParam int id, HttpSession httpSession, HttpServletRequest request) {
 
         ModelAndView model = new ModelAndView();
 
@@ -309,12 +328,12 @@ public class AdminController {
         model.addObject("currencyPairs", currencyService.getAllCurrencyPairs());
         model.setViewName("admin/editUser");
         model.addObject("userFiles", userService.findUserDoc(id));
-        return model;
-    }
+        model.addObject("transactionTypes", Arrays.asList(TransactionType.values()));
+        List<Merchant> merchantList = merchantService.findAll();
+        model.addObject("merchants", merchantList);
+        model.addObject("maxAmount", transactionService.maxAmount());
+        model.addObject("maxCommissionAmount", transactionService.maxCommissionAmount());
 
-    @RequestMapping("/admin/userInfo")
-    public ModelAndView userInfo(@RequestParam int id, HttpServletRequest request, HttpSession httpSession) {
-        ModelAndView model = editUser(id, httpSession);
         return model;
     }
 
