@@ -8,6 +8,7 @@ import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,6 +69,25 @@ public class CurrencyDaoImpl implements CurrencyDao {
 		};
 		return jdbcTemplate.queryForObject(sql, params, new BeanPropertyRowMapper<>(Currency.class));
 	}
+
+	@Override
+	public List<Currency> findAllCurrencies() {
+		final String sql = "SELECT * FROM CURRENCY";
+		return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Currency.class));
+	}
+
+	@Override
+    public boolean updateMinWithdraw(int currencyId, BigDecimal minAmount) {
+        String sql = "UPDATE CURRENCY SET min_withdraw_sum = :min_withdraw_sum WHERE id = :id";
+        final Map<String,Number> params = new HashMap<String,Number>(){
+            {
+                put("id", currencyId);
+                put("min_withdraw_sum", minAmount);
+            }
+        };
+
+        return jdbcTemplate.update(sql, params) > 0;
+    }
 
 	@Override
 		public List<CurrencyPair> getAllCurrencyPairs() {
