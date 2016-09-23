@@ -111,23 +111,28 @@ $(function(){
             if ( val >= maxSum){
                 $(this).val(maxSum);
             }
+            var minLimit = 0;
             if (operationType.val() === 'OUTPUT') {
-                var minWithdrawSum = parseFloat($('#min-withdraw-sum').text());
+                minLimit = parseFloat($('#min-withdraw-sum').text());
                 maxWalletSum = parseFloat($("#currencyFull").val().split(' ')[1]);
                 if ( val >= maxWalletSum){
                     $(this).val(maxWalletSum);
                 }
+                if (val >= minLimit) {
+                    $('#min-sum-notification').hide();
+                } else {
+                    $('#min-sum-notification').show();
+                }
+
             }
             var decimal = $(this).val().split('.')[1];
             if (decimal && decimal.length > fractionalAmount) {
                 $(this).val($(this).val().slice(0,-1));
 
             }
-            if (parseFloat(sum.val()) >= minWithdrawSum){
-                $('#min-sum-notification').hide();
+            if (parseFloat(sum.val()) > 0 && parseFloat(sum.val()) >= minLimit){
                 button.prop('disabled',false);
             }else {
-                $('#min-sum-notification').show();
                 button.prop('disabled',true);
             }
         });
