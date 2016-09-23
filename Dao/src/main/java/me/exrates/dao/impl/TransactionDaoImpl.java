@@ -482,7 +482,7 @@ public final class TransactionDaoImpl implements TransactionDao {
     @Override
     public List<Transaction> getOpenTransactionsByMerchant(Merchant merchant){
         String sql = SELECT_ALL + " where TRANSACTION.merchant_id = (select MERCHANT.id " +
-                "from MERCHANT where MERCHANT.name = :merchant)";
+                "from MERCHANT where MERCHANT.name = :merchant) AND TRANSACTION.operation_type_id = 1";
         Map<String, String> namedParameters = new HashMap<String, String>();
         namedParameters.put("merchant", merchant.getName());
         ArrayList<Transaction> result = (ArrayList<Transaction>) jdbcTemplate.query(sql, namedParameters,
