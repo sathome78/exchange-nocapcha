@@ -57,13 +57,15 @@
                                         </c:choose>
                                     </td>
                                     <td>
+                                        <span hidden class="minLimitUnformatted">${currency.minWithdrawSum}</span>
                                         <c:choose>
                                             <c:when test="${currency.minWithdrawSum == null}">
                                                 -
                                             </c:when>
                                             <c:otherwise>
+                                        <span class="minLimitFormatted">
                                                 <fmt:formatNumber value="${currency.minWithdrawSum}" pattern="###,##0.00##"/>
-                                                <fmt:setLocale value="en_US" />
+                                            </span>
                                             </c:otherwise>
                                         </c:choose>
                                     </td>
