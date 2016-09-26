@@ -353,12 +353,13 @@ th, td {
 
 /*my*/
 .mywallets_table th:last-child,
+.currency_table th:nth-child(2),
 .currency_table th:last-child {
     text-align: center;
 }
 
-.currency_table th:last-child,
-.currency_table tr td:last-child {
+.currency_table th:nth-child(2),
+.currency_table tr td:nth-child(2) {
     width: 122px;
 }
 #currency_table_wrapper {
