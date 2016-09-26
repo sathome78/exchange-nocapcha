@@ -12,6 +12,8 @@ var orders;
 var $currentPageMenuItem;
 
 $(function dashdoardInit() {
+    console.log($(window).width());
+    console.log(screen.width);
     console.log('started');
     try {
         /*FOR EVERYWHERE ... */

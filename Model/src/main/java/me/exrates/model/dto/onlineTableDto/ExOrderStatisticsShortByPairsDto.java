@@ -7,6 +7,7 @@ public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
     private String currencyPairName;
     private String lastOrderRate;
     private String predLastOrderRate;
+    private String percentChange;
 
     public ExOrderStatisticsShortByPairsDto() {
         this.needRefresh = true;
@@ -56,5 +57,13 @@ public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
 
     public void setPredLastOrderRate(String predLastOrderRate) {
         this.predLastOrderRate = predLastOrderRate;
+    }
+
+    public String getPercentChange() {
+        return percentChange;
+    }
+
+    public void setPercentChange(String percentChange) {
+        this.percentChange = percentChange;
     }
 }

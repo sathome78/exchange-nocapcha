@@ -211,6 +211,14 @@ public class BigDecimalProcessing {
         return df.format(bigDecimal == null ? BigDecimal.ZERO : bigDecimal);
     }
 
+    public static String formatLocaleFixed(BigDecimal bigDecimal, Locale locale, Integer decimalDigits) {
+        DecimalFormat df = new DecimalFormat("###,##0." +
+                new String(new char[decimalDigits]).replace("\0", "0"));
+        DecimalFormatSymbols dfs = new DecimalFormatSymbols(locale);
+        df.setDecimalFormatSymbols(dfs);
+        return df.format(bigDecimal == null ? BigDecimal.ZERO : bigDecimal);
+    }
+
     /**
      * Simply adds quotes to string value
      * with trailing zeros

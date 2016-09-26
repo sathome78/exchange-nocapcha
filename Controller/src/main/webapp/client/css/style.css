@@ -318,6 +318,19 @@ header li {
     font-size: 1.2rem;
 }
 
+@media (max-width: 1300px) {
+    #currency_table th, #currency_table td {
+        font-size: 0.8rem;
+    }
+}
+
+@media (min-width: 1300px) {
+    #currency_table th, #currency_table td {
+        font-size: 1.0rem;
+    }
+}
+
+
 th, td {
     padding: 5px 0;
     border-bottom: solid 1px #fff;
