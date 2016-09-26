@@ -296,9 +296,9 @@ public class OrderDaoImpl implements OrderDao {
                     BigDecimal percentChange = BigDecimalProcessing.doAction(predLastRate, lastRate, ActionType.PERCENT_GROWTH);
                     ExOrderStatisticsShortByPairsDto exOrderStatisticsDto = new ExOrderStatisticsShortByPairsDto();
                     exOrderStatisticsDto.setCurrencyPairName(rs.getString("currency_pair_name"));
-                    exOrderStatisticsDto.setLastOrderRate(BigDecimalProcessing.formatLocale(lastRate, locale, true));
-                    exOrderStatisticsDto.setPredLastOrderRate(BigDecimalProcessing.formatLocale(predLastRate, locale, true));
-                    exOrderStatisticsDto.setPercentChange(BigDecimalProcessing.formatLocaleFixed(percentChange, locale, 2));
+                    exOrderStatisticsDto.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
+                    exOrderStatisticsDto.setPredLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(predLastRate, locale, 12));
+                    exOrderStatisticsDto.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(percentChange, locale, 2));
                     return exOrderStatisticsDto;
                 }
             });
