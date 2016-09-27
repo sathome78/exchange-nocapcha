@@ -318,16 +318,33 @@ header li {
     font-size: 1.2rem;
 }
 
-@media (max-width: 1300px) {
+@media (max-width: 1400px) {
+
+    .currency_table td:first-child {
+        width: 50px;
+    }
+
     #currency_table th, #currency_table td {
-        font-size: 0.8rem;
+        font-size: 1.0rem;
+
+    }
+
+    .currency_table th:nth-child(2),
+    .currency_table tr td:nth-child(2) {
+        width: 50px;
+    }
+
+}
+
+@media (min-width: 1400px) {
+    #currency_table th, #currency_table td {
+        font-size: 1.2rem;
     }
 }
 
-@media (min-width: 1300px) {
-    #currency_table th, #currency_table td {
-        font-size: 1.1rem;
-    }
+#currency_table th, #currency_table td {
+    padding: 5px 4px;
+
 }
 
 

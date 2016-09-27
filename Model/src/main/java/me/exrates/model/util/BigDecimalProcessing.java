@@ -221,8 +221,6 @@ public class BigDecimalProcessing {
     }
 
     public static String formatLocaleFixedSignificant(BigDecimal bigDecimal, Locale locale, Integer minSignificantSymbols) {
-        System.out.println(bigDecimal.toPlainString());
-        System.out.println(Arrays.asList(bigDecimal.toPlainString().split("\\.")));
         int integerPartLength = bigDecimal.toPlainString().split("\\.")[0].length();
         int minDecimalPlace = minSignificantSymbols - integerPartLength;
         return formatLocale(bigDecimal, locale, minDecimalPlace >= 2 ? minDecimalPlace : 2);
