@@ -245,8 +245,8 @@ function TradingClass(period, chartType, currentCurrencyPair) {
                 var currencies = currencyPairName.split('\/');
                 var currentBaseBalance = getCurrentBalanceByCurrency(currencies[0]);
                 var currentConvertBalance = getCurrentBalanceByCurrency(currencies[1]);
-                $('#currentBaseBalance').val(currentBaseBalance);
-                $('#currentConvertBalance').val(currentConvertBalance);
+                $('#currentBaseBalance').text(currentBaseBalance);
+                $('#currentConvertBalance').text(currentConvertBalance);
             }
 
 

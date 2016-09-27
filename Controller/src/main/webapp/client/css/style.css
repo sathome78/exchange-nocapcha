@@ -1842,3 +1842,9 @@ input[type=email], .dropdown-menu__form,
 #min-sum-notification {
     display: none; width: auto; font-size: 14px
 }
+
+.trading-current-balance {
+    font-size: 1.1em;
+    font-weight: 400;
+    color: #337ab7
+}

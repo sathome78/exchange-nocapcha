@@ -111,10 +111,10 @@
                 <%--BUY FORM ...--%>
                     <sec:authorize access="isAuthenticated()">
                         <div class="buyBTC__item item">
-                    <span class="item__span"><loc:message code="dashboard.yourBalance"/>
+                            <span class="item__span"><loc:message code="dashboard.yourBalance"/>
                         <span class="currencyConvertName item__span"></span>
                     </span>
-                            <input id="currentConvertBalance" type="text" readonly class="item__input numericInputField"/>
+                            <span id="currentConvertBalance" class="item__span trading-current-balance"></span>
                         </div>
                     </sec:authorize>
                 <form:form id="dashboard-buy-form" class="dashboard-sell-buy__form" action="/order/submitnew/BUY"
@@ -223,7 +223,7 @@
                     <span class="item__span"><loc:message code="dashboard.yourBalance"/>
                         <span class="currencyBaseName item__span"></span>
                     </span>
-                            <input id="currentBaseBalance" type="text" readonly class="item__input numericInputField"/>
+                            <span id="currentBaseBalance" class="item__span trading-current-balance"></span>
                         </div>
                     </sec:authorize>
                 <form:form id="dashboard-sell-form" class="dashboard-sell-buy__form" action="/order/submitnew/SELL"
