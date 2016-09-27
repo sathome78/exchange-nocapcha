@@ -241,19 +241,27 @@ function TradingClass(period, chartType, currentCurrencyPair) {
             var lastSellExrate = getLastExrate('#dashboard-orders-sell-table .dashboard-order__tr:first', currencyPairName);
             $('#exchangeRateSell').val(lastSellExrate);
             calculateFieldsForSell();
-            if ($('#currentBaseBalance').length > 0 && $('#currentConvertBalance').length > 0)  {
-                var currencies = currencyPairName.split('\/');
-                var currentBaseBalance = getCurrentBalanceByCurrency(currencies[0]);
-                var currentConvertBalance = getCurrentBalanceByCurrency(currencies[1]);
-                $('#currentBaseBalance').text(currentBaseBalance);
-                $('#currentConvertBalance').text(currentConvertBalance);
-            }
+            that.fillOrderBalance(currencyPairName);
 
 
         });
-
-
     };
+
+    this.fillOrderBalance = function (currencyPairName) {
+        if ($('#currentBaseBalance').length > 0 && $('#currentConvertBalance').length > 0)  {
+            var currencies = currencyPairName.split('\/');
+            var currentBaseBalance = getCurrentBalanceByCurrency(currencies[0]);
+            var currentConvertBalance = getCurrentBalanceByCurrency(currencies[1]);
+            $('#currentBaseBalance').text(currentBaseBalance);
+            $('#currentConvertBalance').text(currentConvertBalance);
+        }
+    };
+
+    function getCurrentBalanceByCurrency(currencyName) {
+        return $('#mywallets_table').find('tr td:contains(' + currencyName + ')').filter(function (index) {
+            return $(this).text().trim() === currencyName;
+        }).next().text().trim();
+    }
 
     function getLastExrate($selector, currencyPairName) {
         var lastRate;
@@ -272,11 +280,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         }
     }
 
-    function getCurrentBalanceByCurrency(currencyName) {
-        return $('#mywallets_table').find('tr td:contains(' + currencyName + ')').filter(function (index) {
-            return $(this).text().trim() === currencyName;
-        }).next().text().trim();
-    }
+
 
     this.resetOrdersListForAccept = function() {
         if (that.ordersListForAccept.length != 0) {
