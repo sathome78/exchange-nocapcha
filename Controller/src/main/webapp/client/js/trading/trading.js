@@ -230,25 +230,34 @@ function TradingClass(period, chartType, currentCurrencyPair) {
 
     this.fillOrderCreationFormFields = function() {
         $(document).one("ajaxStop", function () {
+            var currencyPairName = $('.currency-pair-selector__button').first().text().trim();
             var initialAmount = 1;
             var initialAmountString = initialAmount.toFixed(that.ROUND_SCALE);
             $('#amountBuy').val(initialAmountString);
-            var lastBuyExrate = getLastExrate('#dashboard-orders-buy-table .dashboard-order__tr:first');
+            var lastBuyExrate = getLastExrate('#dashboard-orders-buy-table .dashboard-order__tr:first', currencyPairName);
             $('#exchangeRateBuy').val(lastBuyExrate);
             calculateFieldsForBuy();
             $('#amountSell').val(initialAmountString);
-            var lastSellExrate = getLastExrate('#dashboard-orders-sell-table .dashboard-order__tr:first');
+            var lastSellExrate = getLastExrate('#dashboard-orders-sell-table .dashboard-order__tr:first', currencyPairName);
             $('#exchangeRateSell').val(lastSellExrate);
             calculateFieldsForSell();
+            if ($('#currentBaseBalance').length > 0 && $('#currentConvertBalance').length > 0)  {
+                var currencies = currencyPairName.split('\/');
+                var currentBaseBalance = getCurrentBalanceByCurrency(currencies[0]);
+                var currentConvertBalance = getCurrentBalanceByCurrency(currencies[1]);
+                $('#currentBaseBalance').val(currentBaseBalance);
+                $('#currentConvertBalance').val(currentConvertBalance);
+            }
+
+
         });
 
 
     };
 
-    function getLastExrate($selector) {
+    function getLastExrate($selector, currencyPairName) {
         var lastRate;
         if ($($selector).size() === 0) {
-            var currencyPairName = $('.currency-pair-selector__button').first().text().trim();
             var $cell = $('#currency_table').find("tr td:contains('" + currencyPairName + "')");
             if ($cell.size() === 0) {
                 return '';
@@ -261,6 +270,12 @@ function TradingClass(period, chartType, currentCurrencyPair) {
             lastRate = $($selector).find('.order_exrate').text();
             return (parseNumber(lastRate)).toFixed(that.ROUND_SCALE);
         }
+    }
+
+    function getCurrentBalanceByCurrency(currencyName) {
+        return $('#mywallets_table').find('tr td:contains(' + currencyName + ')').filter(function (index) {
+            return $(this).text().trim() === currencyName;
+        }).next().text().trim();
     }
 
     this.resetOrdersListForAccept = function() {
