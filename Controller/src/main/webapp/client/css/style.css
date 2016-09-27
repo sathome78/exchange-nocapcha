@@ -320,12 +320,8 @@ header li {
 
 @media (max-width: 1400px) {
 
-    .currency_table td:first-child {
-        width: 50px;
-    }
-
     #currency_table th, #currency_table td {
-        font-size: 1.0rem;
+        font-size: 0.95rem;
 
     }
 
@@ -343,7 +339,7 @@ header li {
 }
 
 #currency_table th, #currency_table td {
-    padding: 5px 4px;
+    padding: 5px;
 
 }
 
