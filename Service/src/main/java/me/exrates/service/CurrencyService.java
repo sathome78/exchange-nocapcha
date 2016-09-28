@@ -19,6 +19,10 @@ public interface CurrencyService {
 
     Currency findById(int id);
 
+    List<Currency> findAllCurrencies();
+
+    boolean updateMinWithdraw(int currencyId, BigDecimal minAmount);
+
     List<CurrencyPair> getAllCurrencyPairs();
 
     CurrencyPair findCurrencyPairById(int currencyPairId);

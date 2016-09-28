@@ -721,4 +721,17 @@ public class AdminController {
         sessionInfo.expireNow();
         return new ResponseEntity<>("Session " + sessionId + " expired", HttpStatus.OK);
     }
+
+    @RequestMapping(value = "/admin/editCurrencyLimits", method = RequestMethod.GET)
+    public ModelAndView currencyLimits() {
+        return new ModelAndView("admin/currencyLimits", "currencies", currencyService.findAllCurrencies());
+    }
+
+    @RequestMapping(value = "/admin/editCurrencyLimits/submit", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity<Void> editCurrencyLimit(@RequestParam int currencyId, @RequestParam BigDecimal minAmount) {
+        currencyService.updateMinWithdraw(currencyId, minAmount);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
 }
