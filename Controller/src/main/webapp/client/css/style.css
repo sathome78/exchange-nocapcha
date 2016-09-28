@@ -318,6 +318,32 @@ header li {
     font-size: 1.2rem;
 }
 
+@media (max-width: 1400px) {
+
+    #currency_table th, #currency_table td {
+        font-size: 0.95rem;
+
+    }
+
+    .currency_table th:nth-child(2),
+    .currency_table tr td:nth-child(2) {
+        width: 50px;
+    }
+
+}
+
+@media (min-width: 1400px) {
+    #currency_table th, #currency_table td {
+        font-size: 1.2rem;
+    }
+}
+
+#currency_table th, #currency_table td {
+    padding: 5px;
+
+}
+
+
 th, td {
     padding: 5px 0;
     border-bottom: solid 1px #fff;
@@ -340,12 +366,13 @@ th, td {
 
 /*my*/
 .mywallets_table th:last-child,
+.currency_table th:nth-child(2),
 .currency_table th:last-child {
     text-align: center;
 }
 
-.currency_table th:last-child,
-.currency_table tr td:last-child {
+.currency_table th:nth-child(2),
+.currency_table tr td:nth-child(2) {
     width: 122px;
 }
 #currency_table_wrapper {
@@ -1665,31 +1692,36 @@ form span.repass {
 			9. Modal Change Referral System
 ****************************************/
 
-#refModal {
-    max-width: 380px;
-    max-height: 380px;
+#refModal, #editLimitModal {
+    max-width: 400px;
+    max-height: 400px;
     background-size: cover;
     margin: 0 auto;
     margin-top: 100px;
     padding: 0 10px;
 }
 
-#refModal .modal-header {
+#refModal .modal-header,
+#editLimitModal .modal-header {
 /*    color: rgba(255, 255, 255, .5);
     border-bottom: solid 1px rgba(255, 255, 255, .25);*/
     padding: 5px 15px;
 }
 
-#refModal .modal-dialog {
+#refModal .modal-dialog,
+#editLimitModal .modal-dialog
+{
     width: 100%;
     margin: 10px auto 0 auto;
 }
 
-#refModal .modal-content {
+#refModal .modal-content,
+#editLimitModal .modal-content {
     background: #e2ebf9;
 }
 
-#refModal .content form input {
+#refModal .content form input,
+#editLimitModal .content form input{
     display: block;
     width: 75%;
     border: none;
@@ -1704,7 +1736,7 @@ form span.repass {
 #user-edit-form .input-block-wrapper,
 #delete-order-info__form .input-block-wrapper,
 #order-delete-modal--date-picker .input-block-wrapper,
-#transaction-search-form .input-block-wrapper{
+#transaction-search-form .input-block-wrapper {
     display: inline-block;
     height: 100%;
     width: 100%;
@@ -1797,7 +1829,8 @@ form span.repass {
 .legal_content p, .legal_content h5 {
     margin-top: 15px;
 }
-#feedback-form .input-block-wrapper {
+#feedback-form .input-block-wrapper,
+#edit-currency-limit-form .input-block-wrapper{
     display: inline-block;
     width: 100%;
     overflow: hidden;
@@ -1805,7 +1838,8 @@ form span.repass {
 }
 
 #feedback-form .input-block-wrapper__input-wrapper,
-#transaction-search-form .input-block-wrapper__input-wrapper{
+#transaction-search-form .input-block-wrapper__input-wrapper,
+#edit-currency-limit-form .input-block-wrapper__input-wrapper{
     overflow: hidden;
     height: auto;
 }
@@ -1847,4 +1881,8 @@ input[type=email], .dropdown-menu__form,
     font-size: 1.1em;
     font-weight: 400;
     color: #337ab7
+}
+
+#currency-limits-table tr:hover {
+    cursor: pointer;
 }

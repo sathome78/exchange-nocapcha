@@ -567,15 +567,20 @@ public class AdminController {
                                       @RequestParam(required = false) String orderType,
                                       @RequestParam(required = false) String orderDateFrom,
                                       @RequestParam(required = false) String orderDateTo,
-                                      @RequestParam(required = false) BigDecimal orderRate,
-                                      @RequestParam(required = false) BigDecimal orderVolume,
+                                      @RequestParam(required = false) BigDecimal orderRateFrom,
+                                      @RequestParam(required = false) BigDecimal orderRateTo,
+                                      @RequestParam(required = false) BigDecimal orderVolumeFrom,
+                                      @RequestParam(required = false) BigDecimal orderVolumeTo,
                                       @RequestParam(required = false) String creator,
+                                      @RequestParam(required = false) String acceptor,
                                       @RequestParam Map<String, String> params,
                                       HttpServletRequest request) {
 
         try {
             DataTable<List<OrderBasicInfoDto>> orderInfo = orderService.searchOrdersByAdmin(currencyPair, orderType,
-                    orderDateFrom, orderDateTo, orderRate, orderVolume, creator, localeResolver.resolveLocale(request), params);
+                    orderDateFrom, orderDateTo, orderRateFrom, orderRateTo, orderVolumeFrom,
+                    orderVolumeTo, creator, acceptor, localeResolver.resolveLocale(request), params);
+            LOG.debug(orderInfo);
 
             return orderInfo;
         } catch (Exception ex) {
@@ -635,6 +640,7 @@ public class AdminController {
     @ExceptionHandler(RuntimeException.class)
     @ResponseBody
     public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
+        exception.printStackTrace();
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 
@@ -715,4 +721,17 @@ public class AdminController {
         sessionInfo.expireNow();
         return new ResponseEntity<>("Session " + sessionId + " expired", HttpStatus.OK);
     }
+
+    @RequestMapping(value = "/admin/editCurrencyLimits", method = RequestMethod.GET)
+    public ModelAndView currencyLimits() {
+        return new ModelAndView("admin/currencyLimits", "currencies", currencyService.findAllCurrencies());
+    }
+
+    @RequestMapping(value = "/admin/editCurrencyLimits/submit", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity<Void> editCurrencyLimit(@RequestParam int currencyId, @RequestParam BigDecimal minAmount) {
+        currencyService.updateMinWithdraw(currencyId, minAmount);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
 }

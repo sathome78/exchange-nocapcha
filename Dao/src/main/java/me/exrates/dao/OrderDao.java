@@ -65,6 +65,7 @@ public interface OrderDao {
     boolean lockOrdersListForAcception(List<Integer> ordersList);
 
     PagingData<List<OrderBasicInfoDto>> searchOrders(Integer currencyPair, Integer orderType, String orderDateFrom, String orderDateTo,
-                                                     BigDecimal orderRate, BigDecimal orderVolume, String creatorEmail, Locale locale,
+                                                     BigDecimal orderRateFrom, BigDecimal orderRateTo, BigDecimal orderVolumeFrom,
+                                                     BigDecimal orderVolumeTo, String creatorEmail, String acceptorEmail, Locale locale,
                                                      int offset, int limit, String orderColumnName, String orderDirection);
 }

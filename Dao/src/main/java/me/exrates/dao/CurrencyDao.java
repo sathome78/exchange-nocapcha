@@ -3,6 +3,7 @@ package me.exrates.dao;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface CurrencyDao {
@@ -17,7 +18,11 @@ public interface CurrencyDao {
 
 	Currency findById(int id);
 
-	List<CurrencyPair> getAllCurrencyPairs();
+	List<Currency> findAllCurrencies();
+
+    boolean updateMinWithdraw(int currencyId, BigDecimal minAmount);
+
+    List<CurrencyPair> getAllCurrencyPairs();
 
 	CurrencyPair getCurrencyPairById(int currency1Id, int currency2Id);
 

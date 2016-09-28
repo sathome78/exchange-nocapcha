@@ -57,6 +57,16 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
 
     @Override
+    public List<Currency> findAllCurrencies() {
+        return currencyDao.findAllCurrencies();
+    }
+
+    @Override
+    public boolean updateMinWithdraw(int currencyId, BigDecimal minAmount) {
+        return currencyDao.updateMinWithdraw(currencyId, minAmount);
+    }
+
+    @Override
     public List<CurrencyPair> getAllCurrencyPairs() {
         return currencyDao.getAllCurrencyPairs();
     }

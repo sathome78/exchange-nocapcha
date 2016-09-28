@@ -96,11 +96,7 @@ $(function dashdoardInit() {
         /*...FOR HEADER*/
 
         /*FOR LEFT-SIDER ...*/
-        $('#currency_table_wrapper').mCustomScrollbar({
-            theme: "dark",
-            axis: "yx",
-            live: true
-        });
+
         leftSider = new LeftSiderClass();
         $('#currency_table').on('click', 'td:first-child', function (e) {
             var newCurrentCurrencyPairName = $(this).text().trim();
@@ -113,7 +109,12 @@ $(function dashdoardInit() {
             });
             trading.fillOrderCreationFormFields();
         });
+        $('#currency_table_wrapper').mCustomScrollbar({
+            theme: "dark",
+            axis: "yx",
+            live: true
 
+        });
         /*...FOR LEFT-SIDER*/
 
         /*FOR CENTER ON START UP ...*/

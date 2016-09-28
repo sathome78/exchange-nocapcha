@@ -12,6 +12,7 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -234,14 +235,21 @@ public interface OrderService {
      */
     WalletsAndCommissionsForOrderCreationDto getWalletAndCommission(String email, Currency currency,
                                                                            OperationType operationType);
+
+    @Transactional
     DataTable<List<OrderBasicInfoDto>> findOrders(Integer currencyPair, String orderType, String orderDateFrom, String orderDateTo,
-                                  BigDecimal orderRate, BigDecimal orderVolume, String creatorEmail, Locale locale);
+                                                  BigDecimal orderRateFrom, BigDecimal orderRateTo, BigDecimal orderVolumeFrom,
+                                                  BigDecimal orderVolumeTo, String creatorEmail, String acceptorEmail, Locale locale);
 
     DataTable<List<OrderBasicInfoDto>> findOrders(Integer currencyPair, String orderType, String orderDateFrom, String orderDateTo,
-                                                  BigDecimal orderRate, BigDecimal orderVolume, String creatorEmail, Locale locale,
+                                                  BigDecimal orderRateFrom, BigDecimal orderRateTo, BigDecimal orderVolumeFrom,
+                                                  BigDecimal orderVolumeTo, String creatorEmail, String acceptorEmail, Locale locale,
                                                   int offset, int limit, String orderColumnName, String orderDirection);
+
+    @Transactional
     DataTable<List<OrderBasicInfoDto>> searchOrdersByAdmin(Integer currencyPair, String orderType, String orderDateFrom, String orderDateTo,
-                                                           BigDecimal orderRate, BigDecimal orderVolume, String creatorEmail, Locale locale,
+                                                           BigDecimal orderRateFrom, BigDecimal orderRateTo, BigDecimal orderVolumeFrom,
+                                                           BigDecimal orderVolumeTo, String creatorEmail, String acceptorEmail, Locale locale,
                                                            Map<String, String> params);
 
     List<OrderWideListDto> getUsersOrdersWithStateForAdmin(String email, CurrencyPair currencyPair, OrderStatus status,
