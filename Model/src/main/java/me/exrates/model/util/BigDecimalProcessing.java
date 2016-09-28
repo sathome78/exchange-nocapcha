@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.Arrays;
 import java.util.Locale;
 
 /**
@@ -209,6 +210,21 @@ public class BigDecimalProcessing {
         DecimalFormatSymbols dfs = new DecimalFormatSymbols(locale);
         df.setDecimalFormatSymbols(dfs);
         return df.format(bigDecimal == null ? BigDecimal.ZERO : bigDecimal);
+    }
+
+    public static String formatLocaleFixedDecimal(BigDecimal bigDecimal, Locale locale, Integer decimalDigits) {
+        DecimalFormat df = new DecimalFormat("###,##0." +
+                new String(new char[decimalDigits]).replace("\0", "0"));
+        DecimalFormatSymbols dfs = new DecimalFormatSymbols(locale);
+        df.setDecimalFormatSymbols(dfs);
+        return df.format(bigDecimal == null ? BigDecimal.ZERO : bigDecimal);
+    }
+
+    public static String formatLocaleFixedSignificant(BigDecimal bigDecimal, Locale locale, Integer minSignificantSymbols) {
+        int integerPartLength = bigDecimal.toPlainString().split("\\.")[0].length();
+        int minDecimalPlace = minSignificantSymbols - integerPartLength;
+        return formatLocale(bigDecimal, locale, minDecimalPlace >= 2 ? minDecimalPlace : 2);
+
     }
 
     /**

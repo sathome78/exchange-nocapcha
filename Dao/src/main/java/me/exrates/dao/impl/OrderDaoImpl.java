@@ -304,10 +304,14 @@ public class OrderDaoImpl implements OrderDao {
             return namedParameterJdbcTemplate.query(sql, namedParameters, new RowMapper<ExOrderStatisticsShortByPairsDto>() {
                 @Override
                 public ExOrderStatisticsShortByPairsDto mapRow(ResultSet rs, int rowNum) throws SQLException {
+                    BigDecimal lastRate = rs.getBigDecimal("last_exrate");
+                    BigDecimal predLastRate = rs.getBigDecimal("pred_last_exrate");
+                    BigDecimal percentChange = BigDecimalProcessing.doAction(predLastRate, lastRate, ActionType.PERCENT_GROWTH);
                     ExOrderStatisticsShortByPairsDto exOrderStatisticsDto = new ExOrderStatisticsShortByPairsDto();
                     exOrderStatisticsDto.setCurrencyPairName(rs.getString("currency_pair_name"));
-                    exOrderStatisticsDto.setLastOrderRate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("last_exrate"), locale, true));
-                    exOrderStatisticsDto.setPredLastOrderRate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("pred_last_exrate"), locale, true));
+                    exOrderStatisticsDto.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
+                    exOrderStatisticsDto.setPredLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(predLastRate, locale, 12));
+                    exOrderStatisticsDto.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(percentChange, locale, 2));
                     return exOrderStatisticsDto;
                 }
             });

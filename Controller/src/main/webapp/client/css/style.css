@@ -318,6 +318,32 @@ header li {
     font-size: 1.2rem;
 }
 
+@media (max-width: 1400px) {
+
+    #currency_table th, #currency_table td {
+        font-size: 0.95rem;
+
+    }
+
+    .currency_table th:nth-child(2),
+    .currency_table tr td:nth-child(2) {
+        width: 50px;
+    }
+
+}
+
+@media (min-width: 1400px) {
+    #currency_table th, #currency_table td {
+        font-size: 1.2rem;
+    }
+}
+
+#currency_table th, #currency_table td {
+    padding: 5px;
+
+}
+
+
 th, td {
     padding: 5px 0;
     border-bottom: solid 1px #fff;
@@ -340,12 +366,13 @@ th, td {
 
 /*my*/
 .mywallets_table th:last-child,
+.currency_table th:nth-child(2),
 .currency_table th:last-child {
     text-align: center;
 }
 
-.currency_table th:last-child,
-.currency_table tr td:last-child {
+.currency_table th:nth-child(2),
+.currency_table tr td:nth-child(2) {
     width: 122px;
 }
 #currency_table_wrapper {

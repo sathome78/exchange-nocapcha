@@ -56,6 +56,7 @@
         <tr>
             <th><loc:message code="currency.pair"/></th>
             <th><loc:message code="currency.rate"/></th>
+            <th>+/-</th>
         </tr>
         <script type="text/template" id="currency_table_row">
             <@var c = lastOrderRate == predLastOrderRate ? "black" : lastOrderRate < predLastOrderRate ? "red" :
@@ -63,6 +64,7 @@
             <tr>
                 <td><@=currencyPairName@></td>
                 <td class="right <@=c@>"><@=lastOrderRate@></td>
+                <td class="right <@=c@>"><@=percentChange@></td>
             </tr>
         </script>
     </table>
