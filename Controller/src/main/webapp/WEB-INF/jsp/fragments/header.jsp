@@ -17,6 +17,7 @@
                                 && (path != '/register')
                                 && (path != '/forgotPassword')
                                 && (path != '/login?error')}"/>
+<c:set var="showRegistration" value="${(path != '/register')}"/>
 <header class="header">
     <div class="container">
         <div class="cols-md-2"><a href="/" class="logo"><img src="/client/img/Logo_blue.png" alt="Exrates Logo"></a>
@@ -59,7 +60,7 @@
                     </li>
                 </sec:authorize>
                 <sec:authorize access="! isAuthenticated()">
-                    <c:if test="${showEntrance}">
+                    <c:if test="${showRegistration}">
                    <li class="pull-right"> <a href="/register" class="nav__link"><loc:message code="dashboard.signUp"/></a></li>
                     </c:if>
                 </sec:authorize>
