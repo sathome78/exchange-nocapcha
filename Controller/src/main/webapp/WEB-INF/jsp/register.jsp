@@ -111,7 +111,8 @@
                                                 placeholder="${repassword}"
                                                 class="form-control input-block-wrapper__input"/>
                     </div>
-                    <span class="repass"><i class="glyphicon glyphicon-ok"></i></span>
+                    <span class="repass green"><i class="glyphicon glyphicon-ok"></i></span>
+                    <span class="repass-error red"><i class="glyphicon glyphicon-remove"></i></span>
                     <div class="col-md-11 input-block-wrapper__error-wrapper">
                         <form:errors path="confirmPassword" class="input-block-wrapper__input"/>
                     </div>
