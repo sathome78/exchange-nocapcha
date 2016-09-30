@@ -79,7 +79,7 @@ public class BitcoinController {
             responseMap.put("notification", notification);
             responseMap.put("qr", "bitcoin:" + pendingPayment.getAddress().orElseThrow(
                             () ->new MerchantInternalException("Address not presented")) + "?amount="
-                    + creditsOperation.getAmount().doubleValue() + "&message=Donation%20for%20project%20Exrates");
+                    + creditsOperation.getAmount().add(creditsOperation.getCommissionAmount()).doubleValue() + "&message=Donation%20for%20project%20Exrates");
 
             return new ResponseEntity<>(responseMap, HttpStatus.OK);
         } catch (final InvalidAmountException|RejectedPaymentInvoice e) {
