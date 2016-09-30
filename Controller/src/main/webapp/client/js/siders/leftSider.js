@@ -19,6 +19,8 @@ function LeftSiderClass() {
     /**/
     var showLog = false;
 
+    var onWalletStatisticRefresh;
+
     this.getStatisticsForMyWallets = function (refreshIfNeeded) {
         if (!windowIsActive) {
             clearTimeout(timeOutIdForStatisticsForMyWallets);
@@ -47,6 +49,9 @@ function LeftSiderClass() {
                         $mywalletsTable.append(tmpl($tmpl, e));
                     });
                     blink($mywalletsTable);
+                    if (onWalletStatisticRefresh) {
+                        onWalletStatisticRefresh();
+                    }
                 }
                 clearTimeout(timeOutIdForStatisticsForMyWallets);
                 timeOutIdForStatisticsForMyWallets = setTimeout(function () {
@@ -108,6 +113,11 @@ function LeftSiderClass() {
             }
         });
     };
+
+    this.setOnWalletsRefresh = function(refreshCallback) {
+        onWalletStatisticRefresh = refreshCallback;
+    };
+
     /*===========================================================*/
     (function init() {
         clearTimeout(timeOutIdForStatisticsForAllCurrencies);

@@ -133,6 +133,9 @@ $(function dashdoardInit() {
         syncCurrentParams(null, null, null, null, function (data) {
             showPage($('#startup-page-id').text().trim());
             trading = new TradingClass(data.period, data.chartType, data.currencyPair.name);
+            leftSider.setOnWalletsRefresh(function () {
+                trading.fillOrderBalance($('.currency-pair-selector__button').first().text().trim())
+            });
             myWallets = new MyWalletsClass();
             myStatements = new MyStatementsClass();
             myHistory = new MyHistoryClass(data.currencyPair.name);
