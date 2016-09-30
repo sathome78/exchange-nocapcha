@@ -17,6 +17,7 @@
                                 && (path != '/register')
                                 && (path != '/forgotPassword')
                                 && (path != '/login?error')}"/>
+<c:set var="showRegistration" value="${(path != '/register')}"/>
 <header class="header">
     <div class="container">
         <div class="cols-md-2"><a href="/" class="logo"><img src="/client/img/Logo_blue.png" alt="Exrates Logo"></a>
@@ -57,6 +58,11 @@
                         <loc:message code="dashboard.hello"/>
                         <strong><sec:authentication property="principal.username"/></strong></a>
                     </li>
+                </sec:authorize>
+                <sec:authorize access="! isAuthenticated()">
+                    <c:if test="${showRegistration}">
+                   <li class="pull-right"> <a href="/register" class="nav__link"><loc:message code="dashboard.signUp"/></a></li>
+                    </c:if>
                 </sec:authorize>
             </ul>
         </div>
@@ -106,9 +112,6 @@
                                         <%--QR--%>
                                         <%--<div class="inline-block"><img src="/client/img/qr.jpg"></div>
                                         <span class="white margin-left20">To enter via QR code</span>--%>
-                                    <sec:authorize access="! isAuthenticated()">
-                                        <a href="/register" class="register"><loc:message code="dashboard.signUp"/></a>
-                                    </sec:authorize>
                                 </form>
                                 <sec:authorize access="isAuthenticated()">
                                     <form action="/logout" class="dropdown-menu__logout-form" method="post">
