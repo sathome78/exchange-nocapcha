@@ -290,6 +290,21 @@ public class OrderServiceImpl implements OrderService {
                 exceptionMessage = getWalletTransferExceptionMessage(walletTransferStatus, "order.notenoughreservedmoneyforcreator", locale);
                 throw new OrderAcceptionException(exceptionMessage);
             }
+             /*for acceptor OUT*/
+            walletOperationData = new WalletOperationData();
+            walletOperationData.setOperationType(OperationType.OUTPUT);
+            walletOperationData.setWalletId(walletsForOrderAcceptionDto.getUserAcceptorOutWalletId());
+            walletOperationData.setAmount(acceptorForOutAmount);
+            walletOperationData.setBalanceType(WalletOperationData.BalanceType.ACTIVE);
+            walletOperationData.setCommission(comissionForAcceptor);
+            walletOperationData.setCommissionAmount(commissionForAcceptorOutWallet);
+            walletOperationData.setSourceType(TransactionSourceType.ORDER);
+            walletOperationData.setSourceId(exOrder.getId());
+            walletTransferStatus = walletDao.walletBalanceChange(walletOperationData);
+            if (walletTransferStatus != WalletTransferStatus.SUCCESS) {
+                exceptionMessage = getWalletTransferExceptionMessage(walletTransferStatus, "order.notenoughmoneyforacceptor", locale);
+                throw new OrderAcceptionException(exceptionMessage);
+            }
             /*for creator IN*/
             walletOperationData = new WalletOperationData();
             walletOperationData.setOperationType(OperationType.INPUT);
@@ -305,21 +320,7 @@ public class OrderServiceImpl implements OrderService {
                 exceptionMessage = getWalletTransferExceptionMessage(walletTransferStatus, "orders.acceptsaveerror", locale);
                 throw new OrderAcceptionException(exceptionMessage);
             }
-            /*for acceptor OUT*/
-            walletOperationData = new WalletOperationData();
-            walletOperationData.setOperationType(OperationType.OUTPUT);
-            walletOperationData.setWalletId(walletsForOrderAcceptionDto.getUserAcceptorOutWalletId());
-            walletOperationData.setAmount(acceptorForOutAmount);
-            walletOperationData.setBalanceType(WalletOperationData.BalanceType.ACTIVE);
-            walletOperationData.setCommission(comissionForAcceptor);
-            walletOperationData.setCommissionAmount(commissionForAcceptorOutWallet);
-            walletOperationData.setSourceType(TransactionSourceType.ORDER);
-            walletOperationData.setSourceId(exOrder.getId());
-            walletTransferStatus = walletDao.walletBalanceChange(walletOperationData);
-            if (walletTransferStatus != WalletTransferStatus.SUCCESS) {
-                exceptionMessage = getWalletTransferExceptionMessage(walletTransferStatus, "order.notenoughmoneyforacceptor", locale);
-                throw new OrderAcceptionException(exceptionMessage);
-            }
+
             /*for acceptor IN*/
             walletOperationData = new WalletOperationData();
             walletOperationData.setOperationType(OperationType.INPUT);
