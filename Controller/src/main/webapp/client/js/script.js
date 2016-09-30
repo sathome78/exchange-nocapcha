@@ -33,30 +33,60 @@ $(function () {
     //Enable REGISTER button if pass == repass when entering repass
     /*Activates submit button if all field filled correct and capcha is passed
      * */
-    if (document.getElementById("#register_button")) {
-        document.getElementById("#register_button").disabled = true;
+    if (document.getElementById("register_button")) {
+        document.getElementById("register_button").disabled = true;
     }
     $("#repass").keyup(function () {
         var pass = $('#pass').val();
         var repass = $('#repass').val();
-        var email = $('#email').val();
-        var login = $('#login').val();
-        var capchaPassed = $('#cpch-field').hasClass('passed');
+
 
         if (pass && (pass.length != 0) && (pass === repass)) {
             $('.repass').css("display", "block");
-            if ((!$('#email')[0] || (email.length != 0) && (login.length != 0)) && (capchaPassed)) {
-                $("#register_button").prop('disabled', false);
-            } else {
-                $("#register_button").prop('disabled', true);
-            }
+            $('.repass-error').css("display", "none");
         }
         else {
+            $('.repass-error').css("display", "block");
             $('.repass').css("display", "none");
-            $("#register_button").prop('disabled', true);
         }
+        checkFill();
+
     });
+    $("#pass").keyup(function () {
+        var pass = $('#pass').val();
+        var repass = $('#repass').val();
+        if (repass && (repass.length != 0)) {
+            if (pass === repass) {
+                $('.repass').css("display", "block");
+                $('.repass-error').css("display", "none");
+            } else {
+                $('.repass-error').css("display", "block");
+                $('.repass').css("display", "none");
+            }
+        }
+
+        checkFill();
+    });
+
+    $('#login, #email').keyup(checkFill)
+
+
+
+
 });
+function checkFill() {
+    var email = $('#email').val();
+    var login = $('#login').val();
+    var pass = $('#pass').val();
+    var repass = $('#repass').val();
+    var capchaPassed = $('#cpch-field').hasClass('passed');
+    if ((!$('#email')[0] || (email.length != 0) && (login.length != 0)) &&
+        (capchaPassed) && (pass && (pass.length != 0) && (pass === repass))) {
+        $("#register_button").prop('disabled', false);
+    } else {
+        $("#register_button").prop('disabled', true);
+    }
+}
 
 
 function promptDeleteDoc(id, path, userId) {
