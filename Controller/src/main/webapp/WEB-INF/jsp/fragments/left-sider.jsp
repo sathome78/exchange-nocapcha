@@ -59,7 +59,7 @@
             <th>+/-</th>
         </tr>
         <script type="text/template" id="currency_table_row">
-            <@var c = lastOrderRate == predLastOrderRate ? "black" : lastOrderRate < predLastOrderRate ? "red" :
+            <@var c = lastOrderRate == predLastOrderRate ? "black" : percentChange[0] == '-' ? "red" :
             "green";@>
             <tr>
                 <td><@=currencyPairName@></td>
