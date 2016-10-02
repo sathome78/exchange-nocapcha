@@ -4,12 +4,8 @@ import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
-import me.exrates.model.enums.TransactionType;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.OrderStatus;
-import me.exrates.model.enums.UserRole;
-import me.exrates.model.enums.UserStatus;
+import me.exrates.model.enums.*;
 import me.exrates.security.service.UserSecureServiceImpl;
 import me.exrates.service.*;
 import me.exrates.service.exception.OrderDeletingException;
@@ -45,7 +41,6 @@ import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -226,7 +221,12 @@ public class AdminController {
     public  List<OrderWideListDto> getUserOrders(final @RequestParam int id, final @RequestParam("tableType") String tableType,
                              final @RequestParam("currencyPairId") int currencyPairId, final HttpServletRequest request) {
 
-        CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
+        CurrencyPair currencyPair;
+        if (currencyPairId != 0){
+            currencyPair = currencyService.findCurrencyPairById(currencyPairId);
+        }else {
+            currencyPair = null;
+        }
         String email = userService.getUserById(id).getEmail();
         Map<String,List<OrderWideListDto>> resultMap = new HashMap<>();
 
