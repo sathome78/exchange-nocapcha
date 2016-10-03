@@ -412,6 +412,7 @@
                                 <select style="width: auto" id="currency-pair-selector"
                                         class="form-control"
                                         name="currency-pair-selector">
+                                    <option value="0"><loc:message code="currency.allpairs"/></option>
                                     <c:forEach items="${currencyPairs}" var="currencyPair">
                                         <option value="${currencyPair.id}">${currencyPair.name}</option>
                                     </c:forEach>
