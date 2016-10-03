@@ -23,14 +23,14 @@
         <td class="right"><@=commissionAmount@></td>
         <@=
         (function(){
-        if (sourceType) {
+        if (merchantName) {
         return
         '<td
             data-transactionid='+transactionId+'
             data-transactionstatus='+transactionStatus+'
             data-sourcetypeid='+sourceTypeId+'
             data-sourceid='+sourceId+'
-            class="center"><span class="source-type-button">'+sourceType+'</span></td>'
+            class="center"><span class="source-type-button">'+merchantName+'</span></td>'
         } else {
         return
         '<td class="center"></td>'

@@ -403,7 +403,7 @@ public final class TransactionDaoImpl implements TransactionDao {
                 "      CURRENCY.name AS operation_type_id, " +
                 "      null AS amount, null AS commission_amount, " +
                 "      null AS source_type, null AS source_id, " +
-                "      null AS status_id " +
+                "      null AS status_id, null AS merchant_name " +
                 "    FROM WALLET  " +
                 "    JOIN CURRENCY ON CURRENCY.id=WALLET.currency_id  " +
                 "    WHERE WALLET.id=:wallet_id " +
@@ -414,8 +414,9 @@ public final class TransactionDaoImpl implements TransactionDao {
                 "      TRANSACTION.operation_type_id, " +
                 "      TRANSACTION.amount, TRANSACTION.commission_amount, " +
                 "      TRANSACTION.source_type, TRANSACTION.source_id, " +
-                "      TRANSACTION.status_id " +
+                "      TRANSACTION.status_id, MERCHANT.name AS merchant_name " +
                 "    FROM TRANSACTION " +
+                "    LEFT JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id" +
                 "    WHERE TRANSACTION.provided=1 AND TRANSACTION.user_wallet_id = :wallet_id " +
                 "    ORDER BY -TRANSACTION.datetime ASC, -TRANSACTION.id ASC " +
                 (limit == -1 ? "" : "  LIMIT " + limit + " OFFSET " + offset)+
@@ -435,7 +436,8 @@ public final class TransactionDaoImpl implements TransactionDao {
                 accountStatementDto.setOperationType(rs.getObject("date_time") == null ? rs.getString("operation_type_id") : OperationType.convert(rs.getInt("operation_type_id")).toString(messageSource, locale));
                 accountStatementDto.setAmount(rs.getTimestamp("date_time") == null ? null : BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount"), locale, true));
                 accountStatementDto.setCommissionAmount(rs.getTimestamp("date_time") == null ? null : BigDecimalProcessing.formatLocale(rs.getBigDecimal("commission_amount"), locale, true));
-                accountStatementDto.setSourceType(rs.getObject("source_type") == null ? "" : TransactionSourceType.convert(rs.getString("source_type")).toString(messageSource, locale));
+                TransactionSourceType transactionSourceType = rs.getObject("source_type") == null ? null : TransactionSourceType.convert(rs.getString("source_type"));
+                accountStatementDto.setSourceType(transactionSourceType == null ? "" : transactionSourceType.toString(messageSource, locale));
                 accountStatementDto.setSourceTypeId(rs.getString("source_type"));
                 accountStatementDto.setSourceId(rs.getInt("source_id"));
                 accountStatementDto.setTransactionStatus(rs.getObject("status_id") == null ? null : TransactionStatus.convert(rs.getInt("status_id")));
@@ -473,6 +475,12 @@ public final class TransactionDaoImpl implements TransactionDao {
                         }
                     }
                 }
+                String merchantName = rs.getString("merchant_name");
+                if (transactionSourceType != TransactionSourceType.MERCHANT) {
+                    merchantName = accountStatementDto.getSourceType();
+                }
+                accountStatementDto.setMerchantName(merchantName);
+
                 /**/
                 return accountStatementDto;
             }
