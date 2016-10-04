@@ -13,8 +13,11 @@ $(function () {
             if (msg) {
                 failedNote = noty({
                     text: msg,
+                    template: '<div class="noty_message"><div class="noty_header"><button type="button" class="close" aria-label="Close">' +
+                    '<span aria-hidden="true">&times;</span></button></div><br/><span class="noty_text"></span><div class="noty_close"></div></div>',
                     type: 'error',
-                    layout: 'bottomLeft',
+                    layout: 'center',
+                    modal: true,
                     timeout: false
                 });
             }
@@ -49,8 +52,11 @@ function successNoty(text) {
     //closeNote();
     successNote = noty({
         text: text,
+        template: '<div class="noty_message"><div class="noty_header"><button type="button" class="close" aria-label="Close">' +
+        '<span aria-hidden="true">&times;</span></button></div><br/><span class="noty_text"></span><div class="noty_close"></div></div>',
         type: 'success',
-        layout: 'bottomLeft',
+        layout: 'center',
+        modal: true,
         timeout: false
     });
 }
@@ -61,8 +67,11 @@ function failNoty(jqXHR) {
     if (!errorInfo.detail) return;
     failedNote = noty({
         text: errorInfo.detail,
+        template: '<div class="noty_message"><div class="noty_header"><button type="button" class="close" aria-label="Close">' +
+        '<span aria-hidden="true">&times;</span></button></div><br/><span class="noty_text"></span><div class="noty_close"></div></div>',
         type: 'error',
-        layout: 'bottomLeft',
+        layout: 'center',
+        modal: true,
         timeout: false
     });
 }
