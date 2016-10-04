@@ -10,15 +10,18 @@ import me.exrates.service.TransactionService;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.security.Principal;
 import java.util.Map;
@@ -37,20 +40,27 @@ public class LiqpayMerchantController {
     @Autowired
     private LiqpayService liqpayService;
 
+    @Autowired
+    private MessageSource messageSource;
+
+    @Autowired
+    private LocaleResolver localeResolver;
+
     private static final Logger logger = LogManager.getLogger(LiqpayMerchantController.class);
 
     private static final String merchantInputErrorPage = "redirect:/merchants/input";
 
     @RequestMapping(value = "/payment/prepare", method = RequestMethod.POST)
     public RedirectView preparePayment(@Valid @ModelAttribute("payment") Payment payment, BindingResult result,
-                                       Principal principal, RedirectAttributes redir) {
+                                       Principal principal, RedirectAttributes redir, final HttpServletRequest request) {
 
         final String errorRedirectView = "/merchants/".concat(payment.getOperationType() == OperationType.INPUT ?
                 "/input" : "/output");
 
         final Optional<CreditsOperation> creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName());
         if (!creditsOperation.isPresent()) {
-            redir.addFlashAttribute("error", "merchants.invalidSum");
+            redir.addAttribute("errorNoty", messageSource.getMessage("merchants.invalidSum", null, localeResolver.resolveLocale(request)));
+
             return new RedirectView(errorRedirectView);
         }
 
@@ -68,7 +78,7 @@ public class LiqpayMerchantController {
     }
 
     @RequestMapping(value = "payment/success",method = RequestMethod.POST)
-    public RedirectView successPayment(@RequestParam Map<String,String> response, RedirectAttributes redir) {
+    public RedirectView successPayment(@RequestParam Map<String,String> response, RedirectAttributes redir, final HttpServletRequest request) {
 
         String signature = response.get("signature");
         String data = response.get("data");;
@@ -82,11 +92,10 @@ public class LiqpayMerchantController {
         Transaction transaction = transactionService.findById(Integer.parseInt(String.valueOf(responseData.get("order_id"))));
 
         if ((responseData.get("status").equals("success")) && liqpayService.checkHashTransactionByTransactionId(transaction.getId(), (String) responseData.get("info"))){
-            merchantService.formatResponseMessage(transaction)
-                    .entrySet()
-                    .forEach(entry->redir.addFlashAttribute(entry.getKey(),entry.getValue()));
-            final String message = "merchants.successfulBalanceDeposit";
-            redir.addFlashAttribute("message", message);
+
+            redir.addAttribute("successNoty", messageSource.getMessage("merchants.successfulBalanceDeposit",
+                    merchantService.formatResponseMessage(transaction).values().toArray(), localeResolver.resolveLocale(request)));
+
             if (!transaction.isProvided()){
                 liqpayService.provideTransaction(transaction);
             }
@@ -95,14 +104,14 @@ public class LiqpayMerchantController {
 
         }
 
-        final String message = "merchants.internalError";
-        redir.addFlashAttribute("message", message);
+        redir.addAttribute("errorNoty", messageSource.getMessage("merchants.internalError", null, localeResolver.resolveLocale(request)));
+
 
         return new RedirectView("/dashboard");
     }
 
     @RequestMapping(value = "payment/status",method = RequestMethod.POST)
-    public RedirectView statusPayment(@RequestParam Map<String,String> response, RedirectAttributes redir) {
+    public RedirectView statusPayment(@RequestParam Map<String,String> response, RedirectAttributes redir, final HttpServletRequest request) {
 
         String signature = response.get("signature");
         String data = response.get("data");;
@@ -116,11 +125,9 @@ public class LiqpayMerchantController {
         Transaction transaction = transactionService.findById(Integer.parseInt(String.valueOf(responseData.get("order_id"))));
 
         if ((responseData.get("status").equals("success")) && liqpayService.checkHashTransactionByTransactionId(transaction.getId(), (String) responseData.get("info"))){
-            merchantService.formatResponseMessage(transaction)
-                    .entrySet()
-                    .forEach(entry->redir.addFlashAttribute(entry.getKey(),entry.getValue()));
-            final String message = "merchants.successfulBalanceDeposit";
-            redir.addFlashAttribute("message", message);
+
+            redir.addAttribute("successNoty", messageSource.getMessage("merchants.successfulBalanceDeposit",
+                    merchantService.formatResponseMessage(transaction).values().toArray(), localeResolver.resolveLocale(request)));
             if (!transaction.isProvided()){
                 liqpayService.provideTransaction(transaction);
             }
@@ -129,8 +136,7 @@ public class LiqpayMerchantController {
 
         }
 
-        final String message = "merchants.internalError";
-        redir.addFlashAttribute("message", message);
+        redir.addAttribute("errorNoty", messageSource.getMessage("merchants.internalError", null, localeResolver.resolveLocale(request)));
 
         return new RedirectView("/dashboard");
     }

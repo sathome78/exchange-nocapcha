@@ -10,15 +10,18 @@ import me.exrates.service.TransactionService;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.security.Principal;
 import java.util.Map;
@@ -37,17 +40,23 @@ public class AdvcashMerchantController {
     @Autowired
     private TransactionService transactionService;
 
+    @Autowired
+    private MessageSource messageSource;
+
+    @Autowired
+    private LocaleResolver localeResolver;
+
     private static final Logger logger = LogManager.getLogger(AdvcashMerchantController.class);
 
     private static final String merchantInputErrorPage = "redirect:/merchants/input";
 
     @RequestMapping(value = "/payment/prepare", method = RequestMethod.POST)
     public RedirectView preparePayment(@Valid @ModelAttribute("payment") Payment payment,
-                                       BindingResult result, Principal principal, RedirectAttributes redir) {
+                                       BindingResult result, Principal principal, RedirectAttributes redir, final HttpServletRequest request) {
 
         final Optional<CreditsOperation> creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName());
         if (!creditsOperation.isPresent()) {
-            redir.addFlashAttribute("error", "merchants.invalidSum");
+            redir.addAttribute("errorNoty", messageSource.getMessage("merchants.invalidSum", null, localeResolver.resolveLocale(request)));
             return new RedirectView("/dashboard");
         }
 
@@ -64,16 +73,15 @@ public class AdvcashMerchantController {
         }
 
     @RequestMapping(value = "payment/success",method = RequestMethod.POST)
-    public RedirectView successPayment(@RequestParam Map<String,String> response, RedirectAttributes redir) {
+    public RedirectView successPayment(@RequestParam Map<String,String> response, RedirectAttributes redir, final HttpServletRequest request) {
 
         Transaction transaction = transactionService.findById(Integer.parseInt(response.get("ac_order_id")));
 
         if (response.get("ac_transaction_status").equals("COMPLETED") && advcashService.checkHashTransactionByTransactionId(transaction.getId(), response.get("transaction_hash"))){
-            merchantService.formatResponseMessage(transaction)
-                    .entrySet()
-                    .forEach(entry->redir.addFlashAttribute(entry.getKey(),entry.getValue()));
-            final String message = "merchants.successfulBalanceDeposit";
-            redir.addFlashAttribute("message", message);
+
+            redir.addAttribute("successNoty", messageSource.getMessage("merchants.successfulBalanceDeposit",
+                    merchantService.formatResponseMessage(transaction).values().toArray(), localeResolver.resolveLocale(request)));
+
             advcashService.provideTransaction(transaction);
 
             return new RedirectView("/dashboard");
@@ -81,8 +89,7 @@ public class AdvcashMerchantController {
         }
 //        advcashService.invalidateTransaction(transaction);
 
-        final String message = "merchants.internalError";
-        redir.addFlashAttribute("message", message);
+        redir.addAttribute("errorNoty", messageSource.getMessage("merchants.internalError", null, localeResolver.resolveLocale(request)));
 
         return new RedirectView("/dashboard");
         }
