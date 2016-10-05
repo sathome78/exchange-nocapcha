@@ -10,6 +10,7 @@ import me.exrates.service.TransactionService;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,9 +19,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 
+import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,6 +43,12 @@ public class Privat24MerchantController {
 
     @Autowired
     private TransactionService transactionService;
+
+    @Autowired
+    private MessageSource messageSource;
+
+    @Autowired
+    private LocaleResolver localeResolver;
 
     private static final Logger LOG = LogManager.getLogger("merchant");
 
@@ -87,7 +96,7 @@ public class Privat24MerchantController {
     }
 
     @RequestMapping(value = "payment/success",method = RequestMethod.POST)
-    public RedirectView successPayment(@RequestParam Map<String,String> response, RedirectAttributes redir) {
+    public RedirectView successPayment(@RequestParam Map<String,String> response, RedirectAttributes redir, final HttpServletRequest request) {
 
         LOG.debug("Begin method: successPayment.");
 
@@ -105,21 +114,18 @@ public class Privat24MerchantController {
             if (!transaction.isProvided()){
                 if (!privat24Service.confirmPayment(mapResponse, signature, payment)) {
 
-                    redir.addFlashAttribute("error", "merchants.authRejected");
+                    redir.addAttribute("errorNoty", messageSource.getMessage("merchants.authRejected", null, localeResolver.resolveLocale(request)));
                     return new RedirectView("/dashboard");
                 }
             }
         }catch (EmptyResultDataAccessException e){
             LOG.error(e);
-            redir.addFlashAttribute("error", "merchants.incorrectPaymentDetails");
+            redir.addAttribute("errorNoty", messageSource.getMessage("merchants.incorrectPaymentDetails", null, localeResolver.resolveLocale(request)));
             return new RedirectView("/dashboard");
         }
 
-        merchantService.formatResponseMessage(transaction)
-                .entrySet()
-                .forEach(entry->redir.addFlashAttribute(entry.getKey(),entry.getValue()));
-        final String message = "merchants.successfulBalanceDeposit";
-        redir.addFlashAttribute("message", message);
+        redir.addAttribute("successNoty", messageSource.getMessage("merchants.successfulBalanceDeposit",
+                merchantService.formatResponseMessage(transaction).values().toArray(), localeResolver.resolveLocale(request)));
 
         return new RedirectView("/dashboard");
     }
