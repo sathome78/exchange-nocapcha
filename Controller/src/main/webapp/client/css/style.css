@@ -189,6 +189,8 @@ header li {
     color: #c9d8f5;
 }
 
+.dropdown-toggle:active, .open .dropdown-toggle {background:#525f74 !important; color:#fff !important;}
+
 .nav > li > a:focus, .nav > li > a:hover {
     background-color: #525f74;
     color: #c9d8f5;

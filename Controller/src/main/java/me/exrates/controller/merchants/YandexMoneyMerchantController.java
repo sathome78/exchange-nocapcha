@@ -11,17 +11,20 @@ import me.exrates.service.YandexMoneyService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.WebUtils;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.security.Principal;
@@ -41,9 +44,14 @@ public class YandexMoneyMerchantController {
     @Autowired
     private MerchantService merchantService;
 
+    @Autowired
+    private MessageSource messageSource;
+
+    @Autowired
+    private LocaleResolver localeResolver;
+
     private static final Logger logger = LogManager.getLogger(YandexMoneyMerchantController.class);
 
-    private static final String merchantInputErrorPage = "redirect:/merchants/input";
 
     @RequestMapping(value = "/token/authorization", method = RequestMethod.GET)
     public RedirectView yandexMoneyTemporaryAuthorizationCodeRequest() {
@@ -51,15 +59,16 @@ public class YandexMoneyMerchantController {
     }
 
     @RequestMapping(value = "/token/access")
-    public ModelAndView yandexMoneyAccessTokenRequest(@RequestParam(value = "code",   required = false) String code,RedirectAttributes redir) {
+    public ModelAndView yandexMoneyAccessTokenRequest(@RequestParam(value = "code",   required = false) String code,RedirectAttributes redir,
+                                                      final HttpServletRequest request) {
         if (Strings.isNullOrEmpty(code)) {
-            redir.addFlashAttribute("error", "merchants.authRejected");
-            return new ModelAndView(merchantInputErrorPage);
+            redir.addAttribute("errorNoty", messageSource.getMessage("merchants.authRejected", null, localeResolver.resolveLocale(request)));
+            return new ModelAndView("/dashboard");
         }
         final Optional<String> accessToken = yandexMoneyService.getAccessToken(code);
         if (!accessToken.isPresent()) {
-            redir.addFlashAttribute("error", "merchants.authRejected");
-            return new ModelAndView(merchantInputErrorPage);
+            redir.addAttribute("errorNoty", messageSource.getMessage("merchants.authRejected", null, localeResolver.resolveLocale(request)));
+            return new ModelAndView("/dashboard");
         }
         redir.addFlashAttribute("token", accessToken.get());
         return new ModelAndView("redirect:/merchants/yandexmoney/payment/process");
@@ -69,11 +78,11 @@ public class YandexMoneyMerchantController {
     @RequestMapping(value = "/payment/prepare", method = RequestMethod.POST)
     public RedirectView preparePayment(@Valid @ModelAttribute("payment") Payment payment,
                                        BindingResult result, Principal principal, RedirectAttributes redir,
-                                       HttpSession httpSession) {
+                                       HttpSession httpSession, final HttpServletRequest request) {
         final Map<String, Object> model = result.getModel();
         final Optional<CreditsOperation> creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName());
         if (!creditsOperation.isPresent()) {
-            redir.addFlashAttribute("error", "merchants.invalidSum");
+            redir.addAttribute("errorNoty", messageSource.getMessage("merchants.invalidSum", null, localeResolver.resolveLocale(request)));
             return new RedirectView("/dashboard");
         }
         final OperationType operationType = creditsOperation.get().getOperationType();
@@ -88,7 +97,7 @@ public class YandexMoneyMerchantController {
 
     @RequestMapping(value = "/payment/process")
     public RedirectView processPayment(@ModelAttribute(value = "token") String token, RedirectAttributes redir,
-                                       HttpSession httpSession) {
+                                       HttpSession httpSession, final HttpServletRequest httpServletRequest) {
         final Object mutex = WebUtils.getSessionMutex(httpSession);
         final CreditsOperation creditsOperation;
         synchronized (mutex) {
@@ -96,15 +105,12 @@ public class YandexMoneyMerchantController {
             httpSession.removeAttribute("creditsOperation");
         }
         final Optional<RequestPayment> requestPayment = yandexMoneyService.requestPayment(token,creditsOperation);
-        final RedirectView successView = new RedirectView("/mywallets");
+        final RedirectView successView = new RedirectView("/dashboard");
         if (!requestPayment.isPresent()) {
             final OperationType operationType = creditsOperation.getOperationType();
             final String message = operationType == OperationType.INPUT ? "merchants.successfulBalanceDeposit"
                     : "merchants.successfulBalanceWithdraw";
-            merchantService.formatResponseMessage(creditsOperation)
-                    .entrySet()
-                    .forEach(entry -> redir.addFlashAttribute(entry.getKey(),entry.getValue()));
-            redir.addFlashAttribute("message",message);
+            redir.addAttribute("successNoty", messageSource.getMessage(message, merchantService.formatResponseMessage(creditsOperation).values().toArray(), localeResolver.resolveLocale(httpServletRequest)));
             return successView;
         }
         final RequestPayment request = requestPayment.get();
@@ -112,16 +118,16 @@ public class YandexMoneyMerchantController {
         if (request.status.equals(BaseRequestPayment.Status.REFUSED)) {
             switch (request.error) {
                 case PAYEE_NOT_FOUND:
-                    redir.addFlashAttribute("error", "merchants.incorrectPaymentDetails");
+                    redir.addAttribute("errorNoty", messageSource.getMessage("merchants.incorrectPaymentDetails", null, localeResolver.resolveLocale(httpServletRequest)));
                     return failureView;
                     case NOT_ENOUGH_FUNDS:
-                        redir.addFlashAttribute("error", "merchants.notEnoughMoney");
+                        redir.addAttribute("errorNoty", messageSource.getMessage("merchants.notEnoughMoney", null, localeResolver.resolveLocale(httpServletRequest)));
                         return failureView;
                     case AUTHORIZATION_REJECT:
-                        redir.addFlashAttribute("error", "merchants.authRejected");
+                        redir.addAttribute("errorNoty", messageSource.getMessage("merchants.authRejected", null, localeResolver.resolveLocale(httpServletRequest)));
                         return failureView;
                     case LIMIT_EXCEEDED:
-                        redir.addFlashAttribute("error", "merchants.limitExceed");
+                        redir.addAttribute("errorNoty", messageSource.getMessage("merchants.limitExceed", null, localeResolver.resolveLocale(httpServletRequest)));
                         return failureView;
                     case ACCOUNT_BLOCKED:
                         return new RedirectView(request.accountUnblockUri);
@@ -129,11 +135,11 @@ public class YandexMoneyMerchantController {
                         return new RedirectView(request.extActionUri);
                     default:
                         logger.fatal(request.error);
-                        redir.addFlashAttribute("error", "merchants.internalError");
+                        redir.addAttribute("errorNoty", messageSource.getMessage("merchants.internalError", null, localeResolver.resolveLocale(httpServletRequest)));
                         return failureView;
                 }
         }
-        redir.addFlashAttribute("error", "merchants.internalError");
+        redir.addAttribute("errorNoty", messageSource.getMessage("merchants.internalError", null, localeResolver.resolveLocale(httpServletRequest)));
         return failureView;
     }
 }

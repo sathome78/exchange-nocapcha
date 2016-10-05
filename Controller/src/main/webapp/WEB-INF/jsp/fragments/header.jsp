@@ -22,7 +22,7 @@
     <div class="container">
         <div class="cols-md-2"><a href="/" class="logo"><img src="/client/img/Logo_blue.png" alt="Exrates Logo"></a>
         </div>
-        <div class="cols-md-8" style="overflow-y: hidden;">
+        <div class="cols-md-8">
             <ul class="nav header__nav">
                 <sec:authorize access="isAuthenticated()">
                     <li id="menu-traiding"><a href="#" class="nav__link nav__link_active "><loc:message
@@ -45,11 +45,9 @@
                                 access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
                             <sec:authorize
                                     access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
-
                                 <a href="<c:url value='/admin'/>">
                                     <loc:message code="admin.title"/>
                                 </a>
-
                             </sec:authorize>
                         </sec:authorize>
                     </li>
@@ -59,70 +57,74 @@
                         <strong><sec:authentication property="principal.username"/></strong></a>
                     </li>
                 </sec:authorize>
-                <sec:authorize access="! isAuthenticated()">
-                    <c:if test="${showRegistration}">
-                   <li class="pull-right"> <a href="/register" class="nav__link"><loc:message code="dashboard.signUp"/></a></li>
-                    </c:if>
-                </sec:authorize>
+
+                <ul class="padding0 pull-right">
+                    <sec:authorize access="! isAuthenticated()">
+                        <c:if test="${showEntrance}">
+
+                            <li role="presentation" class="dropdown paddingtop10 open-li">
+                                <a class="dropdown-toggle nav__link focus-white" data-toggle="dropdown" href="#"
+                                   role="button"
+                                   aria-haspopup="true" aria-expanded="false">
+                                    <loc:message code="dashboard.entrance"/> <span class="caret"></span>
+                                </a>
+                                <div class="dropdown-menu">
+                                    <form action="/login" class="dropdown-menu__form" method="post">
+                                        <input name="username" type="email" placeholder=
+                                            <loc:message code="dashboard.loginText"/>
+                                                class="form_input">
+                                        <input name="password" type="password" placeholder=
+                                            <loc:message
+                                                    code="dashboard.passwordText"/> class="form_input">
+                                        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+                                        <br/>
+                                        <c:if test="${captchaType==\"RECAPTCHA\"}">
+                                            <%--CAPTCHA GOOGLE--%>
+                                            <div id="cpch-head-field" class="g-recaptcha"
+                                                 data-sitekey=${captchaProperties.get("captcha.key")}></div>
+                                            <p class='cpch-error-message' style="color:red">${cpch}</p>
+                                        </c:if>
+                                        <c:if test="${captchaType==\"BOTDETECT\"}">
+                                            <%--CAPTCHA BotDetect--%>
+                                            <div class="validationDiv">
+                                                <botDetect:captcha id="headerRegCaptcha" userInputID="captchaCode"/>
+                                                <input name="captchaCode" type="text" id="captchaCode"/>
+                                                <input type="hidden" name="captchaId" value="headerRegCaptcha"/>
+                                            </div>
+                                        </c:if>
+                                        <input type="hidden" name="captchaType" value="${captchaType}"/>
+                                            <%----%>
+                                        <button type="submit" class="login_button"><loc:message
+                                                code="dashboard.entrance"/></button>
+                                        <a href="/forgotPassword" class="white forgot-password"><loc:message
+                                                code="dashboard.forgotPassword"/></a>
+
+                                        <div></div>
+                                            <%--QR--%>
+                                            <%--<div class="inline-block"><img src="/client/img/qr.jpg"></div>
+                                            <span class="white margin-left20">To enter via QR code</span>--%>
+                                    </form>
+                                    <sec:authorize access="isAuthenticated()">
+                                        <form action="/logout" class="dropdown-menu__logout-form" method="post">
+                                            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+                                            <button type="submit" class="register">
+                                                <strong><loc:message code="dashboard.goOut"/></strong>
+                                            </button>
+                                        </form>
+                                    </sec:authorize>
+                                </div>
+                            </li>
+                        </c:if>
+                    </sec:authorize>
+                </ul>
             </ul>
         </div>
         <div class="cols-md-2">
+
             <ul class="padding0">
                 <sec:authorize access="! isAuthenticated()">
-                    <c:if test="${showEntrance}">
-                        <li role="presentation" class="dropdown paddingtop10 open-li">
-                            <a class="dropdown-toggle nav__link focus-white" data-toggle="dropdown" href="#"
-                               role="button"
-                               aria-haspopup="true" aria-expanded="false">
-                                <loc:message code="dashboard.entrance"/> <span class="caret"></span>
-                            </a>
-
-                            <div class="dropdown-menu">
-                                <form action="/login" class="dropdown-menu__form" method="post">
-                                    <input name="username" type="email" placeholder=
-                                        <loc:message code="dashboard.loginText"/>
-                                            class="form_input">
-                                    <input name="password" type="password" placeholder=
-                                        <loc:message
-                                                code="dashboard.passwordText"/> class="form_input">
-                                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
-                                    <br/>
-                                    <c:if test="${captchaType==\"RECAPTCHA\"}">
-                                        <%--CAPTCHA GOOGLE--%>
-                                        <div id="cpch-head-field" class="g-recaptcha"
-                                             data-sitekey=${captchaProperties.get("captcha.key")}></div>
-                                        <p class='cpch-error-message' style="color:red">${cpch}</p>
-                                    </c:if>
-                                    <c:if test="${captchaType==\"BOTDETECT\"}">
-                                        <%--CAPTCHA BotDetect--%>
-                                        <div class="validationDiv">
-                                            <botDetect:captcha id="headerRegCaptcha" userInputID="captchaCode"/>
-                                            <input name="captchaCode" type="text" id="captchaCode"/>
-                                            <input type="hidden" name="captchaId" value="headerRegCaptcha"/>
-                                        </div>
-                                    </c:if>
-                                    <input type="hidden" name="captchaType" value="${captchaType}"/>
-                                        <%----%>
-                                    <button type="submit" class="login_button"><loc:message
-                                            code="dashboard.entrance"/></button>
-                                    <a href="/forgotPassword" class="white forgot-password"><loc:message
-                                            code="dashboard.forgotPassword"/></a>
-
-                                    <div></div>
-                                        <%--QR--%>
-                                        <%--<div class="inline-block"><img src="/client/img/qr.jpg"></div>
-                                        <span class="white margin-left20">To enter via QR code</span>--%>
-                                </form>
-                                <sec:authorize access="isAuthenticated()">
-                                    <form action="/logout" class="dropdown-menu__logout-form" method="post">
-                                        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
-                                        <button type="submit" class="register">
-                                            <strong><loc:message code="dashboard.goOut"/></strong>
-                                        </button>
-                                    </form>
-                                </sec:authorize>
-                            </div>
-                        </li>
+                    <c:if test="${showRegistration}">
+                        <li class="pull-left paddingtop10"> <a href="/register" class="focus-white nav__link"><loc:message code="dashboard.signUp"/></a></li>
                     </c:if>
                 </sec:authorize>
                 <sec:authorize access="isAuthenticated()">
@@ -148,6 +150,7 @@
                         <li><a href="#" class="language">ID</a></li>
                         <li><a href="#" class="language">AR</a></li>
                     </ul>
+
                 </li>
                 <sec:authorize access="isAuthenticated()">
                     <li class="settings-menu-item">
@@ -156,6 +159,7 @@
                         </a>
                     </li>
                 </sec:authorize>
+
             </ul>
         </div>
     </div>
