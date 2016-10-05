@@ -10,6 +10,7 @@ import me.exrates.service.YandexKassaService;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -17,9 +18,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 
+import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,6 +42,12 @@ public class YandexKassaMerchantController {
 
     @Autowired
     private TransactionService transactionService;
+
+    @Autowired
+    private MessageSource messageSource;
+
+    @Autowired
+    private LocaleResolver localeResolver;
 
     private static final Logger LOG = LogManager.getLogger("merchant");
 
@@ -76,24 +85,21 @@ public class YandexKassaMerchantController {
     }
 
     @RequestMapping(value = "payment/success",method = RequestMethod.GET)
-    public RedirectView successPayment(@RequestParam final Map<String,String> response, final RedirectAttributes redir) {
+    public RedirectView successPayment(@RequestParam final Map<String,String> response, final RedirectAttributes redir, final HttpServletRequest request) {
 
         LOG.debug("Begin method: successPayment.");
         Transaction transaction = transactionService.findById(Integer.parseInt(response.get("orderNumber")));
 
         if (transaction.isProvided()){
-            merchantService.formatResponseMessage(transaction)
-                    .entrySet()
-                    .forEach(entry->redir.addFlashAttribute(entry.getKey(),entry.getValue()));
-            final String message = "merchants.successfulBalanceDeposit";
-            redir.addFlashAttribute("message", message);
+
+            redir.addAttribute("successNoty", messageSource.getMessage("merchants.successfulBalanceDeposit",
+                    merchantService.formatResponseMessage(transaction).values().toArray(), localeResolver.resolveLocale(request)));
 
             return new RedirectView("/dashboard");
 
         }
 
-        final String message = "merchants.internalError";
-        redir.addFlashAttribute("message", message);
+        redir.addAttribute("errorNoty", messageSource.getMessage("merchants.internalError", null, localeResolver.resolveLocale(request)));
 
         return new RedirectView("/dashboard");
     }

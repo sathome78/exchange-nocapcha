@@ -10,6 +10,7 @@ import me.exrates.service.PerfectMoneyService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -17,10 +18,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.WebUtils;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.security.Principal;
 import java.util.HashMap;
@@ -40,21 +43,25 @@ public class PerfectMoneyMerchantController {
     @Autowired
     private MerchantService merchantService;
 
+    @Autowired
+    private MessageSource messageSource;
+
+    @Autowired
+    private LocaleResolver localeResolver;
+
+
     private static final Logger logger = LogManager.getLogger("merchant");
 
     @RequestMapping(value = "payment/provide",method = RequestMethod.POST)
-    public RedirectView outputPayment(Payment payment,Principal principal,RedirectAttributes redir) {
+    public RedirectView outputPayment(Payment payment,Principal principal,RedirectAttributes redir, final HttpServletRequest request) {
         final Optional<CreditsOperation> creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName());
         if (!creditsOperation.isPresent()) {
-            redir.addFlashAttribute("error", "merchants.invalidSum");
+            redir.addAttribute("errorNoty", messageSource.getMessage("merchants.invalidSum", null, localeResolver.resolveLocale(request)));
             return new RedirectView("/dashboard");
         }
         perfectMoneyService.provideOutputPayment(payment, creditsOperation.get());
-        merchantService.formatResponseMessage(creditsOperation.get())
-                .entrySet()
-                .forEach(entry->redir.addFlashAttribute(entry.getKey(),entry.getValue()));
-        final String message = "merchants.successfulBalanceWithdraw";
-            redir.addFlashAttribute("message",message);
+        redir.addAttribute("successNoty", messageSource.getMessage("merchants.successfulBalanceDeposit",
+                merchantService.formatResponseMessage(creditsOperation.get()).values().toArray(), localeResolver.resolveLocale(request)));
         return new RedirectView("/dashboard");
     }
 
@@ -82,7 +89,7 @@ public class PerfectMoneyMerchantController {
 
     @RequestMapping(value = "payment/success",method = RequestMethod.POST)
     public RedirectView successPayment(@RequestParam Map<String,String> response, HttpSession httpSession,
-                                       RedirectAttributes redir) {
+                                       RedirectAttributes redir, final HttpServletRequest request) {
         logger.info("Response: " + response);
         final Object mutex = WebUtils.getSessionMutex(httpSession);
         final Map<String,String> payeeParams;
@@ -97,23 +104,19 @@ public class PerfectMoneyMerchantController {
         final String hash = perfectMoneyService.computePaymentHash(payeeParams);
         if (response.get("V2_HASH").equals(hash)) {
             perfectMoneyService.provideTransaction(openTransaction);
-            merchantService.formatResponseMessage(openTransaction)
-                    .entrySet()
-                    .forEach(entry->redir.addFlashAttribute(entry.getKey(),entry.getValue()));
             final String message = openTransaction.getOperationType() == OperationType.INPUT ? "merchants.successfulBalanceDeposit"
                     : "merchants.successfulBalanceWithdraw";
-            redir.addFlashAttribute("message", message);
+            redir.addAttribute("successNoty", messageSource.getMessage(message, merchantService.formatResponseMessage(openTransaction).values().toArray(), localeResolver.resolveLocale(request)));
             return new RedirectView("/dashboard");
         }
         perfectMoneyService.invalidateTransaction(openTransaction);
-        synchronized (mutex) {
-            httpSession.setAttribute("error", "merchants.incorrectPaymentDetails");
-        }
+        redir.addAttribute("errorNoty", messageSource.getMessage("merchants.incorrectPaymentDetails", null, localeResolver.resolveLocale(request)));
+
         return new RedirectView("/dashboard");
     }
 
     @RequestMapping(value = "payment/failure",method = RequestMethod.POST)
-    public RedirectView failurePayment(@RequestBody String body,HttpSession httpSession,RedirectAttributes redir) {
+    public RedirectView failurePayment(@RequestBody String body,HttpSession httpSession,RedirectAttributes redir, final HttpServletRequest request) {
         final Transaction openTransaction;
         final Object mutex = WebUtils.getSessionMutex(httpSession);
         synchronized (mutex) {
@@ -122,7 +125,7 @@ public class PerfectMoneyMerchantController {
             httpSession.removeAttribute("payeeParams");
         }
         perfectMoneyService.invalidateTransaction(openTransaction);
-        redir.addFlashAttribute("error", "merchants.authRejected");
+        redir.addAttribute("errorNoty", messageSource.getMessage("merchants.authRejected", null, localeResolver.resolveLocale(request)));
         return new RedirectView("/dashboard");
     }
 }
