@@ -16,7 +16,7 @@ $(function () {
                     template: '<div class="noty_message"><div class="noty_header"><button type="button" class="close" aria-label="Close">' +
                     '<span aria-hidden="true">&times;</span></button></div><br/><span class="noty_text"></span><div class="noty_close"></div></div>',
                     type: 'error',
-                    layout: 'center',
+                    layout: 'topCenter',
                     modal: true,
                     timeout: false
                 });
@@ -55,7 +55,7 @@ function successNoty(text) {
         template: '<div class="noty_message"><div class="noty_header"><button type="button" class="close" aria-label="Close">' +
         '<span aria-hidden="true">&times;</span></button></div><br/><span class="noty_text"></span><div class="noty_close"></div></div>',
         type: 'success',
-        layout: 'center',
+        layout: 'topCenter',
         modal: true,
         timeout: false
     });
@@ -70,7 +70,7 @@ function failNoty(jqXHR) {
         template: '<div class="noty_message"><div class="noty_header"><button type="button" class="close" aria-label="Close">' +
         '<span aria-hidden="true">&times;</span></button></div><br/><span class="noty_text"></span><div class="noty_close"></div></div>',
         type: 'error',
-        layout: 'center',
+        layout: 'topCenter',
         modal: true,
         timeout: false
     });
