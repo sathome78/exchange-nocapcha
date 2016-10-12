@@ -28,6 +28,7 @@ public class AccountStatementDto extends OnlineTableDto {
     private String sourceTypeId;
     private Integer sourceId;
     private TransactionStatus transactionStatus;
+    private String merchantName;
     private Boolean checked;
 
     public AccountStatementDto() {
@@ -165,5 +166,13 @@ public class AccountStatementDto extends OnlineTableDto {
 
     public void setChecked(Boolean checked) {
         this.checked = checked;
+    }
+
+    public String getMerchantName() {
+        return merchantName;
+    }
+
+    public void setMerchantName(String merchantName) {
+        this.merchantName = merchantName;
     }
 }
