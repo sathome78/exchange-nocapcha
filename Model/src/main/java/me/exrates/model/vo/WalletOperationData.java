@@ -100,4 +100,19 @@ public class WalletOperationData {
         ACTIVE,
         RESERVED
     }
+
+    @Override
+    public String toString() {
+        return "WalletOperationData{" +
+                "operationType=" + operationType +
+                ", walletId=" + walletId +
+                ", amount=" + amount +
+                ", balanceType=" + balanceType +
+                ", commission=" + commission +
+                ", commissionAmount=" + commissionAmount +
+                ", sourceType=" + sourceType +
+                ", sourceId=" + sourceId +
+                ", transaction=" + transaction +
+                '}';
+    }
 }
