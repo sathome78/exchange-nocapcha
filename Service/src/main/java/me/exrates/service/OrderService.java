@@ -237,17 +237,17 @@ public interface OrderService {
                                                                            OperationType operationType);
 
     @Transactional
-    DataTable<List<OrderBasicInfoDto>> findOrders(Integer currencyPair, String orderType, String orderDateFrom, String orderDateTo,
+    DataTable<List<OrderBasicInfoDto>> findOrders(Integer currencyPair, Integer orderId, String orderType, String orderDateFrom, String orderDateTo,
                                                   BigDecimal orderRateFrom, BigDecimal orderRateTo, BigDecimal orderVolumeFrom,
                                                   BigDecimal orderVolumeTo, String creatorEmail, String acceptorEmail, Locale locale);
 
-    DataTable<List<OrderBasicInfoDto>> findOrders(Integer currencyPair, String orderType, String orderDateFrom, String orderDateTo,
+    DataTable<List<OrderBasicInfoDto>> findOrders(Integer currencyPair, Integer orderId, String orderType, String orderDateFrom, String orderDateTo,
                                                   BigDecimal orderRateFrom, BigDecimal orderRateTo, BigDecimal orderVolumeFrom,
                                                   BigDecimal orderVolumeTo, String creatorEmail, String acceptorEmail, Locale locale,
                                                   int offset, int limit, String orderColumnName, String orderDirection);
 
     @Transactional
-    DataTable<List<OrderBasicInfoDto>> searchOrdersByAdmin(Integer currencyPair, String orderType, String orderDateFrom, String orderDateTo,
+    DataTable<List<OrderBasicInfoDto>> searchOrdersByAdmin(Integer currencyPair, Integer orderId, String orderType, String orderDateFrom, String orderDateTo,
                                                            BigDecimal orderRateFrom, BigDecimal orderRateTo, BigDecimal orderVolumeFrom,
                                                            BigDecimal orderVolumeTo, String creatorEmail, String acceptorEmail, Locale locale,
                                                            Map<String, String> params);

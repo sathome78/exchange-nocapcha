@@ -39,6 +39,21 @@
                 </div>
 
                 <form id="delete-order-info__form" action="/admin/searchorders" method="get">
+
+                    <div class="input-block-wrapper">
+                        <div class="col-md-3 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label">Id</label>
+                        </div>
+                        <div class="col-md-9 input-block-wrapper__input-wrapper">
+                            <input type="number" id="orderId" name="orderId" placeholder="0"/>
+                        </div>
+                        <div for="orderId" hidden class="col-md-7 input-block-wrapper__error-wrapper">
+                            <label for="orderId" class="input-block-wrapper__input"><loc:message
+                                    code="ordersearch.errornumber"/></label>
+                        </div>
+                    </div>
+
+
                     <div class="input-block-wrapper">
                         <div class="col-md-3 input-block-wrapper__label-wrapper">
                             <label class="input-block-wrapper__label"><loc:message
