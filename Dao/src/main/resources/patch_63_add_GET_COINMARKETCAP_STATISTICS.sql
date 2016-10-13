@@ -95,10 +95,10 @@ READS SQL DATA
               (LASTORDER.status_id = EO.status_id)
             ORDER BY LASTORDER.id DESC
             LIMIT 1
-          )  AS LAST,
+          )  AS LAST
 /* if general period != 24 HOUR then this 2 rows must be removed and need use commented code bellow (see mark "PERIOD")*/
-          MAX(EO.exrate) AS high24hr,
-          MIN(EO.exrate) AS low24hr
+        /*  MAX(EO.exrate) AS high24hr,
+          MIN(EO.exrate) AS low24hr*/
         FROM EXORDERS EO
           JOIN CURRENCY_PAIR CP ON (CP.id = EO.currency_pair_id) AND (CP.hidden IS NOT TRUE)
         WHERE
@@ -168,10 +168,9 @@ READS SQL DATA
         DELETE FROM COINMARKETCAP_STATISTICS_TMP_TBL;
 
         WHILE (eof = FALSE) DO
-/* mark: PERIOD
 SET high24hr = NULL;
 SET low24hr = NULL;
-*/
+
           SET lowestAsk = NULL;
           SET highestBid = NULL;
 
@@ -193,7 +192,6 @@ SET low24hr = NULL;
             (HIGHESTBIDCORDER.operation_type_id = 4)
           INTO highestBid;
 
-/* mark: PERIOD
 SELECT
   MAX(24ORDER.exrate),
   MIN(24ORDER.exrate)
@@ -203,7 +201,7 @@ WHERE
   (24ORDER.currency_pair_id = currency_pair_id) AND
   (24ORDER.status_id = status_id)
 INTO high24hr, low24hr;
-*/
+
 
           INSERT INTO COINMARKETCAP_STATISTICS_TMP_TBL VALUES (
             currency_pair_name,

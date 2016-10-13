@@ -330,7 +330,9 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public List<CoinmarketApiDto> getCoinmarketData(String currencyPairName) {
+        LOGGER.debug(currencyPairName);
         String s = "{call GET_COINMARKETCAP_STATISTICS('" + currencyPairName + "')}";
+        LOGGER.debug(s);
         NamedParameterJdbcTemplate jdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         List<CoinmarketApiDto> result = jdbcTemplate.execute(s, new PreparedStatementCallback<List<CoinmarketApiDto>>() {
             @Override
@@ -356,6 +358,7 @@ public class OrderDaoImpl implements OrderDao {
                 return list;
             }
         });
+        LOGGER.debug(result);
         return result;
     }
 

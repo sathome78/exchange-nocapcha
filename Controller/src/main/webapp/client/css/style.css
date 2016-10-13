@@ -983,6 +983,9 @@ td.blue-white {
 .dashboard-order__tr {
     cursor: pointer;
 }
+.dashboard-order__tr td {
+    word-break: break-all;
+}
 
 .dashboard-order__tr:hover {
     background: #d2dae7;
