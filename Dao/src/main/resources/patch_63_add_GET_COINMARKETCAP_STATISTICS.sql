@@ -95,10 +95,10 @@ READS SQL DATA
               (LASTORDER.status_id = EO.status_id)
             ORDER BY LASTORDER.id DESC
             LIMIT 1
-          )  AS LAST
-/* if general period != 24 HOUR then this 2 rows must be removed and need use commented code bellow (see mark "PERIOD")*/
-        /*  MAX(EO.exrate) AS high24hr,
-          MIN(EO.exrate) AS low24hr*/
+          )  AS LAST,
+          /* if general period != 24 HOUR then this 2 rows must be removed and need use commented code bellow (see mark "PERIOD")*/
+          MAX(EO.exrate) AS high24hr,
+          MIN(EO.exrate) AS low24hr
         FROM EXORDERS EO
           JOIN CURRENCY_PAIR CP ON (CP.id = EO.currency_pair_id) AND (CP.hidden IS NOT TRUE)
         WHERE
@@ -148,29 +148,30 @@ READS SQL DATA
 
         DROP TEMPORARY TABLE IF EXISTS COINMARKETCAP_STATISTICS_TMP_TBL;
         CREATE TEMPORARY TABLE COINMARKETCAP_STATISTICS_TMP_TBL
-            SELECT
-              currency_pair_name,
-              currency_pair_id,
-              status_id,
-              first_date_acception,
-              last_date_acception,
-              predPoint,
-              baseVolume,
-              first,
-              last,
-              lowestAsk,
-              highestBid,
-              high24hr,
-              low24hr,
-              quoteVolume,
-              isFrozen;
+          SELECT
+            currency_pair_name,
+            currency_pair_id,
+            status_id,
+            first_date_acception,
+            last_date_acception,
+            predPoint,
+            baseVolume,
+            first,
+            last,
+            lowestAsk,
+            highestBid,
+            high24hr,
+            low24hr,
+            quoteVolume,
+            isFrozen;
 
         DELETE FROM COINMARKETCAP_STATISTICS_TMP_TBL;
 
         WHILE (eof = FALSE) DO
-SET high24hr = NULL;
-SET low24hr = NULL;
-
+          /* mark: PERIOD
+          SET high24hr = NULL;
+          SET low24hr = NULL;
+          */
           SET lowestAsk = NULL;
           SET highestBid = NULL;
 
@@ -192,16 +193,17 @@ SET low24hr = NULL;
             (HIGHESTBIDCORDER.operation_type_id = 4)
           INTO highestBid;
 
-SELECT
-  MAX(24ORDER.exrate),
-  MIN(24ORDER.exrate)
-FROM EXORDERS 24ORDER
-WHERE
-  (24ORDER.date_acception >= now() - INTERVAL 24 HOUR) AND
-  (24ORDER.currency_pair_id = currency_pair_id) AND
-  (24ORDER.status_id = status_id)
-INTO high24hr, low24hr;
-
+          /* mark: PERIOD
+          SELECT
+            MAX(24ORDER.exrate),
+            MIN(24ORDER.exrate)
+          FROM EXORDERS 24ORDER
+          WHERE
+            (24ORDER.date_acception >= now() - INTERVAL 24 HOUR) AND
+            (24ORDER.currency_pair_id = currency_pair_id) AND
+            (24ORDER.status_id = status_id)
+          INTO high24hr, low24hr;
+          */
 
           INSERT INTO COINMARKETCAP_STATISTICS_TMP_TBL VALUES (
             currency_pair_name,
