@@ -19,6 +19,7 @@ import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.util.Cache;
+import org.apache.axis.utils.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static java.lang.Integer.valueOf;
 
@@ -450,7 +452,14 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     @Override
     public List<CoinmarketApiDto> getCoinmarketData(String currencyPairName, BackDealInterval backDealInterval) {
-        return orderDao.getCoinmarketData(currencyPairName);
+        final List<CoinmarketApiDto> result = orderDao.getCoinmarketData(currencyPairName);
+        List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairs();
+        result.addAll(currencyPairList.stream()
+                .filter(e -> (StringUtils.isEmpty(currencyPairName) || e.getName().equals(currencyPairName))
+                        && result.stream().noneMatch(r -> r.getCurrency_pair_name().equals(e.getName())))
+                .map(CoinmarketApiDto::new)
+                .collect(Collectors.toList()));
+        return result;
     }
 
     @Transactional
@@ -595,8 +604,8 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     @Override
     public List<OrderWideListDto> getUsersOrdersWithStateForAdmin(String email, CurrencyPair currencyPair, OrderStatus status,
-                                                       OperationType operationType,
-                                                       Integer offset, Integer limit, Locale locale) {
+                                                                  OperationType operationType,
+                                                                  Integer offset, Integer limit, Locale locale) {
         List<OrderWideListDto> result = orderDao.getMyOrdersWithState(email, currencyPair, status, operationType, offset, limit, locale);
 
         return result;

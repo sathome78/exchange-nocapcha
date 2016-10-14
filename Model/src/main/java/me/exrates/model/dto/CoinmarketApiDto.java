@@ -1,5 +1,6 @@
 package me.exrates.model.dto;
 
+import me.exrates.model.CurrencyPair;
 import me.exrates.model.util.BigDecimalProcessing;
 
 import java.math.BigDecimal;
@@ -19,6 +20,15 @@ public class CoinmarketApiDto {
     private Integer isFrozen;
     private BigDecimal high24hr;
     private BigDecimal low24hr;
+
+    /*constructor*/
+
+    public CoinmarketApiDto() {
+    }
+
+    public CoinmarketApiDto(CurrencyPair currencyPair) {
+        this.currency_pair_name = currencyPair.getName();
+    }
 
     @Override
     public String toString() {
