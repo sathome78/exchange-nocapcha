@@ -1902,3 +1902,7 @@ input[type=email], .dropdown-menu__form,
 #noty_topCenter_layout_container {
     margin-top: 250px !important;
 }
+
+#walletsTable tbody tr:hover {
+    cursor: pointer;
+}

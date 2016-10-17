@@ -4,6 +4,7 @@ import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.*;
 import me.exrates.security.service.UserSecureServiceImpl;
@@ -626,6 +627,20 @@ public class AdminController {
                         .collect(Collectors.joining());
 
         return value;
+    }
+
+    @RequestMapping(value = "admin/userStatements/{walletId}")
+    public ModelAndView accountStatementPage(@PathVariable("walletId") Integer walletId) {
+        return new ModelAndView("/admin/user_statement", "walletId", walletId);
+    }
+
+    @RequestMapping(value = "admin/getStatements", method = RequestMethod.GET)
+    @ResponseBody
+    public DataTable<List<AccountStatementDto>> getStatements(@RequestParam Integer walletId, @RequestParam Map<String, String> params,
+                                                   HttpServletRequest request) {
+        Integer offset = Integer.parseInt(params.getOrDefault("start", "0"));
+        Integer limit = Integer.parseInt(params.getOrDefault("length", "-1"));
+        return transactionService.getAccountStatement(walletId, offset, limit, localeResolver.resolveLocale(request));
     }
 
 

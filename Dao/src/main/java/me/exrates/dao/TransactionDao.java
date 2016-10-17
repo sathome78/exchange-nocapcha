@@ -45,6 +45,8 @@ public interface TransactionDao {
 
     List<AccountStatementDto> getAccountStatement(Integer walletId, Integer offset, Integer limit, Locale locale);
 
+    Integer getStatementSize(Integer walletId);
+
     List<Transaction> getOpenTransactionsByMerchant(Merchant merchant);
 
     BigDecimal maxAmount();

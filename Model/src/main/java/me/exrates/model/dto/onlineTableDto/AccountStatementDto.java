@@ -175,4 +175,25 @@ public class AccountStatementDto extends OnlineTableDto {
     public void setMerchantName(String merchantName) {
         this.merchantName = merchantName;
     }
+
+    @Override
+    public String toString() {
+        return "AccountStatementDto{" +
+                "datetime=" + datetime +
+                ", transactionId=" + transactionId +
+                ", activeBalanceBefore='" + activeBalanceBefore + '\'' +
+                ", reservedBalanceBefore='" + reservedBalanceBefore + '\'' +
+                ", operationType='" + operationType + '\'' +
+                ", amount='" + amount + '\'' +
+                ", commissionAmount='" + commissionAmount + '\'' +
+                ", activeBalanceAfter='" + activeBalanceAfter + '\'' +
+                ", reservedBalanceAfter='" + reservedBalanceAfter + '\'' +
+                ", sourceType='" + sourceType + '\'' +
+                ", sourceTypeId='" + sourceTypeId + '\'' +
+                ", sourceId=" + sourceId +
+                ", transactionStatus=" + transactionStatus +
+                ", merchantName='" + merchantName + '\'' +
+                ", checked=" + checked +
+                '}';
+    }
 }

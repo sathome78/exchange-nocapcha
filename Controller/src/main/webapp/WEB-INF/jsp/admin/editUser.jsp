@@ -7,6 +7,7 @@
 <%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
 <!DOCTYPE html>
 <html lang="en">
+<head>
 <meta charset="utf-8">
 <title><loc:message code="admin.title"/></title>
 <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon"/>
@@ -27,7 +28,7 @@
 <script type="text/javascript" src="<c:url value='/client/js/moment-with-locales.min.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/dataTable/adminTransactionsDataTable.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/dataTable/adminOrdersDataTable.js'/>"></script>
-
+<script type="text/javascript" src="<c:url value='/client/js/order/adminDeleteOrder.js'/>"></script>
 
 
 

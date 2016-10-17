@@ -31,4 +31,11 @@ $(function () {
             ]
         });
     }
+    $('#walletsTable tbody').on('click', 'tr', function () {
+        var currentRow = walletsDataTable.row( this );
+        var currentData = currentRow.data();
+        console.log(currentRow);
+        console.log(currentData);
+        window.location = "/admin/userStatements/" + currentData.id;
+    })
 });

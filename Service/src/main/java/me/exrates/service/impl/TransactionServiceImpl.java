@@ -266,6 +266,20 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
+    public DataTable<List<AccountStatementDto>> getAccountStatement(Integer walletId, Integer offset, Integer limit, Locale locale) {
+        DataTable<List<AccountStatementDto>> result = new DataTable<>();
+        int total = transactionDao.getStatementSize(walletId);
+        result.setRecordsFiltered(total);
+        result.setRecordsTotal(total);
+        result.setData(transactionDao.getAccountStatement(walletId, offset, limit, locale)
+                .stream().filter(statement -> statement.getTransactionId() > 0).collect(Collectors.toList()));
+        LOG.debug(result);
+        return result;
+    }
+
+
+
+    @Override
     public List<Transaction> getOpenTransactionsByMerchant(Merchant merchant){
         return transactionDao.getOpenTransactionsByMerchant(merchant);
     }

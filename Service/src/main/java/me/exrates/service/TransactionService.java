@@ -58,6 +58,8 @@ public interface TransactionService {
 
     List<AccountStatementDto> getAccountStatement (CacheData cacheData, Integer walletId, Integer offset, Integer limit, Locale locale);
 
+    DataTable<List<AccountStatementDto>> getAccountStatement(Integer walletId, Integer offset, Integer limit, Locale locale);
+
     List<Transaction> getOpenTransactionsByMerchant(Merchant merchant);
 
     BigDecimal maxAmount();
