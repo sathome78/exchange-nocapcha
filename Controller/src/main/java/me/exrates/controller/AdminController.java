@@ -640,7 +640,7 @@ public class AdminController {
                                                    HttpServletRequest request) {
         Integer offset = Integer.parseInt(params.getOrDefault("start", "0"));
         Integer limit = Integer.parseInt(params.getOrDefault("length", "-1"));
-        return transactionService.getAccountStatement(walletId, offset, limit, localeResolver.resolveLocale(request));
+        return transactionService.getAccountStatementForAdmin(walletId, offset, limit, localeResolver.resolveLocale(request));
     }
 
 
