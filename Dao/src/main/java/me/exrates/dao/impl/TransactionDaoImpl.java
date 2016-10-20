@@ -488,6 +488,13 @@ public final class TransactionDaoImpl implements TransactionDao {
     }
 
     @Override
+    public Integer getStatementSize(Integer walletId) {
+        String sql = "SELECT COUNT(*) FROM TRANSACTION WHERE TRANSACTION.provided=1 AND TRANSACTION.user_wallet_id = :wallet_id";
+        Map<String, Integer> params = Collections.singletonMap("wallet_id", walletId);
+        return jdbcTemplate.queryForObject(sql, params, Integer.class);
+    }
+
+    @Override
     public List<Transaction> getOpenTransactionsByMerchant(Merchant merchant){
         String sql = SELECT_ALL + " where TRANSACTION.merchant_id = (select MERCHANT.id " +
                 "from MERCHANT where MERCHANT.name = :merchant) AND TRANSACTION.operation_type_id = 1";
