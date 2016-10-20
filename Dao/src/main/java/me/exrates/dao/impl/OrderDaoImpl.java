@@ -52,6 +52,7 @@ public class OrderDaoImpl implements OrderDao {
     WalletDao walletDao;
 
     private static final Map<String, String> SEARCH_CLAUSES = new HashMap<String, String>() {{
+        put("order_id", "EXORDERS.id = :order_id");
         put("currency_pair_id", "EXORDERS.currency_pair_id = :currency_pair_id");
         put("operation_type_id", "EXORDERS.operation_type_id = :operation_type_id");
         put("date_from", "EXORDERS.date_creation >= STR_TO_DATE(:date_from, '%Y-%m-%d %H:%i:%s')");
@@ -804,7 +805,7 @@ public class OrderDaoImpl implements OrderDao {
 
 
     @Override
-    public PagingData<List<OrderBasicInfoDto>> searchOrders(Integer currencyPair, Integer orderType, String orderDateFrom, String orderDateTo,
+    public PagingData<List<OrderBasicInfoDto>> searchOrders(Integer currencyPair, Integer orderId, Integer orderType, String orderDateFrom, String orderDateTo,
                                                             BigDecimal orderRateFrom, BigDecimal orderRateTo, BigDecimal orderVolumeFrom,
                                                             BigDecimal orderVolumeTo, String creatorEmail, String acceptorEmail, Locale locale,
                                                             int offset, int limit, String orderColumnName, String orderDirection) {
@@ -828,6 +829,7 @@ public class OrderDaoImpl implements OrderDao {
 
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         Map<String, String> namedParameters = new HashMap<>();
+        namedParameters.put("order_id", String.valueOf(orderId));
         namedParameters.put("currency_pair_id", String.valueOf(currencyPair));
         namedParameters.put("operation_type_id", String.valueOf(orderType));
         namedParameters.put("date_from", orderDateFrom);

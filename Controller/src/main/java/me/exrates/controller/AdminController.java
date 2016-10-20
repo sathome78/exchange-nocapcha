@@ -564,6 +564,7 @@ public class AdminController {
     @ResponseBody
     @RequestMapping(value = "/admin/searchorders", method = RequestMethod.GET)
     public DataTable<List<OrderBasicInfoDto>> searchOrderByAdmin(@RequestParam(required = false) Integer currencyPair,
+                                                                 @RequestParam(required = false) Integer orderId,
                                       @RequestParam(required = false) String orderType,
                                       @RequestParam(required = false) String orderDateFrom,
                                       @RequestParam(required = false) String orderDateTo,
@@ -577,7 +578,7 @@ public class AdminController {
                                       HttpServletRequest request) {
 
         try {
-            DataTable<List<OrderBasicInfoDto>> orderInfo = orderService.searchOrdersByAdmin(currencyPair, orderType,
+            DataTable<List<OrderBasicInfoDto>> orderInfo = orderService.searchOrdersByAdmin(currencyPair, orderId, orderType,
                     orderDateFrom, orderDateTo, orderRateFrom, orderRateTo, orderVolumeFrom,
                     orderVolumeTo, creator, acceptor, localeResolver.resolveLocale(request), params);
             LOG.debug(orderInfo);

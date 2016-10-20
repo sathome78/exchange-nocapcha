@@ -548,17 +548,17 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public DataTable<List<OrderBasicInfoDto>> findOrders(Integer currencyPair, String orderType, String orderDateFrom, String orderDateTo,
+    public DataTable<List<OrderBasicInfoDto>> findOrders(Integer currencyPair, Integer orderId, String orderType, String orderDateFrom, String orderDateTo,
                                                          BigDecimal orderRateFrom, BigDecimal orderRateTo, BigDecimal orderVolumeFrom,
                                                          BigDecimal orderVolumeTo, String creatorEmail, String acceptorEmail, Locale locale) {
-        return findOrders(currencyPair, orderType, orderDateFrom, orderDateTo, orderRateFrom, orderRateTo, orderVolumeFrom,
+        return findOrders(currencyPair, orderId, orderType, orderDateFrom, orderDateTo, orderRateFrom, orderRateTo, orderVolumeFrom,
                 orderVolumeTo, creatorEmail, acceptorEmail, locale, 0, Integer.MAX_VALUE, "id", "ASC");
 
     }
 
     @Override
     @Transactional
-    public DataTable<List<OrderBasicInfoDto>> findOrders(Integer currencyPair, String orderType, String orderDateFrom, String orderDateTo,
+    public DataTable<List<OrderBasicInfoDto>> findOrders(Integer currencyPair, Integer orderId, String orderType, String orderDateFrom, String orderDateTo,
                                                          BigDecimal orderRateFrom, BigDecimal orderRateTo, BigDecimal orderVolumeFrom,
                                                          BigDecimal orderVolumeTo, String creatorEmail, String acceptorEmail, Locale locale,
                                                          int offset, int limit, String orderColumnName, String orderDirection) {
@@ -569,7 +569,7 @@ public class OrderServiceImpl implements OrderService {
         if (currencyPair.intValue() == -1) {
             currencyPair = null;
         }
-        PagingData<List<OrderBasicInfoDto>> searchResult = orderDao.searchOrders(currencyPair, ot, orderDateFrom,
+        PagingData<List<OrderBasicInfoDto>> searchResult = orderDao.searchOrders(currencyPair, orderId, ot, orderDateFrom,
                 orderDateTo, orderRateFrom, orderRateTo, orderVolumeFrom, orderVolumeTo, creatorEmail,
                 acceptorEmail, locale, offset, limit, orderColumnName, orderDirection);
         DataTable<List<OrderBasicInfoDto>> output = new DataTable<>();
@@ -582,7 +582,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public DataTable<List<OrderBasicInfoDto>> searchOrdersByAdmin(Integer currencyPair, String orderType, String orderDateFrom, String orderDateTo,
+    public DataTable<List<OrderBasicInfoDto>> searchOrdersByAdmin(Integer currencyPair, Integer orderId, String orderType, String orderDateFrom, String orderDateTo,
                                                                   BigDecimal orderRateFrom, BigDecimal orderRateTo, BigDecimal orderVolumeFrom,
                                                                   BigDecimal orderVolumeTo, String creatorEmail, String acceptorEmail, Locale locale,
                                                                   Map<String, String> params) {
@@ -593,11 +593,11 @@ public class OrderServiceImpl implements OrderService {
             String orderDirection = params.getOrDefault("order[0][dir]", "asc").toUpperCase();
 
 
-            return findOrders(currencyPair, orderType, orderDateFrom, orderDateTo, orderRateFrom, orderRateTo, orderVolumeFrom,
+            return findOrders(currencyPair, orderId, orderType, orderDateFrom, orderDateTo, orderRateFrom, orderRateTo, orderVolumeFrom,
                     orderVolumeTo, creatorEmail, acceptorEmail, locale,
                     valueOf(params.get("start")), valueOf(params.get("length")), orderColumnFormatted, orderDirection);
         }
-        return findOrders(currencyPair, orderType, orderDateFrom, orderDateTo, orderRateFrom, orderRateTo, orderVolumeFrom,
+        return findOrders(currencyPair, orderId, orderType, orderDateFrom, orderDateTo, orderRateFrom, orderRateTo, orderVolumeFrom,
                 orderVolumeTo, creatorEmail, acceptorEmail, locale);
     }
 
