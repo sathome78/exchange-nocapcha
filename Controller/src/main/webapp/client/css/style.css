@@ -1831,7 +1831,8 @@ form span.repass,  form span.repass-error{
     margin-top: 15px;
 }
 #feedback-form .input-block-wrapper,
-#edit-currency-limit-form .input-block-wrapper{
+#edit-currency-limit-form .input-block-wrapper,
+#news-add-editor-form .input-block-wrapper {
     display: inline-block;
     width: 100%;
     overflow: hidden;
@@ -1840,7 +1841,8 @@ form span.repass,  form span.repass-error{
 
 #feedback-form .input-block-wrapper__input-wrapper,
 #transaction-search-form .input-block-wrapper__input-wrapper,
-#edit-currency-limit-form .input-block-wrapper__input-wrapper{
+#edit-currency-limit-form .input-block-wrapper__input-wrapper,
+#news-add-editor-form .input-block-wrapper__input-wrapper {
     overflow: hidden;
     height: auto;
 }
@@ -1910,3 +1912,4 @@ input[type=email], .dropdown-menu__form,
 #news-add-modal .modal-dialog {
     width: 800px;
 }
+

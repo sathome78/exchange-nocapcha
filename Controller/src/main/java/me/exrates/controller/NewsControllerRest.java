@@ -2,6 +2,7 @@ package me.exrates.controller;
 
 import me.exrates.controller.exception.*;
 import me.exrates.model.News;
+import me.exrates.model.form.NewsEditorCreationForm;
 import me.exrates.service.NewsService;
 import me.exrates.service.UserFilesService;
 import org.apache.log4j.LogManager;
@@ -131,15 +132,15 @@ public class NewsControllerRest {
     }
 
     @RequestMapping(value = "/news/addNewsFromEditor", method = RequestMethod.POST, consumes = "application/json;charset=utf-8")
-    public String createNewsWithEditor(@RequestBody Map<String, String> params) {
-        String html = params.get("content");
-        LOG.debug(html);
+    public String createNewsWithEditor(@RequestBody NewsEditorCreationForm form, HttpServletRequest request) {
+        String html = form.getContent();
+        LOG.debug(form);
         News news = new News();
         news.setDate(LocalDate.now());
         news.setContent(html);
-        news.setNewsVariant("en");
-        news.setTitle("TALALA!!");
-        news.setBrief("ololo ololo ololo");
+        news.setNewsVariant(localeResolver.resolveLocale(request).getLanguage());
+        news.setTitle(form.getTitle());
+        news.setBrief(form.getBrief());
         news.setResource( String.valueOf(news.getDate().getYear()) + "/" +
                 String.valueOf(news.getDate().getMonth()) + "/" + String.valueOf(news.getDate().getDayOfMonth()) + "/");
         newsService.createNewsVariant(news, newsLocationDir);
