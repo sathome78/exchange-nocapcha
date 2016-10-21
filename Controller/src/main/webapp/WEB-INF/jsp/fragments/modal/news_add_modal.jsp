@@ -40,6 +40,8 @@
                     <input id="newsId" hidden name="id"/>
                     <input id="resource" hidden name="resource"/>
                 </form>
+                <textarea id="tinymce"></textarea>
+                <button type="button" id="tinymce-btn">Button</button>
             </div>
             <div class="modal-footer">
                 <div class="news-add-info__button-wrapper">

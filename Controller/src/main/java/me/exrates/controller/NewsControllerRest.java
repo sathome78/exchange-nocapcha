@@ -130,6 +130,19 @@ public class NewsControllerRest {
         }
     }
 
+    public String createNewsWithEditor(String html) {
+        LOG.debug(html);
+        News news = new News();
+        news.setDate(LocalDate.now());
+        news.setContent(html);
+        news.setNewsVariant("en");
+
+        news.setBrief("OLOLO ololo ololo");
+        return "";
+    }
+
+
+
     @RequestMapping(value = "/news/deleteNews", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
     public String uploadNewsVariant(HttpServletRequest request, HttpServletResponse response,
                                     @RequestParam(value = "id", required = false) Integer newsId,

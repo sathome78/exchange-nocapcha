@@ -1906,3 +1906,7 @@ input[type=email], .dropdown-menu__form,
 #walletsTable tbody tr:hover {
     cursor: pointer;
 }
+
+#news-add-modal .modal-dialog {
+    width: 800px;
+}
