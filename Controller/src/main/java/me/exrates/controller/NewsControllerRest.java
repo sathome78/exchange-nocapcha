@@ -130,15 +130,20 @@ public class NewsControllerRest {
         }
     }
 
-    public String createNewsWithEditor(String html) {
+    @RequestMapping(value = "/news/addNewsFromEditor", method = RequestMethod.POST, consumes = "application/json;charset=utf-8")
+    public String createNewsWithEditor(@RequestBody Map<String, String> params) {
+        String html = params.get("content");
         LOG.debug(html);
         News news = new News();
         news.setDate(LocalDate.now());
         news.setContent(html);
         news.setNewsVariant("en");
-
-        news.setBrief("OLOLO ololo ololo");
-        return "";
+        news.setTitle("TALALA!!");
+        news.setBrief("ololo ololo ololo");
+        news.setResource( String.valueOf(news.getDate().getYear()) + "/" +
+                String.valueOf(news.getDate().getMonth()) + "/" + String.valueOf(news.getDate().getDayOfMonth()) + "/");
+        newsService.createNewsVariant(news, newsLocationDir);
+        return "success";
     }
 
 

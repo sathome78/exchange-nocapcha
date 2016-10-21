@@ -42,6 +42,8 @@ public interface NewsService {
      */
     boolean uploadNews(Collection<News> variants, MultipartFile multipartFile, String newsLocationDir);
 
+    boolean createNewsVariant(News news, String locationDir);
+
     int deleteNewsVariant(News news);
 
     int deleteNews(News news);

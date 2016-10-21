@@ -8,6 +8,8 @@ import me.exrates.service.NewsService;
 import me.exrates.service.exception.FileLoadingException;
 import me.exrates.service.exception.NewsCreationException;
 import me.exrates.service.util.Cache;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,10 +20,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -30,6 +29,9 @@ import java.util.zip.ZipInputStream;
  */
 @Service
 public class NewsServiceImpl implements NewsService {
+
+    private static final Logger LOG = LogManager.getLogger(NewsServiceImpl.class);
+
     @Autowired
     private NewsDao newsDao;
 
@@ -95,6 +97,39 @@ public class NewsServiceImpl implements NewsService {
                 zis.closeEntry();
             }
             zis.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new FileLoadingException(e.getLocalizedMessage());
+        }
+        return true;
+    }
+
+    @Override
+    public boolean createNewsVariant(News news, String locationDir) {
+        int id = newsDao.addNews(news);
+        news.setId(id);
+
+        try {
+            newsDao.addNewsVariant(news);
+            String newsRootContentPath = new StringJoiner("")
+                    .add(locationDir)
+                    .add(news.getResource())
+                    .add(String.valueOf(id)).add("/")
+                    .add(news.getNewsVariant()).add("/")
+                    .toString();
+            LOG.debug(newsRootContentPath);
+            Path newsDirPath = Paths.get(newsRootContentPath);
+            if (!newsDirPath.toFile().exists()) {
+                Files.createDirectories(newsDirPath);
+            }
+            Path contentPath = Paths.get(newsRootContentPath + "newstopic.html");
+            Path titlePath = Paths.get(newsRootContentPath + "title.md");
+            Path briefPath = Paths.get(newsRootContentPath + "brief.md");
+            Files.write(contentPath, Collections.singleton(news.getContent()));
+            Files.write(titlePath, Collections.singleton(news.getTitle()));
+            Files.write(briefPath, Collections.singleton(news.getBrief()));
+
+
         } catch (IOException e) {
             e.printStackTrace();
             throw new FileLoadingException(e.getLocalizedMessage());

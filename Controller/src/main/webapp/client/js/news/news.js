@@ -173,9 +173,26 @@ function NewsClass($loadingImg) {
         });
         $('#add-news-button').on('click', that.addNews);
         $('#tinymce-btn').on('click', function () {
-            var text = tinymce.activeEditor.getContent();
 
+            var text = tinymce.activeEditor.getContent();
+            var container = {
+                content: text
+            };
             console.log(text);
+            $.ajax("/news/addNewsFromEditor", {
+                headers: {
+                    'X-CSRF-Token': $("input[name='_csrf']").val()
+                },
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(container),
+                success: function (data) {
+                    console.log(data);
+                },
+                error: function (err) {
+                    console.log(err);
+                }
+            })
 
         });
         $(document).on('focusin', function(e) {
