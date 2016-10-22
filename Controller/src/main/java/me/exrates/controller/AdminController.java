@@ -750,4 +750,9 @@ public class AdminController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @RequestMapping(value = "/admin/manageNews")
+    public ModelAndView manageNews() {
+        return new ModelAndView("/admin/manageNews");
+    }
+
 }

@@ -48,7 +48,7 @@ function NewsClass($loadingImg) {
                     data.forEach(function (e) {
                         var $newItem = $(tmpl($tmpl, e));
                         $newItem.find('.news__admin__delete-news-variant').attr('onclick', 'rightSider.newsList.deleteNewsVariant('+ e.id+', "'+ e.resource+'","'+ e.variant+'")');
-                        $newItem.find('.news__admin__add-news-variant').attr('onclick', 'rightSider.newsList.addNewsVariant('+ e.id+', "'+ e.resource+'")');
+                        $newItem.find('.news__admin__add-news-variant').attr('onclick', 'rightSider.newsList.updateVariant('+ e.id+', "'+ e.resource+'")');
                         $newsTable.append($newItem);
                     });
                     blink($newsTable);
@@ -74,8 +74,6 @@ function NewsClass($loadingImg) {
     };
 
     this.addNewsVariant = function(newsId, resource) {
-        var newNews = false;
-        $("#news-add-info__add-news").attr('onclick', 'rightSider.newsList.submitNews('+newNews+')');
         $(".news-add-info__date").css({'overflow': 'hidden', 'height': '0'});
         $("#newsId").val(newsId);
         $("#resource").val(resource);
@@ -155,6 +153,14 @@ function NewsClass($loadingImg) {
     })();
 
     function initTinyMce() {
+        var language = $('#language').text().trim().toLowerCase();
+        if (language === 'cn') {
+            language = 'zh_CN';
+        } else if (language === 'in') {
+            language = 'id';
+        }
+        var languageUrl = language === 'en' ? '' : '/client/js/tinymce/langs/' + language +'.js';
+
         tinymce.init({
             selector:'#tinymce',
             height: 500,
@@ -162,21 +168,57 @@ function NewsClass($loadingImg) {
             plugins: [
                 'advlist autolink lists link image charmap print preview hr anchor pagebreak',
                 'searchreplace wordcount visualblocks visualchars code fullscreen',
-                'insertdatetime media nonbreaking save table contextmenu directionality',
+                'insertdatetime media nonbreaking table contextmenu directionality',
                 'emoticons template paste textcolor colorpicker textpattern imagetools'
             ],
-            toolbar1: 'insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image',
-            toolbar2: 'print preview media | forecolor backcolor emoticons | save',
+            toolbar1: 'insertfile undo redo | bold italic | fontselect fontsizeselect | alignleft aligncenter alignright alignjustify | ' +
+            'bullist numlist outdent indent',
+            toolbar2: 'print preview media | forecolor backcolor emoticons | link image',
             image_advtab: true,
+            language_url: languageUrl,
+            language: language,
+            font_formats : "Andale Mono=andale mono,times;"+
+            "Arial=arial,helvetica,sans-serif;"+
+            "Arial Black=arial black,avant garde;"+
+            "Book Antiqua=book antiqua,palatino;"+
+            "Comic Sans MS=comic sans ms,sans-serif;"+
+            "Courier New=courier new,courier;"+
+            "Georgia=georgia,palatino;"+
+            "Helvetica=helvetica;"+
+            "Impact=impact,chicago;"+
+            "Symbol=symbol;"+
+            "Tahoma=tahoma,arial,helvetica,sans-serif;"+
+            "Terminal=terminal,monaco;"+
+            "Times New Roman=times new roman,times;"+
+            "Trebuchet MS=trebuchet ms,geneva;"+
+            "Verdana=verdana,geneva;"+
+            "Webdings=webdings;"+
+            "Wingdings=wingdings,zapf dingbats",
+            fontsize_formats: '8pt 10pt 12pt 14pt 18pt 24pt 36pt',
+            /*file_browser_callback: function (field_name, url, type, win) {
+                var startUri = "c:/Users/";
+                tinyMCE.activeEditor.windowManager.open({
+                    file : startUri,
+                    title : 'File Browser',
+                    width : 420,
+                    height : 400,
+                    resizable : "yes",
+                    close_previous : "no"
+                }, {
+                    window : win,
+                    input : field_name
+                });
+                return false;
+            },
+            file_browser_callback_types: 'image',*/
             templates: [
                 { title: 'Test template 1', content: 'Test 1' },
                 { title: 'Test template 2', content: 'Test 2' }
-            ],
+            ]/*,
             content_css: [
                 '//fonts.googleapis.com/css?family=Lato:300,300i,400,400i',
                 '//www.tinymce.com/css/codepen.min.css'
-            ]/*,
-             save_onsavecallback: function () { console.log('Saved'); }*/
+            ]*/
         });
         $(document).on('focusin', function(e) {
             if ($(e.target).closest(".mce-window, .moxman-window").length) {
@@ -189,9 +231,17 @@ function NewsClass($loadingImg) {
         if ($('#news-add-modal').find('li').has('a[href="#editor"]').hasClass('active')) {
             submitNewsFromEditor();
         } else {
-            console.log('talala');
-            console.log(newNews);
            that.saveNewsVariant(newNews);
+        }
+    };
+
+    this.updateVariant = function (newsId, resource) {
+        var newNews = false;
+        $("#news-add-info__add-news").attr('onclick', 'rightSider.newsList.submitNews('+newNews+')');
+        if ($('#news-add-modal').find('li').has('a[href="#editor"]').hasClass('active')) {
+            updateNewsInEditor(newsId)
+        } else {
+            that.addNewsVariant(newsId, resource);
         }
     };
 
@@ -200,9 +250,13 @@ function NewsClass($loadingImg) {
         console.log($('#news-add-editor-form').serializeArray());
         var text = tinymce.activeEditor.getContent();
         var container = {
-            title: $('#title').val(),
-            brief: $('#brief').val(),
-            content: text
+            id: $('#newsIdEd').val(),
+            title: $('#titleEd').val(),
+            brief: $('#briefEd').val(),
+            content: text,
+            date: $('#dateEd').val(),
+            resource: $('#resourceEd').val(),
+            newsVariant: $('#variantEd').val()
         };
         console.log(container);
         $.ajax("/news/addNewsFromEditor", {
@@ -214,6 +268,12 @@ function NewsClass($loadingImg) {
             data: JSON.stringify(container),
             success: function (data) {
                 console.log(data);
+                $('#newsIdEd').val(data.id);
+                $('#dateEd').val(data.date);
+                $('#variantEd').val(data.newsVariant);
+                $('#resourceEd').val(data.resource);
+                $('#titleEd').prop('readonly', true);
+                $('#briefEd').prop('readonly', true);
             },
             error: function (err) {
                 console.log(err);
@@ -221,11 +281,26 @@ function NewsClass($loadingImg) {
         })
     }
 
-   /* $('#tinymce-btn').on('click', function () {
+    function updateNewsInEditor(newsId) {
+        $.ajax("/news/getNewsVariant?newsId=" + newsId, {
+            type: "GET",
+            success: function (data) {
+                console.log(data);
+                $('#newsIdEd').val(data.id);
+                $('#dateEd').val(data.date);
+                $('#variantEd').val(data.newsVariant);
+                $('#resourceEd').val(data.resource);
+                $('#titleEd').val(data.title);
+                $('#briefEd').val(data.brief);
+                $('#titleEd').prop('readonly', true);
+                $('#briefEd').prop('readonly', true);
+                tinymce.activeEditor.setContent(data.content);
+            }
+        });
+        $('#news-add-modal').modal();
+    }
 
 
-
-    });*/
 
 
 }

@@ -27,19 +27,19 @@
 
                             <div class="input-block-wrapper">
                                 <div class="col-md-3 input-block-wrapper__label-wrapper">
-                                    <label for="title" class="input-block-wrapper__label">Title</label>
+                                    <label for="titleEd" class="input-block-wrapper__label">Title</label>
                                 </div>
                                 <div class="col-md-9 input-block-wrapper__input-wrapper">
-                                    <input id="title" name="title"
+                                    <input id="titleEd" name="title"
                                            class="form-control input-block-wrapper__input"/>
                                 </div>
                             </div>
                             <div class="input-block-wrapper">
                                 <div class="col-md-3 input-block-wrapper__label-wrapper">
-                                    <label for="brief" class="input-block-wrapper__label">Brief</label>
+                                    <label for="briefEd" class="input-block-wrapper__label">Brief</label>
                                 </div>
                                 <div class="col-md-9 input-block-wrapper__input-wrapper">
-                                    <textarea id="brief" name="brief"
+                                    <textarea id="briefEd" name="brief"
                                            class="form-control input-block-wrapper__input"></textarea>
                                 </div>
                             </div>
@@ -48,6 +48,8 @@
                             </div>
                             <input id="newsIdEd" hidden name="id"/>
                             <input id="resourceEd" hidden name="resource"/>
+                            <input id="dateEd" hidden name="date"/>
+                            <input id="variantEd" hidden name="newsVariant"/>
                             <button type="button" id="tinymce-btn">Button</button>
                         </form>
 

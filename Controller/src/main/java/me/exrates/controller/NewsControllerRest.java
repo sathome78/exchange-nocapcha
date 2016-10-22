@@ -21,7 +21,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -132,19 +134,25 @@ public class NewsControllerRest {
     }
 
     @RequestMapping(value = "/news/addNewsFromEditor", method = RequestMethod.POST, consumes = "application/json;charset=utf-8")
-    public String createNewsWithEditor(@RequestBody NewsEditorCreationForm form, HttpServletRequest request) {
+    public News createNewsWithEditor(@RequestBody NewsEditorCreationForm form, HttpServletRequest request) {
         String html = form.getContent();
         LOG.debug(form);
         News news = new News();
-        news.setDate(LocalDate.now());
+        news.setId(form.getId());
+        news.setDate(form.getDate() == null || form.getDate().isEmpty() ? LocalDate.now() : LocalDate.parse(form.getDate(), DateTimeFormatter.ISO_DATE));
         news.setContent(html);
-        news.setNewsVariant(localeResolver.resolveLocale(request).getLanguage());
+        news.setNewsVariant(form.getNewsVariant());
         news.setTitle(form.getTitle());
         news.setBrief(form.getBrief());
-        news.setResource( String.valueOf(news.getDate().getYear()) + "/" +
-                String.valueOf(news.getDate().getMonth()) + "/" + String.valueOf(news.getDate().getDayOfMonth()) + "/");
-        newsService.createNewsVariant(news, newsLocationDir);
-        return "success";
+        String resource = form.getResource() == null ? String.valueOf(news.getDate().getYear()) + "/" +
+                String.valueOf(news.getDate().getMonth()) + "/" + String.valueOf(news.getDate().getDayOfMonth()) + "/" : form.getResource();
+        news.setResource(resource);
+        return newsService.createNewsVariant(news, newsLocationDir, localeResolver.resolveLocale(request));
+    }
+
+    @RequestMapping(value = "news/getNewsVariant", method = RequestMethod.GET)
+    public News getNewsVariant(@RequestParam Integer newsId, HttpServletRequest request) {
+        return newsService.getNewsWithContent(newsId, localeResolver.resolveLocale(request), newsLocationDir);
     }
 
 
@@ -173,6 +181,12 @@ public class NewsControllerRest {
             throw new NewsRemovingException(messageSource.getMessage("news.errordelete", null, localeResolver.resolveLocale(request)));
         }
         return "{\"result\":\"" + messageSource.getMessage("news.successdelete", null, localeResolver.resolveLocale(request)) + "\"}";
+    }
+
+    @RequestMapping(value = "/news/findAllNewsVariants", method = RequestMethod.GET)
+    public List<News> findAllNewsVariants() {
+        return newsService.findAllNewsVariants();
+
     }
 
 

@@ -22,4 +22,6 @@ public interface NewsDao {
     int deleteNewsVariant(News news);
 
     int deleteNews(News news);
+
+    List<News> findAllNewsVariants();
 }

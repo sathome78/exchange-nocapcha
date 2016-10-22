@@ -31,6 +31,8 @@ public interface NewsService {
      */
     News getNews(final Integer newsId, Locale locale);
 
+    News getNewsWithContent(Integer newsId, Locale locale, String locationDir);
+
     /**
      * Receives list the one News in variants corresponding to locales which collected from ZIP package-file
      * If the News is new, then creates it in DB
@@ -42,9 +44,11 @@ public interface NewsService {
      */
     boolean uploadNews(Collection<News> variants, MultipartFile multipartFile, String newsLocationDir);
 
-    boolean createNewsVariant(News news, String locationDir);
+    News createNewsVariant(News news, String locationDir, Locale locale);
 
     int deleteNewsVariant(News news);
 
     int deleteNews(News news);
+
+    List<News> findAllNewsVariants();
 }

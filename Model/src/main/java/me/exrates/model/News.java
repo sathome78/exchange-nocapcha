@@ -1,5 +1,9 @@
 package me.exrates.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import me.exrates.model.serializer.LocalDateSerializer;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -9,11 +13,14 @@ import java.time.LocalDateTime;
 public class News implements Cloneable{
     private Integer id;
     private String title;
+    @JsonSerialize(using = LocalDateSerializer.class)
     private LocalDate date;
     private String brief;
     private String resource;
     private String content;
     private String newsVariant;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Boolean isActive;
 
     @Override
     public Object clone() throws CloneNotSupportedException {
@@ -76,5 +83,13 @@ public class News implements Cloneable{
 
     public void setNewsVariant(String newsVariant) {
         this.newsVariant = newsVariant;
+    }
+
+    public Boolean getActive() {
+        return isActive;
+    }
+
+    public void setActive(Boolean active) {
+        isActive = active;
     }
 }

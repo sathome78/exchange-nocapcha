@@ -52,6 +52,29 @@ public class NewsServiceImpl implements NewsService {
     }
 
     @Override
+    public News getNewsWithContent(Integer newsId, Locale locale, String locationDir) {
+        News news = getNews(newsId, locale);
+        String contentPathString = locationDir + news.getResource() +
+                new StringJoiner("/").add(String.valueOf(news.getId())).add(news.getNewsVariant()).add("newstopic.html").toString();
+        Path contentPath = Paths.get(contentPathString);
+        LOG.debug(contentPathString);
+        if (contentPath.toFile().exists()) {
+            try {
+                StringBuilder fileContent = new StringBuilder();
+                Files.lines(contentPath).forEach(line -> fileContent.append(line).append('\n'));
+                news.setContent(fileContent.toString().substring(0, fileContent.length() - 1));
+                LOG.debug(news.getContent());
+            } catch (IOException e) {
+                throw new FileLoadingException(e.getLocalizedMessage());
+            }
+
+        } else {
+            throw new FileLoadingException("Content does not exist!");
+        }
+        return news;
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean uploadNews(Collection<News> variants, MultipartFile multipartFile, String newsLocationDir) {
         News news = variants.iterator().next();
@@ -105,12 +128,20 @@ public class NewsServiceImpl implements NewsService {
     }
 
     @Override
-    public boolean createNewsVariant(News news, String locationDir) {
-        int id = newsDao.addNews(news);
-        news.setId(id);
+    @Transactional(rollbackFor = Exception.class)
+    public News createNewsVariant(News news, String locationDir, Locale locale) {
+        Integer id = news.getId();
+
+        if (id == null) {
+            id = newsDao.addNews(news);
+            news.setId(id);
+        }
 
         try {
-            newsDao.addNewsVariant(news);
+            if (news.getNewsVariant() == null || news.getNewsVariant().isEmpty()) {
+                news.setNewsVariant(locale.getLanguage());
+                newsDao.addNewsVariant(news);
+            }
             String newsRootContentPath = new StringJoiner("")
                     .add(locationDir)
                     .add(news.getResource())
@@ -134,7 +165,7 @@ public class NewsServiceImpl implements NewsService {
             e.printStackTrace();
             throw new FileLoadingException(e.getLocalizedMessage());
         }
-        return true;
+        return news;
     }
 
     @Override
@@ -146,4 +177,12 @@ public class NewsServiceImpl implements NewsService {
     public int deleteNews(News news) {
         return newsDao.deleteNews(news);
     }
+
+    @Override
+    public List<News> findAllNewsVariants() {
+        return newsDao.findAllNewsVariants();
+    }
+
+
+
 }

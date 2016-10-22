@@ -87,6 +87,7 @@ public class NewsDaoImpl implements NewsDao {
                     result.setDate(rs.getTimestamp("date").toLocalDateTime().toLocalDate());
                     result.setBrief(rs.getString("brief"));
                     result.setResource(rs.getString("resource"));
+                    result.setNewsVariant(rs.getString("news_variant"));
                     return result;
                 }
             });
@@ -165,5 +166,23 @@ public class NewsDaoImpl implements NewsDao {
             put("news_id", news.getId());
         }};
         return namedParameterJdbcTemplate.update(sql, new MapSqlParameterSource(params));
+    }
+
+    @Override
+    public List<News> findAllNewsVariants() {
+        String sql = "SELECT id, date, resource, title, news_variant, brief, active FROM NEWS " +
+                "INNER JOIN NEWS_VARIANTS ON NEWS_VARIANTS.news_id = NEWS.id " +
+                "ORDER BY id DESC, news_variant ASC";
+        return namedParameterJdbcTemplate.query(sql, (resultSet, i) -> {
+            News news = new News();
+            news.setId(resultSet.getInt("id"));
+            news.setDate(resultSet.getTimestamp("date").toLocalDateTime().toLocalDate());
+            news.setResource(resultSet.getString("resource"));
+            news.setTitle(resultSet.getString("title"));
+            news.setNewsVariant(resultSet.getString("news_variant"));
+            news.setBrief(resultSet.getString("brief"));
+            news.setActive(resultSet.getBoolean("active"));
+            return news;
+        });
     }
 }
