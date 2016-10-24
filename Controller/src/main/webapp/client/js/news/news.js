@@ -256,7 +256,6 @@ function NewsClass($loadingImg) {
 
 
     function submitNewsFromEditor() {
-        console.log($('#news-add-editor-form').serializeArray());
         var text = tinymce.activeEditor.getContent();
         var container = {
             id: $('#newsIdEd').val(),
@@ -267,7 +266,6 @@ function NewsClass($loadingImg) {
             resource: $('#resourceEd').val(),
             newsVariant: $('#variantEd').val()
         };
-        console.log(container);
         $.ajax("/news/addNewsFromEditor", {
             headers: {
                 'X-CSRF-Token': $("input[name='_csrf']").val()
@@ -298,7 +296,6 @@ function NewsClass($loadingImg) {
         $.ajax("/news/getNewsVariant?newsId=" + newsId + "&language=" + $('#variantEd').val(), {
             type: "GET",
             success: function (data) {
-                console.log(data);
                 if (!data || data.length === 0) {
                     clearAddNewsForm();
                 } else {
