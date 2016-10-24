@@ -123,9 +123,11 @@ public class EntryController {
                                 //ignore locale from path and take it from fact locale .append(locale)   //                                                ru
                         .append("/newstopic.html")  //                                          /newstopic.html
                         .toString();                //  /Users/Public/news/2015/MAY/27/48/ru/newstopic.html
+                LOGGER.debug("News content path: " + newsContentPath);
                 try {
                     String newsContent = new String(Files.readAllBytes(Paths.get(newsContentPath)), "UTF-8"); //content of the newstopic.html
                     news.setContent(newsContent);
+                    LOGGER.debug("News content: " + newsContent);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -133,6 +135,7 @@ public class EntryController {
                 String newsContent = messageSource.getMessage("news.absent", null, localeResolver.resolveLocale(request));
                 news = new News();
                 news.setContent(newsContent);
+                LOGGER.error("NEWS NOT FOUND");
             }
             modelAndView.addObject("captchaType", CAPTCHA_TYPE);
             modelAndView.addObject("news", news);

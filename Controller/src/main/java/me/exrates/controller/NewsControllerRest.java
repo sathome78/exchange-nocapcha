@@ -142,7 +142,7 @@ public class NewsControllerRest {
         news.setId(form.getId());
         news.setDate(form.getDate() == null || form.getDate().isEmpty() ? LocalDate.now() : LocalDate.parse(form.getDate(), DateTimeFormatter.ISO_DATE));
         news.setContent(html);
-        news.setNewsVariant(form.getNewsVariant());
+        news.setNewsVariant(form.getNewsVariant().toLowerCase());
         if (news.getNewsVariant() == null || news.getNewsVariant().isEmpty()) {
             news.setNewsVariant(localeResolver.resolveLocale(request).getLanguage());
         }

@@ -31,11 +31,11 @@
                             <div class="col-md-9 input-block-wrapper__input-wrapper">
                                 <select id="variantEd" name="newsVariant"
                                         class="form-control input-block-wrapper__input">
-                                    <option value="EN">EN</option>
-                                    <option value="RU">RU</option>
-                                    <option value="CN">CN</option>
-                                    <option value="IN">ID</option>
-                                    <option value="AR">AR</option>
+                                    <option value="en">EN</option>
+                                    <option value="ru">RU</option>
+                                    <option value="cn">CN</option>
+                                    <option value="in">ID</option>
+                                    <option value="ar">AR</option>
                                 </select>
                             </div>
                             </div>
