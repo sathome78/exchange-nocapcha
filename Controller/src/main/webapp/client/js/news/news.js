@@ -280,9 +280,7 @@ function NewsClass($loadingImg) {
                 $('#resourceEd').val(data.resource);
                 $('#titleEd').prop('readonly', true);
                 $('#briefEd').prop('readonly', true);
-            },
-            error: function (err) {
-                console.log(err);
+                successNoty('News saved successfully');
             }
         })
     }

@@ -171,6 +171,12 @@ public class NewsServiceImpl implements NewsService {
         return news;
     }
 
+    public String uploadImageForNews(MultipartFile file, Integer newsId, String tempLocation) {
+        return null;
+
+
+    }
+
     @Override
     public int deleteNewsVariant(News news) {
         return newsDao.deleteNewsVariant(news);
