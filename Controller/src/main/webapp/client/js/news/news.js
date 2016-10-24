@@ -68,7 +68,7 @@ function NewsClass($loadingImg) {
     this.addNews =function() {
         var newNews = true;
         $('#newsIdEd').val(null);
-        $('#variantEd').val($('#language').text().trim());
+        $('#variantEd').val($('#language').text().trim().toLowerCase());
         clearAddNewsForm();
         $("#news-add-info__add-news").attr('onclick', 'rightSider.newsList.submitNews('+newNews+')');
         $(".news-add-info__date").css({'height': '2rem'});
@@ -150,7 +150,7 @@ function NewsClass($loadingImg) {
             if (that.$loadingImg) that.$loadingImg.addClass('hidden');
         });
         $('#add-news-button').on('click', that.addNews);
-        $('#variantEd').val($('#language').text().trim());
+        $('#variantEd').val($('#language').text().trim().toLowerCase());
         $('#variantEd').change(function () {
             if ($('#newsIdEd').val()) {
                 retrieveNewsWithContent($('#newsIdEd').val())
