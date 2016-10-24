@@ -54,6 +54,9 @@ public class NewsServiceImpl implements NewsService {
     @Override
     public News getNewsWithContent(Integer newsId, Locale locale, String locationDir) {
         News news = getNews(newsId, locale);
+        if (news == null) {
+            return null;
+        }
         String contentPathString = locationDir + news.getResource() +
                 new StringJoiner("/").add(String.valueOf(news.getId())).add(news.getNewsVariant()).add("newstopic.html").toString();
         Path contentPath = Paths.get(contentPathString);
@@ -129,17 +132,17 @@ public class NewsServiceImpl implements NewsService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public News createNewsVariant(News news, String locationDir, Locale locale) {
+    public News createNewsVariant(News news, String locationDir) {
         Integer id = news.getId();
+        boolean isNew = id == null;
 
-        if (id == null) {
+        if (isNew) {
             id = newsDao.addNews(news);
             news.setId(id);
         }
 
         try {
-            if (news.getNewsVariant() == null || news.getNewsVariant().isEmpty()) {
-                news.setNewsVariant(locale.getLanguage());
+            if (isNew || (newsDao.getNews(id, new Locale(news.getNewsVariant())) == null)) {
                 newsDao.addNewsVariant(news);
             }
             String newsRootContentPath = new StringJoiner("")

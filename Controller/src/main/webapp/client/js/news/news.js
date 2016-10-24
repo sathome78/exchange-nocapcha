@@ -67,6 +67,9 @@ function NewsClass($loadingImg) {
 
     this.addNews =function() {
         var newNews = true;
+        $('#newsIdEd').val(null);
+        $('#variantEd').val($('#language').text().trim());
+        clearAddNewsForm();
         $("#news-add-info__add-news").attr('onclick', 'rightSider.newsList.submitNews('+newNews+')');
         $(".news-add-info__date").css({'height': '2rem'});
         $("#newsId").val(null);
@@ -147,6 +150,12 @@ function NewsClass($loadingImg) {
             if (that.$loadingImg) that.$loadingImg.addClass('hidden');
         });
         $('#add-news-button').on('click', that.addNews);
+        $('#variantEd').val($('#language').text().trim());
+        $('#variantEd').change(function () {
+            if ($('#newsIdEd').val()) {
+                retrieveNewsWithContent($('#newsIdEd').val())
+            }
+        });
         initTinyMce();
 
 
@@ -214,11 +223,11 @@ function NewsClass($loadingImg) {
             templates: [
                 { title: 'Test template 1', content: 'Test 1' },
                 { title: 'Test template 2', content: 'Test 2' }
-            ]/*,
+            ],
             content_css: [
                 '//fonts.googleapis.com/css?family=Lato:300,300i,400,400i',
                 '//www.tinymce.com/css/codepen.min.css'
-            ]*/
+            ]
         });
         $(document).on('focusin', function(e) {
             if ($(e.target).closest(".mce-window, .moxman-window").length) {
@@ -267,7 +276,6 @@ function NewsClass($loadingImg) {
             contentType: "application/json",
             data: JSON.stringify(container),
             success: function (data) {
-                console.log(data);
                 $('#newsIdEd').val(data.id);
                 $('#dateEd').val(data.date);
                 $('#variantEd').val(data.newsVariant);
@@ -282,22 +290,41 @@ function NewsClass($loadingImg) {
     }
 
     function updateNewsInEditor(newsId) {
-        $.ajax("/news/getNewsVariant?newsId=" + newsId, {
+        retrieveNewsWithContent(newsId);
+        $('#news-add-modal').modal();
+    }
+
+    function retrieveNewsWithContent(newsId) {
+        $.ajax("/news/getNewsVariant?newsId=" + newsId + "&language=" + $('#variantEd').val(), {
             type: "GET",
             success: function (data) {
                 console.log(data);
-                $('#newsIdEd').val(data.id);
-                $('#dateEd').val(data.date);
-                $('#variantEd').val(data.newsVariant);
-                $('#resourceEd').val(data.resource);
-                $('#titleEd').val(data.title);
-                $('#briefEd').val(data.brief);
-                $('#titleEd').prop('readonly', true);
-                $('#briefEd').prop('readonly', true);
-                tinymce.activeEditor.setContent(data.content);
+                if (!data || data.length === 0) {
+                    clearAddNewsForm();
+                } else {
+                    $('#newsIdEd').val(data.id);
+                    $('#dateEd').val(data.date);
+                    $('#variantEd').val(data.newsVariant);
+                    $('#resourceEd').val(data.resource);
+                    $('#titleEd').val(data.title);
+                    $('#briefEd').val(data.brief);
+                    $('#titleEd').prop('readonly', true);
+                    $('#briefEd').prop('readonly', true);
+                    tinymce.activeEditor.setContent(data.content);
+                }
+
             }
         });
-        $('#news-add-modal').modal();
+    }
+
+    function clearAddNewsForm() {
+        $('#dateEd').val('');
+        $('#resourceEd').val('');
+        $('#titleEd').val('');
+        $('#briefEd').val('');
+        $('#titleEd').prop('readonly', false);
+        $('#briefEd').prop('readonly', false);
+        tinymce.activeEditor.setContent('');
     }
 
 

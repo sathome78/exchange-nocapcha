@@ -24,8 +24,23 @@
                 <div class="tab-content">
                     <div id="editor" class="tab-pane fade in active">
                         <form id="news-add-editor-form">
-
                             <div class="input-block-wrapper">
+                            <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                <label for="variantEd" class="input-block-wrapper__label">Language</label>
+                            </div>
+                            <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                <select id="variantEd" name="newsVariant"
+                                        class="form-control input-block-wrapper__input">
+                                    <option value="EN">EN</option>
+                                    <option value="RU">RU</option>
+                                    <option value="CN">CN</option>
+                                    <option value="IN">ID</option>
+                                    <option value="AR">AR</option>
+                                </select>
+                            </div>
+                            </div>
+                            <div class="input-block-wrapper">
+
                                 <div class="col-md-3 input-block-wrapper__label-wrapper">
                                     <label for="titleEd" class="input-block-wrapper__label">Title</label>
                                 </div>
@@ -49,8 +64,6 @@
                             <input id="newsIdEd" hidden name="id"/>
                             <input id="resourceEd" hidden name="resource"/>
                             <input id="dateEd" hidden name="date"/>
-                            <input id="variantEd" hidden name="newsVariant"/>
-                            <button type="button" id="tinymce-btn">Button</button>
                         </form>
 
 

@@ -24,6 +24,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -142,17 +143,22 @@ public class NewsControllerRest {
         news.setDate(form.getDate() == null || form.getDate().isEmpty() ? LocalDate.now() : LocalDate.parse(form.getDate(), DateTimeFormatter.ISO_DATE));
         news.setContent(html);
         news.setNewsVariant(form.getNewsVariant());
+        if (news.getNewsVariant() == null || news.getNewsVariant().isEmpty()) {
+            news.setNewsVariant(localeResolver.resolveLocale(request).getLanguage());
+        }
         news.setTitle(form.getTitle());
         news.setBrief(form.getBrief());
-        String resource = form.getResource() == null ? String.valueOf(news.getDate().getYear()) + "/" +
+        String resource = form.getResource() == null || form.getResource().isEmpty() ? String.valueOf(news.getDate().getYear()) + "/" +
                 String.valueOf(news.getDate().getMonth()) + "/" + String.valueOf(news.getDate().getDayOfMonth()) + "/" : form.getResource();
         news.setResource(resource);
-        return newsService.createNewsVariant(news, newsLocationDir, localeResolver.resolveLocale(request));
+        return newsService.createNewsVariant(news, newsLocationDir);
     }
 
+
     @RequestMapping(value = "news/getNewsVariant", method = RequestMethod.GET)
-    public News getNewsVariant(@RequestParam Integer newsId, HttpServletRequest request) {
-        return newsService.getNewsWithContent(newsId, localeResolver.resolveLocale(request), newsLocationDir);
+    public News getNewsVariant(@RequestParam Integer newsId, @RequestParam String language, HttpServletRequest request) {
+        Locale locale = language == null || language.isEmpty() ? localeResolver.resolveLocale(request) : new Locale(language);
+        return newsService.getNewsWithContent(newsId, locale, newsLocationDir);
     }
 
 

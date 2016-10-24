@@ -1913,3 +1913,13 @@ input[type=email], .dropdown-menu__form,
     width: 800px;
 }
 
+#news-add-modal .nav.nav-pills > li > a {
+    color: #525f74;
+}
+#news-add-modal .nav.nav-pills > li > a:hover {
+    color: #FFFFFF;
+}
+#news-add-modal .nav.nav-pills > li.active > a {
+    background-color: #525f74;
+    color: #FFFFFF;
+}
