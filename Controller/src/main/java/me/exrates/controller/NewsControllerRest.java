@@ -44,6 +44,8 @@ public class NewsControllerRest {
     private
     @Value("${news.locationDir}")
     String newsLocationDir;
+    @Value("${news.tempImageDir}")
+    String tempImageDir;
     @Autowired
     private LocaleResolver localeResolver;
     @Autowired
@@ -159,6 +161,15 @@ public class NewsControllerRest {
     public News getNewsVariant(@RequestParam Integer newsId, @RequestParam String language, HttpServletRequest request) {
         Locale locale = language == null || language.isEmpty() ? localeResolver.resolveLocale(request) : new Locale(language);
         return newsService.getNewsWithContent(newsId, locale, newsLocationDir);
+    }
+
+    @RequestMapping(value = "news/uploadImage", method = RequestMethod.POST)
+    public String uploadNewsImage(@RequestParam MultipartFile file) throws IOException {
+        LOG.debug(file.getName());
+        LOG.debug(file.getSize());
+        LOG.debug(file.getContentType());
+        return newsService.uploadImageForNews(file, tempImageDir);
+
     }
 
 

@@ -158,6 +158,25 @@ function NewsClass($loadingImg) {
         });
         initTinyMce();
 
+        $('#submitImage').click(function () {
+            var data = new FormData($('#news-add-editor-form')[0]);
+            console.log(data);
+            /*$.ajax('/news/uploadImage', {
+                headers: {
+                    'X-CSRF-Token': $("input[name='_csrf']").val()
+                },
+                type: "POST",
+                contentType: false,
+                data: data,
+                success: function (data) {
+                    console.log(data);
+                },
+                error: function (err) {
+                    console.log(err);
+                }
+            });*/
+        })
+
 
     })();
 

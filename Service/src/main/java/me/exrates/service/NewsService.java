@@ -5,6 +5,7 @@ import me.exrates.model.dto.onlineTableDto.NewsDto;
 import me.exrates.model.vo.CacheData;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
@@ -45,6 +46,8 @@ public interface NewsService {
     boolean uploadNews(Collection<News> variants, MultipartFile multipartFile, String newsLocationDir);
 
     News createNewsVariant(News news, String locationDir);
+
+    String uploadImageForNews(MultipartFile file, String location) throws IOException;
 
     int deleteNewsVariant(News news);
 

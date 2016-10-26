@@ -23,6 +23,19 @@
                 </ul>
                 <div class="tab-content">
                     <div id="editor" class="tab-pane fade in active">
+                        <form id="imageUploadForm" action="/news/uploadImage" method="post" enctype="multipart/form-data">
+                            <div class="input-block-wrapper">
+                                <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                    <input name="image" id="imageUpload" type="file" />
+                                </div>
+                            </div>
+
+
+                        </form>
+                        <button id="submitImage" type="button">submit</button>
+
+
+
                         <form id="news-add-editor-form">
                             <div class="input-block-wrapper">
                             <div class="col-md-3 input-block-wrapper__label-wrapper">

@@ -171,10 +171,16 @@ public class NewsServiceImpl implements NewsService {
         return news;
     }
 
-    public String uploadImageForNews(MultipartFile file, Integer newsId, String tempLocation) {
-        return null;
-
-
+    @Override
+    public String uploadImageForNews(MultipartFile file, String location) throws IOException {
+        final Path path = Paths.get(location);
+        if (!Files.exists(path)) {
+            Files.createDirectory(path);
+        }
+        final String name = UUID.randomUUID().toString() + "." + file.getContentType().toLowerCase().substring(6);
+        final Path target = Paths.get(path.toString(), name);
+        Files.write(target, file.getBytes());
+        return location + name;
     }
 
     @Override
