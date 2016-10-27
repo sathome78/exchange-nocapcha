@@ -4,6 +4,7 @@ import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.FileLoadingException;
 import me.exrates.controller.exception.NewsCreationException;
 import me.exrates.controller.exception.NoFileForLoadingException;
+import me.exrates.controller.listener.StoreSessionListener;
 import me.exrates.model.News;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
@@ -57,6 +58,9 @@ public class EntryController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private StoreSessionListener storeSessionListener;
+
     @RequestMapping(value = {"/dashboard"})
     public ModelAndView dashboard(
             @RequestParam(required = false) String errorNoty,
@@ -76,6 +80,9 @@ public class EntryController {
         model.addObject("errorNoty", errorNoty);
         model.addObject("captchaType", CAPTCHA_TYPE);
         model.addObject("startupPage", startupPage == null ? "trading" : startupPage);
+        model.addObject("sessionId", request.getSession().getId());
+        storeSessionListener.getSessionById(request.getSession().getId()).ifPresent(LOGGER::debug);
+
         model.setViewName("globalPages/dashboard");
         OrderCreateDto orderCreateDto = new OrderCreateDto();
         model.addObject(orderCreateDto);

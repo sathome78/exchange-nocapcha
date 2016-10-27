@@ -2,6 +2,8 @@ package me.exrates.config;
 
 import me.exrates.controller.filter.RequestFilter;
 import me.exrates.controller.handler.ChatWebSocketHandler;
+import me.exrates.controller.listener.StoreSessionListener;
+import me.exrates.controller.listener.StoreSessionListenerImpl;
 import me.exrates.controller.postprocessor.OnlineMethodPostProcessor;
 import me.exrates.model.converter.CurrencyPairConverter;
 import me.exrates.model.enums.ChatLang;
@@ -33,6 +35,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
@@ -147,6 +150,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return resolver;
     }
 
+    @Bean(name = "AcceptHeaderLocaleResolver")
+    public LocaleResolver localeResolverRest() {
+        AcceptHeaderLocaleResolver resolver = new AcceptHeaderLocaleResolver();
+        resolver.setDefaultLocale(new Locale("en"));
+        return resolver;
+    }
+
     @Bean
     public VerifyReCaptchaSec verifyReCaptcha() {
         return new VerifyReCaptchaSec();
@@ -159,6 +169,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         registry.addResourceHandler("/**").addResourceLocations("/public/");
         registry.addResourceHandler(newsUrlPath + "/**").addResourceLocations("file:" + newsLocationDir);
         registry.addResourceHandler(userFilesLogicalDir + "/**").addResourceLocations("file:" + userFilesDir);
+        registry.addResourceHandler("/rest" + userFilesLogicalDir + "/**").addResourceLocations("file:" + userFilesDir);
     }
 
     @Override
@@ -256,6 +267,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean
     public RequestFilter requestFilter() {
         return RequestFilter.getInstance();
+    }
+
+    @Bean
+    public StoreSessionListener storeSessionListener() {
+        return new StoreSessionListenerImpl();
     }
 
 }

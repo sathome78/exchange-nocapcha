@@ -18,6 +18,7 @@ import com.yandex.money.api.net.OAuth2Session;
 import com.yandex.money.api.utils.Strings;
 import me.exrates.dao.YandexMoneyMerchantDao;
 import me.exrates.model.CreditsOperation;
+import me.exrates.model.Payment;
 import me.exrates.model.Transaction;
 import me.exrates.service.TransactionService;
 import me.exrates.service.UserService;
@@ -94,7 +95,7 @@ public class YandexMoneyServiceImpl implements YandexMoneyService {
     }
 
     @Override
-    public String getTemporaryAuthCode() {
+    public String getTemporaryAuthCode(String redirectURI) {
         final DefaultApiClient apiClient = new DefaultApiClient(clientId, true);
         final OAuth2Session session = new OAuth2Session(apiClient);
         final OAuth2Authorization oAuth2Authorization = session.createOAuth2Authorization();
@@ -117,6 +118,11 @@ public class YandexMoneyServiceImpl implements YandexMoneyService {
             throw new MerchantInternalException("YandexMoneyServiceInput");
         }
         return response.header(HttpHeaders.LOCATION);
+    }
+
+    @Override
+    public String getTemporaryAuthCode() {
+        return getTemporaryAuthCode(redirectURI);
     }
 
     @Override
@@ -197,5 +203,21 @@ public class YandexMoneyServiceImpl implements YandexMoneyService {
 //                    return new ModelAndView("redirect:" + execute.accountUnblockUri);
             }
         }
+    }
+
+    @Override
+    public int saveInputPayment(Payment payment) {
+        Integer merchantImageId = payment.getMerchantImage() > 0 ? payment.getMerchantImage() : null;
+
+
+        return yandexMoneyMerchantDao.savePayment(payment.getCurrency(), BigDecimal.valueOf(payment.getSum()), merchantImageId);
+    }
+    @Override
+    public Optional<Payment> getPaymentById(Integer id) {
+        return yandexMoneyMerchantDao.getPaymentById(id);
+    }
+    @Override
+    public void deletePayment(Integer id) {
+        yandexMoneyMerchantDao.deletePayment(id);
     }
 }

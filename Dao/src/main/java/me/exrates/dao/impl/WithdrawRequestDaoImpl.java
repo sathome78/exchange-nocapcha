@@ -80,7 +80,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
                         .getTransaction()
                         .getId());
                 put("wallet", withdrawRequest.getWallet());
-                put("merchant_image_id", withdrawRequest.getMerchantImage().getId());
+                put("merchant_image_id", withdrawRequest.getMerchantImage().getId() == 0 ? null : withdrawRequest.getMerchantImage().getId());
             }
         };
         jdbcTemplate.update(sql, params);

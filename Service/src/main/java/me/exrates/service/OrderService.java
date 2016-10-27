@@ -21,6 +21,12 @@ import java.util.Map;
 
 public interface OrderService {
 
+    List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsSessionless(Locale locale);
+
+    OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate);
+
+    Map<String, Object> validateOrder(OrderCreateDto orderCreateDto);
+
     /**
      * Returns the ID of the newly created and saved in DB order
      * Generates transaction of transferring money from active balance to reserved balance the corresponding wallet
@@ -256,4 +262,27 @@ public interface OrderService {
                                                            OperationType operationType,
                                                            Integer offset, Integer limit, Locale locale);
 
+    @Transactional
+    List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairs(Locale locale);
+
+    @Transactional(readOnly = true)
+    List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
+                                                OperationType operationType,
+                                                Integer offset, Integer limit, Locale locale);
+
+    @Transactional(readOnly = true)
+    List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, List<OrderStatus> statuses,
+                                                OperationType operationType,
+                                                Integer offset, Integer limit, Locale locale);
+
+    @Transactional
+    List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriod(String email,
+                                                            BackDealInterval backDealInterval,
+                                                            Integer limit, CurrencyPair currencyPair, Locale locale);
+
+    @Transactional(readOnly = true)
+    List<OrderListDto> getAllBuyOrders(CurrencyPair currencyPair, String email, Locale locale);
+
+    @Transactional(readOnly = true)
+    List<OrderListDto> getAllSellOrders(CurrencyPair currencyPair, String email, Locale locale);
 }

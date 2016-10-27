@@ -1,11 +1,13 @@
 package me.exrates.model.util;
 
 import me.exrates.model.enums.ActionType;
+import me.exrates.model.exceptions.BigDecimalParseException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Locale;
 
@@ -237,5 +239,42 @@ public class BigDecimalProcessing {
     public static String toQuoted(String bigDecimalString) {
         return '"' + bigDecimalString + '"';
     }
+
+    public static BigDecimal parseLocale(String bigDecimal, Locale locale, Integer minDecimalPlace) {
+        if (bigDecimal == null || locale == null || minDecimalPlace == null) {
+            return null;
+        }
+
+        minDecimalPlace = Math.min(minDecimalPlace, SCALE);
+        DecimalFormat df = new DecimalFormat("###,##0." +
+                new String(new char[minDecimalPlace]).replace("\0", "0") +
+                new String(new char[SCALE - minDecimalPlace]).replace("\0", "#"));
+        DecimalFormatSymbols dfs = new DecimalFormatSymbols(locale);
+        df.setDecimalFormatSymbols(dfs);
+        df.setParseBigDecimal(true);
+        try {
+            return (BigDecimal)df.parse(bigDecimal);
+        } catch (ParseException e) {
+            throw new BigDecimalParseException(e);
+        }
+    }
+
+    public static BigDecimal parseLocale(String bigDecimal, Locale locale, boolean trailingZeros) {
+        if (bigDecimal == null || locale == null) {
+            return null;
+        }
+
+        DecimalFormat df = new DecimalFormat(trailingZeros ? PATTERN : PATTERN_SHORT);
+        DecimalFormatSymbols dfs = new DecimalFormatSymbols(locale);
+        df.setDecimalFormatSymbols(dfs);
+        df.setParseBigDecimal(true);
+        try {
+            return (BigDecimal)df.parse(bigDecimal);
+        } catch (ParseException e) {
+            throw new BigDecimalParseException(e);
+        }
+    }
+
+
 
 }

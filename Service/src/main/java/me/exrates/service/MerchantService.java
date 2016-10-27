@@ -1,6 +1,7 @@
 package me.exrates.service;
 
 import me.exrates.model.*;
+import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.WithdrawalRequestStatus;
@@ -26,9 +27,8 @@ public interface MerchantService {
 
     List<Merchant> findAllByCurrency(Currency currency);
 
+    Map<String, String> withdrawRequest(CreditsOperation creditsOperation, Locale locale, String userEmail);
     List<Merchant> findAll();
-
-    Map<String, String> withdrawRequest(CreditsOperation creditsOperation, Locale locale, Principal principal);
 
     String resolveTransactionStatus(Transaction transaction, Locale locale);
 
@@ -42,6 +42,8 @@ public interface MerchantService {
     Merchant findById(int id);
 
     List<MerchantCurrency> findAllByCurrencies(List<Integer> currenciesId);
+
+    List<MerchantCurrencyApiDto> findAllMerchantCurrencies(Integer currencyId);
 
     Map<String, String> formatResponseMessage(CreditsOperation creditsOperation);
 
@@ -62,4 +64,6 @@ public interface MerchantService {
      * @return list of input/output orders
      */
     List<MyInputOutputHistoryDto> getMyInputOutputHistory(CacheData cacheData, String email, Integer offset, Integer limit, Locale locale);
+
+    List<MyInputOutputHistoryDto> getMyInputOutputHistory(String email, Integer offset, Integer limit, Locale locale);
 }

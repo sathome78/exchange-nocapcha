@@ -7,6 +7,7 @@ import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserIpDto;
 import me.exrates.model.dto.UserSessionInfoDto;
 import me.exrates.model.dto.UserSummaryDto;
+import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.dto.*;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
@@ -22,7 +23,9 @@ public interface UserDao {
 
 	void createUserDoc(int userId, List<Path> paths);
 
-	List<UserFile> findUserDoc(int userId);
+    void setUserAvatar(int userId, String path);
+
+    List<UserFile> findUserDoc(int userId);
 
 	void deleteUserDoc(int docId);
 
@@ -82,6 +85,8 @@ public interface UserDao {
 
     boolean setPreferredLang(int userId, Locale locale);
 
+    String getPreferredLangByEmail(String email);
+
     boolean insertIp(String email, String ip);
 
     UserIpDto getUserIpState(String email, String ip);
@@ -92,9 +97,23 @@ public interface UserDao {
 
     List<UserSummaryDto> getUsersSummaryList(String startDate, String endDate);
 
+    Long saveTemporaryPassword(Integer userId, String password, Integer tokenId);
+
+    TemporaryPasswordDto getTemporaryPasswordById(Long id);
+
+    boolean updateUserPasswordFromTemporary(Long tempPassId);
+
+    boolean deleteTemporaryPassword(Long id);
+
+    boolean tempDeleteUser(int id);
+
+    boolean tempDeleteUserWallets(int userId);
+
     List<UserSessionInfoDto> getUserSessionInfo(Set<String> emails);
 
     List<UserSummaryInOutDto> getUsersSummaryInOutList(String startDate, String endDate);
 
     List<UserSummaryTotalInOutDto> getUsersSummaryTotalInOutList(String startDate, String endDate);
+
+    String getAvatarPath(Integer userId);
 }

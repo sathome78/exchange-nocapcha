@@ -253,7 +253,6 @@ public class TransactionServiceImpl implements TransactionService {
         return showUserOperationHistory(id, locale);
     }
 
-
     @Override
     public List<AccountStatementDto> getAccountStatement(CacheData cacheData, Integer walletId, Integer offset, Integer limit, Locale locale) {
         List<AccountStatementDto> result = transactionDao.getAccountStatement(walletId, offset, limit, locale);
@@ -295,4 +294,9 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
 
+
+    @Override
+    public List<AccountStatementDto> getAccountStatement(Integer walletId, Integer offset, Integer limit, Locale locale) {
+        return transactionDao.getAccountStatement(walletId, offset, limit, locale);
+    }
 }

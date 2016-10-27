@@ -101,8 +101,8 @@
 
                                         <div></div>
                                             <%--QR--%>
-                                            <%--<div class="inline-block"><img src="/client/img/qr.jpg"></div>
-                                            <span class="white margin-left20">To enter via QR code</span>--%>
+                                            <div class="col-sm-8 col-sm-offset-2 text-center"><span id="login-qr">${sessionId}</span></div>
+                                        <div class="col-sm-12 text-center" style="margin-top: 5px"><span class="white">Enter via QR code</span></div>
                                     </form>
                                     <sec:authorize access="isAuthenticated()">
                                         <form action="/logout" class="dropdown-menu__logout-form" method="post">

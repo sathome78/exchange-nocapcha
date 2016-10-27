@@ -45,4 +45,5 @@ public interface ReferralService {
      */
     List<MyReferralDetailedDto> findAllMyReferral(CacheData cacheData, String email, Integer offset, Integer limit, Locale locale);
 
+    List<MyReferralDetailedDto> findAllMyReferral(String email, Integer offset, Integer limit, Locale locale);
 }

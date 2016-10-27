@@ -2,18 +2,22 @@ package me.exrates.dao.impl;
 
 
 import me.exrates.dao.YandexMoneyMerchantDao;
+import me.exrates.model.Payment;
+import me.exrates.model.enums.OperationType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
+import java.math.BigDecimal;
 import java.sql.Date;
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static me.exrates.jdbc.TokenRowMapper.tokenRowMapper;
 
@@ -80,4 +84,52 @@ public final class YandexMoneyMerchantDaoImpl implements YandexMoneyMerchantDao 
         return new NamedParameterJdbcTemplate(dataSource)
                 .update(sql,params) > 0;
     }
+
+    @Override
+    public int savePayment(Integer currencyId, BigDecimal amount, Integer merchantImageId) {
+        String sql = "INSERT INTO YANDEX_MONEY_PAYMENT(currency_id, amount, merchant_image_id) " +
+                "VALUES(:currency_id, :amount, :merchant_image_id)";
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("currency_id", currencyId)
+                .addValue("amount", amount)
+                .addValue("merchant_image_id", merchantImageId);
+        int result = new NamedParameterJdbcTemplate(dataSource)
+                .update(sql, params, keyHolder);
+        int id = (int) keyHolder.getKey().longValue();
+        if (result <= 0) {
+            id = 0;
+        }
+        return id;
+    }
+
+    @Override
+    public Optional<Payment> getPaymentById(Integer id) {
+        String sql = "SELECT * FROM YANDEX_MONEY_PAYMENT WHERE id = :id";
+        Map<String, Integer> params = Collections.singletonMap("id", id);
+        try {
+            return Optional.of(new NamedParameterJdbcTemplate(dataSource).queryForObject(sql, params,
+                    (rs, row) -> {
+                        Payment payment = new Payment();
+                        payment.setSum(rs.getBigDecimal("amount").doubleValue());
+                        payment.setMerchant(6);
+                        payment.setOperationType(OperationType.INPUT);
+                        payment.setCurrency(rs.getInt("currency_id"));
+                        payment.setMerchantImage(rs.getInt("merchant_image_id"));
+                        return payment;
+                    }));
+        } catch (EmptyResultDataAccessException ex) {
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public void deletePayment(Integer id) {
+        String sql = "DELETE FROM YANDEX_MONEY_PAYMENT WHERE id = :id";
+        Map<String, Integer> params = Collections.singletonMap("id", id);
+        new NamedParameterJdbcTemplate(dataSource)
+                .update(sql, params);
+    }
+
+
 }

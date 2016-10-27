@@ -9,6 +9,8 @@ import java.math.BigDecimal;
  */
 public class MyWalletsDetailedDto extends OnlineTableDto {
     private Integer id;
+    private Integer userId;
+    private Integer currencyId;
     private String currencyName;
     private String activeBalance;
     private String onConfirmation;
@@ -118,5 +120,21 @@ public class MyWalletsDetailedDto extends OnlineTableDto {
 
     public void setReservedByMerchant(String reservedByMerchant) {
         this.reservedByMerchant = reservedByMerchant;
+    }
+
+    public Integer getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Integer userId) {
+        this.userId = userId;
+    }
+
+    public Integer getCurrencyId() {
+        return currencyId;
+    }
+
+    public void setCurrencyId(Integer currencyId) {
+        this.currencyId = currencyId;
     }
 }

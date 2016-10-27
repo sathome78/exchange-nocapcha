@@ -3,6 +3,7 @@ package me.exrates.dao;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
 import me.exrates.model.enums.TransactionSourceType;
@@ -26,6 +27,10 @@ public interface WalletDao {
     int getUserIdFromWallet(int walletId);
 
     List<Wallet> findAllByUser(int userId);
+
+    MyWalletsStatisticsApiDto getWalletShortStatistics(int walletId);
+
+    List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> currencyIds, Locale locale);
 
     List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, Locale locale);
 

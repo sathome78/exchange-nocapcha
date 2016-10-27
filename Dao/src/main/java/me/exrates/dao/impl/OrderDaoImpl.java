@@ -36,6 +36,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Repository
 public class OrderDaoImpl implements OrderDao {
@@ -622,6 +623,7 @@ public class OrderDaoImpl implements OrderDao {
                 OrderAcceptedHistoryDto orderAcceptedHistoryDto = new OrderAcceptedHistoryDto();
                 orderAcceptedHistoryDto.setOrderId(rs.getInt("id"));
                 orderAcceptedHistoryDto.setDateAcceptionTime(rs.getTimestamp("date_acception").toLocalDateTime().toLocalTime().format(DateTimeFormatter.ISO_LOCAL_TIME));
+                orderAcceptedHistoryDto.setAcceptionTime(rs.getTimestamp("date_acception"));
                 orderAcceptedHistoryDto.setRate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("exrate"), locale, true));
                 orderAcceptedHistoryDto.setAmountBase(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount_base"), locale, true));
                 orderAcceptedHistoryDto.setOperationType(OperationType.convert(rs.getInt("operation_type_id")));
@@ -665,19 +667,31 @@ public class OrderDaoImpl implements OrderDao {
     public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
                                                        OperationType operationType,
                                                        Integer offset, Integer limit, Locale locale) {
+        return getMyOrdersWithState(email, currencyPair, Collections.singletonList(status), operationType, offset, limit, locale);
+    }
+
+    @Override
+    public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, List<OrderStatus> statuses,
+                                                       OperationType operationType,
+                                                       Integer offset, Integer limit, Locale locale) {
+        List<Integer> statusIds = statuses.stream().map(OrderStatus::getStatus).collect(Collectors.toList());
+        String orderClause = "  ORDER BY -date_acception ASC, date_creation DESC";
+        if (statusIds.size() > 1) {
+            orderClause = "  ORDER BY status_modification_date DESC";
+        }
         String sql = "SELECT EXORDERS.*, CURRENCY_PAIR.name AS currency_pair_name" +
                 "  FROM EXORDERS " +
                 "  JOIN USER ON (USER.id=EXORDERS.user_id AND USER.email = :email) " +
                 "  JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) " +
-                "  WHERE (status_id = :status_id)" +
+                "  WHERE (status_id IN (:status_ids))" +
                 "    AND (operation_type_id = :operation_type_id)" +
                 (currencyPair == null ? "" : " AND EXORDERS.currency_pair_id=" + currencyPair.getId()) +
-                "  ORDER BY -date_acception ASC, date_creation DESC" +
+                 orderClause +
                 (limit == -1 ? "" : "  LIMIT " + limit + " OFFSET " + offset);
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("email", email);
-        namedParameters.put("status_id", status.getStatus());
+        namedParameters.put("status_ids", statusIds);
         namedParameters.put("operation_type_id", operationType.getType());
         return namedParameterJdbcTemplate.query(sql, namedParameters, new RowMapper<OrderWideListDto>() {
             @Override
@@ -703,6 +717,7 @@ public class OrderDaoImpl implements OrderDao {
                 orderWideListDto.setDateAcception(rs.getTimestamp("date_acception") == null ? null : rs.getTimestamp("date_acception").toLocalDateTime());
                 orderWideListDto.setStatus(OrderStatus.convert(rs.getInt("status_id")));
                 orderWideListDto.setDateStatusModification(rs.getTimestamp("status_modification_date") == null ? null : rs.getTimestamp("status_modification_date").toLocalDateTime());
+                orderWideListDto.setCurrencyPairId(rs.getInt("currency_pair_id"));
                 orderWideListDto.setCurrencyPairName(rs.getString("currency_pair_name"));
                 return orderWideListDto;
             }

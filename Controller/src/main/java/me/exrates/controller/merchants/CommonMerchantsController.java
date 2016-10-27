@@ -132,7 +132,7 @@ public class CommonMerchantsController {
                 BAD_REQUEST);
         try {
             return merchantService.prepareCreditsOperation(payment, principal.getName())
-                    .map(creditsOperation -> merchantService.withdrawRequest(creditsOperation, locale, principal))
+                    .map(creditsOperation -> merchantService.withdrawRequest(creditsOperation, locale, principal.getName()))
                     .map(response -> new ResponseEntity<>(response, OK))
                     .orElseGet(() -> error);
         } catch (final NotEnoughUserWalletMoneyException e) {
