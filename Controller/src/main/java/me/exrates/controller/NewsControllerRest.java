@@ -2,6 +2,7 @@ package me.exrates.controller;
 
 import me.exrates.controller.exception.*;
 import me.exrates.model.News;
+import me.exrates.model.dto.NewsSummaryDto;
 import me.exrates.model.form.NewsEditorCreationForm;
 import me.exrates.service.NewsService;
 import me.exrates.service.UserFilesService;
@@ -22,10 +23,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
@@ -46,12 +44,12 @@ public class NewsControllerRest {
     String newsLocationDir;
     @Value("${news.tempImageDir}")
     String tempImageDir;
+    @Value("${news.urlPath}")
+    String urlPath;
     @Autowired
     private LocaleResolver localeResolver;
     @Autowired
     private NewsService newsService;
-    @Autowired
-    private UserFilesService userFilesService;
 
     @RequestMapping(value = "/news/addNewsVariant", method = RequestMethod.POST, produces = "application/json;charset=utf-8")
     public String uploadNewsVariant(HttpServletRequest request, HttpServletResponse response,
@@ -153,7 +151,7 @@ public class NewsControllerRest {
         String resource = form.getResource() == null || form.getResource().isEmpty() ? String.valueOf(news.getDate().getYear()) + "/" +
                 String.valueOf(news.getDate().getMonth()) + "/" + String.valueOf(news.getDate().getDayOfMonth()) + "/" : form.getResource();
         news.setResource(resource);
-        return newsService.createNewsVariant(news, newsLocationDir);
+        return newsService.createNewsVariant(news, newsLocationDir, tempImageDir, urlPath);
     }
 
 
@@ -164,11 +162,21 @@ public class NewsControllerRest {
     }
 
     @RequestMapping(value = "news/uploadImage", method = RequestMethod.POST)
-    public String uploadNewsImage(@RequestParam MultipartFile file) throws IOException {
+    public Map<String, String> uploadNewsImage(@RequestParam MultipartFile file,
+                                               @RequestParam Integer newsId,
+                                               HttpServletRequest request) throws IOException {
         LOG.debug(file.getName());
         LOG.debug(file.getSize());
         LOG.debug(file.getContentType());
-        return newsService.uploadImageForNews(file, tempImageDir);
+        LOG.debug(newsId);
+        String resourcePath = "";
+        String imageDir = tempImageDir;
+        if (newsId != null) {
+            News news = newsService.getNews(newsId, localeResolver.resolveLocale(request));
+            resourcePath = "/" + news.getResource() + newsId;
+            imageDir = newsLocationDir + resourcePath + "/img/";
+        }
+        return Collections.singletonMap("location", newsService.uploadImageForNews(file, imageDir, urlPath + resourcePath + "/img/"));
 
     }
 
@@ -201,7 +209,7 @@ public class NewsControllerRest {
     }
 
     @RequestMapping(value = "/news/findAllNewsVariants", method = RequestMethod.GET)
-    public List<News> findAllNewsVariants() {
+    public List<NewsSummaryDto> findAllNewsVariants() {
         return newsService.findAllNewsVariants();
 
     }

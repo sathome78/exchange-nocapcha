@@ -1,6 +1,7 @@
 package me.exrates.dao;
 
 import me.exrates.model.News;
+import me.exrates.model.dto.NewsSummaryDto;
 import me.exrates.model.dto.onlineTableDto.NewsDto;
 
 import java.util.List;
@@ -23,5 +24,5 @@ public interface NewsDao {
 
     int deleteNews(News news);
 
-    List<News> findAllNewsVariants();
+    List<NewsSummaryDto> findAllNewsVariants();
 }

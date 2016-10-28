@@ -2,6 +2,7 @@ package me.exrates.dao.impl;
 
 import me.exrates.dao.NewsDao;
 import me.exrates.model.News;
+import me.exrates.model.dto.NewsSummaryDto;
 import me.exrates.model.dto.onlineTableDto.NewsDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -16,10 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by Valk on 27.05.2016.
@@ -169,19 +167,31 @@ public class NewsDaoImpl implements NewsDao {
     }
 
     @Override
-    public List<News> findAllNewsVariants() {
+    public List<NewsSummaryDto> findAllNewsVariants() {
         String sql = "SELECT id, date, resource, title, news_variant, brief, active FROM NEWS " +
                 "INNER JOIN NEWS_VARIANTS ON NEWS_VARIANTS.news_id = NEWS.id " +
                 "ORDER BY id DESC, news_variant ASC";
-        return namedParameterJdbcTemplate.query(sql, (resultSet, i) -> {
-            News news = new News();
-            news.setId(resultSet.getInt("id"));
-            news.setDate(resultSet.getTimestamp("date").toLocalDateTime().toLocalDate());
-            news.setResource(resultSet.getString("resource"));
-            news.setTitle(resultSet.getString("title"));
-            news.setNewsVariant(resultSet.getString("news_variant"));
-            news.setBrief(resultSet.getString("brief"));
-            news.setActive(resultSet.getBoolean("active"));
+        return namedParameterJdbcTemplate.query(sql, (resultSet) -> {
+            List<NewsSummaryDto> news = new ArrayList<>();
+            int prevId = 0;
+            while (resultSet.next()) {
+                int currentId = resultSet.getInt("id");
+                if (currentId != prevId) {
+                    prevId = currentId;
+                    NewsSummaryDto dto = new NewsSummaryDto();
+                    dto.setId(currentId);
+                    dto.setDate(resultSet.getTimestamp("date").toLocalDateTime().toLocalDate());
+                    dto.setResource(resultSet.getString("resource"));
+                    dto.setTitle(resultSet.getString("title"));
+                    dto.setBrief(resultSet.getString("brief"));
+                    dto.setActive(resultSet.getBoolean("active"));
+                    dto.getVariants().add(resultSet.getString("news_variant"));
+                    news.add(dto);
+                } else {
+                    news.get(news.size() - 1).getVariants().add(resultSet.getString("news_variant"));
+                }
+            }
+
             return news;
         });
     }

@@ -4,13 +4,21 @@
 <%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<h4 class="h4_green"><loc:message code="news.title"/></h4>
+<c:set var="adminEnum" value="<%=me.exrates.model.enums.UserRole.ADMINISTRATOR%>"/>
+<c:set var="accountantEnum" value="<%=me.exrates.model.enums.UserRole.ACCOUNTANT%>"/>
+<c:set var="admin_userEnum" value="<%=me.exrates.model.enums.UserRole.ADMIN_USER%>"/>
+
+<sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+    <a id="showAllNews" href="#"> <h4 class="h4_green"><loc:message code="news.title"/></h4></a>
+</sec:authorize>
+
+<sec:authorize access="!hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+    <h4 class="h4_green"><loc:message code="news.title"/></h4>
+</sec:authorize>
 <hr class="under_h4">
 <div id="news_table_wrapper">
 <div id="news-table" class="news">
-    <c:set var="adminEnum" value="<%=me.exrates.model.enums.UserRole.ADMINISTRATOR%>"/>
-    <c:set var="accountantEnum" value="<%=me.exrates.model.enums.UserRole.ACCOUNTANT%>"/>
-    <c:set var="admin_userEnum" value="<%=me.exrates.model.enums.UserRole.ADMIN_USER%>"/>
+
     <script type="text/template" id="news_table_row">
         <div class="news_item">
             <a class="news_item__ref" href="<@=ref+'newstopic'@>">
@@ -35,6 +43,7 @@
     <%--MODAL--%>
     <%@include file='modal/news_add_modal.jsp' %>
     <%@include file='modal/news_delete_modal.jsp' %>
+    <%@include file='modal/news_list_modal.jsp' %>
     <%--#news-add-modal--%>
 </sec:authorize>
 

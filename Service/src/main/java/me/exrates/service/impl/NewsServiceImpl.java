@@ -2,6 +2,7 @@ package me.exrates.service.impl;
 
 import me.exrates.dao.NewsDao;
 import me.exrates.model.News;
+import me.exrates.model.dto.NewsSummaryDto;
 import me.exrates.model.dto.onlineTableDto.NewsDto;
 import me.exrates.model.vo.CacheData;
 import me.exrates.service.NewsService;
@@ -10,17 +11,23 @@ import me.exrates.service.exception.NewsCreationException;
 import me.exrates.service.util.Cache;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import sun.security.krb5.internal.PAData;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -132,13 +139,15 @@ public class NewsServiceImpl implements NewsService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public News createNewsVariant(News news, String locationDir) {
+    public News createNewsVariant(News news, String newsLocationDir, String tempImageDir, String logicalPath) {
         Integer id = news.getId();
         boolean isNew = id == null;
 
         if (isNew) {
             id = newsDao.addNews(news);
             news.setId(id);
+
+
         }
 
         try {
@@ -146,7 +155,7 @@ public class NewsServiceImpl implements NewsService {
                 newsDao.addNewsVariant(news);
             }
             String newsRootContentPath = new StringJoiner("")
-                    .add(locationDir)
+                    .add(newsLocationDir)
                     .add(news.getResource())
                     .add(String.valueOf(id)).add("/")
                     .add(news.getNewsVariant()).add("/")
@@ -155,6 +164,12 @@ public class NewsServiceImpl implements NewsService {
             Path newsDirPath = Paths.get(newsRootContentPath);
             if (!newsDirPath.toFile().exists()) {
                 Files.createDirectories(newsDirPath);
+            }
+            if (isNew) {
+                String updatedContent = replaceImageLinksAndFiles(news.getContent(),
+                        newsRootContentPath.substring(0, newsRootContentPath.length() - 3) + "img/",
+                        tempImageDir, logicalPath + "/" + news.getResource() + news.getId() + "/img/");
+                news.setContent(updatedContent);
             }
             Path contentPath = Paths.get(newsRootContentPath + "newstopic.html");
             Path titlePath = Paths.get(newsRootContentPath + "title.md");
@@ -171,16 +186,53 @@ public class NewsServiceImpl implements NewsService {
         return news;
     }
 
+    private String replaceImageLinksAndFiles(String content, String newsImageDir,
+                                             String tempImageDir, String logicalPath) {
+        Document document = Jsoup.parse(content);
+        Elements images = document.getElementsByTag("img");
+        images.forEach(LOG::debug);
+        images.forEach(elem -> {
+            String filename = elem.attr("src").substring(elem.attr("src").lastIndexOf('/') + 1);
+            Path filePath = Paths.get(tempImageDir + filename);
+            Path targetDirPath = Paths.get(newsImageDir);
+            if(filePath.toFile().exists()) {
+                try {
+                    if (!targetDirPath.toFile().exists()) {
+                        Files.createDirectories(targetDirPath);
+                    }
+                    Files.move(filePath, Paths.get(newsImageDir + filename));
+                    elem = elem.attr("src", logicalPath + filename);
+                } catch (IOException e) {
+                    LOG.error(e.getLocalizedMessage());
+                }
+            }
+
+        });
+        LOG.debug(document.body());
+        return document.body().html();
+    }
+
     @Override
-    public String uploadImageForNews(MultipartFile file, String location) throws IOException {
+    public String uploadImageForNews(MultipartFile file, String location, String logicalPath) throws IOException {
         final Path path = Paths.get(location);
         if (!Files.exists(path)) {
-            Files.createDirectory(path);
+            Files.createDirectories(path);
         }
         final String name = UUID.randomUUID().toString() + "." + file.getContentType().toLowerCase().substring(6);
         final Path target = Paths.get(path.toString(), name);
         Files.write(target, file.getBytes());
-        return location + name;
+        return logicalPath + name;
+    }
+
+    private List<String> getAvailableImages(String locationDir) {
+        Path path = Paths.get(locationDir);
+        if (!path.toFile().exists()) {
+            throw new FileLoadingException("Content does not exist!");
+        }
+       return Arrays.stream(path.toFile().listFiles((dir, name) -> name.toLowerCase().endsWith(".jpg") ||
+                name.toLowerCase().endsWith(".jpeg") ||
+                name.toLowerCase().endsWith(".png"))).map(File::getAbsolutePath)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -194,7 +246,7 @@ public class NewsServiceImpl implements NewsService {
     }
 
     @Override
-    public List<News> findAllNewsVariants() {
+    public List<NewsSummaryDto> findAllNewsVariants() {
         return newsDao.findAllNewsVariants();
     }
 

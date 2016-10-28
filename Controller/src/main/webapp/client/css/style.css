@@ -1923,3 +1923,17 @@ input[type=email], .dropdown-menu__form,
     background-color: #525f74;
     color: #FFFFFF;
 }
+
+#imageUpload {
+    display: none;
+}
+
+#all_news_table_wrapper {
+    height: 500px;
+    overflow: hidden;
+    display: block;
+}
+
+#all_news_table td {
+    font-size: 1.2rem;
+}

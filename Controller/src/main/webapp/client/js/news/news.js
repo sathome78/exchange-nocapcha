@@ -149,6 +149,33 @@ function NewsClass($loadingImg) {
             that.getNewsList();
             if (that.$loadingImg) that.$loadingImg.addClass('hidden');
         });
+        $('#all_news_table_wrapper').mCustomScrollbar({
+            theme: "dark",
+            axis: "yx",
+            live: true
+
+        });
+
+        if ($('#showAllNews').length) {
+            $('#showAllNews').click(function () {
+                var $allNewsTable = $('#all_news_table');
+                clearTable($allNewsTable);
+                $.ajax('/news/findAllNewsVariants', {
+                    type: 'GET',
+                    success: function (data) {
+                        if (!data) return;
+                        var $tmpl = $('#all_news_table_row').html().replace(/@/g, '%');
+                        data.forEach(function (e) {
+                            var $newItem = $(tmpl($tmpl, e));
+                            $allNewsTable.append($newItem);
+                        });
+                    }
+                });
+                $('#news-list-modal').modal();
+            });
+        }
+
+
         $('#add-news-button').on('click', that.addNews);
         $('#variantEd').val($('#language').text().trim().toLowerCase());
         $('#variantEd').change(function () {
@@ -157,27 +184,6 @@ function NewsClass($loadingImg) {
             }
         });
         initTinyMce();
-
-        $('#submitImage').click(function () {
-            var data = new FormData($('#news-add-editor-form')[0]);
-            console.log(data);
-            /*$.ajax('/news/uploadImage', {
-                headers: {
-                    'X-CSRF-Token': $("input[name='_csrf']").val()
-                },
-                type: "POST",
-                contentType: false,
-                data: data,
-                success: function (data) {
-                    console.log(data);
-                },
-                error: function (err) {
-                    console.log(err);
-                }
-            });*/
-        })
-
-
     })();
 
     function initTinyMce() {
@@ -201,10 +207,11 @@ function NewsClass($loadingImg) {
             ],
             toolbar1: 'insertfile undo redo | bold italic | fontselect fontsizeselect | alignleft aligncenter alignright alignjustify | ' +
             'bullist numlist outdent indent',
-            toolbar2: 'print preview media | forecolor backcolor emoticons | link image',
+            toolbar2: 'print preview | forecolor backcolor emoticons | link image media | code',
             image_advtab: true,
             language_url: languageUrl,
             language: language,
+            relative_urls: false,
             font_formats : "Andale Mono=andale mono,times;"+
             "Arial=arial,helvetica,sans-serif;"+
             "Arial Black=arial black,avant garde;"+
@@ -223,22 +230,17 @@ function NewsClass($loadingImg) {
             "Webdings=webdings;"+
             "Wingdings=wingdings,zapf dingbats",
             fontsize_formats: '8pt 10pt 12pt 14pt 18pt 24pt 36pt',
-            /*file_browser_callback: function (field_name, url, type, win) {
-                var startUri = "c:/Users/";
-                tinyMCE.activeEditor.windowManager.open({
-                    file : startUri,
-                    title : 'File Browser',
-                    width : 420,
-                    height : 400,
-                    resizable : "yes",
-                    close_previous : "no"
-                }, {
-                    window : win,
-                    input : field_name
+            file_browser_callback: function(field_name, url, type, win) {
+                $('#imageUpload').one('change', function () {
+                    submitImage(function (data) {
+                         if (data.location) {
+                             $('#' + field_name).val(data.location);
+                        }
+                    })
                 });
-                return false;
+                $('#imageUpload').trigger('click');
             },
-            file_browser_callback_types: 'image',*/
+            file_browser_callback_types: 'image',
             templates: [
                 { title: 'Test template 1', content: 'Test 1' },
                 { title: 'Test template 2', content: 'Test 2' }
@@ -251,6 +253,23 @@ function NewsClass($loadingImg) {
         $(document).on('focusin', function(e) {
             if ($(e.target).closest(".mce-window, .moxman-window").length) {
                 e.stopImmediatePropagation();
+            }
+        });
+    }
+
+    function submitImage(success) {
+        var data = new FormData($('#imageUploadForm')[0]);
+        data.append("newsId", $('#newsIdEd').val());
+        $.ajax('/news/uploadImage', {
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            type: "POST",
+            contentType: false,
+            processData: false,
+            data: data,
+            success: function (data) {
+                success(data);
             }
         });
     }
