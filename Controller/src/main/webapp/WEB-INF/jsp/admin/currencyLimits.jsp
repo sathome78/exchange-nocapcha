@@ -64,7 +64,7 @@
                                             </c:when>
                                             <c:otherwise>
                                         <span class="minLimitFormatted">
-                                                <fmt:formatNumber value="${currency.minWithdrawSum}" pattern="###,##0.00##"/>
+                                                <fmt:formatNumber value="${currency.minWithdrawSum}" pattern="###,##0.00########"/>
                                             </span>
                                             </c:otherwise>
                                         </c:choose>

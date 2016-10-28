@@ -36,7 +36,7 @@
                             </div>
                             <div class="col-md-6 input-block-wrapper__label-wrapper">
                                 <div id="min-sum-notification" class="red"><loc:message code="mercnahts.output.minSum"/>
-                                    <strong> ${currency.name} <span><fmt:formatNumber value="${currency.minWithdrawSum}" pattern="###,##0.00##"/></span>
+                                    <strong> ${currency.name} <span><fmt:formatNumber value="${currency.minWithdrawSum}" pattern="###,##0.00######"/></span>
                                     </strong></div>
                             </div>
                         </div>
