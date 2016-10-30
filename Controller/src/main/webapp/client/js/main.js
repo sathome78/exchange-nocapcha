@@ -603,9 +603,11 @@ $(function(){
 
     $("#outputPaymentProcess").on('click', function () {
         var uid = $("input[name='walletUid']").val();
-        if (uid.length>5){
+        if (uid.length>3){
             $("#destination").val(uid);
             submitProcess();
+            $('#outputPaymentProcess')
+                .prop('disabled', true)
             setTimeout(function()
             {
                 location.reload();
