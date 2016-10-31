@@ -4,6 +4,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.mobileApiDto.dashboard.CommissionsDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
@@ -211,6 +212,8 @@ public interface OrderService {
      * @return
      */
     OrderCommissionsDto getCommissionForOrder();
+
+    CommissionsDto getAllCommissions();
 
     /**
      * Returns list of Buy orders of status open

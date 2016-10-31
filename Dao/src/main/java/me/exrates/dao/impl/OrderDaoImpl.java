@@ -7,6 +7,7 @@ import me.exrates.jdbc.OrderRowMapper;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.mobileApiDto.dashboard.CommissionsDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
@@ -657,6 +658,47 @@ public class OrderDaoImpl implements OrderDao {
                     orderCommissionsDto.setBuyCommission(rs.getBigDecimal("buy_commission"));
                     return orderCommissionsDto;
                 }
+            });
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
+    }
+
+    @Override
+    public CommissionsDto getAllCommissions(){
+        final String sql =
+                "  SELECT SUM(sell_commission) as sell_commission, SUM(buy_commission) as buy_commission, " +
+                        "SUM(input_commission) as input_commission, SUM(output_commission) as output_commission" +
+                        "  FROM " +
+                        "      ((SELECT SELL.value as sell_commission, 0 as buy_commission, 0 as input_commission, 0 as output_commission " +
+                        "      FROM COMMISSION SELL " +
+                        "      WHERE operation_type = 3 " +
+                        "      ORDER BY date DESC LIMIT 1)  " +
+                        "    UNION " +
+                        "      (SELECT 0, BUY.value, 0, 0 " +
+                        "      FROM COMMISSION BUY " +
+                        "      WHERE operation_type = 4 " +
+                        "      ORDER BY date DESC LIMIT 1) " +
+                        "    UNION " +
+                        "      (SELECT 0, 0, INPUT.value, 0 " +
+                        "      FROM COMMISSION INPUT " +
+                        "      WHERE operation_type = 1 " +
+                        "      ORDER BY date DESC LIMIT 1) " +
+                        "    UNION " +
+                        "      (SELECT 0, 0, 0, OUTPUT.value " +
+                        "      FROM COMMISSION OUTPUT " +
+                        "      WHERE operation_type = 2 " +
+                        "      ORDER BY date DESC LIMIT 1) " +
+                        "  ) COMMISSION";
+        try {
+            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+            return jdbcTemplate.queryForObject(sql, (rs, row) -> {
+                    CommissionsDto commissionsDto = new CommissionsDto();
+                    commissionsDto.setSellCommission(rs.getBigDecimal("sell_commission"));
+                    commissionsDto.setBuyCommission(rs.getBigDecimal("buy_commission"));
+                    commissionsDto.setInputCommission(rs.getBigDecimal("input_commission"));
+                    commissionsDto.setOutputCommission(rs.getBigDecimal("output_commission"));
+                    return commissionsDto;
             });
         } catch (EmptyResultDataAccessException e) {
             return null;

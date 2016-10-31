@@ -438,19 +438,23 @@ public class MobileDashboardController {
 
 
     /**
-     * @api {get} /api/dashboard/orderCommissions Current commissions for creating and accepting orders
-     * @apiName getOrderCommissions
+     * @api {get} /api/dashboard/commission Current commissions for creating and accepting orders
+     * @apiName getCommissions
      * @apiGroup Dashboard
      * @apiUse TokenHeader
      * @apiPermission User
      * @apiDescription returns current commissions for operation SELL and BUY
      *
-     * @apiSuccess {Object} dto Container object
-     * @apiSuccess {Number} dto.sellCommission sell commission
-     * @apiSuccess {Number} dto.buyCommission buy commission
+     * @apiSuccess {Object} data Container object
+     * @apiSuccess {Number} data.inputCommission commission for input operations
+     * @apiSuccess {Number} data.outputCommission commission for output operations
+     * @apiSuccess {Number} data.sellCommission sell commission
+     * @apiSuccess {Number} data.buyCommission buy commission
      * @apiSuccessExample {json} Success-Response:
      *     HTTP/1.1 200 OK
      *     {
+     *          "inputCommission": 0.5,
+     *          "outputCommission": 0.5,
      *          "sellCommission": 0.2,
      *          "buyCommission": 0.2
      *     }
@@ -460,9 +464,9 @@ public class MobileDashboardController {
      * @apiUse AuthenticationError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/orderCommissions", method = GET, produces = APPLICATION_JSON_VALUE)
-    public OrderCommissionsDto getOrderCommissions() {
-        return orderService.getCommissionForOrder();
+    @RequestMapping(value = "/commission", method = GET, produces = APPLICATION_JSON_VALUE)
+    public CommissionsDto getOrderCommissions() {
+        return orderService.getAllCommissions();
     }
 
 
