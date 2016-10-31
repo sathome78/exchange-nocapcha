@@ -17,7 +17,6 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 
 public interface OrderDao {
 
@@ -68,4 +67,7 @@ public interface OrderDao {
                                                      BigDecimal orderRateFrom, BigDecimal orderRateTo, BigDecimal orderVolumeFrom,
                                                      BigDecimal orderVolumeTo, String creatorEmail, String acceptorEmail, Locale locale,
                                                      int offset, int limit, String orderColumnName, String orderDirection);
+
+    List<ExOrder> selectTopOrdersBySum(Integer currencyPairId, BigDecimal exrate,
+                                       BigDecimal amount, OperationType orderType);
 }
