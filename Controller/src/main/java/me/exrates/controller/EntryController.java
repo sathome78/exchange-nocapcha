@@ -29,6 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.Principal;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -104,22 +105,22 @@ public class EntryController {
     }
 
     /*skip resources: img, css, js*/
-    @RequestMapping("/news/**/newstopic")
-    public ModelAndView newsSingle(HttpServletRequest request) {
+    @RequestMapping("/news/**/{newsVariant}/newstopic")
+    public ModelAndView newsSingle(@PathVariable String newsVariant, HttpServletRequest request) {
         try {
             ModelAndView modelAndView = new ModelAndView();
             modelAndView.setViewName("globalPages/newstopic");
             String path = request.getServletPath(); //   /news/2015/MAY/27/48/ru/newstopic.html
             int newsId = Integer.valueOf(path.split("\\/\\p{Alpha}+\\/{1}[^\\/]*$")[0].split("^.*[\\/]")[1]); // =>  /news/2015/MAY/27/48  => 48
 //            String locale = path.split("\\/{1}[^\\/]*$")[0].split("^.*[\\/]")[1];
-            News news = newsService.getNews(newsId, localeResolver.resolveLocale(request));
+            News news = newsService.getNews(newsId, new Locale(newsVariant));
             if (news != null) {
                 String newsContentPath = new StringBuilder()
                         .append(newsLocationDir)    //    /Users/Public/news/
                         .append(news.getResource()) //                      2015/MAY/27/
                         .append(newsId)             //                                  48
                         .append("/")                //                                     /
-                        .append(localeResolver.resolveLocale(request).toString())   //      ru
+                        .append(newsVariant)   //      ru
                                 //ignore locale from path and take it from fact locale .append(locale)   //                                                ru
                         .append("/newstopic.html")  //                                          /newstopic.html
                         .toString();                //  /Users/Public/news/2015/MAY/27/48/ru/newstopic.html

@@ -35,9 +35,9 @@
                         <table id="currency-limits-table">
                             <thead>
                             <tr>
-                                <th>Name </th>
-                                <th>Description</th>
-                                <th>Withdraw minimum</th>
+                                <th><loc:message code="admin.currencyLimits.name"/> </th>
+                                <th><loc:message code="admin.currencyLimits.description"/></th>
+                                <th><loc:message code="admin.currencyLimits.minLimit"/></th>
                             </tr>
                             </thead>
                             <tbody>

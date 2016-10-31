@@ -21,10 +21,10 @@
                     <table id="all_news_table" class="balance__table">
                         <thead>
                         <tr>
-                            <th class="center blue-white">Date</th>
-                            <th class="center blue-white">Brief</th>
-                            <th class="center blue-white">Variants</th>
-                            <th class="center blue-white">Status</th>
+                            <th class="center blue-white"><loc:message code="ordersearch.date"/></th>
+                            <th class="center blue-white"><loc:message code="news.newsTitle"/></th>
+                            <th class="center blue-white"><loc:message code="news.variants"/></th>
+                            <th class="center blue-white"><loc:message code="news.status"/></th>
                         </tr>
                         </thead>
 
@@ -44,7 +44,7 @@
 
                                     })()
                                     %></td>
-                                <td><@=active ? 'Active' : 'Disabled'@></td>
+                                <td><@=active ? '<loc:message code="news.status.active"/>' : '<loc:message code="news.status.disabled"/>'@></td>
                             </tr>
 
                         </script>

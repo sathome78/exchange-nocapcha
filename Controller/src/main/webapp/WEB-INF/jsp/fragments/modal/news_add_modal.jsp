@@ -18,8 +18,8 @@
             </div>
             <div class="modal-body news-add-info">
                 <ul class="nav nav-pills">
-                    <li class="active"><a data-toggle="pill" href="#editor">Create news in editor</a></li>
-                    <li><a data-toggle="pill" href="#archive">Upload ZIP archive</a></li>
+                    <li class="active"><a data-toggle="pill" href="#editor"><loc:message code="news.createInEditor"/></a></li>
+                    <li><a data-toggle="pill" href="#archive"><loc:message code="news.uploadArchive"/></a></li>
                 </ul>
                 <div class="tab-content">
                     <div id="editor" class="tab-pane fade in active">
@@ -40,7 +40,7 @@
                         <form id="news-add-editor-form">
                             <div class="input-block-wrapper">
                             <div class="col-md-3 input-block-wrapper__label-wrapper">
-                                <label for="variantEd" class="input-block-wrapper__label">Language</label>
+                                <label for="variantEd" class="input-block-wrapper__label"><loc:message code="news.locale"/></label>
                             </div>
                             <div class="col-md-9 input-block-wrapper__input-wrapper">
                                 <select id="variantEd" name="newsVariant"
@@ -56,7 +56,7 @@
                             <div class="input-block-wrapper">
 
                                 <div class="col-md-3 input-block-wrapper__label-wrapper">
-                                    <label for="titleEd" class="input-block-wrapper__label">Title</label>
+                                    <label for="titleEd" class="input-block-wrapper__label"><loc:message code="news.newsTitle"/> </label>
                                 </div>
                                 <div class="col-md-9 input-block-wrapper__input-wrapper">
                                     <input id="titleEd" name="title"
@@ -65,7 +65,7 @@
                             </div>
                             <div class="input-block-wrapper">
                                 <div class="col-md-3 input-block-wrapper__label-wrapper">
-                                    <label for="briefEd" class="input-block-wrapper__label">Brief</label>
+                                    <label for="briefEd" class="input-block-wrapper__label"><loc:message code="news.brief"/></label>
                                 </div>
                                 <div class="col-md-9 input-block-wrapper__input-wrapper">
                                     <textarea id="briefEd" name="brief"
