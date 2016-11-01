@@ -18,8 +18,13 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 public interface OrderService {
+
+    OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate);
+
+    Map<String, Object> validateOrder(OrderCreateDto orderCreateDto);
 
     /**
      * Returns the ID of the newly created and saved in DB order
@@ -30,7 +35,9 @@ public interface OrderService {
      */
     int createOrder(OrderCreateDto order);
 
-     /**
+    Optional<String> autoAccept(OrderCreateDto orderCreateDto, Locale locale);
+
+    /**
      * TODO ADD JAVADOC
      */
     List<OrderWideListDto> getMyOrdersWithState(

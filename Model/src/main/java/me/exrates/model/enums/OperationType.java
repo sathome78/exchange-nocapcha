@@ -41,6 +41,21 @@ public enum OperationType {
         }
     }
 
+    public static OperationType getOpposite(OperationType ot) {
+        switch (ot) {
+            case INPUT:
+                return OUTPUT;
+            case OUTPUT:
+                return INPUT;
+            case SELL:
+                return BUY;
+            case BUY:
+                return SELL;
+            default:
+                return ot;
+        }
+    }
+
     public int getType() {
         return type;
     }

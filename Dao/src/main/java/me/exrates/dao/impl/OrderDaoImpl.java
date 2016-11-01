@@ -465,6 +465,15 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public Object deleteOrderByAdmin(int orderId) {
+        return deleteOrder(orderId, OrderStatus.DELETED);
+    }
+
+    @Override
+    public Object deleteOrderForPartialAccept(int orderId) {
+        return deleteOrder(orderId, OrderStatus.SPLIT);
+    }
+
+    private Object deleteOrder(int orderId, OrderStatus status) {
         List<OrderDetailDto> list = getOrderRelatedDataAndBlock(orderId);
         if (list.isEmpty()) {
             return OrderDeleteStatus.NOT_FOUND;
@@ -478,7 +487,7 @@ public class OrderDaoImpl implements OrderDao {
                 " SET status_id = :status_id" +
                 " WHERE id = :order_id ";
         Map<String, Object> params = new HashMap<>();
-        params.put("status_id", OrderStatus.DELETED.getStatus());
+        params.put("status_id", status.getStatus());
         params.put("order_id", orderId);
         if (jdbcTemplate.update(sql, params) <= 0) {
             return OrderDeleteStatus.ORDER_UPDATE_ERROR;

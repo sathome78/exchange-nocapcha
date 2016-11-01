@@ -23,18 +23,14 @@ import org.springframework.web.servlet.LocaleResolver;
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.security.Principal;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
 public class OrderControllerRest {
     private static final Logger LOGGER = LogManager.getLogger(OrderControllerRest.class);
 
-    private final BigDecimal MAX_ORDER_VALUE = new BigDecimal(10000);
-    private final BigDecimal MIN_ORDER_VALUE = new BigDecimal(0.000000001);
+
 
     @Autowired
     OrderService orderService;
@@ -69,36 +65,9 @@ public class OrderControllerRest {
             if (amount == null) amount = BigDecimal.ZERO;
             if (rate == null) rate = BigDecimal.ZERO;
             CurrencyPair activeCurrencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
-            Currency spendCurrency = null;
-            if (orderType == OperationType.SELL) {
-                spendCurrency = activeCurrencyPair.getCurrency1();
-            } else if (orderType == OperationType.BUY) {
-                spendCurrency = activeCurrencyPair.getCurrency2();
-            }
-            WalletsAndCommissionsForOrderCreationDto walletsAndCommissions = orderService.getWalletAndCommission(principal.getName(), spendCurrency, orderType);
+            OrderCreateDto orderCreateDto = orderService.prepareNewOrder(activeCurrencyPair, orderType, principal.getName(), amount, rate);
         /**/
-            OrderCreateDto orderCreateDto = new OrderCreateDto();
-            orderCreateDto.setOperationType(orderType);
-            orderCreateDto.setCurrencyPair(activeCurrencyPair);
-            orderCreateDto.setAmount(amount);
-            orderCreateDto.setExchangeRate(rate);
-            orderCreateDto.setUserId(walletsAndCommissions.getUserId());
-            orderCreateDto.setCurrencyPair(activeCurrencyPair);
-            if (orderType == OperationType.SELL) {
-                orderCreateDto.setWalletIdCurrencyBase(walletsAndCommissions.getSpendWalletId());
-                orderCreateDto.setCurrencyBaseBalance(walletsAndCommissions.getSpendWalletActiveBalance());
-                orderCreateDto.setComissionForSellId(walletsAndCommissions.getCommissionId());
-                orderCreateDto.setComissionForSellRate(walletsAndCommissions.getCommissionValue());
-            } else if (orderType == OperationType.BUY) {
-                orderCreateDto.setWalletIdCurrencyConvert(walletsAndCommissions.getSpendWalletId());
-                orderCreateDto.setCurrencyConvertBalance(walletsAndCommissions.getSpendWalletActiveBalance());
-                orderCreateDto.setComissionForBuyId(walletsAndCommissions.getCommissionId());
-                orderCreateDto.setComissionForBuyRate(walletsAndCommissions.getCommissionValue());
-            }
-        /**/
-            orderCreateDto.calculateAmounts();
-        /**/
-            Map<String, Object> result = validate(orderCreateDto);
+            Map<String, Object> result = orderService.validateOrder(orderCreateDto);
             orderCreateSummaryDto = new OrderCreateSummaryDto(orderCreateDto, localeResolver.resolveLocale(request));
             if (!result.isEmpty()) {
                 for (Map.Entry<String, Object> pair : result.entrySet()) {
@@ -120,6 +89,7 @@ public class OrderControllerRest {
             long after = System.currentTimeMillis();
             LOGGER.debug("completed... ms: " + (after - before));
         }
+
     }
 
     @RequestMapping(value = "/order/create", produces = "application/json;charset=utf-8")
@@ -134,6 +104,10 @@ public class OrderControllerRest {
                 if (orderCreateDto == null) {
                     /*it may be if user twice click the create button from the current submit form. After first click orderCreateDto wil be cleaned*/
                     throw new OrderCreationException(messageSource.getMessage("order.recreateerror", null, localeResolver.resolveLocale(request)));
+                }
+                Optional<String> autoAcceptResult = orderService.autoAccept(orderCreateDto, localeResolver.resolveLocale(request));
+                if (autoAcceptResult.isPresent()) {
+                    return autoAcceptResult.get();
                 }
                 if ((orderService.createOrder(orderCreateDto)) <= 0) {
                     throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, localeResolver.resolveLocale(request)));
@@ -329,36 +303,5 @@ public class OrderControllerRest {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 
-    public Map<String, Object> validate(OrderCreateDto orderCreateDto) {
-        Map<String, Object> errors = new HashMap<>();
-        if (orderCreateDto.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
-            errors.put("amount_" + errors.size(), "order.fillfield");
-        }
-        if (orderCreateDto.getExchangeRate().compareTo(BigDecimal.ZERO) <= 0) {
-            errors.put("exrate_" + errors.size(), "order.fillfield");
-        }
-        if (orderCreateDto.getAmount() != null) {
-            if (orderCreateDto.getAmount().compareTo(MAX_ORDER_VALUE) == 1) {
-                errors.put("amount_" + errors.size(), "order.maxvalue");
-                errors.put("amount_" + errors.size(), "order.valuerange");
-            }
-            if (orderCreateDto.getAmount().compareTo(MIN_ORDER_VALUE) == -1) {
-                errors.put("amount_" + errors.size(), "order.minvalue");
-                errors.put("amount_" + errors.size(), "order.valuerange");
-            }
-        }
-        if (orderCreateDto.getExchangeRate() != null) {
-            if (orderCreateDto.getExchangeRate().compareTo(new BigDecimal(0)) < 1) {
-                errors.put("exrate_" + errors.size(), "order.minrate");
-            }
-        }
-        if ((orderCreateDto.getAmount() != null) && (orderCreateDto.getExchangeRate() != null)) {
-            boolean ifEnoughMoney = orderCreateDto.getSpentWalletBalance().compareTo(BigDecimal.ZERO) > 0 && orderCreateDto.getSpentAmount().compareTo(orderCreateDto.getSpentWalletBalance()) <= 0;
-            if (!ifEnoughMoney) {
-                errors.put("balance_" + errors.size(), "validation.orderNotEnoughMoney");
-            }
-        }
-        return errors;
-    }
 }
 

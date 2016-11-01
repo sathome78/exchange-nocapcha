@@ -9,7 +9,8 @@ public enum OrderStatus {
     CLOSED(3),
     CANCELLED(4),
     DELETED(5),
-    DRAFT(6);
+    DRAFT(6),
+    SPLIT(7);
 
     private final int status;
 
@@ -31,6 +32,8 @@ public enum OrderStatus {
                 return DELETED;
             case 6:
                 return DRAFT;
+            case 7:
+                return SPLIT;
             default:
                 throw new UnsupportedOrderStatusException(id);
         }

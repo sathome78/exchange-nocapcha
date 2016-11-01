@@ -6,6 +6,7 @@ import me.exrates.dao.OrderDao;
 import me.exrates.dao.TransactionDao;
 import me.exrates.dao.WalletDao;
 import me.exrates.model.*;
+import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
@@ -30,10 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.Integer.valueOf;
@@ -42,6 +40,9 @@ import static java.lang.Integer.valueOf;
 public class OrderServiceImpl implements OrderService {
 
     private static final Logger logger = LogManager.getLogger(OrderServiceImpl.class);
+
+    private final BigDecimal MAX_ORDER_VALUE = new BigDecimal(10000);
+    private final BigDecimal MIN_ORDER_VALUE = new BigDecimal(0.000000001);
 
     @Autowired
     private OrderDao orderDao;
@@ -110,6 +111,72 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate) {
+        Currency spendCurrency = null;
+        if (orderType == OperationType.SELL) {
+            spendCurrency = activeCurrencyPair.getCurrency1();
+        } else if (orderType == OperationType.BUY) {
+            spendCurrency = activeCurrencyPair.getCurrency2();
+        }
+        WalletsAndCommissionsForOrderCreationDto walletsAndCommissions = getWalletAndCommission(userEmail, spendCurrency, orderType);
+        /**/
+        OrderCreateDto orderCreateDto = new OrderCreateDto();
+        orderCreateDto.setOperationType(orderType);
+        orderCreateDto.setCurrencyPair(activeCurrencyPair);
+        orderCreateDto.setAmount(amount);
+        orderCreateDto.setExchangeRate(rate);
+        orderCreateDto.setUserId(walletsAndCommissions.getUserId());
+        orderCreateDto.setCurrencyPair(activeCurrencyPair);
+        if (orderType == OperationType.SELL) {
+            orderCreateDto.setWalletIdCurrencyBase(walletsAndCommissions.getSpendWalletId());
+            orderCreateDto.setCurrencyBaseBalance(walletsAndCommissions.getSpendWalletActiveBalance());
+            orderCreateDto.setComissionForSellId(walletsAndCommissions.getCommissionId());
+            orderCreateDto.setComissionForSellRate(walletsAndCommissions.getCommissionValue());
+        } else if (orderType == OperationType.BUY) {
+            orderCreateDto.setWalletIdCurrencyConvert(walletsAndCommissions.getSpendWalletId());
+            orderCreateDto.setCurrencyConvertBalance(walletsAndCommissions.getSpendWalletActiveBalance());
+            orderCreateDto.setComissionForBuyId(walletsAndCommissions.getCommissionId());
+            orderCreateDto.setComissionForBuyRate(walletsAndCommissions.getCommissionValue());
+        }
+        /**/
+        orderCreateDto.calculateAmounts();
+        return orderCreateDto;
+    }
+
+    @Override
+    public Map<String, Object> validateOrder(OrderCreateDto orderCreateDto) {
+        Map<String, Object> errors = new HashMap<>();
+        if (orderCreateDto.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            errors.put("amount_" + errors.size(), "order.fillfield");
+        }
+        if (orderCreateDto.getExchangeRate().compareTo(BigDecimal.ZERO) <= 0) {
+            errors.put("exrate_" + errors.size(), "order.fillfield");
+        }
+        if (orderCreateDto.getAmount() != null) {
+            if (orderCreateDto.getAmount().compareTo(MAX_ORDER_VALUE) == 1) {
+                errors.put("amount_" + errors.size(), "order.maxvalue");
+                errors.put("amount_" + errors.size(), "order.valuerange");
+            }
+            if (orderCreateDto.getAmount().compareTo(MIN_ORDER_VALUE) == -1) {
+                errors.put("amount_" + errors.size(), "order.minvalue");
+                errors.put("amount_" + errors.size(), "order.valuerange");
+            }
+        }
+        if (orderCreateDto.getExchangeRate() != null) {
+            if (orderCreateDto.getExchangeRate().compareTo(new BigDecimal(0)) < 1) {
+                errors.put("exrate_" + errors.size(), "order.minrate");
+            }
+        }
+        if ((orderCreateDto.getAmount() != null) && (orderCreateDto.getExchangeRate() != null)) {
+            boolean ifEnoughMoney = orderCreateDto.getSpentWalletBalance().compareTo(BigDecimal.ZERO) > 0 && orderCreateDto.getSpentAmount().compareTo(orderCreateDto.getSpentWalletBalance()) <= 0;
+            if (!ifEnoughMoney) {
+                errors.put("balance_" + errors.size(), "validation.orderNotEnoughMoney");
+            }
+        }
+        return errors;
+    }
+
+    @Override
     @Transactional(rollbackFor = {Exception.class})
     public int createOrder(OrderCreateDto orderCreateDto) {
         int createdOrderId = 0;
@@ -137,6 +204,46 @@ public class OrderServiceImpl implements OrderService {
             throw new NotEnoughUserWalletMoneyException("");
         }
         return createdOrderId;
+    }
+
+    @Override
+    @Transactional(rollbackFor = {Exception.class})
+    public Optional<String> autoAccept(OrderCreateDto orderCreateDto, Locale locale) {
+        List<ExOrder> acceptableOrders = orderDao.selectTopOrdersBySum(orderCreateDto.getCurrencyPair().getId(), orderCreateDto.getExchangeRate(),
+                orderCreateDto.getAmount(), OperationType.getOpposite(orderCreateDto.getOperationType()));
+        logger.debug("acceptableOrders - " + OperationType.getOpposite(orderCreateDto.getOperationType()) + " : " + acceptableOrders);
+        if (acceptableOrders.isEmpty()) {
+            return Optional.empty();
+        }
+        ExOrder firstOrder = acceptableOrders.get(0);
+
+        if ((orderCreateDto.getOperationType() == OperationType.SELL && orderCreateDto.getExchangeRate().compareTo(firstOrder.getExRate()) > 0) ||
+                (orderCreateDto.getOperationType() == OperationType.BUY && orderCreateDto.getExchangeRate().compareTo(firstOrder.getExRate()) < 0)) {
+            return Optional.empty();
+        }
+        if (firstOrder.getAmountBase().compareTo(orderCreateDto.getAmount()) > 0) {
+            deleteOrderByAdmin(firstOrder.getId());
+            OrderCreateDto accepted = prepareNewOrder(orderCreateDto.getCurrencyPair(), firstOrder.getOperationType(),
+                    userService.getUserById(firstOrder.getUserId()).getEmail(), orderCreateDto.getAmount(),
+                    firstOrder.getExRate());
+            OrderCreateDto remainder = prepareNewOrder(orderCreateDto.getCurrencyPair(), firstOrder.getOperationType(),
+                    userService.getUserById(firstOrder.getUserId()).getEmail(), firstOrder.getAmountBase().subtract(orderCreateDto.getAmount()),
+                    firstOrder.getExRate());
+            int acceptedId = createOrder(accepted);
+            createOrder(remainder);
+            acceptOrder(orderCreateDto.getUserId(), acceptedId, locale);
+            return Optional.of("{\"result\":\"" + messageSource.getMessage("order.acceptsuccess", new Integer[]{1}, locale) + "\"}");
+        } else {
+            acceptOrdersList(orderCreateDto.getUserId(), acceptableOrders.stream().map(ExOrder::getId).collect(Collectors.toList()), locale);
+            BigDecimal totalSum = acceptableOrders.stream().map(ExOrder::getAmountBase).reduce(BigDecimal::add).orElseGet(firstOrder::getAmountBase);
+            if (totalSum.compareTo(orderCreateDto.getAmount()) < 0) {
+                OrderCreateDto remainderNew = prepareNewOrder(orderCreateDto.getCurrencyPair(), orderCreateDto.getOperationType(),
+                        userService.getUserById(orderCreateDto.getUserId()).getEmail(), orderCreateDto.getAmount().subtract(totalSum),
+                        orderCreateDto.getExchangeRate());
+                createOrder(remainderNew);
+            }
+            return Optional.of("{\"result\":\"" + messageSource.getMessage("order.acceptsuccess", new Integer[]{acceptableOrders.size()}, locale) + "\"}");
+        }
     }
 
     @Transactional(readOnly = true)
