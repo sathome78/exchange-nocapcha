@@ -4,6 +4,8 @@ import me.exrates.dao.MerchantDao;
 import me.exrates.model.Merchant;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.MerchantImage;
+import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
+import me.exrates.model.dto.mobileApiDto.MerchantImageShortenedDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.util.BigDecimalProcessing;
@@ -103,7 +105,7 @@ public class MerchantDaoImpl implements MerchantDao {
     @Override
     public List<MerchantCurrency> findAllByCurrencies(List<Integer> currenciesId) {
         final String sql = "SELECT MERCHANT.id as merchant_id,MERCHANT.name,MERCHANT.description,MERCHANT_CURRENCY.min_sum," +
-                " MERCHANT_CURRENCY.currency_id FROM MERCHANT JOIN MERCHANT_CURRENCY" +
+                " MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_commission FROM MERCHANT JOIN MERCHANT_CURRENCY" +
                 " ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id WHERE MERCHANT_CURRENCY.currency_id in (:currenciesId)";
         try {
             return jdbcTemplate.query(sql, Collections.singletonMap("currenciesId",currenciesId), (resultSet, i) -> {
@@ -113,6 +115,7 @@ public class MerchantDaoImpl implements MerchantDao {
                 merchantCurrency.setDescription(resultSet.getString("description"));
                 merchantCurrency.setMinSum(resultSet.getBigDecimal("min_sum"));
                 merchantCurrency.setCurrencyId(resultSet.getInt("currency_id"));
+                merchantCurrency.setCommission(resultSet.getBigDecimal("merchant_commission"));
                 final String sqlInner = "SELECT * FROM birzha.MERCHANT_IMAGE where merchant_id = :merchant_id" +
                         " AND currency_id = :currency_id;";
                 Map<String, Integer> params = new HashMap<String, Integer>();
@@ -129,12 +132,43 @@ public class MerchantDaoImpl implements MerchantDao {
     }
 
     @Override
+    public List<MerchantCurrencyApiDto> findAllMerchantCurrencies(Integer currencyId) {
+        String whereClause = currencyId == null ? "" : " WHERE CURRENCY.id = :currency_id";
+
+        final String sql = "SELECT MERCHANT.id as merchant_id, MERCHANT.name, MERCHANT_CURRENCY.min_sum," +
+                " MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_commission, CURRENCY.min_withdraw_sum FROM MERCHANT " +
+                "JOIN MERCHANT_CURRENCY ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id " +
+                "JOIN CURRENCY ON MERCHANT_CURRENCY.currency_id = CURRENCY.id" + whereClause;
+        Map<String, Integer> paramMap = Collections.singletonMap("currency_id", currencyId);
+        try {
+            return jdbcTemplate.query(sql, paramMap, (resultSet, i) -> {
+                MerchantCurrencyApiDto merchantCurrencyApiDto = new MerchantCurrencyApiDto();
+                merchantCurrencyApiDto.setMerchantId(resultSet.getInt("merchant_id"));
+                merchantCurrencyApiDto.setCurrencyId(resultSet.getInt("currency_id"));
+                merchantCurrencyApiDto.setName(resultSet.getString("name"));
+                merchantCurrencyApiDto.setMinInputSum(resultSet.getBigDecimal("min_sum"));
+                merchantCurrencyApiDto.setMinOutputSum(resultSet.getBigDecimal("min_withdraw_sum"));
+                merchantCurrencyApiDto.setCommission(resultSet.getBigDecimal("merchant_commission"));
+                final String sqlInner = "SELECT id, image_path FROM birzha.MERCHANT_IMAGE where merchant_id = :merchant_id" +
+                        " AND currency_id = :currency_id;";
+                Map<String, Integer> params = new HashMap<String, Integer>();
+                params.put("merchant_id", resultSet.getInt("merchant_id"));
+                params.put("currency_id", resultSet.getInt("currency_id"));
+                merchantCurrencyApiDto.setListMerchantImage(jdbcTemplate.query(sqlInner, params, new BeanPropertyRowMapper<>(MerchantImageShortenedDto.class)));
+                return merchantCurrencyApiDto;
+            });
+        } catch (EmptyResultDataAccessException e) {
+            return Collections.EMPTY_LIST;
+        }
+    }
+
+    @Override
     public List<MyInputOutputHistoryDto> getMyInputOutputHistory(String email, Integer offset, Integer limit, Locale locale) {
         String sql = " select TRANSACTION.datetime, CURRENCY.name as currency, TRANSACTION.amount, TRANSACTION.commission_amount, \n" +
                 "case when OPERATION_TYPE.name = 'input' or WITHDRAW_REQUEST.merchant_image_id is null then\n" +
                 "MERCHANT.name else\n" +
                 "MERCHANT_IMAGE.image_name end as merchant,\n" +
-                "OPERATION_TYPE.name as operation_type, TRANSACTION.id, TRANSACTION.provided from TRANSACTION \n" +
+                "OPERATION_TYPE.name as operation_type, TRANSACTION.id, TRANSACTION.provided, USER.id AS user_id from TRANSACTION \n" +
                 "left join CURRENCY on TRANSACTION.currency_id=CURRENCY.id\n" +
                 "left join WITHDRAW_REQUEST on TRANSACTION.id=WITHDRAW_REQUEST.transaction_id\n" +
                 "left join MERCHANT_IMAGE on WITHDRAW_REQUEST.merchant_image_id=MERCHANT_IMAGE.id\n" +
@@ -161,6 +195,7 @@ public class MerchantDaoImpl implements MerchantDao {
                 myInputOutputHistoryDto.setTransactionProvided(rs.getInt("provided") == 0 ?
                         messageSource.getMessage("inputoutput.statusFalse", null, locale) :
                         messageSource.getMessage("inputoutput.statusTrue", null, locale));
+                myInputOutputHistoryDto.setUserId(rs.getInt("user_id"));
                 return myInputOutputHistoryDto;
             }
         });

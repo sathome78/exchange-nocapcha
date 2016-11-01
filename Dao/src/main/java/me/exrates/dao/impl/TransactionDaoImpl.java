@@ -403,7 +403,7 @@ public final class TransactionDaoImpl implements TransactionDao {
                 "      CURRENCY.name AS operation_type_id, " +
                 "      null AS amount, null AS commission_amount, " +
                 "      null AS source_type, null AS source_id, " +
-                "      null AS status_id, null AS merchant_name " +
+                "      null AS status_id, null AS merchant_name, null AS user_id" +
                 "    FROM WALLET  " +
                 "    JOIN CURRENCY ON CURRENCY.id=WALLET.currency_id  " +
                 "    WHERE WALLET.id=:wallet_id " +
@@ -414,8 +414,9 @@ public final class TransactionDaoImpl implements TransactionDao {
                 "      TRANSACTION.operation_type_id, " +
                 "      TRANSACTION.amount, TRANSACTION.commission_amount, " +
                 "      TRANSACTION.source_type, TRANSACTION.source_id, " +
-                "      TRANSACTION.status_id, MERCHANT.name AS merchant_name " +
+                "      TRANSACTION.status_id, MERCHANT.name AS merchant_name, WALLET.user_id " +
                 "    FROM TRANSACTION " +
+                "    JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id " +
                 "    LEFT JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id" +
                 "    WHERE TRANSACTION.provided=1 AND TRANSACTION.user_wallet_id = :wallet_id " +
                 "    ORDER BY -TRANSACTION.datetime ASC, -TRANSACTION.id ASC " +
@@ -480,7 +481,8 @@ public final class TransactionDaoImpl implements TransactionDao {
                     merchantName = accountStatementDto.getSourceType();
                 }
                 accountStatementDto.setMerchantName(merchantName);
-
+                accountStatementDto.setWalletId(walletId);
+                accountStatementDto.setUserId(rs.getInt("user_id"));
                 /**/
                 return accountStatementDto;
             }

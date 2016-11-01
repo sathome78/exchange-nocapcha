@@ -7,6 +7,7 @@ import me.exrates.model.User;
 import me.exrates.model.Wallet;
 import me.exrates.model.dto.MyWalletConfirmationDetailDto;
 import me.exrates.model.dto.UserWalletSummaryDto;
+import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
 import me.exrates.model.enums.TransactionSourceType;
@@ -196,4 +197,29 @@ public final class WalletServiceImpl implements WalletService {
     public List<MyWalletConfirmationDetailDto> getWalletConfirmationDetail(Integer walletId, Locale locale) {
         return walletDao.getWalletConfirmationDetail(walletId, locale);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public MyWalletsStatisticsApiDto getUserWalletShortStatistics(int walletId) {
+        return walletDao.getWalletShortStatistics(walletId);
+    }
+
+     /*
+    * Methods defined below are overloaded versions of dashboard info supplier methods.
+    * They are supposed to use with REST API which is stateless and cannot use session-based caching.
+    * */
+
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> currencyIds, Locale locale) {
+        return walletDao.getAllWalletsForUserDetailed(email, currencyIds, locale);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale) {
+        return walletDao.getAllWalletsForUserReduced(email, locale);
+    }
+
 }

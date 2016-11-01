@@ -85,7 +85,14 @@ function LeftSiderClass() {
                 if (!data) return;
                 if ('redirect' in data) {
                     var registered = $('#hello-my-friend')[0];
-                    window.location = data.redirect.url + (data.redirect.urlParam1 && registered ? "?errorNoty=" + data.redirect.urlParam1 : '');
+                    var noty = '';
+                    if (data.redirect.urlParam1 && registered) {
+                        noty = "?errorNoty=" + data.redirect.urlParam1;
+                    } else if (data.redirect.successQR && !registered) {
+                        noty = "?successNoty=" + data.redirect.successQR;
+                    }
+
+                    window.location = data.redirect.url + noty;
                     return;
                 }
                 data = data['list'];

@@ -2,6 +2,7 @@ package me.exrates.service.impl;
 
 import me.exrates.service.UserFilesService;
 import me.exrates.service.UserService;
+import me.exrates.service.exception.api.DeleteFileException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,11 +15,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -54,8 +51,15 @@ public class UserFilesServiceImpl implements UserFilesService {
     @Override
     public List<MultipartFile> reduceInvalidFiles(final MultipartFile[] files) {
         return Stream.of(files)
-                .filter(file -> !file.isEmpty() && contentTypes.contains(extractContentType(file)))
+                .filter(this::checkFileValidity)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean checkFileValidity(final MultipartFile file) {
+        LOG.debug(extractContentType(file));
+        LOG.debug(contentTypes);
+        return !file.isEmpty() && contentTypes.contains(extractContentType(file));
     }
 
     /**
@@ -100,6 +104,51 @@ public class UserFilesServiceImpl implements UserFilesService {
         }
         userService.createUserFile(userId, logicalPaths);
     }
+
+    @Override
+    public String createUserAvatar(final int userId, final MultipartFile file) throws IOException {
+        final Path path = Paths.get(userFilesDir + userId, "avatar");
+        LOG.debug(path.toString());
+        if (!Files.exists(path)) {
+            Files.createDirectories(path);
+        }
+        List<Path> existingAvatars = Arrays.stream(path.toFile().listFiles())
+                .map(avatar -> Paths.get(avatar.getPath())).collect(Collectors.toList());
+        Path realPath = null;
+        Path logicalPath = null;
+        try {
+            final String name = UUID.randomUUID().toString() + "." + extractFileExtension(file);
+            realPath = Paths.get(path.toString(), name);
+            logicalPath = Paths.get(userFilesLogicalDir, String.valueOf(userId), "avatar", name);
+            Files.write(realPath, file.getBytes());
+
+        } catch (final IOException e) {
+            if (realPath != null) {
+                final List<IOException> exceptions = new ArrayList<>();
+                try {
+                    Files.delete(realPath);
+                } catch (final IOException ex) {
+                    ex.initCause(e);
+                    exceptions.add(ex);
+                }
+                if (!exceptions.isEmpty()) {
+                    LOG.error("Exceptions during deleting uploaded files " + exceptions);
+                }
+            }
+            throw e;
+        }
+        userService.setUserAvatar(userId, logicalPath);
+        existingAvatars.forEach(avatar -> {
+            try {
+                Files.delete(avatar);
+            } catch (final IOException ex) {
+                LOG.error("Could not delete files");
+                throw new DeleteFileException("Could not delete files");
+            }
+        });
+        return logicalPath.toString();
+    }
+
 
     @Override
     public void deleteUserFile(final String filename, final int userId) throws IOException {

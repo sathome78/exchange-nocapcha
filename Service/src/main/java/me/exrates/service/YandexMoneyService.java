@@ -2,6 +2,7 @@ package me.exrates.service;
 
 import com.yandex.money.api.methods.RequestPayment;
 import me.exrates.model.CreditsOperation;
+import me.exrates.model.Payment;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,9 +24,17 @@ public interface YandexMoneyService {
 
     boolean deleteTokenByUserEmail(String email);
 
+    String getTemporaryAuthCode(String redirectURI);
+
     String getTemporaryAuthCode();
 
     Optional<String> getAccessToken(String code);
 
     Optional<RequestPayment> requestPayment(String token, CreditsOperation creditsOperation);
+
+    int saveInputPayment(Payment payment);
+
+    Optional<Payment> getPaymentById(Integer id);
+
+    void deletePayment(Integer id);
 }

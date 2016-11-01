@@ -5,7 +5,7 @@ package me.exrates.model.enums;
  */
 public enum WalletTransferStatus {
     SUCCESS,
-    NOT_FOUND,
+    WALLET_NOT_FOUND,
     CORRESPONDING_COMPANY_WALLET_NOT_FOUND,
     CAUSED_NEGATIVE_BALANCE,
     WALLET_UPDATE_ERROR,

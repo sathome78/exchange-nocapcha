@@ -4,6 +4,10 @@ import me.exrates.dao.UserDao;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
+import me.exrates.model.dto.UpdateUserDto;
+import me.exrates.model.dto.UserIpDto;
+import me.exrates.model.dto.UserSummaryDto;
+import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.dto.*;
 import me.exrates.model.enums.*;
 import me.exrates.model.util.BigDecimalProcessing;
@@ -13,7 +17,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -107,6 +114,15 @@ public class UserDaoImpl implements UserDao {
                     }
                 }).collect(Collectors.toList());
         jdbcTemplate.batchUpdate(sql, collect.toArray(new HashMap[paths.size()]));
+    }
+
+    @Override
+    public void setUserAvatar(int userId, String path) {
+        final String sql = "UPDATE USER SET avatar_path = :path WHERE id = :id";
+        Map<String, Object> params = new HashMap<>();
+        params.put("path", path);
+        params.put("id", userId);
+        jdbcTemplate.update(sql, params);
     }
 
     @Override
@@ -444,6 +460,18 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
+    public String getPreferredLangByEmail(String email) {
+        String sql = "SELECT preferred_lang FROM USER WHERE email = :email";
+        Map<String, String> namedParameters = new HashMap<>();
+        namedParameters.put("email", email);
+        try {
+            return jdbcTemplate.queryForObject(sql, namedParameters, String.class);
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
+    }
+
+    @Override
     public boolean insertIp(String email, String ip) {
         String sql = "INSERT INTO USER_IP (user_id, ip)" +
                 " SELECT id, '" + ip + "'" +
@@ -638,5 +666,73 @@ public class UserDaoImpl implements UserDao {
             return  userSessionInfoDto;
         });
     }
+
+    @Override
+    public Long saveTemporaryPassword(Integer userId, String password, Integer tokenId) {
+        String sql = "INSERT INTO API_TEMP_PASSWORD(user_id, password, date_creation, temporal_token_id) VALUES (:userId, :password, NOW(), :tokenId);";
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        String encodedPassword = passwordEncoder.encode(password);
+        Map<String, Object> namedParameters = new HashMap<>();
+        namedParameters.put("userId", userId);
+        namedParameters.put("password", encodedPassword);
+        namedParameters.put("tokenId", tokenId);
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(sql, new MapSqlParameterSource(namedParameters), keyHolder);
+        return (Long) keyHolder.getKey();
+    }
+
+    @Override
+    public TemporaryPasswordDto getTemporaryPasswordById(Long id) {
+        String sql = "SELECT id, user_id, password, date_creation, temporal_token_id FROM API_TEMP_PASSWORD WHERE id = :id";
+        Map<String, Long> namedParameters = Collections.singletonMap("id", id);
+        return jdbcTemplate.queryForObject(sql, namedParameters, (resultSet, row) -> {
+            TemporaryPasswordDto dto = new TemporaryPasswordDto();
+            dto.setId(resultSet.getLong("id"));
+            dto.setUserId(resultSet.getInt("user_id"));
+            dto.setPassword(resultSet.getString("password"));
+            dto.setDateCreation(resultSet.getTimestamp("date_creation").toLocalDateTime());
+            dto.setTemporalTokenId(resultSet.getInt("user_id"));
+            return dto;
+        });
+
+    }
+
+    @Override
+    public boolean updateUserPasswordFromTemporary(Long tempPassId) {
+        String sql = "UPDATE USER SET USER.password = " +
+                "(SELECT password FROM API_TEMP_PASSWORD WHERE id = :tempPassId) " +
+                "WHERE USER.id = (SELECT user_id FROM API_TEMP_PASSWORD WHERE id = :tempPassId);\n";
+        Map<String, Long> namedParameters = Collections.singletonMap("tempPassId", tempPassId);
+        return jdbcTemplate.update(sql, namedParameters) > 0;
+    }
+
+    @Override
+    public boolean deleteTemporaryPassword(Long id) {
+        String sql = "DELETE FROM API_TEMP_PASSWORD WHERE id = :id";
+        Map<String, Long> namedParameters = Collections.singletonMap("id", id);
+        return jdbcTemplate.update(sql, namedParameters) > 0;
+    }
+
+
+    @Override
+    public boolean tempDeleteUser(int id){
+        String sql = "DELETE FROM USER WHERE USER.id = :id; ";
+        Map<String, Integer> namedParameters = Collections.singletonMap("id", id);
+        return jdbcTemplate.update(sql, namedParameters) > 0;
+    }
+    @Override
+    public boolean tempDeleteUserWallets(int userId){
+        String sql = "DELETE FROM WALLET WHERE user_id = :id; ";
+        Map<String, Integer> namedParameters = Collections.singletonMap("id", userId);
+        return jdbcTemplate.update(sql, namedParameters) > 0;
+    }
+
+    @Override
+    public String getAvatarPath(Integer userId) {
+        String sql = "SELECT avatar_path FROM USER where id = :id";
+        Map<String, Integer> params = Collections.singletonMap("id", userId);
+        return jdbcTemplate.queryForObject(sql, params, (resultSet, row) -> resultSet.getString("avatar_path"));
+    }
+
 
 }

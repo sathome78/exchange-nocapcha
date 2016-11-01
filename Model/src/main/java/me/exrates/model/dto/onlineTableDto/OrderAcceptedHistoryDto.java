@@ -2,12 +2,15 @@ package me.exrates.model.dto.onlineTableDto;
 
 import me.exrates.model.enums.OperationType;
 
+import java.sql.Timestamp;
+
 /**
  * Created by Valk on 03.06.2016.
  */
 public class OrderAcceptedHistoryDto extends OnlineTableDto {
     private Integer orderId;
     private String dateAcceptionTime;
+    private Timestamp acceptionTime;
     private String rate;
     private String amountBase;
     private OperationType operationType;
@@ -73,5 +76,13 @@ public class OrderAcceptedHistoryDto extends OnlineTableDto {
 
     public void setOperationType(OperationType operationType) {
         this.operationType = operationType;
+    }
+
+    public Timestamp getAcceptionTime() {
+        return acceptionTime;
+    }
+
+    public void setAcceptionTime(Timestamp acceptionTime) {
+        this.acceptionTime = acceptionTime;
     }
 }

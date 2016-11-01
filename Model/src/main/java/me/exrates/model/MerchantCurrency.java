@@ -13,6 +13,7 @@ public class MerchantCurrency {
     private String name;
     private String description;
     private BigDecimal minSum;
+    private BigDecimal commission;
     private List<MerchantImage> listMerchantImage;
 
     public int getMerchantId() {
@@ -63,6 +64,14 @@ public class MerchantCurrency {
         this.listMerchantImage = listMerchantImage;
     }
 
+    public BigDecimal getCommission() {
+        return commission;
+    }
+
+    public void setCommission(BigDecimal commission) {
+        this.commission = commission;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -75,7 +84,9 @@ public class MerchantCurrency {
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (description != null ? !description.equals(that.description) : that.description != null) return false;
         if (minSum != null ? !minSum.equals(that.minSum) : that.minSum != null) return false;
-        return listMerchantImage != null ? listMerchantImage.equals(that.listMerchantImage) : that.listMerchantImage == null;
+        if (listMerchantImage != null ? !listMerchantImage.equals(that.listMerchantImage) : that.listMerchantImage != null)
+            return false;
+        return commission != null ? commission.equals(that.commission) : that.commission == null;
 
     }
 
@@ -87,6 +98,7 @@ public class MerchantCurrency {
         result = 31 * result + (description != null ? description.hashCode() : 0);
         result = 31 * result + (minSum != null ? minSum.hashCode() : 0);
         result = 31 * result + (listMerchantImage != null ? listMerchantImage.hashCode() : 0);
+        result = 31 * result + (commission != null ? commission.hashCode() : 0);
         return result;
     }
 
@@ -99,6 +111,7 @@ public class MerchantCurrency {
                 ", description='" + description + '\'' +
                 ", minSum=" + minSum +
                 ", listMerchantImage=" + listMerchantImage +
+                ", commission=" + commission +
                 '}';
     }
 }

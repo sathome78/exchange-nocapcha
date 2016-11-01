@@ -4,6 +4,7 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.security.filter.CapchaAuthorizationFilter;
 import me.exrates.security.filter.LoginFailureHandler;
 import me.exrates.security.filter.LoginSuccessHandler;
+import me.exrates.security.filter.QRAuthorizationFilter;
 import me.exrates.security.service.UserDetailsServiceImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -21,6 +22,7 @@ import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
@@ -69,8 +71,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .setAuthenticationFailureHandler(loginFailureHandler());
 
 
-
         return customUsernamePasswordAuthenticationFilter;
+    }
+    @Bean
+    public QRAuthorizationFilter customQRAuthorizationFilter() {
+        return new QRAuthorizationFilter();
     }
 
     @Bean(name = "ExratesSessionRegistry")
@@ -90,6 +95,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.addFilterBefore(customUsernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(customQRAuthorizationFilter(), CapchaAuthorizationFilter.class);
         http
                 .authorizeRequests()
                 .antMatchers("/admin/withdrawal").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name())
@@ -99,7 +105,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/companywallet").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name())
                 .antMatchers(HttpMethod.POST, "/admin/chat/deleteMessage").hasAnyAuthority(UserRole.ADMINISTRATOR.name(),
                 UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
-                .antMatchers("/index.jsp", "/client/**", "/dashboard/**", "/registrationConfirm/**",
+                .antMatchers("/", "/index.jsp", "/client/**", "/dashboard/**", "/registrationConfirm/**",
                         "/changePasswordConfirm/**", "/changePasswordConfirm/**", "/aboutUs", "/57163a9b3d1eafe27b8b456a.txt", "/newIpConfirm/**").permitAll()
                 .antMatchers(HttpMethod.POST, "/merchants/withdrawal/request/accept",
                         "/merchants/withdrawal/request/decline").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name())
@@ -130,6 +136,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.GET, "/generateReferral").permitAll()
                 .antMatchers(HttpMethod.POST, "/merchants/edrcoin/payment/received").permitAll()
                 .antMatchers(HttpMethod.GET, "/merchants/blockchain/payment/received").permitAll()
+                .antMatchers(HttpMethod.GET, "/merchants/yandexmoney/token/access").permitAll()
+                .antMatchers(HttpMethod.GET, "/rest/yandexmoney/payment/process").permitAll()
                 .antMatchers(HttpMethod.GET, "/public/**").permitAll()
                 .antMatchers(HttpMethod.GET, "/favicon.ico").permitAll()
                 .antMatchers(HttpMethod.GET, "/news/**").permitAll()
@@ -143,11 +151,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/yandex_7a3c41ddb19f4716.html").permitAll()
                 .antMatchers("/termsAndConditions", "/privacyPolicy", "/contacts").permitAll()
                 .antMatchers(HttpMethod.POST, "/sendFeedback").permitAll()
+                .antMatchers(HttpMethod.POST, "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword").anonymous()
+                .antMatchers(HttpMethod.GET, "/rest/userFiles/**/avatar/**").permitAll()
+
 //                .antMatchers("/login", "/register", "/create", "/forgotPassword/**", "/resetPasswordConfirm/**").anonymous()
 //                .antMatchers("/updatePassword").hasAnyAuthority(UserRole.ROLE_CHANGE_PASSWORD.name())
 //                .anyRequest().authenticated()
 //                .anyRequest().hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.USER.name())
-                .antMatchers("/login", "/register", "/create", "/forgotPassword/**", "/resetPasswordConfirm/**").anonymous()
+                .antMatchers("/login", "/register", "/create", "/forgotPassword/**", "/resetPasswordConfirm/**", "/rest/user/resetPasswordConfirm/**").anonymous()
                 .antMatchers("/updatePassword").hasAnyAuthority(UserRole.ROLE_CHANGE_PASSWORD.name())
 //                .anyRequest().authenticated()
                 .anyRequest().hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.USER.name())
@@ -155,15 +166,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .exceptionHandling().accessDeniedPage("/403");
         SessionManagementConfigurer<HttpSecurity> sessionConfigurer = http.sessionManagement();
         sessionConfigurer
+                .sessionAuthenticationStrategy(new NullAuthenticatedSessionStrategy())
                 .maximumSessions(MAXIMUM_SESSIONS)
                 .sessionRegistry(sessionRegistry())
-                .expiredUrl("/403")
+                .expiredUrl("/dashboard")
                 .maxSessionsPreventsLogin(false);
 
         //init and configure methods are required to instantiate the composite SessionAuthenticationStrategy, which is later passed to custom auth filter
         sessionConfigurer.init(http);
         sessionConfigurer.configure(http);
-        customUsernamePasswordAuthenticationFilter().setSessionAuthenticationStrategy(http.getSharedObject(SessionAuthenticationStrategy.class));
+        SessionAuthenticationStrategy authenticationStrategy = http.getSharedObject(SessionAuthenticationStrategy.class);
+        customUsernamePasswordAuthenticationFilter().setSessionAuthenticationStrategy(authenticationStrategy);
+        customQRAuthorizationFilter().setAuthenticationStrategy(authenticationStrategy);
 
        http.formLogin()
                 .loginPage("/login")
@@ -199,7 +213,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/merchants/interkassa/payment/status",
                         "/merchants/yandex_kassa/payment/failure",
                         "/merchants/yandex_kassa/payment/success",
-                        "/merchants/yandex_kassa/payment/status");
+                        "/merchants/yandex_kassa/payment/status",
+                        "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword");
         http
                 .headers()
                 .frameOptions()

@@ -13,6 +13,11 @@ public class BackDealInterval {
     public Integer intervalValue;
     public IntervalType intervalType;
 
+    public BackDealInterval(Integer intervalValue, IntervalType intervalType) {
+        this.intervalValue = intervalValue;
+        this.intervalType = intervalType;
+    }
+
     /*constructor*/
     public BackDealInterval(String intervalString) {
         try {
@@ -30,4 +35,11 @@ public class BackDealInterval {
     }
     /*getters setters*/
 
+    @Override
+    public String toString() {
+        return "BackDealInterval{" +
+                "intervalValue=" + intervalValue +
+                ", intervalType=" + intervalType +
+                '}';
+    }
 }

@@ -1,7 +1,6 @@
 package me.exrates.model.dto.onlineTableDto;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import me.exrates.model.dto.onlineTableDto.OnlineTableDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
@@ -32,6 +31,7 @@ public class OrderWideListDto extends OnlineTableDto{
     private String commissionAmountForAcceptor;
     private String amountWithCommissionForAcceptor;
     /**/
+    private int currencyPairId;
     private String currencyPairName;
     private String statusString;
 
@@ -214,5 +214,13 @@ public class OrderWideListDto extends OnlineTableDto{
 
     public void setStatusString(String statusString) {
         this.statusString = statusString;
+    }
+
+    public int getCurrencyPairId() {
+        return currencyPairId;
+    }
+
+    public void setCurrencyPairId(int currencyPairId) {
+        this.currencyPairId = currencyPairId;
     }
 }

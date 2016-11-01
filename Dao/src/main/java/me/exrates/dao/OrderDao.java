@@ -5,6 +5,7 @@ import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.PagingData;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.mobileApiDto.dashboard.CommissionsDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
@@ -53,7 +54,13 @@ public interface OrderDao {
 
     OrderCommissionsDto getCommissionForOrder();
 
+    CommissionsDto getAllCommissions();
+
     List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
+                                                OperationType operationType,
+                                                Integer offset, Integer limit, Locale locale);
+
+    List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, List<OrderStatus> statuses,
                                                 OperationType operationType,
                                                 Integer offset, Integer limit, Locale locale);
 

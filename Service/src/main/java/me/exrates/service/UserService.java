@@ -7,10 +7,12 @@ import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.UserIpDto;
 import me.exrates.model.dto.UserSessionInfoDto;
 import me.exrates.model.dto.UserSummaryDto;
+import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.dto.*;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.service.exception.UnRegisteredUserDeleteException;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -24,6 +26,8 @@ public interface UserService {
     User findByEmail(String email);
 
     void createUserFile(int userId, List<Path> paths);
+
+    void setUserAvatar(int userId, Path path);
 
     void deleteUserFile(int docId);
 
@@ -39,6 +43,9 @@ public interface UserService {
 
     List<TemporalToken> getTokenByUserAndType(User user, TokenType tokenType);
 
+    @Transactional(rollbackFor = Exception.class)
+    boolean createUserRest(User user, Locale locale);
+
     int verifyUserEmail(String token);
 
     List<UserRole> getAllRoles();
@@ -48,6 +55,9 @@ public interface UserService {
     boolean createUserByAdmin(User user);
 
     boolean updateUserByAdmin(UpdateUserDto user);
+
+    @Transactional(rollbackFor = Exception.class)
+    boolean updateUserSettings(UpdateUserDto user);
 
     boolean update(UpdateUserDto user, boolean resetPassword, Locale locale);
 
@@ -59,11 +69,16 @@ public interface UserService {
 
     boolean deleteExpiredToken(String token) throws UnRegisteredUserDeleteException;
 
+    @Transactional(rollbackFor = Exception.class)
+    void sendEmailWithToken(User user, TokenType tokenType, String tokenLink, String emailSubject, String emailText, Locale locale, String newPass);
+
     void sendUnfamiliarIpNotificationEmail(User user, String emailSubject, String emailText, Locale locale);
 
     boolean createTemporalToken(TemporalToken token);
 
     User getCommonReferralRoot();
+
+    void checkFinPassword(String enteredFinPassword, User storedUser, Locale locale);
 
     void updateCommonReferralRoot(int userId);
 
@@ -73,6 +88,8 @@ public interface UserService {
      * @return string mnemonic of locale
      */
     String getPreferedLang(int userId);
+
+    String getPreferedLangByEmail(String email);
 
     /**
      * Stores preferred locale for user in DB
@@ -140,4 +157,15 @@ public interface UserService {
     List<UserSummaryTotalInOutDto> getUsersSummaryTotalInOutList(String startDate, String endDate);
 
     List<UserSessionInfoDto> getUserSessionInfo(Set<String> emails);
+
+    void saveTemporaryPasswordAndNotify(UpdateUserDto user, String temporaryPass, Locale locale);
+
+    boolean replaceUserPassAndDelete(String token, Long tempPassId);
+
+    boolean removeTemporaryPassword(Long id);
+
+    @Transactional
+    boolean tempDeleteUser(String email);
+
+    String getAvatarPath(Integer userId);
 }

@@ -57,15 +57,15 @@ public class OnlineRestController {
     * new Date().getTime() + SESSION_LIFETIME_HARD * 1000*/
     public static final int SESSION_LIFETIME_INACTIVE = 0; //SECONDS
     /*default depth the interval for chart*/
-    final public BackDealInterval BACK_DEAL_INTERVAL_DEFAULT = new BackDealInterval("24 HOUR");
+    final public static BackDealInterval BACK_DEAL_INTERVAL_DEFAULT = new BackDealInterval("24 HOUR");
     /*depth the accepted order history*/
-    final public BackDealInterval ORDER_HISTORY_INTERVAL = new BackDealInterval("24 HOUR");
+    final public static BackDealInterval ORDER_HISTORY_INTERVAL = new BackDealInterval("24 HOUR");
     /*limit the data fetching of order history (additional to ORDER_HISTORY_INTERVAL). (-1) means no limit*/
-    final public Integer ORDER_HISTORY_LIMIT = 100;
+    final public static Integer ORDER_HISTORY_LIMIT = 100;
     /*default limit the data fetching for all tables. (-1) means no limit*/
-    final public Integer TABLES_LIMIT_DEFAULT = -1;
+    final public static Integer TABLES_LIMIT_DEFAULT = -1;
     /*default type of the chart*/
-    final public ChartType CHART_TYPE_DEFAULT = ChartType.STOCK;
+    final public static ChartType CHART_TYPE_DEFAULT = ChartType.STOCK;
     /*it's need to install only one: SESSION_LIFETIME_HARD or SESSION_LIFETIME_INACTIVE*/
     @Autowired
     CommissionService commissionService;
@@ -115,17 +115,7 @@ public class OnlineRestController {
         }
     }
 
-    /**
-     * it's one of onlines methods, which retrieves data from DB for repaint on view in browser page
-     * returns list the data of user's wallet current statistics
-     *
-     * @param refreshIfNeeded: - "true" if view ought to repainted if data in DB was changed only.
-     *                         - "false" if data must repainted in any cases
-     * @param principal
-     * @param request
-     * @return: "null" if user is not login. List the data of user's wallet current statistics
-     * @author ValkSam
-     */
+
     @OnlineMethod
     @RequestMapping(value = "/dashboard/myWalletsStatistic", method = RequestMethod.GET)
     public List<MyWalletsStatisticsDto> getMyWalletsStatisticsForAllCurrencies(@RequestParam(required = false) Boolean refreshIfNeeded,
@@ -222,6 +212,19 @@ public class OnlineRestController {
                     put("redirect", new HashMap<String, String>() {{
                         put("url", "/dashboard");
                         put("urlParam1", messageSource.getMessage("session.expire", null, localeResolver.resolveLocale(request)));
+                    }});
+                }};
+            }
+            if (session.getAttribute("QR_LOGGED_IN") != null) {
+            /*
+            after authentication via QR main page must be reloaded*/
+                session.removeAttribute("QR_LOGGED_IN");
+                session.setAttribute("sessionEndTime", new Date().getTime() + SESSION_LIFETIME_HARD * 1000);
+                LOGGER.debug(" REDIRECT to /dashboard. SESSION: " + session.getId() + " is new: " + session.isNew() + " firstEntry: " + session.getAttribute("firstEntry"));
+                return new HashMap<String, HashMap<String, String>>() {{
+                    put("redirect", new HashMap<String, String>() {{
+                        put("url", "/dashboard");
+                        put("successQR", messageSource.getMessage("dashboard.qrLogin.successful", null, localeResolver.resolveLocale(request)));
                     }});
                 }};
             }
@@ -696,20 +699,6 @@ public class OnlineRestController {
         return result;
     }
 
-
-    /**
-     * it's one of onlines methods, which retrieves data from DB for repaint on view in browser page
-     * returns list the data of user's orders to show in pages "History" and "Orders"
-     * @param refreshIfNeeded:  - "true" if view ought to repainted if data in DB was changed only.
-     *                          - "false" if data must repainted in any cases
-     * @param tableId determines concrete table o pages "History" and "Orders" to show data
-     * @param status determines status the order
-     * @param page, direction - used for pgination. Details see in class TableParams
-     * @param principal
-     * @param request
-     * @return list the data of user's orders
-     * @author ValkSam
-     */
 
     /**
      * it's one of onlines methods, which retrieves data from DB for repaint on view in browser page

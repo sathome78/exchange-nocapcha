@@ -4,6 +4,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
 import me.exrates.model.dto.MyWalletConfirmationDetailDto;
+import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
 import me.exrates.model.dto.UserWalletSummaryDto;
@@ -11,6 +12,7 @@ import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WalletOperationData;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -82,4 +84,12 @@ public interface WalletService {
 
     List<MyWalletConfirmationDetailDto> getWalletConfirmationDetail(Integer walletId, Locale locale);
 
+    @Transactional(readOnly = true)
+    MyWalletsStatisticsApiDto getUserWalletShortStatistics(int walletId);
+
+    @Transactional(readOnly = true)
+    List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> currencyIds, Locale locale);
+
+    @Transactional(readOnly = true)
+    List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale);
 }

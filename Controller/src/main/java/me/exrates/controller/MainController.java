@@ -6,13 +6,15 @@ import me.exrates.controller.validator.FeedbackMessageFormValidator;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.User;
 import me.exrates.model.dto.OperationViewDto;
-import me.exrates.model.enums.TokenType;
 import me.exrates.model.form.FeedbackMessageForm;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.ReferralService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.UserService;
+import me.exrates.service.exception.AbsentFinPasswordException;
+import me.exrates.service.exception.NotConfirmedFinPasswordException;
+import me.exrates.service.exception.WrongFinPasswordException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +23,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
@@ -32,15 +33,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import javax.validation.Valid;
 import java.io.File;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -291,19 +288,7 @@ public class MainController {
     public void checkFinPassword(User user, HttpServletRequest request) {
         String enteredFinPassword = user.getFinpassword();
         User storedUser = userService.getUserById(userService.getIdByEmail(user.getEmail()));
-        boolean isNotConfirmedToken = userService.getTokenByUserAndType(storedUser, TokenType.CHANGE_FIN_PASSWORD).size() > 0;
-        if (isNotConfirmedToken) {
-            throw new NotConfirmedFinPasswordException(messageSource.getMessage("admin.notconfirmedfinpassword", null, localeResolver.resolveLocale(request)));
-        }
-        String currentFinPassword = storedUser.getFinpassword();
-        if (currentFinPassword == null || currentFinPassword.isEmpty()) {
-            throw new AbsentFinPasswordException(messageSource.getMessage("admin.absentfinpassword", null, localeResolver.resolveLocale(request)));
-        }
-        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        boolean authSuccess = passwordEncoder.matches(enteredFinPassword, currentFinPassword);
-        if (!authSuccess) {
-            throw new WrongFinPasswordException(messageSource.getMessage("admin.wrongfinpassword", null, localeResolver.resolveLocale(request)));
-        }
+        userService.checkFinPassword(enteredFinPassword, storedUser, localeResolver.resolveLocale(request));
     }
 
     /*

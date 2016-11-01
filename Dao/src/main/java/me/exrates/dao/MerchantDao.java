@@ -2,6 +2,7 @@ package me.exrates.dao;
 
 import me.exrates.model.Merchant;
 import me.exrates.model.MerchantCurrency;
+import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 
 import java.math.BigDecimal;
@@ -24,6 +25,8 @@ public interface MerchantDao {
     BigDecimal getMinSum(int merchant, int currency);
 
     List<MerchantCurrency> findAllByCurrencies(List<Integer> currenciesId);
+
+    List<MerchantCurrencyApiDto> findAllMerchantCurrencies(Integer currencyId);
 
     List<MyInputOutputHistoryDto> getMyInputOutputHistory(String email, Integer offset, Integer limit, Locale locale);
 }

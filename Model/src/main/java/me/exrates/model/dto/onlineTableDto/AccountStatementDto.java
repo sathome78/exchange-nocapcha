@@ -30,6 +30,8 @@ public class AccountStatementDto extends OnlineTableDto {
     private TransactionStatus transactionStatus;
     private String merchantName;
     private Boolean checked;
+    private Integer walletId;
+    private Integer userId;
 
     public AccountStatementDto() {
         this.needRefresh = true;
@@ -174,6 +176,22 @@ public class AccountStatementDto extends OnlineTableDto {
 
     public void setMerchantName(String merchantName) {
         this.merchantName = merchantName;
+    }
+
+    public Integer getWalletId() {
+        return walletId;
+    }
+
+    public void setWalletId(Integer walletId) {
+        this.walletId = walletId;
+    }
+
+    public Integer getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Integer userId) {
+        this.userId = userId;
     }
 
     @Override

@@ -12,7 +12,11 @@ public interface UserFilesService {
 
     List<MultipartFile> reduceInvalidFiles(MultipartFile[] files);
 
+    boolean checkFileValidity(MultipartFile file);
+
     void createUserFiles(int userId, List<MultipartFile> files) throws IOException;
+
+    String createUserAvatar(int userId, MultipartFile file) throws IOException;
 
     void deleteUserFile(String filename, int userId) throws IOException;
 }

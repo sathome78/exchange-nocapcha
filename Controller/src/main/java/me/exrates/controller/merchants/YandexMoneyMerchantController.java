@@ -55,12 +55,19 @@ public class YandexMoneyMerchantController {
 
     @RequestMapping(value = "/token/authorization", method = RequestMethod.GET)
     public RedirectView yandexMoneyTemporaryAuthorizationCodeRequest() {
-        return new RedirectView(yandexMoneyService.getTemporaryAuthCode());
+        String url = yandexMoneyService.getTemporaryAuthCode();
+        logger.debug("Url: " + url);
+        return new RedirectView(url);
     }
 
     @RequestMapping(value = "/token/access")
-    public ModelAndView yandexMoneyAccessTokenRequest(@RequestParam(value = "code",   required = false) String code,RedirectAttributes redir,
+    public ModelAndView yandexMoneyAccessTokenRequest(@RequestParam(value = "code", required = false) String code,
+                                                      @RequestParam(value = "mobile", required = false) boolean mobile,
+                                                      @RequestParam(value = "userId", required = false) Integer userId,
+                                                      @RequestParam(value = "paymentId", required = false) Integer paymentId,
+                                                      RedirectAttributes redir,
                                                       final HttpServletRequest request) {
+        logger.debug("Code: " + code);
         if (Strings.isNullOrEmpty(code)) {
             redir.addAttribute("errorNoty", messageSource.getMessage("merchants.authRejected", null, localeResolver.resolveLocale(request)));
             return new ModelAndView("/dashboard");
@@ -69,6 +76,10 @@ public class YandexMoneyMerchantController {
         if (!accessToken.isPresent()) {
             redir.addAttribute("errorNoty", messageSource.getMessage("merchants.authRejected", null, localeResolver.resolveLocale(request)));
             return new ModelAndView("/dashboard");
+        }
+        if (mobile && userId != null && paymentId != null) {
+            return new ModelAndView("redirect:/rest/yandexmoney/payment/process?token=" + accessToken.get()
+                    + "&userId=" + userId + "&paymentId=" + paymentId);
         }
         redir.addFlashAttribute("token", accessToken.get());
         return new ModelAndView("redirect:/merchants/yandexmoney/payment/process");
@@ -98,6 +109,7 @@ public class YandexMoneyMerchantController {
     @RequestMapping(value = "/payment/process")
     public RedirectView processPayment(@ModelAttribute(value = "token") String token, RedirectAttributes redir,
                                        HttpSession httpSession, final HttpServletRequest httpServletRequest) {
+        logger.debug("Token: " + token);
         final Object mutex = WebUtils.getSessionMutex(httpSession);
         final CreditsOperation creditsOperation;
         synchronized (mutex) {

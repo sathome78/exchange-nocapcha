@@ -216,4 +216,9 @@ public class ReferralServiceImpl implements ReferralService {
         }
         return result;
     }
+
+    @Override
+    public List<MyReferralDetailedDto> findAllMyReferral(String email, Integer offset, Integer limit, Locale locale) {
+        return referralTransactionDao.findAllMyRefferal(email, offset, limit, locale);
+    }
 }

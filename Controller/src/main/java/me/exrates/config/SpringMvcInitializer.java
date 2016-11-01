@@ -1,6 +1,7 @@
 package me.exrates.config;
 
 import me.exrates.controller.filter.RequestFilter;
+import me.exrates.controller.listener.StoreSessionListenerImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
@@ -67,5 +68,6 @@ public class SpringMvcInitializer extends AbstractAnnotationConfigDispatcherServ
     protected void registerDispatcherServlet(ServletContext servletContext) {
         super.registerDispatcherServlet(servletContext);
         servletContext.addListener(HttpSessionEventPublisher.class);
+        servletContext.addListener(StoreSessionListenerImpl.class);
     }
 }

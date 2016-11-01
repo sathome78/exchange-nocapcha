@@ -46,6 +46,14 @@
             <artifactId>botdetect-jsp20</artifactId>
             <version>4.0.alpha5</version>
         </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt</artifactId>
+            <version>0.6.0</version>
+        </dependency>
+
+
+
     </dependencies>
     <repositories>
         <repository>

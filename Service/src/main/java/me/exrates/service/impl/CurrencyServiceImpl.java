@@ -4,9 +4,11 @@ import me.exrates.dao.CurrencyDao;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.exception.CurrencyPairNotFoundException;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -73,7 +75,11 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     @Override
     public CurrencyPair findCurrencyPairById(int currencyPairId) {
-        return currencyDao.findCurrencyPairById(currencyPairId);
+        try {
+            return currencyDao.findCurrencyPairById(currencyPairId);
+        } catch (EmptyResultDataAccessException e) {
+            throw new CurrencyPairNotFoundException("Currency pair not found");
+        }
     }
 
     @Override

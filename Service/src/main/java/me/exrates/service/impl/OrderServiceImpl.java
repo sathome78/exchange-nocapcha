@@ -6,7 +6,9 @@ import me.exrates.dao.OrderDao;
 import me.exrates.dao.TransactionDao;
 import me.exrates.dao.WalletDao;
 import me.exrates.model.*;
+import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.mobileApiDto.dashboard.CommissionsDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
@@ -30,10 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.Integer.valueOf;
@@ -42,6 +41,10 @@ import static java.lang.Integer.valueOf;
 public class OrderServiceImpl implements OrderService {
 
     private static final Logger logger = LogManager.getLogger(OrderServiceImpl.class);
+
+
+    private final BigDecimal MAX_ORDER_VALUE = new BigDecimal(10000);
+    private final BigDecimal MIN_ORDER_VALUE = new BigDecimal(0.000000001);
 
     @Autowired
     private OrderDao orderDao;
@@ -108,6 +111,79 @@ public class OrderServiceImpl implements OrderService {
         }
         return result;
     }
+
+    @Transactional
+    @Override
+    public List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsSessionless(Locale locale) {
+        return orderDao.getOrderStatisticByPairs(locale);
+    }
+
+    @Override
+    public OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate) {
+        Currency spendCurrency = null;
+        if (orderType == OperationType.SELL) {
+            spendCurrency = activeCurrencyPair.getCurrency1();
+        } else if (orderType == OperationType.BUY) {
+            spendCurrency = activeCurrencyPair.getCurrency2();
+        }
+        WalletsAndCommissionsForOrderCreationDto walletsAndCommissions = getWalletAndCommission(userEmail, spendCurrency, orderType);
+        /**/
+        OrderCreateDto orderCreateDto = new OrderCreateDto();
+        orderCreateDto.setOperationType(orderType);
+        orderCreateDto.setCurrencyPair(activeCurrencyPair);
+        orderCreateDto.setAmount(amount);
+        orderCreateDto.setExchangeRate(rate);
+        orderCreateDto.setUserId(walletsAndCommissions.getUserId());
+        orderCreateDto.setCurrencyPair(activeCurrencyPair);
+        if (orderType == OperationType.SELL) {
+            orderCreateDto.setWalletIdCurrencyBase(walletsAndCommissions.getSpendWalletId());
+            orderCreateDto.setCurrencyBaseBalance(walletsAndCommissions.getSpendWalletActiveBalance());
+            orderCreateDto.setComissionForSellId(walletsAndCommissions.getCommissionId());
+            orderCreateDto.setComissionForSellRate(walletsAndCommissions.getCommissionValue());
+        } else if (orderType == OperationType.BUY) {
+            orderCreateDto.setWalletIdCurrencyConvert(walletsAndCommissions.getSpendWalletId());
+            orderCreateDto.setCurrencyConvertBalance(walletsAndCommissions.getSpendWalletActiveBalance());
+            orderCreateDto.setComissionForBuyId(walletsAndCommissions.getCommissionId());
+            orderCreateDto.setComissionForBuyRate(walletsAndCommissions.getCommissionValue());
+        }
+        /**/
+        orderCreateDto.calculateAmounts();
+        return orderCreateDto;
+    }
+
+    @Override
+    public Map<String, Object> validateOrder(OrderCreateDto orderCreateDto) {
+        Map<String, Object> errors = new HashMap<>();
+        if (orderCreateDto.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            errors.put("amount_" + errors.size(), "order.fillfield");
+        }
+        if (orderCreateDto.getExchangeRate().compareTo(BigDecimal.ZERO) <= 0) {
+            errors.put("exrate_" + errors.size(), "order.fillfield");
+        }
+        if (orderCreateDto.getAmount() != null) {
+            if (orderCreateDto.getAmount().compareTo(MAX_ORDER_VALUE) == 1) {
+                errors.put("amount_" + errors.size(), "order.maxvalue");
+                errors.put("amount_" + errors.size(), "order.valuerange");
+            }
+            if (orderCreateDto.getAmount().compareTo(MIN_ORDER_VALUE) == -1) {
+                errors.put("amount_" + errors.size(), "order.minvalue");
+                errors.put("amount_" + errors.size(), "order.valuerange");
+            }
+        }
+        if (orderCreateDto.getExchangeRate() != null) {
+            if (orderCreateDto.getExchangeRate().compareTo(new BigDecimal(0)) < 1) {
+                errors.put("exrate_" + errors.size(), "order.minrate");
+            }
+        }
+        if ((orderCreateDto.getAmount() != null) && (orderCreateDto.getExchangeRate() != null)) {
+            boolean ifEnoughMoney = orderCreateDto.getSpentWalletBalance().compareTo(BigDecimal.ZERO) > 0 && orderCreateDto.getSpentAmount().compareTo(orderCreateDto.getSpentWalletBalance()) <= 0;
+            if (!ifEnoughMoney) {
+                errors.put("balance_" + errors.size(), "validation.orderNotEnoughMoney");
+            }
+        }
+        return errors;
+    }
+
 
     @Override
     @Transactional(rollbackFor = {Exception.class})
@@ -188,7 +264,7 @@ public class OrderServiceImpl implements OrderService {
             WalletsForOrderAcceptionDto walletsForOrderAcceptionDto = walletDao.getWalletsForOrderByOrderIdAndBlock(exOrder.getId(), userAcceptorId);
             /**/
             if (walletsForOrderAcceptionDto.getOrderStatusId() != 2) {
-                throw new OrderAcceptionException(messageSource.getMessage("order.alreadyacceptederror", null, locale));
+                throw new AlreadyAcceptedOrderException(messageSource.getMessage("order.alreadyacceptederror", null, locale));
             }
             /**/
             int createdWalletId;
@@ -290,6 +366,9 @@ public class OrderServiceImpl implements OrderService {
             walletTransferStatus = walletDao.walletBalanceChange(walletOperationData);
             if (walletTransferStatus != WalletTransferStatus.SUCCESS) {
                 exceptionMessage = getWalletTransferExceptionMessage(walletTransferStatus, "order.notenoughreservedmoneyforcreator", locale);
+                if (walletTransferStatus == WalletTransferStatus.CAUSED_NEGATIVE_BALANCE) {
+                    throw new InsufficientCostsForAcceptionException(exceptionMessage);
+                }
                 throw new OrderAcceptionException(exceptionMessage);
             }
              /*for acceptor OUT*/
@@ -305,6 +384,9 @@ public class OrderServiceImpl implements OrderService {
             walletTransferStatus = walletDao.walletBalanceChange(walletOperationData);
             if (walletTransferStatus != WalletTransferStatus.SUCCESS) {
                 exceptionMessage = getWalletTransferExceptionMessage(walletTransferStatus, "order.notenoughmoneyforacceptor", locale);
+                if (walletTransferStatus == WalletTransferStatus.CAUSED_NEGATIVE_BALANCE) {
+                    throw new InsufficientCostsForAcceptionException(exceptionMessage);
+                }
                 throw new OrderAcceptionException(exceptionMessage);
             }
             /*for creator IN*/
@@ -377,7 +459,7 @@ public class OrderServiceImpl implements OrderService {
             case CORRESPONDING_COMPANY_WALLET_NOT_FOUND:
                 message = messageSource.getMessage("orders.companyWalletNotFound", null, locale);
                 break;
-            case NOT_FOUND:
+            case WALLET_NOT_FOUND:
                 message = messageSource.getMessage("orders.walletNotFound", null, locale);
                 break;
             case WALLET_UPDATE_ERROR:
@@ -511,6 +593,12 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional(readOnly = true)
     @Override
+    public CommissionsDto getAllCommissions() {
+        return orderDao.getAllCommissions();
+    }
+
+    @Transactional(readOnly = true)
+    @Override
     public List<OrderListDto> getAllBuyOrders(CacheData cacheData,
                                               CurrencyPair currencyPair, String email, Locale locale) {
         List<OrderListDto> result = orderDao.getOrdersBuyForCurrencyPair(currencyPair, email, locale);
@@ -610,6 +698,61 @@ public class OrderServiceImpl implements OrderService {
 
         return result;
     }
+
+
+    /*
+    * Methods defined below are overloaded versions of dashboard info supplier methods.
+    * They are supposed to use with REST API which is stateless and cannot use session-based caching.
+    * */
+
+    @Transactional
+    @Override
+    public List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairs(Locale locale) {
+        return orderDao.getOrderStatisticByPairs(locale);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
+                                                       OperationType operationType,
+                                                       Integer offset, Integer limit, Locale locale) {
+        return orderDao.getMyOrdersWithState(email, currencyPair, status, operationType, offset, limit, locale);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, List<OrderStatus> statuses,
+                                                       OperationType operationType,
+                                                       Integer offset, Integer limit, Locale locale) {
+        return orderDao.getMyOrdersWithState(email, currencyPair, statuses, operationType, offset, limit, locale);
+    }
+
+
+    @Transactional
+    @Override
+    public List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriod(String email,
+                                                                   BackDealInterval backDealInterval,
+                                                                   Integer limit, CurrencyPair currencyPair, Locale locale) {
+
+        return orderDao.getOrderAcceptedForPeriod(email, backDealInterval, limit, currencyPair, locale);
+    }
+
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<OrderListDto> getAllBuyOrders(CurrencyPair currencyPair, String email, Locale locale) {
+        return orderDao.getOrdersBuyForCurrencyPair(currencyPair, email, locale);
+    }
+
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<OrderListDto> getAllSellOrders(CurrencyPair currencyPair, String email, Locale locale) {
+        return orderDao.getOrdersSellForCurrencyPair(currencyPair, email, locale);
+    }
+
+
+
 
 }
 

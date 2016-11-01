@@ -18,6 +18,7 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
     private String operationType;
     private Integer transactionId;
     private String transactionProvided;
+    private Integer userId;
 
     public MyInputOutputHistoryDto() {
         this.needRefresh = true;
@@ -89,6 +90,14 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
 
     public void setTransactionProvided(String transactionProvided) {
         this.transactionProvided = transactionProvided;
+    }
+
+    public Integer getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Integer userId) {
+        this.userId = userId;
     }
 
     @Override

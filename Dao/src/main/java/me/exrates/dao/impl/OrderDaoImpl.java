@@ -7,6 +7,7 @@ import me.exrates.jdbc.OrderRowMapper;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.mobileApiDto.dashboard.CommissionsDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
@@ -36,6 +37,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Repository
 public class OrderDaoImpl implements OrderDao {
@@ -622,6 +624,7 @@ public class OrderDaoImpl implements OrderDao {
                 OrderAcceptedHistoryDto orderAcceptedHistoryDto = new OrderAcceptedHistoryDto();
                 orderAcceptedHistoryDto.setOrderId(rs.getInt("id"));
                 orderAcceptedHistoryDto.setDateAcceptionTime(rs.getTimestamp("date_acception").toLocalDateTime().toLocalTime().format(DateTimeFormatter.ISO_LOCAL_TIME));
+                orderAcceptedHistoryDto.setAcceptionTime(rs.getTimestamp("date_acception"));
                 orderAcceptedHistoryDto.setRate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("exrate"), locale, true));
                 orderAcceptedHistoryDto.setAmountBase(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount_base"), locale, true));
                 orderAcceptedHistoryDto.setOperationType(OperationType.convert(rs.getInt("operation_type_id")));
@@ -662,22 +665,75 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
+    public CommissionsDto getAllCommissions(){
+        final String sql =
+                "  SELECT SUM(sell_commission) as sell_commission, SUM(buy_commission) as buy_commission, " +
+                        "SUM(input_commission) as input_commission, SUM(output_commission) as output_commission" +
+                        "  FROM " +
+                        "      ((SELECT SELL.value as sell_commission, 0 as buy_commission, 0 as input_commission, 0 as output_commission " +
+                        "      FROM COMMISSION SELL " +
+                        "      WHERE operation_type = 3 " +
+                        "      ORDER BY date DESC LIMIT 1)  " +
+                        "    UNION " +
+                        "      (SELECT 0, BUY.value, 0, 0 " +
+                        "      FROM COMMISSION BUY " +
+                        "      WHERE operation_type = 4 " +
+                        "      ORDER BY date DESC LIMIT 1) " +
+                        "    UNION " +
+                        "      (SELECT 0, 0, INPUT.value, 0 " +
+                        "      FROM COMMISSION INPUT " +
+                        "      WHERE operation_type = 1 " +
+                        "      ORDER BY date DESC LIMIT 1) " +
+                        "    UNION " +
+                        "      (SELECT 0, 0, 0, OUTPUT.value " +
+                        "      FROM COMMISSION OUTPUT " +
+                        "      WHERE operation_type = 2 " +
+                        "      ORDER BY date DESC LIMIT 1) " +
+                        "  ) COMMISSION";
+        try {
+            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+            return jdbcTemplate.queryForObject(sql, (rs, row) -> {
+                    CommissionsDto commissionsDto = new CommissionsDto();
+                    commissionsDto.setSellCommission(rs.getBigDecimal("sell_commission"));
+                    commissionsDto.setBuyCommission(rs.getBigDecimal("buy_commission"));
+                    commissionsDto.setInputCommission(rs.getBigDecimal("input_commission"));
+                    commissionsDto.setOutputCommission(rs.getBigDecimal("output_commission"));
+                    return commissionsDto;
+            });
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
+    }
+
+    @Override
     public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
                                                        OperationType operationType,
                                                        Integer offset, Integer limit, Locale locale) {
+        return getMyOrdersWithState(email, currencyPair, Collections.singletonList(status), operationType, offset, limit, locale);
+    }
+
+    @Override
+    public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, List<OrderStatus> statuses,
+                                                       OperationType operationType,
+                                                       Integer offset, Integer limit, Locale locale) {
+        List<Integer> statusIds = statuses.stream().map(OrderStatus::getStatus).collect(Collectors.toList());
+        String orderClause = "  ORDER BY -date_acception ASC, date_creation DESC";
+        if (statusIds.size() > 1) {
+            orderClause = "  ORDER BY status_modification_date DESC";
+        }
         String sql = "SELECT EXORDERS.*, CURRENCY_PAIR.name AS currency_pair_name" +
                 "  FROM EXORDERS " +
                 "  JOIN USER ON (USER.id=EXORDERS.user_id AND USER.email = :email) " +
                 "  JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) " +
-                "  WHERE (status_id = :status_id)" +
+                "  WHERE (status_id IN (:status_ids))" +
                 "    AND (operation_type_id = :operation_type_id)" +
                 (currencyPair == null ? "" : " AND EXORDERS.currency_pair_id=" + currencyPair.getId()) +
-                "  ORDER BY -date_acception ASC, date_creation DESC" +
+                 orderClause +
                 (limit == -1 ? "" : "  LIMIT " + limit + " OFFSET " + offset);
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("email", email);
-        namedParameters.put("status_id", status.getStatus());
+        namedParameters.put("status_ids", statusIds);
         namedParameters.put("operation_type_id", operationType.getType());
         return namedParameterJdbcTemplate.query(sql, namedParameters, new RowMapper<OrderWideListDto>() {
             @Override
@@ -703,6 +759,7 @@ public class OrderDaoImpl implements OrderDao {
                 orderWideListDto.setDateAcception(rs.getTimestamp("date_acception") == null ? null : rs.getTimestamp("date_acception").toLocalDateTime());
                 orderWideListDto.setStatus(OrderStatus.convert(rs.getInt("status_id")));
                 orderWideListDto.setDateStatusModification(rs.getTimestamp("status_modification_date") == null ? null : rs.getTimestamp("status_modification_date").toLocalDateTime());
+                orderWideListDto.setCurrencyPairId(rs.getInt("currency_pair_id"));
                 orderWideListDto.setCurrencyPairName(rs.getString("currency_pair_name"));
                 return orderWideListDto;
             }

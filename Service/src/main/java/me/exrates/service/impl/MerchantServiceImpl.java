@@ -5,6 +5,7 @@ import me.exrates.dao.MerchantDao;
 import me.exrates.dao.WithdrawRequestDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
+import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.WithdrawalRequestStatus;
@@ -145,7 +146,7 @@ public class MerchantServiceImpl implements MerchantService {
     @Transactional
     public Map<String, String> withdrawRequest(final CreditsOperation creditsOperation,
                                                final Locale locale,
-                                               final Principal principal)
+                                               final String userEmail)
     {
         final Transaction transaction = transactionService.createTransactionRequest(creditsOperation);
         final BigDecimal reserved = transaction
@@ -153,7 +154,7 @@ public class MerchantServiceImpl implements MerchantService {
                 .add(transaction.getCommissionAmount()).setScale(currencyService.resolvePrecision(creditsOperation.getCurrency().getName()), BigDecimal.ROUND_HALF_UP);
         walletService.depositReservedBalance(transaction.getUserWallet(), reserved);
         final WithdrawRequest request = new WithdrawRequest();
-        request.setUserEmail(principal.getName());
+        request.setUserEmail(userEmail);
         creditsOperation
                 .getDestination()
                 .ifPresent(request::setWallet);
@@ -299,6 +300,11 @@ public class MerchantServiceImpl implements MerchantService {
             return null;
         }
         return merchantDao.findAllByCurrencies(currenciesId);
+    }
+
+    @Override
+    public List<MerchantCurrencyApiDto> findAllMerchantCurrencies(Integer currencyId) {
+        return merchantDao.findAllMerchantCurrencies(currencyId);
     }
 
     @Override
@@ -458,5 +464,10 @@ public class MerchantServiceImpl implements MerchantService {
             }};
         }
         return result;
+    }
+
+    @Override
+    public List<MyInputOutputHistoryDto> getMyInputOutputHistory(String email, Integer offset, Integer limit, Locale locale) {
+        return merchantDao.getMyInputOutputHistory(email, offset, limit, locale);
     }
 }
