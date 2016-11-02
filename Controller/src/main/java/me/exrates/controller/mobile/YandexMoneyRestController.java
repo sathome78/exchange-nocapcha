@@ -52,11 +52,12 @@ public class YandexMoneyRestController {
                                                        @RequestParam Integer userId,
                                                        @RequestParam Integer paymentId) {
         logger.debug("token: " + token);
-        Locale userLocale = new Locale(userService.getPreferedLang(userId));
+        String email = userService.getUserById(userId).getEmail();
+        Locale userLocale = userService.getUserLocaleForMobile(email);
 
         Payment payment = yandexMoneyService.getPaymentById(paymentId).orElseThrow(()
                 -> new MerchantInternalException(messageSource.getMessage("merchants.authRejected", null, userLocale)));
-        String email = userService.getUserById(userId).getEmail();
+
         final CreditsOperation creditsOperation = merchantService
                 .prepareCreditsOperation(payment, email)
                 .orElseThrow(InvalidAmountException::new);

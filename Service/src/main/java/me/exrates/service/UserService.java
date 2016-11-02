@@ -168,4 +168,6 @@ public interface UserService {
     boolean tempDeleteUser(String email);
 
     String getAvatarPath(Integer userId);
+
+    Locale getUserLocaleForMobile(String email);
 }

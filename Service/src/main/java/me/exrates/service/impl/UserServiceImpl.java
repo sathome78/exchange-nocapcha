@@ -471,4 +471,15 @@ public class UserServiceImpl implements UserService {
         return userDao.getAvatarPath(userId);
     }
 
+    @Override
+    public Locale getUserLocaleForMobile(String email) {
+        String lang = getPreferedLangByEmail(email);
+        //adaptation for locales available in mobile app
+        if (!("ru".equalsIgnoreCase(lang) || "en".equalsIgnoreCase(lang))) {
+            lang = "en";
+        }
+
+        return new Locale(lang);
+    }
+
 }
