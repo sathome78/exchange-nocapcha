@@ -98,7 +98,7 @@ public class EDCClientWebSocketHandler {
     @OnMessage
     public void onMessage(final String message) throws IOException {
         if (!access) {
-            LOG.debug(message);
+         //   LOG.debug(message);
             final ObjectMapper mapper = new ObjectMapper();
             final Map<String, String> result = mapper.readValue(message, new TypeReference<Map<String, String>>() {
             });
@@ -107,13 +107,13 @@ public class EDCClientWebSocketHandler {
             }
         } else {
             if (blockAppliedPattern.test(message)) {
-                LOG.info(message);
+           //     LOG.info(message);
                 getBlockInfo(message);
             } else if (blockInfoPattern.test(message)) {
-                LOG.info(message);
+         //       LOG.info(message);
                 edcService.submitTransactionsForProcessing(message);
             } else {
-                LOG.info("EDC Blockchain info\n" + message);
+          //      LOG.info("EDC Blockchain info\n" + message);
             }
         }
     }
