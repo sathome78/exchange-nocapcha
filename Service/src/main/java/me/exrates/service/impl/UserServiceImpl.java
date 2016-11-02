@@ -94,6 +94,7 @@ public class UserServiceImpl implements UserService {
         if (result) {
             int user_id = this.getIdByEmail(user.getEmail());
             user.setId(user_id);
+            userDao.setPreferredLang(user_id, locale);
             sendEmailWithToken(user, TokenType.REGISTRATION, "/registrationConfirm", "emailsubmitregister.subject", "emailsubmitregister.text", locale);
         }
         return result;
