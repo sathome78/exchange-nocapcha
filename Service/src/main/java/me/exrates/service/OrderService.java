@@ -153,6 +153,9 @@ public interface OrderService {
      */
     Integer deleteOrderByAdmin(int orderId);
 
+    @Transactional(rollbackFor = {Exception.class})
+    Integer deleteOrderForPartialAccept(int orderId);
+
     /**
      * Searches order by its params:
      *

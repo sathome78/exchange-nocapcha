@@ -217,41 +217,49 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional(rollbackFor = {Exception.class})
     public Optional<String> autoAccept(OrderCreateDto orderCreateDto, Locale locale) {
-        List<ExOrder> acceptableOrders = orderDao.selectTopOrdersBySum(orderCreateDto.getCurrencyPair().getId(), orderCreateDto.getExchangeRate(),
-                orderCreateDto.getAmount(), OperationType.getOpposite(orderCreateDto.getOperationType()));
+        List<ExOrder> acceptableOrders = orderDao.selectTopOrders(orderCreateDto.getCurrencyPair().getId(), orderCreateDto.getExchangeRate(),
+                OperationType.getOpposite(orderCreateDto.getOperationType()));
         logger.debug("acceptableOrders - " + OperationType.getOpposite(orderCreateDto.getOperationType()) + " : " + acceptableOrders);
         if (acceptableOrders.isEmpty()) {
             return Optional.empty();
         }
-        ExOrder firstOrder = acceptableOrders.get(0);
-
-        if ((orderCreateDto.getOperationType() == OperationType.SELL && orderCreateDto.getExchangeRate().compareTo(firstOrder.getExRate()) > 0) ||
-                (orderCreateDto.getOperationType() == OperationType.BUY && orderCreateDto.getExchangeRate().compareTo(firstOrder.getExRate()) < 0)) {
-            return Optional.empty();
+        BigDecimal cumulativeSum = BigDecimal.ZERO;
+        List<ExOrder> ordersForAccept = new ArrayList<>();
+        ExOrder orderForPartialAccept = null;
+        for (ExOrder order : acceptableOrders) {
+            cumulativeSum = cumulativeSum.add(order.getAmountBase());
+            if (orderCreateDto.getAmount().compareTo(cumulativeSum) > 0) {
+                ordersForAccept.add(order);
+            } else if (orderCreateDto.getAmount().compareTo(cumulativeSum) == 0) {
+                ordersForAccept.add(order);
+                break;
+            }  else {
+                orderForPartialAccept = order;
+                break;
+            }
         }
-        if (firstOrder.getAmountBase().compareTo(orderCreateDto.getAmount()) > 0) {
-            deleteOrderByAdmin(firstOrder.getId());
-            OrderCreateDto accepted = prepareNewOrder(orderCreateDto.getCurrencyPair(), firstOrder.getOperationType(),
-                    userService.getUserById(firstOrder.getUserId()).getEmail(), orderCreateDto.getAmount(),
-                    firstOrder.getExRate());
-            OrderCreateDto remainder = prepareNewOrder(orderCreateDto.getCurrencyPair(), firstOrder.getOperationType(),
-                    userService.getUserById(firstOrder.getUserId()).getEmail(), firstOrder.getAmountBase().subtract(orderCreateDto.getAmount()),
-                    firstOrder.getExRate());
+        if (ordersForAccept.size() > 0) {
+            acceptOrdersList(orderCreateDto.getUserId(), ordersForAccept.stream().map(ExOrder::getId).collect(Collectors.toList()), locale);
+        }
+        if (orderForPartialAccept != null) {
+            deleteOrderForPartialAccept(orderForPartialAccept.getId());
+            OrderCreateDto accepted = prepareNewOrder(orderCreateDto.getCurrencyPair(), orderForPartialAccept.getOperationType(),
+                    userService.getUserById(orderForPartialAccept.getUserId()).getEmail(), orderCreateDto.getAmount().subtract(cumulativeSum),
+                    orderForPartialAccept.getExRate());
+            OrderCreateDto remainder = prepareNewOrder(orderCreateDto.getCurrencyPair(), orderForPartialAccept.getOperationType(),
+                    userService.getUserById(orderForPartialAccept.getUserId()).getEmail(), orderForPartialAccept.getAmountBase().subtract(orderCreateDto.getAmount()),
+                    orderForPartialAccept.getExRate());
             int acceptedId = createOrder(accepted);
             createOrder(remainder);
             acceptOrder(orderCreateDto.getUserId(), acceptedId, locale);
-            return Optional.of("{\"result\":\"" + messageSource.getMessage("order.acceptsuccess", new Integer[]{1}, locale) + "\"}");
-        } else {
-            acceptOrdersList(orderCreateDto.getUserId(), acceptableOrders.stream().map(ExOrder::getId).collect(Collectors.toList()), locale);
-            BigDecimal totalSum = acceptableOrders.stream().map(ExOrder::getAmountBase).reduce(BigDecimal::add).orElseGet(firstOrder::getAmountBase);
-            if (totalSum.compareTo(orderCreateDto.getAmount()) < 0) {
-                OrderCreateDto remainderNew = prepareNewOrder(orderCreateDto.getCurrencyPair(), orderCreateDto.getOperationType(),
-                        userService.getUserById(orderCreateDto.getUserId()).getEmail(), orderCreateDto.getAmount().subtract(totalSum),
-                        orderCreateDto.getExchangeRate());
-                createOrder(remainderNew);
-            }
-            return Optional.of("{\"result\":\"" + messageSource.getMessage("order.acceptsuccess", new Integer[]{acceptableOrders.size()}, locale) + "\"}");
+            return Optional.of("{\"result\":\"" + messageSource.getMessage("order.acceptsuccess", new Integer[]{ordersForAccept.size() + 1}, locale) + "\"}");
+        } else if (cumulativeSum.compareTo(orderCreateDto.getAmount()) < 0) {
+            OrderCreateDto remainderNew = prepareNewOrder(orderCreateDto.getCurrencyPair(), orderCreateDto.getOperationType(),
+                    userService.getUserById(orderCreateDto.getUserId()).getEmail(), orderCreateDto.getAmount().subtract(cumulativeSum),
+                    orderCreateDto.getExchangeRate());
+            createOrder(remainderNew);
         }
+        return Optional.of("{\"result\":\"" + messageSource.getMessage("order.acceptsuccess", new Integer[]{acceptableOrders.size()}, locale) + "\"}");
     }
 
     @Transactional(readOnly = true)
@@ -593,6 +601,19 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Integer deleteOrderByAdmin(int orderId) {
         Object result = orderDao.deleteOrderByAdmin(orderId);
+        if (result instanceof OrderDeleteStatus) {
+            if ((OrderDeleteStatus) result == OrderDeleteStatus.NOT_FOUND) {
+                return 0;
+            }
+            throw new OrderDeletingException(((OrderDeleteStatus) result).toString());
+        }
+        return (Integer) result;
+    }
+
+    @Override
+    @Transactional(rollbackFor = {Exception.class})
+    public Integer deleteOrderForPartialAccept(int orderId) {
+        Object result = orderDao.deleteOrderForPartialAccept(orderId);
         if (result instanceof OrderDeleteStatus) {
             if ((OrderDeleteStatus) result == OrderDeleteStatus.NOT_FOUND) {
                 return 0;

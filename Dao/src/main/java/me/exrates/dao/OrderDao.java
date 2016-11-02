@@ -77,6 +77,6 @@ public interface OrderDao {
                                                      BigDecimal orderVolumeTo, String creatorEmail, String acceptorEmail, Locale locale,
                                                      int offset, int limit, String orderColumnName, String orderDirection);
 
-    List<ExOrder> selectTopOrdersBySum(Integer currencyPairId, BigDecimal exrate,
-                                       BigDecimal amount, OperationType orderType);
+    List<ExOrder> selectTopOrders(Integer currencyPairId, BigDecimal exrate,
+                                  OperationType orderType);
 }
