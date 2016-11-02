@@ -224,8 +224,8 @@ public class MobileInputOutputController {
         payment.setOperationType(OperationType.OUTPUT);
 
 
-            String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        Locale userLocale = new Locale(userService.getPreferedLangByEmail(userEmail));
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        Locale userLocale = userService.getUserLocaleForMobile(userEmail);
             return merchantService.prepareCreditsOperation(payment, userEmail)
                     .map(creditsOperation -> merchantService.withdrawRequest(creditsOperation, userLocale, userEmail))
                     .map(response -> new ResponseEntity<>(response, OK))
@@ -278,7 +278,7 @@ public class MobileInputOutputController {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         String merchantName = merchantService.findById(payment.getMerchant()).getName();
         String beanName = String.join("", merchantName.split("[\\s.]+")).concat( "PaymentService");
-        Locale userLocale = new Locale(userService.getPreferedLangByEmail(userEmail));
+        Locale userLocale = userService.getUserLocaleForMobile(userEmail);
         final MerchantInputResponseDto result = merchantPaymentServices.get(beanName).preparePayment(userEmail, payment,
                 userLocale);
         return new ResponseEntity<>(result, OK);
@@ -310,7 +310,7 @@ public class MobileInputOutputController {
                 .orElseThrow(InvalidAmountException::new);
         String merchantName = merchantService.findById(payment.getMerchant()).getName();
         String beanName = String.join("", merchantName.split("[\\s.]+")).concat( "PaymentService");
-        Locale userLocale = new Locale(userService.getPreferedLangByEmail(userEmail));
+        Locale userLocale = userService.getUserLocaleForMobile(userEmail);
         final Map<String,String> result = merchantPaymentServices.get(beanName).preparePostPayment(userEmail, creditsOperation,
                 userLocale);
         LOGGER.debug(result);

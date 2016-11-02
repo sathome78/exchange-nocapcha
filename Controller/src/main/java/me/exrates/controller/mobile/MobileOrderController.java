@@ -215,7 +215,7 @@ public class MobileOrderController {
     public OrderSummaryDto submitOrderForCreation(@Valid @RequestBody OrderCreationParamsDto orderCreationParamsDto, HttpServletRequest request) {
         CurrencyPair activeCurrencyPair = currencyService.findCurrencyPairById(orderCreationParamsDto.getCurrencyPairId());
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        Locale userLocale = new Locale(userService.getPreferedLangByEmail(userEmail));
+        Locale userLocale = userService.getUserLocaleForMobile(userEmail);
         OrderCreateDto orderCreateDto = orderService.prepareNewOrder(activeCurrencyPair, orderCreationParamsDto.getOrderType(),
                 userEmail, orderCreationParamsDto.getAmount(), orderCreationParamsDto.getRate());
         Map<String, Object> errors = orderService.validateOrder(orderCreateDto);
@@ -256,7 +256,7 @@ public class MobileOrderController {
     @RequestMapping(value = "/createOrder", method = POST)
     public ResponseEntity<Integer> createOrder(@RequestBody Map<String, String> body) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        Locale userLocale = new Locale(userService.getPreferedLangByEmail(userEmail));
+        Locale userLocale = userService.getUserLocaleForMobile(userEmail);
         try {
             OrderCreateDto orderCreateDto = removeOrderCreateDtoByKey(body);
 
@@ -352,7 +352,7 @@ public class MobileOrderController {
        try {
            String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
            int userId = userService.getIdByEmail(userEmail);
-           Locale userLocale = new Locale(userService.getPreferedLang(userId));
+           Locale userLocale = userService.getUserLocaleForMobile(userEmail);
            orderService.acceptOrdersList(userId, ordersList, userLocale);
        } catch (Exception e) {
            throw e;
@@ -392,7 +392,7 @@ public class MobileOrderController {
     @RequestMapping(value = "/delete/{orderId}", method = DELETE, produces = "application/json;charset=utf-8")
     public boolean deleteOrder(@PathVariable Integer orderId, HttpServletRequest request) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        Locale userLocale = new Locale(userService.getPreferedLangByEmail(userEmail));
+        Locale userLocale = userService.getUserLocaleForMobile(userEmail);
 
         OrderCreateDto orderCreateDto = orderService.getMyOrderById(orderId);
         if (orderCreateDto == null) {

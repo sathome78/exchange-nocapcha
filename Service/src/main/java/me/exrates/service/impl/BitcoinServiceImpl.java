@@ -28,7 +28,10 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.StringJoiner;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -99,7 +102,7 @@ public class BitcoinServiceImpl implements BitcoinService {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    private void approveBitcoinTransaction(final String address, final String hash) {
+    private synchronized void approveBitcoinTransaction(final String address, final String hash) {
         final BiTuple<PendingPayment, Transaction> tuple = findByAddress(address);
         final PendingPayment payment = tuple.left;
         final Transaction tx = tuple.right;
@@ -110,12 +113,14 @@ public class BitcoinServiceImpl implements BitcoinService {
         BTCtx.setAmount(amount);
         BTCtx.setTransactionId(tx.getId());
         BTCtx.setHash(hash);
-        try {
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            User user = userService.findByEmail(auth.getName());
-            BTCtx.setAcceptanceUser(user);
-        }catch (Exception e){
-            LOG.error(e);
+        if (SecurityContextHolder.getContext().getAuthentication() !=  null){
+            try {
+                Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                User user = userService.findByEmail(auth.getName());
+                BTCtx.setAcceptanceUser(user);
+            }catch (Exception e){
+                LOG.error(e);
+            }
         }
         btcTransactionDao.create(BTCtx);
     }

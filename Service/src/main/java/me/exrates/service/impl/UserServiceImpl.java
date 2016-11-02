@@ -94,6 +94,7 @@ public class UserServiceImpl implements UserService {
         if (result) {
             int user_id = this.getIdByEmail(user.getEmail());
             user.setId(user_id);
+            userDao.setPreferredLang(user_id, locale);
             sendEmailWithToken(user, TokenType.REGISTRATION, "/registrationConfirm", "emailsubmitregister.subject", "emailsubmitregister.text", locale);
         }
         return result;
@@ -469,6 +470,17 @@ public class UserServiceImpl implements UserService {
     @Override
     public String getAvatarPath(Integer userId) {
         return userDao.getAvatarPath(userId);
+    }
+
+    @Override
+    public Locale getUserLocaleForMobile(String email) {
+        String lang = getPreferedLangByEmail(email);
+        //adaptation for locales available in mobile app
+        if (!("ru".equalsIgnoreCase(lang) || "en".equalsIgnoreCase(lang))) {
+            lang = "en";
+        }
+
+        return new Locale(lang);
     }
 
 }
