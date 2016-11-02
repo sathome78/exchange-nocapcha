@@ -19,6 +19,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 public interface OrderService {
 
@@ -37,7 +38,9 @@ public interface OrderService {
      */
     int createOrder(OrderCreateDto order);
 
-     /**
+    Optional<String> autoAccept(OrderCreateDto orderCreateDto, Locale locale);
+
+    /**
      * TODO ADD JAVADOC
      */
     List<OrderWideListDto> getMyOrdersWithState(

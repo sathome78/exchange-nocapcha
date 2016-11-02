@@ -467,6 +467,15 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public Object deleteOrderByAdmin(int orderId) {
+        return deleteOrder(orderId, OrderStatus.DELETED);
+    }
+
+    @Override
+    public Object deleteOrderForPartialAccept(int orderId) {
+        return deleteOrder(orderId, OrderStatus.SPLIT);
+    }
+
+    private Object deleteOrder(int orderId, OrderStatus status) {
         List<OrderDetailDto> list = getOrderRelatedDataAndBlock(orderId);
         if (list.isEmpty()) {
             return OrderDeleteStatus.NOT_FOUND;
@@ -480,7 +489,7 @@ public class OrderDaoImpl implements OrderDao {
                 " SET status_id = :status_id" +
                 " WHERE id = :order_id ";
         Map<String, Object> params = new HashMap<>();
-        params.put("status_id", OrderStatus.DELETED.getStatus());
+        params.put("status_id", status.getStatus());
         params.put("order_id", orderId);
         if (jdbcTemplate.update(sql, params) <= 0) {
             return OrderDeleteStatus.ORDER_UPDATE_ERROR;
@@ -950,6 +959,66 @@ public class OrderDaoImpl implements OrderDao {
 
     private boolean checkPresent(String param) {
         return !(param == null || param.isEmpty() || "null".equals(param));
+    }
+
+    @Override
+    public List<ExOrder> selectTopOrdersBySum(Integer currencyPairId, BigDecimal exrate,
+                                              BigDecimal amount, OperationType orderType) {
+        String sortDirection = "";
+        String exrateClause = "";
+        String exrateAggregateFunction = "";
+        if (orderType == OperationType.BUY) {
+            sortDirection = "DESC";
+            exrateClause = "AND exrate >= :exrate ";
+            exrateAggregateFunction = "MAX";
+        } else if (orderType == OperationType.SELL) {
+            sortDirection = "ASC";
+            exrateClause = "AND exrate <= :exrate ";
+            exrateAggregateFunction = "MIN";
+        }
+        String sqlSetVar = "SET @cumsum := 0";
+
+        /*needs to return several orders with best exrate if their total sum is less than amount in param,
+        * or at least one order if base amount is greater than param amount*/
+        String sql = "SELECT id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, " +
+                "commission_id, commission_fixed_amount, date_creation, status_id, cumulative FROM (" +
+                "SELECT id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, " +
+                "commission_id, commission_fixed_amount, date_creation, status_id, (@cumsum := @cumsum + amount_base) AS cumulative " +
+                "FROM exorders " +
+                "WHERE status_id = 2 AND currency_pair_id = :currency_pair_id " +
+                "AND operation_type_id = :operation_type_id " +
+                exrateClause + " ORDER BY exrate " + sortDirection +
+                ") AS SUBSELECT " +
+                "WHERE cumulative <= :amount OR exrate = (SELECT " + exrateAggregateFunction + "(exrate) FROM exorders " +
+                "WHERE status_id = 2 AND currency_pair_id = :currency_pair_id AND operation_type_id = :operation_type_id " +
+                exrateClause + ")";
+
+        Map<String, Number> params = new HashMap<String, Number>() {{
+            put("currency_pair_id", currencyPairId);
+            put("amount", amount);
+            put("exrate", exrate);
+            put("operation_type_id", orderType.getType());
+        }};
+        NamedParameterJdbcTemplate jdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+        jdbcTemplate.execute(sqlSetVar, PreparedStatement::execute);
+
+
+        return jdbcTemplate.query(sql, params, (rs, row) -> {
+            ExOrder exOrder = new ExOrder();
+            exOrder.setId(rs.getInt("id"));
+            exOrder.setUserId(rs.getInt("user_id"));
+            exOrder.setCurrencyPairId(rs.getInt("currency_pair_id"));
+            exOrder.setOperationType(OperationType.convert(rs.getInt("operation_type_id")));
+            exOrder.setExRate(rs.getBigDecimal("exrate"));
+            exOrder.setAmountBase(rs.getBigDecimal("amount_base"));
+            exOrder.setAmountConvert(rs.getBigDecimal("amount_convert"));
+            exOrder.setComissionId(rs.getInt("commission_id"));
+            exOrder.setCommissionFixedAmount(rs.getBigDecimal("commission_fixed_amount"));
+            exOrder.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
+            exOrder.setStatus(OrderStatus.convert(rs.getInt("status_id")));
+            LOGGER.debug(rs.getBigDecimal("cumulative"));
+            return exOrder;
+        });
     }
 
 }
