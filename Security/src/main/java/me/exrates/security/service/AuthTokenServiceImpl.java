@@ -31,9 +31,8 @@ public class AuthTokenServiceImpl implements AuthTokenService {
 
 
     private static final String TOKEN_KEY = "k2j34g5sdfgs8d97"; //currently a random combination of letters and digits
-    private static final String CREATE_DATE_KEY = "token_create_date";
     private static final String EXPIRATION_DATE_KEY = "token_expiration_date";
-    private static final long TOKEN_DURATION_TIME = 5 * 60L; //SECONDS
+    private static final long TOKEN_DURATION_TIME = 15 * 60L; //SECONDS
 
 
 
@@ -55,10 +54,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         if (passwordEncoder.matches(password, userDetails.getPassword())) {
             Map<String, Object> tokenData = new HashMap<>();
 
-            tokenData.put("clientType", "user");
             tokenData.put("username", userDetails.getUsername());
-            Date creation = Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant());
-            tokenData.put(CREATE_DATE_KEY, creation.getTime());
             Date expiration = Date.from(LocalDateTime.now().plusSeconds(TOKEN_DURATION_TIME).atZone(ZoneId.systemDefault()).toInstant());
             tokenData.put(EXPIRATION_DATE_KEY, expiration.getTime());
             JwtBuilder jwtBuilder = Jwts.builder();
