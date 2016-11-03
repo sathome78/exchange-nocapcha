@@ -31,9 +31,8 @@ public class AuthTokenServiceImpl implements AuthTokenService {
 
 
     private static final String TOKEN_KEY = "k2j34g5sdfgs8d97"; //currently a random combination of letters and digits
-    private static final String CREATE_DATE_KEY = "token_create_date";
     private static final String EXPIRATION_DATE_KEY = "token_expiration_date";
-    private static final long TOKEN_DURATION_TIME = 5 * 60L; //SECONDS
+    private static final long TOKEN_DURATION_TIME = 15 * 60L; //SECONDS
 
 
 
