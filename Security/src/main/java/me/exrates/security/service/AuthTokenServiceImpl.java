@@ -55,10 +55,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         if (passwordEncoder.matches(password, userDetails.getPassword())) {
             Map<String, Object> tokenData = new HashMap<>();
 
-            tokenData.put("clientType", "user");
             tokenData.put("username", userDetails.getUsername());
-            Date creation = Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant());
-            tokenData.put(CREATE_DATE_KEY, creation.getTime());
             Date expiration = Date.from(LocalDateTime.now().plusSeconds(TOKEN_DURATION_TIME).atZone(ZoneId.systemDefault()).toInstant());
             tokenData.put(EXPIRATION_DATE_KEY, expiration.getTime());
             JwtBuilder jwtBuilder = Jwts.builder();
