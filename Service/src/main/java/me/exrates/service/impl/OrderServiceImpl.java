@@ -238,28 +238,39 @@ public class OrderServiceImpl implements OrderService {
                 break;
             }
         }
+        StringBuilder successMessage = new StringBuilder("{\"result\":\"");
         if (ordersForAccept.size() > 0) {
             acceptOrdersList(orderCreateDto.getUserId(), ordersForAccept.stream().map(ExOrder::getId).collect(Collectors.toList()), locale);
+            successMessage.append(messageSource.getMessage("order.acceptsuccess", new Integer[]{ordersForAccept.size()}, locale)).append("; ");
         }
         if (orderForPartialAccept != null) {
-            deleteOrderForPartialAccept(orderForPartialAccept.getId());
-            OrderCreateDto accepted = prepareNewOrder(orderCreateDto.getCurrencyPair(), orderForPartialAccept.getOperationType(),
-                    userService.getUserById(orderForPartialAccept.getUserId()).getEmail(), orderCreateDto.getAmount().subtract(cumulativeSum),
-                    orderForPartialAccept.getExRate());
-            OrderCreateDto remainder = prepareNewOrder(orderCreateDto.getCurrencyPair(), orderForPartialAccept.getOperationType(),
-                    userService.getUserById(orderForPartialAccept.getUserId()).getEmail(), orderForPartialAccept.getAmountBase().subtract(orderCreateDto.getAmount()),
-                    orderForPartialAccept.getExRate());
-            int acceptedId = createOrder(accepted);
-            createOrder(remainder);
-            acceptOrder(orderCreateDto.getUserId(), acceptedId, locale);
-            return Optional.of("{\"result\":\"" + messageSource.getMessage("order.acceptsuccess", new Integer[]{ordersForAccept.size() + 1}, locale) + "\"}");
-        } else if (cumulativeSum.compareTo(orderCreateDto.getAmount()) < 0) {
+            String partialAcceptResult = acceptPartially(orderCreateDto, orderForPartialAccept, cumulativeSum, locale);
+            successMessage.append(partialAcceptResult);
+        } else if (orderCreateDto.getAmount().compareTo(cumulativeSum) > 0) {
             OrderCreateDto remainderNew = prepareNewOrder(orderCreateDto.getCurrencyPair(), orderCreateDto.getOperationType(),
                     userService.getUserById(orderCreateDto.getUserId()).getEmail(), orderCreateDto.getAmount().subtract(cumulativeSum),
                     orderCreateDto.getExchangeRate());
             createOrder(remainderNew);
+            successMessage.append(messageSource.getMessage("createdorder.text", null, locale));
         }
-        return Optional.of("{\"result\":\"" + messageSource.getMessage("order.acceptsuccess", new Integer[]{acceptableOrders.size()}, locale) + "\"}");
+        successMessage.append("\"}");
+        return Optional.of(successMessage.toString());
+    }
+
+    private String acceptPartially(OrderCreateDto newOrder, ExOrder orderForPartialAccept, BigDecimal cumulativeSum, Locale locale) {
+        deleteOrderForPartialAccept(orderForPartialAccept.getId());
+        BigDecimal amountForPartialAccept = newOrder.getAmount().subtract(cumulativeSum.subtract(orderForPartialAccept.getAmountBase()));
+        OrderCreateDto accepted = prepareNewOrder(newOrder.getCurrencyPair(), orderForPartialAccept.getOperationType(),
+                userService.getUserById(orderForPartialAccept.getUserId()).getEmail(), amountForPartialAccept,
+                orderForPartialAccept.getExRate());
+        OrderCreateDto remainder = prepareNewOrder(newOrder.getCurrencyPair(), orderForPartialAccept.getOperationType(),
+                userService.getUserById(orderForPartialAccept.getUserId()).getEmail(), orderForPartialAccept.getAmountBase().subtract(amountForPartialAccept),
+                orderForPartialAccept.getExRate());
+        int acceptedId = createOrder(accepted);
+        createOrder(remainder);
+        acceptOrder(newOrder.getUserId(), acceptedId, locale);
+        return messageSource.getMessage("orders.partialAccept.success", new Object[]{amountForPartialAccept,
+                orderForPartialAccept.getAmountBase(), newOrder.getCurrencyPair().getCurrency1().getName()}, locale);
     }
 
     @Transactional(readOnly = true)

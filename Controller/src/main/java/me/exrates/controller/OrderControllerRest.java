@@ -107,6 +107,7 @@ public class OrderControllerRest {
                 }
                 Optional<String> autoAcceptResult = orderService.autoAccept(orderCreateDto, localeResolver.resolveLocale(request));
                 if (autoAcceptResult.isPresent()) {
+                    LOGGER.debug(autoAcceptResult.get());
                     return autoAcceptResult.get();
                 }
                 if ((orderService.createOrder(orderCreateDto)) <= 0) {

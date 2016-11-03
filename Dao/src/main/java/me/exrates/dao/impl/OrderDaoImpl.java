@@ -979,7 +979,7 @@ public class OrderDaoImpl implements OrderDao {
         * or at least one order if base amount is greater than param amount*/
         String sql = "SELECT id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, " +
                 "commission_id, commission_fixed_amount, date_creation, status_id " +
-                "FROM exorders WHERE status_id = 2 AND currency_pair_id = :currency_pair_id " +
+                "FROM EXORDERS WHERE status_id = 2 AND currency_pair_id = :currency_pair_id " +
                 "AND operation_type_id = :operation_type_id " + exrateClause +
                 " ORDER BY exrate " + sortDirection + ", amount_base ASC ";
         Map<String, Number> params = new HashMap<String, Number>() {{
