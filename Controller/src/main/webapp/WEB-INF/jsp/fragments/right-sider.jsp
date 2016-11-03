@@ -8,7 +8,10 @@
 <%----%>
 <div id="right-sider" class="cols-md-2">
     <%--CHAT TODO REMOVE TO SEPARATE jsp--%>
-
+            <div class="current-time">
+                <b><span><loc:message code="rightsider.currentTime" /></span></b>
+                <span id="current-datetime"></span>
+            </div>
     <div>
         <h4 class="h4_green"><loc:message code="dashboard.onlinechat"/></h4>
 
