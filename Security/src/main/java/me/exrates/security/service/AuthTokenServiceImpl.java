@@ -35,7 +35,8 @@ public class AuthTokenServiceImpl implements AuthTokenService {
 
 
     private static final String TOKEN_KEY = "k2j34g5sdfgs8d97"; //currently a random combination of letters and digits
-    private static final long TOKEN_DURATION_TIME = 15 * 60L; //SECONDS
+    private static final long TOKEN_DURATION_TIME = 60L; //SECONDS
+    private static final long TOKEN_MAX_DURATION_TIME = 15 * 60L; //SECONDS
 
 
 
@@ -64,7 +65,8 @@ public class AuthTokenServiceImpl implements AuthTokenService {
             tokenData.put("username", token.getUsername());
             tokenData.put("value", token.getValue());
             JwtBuilder jwtBuilder = Jwts.builder();
-            jwtBuilder.setExpiration(null);
+            Date expiration = Date.from(LocalDateTime.now().plusSeconds(TOKEN_MAX_DURATION_TIME).atZone(ZoneId.systemDefault()).toInstant());
+            tokenData.put("expiration", expiration.getTime());
             jwtBuilder.setClaims(tokenData);
             AuthTokenDto authTokenDto = new AuthTokenDto(jwtBuilder.signWith(SignatureAlgorithm.HS512, TOKEN_KEY).compact());
             return Optional.of(authTokenDto);
@@ -104,7 +106,6 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         Long tokenId = Long.parseLong(String.valueOf(claims.get("token_id")));
         String username = claims.get("username", String.class);
         String value = claims.get("value", String.class);
-
         Optional<ApiAuthToken> tokenSearchResult = apiAuthTokenDao.retrieveTokenById(tokenId);
         if (tokenSearchResult.isPresent()) {
             ApiAuthToken savedToken = tokenSearchResult.get();
@@ -112,7 +113,9 @@ public class AuthTokenServiceImpl implements AuthTokenService {
                 throw new TokenException("Invalid token", ErrorCode.INVALID_AUTHENTICATION_TOKEN);
             }
             LocalDateTime expiration = savedToken.getLastRequest().plusSeconds(TOKEN_DURATION_TIME);
-            if (expiration.isAfter(LocalDateTime.now())) {
+            LocalDateTime finalExpiration = new Date(claims.get("expiration", Long.class)).toInstant()
+                    .atZone(ZoneId.systemDefault()).toLocalDateTime();
+            if (expiration.isAfter(LocalDateTime.now()) && finalExpiration.isAfter(LocalDateTime.now())) {
                 UserDetails user = userDetailsService.loadUserByUsername(username);
                 apiAuthTokenDao.prolongToken(tokenId);
                 return user;
