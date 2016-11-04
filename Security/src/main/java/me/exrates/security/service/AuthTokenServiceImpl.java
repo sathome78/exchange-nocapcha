@@ -5,6 +5,8 @@ import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.impl.DefaultClaims;
+import me.exrates.dao.ApiAuthTokenDao;
+import me.exrates.model.ApiAuthToken;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.security.exception.*;
 import me.exrates.service.exception.api.ErrorCode;
@@ -13,10 +15,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -31,13 +35,15 @@ public class AuthTokenServiceImpl implements AuthTokenService {
 
 
     private static final String TOKEN_KEY = "k2j34g5sdfgs8d97"; //currently a random combination of letters and digits
-    private static final String EXPIRATION_DATE_KEY = "token_expiration_date";
     private static final long TOKEN_DURATION_TIME = 15 * 60L; //SECONDS
 
 
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private ApiAuthTokenDao apiAuthTokenDao;
 
     @Autowired
     @Qualifier("userDetailsService")
@@ -52,15 +58,15 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         String password = RestPasswordDecodingUtils.decode(encodedPassword);
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         if (passwordEncoder.matches(password, userDetails.getPassword())) {
+            ApiAuthToken token = createAuthToken(userDetails.getUsername());
             Map<String, Object> tokenData = new HashMap<>();
-
-            tokenData.put("username", userDetails.getUsername());
-            Date expiration = Date.from(LocalDateTime.now().plusSeconds(TOKEN_DURATION_TIME).atZone(ZoneId.systemDefault()).toInstant());
-            tokenData.put(EXPIRATION_DATE_KEY, expiration.getTime());
+            tokenData.put("token_id", token.getId());
+            tokenData.put("username", token.getUsername());
+            tokenData.put("value", token.getValue());
             JwtBuilder jwtBuilder = Jwts.builder();
-            jwtBuilder.setExpiration(expiration);
+            jwtBuilder.setExpiration(null);
             jwtBuilder.setClaims(tokenData);
-            AuthTokenDto authTokenDto = new AuthTokenDto(jwtBuilder.signWith(SignatureAlgorithm.HS512, TOKEN_KEY).compact(), expiration.getTime());
+            AuthTokenDto authTokenDto = new AuthTokenDto(jwtBuilder.signWith(SignatureAlgorithm.HS512, TOKEN_KEY).compact());
             return Optional.of(authTokenDto);
         } else {
             throw new IncorrectPasswordException("Incorrect password");
@@ -68,35 +74,62 @@ public class AuthTokenServiceImpl implements AuthTokenService {
 
     }
 
+    private ApiAuthToken createAuthToken(String username) {
+        ApiAuthToken token = new ApiAuthToken();
+        token.setUsername(username);
+        token.setValue(UUID.randomUUID().toString());
+        Long id = apiAuthTokenDao.createToken(token);
+        token.setId(id);
+        return token;
+
+    }
+
     @Override
+    @Transactional(rollbackFor = Exception.class, noRollbackFor = TokenException.class)
     public UserDetails getUserByToken(String token) {
         if (token == null) {
             throw new TokenException("No authentication token header found", ErrorCode.MISSING_AUTHENTICATION_TOKEN);
         }
         DefaultClaims claims;
         try {
-            claims = (DefaultClaims) Jwts.parser().setSigningKey(TOKEN_KEY).parse(token).getBody();
-            claims.forEach((key, value) -> logger.info(key + " :: " + value));
+            claims = (DefaultClaims) Jwts.parser().setSigningKey(TOKEN_KEY).parseClaimsJws(token).getBody();
+            claims.forEach((key, value) -> logger.info(key + " :: " + value + " :: " + value.getClass()));
         } catch (Exception ex) {
             throw new TokenException("Token corrupted", ErrorCode.INVALID_AUTHENTICATION_TOKEN);
         }
-        if (claims.get("token_expiration_date", Long.class) == null) {
+
+        if (!(claims.containsKey("token_id") && claims.containsKey("username") && claims.containsKey("value"))) {
             throw new TokenException("Invalid token", ErrorCode.INVALID_AUTHENTICATION_TOKEN);
         }
-        Date expiredDate = new Date(claims.get(EXPIRATION_DATE_KEY, Long.class));
-        if (expiredDate.after(new Date())) {
-            return userDetailsService.loadUserByUsername(claims.get("username", String.class));
+        Long tokenId = Long.parseLong(String.valueOf(claims.get("token_id")));
+        String username = claims.get("username", String.class);
+        String value = claims.get("value", String.class);
+
+        Optional<ApiAuthToken> tokenSearchResult = apiAuthTokenDao.retrieveTokenById(tokenId);
+        if (tokenSearchResult.isPresent()) {
+            ApiAuthToken savedToken = tokenSearchResult.get();
+            if (!(username.equals(savedToken.getUsername()) && value.equals(savedToken.getValue()))) {
+                throw new TokenException("Invalid token", ErrorCode.INVALID_AUTHENTICATION_TOKEN);
+            }
+            LocalDateTime expiration = savedToken.getLastRequest().plusSeconds(TOKEN_DURATION_TIME);
+            if (expiration.isAfter(LocalDateTime.now())) {
+                UserDetails user = userDetailsService.loadUserByUsername(username);
+                apiAuthTokenDao.prolongToken(tokenId);
+                return user;
+            } else {
+                apiAuthTokenDao.deleteExpiredToken(tokenId);
+                throw new TokenException("Token expired", ErrorCode.EXPIRED_AUTHENTICATION_TOKEN);
+            }
         } else {
-            throw new TokenException("Token expired", ErrorCode.EXPIRED_AUTHENTICATION_TOKEN);
+            throw new TokenException("Token not found", ErrorCode.EXPIRED_AUTHENTICATION_TOKEN);
         }
-
-
     }
 
     @Override
-    public boolean validate(String token) {
-        return false;
+    @Scheduled(fixedDelay = 12L * 60L * 60L * 1000L, initialDelay = 60000L)
+    public void deleteExpiredTokens() {
+        int deletedQuantity = apiAuthTokenDao.deleteAllExpired(TOKEN_DURATION_TIME);
+        logger.info(String.format("%d expired tokens deleted", deletedQuantity));
     }
-
 
 }
