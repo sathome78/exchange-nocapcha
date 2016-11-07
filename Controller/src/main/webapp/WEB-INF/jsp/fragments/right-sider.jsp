@@ -9,7 +9,6 @@
 <div id="right-sider" class="cols-md-2">
     <%--CHAT TODO REMOVE TO SEPARATE jsp--%>
             <div class="current-time">
-                <b><span><loc:message code="rightsider.currentTime" /></span></b>
                 <span id="current-datetime"></span>
             </div>
     <div>
