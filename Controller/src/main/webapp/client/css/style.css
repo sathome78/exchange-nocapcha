@@ -332,11 +332,18 @@ header li {
         width: 50px;
     }
 
+    .dashboard-order__table td {
+        font-size: 1.0rem;
+    }
+
 }
 
 @media (min-width: 1400px) {
     #currency_table th, #currency_table td {
         font-size: 1.2rem;
+    }
+    .dashboard-order__table td {
+        font-size: 1.1rem;
     }
 }
 
@@ -984,7 +991,7 @@ td.blue-white {
     cursor: pointer;
 }
 .dashboard-order__tr td {
-    word-break: break-all;
+    padding: 5px;
 }
 
 .dashboard-order__tr:hover {
