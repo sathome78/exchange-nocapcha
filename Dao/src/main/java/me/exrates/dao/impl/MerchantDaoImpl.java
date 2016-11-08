@@ -7,6 +7,7 @@ import me.exrates.model.MerchantImage;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.MerchantImageShortenedDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
+import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -103,10 +104,12 @@ public class MerchantDaoImpl implements MerchantDao {
     }
 
     @Override
-    public List<MerchantCurrency> findAllByCurrencies(List<Integer> currenciesId) {
+    public List<MerchantCurrency> findAllByCurrencies(List<Integer> currenciesId, OperationType operationType) {
         final String sql = "SELECT MERCHANT.id as merchant_id,MERCHANT.name,MERCHANT.description,MERCHANT_CURRENCY.min_sum," +
                 " MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_commission FROM MERCHANT JOIN MERCHANT_CURRENCY" +
-                " ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id WHERE MERCHANT_CURRENCY.currency_id in (:currenciesId)";
+                " ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id WHERE MERCHANT_CURRENCY.currency_id in (:currenciesId)" +
+                (operationType == OperationType.OUTPUT  ? " AND MERCHANT_CURRENCY.withdraw_block = 0":"");
+
         try {
             return jdbcTemplate.query(sql, Collections.singletonMap("currenciesId",currenciesId), (resultSet, i) -> {
                 MerchantCurrency merchantCurrency = new MerchantCurrency();
