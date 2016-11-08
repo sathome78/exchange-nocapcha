@@ -40,7 +40,7 @@
                     left: 0;
                     right: 0;
                     margin: auto;
-                    z-index: 99999;'/>
+                    z-index: 999;'/>
         <%@include file="amcharts-graphics.jsp" %>
     </div>
 

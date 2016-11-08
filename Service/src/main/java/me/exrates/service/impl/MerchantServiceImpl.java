@@ -295,11 +295,11 @@ public class MerchantServiceImpl implements MerchantService {
     }
 
     @Override
-    public List<MerchantCurrency> findAllByCurrencies(List<Integer> currenciesId) {
+    public List<MerchantCurrency> findAllByCurrencies(List<Integer> currenciesId, OperationType operationType) {
         if (currenciesId.isEmpty()) {
             return null;
         }
-        return merchantDao.findAllByCurrencies(currenciesId);
+        return merchantDao.findAllByCurrencies(currenciesId, operationType);
     }
 
     @Override

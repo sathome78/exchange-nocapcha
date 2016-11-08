@@ -76,7 +76,7 @@ public class CommonMerchantsController {
 
         final List<Integer> currenciesId = new ArrayList<>();
         currenciesId.add(currencyId);
-        modelAndView.addObject("merchantCurrencyData",merchantService.findAllByCurrencies(currenciesId));
+        modelAndView.addObject("merchantCurrencyData",merchantService.findAllByCurrencies(currenciesId, OperationType.INPUT));
 
         return modelAndView;
     }
@@ -96,7 +96,7 @@ public class CommonMerchantsController {
         modelAndView.addObject("payment", payment);
         final List<Integer> currenciesId = new ArrayList<>();
         currenciesId.add(currency.getId());
-        modelAndView.addObject("merchantCurrencyData",merchantService.findAllByCurrencies(currenciesId));
+        modelAndView.addObject("merchantCurrencyData",merchantService.findAllByCurrencies(currenciesId, OperationType.OUTPUT));
 
         return modelAndView;
     }
@@ -110,7 +110,7 @@ public class CommonMerchantsController {
                 .boxed()
                 .collect(Collectors.toList());
         return merchantService
-                .findAllByCurrencies(currenciesId);
+                .findAllByCurrencies(currenciesId, OperationType.INPUT);
     }
 
     @RequestMapping(value = "/commission", method = GET)
