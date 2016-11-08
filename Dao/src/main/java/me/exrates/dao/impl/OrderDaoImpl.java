@@ -708,14 +708,37 @@ public class OrderDaoImpl implements OrderDao {
     @Override
     public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
                                                        OperationType operationType,
-                                                       Integer offset, Integer limit, Locale locale) {
-        return getMyOrdersWithState(email, currencyPair, Collections.singletonList(status), operationType, offset, limit, locale);
+                                                       String scope, Integer offset, Integer limit, Locale locale) {
+        return getMyOrdersWithState(email, currencyPair, Collections.singletonList(status), operationType, scope, offset, limit, locale);
     }
 
     @Override
     public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, List<OrderStatus> statuses,
                                                        OperationType operationType,
-                                                       Integer offset, Integer limit, Locale locale) {
+                                                       String scope, Integer offset, Integer limit, Locale locale) {
+        String userFilterClause;
+        String userJoinClause;
+        if(scope == null || scope.isEmpty()) {
+            userFilterClause = " AND CREATOR.email = :email ";
+            userJoinClause = "  JOIN USER AS CREATOR ON CREATOR.id=EXORDERS.user_id ";
+        } else {
+            switch (scope) {
+                case "ALL":
+                    userFilterClause = " AND (CREATOR.email = :email OR ACCEPTOR.email = :email) ";
+                    userJoinClause = "  JOIN USER AS CREATOR ON CREATOR.id=EXORDERS.user_id " +
+                            "  JOIN USER AS ACCEPTOR ON ACCEPTOR.id=EXORDERS.user_acceptor_id ";
+                    break;
+                case "ACCEPTED":
+                    userFilterClause = " AND ACCEPTOR.email = :email ";
+                    userJoinClause = "  JOIN USER AS ACCEPTOR ON ACCEPTOR.id=EXORDERS.user_acceptor_id ";
+                    break;
+                default:
+                    userFilterClause = " AND CREATOR.email = :email ";
+                    userJoinClause = "  JOIN USER AS CREATOR ON CREATOR.id=EXORDERS.user_id ";
+                    break;
+            }
+        }
+
         List<Integer> statusIds = statuses.stream().map(OrderStatus::getStatus).collect(Collectors.toList());
         String orderClause = "  ORDER BY -date_acception ASC, date_creation DESC";
         if (statusIds.size() > 1) {
@@ -723,10 +746,11 @@ public class OrderDaoImpl implements OrderDao {
         }
         String sql = "SELECT EXORDERS.*, CURRENCY_PAIR.name AS currency_pair_name" +
                 "  FROM EXORDERS " +
-                "  JOIN USER ON (USER.id=EXORDERS.user_id AND USER.email = :email) " +
+                userJoinClause +
                 "  JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) " +
                 "  WHERE (status_id IN (:status_ids))" +
                 "    AND (operation_type_id = :operation_type_id)" +
+                userFilterClause +
                 (currencyPair == null ? "" : " AND EXORDERS.currency_pair_id=" + currencyPair.getId()) +
                  orderClause +
                 (limit == -1 ? "" : "  LIMIT " + limit + " OFFSET " + offset);

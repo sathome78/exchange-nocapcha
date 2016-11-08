@@ -13,6 +13,10 @@
     <div>
         <button id="myorders-button-deal" class="myorders__button green-box margin-box"><loc:message
                 code="myorders.deal"/></button>
+        <button id="myorders-button-mine" class="myorders__button green-box margin-box"><loc:message
+                code="myorders.title"/></button>
+        <button id="myorders-button-accepted" class="myorders__button green-box margin-box"><loc:message
+                code="myorders.accepted"/></button>
         <button id="myorders-button-cancelled" class="myorders__button red-box margin-box"><loc:message
                 code="myorders.cancelled"/></button>
     </div>
