@@ -41,7 +41,7 @@ public interface MerchantService {
 
     Merchant findById(int id);
 
-    List<MerchantCurrency> findAllByCurrencies(List<Integer> currenciesId);
+    List<MerchantCurrency> findAllByCurrencies(List<Integer> currenciesId, OperationType operationType);
 
     List<MerchantCurrencyApiDto> findAllMerchantCurrencies(Integer currencyId);
 
