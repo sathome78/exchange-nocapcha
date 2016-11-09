@@ -124,7 +124,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
                 throw new TokenException("Token expired", ErrorCode.EXPIRED_AUTHENTICATION_TOKEN);
             }
         } else {
-            throw new TokenException("Token not found", ErrorCode.EXPIRED_AUTHENTICATION_TOKEN);
+            throw new TokenException("Token not found", ErrorCode.TOKEN_NOT_FOUND);
         }
     }
 

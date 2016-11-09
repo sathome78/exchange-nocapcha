@@ -142,7 +142,7 @@ public class MerchantDaoImpl implements MerchantDao {
                 " MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_commission, MERCHANT_CURRENCY.withdraw_block," +
                 " CURRENCY.min_withdraw_sum FROM MERCHANT " +
                 "JOIN MERCHANT_CURRENCY ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id " +
-                "JOIN CURRENCY ON MERCHANT_CURRENCY.currency_id = CURRENCY.id" + whereClause;
+                "JOIN CURRENCY ON MERCHANT_CURRENCY.currency_id = CURRENCY.id " + whereClause;
         Map<String, Integer> paramMap = Collections.singletonMap("currency_id", currencyId);
         try {
             return jdbcTemplate.query(sql, paramMap, (resultSet, i) -> {
