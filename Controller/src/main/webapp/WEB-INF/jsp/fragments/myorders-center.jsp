@@ -8,7 +8,7 @@
         <c:set value="true" var="showAllPairsEnabled"/>
         <%@include file="currencyPairSelector.jsp" %>
     </div>
-    <h4 class="h4_green"><loc:message code="myorders.title"/></h4>
+    <h4 class="h4_green"><loc:message code="orders.title"/></h4>
 
     <div>
         <button id="myorders-button-deal" class="myorders__button green-box margin-box"><loc:message

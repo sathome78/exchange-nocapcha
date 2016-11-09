@@ -8,7 +8,7 @@
 
     <div class="myhistory__button-wrapper">
         <button id="myhistory-button-orders" class="myhistory__button blue-box"><loc:message
-                code="history.orders"/></button>
+                code="orders.title"/></button>
         <button id="myhistory-button-inputoutput" class="myhistory__button blue-box"><loc:message
                 code="history.inputoutput"/></button>
         <button id="myhistory-button-referral" class="myhistory__button blue-box"><loc:message
