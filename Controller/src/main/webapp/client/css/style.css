@@ -1937,3 +1937,32 @@ input[type=email], .dropdown-menu__form,
 #all_news_table td {
     font-size: 1.2rem;
 }
+
+#notification-icon {
+    position: relative;
+}
+
+#notification-icon .glyphicon {
+    font-size: 1.8rem;
+}
+
+#notification-icon span.badge {
+    position: absolute;
+    right: 0;
+    top: 5px;
+    font-size: 0.9rem;
+    background-color: #ff0000;
+}
+
+#notification-icon .dropdown-menu {
+    width: 250px;
+    position: absolute;
+    right: 0;
+    z-index: 999;
+    padding: 2px 5px;
+}
+
+#notification-icon .notifications-body {
+    background-color: #e2ebf9;
+    color: #525f74;
+}

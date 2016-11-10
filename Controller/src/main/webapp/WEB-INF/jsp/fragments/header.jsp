@@ -158,6 +158,18 @@
                             <span class="glyphicon glyphicon-cog nav__link"></span>
                         </a>
                     </li>
+                    <li>
+                        <div id="notification-icon" class="dropdown">
+                            <a class="dropdown-toggle" data-toggle="dropdown" role="button" href="#">
+                                <span class="glyphicon glyphicon-envelope nav__link"></span></a>
+                            <span class="badge">19</span>
+                            <div class="dropdown-menu">
+                                <div class="notifications-body">
+                                    <p>Talala</p>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
                 </sec:authorize>
 
             </ul>

@@ -62,3 +62,8 @@
     </div>
 </div>
 <script src="<c:url value="/client/js/jquery.scrollTo.min.js"/>"></script>
+<script type="text/javascript">
+    $(function () {
+
+    })
+</script>
