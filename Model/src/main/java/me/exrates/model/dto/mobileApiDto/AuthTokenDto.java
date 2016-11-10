@@ -10,7 +10,6 @@ import java.util.Locale;
  */
 public class AuthTokenDto {
     private String token;
-    private long expires;
     private String nickname;
     @JsonProperty(value = "id")
     private Integer userId;
@@ -24,9 +23,8 @@ public class AuthTokenDto {
     public AuthTokenDto() {
     }
 
-    public AuthTokenDto(String token, long expires) {
+    public AuthTokenDto(String token) {
         this.token = token;
-        this.expires = expires;
     }
 
     public String getToken() {
@@ -35,14 +33,6 @@ public class AuthTokenDto {
 
     public void setToken(String token) {
         this.token = token;
-    }
-
-    public long getExpires() {
-        return expires;
-    }
-
-    public void setExpires(long expires) {
-        this.expires = expires;
     }
 
     public String getNickname() {
@@ -97,7 +87,6 @@ public class AuthTokenDto {
     public String toString() {
         return "AuthTokenDto{" +
                 "token='" + token + '\'' +
-                ", expires=" + expires +
                 ", nickname='" + nickname + '\'' +
                 ", userId=" + userId +
                 ", avatarPath='" + avatarPath + '\'' +
