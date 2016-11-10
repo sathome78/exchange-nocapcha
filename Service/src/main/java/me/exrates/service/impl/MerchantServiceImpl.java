@@ -89,7 +89,8 @@ public class MerchantServiceImpl implements MerchantService {
         }
         final WithdrawRequest requestUpdated = withdrawUpdated.get();
         transactionService.provideTransaction(request.getTransaction());
-        sendWithdrawalNotification(request, ACCEPTED, locale);
+        Locale userLocale = new Locale(userService.getPreferedLang(request.getUserId()));
+        sendWithdrawalNotification(request, ACCEPTED, userLocale);
         final HashMap<String, String> params = new HashMap<>();
         final String message = messageSource.getMessage("merchants.WithdrawRequestAccept", null, locale);
         params.put("success", message);
@@ -118,7 +119,8 @@ public class MerchantServiceImpl implements MerchantService {
         final BigDecimal amount = transaction.getAmount().add(transaction.getCommissionAmount());
         walletService.withdrawReservedBalance(transaction.getUserWallet(),amount);
         walletService.depositActiveBalance(transaction.getUserWallet(),amount);
-        sendWithdrawalNotification(request, DECLINED, locale);
+        Locale userLocale = new Locale(userService.getPreferedLang(request.getUserId()));
+        sendWithdrawalNotification(request, ACCEPTED, userLocale);
         final HashMap<String, Object> params = new HashMap<>();
         final String message = messageSource.getMessage("merchants.WithdrawRequestDecline", null, locale);
         params.put("success", message);
