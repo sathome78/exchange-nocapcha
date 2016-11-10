@@ -1,14 +1,12 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.UserDao;
+import me.exrates.model.Comment;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
-import me.exrates.model.dto.UpdateUserDto;
-import me.exrates.model.dto.UserIpDto;
-import me.exrates.model.dto.UserSummaryDto;
-import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.apache.logging.log4j.LogManager;
@@ -734,5 +732,33 @@ public class UserDaoImpl implements UserDao {
         return jdbcTemplate.queryForObject(sql, params, (resultSet, row) -> resultSet.getString("avatar_path"));
     }
 
+    @Override
+    public Collection<Comment> getUserComments(int id) {
 
+        String sql = "SELECT id, user_id, users_comment, user_creator_id, edit_time, message_sent  FROM birzha.USER_COMMENT WHERE USER_COMMENT.user_id = :user_id";
+        Map<String, Object> params = Collections.singletonMap("user_id", id);
+        return jdbcTemplate.query(sql, params, (resultSet, i) -> {
+            Comment comment = new Comment();
+            comment.setId(resultSet.getInt("id"));
+            comment.setUser(getUserById(resultSet.getInt("user_id")));
+            comment.setComment(resultSet.getString("users_comment"));
+            comment.setCreator(getUserById(resultSet.getInt("user_creator_id")));
+            comment.setCommentsTime(resultSet.getTimestamp("edit_time").toLocalDateTime());
+            comment.setMessageSent(resultSet.getBoolean("message_sent"));
+            return  comment;
+        });
+
+    }
+
+    @Override
+    public boolean addUserComment(Comment comment){
+        String sql = "INSERT INTO USER_COMMENT (user_id, users_comment, user_creator_id, message_sent) " +
+                "VALUES (:user_id, :comment, :user_creator_id, :message_sent);";
+        Map<String, Object> namedParameters = new HashMap<>();
+        namedParameters.put("user_id", comment.getUser().getId());
+        namedParameters.put("comment", comment.getComment());
+        namedParameters.put("user_creator_id", comment.getCreator().getId());
+        namedParameters.put("message_sent", comment.isMessageSent());
+        return jdbcTemplate.update(sql, namedParameters) > 0;
+    }
 }
