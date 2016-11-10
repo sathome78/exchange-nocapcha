@@ -13,10 +13,18 @@ public interface NotificationService {
     @Transactional(rollbackFor = Exception.class)
     long createNotification(String receiverEmail, String title, String message, NotificationEvent cause);
 
+    long createNotification(Integer userId, String title, String message, NotificationEvent cause);
+
     @Transactional(readOnly = true)
     List<Notification> findAllByUser(String email);
 
-    boolean setRead(List<Long> notificationIds);
+    boolean setRead(Long notificationId);
 
-    int deleteMessages(List<Long> notificationIds);
+    boolean remove(Long notificationId);
+
+    @Transactional(readOnly = true)
+    int setReadAllByUser(String email);
+
+    @Transactional(readOnly = true)
+    int removeAllByUser(String email);
 }

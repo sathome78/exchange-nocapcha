@@ -1,6 +1,9 @@
 package me.exrates.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import me.exrates.model.enums.NotificationEvent;
+import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.time.LocalDateTime;
 
@@ -9,10 +12,13 @@ import java.time.LocalDateTime;
  */
 public class Notification {
     private Long id;
+    @JsonIgnore
     private Integer receiverUserId;
     private String title;
     private String message;
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime creationTime;
+    @JsonIgnore
     private NotificationEvent cause;
     private Boolean isRead;
 

@@ -80,6 +80,10 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private ReferralService referralService;
 
+    @Autowired
+    NotificationService notificationService;
+
+
     @Transactional
     @Override
     public ExOrderStatisticsDto getOrderStatistic(CurrencyPair currencyPair, BackDealInterval backDealInterval, Locale locale) {
@@ -444,6 +448,9 @@ public class OrderServiceImpl implements OrderService {
             if (!updateOrder(exOrder)) {
                 throw new OrderAcceptionException(messageSource.getMessage("orders.acceptsaveerror", null, locale));
             }
+
+            notificationService.createNotification(exOrder.getUserId(), "Order accepted", "Your order has been accepted by ***", NotificationEvent.ORDER);
+
         } catch (Exception e) {
             logger.error("Error while accepting order with id = " + orderId + " exception: " + e.getLocalizedMessage());
             throw e;

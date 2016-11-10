@@ -7,6 +7,7 @@
 <%--CAPTCHA--%>
 
 <script src="<c:url value="/client/js/jquery.noty.packaged.min.js"/>"></script>
+<script src="<c:url value="/client/js/notifications/notifications.js"/>"></script>
 
 <c:set var="path" value="${fn:replace(pageContext.request.requestURI, '/WEB-INF/jsp', '')}"/>
 <c:set var="path" value="${fn:replace(path, '.jsp', '')}"/>
@@ -162,11 +163,31 @@
                         <div id="notification-icon" class="dropdown">
                             <a class="dropdown-toggle" data-toggle="dropdown" role="button" href="#">
                                 <span class="glyphicon glyphicon-envelope nav__link"></span></a>
-                            <span class="badge">19</span>
+                            <span id="unread-counter" class="badge"></span>
                             <div class="dropdown-menu">
-                                <div class="notifications-body">
-                                    <p>Talala</p>
+                                <div id="notifications-header">
+                                    <ul>
+                                        <li><a href="#" onclick="markReadAll()">Mark all as read</a></li>
+                                        <li><a href="#" onclick="removeAllNotifications()">Remove all</a></li>
+                                    </ul>
                                 </div>
+                                <div id="notifications-body-wrapper">
+                                <div id="notifications-body">
+                                    <div id="notifications-absent" class="invisible text-center">
+                                        <span>No notifications for you at the moment</span>
+                                    </div>
+                                    <script type="text/template" id="notifications-row">
+                                        <@ var readClass = read ? 'read' : 'unread'; @>
+                                        <div class="notification-item <@=readClass@>" onclick="markRead(this)">
+                                            <input type="hidden" name="notificationId" class="notification-id" value="<@=id@>"/>
+                                            <p class="notification-title"><@=title@></p>
+                                            <p class="notification-message"><@=message@></p>
+                                            <a href="#" onclick="removeNotification(event, this)" class="notif-remove pull-right">Remove</a>
+                                            <p class="notification-time text-muted"><@=creationTime@></p>
+                                            </div>';
+                                    </script>
+
+                                </div></div>
                             </div>
                         </div>
                     </li>

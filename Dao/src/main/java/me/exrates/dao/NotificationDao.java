@@ -12,7 +12,11 @@ public interface NotificationDao {
 
     List<Notification> findAllByUser(Integer userId);
 
-    boolean setRead(List<Long> notificationIds);
+    boolean setRead(Long notificationId);
 
-    int deleteMessages(List<Long> notificationIds);
+    boolean remove(Long notificationId);
+
+    int setReadAllByUser(Integer userId);
+
+    int removeAllByUser(Integer userId);
 }

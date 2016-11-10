@@ -32,7 +32,7 @@ public class NotificationDaoImpl implements NotificationDao {
                 .addValue("user_id", notification.getReceiverUserId())
                 .addValue("title", notification.getTitle())
                 .addValue("message", notification.getMessage())
-                .addValue("notification_event_id", notification.getCause());
+                .addValue("notification_event_id", notification.getCause().getEventType());
         int result = jdbcTemplate.update(sql, params, keyHolder);
         long id = keyHolder.getKey().longValue();
         if (result <= 0) {
@@ -61,16 +61,30 @@ public class NotificationDaoImpl implements NotificationDao {
     }
 
     @Override
-    public boolean setRead(List<Long> notificationIds) {
-        String sql = "UPDATE NOTIFICATION SET is_read = 1 WHERE id IN(:ids)";
-        Map<String, List<Long>> params = Collections.singletonMap("ids", notificationIds);
-        return jdbcTemplate.update(sql, params) > 0;
+    public boolean setRead(Long notificationId) {
+        String sql = "UPDATE NOTIFICATION SET is_read = 1 WHERE id = :id";
+        Map<String, Long> params = Collections.singletonMap("id", notificationId);
+        return jdbcTemplate.update(sql, params) == 1;
     }
 
     @Override
-    public int deleteMessages(List<Long> notificationIds) {
-        String sql = "DELETE FROM NOTIFICATION WHERE id IN(:ids)";
-        Map<String, List<Long>> params = Collections.singletonMap("ids", notificationIds);
+    public boolean remove(Long notificationId) {
+        String sql = "DELETE FROM NOTIFICATION WHERE id = :id";
+        Map<String, Long> params = Collections.singletonMap("id", notificationId);
+        return jdbcTemplate.update(sql, params) == 1;
+    }
+
+    @Override
+    public int setReadAllByUser(Integer userId) {
+        String sql = "UPDATE NOTIFICATION SET is_read = 1 WHERE user_id = :user_id";
+        Map<String, Integer> params = Collections.singletonMap("user_id", userId);
+        return jdbcTemplate.update(sql, params);
+    }
+
+    @Override
+    public int removeAllByUser(Integer userId) {
+        String sql = "DELETE FROM NOTIFICATION WHERE user_id = :user_id";
+        Map<String, Integer> params = Collections.singletonMap("user_id", userId);
         return jdbcTemplate.update(sql, params);
     }
 
