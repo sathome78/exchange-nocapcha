@@ -28,6 +28,7 @@
 <script type="text/javascript" src="<c:url value='/client/js/moment-with-locales.min.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/dataTable/adminTransactionsDataTable.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/dataTable/adminOrdersDataTable.js'/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/dataTable/adminCommentsDataTable.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/order/adminDeleteOrder.js'/>"></script>
 
 
@@ -68,10 +69,14 @@
                         <loc:message code="admin.wallets"/>
                     </button>
                 </sec:authorize>
-                <%--Orders list--%>
                 <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+                    <%--Orders list--%>
                     <button class="adminForm-toggler blue-box">
                         <loc:message code="orders.title"/>
+                    </button>
+                    <%--Comments--%>
+                    <button class="adminForm-toggler blue-box">
+                        <loc:message code="admin.comments"/>
                     </button>
                 </sec:authorize>
 
@@ -485,6 +490,70 @@
                         </div>
                     </div>
 
+                        <%--Users comments--%>
+                        <div id="panel5" class="tab-pane">
+                            <div class="col-md-12 content">
+                                <%--Comments --%>
+                                <div class="text-center"><h4><loc:message code="admin.comments"/></h4></div>
+                                    <div style="width: 98%">
+                                        <div style="float: left; display: inline-block">
+                                            <button id="comments-button" class="comments__button green-box margin-box">
+                                                <loc:message
+                                                        code="admin.createComment"/></button>
+                                        </div>
+                                    </div>
+
+                                    <%--MODAL ... --%>
+                                    <div class="modal fade comment" id="myModal">
+                                        <div class="modal-dialog modal-sm">
+                                            <div class="modal-content">
+                                                <div class="modal-body">
+                                                    <p><loc:message code="admin.comment"/>:<Br>
+                                                    <textarea cols="40" rows="3" id="commentText" placeholder="Enter comment">
+                                                        </textarea>
+
+                                                    <p><input style="vertical-align: bottom" id="sendMessageCheckbox" type="checkbox">
+                                                    <loc:message code="admin.sendMessage"/>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <div>
+                                                        <button class="modal-button" type="button" id="createCommentConfirm">
+                                                            <loc:message code="merchants.continue"/>
+                                                        </button>
+
+                                                        <button class="modal-button" type="button" id="createCommentCancel" data-dismiss="modal">
+                                                            <loc:message code="merchants.close"/>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- /.modal-content -->
+                                        </div>
+                                        <!-- /.modal-dialog -->
+                                    </div>
+                                    <%--... MODAL--%>
+
+                                    <table id="commentsTable"
+                                           class="admin-table table table-hover table-bordered table-striped"
+                                           style="width:100%">
+                                        <thead>
+                                        <tr>
+                                            <%--Date time--%>
+                                            <th><loc:message code="admin.dateTime"/></th>
+                                            <%--Creator>--%>
+                                            <th><loc:message code="admin.creator"/></th>
+                                            <%--Comment--%>
+                                            <th><loc:message code="admin.comment"/></th>
+                                            <%--MessageSent--%>
+                                            <th></th>
+                                        </tr>
+                                        </thead>
+                                    </table>
+
+
+                            </div>
+                        </div>
+
                 </div>
             </div>
         </div>
@@ -493,11 +562,18 @@
 <div hidden id="prompt_delete_rqst">
     <loc:message code="admin.promptDeleteUserFiles"/>
 </div>
+<div id="prompt_send_message_rqst" style="display: none">
+    <loc:message code="admin.promptSendMessageRequestAccept"/>
+</div>
 <%@include file='order-modals.jsp' %>
 
 <%@include file='../fragments/footer.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>
+
+
+
+
 
 </body>
 </html>
