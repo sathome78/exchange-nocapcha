@@ -2,16 +2,9 @@ package me.exrates.service.impl;
 
 
 import me.exrates.dao.UserDao;
-import me.exrates.model.Email;
-import me.exrates.model.TemporalToken;
-import me.exrates.model.User;
-import me.exrates.model.UserFile;
-import me.exrates.model.dto.UpdateUserDto;
-import me.exrates.model.dto.UserIpDto;
-import me.exrates.model.dto.UserSessionInfoDto;
-import me.exrates.model.dto.UserSummaryDto;
-import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
+import me.exrates.model.*;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
@@ -26,6 +19,8 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,10 +30,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-import java.util.UUID;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -481,6 +472,42 @@ public class UserServiceImpl implements UserService {
         }
 
         return new Locale(lang);
+    }
+
+    @Override
+    public Collection<Comment> getUserComments(int id){
+
+        return userDao.getUserComments(id);
+
+    }
+
+    @Override
+    public boolean addUserComment(String newComment, String email, boolean sendMessage, Locale locale){
+
+        User user = findByEmail(email);
+        User creator;
+        Comment comment = new Comment();
+        comment.setMessageSent(sendMessage);
+        comment.setUser(user);
+        comment.setComment(newComment);
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            creator = findByEmail(auth.getName());
+            comment.setCreator(creator);
+        } catch (Exception e) {
+            LOGGER.error(e);
+        }
+        boolean success = userDao.addUserComment(comment);
+
+        if (comment.isMessageSent()){
+            Email emailMessage = new Email();
+            emailMessage.setTo(user.getEmail());
+            emailMessage.setMessage(messageSource.getMessage("admin.subjectCommentMessage", null, locale) + ": " + newComment);
+            emailMessage.setSubject(messageSource.getMessage("admin.subjectCommentMessage", null, locale));
+            sendMailService.sendMail(emailMessage);
+        }
+
+        return success;
     }
 
 }
