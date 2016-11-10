@@ -1,5 +1,6 @@
 package me.exrates.service;
 
+import me.exrates.model.Comment;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
@@ -15,6 +16,7 @@ import me.exrates.service.exception.UnRegisteredUserDeleteException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -170,4 +172,8 @@ public interface UserService {
     String getAvatarPath(Integer userId);
 
     Locale getUserLocaleForMobile(String email);
+
+    Collection<Comment> getUserComments(int id);
+
+    boolean addUserComment(String newComment, String email, boolean sendMessage, Locale locale);
 }
