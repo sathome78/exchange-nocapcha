@@ -7,6 +7,7 @@ import me.exrates.model.MerchantImage;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.MerchantImageShortenedDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
+import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -103,10 +104,12 @@ public class MerchantDaoImpl implements MerchantDao {
     }
 
     @Override
-    public List<MerchantCurrency> findAllByCurrencies(List<Integer> currenciesId) {
+    public List<MerchantCurrency> findAllByCurrencies(List<Integer> currenciesId, OperationType operationType) {
         final String sql = "SELECT MERCHANT.id as merchant_id,MERCHANT.name,MERCHANT.description,MERCHANT_CURRENCY.min_sum," +
                 " MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_commission FROM MERCHANT JOIN MERCHANT_CURRENCY" +
-                " ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id WHERE MERCHANT_CURRENCY.currency_id in (:currenciesId)";
+                " ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id WHERE MERCHANT_CURRENCY.currency_id in (:currenciesId)" +
+                (operationType == OperationType.OUTPUT  ? " AND MERCHANT_CURRENCY.withdraw_block = 0":"");
+
         try {
             return jdbcTemplate.query(sql, Collections.singletonMap("currenciesId",currenciesId), (resultSet, i) -> {
                 MerchantCurrency merchantCurrency = new MerchantCurrency();
@@ -136,9 +139,10 @@ public class MerchantDaoImpl implements MerchantDao {
         String whereClause = currencyId == null ? "" : " WHERE CURRENCY.id = :currency_id";
 
         final String sql = "SELECT MERCHANT.id as merchant_id, MERCHANT.name, MERCHANT_CURRENCY.min_sum," +
-                " MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_commission, CURRENCY.min_withdraw_sum FROM MERCHANT " +
+                " MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_commission, MERCHANT_CURRENCY.withdraw_block," +
+                " CURRENCY.min_withdraw_sum FROM MERCHANT " +
                 "JOIN MERCHANT_CURRENCY ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id " +
-                "JOIN CURRENCY ON MERCHANT_CURRENCY.currency_id = CURRENCY.id" + whereClause;
+                "JOIN CURRENCY ON MERCHANT_CURRENCY.currency_id = CURRENCY.id " + whereClause;
         Map<String, Integer> paramMap = Collections.singletonMap("currency_id", currencyId);
         try {
             return jdbcTemplate.query(sql, paramMap, (resultSet, i) -> {
@@ -149,6 +153,7 @@ public class MerchantDaoImpl implements MerchantDao {
                 merchantCurrencyApiDto.setMinInputSum(resultSet.getBigDecimal("min_sum"));
                 merchantCurrencyApiDto.setMinOutputSum(resultSet.getBigDecimal("min_withdraw_sum"));
                 merchantCurrencyApiDto.setCommission(resultSet.getBigDecimal("merchant_commission"));
+                merchantCurrencyApiDto.setWithdrawBlocked(resultSet.getBoolean("withdraw_block"));
                 final String sqlInner = "SELECT id, image_path FROM birzha.MERCHANT_IMAGE where merchant_id = :merchant_id" +
                         " AND currency_id = :currency_id;";
                 Map<String, Integer> params = new HashMap<String, Integer>();

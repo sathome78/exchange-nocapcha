@@ -15,6 +15,7 @@ public class MerchantCurrencyApiDto {
     private BigDecimal minInputSum;
     private BigDecimal minOutputSum;
     private BigDecimal commission;
+    private Boolean isWithdrawBlocked;
     private List<MerchantImageShortenedDto> listMerchantImage;
 
     public Integer getMerchantId() {
@@ -71,6 +72,14 @@ public class MerchantCurrencyApiDto {
 
     public void setCommission(BigDecimal commission) {
         this.commission = commission;
+    }
+
+    public Boolean getWithdrawBlocked() {
+        return isWithdrawBlocked;
+    }
+
+    public void setWithdrawBlocked(Boolean withdrawBlocked) {
+        isWithdrawBlocked = withdrawBlocked;
     }
 
     @Override

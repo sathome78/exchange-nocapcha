@@ -218,6 +218,31 @@ public class AdminController {
     }
 
     @ResponseBody
+    @RequestMapping(value = "/admin/comments", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public Collection<Comment> getUserComments(@RequestParam int id, HttpServletRequest request) {
+
+        return userService.getUserComments(id);
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/admin/addComment", method = POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Map<String, String>> addUserComment(@RequestParam String newComment, @RequestParam String email,
+                                                              @RequestParam boolean sendMessage, HttpServletRequest request, final Locale locale) {
+
+        try {
+            userService.addUserComment(newComment, email, sendMessage, locale);
+        } catch (Exception e) {
+            LOG.error(e);
+            return new ResponseEntity<>(singletonMap("error",
+                    messageSource.getMessage("admin.internalError", null, locale)), INTERNAL_SERVER_ERROR);
+        }
+
+        return new ResponseEntity<>(singletonMap("success",
+                messageSource.getMessage("admin.successfulDeleteUserFiles", null, locale)), OK);
+    }
+
+
+    @ResponseBody
     @RequestMapping(value = "/admin/orders", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public  List<OrderWideListDto> getUserOrders(final @RequestParam int id, final @RequestParam("tableType") String tableType,
                              final @RequestParam("currencyPairId") int currencyPairId, final HttpServletRequest request) {
