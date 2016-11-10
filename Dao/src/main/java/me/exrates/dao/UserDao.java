@@ -1,18 +1,16 @@
 package me.exrates.dao;
 
+import me.exrates.model.Comment;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
-import me.exrates.model.dto.UpdateUserDto;
-import me.exrates.model.dto.UserIpDto;
-import me.exrates.model.dto.UserSessionInfoDto;
-import me.exrates.model.dto.UserSummaryDto;
-import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -116,4 +114,9 @@ public interface UserDao {
     List<UserSummaryTotalInOutDto> getUsersSummaryTotalInOutList(String startDate, String endDate);
 
     String getAvatarPath(Integer userId);
-}
+
+    Collection<Comment> getUserComments(int id);
+
+    boolean addUserComment(Comment comment);
+
+    }

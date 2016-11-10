@@ -60,6 +60,9 @@ public class EDCClientWebSocketHandler {
         try {
             session = ContainerProvider.getWebSocketContainer()
                     .connectToServer(this, URI.create("wss://blockchain.edinarcoin.com"));
+            session.setMaxBinaryMessageBufferSize(5012000);
+            session.setMaxTextMessageBufferSize(5012000);
+            session.setMaxIdleTimeout(Long.MAX_VALUE);
             endpoint = session.getBasicRemote();
             access = true;
             //Auth to Full Node
@@ -116,5 +119,10 @@ public class EDCClientWebSocketHandler {
           //      LOG.info("EDC Blockchain info\n" + message);
             }
         }
+    }
+
+    @OnClose
+    public void close(final Session session, final CloseReason reason) {
+        LOG.error("Connection lost. Session closed : {}. Reason : {}", session, reason);
     }
 }
