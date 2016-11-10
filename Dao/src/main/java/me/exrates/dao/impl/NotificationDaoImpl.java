@@ -41,6 +41,7 @@ public class NotificationDaoImpl implements NotificationDao {
         return id;
     }
 
+    @Override
     public List<Notification> findAllByUser(Integer userId) {
         String sql = "SELECT id, user_id, title, message, creation_time, notification_event_id, is_read " +
                 " FROM NOTIFICATION " +
@@ -59,12 +60,14 @@ public class NotificationDaoImpl implements NotificationDao {
         });
     }
 
+    @Override
     public boolean setRead(List<Long> notificationIds) {
         String sql = "UPDATE NOTIFICATION SET is_read = 1 WHERE id IN(:ids)";
         Map<String, List<Long>> params = Collections.singletonMap("ids", notificationIds);
-        return jdbcTemplate.update(sql, params) == 1;
+        return jdbcTemplate.update(sql, params) > 0;
     }
 
+    @Override
     public int deleteMessages(List<Long> notificationIds) {
         String sql = "DELETE FROM NOTIFICATION WHERE id IN(:ids)";
         Map<String, List<Long>> params = Collections.singletonMap("ids", notificationIds);
