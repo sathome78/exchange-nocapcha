@@ -6,10 +6,12 @@ import me.exrates.model.Notification;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by OLEG on 10.11.2016.
@@ -23,6 +25,9 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Autowired
     private UserDao userDao;
+
+    @Autowired
+    private MessageSource messageSource;
 
 
     @Override
@@ -40,6 +45,23 @@ public class NotificationServiceImpl implements NotificationService {
         notification.setMessage(message);
         notification.setCause(cause);
         return notificationDao.createNotification(notification);
+    }
+
+    @Override
+    public long createLocalizedNotification(String receiverEmail, NotificationEvent cause, String titleCode, String messageCode,
+                                            Object[] messageArgs) {
+        Integer userId = userDao.getIdByEmail(receiverEmail);
+        return createLocalizedNotification(userId, cause, titleCode, messageCode, messageArgs);
+
+    }
+
+    @Override
+    public long createLocalizedNotification(Integer userId, NotificationEvent cause, String titleCode, String messageCode,
+                                            Object[] messageArgs) {
+        Locale locale = new Locale(userDao.getPreferredLang(userId));
+        return createNotification(userId, messageSource.getMessage(titleCode, null, locale),
+                messageSource.getMessage(messageCode, messageArgs, locale), cause);
+
     }
 
 

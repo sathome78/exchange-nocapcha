@@ -64,6 +64,9 @@ function markRead(element) {
             $(element).addClass('read');
             $(element).removeAttr('onclick');
             $('#unread-counter').text(--count);
+            if (count == 0) {
+                $('#unread-counter').hide();
+            }
         }
     })
 }

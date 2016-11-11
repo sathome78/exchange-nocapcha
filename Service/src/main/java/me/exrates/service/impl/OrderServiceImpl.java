@@ -449,8 +449,8 @@ public class OrderServiceImpl implements OrderService {
                 throw new OrderAcceptionException(messageSource.getMessage("orders.acceptsaveerror", null, locale));
             }
 
-            notificationService.createNotification(exOrder.getUserId(), "Order accepted", "Your order has been accepted by ***", NotificationEvent.ORDER);
-
+            notificationService.createLocalizedNotification(exOrder.getUserId(), NotificationEvent.ORDER, "acceptordersuccess.title",
+                    "acceptorder.message", new Object[]{exOrder.getId()});
         } catch (Exception e) {
             logger.error("Error while accepting order with id = " + orderId + " exception: " + e.getLocalizedMessage());
             throw e;
@@ -560,6 +560,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(rollbackFor = {Exception.class})
     @Override
     public Integer deleteOrderByAdmin(int orderId) {
+        OrderCreateDto order = orderDao.getMyOrderById(orderId);
         Object result = orderDao.deleteOrderByAdmin(orderId);
         if (result instanceof OrderDeleteStatus) {
             if ((OrderDeleteStatus) result == OrderDeleteStatus.NOT_FOUND) {
@@ -567,6 +568,8 @@ public class OrderServiceImpl implements OrderService {
             }
             throw new OrderDeletingException(((OrderDeleteStatus) result).toString());
         }
+        notificationService.createLocalizedNotification(order.getUserId(), NotificationEvent.ORDER,
+                "deleteOrder.notificationTitle", "deleteOrder.notificationMessage", new Object[]{order.getOrderId()});
         return (Integer) result;
     }
 

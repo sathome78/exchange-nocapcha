@@ -15,6 +15,12 @@ public interface NotificationService {
 
     long createNotification(Integer userId, String title, String message, NotificationEvent cause);
 
+    long createLocalizedNotification(String receiverEmail, NotificationEvent cause, String titleCode, String messageCode,
+                                     Object[] messageArgs);
+
+    long createLocalizedNotification(Integer userId, NotificationEvent cause, String titleCode, String messageCode,
+                                     Object[] messageArgs);
+
     @Transactional(readOnly = true)
     List<Notification> findAllByUser(String email);
 

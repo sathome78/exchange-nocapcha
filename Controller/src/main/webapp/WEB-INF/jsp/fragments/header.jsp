@@ -167,14 +167,14 @@
                             <div class="dropdown-menu">
                                 <div id="notifications-header">
                                     <ul>
-                                        <li><a href="#" onclick="markReadAll()">Mark all as read</a></li>
-                                        <li><a href="#" onclick="removeAllNotifications()">Remove all</a></li>
+                                        <li><a href="#" onclick="markReadAll()"><loc:message code="notifications.markReadAll"/></a></li>
+                                        <li><a href="#" onclick="removeAllNotifications()"><loc:message code="notifications.removeAll"/></a></li>
                                     </ul>
                                 </div>
                                 <div id="notifications-body-wrapper">
                                 <div id="notifications-body">
                                     <div id="notifications-absent" class="invisible text-center">
-                                        <span>No notifications for you at the moment</span>
+                                        <span><loc:message code="notifications.absent"/> </span>
                                     </div>
                                     <script type="text/template" id="notifications-row">
                                         <@ var readClass = read ? 'read' : 'unread'; @>
@@ -182,7 +182,8 @@
                                             <input type="hidden" name="notificationId" class="notification-id" value="<@=id@>"/>
                                             <p class="notification-title"><@=title@></p>
                                             <p class="notification-message"><@=message@></p>
-                                            <a href="#" onclick="removeNotification(event, this)" class="notif-remove pull-right">Remove</a>
+                                            <a href="#" onclick="removeNotification(event, this)" class="notif-remove pull-right">
+                                                <loc:message code="notifications.remove"/></a>
                                             <p class="notification-time text-muted"><@=creationTime@></p>
                                             </div>';
                                     </script>

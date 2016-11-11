@@ -1956,9 +1956,9 @@ input[type=email], .dropdown-menu__form,
 }
 
 #notification-icon .dropdown-menu {
-    width: 250px;
+    width: 350px;
     position: absolute;
-    right: 0;
+    left: -300px;
     z-index: 999;
     padding: 5px;
 }
