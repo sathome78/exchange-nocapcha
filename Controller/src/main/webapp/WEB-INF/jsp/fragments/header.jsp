@@ -59,7 +59,7 @@
                            class="nav__link"><img src="/client/img/android-solid.png" height="20" width="20"></a>
                     </li>
                     <li>
-                        <a href="#" target="_blank"
+                        <a href="https://itunes.apple.com/ua/app/exratesme/id1163197277" target="_blank"
                            class="nav__link"><img src="/client/img/apple-solid.png" height="20" width="20"></a>
                     </li>
                     <sec:authorize access="isAuthenticated()">
