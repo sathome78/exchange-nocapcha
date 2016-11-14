@@ -18,7 +18,6 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 
 public interface OrderDao {
 
@@ -58,11 +57,11 @@ public interface OrderDao {
 
     List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
                                                 OperationType operationType,
-                                                Integer offset, Integer limit, Locale locale);
+                                                String scope, Integer offset, Integer limit, Locale locale);
 
     List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, List<OrderStatus> statuses,
                                                 OperationType operationType,
-                                                Integer offset, Integer limit, Locale locale);
+                                                String scope, Integer offset, Integer limit, Locale locale);
 
     OrderCreateDto getMyOrderById(int orderId);
 

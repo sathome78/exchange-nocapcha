@@ -194,9 +194,13 @@
                     </tr>
                     <script type="text/template" id="dashboard-orders-sell-table_row">
                         <tr class="dashboard-order__tr">
-                            <td class="order_exrate left"><@=exrate@></td>
-                            <td class="order_amount right"><@=amountBase@></td>
-                            <td class="right"><@=amountConvert@></td>
+                            <@ var symbolsLimit = 14; @>
+                            <td class="order_exrate left" title="<@=exrate@>"><@=exrate.length > symbolsLimit ?
+                                exrate.substring(0, symbolsLimit) + '...' : exrate@></td>
+                            <td class="order_amount right" title="<@=amountBase@>"><@=amountBase.length > symbolsLimit ?
+                                amountBase.substring(0, symbolsLimit) + '...' : amountBase@></td>
+                            <td class="right" title="<@=amountConvert@>"><@=amountConvert.length > symbolsLimit ?
+                                amountConvert.substring(0, symbolsLimit) + '...' : amountConvert@></td>
                             <td class="order_id" hidden><@=id@></td>
                             <td class="order_type" hidden><@=orderType@></td>
                         </tr>
@@ -303,9 +307,13 @@
                     </tr>
                     <script type="text/template" id="dashboard-orders-buy-table_row">
                         <tr class="dashboard-order__tr">
-                            <td class="order_exrate left"><@=exrate@></td>
-                            <td class="order_amount right"><@=amountBase@></td>
-                            <td class="right"><@=amountConvert@></td>
+                            <@ var symbolsLimit = 14; @>
+                            <td class="order_exrate left" title="<@=exrate@>"><@=exrate.length > symbolsLimit ?
+                                exrate.substring(0, symbolsLimit) + '...' : exrate@></td>
+                            <td class="order_amount right" title="<@=amountBase@>"><@=amountBase.length > symbolsLimit ?
+                                amountBase.substring(0, symbolsLimit) + '...' : amountBase@></td>
+                            <td class="right" title="<@=amountConvert@>"><@=amountConvert.length > symbolsLimit ?
+                                amountConvert.substring(0, symbolsLimit) + '...' : amountConvert@></td>
                             <td class="order_id" hidden><@=id@></td>
                             <td class="order_type" hidden><@=orderType@></td>
                         </tr>

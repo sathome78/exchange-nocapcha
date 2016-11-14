@@ -673,6 +673,7 @@ public class OnlineRestController {
             @PathVariable("tableId") String tableId,
             @RequestParam(required = false) OperationType type,
             @RequestParam(required = false) OrderStatus status,
+            @RequestParam(required = false) String scope,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) PagingDirection direction,
             Principal principal,
@@ -680,6 +681,7 @@ public class OnlineRestController {
         if (principal == null) {
             return null;
         }
+        LOGGER.debug("Scope: " + scope);
         long before = System.currentTimeMillis();
         String email = principal.getName();
         CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
@@ -695,7 +697,7 @@ public class OnlineRestController {
         CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
         List<OrderWideListDto> result = orderService.getMyOrdersWithState(cacheData, email,
                 showAllPairs == null || !showAllPairs ? currencyPair : null,
-                status, type, tableParams.getOffset(), tableParams.getLimit(), localeResolver.resolveLocale(request));
+                status, type, scope, tableParams.getOffset(), tableParams.getLimit(), localeResolver.resolveLocale(request));
         if (!result.isEmpty()) {
             result.get(0).setPage(tableParams.getPageNumber());
         }
