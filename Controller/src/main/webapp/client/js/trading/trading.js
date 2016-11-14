@@ -396,8 +396,8 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         $(this).prevAll('.dashboard-order__tr').each(function (i, e) {
             var orderId = $(e).find('.order_id').text();
             var orderType = $(e).find('.order_type').text();
-            var orderAmount = $(e).find('.order_amount').text();
-            var orderExRate = $(e).find('.order_exrate').text();
+            var orderAmount = $(e).find('.order_amount').attr('title');
+            var orderExRate = $(e).find('.order_exrate').attr('title');
             var data = {
                 orderId: orderId,
                 orderType: orderType,
@@ -410,8 +410,8 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         });
         var orderId = $(this).find('.order_id').text();
         var orderType = $(this).find('.order_type').text();
-        var orderAmount = $(this).find('.order_amount').text();
-        var orderExRate = parseNumber($(this).find('.order_exrate').text());
+        var orderAmount = $(this).find('.order_amount').attr('title');
+        var orderExRate = parseNumber($(this).find('.order_exrate').attr('title'));
         var data = {
             orderId: orderId,
             orderType: orderType,

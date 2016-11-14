@@ -21,6 +21,7 @@ function MyOrdersClass(currentCurrencyPair) {
     var $myordersContainer = $('#myorders');
     var myordersCurrencyPairSelector;
     var myordersStatusForShow;
+    var myOrdersScope;
     var tableSellPageSize = 5;
     var tableBuyPageSize = 5;
     var fieldVisibleForOpenStatus = [
@@ -85,6 +86,7 @@ function MyOrdersClass(currentCurrencyPair) {
         var $myordersSellTable = $('#'+tableSellId).find('tbody');
         var url = '/dashboard/myOrdersData/' + tableSellId + '' +
             '?type=SELL&status=' + myordersStatusForShow + '' +
+            '&scope=' + myOrdersScope +
             '&page=' + (page ? page : '') +
             '&direction=' + (direction ? direction : '') +
             '&refreshIfNeeded=' + (refreshIfNeeded ? 'true' : 'false');
@@ -135,6 +137,7 @@ function MyOrdersClass(currentCurrencyPair) {
         var $myordersBuyTable = $('#'+tableBuyId).find('tbody');
         var url = '/dashboard/myOrdersData/' + tableBuyId + '' +
             '?type=BUY&status=' + myordersStatusForShow + '' +
+            '&scope=' + myOrdersScope +
             '&page=' + (page ? page : '') +
             '&direction=' + (direction ? direction : '') +
             '&refreshIfNeeded=' + (refreshIfNeeded ? 'true' : 'false');
@@ -201,18 +204,35 @@ function MyOrdersClass(currentCurrencyPair) {
         myordersCurrencyPairSelector = new CurrencyPairSelectorClass('myorders-currency-pair-selector', currentCurrencyPair);
         myordersCurrencyPairSelector.init(onCurrencyPairChange);
         myordersStatusForShow = 'CLOSED';
+        myOrdersScope = 'ALL';
         $('#myorders-button-deal').addClass('active');
         /**/
         $('#myorders-button-cancelled').on('click', function () {
             $('.myorders__button').removeClass('active');
             $(this).addClass('active');
             myordersStatusForShow = 'CANCELLED';
-            that.updateAndShowAll();
+            myOrdersScope = '';
+            that.updateAndShowAll(false, 1, null);
+        });
+        $('#myorders-button-mine').on('click', function () {
+            $('.myorders__button').removeClass('active');
+            $(this).addClass('active');
+            myordersStatusForShow = 'CLOSED';
+            myOrdersScope = 'MINE';
+            that.updateAndShowAll(false, 1, null);
+        });
+        $('#myorders-button-accepted').on('click', function () {
+            $('.myorders__button').removeClass('active');
+            $(this).addClass('active');
+            myordersStatusForShow = 'CLOSED';
+            myOrdersScope = 'ACCEPTED';
+            that.updateAndShowAll(false, 1, null);
         });
         $('#myorders-button-deal').on('click', function () {
             $('.myorders__button').removeClass('active');
             $(this).addClass('active');
             myordersStatusForShow = 'CLOSED';
+            myOrdersScope = 'ALL';
             that.updateAndShowAll();
         });
         /**/

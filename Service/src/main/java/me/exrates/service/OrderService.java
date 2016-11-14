@@ -47,7 +47,7 @@ public interface OrderService {
             CacheData cacheData,
             String email, CurrencyPair currencyPair, OrderStatus status,
             OperationType operationType,
-            Integer offset, Integer limit, Locale locale);
+            String scope, Integer offset, Integer limit, Locale locale);
 
     /**
      * TODO ADD JAVADOC
