@@ -36,6 +36,7 @@
                 <li><a href="<c:url value="http://support.exrates.me/" />" class="nav__link">
                     <loc:message code="dashboard.support"/></a>
                 </li>
+
                 <sec:authorize access="isAuthenticated()">
                     <li id="adminka-entry">
                         <c:set var="adminEnum" value="<%=me.exrates.model.enums.UserRole.ADMINISTRATOR%>"/>
@@ -51,12 +52,25 @@
                             </sec:authorize>
                         </sec:authorize>
                     </li>
-
-                    <li id="hello-my-friend"><a href="">
-                        <loc:message code="dashboard.hello"/>
-                        <strong><sec:authentication property="principal.username"/></strong></a>
-                    </li>
                 </sec:authorize>
+
+                    <li>
+                        <a href="https://play.google.com/store/apps/details?id=lk.exrates.me" target="_blank"
+                           class="nav__link"><img src="/client/img/android-solid.png" height="20" width="20"></a>
+                    </li>
+                    <li>
+                        <a href="https://itunes.apple.com/ua/app/exratesme/id1163197277" target="_blank"
+                           class="nav__link"><img src="/client/img/apple-solid.png" height="20" width="20"></a>
+                    </li>
+                    <sec:authorize access="isAuthenticated()">
+                        <li id="hello-my-friend"><a href="">
+                            <loc:message code="dashboard.hello"/>
+                            <strong><sec:authentication property="principal.username"/></strong></a>
+                        </li>
+                    </sec:authorize>
+
+
+
 
                 <ul class="padding0 pull-right">
                     <sec:authorize access="! isAuthenticated()">
