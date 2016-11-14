@@ -18,8 +18,8 @@ CREATE TABLE `NOTIFICATION` (
   PRIMARY KEY (`id`),
   KEY `user_id_idx` (`user_id`),
   KEY `notification_event_id_idx` (`notification_event_id`),
-  CONSTRAINT `notification_event_id` FOREIGN KEY (`notification_event_id`) REFERENCES `notification_event` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+  CONSTRAINT `notification_event_id` FOREIGN KEY (`notification_event_id`) REFERENCES `NOTIFICATION_EVENT` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `user_id` FOREIGN KEY (`user_id`) REFERENCES `USER` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 );
 
 INSERT INTO NOTIFICATION_EVENT VALUES (1, 'CUSTOM', NULL);
