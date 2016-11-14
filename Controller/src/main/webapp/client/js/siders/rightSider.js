@@ -21,5 +21,12 @@ function RightSiderClass() {
     /*===========================================================*/
     (function init() {
         that.newsList = new NewsClass($newsLoadingImg);
+        setInterval(function () {
+            $('#current-datetime').text(moment.utc().format('YYYY-MM-DD HH:mm:ss'));
+        }, 1000)
     })();
+
+
+
+
 }
