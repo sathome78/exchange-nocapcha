@@ -510,4 +510,9 @@ public class UserServiceImpl implements UserService {
         return success;
     }
 
+    @Override
+    public boolean deleteUserComment(int id) {
+        return userDao.deleteUserComment(id);
+    }
+
 }

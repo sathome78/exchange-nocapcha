@@ -4,11 +4,6 @@ import me.exrates.model.Comment;
 import me.exrates.model.TemporalToken;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
-import me.exrates.model.dto.UpdateUserDto;
-import me.exrates.model.dto.UserIpDto;
-import me.exrates.model.dto.UserSessionInfoDto;
-import me.exrates.model.dto.UserSummaryDto;
-import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.dto.*;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
@@ -176,4 +171,6 @@ public interface UserService {
     Collection<Comment> getUserComments(int id);
 
     boolean addUserComment(String newComment, String email, boolean sendMessage, Locale locale);
+
+    boolean deleteUserComment(int id);
 }
