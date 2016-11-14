@@ -10,6 +10,7 @@ var myStatements;
 var myHistory;
 var orders;
 var $currentPageMenuItem;
+var notifications;
 
 $(function dashdoardInit() {
     console.log('started');
@@ -53,6 +54,8 @@ $(function dashdoardInit() {
         /*... FOR EVERYWHERE*/
 
         /*FOR HEADER...*/
+        notifications = new NotificationsClass();
+
         $('#menu-traiding').on('click', onMenuTraidingItemClick);
         function onMenuTraidingItemClick(e) {
             if (e) e.preventDefault();

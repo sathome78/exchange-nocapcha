@@ -2,6 +2,7 @@ package me.exrates.dao.impl;
 
 import me.exrates.dao.NotificationDao;
 import me.exrates.model.Notification;
+import me.exrates.model.dto.onlineTableDto.NotificationDto;
 import me.exrates.model.enums.NotificationEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -55,6 +56,26 @@ public class NotificationDaoImpl implements NotificationDao {
             notification.setMessage(resultSet.getString("message"));
             notification.setCreationTime(resultSet.getTimestamp("creation_time").toLocalDateTime());
             notification.setCause(NotificationEvent.convert(resultSet.getInt("notification_event_id")));
+            notification.setRead(resultSet.getBoolean("is_read"));
+            return notification;
+        });
+    }
+
+    @Override
+    public List<NotificationDto> findByUser(Integer userId, Integer offset, Integer limit) {
+        String sql = "SELECT id, user_id, title, message, creation_time, notification_event_id, is_read " +
+                " FROM NOTIFICATION " +
+                " WHERE user_id = :user_id " +
+                " ORDER BY creation_time DESC " +
+                (limit == -1 ? "" : "  LIMIT " + limit + " OFFSET " + offset);
+        Map<String, Integer> params = Collections.singletonMap("user_id", userId);
+        return jdbcTemplate.query(sql, params, (resultSet, row) -> {
+            NotificationDto notification = new NotificationDto();
+            notification.setId(resultSet.getLong("id"));
+            notification.setReceiverUserId(resultSet.getInt("user_id"));
+            notification.setTitle(resultSet.getString("title"));
+            notification.setMessage(resultSet.getString("message"));
+            notification.setCreationTime(resultSet.getTimestamp("creation_time").toLocalDateTime());
             notification.setRead(resultSet.getBoolean("is_read"));
             return notification;
         });

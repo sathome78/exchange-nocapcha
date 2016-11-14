@@ -1,7 +1,9 @@
 package me.exrates.service;
 
 import me.exrates.model.Notification;
+import me.exrates.model.dto.onlineTableDto.NotificationDto;
 import me.exrates.model.enums.NotificationEvent;
+import me.exrates.model.vo.CacheData;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -23,6 +25,9 @@ public interface NotificationService {
 
     @Transactional(readOnly = true)
     List<Notification> findAllByUser(String email);
+
+    @Transactional(readOnly = true)
+    List<NotificationDto> findByUser(String email, CacheData cacheData, Integer offset, Integer limit);
 
     boolean setRead(Long notificationId);
 

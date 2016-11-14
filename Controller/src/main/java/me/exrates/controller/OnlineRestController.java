@@ -2,6 +2,7 @@ package me.exrates.controller;
 
 import me.exrates.controller.annotation.OnlineMethod;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.Notification;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.onlineTableDto.*;
 import me.exrates.model.enums.ChartType;
@@ -29,6 +30,8 @@ import java.security.Principal;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 /**
  * The controller contains online methods. "Online method" is the handler of online requests,
@@ -90,6 +93,9 @@ public class OnlineRestController {
 
     @Autowired
     MerchantService merchantService;
+
+    @Autowired
+    private NotificationService notificationService;
 
     @Autowired
     MessageSource messageSource;
@@ -858,6 +864,26 @@ public class OnlineRestController {
         refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
         CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
         List<NewsDto> result = newsService.getNewsBriefList(cacheData, offset, tableParams.getPageSize(), localeResolver.resolveLocale(request));
+        long after = System.currentTimeMillis();
+        LOGGER.debug("completed... ms: " + (after - before));
+        return result;
+    }
+
+    @RequestMapping(value = "/dashboard/notifications/{tableId}", method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public List<NotificationDto> findNotificationsByUser(@PathVariable("tableId") String tableId,
+                                                      @RequestParam(required = false) Boolean refreshIfNeeded,
+                                                      @RequestParam(required = false) Integer page,
+                                                      Principal principal,
+                                                      HttpServletRequest request) {
+        long before = System.currentTimeMillis();
+        String attributeName = tableId + "Params";
+        TableParams tableParams = (TableParams) request.getSession().getAttribute(attributeName);
+        Assert.requireNonNull(tableParams, "The parameters are not populated for the " + tableId);
+        Integer offset = page == null || tableParams.getPageSize() == -1 ? 0 : (page - 1) * tableParams.getPageSize();
+        String cacheKey = "notifications" + request.getHeader("windowid");
+        refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
+        CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
+        List<NotificationDto> result = notificationService.findByUser(principal.getName(), cacheData, offset, tableParams.getPageSize());
         long after = System.currentTimeMillis();
         LOGGER.debug("completed... ms: " + (after - before));
         return result;

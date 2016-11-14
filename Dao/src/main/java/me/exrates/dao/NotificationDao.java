@@ -1,6 +1,7 @@
 package me.exrates.dao;
 
 import me.exrates.model.Notification;
+import me.exrates.model.dto.onlineTableDto.NotificationDto;
 
 import java.util.List;
 
@@ -11,6 +12,8 @@ public interface NotificationDao {
     long createNotification(Notification notification);
 
     List<Notification> findAllByUser(Integer userId);
+
+    List<NotificationDto> findByUser(Integer userId, Integer offset, Integer limit);
 
     boolean setRead(Long notificationId);
 

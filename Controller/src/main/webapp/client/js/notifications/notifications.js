@@ -1,12 +1,110 @@
 /**
  * Created by OLEG on 11.11.2016.
  */
+function NotificationsClass() {
+    if (NotificationsClass.__instance) {
+        return NotificationsClass.__instance;
+    } else if (this === window) {
+        return new NotificationsClass();
+    }
+    NotificationsClass.__instance = this;
+    /**/
+    var that = this;
+
+    var tableNotificationsId = 'notification-table';
+    var notificationsTimeoutId;
+    var refreshIntervalForNotifications = 5000 * REFRESH_INTERVAL_MULTIPLIER;
+
+    var $notificationContainer;
+    var $counter;
+
+    this.getNotifications = function (refreshIfNeeded) {
+        if (!windowIsActive) {
+            clearTimeout(notificationsTimeoutId);
+            notificationsTimeoutId = setTimeout(function () {
+                that.getNotifications(true);
+            }, refreshIntervalForNotifications);
+            return;
+        }
+        var url = '/dashboard/notifications/' + tableNotificationsId + '?refreshIfNeeded=' + (refreshIfNeeded ? 'true' : 'false');
+        $.ajax({
+            url: url,
+            type: 'GET',
+            headers: {
+                "windowid": windowId
+            },
+            success: function (data) {
+                if (!data) return;
+                if (data.length == 0 || data[0].needRefresh) {
+                    if (data.length == 0) {
+                        handleAbsentMessages();
+                        return;
+                    }
+                    var unreadQuantity = 0;
+                    var $tmpl = $('#notifications-row').html().replace(/@/g, '%');
+                    clearNotificationsTable();
+                    data.forEach(function (item) {
+                        var $newItem = $(tmpl($tmpl, item));
+                        if (!item.read) {
+                            unreadQuantity++;
+                        } else {
+                            $($newItem).removeAttr('onclick');
+                        }
+                        $($notificationContainer).append($newItem);
+
+                    });
+
+                    if (unreadQuantity > 0) {
+                        $($counter).text(unreadQuantity);
+                        $($counter).show();
+                    }
+                }
+
+                clearTimeout(notificationsTimeoutId);
+                notificationsTimeoutId = setTimeout(function () {
+                    that.getNotifications(true);
+                }, refreshIntervalForNotifications);
+            }
+        });
+    };
+
+    (function init() {
+
+        if ($('#notification-icon').length > 0) {
+            $notificationContainer = $("#notifications-body");
+            $counter = $('#unread-counter');
+            unreadQuantity = 0;
+            $($counter).hide();
+            $('#notification-icon').find('.dropdown-menu').click(function (event) {
+                event.stopPropagation();
+            });
+            $("#notifications-body-wrapper").mCustomScrollbar({
+                theme: "dark",
+                axis: "y",
+                live: true
+            });
+            syncTableParams(tableNotificationsId, -1, function (data) {
+                that.getNotifications();
+            });
+        }
+    })();
 
 
 
-$(function () {
+}
+
+function clearNotificationsTable() {
+    var $table = $('#notifications-body');
+    var $absent = $('#notifications-absent');
+    var $script = $table.find('script');
+    $table.empty();
+    $table.append($absent);
+    $table.append($script);
+}
+
+/*$(function () {
     if ($('#notification-icon').length > 0) {
-        var $notificationContainer = $("#notifications-body");
+        $notificationContainer = $("#notifications-body");
 
         $('#notification-icon').find('.dropdown-menu').click(function(event){
             event.stopPropagation();
@@ -16,8 +114,8 @@ $(function () {
             axis:"y",
             live: true
         });
-        var $counter = $('#unread-counter');
-        var unreadQuantity = 0;
+        $counter = $('#unread-counter');
+        unreadQuantity = 0;
         $($counter).hide();
         $.ajax({
             url: '/notifications/findAll',
@@ -47,7 +145,7 @@ $(function () {
             }
         })
     }
-});
+});*/
 
 function markRead(element) {
     var count = $('#unread-counter').text();

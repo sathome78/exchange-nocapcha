@@ -3,13 +3,18 @@ package me.exrates.service.impl;
 import me.exrates.dao.NotificationDao;
 import me.exrates.dao.UserDao;
 import me.exrates.model.Notification;
+import me.exrates.model.dto.onlineTableDto.NewsDto;
+import me.exrates.model.dto.onlineTableDto.NotificationDto;
 import me.exrates.model.enums.NotificationEvent;
+import me.exrates.model.vo.CacheData;
 import me.exrates.service.NotificationService;
+import me.exrates.service.util.Cache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -70,6 +75,17 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional(readOnly = true)
     public List<Notification> findAllByUser(String email) {
         return notificationDao.findAllByUser(userDao.getIdByEmail(email));
+    }
+
+    @Transactional(readOnly = true)
+    public List<NotificationDto> findByUser(String email, CacheData cacheData, Integer offset, Integer limit) {
+        List<NotificationDto> result = notificationDao.findByUser(userDao.getIdByEmail(email), offset, limit);
+        if (Cache.checkCache(cacheData, result)) {
+            result = new ArrayList<NotificationDto>() {{
+                add(new NotificationDto(false));
+            }};
+        }
+        return result;
     }
 
     @Override
