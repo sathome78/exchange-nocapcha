@@ -761,4 +761,11 @@ public class UserDaoImpl implements UserDao {
         namedParameters.put("message_sent", comment.isMessageSent());
         return jdbcTemplate.update(sql, namedParameters) > 0;
     }
+
+    @Override
+    public boolean deleteUserComment(int id){
+        String sql = "DELETE FROM USER_COMMENT WHERE USER_COMMENT.id = :id; ";
+        Map<String, Integer> namedParameters = Collections.singletonMap("id", id);
+        return jdbcTemplate.update(sql, namedParameters) > 0;
+    }
 }

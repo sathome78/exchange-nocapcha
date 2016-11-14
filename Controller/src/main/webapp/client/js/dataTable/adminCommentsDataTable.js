@@ -32,13 +32,19 @@ $(function () {
                         "data": "messageSent",
                         "render": function (data, type, row){
                             if (row.messageSent == true) {
-                                return '<img src="/client/img/email.png" style="width: 20px; height: 20px"/> ';
+                                return '<input type="image" src="/client/img/email.png" style="width: 20px; height: 20px"/> ';
                             }else {
-                                return "";
+                                return "<input type='image' src='/client/img/Delete_Icon_16.png' onclick='deleteUserComment.call(this, event)' />" ;
                             }
                             return data;
                         }
+                    },
+                    {
+                        "data": "id"
+                        ,
+                        "visible": false
                     }
+
                 ],
                 "order": [
                     [
@@ -49,6 +55,8 @@ $(function () {
             });
         }
     }
+
+
 
     $('#comments-button').on('click', function () {
         $("#myModal").modal();
@@ -69,7 +77,6 @@ $(function () {
             url: '/admin/addComment',
             type: 'POST',
             headers: {
-                //'X-CSRF-Token': token
                 'X-CSRF-Token': $("input[name='_csrf']").val()
             },
             data: {
@@ -79,14 +86,13 @@ $(function () {
 
             },
             success: function (data) {
-                //refreshTable();
+                update();
             },
             error: function (err) {
                 console.log(err);
             }
         });
         $("[data-dismiss=modal]").trigger({ type: "click" });
-        update();
     });
 
     $('#createCommentCancel').on('click', function () {
@@ -94,4 +100,39 @@ $(function () {
         document.getElementById("sendMessageCheckbox").checked = false;
     });
 
+    $('#sendMessageCheckbox').on('click', function () {
+        if(document.getElementById("sendMessageCheckbox").checked){
+            $('#checkMessage').show();
+        }else{
+            $('#checkMessage').hide();
+        }
     });
+
+    });
+
+function deleteUserComment(e) {
+
+    if (confirm($('#prompt_delete_user_comment_rqst').html())) {
+        var element = $(this);
+        var row = $(this).closest('tr');
+        var data = $('#commentsTable').dataTable().fnGetData(row);
+
+        $.ajax({
+            url: '/admin/deleteUserComment',
+            type: 'POST',
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            data: {
+                "commentId": data.id
+            },
+            success: function (data) {
+                // update();
+                commentsDataTable.ajax.reload();
+            },
+            error: function (err) {
+                console.log(err);
+            }
+        });
+    }
+}

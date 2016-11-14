@@ -241,6 +241,21 @@ public class AdminController {
                 messageSource.getMessage("admin.successfulDeleteUserFiles", null, locale)), OK);
     }
 
+    @ResponseBody
+    @RequestMapping(value = "/admin/deleteUserComment", method = POST)
+    public ResponseEntity<Map<String, String>> deleteUserComment(final @RequestParam("commentId") int commentId,
+                                                             final Locale locale) {
+        try {
+            userService.deleteUserComment(commentId);
+        } catch (Exception e) {
+            LOG.error(e);
+            return new ResponseEntity<>(singletonMap("error",
+                    messageSource.getMessage("admin.internalError", null, locale)), INTERNAL_SERVER_ERROR);
+        }
+        return new ResponseEntity<>(singletonMap("success",
+                messageSource.getMessage("admin.successCommentDelete", null, locale)), OK);
+    }
+
 
     @ResponseBody
     @RequestMapping(value = "/admin/orders", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)

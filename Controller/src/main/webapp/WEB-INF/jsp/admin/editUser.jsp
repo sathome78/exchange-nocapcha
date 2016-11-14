@@ -507,13 +507,16 @@
                                     <div class="modal fade comment" id="myModal">
                                         <div class="modal-dialog modal-sm">
                                             <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h4 class="modal-title">${user.nickname}, ${user.email}, ${pageContext.response.locale.toString().toUpperCase()} </h4>
+                                                </div>
                                                 <div class="modal-body">
                                                     <p><loc:message code="admin.comment"/>:<Br>
-                                                    <textarea cols="40" rows="3" id="commentText" placeholder="Enter comment">
-                                                        </textarea>
-
+                                                        <textarea class="form-control" cols="40" rows="3" id="commentText"></textarea>
                                                     <p><input style="vertical-align: bottom" id="sendMessageCheckbox" type="checkbox">
                                                     <loc:message code="admin.sendMessage"/>
+                                                    <p><span id="checkMessage" style="color: #FF0000; " hidden><loc:message code="admin.checkLanguage"/></span>
+
                                                 </div>
                                                 <div class="modal-footer">
                                                     <div>
@@ -534,7 +537,7 @@
                                     <%--... MODAL--%>
 
                                     <table id="commentsTable"
-                                           class="admin-table table table-hover table-bordered table-striped"
+                                           class="admin-table table table-hover table-striped"
                                            style="width:100%">
                                         <thead>
                                         <tr>
@@ -546,6 +549,8 @@
                                             <th><loc:message code="admin.comment"/></th>
                                             <%--MessageSent--%>
                                             <th></th>
+                                            <%--Comment id--%>
+                                            <th >123</th>
                                         </tr>
                                         </thead>
                                     </table>
@@ -564,6 +569,9 @@
 </div>
 <div id="prompt_send_message_rqst" style="display: none">
     <loc:message code="admin.promptSendMessageRequestAccept"/>
+</div>
+<div id="prompt_delete_user_comment_rqst" style="display: none">
+    <loc:message code="admin.promptDeleteUserComment"/>
 </div>
 <%@include file='order-modals.jsp' %>
 
