@@ -1,5 +1,6 @@
 package me.exrates.security.filter;
 
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -39,8 +40,8 @@ public class QRAuthorizationFilter extends GenericFilterBean {
                     session.removeAttribute("USER_DETAIL_TOKEN");
                     session.setAttribute("QR_LOGGED_IN", true);
                 }
-                Authentication auth = new PreAuthenticatedAuthenticationToken(userDetails,
-                        userDetails.getUsername(), userDetails.getAuthorities());
+                Authentication auth = new UsernamePasswordAuthenticationToken(userDetails,
+                        null, userDetails.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(auth);
                 authenticationStrategy.onAuthentication(auth, httpServletRequest, ((HttpServletResponse)response));
             }

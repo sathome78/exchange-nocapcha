@@ -88,10 +88,7 @@ function LeftSiderClass() {
                     var noty = '';
                     if (data.redirect.urlParam1 && registered) {
                         noty = "?errorNoty=" + data.redirect.urlParam1;
-                    } else if (data.redirect.successQR && !registered) {
-                        noty = "?successNoty=" + data.redirect.successQR;
                     }
-
                     window.location = data.redirect.url + noty;
                     return;
                 }
