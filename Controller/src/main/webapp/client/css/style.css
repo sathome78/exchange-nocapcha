@@ -1947,3 +1947,14 @@ input[type=email], .dropdown-menu__form,
 #all_news_table td {
     font-size: 1.2rem;
 }
+.current-time {
+    width: 100%;
+    display: inline-block;
+    color: #337ab7;
+    margin: 10px 0;
+    font-size: 1.6rem;
+}
+
+#current-datetime {
+    float: right;
+}
