@@ -5,6 +5,7 @@ $(function () {
     update();
 
     function update() {
+        $('#checkMessage').hide();
         if ($.fn.dataTable.isDataTable('#commentsTable')) {
             commentsDataTable.ajax.reload();
         } else {

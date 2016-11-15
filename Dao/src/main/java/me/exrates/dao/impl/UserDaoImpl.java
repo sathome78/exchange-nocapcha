@@ -596,7 +596,9 @@ public class UserDaoImpl implements UserDao {
                         "TRANSACTION.datetime end as creationIn, \n" +
                         "case when operation_type_id=2 then\n" +
                         "TRANSACTION.datetime end as creationOut, \n" +
+                        "WITHDRAW_REQUEST.acceptance as confirmationOut, " +
                         "CURRENCY.name as currency_name, TRANSACTION.amount  FROM TRANSACTION \n" +
+                        "LEFT JOIN WITHDRAW_REQUEST ON (WITHDRAW_REQUEST.transaction_id = TRANSACTION.id)  \n" +
                         "JOIN WALLET ON (WALLET.id = TRANSACTION.user_wallet_id)\n" +
                         "JOIN USER ON (USER.id = WALLET.user_id)  \n" +
                         "JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id)    \n" +
@@ -613,6 +615,7 @@ public class UserDaoImpl implements UserDao {
                 userSummaryInOutDto.setUserEmail(rs.getString("user_email"));
                 userSummaryInOutDto.setCreationIn(rs.getTimestamp("creationIn") == null ? "" : rs.getTimestamp("creationIn").toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
                 userSummaryInOutDto.setCreationOut(rs.getTimestamp("creationOut") == null ? "" : rs.getTimestamp("creationOut").toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                userSummaryInOutDto.setConfirmationOut(rs.getTimestamp("confirmationOut") == null ? "" : rs.getTimestamp("confirmationOut").toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
                 userSummaryInOutDto.setCurrencyName(rs.getString("currency_name"));
                 userSummaryInOutDto.setAmount(rs.getBigDecimal("amount"));
                 return userSummaryInOutDto;
