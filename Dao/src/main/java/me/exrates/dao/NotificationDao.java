@@ -1,7 +1,9 @@
 package me.exrates.dao;
 
 import me.exrates.model.Notification;
+import me.exrates.model.NotificationOption;
 import me.exrates.model.dto.onlineTableDto.NotificationDto;
+import me.exrates.model.enums.NotificationEvent;
 
 import java.util.List;
 
@@ -22,4 +24,10 @@ public interface NotificationDao {
     int setReadAllByUser(Integer userId);
 
     int removeAllByUser(Integer userId);
+
+    List<NotificationOption> getNotificationOptionsByUser(Integer userId);
+
+    void updateNotificationOptions(List<NotificationOption> options);
+
+    NotificationOption findUserOptionForEvent(Integer userId, NotificationEvent event);
 }

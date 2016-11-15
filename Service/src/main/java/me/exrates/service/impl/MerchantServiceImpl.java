@@ -243,18 +243,8 @@ public class MerchantServiceImpl implements MerchantService {
         }
         notification = messageSource
                 .getMessage(notificationMessageCode, messageParams, locale);
-        notificationService.createLocalizedNotification(withdrawRequest.getUserEmail(), NotificationEvent.IN_OUT,
+        notificationService.notifyUser(withdrawRequest.getUserEmail(), NotificationEvent.IN_OUT,
                 "merchants.withdrawNotification.header", notificationMessageCode, messageParams);
-        final Email email = new Email();
-        email.setMessage(notification);
-        email.setSubject(messageSource
-                .getMessage("merchants.withdrawNotification.header", null, locale));
-        email.setTo(withdrawRequest.getUserEmail());
-        try {
-            sendMailService.sendMail(email);
-        } catch (MailException e) {
-            LOG.error(e);
-        }
         return notification;
     }
 

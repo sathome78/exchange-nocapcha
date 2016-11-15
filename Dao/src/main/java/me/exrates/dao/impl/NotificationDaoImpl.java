@@ -2,18 +2,24 @@ package me.exrates.dao.impl;
 
 import me.exrates.dao.NotificationDao;
 import me.exrates.model.Notification;
+import me.exrates.model.NotificationOption;
 import me.exrates.model.dto.onlineTableDto.NotificationDto;
 import me.exrates.model.enums.NotificationEvent;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.jdbc.core.namedparam.SqlParameterSourceUtils;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Created by OLEG on 09.11.2016.
@@ -23,6 +29,15 @@ public class NotificationDaoImpl implements NotificationDao {
 
     @Autowired
     private NamedParameterJdbcTemplate jdbcTemplate;
+
+    private final RowMapper<NotificationOption> notificationOptionRowMapper = (resultSet, row) -> {
+        NotificationOption option = new NotificationOption();
+        option.setEvent(NotificationEvent.convert(resultSet.getInt("notification_event_id")));
+        option.setUserId(resultSet.getInt("user_id"));
+        option.setSendNotification(resultSet.getBoolean("send_notification"));
+        option.setSendEmail(resultSet.getBoolean("send_email"));
+        return option;
+    };
 
     @Override
     public long createNotification(Notification notification) {
@@ -107,6 +122,45 @@ public class NotificationDaoImpl implements NotificationDao {
         String sql = "DELETE FROM NOTIFICATION WHERE user_id = :user_id";
         Map<String, Integer> params = Collections.singletonMap("user_id", userId);
         return jdbcTemplate.update(sql, params);
+    }
+
+    @Override
+    public List<NotificationOption> getNotificationOptionsByUser(Integer userId) {
+        String sql = "SELECT notification_event_id, user_id, send_notification, send_email " +
+                " FROM NOTIFICATION_OPTIONS " +
+                " WHERE user_id = :user_id " +
+                "ORDER BY notification_event_id DESC ";
+        Map<String, Integer> params = Collections.singletonMap("user_id", userId);
+        return jdbcTemplate.query(sql, params, notificationOptionRowMapper);
+    }
+
+    @Override
+    public void updateNotificationOptions(List<NotificationOption> options) {
+        String sql = "UPDATE NOTIFICATION_OPTIONS SET send_notification = :send_notification, send_email = :send_email " +
+                " WHERE notification_event_id = :notification_event_id AND user_id = :user_id ";
+        Map<String, Object>[] batchValues = options.stream().map(option -> {
+            Map<String, Object> optionValues = new HashMap<String, Object>() {{
+                put("notification_event_id", option.getEvent().getEventType());
+                put("user_id", option.getUserId());
+                put("send_notification", option.isSendNotification());
+                put("send_email", option.isSendEmail());
+            }};
+            return optionValues;
+        }).collect(Collectors.toList()).toArray(new Map[options.size()]);
+        jdbcTemplate.batchUpdate(sql, batchValues);
+    }
+
+    @Override
+    public NotificationOption findUserOptionForEvent(Integer userId, NotificationEvent event) {
+        String sql = "SELECT notification_event_id, user_id, send_notification, send_email " +
+                " FROM NOTIFICATION_OPTIONS " +
+                " WHERE user_id = :user_id AND notification_event_id = :notification_event_id";
+        Map<String, Integer> params = new HashMap<String, Integer>() {{
+            put("user_id", userId);
+            put("notification_event_id", event.getEventType());
+        }};
+        return jdbcTemplate.queryForObject(sql, params, notificationOptionRowMapper);
+
     }
 
 

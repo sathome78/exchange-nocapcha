@@ -7,5 +7,9 @@
         <%@include file="settings-center-filesupload.jsp" %>
     </c:if>
     <hr/>
+    <c:if test="${sectionid == null || sectionid.equals('notification-options')}">
+        <%@include file="settings-center-notifications.jsp" %>
+    </c:if>
+    <hr/>
 </div>
 

@@ -1,6 +1,9 @@
 package me.exrates.model.enums;
 
 import me.exrates.model.exceptions.UnsupportedNotificationEventException;
+import org.springframework.context.MessageSource;
+
+import java.util.Locale;
 
 /**
  * Created by OLEG on 09.11.2016.
@@ -27,5 +30,10 @@ public enum NotificationEvent {
             case 5: return IN_OUT;
             default: throw new UnsupportedNotificationEventException("Unsupported notification event");
         }
+    }
+
+    public String toLocalizedString(MessageSource messageSource, Locale locale) {
+        return messageSource.getMessage("notificationEvent." + this.name(), null, locale);
+
     }
 }

@@ -1,6 +1,7 @@
 package me.exrates.service;
 
 import me.exrates.model.Notification;
+import me.exrates.model.NotificationOption;
 import me.exrates.model.dto.onlineTableDto.NotificationDto;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.vo.CacheData;
@@ -12,16 +13,15 @@ import java.util.List;
  * Created by OLEG on 10.11.2016.
  */
 public interface NotificationService {
+
+
     @Transactional(rollbackFor = Exception.class)
-    long createNotification(String receiverEmail, String title, String message, NotificationEvent cause);
+    void notifyUser(Integer userId, NotificationEvent cause, String titleCode, String messageCode,
+                    Object[] messageArgs);
 
-    long createNotification(Integer userId, String title, String message, NotificationEvent cause);
-
-    long createLocalizedNotification(String receiverEmail, NotificationEvent cause, String titleCode, String messageCode,
-                                     Object[] messageArgs);
-
-    long createLocalizedNotification(Integer userId, NotificationEvent cause, String titleCode, String messageCode,
-                                     Object[] messageArgs);
+    @Transactional(rollbackFor = Exception.class)
+    void notifyUser(String email, NotificationEvent cause, String titleCode, String messageCode,
+                    Object[] messageArgs);
 
     @Transactional(readOnly = true)
     List<Notification> findAllByUser(String email);
@@ -38,4 +38,9 @@ public interface NotificationService {
 
     @Transactional(readOnly = true)
     int removeAllByUser(String email);
+
+    @Transactional(readOnly = true)
+    List<NotificationOption> getNotificationOptionsByUser(Integer userId);
+
+    void updateUserNotifications(List<NotificationOption> options);
 }

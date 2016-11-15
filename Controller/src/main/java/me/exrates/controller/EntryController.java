@@ -6,10 +6,13 @@ import me.exrates.controller.exception.NewsCreationException;
 import me.exrates.controller.exception.NoFileForLoadingException;
 import me.exrates.controller.listener.StoreSessionListener;
 import me.exrates.model.News;
+import me.exrates.model.NotificationOption;
 import me.exrates.model.User;
 import me.exrates.model.UserFile;
 import me.exrates.model.dto.OrderCreateDto;
+import me.exrates.model.form.NotificationOptionsForm;
 import me.exrates.service.NewsService;
+import me.exrates.service.NotificationService;
 import me.exrates.service.UserService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.RequestContextUtils;
+import org.springframework.web.servlet.view.RedirectView;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -58,6 +62,9 @@ public class EntryController {
     private NewsService newsService;
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private NotificationService notificationService;
 
     @Autowired
     private StoreSessionListener storeSessionListener;
@@ -102,13 +109,25 @@ public class EntryController {
         final ModelAndView mav = new ModelAndView("globalPages/settings");
         final List<UserFile> userFile = userService.findUserDoc(user.getId());
         final Map<String, ?> map = RequestContextUtils.getInputFlashMap(request);
+        List<NotificationOption> notificationOptions = notificationService.getNotificationOptionsByUser(user.getId());
+        notificationOptions.forEach(option -> option.localize(messageSource, localeResolver.resolveLocale(request)));
+        NotificationOptionsForm notificationOptionsForm = new NotificationOptionsForm();
+        notificationOptionsForm.setOptions(notificationOptions);
         mav.addObject("user", user);
         mav.addObject("tabIdx", tabIdx);
         mav.addObject("sectionid", null);
         mav.addObject("errorNoty", map != null ? map.get("msg") : msg);
         mav.addObject("userFiles", userFile);
+        mav.addObject("notificationOptionsForm", notificationOptionsForm);
 
         return mav;
+    }
+
+    @RequestMapping("/settings/notificationOptions/submit")
+    public RedirectView submitNotificationOptions(@ModelAttribute NotificationOptionsForm notificationOptionsForm) {
+        notificationOptionsForm.getOptions().forEach(LOGGER::debug);
+        notificationService.updateUserNotifications(notificationOptionsForm.getOptions());
+        return new RedirectView("/settings");
     }
 
     /*skip resources: img, css, js*/
