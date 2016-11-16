@@ -6,10 +6,8 @@ import com.google.common.util.concurrent.MoreExecutors;
 import me.exrates.dao.BTCTransactionDao;
 import me.exrates.dao.PendingPaymentDao;
 import me.exrates.model.*;
-import me.exrates.service.AlgorithmService;
-import me.exrates.service.BitcoinService;
-import me.exrates.service.TransactionService;
-import me.exrates.service.UserService;
+import me.exrates.model.enums.NotificationEvent;
+import me.exrates.service.*;
 import me.exrates.service.util.BiTuple;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -59,6 +57,7 @@ public class BitcoinServiceImpl implements BitcoinService {
     private final AlgorithmService algorithmService;
     private final BTCTransactionDao btcTransactionDao;
     private final UserService userService;
+    private final NotificationService notificationService;
 
 
     private static final BigDecimal SATOSHI = new BigDecimal(100_000_000L);
@@ -73,7 +72,8 @@ public class BitcoinServiceImpl implements BitcoinService {
                               final TransactionService transactionService,
                               final AlgorithmService algorithmService,
                               final BTCTransactionDao btcTransactionDao,
-                              final UserService userService)
+                              final UserService userService,
+                              final NotificationService notificationService)
     {
         this.kit = kit.kit();
         this.paymentDao = paymentDao;
@@ -81,6 +81,7 @@ public class BitcoinServiceImpl implements BitcoinService {
         this.algorithmService = algorithmService;
         this.btcTransactionDao = btcTransactionDao;
         this.userService = userService;
+        this.notificationService = notificationService;
     }
 
     private String extractRecipientAddress(final List<TransactionOutput> outputs) {
@@ -235,6 +236,7 @@ public class BitcoinServiceImpl implements BitcoinService {
     public boolean provideTransaction(int id, String hash, BigDecimal amount) {
 
         Transaction tx = transactionService.findById(id);
+        Integer userId = tx.getUserWallet().getUser().getId();
 
         PendingPayment payment = paymentDao.findByInvoiceId(id).orElseThrow(() ->
                 new IllegalStateException("Pending payment with invoice_id " + id + " is not exist"));
@@ -244,6 +246,8 @@ public class BitcoinServiceImpl implements BitcoinService {
                 transactionService.updateTransactionAmount(tx, amount);
             }
             approveBitcoinTransaction(payment.getAddress().get(), hash);
+            notificationService.notifyUser(userId, NotificationEvent.IN_OUT, "paymentRequest.accepted.title",
+                    "paymentRequest.accepted.message", null);
         }catch (Exception e){
             LOG.error(e);
             return false;

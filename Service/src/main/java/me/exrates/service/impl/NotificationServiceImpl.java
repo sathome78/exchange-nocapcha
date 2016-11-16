@@ -50,7 +50,8 @@ public class NotificationServiceImpl implements NotificationService {
         return notificationDao.createNotification(notification);
     }
 
-    private long createLocalizedNotification(Integer userId, NotificationEvent cause, String titleCode, String messageCode,
+    @Override
+    public long createLocalizedNotification(Integer userId, NotificationEvent cause, String titleCode, String messageCode,
                                             Object[] messageArgs) {
         Locale locale = new Locale(userService.getPreferedLang(userId));
         return createNotification(userId, messageSource.getMessage(titleCode, null, locale),

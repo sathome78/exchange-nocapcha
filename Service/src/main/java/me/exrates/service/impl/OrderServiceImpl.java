@@ -449,7 +449,7 @@ public class OrderServiceImpl implements OrderService {
                 throw new OrderAcceptionException(messageSource.getMessage("orders.acceptsaveerror", null, locale));
             }
 
-            notificationService.notifyUser(exOrder.getUserId(), NotificationEvent.ORDER, "acceptordersuccess.title",
+            notificationService.createLocalizedNotification(exOrder.getUserId(), NotificationEvent.ORDER, "acceptordersuccess.title",
                     "acceptorder.message", new Object[]{exOrder.getId()});
         } catch (Exception e) {
             logger.error("Error while accepting order with id = " + orderId + " exception: " + e.getLocalizedMessage());

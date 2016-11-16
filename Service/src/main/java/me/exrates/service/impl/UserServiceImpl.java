@@ -5,9 +5,11 @@ import me.exrates.dao.UserDao;
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
+import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
+import me.exrates.service.NotificationService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.*;
@@ -42,6 +44,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private MessageSource messageSource;
+
+    @Autowired
+    private NotificationService notificationService;
 
     @Autowired
     private HttpServletRequest request;
@@ -500,11 +505,8 @@ public class UserServiceImpl implements UserService {
         boolean success = userDao.addUserComment(comment);
 
         if (comment.isMessageSent()){
-            Email emailMessage = new Email();
-            emailMessage.setTo(user.getEmail());
-            emailMessage.setMessage(messageSource.getMessage("admin.subjectCommentMessage", null, locale) + ": " + newComment);
-            emailMessage.setSubject(messageSource.getMessage("admin.subjectCommentMessage", null, locale));
-            sendMailService.sendMail(emailMessage);
+            notificationService.notifyUser(user.getId(), NotificationEvent.ADMIN, "admin.subjectCommentTitle",
+                    "admin.subjectCommentMessage", new Object[]{": " + newComment});
         }
 
         return success;

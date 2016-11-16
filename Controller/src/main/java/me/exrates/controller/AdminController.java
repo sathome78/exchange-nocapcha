@@ -83,6 +83,8 @@ public class AdminController {
     private InvoiceService invoiceService;
     @Autowired
     private BitcoinService bitcoinService;
+    @Autowired
+    private NotificationService notificationService;
 
     @Autowired
     @Qualifier("ExratesSessionRegistry")
@@ -409,6 +411,8 @@ public class AdminController {
             userService.updateUserByAdmin(updateUserDto);
             if (updateUserDto.getStatus() == UserStatus.DELETED) {
                 invalidateUserSession(updateUserDto.getEmail());
+            } else if (updateUserDto.getStatus() == UserStatus.BANNED_IN_CHAT) {
+                notificationService.notifyUser(user.getEmail(), NotificationEvent.ADMIN, "account.bannedInChat.title", "dashboard.onlinechatbanned", null);
             }
 
             model.setViewName("redirect:/admin");

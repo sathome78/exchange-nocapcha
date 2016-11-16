@@ -75,7 +75,6 @@ public class InvoiceController {
     @RequestMapping(value = "/payment/accept",method = GET)
     public RedirectView acceptPayment(@RequestParam int id, RedirectAttributes redir, Principal principal){
 
-        System.out.println("principal" + principal.getName() + "\n " + principal);
         if (!invoiceService.provideTransaction(id, principal.getName())){
             final String message = "merchants.internalError";
             redir.addFlashAttribute("message", message);
