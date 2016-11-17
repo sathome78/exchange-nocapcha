@@ -1,5 +1,6 @@
 package me.exrates.security.config;
 
+import me.exrates.model.enums.AdminAuthority;
 import me.exrates.model.enums.UserRole;
 import me.exrates.security.filter.CapchaAuthorizationFilter;
 import me.exrates.security.filter.LoginFailureHandler;
@@ -98,7 +99,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.addFilterBefore(customQRAuthorizationFilter(), CapchaAuthorizationFilter.class);
         http
                 .authorizeRequests()
-                .antMatchers("/admin/withdrawal").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name())
+                .antMatchers("/admin/withdrawal").hasAuthority(AdminAuthority.PROCESS_WITHDRAW.name())
+                .antMatchers(HttpMethod.POST, "/admin/addComment", "/admin/deleteUserComment").hasAuthority(AdminAuthority.COMMENT_USER.name())
                 .antMatchers("/unsafe/**").hasAnyAuthority(UserRole.ADMINISTRATOR.name())
                 .antMatchers("/admin/**", "/admin").hasAnyAuthority(UserRole.ADMINISTRATOR.name(),
                 UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
@@ -108,7 +110,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/", "/index.jsp", "/client/**", "/dashboard/**", "/registrationConfirm/**",
                         "/changePasswordConfirm/**", "/changePasswordConfirm/**", "/aboutUs", "/57163a9b3d1eafe27b8b456a.txt", "/newIpConfirm/**").permitAll()
                 .antMatchers(HttpMethod.POST, "/merchants/withdrawal/request/accept",
-                        "/merchants/withdrawal/request/decline").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name())
+                        "/merchants/withdrawal/request/decline").hasAuthority(AdminAuthority.PROCESS_WITHDRAW.name())
                 .antMatchers(HttpMethod.POST, "/merchants/perfectmoney/payment/status",
                         "/merchants/perfectmoney/payment/status",
                         "/merchants/perfectmoney/payment/success",

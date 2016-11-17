@@ -31,6 +31,8 @@ public interface UserDao {
 
     List<User> getUsersByRoles(List<UserRole> listRoles);
 
+    List<String> getUserAuthorities(String email);
+
     boolean addUserRoles(String email, String role);
 
     User findByEmail(String email);

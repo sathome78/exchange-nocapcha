@@ -1,4 +1,4 @@
-<%--
+<%@ page import="me.exrates.model.enums.AdminAuthority" %><%--
   Created by IntelliJ IDEA.
   User: ogolv
   Date: 27.07.2016
@@ -26,6 +26,13 @@
     <c:set var="adminEnum" value="<%=me.exrates.model.enums.UserRole.ADMINISTRATOR%>"/>
     <c:set var="accountantEnum" value="<%=me.exrates.model.enums.UserRole.ACCOUNTANT%>"/>
     <c:set var="admin_userEnum" value="<%=me.exrates.model.enums.UserRole.ADMIN_USER%>"/>
+    <c:set var="admin_processWithdraw" value="<%=AdminAuthority.PROCESS_WITHDRAW%>"/>
+    <c:set var="admin_processWithdraw" value="<%=AdminAuthority.PROCESS_INVOICE%>"/>
+    <c:set var="admin_processWithdraw" value="<%=AdminAuthority.DELETE_ORDER%>"/>
+    <c:set var="admin_processWithdraw" value="<%=AdminAuthority.COMMENT_USER%>"/>
+    <c:set var="admin_processWithdraw" value="<%=AdminAuthority.MANAGE_SESSIONS%>"/>
+    <c:set var="admin_processWithdraw" value="<%=AdminAuthority.SET_CURRENCY_LIMIT%>"/>
+    <c:set var="admin_processWithdraw" value="<%=AdminAuthority.MANAGE_ACCESS%>"/>
 <div class="sidebar">
     <ul>
         <li>
@@ -60,7 +67,7 @@
 
         <li>
             <%--withdraw--%>
-            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
+            <sec:authorize access="hasAuthority('${admin_processWithdraw}')">
                 <a href="<c:url value='/admin/withdrawal'/>"><loc:message code="admin.withdrawRequests"/></a>
             </sec:authorize>
         </li>

@@ -151,13 +151,27 @@ public class UserDaoImpl implements UserDao {
 
     public UserRole getUserRoles(String email) {
         String sql = "select USER_ROLE.name as role_name from USER " +
-                "inner join USER_ROLE on USER.roleid = USER_ROLE.id where USER.email = :email";
+                "inner join USER_ROLE on USER.roleid = USER_ROLE.id where USER.email = :email ";
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("email", email);
         return jdbcTemplate.query(sql, namedParameters, (rs, row) -> {
             UserRole role = UserRole.valueOf(rs.getString("role_name"));
             return role;
         }).get(0);
+    }
+
+    @Override
+    public List<String> getUserAuthorities(String email) {
+        String sql = "select USER_ROLE.name as role_name from USER " +
+                "inner join USER_ROLE on USER.roleid = USER_ROLE.id " +
+                "where USER.email = :email " +
+                "UNION " +
+                "SELECT ADMIN_AUTHORITY.name AS role_name from USER " +
+                "inner join USER_ADMIN_AUTHORITY on USER_ADMIN_AUTHORITY.user_id = USER.id " +
+                "inner join ADMIN_AUTHORITY on USER_ADMIN_AUTHORITY.admin_authority_id = ADMIN_AUTHORITY.id " +
+                "where USER.email = :email AND USER_ADMIN_AUTHORITY.enabled = 1 ";
+        Map<String, String> namedParameters = Collections.singletonMap("email", email);
+        return jdbcTemplate.query(sql, namedParameters, (rs, row) -> rs.getString("role_name"));
     }
 
     public boolean addUserRoles(String email, String role) {
