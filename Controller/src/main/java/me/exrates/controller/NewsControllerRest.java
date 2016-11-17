@@ -155,13 +155,13 @@ public class NewsControllerRest {
     }
 
 
-    @RequestMapping(value = "news/getNewsVariant", method = RequestMethod.GET)
+    @RequestMapping(value = "/news/getNewsVariant", method = RequestMethod.GET)
     public News getNewsVariant(@RequestParam Integer newsId, @RequestParam String language, HttpServletRequest request) {
         Locale locale = language == null || language.isEmpty() ? localeResolver.resolveLocale(request) : new Locale(language);
         return newsService.getNewsWithContent(newsId, locale, newsLocationDir);
     }
 
-    @RequestMapping(value = "news/uploadImage", method = RequestMethod.POST)
+    @RequestMapping(value = "/news/uploadImage", method = RequestMethod.POST)
     public Map<String, String> uploadNewsImage(@RequestParam MultipartFile file,
                                                @RequestParam Integer newsId,
                                                HttpServletRequest request) throws IOException {
