@@ -15,6 +15,7 @@ public class UserSummaryInOutDto {
     private String creationIn;
     private String creationOut;
     private String confirmationOut;
+    private String merchantName;
     private String currencyName;
     private BigDecimal amount;
 
@@ -24,6 +25,7 @@ public class UserSummaryInOutDto {
                 "Creation In" + ";" +
                 "Creation Out" + ";" +
                 "Confirmation Out" + ";" +
+                "Merchant" + ";" +
                 "Wallet" + ";" +
                 "Sum" +
                 "\r\n";
@@ -36,6 +38,7 @@ public class UserSummaryInOutDto {
                 creationIn + ";" +
                 creationOut + ";" +
                 confirmationOut + ";" +
+                (merchantName == null ? "" : merchantName) + ";" +
                 (currencyName == null ? "" : currencyName) + ";" +
                 BigDecimalProcessing.formatNoneComma(amount, false) +
                 "\r\n";
@@ -97,5 +100,13 @@ public class UserSummaryInOutDto {
 
     public void setConfirmationOut(String confirmationOut) {
         this.confirmationOut = confirmationOut;
+    }
+
+    public String getMerchantName() {
+        return merchantName;
+    }
+
+    public void setMerchantName(String merchantName) {
+        this.merchantName = merchantName;
     }
 }

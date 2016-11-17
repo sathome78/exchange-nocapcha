@@ -597,13 +597,15 @@ public class UserDaoImpl implements UserDao {
                         "case when operation_type_id=2 then\n" +
                         "TRANSACTION.datetime end as creationOut, \n" +
                         "WITHDRAW_REQUEST.acceptance as confirmationOut, " +
+                        "MERCHANT.name as merchantName, " +
                         "CURRENCY.name as currency_name, TRANSACTION.amount  FROM TRANSACTION \n" +
                         "LEFT JOIN WITHDRAW_REQUEST ON (WITHDRAW_REQUEST.transaction_id = TRANSACTION.id)  \n" +
                         "JOIN WALLET ON (WALLET.id = TRANSACTION.user_wallet_id)\n" +
+                        "LEFT JOIN MERCHANT ON (MERCHANT.id = TRANSACTION.merchant_id)    \n" +
                         "JOIN USER ON (USER.id = WALLET.user_id)  \n" +
                         "JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id)    \n" +
                         "where provided=1 AND merchant_id is not null AND (operation_type_id=1 OR operation_type_id=2) " +
-                        "AND (DATE_FORMAT(TRANSACTION.datetime, '%Y-%m-%d %H:%i:%s') BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))";
+                        "AND (DATE_FORMAT(TRANSACTION.datetime, '%Y-%m-%d %H:%i:%s') BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s')) ORDER BY TRANSACTION.datetime";
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("start_date", startDate);
         namedParameters.put("end_date", endDate);
@@ -616,6 +618,7 @@ public class UserDaoImpl implements UserDao {
                 userSummaryInOutDto.setCreationIn(rs.getTimestamp("creationIn") == null ? "" : rs.getTimestamp("creationIn").toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
                 userSummaryInOutDto.setCreationOut(rs.getTimestamp("creationOut") == null ? "" : rs.getTimestamp("creationOut").toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
                 userSummaryInOutDto.setConfirmationOut(rs.getTimestamp("confirmationOut") == null ? "" : rs.getTimestamp("confirmationOut").toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                userSummaryInOutDto.setMerchantName(rs.getString("merchantName"));
                 userSummaryInOutDto.setCurrencyName(rs.getString("currency_name"));
                 userSummaryInOutDto.setAmount(rs.getBigDecimal("amount"));
                 return userSummaryInOutDto;
