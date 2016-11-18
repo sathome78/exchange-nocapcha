@@ -167,7 +167,9 @@ $(function(){
                 fractionalAmount = merchantsData[index].minSum.noExponents().split('.')[1].length;
             }
         });
-        if (optionsHTML==='') {
+        // if (optionsHTML==='') {
+        if (optionsHTML==='' || optionsHTML.search('Blockchain') !== -1) {
+            document.getElementById('sum').disabled  = true;
             merchant.fadeOut();
             button.prop('disabled', true);
         } else {
