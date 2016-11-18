@@ -115,6 +115,8 @@ public interface UserDao {
 
     List<UserSummaryTotalInOutDto> getUsersSummaryTotalInOutList(String startDate, String endDate);
 
+    List<UserSummaryOrdersDto> getUserSummaryOrdersList(String startDate, String endDate);
+
     String getAvatarPath(Integer userId);
 
     Collection<Comment> getUserComments(int id);

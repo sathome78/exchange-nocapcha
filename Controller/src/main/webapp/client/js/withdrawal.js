@@ -1,3 +1,5 @@
+var currentEmail;
+
 $(function () {
 
     $('.accept_withdrawal_rqst').submit(function (e) {
@@ -14,6 +16,41 @@ $(function () {
 
     $('#withdrawalTable').DataTable({
         "order": []
+    });
+
+    $('#createCommentConfirm').on('click', function () {
+
+        var newComment = document.getElementById("commentText").value;
+        var email = currentEmail;
+        var sendMessage = document.getElementById("sendMessageCheckbox").checked;
+        if (sendMessage == true){
+            if (confirm($('#prompt_send_message_rqst').html() + " " + email + "?")) {
+
+            }else{
+                $("[data-dismiss=modal]").trigger({ type: "click" });
+                return;
+            }
+        }
+        $.ajax({
+            url: '/admin/addComment',
+            type: 'POST',
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            data: {
+                "newComment": newComment,
+                "email": email,
+                "sendMessage": sendMessage
+
+            },
+            success: function (data) {
+            },
+            error: function (err) {
+                console.log(err);
+            }
+        });
+        $("[data-dismiss=modal]").trigger({ type: "click" });
+        return;
     });
 });
 
@@ -44,6 +81,8 @@ function promptAcceptRequest(requestId) {
 function promptDeclineRequest(requestId) {
     if (confirm($('#prompt_dec_rqst').html())) {
         var data = "requestId=" + requestId;
+        document.getElementById("commentText").value = "";
+        document.getElementById("user_info").textContent = "";
         $.ajax('/merchants/withdrawal/request/decline',{
             headers: {
                 'X-CSRF-Token': $("input[name='_csrf']").val()
@@ -58,9 +97,18 @@ function promptDeclineRequest(requestId) {
             $(classname + ' td:nth-child(8)').html(acceptance[0] + '<br\>' + acceptance[1]);
             $(classname + ' td:nth-child(9)').html(result['email']);
             $(classname + ' td:last-child').html($('#declined').html());
+            $("#myModal").modal();
+            document.getElementById("sendMessageCheckbox").checked = true;
+            currentEmail = result.email;
+            document.getElementById("user_info").textContent = document.getElementById("language").innerText + ", " +  result.email;
+            $('#checkMessage').show();
         }).fail(function(error){
             alert(JSON.stringify(error));
             alert(error['responseJSON']['error'])
         });
     }
+
+
 }
+
+

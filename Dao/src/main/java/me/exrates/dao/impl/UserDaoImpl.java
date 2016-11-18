@@ -670,6 +670,37 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
+    public List<UserSummaryOrdersDto> getUserSummaryOrdersList(String startDate, String endDate) {
+        String sql = "select * from (SELECT USER.email,WALLET.user_id, CURRENCY.name as currency_name, USER_ROLE.name as role,\n" +
+                "\t(select sum(amount) from TRANSACTION join EXORDERS on(EXORDERS.id = TRANSACTION.source_id) where TRANSACTION.operation_type_id=1 and TRANSACTION.provided  = 1 \n" +
+                "    and TRANSACTION.source_type='ORDER' and TRANSACTION.user_wallet_id=WALLET.id \n" +
+                "    and (DATE_FORMAT(EXORDERS.date_acception, '%Y-%m-%d %H:%i:%s') BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))) as amount_buy,\n" +
+                "\t(select sum(amount) from TRANSACTION join EXORDERS on(EXORDERS.id = TRANSACTION.source_id) where TRANSACTION.operation_type_id=2 and TRANSACTION.provided  = 1 \n" +
+                "    and TRANSACTION.source_type='ORDER' and TRANSACTION.user_wallet_id=WALLET.id\n" +
+                "    and (DATE_FORMAT(EXORDERS.date_acception, '%Y-%m-%d %H:%i:%s') BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))) as amount_sell\n" +
+                "    \n" +
+                "\tFROM birzha.WALLET join USER on(USER.id=WALLET.user_id) join USER_ROLE on(USER_ROLE.id = USER.roleid) join CURRENCY on(CURRENCY.id = WALLET.currency_id)\n" +
+                "    where WALLET.currency_id is not null group by WALLET.user_id, WALLET.currency_id) \n" +
+                "     as innerQuery where amount_buy is not null or amount_sell is not null";
+        Map<String, String> namedParameters = new HashMap<>();
+        namedParameters.put("start_date", startDate);
+        namedParameters.put("end_date", endDate);
+        ArrayList<UserSummaryOrdersDto> result = (ArrayList<UserSummaryOrdersDto>) jdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<UserSummaryOrdersDto>() {
+            @Override
+            public UserSummaryOrdersDto mapRow(ResultSet rs, int rowNumber) throws SQLException {
+                UserSummaryOrdersDto userSummaryOrdersDto = new UserSummaryOrdersDto();
+                userSummaryOrdersDto.setUserEmail(rs.getString("email"));
+                userSummaryOrdersDto.setWallet(rs.getString("currency_name"));
+                userSummaryOrdersDto.setRole(rs.getString("role"));
+                userSummaryOrdersDto.setAmountBuy(rs.getBigDecimal("amount_buy"));
+                userSummaryOrdersDto.setAmountSell(rs.getBigDecimal("amount_sell"));
+                return userSummaryOrdersDto;
+            }
+        });
+        return result;
+    }
+
+    @Override
     public List<UserSessionInfoDto> getUserSessionInfo(Set<String> emails) {
         String sql = "SELECT USER.id AS user_id, USER.nickname AS user_nickname, USER.email AS user_email, USER_ROLE.name AS user_role FROM USER " +
                 "INNER JOIN USER_ROLE ON USER_ROLE.id = USER.roleid " +
