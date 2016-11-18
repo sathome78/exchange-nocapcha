@@ -1,9 +1,6 @@
 package me.exrates.service;
 
-import me.exrates.model.Comment;
-import me.exrates.model.TemporalToken;
-import me.exrates.model.User;
-import me.exrates.model.UserFile;
+import me.exrates.model.*;
 import me.exrates.model.dto.*;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
@@ -184,4 +181,8 @@ public interface UserService {
     boolean addUserComment(String newComment, String email, boolean sendMessage, Locale locale);
 
     boolean deleteUserComment(int id);
+
+    List<AdminAuthorityOption> getAuthorityOptionsForUser(Integer userId, Set<String> allowedAuthorities, Locale locale);
+
+    void updateAdminAuthorities(List<AdminAuthorityOption> options, Integer userId, String currentUserEmail);
 }

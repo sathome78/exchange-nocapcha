@@ -39,6 +39,6 @@ public class UserSecureServiceImpl implements UserSecureService {
 
 	@Override
     public List<String> getUserAuthorities(String email) {
-		return userDao.getUserAuthorities(email);
+		return userDao.getUserRoleAndAuthorities(email);
 	}
 }

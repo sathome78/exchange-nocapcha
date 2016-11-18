@@ -99,12 +99,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.addFilterBefore(customQRAuthorizationFilter(), CapchaAuthorizationFilter.class);
         http
                 .authorizeRequests()
-                .antMatchers("/admin/withdrawal").hasAuthority(AdminAuthority.PROCESS_WITHDRAW.name())
-                .antMatchers(HttpMethod.POST, "/admin/addComment", "/admin/deleteUserComment").hasAuthority(AdminAuthority.COMMENT_USER.name())
+                .antMatchers("/admin/withdrawal", "/withdrawal/request/accept", "/withdrawal/request/decline").hasAuthority(AdminAuthority.PROCESS_WITHDRAW.name())
+                .antMatchers("/admin/comments", "/admin/addComment", "/admin/deleteUserComment").hasAuthority(AdminAuthority.COMMENT_USER.name())
                 .antMatchers("/unsafe/**").hasAnyAuthority(UserRole.ADMINISTRATOR.name())
                 .antMatchers("/admin/**", "/admin").hasAnyAuthority(UserRole.ADMINISTRATOR.name(),
                 UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
                 .antMatchers("/companywallet").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name())
+                .antMatchers("/admin/invoiceConfirmation", "/admin/bitcoinConfirmation",
+                        "/merchants/bitcoin/payment/accept", "/merchants/invoice/payment/accept").hasAuthority(AdminAuthority.PROCESS_INVOICE.name())
+                .antMatchers("/admin/removeOrder", "/admin/orderdelete", "/admin/searchorders").hasAuthority(AdminAuthority.DELETE_ORDER.name())
+                .antMatchers("/admin/sessionControl", "/admin/userSessions", "/admin/expireSession").hasAuthority(AdminAuthority.MANAGE_SESSIONS.name())
+                .antMatchers("/admin/editCurrencyLimits", "/admin/editCurrencyLimits/submit").hasAuthority(AdminAuthority.SET_CURRENCY_LIMIT.name())
+           //     .antMatchers("").hasAuthority(AdminAuthority.MANAGE_ACCESS.name())
+           //     .antMatchers("").hasAuthority(AdminAuthority.GRANT_MANAGE_ACCESS.name())
                 .antMatchers(HttpMethod.POST, "/admin/chat/deleteMessage").hasAnyAuthority(UserRole.ADMINISTRATOR.name(),
                 UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
                 .antMatchers("/", "/index.jsp", "/client/**", "/dashboard/**", "/registrationConfirm/**",

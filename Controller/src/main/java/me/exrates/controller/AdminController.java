@@ -7,6 +7,7 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.*;
+import me.exrates.model.form.AuthorityOptionsForm;
 import me.exrates.security.service.UserSecureServiceImpl;
 import me.exrates.service.*;
 import me.exrates.service.exception.OrderDeletingException;
@@ -19,6 +20,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -30,6 +33,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -374,6 +378,12 @@ public class AdminController {
         model.addObject("merchants", merchantList);
         model.addObject("maxAmount", transactionService.maxAmount());
         model.addObject("maxCommissionAmount", transactionService.maxCommissionAmount());
+        Set<String> allowedAuthorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
+        AuthorityOptionsForm form = new AuthorityOptionsForm();
+        form.setUserId(id);
+        form.setOptions(userService.getAuthorityOptionsForUser(id, allowedAuthorities, localeResolver.resolveLocale(request)));
+        model.addObject("authorityOptionsForm", form);
 
         return model;
     }
@@ -814,6 +824,22 @@ public class AdminController {
     public ResponseEntity<Void> editCurrencyLimit(@RequestParam int currencyId, @RequestParam BigDecimal minAmount) {
         currencyService.updateMinWithdraw(currencyId, minAmount);
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/admin/editAuthorities/submit", method = RequestMethod.POST)
+    public RedirectView editAuthorities(@ModelAttribute AuthorityOptionsForm authorityOptionsForm, Principal principal) {
+        LOG.debug(authorityOptionsForm.getOptions());
+        LOG.debug(authorityOptionsForm.getUserId());
+        userService.updateAdminAuthorities(authorityOptionsForm.getOptions(), authorityOptionsForm.getUserId(), principal.getName());
+        String updatedUserEmail = userService.getUserById(authorityOptionsForm.getUserId()).getEmail();
+        Optional<UserDetails> updatedUserOptional = sessionRegistry.getAllPrincipals().stream().map(currentPrincipal -> (UserDetails) currentPrincipal)
+                .filter(currentPrincipal -> currentPrincipal.getUsername().equals(updatedUserEmail))
+                .findFirst();
+        if (updatedUserOptional.isPresent()) {
+            sessionRegistry.getAllSessions(updatedUserOptional.get(), false).forEach(SessionInformation::expireNow);
+        }
+
+        return new RedirectView("/admin/userInfo?id=" + authorityOptionsForm.getUserId());
     }
 
 }

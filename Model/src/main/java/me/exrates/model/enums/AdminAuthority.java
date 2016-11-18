@@ -1,6 +1,9 @@
 package me.exrates.model.enums;
 
 import me.exrates.model.exceptions.UnsupportedAuthorityException;
+import org.springframework.context.MessageSource;
+
+import java.util.Locale;
 
 /**
  * Created by OLEG on 17.11.2016.
@@ -12,8 +15,7 @@ public enum AdminAuthority {
     COMMENT_USER(4),
     MANAGE_SESSIONS(5),
     SET_CURRENCY_LIMIT(6),
-    MANAGE_ACCESS(7),
-    GRANT_MANAGE_ACCESS(8);
+    MANAGE_ACCESS(7);
 
     private final int authority;
 
@@ -33,9 +35,13 @@ public enum AdminAuthority {
             case 4: return COMMENT_USER;
             case 5: return MANAGE_SESSIONS;
             case 6: return SET_CURRENCY_LIMIT;
-            case 7: return MANAGE_SESSIONS;
-            case 8: return GRANT_MANAGE_ACCESS;
+            case 7: return MANAGE_ACCESS;
             default: throw new UnsupportedAuthorityException("Unsupported type of authority");
         }
     }
+
+    public String toLocalizedString(MessageSource messageSource, Locale locale) {
+        return messageSource.getMessage("adminAuthority." + this.name(), null, locale);
+    }
+
 }

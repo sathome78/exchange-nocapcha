@@ -27,12 +27,12 @@
     <c:set var="accountantEnum" value="<%=me.exrates.model.enums.UserRole.ACCOUNTANT%>"/>
     <c:set var="admin_userEnum" value="<%=me.exrates.model.enums.UserRole.ADMIN_USER%>"/>
     <c:set var="admin_processWithdraw" value="<%=AdminAuthority.PROCESS_WITHDRAW%>"/>
-    <c:set var="admin_processWithdraw" value="<%=AdminAuthority.PROCESS_INVOICE%>"/>
-    <c:set var="admin_processWithdraw" value="<%=AdminAuthority.DELETE_ORDER%>"/>
-    <c:set var="admin_processWithdraw" value="<%=AdminAuthority.COMMENT_USER%>"/>
-    <c:set var="admin_processWithdraw" value="<%=AdminAuthority.MANAGE_SESSIONS%>"/>
-    <c:set var="admin_processWithdraw" value="<%=AdminAuthority.SET_CURRENCY_LIMIT%>"/>
-    <c:set var="admin_processWithdraw" value="<%=AdminAuthority.MANAGE_ACCESS%>"/>
+    <c:set var="admin_processInvoice" value="<%=AdminAuthority.PROCESS_INVOICE%>"/>
+    <c:set var="admin_deleteOrder" value="<%=AdminAuthority.DELETE_ORDER%>"/>
+    <c:set var="admin_commentUser" value="<%=AdminAuthority.COMMENT_USER%>"/>
+    <c:set var="admin_manageSessions" value="<%=AdminAuthority.MANAGE_SESSIONS%>"/>
+    <c:set var="admin_currencyLimits" value="<%=AdminAuthority.SET_CURRENCY_LIMIT%>"/>
+    <c:set var="admin_manageAccess" value="<%=AdminAuthority.MANAGE_ACCESS%>"/>
 <div class="sidebar">
     <ul>
         <li>
@@ -53,14 +53,14 @@
 
         <li>
             <%--Заявки на пополнение валюты--%>
-            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
+            <sec:authorize access="hasAuthority('${admin_processInvoice}')">
                 <a href="<c:url value='/admin/invoiceConfirmation'/>"><loc:message code="transaction.titleInvoice"/></a>
             </sec:authorize>
         </li>
 
         <li>
             <%--Заявки на пополнение Bitcoin--%>
-            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
+            <sec:authorize access="hasAuthority('${admin_processInvoice}')">
                 <a href="<c:url value='/admin/bitcoinConfirmation'/>"><loc:message code="transaction.titleBitcoin"/></a>
             </sec:authorize>
         </li>
@@ -74,7 +74,7 @@
         <%--Удаление ордера--%>
         <li>
 
-            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
+            <sec:authorize access="hasAuthority('${admin_deleteOrder}')">
                 <a href="<c:url value='/admin/removeOrder'/>"><loc:message code="deleteorder.title"/></a>
             </sec:authorize>
         </li>
@@ -88,7 +88,10 @@
                     <ul>
                         <li><a href="<c:url value='/companywallet'/>"><loc:message code="admin.companyWallet"/></a></li>
                         <li><a href="<c:url value='/userswallets'/>"><loc:message code="admin.usersWallet"/></a></li>
+
+                <sec:authorize access="hasAuthority('${admin_currencyLimits}')">
                         <li><a href="<c:url value='/admin/editCurrencyLimits'/>"><loc:message code="admin.currencyLimits.title"/></a></li>
+                </sec:authorize>
                     </ul>
                 </div>
 
@@ -105,7 +108,7 @@
 
         <li>
             <%--referral--%>
-            <sec:authorize access="hasAnyAuthority('${adminEnum}')">
+            <sec:authorize access="hasAuthority('${admin_manageSessions}')">
                 <a href="<c:url value='/admin/sessionControl'/>"><loc:message code="admin.sessionControl"/></a>
             </sec:authorize>
         </li>

@@ -1,9 +1,6 @@
 package me.exrates.dao;
 
-import me.exrates.model.Comment;
-import me.exrates.model.TemporalToken;
-import me.exrates.model.User;
-import me.exrates.model.UserFile;
+import me.exrates.model.*;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.TokenType;
@@ -31,7 +28,13 @@ public interface UserDao {
 
     List<User> getUsersByRoles(List<UserRole> listRoles);
 
-    List<String> getUserAuthorities(String email);
+    UserRole getUserRoleById(Integer id);
+
+    List<String> getUserRoleAndAuthorities(String email);
+
+    List<AdminAuthorityOption> getAuthorityOptionsForUser(Integer userId);
+
+    void updateAdminAuthorities(List<AdminAuthorityOption> options, Integer userId);
 
     boolean addUserRoles(String email, String role);
 

@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -518,6 +519,27 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean deleteUserComment(int id) {
         return userDao.deleteUserComment(id);
+    }
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AdminAuthorityOption> getAuthorityOptionsForUser(Integer userId, Set<String> allowedAuthorities, Locale locale) {
+        return userDao.getAuthorityOptionsForUser(userId).stream()
+                .filter(option -> allowedAuthorities.contains(option.getAdminAuthority().name()))
+                .peek(option -> option.localize(messageSource, locale))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public void updateAdminAuthorities(List<AdminAuthorityOption> options, Integer userId, String currentUserEmail) {
+        UserRole currentUserRole = userDao.getUserRoles(currentUserEmail);
+        UserRole updatedUserRole = userDao.getUserRoleById(userId);
+        if (currentUserRole != UserRole.ADMINISTRATOR && updatedUserRole == UserRole.ADMINISTRATOR) {
+            throw new ForbiddenOperationException("Status modification not permitted");
+        }
+        userDao.updateAdminAuthorities(options, userId);
+
     }
 
 }
