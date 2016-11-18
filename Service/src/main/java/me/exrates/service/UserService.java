@@ -148,10 +148,21 @@ public interface UserService {
      *
      * @param startDate is the begin the period (including)
      * @param endDate is the end the period (including)
-     * @return list the UserSummaryDto
+     * @return list the UserSummaryTotalInOutDto
      * @author ajet
      */
     List<UserSummaryTotalInOutDto> getUsersSummaryTotalInOutList(String startDate, String endDate);
+
+    /**
+     * Returns user's total info, including total orders amounts for period
+     * Used to unload data to csv file
+     *
+     * @param startDate is the begin the period (including)
+     * @param endDate is the end the period (including)
+     * @return list the UserSummaryOrdersDto
+     * @author ajet
+     */
+    List<UserSummaryOrdersDto> getUserSummaryOrdersList(String startDate, String endDate);
 
     List<UserSessionInfoDto> getUserSessionInfo(Set<String> emails);
 
