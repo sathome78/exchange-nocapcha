@@ -662,6 +662,32 @@ public class AdminController {
         return value;
     }
 
+    @RequestMapping(value = "admin/downloadUserSummaryOrders", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
+    @ResponseBody
+    public String getUserSummaryOrders(@RequestParam String startDate, @RequestParam String endDate) {
+
+        List<UserSummaryOrdersDto> list = userService.getUserSummaryOrdersList(startDate, endDate);
+        BigDecimal sumAmountBuy = new BigDecimal(0.00);
+        BigDecimal sumAmountSell = new BigDecimal(0.00);
+
+        String value = "Orders from " + startDate.substring(0,10) + " till " + endDate.substring(0,10) + ": \n \n" + UserSummaryOrdersDto.getTitle() +
+                    list.stream()
+                        .map(e -> e.toString())
+                        .collect(Collectors.joining());
+
+        for (UserSummaryOrdersDto userSummaryOrdersDto : list){
+            if (userSummaryOrdersDto.getAmountBuy() != null){
+                sumAmountBuy = sumAmountBuy.add(userSummaryOrdersDto.getAmountBuy());
+            }
+            if (userSummaryOrdersDto.getAmountSell() != null){
+                sumAmountSell = sumAmountSell.add(userSummaryOrdersDto.getAmountSell());
+            }
+        }
+        value += "\n sumBuy: " + sumAmountBuy.toString() + "\n sumSell: " + sumAmountSell.toString();
+
+        return value;
+    }
+
     @RequestMapping(value = "admin/downloadUsersWalletsSummaryTotalInOut", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
     @ResponseBody
     public String getUsersWalletsSummeryTotalInOut(@RequestParam String startDate, @RequestParam String endDate) {

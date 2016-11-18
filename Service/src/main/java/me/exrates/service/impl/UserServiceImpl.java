@@ -453,6 +453,11 @@ public class UserServiceImpl implements UserService {
         return userDao.getUsersSummaryTotalInOutList(startDate, endDate);
     }
 
+    @Override
+    public List<UserSummaryOrdersDto> getUserSummaryOrdersList(String startDate, String endDate) {
+        return userDao.getUserSummaryOrdersList(startDate, endDate);
+    }
+
     @PostConstruct
     private void initTokenTriggers() {
         tokenScheduler.initTrigers();
