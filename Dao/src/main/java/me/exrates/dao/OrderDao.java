@@ -49,6 +49,8 @@ public interface OrderDao {
 
     int searchOrderByAdmin(Integer currencyPair, Integer orderType, String orderDate, BigDecimal orderRate, BigDecimal orderVolume);
 
+    Object deleteOrderForPartialAccept(int orderId);
+
     List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriod(String email, BackDealInterval backDealInterval, Integer limit, CurrencyPair currencyPair, Locale locale);
 
     OrderCommissionsDto getCommissionForOrder();
@@ -74,4 +76,7 @@ public interface OrderDao {
                                                      BigDecimal orderRateFrom, BigDecimal orderRateTo, BigDecimal orderVolumeFrom,
                                                      BigDecimal orderVolumeTo, String creatorEmail, String acceptorEmail, Locale locale,
                                                      int offset, int limit, String orderColumnName, String orderDirection);
+
+    List<ExOrder> selectTopOrders(Integer currencyPairId, BigDecimal exrate,
+                                  OperationType orderType);
 }

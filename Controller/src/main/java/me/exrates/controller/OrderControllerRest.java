@@ -2,11 +2,13 @@ package me.exrates.controller;
 
 
 import me.exrates.controller.exception.*;
+import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderCreateSummaryDto;
 import me.exrates.model.dto.OrderInfoDto;
+import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
@@ -21,14 +23,13 @@ import org.springframework.web.servlet.LocaleResolver;
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.security.Principal;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
 public class OrderControllerRest {
     private static final Logger LOGGER = LogManager.getLogger(OrderControllerRest.class);
+
 
 
     @Autowired
@@ -88,6 +89,7 @@ public class OrderControllerRest {
             long after = System.currentTimeMillis();
             LOGGER.debug("completed... ms: " + (after - before));
         }
+
     }
 
     @RequestMapping(value = "/order/create", produces = "application/json;charset=utf-8")
@@ -102,6 +104,11 @@ public class OrderControllerRest {
                 if (orderCreateDto == null) {
                     /*it may be if user twice click the create button from the current submit form. After first click orderCreateDto wil be cleaned*/
                     throw new OrderCreationException(messageSource.getMessage("order.recreateerror", null, localeResolver.resolveLocale(request)));
+                }
+                Optional<String> autoAcceptResult = orderService.autoAccept(orderCreateDto, localeResolver.resolveLocale(request));
+                if (autoAcceptResult.isPresent()) {
+                    LOGGER.debug(autoAcceptResult.get());
+                    return autoAcceptResult.get();
                 }
                 if ((orderService.createOrder(orderCreateDto)) <= 0) {
                     throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, localeResolver.resolveLocale(request)));
@@ -296,7 +303,6 @@ public class OrderControllerRest {
     public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
         return new ErrorInfo(req.getRequestURL(), exception);
     }
-
 
 }
 

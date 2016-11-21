@@ -42,7 +42,6 @@ public class OrderServiceImpl implements OrderService {
 
     private static final Logger logger = LogManager.getLogger(OrderServiceImpl.class);
 
-
     private final BigDecimal MAX_ORDER_VALUE = new BigDecimal(10000);
     private final BigDecimal MIN_ORDER_VALUE = new BigDecimal(0.000000001);
 
@@ -213,6 +212,65 @@ public class OrderServiceImpl implements OrderService {
             throw new NotEnoughUserWalletMoneyException("");
         }
         return createdOrderId;
+    }
+
+    @Override
+    @Transactional(rollbackFor = {Exception.class})
+    public Optional<String> autoAccept(OrderCreateDto orderCreateDto, Locale locale) {
+        List<ExOrder> acceptableOrders = orderDao.selectTopOrders(orderCreateDto.getCurrencyPair().getId(), orderCreateDto.getExchangeRate(),
+                OperationType.getOpposite(orderCreateDto.getOperationType()));
+        logger.debug("acceptableOrders - " + OperationType.getOpposite(orderCreateDto.getOperationType()) + " : " + acceptableOrders);
+        if (acceptableOrders.isEmpty()) {
+            return Optional.empty();
+        }
+        BigDecimal cumulativeSum = BigDecimal.ZERO;
+        List<ExOrder> ordersForAccept = new ArrayList<>();
+        ExOrder orderForPartialAccept = null;
+        for (ExOrder order : acceptableOrders) {
+            cumulativeSum = cumulativeSum.add(order.getAmountBase());
+            if (orderCreateDto.getAmount().compareTo(cumulativeSum) > 0) {
+                ordersForAccept.add(order);
+            } else if (orderCreateDto.getAmount().compareTo(cumulativeSum) == 0) {
+                ordersForAccept.add(order);
+                break;
+            }  else {
+                orderForPartialAccept = order;
+                break;
+            }
+        }
+        StringBuilder successMessage = new StringBuilder("{\"result\":\"");
+        if (ordersForAccept.size() > 0) {
+            acceptOrdersList(orderCreateDto.getUserId(), ordersForAccept.stream().map(ExOrder::getId).collect(Collectors.toList()), locale);
+            successMessage.append(messageSource.getMessage("order.acceptsuccess", new Integer[]{ordersForAccept.size()}, locale)).append("; ");
+        }
+        if (orderForPartialAccept != null) {
+            String partialAcceptResult = acceptPartially(orderCreateDto, orderForPartialAccept, cumulativeSum, locale);
+            successMessage.append(partialAcceptResult);
+        } else if (orderCreateDto.getAmount().compareTo(cumulativeSum) > 0) {
+            OrderCreateDto remainderNew = prepareNewOrder(orderCreateDto.getCurrencyPair(), orderCreateDto.getOperationType(),
+                    userService.getUserById(orderCreateDto.getUserId()).getEmail(), orderCreateDto.getAmount().subtract(cumulativeSum),
+                    orderCreateDto.getExchangeRate());
+            createOrder(remainderNew);
+            successMessage.append(messageSource.getMessage("createdorder.text", null, locale));
+        }
+        successMessage.append("\"}");
+        return Optional.of(successMessage.toString());
+    }
+
+    private String acceptPartially(OrderCreateDto newOrder, ExOrder orderForPartialAccept, BigDecimal cumulativeSum, Locale locale) {
+        deleteOrderForPartialAccept(orderForPartialAccept.getId());
+        BigDecimal amountForPartialAccept = newOrder.getAmount().subtract(cumulativeSum.subtract(orderForPartialAccept.getAmountBase()));
+        OrderCreateDto accepted = prepareNewOrder(newOrder.getCurrencyPair(), orderForPartialAccept.getOperationType(),
+                userService.getUserById(orderForPartialAccept.getUserId()).getEmail(), amountForPartialAccept,
+                orderForPartialAccept.getExRate());
+        OrderCreateDto remainder = prepareNewOrder(newOrder.getCurrencyPair(), orderForPartialAccept.getOperationType(),
+                userService.getUserById(orderForPartialAccept.getUserId()).getEmail(), orderForPartialAccept.getAmountBase().subtract(amountForPartialAccept),
+                orderForPartialAccept.getExRate());
+        int acceptedId = createOrder(accepted);
+        createOrder(remainder);
+        acceptOrder(newOrder.getUserId(), acceptedId, locale);
+        return messageSource.getMessage("orders.partialAccept.success", new Object[]{amountForPartialAccept,
+                orderForPartialAccept.getAmountBase(), newOrder.getCurrencyPair().getCurrency1().getName()}, locale);
     }
 
     @Transactional(readOnly = true)
@@ -554,6 +612,19 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Integer deleteOrderByAdmin(int orderId) {
         Object result = orderDao.deleteOrderByAdmin(orderId);
+        if (result instanceof OrderDeleteStatus) {
+            if ((OrderDeleteStatus) result == OrderDeleteStatus.NOT_FOUND) {
+                return 0;
+            }
+            throw new OrderDeletingException(((OrderDeleteStatus) result).toString());
+        }
+        return (Integer) result;
+    }
+
+    @Override
+    @Transactional(rollbackFor = {Exception.class})
+    public Integer deleteOrderForPartialAccept(int orderId) {
+        Object result = orderDao.deleteOrderForPartialAccept(orderId);
         if (result instanceof OrderDeleteStatus) {
             if ((OrderDeleteStatus) result == OrderDeleteStatus.NOT_FOUND) {
                 return 0;
