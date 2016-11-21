@@ -10,16 +10,19 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
+import java.util.TreeMap;
 
 import static org.springframework.http.HttpStatus.NO_CONTENT;
-import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 /**
@@ -46,7 +49,7 @@ public class EDCController {
     }
 
     @RequestMapping(value = "/payment/prepare", method = POST)
-    public ResponseEntity<String> preparePayment(final @RequestBody Payment payment,
+    public ResponseEntity<Map<String, String>> preparePayment(final @RequestBody Payment payment,
                                                  final Principal principal,
                                                  final Locale locale)
     {
@@ -60,9 +63,16 @@ public class EDCController {
                     .sendDepositNotification(account,email ,locale, creditsOperation, "merchants.depositNotification.body");
             final HttpHeaders httpHeaders = new HttpHeaders();
             httpHeaders.add("Content-Type", "text/plain; charset=utf-8");
-            return new ResponseEntity<>(notification, httpHeaders, OK);
+            Map<String,String> responseMap = new TreeMap<>();
+            responseMap.put("notification", notification);
+            responseMap.put("qr", account + "/"
+                    + creditsOperation.getAmount().add(creditsOperation.getCommissionAmount()).doubleValue()
+                    + "/image.png");
+
+            return new ResponseEntity<>(responseMap, HttpStatus.OK);
         } catch (Exception e) {
-            final String error = messageSource.getMessage("merchants.incorrectPaymentDetails", null, locale);
+            final Map<String,String> error = new HashMap<>();
+            error.put("error", messageSource.getMessage("merchants.incorrectPaymentDetails", null, locale));
             LOG.error(e);
             return new ResponseEntity<>(error, NO_CONTENT);
         }
