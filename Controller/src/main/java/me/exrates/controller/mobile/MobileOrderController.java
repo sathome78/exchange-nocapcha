@@ -5,6 +5,7 @@ import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderCreateSummaryDto;
+import me.exrates.model.dto.OrderCreationResultDto;
 import me.exrates.model.dto.mobileApiDto.OrderCreationParamsDto;
 import me.exrates.model.dto.mobileApiDto.OrderSummaryDto;
 import me.exrates.service.*;
@@ -254,18 +255,23 @@ public class MobileOrderController {
      *
      */
     @RequestMapping(value = "/createOrder", method = POST)
-    public ResponseEntity<Integer> createOrder(@RequestBody Map<String, String> body) {
+    public ResponseEntity<OrderCreationResultDto> createOrder(@RequestBody Map<String, String> body) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
         try {
             OrderCreateDto orderCreateDto = removeOrderCreateDtoByKey(body);
-
+            Optional<OrderCreationResultDto> autoAcceptResult = orderService.autoAcceptOrders(orderCreateDto, userLocale);
+            if (autoAcceptResult.isPresent()) {
+                return new ResponseEntity<>(autoAcceptResult.get(), CREATED);
+            }
+            OrderCreationResultDto orderCreationResultDto = new OrderCreationResultDto();
 
             Integer createdOrderId = orderService.createOrder(orderCreateDto);
             if (createdOrderId <= 0) {
                 throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, userLocale));
             }
-            return new ResponseEntity<>(createdOrderId, CREATED);
+            orderCreationResultDto.setCreatedOrderId(createdOrderId);
+            return new ResponseEntity<>(orderCreationResultDto, CREATED);
         } catch (NotEnoughUserWalletMoneyException e) {
             throw new NotEnoughUserWalletMoneyException(messageSource.getMessage("validation.orderNotEnoughMoney", null, userLocale));
         }
