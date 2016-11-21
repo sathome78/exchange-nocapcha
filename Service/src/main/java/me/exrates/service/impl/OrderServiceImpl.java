@@ -223,7 +223,7 @@ public class OrderServiceImpl implements OrderService {
         }
         OrderCreationResultDto orderCreationResultDto = autoAcceptResult.get();
         StringBuilder successMessage = new StringBuilder("{\"result\":\"");
-        if (orderCreationResultDto.getAutoAcceptedQuantity() > 0) {
+        if (orderCreationResultDto.getAutoAcceptedQuantity() != null && orderCreationResultDto.getAutoAcceptedQuantity() > 0) {
             successMessage.append(messageSource.getMessage("order.acceptsuccess",
                     new Integer[]{orderCreationResultDto.getAutoAcceptedQuantity()}, locale)).append("; ");
         }
@@ -240,6 +240,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Optional<OrderCreationResultDto> autoAcceptOrders(OrderCreateDto orderCreateDto, Locale locale) {
         List<ExOrder> acceptableOrders = orderDao.selectTopOrders(orderCreateDto.getCurrencyPair().getId(), orderCreateDto.getExchangeRate(),
                 OperationType.getOpposite(orderCreateDto.getOperationType()));
