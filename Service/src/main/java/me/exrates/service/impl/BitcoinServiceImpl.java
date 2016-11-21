@@ -181,7 +181,7 @@ public class BitcoinServiceImpl implements BitcoinService {
         Address address = kit.wallet().freshReceiveAddress();
 
         if (paymentDao.findByAddress(address.toString()).isPresent()){
-            final int LIMIT = 100;
+            final int LIMIT = 2000;
             int i = 0;
             while (!isFreshAddress && i++<LIMIT){
                 address = kit.wallet().freshReceiveAddress();

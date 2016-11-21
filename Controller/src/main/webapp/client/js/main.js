@@ -168,6 +168,7 @@ $(function(){
             }
         });
         if (optionsHTML==='') {
+            document.getElementById('sum').disabled  = true;
             merchant.fadeOut();
             button.prop('disabled', true);
         } else {
@@ -337,7 +338,15 @@ $(function(){
                                 .prop('disabled', false)
                                 .html($('#mrcht-ready').val());
                             console.log(response);
-                            $('.paymentInfo').html(response);
+                            $.each(response, function (key) {
+                                if(key=='notification'){
+                                    $('.paymentInfo').html(response[key] + "<p>");
+                                }
+                                if(key=='qr'){
+                                    $('.paymentQR').html("<img src='https://info.edinarcoin.com/qr-code/" + response[key] + "' width='80' height='80'>");
+                                }
+                            });
+
                             responseControls();
                         },
                         error:function (jqXHR, textStatus, errorThrown) {
