@@ -14,4 +14,4 @@ CREATE TABLE API_TEMP_PASSWORD (
     ON DELETE CASCADE
     ON UPDATE NO ACTION);
 
-INSERT INTO DATABASE_PATCH VALUES('patch_67_add_api_temp_password',default,1);
+INSERT INTO DATABASE_PATCH VALUES('patch_73_add_api_temp_password',default,1);
