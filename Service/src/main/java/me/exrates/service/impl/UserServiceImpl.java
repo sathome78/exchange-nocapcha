@@ -222,12 +222,27 @@ public class UserServiceImpl implements UserService {
 
     @Transactional(rollbackFor = Exception.class)
     public boolean createUserByAdmin(User user) {
-        return userDao.create(user);
+        boolean result = userDao.create(user);
+        if (result && user.getRole() != UserRole.USER && user.getRole() != UserRole.ROLE_CHANGE_PASSWORD) {
+            return userDao.createAdminAuthoritiesForUser(userDao.getIdByEmail(user.getEmail()), user.getRole());
+        }
+        return result;
     }
+
 
     @Transactional(rollbackFor = Exception.class)
     public boolean updateUserByAdmin(UpdateUserDto user) {
-        return userDao.update(user);
+        boolean result = userDao.update(user);
+        if (result) {
+            boolean hasAdminAuthorities = userDao.hasAdminAuthorities(user.getId());
+            if (user.getRole() == UserRole.USER && hasAdminAuthorities) {
+                return userDao.removeUserAuthorities(user.getId());
+            }
+            if (!hasAdminAuthorities && user.getRole() != UserRole.USER && user.getRole() != UserRole.ROLE_CHANGE_PASSWORD) {
+                return userDao.createAdminAuthoritiesForUser(user.getId(), user.getRole());
+            }
+        }
+        return result;
     }
 
     @Override

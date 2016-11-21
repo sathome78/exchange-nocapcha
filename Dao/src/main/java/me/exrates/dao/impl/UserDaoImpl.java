@@ -192,6 +192,26 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
+    public boolean createAdminAuthoritiesForUser(Integer userId, UserRole role) {
+        String sql = "INSERT INTO USER_ADMIN_AUTHORITY SELECT :user_id, admin_authority_id, enabled " +
+                "FROM ADMIN_AUTHORITY_ROLE_DEFAULTS " +
+                "WHERE role_id = :role_id";
+        Map<String, Integer> params = new HashMap<>();
+        params.put("user_id", userId);
+        params.put("role_id", role.getRole());
+        return jdbcTemplate.update(sql, params) > 0;
+
+    }
+
+    @Override
+    public boolean hasAdminAuthorities(Integer userId) {
+        String sql = "SELECT COUNT(*) FROM USER_ADMIN_AUTHORITY WHERE user_id = :user_id ";
+        Map<String, Integer> params = Collections.singletonMap("user_id", userId);
+        Integer count = jdbcTemplate.queryForObject(sql, params, Integer.class);
+        return count > 0;
+    }
+
+    @Override
     public void updateAdminAuthorities(List<AdminAuthorityOption> options, Integer userId) {
         String sql = "UPDATE USER_ADMIN_AUTHORITY SET enabled = :enabled WHERE user_id = :user_id " +
                 "AND admin_authority_id = :admin_authority_id";
@@ -204,6 +224,13 @@ public class UserDaoImpl implements UserDao {
             return optionValues;
         }).collect(Collectors.toList()).toArray(new Map[options.size()]);
         jdbcTemplate.batchUpdate(sql, batchValues);
+    }
+
+    @Override
+    public boolean removeUserAuthorities(Integer userId) {
+        String sql = "DELETE FROM USER_ADMIN_AUTHORITY WHERE user_id = :user_id ";
+        Map<String, Integer> params = Collections.singletonMap("user_id", userId);
+        return jdbcTemplate.update(sql, params) > 0;
     }
 
     public boolean addUserRoles(String email, String role) {

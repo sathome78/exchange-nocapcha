@@ -80,10 +80,14 @@
                         <loc:message code="admin.comments"/>
                     </button>
                     </sec:authorize>
-                    <button class="adminForm-toggler red-box">
-                        <loc:message code="admin.accessRights"/>
-                    </button>
+                    <sec:authorize access="hasAuthority('${admin_manageAccess}')">
+                    <c:if test="${user.role == adminEnum || user.role == accountantEnum || user.role == admin_userEnum}">
+                        <button class="adminForm-toggler red-box">
+                            <loc:message code="admin.accessRights"/>
+                        </button>
+                    </c:if>
 
+                    </sec:authorize>
                 </sec:authorize>
 
                 <%--Current user and email--%>
@@ -567,29 +571,41 @@
                         </div>
                         </sec:authorize>
                     <%--Access management--%>
-                    <div id="panel6" class="tab-pane">
-                        <div class="col-md-6 col-md-offset-3 content">
-                            <div class="text-center"><h4><loc:message code="admin.accessRights"/></h4></div>
-                            <hr/>
-                            <div>
-                            <form:form method="post" action="/admin/editAuthorities/submit" modelAttribute="authorityOptionsForm">
-                                <table id="authoritiesTable" class="table table-striped table-bordered">
-                                    <tbody>
-                                    <c:forEach items="${authorityOptionsForm.options}" var="authority" varStatus="authStatus">
-                                        <tr>
-                                            <td>${authority.adminAuthorityLocalized}</td>
-                                            <td><form:checkbox path="options[${authStatus.index}].enabled" value="${authority.enabled}"/></td>
-                                            <form:hidden path="options[${authStatus.index}].adminAuthority"/>
-                                        </tr>
-                                    </c:forEach>
-                                    </tbody>
-                                </table>
-                                <form:hidden path="userId"/>
-                                <button type="submit" class="blue-box"><loc:message code="login.submit"/></button>
-                            </form:form>
-                            </div>
-                        </div>
-                    </div>
+
+                        <sec:authorize access="hasAuthority('${admin_manageAccess}')">
+                            <c:if test="${user.role == adminEnum || user.role == accountantEnum || user.role == admin_userEnum}">
+                                <div id="panel6" class="tab-pane">
+                                    <div class="col-md-6 col-md-offset-3 content">
+                                        <div class="text-center"><h4><loc:message code="admin.accessRights"/></h4></div>
+                                        <hr/>
+                                        <div>
+                                            <form:form method="post" action="/admin/editAuthorities/submit"
+                                                       modelAttribute="authorityOptionsForm">
+                                                <table id="authoritiesTable" class="table table-striped table-bordered">
+                                                    <tbody>
+                                                    <c:forEach items="${authorityOptionsForm.options}" var="authority"
+                                                               varStatus="authStatus">
+                                                        <tr>
+                                                            <td>${authority.adminAuthorityLocalized}</td>
+                                                            <td><form:checkbox
+                                                                    path="options[${authStatus.index}].enabled"
+                                                                    value="${authority.enabled}"/></td>
+                                                            <form:hidden
+                                                                    path="options[${authStatus.index}].adminAuthority"/>
+                                                        </tr>
+                                                    </c:forEach>
+                                                    </tbody>
+                                                </table>
+                                                <form:hidden path="userId"/>
+                                                <button type="submit" class="blue-box"><loc:message
+                                                        code="login.submit"/></button>
+                                            </form:form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </c:if>
+
+                        </sec:authorize>
 
                 </div>
             </div>

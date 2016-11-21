@@ -34,7 +34,13 @@ public interface UserDao {
 
     List<AdminAuthorityOption> getAuthorityOptionsForUser(Integer userId);
 
+    boolean createAdminAuthoritiesForUser(Integer userId, UserRole role);
+
+    boolean hasAdminAuthorities(Integer userId);
+
     void updateAdminAuthorities(List<AdminAuthorityOption> options, Integer userId);
+
+    boolean removeUserAuthorities(Integer userId);
 
     boolean addUserRoles(String email, String role);
 
