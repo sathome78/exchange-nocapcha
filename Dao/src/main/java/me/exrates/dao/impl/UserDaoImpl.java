@@ -181,7 +181,9 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public List<AdminAuthorityOption> getAuthorityOptionsForUser(Integer userId) {
-        String sql = "SELECT admin_authority_id, enabled FROM USER_ADMIN_AUTHORITY WHERE user_id = :user_id";
+        String sql = "SELECT USER_ADMIN_AUTHORITY.admin_authority_id, USER_ADMIN_AUTHORITY.enabled FROM USER_ADMIN_AUTHORITY " +
+                "JOIN ADMIN_AUTHORITY ON ADMIN_AUTHORITY.id = USER_ADMIN_AUTHORITY.admin_authority_id AND ADMIN_AUTHORITY.hidden != 1 " +
+                "WHERE user_id = :user_id";
         Map<String, Integer> params = Collections.singletonMap("user_id", userId);
         return jdbcTemplate.query(sql, params, ((rs, rowNum) -> {
             AdminAuthorityOption option = new AdminAuthorityOption();

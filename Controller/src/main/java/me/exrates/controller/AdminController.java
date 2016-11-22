@@ -3,6 +3,7 @@ package me.exrates.controller;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.*;
+import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
@@ -370,6 +371,7 @@ public class AdminController {
 
         user.setId(id);
         model.addObject("user", user);
+        model.addObject("currencies", currencyService.findAllCurrencies());
         model.addObject("currencyPairs", currencyService.getAllCurrencyPairs());
         model.setViewName("admin/editUser");
         model.addObject("userFiles", userService.findUserDoc(id));
@@ -841,5 +843,13 @@ public class AdminController {
 
         return new RedirectView("/admin/userInfo?id=" + authorityOptionsForm.getUserId());
     }
+
+    @RequestMapping(value = "/admin/changeActiveBalance/submit", method = RequestMethod.POST)
+    public RedirectView changeActiveBalance(@RequestParam Integer userId, @RequestParam("currency") Integer currencyId, @RequestParam BigDecimal amount) {
+        LOG.debug("userId = " + userId + ", currencyId = " + currencyId + "? amount = " + amount);
+
+        return new RedirectView("/admin/userInfo?id=" + userId);
+    }
+
 
 }

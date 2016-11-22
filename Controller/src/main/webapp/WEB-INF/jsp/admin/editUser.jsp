@@ -51,6 +51,7 @@
                 <c:set var="adminEnum" value="<%=me.exrates.model.enums.UserRole.ADMINISTRATOR%>"/>
                 <c:set var="accountantEnum" value="<%=me.exrates.model.enums.UserRole.ACCOUNTANT%>"/>
                 <c:set var="admin_userEnum" value="<%=me.exrates.model.enums.UserRole.ADMIN_USER%>"/>
+                <c:set var="admin_manualBalanceChange" value="<%=AdminAuthority.MANUAL_BALANCE_CHANGE%>"/>
                 <%--Редактирование пользователя--%>
                 <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
                     <button class="active adminForm-toggler blue-box">
@@ -410,6 +411,35 @@
                                 </tr>
                                 </thead>
                             </table>
+
+                            <sec:authorize access="hasAuthority('${admin_manualBalanceChange}')">
+                                <hr />
+                                <div class="text-center"><h4><%--<loc:message code="admin.wallets"/>--%>Change balance manually</h4></div>
+                                <div class="col-md-12">
+                                    <form action="/admin/changeActiveBalance/submit" method="post" class="form-inline">
+                                        <div class="form-group">
+                                            <label for="currency">Currency</label>
+                                            <select id="currency" name="currency" class="form-control">
+                                                <c:forEach items="${currencies}" var="currency">
+                                                    <option value="${currency.id}">${currency.name}</option>
+                                                </c:forEach>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="amount">Amount</label>
+                                            <input id="amount" name="amount" type="number" step="any" class="form-control"/>
+                                        </div>
+                                        <div class="form-group"></div>
+                                        <div class="form-group"></div>
+                                        <input type="hidden" name="userId" value="${user.id}">
+                                        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+                                        <button type="submit" class="btn btn-default">Submit</button>
+
+                                    </form>
+                                </div>
+
+                            </sec:authorize>
+
                         </div>
 
                     </div>

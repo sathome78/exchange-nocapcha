@@ -12,7 +12,8 @@ public enum OperationType {
     BUY(4),
     WALLET_INNER_TRANSFER(5),
     REFERRAL(6),
-    STORNO(7);
+    STORNO(7),
+    MANUAL(8);
 
     public final int type;
 
@@ -36,6 +37,8 @@ public enum OperationType {
                 return REFERRAL;
             case 7:
                 return STORNO;
+            case 8:
+                return MANUAL;
             default:
                 throw new UnsupportedOperationTypeException(tupleId);
         }
