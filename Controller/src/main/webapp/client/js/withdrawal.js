@@ -99,8 +99,8 @@ function promptDeclineRequest(requestId) {
             $(classname + ' td:last-child').html($('#declined').html());
             $("#myModal").modal();
             document.getElementById("sendMessageCheckbox").checked = true;
-            currentEmail = result.email;
-            document.getElementById("user_info").textContent = document.getElementById("language").innerText + ", " +  result.email;
+            currentEmail = result.userEmail;
+            document.getElementById("user_info").textContent = document.getElementById("language").innerText + ", " +  result.userEmail;
             $('#checkMessage').show();
         }).fail(function(error){
             alert(JSON.stringify(error));
