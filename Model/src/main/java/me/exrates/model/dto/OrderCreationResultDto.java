@@ -1,6 +1,8 @@
 package me.exrates.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import java.math.BigDecimal;
 
@@ -8,9 +10,13 @@ import java.math.BigDecimal;
  * Created by OLEG on 21.11.2016.
  */
 public class OrderCreationResultDto {
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer createdOrderId;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer autoAcceptedQuantity;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private BigDecimal partiallyAcceptedAmount;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private BigDecimal partiallyAcceptedOrderFullAmount;
 
     public Integer getCreatedOrderId() {
