@@ -371,7 +371,8 @@ public class AdminController {
 
         user.setId(id);
         model.addObject("user", user);
-        model.addObject("currencies", currencyService.findAllCurrencies());
+        model.addObject("currencies", currencyService.findAllCurrencies().stream()
+                .filter(currency -> !"LTC".equals(currency.getName())).collect(Collectors.toList()));
         model.addObject("currencyPairs", currencyService.getAllCurrencyPairs());
         model.setViewName("admin/editUser");
         model.addObject("userFiles", userService.findUserDoc(id));
@@ -847,7 +848,7 @@ public class AdminController {
     @RequestMapping(value = "/admin/changeActiveBalance/submit", method = RequestMethod.POST)
     public RedirectView changeActiveBalance(@RequestParam Integer userId, @RequestParam("currency") Integer currencyId, @RequestParam BigDecimal amount) {
         LOG.debug("userId = " + userId + ", currencyId = " + currencyId + "? amount = " + amount);
-
+        walletService.manualBalanceChange(userId, currencyId, amount);
         return new RedirectView("/admin/userInfo?id=" + userId);
     }
 

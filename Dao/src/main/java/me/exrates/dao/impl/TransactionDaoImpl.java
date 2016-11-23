@@ -314,6 +314,9 @@ public final class TransactionDaoImpl implements TransactionDao {
                    case REFERRAL:
                        sourceTypes.add(TransactionSourceType.REFERRAL.toString());
                        break;
+                   case MANUAL:
+                       sourceTypes.add(TransactionSourceType.MANUAL.toString());
+                       break;
                    default:
                        break;
                }

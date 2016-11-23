@@ -20,6 +20,7 @@ import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.CommissionService;
 import me.exrates.service.WalletService;
+import me.exrates.service.exception.ManualBalanceChangeException;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import me.exrates.service.util.Cache;
 import org.apache.logging.log4j.LogManager;
@@ -229,6 +230,7 @@ public final class WalletServiceImpl implements WalletService {
         return walletDao.getAllWalletsForUserReduced(email, locale);
     }
 
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public void manualBalanceChange(Integer userId, Integer currencyId, BigDecimal amount) {
         Wallet wallet = walletDao.findByUserAndCurrency(userId, currencyId);
@@ -243,11 +245,8 @@ public final class WalletServiceImpl implements WalletService {
         walletOperationData.setSourceType(TransactionSourceType.MANUAL);
         WalletTransferStatus status = walletBalanceChange(walletOperationData);
         if (status != WalletTransferStatus.SUCCESS) {
-
+            throw new ManualBalanceChangeException(status.name());
         }
-
-
-
     }
 
 }
