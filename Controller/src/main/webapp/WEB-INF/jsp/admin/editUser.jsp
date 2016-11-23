@@ -416,8 +416,8 @@
                                 <hr />
                                 <div class="text-center"><h4><%--<loc:message code="admin.wallets"/>--%>Change balance manually</h4></div>
                                 <div class="col-md-12">
-                                    <form action="/admin/changeActiveBalance/submit" method="post" class="form-inline">
-                                        <div class="form-group">
+                                    <form id="manualBalanceChangeForm" action="/admin/changeActiveBalance/submit" method="post">
+                                        <div class="form-item form-group" >
                                             <label for="currency">Currency</label>
                                             <select id="currency" name="currency" class="form-control">
                                                 <c:forEach items="${currencies}" var="currency">
@@ -425,16 +425,13 @@
                                                 </c:forEach>
                                             </select>
                                         </div>
-                                        <div class="form-group">
+                                        <div class="form-item form-group">
                                             <label for="amount">Amount</label>
                                             <input id="amount" name="amount" type="number" step="any" class="form-control"/>
                                         </div>
-                                        <div class="form-group"></div>
-                                        <div class="form-group"></div>
                                         <input type="hidden" name="userId" value="${user.id}">
                                         <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
-                                        <button type="submit" class="btn btn-default">Submit</button>
-
+                                        <button type="submit" class="blue-box">Submit</button>
                                     </form>
                                 </div>
 
