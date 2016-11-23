@@ -11,7 +11,6 @@ public class OrderCreationResultDto {
     private Integer createdOrderId;
     private Integer autoAcceptedQuantity;
     private BigDecimal partiallyAcceptedAmount;
-    @JsonIgnore
     private BigDecimal partiallyAcceptedOrderFullAmount;
 
     public Integer getCreatedOrderId() {
