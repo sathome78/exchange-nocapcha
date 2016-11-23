@@ -120,12 +120,13 @@ public class MerchantServiceImpl implements MerchantService {
         walletService.withdrawReservedBalance(transaction.getUserWallet(),amount);
         walletService.depositActiveBalance(transaction.getUserWallet(),amount);
         Locale userLocale = new Locale(userService.getPreferedLang(request.getUserId()));
-        sendWithdrawalNotification(request, ACCEPTED, userLocale);
+        sendWithdrawalNotification(request, DECLINED, userLocale);
         final HashMap<String, Object> params = new HashMap<>();
         final String message = messageSource.getMessage("merchants.WithdrawRequestDecline", null, locale);
         params.put("success", message);
         params.put("acceptance", requestUpdated.getAcceptance().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         params.put("email", email);
+        params.put("userEmail", request.getUserEmail());
         return params;
     }
 

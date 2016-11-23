@@ -59,7 +59,7 @@ public class EDCClientWebSocketHandler {
     private void subscribeForBlockchainUpdates() {
         try {
             session = ContainerProvider.getWebSocketContainer()
-                    .connectToServer(this, URI.create("wss://blockchain.edinarcoin.com"));
+                    .connectToServer(this, URI.create("ws://127.0.0.1:8089"));
             session.setMaxBinaryMessageBufferSize(5012000);
             session.setMaxTextMessageBufferSize(5012000);
             session.setMaxIdleTimeout(Long.MAX_VALUE);
@@ -89,8 +89,6 @@ public class EDCClientWebSocketHandler {
                 if (session.isOpen()) {
                     endpoint.sendText(String.format(METHOD_GET_BLOCK, index, BLOCK_BY_ID));
                 }
-                if (index % 10 == 0)
-                    TimeUnit.SECONDS.sleep(1); // sleep 1 second every 10 requests
                 index++;
             } catch (final Exception e) {
                 LOG.error(e);
@@ -101,7 +99,7 @@ public class EDCClientWebSocketHandler {
     @OnMessage
     public void onMessage(final String message) throws IOException {
         if (!access) {
-         //   LOG.debug(message);
+            LOG.debug(message);
             final ObjectMapper mapper = new ObjectMapper();
             final Map<String, String> result = mapper.readValue(message, new TypeReference<Map<String, String>>() {
             });
@@ -110,13 +108,13 @@ public class EDCClientWebSocketHandler {
             }
         } else {
             if (blockAppliedPattern.test(message)) {
-           //     LOG.info(message);
+                LOG.info(message);
                 getBlockInfo(message);
             } else if (blockInfoPattern.test(message)) {
-         //       LOG.info(message);
+                LOG.info(message);
                 edcService.submitTransactionsForProcessing(message);
             } else {
-          //      LOG.info("EDC Blockchain info\n" + message);
+                LOG.info("EDC Blockchain info\n" + message);
             }
         }
     }
