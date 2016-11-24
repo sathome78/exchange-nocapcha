@@ -661,9 +661,15 @@ public class UserDaoImpl implements UserDao {
                 "\t(select sum(amount) from TRANSACTION join EXORDERS on(EXORDERS.id = TRANSACTION.source_id) where TRANSACTION.operation_type_id=1 and TRANSACTION.provided  = 1 \n" +
                 "    and TRANSACTION.source_type='ORDER' and TRANSACTION.user_wallet_id=WALLET.id \n" +
                 "    and (DATE_FORMAT(EXORDERS.date_acception, '%Y-%m-%d %H:%i:%s') BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))) as amount_buy,\n" +
+                "\t(select sum(commission_amount) from TRANSACTION join EXORDERS on(EXORDERS.id = TRANSACTION.source_id) where TRANSACTION.operation_type_id=1 and TRANSACTION.provided  = 1 \n" +
+                "    and TRANSACTION.source_type='ORDER' and TRANSACTION.user_wallet_id=WALLET.id \n" +
+                "    and (DATE_FORMAT(EXORDERS.date_acception, '%Y-%m-%d %H:%i:%s') BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))) as amount_buy_fee,\n" +
                 "\t(select sum(amount) from TRANSACTION join EXORDERS on(EXORDERS.id = TRANSACTION.source_id) where TRANSACTION.operation_type_id=2 and TRANSACTION.provided  = 1 \n" +
                 "    and TRANSACTION.source_type='ORDER' and TRANSACTION.user_wallet_id=WALLET.id\n" +
-                "    and (DATE_FORMAT(EXORDERS.date_acception, '%Y-%m-%d %H:%i:%s') BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))) as amount_sell\n" +
+                "    and (DATE_FORMAT(EXORDERS.date_acception, '%Y-%m-%d %H:%i:%s') BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))) as amount_sell,\n" +
+                "\t(select sum(commission_amount) from TRANSACTION join EXORDERS on(EXORDERS.id = TRANSACTION.source_id) where TRANSACTION.operation_type_id=2 and TRANSACTION.provided  = 1 \n" +
+                "    and TRANSACTION.source_type='ORDER' and TRANSACTION.user_wallet_id=WALLET.id\n" +
+                "    and (DATE_FORMAT(EXORDERS.date_acception, '%Y-%m-%d %H:%i:%s') BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))) as amount_sell_fee\n" +
                 "    \n" +
                 "\tFROM birzha.WALLET join USER on(USER.id=WALLET.user_id) join USER_ROLE on(USER_ROLE.id = USER.roleid) join CURRENCY on(CURRENCY.id = WALLET.currency_id)\n" +
                 "    where WALLET.currency_id is not null group by WALLET.user_id, WALLET.currency_id) \n" +
@@ -679,7 +685,9 @@ public class UserDaoImpl implements UserDao {
                 userSummaryOrdersDto.setWallet(rs.getString("currency_name"));
                 userSummaryOrdersDto.setRole(rs.getString("role"));
                 userSummaryOrdersDto.setAmountBuy(rs.getBigDecimal("amount_buy"));
+                userSummaryOrdersDto.setAmountBuyFee(rs.getBigDecimal("amount_buy_fee"));
                 userSummaryOrdersDto.setAmountSell(rs.getBigDecimal("amount_sell"));
+                userSummaryOrdersDto.setAmountSellFee(rs.getBigDecimal("amount_sell_fee"));
                 return userSummaryOrdersDto;
             }
         });

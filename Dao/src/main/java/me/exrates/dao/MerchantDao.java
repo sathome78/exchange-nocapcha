@@ -30,4 +30,6 @@ public interface MerchantDao {
     List<MerchantCurrencyApiDto> findAllMerchantCurrencies(Integer currencyId);
 
     List<MyInputOutputHistoryDto> getMyInputOutputHistory(String email, Integer offset, Integer limit, Locale locale);
+
+    Integer getInputRequests(int merchantId, String email);
 }

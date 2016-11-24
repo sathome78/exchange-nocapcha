@@ -25,6 +25,7 @@ import org.springframework.web.servlet.view.RedirectView;
 import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -52,18 +53,25 @@ public class YandexKassaMerchantController {
     private static final Logger LOG = LogManager.getLogger("merchant");
 
     @RequestMapping(value = "payment/prepare",method = RequestMethod.POST)
-    public ResponseEntity<Map<String,String>> preparePayment(@RequestBody String body, Principal principal) {
+    public ResponseEntity<Map<String,String>> preparePayment(@RequestBody String body, Principal principal, final Locale locale) {
         LOG.debug("Begin method: preparePayment.");
 
         final Payment payment = new Gson().fromJson(body, Payment.class);
+        if (!merchantService.checkInputRequestsLimit(payment.getMerchant(), principal.getName())){
+            final Map<String,String> error = new HashMap<>();
+            error.put("error", messageSource.getMessage("merchants.InputRequestsLimit", null, locale));
+
+            return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
+        }
+
         final Optional<CreditsOperation> creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName());
         if (!creditsOperation.isPresent()) {
             final Map<String, String> errors = new HashMap<String, String>() {
                 {
-                    put("error", "merchants.invalidSum");
+                    put("error", messageSource.getMessage("merchants.incorrectPaymentDetails", null, locale));
                 }
             };
-            return new ResponseEntity<>(errors, HttpStatus.NO_CONTENT);
+            return new ResponseEntity<>(errors, HttpStatus.NOT_FOUND);
         }
 
         final Map<String, String> params = yandexKassaService.preparePayment(creditsOperation.get(), principal.getName());;
