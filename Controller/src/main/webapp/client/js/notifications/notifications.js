@@ -19,6 +19,8 @@ function NotificationsClass() {
     var $counter;
 
     this.getNotifications = function (refreshIfNeeded) {
+        console.log('Get notifications - 1');
+
         if (!windowIsActive) {
             clearTimeout(notificationsTimeoutId);
             notificationsTimeoutId = setTimeout(function () {
@@ -26,6 +28,8 @@ function NotificationsClass() {
             }, refreshIntervalForNotifications);
             return;
         }
+        console.log('Get notifications - 2');
+
         var url = '/dashboard/notifications/' + tableNotificationsId + '?refreshIfNeeded=' + (refreshIfNeeded ? 'true' : 'false');
         $.ajax({
             url: url,
@@ -34,30 +38,33 @@ function NotificationsClass() {
                 "windowid": windowId
             },
             success: function (data) {
+                console.log(data);
+
                 if (!data) return;
                 if (data.length == 0 || data[0].needRefresh) {
                     if (data.length == 0) {
                         handleAbsentMessages();
-                        return;
-                    }
-                    var unreadQuantity = 0;
-                    var $tmpl = $('#notifications-row').html().replace(/@/g, '%');
-                    clearNotificationsTable();
-                    data.forEach(function (item) {
-                        var $newItem = $(tmpl($tmpl, item));
-                        if (!item.read) {
-                            unreadQuantity++;
-                        } else {
-                            $($newItem).removeAttr('onclick');
+                    } else {
+                        var unreadQuantity = 0;
+                        var $tmpl = $('#notifications-row').html().replace(/@/g, '%');
+                        clearNotificationsTable();
+                        data.forEach(function (item) {
+                            var $newItem = $(tmpl($tmpl, item));
+                            if (!item.read) {
+                                unreadQuantity++;
+                            } else {
+                                $($newItem).removeAttr('onclick');
+                            }
+                            $($notificationContainer).append($newItem);
+
+                        });
+
+                        if (unreadQuantity > 0) {
+                            $($counter).text(unreadQuantity);
+                            $($counter).show();
                         }
-                        $($notificationContainer).append($newItem);
-
-                    });
-
-                    if (unreadQuantity > 0) {
-                        $($counter).text(unreadQuantity);
-                        $($counter).show();
                     }
+
                 }
 
                 clearTimeout(notificationsTimeoutId);
