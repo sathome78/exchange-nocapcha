@@ -53,11 +53,21 @@ public class EDRCoinController {
         final Principal principal, final Locale locale)
     {
         final Payment payment = new Gson().fromJson(body, Payment.class);
+        final String error;
+
+        final HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add("Content-Type", "text/plain; charset=utf-8");
+
+        if (!merchantService.checkInputRequestsLimit(payment.getMerchant(), principal.getName())){
+            error = source.getMessage("merchants.InputRequestsLimit", null, locale);
+
+            return new ResponseEntity<>(error, httpHeaders, HttpStatus.FORBIDDEN);
+        }
         final String email = principal.getName();
         final CreditsOperation creditsOperation = merchantService
             .prepareCreditsOperation(payment, email)
             .orElseThrow(InvalidAmountException::new);
-        final String error;
+
         try {
             final PendingPayment pendingPayment = edrcService
                 .createPaymentInvoice(creditsOperation);
@@ -65,8 +75,6 @@ public class EDRCoinController {
                 .sendDepositNotification(pendingPayment
                         .getAddress().orElseThrow(() -> new MerchantInternalException("Address not presented")),
                         email , locale, creditsOperation, "merchants.depositNotification.body");
-            final HttpHeaders httpHeaders = new HttpHeaders();
-            httpHeaders.add("Content-Type", "text/plain; charset=utf-8");
             return new ResponseEntity<>(notification, httpHeaders, OK);
         } catch (final InvalidAmountException|RejectedPaymentInvoice e) {
             LOG.error(e);
@@ -76,7 +84,7 @@ public class EDRCoinController {
             LOG.error(e);
             error = source.getMessage("merchants.internalError", null, locale);
         }
-        return new ResponseEntity<>(error,HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>(error, httpHeaders, HttpStatus.NOT_FOUND);
     }
 
     @RequestMapping(value = "payment/received",method = POST)
