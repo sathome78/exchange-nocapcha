@@ -18,6 +18,8 @@
 <%@include file='links_scripts.jsp' %>
 <link rel="stylesheet" href="<c:url value="/client/css/font-awesome.min.css"/>">
 <link href="<c:url value="/client/css/ekko-lightbox.min.css"/>" rel="stylesheet">
+    <script type="text/javascript" src="<c:url value='/client/js/app.js'/>"></script>
+
 <%----------%>
 <script type="text/javascript" src="<c:url value="/client/js/ekko-lightbox.min.js"/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/dataTable/adminWalletsDataTable.js'/>"></script>
@@ -30,6 +32,11 @@
 <script type="text/javascript" src="<c:url value='/client/js/dataTable/adminOrdersDataTable.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/dataTable/adminCommentsDataTable.js'/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/order/adminDeleteOrder.js'/>"></script>
+    <c:set var="admin_manualBalanceChange" value="<%=AdminAuthority.MANUAL_BALANCE_CHANGE%>"/>
+
+    <sec:authorize access="hasAuthority('${admin_manualBalanceChange}')">
+        <script type="text/javascript" src="<c:url value='/client/js/admin-balance-change/adminBalanceChange.js'/>"></script>
+    </sec:authorize>
 
 
 
@@ -51,7 +58,6 @@
                 <c:set var="adminEnum" value="<%=me.exrates.model.enums.UserRole.ADMINISTRATOR%>"/>
                 <c:set var="accountantEnum" value="<%=me.exrates.model.enums.UserRole.ACCOUNTANT%>"/>
                 <c:set var="admin_userEnum" value="<%=me.exrates.model.enums.UserRole.ADMIN_USER%>"/>
-                <c:set var="admin_manualBalanceChange" value="<%=AdminAuthority.MANUAL_BALANCE_CHANGE%>"/>
                 <%--Редактирование пользователя--%>
                 <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
                     <button class="active adminForm-toggler blue-box">
@@ -414,11 +420,11 @@
 
                             <sec:authorize access="hasAuthority('${admin_manualBalanceChange}')">
                                 <hr />
-                                <div class="text-center"><h4><%--<loc:message code="admin.wallets"/>--%>Change balance manually</h4></div>
+                                <div class="text-center"><h4><loc:message code="admin.manualBalanceChange.title"/></h4></div>
                                 <div class="col-md-12">
                                     <form id="manualBalanceChangeForm" action="/admin/changeActiveBalance/submit" method="post">
                                         <div class="form-item form-group" >
-                                            <label for="currency">Currency</label>
+                                            <label for="currency"><loc:message code="mywallets.currency"/> </label>
                                             <select id="currency" name="currency" class="form-control">
                                                 <c:forEach items="${currencies}" var="currency">
                                                     <option value="${currency.id}">${currency.name}</option>
@@ -426,12 +432,12 @@
                                             </select>
                                         </div>
                                         <div class="form-item form-group">
-                                            <label for="amount">Amount</label>
+                                            <label for="amount"><loc:message code="mywallets.amount"/> </label>
                                             <input id="amount" name="amount" type="number" step="any" class="form-control"/>
                                         </div>
                                         <input type="hidden" name="userId" value="${user.id}">
                                         <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
-                                        <button type="submit" class="blue-box">Submit</button>
+                                        <button id="manualBalanceSubmit" type="button" class="blue-box"><loc:message code="admin.submit"/></button>
                                     </form>
                                 </div>
 
@@ -624,8 +630,7 @@
                                                     </tbody>
                                                 </table>
                                                 <form:hidden path="userId"/>
-                                                <button type="submit" class="blue-box"><loc:message
-                                                        code="login.submit"/></button>
+                                                <button type="submit" class="blue-box"><loc:message code="admin.submit"/></button>
                                             </form:form>
                                         </div>
                                     </div>

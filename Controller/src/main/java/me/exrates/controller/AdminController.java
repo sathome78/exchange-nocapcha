@@ -744,7 +744,7 @@ public class AdminController {
     @ExceptionHandler(RuntimeException.class)
     @ResponseBody
     public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
-        exception.printStackTrace();
+        LOG.error(exception);
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 
@@ -844,21 +844,21 @@ public class AdminController {
         LOG.debug(authorityOptionsForm.getUserId());
         userService.updateAdminAuthorities(authorityOptionsForm.getOptions(), authorityOptionsForm.getUserId(), principal.getName());
         String updatedUserEmail = userService.getUserById(authorityOptionsForm.getUserId()).getEmail();
-        Optional<UserDetails> updatedUserOptional = sessionRegistry.getAllPrincipals().stream().map(currentPrincipal -> (UserDetails) currentPrincipal)
-                .filter(currentPrincipal -> currentPrincipal.getUsername().equals(updatedUserEmail))
-                .findFirst();
-        if (updatedUserOptional.isPresent()) {
-            sessionRegistry.getAllSessions(updatedUserOptional.get(), false).forEach(SessionInformation::expireNow);
-        }
-
+        sessionRegistry.getAllPrincipals().stream()
+                .filter(currentPrincipal -> ((UserDetails) currentPrincipal).getUsername().equals(updatedUserEmail))
+                .findFirst()
+                .ifPresent(updatedUser -> sessionRegistry.getAllSessions(updatedUser, false).forEach(SessionInformation::expireNow));
         return new RedirectView("/admin/userInfo?id=" + authorityOptionsForm.getUserId());
     }
 
     @RequestMapping(value = "/admin/changeActiveBalance/submit", method = RequestMethod.POST)
-    public RedirectView changeActiveBalance(@RequestParam Integer userId, @RequestParam("currency") Integer currencyId, @RequestParam BigDecimal amount) {
+    @ResponseBody
+    public ResponseEntity<Void> changeActiveBalance(@RequestParam Integer userId, @RequestParam("currency") Integer currencyId,
+                                            @RequestParam BigDecimal amount) {
         LOG.debug("userId = " + userId + ", currencyId = " + currencyId + "? amount = " + amount);
         walletService.manualBalanceChange(userId, currencyId, amount);
-        return new RedirectView("/admin/userInfo?id=" + userId);
+        return new ResponseEntity<>(HttpStatus.OK);
+
     }
 
 

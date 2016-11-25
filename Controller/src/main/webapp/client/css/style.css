@@ -1384,7 +1384,7 @@ table tbody .blink,
 }
 
 .blink_green {
-    background: rgba(0, 128, 0, 0.20);
+    background: rgba(0, 128, 0, 0.20) !important;
 }
 
 /********************************

@@ -20,6 +20,7 @@ import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.CommissionService;
 import me.exrates.service.WalletService;
+import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.ManualBalanceChangeException;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import me.exrates.service.util.Cache;
@@ -234,6 +235,12 @@ public final class WalletServiceImpl implements WalletService {
     @Transactional(rollbackFor = Exception.class)
     public void manualBalanceChange(Integer userId, Integer currencyId, BigDecimal amount) {
         Wallet wallet = walletDao.findByUserAndCurrency(userId, currencyId);
+        if (amount.equals(BigDecimal.ZERO)) {
+            return;
+        }
+        if (amount.signum() == -1 && amount.abs().compareTo(wallet.getActiveBalance()) > 0) {
+            throw new InvalidAmountException("Negative amount exceeds current balance!");
+        }
         WalletOperationData walletOperationData = new WalletOperationData();
         walletOperationData.setWalletId(wallet.getId());
         walletOperationData.setAmount(amount);
