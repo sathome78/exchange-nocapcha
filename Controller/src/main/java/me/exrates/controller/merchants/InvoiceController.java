@@ -12,6 +12,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -49,6 +50,14 @@ public class InvoiceController {
                                                  final Principal principal,
                                                  final Locale locale)
     {
+        final HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add("Content-Type", "text/plain; charset=utf-8");
+
+        if (!merchantService.checkInputRequestsLimit(payment.getMerchant(), principal.getName())){
+            final String error = messageSource.getMessage("merchants.InputRequestsLimit", null, locale);
+
+            return new ResponseEntity<>(error, httpHeaders, HttpStatus.FORBIDDEN);
+        }
         final String email = principal.getName();
         LOG.debug("Preparing payment: " + payment + " for: " + email);
         final CreditsOperation creditsOperation = merchantService
@@ -62,13 +71,11 @@ public class InvoiceController {
                                 email , locale, creditsOperation, "merchants.depositNotificationWithCurrency" +
                                         creditsOperation.getCurrency().getName() +
                                         ".body");
-                final HttpHeaders httpHeaders = new HttpHeaders();
-                httpHeaders.add("Content-Type", "text/plain; charset=utf-8");
                 return new ResponseEntity<>(notification, httpHeaders, OK);
             } catch (final InvalidAmountException|RejectedPaymentInvoice e) {
                 final String error = messageSource.getMessage("merchants.incorrectPaymentDetails", null, locale);
                 LOG.warn(error);
-                return new ResponseEntity<>(error, NOT_FOUND);
+                return new ResponseEntity<>(error, httpHeaders, NOT_FOUND);
             }
     }
 

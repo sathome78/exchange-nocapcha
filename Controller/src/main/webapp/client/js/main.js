@@ -286,7 +286,8 @@ $(function(){
                         callback();
                     }).fail(function (error) {
                         responseControls();
-                        $('.paymentInfo').html(error.responseText);
+                        $('.paymentInfo').html(error.responseJSON.error);
+
                         console.log(error);
                     });
                     break;
@@ -318,7 +319,7 @@ $(function(){
                         responseControls();
                     }).fail(function (error, jqXHR, textStatus) {
                         responseControls();
-                        $('.paymentInfo').html(error.responseText);
+                        $('.paymentInfo').html(error.responseJSON.error);
                         console.log(textStatus);
                     });
                     break;
@@ -353,7 +354,8 @@ $(function(){
                             console.log(jqXHR);
                             console.log(textStatus);
                             console.log(errorThrown);
-                            $('.paymentInfo').html(error.responseText);
+                            $('.paymentInfo').html(jqXHR.responseJSON.error);
+
                             responseControls();
                         }
                     });
@@ -382,7 +384,7 @@ $(function(){
                             console.log(jqXHR);
                             console.log(textStatus);
                             console.log(errorThrown);
-                            $('.paymentInfo').html(error.responseText);
+                            $('.paymentInfo').html(jqXHR.responseText);
                             responseControls();
                         }
                     });
@@ -408,7 +410,7 @@ $(function(){
                         callback();
                     }).fail(function (error) {
                         responseControls();
-                        $('.paymentInfo').html(error.responseText);
+                        $('.paymentInfo').html(error.responseJSON.error);
                         console.log(error);
                     });
                     break;
@@ -434,7 +436,7 @@ $(function(){
                         callback();
                     }).fail(function (error) {
                         responseControls();
-                        $('.paymentInfo').html(error.responseText);
+                        $('.paymentInfo').html(error.responseJSON.error);
                         console.log(error);
                     });
                     break;
@@ -460,7 +462,7 @@ $(function(){
                         callback();
                     }).fail(function (error) {
                         responseControls();
-                        $('.paymentInfo').html(error.responseText);
+                        $('.paymentInfo').html(error.responseJSON.error);
                         console.log(error);
                     });
                     break;

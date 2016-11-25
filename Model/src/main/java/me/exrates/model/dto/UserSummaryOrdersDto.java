@@ -14,14 +14,18 @@ public class UserSummaryOrdersDto {
     private String wallet;
     private String role;
     private BigDecimal amountBuy;
+    private BigDecimal amountBuyFee;
     private BigDecimal amountSell;
+    private BigDecimal amountSellFee;
 
     public static String getTitle() {
         return  "email" + ";" +
                 "wallet" + ";" +
                 "group" + ";" +
                 "buy" + ";" +
-                "sell" +
+                "buyFee" + ";" +
+                "sell" + ";" +
+                "sellFee" +
                 "\r\n";
     }
 
@@ -31,7 +35,9 @@ public class UserSummaryOrdersDto {
                 wallet + ";" +
                 role + ";" +
                 BigDecimalProcessing.formatNoneComma(amountBuy, false) + ";" +
-                BigDecimalProcessing.formatNoneComma(amountSell, false) +
+                BigDecimalProcessing.formatNoneComma(amountBuyFee, false) + ";" +
+                BigDecimalProcessing.formatNoneComma(amountSell, false) + ";" +
+                BigDecimalProcessing.formatNoneComma(amountSellFee, false) +
                 "\r\n";
     }
 
@@ -75,5 +81,21 @@ public class UserSummaryOrdersDto {
 
     public void setAmountSell(BigDecimal amountSell) {
         this.amountSell = amountSell;
+    }
+
+    public BigDecimal getAmountBuyFee() {
+        return amountBuyFee;
+    }
+
+    public void setAmountBuyFee(BigDecimal amountBuyFee) {
+        this.amountBuyFee = amountBuyFee;
+    }
+
+    public BigDecimal getAmountSellFee() {
+        return amountSellFee;
+    }
+
+    public void setAmountSellFee(BigDecimal amountSellFee) {
+        this.amountSellFee = amountSellFee;
     }
 }

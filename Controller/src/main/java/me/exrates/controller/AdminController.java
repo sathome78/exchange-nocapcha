@@ -668,7 +668,9 @@ public class AdminController {
 
         List<UserSummaryOrdersDto> list = userService.getUserSummaryOrdersList(startDate, endDate);
         BigDecimal sumAmountBuy = new BigDecimal(0.00);
+        BigDecimal sumAmountBuyFee = new BigDecimal(0.00);
         BigDecimal sumAmountSell = new BigDecimal(0.00);
+        BigDecimal sumAmountSellFee = new BigDecimal(0.00);
 
         String value = "Orders from " + startDate.substring(0,10) + " till " + endDate.substring(0,10) + ": \n \n" + UserSummaryOrdersDto.getTitle() +
                     list.stream()
@@ -679,11 +681,18 @@ public class AdminController {
             if (userSummaryOrdersDto.getAmountBuy() != null){
                 sumAmountBuy = sumAmountBuy.add(userSummaryOrdersDto.getAmountBuy());
             }
+            if (userSummaryOrdersDto.getAmountBuyFee() != null){
+                sumAmountBuyFee = sumAmountBuyFee.add(userSummaryOrdersDto.getAmountBuyFee());
+            }
             if (userSummaryOrdersDto.getAmountSell() != null){
                 sumAmountSell = sumAmountSell.add(userSummaryOrdersDto.getAmountSell());
             }
+            if (userSummaryOrdersDto.getAmountSellFee() != null){
+                sumAmountSellFee = sumAmountSellFee.add(userSummaryOrdersDto.getAmountSellFee());
+            }
         }
-        value += "\n sumBuy: " + sumAmountBuy.toString() + "\n sumSell: " + sumAmountSell.toString();
+        value += "\n sumBuy: " + sumAmountBuy.toString() + "\n sumBuyFee: " + sumAmountBuyFee.toString();
+        value += "\n sumSell: " + sumAmountSell.toString() + "\n sumSellFee: " + sumAmountSellFee.toString();
 
         return value;
     }
