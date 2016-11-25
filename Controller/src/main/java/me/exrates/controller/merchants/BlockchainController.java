@@ -21,13 +21,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.NO_CONTENT;
-import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -54,6 +53,12 @@ public class BlockchainController {
                                                  final Principal principal,
                                                  final Locale locale)
     {
+        if (!merchantService.checkInputRequestsLimit(payment.getMerchant(), principal.getName())){
+            final Map<String,String> error = new HashMap<>();
+            error.put("error", messageSource.getMessage("merchants.InputRequestsLimit", null, locale));
+
+            return new ResponseEntity(error, HttpStatus.FORBIDDEN);
+        }
         final String email = principal.getName();
         LOG.debug("Preparing payment: " + payment + " for: " + email);
         final CreditsOperation creditsOperation = merchantService
@@ -76,7 +81,7 @@ public class BlockchainController {
             } catch (final InvalidAmountException|RejectedPaymentInvoice e) {
                 final String error = messageSource.getMessage("merchants.incorrectPaymentDetails", null, locale);
                 LOG.warn(error);
-                return new ResponseEntity<>(error, NO_CONTENT);
+                return new ResponseEntity<>(error, NOT_FOUND);
             }
     }
 

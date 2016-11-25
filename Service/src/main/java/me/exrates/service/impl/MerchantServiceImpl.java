@@ -473,4 +473,12 @@ public class MerchantServiceImpl implements MerchantService {
     public List<MyInputOutputHistoryDto> getMyInputOutputHistory(String email, Integer offset, Integer limit, Locale locale) {
         return merchantDao.getMyInputOutputHistory(email, offset, limit, locale);
     }
+
+    @Override
+    public boolean checkInputRequestsLimit(int merchantId, String email) {
+        boolean inLimit = merchantDao.getInputRequests(merchantId, email) < 5;
+
+        return inLimit;
+    }
+
 }

@@ -205,4 +205,19 @@ public class MerchantDaoImpl implements MerchantDao {
             }
         });
     }
+
+    public Integer getInputRequests(int merchantId, String email){
+        String sql = "SELECT COUNT(*) FROM birzha.TRANSACTION \n" +
+                "join WALLET ON(WALLET.id = TRANSACTION.user_wallet_id)\n" +
+                "join USER ON(USER.id = WALLET.user_id)\n" +
+                " where \n" +
+                " TRANSACTION.source_type = 'MERCHANT' and TRANSACTION.provided = 0 \n" +
+                " and USER.email = :email and TRANSACTION.merchant_id = :merchantId \n" +
+                " and SUBSTRING_INDEX(TRANSACTION.datetime, ' ', 1) = CURDATE() ; ";
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("merchantId", merchantId);
+        params.put("email", email);
+        return jdbcTemplate.queryForObject(sql,params,Integer.class);
+
+    }
 }

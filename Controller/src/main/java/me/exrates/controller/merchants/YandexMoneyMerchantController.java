@@ -90,10 +90,15 @@ public class YandexMoneyMerchantController {
     public RedirectView preparePayment(@Valid @ModelAttribute("payment") Payment payment,
                                        BindingResult result, Principal principal, RedirectAttributes redir,
                                        HttpSession httpSession, final HttpServletRequest request) {
+        if (!merchantService.checkInputRequestsLimit(payment.getMerchant(), principal.getName())){
+            redir.addAttribute("errorNoty", messageSource.getMessage("merchants.InputRequestsLimit", null, localeResolver.resolveLocale(request)));
+            return new RedirectView("/dashboard");
+        }
+
         final Map<String, Object> model = result.getModel();
         final Optional<CreditsOperation> creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName());
         if (!creditsOperation.isPresent()) {
-            redir.addAttribute("errorNoty", messageSource.getMessage("merchants.invalidSum", null, localeResolver.resolveLocale(request)));
+            redir.addAttribute("errorNoty", messageSource.getMessage("merchants.incorrectPaymentDetails", null, localeResolver.resolveLocale(request)));
             return new RedirectView("/dashboard");
         }
         final OperationType operationType = creditsOperation.get().getOperationType();

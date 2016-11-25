@@ -29,7 +29,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static org.springframework.http.HttpStatus.NO_CONTENT;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -61,6 +61,12 @@ public class BitcoinController {
                                                               final Principal principal,
                                                               final Locale locale)
     {
+        if (!merchantService.checkInputRequestsLimit(payment.getMerchant(), principal.getName())){
+            final Map<String,String> error = new HashMap<>();
+            error.put("error", messageSource.getMessage("merchants.InputRequestsLimit", null, locale));
+
+            return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
+        }
         final String email = principal.getName();
         final CreditsOperation creditsOperation = merchantService
                 .prepareCreditsOperation(payment, email)
@@ -86,7 +92,7 @@ public class BitcoinController {
             final Map<String,String> error = new HashMap<>();
             error.put("error", messageSource.getMessage("merchants.incorrectPaymentDetails", null, locale));
             LOG.warn(error);
-            return new ResponseEntity<>(error, NO_CONTENT);
+            return new ResponseEntity<>(error, NOT_FOUND);
         }
     }
 

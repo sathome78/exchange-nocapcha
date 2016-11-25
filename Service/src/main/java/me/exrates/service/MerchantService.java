@@ -66,4 +66,6 @@ public interface MerchantService {
     List<MyInputOutputHistoryDto> getMyInputOutputHistory(CacheData cacheData, String email, Integer offset, Integer limit, Locale locale);
 
     List<MyInputOutputHistoryDto> getMyInputOutputHistory(String email, Integer offset, Integer limit, Locale locale);
+
+    boolean checkInputRequestsLimit(int merchantId, String email);
 }
