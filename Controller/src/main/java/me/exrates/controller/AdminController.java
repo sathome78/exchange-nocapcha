@@ -4,6 +4,7 @@ import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.*;
@@ -83,6 +84,9 @@ public class AdminController {
     private InvoiceService invoiceService;
     @Autowired
     private BitcoinService bitcoinService;
+
+    @Autowired
+    private CommissionService commissionService;
 
     @Autowired
     @Qualifier("ExratesSessionRegistry")
@@ -824,5 +828,37 @@ public class AdminController {
         currencyService.updateMinWithdraw(currencyId, minAmount);
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
+    @RequestMapping(value = "/admin/commissions", method = RequestMethod.GET)
+    public ModelAndView commissions() {
+        List<Commission> commissions = commissionService.getEditableCommissions();
+        List<MerchantCurrencyCommissionDto> merchantCurrencies = merchantService.findMerchantCurrencyCommissions();
+        ModelAndView modelAndView = new ModelAndView("admin/editCommissions");
+        modelAndView.addObject("commissions", commissions);
+        modelAndView.addObject("merchantCurrencies", merchantCurrencies);
+        return modelAndView;
+    }
+
+    @RequestMapping(value = "/admin/commissions/editCommission", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity<Void> editCommission(@RequestParam("commissionId") Integer id,
+                                               @RequestParam("commissionValue") BigDecimal value) {
+        LOG.debug("id = " + id + ", value = " + value);
+        commissionService.updateCommission(id, value);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/admin/commissions/editMerchantCommission", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity<Void> editMerchantCommission(@RequestParam("merchantId") Integer merchantId,
+                                                       @RequestParam("currencyId") Integer currencyId,
+                                               @RequestParam("commissionValue") BigDecimal value) {
+        LOG.debug("merchantId = " + merchantId + ", currencyId = " + currencyId + ", value = " + value);
+        commissionService.updateMerchantCommission(merchantId, currencyId, value);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+
+
 
 }

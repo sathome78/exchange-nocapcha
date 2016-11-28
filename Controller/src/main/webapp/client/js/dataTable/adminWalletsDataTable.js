@@ -31,7 +31,7 @@ $(function () {
             ]
         });
     }
-    $('#walletsTable tbody').on('click', 'tr', function () {
+    $('#walletsTable').find('tbody').on('click', 'tr', function () {
         var currentRow = walletsDataTable.row( this );
         var currentData = currentRow.data();
         console.log(currentRow);
