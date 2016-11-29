@@ -1,11 +1,14 @@
 /**
  * Created by OLEG on 23.09.2016.
  */
+var currentLocale;
+
 $(document).ready(function () {
     var $commissionTable = $('#commissions-table');
     var $merchantCommissionTable = $('#merchant-commissions-table');
     var $commissionForm = $('#edit-commission-form');
     var $merchantCommissionForm = $('#edit-merchantCommission-form');
+    currentLocale = $('#language').text().trim().toLowerCase();
 
     $($commissionTable).DataTable({
         "bFilter": false,
@@ -70,7 +73,6 @@ $(document).ready(function () {
 
 function submitCommission(commissionId, value) {
     var formData =  $('#edit-commission-form').serialize();
-    console.log(formData);
     $.ajax({
         headers: {
             'X-CSRF-Token': $("input[name='_csrf']").val()
@@ -85,17 +87,17 @@ function submitCommission(commissionId, value) {
                 minFractionDigits = fractionPart.length;
             }
             var $cell = $('#commissions-table').find('tr[data-id="' + commissionId + '"] td:nth-child(2)');
-            $($cell).find('.commissionFormatted').text(value.toLocaleString(undefined, {
+            $($cell).find('.commissionFormatted').text(value.toLocaleString(currentLocale, {
                 minimumFractionDigits: minFractionDigits
             }));
             $($cell).find('.commissionUnformatted').text(value);
 
             $('#editCommissionModal').modal('hide');
-        }/*,
+        },
         error: function (error) {
             $('#editCommissionModal').modal('hide');
             console.log(error);
-        }*/
+        }
     });
 }
 
@@ -116,16 +118,16 @@ function submitMerchantCommission(merchantId, currencyId, value) {
             }
             var $cell = $('#merchant-commissions-table').find('tr[data-merchantid="' + merchantId + '"]' +
                 '[data-currencyid="' + currencyId + '"] td:nth-child(3)');
-            $($cell).find('.merchantCommissionFormatted').text(value.toLocaleString(undefined, {
+            $($cell).find('.merchantCommissionFormatted').text(value.toLocaleString(currentLocale, {
                 minimumFractionDigits: minFractionDigits
             }));
             $($cell).find('.merchantCommissionUnformatted').text(value);
 
             $('#editMerchantCommissionModal').modal('hide');
-        }/*,
+        },
          error: function (error) {
          $('#editCommissionModal').modal('hide');
          console.log(error);
-         }*/
+         }
     });
 }

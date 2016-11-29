@@ -27,7 +27,7 @@
             <div class="text-center"><h4><loc:message code="admin.commissions"/></h4></div>
 
             <sec:authorize access="hasAnyAuthority('${adminEnum}')">
-            <div class="buttons">
+            <div id="commissionsMenu" class="buttons">
                 <button class="active adminForm-toggler blue-box">
                     <loc:message code="admin.stockExchangeCommissions"/>
                 </button>
