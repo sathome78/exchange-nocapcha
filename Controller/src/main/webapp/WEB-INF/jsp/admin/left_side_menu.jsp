@@ -101,7 +101,7 @@
 
         <li>
             <%--referral--%>
-            <sec:authorize access="hasAnyAuthority('${adminEnum}')">
+            <sec:authorize access="hasAuthority('${admin_currencyLimits}')">
                 <a href="<c:url value='/admin/referral'/>"><loc:message code="admin.referral"/></a>
             </sec:authorize>
         </li>
