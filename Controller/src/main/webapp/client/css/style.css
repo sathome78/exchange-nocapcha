@@ -178,7 +178,6 @@ header li {
 .nav__link {
     padding: 10px 15px;
     line-height: 1.8rem;
-    font-size: 1.3rem;
 }
 
 .focus-white:focus {
@@ -335,6 +334,9 @@ header li {
     .dashboard-order__table td {
         font-size: 1.0rem;
     }
+    .nav__link {
+        font-size: 1.1rem;
+    }
 
 }
 
@@ -344,6 +346,9 @@ header li {
     }
     .dashboard-order__table td {
         font-size: 1.1rem;
+    }
+    .nav__link {
+        font-size: 1.3rem;
     }
 }
 

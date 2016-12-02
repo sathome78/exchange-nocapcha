@@ -16,7 +16,12 @@
     $(function () {
         var title = $('title').text().trim();
         var $menuItem = $('.sidebar > ul li').filter(function (index) {
-            return $(this).text().trim().indexOf(title) >= 0;
+
+            return ($(this).text().trim() === title) ||
+                ($(this).find('ul li').filter(function () {
+                    return ($(this).text().trim() === title);
+                }).length > 0);
+
         });
         $menuItem.children('a').wrapInner('<strong></strong>');
     })
