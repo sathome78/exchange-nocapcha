@@ -96,7 +96,7 @@
 
                     </sec:authorize>
                 </sec:authorize>
-
+            </div>
                 <%--Current user and email--%>
                 <div>
                     <h5><b>
@@ -608,7 +608,7 @@
                         <sec:authorize access="hasAuthority('${admin_manageAccess}')">
                             <c:if test="${user.role == adminEnum || user.role == accountantEnum || user.role == admin_userEnum}">
                                 <div id="panel6" class="tab-pane">
-                                    <div class="col-md-6 col-md-offset-3 content">
+                                    <div class="col-md-6 content">
                                         <div class="text-center"><h4><loc:message code="admin.accessRights"/></h4></div>
                                         <hr/>
                                         <div>
@@ -640,7 +640,7 @@
                         </sec:authorize>
 
                 </div>
-            </div>
+
         </div>
         <hr>
 </main>
