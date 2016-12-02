@@ -552,7 +552,7 @@
                                         <div class="modal-dialog modal-sm">
                                             <div class="modal-content">
                                                 <div class="modal-header">
-                                                    <h4 class="modal-title">${user.nickname}, ${user.email}, ${pageContext.response.locale.toString().toUpperCase()} </h4>
+                                                    <h4 class="modal-title">${user.nickname}, ${user.email}, ${userLang} </h4>
                                                 </div>
                                                 <div class="modal-body">
                                                     <p><loc:message code="admin.comment"/>:<Br>
