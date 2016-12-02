@@ -384,6 +384,7 @@ public class AdminController {
         form.setUserId(id);
         form.setOptions(userService.getAuthorityOptionsForUser(id, allowedAuthorities, localeResolver.resolveLocale(request)));
         model.addObject("authorityOptionsForm", form);
+        model.addObject("userLang", userService.getPreferedLang(id).toUpperCase());
 
         return model;
     }
