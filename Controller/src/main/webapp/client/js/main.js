@@ -135,6 +135,10 @@ $(function(){
             }else {
                 button.prop('disabled',true);
             }
+
+            if ($("#currencyName").val() == 'INR'){
+                button.prop('disabled',true);
+            }
         });
 
     (function loadData(dataUrl) {
