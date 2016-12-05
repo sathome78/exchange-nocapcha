@@ -112,6 +112,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/admin/editCurrencyLimits", "/admin/editCurrencyLimits/submit," +
                         "/admin/referral", "/admin/editCmnRefRoot", "/admin/editLevel").hasAuthority(AdminAuthority.SET_CURRENCY_LIMIT.name())
                 .antMatchers("/admin/editAuthorities/submit").hasAuthority(AdminAuthority.MANAGE_ACCESS.name())
+                .antMatchers("/admin/changeActiveBalance/submit").hasAuthority(AdminAuthority.MANUAL_BALANCE_CHANGE.name())
                 .antMatchers(HttpMethod.POST, "/admin/chat/deleteMessage").hasAnyAuthority(UserRole.ADMINISTRATOR.name(),
                 UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
                 .antMatchers("/", "/index.jsp", "/client/**", "/dashboard/**", "/registrationConfirm/**",
