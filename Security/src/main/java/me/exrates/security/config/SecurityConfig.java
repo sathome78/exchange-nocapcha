@@ -111,7 +111,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/admin/sessionControl", "/admin/userSessions", "/admin/expireSession").hasAuthority(AdminAuthority.MANAGE_SESSIONS.name())
                 .antMatchers("/admin/editCurrencyLimits", "/admin/editCurrencyLimits/submit," +
                         "/admin/referral", "/admin/editCmnRefRoot", "/admin/editLevel").hasAuthority(AdminAuthority.SET_CURRENCY_LIMIT.name())
-           //     .antMatchers("").hasAuthority(AdminAuthority.MANAGE_ACCESS.name())
+                .antMatchers("/admin/editAuthorities/submit").hasAuthority(AdminAuthority.MANAGE_ACCESS.name())
                 .antMatchers(HttpMethod.POST, "/admin/chat/deleteMessage").hasAnyAuthority(UserRole.ADMINISTRATOR.name(),
                 UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
                 .antMatchers("/", "/index.jsp", "/client/**", "/dashboard/**", "/registrationConfirm/**",
