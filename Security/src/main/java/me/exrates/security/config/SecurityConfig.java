@@ -1,5 +1,6 @@
 package me.exrates.security.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.model.enums.AdminAuthority;
 import me.exrates.model.enums.UserRole;
 import me.exrates.security.filter.CapchaAuthorizationFilter;
@@ -13,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -22,10 +25,22 @@ import org.springframework.security.config.annotation.web.configurers.SessionMan
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.WebAttributes;
+import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.access.AccessDeniedHandlerImpl;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 @EnableWebSecurity
@@ -84,6 +99,40 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return new SessionRegistryImpl();
     }
 
+    /*
+    * Defines separate access denied error handling logic for XHR (AJAX requests) and usual requests
+    * */
+    @Bean
+    public AccessDeniedHandler accessDeniedHandler() {
+        String errorPage = "/403";
+        return ((request, response, accessDeniedException) ->  {
+
+            if (!response.isCommitted()) {
+                String requestedWith = request.getHeader("X-Requested-With");
+                if ("XMLHttpRequest".equals(requestedWith)) {
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                    response.setCharacterEncoding("UTF-8");
+                    Map<String, Object> errorInfo = new HashMap<String, Object>() {{
+                        put("cause", accessDeniedException.getClass().getSimpleName());
+                        put("detail", accessDeniedException.getLocalizedMessage());
+                    }};
+                    String responseString = new ObjectMapper().writeValueAsString(errorInfo);
+                    ServletOutputStream out = response.getOutputStream();
+                    out.print(responseString);
+                    out.flush();
+                }
+                else {
+                    request.setAttribute(WebAttributes.ACCESS_DENIED_403,
+                            accessDeniedException);
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    RequestDispatcher dispatcher = request.getRequestDispatcher(errorPage);
+                    dispatcher.forward(request, response);
+                }
+            }
+        });
+    }
+
 
 
     @Autowired
@@ -99,11 +148,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.addFilterBefore(customQRAuthorizationFilter(), CapchaAuthorizationFilter.class);
         http
                 .authorizeRequests()
-                .antMatchers("/admin/withdrawal", "/withdrawal/request/accept", "/withdrawal/request/decline").hasAuthority(AdminAuthority.PROCESS_WITHDRAW.name())
+                .antMatchers("/withdrawal/request/accept", "/withdrawal/request/decline").hasAuthority(AdminAuthority.PROCESS_WITHDRAW.name())
                 .antMatchers("/admin/comments", "/admin/addComment", "/admin/deleteUserComment").hasAuthority(AdminAuthority.COMMENT_USER.name())
                 .antMatchers("/unsafe/**").hasAnyAuthority(UserRole.ADMINISTRATOR.name())
-                .antMatchers("/admin/**", "/admin").hasAnyAuthority(UserRole.ADMINISTRATOR.name(),
-                UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
+                .antMatchers("/admin/administrators").hasAuthority(UserRole.ADMINISTRATOR.name())
                 .antMatchers("/companywallet").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name())
                 .antMatchers("/merchants/bitcoin/payment/accept", "/merchants/invoice/payment/accept").hasAuthority(AdminAuthority.PROCESS_INVOICE.name())
                 .antMatchers("/admin/orderdelete").hasAuthority(AdminAuthority.DELETE_ORDER.name())
@@ -112,6 +160,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/admin/editCmnRefRoot", "/admin/editLevel").hasAuthority(AdminAuthority.SET_CURRENCY_LIMIT.name())
                 .antMatchers("/admin/editAuthorities/submit").hasAuthority(AdminAuthority.MANAGE_ACCESS.name())
                 .antMatchers("/admin/changeActiveBalance/submit").hasAuthority(AdminAuthority.MANUAL_BALANCE_CHANGE.name())
+                .antMatchers("/admin/**", "/admin").hasAnyAuthority(UserRole.ADMINISTRATOR.name(),
+                UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
                 .antMatchers(HttpMethod.POST, "/admin/chat/deleteMessage").hasAnyAuthority(UserRole.ADMINISTRATOR.name(),
                 UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
                 .antMatchers("/", "/index.jsp", "/client/**", "/dashboard/**", "/registrationConfirm/**",
@@ -172,7 +222,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //                .anyRequest().authenticated()
                 .anyRequest().hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.USER.name())
                 .and()
-                .exceptionHandling().accessDeniedPage("/403");
+                .exceptionHandling()
+                .accessDeniedHandler(accessDeniedHandler());
+      //          .accessDeniedPage("/403");
         SessionManagementConfigurer<HttpSecurity> sessionConfigurer = http.sessionManagement();
         sessionConfigurer
                 .sessionAuthenticationStrategy(new NullAuthenticatedSessionStrategy())

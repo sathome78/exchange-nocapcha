@@ -751,44 +751,12 @@ public class AdminController {
 
     @RequestMapping(value = "/admin/invoiceConfirmation")
     public ModelAndView invoiceTransactions(HttpSession httpSession) {
-        final Object mutex = WebUtils.getSessionMutex(httpSession);
-        String currentRole = "";
-        synchronized (mutex) {
-            currentRole = (String) httpSession.getAttribute("currentRole");
-        }
-        if (currentRole == null){
-            return new ModelAndView("403");
-        }
-        List<InvoiceRequest> list;
-
-        if (currentRole.equals(UserRole.ADMINISTRATOR.name()) || currentRole.equals(UserRole.ACCOUNTANT.name())) {
-            list = invoiceService.findAllInvoiceRequests();
-        } else {
-            return new ModelAndView("403");
-        }
-
-        return new ModelAndView("admin/transaction_invoice", "invoiceRequests", list);
+        return new ModelAndView("admin/transaction_invoice", "invoiceRequests", invoiceService.findAllInvoiceRequests());
     }
 
     @RequestMapping(value = "/admin/bitcoinConfirmation")
     public ModelAndView bitcoinTransactions(HttpSession httpSession) {
-        final Object mutex = WebUtils.getSessionMutex(httpSession);
-        String currentRole = "";
-        synchronized (mutex) {
-            currentRole = (String) httpSession.getAttribute("currentRole");
-        }
-        if (currentRole == null){
-            return new ModelAndView("403");
-        }
-        Map<Transaction,BTCTransaction> map;
-
-        if (currentRole.equals(UserRole.ADMINISTRATOR.name()) || currentRole.equals(UserRole.ACCOUNTANT.name())) {
-            map = bitcoinService.getBitcoinTransactions();
-        } else {
-            return new ModelAndView("403");
-        }
-
-        return new ModelAndView("admin/transaction_bitcoin", "bitcoinRequests", map);
+        return new ModelAndView("admin/transaction_bitcoin", "bitcoinRequests", bitcoinService.getBitcoinTransactions());
     }
 
     @RequestMapping(value = "/admin/sessionControl")
