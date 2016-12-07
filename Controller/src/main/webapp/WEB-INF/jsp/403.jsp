@@ -35,25 +35,30 @@
 </head>
 <body>
 <%@include file="fragments/header-simple.jsp" %>
-<div class="col-md-4 col-md-offset-4 content">
-    <div class="white-box text-center">
-            <div class="access-denied-header">
-                <img id="access-denied-img" src="<c:url value='/client/img/access_denied.png'/>">
-                <span id="access-denied-title"><loc:message code="accessDenied.title" />
+<main class="container">
+    <div class="row">
+        <div class="col-md-4 col-md-offset-4 content">
+            <div class="white-box text-center">
+                <div class="access-denied-header">
+                    <img id="access-denied-img" src="<c:url value='/client/img/access_denied.png'/>">
+                    <span id="access-denied-title"><loc:message code="accessDenied.title" />
                 </span>
+                </div>
+                <p><loc:message code="accessDenied.message" /></p>
+
+                <c:url value="/logout" var="logoutUrl" />
+                <form action="${logoutUrl}" method="post">
+                    <input type="submit" class="blue-box" style="width: auto" value="<loc:message code="accessDenied.signInDifferentUser" />" />
+                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
+                </form>
             </div>
-            <p><loc:message code="accessDenied.message" /></p>
 
-        <c:url value="/logout" var="logoutUrl" />
-        <form action="${logoutUrl}" method="post">
-            <input type="submit" class="blue-box" style="width: auto" value="<loc:message code="accessDenied.signInDifferentUser" />" />
-            <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
-        </form>
+
+        </div>
+
+
     </div>
-
-
-</div>
-
+</main>
 
 
 
