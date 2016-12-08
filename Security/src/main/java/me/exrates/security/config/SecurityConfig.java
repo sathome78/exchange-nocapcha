@@ -3,10 +3,7 @@ package me.exrates.security.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.model.enums.AdminAuthority;
 import me.exrates.model.enums.UserRole;
-import me.exrates.security.filter.CapchaAuthorizationFilter;
-import me.exrates.security.filter.LoginFailureHandler;
-import me.exrates.security.filter.LoginSuccessHandler;
-import me.exrates.security.filter.QRAuthorizationFilter;
+import me.exrates.security.filter.*;
 import me.exrates.security.service.UserDetailsServiceImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -103,34 +100,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     * Defines separate access denied error handling logic for XHR (AJAX requests) and usual requests
     * */
     @Bean
-    public AccessDeniedHandler accessDeniedHandler() {
-        String errorPage = "/403";
-        return ((request, response, accessDeniedException) ->  {
-
-            if (!response.isCommitted()) {
-                String requestedWith = request.getHeader("X-Requested-With");
-                if ("XMLHttpRequest".equals(requestedWith)) {
-                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                    response.setCharacterEncoding("UTF-8");
-                    Map<String, Object> errorInfo = new HashMap<String, Object>() {{
-                        put("cause", accessDeniedException.getClass().getSimpleName());
-                        put("detail", accessDeniedException.getLocalizedMessage());
-                    }};
-                    String responseString = new ObjectMapper().writeValueAsString(errorInfo);
-                    ServletOutputStream out = response.getOutputStream();
-                    out.print(responseString);
-                    out.flush();
-                }
-                else {
-                    request.setAttribute(WebAttributes.ACCESS_DENIED_403,
-                            accessDeniedException);
-                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                    RequestDispatcher dispatcher = request.getRequestDispatcher(errorPage);
-                    dispatcher.forward(request, response);
-                }
-            }
-        });
+    public AjaxAwareAccessDeniedHandler accessDeniedHandler() {
+        return new AjaxAwareAccessDeniedHandler("/403");
     }
 
 
