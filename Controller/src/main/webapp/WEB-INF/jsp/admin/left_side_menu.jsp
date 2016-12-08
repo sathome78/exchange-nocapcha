@@ -45,7 +45,7 @@
 
         <li>
             <%--Администраторы--%>
-            <sec:authorize access="hasAnyAuthority('${adminEnum}')">
+            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
                 <a href="<c:url value='/admin/administrators'/>"><loc:message code="admin.admins"/></a>
             </sec:authorize>
         </li>
@@ -82,7 +82,7 @@
 
         <li>
             <%--Финансисты--%>
-            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
+            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
                 <a href="#finMenu"  data-toggle="collapse"><loc:message code="admin.finance"/><i class="fa fa-caret-down"></i></a>
                 <div class="collapse" id="finMenu">
                     <ul>

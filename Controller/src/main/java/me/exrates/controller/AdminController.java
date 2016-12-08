@@ -365,10 +365,6 @@ public class AdminController {
         }
         model.addObject("roleList", roleList);
         User user = userService.getUserById(id);
-        if (!currentRole.equals(UserRole.ADMINISTRATOR.name()) && !user.getRole().name().equals(UserRole.USER.name())) {
-            return new ModelAndView("403");
-        }
-
         user.setId(id);
         model.addObject("user", user);
         model.addObject("currencies", currencyService.findAllCurrencies().stream()
@@ -399,9 +395,6 @@ public class AdminController {
         String currentRole = "";
         synchronized (mutex) {
             currentRole = (String) httpSession.getAttribute("currentRole");
-        }
-        if (!currentRole.equals(UserRole.ADMINISTRATOR.name()) && !user.getRole().name().equals(UserRole.USER.name())) {
-            return new ModelAndView("403");
         }
         user.setConfirmPassword(user.getPassword());
         if (user.getFinpassword() == null) {

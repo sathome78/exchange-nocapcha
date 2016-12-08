@@ -65,13 +65,13 @@
                     </button>
                 </sec:authorize>
                 <%--Список транзакций--%>
-                <sec:authorize access="hasAnyAuthority('${adminEnum}')">
+                <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
                     <button class="adminForm-toggler blue-box">
                         <loc:message code="admin.transactions"/>
                     </button>
                 </sec:authorize>
                 <%--Список кошельков--%>
-                <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
+                <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
                     <button class="adminForm-toggler blue-box">
                         <loc:message code="admin.wallets"/>
                     </button>
@@ -82,7 +82,7 @@
                         <loc:message code="orders.title"/>
                     </button>
                     <%--Comments--%>
-                    <sec:authorize access="hasAuthority('${admin_commentUser}')">
+                    <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
                     <button class="adminForm-toggler blue-box">
                         <loc:message code="admin.comments"/>
                     </button>
@@ -229,6 +229,7 @@
                                                                 id="parentEmail"/>
                                                 </div>
                                             </div>
+                                            <sec:authorize access="hasAuthority('${adminEnum}')">
                                             <div class="admin-submit-group">
                                                 <div>
                                                     <loc:message code="admin.save" var="saveSubmit"></loc:message>
@@ -239,6 +240,7 @@
                                                             onclick="javascript:window.location='/admin';">${cancelSubmit}</button>
                                                 </div>
                                             </div>
+                                            </sec:authorize>
                                         </fieldset>
                                     </div>
                                 </form:form>
@@ -534,7 +536,6 @@
                     </div>
 
                         <%--Users comments--%>
-                        <sec:authorize access="hasAuthority('${admin_commentUser}')">
                         <div id="panel5" class="tab-pane">
                             <div class="col-md-12 content">
                                 <%--Comments --%>
@@ -602,7 +603,6 @@
 
                             </div>
                         </div>
-                        </sec:authorize>
                     <%--Access management--%>
 
                         <sec:authorize access="hasAuthority('${admin_manageAccess}')">

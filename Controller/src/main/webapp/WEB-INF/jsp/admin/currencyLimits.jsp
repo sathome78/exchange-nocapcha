@@ -26,7 +26,6 @@
         <div class="col-md-8 col-md-offset-2 admin-container">
             <div class="text-center"><h4><loc:message code="admin.currencyLimits.title"/></h4></div>
 
-            <sec:authorize access="hasAnyAuthority('${adminEnum}')">
                 <div id="panel4 row" class="tab-pane">
                     <div class="col-sm-6 text-center">
                         <h5>
@@ -75,7 +74,6 @@
                         </table>
                     </div>
 
-            </sec:authorize>
 
         </div>
     </div>

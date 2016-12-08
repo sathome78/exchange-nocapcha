@@ -1,6 +1,8 @@
 package me.exrates.security.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.MediaType;
@@ -15,6 +17,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,6 +25,8 @@ import java.util.Map;
  * Created by OLEG on 08.12.2016.
  */
 public class AjaxAwareAccessDeniedHandler implements AccessDeniedHandler {
+
+    private static final Logger LOGGER = LogManager.getLogger(AjaxAwareAccessDeniedHandler.class);
 
     @Autowired
     private LocaleResolver localeResolver;
@@ -43,14 +48,16 @@ public class AjaxAwareAccessDeniedHandler implements AccessDeniedHandler {
                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                 response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                 response.setCharacterEncoding("UTF-8");
-                Map<String, Object> errorInfo = new HashMap<String, Object>() {{
+                Map<String, String> errorInfo = new HashMap<String, String>() {{
+                    put("error", accessDeniedException.toString());
                     put("cause", accessDeniedException.getClass().getSimpleName());
-                    put("detail", accessDeniedException.getLocalizedMessage());
+                    put("detail", messageSource.getMessage("accessDenied.title", null, localeResolver.resolveLocale(request)));
                 }};
                 String responseString = new ObjectMapper().writeValueAsString(errorInfo);
-                ServletOutputStream out = response.getOutputStream();
-                out.print(responseString);
-                out.flush();
+                LOGGER.debug(responseString);
+                PrintWriter writer = response.getWriter();
+                writer.print(responseString);
+                writer.flush();
             }
             else {
                 request.setAttribute(WebAttributes.ACCESS_DENIED_403,
