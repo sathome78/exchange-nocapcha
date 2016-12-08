@@ -46,6 +46,8 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         try {
             User principal = (User) authentication.getPrincipal();
+            LOGGER.info("Authentication succeeded for user: " + principal.getUsername());
+
             Locale locale = new Locale(userService.getPreferedLang(userService.getIdByEmail(principal.getUsername())));
             localeResolver.setLocale(request, response, locale);
         /**/
