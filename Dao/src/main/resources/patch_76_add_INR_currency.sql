@@ -14,4 +14,4 @@ INSERT INTO WALLET (user_id, currency_id) select id, (select id from CURRENCY wh
 INSERT INTO CURRENCY_PAIR VALUES (37, (select id from CURRENCY where name='INR'), (select id from CURRENCY where name='EDR'), 'INR/EDR', 210, 0);
 
 
-INSERT INTO DATABASE_PATCH VALUES('patch_75_added_INR_Currency_support',default,1);
+INSERT INTO DATABASE_PATCH VALUES('patch_76_added_INR_Currency_support',default,1);
