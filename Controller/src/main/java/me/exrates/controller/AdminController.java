@@ -374,6 +374,7 @@ public class AdminController {
         model.addObject("merchants", merchantList);
         model.addObject("maxAmount", transactionService.maxAmount());
         model.addObject("maxCommissionAmount", transactionService.maxCommissionAmount());
+        model.addObject("userLang", userService.getPreferedLang(id).toUpperCase());
 
         return model;
     }
