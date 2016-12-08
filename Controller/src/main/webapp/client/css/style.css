@@ -2051,3 +2051,31 @@ input[type=email], .dropdown-menu__form,
 #current-datetime {
     float: right;
 }
+
+.white-box {
+    background-color: #ffffff;
+    width: 100%;
+    border: 1px solid #000000;
+    margin: 100px 10px;
+}
+
+#access-denied-img {
+    height: 85px;
+    width: 85px;
+    margin: 10px 20px 0 0;
+    vertical-align: middle;
+}
+
+#access-denied-title {
+    font-size: 3rem;
+    margin-top: 20px;
+    vertical-align: middle;
+}
+.access-denied-header {
+    margin-bottom: 20px;
+}
+
+.access-denied-header + p {
+    font-size: 2rem;
+    margin-bottom: 30px;
+}
