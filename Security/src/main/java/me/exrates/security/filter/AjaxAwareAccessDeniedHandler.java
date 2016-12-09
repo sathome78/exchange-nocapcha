@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.web.servlet.LocaleResolver;
@@ -42,6 +43,12 @@ public class AjaxAwareAccessDeniedHandler implements AccessDeniedHandler {
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
+        LOGGER.debug("Access Denied Exception: " + accessDeniedException.getClass().getSimpleName() + "\n" +
+                accessDeniedException.getMessage());
+        LOGGER.debug("Request: " + request.getServletPath());
+        LOGGER.debug("Authentication: " + SecurityContextHolder.getContext().getAuthentication());
+
+
         if (!response.isCommitted()) {
             String requestedWith = request.getHeader("X-Requested-With");
             if ("XMLHttpRequest".equals(requestedWith)) {
