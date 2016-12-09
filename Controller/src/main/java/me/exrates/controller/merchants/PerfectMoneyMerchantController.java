@@ -53,7 +53,7 @@ public class PerfectMoneyMerchantController {
 
     private static final Logger logger = LogManager.getLogger("merchant");
 
-    @RequestMapping(value = "payment/provide",method = RequestMethod.POST)
+    @RequestMapping(value = "payment/status",method = RequestMethod.POST)
     public RedirectView outputPayment(Payment payment,Principal principal,RedirectAttributes redir, final HttpServletRequest request) {
         final Optional<CreditsOperation> creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName());
         if (!creditsOperation.isPresent()) {

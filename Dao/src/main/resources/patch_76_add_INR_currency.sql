@@ -1,5 +1,5 @@
 
-INSERT INTO `birzha`.`CURRENCY` (`name`, `description`, 1) VALUES ('INR', 'INR');
+INSERT INTO `birzha`.`CURRENCY` (`name`, `description`, `min_withdraw_sum`) VALUES ('INR', 'INR', 1);
 
 INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum)
   VALUES ((SELECT id from MERCHANT WHERE name="Invoice"),
