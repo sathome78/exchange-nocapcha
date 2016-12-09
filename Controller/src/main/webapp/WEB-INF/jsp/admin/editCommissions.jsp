@@ -26,7 +26,6 @@
         <div class="col-md-6 col-md-offset-2 admin-container">
             <div class="text-center"><h4><loc:message code="admin.commissions"/></h4></div>
 
-            <sec:authorize access="hasAnyAuthority('${adminEnum}')">
             <div id="commissionsMenu" class="buttons">
                 <button class="active adminForm-toggler blue-box">
                     <loc:message code="admin.stockExchangeCommissions"/>
@@ -100,7 +99,6 @@
 
 
 
-            </sec:authorize>
         </div>
 </main>
 <div id="editCommissionModal" class="modal fade">
