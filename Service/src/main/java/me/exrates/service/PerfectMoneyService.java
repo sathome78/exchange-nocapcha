@@ -17,11 +17,10 @@ public interface PerfectMoneyService {
 
     Transaction preparePaymentTransactionRequest(CreditsOperation creditsOperation);
 
-    void provideTransaction(Transaction transaction);
+    boolean provideTransaction(int transaction);
 
     void invalidateTransaction(Transaction transaction);
 
     String computePaymentHash(Map<String, String> perfectMoneyParams);
 
-    void consumePerfectMoneyResponse(Map<String,String> perfectMoneyResponse,Map<String,String> params);
 }

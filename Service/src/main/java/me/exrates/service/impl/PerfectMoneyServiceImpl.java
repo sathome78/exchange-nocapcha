@@ -14,6 +14,7 @@ import org.apache.logging.log4j.LogManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -79,7 +80,7 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
     @Transactional
     public void provideOutputPayment(Payment payment, CreditsOperation creditsOperation) {
         final Transaction transaction = preparePaymentTransactionRequest(creditsOperation);
-        provideTransaction(transaction);
+        provideTransaction(transaction.getId());
         final String response = provideOutputPayment(payment.getDestination(), transaction);
         switch (response) {
             case "OK":
@@ -143,8 +144,19 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
 
     @Override
     @Transactional
-    public void provideTransaction(Transaction transaction) {
-        transactionService.provideTransaction(transaction);
+    public boolean provideTransaction(int transactionId) {
+        Transaction transaction = transactionService.findById(transactionId);
+        if (transaction.isProvided()){
+            return true;
+        }
+        try{
+            transactionService.provideTransaction(transaction);
+        }catch (EmptyResultDataAccessException e){
+            logger.error(e);
+            return false;
+        }
+
+        return true;
     }
 
     @Override
@@ -165,12 +177,5 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
                 ":"+passpphraseHash +
                 ":"+params.get("TIMESTAMPGMT");
         return algorithmService.computeMD5Hash(hashParams).toUpperCase();
-    }
-
-    @Override
-    public void consumePerfectMoneyResponse(Map<String, String> perfectMoneyResponse,Map<String, String> params) {
-        params.put("PAYMENT_BATCH_NUM",perfectMoneyResponse.get("PAYMENT_BATCH_NUM"));
-        params.put("TIMESTAMPGMT", perfectMoneyResponse.get("TIMESTAMPGMT"));
-        params.put("PAYER_ACCOUNT", perfectMoneyResponse.get("PAYER_ACCOUNT"));
     }
 }
