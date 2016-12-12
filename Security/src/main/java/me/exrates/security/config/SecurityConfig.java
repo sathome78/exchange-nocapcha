@@ -113,6 +113,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/admin/expireSession").hasAuthority(AdminAuthority.MANAGE_SESSIONS.name())
                 .antMatchers("/admin/editCurrencyLimits/submit",
                         "/admin/editCmnRefRoot", "/admin/editLevel").hasAuthority(AdminAuthority.SET_CURRENCY_LIMIT.name())
+                .antMatchers("/admin/editCmnRefRoot").hasAuthority(UserRole.ADMINISTRATOR.name())
                 .antMatchers("/admin/editAuthorities/submit").hasAuthority(AdminAuthority.MANAGE_ACCESS.name())
                 .antMatchers("/admin/changeActiveBalance/submit").hasAuthority(AdminAuthority.MANUAL_BALANCE_CHANGE.name())
                 .antMatchers("/admin/**", "/admin", "/companywallet").hasAnyAuthority(UserRole.ADMINISTRATOR.name(),
