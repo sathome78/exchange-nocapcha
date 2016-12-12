@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.model.Transaction;
-import me.exrates.model.enums.OperationType;
 import me.exrates.service.MerchantService;
 import me.exrates.service.PerfectMoneyService;
 import org.apache.logging.log4j.LogManager;
@@ -31,6 +30,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.OK;
+
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
@@ -53,17 +55,23 @@ public class PerfectMoneyMerchantController {
 
     private static final Logger logger = LogManager.getLogger("merchant");
 
-    @RequestMapping(value = "payment/provide",method = RequestMethod.POST)
-    public RedirectView outputPayment(Payment payment,Principal principal,RedirectAttributes redir, final HttpServletRequest request) {
-        final Optional<CreditsOperation> creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName());
-        if (!creditsOperation.isPresent()) {
-            redir.addAttribute("errorNoty", messageSource.getMessage("merchants.invalidSum", null, localeResolver.resolveLocale(request)));
-            return new RedirectView("/dashboard");
+    @RequestMapping(value = "payment/status",method = RequestMethod.POST)
+    public ResponseEntity<Void> statusPayment(final @RequestParam Map<String,String> params,
+                                      final RedirectAttributes redir) {
+
+        logger.info("Response: " + params);
+
+        final ResponseEntity<Void> response = new ResponseEntity<>(OK);
+        final String hash = perfectMoneyService.computePaymentHash(params);
+
+        logger.info("hash: " + hash);
+        if (params.get("V2_HASH").equals(hash)) {
+            if (perfectMoneyService.provideTransaction(Integer.parseInt(params.get("PAYMENT_ID")))){
+                return response;
+            }
         }
-        perfectMoneyService.provideOutputPayment(payment, creditsOperation.get());
-        redir.addAttribute("successNoty", messageSource.getMessage("merchants.successfulBalanceDeposit",
-                merchantService.formatResponseMessage(creditsOperation.get()).values().toArray(), localeResolver.resolveLocale(request)));
-        return new RedirectView("/dashboard");
+
+        return new ResponseEntity<>(BAD_REQUEST);
     }
 
     @RequestMapping(value = "payment/prepare",method = RequestMethod.POST)
@@ -101,26 +109,20 @@ public class PerfectMoneyMerchantController {
                                        RedirectAttributes redir, final HttpServletRequest request) {
         logger.info("Response: " + response);
         final Object mutex = WebUtils.getSessionMutex(httpSession);
-        final Map<String,String> payeeParams;
         final Transaction openTransaction;
         synchronized (mutex) {
             openTransaction = (Transaction) httpSession.getAttribute("transaction");
-            payeeParams = (Map<String,String>)httpSession.getAttribute("payeeParams");
             httpSession.removeAttribute("transaction");
-            httpSession.removeAttribute("payeeParams");
         }
-        perfectMoneyService.consumePerfectMoneyResponse(response,payeeParams);
-        final String hash = perfectMoneyService.computePaymentHash(payeeParams);
-        if (response.get("V2_HASH").equals(hash)) {
-            perfectMoneyService.provideTransaction(openTransaction);
-            final String message = openTransaction.getOperationType() == OperationType.INPUT ? "merchants.successfulBalanceDeposit"
-                    : "merchants.successfulBalanceWithdraw";
-            redir.addAttribute("successNoty", messageSource.getMessage(message, merchantService.formatResponseMessage(openTransaction).values().toArray(), localeResolver.resolveLocale(request)));
-            return new RedirectView("/dashboard");
-        }
-        perfectMoneyService.invalidateTransaction(openTransaction);
-        redir.addAttribute("errorNoty", messageSource.getMessage("merchants.incorrectPaymentDetails", null, localeResolver.resolveLocale(request)));
+        final String hash = perfectMoneyService.computePaymentHash(response);
 
+        if (response.get("V2_HASH").equals(hash)) {
+            if (perfectMoneyService.provideTransaction(Integer.parseInt(response.get("PAYMENT_ID")))){
+                redir.addAttribute("successNoty", messageSource.getMessage("merchants.successfulBalanceDeposit", merchantService.formatResponseMessage(openTransaction).values().toArray(), localeResolver.resolveLocale(request)));
+                return new RedirectView("/dashboard");
+            }
+        }
+        redir.addAttribute("errorNoty", messageSource.getMessage("merchants.incorrectPaymentDetails", null, localeResolver.resolveLocale(request)));
         return new RedirectView("/dashboard");
     }
 
