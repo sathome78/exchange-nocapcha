@@ -41,7 +41,7 @@ function changeRefLevelPercent(refLevel, oldLevelId, percent) {
     }).done(function (e) {
         $('#_' + refLevel + ' .lvl-percent').html(percent);
         $(".table-row[data-id='" + oldLevelId + "'").attr('data-id', e['id']);
-        $('#myModal').modal('hide');
+        $('#refModal').modal('hide');
     }).fail(function (error) {
         console.log(JSON.stringify(error));
         alert(error['responseJSON']['error'])
