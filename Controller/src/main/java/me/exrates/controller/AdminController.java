@@ -801,16 +801,23 @@ public class AdminController {
     }
 
     @RequestMapping(value = "/admin/editAuthorities/submit", method = RequestMethod.POST)
-    public RedirectView editAuthorities(@ModelAttribute AuthorityOptionsForm authorityOptionsForm, Principal principal) {
+    public RedirectView editAuthorities(@ModelAttribute AuthorityOptionsForm authorityOptionsForm, Principal principal,
+                                        RedirectAttributes redirectAttributes) {
         LOG.debug(authorityOptionsForm.getOptions());
         LOG.debug(authorityOptionsForm.getUserId());
-        userService.updateAdminAuthorities(authorityOptionsForm.getOptions(), authorityOptionsForm.getUserId(), principal.getName());
+        RedirectView redirectView = new RedirectView("/admin/userInfo?id=" + authorityOptionsForm.getUserId());
+        try {
+            userService.updateAdminAuthorities(authorityOptionsForm.getOptions(), authorityOptionsForm.getUserId(), principal.getName());
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorNoty", e.getMessage());
+            return redirectView;
+        }
         String updatedUserEmail = userService.getUserById(authorityOptionsForm.getUserId()).getEmail();
         sessionRegistry.getAllPrincipals().stream()
                 .filter(currentPrincipal -> ((UserDetails) currentPrincipal).getUsername().equals(updatedUserEmail))
                 .findFirst()
                 .ifPresent(updatedUser -> sessionRegistry.getAllSessions(updatedUser, false).forEach(SessionInformation::expireNow));
-        return new RedirectView("/admin/userInfo?id=" + authorityOptionsForm.getUserId());
+        return redirectView;
     }
 
     @RequestMapping(value = "/admin/changeActiveBalance/submit", method = RequestMethod.POST)
