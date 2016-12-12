@@ -23,7 +23,7 @@ public class Cache {
         }
         Integer currentHash = cacheHashMap.get(cacheKey);
         try {
-            if (!forceUpdate && resultHash == currentHash) {
+            if (!forceUpdate && resultHash.equals(currentHash)) {
                 return true;
             } else {
                 cacheHashMap.put(cacheKey, resultHash);
