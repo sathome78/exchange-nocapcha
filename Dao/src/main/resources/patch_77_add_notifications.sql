@@ -42,4 +42,4 @@ CREATE TABLE `NOTIFICATION_OPTIONS` (
 INSERT INTO NOTIFICATION_OPTIONS (notification_event_id, user_id)
   SELECT NOTIFICATION_EVENT.id AS ntf_id, USER.id AS usr_id FROM NOTIFICATION_EVENT JOIN USER;
 
-  INSERT INTO DATABASE_PATCH (version, datetime, patched) VALUES ('patch_75_add_notifications', DEFAULT, 1);
+  INSERT INTO DATABASE_PATCH (version, datetime, patched) VALUES ('patch_77_add_notifications', DEFAULT, 1);

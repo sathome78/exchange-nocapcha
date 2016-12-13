@@ -47,4 +47,16 @@ INSERT INTO USER_ADMIN_AUTHORITY SELECT USER.id, ADMIN_AUTHORITY_ROLE_DEFAULTS.a
                                  FROM USER
                                    JOIN ADMIN_AUTHORITY_ROLE_DEFAULTS ON USER.roleid = ADMIN_AUTHORITY_ROLE_DEFAULTS.role_id;
 
-INSERT INTO DATABASE_PATCH (version, datetime, patched) VALUES ('patch_76_add_admin_authorities', DEFAULT, 1);
+ALTER TABLE `TRANSACTION`
+  CHANGE COLUMN `source_type` `source_type` ENUM('ORDER', 'MERCHANT', 'REFERRAL', 'ACCRUAL', 'MANUAL') NULL DEFAULT NULL ;
+
+
+ALTER TABLE `COMMISSION`
+  ADD COLUMN `editable` TINYINT(1) NOT NULL DEFAULT 0 AFTER `date`;
+UPDATE COMMISSION SET editable = 1 WHERE operation_type IN (1, 2, 3, 4);
+
+INSERT INTO OPERATION_TYPE (name, description) VALUES ('manual', NULL);
+
+INSERT INTO COMMISSION (operation_type, value) VALUES ((SELECT id FROM OPERATION_TYPE where name = 'manual'), 0);
+
+INSERT INTO DATABASE_PATCH (version, datetime, patched) VALUES ('patch_78_add_admin_authorities', DEFAULT, 1);
