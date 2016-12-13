@@ -9,6 +9,7 @@ $(function () {
                 "url": '/admin/usersList',
                 "dataSrc": ""
             },
+            "serverSide": true,
             "paging": true,
             "info": true,
             "columns": [

@@ -304,6 +304,21 @@ public class UserDaoImpl implements UserDao {
         return jdbcTemplate.query(sql, namedParameters, getUserRowMapper());
     }
 
+    @Override
+    public PagingData<List<User>> getUsersByRolesPaginated(List<UserRole> roles, int offset, int limit,
+                                                           String orderColumnName, String orderDirection,
+                                                           String searchValue) {
+        StringJoiner sqlJoiner = new StringJoiner(" ");
+        sqlJoiner.add(SELECT_USER).add("WHERE USER_ROLE.name IN (:roles)");
+        if (!(searchValue == null || searchValue.isEmpty())) {
+        }
+        sqlJoiner.add("ORDER BY").add(orderColumnName).add(orderDirection);
+        sqlJoiner.add("OFFSET").add(String.valueOf(offset)).add("LIMIT").add(String.valueOf(limit));
+
+
+        return null;
+    }
+
     public String getBriefInfo(int login) {
         return null;
     }
