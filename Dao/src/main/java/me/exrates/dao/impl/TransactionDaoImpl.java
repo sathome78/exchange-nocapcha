@@ -477,6 +477,13 @@ public final class TransactionDaoImpl implements TransactionDao {
                                             , locale, true));
                             break;
                         }
+                        case MANUAL: {
+                            accountStatementDto.setActiveBalanceAfter(BigDecimalProcessing
+                                    .formatLocale(BigDecimalProcessing
+                                                    .doAction(rs.getBigDecimal("active_balance_before"), rs.getBigDecimal("amount"), ActionType.ADD)
+                                            , locale, true));
+                            accountStatementDto.setReservedBalanceAfter(accountStatementDto.getReservedBalanceBefore());
+                        }
                     }
                 }
                 String merchantName = rs.getString("merchant_name");
