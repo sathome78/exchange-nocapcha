@@ -69,7 +69,7 @@
         </RollingFile>
     </Appenders>
     <Loggers>
-        <Logger name="merchant" level="OFF" additivity="false">
+        <Logger name="merchant" level="TRACE" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Merchants"/>
         </Logger>
@@ -95,19 +95,19 @@
         <logger name="org.springframework.jdbc.core.StatementCreatorUtils" level="OFF" additivity="false">
             <appender-ref ref="Console" />
         </logger>
-        <Logger name="me.exrates.controller.OnlineRestController" level="OFF" additivity="false">
+        <Logger name="me.exrates.controller.OnlineRestController" level="DEBUG" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="OnlineServices"/>
         </Logger>
-        <Logger name="me.exrates.controller.OrderControllerRest" level="OFF" additivity="false">
+        <Logger name="me.exrates.controller.OrderControllerRest" level="DEBUG" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="RestServices"/>
         </Logger>
-        <Logger name="me.exrates.controller.PublicController" level="OFF" additivity="false">
+        <Logger name="me.exrates.controller.PublicController" level="DEBUG" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="PublicServices"/>
         </Logger>
-        <Logger name="me.exrates.controller.filter.RequestFilter" level="OFF" additivity="false">
+        <Logger name="me.exrates.controller.filter.RequestFilter" level="DEBUG" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="SessionLog"/>
         </Logger>

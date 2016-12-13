@@ -137,7 +137,7 @@ public class BitcoinServiceImpl implements BitcoinService {
 
     @PostConstruct
     public void init() {
-        /*kit.wallet().addCoinsReceivedEventListener((wallet, tx, prevBalance, newBalance) -> {
+        kit.wallet().addCoinsReceivedEventListener((wallet, tx, prevBalance, newBalance) -> {
             final List<ListenableFuture<TransactionConfidence>> confirmations = IntStream.rangeClosed(1, 3)
                     .mapToObj(x -> tx.getConfidence().getDepthFuture(x))
                     .collect(toList());
@@ -162,7 +162,7 @@ public class BitcoinServiceImpl implements BitcoinService {
 
             }, pool);
             handleUncommittedTransaction(wallet, tx);
-        });*/
+        });
     }
 
     @PreDestroy
