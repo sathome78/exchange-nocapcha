@@ -8,6 +8,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.dto.MerchantCurrencyCommissionDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
+import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.WithdrawalRequestStatus;
 import me.exrates.model.vo.CacheData;
@@ -68,6 +69,9 @@ public class MerchantServiceImpl implements MerchantService {
 
     @Autowired
     private WalletService walletService;
+
+    @Autowired
+    private NotificationService notificationService;
 
     private static final BigDecimal HUNDREDTH = new BigDecimal(100L);
     private static final Logger LOG = LogManager.getLogger("merchant");
@@ -228,29 +232,21 @@ public class MerchantServiceImpl implements MerchantService {
                         .getMerchant()
                         .getDescription()
         };
+        String notificationMessageCode;
         switch (status) {
-            case NEW : notification = messageSource
-                    .getMessage("merchants.withdrawNotification", messageParams, locale);
+            case NEW : notificationMessageCode = "merchants.withdrawNotification";
                 break;
-            case ACCEPTED: notification = messageSource
-                    .getMessage("merchants.withdrawNotificationAccepted", messageParams, locale);
+            case ACCEPTED: notificationMessageCode = "merchants.withdrawNotificationAccepted";
                 break;
-            case DECLINED: notification = messageSource
-                    .getMessage("merchants.withdrawNotificationDeclined", messageParams, locale);
+            case DECLINED: notificationMessageCode = "merchants.withdrawNotificationDeclined";
                 break;
             default:
                 throw new MerchantInternalException(status + "Withdrawal status is invalid");
         }
-        final Email email = new Email();
-        email.setMessage(notification);
-        email.setSubject(messageSource
-                .getMessage("merchants.withdrawNotification.header", null, locale));
-        email.setTo(withdrawRequest.getUserEmail());
-        try {
-            sendMailService.sendMail(email);
-        } catch (MailException e) {
-            LOG.error(e);
-        }
+        notification = messageSource
+                .getMessage(notificationMessageCode, messageParams, locale);
+        notificationService.notifyUser(withdrawRequest.getUserEmail(), NotificationEvent.IN_OUT,
+                "merchants.withdrawNotification.header", notificationMessageCode, messageParams);
         return notification;
     }
 

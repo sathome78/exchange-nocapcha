@@ -79,6 +79,10 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private ReferralService referralService;
 
+    @Autowired
+    NotificationService notificationService;
+
+
     @Transactional
     @Override
     public ExOrderStatisticsDto getOrderStatistic(CurrencyPair currencyPair, BackDealInterval backDealInterval, Locale locale) {
@@ -268,7 +272,11 @@ public class OrderServiceImpl implements OrderService {
                 orderForPartialAccept.getExRate());
         int acceptedId = createOrder(accepted);
         createOrder(remainder);
-        acceptOrder(newOrder.getUserId(), acceptedId, locale);
+        acceptOrder(newOrder.getUserId(), acceptedId, locale, false);
+        notificationService.createLocalizedNotification(orderForPartialAccept.getUserId(), NotificationEvent.ORDER,
+                "orders.partialAccept.title", "orders.partialAccept.yourOrder",
+                new Object[]{orderForPartialAccept.getId(), amountForPartialAccept,
+                        orderForPartialAccept.getAmountBase(), newOrder.getCurrencyPair().getCurrency1().getName()});
         return messageSource.getMessage("orders.partialAccept.success", new Object[]{amountForPartialAccept,
                 orderForPartialAccept.getAmountBase(), newOrder.getCurrencyPair().getCurrency1().getName()}, locale);
     }
@@ -317,6 +325,11 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(rollbackFor = {Exception.class})
     @Override
     public void acceptOrder(int userAcceptorId, int orderId, Locale locale) {
+        acceptOrder(userAcceptorId, orderId, locale, true);
+
+    }
+
+    private void acceptOrder(int userAcceptorId, int orderId, Locale locale, boolean sendNotification) {
         try {
             ExOrder exOrder = this.getOrderById(orderId);
             WalletsForOrderAcceptionDto walletsForOrderAcceptionDto = walletDao.getWalletsForOrderByOrderIdAndBlock(exOrder.getId(), userAcceptorId);
@@ -502,6 +515,12 @@ public class OrderServiceImpl implements OrderService {
             if (!updateOrder(exOrder)) {
                 throw new OrderAcceptionException(messageSource.getMessage("orders.acceptsaveerror", null, locale));
             }
+            if (sendNotification) {
+                notificationService.createLocalizedNotification(exOrder.getUserId(), NotificationEvent.ORDER, "acceptordersuccess.title",
+                        "acceptorder.message", new Object[]{exOrder.getId()});
+            }
+
+
         } catch (Exception e) {
             logger.error("Error while accepting order with id = " + orderId + " exception: " + e.getLocalizedMessage());
             throw e;
@@ -611,6 +630,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(rollbackFor = {Exception.class})
     @Override
     public Integer deleteOrderByAdmin(int orderId) {
+        OrderCreateDto order = orderDao.getMyOrderById(orderId);
         Object result = orderDao.deleteOrderByAdmin(orderId);
         if (result instanceof OrderDeleteStatus) {
             if ((OrderDeleteStatus) result == OrderDeleteStatus.NOT_FOUND) {
@@ -618,6 +638,8 @@ public class OrderServiceImpl implements OrderService {
             }
             throw new OrderDeletingException(((OrderDeleteStatus) result).toString());
         }
+        notificationService.notifyUser(order.getUserId(), NotificationEvent.ORDER,
+                "deleteOrder.notificationTitle", "deleteOrder.notificationMessage", new Object[]{order.getOrderId()});
         return (Integer) result;
     }
 

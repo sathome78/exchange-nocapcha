@@ -79,7 +79,8 @@ public class UserDaoImpl implements UserDao {
     public boolean create(User user) {
         String sqlUser = "insert into USER(nickname,email,password,phone,status,roleid ) " +
                 "values(:nickname,:email,:password,:phone,:status,:roleid)";
-        String sqlWallet = "INSERT INTO WALLET (currency_id, user_id) select id, LAST_INSERT_ID() from CURRENCY where name != 'LTC';";
+        String sqlWallet = "INSERT INTO WALLET (currency_id, user_id) select id, :user_id from CURRENCY where name != 'LTC';";
+        String sqlNotificationOptions = "INSERT INTO NOTIFICATION_OPTIONS(notification_event_id, user_id) select id, :user_id FROM notification_event; ";
         Map<String, String> namedParameters = new HashMap<String, String>();
         namedParameters.put("email", user.getEmail());
         namedParameters.put("nickname", user.getNickname());
@@ -93,9 +94,13 @@ public class UserDaoImpl implements UserDao {
         namedParameters.put("phone", phone);
         namedParameters.put("status", String.valueOf(user.getStatus().getStatus()));
         namedParameters.put("roleid", String.valueOf(user.getRole().getRole()));
-        jdbcTemplate.update(sqlUser, namedParameters);
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(sqlUser, new MapSqlParameterSource(namedParameters), keyHolder);
+        int userId = keyHolder.getKey().intValue();
+        Map<String, Integer> userIdParamMap = Collections.singletonMap("user_id", userId);
 
-        return jdbcTemplate.update(sqlWallet, new HashMap<String, String>()) > 0;
+        return jdbcTemplate.update(sqlWallet, userIdParamMap) > 0
+                && jdbcTemplate.update(sqlNotificationOptions, userIdParamMap) > 0;
     }
 
     @Override

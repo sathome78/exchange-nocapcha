@@ -4,7 +4,9 @@ import me.exrates.dao.InvoiceRequestDao;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.InvoiceRequest;
 import me.exrates.model.Transaction;
+import me.exrates.model.enums.NotificationEvent;
 import me.exrates.service.InvoiceService;
+import me.exrates.service.NotificationService;
 import me.exrates.service.TransactionService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -22,6 +24,9 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     @Autowired
     private TransactionService transactionService;
+
+    @Autowired
+    private NotificationService notificationService;
 
     @Autowired
     private InvoiceRequestDao invoiceRequestDao;
@@ -53,6 +58,8 @@ public class InvoiceServiceImpl implements InvoiceService {
             InvoiceRequest invoiceRequest = invoiceRequestDao.findById(id).get();
             invoiceRequest.setAcceptanceUserEmail(acceptanceUserEmail);
             invoiceRequestDao.setAcceptance(invoiceRequest);
+            notificationService.notifyUser(invoiceRequest.getUserId(), NotificationEvent.IN_OUT, "paymentRequest.accepted.title",
+                    "paymentRequest.accepted.message", null);
         }catch (Exception e){
             LOG.error(e);
             return false;
