@@ -178,7 +178,6 @@ header li {
 .nav__link {
     padding: 10px 15px;
     line-height: 1.8rem;
-    font-size: 1.3rem;
 }
 
 .focus-white:focus {
@@ -335,6 +334,9 @@ header li {
     .dashboard-order__table td {
         font-size: 1.0rem;
     }
+    .nav__link {
+        font-size: 1.1rem;
+    }
 
 }
 
@@ -344,6 +346,9 @@ header li {
     }
     .dashboard-order__table td {
         font-size: 1.1rem;
+    }
+    .nav__link {
+        font-size: 1.3rem;
     }
 }
 
@@ -1842,7 +1847,9 @@ form span.repass,  form span.repass-error{
 }
 #feedback-form .input-block-wrapper,
 #edit-currency-limit-form .input-block-wrapper,
-#news-add-editor-form .input-block-wrapper {
+#news-add-editor-form .input-block-wrapper,
+#edit-merchantCommission-form .input-block-wrapper,
+#edit-commission-form .input-block-wrapper{
     display: inline-block;
     width: 100%;
     overflow: hidden;
@@ -1852,7 +1859,9 @@ form span.repass,  form span.repass-error{
 #feedback-form .input-block-wrapper__input-wrapper,
 #transaction-search-form .input-block-wrapper__input-wrapper,
 #edit-currency-limit-form .input-block-wrapper__input-wrapper,
-#news-add-editor-form .input-block-wrapper__input-wrapper {
+#news-add-editor-form .input-block-wrapper__input-wrapper,
+#edit-merchantCommission-form .input-block-wrapper__input-wrapper,
+#edit-commission-form .input-block-wrapper__input-wrapper {
     overflow: hidden;
     height: auto;
 }
@@ -1896,7 +1905,9 @@ input[type=email], .dropdown-menu__form,
     color: #337ab7
 }
 
-#currency-limits-table tr:hover {
+#currency-limits-table tr:hover,
+#commissions-table tr:hover,
+#merchant-commissions-table tr:hover {
     cursor: pointer;
 }
 #register_button {
@@ -1957,6 +1968,10 @@ input[type=email], .dropdown-menu__form,
 
 #current-datetime {
     float: right;
+}
+
+#commissionsMenu button {
+    width: 250px;
 }
 
 #authoritiesTable {

@@ -1,6 +1,7 @@
 package me.exrates.service;
 
 import me.exrates.model.*;
+import me.exrates.model.dto.MerchantCurrencyCommissionDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.OperationType;
@@ -44,6 +45,8 @@ public interface MerchantService {
     List<MerchantCurrency> findAllByCurrencies(List<Integer> currenciesId, OperationType operationType);
 
     List<MerchantCurrencyApiDto> findAllMerchantCurrencies(Integer currencyId);
+
+    List<MerchantCurrencyCommissionDto> findMerchantCurrencyCommissions();
 
     Map<String, String> formatResponseMessage(CreditsOperation creditsOperation);
 

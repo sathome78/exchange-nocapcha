@@ -16,7 +16,12 @@
     $(function () {
         var title = $('title').text().trim();
         var $menuItem = $('.sidebar > ul li').filter(function (index) {
-            return $(this).text().trim().indexOf(title) >= 0;
+
+            return ($(this).text().trim() === title) ||
+                ($(this).find('ul li').filter(function () {
+                    return ($(this).text().trim() === title);
+                }).length > 0);
+
         });
         $menuItem.children('a').wrapInner('<strong></strong>');
     })
@@ -89,6 +94,7 @@
                         <li><a href="<c:url value='/companywallet'/>"><loc:message code="admin.companyWallet"/></a></li>
                         <li><a href="<c:url value='/userswallets'/>"><loc:message code="admin.usersWallet"/></a></li>
                         <li><a href="<c:url value='/admin/editCurrencyLimits'/>"><loc:message code="admin.currencyLimits.title"/></a></li>
+                        <li><a href="<c:url value='/admin/commissions'/>"><loc:message code="admin.commissions"/></a></li>
                     </ul>
                 </div>
 

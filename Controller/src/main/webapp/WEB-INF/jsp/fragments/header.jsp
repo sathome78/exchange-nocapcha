@@ -46,7 +46,7 @@
                                 access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
                             <sec:authorize
                                     access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
-                                <a href="<c:url value='/admin'/>">
+                                <a class="nav__link" href="<c:url value='/admin'/>">
                                     <loc:message code="admin.title"/>
                                 </a>
                             </sec:authorize>
@@ -63,7 +63,7 @@
                            class="nav__link"><img src="/client/img/apple-solid.png" height="20" width="20"></a>
                     </li>
                     <sec:authorize access="isAuthenticated()">
-                        <li id="hello-my-friend"><a href="">
+                        <li id="hello-my-friend"><a class="nav__link" href="">
                             <loc:message code="dashboard.hello"/>
                             <strong><sec:authentication property="principal.username"/></strong></a>
                         </li>
