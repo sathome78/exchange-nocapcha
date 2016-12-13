@@ -338,6 +338,14 @@ header li {
         font-size: 1.1rem;
     }
 
+    #notification-icon .glyphicon {
+        font-size: 1.5rem;
+    }
+    #notification-icon span.badge {
+        font-size: 0.7rem;
+    }
+
+
 }
 
 @media (min-width: 1400px) {
@@ -349,6 +357,13 @@ header li {
     }
     .nav__link {
         font-size: 1.3rem;
+    }
+
+    #notification-icon .glyphicon {
+        font-size: 1.8rem;
+    }
+    #notification-icon span.badge {
+        font-size: 0.7rem;
     }
 }
 
@@ -1964,15 +1979,11 @@ input[type=email], .dropdown-menu__form,
     position: relative;
 }
 
-#notification-icon .glyphicon {
-    font-size: 1.8rem;
-}
 
 #notification-icon span.badge {
     position: absolute;
     right: 0;
     top: 5px;
-    font-size: 0.9rem;
     background-color: #ff0000;
 }
 

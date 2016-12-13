@@ -871,6 +871,7 @@ public class OnlineRestController {
         return result;
     }
 
+    @OnlineMethod
     @RequestMapping(value = "/dashboard/notifications/{tableId}", method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public List<NotificationDto> findNotificationsByUser(@PathVariable("tableId") String tableId,
                                                       @RequestParam(required = false) Boolean refreshIfNeeded,
