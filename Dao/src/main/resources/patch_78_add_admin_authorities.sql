@@ -1,4 +1,4 @@
-CREATE TABLE `admin_authority` (
+CREATE TABLE `ADMIN_AUTHORITY` (
   `id` int(11) NOT NULL,
   `name` varchar(45) NOT NULL,
   `description` varchar(45) DEFAULT NULL,
@@ -30,8 +30,8 @@ INSERT INTO ADMIN_AUTHORITY_ROLE_DEFAULTS SELECT USER_ROLE.id, ADMIN_AUTHORITY.i
   JOIN ADMIN_AUTHORITY WHERE USER_ROLE.id IN (1,2,3);
 
 UPDATE ADMIN_AUTHORITY_ROLE_DEFAULTS SET enabled = 1 WHERE (role_id = 1 AND admin_authority_id != 8)
-                                                           OR (role_id = 2 AND admin_authority_id IN(1,2,3,6))
-                                                           OR (role_id = 3 AND admin_authority_id IN(1,2,3,4,6));
+                                                           OR (role_id = 2 AND admin_authority_id IN(1,2,3,4,5))
+                                                           OR (role_id = 3 AND admin_authority_id IN(3,4,5));
 
 CREATE TABLE `USER_ADMIN_AUTHORITY` (
   `user_id` int(11) NOT NULL,
