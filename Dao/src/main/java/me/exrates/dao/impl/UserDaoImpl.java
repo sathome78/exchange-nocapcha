@@ -1,10 +1,7 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.UserDao;
-import me.exrates.model.Comment;
-import me.exrates.model.TemporalToken;
-import me.exrates.model.User;
-import me.exrates.model.UserFile;
+import me.exrates.model.*;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.*;
@@ -82,7 +79,8 @@ public class UserDaoImpl implements UserDao {
     public boolean create(User user) {
         String sqlUser = "insert into USER(nickname,email,password,phone,status,roleid ) " +
                 "values(:nickname,:email,:password,:phone,:status,:roleid)";
-        String sqlWallet = "INSERT INTO WALLET (currency_id, user_id) select id, LAST_INSERT_ID() from CURRENCY where name != 'LTC';";
+        String sqlWallet = "INSERT INTO WALLET (currency_id, user_id) select id, :user_id from CURRENCY where name != 'LTC';";
+        String sqlNotificationOptions = "INSERT INTO NOTIFICATION_OPTIONS(notification_event_id, user_id) select id, :user_id FROM notification_event; ";
         Map<String, String> namedParameters = new HashMap<String, String>();
         namedParameters.put("email", user.getEmail());
         namedParameters.put("nickname", user.getNickname());
@@ -96,9 +94,13 @@ public class UserDaoImpl implements UserDao {
         namedParameters.put("phone", phone);
         namedParameters.put("status", String.valueOf(user.getStatus().getStatus()));
         namedParameters.put("roleid", String.valueOf(user.getRole().getRole()));
-        jdbcTemplate.update(sqlUser, namedParameters);
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(sqlUser, new MapSqlParameterSource(namedParameters), keyHolder);
+        int userId = keyHolder.getKey().intValue();
+        Map<String, Integer> userIdParamMap = Collections.singletonMap("user_id", userId);
 
-        return jdbcTemplate.update(sqlWallet, new HashMap<String, String>()) > 0;
+        return jdbcTemplate.update(sqlWallet, userIdParamMap) > 0
+                && jdbcTemplate.update(sqlNotificationOptions, userIdParamMap) > 0;
     }
 
     @Override
@@ -151,13 +153,91 @@ public class UserDaoImpl implements UserDao {
 
     public UserRole getUserRoles(String email) {
         String sql = "select USER_ROLE.name as role_name from USER " +
-                "inner join USER_ROLE on USER.roleid = USER_ROLE.id where USER.email = :email";
+                "inner join USER_ROLE on USER.roleid = USER_ROLE.id where USER.email = :email ";
         Map<String, String> namedParameters = new HashMap<>();
         namedParameters.put("email", email);
         return jdbcTemplate.query(sql, namedParameters, (rs, row) -> {
             UserRole role = UserRole.valueOf(rs.getString("role_name"));
             return role;
         }).get(0);
+    }
+
+    @Override
+    public UserRole getUserRoleById(Integer id) {
+        String sql = "select USER_ROLE.name as role_name from USER " +
+                "inner join USER_ROLE on USER.roleid = USER_ROLE.id where USER.id = :id ";
+        Map<String, Integer> namedParameters = Collections.singletonMap("id", id);
+        return jdbcTemplate.queryForObject(sql, namedParameters, (rs, row) -> UserRole.valueOf(rs.getString("role_name")));
+    }
+
+    @Override
+    public List<String> getUserRoleAndAuthorities(String email) {
+        String sql = "select USER_ROLE.name as role_name from USER " +
+                "inner join USER_ROLE on USER.roleid = USER_ROLE.id " +
+                "where USER.email = :email " +
+                "UNION " +
+                "SELECT ADMIN_AUTHORITY.name AS role_name from USER " +
+                "inner join USER_ADMIN_AUTHORITY on USER_ADMIN_AUTHORITY.user_id = USER.id " +
+                "inner join ADMIN_AUTHORITY on USER_ADMIN_AUTHORITY.admin_authority_id = ADMIN_AUTHORITY.id " +
+                "where USER.email = :email AND USER_ADMIN_AUTHORITY.enabled = 1 ";
+        Map<String, String> namedParameters = Collections.singletonMap("email", email);
+        return jdbcTemplate.query(sql, namedParameters, (rs, row) -> rs.getString("role_name"));
+    }
+
+    @Override
+    public List<AdminAuthorityOption> getAuthorityOptionsForUser(Integer userId) {
+        String sql = "SELECT USER_ADMIN_AUTHORITY.admin_authority_id, USER_ADMIN_AUTHORITY.enabled FROM USER_ADMIN_AUTHORITY " +
+                "JOIN ADMIN_AUTHORITY ON ADMIN_AUTHORITY.id = USER_ADMIN_AUTHORITY.admin_authority_id AND ADMIN_AUTHORITY.hidden != 1 " +
+                "WHERE user_id = :user_id";
+        Map<String, Integer> params = Collections.singletonMap("user_id", userId);
+        return jdbcTemplate.query(sql, params, ((rs, rowNum) -> {
+            AdminAuthorityOption option = new AdminAuthorityOption();
+            option.setAdminAuthority(AdminAuthority.convert(rs.getInt("admin_authority_id")));
+            option.setEnabled(rs.getBoolean("enabled"));
+            return option;
+        }));
+    }
+
+    @Override
+    public boolean createAdminAuthoritiesForUser(Integer userId, UserRole role) {
+        String sql = "INSERT INTO USER_ADMIN_AUTHORITY SELECT :user_id, admin_authority_id, enabled " +
+                "FROM ADMIN_AUTHORITY_ROLE_DEFAULTS " +
+                "WHERE role_id = :role_id";
+        Map<String, Integer> params = new HashMap<>();
+        params.put("user_id", userId);
+        params.put("role_id", role.getRole());
+        return jdbcTemplate.update(sql, params) > 0;
+
+    }
+
+    @Override
+    public boolean hasAdminAuthorities(Integer userId) {
+        String sql = "SELECT COUNT(*) FROM USER_ADMIN_AUTHORITY WHERE user_id = :user_id ";
+        Map<String, Integer> params = Collections.singletonMap("user_id", userId);
+        Integer count = jdbcTemplate.queryForObject(sql, params, Integer.class);
+        return count > 0;
+    }
+
+    @Override
+    public void updateAdminAuthorities(List<AdminAuthorityOption> options, Integer userId) {
+        String sql = "UPDATE USER_ADMIN_AUTHORITY SET enabled = :enabled WHERE user_id = :user_id " +
+                "AND admin_authority_id = :admin_authority_id";
+        Map<String, Object>[] batchValues = options.stream().map(option -> {
+            Map<String, Object> optionValues = new HashMap<String, Object>() {{
+                put("admin_authority_id", option.getAdminAuthority().getAuthority());
+                put("user_id", userId);
+                put("enabled", option.getEnabled());
+            }};
+            return optionValues;
+        }).collect(Collectors.toList()).toArray(new Map[options.size()]);
+        jdbcTemplate.batchUpdate(sql, batchValues);
+    }
+
+    @Override
+    public boolean removeUserAuthorities(Integer userId) {
+        String sql = "DELETE FROM USER_ADMIN_AUTHORITY WHERE user_id = :user_id ";
+        Map<String, Integer> params = Collections.singletonMap("user_id", userId);
+        return jdbcTemplate.update(sql, params) > 0;
     }
 
     public boolean addUserRoles(String email, String role) {

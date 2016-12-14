@@ -178,7 +178,6 @@ header li {
 .nav__link {
     padding: 10px 15px;
     line-height: 1.8rem;
-    font-size: 1.3rem;
 }
 
 .focus-white:focus {
@@ -335,6 +334,17 @@ header li {
     .dashboard-order__table td {
         font-size: 1.0rem;
     }
+    .nav__link {
+        font-size: 1.1rem;
+    }
+
+    #notification-icon .glyphicon {
+        font-size: 1.5rem;
+    }
+    #notification-icon span.badge {
+        font-size: 0.7rem;
+    }
+
 
 }
 
@@ -344,6 +354,16 @@ header li {
     }
     .dashboard-order__table td {
         font-size: 1.1rem;
+    }
+    .nav__link {
+        font-size: 1.3rem;
+    }
+
+    #notification-icon .glyphicon {
+        font-size: 1.8rem;
+    }
+    #notification-icon span.badge {
+        font-size: 0.7rem;
     }
 }
 
@@ -539,7 +559,8 @@ input.item_input,
 			RIGHT SIDEBAR
 *********************************/
 .nickname,
-.news_title {
+.news_title,
+.notification-title {
     color: #525f74;
     margin: 10px 0 0;
     font-weight: 700;
@@ -1384,7 +1405,7 @@ table tbody .blink,
 }
 
 .blink_green {
-    background: rgba(0, 128, 0, 0.20);
+    background: rgba(0, 128, 0, 0.20) !important;
 }
 
 /********************************
@@ -1519,7 +1540,7 @@ form span.repass,  form span.repass-error{
 }
 
 .chat_message .message_time {
-    margin: 0px 10px;
+    margin: 0 10px;
 }
 
 .chat_message > button {
@@ -1842,7 +1863,9 @@ form span.repass,  form span.repass-error{
 }
 #feedback-form .input-block-wrapper,
 #edit-currency-limit-form .input-block-wrapper,
-#news-add-editor-form .input-block-wrapper {
+#news-add-editor-form .input-block-wrapper,
+#edit-merchantCommission-form .input-block-wrapper,
+#edit-commission-form .input-block-wrapper{
     display: inline-block;
     width: 100%;
     overflow: hidden;
@@ -1852,7 +1875,9 @@ form span.repass,  form span.repass-error{
 #feedback-form .input-block-wrapper__input-wrapper,
 #transaction-search-form .input-block-wrapper__input-wrapper,
 #edit-currency-limit-form .input-block-wrapper__input-wrapper,
-#news-add-editor-form .input-block-wrapper__input-wrapper {
+#news-add-editor-form .input-block-wrapper__input-wrapper,
+#edit-merchantCommission-form .input-block-wrapper__input-wrapper,
+#edit-commission-form .input-block-wrapper__input-wrapper {
     overflow: hidden;
     height: auto;
 }
@@ -1896,7 +1921,9 @@ input[type=email], .dropdown-menu__form,
     color: #337ab7
 }
 
-#currency-limits-table tr:hover {
+#currency-limits-table tr:hover,
+#commissions-table tr:hover,
+#merchant-commissions-table tr:hover {
     cursor: pointer;
 }
 #register_button {
@@ -1947,6 +1974,94 @@ input[type=email], .dropdown-menu__form,
 #all_news_table td {
     font-size: 1.2rem;
 }
+
+#notification-icon {
+    position: relative;
+}
+
+
+#notification-icon span.badge {
+    position: absolute;
+    right: 0;
+    top: 5px;
+    background-color: #ff0000;
+}
+
+#notification-icon .dropdown-menu {
+    width: 350px;
+    position: absolute;
+    left: -300px;
+    z-index: 999;
+    padding: 5px;
+}
+#notifications-header {
+    display: block;
+    height: 25px;
+    background-color: #FFF;
+    color: #525f74;
+}
+
+
+#notifications-header ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+#notifications-header li a {
+    display: block;
+    margin: 0 5px;
+}
+
+
+
+#notifications-body-wrapper {
+    display: block;
+    padding: 3px 5px;
+    max-height: 300px;
+    background-color: #FFF;
+    color: #525f74;
+    overflow: hidden;
+}
+
+.notification-item {
+    margin-bottom: 5px;
+    border: 1px solid rgba(209, 229, 249, 1);
+    border-radius: 5px;
+    padding: 5px;
+}
+
+.notification-item p {
+    margin-bottom: 0;
+}
+
+.notification-item.unread {
+    background-color: rgba(209, 229, 249, 0.5);
+}
+.notification-item.unread:hover {
+    background-color: rgba(209, 229, 249, 0.8);
+    cursor: pointer;
+}
+.notification-title {
+    color: #525f74;
+    margin: 0;
+    font-weight: 700;
+}
+
+.notification-item.read {
+    background-color: inherit;
+}
+
+.notification-message {
+    font-size: 1.2rem;
+    margin-bottom: 4px;
+}
+
+.notification-time, .notif-remove {
+    font-size: 1rem;
+}
+#notifications-body-wrapper .mCSB_container {
+    margin-right: 10px;
+}
 .current-time {
     width: 100%;
     display: inline-block;
@@ -1957,6 +2072,23 @@ input[type=email], .dropdown-menu__form,
 
 #current-datetime {
     float: right;
+}
+
+#commissionsMenu button {
+    width: 250px;
+}
+
+#authoritiesTable {
+    background-color: #FFF;
+}
+#authoritiesTable td {
+    font-size: 1.5rem;
+}
+
+#manualBalanceChangeForm .form-item {
+    display: inline-block;
+    margin: 5px 10px;
+    width: 30%;
 }
 
 .white-box {

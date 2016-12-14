@@ -3,7 +3,6 @@
  */
 
 function getOrderDetailedInfo(currentRow, orderId, enableDelete) {
-    console.log(orderId);
     $.ajax({
         url: '/admin/orderinfo?id=' + orderId,
         type: 'GET',
@@ -63,9 +62,12 @@ function deleteOrderByAdmin(order_id, currentRow) {
                     }
                     $('#order-delete-modal--result-info').modal();
                 },
-                error: function(){
-                    $('#order-delete-modal--result-info').find('.error-delete').toggle(true);
-                    $('#order-delete-modal--result-info').modal();
+                error: function(jqXHR){
+                    if (jqXHR.status != 403) {
+                        $('#order-delete-modal--result-info').find('.error-delete').toggle(true);
+                        $('#order-delete-modal--result-info').modal();
+                    }
+
                 }
             }
         );

@@ -5,9 +5,11 @@ import me.exrates.dao.UserDao;
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
+import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.UserStatus;
+import me.exrates.service.NotificationService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.*;
@@ -30,6 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -42,6 +45,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private MessageSource messageSource;
+
+    @Autowired
+    private NotificationService notificationService;
 
     @Autowired
     private HttpServletRequest request;
@@ -221,12 +227,27 @@ public class UserServiceImpl implements UserService {
 
     @Transactional(rollbackFor = Exception.class)
     public boolean createUserByAdmin(User user) {
-        return userDao.create(user);
+        boolean result = userDao.create(user);
+        if (result && user.getRole() != UserRole.USER && user.getRole() != UserRole.ROLE_CHANGE_PASSWORD) {
+            return userDao.createAdminAuthoritiesForUser(userDao.getIdByEmail(user.getEmail()), user.getRole());
+        }
+        return result;
     }
+
 
     @Transactional(rollbackFor = Exception.class)
     public boolean updateUserByAdmin(UpdateUserDto user) {
-        return userDao.update(user);
+        boolean result = userDao.update(user);
+        if (result) {
+            boolean hasAdminAuthorities = userDao.hasAdminAuthorities(user.getId());
+            if (user.getRole() == UserRole.USER && hasAdminAuthorities) {
+                return userDao.removeUserAuthorities(user.getId());
+            }
+            if (!hasAdminAuthorities && user.getRole() != UserRole.USER && user.getRole() != UserRole.ROLE_CHANGE_PASSWORD) {
+                return userDao.createAdminAuthoritiesForUser(user.getId(), user.getRole());
+            }
+        }
+        return result;
     }
 
     @Override
@@ -505,11 +526,8 @@ public class UserServiceImpl implements UserService {
         boolean success = userDao.addUserComment(comment);
 
         if (comment.isMessageSent()){
-            Email emailMessage = new Email();
-            emailMessage.setTo(user.getEmail());
-            emailMessage.setMessage(messageSource.getMessage("admin.subjectCommentMessage", null, locale) + ": " + newComment);
-            emailMessage.setSubject(messageSource.getMessage("admin.subjectCommentMessage", null, locale));
-            sendMailService.sendMail(emailMessage);
+            notificationService.notifyUser(user.getId(), NotificationEvent.ADMIN, "admin.subjectCommentTitle",
+                    "admin.subjectCommentMessage", new Object[]{": " + newComment});
         }
 
         return success;
@@ -518,6 +536,27 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean deleteUserComment(int id) {
         return userDao.deleteUserComment(id);
+    }
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AdminAuthorityOption> getAuthorityOptionsForUser(Integer userId, Set<String> allowedAuthorities, Locale locale) {
+        return userDao.getAuthorityOptionsForUser(userId).stream()
+                .filter(option -> allowedAuthorities.contains(option.getAdminAuthority().name()))
+                .peek(option -> option.localize(messageSource, locale))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public void updateAdminAuthorities(List<AdminAuthorityOption> options, Integer userId, String currentUserEmail) {
+        UserRole currentUserRole = userDao.getUserRoles(currentUserEmail);
+        UserRole updatedUserRole = userDao.getUserRoleById(userId);
+        if (currentUserRole != UserRole.ADMINISTRATOR && updatedUserRole == UserRole.ADMINISTRATOR) {
+            throw new ForbiddenOperationException("Status modification not permitted");
+        }
+        userDao.updateAdminAuthorities(options, userId);
+
     }
 
 }

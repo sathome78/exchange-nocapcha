@@ -12,4 +12,6 @@ public List<User> getAllUsers();
 public List<User> getUsersByRoles(List<UserRole> listRoles);
 
 public UserRole getUserRoles(String email);
+
+    List<String> getUserAuthorities(String email);
 }

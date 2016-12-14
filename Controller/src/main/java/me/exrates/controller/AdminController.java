@@ -3,10 +3,13 @@ package me.exrates.controller;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.*;
+import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.*;
+import me.exrates.model.form.AuthorityOptionsForm;
 import me.exrates.security.service.UserSecureServiceImpl;
 import me.exrates.service.*;
 import me.exrates.service.exception.OrderDeletingException;
@@ -19,6 +22,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -30,6 +35,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -83,6 +89,11 @@ public class AdminController {
     private InvoiceService invoiceService;
     @Autowired
     private BitcoinService bitcoinService;
+    @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
+    private CommissionService commissionService;
 
     @Autowired
     @Qualifier("ExratesSessionRegistry")
@@ -360,12 +371,10 @@ public class AdminController {
         }
         model.addObject("roleList", roleList);
         User user = userService.getUserById(id);
-        if (!currentRole.equals(UserRole.ADMINISTRATOR.name()) && !user.getRole().name().equals(UserRole.USER.name())) {
-            return new ModelAndView("403");
-        }
-
         user.setId(id);
         model.addObject("user", user);
+        model.addObject("currencies", currencyService.findAllCurrencies().stream()
+                .filter(currency -> !"LTC".equals(currency.getName())).collect(Collectors.toList()));
         model.addObject("currencyPairs", currencyService.getAllCurrencyPairs());
         model.setViewName("admin/editUser");
         model.addObject("userFiles", userService.findUserDoc(id));
@@ -374,6 +383,12 @@ public class AdminController {
         model.addObject("merchants", merchantList);
         model.addObject("maxAmount", transactionService.maxAmount());
         model.addObject("maxCommissionAmount", transactionService.maxCommissionAmount());
+        Set<String> allowedAuthorities = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
+        AuthorityOptionsForm form = new AuthorityOptionsForm();
+        form.setUserId(id);
+        form.setOptions(userService.getAuthorityOptionsForUser(id, allowedAuthorities, localeResolver.resolveLocale(request)));
+        model.addObject("authorityOptionsForm", form);
         model.addObject("userLang", userService.getPreferedLang(id).toUpperCase());
 
         return model;
@@ -386,9 +401,6 @@ public class AdminController {
         String currentRole = "";
         synchronized (mutex) {
             currentRole = (String) httpSession.getAttribute("currentRole");
-        }
-        if (!currentRole.equals(UserRole.ADMINISTRATOR.name()) && !user.getRole().name().equals(UserRole.USER.name())) {
-            return new ModelAndView("403");
         }
         user.setConfirmPassword(user.getPassword());
         if (user.getFinpassword() == null) {
@@ -410,6 +422,8 @@ public class AdminController {
             userService.updateUserByAdmin(updateUserDto);
             if (updateUserDto.getStatus() == UserStatus.DELETED) {
                 invalidateUserSession(updateUserDto.getEmail());
+            } else if (updateUserDto.getStatus() == UserStatus.BANNED_IN_CHAT) {
+                notificationService.notifyUser(user.getEmail(), NotificationEvent.ADMIN, "account.bannedInChat.title", "dashboard.onlinechatbanned", null);
             }
 
             model.setViewName("redirect:/admin");
@@ -732,50 +746,18 @@ public class AdminController {
     @ExceptionHandler(RuntimeException.class)
     @ResponseBody
     public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
-        exception.printStackTrace();
+        LOG.error(exception);
         return new ErrorInfo(req.getRequestURL(), exception);
     }
 
     @RequestMapping(value = "/admin/invoiceConfirmation")
     public ModelAndView invoiceTransactions(HttpSession httpSession) {
-        final Object mutex = WebUtils.getSessionMutex(httpSession);
-        String currentRole = "";
-        synchronized (mutex) {
-            currentRole = (String) httpSession.getAttribute("currentRole");
-        }
-        if (currentRole == null){
-            return new ModelAndView("403");
-        }
-        List<InvoiceRequest> list;
-
-        if (currentRole.equals(UserRole.ADMINISTRATOR.name()) || currentRole.equals(UserRole.ACCOUNTANT.name())) {
-            list = invoiceService.findAllInvoiceRequests();
-        } else {
-            return new ModelAndView("403");
-        }
-
-        return new ModelAndView("admin/transaction_invoice", "invoiceRequests", list);
+        return new ModelAndView("admin/transaction_invoice", "invoiceRequests", invoiceService.findAllInvoiceRequests());
     }
 
     @RequestMapping(value = "/admin/bitcoinConfirmation")
     public ModelAndView bitcoinTransactions(HttpSession httpSession) {
-        final Object mutex = WebUtils.getSessionMutex(httpSession);
-        String currentRole = "";
-        synchronized (mutex) {
-            currentRole = (String) httpSession.getAttribute("currentRole");
-        }
-        if (currentRole == null){
-            return new ModelAndView("403");
-        }
-        Map<Transaction,BTCTransaction> map;
-
-        if (currentRole.equals(UserRole.ADMINISTRATOR.name()) || currentRole.equals(UserRole.ACCOUNTANT.name())) {
-            map = bitcoinService.getBitcoinTransactions();
-        } else {
-            return new ModelAndView("403");
-        }
-
-        return new ModelAndView("admin/transaction_bitcoin", "bitcoinRequests", map);
+        return new ModelAndView("admin/transaction_bitcoin", "bitcoinRequests", bitcoinService.getBitcoinTransactions());
     }
 
     @RequestMapping(value = "/admin/sessionControl")
@@ -825,5 +807,68 @@ public class AdminController {
         currencyService.updateMinWithdraw(currencyId, minAmount);
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
+    @RequestMapping(value = "/admin/editAuthorities/submit", method = RequestMethod.POST)
+    public RedirectView editAuthorities(@ModelAttribute AuthorityOptionsForm authorityOptionsForm, Principal principal,
+                                        RedirectAttributes redirectAttributes) {
+        LOG.debug(authorityOptionsForm.getOptions());
+        LOG.debug(authorityOptionsForm.getUserId());
+        RedirectView redirectView = new RedirectView("/admin/userInfo?id=" + authorityOptionsForm.getUserId());
+        try {
+            userService.updateAdminAuthorities(authorityOptionsForm.getOptions(), authorityOptionsForm.getUserId(), principal.getName());
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorNoty", e.getMessage());
+            return redirectView;
+        }
+        String updatedUserEmail = userService.getUserById(authorityOptionsForm.getUserId()).getEmail();
+        sessionRegistry.getAllPrincipals().stream()
+                .filter(currentPrincipal -> ((UserDetails) currentPrincipal).getUsername().equals(updatedUserEmail))
+                .findFirst()
+                .ifPresent(updatedUser -> sessionRegistry.getAllSessions(updatedUser, false).forEach(SessionInformation::expireNow));
+        return redirectView;
+    }
+
+    @RequestMapping(value = "/admin/changeActiveBalance/submit", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity<Void> changeActiveBalance(@RequestParam Integer userId, @RequestParam("currency") Integer currencyId,
+                                            @RequestParam BigDecimal amount) {
+        LOG.debug("userId = " + userId + ", currencyId = " + currencyId + "? amount = " + amount);
+        walletService.manualBalanceChange(userId, currencyId, amount);
+        return new ResponseEntity<>(HttpStatus.OK);
+
+    }
+
+
+    @RequestMapping(value = "/admin/commissions", method = RequestMethod.GET)
+    public ModelAndView commissions() {
+        List<Commission> commissions = commissionService.getEditableCommissions();
+        List<MerchantCurrencyCommissionDto> merchantCurrencies = merchantService.findMerchantCurrencyCommissions();
+        ModelAndView modelAndView = new ModelAndView("admin/editCommissions");
+        modelAndView.addObject("commissions", commissions);
+        modelAndView.addObject("merchantCurrencies", merchantCurrencies);
+        return modelAndView;
+    }
+
+    @RequestMapping(value = "/admin/commissions/editCommission", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity<Void> editCommission(@RequestParam("commissionId") Integer id,
+                                               @RequestParam("commissionValue") BigDecimal value) {
+        LOG.debug("id = " + id + ", value = " + value);
+        commissionService.updateCommission(id, value);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/admin/commissions/editMerchantCommission", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity<Void> editMerchantCommission(@RequestParam("merchantId") Integer merchantId,
+                                                       @RequestParam("currencyId") Integer currencyId,
+                                               @RequestParam("commissionValue") BigDecimal value) {
+        LOG.debug("merchantId = " + merchantId + ", currencyId = " + currencyId + ", value = " + value);
+        commissionService.updateMerchantCommission(merchantId, currencyId, value);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+
+
 
 }

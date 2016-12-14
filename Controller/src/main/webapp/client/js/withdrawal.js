@@ -63,17 +63,15 @@ function promptAcceptRequest(requestId) {
             },
             type: 'POST',
             dataType: 'json',
-            data: data
-        }).done(function(result) {
-            alert(result['success']);
-            var classname = '.id_' + requestId;
-            var acceptance = result['acceptance'].split(/\s/);
-            $(classname + ' td:nth-child(8)').html(acceptance[0] + '<br\>' + acceptance[1]);
-            $(classname + ' td:nth-child(9)').html(result['email']);
-            $(classname + ' td:last-child').html($('#accepted').html());
-        }).fail(function(error){
-            alert(JSON.stringify(error));
-            alert(error['responseJSON']['error'])
+            data: data,
+            success: function (result) {
+                alert(result['success']);
+                var classname = '.id_' + requestId;
+                var acceptance = result['acceptance'].split(/\s/);
+                $(classname + ' td:nth-child(8)').html(acceptance[0] + '<br\>' + acceptance[1]);
+                $(classname + ' td:nth-child(9)').html(result['email']);
+                $(classname + ' td:last-child').html($('#accepted').html());
+            }
         });
     }
 }
@@ -89,22 +87,20 @@ function promptDeclineRequest(requestId) {
             },
             type: 'POST',
             dataType: 'json',
-            data: data
-        }).done(function(result) {
-            alert(result['success']);
-            var classname = '.id_' + requestId;
-            var acceptance = result['acceptance'].split(/\s/);
-            $(classname + ' td:nth-child(8)').html(acceptance[0] + '<br\>' + acceptance[1]);
-            $(classname + ' td:nth-child(9)').html(result['email']);
-            $(classname + ' td:last-child').html($('#declined').html());
-            $("#myModal").modal();
-            document.getElementById("sendMessageCheckbox").checked = true;
-            currentEmail = result.userEmail;
-            document.getElementById("user_info").textContent = document.getElementById("language").innerText + ", " +  result.userEmail;
-            $('#checkMessage').show();
-        }).fail(function(error){
-            alert(JSON.stringify(error));
-            alert(error['responseJSON']['error'])
+            data: data,
+            success: function (result) {
+                alert(result['success']);
+                var classname = '.id_' + requestId;
+                var acceptance = result['acceptance'].split(/\s/);
+                $(classname + ' td:nth-child(8)').html(acceptance[0] + '<br\>' + acceptance[1]);
+                $(classname + ' td:nth-child(9)').html(result['email']);
+                $(classname + ' td:last-child').html($('#declined').html());
+                $("#myModal").modal();
+                document.getElementById("sendMessageCheckbox").checked = true;
+                currentEmail = result.userEmail;
+                document.getElementById("user_info").textContent = document.getElementById("language").innerText + ", " +  result.userEmail;
+                $('#checkMessage').show();
+            }
         });
     }
 

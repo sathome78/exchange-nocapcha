@@ -29,7 +29,7 @@
         <c:set var="accountantEnum" value="<%=me.exrates.model.enums.UserRole.ACCOUNTANT%>"/>
         <c:set var="admin_userEnum" value="<%=me.exrates.model.enums.UserRole.ADMIN_USER%>"/>
 
-        <sec:authorize access="hasAnyAuthority('${adminEnum}')">
+        <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
 
             <div id="panel2" class="col-md-8 col-md-offset-1 admin-container">
                 <div class="col-md-12 text-center">

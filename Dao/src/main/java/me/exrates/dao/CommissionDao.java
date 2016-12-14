@@ -4,6 +4,7 @@ import me.exrates.model.Commission;
 import me.exrates.model.enums.OperationType;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public interface CommissionDao {
 
@@ -11,5 +12,10 @@ public interface CommissionDao {
 
 	BigDecimal getCommissionMerchant(String merchant, String currency);
 
-	}
+    List<Commission> getEditableCommissions();
+
+    void updateCommission(Integer id, BigDecimal value);
+
+    void updateMerchantCurrencyCommission(Integer merchantId, Integer currencyId, BigDecimal value);
+}
 

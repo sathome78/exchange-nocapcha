@@ -40,7 +40,7 @@
                             <sec:authorize
                                     access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
 
-                                <a href="<c:url value='/admin'/>">
+                                <a class="nav__link" href="<c:url value='/admin'/>">
                                     <loc:message code="admin.title"/>
                                 </a>
 
@@ -48,7 +48,7 @@
                         </sec:authorize>
                     </li>
 
-                    <li id="hello-my-friend"><a href="">
+                    <li id="hello-my-friend"><a class="nav__link" href="">
                         <loc:message code="dashboard.hello"/>
                         <strong><sec:authentication property="principal.username"/></strong></a>
                     </li>

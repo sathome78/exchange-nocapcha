@@ -1,10 +1,8 @@
 package me.exrates.security.config;
 
+import me.exrates.model.enums.AdminAuthority;
 import me.exrates.model.enums.UserRole;
-import me.exrates.security.filter.CapchaAuthorizationFilter;
-import me.exrates.security.filter.LoginFailureHandler;
-import me.exrates.security.filter.LoginSuccessHandler;
-import me.exrates.security.filter.QRAuthorizationFilter;
+import me.exrates.security.filter.*;
 import me.exrates.security.service.UserDetailsServiceImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -83,6 +81,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return new SessionRegistryImpl();
     }
 
+    /*
+    * Defines separate access denied error handling logic for XHR (AJAX requests) and usual requests
+    * */
+    @Bean
+    public AjaxAwareAccessDeniedHandler accessDeniedHandler() {
+        return new AjaxAwareAccessDeniedHandler("/403");
+    }
+
 
 
     @Autowired
@@ -98,17 +104,26 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.addFilterBefore(customQRAuthorizationFilter(), CapchaAuthorizationFilter.class);
         http
                 .authorizeRequests()
-                .antMatchers("/admin/withdrawal").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name())
+                .antMatchers(HttpMethod.POST,"/admin/edituser/submit", "/admin/users/deleteUserFile").hasAuthority(UserRole.ADMINISTRATOR.name())
+                .antMatchers("/withdrawal/request/accept", "/withdrawal/request/decline").hasAuthority(AdminAuthority.PROCESS_WITHDRAW.name())
+                .antMatchers("/admin/addComment", "/admin/deleteUserComment").hasAuthority(AdminAuthority.COMMENT_USER.name())
                 .antMatchers("/unsafe/**").hasAnyAuthority(UserRole.ADMINISTRATOR.name())
-                .antMatchers("/admin/**", "/admin").hasAnyAuthority(UserRole.ADMINISTRATOR.name(),
+                .antMatchers("/merchants/bitcoin/payment/accept", "/merchants/invoice/payment/accept").hasAuthority(AdminAuthority.PROCESS_INVOICE.name())
+                .antMatchers("/admin/orderdelete").hasAuthority(AdminAuthority.DELETE_ORDER.name())
+                .antMatchers("/admin/expireSession").hasAuthority(AdminAuthority.MANAGE_SESSIONS.name())
+                .antMatchers("/admin/editCurrencyLimits/submit",
+                        "/admin/editCmnRefRoot", "/admin/editLevel").hasAuthority(AdminAuthority.SET_CURRENCY_LIMIT.name())
+                .antMatchers("/admin/editCmnRefRoot").hasAuthority(UserRole.ADMINISTRATOR.name())
+                .antMatchers("/admin/editAuthorities/submit").hasAuthority(AdminAuthority.MANAGE_ACCESS.name())
+                .antMatchers("/admin/changeActiveBalance/submit").hasAuthority(AdminAuthority.MANUAL_BALANCE_CHANGE.name())
+                .antMatchers("/admin/**", "/admin", "/companywallet").hasAnyAuthority(UserRole.ADMINISTRATOR.name(),
                 UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
-                .antMatchers("/companywallet").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name())
                 .antMatchers(HttpMethod.POST, "/admin/chat/deleteMessage").hasAnyAuthority(UserRole.ADMINISTRATOR.name(),
                 UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
                 .antMatchers("/", "/index.jsp", "/client/**", "/dashboard/**", "/registrationConfirm/**",
                         "/changePasswordConfirm/**", "/changePasswordConfirm/**", "/aboutUs", "/57163a9b3d1eafe27b8b456a.txt", "/newIpConfirm/**").permitAll()
                 .antMatchers(HttpMethod.POST, "/merchants/withdrawal/request/accept",
-                        "/merchants/withdrawal/request/decline").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name())
+                        "/merchants/withdrawal/request/decline").hasAuthority(AdminAuthority.PROCESS_WITHDRAW.name())
                 .antMatchers(HttpMethod.POST, "/merchants/perfectmoney/payment/status",
                         "/merchants/perfectmoney/payment/status",
                         "/merchants/perfectmoney/payment/success",
@@ -163,7 +178,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 //                .anyRequest().authenticated()
                 .anyRequest().hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.USER.name())
                 .and()
-                .exceptionHandling().accessDeniedPage("/403");
+                .exceptionHandling()
+                .accessDeniedHandler(accessDeniedHandler());
+        //        .accessDeniedPage("/403");
         SessionManagementConfigurer<HttpSecurity> sessionConfigurer = http.sessionManagement();
         sessionConfigurer
                 .sessionAuthenticationStrategy(new NullAuthenticatedSessionStrategy())

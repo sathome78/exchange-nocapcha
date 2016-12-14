@@ -7,6 +7,7 @@
 <%--CAPTCHA--%>
 
 <script src="<c:url value="/client/js/jquery.noty.packaged.min.js"/>"></script>
+<script src="<c:url value="/client/js/notifications/notifications.js"/>"></script>
 
 <c:set var="path" value="${fn:replace(pageContext.request.requestURI, '/WEB-INF/jsp', '')}"/>
 <c:set var="path" value="${fn:replace(path, '.jsp', '')}"/>
@@ -46,7 +47,7 @@
                                 access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
                             <sec:authorize
                                     access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
-                                <a href="<c:url value='/admin'/>">
+                                <a class="nav__link" href="<c:url value='/admin'/>">
                                     <loc:message code="admin.title"/>
                                 </a>
                             </sec:authorize>
@@ -63,7 +64,7 @@
                            class="nav__link"><img src="/client/img/apple-solid.png" height="20" width="20"></a>
                     </li>
                     <sec:authorize access="isAuthenticated()">
-                        <li id="hello-my-friend"><a href="">
+                        <li id="hello-my-friend"><a class="nav__link" href="">
                             <loc:message code="dashboard.hello"/>
                             <strong><sec:authentication property="principal.username"/></strong></a>
                         </li>
@@ -133,7 +134,7 @@
                 </ul>
             </ul>
         </div>
-        <div class="cols-md-2">
+        <div class="cols-md-2 right_header_nav">
 
             <ul class="padding0">
                 <sec:authorize access="! isAuthenticated()">
@@ -171,6 +172,39 @@
                         <a href="<c:url value="/settings"/>">
                             <span class="glyphicon glyphicon-cog nav__link"></span>
                         </a>
+                    </li>
+                    <li>
+                        <div id="notification-icon" class="dropdown">
+                            <a class="dropdown-toggle" data-toggle="dropdown" role="button" href="#">
+                                <span class="glyphicon glyphicon-envelope nav__link"></span></a>
+                            <span id="unread-counter" class="badge"></span>
+                            <div class="dropdown-menu">
+                                <div id="notifications-header">
+                                    <ul>
+                                        <li><a href="#" onclick="markReadAll()"><loc:message code="notifications.markReadAll"/></a></li>
+                                        <li><a href="#" onclick="removeAllNotifications()"><loc:message code="notifications.removeAll"/></a></li>
+                                    </ul>
+                                </div>
+                                <div id="notifications-body-wrapper">
+                                <div id="notifications-body">
+                                    <div id="notifications-absent" class="invisible text-center">
+                                        <span><loc:message code="notifications.absent"/> </span>
+                                    </div>
+                                    <script type="text/template" id="notifications-row">
+                                        <@ var readClass = read ? 'read' : 'unread'; @>
+                                        <div class="notification-item <@=readClass@>" onclick="markRead(this)">
+                                            <input type="hidden" name="notificationId" class="notification-id" value="<@=id@>"/>
+                                            <p class="notification-title"><@=title@></p>
+                                            <p class="notification-message"><@=message@></p>
+                                            <a href="#" onclick="removeNotification(event, this)" class="notif-remove pull-right">
+                                                <loc:message code="notifications.remove"/></a>
+                                            <p class="notification-time text-muted"><@=creationTime@></p>
+                                            </div>';
+                                    </script>
+
+                                </div></div>
+                            </div>
+                        </div>
                     </li>
                 </sec:authorize>
 

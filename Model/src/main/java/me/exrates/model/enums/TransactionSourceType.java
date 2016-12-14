@@ -12,7 +12,8 @@ public enum TransactionSourceType {
     ORDER,
     MERCHANT,
     REFERRAL,
-    ACCRUAL;
+    ACCRUAL,
+    MANUAL;
 
     public static TransactionSourceType convert(String typeName) {
         switch (typeName) {
@@ -24,6 +25,8 @@ public enum TransactionSourceType {
                 return REFERRAL;
             case "ACCRUAL":
                 return ACCRUAL;
+            case "MANUAL":
+                return MANUAL;
             default:
                 throw new UnsupportedTransactionSourceTypeException(typeName);
         }

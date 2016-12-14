@@ -314,6 +314,9 @@ public final class TransactionDaoImpl implements TransactionDao {
                    case REFERRAL:
                        sourceTypes.add(TransactionSourceType.REFERRAL.toString());
                        break;
+                   case MANUAL:
+                       sourceTypes.add(TransactionSourceType.MANUAL.toString());
+                       break;
                    default:
                        break;
                }
@@ -473,6 +476,13 @@ public final class TransactionDaoImpl implements TransactionDao {
                                             .doAction(rs.getBigDecimal("reserved_balance_before"), rs.getBigDecimal("amount"), ActionType.SUBTRACT)
                                             , locale, true));
                             break;
+                        }
+                        case MANUAL: {
+                            accountStatementDto.setActiveBalanceAfter(BigDecimalProcessing
+                                    .formatLocale(BigDecimalProcessing
+                                                    .doAction(rs.getBigDecimal("active_balance_before"), rs.getBigDecimal("amount"), ActionType.ADD)
+                                            , locale, true));
+                            accountStatementDto.setReservedBalanceAfter(accountStatementDto.getReservedBalanceBefore());
                         }
                     }
                 }

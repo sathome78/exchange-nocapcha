@@ -22,18 +22,23 @@ public class UserSecureServiceImpl implements UserSecureService {
 
 
 	public List<User> getAllUsers() {
-		logger.info("Begin 'getAllUsers' method");
+		logger.trace("Begin 'getAllUsers' method");
 		return userDao.getAllUsers();
 		
 	}
 
 	public List<User> getUsersByRoles(List<UserRole> listRoles){
-		logger.info("Begin 'getUsersByRoles' method");
+		logger.trace("Begin 'getUsersByRoles' method");
 		return  userDao.getUsersByRoles(listRoles);
 	}
 
 	public UserRole getUserRoles(String email){
-		logger.info("Begin 'getUserRoles' method");
+		logger.trace("Begin 'getUserRoles' method");
 		return userDao.getUserRoles(email);
+	}
+
+	@Override
+    public List<String> getUserAuthorities(String email) {
+		return userDao.getUserRoleAndAuthorities(email);
 	}
 }

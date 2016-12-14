@@ -4,6 +4,7 @@ import me.exrates.dao.MerchantDao;
 import me.exrates.model.Merchant;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.MerchantImage;
+import me.exrates.model.dto.MerchantCurrencyCommissionDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.MerchantImageShortenedDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
@@ -166,6 +167,27 @@ public class MerchantDaoImpl implements MerchantDao {
             return Collections.EMPTY_LIST;
         }
     }
+
+    @Override
+    public List<MerchantCurrencyCommissionDto> findMerchantCurrencyCommissions() {
+        final String sql = "SELECT MERCHANT.id as merchant_id, MERCHANT.name AS merchant_name, " +
+                " CURRENCY.id AS currency_id, CURRENCY.name AS currency_name, MERCHANT_CURRENCY.merchant_commission " +
+                " FROM MERCHANT " +
+                "JOIN MERCHANT_CURRENCY ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id " +
+                "JOIN CURRENCY ON MERCHANT_CURRENCY.currency_id = CURRENCY.id " +
+                "ORDER BY merchant_id, currency_id";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            MerchantCurrencyCommissionDto dto = new MerchantCurrencyCommissionDto();
+            dto.setMerchantId(rs.getInt("merchant_id"));
+            dto.setCurrencyId(rs.getInt("currency_id"));
+            dto.setMerchantName(rs.getString("merchant_name"));
+            dto.setCurrencyName(rs.getString("currency_name"));
+            dto.setCommission(rs.getBigDecimal("merchant_commission"));
+            return dto;
+        });
+    }
+
+
 
     @Override
     public List<MyInputOutputHistoryDto> getMyInputOutputHistory(String email, Integer offset, Integer limit, Locale locale) {

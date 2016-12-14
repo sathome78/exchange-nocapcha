@@ -7,6 +7,7 @@ import me.exrates.model.*;
 import me.exrates.model.Currency;
 import me.exrates.model.dto.onlineTableDto.MyReferralDetailedDto;
 import me.exrates.model.enums.ActionType;
+import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.vo.CacheData;
@@ -44,6 +45,7 @@ public class ReferralServiceImpl implements ReferralService {
     private final UserService userService;
     private final Commission commission;
     private final CompanyWalletService companyWalletService;
+    private final NotificationService notificationService;
     /**
      * Maximum amount of percents
      */
@@ -63,7 +65,8 @@ public class ReferralServiceImpl implements ReferralService {
                                final WalletService walletService,
                                final UserService userService,
                                final CommissionService commissionService,
-                               final CompanyWalletService companyWalletService) {
+                               final CompanyWalletService companyWalletService,
+                               final NotificationService notificationService) {
         this.referralLevelDao = referralLevelDao;
         this.referralUserGraphDao = referralUserGraphDao;
         this.referralTransactionDao = referralTransactionDao;
@@ -71,6 +74,7 @@ public class ReferralServiceImpl implements ReferralService {
         this.userService = userService;
         this.commission = commissionService.findCommissionByType(REFERRAL);
         this.companyWalletService = companyWalletService;
+        this.notificationService = notificationService;
     }
 
     /**
@@ -143,6 +147,8 @@ public class ReferralServiceImpl implements ReferralService {
                 wod.setSourceId(createdRefTransaction.getId());
                 walletService.walletBalanceChange(wod);
                 companyWalletService.withdrawReservedBalance(cWallet, amount);
+                notificationService.createLocalizedNotification(parent, NotificationEvent.IN_OUT, "referral.title",
+                        "referral.message", new Object[]{amount, currency.getName()});
             } else {
                 break;
             }

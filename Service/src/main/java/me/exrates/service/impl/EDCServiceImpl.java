@@ -2,6 +2,9 @@ package me.exrates.service.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
@@ -35,7 +38,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static java.math.BigDecimal.ROUND_HALF_UP;
-import static org.springframework.transaction.annotation.Propagation.*;
+import static org.springframework.transaction.annotation.Propagation.NESTED;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -44,9 +47,11 @@ import static org.springframework.transaction.annotation.Propagation.*;
 @PropertySource("classpath:edc_cli_wallet.properties")
 public class EDCServiceImpl implements EDCService {
 
-    private @Value("${edc.blockchain.host}") String RPC_URL;
+    private @Value("${edc.blockchain.host_delayed}") String RPC_URL_DELAYED;
+    private @Value("${edc.blockchain.host_fast}") String RPC_URL_FAST;
     private @Value("${edc.account.registrar}") String REGISTRAR_ACCOUNT;
     private @Value("${edc.account.referrer}") String REFERRER_ACCOUNT;
+    private @Value("${edc.account.main}") String MAIN_ACCOUNT;
     private final String PENDING_PAYMENT_HASH = "1fc3403096856798ab8992f73f241334a4fe98ce";
 
     private final PendingPaymentDao paymentDao;
@@ -71,7 +76,7 @@ public class EDCServiceImpl implements EDCService {
     private final String REGISTER_NEW_ACCOUNT_RPC = "{\"method\":\"register_account\", \"jsonrpc\": \"2.0\", \"params\": [\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", 0, \"true\"], \"id\":%s}";
     private final String NEW_KEY_PAIR_RPC = "{\"method\": \"suggest_brain_key\", \"jsonrpc\": \"2.0\", \"params\": [], \"id\": %d}";
     private final String IMPORT_KEY = "{\"method\": \"import_key\", \"jsonrpc\": \"2.0\", \"params\": [\"%s\",\"%s\"], \"id\": %s}";
-    private final String TRANSFER_EDC = "";
+    private final String TRANSFER_EDC = "{\"method\":\"transfer\", \"jsonrpc\": \"2.0\", \"params\": [\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"true\"], \"id\":%s}";
     private final Pattern pattern = Pattern.compile("\"brain_priv_key\":\"([\\w\\s]+)+\",\"wif_priv_key\":\"(\\S+)\",\"pub_key\":\"(\\S+)\"");
 
     private volatile boolean debugLog = true;
@@ -121,7 +126,6 @@ public class EDCServiceImpl implements EDCService {
             if (debugLog) {
                 LOG.info("PROVIDING EDC TRANSACTION : " + tx);
             }
-            final EDCAccount edcAccount = edcAccountDao.findByTransactionId(tx.getId());
             final BigDecimal targetAmount = tx.getAmount().add(tx.getCommissionAmount()).setScale(DEC_PLACES, ROUND_HALF_UP);
             final BigDecimal currentAmount = new BigDecimal(tuple.right).setScale(DEC_PLACES, ROUND_HALF_UP).divide(BTS, ROUND_HALF_UP).setScale(DEC_PLACES, ROUND_HALF_UP);
             if (targetAmount.compareTo(currentAmount) != 0) {
@@ -130,6 +134,11 @@ public class EDCServiceImpl implements EDCService {
             transactionService.provideTransaction(tx);
             paymentDao.delete(payment.getInvoiceId());
             pendingPayments.remove(accountId);
+            try {
+                transferToMainAccount(accountId, tx);
+            } catch (IOException e) {
+                LOG.error(e);
+            }
         }
     }
 
@@ -187,7 +196,7 @@ public class EDCServiceImpl implements EDCService {
 
     private String extractAccountId(final String account, final int invoiceId) throws IOException {
         final String GET_ACCOUNT_ID_RPC = "{\"method\": \"get_account_id\", \"jsonrpc\": \"2.0\", \"params\": [\"%s\"], \"id\": %d}";
-        final String response = makeRpcCall(GET_ACCOUNT_ID_RPC, account, invoiceId);
+        final String response = makeRpcCallDelayed(GET_ACCOUNT_ID_RPC, account, invoiceId);
         final ObjectMapper mapper = new ObjectMapper();
         final Map<String,String> result = mapper.readValue(response, new TypeReference<Map<String, String>>() {});
         return result.get("result");
@@ -196,8 +205,8 @@ public class EDCServiceImpl implements EDCService {
     @Transactional(propagation = NESTED)
     private String createAccount(final int id) throws Exception {
         final String accountName = (ACCOUNT_PREFIX + id + UUID.randomUUID()).toLowerCase();
-        final EnumMap<KEY_TYPE, String> keys = extractKeys(makeRpcCall(NEW_KEY_PAIR_RPC, id)); // retrieve public and private from server
-        final String response = makeRpcCall(REGISTER_NEW_ACCOUNT_RPC, accountName, keys.get(KEY_TYPE.PUBLIC), keys.get(KEY_TYPE.PUBLIC), REGISTRAR_ACCOUNT, REFERRER_ACCOUNT, String.valueOf(id));
+        final EnumMap<KEY_TYPE, String> keys = extractKeys(makeRpcCallDelayed(NEW_KEY_PAIR_RPC, id)); // retrieve public and private from server
+        final String response = makeRpcCallDelayed(REGISTER_NEW_ACCOUNT_RPC, accountName, keys.get(KEY_TYPE.PUBLIC), keys.get(KEY_TYPE.PUBLIC), REGISTRAR_ACCOUNT, REFERRER_ACCOUNT, String.valueOf(id));
         if (response.contains("error")) {
             throw new Exception("Could not create new account!\n" + response);
         }
@@ -222,22 +231,48 @@ public class EDCServiceImpl implements EDCService {
         throw new RuntimeException("Invalid response from server:\n" + json);
     }
 
-    /**
-     * In progress
-     *
-     */
-//    public void transferToExchangeAccount(final String accountId, final Transaction tx) throws IOException {
-//        final EDCAccount edcAccount = edcAccountDao.findByTransactionId(tx.getId());
-//        final String response = makeRpcCall(IMPORT_KEY, accountId, edcAccount.getWifPrivKey(), tx.getId());
-//        if (response.contains("true")) {
-//
-//        }
-//    }
+    private String extractBalance(final String accountId, final int invoiceId) throws IOException {
+        final String LIST_ACCOUNT_BALANCE = "{\"method\": \"list_account_balances\", \"jsonrpc\": \"2.0\", \"params\": [\"%s\"], \"id\": %s}";
+        final String response = makeRpcCallFast(LIST_ACCOUNT_BALANCE, accountId, invoiceId);
+        JsonParser parser = new JsonParser();
+        JsonObject object = parser.parse(response).getAsJsonObject();
+        JsonArray result = object.getAsJsonArray("result");
+        if (result.size() != 1) {
+            throw new IllegalArgumentException(String.format("Json with balances [%s] contains illegal amount of balances", object));
+        }
+        BigDecimal amount = BigDecimal.valueOf(result.get(0).getAsJsonObject().get("amount").getAsLong()).divide(BTS);
 
-    private String makeRpcCall(String rpc, Object ... args) throws IOException {
+        return amount.subtract(new BigDecimal("0.001")).toString();
+    }
+
+    public void transferToMainAccount(final String accountId, final Transaction tx) throws IOException {
+        final EDCAccount edcAccount = edcAccountDao.findByTransactionId(tx.getId());
+        final String responseImportKey = makeRpcCallFast(IMPORT_KEY, accountId, edcAccount.getWifPrivKey(), tx.getId());
+        if (responseImportKey.contains("true")) {
+            String accountBalance = extractBalance(accountId, tx.getId());
+                final String responseTransfer = makeRpcCallFast(TRANSFER_EDC,accountId, MAIN_ACCOUNT, accountBalance, "EDC", "Inner transfer", String.valueOf(tx.getId()));
+                if (responseTransfer.contains("error")) {
+                    throw new IOException("Could not transfer money to main account!\n" + responseTransfer);
+                }
+        }
+    }
+
+    private String makeRpcCallDelayed(String rpc, Object ... args) throws IOException {
         final String rpcCall = String.format(rpc, args);
         final Request request = new Request.Builder()
-                .url(RPC_URL)
+                .url(RPC_URL_DELAYED)
+                .post(RequestBody.create(MEDIA_TYPE, rpcCall))
+                .build();
+        return HTTP_CLIENT.newCall(request)
+                .execute()
+                .body()
+                .string();
+    }
+
+    private String makeRpcCallFast(String rpc, Object ... args) throws IOException {
+        final String rpcCall = String.format(rpc, args);
+        final Request request = new Request.Builder()
+                .url(RPC_URL_FAST)
                 .post(RequestBody.create(MEDIA_TYPE, rpcCall))
                 .build();
         return HTTP_CLIENT.newCall(request)

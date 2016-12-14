@@ -6,11 +6,17 @@ $(function () {
     } else {
         var id = $("#user-id").val();
         walletsDataTable = $('#walletsTable').DataTable({
+            "bFilter": false,
+            "paging": false,
+            "order": [],
+            "bLengthChange": false,
+            "bPaginate": false,
+            "bInfo": false,
             "ajax": {
                 "url": '/admin/wallets?id=' + id,
                 "dataSrc": ""
             },
-            "paging": true,
+            /*"paging": true,*/
             "info": true,
             "columns": [
                 {
@@ -22,20 +28,18 @@ $(function () {
                 {
                     "data": "reservedBalance"
                 }
-            ],
+            ]/*,
             "order": [
                 [
                     0,
                     "asc"
                 ]
-            ]
+            ]*/
         });
     }
-    $('#walletsTable tbody').on('click', 'tr', function () {
+    $('#walletsTable').find('tbody').on('click', 'tr', function () {
         var currentRow = walletsDataTable.row( this );
         var currentData = currentRow.data();
-        console.log(currentRow);
-        console.log(currentData);
         window.location = "/admin/userStatements/" + currentData.id;
     })
 });

@@ -2,6 +2,7 @@ package me.exrates.service.impl;
 
 import me.exrates.dao.CurrencyDao;
 import me.exrates.dao.WalletDao;
+import me.exrates.model.Commission;
 import me.exrates.model.Currency;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
@@ -10,11 +11,17 @@ import me.exrates.model.dto.UserWalletSummaryDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
+import me.exrates.model.enums.ActionType;
+import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.WalletTransferStatus;
+import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WalletOperationData;
+import me.exrates.service.CommissionService;
 import me.exrates.service.WalletService;
+import me.exrates.service.exception.InvalidAmountException;
+import me.exrates.service.exception.ManualBalanceChangeException;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import me.exrates.service.util.Cache;
 import org.apache.logging.log4j.LogManager;
@@ -43,6 +50,8 @@ public final class WalletServiceImpl implements WalletService {
     private WalletDao walletDao;
     @Autowired
     private CurrencyDao currencyDao;
+    @Autowired
+    private CommissionService commissionService;
 
     @Override
     public void balanceRepresentation(final Wallet wallet) {
@@ -220,6 +229,31 @@ public final class WalletServiceImpl implements WalletService {
     @Override
     public List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(String email, Locale locale) {
         return walletDao.getAllWalletsForUserReduced(email, locale);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void manualBalanceChange(Integer userId, Integer currencyId, BigDecimal amount) {
+        Wallet wallet = walletDao.findByUserAndCurrency(userId, currencyId);
+        if (amount.equals(BigDecimal.ZERO)) {
+            return;
+        }
+        if (amount.signum() == -1 && amount.abs().compareTo(wallet.getActiveBalance()) > 0) {
+            throw new InvalidAmountException("Negative amount exceeds current balance!");
+        }
+        WalletOperationData walletOperationData = new WalletOperationData();
+        walletOperationData.setWalletId(wallet.getId());
+        walletOperationData.setAmount(amount);
+        walletOperationData.setBalanceType(WalletOperationData.BalanceType.ACTIVE);
+        walletOperationData.setOperationType(OperationType.MANUAL);
+        Commission commission = commissionService.findCommissionByType(OperationType.MANUAL);
+        walletOperationData.setCommission(commission);
+        walletOperationData.setCommissionAmount(BigDecimalProcessing.doAction(amount, commission.getValue(), ActionType.MULTIPLY_PERCENT));
+        walletOperationData.setSourceType(TransactionSourceType.MANUAL);
+        WalletTransferStatus status = walletBalanceChange(walletOperationData);
+        if (status != WalletTransferStatus.SUCCESS) {
+            throw new ManualBalanceChangeException(status.name());
+        }
     }
 
 }

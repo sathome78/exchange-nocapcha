@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service("userDetailsService")
 public class UserDetailsServiceImpl implements UserDetailsService {
@@ -25,7 +26,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	private static final Logger logger = LogManager.getLogger(UserDetailsServiceImpl.class);
 
     public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
-		logger.info("Begin 'loadUserByUsername' method");
+		logger.trace("Begin 'loadUserByUsername' method");
 		org.springframework.security.core.userdetails.User userSpring;
 		List<User> listUser = userSecureService.getAllUsers(); 
 		User person = getUser(listUser, login);
@@ -41,7 +42,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
    }
     private User getUser(List<User> lp, String userName)
 	{
-		logger.info("Begin 'getUser' method");
+		logger.trace("Begin 'getUser' method");
 		final String un = userName.toLowerCase();
 		return lp.stream()
 				.filter(e ->e.getEmail().toLowerCase().equals(un))
@@ -51,16 +52,18 @@ public class UserDetailsServiceImpl implements UserDetailsService {
       
     private Collection<GrantedAuthority> getAuthorities(String login)
 	{
-		logger.info("Begin 'getAuthorities' method");
-		UserRole role = userSecureService.getUserRoles(login);
+		logger.trace("Begin 'getAuthorities' method");
+		/*UserRole role = userSecureService.getUserRoles(login);
     	Collection<GrantedAuthority> authList = new ArrayList<GrantedAuthority>();
-    	authList.add(new SimpleGrantedAuthority(role.name()));
-
+    	authList.add(new SimpleGrantedAuthority(role.name()));*/
+        Collection<GrantedAuthority> authList = userSecureService.getUserAuthorities(login).stream()
+                .map(SimpleGrantedAuthority::new).collect(Collectors.toList());
+        logger.debug(authList);
 		return authList;
 	}
     
     private boolean ifUserAllowed(User user) {
-		logger.info("Begin 'ifUserAllowed' method");
+		logger.trace("Begin 'ifUserAllowed' method");
 		int userStatus = user.getStatus().getStatus();
 		if(userStatus == 2 || userStatus == 4) {
     		return true;
