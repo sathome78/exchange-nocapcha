@@ -42,6 +42,9 @@ public class UserDaoImpl implements UserDao {
             "USER.phone, USER.status, USER_ROLE.name AS role_name FROM USER " +
             "INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id LEFT JOIN REFERRAL_USER_GRAPH " +
             "ON USER.id = REFERRAL_USER_GRAPH.child LEFT JOIN USER AS u ON REFERRAL_USER_GRAPH.parent = u.id ";
+    private final String SELECT_COUNT = "SELECT COUNT(*) FROM USER " +
+            "INNER JOIN USER_ROLE ON USER.roleid = USER_ROLE.id LEFT JOIN REFERRAL_USER_GRAPH " +
+            "ON USER.id = REFERRAL_USER_GRAPH.child LEFT JOIN USER AS u ON REFERRAL_USER_GRAPH.parent = u.id ";
 
     @Autowired
     private NamedParameterJdbcTemplate jdbcTemplate;
@@ -309,14 +312,34 @@ public class UserDaoImpl implements UserDao {
                                                            String orderColumnName, String orderDirection,
                                                            String searchValue) {
         StringJoiner sqlJoiner = new StringJoiner(" ");
-        sqlJoiner.add(SELECT_USER).add("WHERE USER_ROLE.name IN (:roles)");
+        String whereClause = "WHERE USER_ROLE.name IN (:roles)";
+        sqlJoiner.add(SELECT_USER)
+                .add(whereClause);
+        String searchClause = "";
         if (!(searchValue == null || searchValue.isEmpty())) {
+            searchClause = "AND (CONVERT(USER.nickname USING utf8) LIKE :searchValue OR CONVERT(USER.email USING utf8) LIKE :searchValue " +
+                    "OR CONVERT(USER.regdate USING utf8) LIKE :searchValue)";
         }
-        sqlJoiner.add("ORDER BY").add(orderColumnName).add(orderDirection);
-        sqlJoiner.add("OFFSET").add(String.valueOf(offset)).add("LIMIT").add(String.valueOf(limit));
-
-
-        return null;
+        sqlJoiner.add(searchClause).add("ORDER BY").add("USER." + orderColumnName).add(orderDirection)
+                .add("LIMIT").add(String.valueOf(limit))
+                .add("OFFSET").add(String.valueOf(offset));
+        String sql = sqlJoiner.toString();
+        LOGGER.debug(sql);
+        Map<String, Object> namedParameters = new HashMap<>();
+        namedParameters.put("roles", roles.stream().map(Enum::name).collect(Collectors.toList()));
+        namedParameters.put("searchValue", "%" + searchValue + "%");
+        String selectCountSql = new StringJoiner(" ")
+                .add(SELECT_COUNT)
+                .add(whereClause).add(searchClause).toString();
+        LOGGER.debug(selectCountSql);
+        List<User> selectedUsers = jdbcTemplate.query(sql, namedParameters, getUserRowMapper());
+        Integer total = jdbcTemplate.queryForObject(selectCountSql, namedParameters, Integer.class);
+        PagingData<List<User>> result = new PagingData<>();
+        result.setData(selectedUsers);
+        result.setFiltered(total);
+        result.setTotal(total);
+        LOGGER.debug(result);
+        return result;
     }
 
     public String getBriefInfo(int login) {
