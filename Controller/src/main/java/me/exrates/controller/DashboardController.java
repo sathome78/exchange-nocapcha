@@ -206,8 +206,10 @@ public class DashboardController {
         } else {
             String password = user.getPassword();
             ModelAndView model = new ModelAndView();
-            UpdateUserDto updateUserDto = new UpdateUserDto(userService.findByEmail(principal.getName()).getId());
+            User updatedUser = userService.findByEmail(principal.getName());
+            UpdateUserDto updateUserDto = new UpdateUserDto(updatedUser.getId());
             updateUserDto.setPassword(password);
+            updateUserDto.setRole(updatedUser.getRole());
             userService.updateUserByAdmin(updateUserDto);
             /**/
             new SecurityContextLogoutHandler().logout(request, null, null);
