@@ -1,11 +1,14 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.StockExchangeDao;
+import me.exrates.model.StockExchange;
 import me.exrates.model.StockExchangeRate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,6 +29,13 @@ public class StockExchangeDaoImpl implements StockExchangeDao {
         params.put("stock_exchange_id", stockExchangeRate.getStockExchange().getId());
         params.put("exrate", stockExchangeRate.getExrate());
         jdbcTemplate.update(sql, params);
+    }
+
+    @Override
+    public StockExchange getStockExchangeByName(String name) {
+        String sql = "SELECT id, name, link FROM STOCK_EXCHANGE WHERE name = :name";
+        Map<String, String> params = Collections.singletonMap("name", name);
+        return jdbcTemplate.queryForObject(sql, params, new BeanPropertyRowMapper<>(StockExchange.class));
     }
 
 

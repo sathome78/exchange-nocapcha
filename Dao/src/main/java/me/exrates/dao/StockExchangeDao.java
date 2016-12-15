@@ -1,5 +1,6 @@
 package me.exrates.dao;
 
+import me.exrates.model.StockExchange;
 import me.exrates.model.StockExchangeRate;
 
 /**
@@ -7,4 +8,6 @@ import me.exrates.model.StockExchangeRate;
  */
 public interface StockExchangeDao {
     void saveStockExchangeRate(StockExchangeRate stockExchangeRate);
+
+    StockExchange getStockExchangeByName(String name);
 }
