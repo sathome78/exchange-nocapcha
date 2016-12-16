@@ -2,7 +2,7 @@ package me.exrates.dao;
 
 import me.exrates.model.Merchant;
 import me.exrates.model.MerchantCurrency;
-import me.exrates.model.dto.MerchantCurrencyCommissionDto;
+import me.exrates.model.dto.MerchantCurrencyOptionsDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.OperationType;
@@ -30,9 +30,11 @@ public interface MerchantDao {
 
     List<MerchantCurrencyApiDto> findAllMerchantCurrencies(Integer currencyId);
 
-    List<MerchantCurrencyCommissionDto> findMerchantCurrencyCommissions();
+    List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions();
 
     List<MyInputOutputHistoryDto> getMyInputOutputHistory(String email, Integer offset, Integer limit, Locale locale);
 
     Integer getInputRequests(int merchantId, String email);
+
+    void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType);
 }

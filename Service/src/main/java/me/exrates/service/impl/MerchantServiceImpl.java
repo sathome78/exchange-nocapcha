@@ -5,7 +5,7 @@ import me.exrates.dao.MerchantDao;
 import me.exrates.dao.WithdrawRequestDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
-import me.exrates.model.dto.MerchantCurrencyCommissionDto;
+import me.exrates.model.dto.MerchantCurrencyOptionsDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.NotificationEvent;
@@ -308,8 +308,8 @@ public class MerchantServiceImpl implements MerchantService {
     }
 
     @Override
-    public List<MerchantCurrencyCommissionDto> findMerchantCurrencyCommissions() {
-        return merchantDao.findMerchantCurrencyCommissions();
+    public List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions() {
+        return merchantDao.findMerchantCurrencyOptions();
     }
 
     @Override
@@ -481,6 +481,11 @@ public class MerchantServiceImpl implements MerchantService {
         boolean inLimit = merchantDao.getInputRequests(merchantId, email) < 5;
 
         return inLimit;
+    }
+
+    @Override
+    public void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType) {
+        merchantDao.toggleMerchantBlock(merchantId, currencyId, operationType);
     }
 
 }

@@ -4,7 +4,7 @@ import me.exrates.dao.MerchantDao;
 import me.exrates.model.Merchant;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.MerchantImage;
-import me.exrates.model.dto.MerchantCurrencyCommissionDto;
+import me.exrates.model.dto.MerchantCurrencyOptionsDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.MerchantImageShortenedDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
@@ -106,10 +106,16 @@ public class MerchantDaoImpl implements MerchantDao {
 
     @Override
     public List<MerchantCurrency> findAllByCurrencies(List<Integer> currenciesId, OperationType operationType) {
+        String blockClause = "";
+        if (operationType == OperationType.INPUT) {
+            blockClause = " AND MERCHANT_CURRENCY.refill_block = 0";
+        } else if (operationType == OperationType.OUTPUT) {
+            blockClause = " AND MERCHANT_CURRENCY.withdraw_block = 0";
+        }
         final String sql = "SELECT MERCHANT.id as merchant_id,MERCHANT.name,MERCHANT.description,MERCHANT_CURRENCY.min_sum," +
                 " MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_commission FROM MERCHANT JOIN MERCHANT_CURRENCY" +
                 " ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id WHERE MERCHANT_CURRENCY.currency_id in (:currenciesId)" +
-                (operationType == OperationType.OUTPUT  ? " AND MERCHANT_CURRENCY.withdraw_block = 0":"");
+                blockClause;
 
         try {
             return jdbcTemplate.query(sql, Collections.singletonMap("currenciesId",currenciesId), (resultSet, i) -> {
@@ -126,13 +132,11 @@ public class MerchantDaoImpl implements MerchantDao {
                 params.put("merchant_id", resultSet.getInt("merchant_id"));
                 params.put("currency_id", resultSet.getInt("currency_id"));
                 merchantCurrency.setListMerchantImage(jdbcTemplate.query(sqlInner, params, new BeanPropertyRowMapper<>(MerchantImage.class)));
-
                 return merchantCurrency;
             });
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
-
     }
 
     @Override
@@ -169,20 +173,23 @@ public class MerchantDaoImpl implements MerchantDao {
     }
 
     @Override
-    public List<MerchantCurrencyCommissionDto> findMerchantCurrencyCommissions() {
+    public List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions() {
         final String sql = "SELECT MERCHANT.id as merchant_id, MERCHANT.name AS merchant_name, " +
-                " CURRENCY.id AS currency_id, CURRENCY.name AS currency_name, MERCHANT_CURRENCY.merchant_commission " +
+                " CURRENCY.id AS currency_id, CURRENCY.name AS currency_name, MERCHANT_CURRENCY.merchant_commission," +
+                " MERCHANT_CURRENCY.withdraw_block, MERCHANT_CURRENCY.refill_block " +
                 " FROM MERCHANT " +
                 "JOIN MERCHANT_CURRENCY ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id " +
                 "JOIN CURRENCY ON MERCHANT_CURRENCY.currency_id = CURRENCY.id " +
                 "ORDER BY merchant_id, currency_id";
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
-            MerchantCurrencyCommissionDto dto = new MerchantCurrencyCommissionDto();
+            MerchantCurrencyOptionsDto dto = new MerchantCurrencyOptionsDto();
             dto.setMerchantId(rs.getInt("merchant_id"));
             dto.setCurrencyId(rs.getInt("currency_id"));
             dto.setMerchantName(rs.getString("merchant_name"));
             dto.setCurrencyName(rs.getString("currency_name"));
             dto.setCommission(rs.getBigDecimal("merchant_commission"));
+            dto.setRefillBlocked(rs.getBoolean("refill_block"));
+            dto.setWithdrawBlocked(rs.getBoolean("withdraw_block"));
             return dto;
         });
     }
@@ -240,6 +247,26 @@ public class MerchantDaoImpl implements MerchantDao {
         params.put("merchantId", merchantId);
         params.put("email", email);
         return jdbcTemplate.queryForObject(sql,params,Integer.class);
+    }
 
+    @Override
+    public void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType) {
+        String fieldToToggle = null;
+        switch (operationType) {
+            case INPUT:
+                fieldToToggle = "refill_block";
+                break;
+            case OUTPUT:
+                fieldToToggle = "withdraw_block";
+                break;
+            default:
+                throw new IllegalArgumentException("Incorrect operation type!");
+        }
+        String sql = "UPDATE MERCHANT_CURRENCY SET " + fieldToToggle + " = !" + fieldToToggle +
+                " WHERE merchant_id = :merchant_id AND currency_id = :currency_id ";
+        Map<String, Integer> params = new HashMap<>();
+        params.put("merchant_id", merchantId);
+        params.put("currency_id", currencyId);
+        jdbcTemplate.update(sql, params);
     }
 }

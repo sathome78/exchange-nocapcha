@@ -16,6 +16,7 @@ public class MerchantCurrencyApiDto {
     private BigDecimal minOutputSum;
     private BigDecimal commission;
     private Boolean isWithdrawBlocked;
+    private Boolean isRefillBlocked;
     private List<MerchantImageShortenedDto> listMerchantImage;
 
     public Integer getMerchantId() {
@@ -82,6 +83,14 @@ public class MerchantCurrencyApiDto {
         isWithdrawBlocked = withdrawBlocked;
     }
 
+    public Boolean getRefillBlocked() {
+        return isRefillBlocked;
+    }
+
+    public void setRefillBlocked(Boolean refillBlocked) {
+        isRefillBlocked = refillBlocked;
+    }
+
     @Override
     public String toString() {
         return "MerchantCurrencyApiDto{" +
@@ -91,6 +100,8 @@ public class MerchantCurrencyApiDto {
                 ", minInputSum=" + minInputSum +
                 ", minOutputSum=" + minOutputSum +
                 ", commission=" + commission +
+                ", isWithdrawBlocked=" + isWithdrawBlocked +
+                ", isRefillBlocked=" + isRefillBlocked +
                 ", listMerchantImage=" + listMerchantImage +
                 '}';
     }

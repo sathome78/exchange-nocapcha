@@ -5,12 +5,14 @@ import java.math.BigDecimal;
 /**
  * Created by OLEG on 28.11.2016.
  */
-public class MerchantCurrencyCommissionDto {
+public class MerchantCurrencyOptionsDto {
     private Integer merchantId;
     private Integer currencyId;
     private String merchantName;
     private String currencyName;
     private BigDecimal commission;
+    private Boolean isRefillBlocked;
+    private Boolean isWithdrawBlocked;
 
     public Integer getMerchantId() {
         return merchantId;
@@ -52,14 +54,32 @@ public class MerchantCurrencyCommissionDto {
         this.commission = commission;
     }
 
+    public Boolean getRefillBlocked() {
+        return isRefillBlocked;
+    }
+
+    public void setRefillBlocked(Boolean refillBlocked) {
+        isRefillBlocked = refillBlocked;
+    }
+
+    public Boolean getWithdrawBlocked() {
+        return isWithdrawBlocked;
+    }
+
+    public void setWithdrawBlocked(Boolean withdrawBlocked) {
+        isWithdrawBlocked = withdrawBlocked;
+    }
+
     @Override
     public String toString() {
-        return "MerchantCurrencyCommissionDto{" +
+        return "MerchantCurrencyOptionsDto{" +
                 "merchantId=" + merchantId +
                 ", currencyId=" + currencyId +
                 ", merchantName='" + merchantName + '\'' +
                 ", currencyName='" + currencyName + '\'' +
                 ", commission=" + commission +
+                ", isRefillBlocked=" + isRefillBlocked +
+                ", isWithdrawBlocked=" + isWithdrawBlocked +
                 '}';
     }
 }
