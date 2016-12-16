@@ -1,5 +1,8 @@
 package me.exrates.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by OLEG on 14.12.2016.
  */
@@ -8,6 +11,7 @@ public class StockExchange {
     private Integer id;
     private String name;
     private String link;
+    private List<CurrencyPair> availableCurrencyPairs = new ArrayList<>();
 
     public Integer getId() {
         return id;
@@ -33,24 +37,12 @@ public class StockExchange {
         this.link = link;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        StockExchange that = (StockExchange) o;
-
-        if (id != null ? !id.equals(that.id) : that.id != null) return false;
-        if (name != null ? !name.equals(that.name) : that.name != null) return false;
-        return link != null ? link.equals(that.link) : that.link == null;
+    public List<CurrencyPair> getAvailableCurrencyPairs() {
+        return availableCurrencyPairs;
     }
 
-    @Override
-    public int hashCode() {
-        int result = id != null ? id.hashCode() : 0;
-        result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (link != null ? link.hashCode() : 0);
-        return result;
+    public void setAvailableCurrencyPairs(List<CurrencyPair> availableCurrencyPairs) {
+        this.availableCurrencyPairs = availableCurrencyPairs;
     }
 
     @Override
@@ -59,6 +51,7 @@ public class StockExchange {
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", link='" + link + '\'' +
+                ", availableCurrencyPairs=" + availableCurrencyPairs +
                 '}';
     }
 }

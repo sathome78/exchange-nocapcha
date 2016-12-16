@@ -3,6 +3,7 @@ package me.exrates.controller.mobile;
 import me.exrates.controller.exception.*;
 import me.exrates.controller.listener.StoreSessionListener;
 import me.exrates.model.User;
+import me.exrates.model.dto.StockExchangeRateDto;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
@@ -13,10 +14,7 @@ import me.exrates.security.exception.IncorrectPasswordException;
 import me.exrates.security.exception.MissingCredentialException;
 import me.exrates.security.exception.UserNotEnabledException;
 import me.exrates.security.service.AuthTokenService;
-import me.exrates.service.ApiService;
-import me.exrates.service.ReferralService;
-import me.exrates.service.UserFilesService;
-import me.exrates.service.UserService;
+import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.*;
 import me.exrates.service.util.RestPasswordDecodingUtils;
@@ -48,6 +46,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static me.exrates.service.exception.api.ErrorCode.*;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 /**
  * Created by OLEG on 19.08.2016.
@@ -81,6 +80,9 @@ public class MobileEntryController {
     private UserFilesService userFilesService;
     @Autowired
     private ApiService apiService;
+
+    @Autowired
+    private StockExchangeService stockExchangeService;
 
     @Autowired
     private StoreSessionListener storeSessionListener;
@@ -1010,6 +1012,11 @@ public class MobileEntryController {
             session.setAttribute("USER_DETAIL_TOKEN", userDetails);
         }
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/rest/stockExchangeStatistics", method = GET, produces = "application/json; charset=UTF-8")
+    public List<StockExchangeRateDto> getStockExchangeStatistics() {
+        return stockExchangeService.getStockExchangeStatistics();
     }
 
 

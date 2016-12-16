@@ -9,8 +9,8 @@ import java.time.LocalDateTime;
 public class StockExchangeRate {
 
     private Long id;
-    private CurrencyPair currencyPair;
-    private StockExchange stockExchange;
+    private Integer currencyPairId;
+    private Integer stockExchangeId;
     private BigDecimal exrate;
     private LocalDateTime date;
 
@@ -22,20 +22,20 @@ public class StockExchangeRate {
         this.id = id;
     }
 
-    public CurrencyPair getCurrencyPair() {
-        return currencyPair;
+    public Integer getCurrencyPairId() {
+        return currencyPairId;
     }
 
-    public void setCurrencyPair(CurrencyPair currencyPair) {
-        this.currencyPair = currencyPair;
+    public void setCurrencyPairId(Integer currencyPairId) {
+        this.currencyPairId = currencyPairId;
     }
 
-    public StockExchange getStockExchange() {
-        return stockExchange;
+    public Integer getStockExchangeId() {
+        return stockExchangeId;
     }
 
-    public void setStockExchange(StockExchange stockExchange) {
-        this.stockExchange = stockExchange;
+    public void setStockExchangeId(Integer stockExchangeIn) {
+        this.stockExchangeId = stockExchangeIn;
     }
 
     public BigDecimal getExrate() {
@@ -55,36 +55,11 @@ public class StockExchangeRate {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        StockExchangeRate that = (StockExchangeRate) o;
-
-        if (id != null ? !id.equals(that.id) : that.id != null) return false;
-        if (currencyPair != null ? !currencyPair.equals(that.currencyPair) : that.currencyPair != null) return false;
-        if (stockExchange != null ? !stockExchange.equals(that.stockExchange) : that.stockExchange != null)
-            return false;
-        if (exrate != null ? !exrate.equals(that.exrate) : that.exrate != null) return false;
-        return date != null ? date.equals(that.date) : that.date == null;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = id != null ? id.hashCode() : 0;
-        result = 31 * result + (currencyPair != null ? currencyPair.hashCode() : 0);
-        result = 31 * result + (stockExchange != null ? stockExchange.hashCode() : 0);
-        result = 31 * result + (exrate != null ? exrate.hashCode() : 0);
-        result = 31 * result + (date != null ? date.hashCode() : 0);
-        return result;
-    }
-
-    @Override
     public String toString() {
         return "StockExchangeRate{" +
                 "id=" + id +
-                ", currencyPair=" + currencyPair +
-                ", stockExchange=" + stockExchange +
+                ", currencyPairId=" + currencyPairId +
+                ", stockExchangeId=" + stockExchangeId +
                 ", exrate=" + exrate +
                 ", date=" + date +
                 '}';

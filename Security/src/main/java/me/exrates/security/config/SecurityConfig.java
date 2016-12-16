@@ -168,6 +168,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, "/sendFeedback").permitAll()
                 .antMatchers(HttpMethod.POST, "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword").anonymous()
                 .antMatchers(HttpMethod.GET, "/rest/userFiles/**/avatar/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/rest/stockExchangeStatistics").permitAll()
 
 //                .antMatchers("/login", "/register", "/create", "/forgotPassword/**", "/resetPasswordConfirm/**").anonymous()
 //                .antMatchers("/updatePassword").hasAnyAuthority(UserRole.ROLE_CHANGE_PASSWORD.name())
