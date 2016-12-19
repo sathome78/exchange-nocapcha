@@ -7,8 +7,9 @@ $(function () {
         usersDataTable = $('#usersTable').DataTable({
             "ajax": {
                 "url": '/admin/usersList',
-                "dataSrc": ""
+                "dataSrc": "data"
             },
+            "serverSide": true,
             "paging": true,
             "info": true,
             "columns": [

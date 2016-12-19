@@ -183,10 +183,11 @@ public class AdminController {
 
     @ResponseBody
     @RequestMapping(value = "/admin/usersList", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Collection<User> getAllUsers() {
+    public DataTable<List<User>> getAllUsers(@RequestParam Map<String, String> params) {
+        params.forEach((key, value) -> LOG.debug(key + " :: " + value));
         List<UserRole> userRoles = new ArrayList<>();
         userRoles.add(UserRole.USER);
-        return userSecureService.getUsersByRoles(userRoles);
+        return userSecureService.getUsersByRolesPaginated(userRoles, params);
     }
 
     @ResponseBody

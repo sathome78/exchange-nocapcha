@@ -76,8 +76,7 @@ public class CommonMerchantsController {
 
         final List<Integer> currenciesId = new ArrayList<>();
         currenciesId.add(currencyId);
-        modelAndView.addObject("merchantCurrencyData",merchantService.findAllByCurrencies(currenciesId, OperationType.INPUT).stream()
-                .filter(merchantCurrency -> merchantCurrency.getCurrencyId() != 9).collect(Collectors.toList()));
+        modelAndView.addObject("merchantCurrencyData",merchantService.findAllByCurrencies(currenciesId, OperationType.INPUT));
 
         return modelAndView;
     }

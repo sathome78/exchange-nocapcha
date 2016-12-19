@@ -46,6 +46,10 @@ public interface UserDao {
 
     User findByEmail(String email);
 
+    PagingData<List<User>> getUsersByRolesPaginated(List<UserRole> roles, int offset, int limit,
+                                                    String orderColumnName, String orderDirection,
+                                                    String searchValue);
+
     String getBriefInfo(int login);
 
     boolean ifNicknameIsUnique(String nickname);
