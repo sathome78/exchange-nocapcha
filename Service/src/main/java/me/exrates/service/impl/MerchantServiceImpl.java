@@ -35,6 +35,7 @@ import static java.math.BigDecimal.ROUND_HALF_UP;
 import static java.math.BigDecimal.valueOf;
 import static java.util.Collections.singletonMap;
 import static me.exrates.model.enums.OperationType.INPUT;
+import static me.exrates.model.enums.OperationType.OUTPUT;
 import static me.exrates.model.enums.WithdrawalRequestStatus.*;
 
 /**
@@ -385,7 +386,7 @@ public class MerchantServiceImpl implements MerchantService {
         final BigDecimal commission = commissionService.findCommissionByType(type).getValue();
 
         final BigDecimal commissionMerchant = commissionService.getCommissionMerchant(merchant, currency);
-        final BigDecimal commissionTotal = type == INPUT ? commission.add(commissionMerchant).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP) :
+        final BigDecimal commissionTotal = type == OUTPUT ? commission.add(commissionMerchant).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP) :
                 commission;
         BigDecimal commissionAmount = amount.multiply(commissionTotal).divide(HUNDREDTH).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP);
         if (commissionAmount.compareTo(BigDecimal.ZERO) == 0){
@@ -423,7 +424,7 @@ public class MerchantServiceImpl implements MerchantService {
         }
         final Commission commissionByType = commissionService.findCommissionByType(operationType);
         final BigDecimal commissionMerchant = commissionService.getCommissionMerchant(merchant.getName(), currency.getName());
-        final BigDecimal commissionTotal = operationType == INPUT ? commissionByType.getValue().add(commissionMerchant)
+        final BigDecimal commissionTotal = operationType == OUTPUT ? commissionByType.getValue().add(commissionMerchant)
                 .setScale(currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP) :
                 commissionByType.getValue();
          BigDecimal commissionAmount =
