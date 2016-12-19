@@ -40,6 +40,8 @@ public interface OrderService {
 
     Optional<String> autoAccept(OrderCreateDto orderCreateDto, Locale locale);
 
+    Optional<OrderCreationResultDto> autoAcceptOrders(OrderCreateDto orderCreateDto, Locale locale);
+
     /**
      * TODO ADD JAVADOC
      */
