@@ -83,7 +83,7 @@ public class UserDaoImpl implements UserDao {
         String sqlUser = "insert into USER(nickname,email,password,phone,status,roleid ) " +
                 "values(:nickname,:email,:password,:phone,:status,:roleid)";
         String sqlWallet = "INSERT INTO WALLET (currency_id, user_id) select id, :user_id from CURRENCY where name != 'LTC';";
-        String sqlNotificationOptions = "INSERT INTO NOTIFICATION_OPTIONS(notification_event_id, user_id) select id, :user_id FROM notification_event; ";
+        String sqlNotificationOptions = "INSERT INTO NOTIFICATION_OPTIONS(notification_event_id, user_id) select id, :user_id FROM NOTIFICATION_EVENT; ";
         Map<String, String> namedParameters = new HashMap<String, String>();
         namedParameters.put("email", user.getEmail());
         namedParameters.put("nickname", user.getNickname());
