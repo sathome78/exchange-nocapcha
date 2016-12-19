@@ -48,9 +48,7 @@ public class EDCController {
         this.messageSource = messageSource;
     }
 
-    /*Temporary disabled input*/
-
-   /* @RequestMapping(value = "/payment/prepare", method = POST)*/
+    @RequestMapping(value = "/payment/prepare", method = POST)
     public ResponseEntity<Map<String, String>> preparePayment(final @RequestBody Payment payment,
                                                  final Principal principal,
                                                  final Locale locale)
