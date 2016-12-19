@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.dao.StockExchangeDao;
 import me.exrates.model.StockExchange;
-import me.exrates.model.StockExchangeRate;
+import me.exrates.model.StockExchangeStats;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.util.OkHttpUtils;
 import org.apache.logging.log4j.LogManager;
@@ -52,13 +52,12 @@ public class KrakenRetrievalService implements StockExrateRetrievalService {
             LOGGER.debug(jsonResponse);
             try {
                 JsonNode root = objectMapper.readTree(jsonResponse);
-                StockExchangeRate stockExchangeRate = new StockExchangeRate();
+                StockExchangeStats stockExchangeRate = new StockExchangeStats();
                 stockExchangeRate.setCurrencyPairId(currencyPair.getId());
                 String priceString = root.get("result").get(name).get("c").get(0).asText();
                 LOGGER.debug(priceString);
                 BigDecimal exrate = BigDecimalProcessing.parseLocale(priceString, Locale.ENGLISH, true);
                 stockExchangeRate.setDate(LocalDateTime.now());
-                stockExchangeRate.setExrate(exrate);
                 stockExchangeRate.setStockExchangeId(stockExchange.getId());
                 stockExchangeDao.saveStockExchangeRate(stockExchangeRate);
             } catch (IOException e) {

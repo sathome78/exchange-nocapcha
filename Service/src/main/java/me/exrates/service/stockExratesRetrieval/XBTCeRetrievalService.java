@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import me.exrates.dao.StockExchangeDao;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.StockExchange;
-import me.exrates.model.StockExchangeRate;
+import me.exrates.model.StockExchangeStats;
 import me.exrates.service.util.OkHttpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -46,15 +46,14 @@ public class XBTCeRetrievalService implements StockExrateRetrievalService {
 
         LOGGER.debug(urlFilter);
         String jsonResponse = OkHttpUtils.sendGetRequest(urlBase + urlFilter, Collections.EMPTY_MAP);
-        List<StockExchangeRate> stockExchangeRates = new ArrayList<>();
+        List<StockExchangeStats> stockExchangeRates = new ArrayList<>();
         try {
             JsonNode root = objectMapper.readTree(jsonResponse);
             root.elements().forEachRemaining(jsonNode -> {
-                StockExchangeRate stockExchangeRate = new StockExchangeRate();
+                StockExchangeStats stockExchangeRate = new StockExchangeStats();
                 stockExchangeRate.setStockExchangeId(stockExchange.getId());
                 stockExchangeRate.setCurrencyPairId(currencyPairs.get(jsonNode.get("Symbol").asText()).getId());
                 stockExchangeRate.setDate(LocalDateTime.now());
-                stockExchangeRate.setExrate(jsonNode.get("LastBuyPrice").decimalValue());
                 stockExchangeRates.add(stockExchangeRate);
             });
             stockExchangeDao.saveStockExchangeRates(stockExchangeRates);

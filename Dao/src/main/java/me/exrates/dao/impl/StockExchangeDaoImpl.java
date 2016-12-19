@@ -3,7 +3,7 @@ package me.exrates.dao.impl;
 import me.exrates.dao.StockExchangeDao;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.StockExchange;
-import me.exrates.model.StockExchangeRate;
+import me.exrates.model.StockExchangeStats;
 import me.exrates.model.dto.StockExchangeRateDto;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -58,23 +58,33 @@ public class StockExchangeDaoImpl implements StockExchangeDao {
     });
 
     @Override
-    public void saveStockExchangeRate(StockExchangeRate stockExchangeRate) {
-        String sql = "INSERT INTO STOCK_EXRATE(currency_pair_id, stock_exchange_id, exrate) VALUES(:currency_pair_id, :stock_exchange_id, :exrate)";
+    public void saveStockExchangeRate(StockExchangeStats stockExchangeRate) {
+        String sql = "INSERT INTO STOCK_EXRATE(currency_pair_id, stock_exchange_id, price_buy, price_sell, price_low, price_high, volume) " +
+                "VALUES(:currency_pair_id, :stock_exchange_id, :exrate)";
         Map<String, Number> params = new HashMap<>();
         params.put("currency_pair_id", stockExchangeRate.getCurrencyPairId());
         params.put("stock_exchange_id", stockExchangeRate.getStockExchangeId());
-        params.put("exrate", stockExchangeRate.getExrate());
+        params.put("price_buy", stockExchangeRate.getPriceBuy());
+        params.put("price_sell", stockExchangeRate.getPriceSell());
+        params.put("price_low", stockExchangeRate.getPriceLow());
+        params.put("price_high", stockExchangeRate.getPriceHigh());
+        params.put("volume", stockExchangeRate.getVolume());
         jdbcTemplate.update(sql, params);
     }
 
     @Override
-    public void saveStockExchangeRates(List<StockExchangeRate> stockExchangeRates) {
+    public void saveStockExchangeRates(List<StockExchangeStats> stockExchangeRates) {
         String sql = "INSERT INTO STOCK_EXRATE(currency_pair_id, stock_exchange_id, exrate) VALUES(:currency_pair_id, :stock_exchange_id, :exrate)";
         Map<String, Object>[] batchValues = stockExchangeRates.stream().map(stockExchangeRate -> {
             Map<String, Object> values = new HashMap<String, Object>() {{
                 put("currency_pair_id", stockExchangeRate.getCurrencyPairId());
                 put("stock_exchange_id", stockExchangeRate.getStockExchangeId());
-                put("exrate", stockExchangeRate.getExrate());
+                put("stock_exchange_id", stockExchangeRate.getStockExchangeId());
+                put("price_buy", stockExchangeRate.getPriceBuy());
+                put("price_sell", stockExchangeRate.getPriceSell());
+                put("price_low", stockExchangeRate.getPriceLow());
+                put("price_high", stockExchangeRate.getPriceHigh());
+                put("volume", stockExchangeRate.getVolume());
             }};
             return values;
         }).collect(Collectors.toList()).toArray(new Map[stockExchangeRates.size()]);
