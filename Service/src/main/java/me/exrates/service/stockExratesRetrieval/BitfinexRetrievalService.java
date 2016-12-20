@@ -42,14 +42,21 @@ public class BitfinexRetrievalService implements StockExrateRetrievalService {
             String jsonResponse = OkHttpUtils.sendGetRequest(url, Collections.EMPTY_MAP);
             try {
                 JsonNode root = objectMapper.readTree(jsonResponse);
-                StockExchangeStats stockExchangeRate = new StockExchangeStats();
-                stockExchangeRate.setCurrencyPairId(currencyPair.getId());
-                LOGGER.debug(root.get("mid"));
-                BigDecimal exrate = BigDecimalProcessing.parseLocale(root.get("mid").asText(), Locale.ENGLISH, true);
-                LOGGER.debug(exrate);
-                stockExchangeRate.setDate(LocalDateTime.now());
-                stockExchangeRate.setStockExchangeId(stockExchange.getId());
-                stockExchangeDao.saveStockExchangeRate(stockExchangeRate);
+                StockExchangeStats stockExchangeStats = new StockExchangeStats();
+                stockExchangeStats.setCurrencyPairId(currencyPair.getId());
+                BigDecimal priceBuy = BigDecimalProcessing.parseLocale(root.get("bid").asText(), Locale.ENGLISH, false);
+                BigDecimal priceSell = BigDecimalProcessing.parseLocale(root.get("ask").asText(), Locale.ENGLISH, false);
+                BigDecimal priceLow = BigDecimalProcessing.parseLocale(root.get("low").asText(), Locale.ENGLISH, false);
+                BigDecimal priceHigh = BigDecimalProcessing.parseLocale(root.get("high").asText(), Locale.ENGLISH, false);
+                BigDecimal volume = BigDecimalProcessing.parseLocale(root.get("volume").asText(), Locale.ENGLISH, false);
+                stockExchangeStats.setDate(LocalDateTime.now());
+                stockExchangeStats.setStockExchangeId(stockExchange.getId());
+                stockExchangeStats.setPriceBuy(priceBuy);
+                stockExchangeStats.setPriceSell(priceSell);
+                stockExchangeStats.setPriceLow(priceLow);
+                stockExchangeStats.setPriceHigh(priceHigh);
+                stockExchangeStats.setVolume(volume);
+                stockExchangeDao.saveStockExchangeStats(stockExchangeStats);
             } catch (IOException e) {
                 LOGGER.error(e);
             }

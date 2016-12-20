@@ -7,7 +7,6 @@ import me.exrates.model.dto.StockExchangeRateDto;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
-import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserAgent;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.security.exception.IncorrectPasswordException;
@@ -21,7 +20,6 @@ import me.exrates.service.util.RestPasswordDecodingUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -36,7 +34,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -1016,8 +1013,8 @@ public class MobileEntryController {
     }
 
     @RequestMapping(value = "/rest/stockExchangeStatistics", method = GET, produces = "application/json; charset=UTF-8")
-    public List<StockExchangeRateDto> getStockExchangeStatistics() {
-        return stockExchangeService.getStockExchangeStatistics();
+    public List<StockExchangeRateDto> getStockExchangeStatistics(@RequestParam(required = false) Integer[] pairs) {
+        return stockExchangeService.getStockExchangeStatistics(pairs == null ? null : Arrays.asList(pairs));
     }
 
 

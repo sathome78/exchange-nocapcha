@@ -50,11 +50,16 @@ public class XBTCeRetrievalService implements StockExrateRetrievalService {
         try {
             JsonNode root = objectMapper.readTree(jsonResponse);
             root.elements().forEachRemaining(jsonNode -> {
-                StockExchangeStats stockExchangeRate = new StockExchangeStats();
-                stockExchangeRate.setStockExchangeId(stockExchange.getId());
-                stockExchangeRate.setCurrencyPairId(currencyPairs.get(jsonNode.get("Symbol").asText()).getId());
-                stockExchangeRate.setDate(LocalDateTime.now());
-                stockExchangeRates.add(stockExchangeRate);
+                StockExchangeStats stockExchangeStats = new StockExchangeStats();
+                stockExchangeStats.setStockExchangeId(stockExchange.getId());
+                stockExchangeStats.setCurrencyPairId(currencyPairs.get(jsonNode.get("Symbol").asText()).getId());
+                stockExchangeStats.setPriceBuy(jsonNode.get("LastBuyPrice").decimalValue());
+                stockExchangeStats.setPriceSell(jsonNode.get("LastSellPrice").decimalValue());
+                stockExchangeStats.setPriceLow(jsonNode.get("DailyBestBuyPrice").decimalValue());
+                stockExchangeStats.setPriceHigh(jsonNode.get("DailyBestSellPrice").decimalValue());
+                stockExchangeStats.setVolume(jsonNode.get("DailyTradedTotalVolume").decimalValue());
+                stockExchangeStats.setDate(LocalDateTime.now());
+                stockExchangeRates.add(stockExchangeStats);
             });
             stockExchangeDao.saveStockExchangeRates(stockExchangeRates);
 

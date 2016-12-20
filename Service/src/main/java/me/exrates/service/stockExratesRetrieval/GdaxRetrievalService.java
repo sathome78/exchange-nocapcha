@@ -9,8 +9,6 @@ import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.util.OkHttpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
@@ -22,7 +20,9 @@ import java.util.Locale;
 /**
  * Created by OLEG on 14.12.2016.
  */
+/*
 @Service
+*/
 public class GdaxRetrievalService implements StockExrateRetrievalService {
 
     private static final Logger LOGGER = LogManager.getLogger(GdaxRetrievalService.class);
@@ -30,7 +30,7 @@ public class GdaxRetrievalService implements StockExrateRetrievalService {
 
     private final String STOCK_EXCHANGE_NAME = "GDAX";
 
-    @Autowired
+    /*@Autowired*/
     private StockExchangeDao stockExchangeDao;
 
     @Override
@@ -50,7 +50,7 @@ public class GdaxRetrievalService implements StockExrateRetrievalService {
                 BigDecimal exrate = BigDecimalProcessing.parseLocale(root.get("price").asText(), Locale.ENGLISH, true);
                 stockExchangeRate.setDate(LocalDateTime.now());
                 stockExchangeRate.setStockExchangeId(stockExchange.getId());
-                stockExchangeDao.saveStockExchangeRate(stockExchangeRate);
+                stockExchangeDao.saveStockExchangeStats(stockExchangeRate);
             } catch (IOException e) {
                 LOGGER.error(e);
             }

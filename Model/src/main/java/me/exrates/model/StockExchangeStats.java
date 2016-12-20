@@ -1,5 +1,10 @@
 package me.exrates.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import me.exrates.model.serializer.LocalDateTimeToLongSerializer;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -8,14 +13,30 @@ import java.time.LocalDateTime;
  */
 public class StockExchangeStats {
 
+    @JsonIgnore
     private Long id;
+    @JsonIgnore
     private Integer currencyPairId;
+    @JsonIgnore
     private Integer stockExchangeId;
+
+    @JsonProperty(value = "buy")
     private BigDecimal priceBuy;
+
+    @JsonProperty(value = "sell")
     private BigDecimal priceSell;
+
+    @JsonProperty(value = "low")
     private BigDecimal priceLow;
+
+    @JsonProperty(value = "high")
     private BigDecimal priceHigh;
+
+    @JsonProperty(value = "volume")
     private BigDecimal volume;
+
+    @JsonProperty(value = "timestamp")
+    @JsonSerialize(using = LocalDateTimeToLongSerializer.class)
     private LocalDateTime date;
 
     public Long getId() {

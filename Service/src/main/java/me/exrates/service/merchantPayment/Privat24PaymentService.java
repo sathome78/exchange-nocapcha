@@ -3,23 +3,19 @@ package me.exrates.service.merchantPayment;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.model.dto.mobileApiDto.MerchantInputResponseDto;
-import me.exrates.model.dto.mobileApiDto.ResponseContainer;
 import me.exrates.model.enums.MerchantApiResponseType;
 import me.exrates.service.MerchantService;
 import me.exrates.service.Privat24Service;
-import me.exrates.service.exception.MerchantInternalException;
-import me.exrates.service.util.OkHttpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.Charset;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.StringJoiner;
 
 /**
  * Created by OLEG on 05.09.2016.

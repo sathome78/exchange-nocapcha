@@ -11,7 +11,7 @@ import java.util.Optional;
  * Created by OLEG on 14.12.2016.
  */
 public interface StockExchangeDao {
-    void saveStockExchangeRate(StockExchangeStats stockExchangeRate);
+    void saveStockExchangeStats(StockExchangeStats stockExchangeRate);
 
     void saveStockExchangeRates(List<StockExchangeStats> stockExchangeRates);
 
@@ -19,5 +19,5 @@ public interface StockExchangeDao {
 
     List<StockExchange> findAll();
 
-    List<StockExchangeRateDto> getStockExchangeStatistics();
+    List<StockExchangeRateDto> getStockExchangeStatistics(List<Integer> currencyPairIds);
 }

@@ -35,6 +35,9 @@ public class StockExchangeDaoImpl implements StockExchangeDao {
             "INNER JOIN STOCK_CURRENCY_PAIR ON STOCK_CURRENCY_PAIR.stock_exchange_id = STOCK_EXCHANGE.id " +
             "INNER JOIN CURRENCY_PAIR ON STOCK_CURRENCY_PAIR.currency_pair_id = CURRENCY_PAIR.id ";
 
+    private final String CREATE_STOCK_EXRATE = "INSERT INTO STOCK_EXRATE(currency_pair_id, stock_exchange_id, price_buy, price_sell, price_low, price_high, volume) " +
+            "VALUES(:currency_pair_id, :stock_exchange_id, :price_buy, :price_sell, :price_low, :price_high, :volume)";
+
     private final ResultSetExtractor<List<StockExchange>> stockExchangeResultSetExtractor = (resultSet -> {
         List<StockExchange> result = new ArrayList<>();
         StockExchange stockExchange = null;
@@ -58,9 +61,7 @@ public class StockExchangeDaoImpl implements StockExchangeDao {
     });
 
     @Override
-    public void saveStockExchangeRate(StockExchangeStats stockExchangeRate) {
-        String sql = "INSERT INTO STOCK_EXRATE(currency_pair_id, stock_exchange_id, price_buy, price_sell, price_low, price_high, volume) " +
-                "VALUES(:currency_pair_id, :stock_exchange_id, :exrate)";
+    public void saveStockExchangeStats(StockExchangeStats stockExchangeRate) {
         Map<String, Number> params = new HashMap<>();
         params.put("currency_pair_id", stockExchangeRate.getCurrencyPairId());
         params.put("stock_exchange_id", stockExchangeRate.getStockExchangeId());
@@ -69,12 +70,11 @@ public class StockExchangeDaoImpl implements StockExchangeDao {
         params.put("price_low", stockExchangeRate.getPriceLow());
         params.put("price_high", stockExchangeRate.getPriceHigh());
         params.put("volume", stockExchangeRate.getVolume());
-        jdbcTemplate.update(sql, params);
+        jdbcTemplate.update(CREATE_STOCK_EXRATE, params);
     }
 
     @Override
     public void saveStockExchangeRates(List<StockExchangeStats> stockExchangeRates) {
-        String sql = "INSERT INTO STOCK_EXRATE(currency_pair_id, stock_exchange_id, exrate) VALUES(:currency_pair_id, :stock_exchange_id, :exrate)";
         Map<String, Object>[] batchValues = stockExchangeRates.stream().map(stockExchangeRate -> {
             Map<String, Object> values = new HashMap<String, Object>() {{
                 put("currency_pair_id", stockExchangeRate.getCurrencyPairId());
@@ -88,7 +88,7 @@ public class StockExchangeDaoImpl implements StockExchangeDao {
             }};
             return values;
         }).collect(Collectors.toList()).toArray(new Map[stockExchangeRates.size()]);
-        jdbcTemplate.batchUpdate(sql, batchValues);
+        jdbcTemplate.batchUpdate(CREATE_STOCK_EXRATE, batchValues);
     }
 
     @Override
@@ -109,18 +109,25 @@ public class StockExchangeDaoImpl implements StockExchangeDao {
     }
 
     @Override
-    public List<StockExchangeRateDto> getStockExchangeStatistics() {
+    public List<StockExchangeRateDto> getStockExchangeStatistics(List<Integer> currencyPairIds) {
+        String currencyPairClause = currencyPairIds == null ? "" : " WHERE stock_1.currency_pair_id IN (:currency_pair_ids) ";
         String sql = "SELECT stock_1.currency_pair_id, stock_1.stock_exchange_id, " +
                 "              CURRENCY_PAIR.name AS currency_pair_name, STOCK_EXCHANGE.name AS stock_exchange_name, " +
-                "              stock_1.exrate, stock_1.date FROM STOCK_EXRATE AS stock_1 " +
+                "              stock_1.price_buy, stock_1.price_sell, stock_1.price_low, stock_1.price_high, stock_1.volume," +
+                "              stock_1.date FROM STOCK_EXRATE AS stock_1 " +
                 "              JOIN (SELECT currency_pair_id, stock_exchange_id, MAX(STOCK_EXRATE.date) AS date FROM STOCK_EXRATE " +
                 "              GROUP BY currency_pair_id, stock_exchange_id) AS stock_2 " +
                 "              ON stock_1.currency_pair_id = stock_2.currency_pair_id AND stock_1.stock_exchange_id = stock_2.stock_exchange_id " +
                 "              AND stock_1.date = stock_2.date " +
                 "              JOIN STOCK_EXCHANGE ON stock_1.stock_exchange_id = STOCK_EXCHANGE.id " +
                 "              JOIN CURRENCY_PAIR ON stock_1.currency_pair_id = CURRENCY_PAIR.id " +
+                currencyPairClause +
                 "              ORDER BY stock_1.currency_pair_id, stock_1.stock_exchange_id;";
-        return jdbcTemplate.query(sql, resultSet -> {
+        Map<String, List<Integer>> params = currencyPairIds == null ? Collections.EMPTY_MAP :
+                Collections.singletonMap("currency_pair_ids", currencyPairIds);
+
+
+        return jdbcTemplate.query(sql, params, resultSet -> {
             List<StockExchangeRateDto> result = new ArrayList<>();
             StockExchangeRateDto dto = null;
             int lastCurrencyPairId = 0;
@@ -133,7 +140,14 @@ public class StockExchangeDaoImpl implements StockExchangeDao {
                     dto.setCurrencyPairName(resultSet.getString("currency_pair_name"));
                 }
                 if (dto != null) {
-                    dto.getRates().put(resultSet.getString("stock_exchange_name"), resultSet.getBigDecimal("exrate"));
+                    StockExchangeStats stockExchangeStats = new StockExchangeStats();
+                    stockExchangeStats.setPriceBuy(resultSet.getBigDecimal("price_buy"));
+                    stockExchangeStats.setPriceSell(resultSet.getBigDecimal("price_sell"));
+                    stockExchangeStats.setPriceLow(resultSet.getBigDecimal("price_low"));
+                    stockExchangeStats.setPriceHigh(resultSet.getBigDecimal("price_high"));
+                    stockExchangeStats.setVolume(resultSet.getBigDecimal("volume"));
+                    stockExchangeStats.setDate(resultSet.getTimestamp("date").toLocalDateTime());
+                    dto.getExchangeStats().put(resultSet.getString("stock_exchange_name"), stockExchangeStats);
                 }
             }
             LOGGER.debug(result);

@@ -1,10 +1,8 @@
 package me.exrates.service.impl;
 
 import me.exrates.dao.StockExchangeDao;
-import me.exrates.model.CurrencyPair;
 import me.exrates.model.StockExchange;
 import me.exrates.model.dto.StockExchangeRateDto;
-import me.exrates.service.CurrencyService;
 import me.exrates.service.StockExchangeService;
 import me.exrates.service.stockExratesRetrieval.StockExrateRetrievalService;
 import org.apache.logging.log4j.LogManager;
@@ -13,9 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -48,7 +43,7 @@ public class StockExchangeServiceImpl implements StockExchangeService {
     }
 
     @Override
-    public List<StockExchangeRateDto> getStockExchangeStatistics() {
-        return stockExchangeDao.getStockExchangeStatistics();
+    public List<StockExchangeRateDto> getStockExchangeStatistics(List<Integer> currencyPairIds) {
+        return stockExchangeDao.getStockExchangeStatistics(currencyPairIds);
     }
 }

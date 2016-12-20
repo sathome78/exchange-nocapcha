@@ -22,6 +22,17 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
+ * Kraken API Response Syntax:
+ *      a = ask array(<price>, <whole lot volume>, <lot volume>),
+ *      b = bid array(<price>, <whole lot volume>, <lot volume>),
+ *      c = last trade closed array(<price>, <lot volume>),
+ *      v = volume array(<today>, <last 24 hours>),
+ *      p = volume weighted average price array(<today>, <last 24 hours>),
+ *      t = number of trades array(<today>, <last 24 hours>),
+ *      l = low array(<today>, <last 24 hours>),
+ *      h = high array(<today>, <last 24 hours>),
+ *      o = today's opening price
+ *
  * Created by OLEG on 14.12.2016.
  */
 @Service
@@ -37,6 +48,16 @@ public class KrakenRetrievalService implements StockExrateRetrievalService {
 
 
     private final String STOCK_EXCHANGE_NAME = "Kraken";
+    private final String ASK_ARRAY = "a";
+    private final String BID_ARRAY = "b";
+    private final String LOW_ARRAY = "l";
+    private final String HIGH_ARRAY = "h";
+    private final String VOLUME_ARRAY = "v";
+    private final int ASK_PRICE_ITEM = 0;
+    private final int BID_PRICE_ITEM = 0;
+    private final int LOW_PRICE_ITEM = 0;
+    private final int HIGH_PRICE_ITEM = 0;
+    private final int VOLUME_ITEM = 0;
 
     @Autowired
     private StockExchangeDao stockExchangeDao;
@@ -52,14 +73,28 @@ public class KrakenRetrievalService implements StockExrateRetrievalService {
             LOGGER.debug(jsonResponse);
             try {
                 JsonNode root = objectMapper.readTree(jsonResponse);
-                StockExchangeStats stockExchangeRate = new StockExchangeStats();
-                stockExchangeRate.setCurrencyPairId(currencyPair.getId());
-                String priceString = root.get("result").get(name).get("c").get(0).asText();
-                LOGGER.debug(priceString);
-                BigDecimal exrate = BigDecimalProcessing.parseLocale(priceString, Locale.ENGLISH, true);
-                stockExchangeRate.setDate(LocalDateTime.now());
-                stockExchangeRate.setStockExchangeId(stockExchange.getId());
-                stockExchangeDao.saveStockExchangeRate(stockExchangeRate);
+                StockExchangeStats stockExchangeStats= new StockExchangeStats();
+                stockExchangeStats.setCurrencyPairId(currencyPair.getId());
+                JsonNode currencyPairNode = root.get("result").get(name);
+                BigDecimal priceBuy = BigDecimalProcessing.parseLocale(currencyPairNode.get(BID_ARRAY)
+                        .get(BID_PRICE_ITEM).asText(), Locale.ENGLISH, false);
+                BigDecimal priceSell = BigDecimalProcessing.parseLocale(currencyPairNode.get(ASK_ARRAY)
+                        .get(ASK_PRICE_ITEM).asText(), Locale.ENGLISH, false);
+                BigDecimal priceLow = BigDecimalProcessing.parseLocale(currencyPairNode.get(LOW_ARRAY)
+                        .get(LOW_PRICE_ITEM).asText(), Locale.ENGLISH, false);
+                BigDecimal priceHigh = BigDecimalProcessing.parseLocale(currencyPairNode.get(HIGH_ARRAY)
+                        .get(HIGH_PRICE_ITEM).asText(), Locale.ENGLISH, false);
+                BigDecimal volume = BigDecimalProcessing.parseLocale(currencyPairNode.get(VOLUME_ARRAY)
+                        .get(VOLUME_ITEM).asText(), Locale.ENGLISH, false);
+
+                stockExchangeStats.setDate(LocalDateTime.now());
+                stockExchangeStats.setStockExchangeId(stockExchange.getId());
+                stockExchangeStats.setPriceBuy(priceBuy);
+                stockExchangeStats.setPriceSell(priceSell);
+                stockExchangeStats.setPriceLow(priceLow);
+                stockExchangeStats.setPriceHigh(priceHigh);
+                stockExchangeStats.setVolume(volume);
+                stockExchangeDao.saveStockExchangeStats(stockExchangeStats);
             } catch (IOException e) {
                 LOGGER.error(e);
             }

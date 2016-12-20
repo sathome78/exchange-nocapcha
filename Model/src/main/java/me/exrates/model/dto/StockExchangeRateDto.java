@@ -2,9 +2,12 @@ package me.exrates.model.dto;
 
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import me.exrates.model.StockExchangeStats;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -13,8 +16,8 @@ import java.util.Map;
 public class StockExchangeRateDto {
     @JsonProperty(value = "currencyPair")
     private String currencyPairName;
-    @JsonProperty(value = "exchangeRates")
-    private Map<String, BigDecimal> rates = new HashMap<>();
+    @JsonProperty(value = "exchangeStats")
+    private Map<String, StockExchangeStats> exchangeStats = new HashMap<>();
 
     public String getCurrencyPairName() {
         return currencyPairName;
@@ -24,19 +27,19 @@ public class StockExchangeRateDto {
         this.currencyPairName = currencyPairName;
     }
 
-    public Map<String, BigDecimal> getRates() {
-        return rates;
+    public Map<String, StockExchangeStats> getExchangeStats() {
+        return exchangeStats;
     }
 
-    public void setRates(Map<String, BigDecimal> rates) {
-        this.rates = rates;
+    public void setExchangeStats(Map<String, StockExchangeStats> exchangeStats) {
+        this.exchangeStats = exchangeStats;
     }
 
     @Override
     public String toString() {
         return "StockExchangeRateDto{" +
                 "currencyPairName='" + currencyPairName + '\'' +
-                ", rates=" + rates +
+                ", exchangeStats=" + exchangeStats +
                 '}';
     }
 }

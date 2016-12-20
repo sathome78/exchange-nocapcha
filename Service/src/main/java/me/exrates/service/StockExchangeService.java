@@ -12,5 +12,5 @@ public interface StockExchangeService {
     @PostConstruct
     void retrieveCurrencies();
 
-    List<StockExchangeRateDto> getStockExchangeStatistics();
+    List<StockExchangeRateDto> getStockExchangeStatistics(List<Integer> currencyPairIds);
 }
