@@ -2127,3 +2127,7 @@ input[type=email], .dropdown-menu__form,
 #merchant-options-table i:hover {
     cursor: pointer;
 }
+
+.noMerchants {
+    font-size: 1.5rem;
+}

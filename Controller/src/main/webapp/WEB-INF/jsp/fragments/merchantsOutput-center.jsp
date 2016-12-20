@@ -7,7 +7,7 @@
     </c:if>
     <c:choose>
         <c:when test="${empty merchantCurrencyData}">
-            <loc:message code="merchants.noWallet"/>
+            <p class="red noMerchants"><loc:message code="merchant.operationNotAvailable" /> </p>
         </c:when>
         <c:otherwise>
             <div class="row">
