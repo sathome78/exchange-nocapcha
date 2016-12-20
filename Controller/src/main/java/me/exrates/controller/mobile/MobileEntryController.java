@@ -629,13 +629,11 @@ public class MobileEntryController {
     public ResponseEntity<AuthTokenDto> authenticate(@RequestBody @Valid UserAuthenticationDto authenticationDto,
                                                      HttpServletRequest request) {
         logger.debug(authenticationDto.getEmail());
-        logger.debug(authenticationDto.getPassword());
         logger.debug(authenticationDto.getAppKey());
         String appKey = authenticationDto.getAppKey();
         String userAgentHeader = request.getHeader("User-Agent");
         logger.debug(userAgentHeader);
-    // Key check temporarily disabled
-        //    checkAppKey(appKey, userAgentHeader);
+        checkAppKey(appKey, userAgentHeader);
 
         Optional<AuthTokenDto> authTokenResult = authTokenService.retrieveToken(authenticationDto.getEmail(), authenticationDto.getPassword());
         AuthTokenDto authTokenDto = authTokenResult.get();
@@ -650,8 +648,8 @@ public class MobileEntryController {
         authTokenDto.setNickname(user.getNickname());
         authTokenDto.setUserId(user.getId());
         authTokenDto.setLocale(new Locale(userService.getPreferedLang(user.getId())));
-        String avatarLoficalPath = userService.getAvatarPath(user.getId());
-        String avatarFullPath = avatarLoficalPath == null || avatarLoficalPath.isEmpty() ? null : getAvatarPathPrefix(request) + avatarLoficalPath;
+        String avatarLogicalPath = userService.getAvatarPath(user.getId());
+        String avatarFullPath = avatarLogicalPath == null || avatarLogicalPath.isEmpty() ? null : getAvatarPathPrefix(request) + avatarLogicalPath;
         authTokenDto.setAvatarPath(avatarFullPath);
         authTokenDto.setFinPasswordSet(user.getFinpassword() != null);
         authTokenDto.setReferralReference(referralService.generateReferral(user.getEmail()));
@@ -669,7 +667,8 @@ public class MobileEntryController {
         if (userAgent == UserAgent.ANDROID || userAgent == UserAgent.IOS) {
             String actualKey = apiService.retrieveApplicationKey(userAgent);
             logger.debug(actualKey);
-            if (!appKey.equals(actualKey)) {
+            //temporary support of old IOS app key
+            if (!(appKey.equals(actualKey) || (userAgent == UserAgent.IOS && "I1.0.0".equals(appKey)))) {
                 throw new InvalidAppKeyException("Invalid app key");
             }
         }
