@@ -16,10 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Kraken API Response Syntax:
@@ -35,7 +32,7 @@ import java.util.Map;
  *
  * Created by OLEG on 14.12.2016.
  */
-@Service
+/*@Service*/
 public class KrakenRetrievalService implements StockExrateRetrievalService {
 
     private static final Logger LOGGER = LogManager.getLogger(KrakenRetrievalService.class);
@@ -59,12 +56,15 @@ public class KrakenRetrievalService implements StockExrateRetrievalService {
     private final int HIGH_PRICE_ITEM = 0;
     private final int VOLUME_ITEM = 0;
 
-    @Autowired
+    /*@Autowired*/
     private StockExchangeDao stockExchangeDao;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void retrieveAndSave(StockExchange stockExchange) {
+        List<StockExchangeStats> stockExchangeStatsList = new ArrayList<>();
+
+
         stockExchange.getAvailableCurrencyPairs().forEach(currencyPair -> {
             String name = altCurrencyNames.get(currencyPair.getCurrency1().getName()) + altCurrencyNames.get(currencyPair.getCurrency2().getName());
             String url = "https://api.kraken.com/0/public/Ticker";
@@ -94,12 +94,14 @@ public class KrakenRetrievalService implements StockExrateRetrievalService {
                 stockExchangeStats.setPriceLow(priceLow);
                 stockExchangeStats.setPriceHigh(priceHigh);
                 stockExchangeStats.setVolume(volume);
-                stockExchangeDao.saveStockExchangeStats(stockExchangeStats);
+                stockExchangeStatsList.add(stockExchangeStats);
             } catch (IOException e) {
                 LOGGER.error(e);
             }
 
         });
+        stockExchangeDao.saveStockExchangeStatsList(stockExchangeStatsList);
+
     }
 
     @Override

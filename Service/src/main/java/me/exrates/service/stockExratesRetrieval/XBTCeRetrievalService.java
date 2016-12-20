@@ -24,14 +24,14 @@ import java.util.stream.Collectors;
 /**
  * Created by OLEG on 15.12.2016.
  */
-@Service
+/*@Service*/
 public class XBTCeRetrievalService implements StockExrateRetrievalService {
 
     private static final Logger LOGGER = LogManager.getLogger(XBTCeRetrievalService.class);
     private ObjectMapper objectMapper = new ObjectMapper();
     private final String STOCK_EXCHANGE_NAME = "xBTCe";
 
-    @Autowired
+    /*@Autowired*/
     private StockExchangeDao stockExchangeDao;
 
 
@@ -46,7 +46,7 @@ public class XBTCeRetrievalService implements StockExrateRetrievalService {
 
         LOGGER.debug(urlFilter);
         String jsonResponse = OkHttpUtils.sendGetRequest(urlBase + urlFilter, Collections.EMPTY_MAP);
-        List<StockExchangeStats> stockExchangeRates = new ArrayList<>();
+        List<StockExchangeStats> stockExchangeStatsList = new ArrayList<>();
         try {
             JsonNode root = objectMapper.readTree(jsonResponse);
             root.elements().forEachRemaining(jsonNode -> {
@@ -59,9 +59,9 @@ public class XBTCeRetrievalService implements StockExrateRetrievalService {
                 stockExchangeStats.setPriceHigh(jsonNode.get("DailyBestSellPrice").decimalValue());
                 stockExchangeStats.setVolume(jsonNode.get("DailyTradedTotalVolume").decimalValue());
                 stockExchangeStats.setDate(LocalDateTime.now());
-                stockExchangeRates.add(stockExchangeStats);
+                stockExchangeStatsList.add(stockExchangeStats);
             });
-            stockExchangeDao.saveStockExchangeRates(stockExchangeRates);
+            stockExchangeDao.saveStockExchangeStatsList(stockExchangeStatsList);
 
 
 

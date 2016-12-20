@@ -13,7 +13,7 @@ import java.util.Optional;
 public interface StockExchangeDao {
     void saveStockExchangeStats(StockExchangeStats stockExchangeRate);
 
-    void saveStockExchangeRates(List<StockExchangeStats> stockExchangeRates);
+    void saveStockExchangeStatsList(List<StockExchangeStats> stockExchangeRates);
 
     Optional<StockExchange> findStockExchangeByName(String name);
 

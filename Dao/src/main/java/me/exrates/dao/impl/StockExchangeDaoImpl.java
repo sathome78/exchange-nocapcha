@@ -74,7 +74,7 @@ public class StockExchangeDaoImpl implements StockExchangeDao {
     }
 
     @Override
-    public void saveStockExchangeRates(List<StockExchangeStats> stockExchangeRates) {
+    public void saveStockExchangeStatsList(List<StockExchangeStats> stockExchangeRates) {
         Map<String, Object>[] batchValues = stockExchangeRates.stream().map(stockExchangeRate -> {
             Map<String, Object> values = new HashMap<String, Object>() {{
                 put("currency_pair_id", stockExchangeRate.getCurrencyPairId());
