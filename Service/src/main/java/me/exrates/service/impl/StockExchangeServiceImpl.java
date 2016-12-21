@@ -31,7 +31,7 @@ public class StockExchangeServiceImpl implements StockExchangeService {
 
 
     @Override
-    @Scheduled(initialDelay = 5 * 1000L, fixedDelay = 1000 * 10000000000L)
+  //  @Scheduled(initialDelay = 5 * 1000L, fixedDelay = 1000 * 10000000000L)
     public void retrieveCurrencies() {
         Map<String, StockExchange> stockExchanges = stockExchangeDao.findAll().stream()
                 .collect(Collectors.toMap(StockExchange::getName, stockExchange -> stockExchange));

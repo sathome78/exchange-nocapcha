@@ -23,12 +23,12 @@ import java.util.Locale;
 /**
  * Created by OLEG on 20.12.2016.
  */
-/*@Service*/
+@Service
 public class YuanBaoRetrievalService implements StockExrateRetrievalService {
     private static final Logger LOGGER = LogManager.getLogger(YuanBaoRetrievalService.class);
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    /*@Autowired*/
+    @Autowired
     private StockExchangeDao stockExchangeDao;
 
 
