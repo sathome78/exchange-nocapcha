@@ -70,6 +70,7 @@ public class YuanBaoRetrievalService implements StockExrateRetrievalService {
             }
 
         });
+        LOGGER.debug(stockExchangeStatsList);
         stockExchangeDao.saveStockExchangeStatsList(stockExchangeStatsList);
 
 
