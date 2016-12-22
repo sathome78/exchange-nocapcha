@@ -66,11 +66,17 @@ public class InvoiceController {
             LOG.debug("Prepared payment: "+creditsOperation);
             try {
                 final Transaction transaction = invoiceService.createPaymentInvoice(creditsOperation);
-                final String notification = merchantService
-                        .sendDepositNotification("",
-                                email , locale, creditsOperation, "merchants.depositNotificationWithCurrency" +
-                                        creditsOperation.getCurrency().getName() +
-                                        ".body");
+                final String notification;
+                if (payment.getCurrency() == 12 || payment.getCurrency() == 13){
+                    notification = messageSource.getMessage("merchants.withoutInvoiceWallet", null, locale);
+                }else {
+                    notification = merchantService
+                            .sendDepositNotification("",
+                                    email , locale, creditsOperation, "merchants.depositNotificationWithCurrency" +
+                                            creditsOperation.getCurrency().getName() +
+                                            ".body");
+                }
+
                 return new ResponseEntity<>(notification, httpHeaders, OK);
             } catch (final InvalidAmountException|RejectedPaymentInvoice e) {
                 final String error = messageSource.getMessage("merchants.incorrectPaymentDetails", null, locale);
