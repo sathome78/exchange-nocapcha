@@ -9,7 +9,6 @@ import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.util.OkHttpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +23,7 @@ import java.util.Locale;
 /**
  * Created by OLEG on 14.12.2016.
  */
-/*@Service*/
+@Service
 public class BitfinexRetrievalService implements StockExrateRetrievalService {
 
     private static final Logger LOGGER = LogManager.getLogger(BitfinexRetrievalService.class);
@@ -32,19 +31,17 @@ public class BitfinexRetrievalService implements StockExrateRetrievalService {
 
     private final String STOCK_EXCHANGE_NAME = "BITFINEX";
 
-    /*@Autowired*/
-    private StockExchangeDao stockExchangeDao;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void retrieveAndSave(StockExchange stockExchange) {
+    public List<StockExchangeStats> retrieveStats(StockExchange stockExchange) {
         List<StockExchangeStats> stockExchangeStatsList = new ArrayList<>();
 
 
         stockExchange.getAvailableCurrencyPairs().forEach(currencyPair -> {
             String name = currencyPair.getCurrency1().getName().toLowerCase() + currencyPair.getCurrency2().getName().toLowerCase();
             String url = "https://api.bitfinex.com/v1/pubticker/" + name;
-            String jsonResponse = OkHttpUtils.sendGetRequest(url, Collections.EMPTY_MAP);
+            String jsonResponse = OkHttpUtils.sendGetRequest(url);
             try {
                 JsonNode root = objectMapper.readTree(jsonResponse);
                 StockExchangeStats stockExchangeStats = new StockExchangeStats();
@@ -67,7 +64,7 @@ public class BitfinexRetrievalService implements StockExrateRetrievalService {
             }
 
         });
-        stockExchangeDao.saveStockExchangeStatsList(stockExchangeStatsList);
+        return stockExchangeStatsList;
 
     }
 

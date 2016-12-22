@@ -10,6 +10,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -58,4 +59,10 @@ public class OkHttpUtils {
             throw new RestRetrievalException(e.getMessage());
         }
     }
+
+    public static String sendGetRequest(String url) {
+        return sendGetRequest(url, Collections.emptyMap());
+    }
+
+
 }

@@ -9,8 +9,6 @@ import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.util.OkHttpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
@@ -56,12 +54,10 @@ public class KrakenRetrievalService implements StockExrateRetrievalService {
     private final int HIGH_PRICE_ITEM = 0;
     private final int VOLUME_ITEM = 0;
 
-    /*@Autowired*/
-    private StockExchangeDao stockExchangeDao;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void retrieveAndSave(StockExchange stockExchange) {
+    public List<StockExchangeStats> retrieveStats(StockExchange stockExchange) {
         List<StockExchangeStats> stockExchangeStatsList = new ArrayList<>();
 
 
@@ -100,7 +96,7 @@ public class KrakenRetrievalService implements StockExrateRetrievalService {
             }
 
         });
-        stockExchangeDao.saveStockExchangeStatsList(stockExchangeStatsList);
+        return stockExchangeStatsList;
 
     }
 

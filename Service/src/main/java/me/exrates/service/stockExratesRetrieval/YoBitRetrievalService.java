@@ -9,7 +9,6 @@ import me.exrates.model.StockExchangeStats;
 import me.exrates.service.util.OkHttpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -23,17 +22,15 @@ import java.util.stream.Collectors;
 /**
  * Created by OLEG on 20.12.2016.
  */
-/*@Service*/
+@Service
 public class YoBitRetrievalService implements StockExrateRetrievalService {
 
     private static final Logger LOGGER = LogManager.getLogger(YoBitRetrievalService.class);
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    /*@Autowired*/
-    private StockExchangeDao stockExchangeDao;
 
     @Override
-    public void retrieveAndSave(StockExchange stockExchange) {
+    public List<StockExchangeStats> retrieveStats(StockExchange stockExchange) {
         List<StockExchangeStats> stockExchangeStatsList = new ArrayList<>();
         Map<String, CurrencyPair> currencyPairs = stockExchange.getAvailableCurrencyPairs().stream()
                 .collect(Collectors.toMap(currencyPair -> (convertCurrencyName(currencyPair.getCurrency1().getName()) + "_" +
@@ -66,7 +63,7 @@ public class YoBitRetrievalService implements StockExrateRetrievalService {
         } catch (IOException e) {
             LOGGER.error(e);
         }
-        stockExchangeDao.saveStockExchangeStatsList(stockExchangeStatsList);
+        return stockExchangeStatsList;
 
     }
 

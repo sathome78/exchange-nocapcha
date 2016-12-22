@@ -28,18 +28,15 @@ public class YuanBaoRetrievalService implements StockExrateRetrievalService {
     private static final Logger LOGGER = LogManager.getLogger(YuanBaoRetrievalService.class);
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    @Autowired
-    private StockExchangeDao stockExchangeDao;
-
 
     @Override
-    public void retrieveAndSave(StockExchange stockExchange) {
+    public List<StockExchangeStats> retrieveStats(StockExchange stockExchange) {
         List<StockExchangeStats> stockExchangeStatsList = new ArrayList<>();
         stockExchange.getAvailableCurrencyPairs().forEach(currencyPair -> {
             String url = "https://www.yuanbao.com/api_market/getinfo_" + currencyPair.getCurrency2().getName().toLowerCase() +
                     "/coin/" + currencyPair.getCurrency1().getName().toLowerCase();
             LOGGER.debug(url);
-            String jsonResponse = OkHttpUtils.sendGetRequest(url, Collections.EMPTY_MAP);
+            String jsonResponse = OkHttpUtils.sendGetRequest(url);
             try {
                 JsonNode root = objectMapper.readTree(jsonResponse);
                 StockExchangeStats stockExchangeStats = new StockExchangeStats();
@@ -63,17 +60,13 @@ public class YuanBaoRetrievalService implements StockExrateRetrievalService {
                 stockExchangeStats.setVolume(volume);
                 stockExchangeStats.setDate(LocalDateTime.now());
                 stockExchangeStatsList.add(stockExchangeStats);
-
-
             } catch (IOException e) {
                 LOGGER.error(e);
             }
 
         });
         LOGGER.debug(stockExchangeStatsList);
-        stockExchangeDao.saveStockExchangeStatsList(stockExchangeStatsList);
-
-
+        return stockExchangeStatsList;
     }
 
     @Override

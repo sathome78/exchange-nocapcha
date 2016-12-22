@@ -9,7 +9,6 @@ import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.util.OkHttpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -23,23 +22,21 @@ import java.util.Locale;
 /**
  * Created by OLEG on 20.12.2016.
  */
-/*@Service*/
+@Service
 public class BitstampRetrievalService implements StockExrateRetrievalService {
 
     private static final Logger LOGGER = LogManager.getLogger(BitstampRetrievalService.class);
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    /*@Autowired*/
-    private StockExchangeDao stockExchangeDao;
 
     @Override
-    public void retrieveAndSave(StockExchange stockExchange) {
+    public List<StockExchangeStats> retrieveStats(StockExchange stockExchange) {
         List<StockExchangeStats> stockExchangeStatsList = new ArrayList<>();
         stockExchange.getAvailableCurrencyPairs().forEach(currencyPair -> {
             String currencyPairName = currencyPair.getCurrency1().getName().toLowerCase() +
                     currencyPair.getCurrency2().getName().toLowerCase();
             String url = "https://www.bitstamp.net/api/v2/ticker/" + currencyPairName + "/";
-            String jsonResponse = OkHttpUtils.sendGetRequest(url, Collections.EMPTY_MAP);
+            String jsonResponse = OkHttpUtils.sendGetRequest(url);
             try {
                 JsonNode root = objectMapper.readTree(jsonResponse);
                 StockExchangeStats stockExchangeStats = new StockExchangeStats();
@@ -61,7 +58,7 @@ public class BitstampRetrievalService implements StockExrateRetrievalService {
                 LOGGER.error(e);
             }
         });
-        stockExchangeDao.saveStockExchangeStatsList(stockExchangeStatsList);
+        return stockExchangeStatsList;
 
 
     }

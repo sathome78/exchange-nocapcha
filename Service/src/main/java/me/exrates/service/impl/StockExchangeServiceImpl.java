@@ -2,6 +2,7 @@ package me.exrates.service.impl;
 
 import me.exrates.dao.StockExchangeDao;
 import me.exrates.model.StockExchange;
+import me.exrates.model.StockExchangeStats;
 import me.exrates.model.dto.StockExchangeRateDto;
 import me.exrates.service.StockExchangeService;
 import me.exrates.service.stockExratesRetrieval.StockExrateRetrievalService;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -31,15 +33,17 @@ public class StockExchangeServiceImpl implements StockExchangeService {
 
 
     @Override
-  //  @Scheduled(initialDelay = 5 * 1000L, fixedDelay = 1000 * 10000000000L)
+    @Scheduled(initialDelay = 5 * 1000L, fixedDelay = 1000 * 10000000000L)
     public void retrieveCurrencies() {
         Map<String, StockExchange> stockExchanges = stockExchangeDao.findAll().stream()
                 .collect(Collectors.toMap(StockExchange::getName, stockExchange -> stockExchange));
         LOGGER.debug(stockExchanges);
+        List<StockExchangeStats> stockExchangeStatsList = new ArrayList<>();
 
         stockExrateRetrievalServices.forEach(service -> {
-            service.retrieveAndSave(stockExchanges.get(service.getStockExchangeName()));
+            stockExchangeStatsList.addAll(service.retrieveStats(stockExchanges.get(service.getStockExchangeName())));
         });
+        stockExchangeDao.saveStockExchangeStatsList(stockExchangeStatsList);
     }
 
     @Override

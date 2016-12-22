@@ -9,8 +9,6 @@ import me.exrates.model.StockExchangeStats;
 import me.exrates.service.util.OkHttpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -29,11 +27,9 @@ public class BtceRetrievalService implements StockExrateRetrievalService {
     private static final Logger LOGGER = LogManager.getLogger(BtceRetrievalService.class);
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    /*@Autowired*/
-    private StockExchangeDao stockExchangeDao;
 
     @Override
-    public void retrieveAndSave(StockExchange stockExchange) {
+    public List<StockExchangeStats> retrieveStats(StockExchange stockExchange) {
         List<StockExchangeStats> stockExchangeStatsList = new ArrayList<>();
         Map<String, CurrencyPair> currencyPairs = stockExchange.getAvailableCurrencyPairs().stream()
                 .collect(Collectors.toMap(currencyPair -> (convertCurrencyName(currencyPair.getCurrency1().getName()) + "_" +
@@ -66,7 +62,7 @@ public class BtceRetrievalService implements StockExrateRetrievalService {
         } catch (IOException e) {
             LOGGER.error(e);
         }
-        stockExchangeDao.saveStockExchangeStatsList(stockExchangeStatsList);
+        return stockExchangeStatsList;
 
     }
 
