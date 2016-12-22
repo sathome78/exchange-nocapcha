@@ -34,7 +34,7 @@ public class StockExchangeServiceImpl implements StockExchangeService {
 
 
     @Override
-    @Scheduled(cron = "0 23 * * *")
+    @Scheduled(cron = "0 0 23 * * *")
     public void retrieveCurrencies() {
         LOGGER.debug("Start retrieving stock exchange statistics at: " + LocalDateTime.now());
         Map<String, StockExchange> stockExchanges = stockExchangeDao.findAll().stream()
