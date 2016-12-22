@@ -46,13 +46,15 @@ public class BitfinexRetrievalService implements StockExrateRetrievalService {
                 JsonNode root = objectMapper.readTree(jsonResponse);
                 StockExchangeStats stockExchangeStats = new StockExchangeStats();
                 stockExchangeStats.setCurrencyPairId(currencyPair.getId());
+                BigDecimal priceLast = BigDecimalProcessing.parseLocale(root.get("last_price").asText(), Locale.ENGLISH, false);
                 BigDecimal priceBuy = BigDecimalProcessing.parseLocale(root.get("bid").asText(), Locale.ENGLISH, false);
                 BigDecimal priceSell = BigDecimalProcessing.parseLocale(root.get("ask").asText(), Locale.ENGLISH, false);
                 BigDecimal priceLow = BigDecimalProcessing.parseLocale(root.get("low").asText(), Locale.ENGLISH, false);
                 BigDecimal priceHigh = BigDecimalProcessing.parseLocale(root.get("high").asText(), Locale.ENGLISH, false);
                 BigDecimal volume = BigDecimalProcessing.parseLocale(root.get("volume").asText(), Locale.ENGLISH, false);
                 stockExchangeStats.setDate(LocalDateTime.now());
-                stockExchangeStats.setStockExchangeId(stockExchange.getId());
+                stockExchangeStats.setPriceLast(priceLast);
+                stockExchangeStats.setStockExchange(stockExchange);
                 stockExchangeStats.setPriceBuy(priceBuy);
                 stockExchangeStats.setPriceSell(priceSell);
                 stockExchangeStats.setPriceLow(priceLow);

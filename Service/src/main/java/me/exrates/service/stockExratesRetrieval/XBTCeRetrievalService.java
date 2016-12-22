@@ -8,9 +8,11 @@ import me.exrates.model.StockExchangeStats;
 import me.exrates.service.util.OkHttpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +22,7 @@ import java.util.stream.Collectors;
 /**
  * Created by OLEG on 15.12.2016.
  */
-/*@Service*/
+@Service
 public class XBTCeRetrievalService implements StockExrateRetrievalService {
 
     private static final Logger LOGGER = LogManager.getLogger(XBTCeRetrievalService.class);
@@ -45,8 +47,9 @@ public class XBTCeRetrievalService implements StockExrateRetrievalService {
             JsonNode root = objectMapper.readTree(jsonResponse);
             root.elements().forEachRemaining(jsonNode -> {
                 StockExchangeStats stockExchangeStats = new StockExchangeStats();
-                stockExchangeStats.setStockExchangeId(stockExchange.getId());
+                stockExchangeStats.setStockExchange(stockExchange);
                 stockExchangeStats.setCurrencyPairId(currencyPairs.get(jsonNode.get("Symbol").asText()).getId());
+                stockExchangeStats.setPriceLast(extractLastPrice(jsonNode));
                 stockExchangeStats.setPriceBuy(jsonNode.get("LastBuyPrice").decimalValue());
                 stockExchangeStats.setPriceSell(jsonNode.get("LastSellPrice").decimalValue());
                 stockExchangeStats.setPriceLow(jsonNode.get("DailyBestBuyPrice").decimalValue());
@@ -68,6 +71,13 @@ public class XBTCeRetrievalService implements StockExrateRetrievalService {
     @Override
     public String getStockExchangeName() {
         return STOCK_EXCHANGE_NAME;
+    }
+
+    private BigDecimal extractLastPrice(JsonNode jsonNode) {
+        long lastBuyTimestamp = jsonNode.get("LastBuyTimestamp").longValue();
+        long lastSellTimestamp = jsonNode.get("LastSellTimestamp").longValue();
+        String fieldToExtract = lastBuyTimestamp > lastSellTimestamp ? "LastBuyPrice" : "LastSellPrice";
+        return jsonNode.get(fieldToExtract).decimalValue();
     }
 
 

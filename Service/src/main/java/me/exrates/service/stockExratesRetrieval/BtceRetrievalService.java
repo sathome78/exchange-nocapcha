@@ -9,6 +9,7 @@ import me.exrates.model.StockExchangeStats;
 import me.exrates.service.util.OkHttpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -21,7 +22,7 @@ import java.util.stream.Collectors;
 /**
  * Created by OLEG on 20.12.2016.
  */
-/*@Service*/
+@Service
 public class BtceRetrievalService implements StockExrateRetrievalService {
 
     private static final Logger LOGGER = LogManager.getLogger(BtceRetrievalService.class);
@@ -48,8 +49,9 @@ public class BtceRetrievalService implements StockExrateRetrievalService {
                 JsonNode currencyPairNode = root.get(currencyPairName);
                 if (currencyPairNode != null) {
                     StockExchangeStats stockExchangeStats = new StockExchangeStats();
-                    stockExchangeStats.setStockExchangeId(stockExchange.getId());
+                    stockExchangeStats.setStockExchange(stockExchange);
                     stockExchangeStats.setCurrencyPairId(currencyPairs.get(currencyPairName).getId());
+                    stockExchangeStats.setPriceLast(currencyPairNode.get("last").decimalValue());
                     stockExchangeStats.setPriceBuy(currencyPairNode.get("buy").decimalValue());
                     stockExchangeStats.setPriceSell(currencyPairNode.get("sell").decimalValue());
                     stockExchangeStats.setPriceLow(currencyPairNode.get("low").decimalValue());

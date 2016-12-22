@@ -41,8 +41,10 @@ public class AlcurExRetrievalService implements StockExrateRetrievalService {
                 JsonNode currencyPairNode = root.get(currencyPairName);
                 if (currencyPairNode != null) {
                     StockExchangeStats stockExchangeStats = new StockExchangeStats();
-                    stockExchangeStats.setStockExchangeId(stockExchange.getId());
+                    stockExchangeStats.setStockExchange(stockExchange);
                     stockExchangeStats.setCurrencyPairId(currencyPairs.get(currencyPairName).getId());
+                    BigDecimal priceLast = BigDecimalProcessing.parseLocale(currencyPairNode.get("last").asText(),
+                            Locale.ENGLISH, false);
                     BigDecimal priceBuy = BigDecimalProcessing.parseLocale(currencyPairNode.get("highestBid").asText(),
                             Locale.ENGLISH, false);
                     BigDecimal priceSell = BigDecimalProcessing.parseLocale(currencyPairNode.get("lowestAsk").asText(),
@@ -54,6 +56,7 @@ public class AlcurExRetrievalService implements StockExrateRetrievalService {
                     BigDecimal volume = BigDecimalProcessing.parseLocale(currencyPairNode.get("baseVolume").asText(),
                             Locale.ENGLISH, false);
 
+                    stockExchangeStats.setPriceLast(priceLast);
                     stockExchangeStats.setPriceBuy(priceBuy);
                     stockExchangeStats.setPriceSell(priceSell);
                     stockExchangeStats.setPriceLow(priceLow);

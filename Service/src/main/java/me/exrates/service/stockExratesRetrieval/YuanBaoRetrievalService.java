@@ -40,8 +40,10 @@ public class YuanBaoRetrievalService implements StockExrateRetrievalService {
             try {
                 JsonNode root = objectMapper.readTree(jsonResponse);
                 StockExchangeStats stockExchangeStats = new StockExchangeStats();
-                stockExchangeStats.setStockExchangeId(stockExchange.getId());
+                stockExchangeStats.setStockExchange(stockExchange);
                 stockExchangeStats.setCurrencyPairId(currencyPair.getId());
+                BigDecimal priceLast = BigDecimalProcessing.parseLocale(root.get("price").asText(),
+                        Locale.ENGLISH, false);
                 BigDecimal priceBuy = BigDecimalProcessing.parseLocale(root.get("buy").asText(),
                         Locale.ENGLISH, false);
                 BigDecimal priceSell = BigDecimalProcessing.parseLocale(root.get("sale").asText(),
@@ -52,7 +54,7 @@ public class YuanBaoRetrievalService implements StockExrateRetrievalService {
                         Locale.ENGLISH, false);
                 BigDecimal volume = BigDecimalProcessing.parseLocale(root.get("volume_24h").asText(),
                         Locale.ENGLISH, false);
-
+                stockExchangeStats.setPriceLast(priceLast);
                 stockExchangeStats.setPriceBuy(priceBuy);
                 stockExchangeStats.setPriceSell(priceSell);
                 stockExchangeStats.setPriceLow(priceLow);

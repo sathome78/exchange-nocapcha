@@ -9,6 +9,7 @@ import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.util.OkHttpUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
@@ -30,7 +31,7 @@ import java.util.*;
  *
  * Created by OLEG on 14.12.2016.
  */
-/*@Service*/
+@Service
 public class KrakenRetrievalService implements StockExrateRetrievalService {
 
     private static final Logger LOGGER = LogManager.getLogger(KrakenRetrievalService.class);
@@ -43,11 +44,13 @@ public class KrakenRetrievalService implements StockExrateRetrievalService {
 
 
     private final String STOCK_EXCHANGE_NAME = "Kraken";
+    private final String LAST_ARRAY = "a";
     private final String ASK_ARRAY = "a";
     private final String BID_ARRAY = "b";
     private final String LOW_ARRAY = "l";
     private final String HIGH_ARRAY = "h";
     private final String VOLUME_ARRAY = "v";
+    private final int LAST_PRICE_ITEM = 0;
     private final int ASK_PRICE_ITEM = 0;
     private final int BID_PRICE_ITEM = 0;
     private final int LOW_PRICE_ITEM = 0;
@@ -72,6 +75,8 @@ public class KrakenRetrievalService implements StockExrateRetrievalService {
                 StockExchangeStats stockExchangeStats= new StockExchangeStats();
                 stockExchangeStats.setCurrencyPairId(currencyPair.getId());
                 JsonNode currencyPairNode = root.get("result").get(name);
+                BigDecimal priceLast = BigDecimalProcessing.parseLocale(currencyPairNode.get(LAST_ARRAY)
+                        .get(LAST_PRICE_ITEM).asText(), Locale.ENGLISH, false);
                 BigDecimal priceBuy = BigDecimalProcessing.parseLocale(currencyPairNode.get(BID_ARRAY)
                         .get(BID_PRICE_ITEM).asText(), Locale.ENGLISH, false);
                 BigDecimal priceSell = BigDecimalProcessing.parseLocale(currencyPairNode.get(ASK_ARRAY)
@@ -84,7 +89,8 @@ public class KrakenRetrievalService implements StockExrateRetrievalService {
                         .get(VOLUME_ITEM).asText(), Locale.ENGLISH, false);
 
                 stockExchangeStats.setDate(LocalDateTime.now());
-                stockExchangeStats.setStockExchangeId(stockExchange.getId());
+                stockExchangeStats.setStockExchange(stockExchange);
+                stockExchangeStats.setPriceLast(priceLast);
                 stockExchangeStats.setPriceBuy(priceBuy);
                 stockExchangeStats.setPriceSell(priceSell);
                 stockExchangeStats.setPriceLow(priceLow);

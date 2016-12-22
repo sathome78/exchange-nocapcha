@@ -40,13 +40,15 @@ public class BitstampRetrievalService implements StockExrateRetrievalService {
             try {
                 JsonNode root = objectMapper.readTree(jsonResponse);
                 StockExchangeStats stockExchangeStats = new StockExchangeStats();
-                stockExchangeStats.setStockExchangeId(stockExchange.getId());
+                stockExchangeStats.setStockExchange(stockExchange);
                 stockExchangeStats.setCurrencyPairId(currencyPair.getId());
+                BigDecimal priceLast = BigDecimalProcessing.parseLocale(root.get("last").asText(), Locale.ENGLISH, false);
                 BigDecimal priceBuy = BigDecimalProcessing.parseLocale(root.get("bid").asText(), Locale.ENGLISH, false);
                 BigDecimal priceSell = BigDecimalProcessing.parseLocale(root.get("ask").asText(), Locale.ENGLISH, false);
                 BigDecimal priceLow = BigDecimalProcessing.parseLocale(root.get("low").asText(), Locale.ENGLISH, false);
                 BigDecimal priceHigh = BigDecimalProcessing.parseLocale(root.get("high").asText(), Locale.ENGLISH, false);
                 BigDecimal volume = BigDecimalProcessing.parseLocale(root.get("volume").asText(), Locale.ENGLISH, false);
+                stockExchangeStats.setPriceLast(priceLast);
                 stockExchangeStats.setPriceBuy(priceBuy);
                 stockExchangeStats.setPriceSell(priceSell);
                 stockExchangeStats.setPriceLow(priceLow);

@@ -49,8 +49,9 @@ public class YoBitRetrievalService implements StockExrateRetrievalService {
                 JsonNode currencyPairNode = root.get(currencyPairName);
                 if (currencyPairNode != null) {
                     StockExchangeStats stockExchangeStats = new StockExchangeStats();
-                    stockExchangeStats.setStockExchangeId(stockExchange.getId());
+                    stockExchangeStats.setStockExchange(stockExchange);
                     stockExchangeStats.setCurrencyPairId(currencyPairs.get(currencyPairName).getId());
+                    stockExchangeStats.setPriceLast(currencyPairNode.get("last").decimalValue());
                     stockExchangeStats.setPriceBuy(currencyPairNode.get("buy").decimalValue());
                     stockExchangeStats.setPriceSell(currencyPairNode.get("sell").decimalValue());
                     stockExchangeStats.setPriceLow(currencyPairNode.get("low").decimalValue());

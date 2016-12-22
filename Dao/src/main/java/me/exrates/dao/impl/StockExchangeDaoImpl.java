@@ -35,8 +35,9 @@ public class StockExchangeDaoImpl implements StockExchangeDao {
             "INNER JOIN STOCK_CURRENCY_PAIR ON STOCK_CURRENCY_PAIR.stock_exchange_id = STOCK_EXCHANGE.id " +
             "INNER JOIN CURRENCY_PAIR ON STOCK_CURRENCY_PAIR.currency_pair_id = CURRENCY_PAIR.id ";
 
-    private final String CREATE_STOCK_EXRATE = "INSERT INTO STOCK_EXRATE(currency_pair_id, stock_exchange_id, price_buy, price_sell, price_low, price_high, volume) " +
-            "VALUES(:currency_pair_id, :stock_exchange_id, :price_buy, :price_sell, :price_low, :price_high, :volume)";
+    private final String CREATE_STOCK_EXRATE = "INSERT INTO STOCK_EXRATE(currency_pair_id, stock_exchange_id, price_last, " +
+            " price_buy, price_sell, price_low, price_high, volume) " +
+            "VALUES(:currency_pair_id, :stock_exchange_id, :price_last, :price_buy, :price_sell, :price_low, :price_high, :volume)";
 
     private final ResultSetExtractor<List<StockExchange>> stockExchangeResultSetExtractor = (resultSet -> {
         List<StockExchange> result = new ArrayList<>();
@@ -64,7 +65,8 @@ public class StockExchangeDaoImpl implements StockExchangeDao {
     public void saveStockExchangeStats(StockExchangeStats stockExchangeRate) {
         Map<String, Number> params = new HashMap<>();
         params.put("currency_pair_id", stockExchangeRate.getCurrencyPairId());
-        params.put("stock_exchange_id", stockExchangeRate.getStockExchangeId());
+        params.put("stock_exchange_id", stockExchangeRate.getStockExchange().getId());
+        params.put("price_last", stockExchangeRate.getPriceLast());
         params.put("price_buy", stockExchangeRate.getPriceBuy());
         params.put("price_sell", stockExchangeRate.getPriceSell());
         params.put("price_low", stockExchangeRate.getPriceLow());
@@ -78,8 +80,9 @@ public class StockExchangeDaoImpl implements StockExchangeDao {
         Map<String, Object>[] batchValues = stockExchangeRates.stream().map(stockExchangeRate -> {
             Map<String, Object> values = new HashMap<String, Object>() {{
                 put("currency_pair_id", stockExchangeRate.getCurrencyPairId());
-                put("stock_exchange_id", stockExchangeRate.getStockExchangeId());
-                put("stock_exchange_id", stockExchangeRate.getStockExchangeId());
+                put("stock_exchange_id", stockExchangeRate.getStockExchange().getId());
+                put("stock_exchange_id", stockExchangeRate.getStockExchange().getId());
+                put("price_last", stockExchangeRate.getPriceLast());
                 put("price_buy", stockExchangeRate.getPriceBuy());
                 put("price_sell", stockExchangeRate.getPriceSell());
                 put("price_low", stockExchangeRate.getPriceLow());
@@ -112,7 +115,7 @@ public class StockExchangeDaoImpl implements StockExchangeDao {
     public List<StockExchangeRateDto> getStockExchangeStatistics(List<Integer> currencyPairIds) {
         String currencyPairClause = currencyPairIds == null ? "" : " WHERE stock_1.currency_pair_id IN (:currency_pair_ids) ";
         String sql = "SELECT stock_1.currency_pair_id, stock_1.stock_exchange_id, " +
-                "              CURRENCY_PAIR.name AS currency_pair_name, STOCK_EXCHANGE.name AS stock_exchange_name, " +
+                "              CURRENCY_PAIR.name AS currency_pair_name, STOCK_EXCHANGE.name AS stock_exchange_name, stock_1.price_last, " +
                 "              stock_1.price_buy, stock_1.price_sell, stock_1.price_low, stock_1.price_high, stock_1.volume," +
                 "              stock_1.date FROM STOCK_EXRATE AS stock_1 " +
                 "              JOIN (SELECT currency_pair_id, stock_exchange_id, MAX(STOCK_EXRATE.date) AS date FROM STOCK_EXRATE " +
@@ -141,13 +144,18 @@ public class StockExchangeDaoImpl implements StockExchangeDao {
                 }
                 if (dto != null) {
                     StockExchangeStats stockExchangeStats = new StockExchangeStats();
+                    StockExchange stockExchange = new StockExchange();
+                    stockExchange.setId(resultSet.getInt("stock_exchange_id"));
+                    stockExchange.setName(resultSet.getString("stock_exchange_name"));
+                    stockExchangeStats.setStockExchange(stockExchange);
+                    stockExchangeStats.setPriceLast(resultSet.getBigDecimal("price_last"));
                     stockExchangeStats.setPriceBuy(resultSet.getBigDecimal("price_buy"));
                     stockExchangeStats.setPriceSell(resultSet.getBigDecimal("price_sell"));
                     stockExchangeStats.setPriceLow(resultSet.getBigDecimal("price_low"));
                     stockExchangeStats.setPriceHigh(resultSet.getBigDecimal("price_high"));
                     stockExchangeStats.setVolume(resultSet.getBigDecimal("volume"));
                     stockExchangeStats.setDate(resultSet.getTimestamp("date").toLocalDateTime());
-                    dto.getExchangeStats().put(resultSet.getString("stock_exchange_name"), stockExchangeStats);
+                    dto.getExchangeStats().add(stockExchangeStats);
                 }
             }
             LOGGER.debug(result);

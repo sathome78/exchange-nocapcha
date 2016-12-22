@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import me.exrates.model.serializer.LocalDateTimeToLongSerializer;
+import me.exrates.model.serializer.StockExchangeSerializer;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -17,8 +18,13 @@ public class StockExchangeStats {
     private Long id;
     @JsonIgnore
     private Integer currencyPairId;
-    @JsonIgnore
-    private Integer stockExchangeId;
+
+    @JsonProperty(value = "stockExchange")
+    @JsonSerialize(using = StockExchangeSerializer.class)
+    private StockExchange stockExchange;
+
+    @JsonProperty(value = "last")
+    private BigDecimal priceLast;
 
     @JsonProperty(value = "buy")
     private BigDecimal priceBuy;
@@ -53,14 +59,6 @@ public class StockExchangeStats {
 
     public void setCurrencyPairId(Integer currencyPairId) {
         this.currencyPairId = currencyPairId;
-    }
-
-    public Integer getStockExchangeId() {
-        return stockExchangeId;
-    }
-
-    public void setStockExchangeId(Integer stockExchangeIn) {
-        this.stockExchangeId = stockExchangeIn;
     }
 
     public BigDecimal getPriceBuy() {
@@ -111,12 +109,29 @@ public class StockExchangeStats {
         this.date = date;
     }
 
+    public StockExchange getStockExchange() {
+        return stockExchange;
+    }
+
+    public void setStockExchange(StockExchange stockExchange) {
+        this.stockExchange = stockExchange;
+    }
+
+    public BigDecimal getPriceLast() {
+        return priceLast;
+    }
+
+    public void setPriceLast(BigDecimal priceLast) {
+        this.priceLast = priceLast;
+    }
+
     @Override
     public String toString() {
         return "StockExchangeStats{" +
                 "id=" + id +
                 ", currencyPairId=" + currencyPairId +
-                ", stockExchangeId=" + stockExchangeId +
+                ", stockExchange=" + stockExchange +
+                ", priceLast=" + priceLast +
                 ", priceBuy=" + priceBuy +
                 ", priceSell=" + priceSell +
                 ", priceLow=" + priceLow +

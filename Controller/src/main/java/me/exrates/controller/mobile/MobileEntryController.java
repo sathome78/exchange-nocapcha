@@ -79,9 +79,6 @@ public class MobileEntryController {
     private ApiService apiService;
 
     @Autowired
-    private StockExchangeService stockExchangeService;
-
-    @Autowired
     private StoreSessionListener storeSessionListener;
 
 
@@ -1011,16 +1008,9 @@ public class MobileEntryController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/rest/stockExchangeStatistics", method = GET, produces = "application/json; charset=UTF-8")
-    public List<StockExchangeRateDto> getStockExchangeStatistics(@RequestParam(required = false) Integer[] pairs) {
-        return stockExchangeService.getStockExchangeStatistics(pairs == null ? null : Arrays.asList(pairs));
-    }
 
-    @RequestMapping(value = "/rest/temp/retrieveCurrencyPairRates", method = GET, produces = "application/json; charset=UTF-8")
-    public ResponseEntity<Void> retrieveCurrencyPairRates() {
-        stockExchangeService.retrieveCurrencies();
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
+
+
 
 
 

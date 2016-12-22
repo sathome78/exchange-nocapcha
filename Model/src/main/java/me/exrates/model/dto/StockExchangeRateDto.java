@@ -17,7 +17,7 @@ public class StockExchangeRateDto {
     @JsonProperty(value = "currencyPair")
     private String currencyPairName;
     @JsonProperty(value = "exchangeStats")
-    private Map<String, StockExchangeStats> exchangeStats = new HashMap<>();
+    private List<StockExchangeStats> exchangeStats = new ArrayList<>();
 
     public String getCurrencyPairName() {
         return currencyPairName;
@@ -27,11 +27,11 @@ public class StockExchangeRateDto {
         this.currencyPairName = currencyPairName;
     }
 
-    public Map<String, StockExchangeStats> getExchangeStats() {
+    public List<StockExchangeStats> getExchangeStats() {
         return exchangeStats;
     }
 
-    public void setExchangeStats(Map<String, StockExchangeStats> exchangeStats) {
+    public void setExchangeStats(List<StockExchangeStats> exchangeStats) {
         this.exchangeStats = exchangeStats;
     }
 

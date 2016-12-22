@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.dto.OrderCommissionsDto;
+import me.exrates.model.dto.StockExchangeRateDto;
 import me.exrates.model.dto.mobileApiDto.CandleChartItemReducedDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.*;
 import me.exrates.model.enums.IntervalType;
@@ -18,6 +19,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -63,6 +66,9 @@ public class MobileDashboardController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private StockExchangeService stockExchangeService;
 
     @Autowired
     private LocaleResolver localeResolver;
@@ -926,6 +932,17 @@ public class MobileDashboardController {
                 offsetValue, limitValue, localeResolver.resolveLocale(request)).stream()
                 .map(dto -> new MyInputOutputHistoryApiDto(dto, localeResolver.resolveLocale(request))).collect(Collectors.toList());
 
+    }
+
+    @RequestMapping(value = "/test/currencyPairRates", method = GET, produces = "application/json; charset=UTF-8")
+    public ResponseEntity<Void> retrieveCurrencyPairRates() {
+        stockExchangeService.retrieveCurrencies();
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/stockExchangeStatistics", method = GET, produces = "application/json; charset=UTF-8")
+    public List<StockExchangeRateDto> getStockExchangeStatistics(@RequestParam(required = false) Integer[] pairs) {
+        return stockExchangeService.getStockExchangeStatistics(pairs == null ? null : Arrays.asList(pairs));
     }
 
 
