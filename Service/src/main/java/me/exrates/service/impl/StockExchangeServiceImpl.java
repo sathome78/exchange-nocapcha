@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +24,7 @@ import java.util.stream.Collectors;
 @Service
 public class StockExchangeServiceImpl implements StockExchangeService {
 
-    private static final Logger LOGGER = LogManager.getLogger(StockExchangeServiceImpl.class);
+    private static final Logger LOGGER = LogManager.getLogger("mobileAPI");
 
     @Autowired
     private List<StockExrateRetrievalService> stockExrateRetrievalServices;
@@ -33,8 +34,9 @@ public class StockExchangeServiceImpl implements StockExchangeService {
 
 
     @Override
- //   @Scheduled(initialDelay = 5 * 1000L, fixedDelay = 1000 * 10000000000L)
+    @Scheduled(cron = "0 23 * * *")
     public void retrieveCurrencies() {
+        LOGGER.debug("Start retrieving stock exchange statistics at: " + LocalDateTime.now());
         Map<String, StockExchange> stockExchanges = stockExchangeDao.findAll().stream()
                 .collect(Collectors.toMap(StockExchange::getName, stockExchange -> stockExchange));
         LOGGER.debug(stockExchanges);
