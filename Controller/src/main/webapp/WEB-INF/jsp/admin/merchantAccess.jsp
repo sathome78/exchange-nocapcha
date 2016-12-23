@@ -69,6 +69,18 @@
                             </tbody>
 
                         </table>
+
+                        <sec:authorize access="hasAuthority('${adminEnum}')">
+                            <hr/>
+                            <div class="row text-center">
+                                <button id="block-all-input" class="red-box"><loc:message code="admin.blockAllInput" /></button>
+                                <button id="block-all-output" class="red-box"><loc:message code="admin.blockAllOutput" /></button>
+                            </div>
+                            <div class="row text-center">
+                                <button id="unblock-all-input" class="blue-box"><loc:message code="admin.unblockAllInput" /></button>
+                                <button id="unblock-all-output" class="blue-box"><loc:message code="admin.unblockAllOutput" /></button>
+                            </div>
+                        </sec:authorize>
                     </div>
             </div>
         </div>
@@ -76,7 +88,9 @@
 <div hidden id="prompt-toggle-block">
     <loc:message code="admin.toggleBlockPrompt" />
 </div>
-
+<div hidden id="prompt-toggle-block-all">
+    <loc:message code="admin.blockAllPrompt" />
+</div>
 <%@include file='../fragments/footer.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>

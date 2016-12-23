@@ -884,6 +884,14 @@ public class AdminController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @RequestMapping(value = "/admin/merchantAccess/setBlockForAll", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity<Void> switchBlockStatusForAll(@RequestParam OperationType operationType,
+                                                        @RequestParam boolean blockStatus) {
+        merchantService.setBlockForAll(operationType, blockStatus);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
 
 
 

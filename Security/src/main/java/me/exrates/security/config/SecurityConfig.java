@@ -112,9 +112,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/admin/orderdelete").hasAuthority(AdminAuthority.DELETE_ORDER.name())
                 .antMatchers("/admin/expireSession").hasAuthority(AdminAuthority.MANAGE_SESSIONS.name())
                 .antMatchers("/admin/editCurrencyLimits/submit",
-                        "/admin/editCmnRefRoot", "/admin/editLevel", "/admin/commissions/editCommission",
-                        "/admin/commissions/editMerchantCommission", "/admin/merchantAccess/toggleBlock").hasAuthority(AdminAuthority.SET_CURRENCY_LIMIT.name())
-                .antMatchers("/admin/editCmnRefRoot").hasAuthority(UserRole.ADMINISTRATOR.name())
+                        "/admin/editCmnRefRoot", "/admin/editLevel", "/admin/commissions/editCommission", "/admin/commissions/editMerchantCommission",
+                        "/admin/merchantAccess/toggleBlock", "/admin/merchantAccess/setBlockForAll").hasAuthority(AdminAuthority.SET_CURRENCY_LIMIT.name())
+                .antMatchers("/admin/editCmnRefRoot", "/admin/merchantAccess/setBlockForAll").hasAuthority(UserRole.ADMINISTRATOR.name())
                 .antMatchers("/admin/editAuthorities/submit").hasAuthority(AdminAuthority.MANAGE_ACCESS.name())
                 .antMatchers("/admin/changeActiveBalance/submit").hasAuthority(AdminAuthority.MANUAL_BALANCE_CHANGE.name())
                 .antMatchers("/admin/**", "/admin", "/companywallet").hasAnyAuthority(UserRole.ADMINISTRATOR.name(),

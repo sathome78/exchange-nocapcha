@@ -7,6 +7,7 @@ import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.WithdrawalRequestStatus;
 import me.exrates.model.vo.CacheData;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.security.Principal;
@@ -73,4 +74,7 @@ public interface MerchantService {
     boolean checkInputRequestsLimit(int merchantId, String email);
 
     void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType);
+
+    @Transactional
+    void setBlockForAll(OperationType operationType, boolean blockStatus);
 }

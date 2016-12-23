@@ -37,4 +37,8 @@ public interface MerchantDao {
     Integer getInputRequests(int merchantId, String email);
 
     void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType);
+
+    void setBlockForAll(OperationType operationType, boolean blockStatus);
+
+    boolean checkMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType);
 }

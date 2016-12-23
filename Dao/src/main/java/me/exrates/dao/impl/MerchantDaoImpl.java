@@ -251,17 +251,7 @@ public class MerchantDaoImpl implements MerchantDao {
 
     @Override
     public void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType) {
-        String fieldToToggle = null;
-        switch (operationType) {
-            case INPUT:
-                fieldToToggle = "refill_block";
-                break;
-            case OUTPUT:
-                fieldToToggle = "withdraw_block";
-                break;
-            default:
-                throw new IllegalArgumentException("Incorrect operation type!");
-        }
+        String fieldToToggle = resolveBlockFieldByOperationType(operationType);
         String sql = "UPDATE MERCHANT_CURRENCY SET " + fieldToToggle + " = !" + fieldToToggle +
                 " WHERE merchant_id = :merchant_id AND currency_id = :currency_id ";
         Map<String, Integer> params = new HashMap<>();
@@ -269,4 +259,40 @@ public class MerchantDaoImpl implements MerchantDao {
         params.put("currency_id", currencyId);
         jdbcTemplate.update(sql, params);
     }
+
+    @Override
+    public void setBlockForAll(OperationType operationType, boolean blockStatus) {
+        String blockField = resolveBlockFieldByOperationType(operationType);
+        String sql = "UPDATE MERCHANT_CURRENCY SET " + blockField + " = :block";
+        Map<String, Integer> params = Collections.singletonMap("block", blockStatus ? 1 : 0);
+        jdbcTemplate.update(sql, params);
+    }
+
+    @Override
+    public boolean checkMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType) {
+        String blockField = resolveBlockFieldByOperationType(operationType);
+        String sql = "SELECT " + blockField + " FROM MERCHANT_CURRENCY " +
+                " WHERE merchant_id = :merchant_id AND currency_id = :currency_id ";
+        Map<String, Integer> params = new HashMap<>();
+        params.put("merchant_id", merchantId);
+        params.put("currency_id", currencyId);
+        return jdbcTemplate.queryForObject(sql, params, Boolean.class);
+    }
+
+    private String resolveBlockFieldByOperationType(OperationType operationType) {
+        String blockField;
+        switch (operationType) {
+            case INPUT:
+                blockField = "refill_block";
+                break;
+            case OUTPUT:
+                blockField = "withdraw_block";
+                break;
+            default:
+                throw new IllegalArgumentException("Incorrect operation type!");
+        }
+        return blockField;
+    }
+
+
 }

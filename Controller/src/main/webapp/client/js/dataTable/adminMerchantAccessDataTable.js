@@ -21,7 +21,20 @@ $(document).ready(function () {
         if (confirm($('#prompt-toggle-block').html())) {
             toggleBlock(merchantId, currencyId, operationType, this);
         }
-    })
+    });
+
+    $('#block-all-input').click(function () {
+        setBlockForAll('INPUT', true);
+    });
+    $('#block-all-output').click(function () {
+        setBlockForAll('OUTPUT', true);
+    });
+    $('#unblock-all-input').click(function () {
+        setBlockForAll('INPUT', false);
+    });
+    $('#unblock-all-output').click(function () {
+        setBlockForAll('OUTPUT', false);
+    });
 
 });
 
@@ -46,5 +59,33 @@ function toggleBlock(merchantId, currencyId, operationType, $element) {
             $($element).toggleClass('fa-unlock');
         }
     });
+}
+
+function setBlockForAll(operationType, blockStatus) {
+    if (confirm($('#prompt-toggle-block-all').html())) {
+        var columnNumber = operationType === 'INPUT' ? 3 : 4;
+        var formData = new FormData();
+        formData.append("operationType", operationType);
+        formData.append("blockStatus", blockStatus);
+
+        $.ajax({
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            url: '/admin/merchantAccess/setBlockForAll',
+            type: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function () {
+                var $targetIcons = $('#merchant-options-table').find('tr td:nth-child(' + columnNumber + ') i');
+                $($targetIcons).toggleClass('fa-lock red', blockStatus);
+                $($targetIcons).toggleClass('fa-unlock', !blockStatus);
+            }
+        });
+
+    }
+
+
 
 }

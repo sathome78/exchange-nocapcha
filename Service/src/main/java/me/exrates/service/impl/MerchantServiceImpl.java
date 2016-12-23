@@ -13,6 +13,7 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.WithdrawalRequestStatus;
 import me.exrates.model.vo.CacheData;
 import me.exrates.service.*;
+import me.exrates.service.exception.MerchantCurrencyBlockedException;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.UnsupportedMerchantException;
 import me.exrates.service.util.Cache;
@@ -405,6 +406,7 @@ public class MerchantServiceImpl implements MerchantService {
     }
 
     public Optional<CreditsOperation> prepareCreditsOperation(Payment payment,String userEmail) {
+        checkMerchantBlock(payment.getMerchant(), payment.getCurrency(), payment.getOperationType());
         final OperationType operationType = payment.getOperationType();
         final BigDecimal amount = valueOf(payment.getSum());
         final Merchant merchant = merchantDao.findById(payment.getMerchant());
@@ -485,8 +487,26 @@ public class MerchantServiceImpl implements MerchantService {
     }
 
     @Override
+    @Transactional
     public void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType) {
         merchantDao.toggleMerchantBlock(merchantId, currencyId, operationType);
     }
+
+    @Override
+    @Transactional
+    public void setBlockForAll(OperationType operationType, boolean blockStatus) {
+        merchantDao.setBlockForAll(operationType, blockStatus);
+    }
+
+
+
+    private void checkMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType) {
+        boolean isBlocked = merchantDao.checkMerchantBlock(merchantId, currencyId, operationType);
+        if (isBlocked) {
+            throw new MerchantCurrencyBlockedException("Operation " + operationType + " is blocked for this currency! ");
+        }
+    }
+
+
 
 }
