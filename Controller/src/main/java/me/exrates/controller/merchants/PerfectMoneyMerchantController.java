@@ -55,7 +55,7 @@ public class PerfectMoneyMerchantController {
 
     private static final Logger logger = LogManager.getLogger("merchant");
 
-    @RequestMapping(value = "payment/status",method = RequestMethod.POST)
+    /*@RequestMapping(value = "payment/status",method = RequestMethod.POST)*/
     public ResponseEntity<Void> statusPayment(final @RequestParam Map<String,String> params,
                                       final RedirectAttributes redir) {
 
@@ -73,8 +73,8 @@ public class PerfectMoneyMerchantController {
 
         return new ResponseEntity<>(BAD_REQUEST);
     }
-
-    @RequestMapping(value = "payment/prepare",method = RequestMethod.POST)
+    // temp block PerfectMoney input
+    /*@RequestMapping(value = "payment/prepare",method = RequestMethod.POST)*/
     public ResponseEntity<Map<String,String>> preparePayment(@RequestBody String body, Principal principal, HttpSession httpSession, final Locale locale) {
         final Payment payment = new Gson().fromJson(body, Payment.class);
 
@@ -104,7 +104,7 @@ public class PerfectMoneyMerchantController {
         return new ResponseEntity<>(params,HttpStatus.OK);
     }
 
-    @RequestMapping(value = "payment/success",method = RequestMethod.POST)
+    /*@RequestMapping(value = "payment/success",method = RequestMethod.POST)*/
     public RedirectView successPayment(@RequestParam Map<String,String> response, HttpSession httpSession,
                                        RedirectAttributes redir, final HttpServletRequest request) {
         logger.info("Response: " + response);
