@@ -81,8 +81,13 @@ public class AdvcashMerchantController {
     public RedirectView successPayment(@RequestParam Map<String,String> response, RedirectAttributes redir, final HttpServletRequest request) {
 
         Transaction transaction = transactionService.findById(Integer.parseInt(response.get("ac_order_id")));
+        Double transactionSum = transaction.getAmount().add(transaction.getCommissionAmount()).doubleValue();
+        logger.info("Response: " + response);
 
-        if (response.get("ac_transaction_status").equals("COMPLETED") && advcashService.checkHashTransactionByTransactionId(transaction.getId(), response.get("transaction_hash"))){
+
+        if (response.get("ac_transaction_status").equals("COMPLETED")
+                && advcashService.checkHashTransactionByTransactionId(transaction.getId(), response.get("transaction_hash"))
+                && Double.parseDouble(response.get("ac_amount"))==transactionSum ){
 
             redir.addAttribute("successNoty", messageSource.getMessage("merchants.successfulBalanceDeposit",
                     merchantService.formatResponseMessage(transaction).values().toArray(), localeResolver.resolveLocale(request)));

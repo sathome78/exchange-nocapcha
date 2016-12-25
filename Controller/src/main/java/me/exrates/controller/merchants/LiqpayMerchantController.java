@@ -93,10 +93,14 @@ public class LiqpayMerchantController {
 
 
         Map responseData = liqpayService.getResponse(data);
+        logger.info("Response: " + response);
 
         Transaction transaction = transactionService.findById(Integer.parseInt(String.valueOf(responseData.get("order_id"))));
+        Double transactionSum = transaction.getAmount().add(transaction.getCommissionAmount()).doubleValue();
 
-        if ((responseData.get("status").equals("success")) && liqpayService.checkHashTransactionByTransactionId(transaction.getId(), (String) responseData.get("info"))){
+        if ((responseData.get("status").equals("success"))
+                && liqpayService.checkHashTransactionByTransactionId(transaction.getId(), (String) responseData.get("info"))
+                && Double.parseDouble(String.valueOf(responseData.get("amount")))==transactionSum){
 
             redir.addAttribute("successNoty", messageSource.getMessage("merchants.successfulBalanceDeposit",
                     merchantService.formatResponseMessage(transaction).values().toArray(), localeResolver.resolveLocale(request)));
@@ -126,10 +130,14 @@ public class LiqpayMerchantController {
 
 
         Map responseData = liqpayService.getResponse(data);
+        logger.info("Response: " + response);
 
         Transaction transaction = transactionService.findById(Integer.parseInt(String.valueOf(responseData.get("order_id"))));
+        Double transactionSum = transaction.getAmount().add(transaction.getCommissionAmount()).doubleValue();
 
-        if ((responseData.get("status").equals("success")) && liqpayService.checkHashTransactionByTransactionId(transaction.getId(), (String) responseData.get("info"))){
+        if ((responseData.get("status").equals("success"))
+                && liqpayService.checkHashTransactionByTransactionId(transaction.getId(), (String) responseData.get("info"))
+                && Double.parseDouble(String.valueOf(responseData.get("amount")))==transactionSum){
 
             redir.addAttribute("successNoty", messageSource.getMessage("merchants.successfulBalanceDeposit",
                     merchantService.formatResponseMessage(transaction).values().toArray(), localeResolver.resolveLocale(request)));
