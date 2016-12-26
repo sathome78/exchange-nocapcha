@@ -6,6 +6,7 @@ import me.exrates.model.Payment;
 import me.exrates.model.Transaction;
 import me.exrates.service.MerchantService;
 import me.exrates.service.PerfectMoneyService;
+import me.exrates.service.TransactionService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +45,9 @@ public class PerfectMoneyMerchantController {
     private PerfectMoneyService perfectMoneyService;
 
     @Autowired
+    private TransactionService transactionService;
+
+    @Autowired
     private MerchantService merchantService;
 
     @Autowired
@@ -57,7 +61,7 @@ public class PerfectMoneyMerchantController {
 
     @RequestMapping(value = "payment/status",method = RequestMethod.POST)
     public ResponseEntity<Void> statusPayment(final @RequestParam Map<String,String> params,
-                                      final RedirectAttributes redir) {
+                                              final RedirectAttributes redir) {
 
         logger.info("Response: " + params);
 
@@ -65,7 +69,10 @@ public class PerfectMoneyMerchantController {
         final String hash = perfectMoneyService.computePaymentHash(params);
 
         logger.info("hash: " + hash);
-        if (params.get("V2_HASH").equals(hash)) {
+        Transaction transaction = transactionService.findById(Integer.parseInt(params.get("PAYMENT_ID")));
+        Double transactionSum = transaction.getAmount().add(transaction.getCommissionAmount()).doubleValue();
+
+        if (params.get("V2_HASH").equals(hash) && Double.parseDouble(params.get("PAYMENT_AMOUNT"))==transactionSum) {
             if (perfectMoneyService.provideTransaction(Integer.parseInt(params.get("PAYMENT_ID")))){
                 return response;
             }
@@ -115,8 +122,10 @@ public class PerfectMoneyMerchantController {
             httpSession.removeAttribute("transaction");
         }
         final String hash = perfectMoneyService.computePaymentHash(response);
+        Transaction transaction = transactionService.findById(Integer.parseInt(response.get("PAYMENT_ID")));
+        Double transactionSum = transaction.getAmount().add(transaction.getCommissionAmount()).doubleValue();
 
-        if (response.get("V2_HASH").equals(hash)) {
+        if (response.get("V2_HASH").equals(hash) && Double.parseDouble(response.get("PAYMENT_AMOUNT"))==transactionSum) {
             if (perfectMoneyService.provideTransaction(Integer.parseInt(response.get("PAYMENT_ID")))){
                 redir.addAttribute("successNoty", messageSource.getMessage("merchants.successfulBalanceDeposit", merchantService.formatResponseMessage(openTransaction).values().toArray(), localeResolver.resolveLocale(request)));
                 return new RedirectView("/dashboard");

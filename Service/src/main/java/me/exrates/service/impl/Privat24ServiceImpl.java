@@ -79,9 +79,11 @@ public class Privat24ServiceImpl implements Privat24Service {
             LOG.error(e);
             return false;
         }
+        Double transactionSum = transaction.getAmount().add(transaction.getCommissionAmount()).doubleValue();
 
         String checkSignature = algorithmService.sha1(algorithmService.computeMD5Hash(payment + password));
-        if (checkSignature.equals(signature)){
+        if (checkSignature.equals(signature)
+                && Double.parseDouble(params.get("amt"))==transactionSum){
             transactionService.provideTransaction(transaction);
             return true;
         }

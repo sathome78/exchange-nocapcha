@@ -84,6 +84,7 @@ public class Privat24MerchantController {
 
         LOG.debug("Begin method: statusPayment.");
         final ResponseEntity<Void> response = new ResponseEntity<>(OK);
+        LOG.info("Response: " + params);
 
         String signature = params.get("signature");
         String payment = params.get("payment");
@@ -115,6 +116,7 @@ public class Privat24MerchantController {
         for (String value : arrayResponse){
             mapResponse.put(value.split("=")[0], value.split("=")[1]);
         }
+        LOG.info("Response: " + response);
 
         Transaction transaction;
         try{

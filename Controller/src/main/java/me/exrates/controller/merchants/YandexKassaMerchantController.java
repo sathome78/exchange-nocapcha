@@ -84,6 +84,7 @@ public class YandexKassaMerchantController {
 
         LOG.debug("Begin method: statusPayment.");
         final ResponseEntity<Void> response = new ResponseEntity<>(OK);
+        LOG.info("Response: " + params);
 
         if (yandexKassaService.confirmPayment(params)) {
             return response;
@@ -97,6 +98,7 @@ public class YandexKassaMerchantController {
 
         LOG.debug("Begin method: successPayment.");
         Transaction transaction = transactionService.findById(Integer.parseInt(response.get("orderNumber")));
+        LOG.info("Response: " + response);
 
         if (transaction.isProvided()){
 
