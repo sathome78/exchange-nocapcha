@@ -79,19 +79,21 @@ public class NixMoneyServiceImpl implements NixMoneyService {
     public boolean confirmPayment(Map<String,String> params) {
 
         Transaction transaction;
+
         try{
             transaction = transactionService.findById(Integer.parseInt(params.get("PAYMENT_ID")));
         }catch (EmptyResultDataAccessException e){
             logger.error(e);
             return false;
         }
+        Double transactionSum = transaction.getAmount().add(transaction.getCommissionAmount()).doubleValue();
 
         String passwordMD5 = algorithmService.computeMD5Hash(payeePassword).toUpperCase();;
         String V2_HASH = algorithmService.computeMD5Hash(params.get("PAYMENT_ID") + ":" + params.get("PAYEE_ACCOUNT")
                 + ":" + params.get("PAYMENT_AMOUNT") + ":" + params.get("PAYMENT_UNITS") + ":" + params.get("PAYMENT_BATCH_NUM")
                 + ":" + params.get("PAYER_ACCOUNT") + ":" + passwordMD5 + ":" + params.get("TIMESTAMPGMT")).toUpperCase();;
 
-        if (V2_HASH.equals(params.get("V2_HASH"))){
+        if (V2_HASH.equals(params.get("V2_HASH")) && Double.parseDouble(params.get("PAYMENT_AMOUNT"))==transactionSum){
             transactionService.provideTransaction(transaction);
         }
 

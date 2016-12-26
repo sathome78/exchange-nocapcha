@@ -77,13 +77,15 @@ public class InterkassaServiceImpl implements InterkassaService {
             LOG.error(e);
             return false;
         }
+        Double transactionSum = transaction.getAmount().add(transaction.getCommissionAmount()).doubleValue();
 
         String signature = params.get("ik_sign");
         params.remove("ik_sign");
         String checkSignature = getSignature(new TreeMap<String, String>(params));
         if(checkSignature.equals(signature)
                 && params.get("ik_co_id").equals(checkoutId)
-                && params.get("ik_inv_st").equals("success"))
+                && params.get("ik_inv_st").equals("success")
+                && Double.parseDouble(params.get("ik_am"))==transactionSum)
         {
             transactionService.provideTransaction(transaction);
             LOG.debug("Payment successful.");

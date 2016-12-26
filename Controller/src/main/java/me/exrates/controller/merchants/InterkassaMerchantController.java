@@ -83,6 +83,7 @@ public class InterkassaMerchantController {
                                               final RedirectAttributes redir) {
 
         LOG.debug("Begin method: statusPayment.");
+        LOG.info("Response: " + params);
         final ResponseEntity<Void> response = new ResponseEntity<>(OK);
 
         if (interkassaService.confirmPayment(params)) {
@@ -96,6 +97,7 @@ public class InterkassaMerchantController {
     public RedirectView successPayment(@RequestParam Map<String,String> response, RedirectAttributes redir, final HttpServletRequest request) {
 
         LOG.debug("Begin method: successPayment.");
+        LOG.info("Response: " + response);
 
         Transaction transaction;
         try{

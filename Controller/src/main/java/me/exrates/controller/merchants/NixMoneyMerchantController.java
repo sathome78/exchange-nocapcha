@@ -74,6 +74,7 @@ public class NixMoneyMerchantController {
     public ResponseEntity<Void> statusPayment(@RequestParam Map<String,String> params, RedirectAttributes redir) {
 
         final ResponseEntity<Void> response = new ResponseEntity<>(OK);
+        logger.info("Response: " + params);
 
         if (nixMoneyService.confirmPayment(params)) {
             return response;
@@ -87,6 +88,7 @@ public class NixMoneyMerchantController {
     public RedirectView successPayment(@RequestParam Map<String,String> response, RedirectAttributes redir, final HttpServletRequest request) {
 
         Transaction transaction;
+        logger.info("Response: " + response);
         try{
             transaction = transactionService.findById(Integer.parseInt(response.get("PAYMENT_ID")));
             if (!transaction.isProvided()){
