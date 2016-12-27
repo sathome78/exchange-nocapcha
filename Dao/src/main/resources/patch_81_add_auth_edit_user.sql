@@ -7,3 +7,5 @@ INSERT INTO USER_ADMIN_AUTHORITY SELECT USER.id, ADMIN_AUTHORITY_ROLE_DEFAULTS.a
                                  FROM USER
                                    JOIN ADMIN_AUTHORITY_ROLE_DEFAULTS ON USER.roleid = ADMIN_AUTHORITY_ROLE_DEFAULTS.role_id
     WHERE ADMIN_AUTHORITY_ROLE_DEFAULTS.admin_authority_id = 9;
+
+INSERT INTO DATABASE_PATCH VALUES('patch_82_add_auth_edit_user',default,1);
