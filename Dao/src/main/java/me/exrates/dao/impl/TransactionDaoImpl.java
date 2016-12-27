@@ -96,7 +96,8 @@ public final class TransactionDaoImpl implements TransactionDao {
         transaction.setOrder(order);
         transaction.setCurrency(currency);
         transaction.setProvided(resultSet.getBoolean("provided"));
-        transaction.setConfirmation(resultSet.getInt("confirmation"));
+        Integer confirmations = (Integer) resultSet.getObject("confirmation");
+        transaction.setConfirmation(confirmations);
         TransactionSourceType sourceType = resultSet.getString("source_type") == null ?
                 null : TransactionSourceType.convert(resultSet.getString("source_type"));
         transaction.setSourceType(sourceType);
