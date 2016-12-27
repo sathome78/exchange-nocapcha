@@ -4,7 +4,7 @@
 
 function getOrderDetailedInfo(currentRow, orderId, enableDelete) {
     $.ajax({
-        url: '/admin/orderinfo?id=' + orderId,
+        url: '/2a8fy7b07dxe44/orderinfo?id=' + orderId,
         type: 'GET',
         success: function (data) {
             $("#id").find('span').html(data.id);
@@ -46,7 +46,7 @@ function deleteOrderByAdmin(order_id, currentRow) {
                 headers: {
                     'X-CSRF-Token': $("input[name='_csrf']").val()
                 },
-                url: '/admin/orderdelete?id=' + order_id,
+                url: '/2a8fy7b07dxe44/orderdelete?id=' + order_id,
                 type: 'POST',
                 success: function (data) {
                     $('#order-delete-modal--result-info').find('.delete-order-info__item').toggle(false);
@@ -109,7 +109,7 @@ function searchOrder() {
         return;
     }
     var data = $('#delete-order-info__form').serialize();
-    var searchUrl = '/admin/searchorders?' + data;
+    var searchUrl = '/2a8fy7b07dxe44/searchorders?' + data;
     var orderDataTable;
     if ($.fn.dataTable.isDataTable('#order-info-table')) {
         orderDataTable = $('#order-info-table').DataTable();

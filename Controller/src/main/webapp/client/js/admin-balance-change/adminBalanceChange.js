@@ -11,7 +11,7 @@ $(function () {
         var currencyName = $('select#currency option:selected').text().trim();
         var formData = $('#manualBalanceChangeForm').serialize();
         $.ajax({
-            url: '/admin/changeActiveBalance/submit',
+            url: '/2a8fy7b07dxe44/changeActiveBalance/submit',
             headers: {
                 'X-CSRF-Token': $("input[name='_csrf']").val()
             },

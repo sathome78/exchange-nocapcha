@@ -47,7 +47,7 @@
                                 ${request.transaction.datetime.toLocalTime()}
                          </td>
                         <td>
-                            <a href="<c:url value='/admin/userInfo'>
+                            <a href="<c:url value='/2a8fy7b07dxe44/userInfo'>
                             <c:param name="id" value="${request.userId}"/>
                             </c:url>">${request.userEmail}</a>
                         </td>
@@ -82,7 +82,7 @@
                         <td>
                             <c:choose>
                                 <c:when test="${not empty request.processedBy}">
-                                    <a href="<c:url value='/admin/userInfo'>
+                                    <a href="<c:url value='/2a8fy7b07dxe44/userInfo'>
                                     <c:param name="id" value="${request.processedById}"/>
                                     </c:url>">${request.processedBy}</a>
                                 </c:when>

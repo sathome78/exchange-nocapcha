@@ -4,7 +4,7 @@
 $(function () {
 
      $.ajax({
-         url: '/admin/userSessions',
+         url: '/2a8fy7b07dxe44/userSessions',
          type: 'GET',
          success: function (data) {
              console.log(data);
@@ -20,7 +20,7 @@ $(function () {
     } else {
         usersDataTable = $('#user_sessions').DataTable({
             "ajax": {
-                "url": '/admin/userSessions',
+                "url": '/2a8fy7b07dxe44/userSessions',
                 "dataSrc": ""
             },
             "paging": true,
@@ -30,7 +30,7 @@ $(function () {
                     "data": "userNickname",
                     "render": function (data, type, row){
                         if (type == 'display') {
-                            return '<a href="/admin/userInfo?id='+row['userId']+'">'+data+'</a>';
+                            return '<a href="/2a8fy7b07dxe44/userInfo?id='+row['userId']+'">'+data+'</a>';
                         }
                         return data;
                     }
@@ -90,9 +90,8 @@ function showConfirmModal(e) {
 function expireSession(sessionId) {
     var token = $("meta[name='_csrf']").attr("content");
     var header = $("meta[name='_csrf_header']").attr("content");
-    console.log(sessionId);
     $.ajax({
-        url: '/admin/expireSession',
+        url: '/2a8fy7b07dxe44/expireSession',
         type: 'POST',
         headers: {
             'X-CSRF-Token': token

@@ -89,7 +89,7 @@ public class ChatController {
         return chatService.getLastMessages(ChatLang.toInstance(lang));
     }
 
-    @RequestMapping(value = "/admin/chat/deleteMessage", method = POST)
+    @RequestMapping(value = "/2a8fy7b07dxe44/chat/deleteMessage", method = POST)
     public @ResponseBody String deleteMessage(HttpServletRequest request) {
 
         Map<String, String[]> params = request.getParameterMap();

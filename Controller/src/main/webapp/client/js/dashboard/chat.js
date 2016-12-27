@@ -34,7 +34,7 @@ function toJson(a) {
 
 function formatNewMessage(o) {
     var deletionButton = '';
-    if ($("a[href='/admin']").length > 0) {
+    if ($("a[href='/2a8fy7b07dxe44']").length > 0) {
         deletionButton = '<button class="btn btn-sm btn-danger pull-right" onclick="deleteMessage.call(this, event)">' +
             '<span class="glyphicon glyphicon-remove"></span></button>';
     }
@@ -133,7 +133,7 @@ function deleteMessage(event) {
         nickname: $chat_message.find('.nickname').text(),
         lang: $('#new_mess').find('input[name="lang"]').val()
     };
-    $.ajax('/admin/chat/deleteMessage', {
+    $.ajax('/2a8fy7b07dxe44/chat/deleteMessage', {
         headers: {
             'X-CSRF-Token': $("input[name='_csrf']").val()
         },

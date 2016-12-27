@@ -36,7 +36,7 @@ $(function () {
             var id = $("#user-id").val();
             ordersSellTable = $('#ordersSellTable').DataTable({
                 "ajax": {
-                    "url": '/admin/orders',
+                    "url": '/2a8fy7b07dxe44/orders',
                     "type": "GET",
                     "data": function(d){
                         d.id = id;
@@ -102,7 +102,7 @@ $(function () {
             var id = $("#user-id").val();
             ordersBuyTable = $('#ordersBuyTable').DataTable({
                 "ajax": {
-                    "url": '/admin/orders',
+                    "url": '/2a8fy7b07dxe44/orders',
                     "type": "GET",
                     "data": function(d){
                         d.id = id;

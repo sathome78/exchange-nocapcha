@@ -41,7 +41,7 @@ function downloadUsersWalletsSummary() {
             var data = "startDate="+objArr[0].value+' 00:00:00'+'&'+"endDate="+objArr[1].value+' 23:59:59';
             if (currentId == 'upload-users-wallets'){
                 $.ajax({
-                        url: '/admin/downloadUsersWalletsSummary',
+                        url: '/2a8fy7b07dxe44/downloadUsersWalletsSummary',
                         type: 'GET',
                         data: data,
                         success: function (data) {
@@ -59,7 +59,7 @@ function downloadUsersWalletsSummary() {
             }
             if (currentId == 'upload-users-wallets-inout'){
                 $.ajax({
-                        url: '/admin/downloadUsersWalletsSummaryInOut',
+                        url: '/2a8fy7b07dxe44/downloadUsersWalletsSummaryInOut',
                         type: 'GET',
                         data: data,
                         success: function (data) {
@@ -73,7 +73,7 @@ function downloadUsersWalletsSummary() {
                     }
                 );
                 $.ajax({
-                        url: '/admin/downloadUsersWalletsSummaryTotalInOut',
+                        url: '/2a8fy7b07dxe44/downloadUsersWalletsSummaryTotalInOut',
                         type: 'GET',
                         data: data,
                         success: function (data) {
@@ -89,7 +89,7 @@ function downloadUsersWalletsSummary() {
             }
             if (currentId == 'upload-users-wallets-orders') {
                 $.ajax({
-                        url: '/admin/downloadUserSummaryOrders',
+                        url: '/2a8fy7b07dxe44/downloadUserSummaryOrders',
                         type: 'GET',
                         data: data,
                         success: function (data) {

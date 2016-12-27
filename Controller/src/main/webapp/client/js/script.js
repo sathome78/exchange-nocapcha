@@ -92,7 +92,7 @@ function checkFill() {
 function promptDeleteDoc(id, path, userId) {
     if (confirm($('#prompt_delete_rqst').html())) {
         var data = "fileId=" + id + "&path=" + path + "&userId=" + userId;
-        $.ajax('/admin/users/deleteUserFile', {
+        $.ajax('/2a8fy7b07dxe44/users/deleteUserFile', {
             headers: {
                 'X-CSRF-Token': $("input[name='_csrf']").val()
             },

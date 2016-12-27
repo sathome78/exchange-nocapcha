@@ -113,7 +113,7 @@
 
                             <div class="panel-body">
 
-                                <form:form class="form-horizontal" id="user-edit-form" action="/admin/edituser/submit"
+                                <form:form class="form-horizontal" id="user-edit-form" action="/2a8fy7b07dxe44/edituser/submit"
                                            method="post" modelAttribute="user">
                                     <div>
                                         <fieldset class="field-user">
@@ -237,7 +237,7 @@
 
                                                     <loc:message code="admin.cancel" var="cancelSubmit"></loc:message>
                                                     <button class="blue-box" type="reset"
-                                                            onclick="javascript:window.location='/admin';">${cancelSubmit}</button>
+                                                            onclick="javascript:window.location='/2a8fy7b07dxe44';">${cancelSubmit}</button>
                                                 </div>
                                             </div>
                                             </sec:authorize>
@@ -424,7 +424,7 @@
                                 <hr />
                                 <div class="text-center"><h4><loc:message code="admin.manualBalanceChange.title"/></h4></div>
                                 <div class="col-md-12">
-                                    <form id="manualBalanceChangeForm" action="/admin/changeActiveBalance/submit" method="post">
+                                    <form id="manualBalanceChangeForm" action="/2a8fy7b07dxe44/changeActiveBalance/submit" method="post">
                                         <div class="form-item form-group" >
                                             <label for="currency"><loc:message code="mywallets.currency"/> </label>
                                             <select id="currency" name="currency" class="form-control">
@@ -612,7 +612,7 @@
                                         <div class="text-center"><h4><loc:message code="admin.accessRights"/></h4></div>
                                         <hr/>
                                         <div>
-                                            <form:form method="post" action="/admin/editAuthorities/submit"
+                                            <form:form method="post" action="/2a8fy7b07dxe44/editAuthorities/submit"
                                                        modelAttribute="authorityOptionsForm">
                                                 <table id="authoritiesTable" class="table table-striped table-bordered">
                                                     <tbody>
