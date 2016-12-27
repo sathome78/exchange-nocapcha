@@ -365,9 +365,7 @@ public class AdminController {
         synchronized (mutex) {
             currentRole = (String) httpSession.getAttribute("currentRole");
         }
-        if (currentRole.equals(UserRole.ADMIN_USER.name()) || currentRole.equals(UserRole.ACCOUNTANT.name())) {
-            roleList.add(UserRole.USER);
-        } else {
+        if (currentRole.equals(UserRole.ADMINISTRATOR.name())) {
             roleList = userService.getAllRoles();
         }
         model.addObject("roleList", roleList);
@@ -410,15 +408,19 @@ public class AdminController {
         /**/
         registerFormValidation.validateEditUser(user, result, localeResolver.resolveLocale(request));
         if (result.hasErrors()) {
-            model.addObject("statusList", UserStatus.values());
-            model.addObject("roleList", userService.getAllRoles());
             model.setViewName("admin/editUser");
+            model.addObject("statusList", UserStatus.values());
+            if (currentRole.equals(ADMINISTRATOR.name())) {
+                model.addObject("roleList", userService.getAllRoles());
+            }
         } else {
             UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
             updateUserDto.setEmail(user.getEmail());
             updateUserDto.setPassword(user.getPassword());
             updateUserDto.setPhone(user.getPhone());
-            updateUserDto.setRole(user.getRole());
+            if (currentRole.equals(UserRole.ADMINISTRATOR.name())) {
+                updateUserDto.setRole(user.getRole());
+            }
             updateUserDto.setStatus(user.getUserStatus());
             userService.updateUserByAdmin(updateUserDto);
             if (updateUserDto.getStatus() == UserStatus.DELETED) {

@@ -38,6 +38,7 @@
     <c:set var="admin_manageSessions" value="<%=AdminAuthority.MANAGE_SESSIONS%>"/>
     <c:set var="admin_currencyLimits" value="<%=AdminAuthority.SET_CURRENCY_LIMIT%>"/>
     <c:set var="admin_manageAccess" value="<%=AdminAuthority.MANAGE_ACCESS%>"/>
+    <c:set var="admin_editUser" value="<%=AdminAuthority.EDIT_USER%>"/>
 <div class="sidebar">
     <ul>
         <li>
