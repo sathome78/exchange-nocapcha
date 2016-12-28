@@ -238,11 +238,21 @@ public class MobileOrderController {
      * @apiParam {String} orderKey Key string returned from submitOrderForCreation method
      * @apiPermission User
      * @apiDescription Method accepts order key returned by submitOrderForCreation, creates the order
-     * and stores it in DB. Returns order ID and summary.
-     * @apiSuccess (201) {Integer} orderId id of order
+     * and stores it in DB. If there are no available orders for auto-accept (or created order is larger than all of the accepted ones),
+     * returns ID of created order. If one or more orders were accepted automatically, returns also their quantity.
+     * If the opposite order was accepted partially, returns the full amount of that order and the accepted part.
+     * @apiSuccess (201) {Integer} createdOrderId id of created order
+     * @apiSuccess (201) {Integer} autoAcceptedQuantity number of orders accepted automatically
+     * @apiSuccess (201) {Integer} partiallyAcceptedAmount amount that was accepted partially
+     * @apiSuccess (201) {Integer} partiallyAcceptedOrderFullAmount full amount of partially accepted order
+     *
      * @apiSuccessExample {json} Success-Response:
      *     HTTP/1.1 201 Created
-     *    18382
+     *    {
+     *          "autoAcceptedQuantity": 3
+     *          "partiallyAcceptedAmount": 1.25,
+     *          "partiallyAcceptedOrderFullAmount": 7
+     *    }
      *
      * @apiUse ExpiredAuthenticationTokenError
      * @apiUse MissingAuthenticationTokenError

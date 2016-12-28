@@ -19,7 +19,6 @@ function NotificationsClass() {
     var $counter;
 
     this.getNotifications = function (refreshIfNeeded) {
-        console.log('Get notifications - 1');
 
         if (!windowIsActive) {
             clearTimeout(notificationsTimeoutId);
@@ -28,7 +27,6 @@ function NotificationsClass() {
             }, refreshIntervalForNotifications);
             return;
         }
-        console.log('Get notifications - 2');
 
         var url = '/dashboard/notifications/' + tableNotificationsId + '?refreshIfNeeded=' + (refreshIfNeeded ? 'true' : 'false');
         $.ajax({
@@ -38,8 +36,6 @@ function NotificationsClass() {
                 "windowid": windowId
             },
             success: function (data) {
-                console.log(data);
-
                 if (!data) return;
                 if (data.length == 0 || data[0].needRefresh) {
                     if (data.length == 0) {
@@ -109,50 +105,7 @@ function clearNotificationsTable() {
     $table.append($script);
 }
 
-/*$(function () {
-    if ($('#notification-icon').length > 0) {
-        $notificationContainer = $("#notifications-body");
 
-        $('#notification-icon').find('.dropdown-menu').click(function(event){
-            event.stopPropagation();
-        });
-        $("#notifications-body-wrapper").mCustomScrollbar({
-            theme:"dark",
-            axis:"y",
-            live: true
-        });
-        $counter = $('#unread-counter');
-        unreadQuantity = 0;
-        $($counter).hide();
-        $.ajax({
-            url: '/notifications/findAll',
-            type: 'GET',
-            success: function (data) {
-                if (data.length == 0) {
-                    handleAbsentMessages();
-                    return;
-                }
-                var $tmpl = $('#notifications-row').html().replace(/@/g, '%');
-                $notificationContainer.find('.notification-item').remove();
-                data.forEach(function (item) {
-                    var $newItem = $(tmpl($tmpl, item));
-                    if (!item.read) {
-                        unreadQuantity++;
-                    } else {
-                        $($newItem).removeAttr('onclick');
-                    }
-                    $notificationContainer.prepend($newItem);
-
-                });
-
-                if (unreadQuantity > 0) {
-                    $($counter).text(unreadQuantity);
-                    $($counter).show();
-                }
-            }
-        })
-    }
-});*/
 
 function markRead(element) {
     var count = $('#unread-counter').text();
