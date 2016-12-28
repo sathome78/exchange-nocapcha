@@ -396,10 +396,14 @@ public class AdminController {
     @RequestMapping(value = "/admin/edituser/submit", method = RequestMethod.POST)
     public ModelAndView submitedit(@Valid @ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request, HttpServletResponse response,
                                    HttpSession httpSession) {
+        LOG.debug(user.getRole());
         final Object mutex = WebUtils.getSessionMutex(httpSession);
         String currentRole = "";
         synchronized (mutex) {
             currentRole = (String) httpSession.getAttribute("currentRole");
+        }
+        if (!currentRole.equals(UserRole.ADMINISTRATOR.name()) && user.getRole() == ADMINISTRATOR) {
+            return new ModelAndView("403");
         }
         user.setConfirmPassword(user.getPassword());
         if (user.getFinpassword() == null) {

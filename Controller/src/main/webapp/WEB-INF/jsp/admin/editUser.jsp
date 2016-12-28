@@ -198,6 +198,9 @@
                                                 </div>
                                             </div>
                                             </sec:authorize>
+                                            <sec:authorize access="hasAnyAuthority('${accountantEnum}', '${admin_userEnum}')">
+                                                <form:hidden path="role" name="user-role"  />
+                                            </sec:authorize>
                                             <div class="input-block-wrapper">
                                                 <div class="col-md-3 input-block-wrapper__label-wrapper">
                                                     <label for="user-status"
