@@ -940,6 +940,69 @@ public class MobileDashboardController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    /**
+     * @api {get} /api/dashboard/stockExchangeStatistics Get stock exchange statistics
+     * @apiName getStockExchangeStatistics
+     * @apiGroup Dashboard
+     * @apiUse TokenHeader
+     * @apiParam {Array} pairs id of currency pair
+     * @apiParamExample Request Example:
+     *      /api/dashboard/stockExchangeStatistics?pairs=1,2
+     * @apiPermission User
+     * @apiDescription Get statistics from other cryptocurrency exchanges
+     * @apiSuccess (200) {Array} statsData Request result
+     * @apiSuccess (200) {Object} data Stats data item - statistics for certain currency pair
+     * @apiSuccess (200) {String} data.currencyPair currency pair name
+     * @apiSuccess (200) {Array} data.exchangeStats statistics for currency pair
+     * @apiSuccess (200) {Object} exchangeStatsItem item of exchange stats - corresponds to single stock exchange
+     * @apiSuccess (200) {String} exchangeStatsItem.stockExchange stock exchange name
+     * @apiSuccess (200) {Number} exchangeStatsItem.last price of last deal
+     * @apiSuccess (200) {Number} exchangeStatsItem.buy highest bid price
+     * @apiSuccess (200) {Number} exchangeStatsItem.sell lowest ask price
+     * @apiSuccess (200) {Number} exchangeStatsItem.low lowest price for last 24 hours
+     * @apiSuccess (200) {Number} exchangeStatsItem.high highest price for last 24 hours
+     * @apiSuccess (200) {Number} exchangeStatsItem.volume trade volume
+     * @apiSuccess (200) {Number} exchangeStatsItem.timestamp time when data were retrieved
+     *
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     * [
+     *  {
+     *      "currencyPair": "BTC/USD",
+     *      "exchangeStats": [
+     *          {
+     *              "stockExchange": "xBTCe",
+     *              "last": 848,
+     *              "buy": 848.11,
+     *              "sell": 848,
+     *              "low": 797.002,
+     *              "high": 856.007,
+     *              "volume": 21525.02,
+     *              "timestamp": 1482404750000
+     *          },
+     *          {
+     *              "stockExchange": "BITFINEX",
+     *              "last": 865,
+     *              "buy": 865,
+     *              "sell": 865.08,
+     *              "low": 807.14,
+     *              "high": 874,
+     *              "volume": 19583.3610558,
+     *              "timestamp": 1482404750000
+     *          }
+     *       ]
+     *  }
+     * ]
+     *
+     * @apiUse ExpiredAuthenticationTokenError
+     * @apiUse MissingAuthenticationTokenError
+     * @apiUse InvalidAuthenticationTokenError
+     * @apiUse AuthenticationError
+     * @apiUse InvalidParamError
+     * @apiUse CurrencyPairNotFoundError
+     * @apiUse InternalServerError
+     *
+     */
     @RequestMapping(value = "/stockExchangeStatistics", method = GET, produces = "application/json; charset=UTF-8")
     public List<StockExchangeRateDto> getStockExchangeStatistics(@RequestParam(required = false) Integer[] pairs) {
         return stockExchangeService.getStockExchangeStatistics(pairs == null ? null : Arrays.asList(pairs));
