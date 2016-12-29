@@ -873,14 +873,14 @@ public class AdminController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/admin/merchantAccess", method = RequestMethod.GET)
+    @RequestMapping(value = "/2a8fy7b07dxe44/merchantAccess", method = RequestMethod.GET)
     public ModelAndView merchantAccess() {
         List<MerchantCurrencyOptionsDto> merchantCurrencyOptions = merchantService.findMerchantCurrencyOptions();
         LOG.debug(merchantCurrencyOptions);
         return new ModelAndView("admin/merchantAccess", "merchantCurrencies", merchantCurrencyOptions);
     }
 
-    @RequestMapping(value = "/admin/merchantAccess/toggleBlock", method = RequestMethod.POST)
+    @RequestMapping(value = "/2a8fy7b07dxe44/merchantAccess/toggleBlock", method = RequestMethod.POST)
     @ResponseBody
     public ResponseEntity<Void> toggleBlock(@RequestParam Integer merchantId,
                                             @RequestParam Integer currencyId,
@@ -890,7 +890,7 @@ public class AdminController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/admin/merchantAccess/setBlockForAll", method = RequestMethod.POST)
+    @RequestMapping(value = "/2a8fy7b07dxe44/merchantAccess/setBlockForAll", method = RequestMethod.POST)
     @ResponseBody
     public ResponseEntity<Void> switchBlockStatusForAll(@RequestParam OperationType operationType,
                                                         @RequestParam boolean blockStatus) {

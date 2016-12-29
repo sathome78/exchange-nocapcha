@@ -49,7 +49,7 @@ function toggleBlock(merchantId, currencyId, operationType, $element) {
         headers: {
             'X-CSRF-Token': $("input[name='_csrf']").val()
         },
-        url: '/admin/merchantAccess/toggleBlock',
+        url: '/2a8fy7b07dxe44/merchantAccess/toggleBlock',
         type: 'POST',
         data: formData,
         contentType: false,
@@ -72,7 +72,7 @@ function setBlockForAll(operationType, blockStatus) {
             headers: {
                 'X-CSRF-Token': $("input[name='_csrf']").val()
             },
-            url: '/admin/merchantAccess/setBlockForAll',
+            url: '/2a8fy7b07dxe44/merchantAccess/setBlockForAll',
             type: 'POST',
             data: formData,
             contentType: false,
