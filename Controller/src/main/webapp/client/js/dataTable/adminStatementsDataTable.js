@@ -5,7 +5,7 @@
 
 $(function () {
    var walletId = $('#walletId').text();
-   var requestUrl = '/admin/getStatements?walletId=' + walletId;
+   var requestUrl = '/2a8fy7b07dxe44/getStatements?walletId=' + walletId;
    var statementsDataTable = $('#user-statements-table').DataTable({
       "serverSide": true,
       "ajax": {

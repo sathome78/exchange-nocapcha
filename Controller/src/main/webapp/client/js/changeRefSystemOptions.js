@@ -32,7 +32,7 @@ $(function () {
 function changeRefLevelPercent(refLevel, oldLevelId, percent) {
     var data = "level=" + refLevel + "&oldLevelId=" + oldLevelId + "&percent=" + percent;
     console.log(data);
-    $.ajax('/admin/editLevel', {
+    $.ajax('/2a8fy7b07dxe44/editLevel', {
         headers: {
             'X-CSRF-Token': $("input[name='_csrf']").val()
         },
@@ -50,7 +50,7 @@ function changeRefLevelPercent(refLevel, oldLevelId, percent) {
 
 function changeCommonRefRoot(id) {
     const data = "id=" + id;
-    $.ajax('/admin/editCmnRefRoot', {
+    $.ajax('/2a8fy7b07dxe44/editCmnRefRoot', {
         headers: {
             'X-CSRF-Token': $("input[name='_csrf']").val()
         },

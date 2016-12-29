@@ -93,6 +93,6 @@ public class InvoiceController {
             redir.addFlashAttribute("message", message);
         }
 
-        return new RedirectView("/admin/invoiceConfirmation");
+        return new RedirectView("/2a8fy7b07dxe44/invoiceConfirmation");
     }
 }

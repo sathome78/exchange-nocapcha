@@ -45,7 +45,7 @@
                     </h4>
                 </div>
                 <div class="panel-body">
-                    <form:form class="form-horizontal" id="user-add-form" action="/admin/adduser/submit" method="post" modelAttribute="user">
+                    <form:form class="form-horizontal" id="user-add-form" action="/2a8fy7b07dxe44/adduser/submit" method="post" modelAttribute="user">
                         <div>
                             <fieldset class="field-user">
 
@@ -112,7 +112,7 @@
 
                                         <loc:message code="admin.cancel" var="cancelSubmit"></loc:message>
                                         <button class="blue-box" type="reset"
-                                                onclick="javascript:window.location='/admin/administrators';">${cancelSubmit}</button>
+                                                onclick="javascript:window.location='/2a8fy7b07dxe44/administrators';">${cancelSubmit}</button>
                                     </div>
                                 </div>
                             </fieldset>

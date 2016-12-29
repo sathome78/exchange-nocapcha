@@ -5,7 +5,7 @@ function submitAcceptInvoice(id) {
             url: '/merchants/invoice/payment/accept?id=' + id,
             type: 'GET',
             success: function(){
-                window.location = '/admin/invoiceConfirmation';
+                window.location = '/2a8fy7b07dxe44/invoiceConfirmation';
             }
         });
     }
@@ -34,7 +34,7 @@ function submitAcceptBitcoin(id) {
 
             type: 'GET',
             success: function () {
-                window.location = '/admin/bitcoinConfirmation';
+                window.location = '/2a8fy7b07dxe44/bitcoinConfirmation';
             }
         });
     }

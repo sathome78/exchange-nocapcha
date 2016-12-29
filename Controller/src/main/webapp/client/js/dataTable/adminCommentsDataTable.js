@@ -12,7 +12,7 @@ $(function () {
             var id = $("#user-id").val();
             commentsDataTable = $('#commentsTable').DataTable({
                 "ajax": {
-                    "url": '/admin/comments?id=' + id,
+                    "url": '/2a8fy7b07dxe44/comments?id=' + id,
                     "dataSrc": ""
                 },
                 "paging": true,
@@ -75,7 +75,7 @@ $(function () {
             }
         }
         $.ajax({
-            url: '/admin/addComment',
+            url: '/2a8fy7b07dxe44/addComment',
             type: 'POST',
             headers: {
                 'X-CSRF-Token': $("input[name='_csrf']").val()
@@ -119,7 +119,7 @@ function deleteUserComment(e) {
         var data = $('#commentsTable').dataTable().fnGetData(row);
 
         $.ajax({
-            url: '/admin/deleteUserComment',
+            url: '/2a8fy7b07dxe44/deleteUserComment',
             type: 'POST',
             headers: {
                 'X-CSRF-Token': $("input[name='_csrf']").val()

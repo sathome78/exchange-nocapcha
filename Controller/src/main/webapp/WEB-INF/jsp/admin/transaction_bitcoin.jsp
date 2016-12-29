@@ -66,7 +66,7 @@
                                 </td>
                                     <%--Transaction email--%>
                                 <td>
-                                     <a href="<c:url value='/admin/userInfo'>
+                                     <a href="<c:url value='/2a8fy7b07dxe44/userInfo'>
                                     <c:param name="id" value="${maptransaction.key.userWallet.user.id}"/>
                                     </c:url>">${maptransaction.key.userWallet.user.email}</a>
 

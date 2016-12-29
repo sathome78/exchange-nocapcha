@@ -106,6 +106,6 @@ public class BitcoinController {
             redir.addFlashAttribute("message", message);
         }
 
-        return new RedirectView("/admin/bitcoinConfirmation");
+        return new RedirectView("/2a8fy7b07dxe44/bitcoinConfirmation");
     }
 }
