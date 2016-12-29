@@ -3,9 +3,7 @@ package me.exrates.controller;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.*;
-import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
-import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.*;
@@ -843,7 +841,7 @@ public class AdminController {
     @RequestMapping(value = "/2a8fy7b07dxe44/commissions", method = RequestMethod.GET)
     public ModelAndView commissions() {
         List<Commission> commissions = commissionService.getEditableCommissions();
-        List<MerchantCurrencyCommissionDto> merchantCurrencies = merchantService.findMerchantCurrencyCommissions();
+        List<MerchantCurrencyOptionsDto> merchantCurrencies = merchantService.findMerchantCurrencyOptions();
         ModelAndView modelAndView = new ModelAndView("admin/editCommissions");
         modelAndView.addObject("commissions", commissions);
         modelAndView.addObject("merchantCurrencies", merchantCurrencies);
@@ -866,6 +864,31 @@ public class AdminController {
                                                @RequestParam("commissionValue") BigDecimal value) {
         LOG.debug("merchantId = " + merchantId + ", currencyId = " + currencyId + ", value = " + value);
         commissionService.updateMerchantCommission(merchantId, currencyId, value);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/admin/merchantAccess", method = RequestMethod.GET)
+    public ModelAndView merchantAccess() {
+        List<MerchantCurrencyOptionsDto> merchantCurrencyOptions = merchantService.findMerchantCurrencyOptions();
+        LOG.debug(merchantCurrencyOptions);
+        return new ModelAndView("admin/merchantAccess", "merchantCurrencies", merchantCurrencyOptions);
+    }
+
+    @RequestMapping(value = "/admin/merchantAccess/toggleBlock", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity<Void> toggleBlock(@RequestParam Integer merchantId,
+                                            @RequestParam Integer currencyId,
+                                            @RequestParam OperationType operationType) {
+        LOG.debug("merchantId = " + merchantId + ", currencyId = " + currencyId + ", operationType = " + operationType);
+        merchantService.toggleMerchantBlock(merchantId, currencyId, operationType);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/admin/merchantAccess/setBlockForAll", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity<Void> switchBlockStatusForAll(@RequestParam OperationType operationType,
+                                                        @RequestParam boolean blockStatus) {
+        merchantService.setBlockForAll(operationType, blockStatus);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

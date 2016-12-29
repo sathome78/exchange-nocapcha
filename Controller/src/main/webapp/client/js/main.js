@@ -138,27 +138,6 @@ $(function(){
 
         });
 
-    (function loadData(dataUrl) {
-        $.ajax({
-            url: dataUrl,
-            type: 'GET',
-            dataType: 'json'
-        }).done(function (data) {
-            merchantsData = data;
-            resetMerchantsList(currency.val());
-        }).fail(function (jqXHR, textStatus) {
-            console.log(jqXHR);
-            console.log(textStatus);
-            if (textStatus === 'parsererror') {
-                console.log('Requested JSON parse failed.');
-            } else if (textStatus === 'abort') {
-                console.log('Ajax request was aborted.');
-            } else {
-                console.log('Error status code:' + jqXHR.status);
-            }
-        });
-    })('/merchants/data');
-
 
     function resetMerchantsList(currency) {
         var optionsHTML = '';

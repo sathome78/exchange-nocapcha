@@ -112,9 +112,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/2a8fy7b07dxe44/orderdelete").hasAuthority(AdminAuthority.DELETE_ORDER.name())
                 .antMatchers("/2a8fy7b07dxe44/expireSession").hasAuthority(AdminAuthority.MANAGE_SESSIONS.name())
                 .antMatchers("/2a8fy7b07dxe44/editCurrencyLimits/submit",
-                        "/2a8fy7b07dxe44/editCmnRefRoot", "/2a8fy7b07dxe44/editLevel", "/2a8fy7b07dxe44/commissions/editCommission",
-                        "/2a8fy7b07dxe44/commissions/editMerchantCommission").hasAuthority(AdminAuthority.SET_CURRENCY_LIMIT.name())
-                .antMatchers("/2a8fy7b07dxe44/editCmnRefRoot").hasAuthority(UserRole.ADMINISTRATOR.name())
+                        "/2a8fy7b07dxe44/editCmnRefRoot", "/2a8fy7b07dxe44/editLevel", "/2a8fy7b07dxe44/commissions/editCommission", "/2a8fy7b07dxe44/commissions/editMerchantCommission",
+                        "/2a8fy7b07dxe44/merchantAccess/toggleBlock", "/2a8fy7b07dxe44/merchantAccess/setBlockForAll").hasAuthority(AdminAuthority.SET_CURRENCY_LIMIT.name())
+                .antMatchers("/2a8fy7b07dxe44/editCmnRefRoot", "/admin/merchantAccess/setBlockForAll").hasAuthority(UserRole.ADMINISTRATOR.name())
                 .antMatchers("/2a8fy7b07dxe44/editAuthorities/submit").hasAuthority(AdminAuthority.MANAGE_ACCESS.name())
                 .antMatchers("/2a8fy7b07dxe44/changeActiveBalance/submit").hasAuthority(AdminAuthority.MANUAL_BALANCE_CHANGE.name())
                 .antMatchers("/2a8fy7b07dxe44/**", "/2a8fy7b07dxe44", "/companywallet").hasAnyAuthority(UserRole.ADMINISTRATOR.name(),

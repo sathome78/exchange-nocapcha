@@ -95,6 +95,7 @@
                         <li><a href="<c:url value='/userswallets'/>"><loc:message code="admin.usersWallet"/></a></li>
                         <li><a href="<c:url value='/2a8fy7b07dxe44/editCurrencyLimits'/>"><loc:message code="admin.currencyLimits.title"/></a></li>
                         <li><a href="<c:url value='/2a8fy7b07dxe44/commissions'/>"><loc:message code="admin.commissions"/></a></li>
+                        <li><a href="<c:url value='/2a8fy7b07dxe44/merchantAccess'/>"><loc:message code="admin.merchantAccess"/></a></li>
                     </ul>
                 </div>
 
