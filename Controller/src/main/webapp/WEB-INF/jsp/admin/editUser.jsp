@@ -179,7 +179,7 @@
                                                                  style="color:red"/>
                                                 </div>
                                             </div>
-
+                                            <sec:authorize access="hasAuthority('${adminEnum}')">
                                             <div class="input-block-wrapper">
                                                 <div class="col-md-3 input-block-wrapper__label-wrapper">
                                                     <label for="user-role"
@@ -197,7 +197,10 @@
                                                     </form:select>
                                                 </div>
                                             </div>
-
+                                            </sec:authorize>
+                                            <sec:authorize access="hasAnyAuthority('${accountantEnum}', '${admin_userEnum}')">
+                                                <form:hidden path="role" name="user-role"  />
+                                            </sec:authorize>
                                             <div class="input-block-wrapper">
                                                 <div class="col-md-3 input-block-wrapper__label-wrapper">
                                                     <label for="user-status"
@@ -229,8 +232,8 @@
                                                                 id="parentEmail"/>
                                                 </div>
                                             </div>
-                                            <sec:authorize access="hasAuthority('${adminEnum}')">
-                                            <div class="admin-submit-group">
+                                            <sec:authorize access="hasAuthority('${admin_editUser}')">
+                                                <div class="admin-submit-group">
                                                 <div>
                                                     <loc:message code="admin.save" var="saveSubmit"></loc:message>
                                                     <button class="blue-box" type="submit">${saveSubmit}</button>

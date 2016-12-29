@@ -243,7 +243,8 @@ public class UserServiceImpl implements UserService {
             if (user.getRole() == UserRole.USER && hasAdminAuthorities) {
                 return userDao.removeUserAuthorities(user.getId());
             }
-            if (!hasAdminAuthorities && user.getRole() != UserRole.USER && user.getRole() != UserRole.ROLE_CHANGE_PASSWORD) {
+            if (!hasAdminAuthorities && user.getRole() != null &&
+                    user.getRole() != UserRole.USER && user.getRole() != UserRole.ROLE_CHANGE_PASSWORD) {
                 return userDao.createAdminAuthoritiesForUser(user.getId(), user.getRole());
             }
         }

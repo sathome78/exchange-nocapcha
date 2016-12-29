@@ -197,7 +197,7 @@ public class MerchantServiceImpl implements MerchantService {
         if (transaction.isProvided()) {
             return messageSource.getMessage("transaction.provided", null, locale);
         }
-        if (transaction.getConfirmation() == -1 || transaction.getConfirmation() == null) {
+        if (transaction.getConfirmation() == null || transaction.getConfirmation() == -1 ) {
             return messageSource.getMessage("transaction.notProvided", null, locale);
         }
         final String name = transaction.getCurrency().getName();

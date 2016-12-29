@@ -104,7 +104,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.addFilterBefore(customQRAuthorizationFilter(), CapchaAuthorizationFilter.class);
         http
                 .authorizeRequests()
-                .antMatchers(HttpMethod.POST,"/2a8fy7b07dxe44/edituser/submit", "/2a8fy7b07dxe44/users/deleteUserFile").hasAuthority(UserRole.ADMINISTRATOR.name())
+                .antMatchers(HttpMethod.POST,"/2a8fy7b07dxe44/edituser/submit", "/2a8fy7b07dxe44/users/deleteUserFile").hasAuthority(AdminAuthority.EDIT_USER.name())
                 .antMatchers("/withdrawal/request/accept", "/withdrawal/request/decline").hasAuthority(AdminAuthority.PROCESS_WITHDRAW.name())
                 .antMatchers("/2a8fy7b07dxe44/addComment", "/2a8fy7b07dxe44/deleteUserComment").hasAuthority(AdminAuthority.COMMENT_USER.name())
                 .antMatchers("/unsafe/**").hasAnyAuthority(UserRole.ADMINISTRATOR.name())
