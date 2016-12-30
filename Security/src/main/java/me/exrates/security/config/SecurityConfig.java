@@ -147,8 +147,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, "/merchants/yandex_kassa/payment/status",
                         "/merchants/yandex_kassa/payment/success",
                         "/merchants/yandex_kassa/payment/failure").permitAll()
-                .antMatchers(HttpMethod.POST, "/chat-en/**", "/chat-ru/**", "/chat-cn/**").permitAll()
-                .antMatchers(HttpMethod.GET, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat/history").permitAll()
+                .antMatchers(HttpMethod.POST, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**", "/chat/history").permitAll()
                 .antMatchers(HttpMethod.GET, "/generateReferral").permitAll()
                 .antMatchers(HttpMethod.POST, "/merchants/edrcoin/payment/received").permitAll()
                 .antMatchers(HttpMethod.GET, "/merchants/blockchain/payment/received").permitAll()

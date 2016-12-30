@@ -68,12 +68,20 @@ function loadChatHistory(lang) {
             $('#chat .mCSB_container').append(formatNewMessage(data[i]));
         }
         scrollChat();
+        if (lang === 'ar') {
+            $('#chat').find('.chat_message p').addClass('right-to-left')
+        }
     }).fail(function(e){
         console.log(e)
     })
 }
 
 function changeChatLocale(lang) {
+    if (lang === 'ar') {
+        $('#new_mess').find('input[name="body"]').addClass('right-to-left');
+    } else {
+        $('#new_mess').find('input[name="body"]').removeClass('right-to-left');
+    }
     $('#chat .mCSB_container').empty();
     $('#new_mess').find('input[name="lang"]').val(lang);
     connect(lang);
