@@ -12,6 +12,9 @@ function connect(chatLang) {
             removeMessageFromChatHistory(messageObj.id);
         } else {
             appendNewMessage(messageObj);
+            if (chatLang === 'ar') {
+                $('#chat').find('.chat_message:last').addClass('right-to-left')
+            }
         }
 
     };
