@@ -56,8 +56,8 @@ public class BitcoinWalletAppKit {
                             "", // Empty passphrase
                             creationTime // Creation time (Unix time)
                     ));
-            /*kit.startAsync();
-            kit.awaitRunning();*/
+            kit.startAsync();
+            kit.awaitRunning();
         } catch (final Exception e) {
             LOG.fatal(e);
             throw new BeanInitializationException("Could not instantiate bitcoin wallet");
