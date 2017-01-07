@@ -13,6 +13,15 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="Merchants_edr" fileName="${sys:catalina.home}/logs/merchants_edr.log"
+                     filePattern="${sys:catalina.home}/logs/merchants_edr_%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
         <RollingFile name="Logs" fileName="${sys:catalina.home}/logs/log.log"
             filePattern="${sys:catalina.home}/logs/log_%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
@@ -72,6 +81,10 @@
         <Logger name="merchant" level="TRACE" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Merchants"/>
+        </Logger>
+        <Logger name="merchant_edr" level="TRACE" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="Merchants_edr"/>
         </Logger>
         <logger name="org.quartz" level="ERROR" additivity="false">
             <AppenderRef ref="Console"/>

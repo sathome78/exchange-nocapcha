@@ -2,7 +2,6 @@ package me.exrates.controller;
 
 import me.exrates.controller.handler.EDCClientWebSocketHandler;
 import me.exrates.service.EDCService;
-import me.exrates.service.impl.EDCServiceImpl;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
