@@ -11,7 +11,8 @@ public enum ChatLang {
 
     EN("EN"),
     RU("RU"),
-    CN("CN");
+    CN("CN"),
+    AR("AR");
 
     public final String val;
 
@@ -24,6 +25,7 @@ public enum ChatLang {
             case "EN" : return EN;
             case "RU" : return RU;
             case "CN" : return CN;
+            case "AR" : return AR;
             default:
                 throw new IllegalArgumentException(val + " no such instance");
         }

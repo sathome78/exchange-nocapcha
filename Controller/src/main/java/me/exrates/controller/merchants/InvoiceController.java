@@ -67,7 +67,7 @@ public class InvoiceController {
             try {
                 final Transaction transaction = invoiceService.createPaymentInvoice(creditsOperation);
                 final String notification;
-                if (payment.getCurrency() == 12 || payment.getCurrency() == 13){
+                if (payment.getCurrency() == 10 || payment.getCurrency() == 12 || payment.getCurrency() == 13){
                     notification = messageSource.getMessage("merchants.withoutInvoiceWallet", null, locale);
                 }else {
                     notification = merchantService
@@ -93,6 +93,6 @@ public class InvoiceController {
             redir.addFlashAttribute("message", message);
         }
 
-        return new RedirectView("/admin/invoiceConfirmation");
+        return new RedirectView("/2a8fy7b07dxe44/invoiceConfirmation");
     }
 }

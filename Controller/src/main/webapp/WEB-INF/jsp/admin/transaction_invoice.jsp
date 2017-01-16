@@ -66,7 +66,7 @@
                                         ${invoiceRequest.transaction.datetime.toLocalTime()}
                                 </td>
                                 <td><%--User--%>
-                                    <a href="<c:url value='/admin/userInfo'>
+                                    <a href="<c:url value='/2a8fy7b07dxe44/userInfo'>
                                     <c:param name="id" value="${invoiceRequest.userId}"/>
                                     </c:url>">${invoiceRequest.userEmail}</a>
                                 </td>
@@ -111,7 +111,7 @@
                                 <td>
                                     <c:choose>
                                         <c:when test="${not empty invoiceRequest.acceptanceUserEmail}">
-                                            <a href="<c:url value='/admin/userInfo'>
+                                            <a href="<c:url value='/2a8fy7b07dxe44/userInfo'>
                                             <c:param name="id" value="${invoiceRequest.acceptanceUserId}"/>
                                             </c:url>">${invoiceRequest.acceptanceUserEmail}</a>
                                         </c:when>

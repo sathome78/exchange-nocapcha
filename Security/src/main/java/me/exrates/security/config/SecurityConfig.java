@@ -104,22 +104,22 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.addFilterBefore(customQRAuthorizationFilter(), CapchaAuthorizationFilter.class);
         http
                 .authorizeRequests()
-                .antMatchers(HttpMethod.POST,"/admin/edituser/submit", "/admin/users/deleteUserFile").hasAuthority(UserRole.ADMINISTRATOR.name())
+                .antMatchers(HttpMethod.POST,"/2a8fy7b07dxe44/edituser/submit", "/2a8fy7b07dxe44/users/deleteUserFile").hasAuthority(AdminAuthority.EDIT_USER.name())
                 .antMatchers("/withdrawal/request/accept", "/withdrawal/request/decline").hasAuthority(AdminAuthority.PROCESS_WITHDRAW.name())
-                .antMatchers("/admin/addComment", "/admin/deleteUserComment").hasAuthority(AdminAuthority.COMMENT_USER.name())
+                .antMatchers("/2a8fy7b07dxe44/addComment", "/2a8fy7b07dxe44/deleteUserComment").hasAuthority(AdminAuthority.COMMENT_USER.name())
                 .antMatchers("/unsafe/**").hasAnyAuthority(UserRole.ADMINISTRATOR.name())
                 .antMatchers("/merchants/bitcoin/payment/accept", "/merchants/invoice/payment/accept").hasAuthority(AdminAuthority.PROCESS_INVOICE.name())
-                .antMatchers("/admin/orderdelete").hasAuthority(AdminAuthority.DELETE_ORDER.name())
-                .antMatchers("/admin/expireSession").hasAuthority(AdminAuthority.MANAGE_SESSIONS.name())
-                .antMatchers("/admin/editCurrencyLimits/submit",
-                        "/admin/editCmnRefRoot", "/admin/editLevel", "/admin/commissions/editCommission",
-                        "/admin/commissions/editMerchantCommission").hasAuthority(AdminAuthority.SET_CURRENCY_LIMIT.name())
-                .antMatchers("/admin/editCmnRefRoot").hasAuthority(UserRole.ADMINISTRATOR.name())
-                .antMatchers("/admin/editAuthorities/submit").hasAuthority(AdminAuthority.MANAGE_ACCESS.name())
-                .antMatchers("/admin/changeActiveBalance/submit").hasAuthority(AdminAuthority.MANUAL_BALANCE_CHANGE.name())
-                .antMatchers("/admin/**", "/admin", "/companywallet").hasAnyAuthority(UserRole.ADMINISTRATOR.name(),
+                .antMatchers("/2a8fy7b07dxe44/orderdelete").hasAuthority(AdminAuthority.DELETE_ORDER.name())
+                .antMatchers("/2a8fy7b07dxe44/expireSession").hasAuthority(AdminAuthority.MANAGE_SESSIONS.name())
+                .antMatchers("/2a8fy7b07dxe44/editCurrencyLimits/submit",
+                        "/2a8fy7b07dxe44/editCmnRefRoot", "/2a8fy7b07dxe44/editLevel", "/2a8fy7b07dxe44/commissions/editCommission", "/2a8fy7b07dxe44/commissions/editMerchantCommission",
+                        "/2a8fy7b07dxe44/merchantAccess/toggleBlock", "/2a8fy7b07dxe44/merchantAccess/setBlockForAll").hasAuthority(AdminAuthority.SET_CURRENCY_LIMIT.name())
+                .antMatchers("/2a8fy7b07dxe44/editCmnRefRoot", "/admin/merchantAccess/setBlockForAll").hasAuthority(UserRole.ADMINISTRATOR.name())
+                .antMatchers("/2a8fy7b07dxe44/editAuthorities/submit").hasAuthority(AdminAuthority.MANAGE_ACCESS.name())
+                .antMatchers("/2a8fy7b07dxe44/changeActiveBalance/submit").hasAuthority(AdminAuthority.MANUAL_BALANCE_CHANGE.name())
+                .antMatchers("/2a8fy7b07dxe44/**", "/2a8fy7b07dxe44", "/companywallet").hasAnyAuthority(UserRole.ADMINISTRATOR.name(),
                 UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
-                .antMatchers(HttpMethod.POST, "/admin/chat/deleteMessage").hasAnyAuthority(UserRole.ADMINISTRATOR.name(),
+                .antMatchers(HttpMethod.POST, "/2a8fy7b07dxe44/chat/deleteMessage").hasAnyAuthority(UserRole.ADMINISTRATOR.name(),
                 UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
                 .antMatchers("/", "/index.jsp", "/client/**", "/dashboard/**", "/registrationConfirm/**",
                         "/changePasswordConfirm/**", "/changePasswordConfirm/**", "/aboutUs", "/57163a9b3d1eafe27b8b456a.txt", "/newIpConfirm/**").permitAll()
@@ -147,8 +147,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, "/merchants/yandex_kassa/payment/status",
                         "/merchants/yandex_kassa/payment/success",
                         "/merchants/yandex_kassa/payment/failure").permitAll()
-                .antMatchers(HttpMethod.POST, "/chat-en/**", "/chat-ru/**", "/chat-cn/**").permitAll()
-                .antMatchers(HttpMethod.GET, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat/history").permitAll()
+                .antMatchers(HttpMethod.POST, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**", "/chat/history").permitAll()
                 .antMatchers(HttpMethod.GET, "/generateReferral").permitAll()
                 .antMatchers(HttpMethod.POST, "/merchants/edrcoin/payment/received").permitAll()
                 .antMatchers(HttpMethod.GET, "/merchants/blockchain/payment/received").permitAll()

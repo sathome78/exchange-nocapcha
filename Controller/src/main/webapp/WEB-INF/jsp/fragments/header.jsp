@@ -47,7 +47,7 @@
                                 access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
                             <sec:authorize
                                     access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
-                                <a class="nav__link" href="<c:url value='/admin'/>">
+                                <a class="nav__link" href="<c:url value='/2a8fy7b07dxe44'/>">
                                     <loc:message code="admin.title"/>
                                 </a>
                             </sec:authorize>

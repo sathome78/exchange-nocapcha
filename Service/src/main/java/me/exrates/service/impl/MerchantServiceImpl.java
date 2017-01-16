@@ -5,7 +5,7 @@ import me.exrates.dao.MerchantDao;
 import me.exrates.dao.WithdrawRequestDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
-import me.exrates.model.dto.MerchantCurrencyCommissionDto;
+import me.exrates.model.dto.MerchantCurrencyOptionsDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.NotificationEvent;
@@ -13,6 +13,7 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.WithdrawalRequestStatus;
 import me.exrates.model.vo.CacheData;
 import me.exrates.service.*;
+import me.exrates.service.exception.MerchantCurrencyBlockedException;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.UnsupportedMerchantException;
 import me.exrates.service.util.Cache;
@@ -196,7 +197,7 @@ public class MerchantServiceImpl implements MerchantService {
         if (transaction.isProvided()) {
             return messageSource.getMessage("transaction.provided", null, locale);
         }
-        if (transaction.getConfirmation() == -1 || transaction.getConfirmation() == null) {
+        if (transaction.getConfirmation() == null || transaction.getConfirmation() == -1 ) {
             return messageSource.getMessage("transaction.notProvided", null, locale);
         }
         final String name = transaction.getCurrency().getName();
@@ -309,8 +310,8 @@ public class MerchantServiceImpl implements MerchantService {
     }
 
     @Override
-    public List<MerchantCurrencyCommissionDto> findMerchantCurrencyCommissions() {
-        return merchantDao.findMerchantCurrencyCommissions();
+    public List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions() {
+        return merchantDao.findMerchantCurrencyOptions();
     }
 
     @Override
@@ -405,6 +406,7 @@ public class MerchantServiceImpl implements MerchantService {
     }
 
     public Optional<CreditsOperation> prepareCreditsOperation(Payment payment,String userEmail) {
+        checkMerchantBlock(payment.getMerchant(), payment.getCurrency(), payment.getOperationType());
         final OperationType operationType = payment.getOperationType();
         final BigDecimal amount = valueOf(payment.getSum());
         final Merchant merchant = merchantDao.findById(payment.getMerchant());
@@ -483,5 +485,28 @@ public class MerchantServiceImpl implements MerchantService {
 
         return inLimit;
     }
+
+    @Override
+    @Transactional
+    public void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType) {
+        merchantDao.toggleMerchantBlock(merchantId, currencyId, operationType);
+    }
+
+    @Override
+    @Transactional
+    public void setBlockForAll(OperationType operationType, boolean blockStatus) {
+        merchantDao.setBlockForAll(operationType, blockStatus);
+    }
+
+
+
+    private void checkMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType) {
+        boolean isBlocked = merchantDao.checkMerchantBlock(merchantId, currencyId, operationType);
+        if (isBlocked) {
+            throw new MerchantCurrencyBlockedException("Operation " + operationType + " is blocked for this currency! ");
+        }
+    }
+
+
 
 }

@@ -130,7 +130,7 @@ public class ChatServiceImpl implements ChatService {
         return result;
     }
 
-    @Scheduled(fixedDelay = 60000L, initialDelay = 60000L)
+    @Scheduled(fixedDelay = 1000L, initialDelay = 1000L)
     public void flushCache() {
         for (ChatLang lang : ChatLang.values()) {
             final ChatMessage cacheCeil = new ChatMessage();

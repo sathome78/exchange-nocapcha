@@ -38,12 +38,13 @@
     <c:set var="admin_manageSessions" value="<%=AdminAuthority.MANAGE_SESSIONS%>"/>
     <c:set var="admin_currencyLimits" value="<%=AdminAuthority.SET_CURRENCY_LIMIT%>"/>
     <c:set var="admin_manageAccess" value="<%=AdminAuthority.MANAGE_ACCESS%>"/>
+    <c:set var="admin_editUser" value="<%=AdminAuthority.EDIT_USER%>"/>
 <div class="sidebar">
     <ul>
         <li>
             <%--Пользователи--%>
             <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
-                <a href="<c:url value='/admin/users'/>"><loc:message code="admin.users"/></a>
+                <a href="<c:url value='/2a8fy7b07dxe44/users'/>"><loc:message code="admin.users"/></a>
             </sec:authorize>
         </li>
 
@@ -51,7 +52,7 @@
         <li>
             <%--Администраторы--%>
             <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
-                <a href="<c:url value='/admin/administrators'/>"><loc:message code="admin.admins"/></a>
+                <a href="<c:url value='/2a8fy7b07dxe44/administrators'/>"><loc:message code="admin.admins"/></a>
             </sec:authorize>
         </li>
 
@@ -59,28 +60,28 @@
         <li>
             <%--Заявки на пополнение валюты--%>
             <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
-                <a href="<c:url value='/admin/invoiceConfirmation'/>"><loc:message code="transaction.titleInvoice"/></a>
+                <a href="<c:url value='/2a8fy7b07dxe44/invoiceConfirmation'/>"><loc:message code="transaction.titleInvoice"/></a>
             </sec:authorize>
         </li>
 
         <li>
             <%--Заявки на пополнение Bitcoin--%>
             <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
-                <a href="<c:url value='/admin/bitcoinConfirmation'/>"><loc:message code="transaction.titleBitcoin"/></a>
+                <a href="<c:url value='/2a8fy7b07dxe44/bitcoinConfirmation'/>"><loc:message code="transaction.titleBitcoin"/></a>
             </sec:authorize>
         </li>
 
         <li>
             <%--withdraw--%>
             <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
-                <a href="<c:url value='/admin/withdrawal'/>"><loc:message code="admin.withdrawRequests"/></a>
+                <a href="<c:url value='/2a8fy7b07dxe44/withdrawal'/>"><loc:message code="admin.withdrawRequests"/></a>
             </sec:authorize>
         </li>
         <%--Удаление ордера--%>
         <li>
 
             <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
-                <a href="<c:url value='/admin/removeOrder'/>"><loc:message code="deleteorder.title"/></a>
+                <a href="<c:url value='/2a8fy7b07dxe44/removeOrder'/>"><loc:message code="deleteorder.title"/></a>
             </sec:authorize>
         </li>
 
@@ -93,8 +94,9 @@
                     <ul>
                         <li><a href="<c:url value='/companywallet'/>"><loc:message code="admin.companyWallet"/></a></li>
                         <li><a href="<c:url value='/userswallets'/>"><loc:message code="admin.usersWallet"/></a></li>
-                        <li><a href="<c:url value='/admin/editCurrencyLimits'/>"><loc:message code="admin.currencyLimits.title"/></a></li>
-                        <li><a href="<c:url value='/admin/commissions'/>"><loc:message code="admin.commissions"/></a></li>
+                        <li><a href="<c:url value='/2a8fy7b07dxe44/editCurrencyLimits'/>"><loc:message code="admin.currencyLimits.title"/></a></li>
+                        <li><a href="<c:url value='/2a8fy7b07dxe44/commissions'/>"><loc:message code="admin.commissions"/></a></li>
+                        <li><a href="<c:url value='/2a8fy7b07dxe44/merchantAccess'/>"><loc:message code="admin.merchantAccess"/></a></li>
                     </ul>
                 </div>
 
@@ -105,14 +107,14 @@
         <li>
             <%--referral--%>
             <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
-                <a href="<c:url value='/admin/referral'/>"><loc:message code="admin.referral"/></a>
+                <a href="<c:url value='/2a8fy7b07dxe44/referral'/>"><loc:message code="admin.referral"/></a>
             </sec:authorize>
         </li>
 
         <li>
             <%--referral--%>
             <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
-                <a href="<c:url value='/admin/sessionControl'/>"><loc:message code="admin.sessionControl"/></a>
+                <a href="<c:url value='/2a8fy7b07dxe44/sessionControl'/>"><loc:message code="admin.sessionControl"/></a>
             </sec:authorize>
         </li>
 

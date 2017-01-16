@@ -42,7 +42,7 @@ $(function () {
         transactionsDataTable = $('#transactionsTable').DataTable({
             "serverSide": true,
             "ajax": {
-                "url": '/admin/transactions?id=' + id,
+                "url": '/2a8fy7b07dxe44/transactions?id=' + id,
                 "dataSrc": "data"
             },
             "paging": true,
@@ -124,7 +124,7 @@ $(function () {
 
     function reloadTable() {
         var formParams = $('#transaction-search-form').serialize();
-        var url = '/admin/transactions?id=' + $("#user-id").val() +'&' + formParams;
+        var url = '/2a8fy7b07dxe44/transactions?id=' + $("#user-id").val() +'&' + formParams;
         transactionsDataTable.ajax.url(url).load();
     }
 

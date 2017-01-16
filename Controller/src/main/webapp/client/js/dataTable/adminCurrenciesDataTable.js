@@ -39,7 +39,7 @@ function submitNewLimit(currencyId, minLimit) {
         headers: {
             'X-CSRF-Token': $("input[name='_csrf']").val()
         },
-        url: '/admin/editCurrencyLimits/submit',
+        url: '/2a8fy7b07dxe44/editCurrencyLimits/submit',
         type: 'POST',
         data: formData,
         success: function (data) {

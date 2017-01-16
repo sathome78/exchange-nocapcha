@@ -77,7 +77,7 @@ function submitCommission(commissionId, value) {
         headers: {
             'X-CSRF-Token': $("input[name='_csrf']").val()
         },
-        url: '/admin/commissions/editCommission',
+        url: '/2a8fy7b07dxe44/commissions/editCommission',
         type: 'POST',
         data: formData,
         success: function () {
@@ -107,7 +107,7 @@ function submitMerchantCommission(merchantId, currencyId, value) {
         headers: {
             'X-CSRF-Token': $("input[name='_csrf']").val()
         },
-        url: '/admin/commissions/editMerchantCommission',
+        url: '/2a8fy7b07dxe44/commissions/editMerchantCommission',
         type: 'POST',
         data: formData,
         success: function () {
