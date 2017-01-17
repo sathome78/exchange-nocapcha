@@ -33,7 +33,7 @@ public class BitcoinWalletAppKit {
     private WalletAppKit kit;
 
 
-    @PostConstruct
+    /*@PostConstruct*/
     public void startupWallet() {
         BriefLogFormatter.init();
         try {

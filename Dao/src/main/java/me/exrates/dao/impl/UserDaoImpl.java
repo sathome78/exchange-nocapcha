@@ -79,6 +79,18 @@ public class UserDaoImpl implements UserDao {
         }
     }
 
+    @Override
+    public int getIdByNickname(String nickname) {
+        String sql = "SELECT id FROM USER WHERE nickname = :nickname";
+        Map<String, String> namedParameters = new HashMap<>();
+        namedParameters.put("nickname", nickname);
+        try {
+            return jdbcTemplate.queryForObject(sql, namedParameters, Integer.class);
+        } catch (EmptyResultDataAccessException e){
+            return 0;
+        }
+    }
+
     public boolean create(User user) {
         String sqlUser = "insert into USER(nickname,email,password,phone,status,roleid ) " +
                 "values(:nickname,:email,:password,:phone,:status,:roleid)";

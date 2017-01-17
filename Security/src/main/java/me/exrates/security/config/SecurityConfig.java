@@ -166,7 +166,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/yandex_4b3a16d69d4869cb.html").permitAll()
                 .antMatchers("/yandex_7a3c41ddb19f4716.html").permitAll()
                 .antMatchers("/termsAndConditions", "/privacyPolicy", "/contacts").permitAll()
-                .antMatchers(HttpMethod.POST, "/sendFeedback").permitAll()
+                .antMatchers(HttpMethod.POST, "/sendFeedback", "/transfer/submit").permitAll()
                 .antMatchers(HttpMethod.POST, "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword").anonymous()
                 .antMatchers(HttpMethod.GET, "/rest/userFiles/**/avatar/**").permitAll()
 

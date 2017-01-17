@@ -136,7 +136,7 @@ public class BitcoinServiceImpl implements BitcoinService {
         }
     }
 
-    @PostConstruct
+    /*@PostConstruct*/
     public void init() {
         kit.wallet().addCoinsReceivedEventListener((wallet, tx, prevBalance, newBalance) -> {
             final List<ListenableFuture<TransactionConfidence>> confirmations = IntStream.rangeClosed(1, 3)

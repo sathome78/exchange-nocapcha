@@ -1,11 +1,9 @@
 package me.exrates.service.impl;
 
 import me.exrates.dao.CurrencyDao;
+import me.exrates.dao.UserDao;
 import me.exrates.dao.WalletDao;
-import me.exrates.model.Commission;
-import me.exrates.model.Currency;
-import me.exrates.model.User;
-import me.exrates.model.Wallet;
+import me.exrates.model.*;
 import me.exrates.model.dto.MyWalletConfirmationDetailDto;
 import me.exrates.model.dto.UserWalletSummaryDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
@@ -19,9 +17,10 @@ import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.CommissionService;
+import me.exrates.service.CompanyWalletService;
 import me.exrates.service.WalletService;
 import me.exrates.service.exception.InvalidAmountException;
-import me.exrates.service.exception.ManualBalanceChangeException;
+import me.exrates.service.exception.BalanceChangeException;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import me.exrates.service.util.Cache;
 import org.apache.logging.log4j.LogManager;
@@ -51,7 +50,13 @@ public final class WalletServiceImpl implements WalletService {
     @Autowired
     private CurrencyDao currencyDao;
     @Autowired
+    private UserDao userDao;
+
+    @Autowired
     private CommissionService commissionService;
+
+    @Autowired
+    private CompanyWalletService companyWalletService;
 
     @Override
     public void balanceRepresentation(final Wallet wallet) {
@@ -234,26 +239,70 @@ public final class WalletServiceImpl implements WalletService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void manualBalanceChange(Integer userId, Integer currencyId, BigDecimal amount) {
-        Wallet wallet = walletDao.findByUserAndCurrency(userId, currencyId);
         if (amount.equals(BigDecimal.ZERO)) {
             return;
         }
+        Wallet wallet = walletDao.findByUserAndCurrency(userId, currencyId);
         if (amount.signum() == -1 && amount.abs().compareTo(wallet.getActiveBalance()) > 0) {
             throw new InvalidAmountException("Negative amount exceeds current balance!");
         }
+         changeWalletActiveBalance(amount, wallet, OperationType.MANUAL, TransactionSourceType.MANUAL);
+
+    }
+
+    private void changeWalletActiveBalance(BigDecimal amount, Wallet wallet, OperationType operationType,
+                                                           TransactionSourceType transactionSourceType) {
+        changeWalletActiveBalance(amount, wallet, operationType, transactionSourceType, null);
+    }
+
+    private void changeWalletActiveBalance(BigDecimal amount, Wallet wallet, OperationType operationType,
+                                           TransactionSourceType transactionSourceType, BigDecimal specialCommissionAmount) {
         WalletOperationData walletOperationData = new WalletOperationData();
         walletOperationData.setWalletId(wallet.getId());
         walletOperationData.setAmount(amount);
         walletOperationData.setBalanceType(WalletOperationData.BalanceType.ACTIVE);
-        walletOperationData.setOperationType(OperationType.MANUAL);
-        Commission commission = commissionService.findCommissionByType(OperationType.MANUAL);
+        walletOperationData.setOperationType(operationType);
+        Commission commission = commissionService.findCommissionByType(operationType);
         walletOperationData.setCommission(commission);
-        walletOperationData.setCommissionAmount(BigDecimalProcessing.doAction(amount, commission.getValue(), ActionType.MULTIPLY_PERCENT));
-        walletOperationData.setSourceType(TransactionSourceType.MANUAL);
+        BigDecimal commissionAmount = specialCommissionAmount == null ?
+                BigDecimalProcessing.doAction(amount, commission.getValue(), ActionType.MULTIPLY_PERCENT) : specialCommissionAmount;
+        walletOperationData.setCommissionAmount(commissionAmount);
+        walletOperationData.setSourceType(transactionSourceType);
         WalletTransferStatus status = walletBalanceChange(walletOperationData);
         if (status != WalletTransferStatus.SUCCESS) {
-            throw new ManualBalanceChangeException(status.name());
+            throw new BalanceChangeException(status.name());
+        }
+        if (commissionAmount.signum() > 0) {
+
+           CompanyWallet companyWallet = companyWalletService.findByCurrency(currencyDao.findById(wallet.getCurrencyId()));
+           LOGGER.debug(companyWallet);
+           companyWalletService.deposit(companyWallet, BigDecimal.ZERO, commissionAmount);
         }
     }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void transferCostsToUser(String fromUserEmail, String toUserNickname, Integer currencyId, BigDecimal amount) {
+        if (amount.signum() <= 0) {
+            throw new InvalidAmountException("Negative or zero amount not acceptable");
+        }
+
+        Wallet fromUserWallet =  walletDao.findByUserAndCurrency(userDao.getIdByEmail(fromUserEmail), currencyId);
+        Commission commission = commissionService.findCommissionByType(OperationType.USER_TRANSFER);
+        BigDecimal commissionAmount = BigDecimalProcessing.doAction(amount, commission.getValue(), ActionType.MULTIPLY_PERCENT);
+        BigDecimal totalAmount = amount.add(commissionAmount);
+        if (totalAmount.compareTo(fromUserWallet.getActiveBalance()) > 0) {
+            throw new InvalidAmountException("Amount exceeds wallet active balance");
+        }
+        Wallet toUserWallet =  walletDao.findByUserAndCurrency(userDao.getIdByNickname(toUserNickname), currencyId);
+        changeWalletActiveBalance(totalAmount.negate(), fromUserWallet, OperationType.USER_TRANSFER,
+                TransactionSourceType.USER, commissionAmount);
+        changeWalletActiveBalance(amount, toUserWallet, OperationType.USER_TRANSFER,
+                TransactionSourceType.USER, BigDecimal.ZERO);
+    }
+
+
+
+
 
 }
