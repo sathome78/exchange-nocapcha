@@ -19,9 +19,7 @@ import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.CommissionService;
 import me.exrates.service.CompanyWalletService;
 import me.exrates.service.WalletService;
-import me.exrates.service.exception.InvalidAmountException;
-import me.exrates.service.exception.BalanceChangeException;
-import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
+import me.exrates.service.exception.*;
 import me.exrates.service.util.Cache;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -275,26 +273,33 @@ public final class WalletServiceImpl implements WalletService {
         if (commissionAmount.signum() > 0) {
 
            CompanyWallet companyWallet = companyWalletService.findByCurrency(currencyDao.findById(wallet.getCurrencyId()));
-           LOGGER.debug(companyWallet);
            companyWalletService.deposit(companyWallet, BigDecimal.ZERO, commissionAmount);
         }
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void transferCostsToUser(String fromUserEmail, String toUserNickname, Integer currencyId, BigDecimal amount) {
+    public void transferCostsToUser(Integer fromUserWalletId, String toUserNickname, Integer currencyId, BigDecimal amount) {
         if (amount.signum() <= 0) {
             throw new InvalidAmountException("Negative or zero amount not acceptable");
         }
 
-        Wallet fromUserWallet =  walletDao.findByUserAndCurrency(userDao.getIdByEmail(fromUserEmail), currencyId);
+        Wallet fromUserWallet =  walletDao.findById(fromUserWalletId);
         Commission commission = commissionService.findCommissionByType(OperationType.USER_TRANSFER);
         BigDecimal commissionAmount = BigDecimalProcessing.doAction(amount, commission.getValue(), ActionType.MULTIPLY_PERCENT);
         BigDecimal totalAmount = amount.add(commissionAmount);
         if (totalAmount.compareTo(fromUserWallet.getActiveBalance()) > 0) {
             throw new InvalidAmountException("Amount exceeds wallet active balance");
         }
-        Wallet toUserWallet =  walletDao.findByUserAndCurrency(userDao.getIdByNickname(toUserNickname), currencyId);
+        Integer userId = userDao.getIdByNickname(toUserNickname);
+        if (userId == 0) {
+            throw new UserNotFoundException(String.format("User with nickname %s not found", toUserNickname));
+        }
+
+        Wallet toUserWallet =  walletDao.findByUserAndCurrency(userId, currencyId);
+        if (toUserWallet == null) {
+            throw new WalletNotFoundException("No wallet exists fro this currency and user");
+        }
         changeWalletActiveBalance(totalAmount.negate(), fromUserWallet, OperationType.USER_TRANSFER,
                 TransactionSourceType.USER, commissionAmount);
         changeWalletActiveBalance(amount, toUserWallet, OperationType.USER_TRANSFER,

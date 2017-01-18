@@ -240,18 +240,7 @@ public class DashboardController {
         return model;
     }
 
-    @RequestMapping(value = "/transfer/submit", method = RequestMethod.POST)
-    @ResponseBody
-    public ResponseEntity<Void> submitTransfer(Principal principal,
-                                               @RequestParam String userNickname,
-                                               @RequestParam Integer currencyId,
-                                               @RequestParam BigDecimal amount) {
-        LOG.debug(userNickname);
-        LOG.debug(currencyId);
-        LOG.debug(amount);
-        walletService.transferCostsToUser(principal.getName(), userNickname, currencyId, amount);
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
+
 
 
 }

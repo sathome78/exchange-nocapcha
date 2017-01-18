@@ -96,5 +96,5 @@ public interface WalletService {
     @Transactional(rollbackFor = Exception.class)
     void manualBalanceChange(Integer userId, Integer currencyId, BigDecimal amount);
 
-    void transferCostsToUser(String fromUserEmail, String toUserNickname, Integer currencyId, BigDecimal amount);
+    void transferCostsToUser(Integer fromUserWalletId, String toUserNickname, Integer currencyId, BigDecimal amount);
 }

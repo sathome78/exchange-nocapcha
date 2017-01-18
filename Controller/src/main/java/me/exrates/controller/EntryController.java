@@ -89,7 +89,6 @@ public class EntryController {
         model.addObject("captchaType", CAPTCHA_TYPE);
         model.addObject("startupPage", startupPage == null ? "trading" : startupPage);
         model.addObject("sessionId", request.getSession().getId());
-        storeSessionListener.getSessionById(request.getSession().getId()).ifPresent(LOGGER::debug);
 
         model.setViewName("globalPages/dashboard");
         OrderCreateDto orderCreateDto = new OrderCreateDto();

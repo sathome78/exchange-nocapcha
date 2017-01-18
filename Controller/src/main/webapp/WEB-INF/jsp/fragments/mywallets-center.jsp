@@ -48,6 +48,11 @@
                         '<button data-walletid='+id+' class="wallet-mystatement-button table-button-block__button btn btn-primary" type="submit">${historyButton}</button>'
                         @>
                     </form>
+                    <form class="table-button-block__form" action="<c:url value="/transfer"/>">
+                        <loc:message code="mywallets.transfer" var="transferButton"/>
+                        <input type="text" hidden value=<@=currencyName@> name="currencyName" >
+                        <button class="table-button-block__button btn btn-info" type="submit">${transferButton}</button>
+                    </form>
                 </td>
             </tr>
         </script>

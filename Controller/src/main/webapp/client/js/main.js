@@ -75,6 +75,7 @@ $(function(){
     var button = $('#payment').find('button');
     button.prop('disabled',true);
     var merchantsData;
+    var usernameToTransfer = $('#nickname');
 
     $(".input-block-wrapper__input").prop("autocomplete", "off");
     $(".numericInputField").prop("autocomplete", "off");
@@ -498,7 +499,8 @@ $(function(){
                 amount: '__amount',
                 currency: '__currency',
                 merchant: '__merchant',
-                percent: '__percent'
+                percent: '__percent',
+                username: '__username'
             };
             var newHTMLElements = [];
             modalTemplate.slice().each(function(index,val){
@@ -507,7 +509,8 @@ $(function(){
             newHTMLElements[0] = newHTMLElements[0]
                 .replace(templateVariables.amount, "<span class='modal-amount'>"+amount+"</span>")
                 .replace(templateVariables.currency, "<span class='modal-amount'>"+getCurrentCurrency()+"</span>")
-                .replace(templateVariables.merchant, "<span class='modal-merchant'>"+merchantName+"</span>");
+                .replace(templateVariables.merchant, "<span class='modal-merchant'>"+merchantName+"</span>")
+                .replace(templateVariables.username, "<span class='modal-merchant'>"+usernameToTransfer.val()+"</span>");
             newHTMLElements[1] = newHTMLElements[1]
                 .replace(templateVariables.amount, "<span class='modal-amount'>" + response['commissionAmount'] + "</span>")
                 .replace(templateVariables.currency, "<span class='modal-amount'>" + getCurrentCurrency() + "</span>")
@@ -598,15 +601,53 @@ $(function(){
             $("#destination").val(uid);
             submitProcess();
             $('#outputPaymentProcess')
-                .prop('disabled', true)
+                .prop('disabled', true);
             setTimeout(function()
             {
                 location.reload();
             },8000);
         }
     });
+    $('#transferButton').click(function () {
+        finPassCheck('transferModal', prepareTransfer);
+    });
+
+    function prepareTransfer() {
+         merchantName = 'transfer';
+         fillModalWindow('USER_TRANSFER', sum.val(), getCurrentCurrency());
+         requestControls();
+         $('#transferModal').modal();
+    }
+    
+    $('#transferProcess').click(function (e) {
+        e.preventDefault();
+        submitTransfer();
+    });
+
+    function submitTransfer() {
+        var transferForm = $('#transferForm').serialize();
+        console.log(transferForm);
+        $.ajax('/transfer/submit', {
+            type: 'POST',
+            data: transferForm,
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            success: function (response) {
+                $('.paymentInfo').html(response.detail);
+                responseControls ()
+            },
+            error: function (err) {
+                $('.paymentInfo').html(err.responseText);
+                responseControls ()
+            }
+        })
+
+    }
+
 
 });
+
 
 function parseNumber(numberStr) {
     /*ATTENTION: this func wil by work correctly if number always has decimal separator
