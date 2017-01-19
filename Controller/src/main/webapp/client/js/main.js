@@ -642,7 +642,7 @@ $(function(){
         setTimeout(function()
         {
             location.reload();
-        },8000);
+        },12000);
     });
 
     function submitTransfer() {
@@ -654,8 +654,8 @@ $(function(){
                 'X-CSRF-Token': $("input[name='_csrf']").val()
             },
             success: function (response) {
-                console.log(response);
                 $('.paymentInfo').html(response);
+                $('.nickname_input').hide();
                 responseControls ()
             },
             error: function (err) {

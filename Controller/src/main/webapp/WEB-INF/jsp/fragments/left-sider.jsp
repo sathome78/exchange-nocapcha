@@ -74,7 +74,7 @@
     <br>
     <div style="text-align: center; height: 1000px; vertical-align: top">
             <a href="/client/img/cert.jpg">
-                <img src="/client/img/cert.jpg" style="width: 185px; height: 250px; "/>
+                <img src="/client/img/cert.gif" style="width: 185px; height: 185px; "/>
             </a>
     </div>
 </div>

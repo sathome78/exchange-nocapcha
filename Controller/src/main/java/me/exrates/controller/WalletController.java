@@ -81,7 +81,7 @@ public class WalletController {
         return modelAndView;
     }
 
-    @RequestMapping(value = "/transfer/submit", method = RequestMethod.POST)
+    @RequestMapping(value = "/transfer/submit", method = RequestMethod.POST, produces = "text/plain;charset=UTF-8")
     @ResponseBody
     public ResponseEntity<String> submitTransfer(@RequestParam Integer walletId,
                                                @RequestParam String nickname,
@@ -89,6 +89,7 @@ public class WalletController {
                                                @RequestParam BigDecimal amount,
                                                HttpServletRequest request) {
         String result = walletService.transferCostsToUser(walletId, nickname, currencyId, amount, localeResolver.resolveLocale(request));
+        LOG.debug(result);
 
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
