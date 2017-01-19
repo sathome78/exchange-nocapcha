@@ -292,34 +292,11 @@ public final class TransactionDaoImpl implements TransactionDao {
         Set<Integer> operationTypes = new HashSet<>();
         if (types != null) {
             types.forEach(item -> {
-               switch (item) {
-                   case INPUT:
-                       sourceTypes.add(TransactionSourceType.MERCHANT.toString());
-                       operationTypes.add(OperationType.INPUT.getType());
-                       break;
-                   case OUTPUT:
-                       sourceTypes.add(TransactionSourceType.MERCHANT.toString());
-                       operationTypes.add(OperationType.OUTPUT.getType());
-                       break;
-                   case ORDER_IN:
-                       sourceTypes.add(TransactionSourceType.ORDER.toString());
-                       operationTypes.add(OperationType.INPUT.getType());
-                       break;
-                   case ORDER_OUT:
-                       sourceTypes.add(TransactionSourceType.ORDER.toString());
-                       operationTypes.add(OperationType.OUTPUT.getType());
-                       break;
-                   case WALLET_INNER_TRANSFER:
-                       operationTypes.add(OperationType.WALLET_INNER_TRANSFER.getType());
-                       break;
-                   case REFERRAL:
-                       sourceTypes.add(TransactionSourceType.REFERRAL.toString());
-                       break;
-                   case MANUAL:
-                       sourceTypes.add(TransactionSourceType.MANUAL.toString());
-                       break;
-                   default:
-                       break;
+               if (item.getOperationType() != null) {
+                   operationTypes.add(item.getOperationType().getType());
+               }
+               if (item.getSourceType() != null) {
+                   sourceTypes.add(item.getSourceType().toString());
                }
             });
         }
@@ -484,6 +461,7 @@ public final class TransactionDaoImpl implements TransactionDao {
                                                     .doAction(rs.getBigDecimal("active_balance_before"), rs.getBigDecimal("amount"), ActionType.ADD)
                                             , locale, true));
                             accountStatementDto.setReservedBalanceAfter(accountStatementDto.getReservedBalanceBefore());
+                            break;
                         }
                     }
                 }

@@ -9,21 +9,20 @@ import me.exrates.model.dto.UserWalletSummaryDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
-import me.exrates.model.enums.ActionType;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.TransactionSourceType;
-import me.exrates.model.enums.WalletTransferStatus;
+import me.exrates.model.enums.*;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.CommissionService;
 import me.exrates.service.CompanyWalletService;
+import me.exrates.service.NotificationService;
 import me.exrates.service.WalletService;
 import me.exrates.service.exception.*;
 import me.exrates.service.util.Cache;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,6 +54,12 @@ public final class WalletServiceImpl implements WalletService {
 
     @Autowired
     private CompanyWalletService companyWalletService;
+
+    @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
+    private MessageSource messageSource;
 
     @Override
     public void balanceRepresentation(final Wallet wallet) {
@@ -279,9 +284,9 @@ public final class WalletServiceImpl implements WalletService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void transferCostsToUser(Integer fromUserWalletId, String toUserNickname, Integer currencyId, BigDecimal amount) {
+    public String transferCostsToUser(Integer fromUserWalletId, String toUserNickname, Integer currencyId, BigDecimal amount, Locale locale) {
         if (amount.signum() <= 0) {
-            throw new InvalidAmountException("Negative or zero amount not acceptable");
+            throw new InvalidAmountException(messageSource.getMessage("transfer.negativeAmount", null, locale));
         }
 
         Wallet fromUserWallet =  walletDao.findById(fromUserWalletId);
@@ -289,21 +294,29 @@ public final class WalletServiceImpl implements WalletService {
         BigDecimal commissionAmount = BigDecimalProcessing.doAction(amount, commission.getValue(), ActionType.MULTIPLY_PERCENT);
         BigDecimal totalAmount = amount.add(commissionAmount);
         if (totalAmount.compareTo(fromUserWallet.getActiveBalance()) > 0) {
-            throw new InvalidAmountException("Amount exceeds wallet active balance");
+            throw new InvalidAmountException(messageSource.getMessage("transfer.invalidAmount", null, locale));
         }
         Integer userId = userDao.getIdByNickname(toUserNickname);
         if (userId == 0) {
-            throw new UserNotFoundException(String.format("User with nickname %s not found", toUserNickname));
+            throw new UserNotFoundException(messageSource.getMessage("transfer.userNotFound", new Object[]{toUserNickname}, locale));
         }
 
         Wallet toUserWallet =  walletDao.findByUserAndCurrency(userId, currencyId);
         if (toUserWallet == null) {
-            throw new WalletNotFoundException("No wallet exists fro this currency and user");
+            throw new WalletNotFoundException(messageSource.getMessage("transfer.walletNotFound", null, locale));
         }
-        changeWalletActiveBalance(totalAmount.negate(), fromUserWallet, OperationType.USER_TRANSFER,
-                TransactionSourceType.USER, commissionAmount);
-        changeWalletActiveBalance(amount, toUserWallet, OperationType.USER_TRANSFER,
-                TransactionSourceType.USER, BigDecimal.ZERO);
+        changeWalletActiveBalance(totalAmount, fromUserWallet, OperationType.OUTPUT,
+                TransactionSourceType.USER_TRANSFER, commissionAmount);
+        changeWalletActiveBalance(amount, toUserWallet, OperationType.INPUT,
+                TransactionSourceType.USER_TRANSFER, BigDecimal.ZERO);
+        String currencyName = currencyDao.getCurrencyName(currencyId);
+        String result = messageSource.getMessage("transfer.successful", new Object[]{amount, currencyName, toUserNickname},
+                locale);
+        notificationService.notifyUser(fromUserWallet.getUser().getId(), NotificationEvent.IN_OUT, "wallets.transferTitle",
+                "transfer.successful", new Object[]{amount, currencyName, toUserNickname});
+        notificationService.notifyUser(toUserWallet.getUser().getId(), NotificationEvent.IN_OUT, "wallets.transferTitle",
+                "transfer.received", new Object[]{amount, currencyName});
+        return result;
     }
 
 

@@ -14,7 +14,7 @@ public enum TransactionSourceType {
     REFERRAL,
     ACCRUAL,
     MANUAL,
-    USER;
+    USER_TRANSFER;
 
     public static TransactionSourceType convert(String typeName) {
         switch (typeName) {
@@ -28,8 +28,8 @@ public enum TransactionSourceType {
                 return ACCRUAL;
             case "MANUAL":
                 return MANUAL;
-            case "USER":
-                return USER;
+            case "USER_TRANSFER":
+                return USER_TRANSFER;
             default:
                 throw new UnsupportedTransactionSourceTypeException(typeName);
         }

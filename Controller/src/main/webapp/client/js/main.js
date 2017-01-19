@@ -19,6 +19,8 @@ $.fn.serializeObject = function()
 
 };
 
+const NICKNAME_REGEX = /^\D+[\w\d\-_]+/;
+
 
 /* --------- make merchants module start -------------- */
 
@@ -613,20 +615,38 @@ $(function(){
     });
 
     function prepareTransfer() {
+        $('#transferProcess').prop('disabled', true);
          merchantName = 'transfer';
          fillModalWindow('USER_TRANSFER', sum.val(), getCurrentCurrency());
+         validateNickname();
          requestControls();
          $('#transferModal').modal();
+    }
+    $('#nicknameInput').on('keyup', validateNickname);
+
+    function validateNickname() {
+        var value = $('#nicknameInput').val();
+        if (value.match(NICKNAME_REGEX) ) {
+            $('#transferProcess').prop('disabled', false);
+        } else {
+            $('#transferProcess').prop('disabled', true);
+        }
     }
     
     $('#transferProcess').click(function (e) {
         e.preventDefault();
+        var nickname = $('#nicknameInput').val();
+        $('#nickname').val(nickname);
         submitTransfer();
+        $('#transferProcess').prop('disabled', true);
+        setTimeout(function()
+        {
+            location.reload();
+        },8000);
     });
 
     function submitTransfer() {
-        var transferForm = $('#transferForm').serialize();
-        console.log(transferForm);
+        var transferForm = $('#payment').serialize();
         $.ajax('/transfer/submit', {
             type: 'POST',
             data: transferForm,
@@ -634,11 +654,14 @@ $(function(){
                 'X-CSRF-Token': $("input[name='_csrf']").val()
             },
             success: function (response) {
-                $('.paymentInfo').html(response.detail);
+                console.log(response);
+                $('.paymentInfo').html(response);
                 responseControls ()
             },
             error: function (err) {
-                $('.paymentInfo').html(err.responseText);
+                var errorText = JSON.parse(err.responseText);
+                $('.paymentInfo').html(errorText.detail);
+                $('.nickname_input').hide();
                 responseControls ()
             }
         })

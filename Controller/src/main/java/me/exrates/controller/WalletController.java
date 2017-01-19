@@ -86,14 +86,11 @@ public class WalletController {
     public ResponseEntity<String> submitTransfer(@RequestParam Integer walletId,
                                                @RequestParam String nickname,
                                                @RequestParam Integer currencyId,
-                                               @RequestParam String currencyName,
                                                @RequestParam BigDecimal amount,
                                                HttpServletRequest request) {
-        request.getParameterMap().forEach((key, value) -> LOG.debug(key + " :: " + value[0]));
+        String result = walletService.transferCostsToUser(walletId, nickname, currencyId, amount, localeResolver.resolveLocale(request));
 
-        walletService.transferCostsToUser(walletId, nickname, currencyId, amount);
-        return new ResponseEntity<>(messageSource.getMessage("transfer.successful", new Object[]{amount, currencyName, nickname},
-                localeResolver.resolveLocale(request)), HttpStatus.OK);
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

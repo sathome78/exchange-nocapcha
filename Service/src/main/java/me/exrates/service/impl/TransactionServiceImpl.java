@@ -26,7 +26,6 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.lang.Integer.MAX_VALUE;
 import static java.lang.Integer.valueOf;
 import static java.math.BigDecimal.ROUND_HALF_UP;
 
@@ -202,21 +201,11 @@ public class TransactionServiceImpl implements TransactionService {
     private void setTransactionMerchantAndOrder(OperationViewDto view, Transaction transaction) {
         TransactionSourceType sourceType = transaction.getSourceType();
         OperationType operationType = transaction.getOperationType();
-        if (sourceType == TransactionSourceType.REFERRAL) {
-            view.setMerchant(new Merchant(0, "REFERRAL", "REFERRAL"));
-            view.setOperationType(TransactionType.valueOf(sourceType.toString()));
-        } else if (sourceType == TransactionSourceType.ORDER) {
-            view.setMerchant(new Merchant(0, "ORDER", "ORDER"));
-            if (operationType == OperationType.INPUT) {
-                view.setOperationType(TransactionType.valueOf("ORDER_IN"));
-            } else if (operationType == OperationType.OUTPUT) {
-                view.setOperationType(TransactionType.valueOf("ORDER_OUT"));
-            } else {
-                view.setOperationType(TransactionType.valueOf(operationType.toString()));
-            }
-        } else {
+        view.setOperationType(TransactionType.resolveFromOperationTypeAndSource(sourceType, operationType));
+        if (sourceType == TransactionSourceType.MERCHANT) {
             view.setMerchant(transaction.getMerchant());
-            view.setOperationType(TransactionType.valueOf(operationType.toString()));
+        } else {
+            view.setMerchant(new Merchant(0, sourceType.name(), sourceType.name()));
         }
 
     }

@@ -14,7 +14,7 @@
         </c:if>
     </label>
     <div class="row">
-        <form class="form-horizontal withdraw__money" id="transferForm" method="post" action="">
+        <form class="form-horizontal withdraw__money" id="payment" method="post" action="">
             <div class="input-block-wrapper clearfix">
                 <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:225px">
                     <label style="font-size: 15px" for="currencyName" class="input-block-wrapper__label" ><loc:message code="wallets.transferCurrency"/></label>
@@ -27,15 +27,7 @@
                 </div>
 
             </div>
-            <div class="input-block-wrapper clearfix">
-                <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:225px">
-                    <label style="font-size: 15px" for="nickname"><loc:message code="transfer.nickname"/></label>
-                </div>
-                <div style="width: auto; " class="col-md-8 input-block-wrapper__input-wrapper">
-                    <input class="form-control input-block-wrapper__input"
-                           id="nickname" name="nickname" />
-                </div>
-            </div>
+
             <div class="input-block-wrapper clearfix">
                 <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:225px">
                     <label style="font-size: 15px" for="sum"><loc:message code="withdrawal.amount"/></label>
@@ -46,8 +38,13 @@
                 </div>
             </div>
             <input hidden id="walletId" name="walletId" value="${wallet.id}" />
-            <button id="transferButton" type="button" class="btn btn-primary btn-lg">
-                <loc:message code="mywallets.transfer"/></button>
+            <input hidden id="nickname" name="nickname" />
+
+            <div class="col-md-4 input-block-wrapper">
+                <button id="transferButton" type="button" class="btn btn-primary btn-lg">
+                    <loc:message code="mywallets.transfer"/></button>
+            </div>
+
         </form>
     </div>
 </div>
@@ -66,6 +63,12 @@
                     <p><loc:message code="wallets.modalTransferHeader"/></p>
                     <p><loc:message code="wallets.modalTransferCommission"/></p>
                     <p><loc:message code="wallets.modalTransferFinalSum"/></p>
+                </div>
+                <div class="nickname_input">
+                    <label class="control-label" for="nicknameInput">
+                        <loc:message code="transfer.nickname"/>
+                    </label>
+                    <input class="form-control" autofocus="autofocus" type="text" id="nicknameInput">
                 </div>
             </div>
             <div class="modal-footer">
