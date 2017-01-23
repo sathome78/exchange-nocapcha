@@ -125,7 +125,13 @@ public class AdvcashMerchantController {
             return new RedirectView("/dashboard");
 
         }
-//        advcashService.invalidateTransaction(transaction);
+
+        if (transaction.isProvided() == true){
+            redir.addAttribute("successNoty", messageSource.getMessage("merchants.successfulBalanceDeposit",
+                    merchantService.formatResponseMessage(transaction).values().toArray(), localeResolver.resolveLocale(request)));
+
+            return new RedirectView("/dashboard");
+        }
 
         redir.addAttribute("errorNoty", messageSource.getMessage("merchants.internalError", null, localeResolver.resolveLocale(request)));
 
