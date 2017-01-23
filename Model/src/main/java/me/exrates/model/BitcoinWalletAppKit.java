@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.File;
 
@@ -32,8 +31,6 @@ public class BitcoinWalletAppKit {
 
     private WalletAppKit kit;
 
-
-    /*@PostConstruct*/
     public void startupWallet() {
         BriefLogFormatter.init();
         try {
