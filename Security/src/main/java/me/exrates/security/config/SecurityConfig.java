@@ -216,6 +216,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/merchants/perfectmoney/payment/success", "/merchants/advcash/payment/status",
                         "/merchants/advcash/payment/failure",
                         "/merchants/advcash/payment/success",
+                        "/merchants/advcash/payment/status",
                         "/merchants/edrcoin/payment/received",
                         "/merchants/liqpay/payment/failure",
                         "/merchants/liqpay/payment/success",

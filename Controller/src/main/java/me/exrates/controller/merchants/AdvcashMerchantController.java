@@ -11,6 +11,7 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -26,6 +27,9 @@ import javax.validation.Valid;
 import java.security.Principal;
 import java.util.Map;
 import java.util.Optional;
+
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.OK;
 
 @Controller
 @RequestMapping("/merchants/advcash")
@@ -77,11 +81,35 @@ public class AdvcashMerchantController {
 
         }
 
+    @RequestMapping(value = "payment/status",method = RequestMethod.POST)
+    public ResponseEntity<Void> statusPayment(@RequestParam Map<String,String> params) {
+
+        Transaction transaction = transactionService.findById(Integer.parseInt(params.get("ac_order_id")));
+        Double transactionSum = transaction.getAmount().add(transaction.getCommissionAmount()).doubleValue();
+        final ResponseEntity<Void> response = new ResponseEntity<>(OK);
+
+        logger.debug("Begin method: advcashStatusPayment.");
+        logger.info("Response: " + params);
+
+        if (params.get("ac_transaction_status").equals("COMPLETED")
+                && advcashService.checkHashTransactionByTransactionId(transaction.getId(), params.get("transaction_hash"))
+                && Double.parseDouble(params.get("ac_amount"))==transactionSum ){
+
+            advcashService.provideTransaction(transaction);
+
+            return response;
+
+        }
+
+        return new ResponseEntity<>(BAD_REQUEST);
+    }
+
     @RequestMapping(value = "payment/success",method = RequestMethod.POST)
     public RedirectView successPayment(@RequestParam Map<String,String> response, RedirectAttributes redir, final HttpServletRequest request) {
 
         Transaction transaction = transactionService.findById(Integer.parseInt(response.get("ac_order_id")));
         Double transactionSum = transaction.getAmount().add(transaction.getCommissionAmount()).doubleValue();
+        logger.debug("Begin method: advcashSuccessPayment.");
         logger.info("Response: " + response);
 
 
