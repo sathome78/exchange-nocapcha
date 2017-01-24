@@ -501,6 +501,11 @@ public class MerchantServiceImpl implements MerchantService {
         merchantDao.setBlockForAll(operationType, blockStatus);
     }
 
+    @Override
+    @Transactional
+    public void setBlockForMerchant(Integer merchantId, Integer currencyId, OperationType operationType, boolean blockStatus) {
+        merchantDao.setBlockForMerchant(merchantId, currencyId, operationType, blockStatus);
+    }
 
 
     private void checkMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType) {

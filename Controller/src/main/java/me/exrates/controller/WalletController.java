@@ -1,6 +1,7 @@
 package me.exrates.controller;
 
 import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.controller.exception.InvalidNicknameException;
 import me.exrates.model.*;
 import me.exrates.model.dto.MyWalletConfirmationDetailDto;
 import me.exrates.model.dto.UserWalletSummaryDto;
@@ -96,6 +97,10 @@ public class WalletController {
                                                               @RequestParam Integer currencyId,
                                                               @RequestParam BigDecimal amount,
                                                               HttpServletRequest request) {
+
+        if (!nickname.matches("^\\D+[\\w\\d\\-_]+")) {
+            throw new InvalidNicknameException(messageSource.getMessage("transfer.invalidNickname", null, localeResolver.resolveLocale(request)));
+        }
         String result = walletService.transferCostsToUser(walletId, nickname, currencyId, amount, localeResolver.resolveLocale(request));
         LOG.debug(result);
 
