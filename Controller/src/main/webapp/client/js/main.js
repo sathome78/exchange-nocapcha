@@ -128,6 +128,12 @@ $(function(){
                 }
 
             }
+            if (operationType.val() === 'USER_TRANSFER') {
+                var maxTransferSum = parseFloat($('#maxForTransfer').text())
+                if ( val >= maxTransferSum){
+                    $(this).val(maxTransferSum);
+                }
+            }
             var decimal = $(this).val().split('.')[1];
             if (decimal && decimal.length > fractionalAmount) {
                 $(this).val($(this).val().slice(0,-1));
@@ -626,7 +632,8 @@ $(function(){
 
     function validateNickname() {
         var value = $('#nicknameInput').val();
-        if (value.match(NICKNAME_REGEX) ) {
+        console.log(NICKNAME_REGEX.test(value));
+        if (NICKNAME_REGEX.test(value) ) {
             $('#transferProcess').prop('disabled', false);
         } else {
             $('#transferProcess').prop('disabled', true);
@@ -654,11 +661,12 @@ $(function(){
                 'X-CSRF-Token': $("input[name='_csrf']").val()
             },
             success: function (response) {
-                $('.paymentInfo').html(response);
+                $('.paymentInfo').html(response.result);
                 $('.nickname_input').hide();
                 responseControls ()
             },
             error: function (err) {
+                console.log(err);
                 var errorText = JSON.parse(err.responseText);
                 $('.paymentInfo').html(errorText.detail);
                 $('.nickname_input').hide();

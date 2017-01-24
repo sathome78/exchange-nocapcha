@@ -39,6 +39,7 @@
             </div>
             <input hidden id="walletId" name="walletId" value="${wallet.id}" />
             <input hidden id="nickname" name="nickname" />
+            <input hidden id="operationType" value="USER_TRANSFER" />
 
             <div class="col-md-4 input-block-wrapper">
                 <button id="transferButton" type="button" class="btn btn-primary btn-lg">
@@ -47,6 +48,7 @@
 
         </form>
     </div>
+    <span hidden id="maxForTransfer">${maxForTransfer}</span>
 </div>
 
 <%@include file="modal/check_fin_pass_modal.jsp"%>

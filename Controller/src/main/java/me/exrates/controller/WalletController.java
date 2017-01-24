@@ -1,21 +1,19 @@
 package me.exrates.controller;
 
 import me.exrates.controller.exception.ErrorInfo;
-import me.exrates.model.CompanyWallet;
-import me.exrates.model.Currency;
-import me.exrates.model.User;
-import me.exrates.model.Wallet;
+import me.exrates.model.*;
 import me.exrates.model.dto.MyWalletConfirmationDetailDto;
 import me.exrates.model.dto.UserWalletSummaryDto;
-import me.exrates.service.CompanyWalletService;
-import me.exrates.service.CurrencyService;
-import me.exrates.service.UserService;
-import me.exrates.service.WalletService;
+import me.exrates.model.enums.ActionType;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.util.BigDecimalProcessing;
+import me.exrates.service.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +23,9 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 public class WalletController {
@@ -44,6 +44,9 @@ public class WalletController {
 
     @Autowired
     CompanyWalletService companyWalletService;
+
+    @Autowired
+    private CommissionService commissionService;
 
     @Autowired
     MessageSource messageSource;
@@ -76,22 +79,27 @@ public class WalletController {
         Currency currency = currencyService.findByName(currencyName);
         User user = userService.findByEmail(principal.getName());
         Wallet wallet = walletService.findByUserAndCurrency(user, currency);
+        BigDecimal commissionRate = commissionService.findCommissionByType(OperationType.USER_TRANSFER).getValue();
+        BigDecimal commissionDecimal = BigDecimalProcessing.doAction(commissionRate, BigDecimal.valueOf(100), ActionType.DEVIDE);
+        BigDecimal commissionMultiplier = BigDecimalProcessing.doAction(commissionDecimal, BigDecimal.ONE, ActionType.ADD);
+        BigDecimal maxForTransfer = BigDecimalProcessing.doAction(wallet.getActiveBalance(), commissionMultiplier, ActionType.DEVIDE);
         modelAndView.addObject("currency", currency);
         modelAndView.addObject("wallet", wallet);
+        modelAndView.addObject("maxForTransfer", maxForTransfer);
         return modelAndView;
     }
 
-    @RequestMapping(value = "/transfer/submit", method = RequestMethod.POST, produces = "text/plain;charset=UTF-8")
+    @RequestMapping(value = "/transfer/submit", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
-    public ResponseEntity<String> submitTransfer(@RequestParam Integer walletId,
-                                               @RequestParam String nickname,
-                                               @RequestParam Integer currencyId,
-                                               @RequestParam BigDecimal amount,
-                                               HttpServletRequest request) {
+    public ResponseEntity<Map<String, String>> submitTransfer(@RequestParam Integer walletId,
+                                                              @RequestParam String nickname,
+                                                              @RequestParam Integer currencyId,
+                                                              @RequestParam BigDecimal amount,
+                                                              HttpServletRequest request) {
         String result = walletService.transferCostsToUser(walletId, nickname, currencyId, amount, localeResolver.resolveLocale(request));
         LOG.debug(result);
 
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return new ResponseEntity<>(Collections.singletonMap("result", result), HttpStatus.OK);
     }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
