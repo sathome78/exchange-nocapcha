@@ -269,6 +269,18 @@ public class MerchantDaoImpl implements MerchantDao {
     }
 
     @Override
+    public void setBlockForMerchant(Integer merchantId, Integer currencyId, OperationType operationType, boolean blockStatus) {
+        String blockField = resolveBlockFieldByOperationType(operationType);
+        String sql = "UPDATE MERCHANT_CURRENCY SET " + blockField + " = :block" +
+            " WHERE merchant_id = :merchant_id AND currency_id = :currency_id ";
+        Map<String, Integer> params = new HashMap<>();
+        params.put("block", blockStatus ? 1 : 0);
+        params.put("merchant_id", merchantId);
+        params.put("currency_id", currencyId);
+        jdbcTemplate.update(sql, params);
+    }
+
+    @Override
     public boolean checkMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType) {
         String blockField = resolveBlockFieldByOperationType(operationType);
         String sql = "SELECT " + blockField + " FROM MERCHANT_CURRENCY " +

@@ -103,9 +103,12 @@ public class BitcoinServiceImpl implements BitcoinService {
 
     @PostConstruct
     void startBitcoin() {
+
         Currency currency = currencyService.findByName("BTC");
         Merchant merchant = merchantService.findAllByCurrency(currency).get(0);
-        merchantService.toggleMerchantBlock(merchant.getId(), currency.getId(), OperationType.INPUT);
+
+        merchantService.setBlockForMerchant(merchant.getId(), currency.getId(), OperationType.INPUT, true);
+
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -123,7 +126,7 @@ public class BitcoinServiceImpl implements BitcoinService {
                     init();
                     myTimer.cancel();
                     myTimer.purge();
-                    merchantService.toggleMerchantBlock(merchant.getId(), currency.getId(), OperationType.INPUT);
+                    merchantService.setBlockForMerchant(merchant.getId(), currency.getId(), OperationType.INPUT, false);
                 }
             }
         }, 0L, 60L * 5000);

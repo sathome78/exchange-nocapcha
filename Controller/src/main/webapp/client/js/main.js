@@ -507,8 +507,7 @@ $(function(){
                 amount: '__amount',
                 currency: '__currency',
                 merchant: '__merchant',
-                percent: '__percent',
-                username: '__username'
+                percent: '__percent'
             };
             var newHTMLElements = [];
             modalTemplate.slice().each(function(index,val){
@@ -518,7 +517,6 @@ $(function(){
                 .replace(templateVariables.amount, "<span class='modal-amount'>"+amount+"</span>")
                 .replace(templateVariables.currency, "<span class='modal-amount'>"+getCurrentCurrency()+"</span>")
                 .replace(templateVariables.merchant, "<span class='modal-merchant'>"+merchantName+"</span>")
-                .replace(templateVariables.username, "<span class='modal-merchant'>"+usernameToTransfer.val()+"</span>");
             newHTMLElements[1] = newHTMLElements[1]
                 .replace(templateVariables.amount, "<span class='modal-amount'>" + response['commissionAmount'] + "</span>")
                 .replace(templateVariables.currency, "<span class='modal-amount'>" + getCurrentCurrency() + "</span>")
@@ -625,6 +623,7 @@ $(function(){
          merchantName = 'transfer';
          fillModalWindow('USER_TRANSFER', sum.val(), getCurrentCurrency());
          validateNickname();
+        $('.nickname_input').show();
          requestControls();
          $('#transferModal').modal();
     }
@@ -632,7 +631,6 @@ $(function(){
 
     function validateNickname() {
         var value = $('#nicknameInput').val();
-        console.log(NICKNAME_REGEX.test(value));
         if (NICKNAME_REGEX.test(value) ) {
             $('#transferProcess').prop('disabled', false);
         } else {
@@ -646,10 +644,6 @@ $(function(){
         $('#nickname').val(nickname);
         submitTransfer();
         $('#transferProcess').prop('disabled', true);
-        setTimeout(function()
-        {
-            location.reload();
-        },12000);
     });
 
     function submitTransfer() {
