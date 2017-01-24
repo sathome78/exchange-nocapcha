@@ -6,7 +6,9 @@ public enum UserRole {
     ACCOUNTANT(2),
     ADMIN_USER(3),
     USER(4),
-    ROLE_CHANGE_PASSWORD(5);
+    ROLE_CHANGE_PASSWORD(5),
+    EXCHANGE(6),
+    VIP_USER(7);
 
     private final int role;
 
