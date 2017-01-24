@@ -2,13 +2,9 @@ package me.exrates.controller;
 
 import me.exrates.controller.annotation.OnlineMethod;
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.Notification;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.onlineTableDto.*;
-import me.exrates.model.enums.ChartType;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.OrderStatus;
-import me.exrates.model.enums.PagingDirection;
+import me.exrates.model.enums.*;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
 import me.exrates.service.*;
@@ -95,6 +91,9 @@ public class OnlineRestController {
     MerchantService merchantService;
 
     @Autowired
+    private UserService userService;
+
+    @Autowired
     private NotificationService notificationService;
 
     @Autowired
@@ -106,12 +105,13 @@ public class OnlineRestController {
     @RequestMapping(value = "/dashboard/commission/{type}", method = RequestMethod.GET)
     public BigDecimal getCommissions(@PathVariable("type") String type) {
         long before = System.currentTimeMillis();
+        UserRole userRole = userService.getCurrentUserRole();
         try {
             switch (type) {
                 case "sell":
-                    return commissionService.findCommissionByType(OperationType.SELL).getValue();
+                    return commissionService.findCommissionByTypeAndRole(OperationType.SELL, userRole).getValue();
                 case "buy":
-                    return commissionService.findCommissionByType(OperationType.BUY).getValue();
+                    return commissionService.findCommissionByTypeAndRole(OperationType.BUY, userRole).getValue();
                 default:
                     return null;
             }

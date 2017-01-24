@@ -1,7 +1,6 @@
 package me.exrates.service.impl;
 
 import me.exrates.dao.CurrencyDao;
-import me.exrates.dao.UserDao;
 import me.exrates.dao.WalletDao;
 import me.exrates.model.*;
 import me.exrates.model.dto.MyWalletConfirmationDetailDto;
@@ -13,10 +12,7 @@ import me.exrates.model.enums.*;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WalletOperationData;
-import me.exrates.service.CommissionService;
-import me.exrates.service.CompanyWalletService;
-import me.exrates.service.NotificationService;
-import me.exrates.service.WalletService;
+import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.util.Cache;
 import org.apache.logging.log4j.LogManager;
@@ -47,7 +43,7 @@ public final class WalletServiceImpl implements WalletService {
     @Autowired
     private CurrencyDao currencyDao;
     @Autowired
-    private UserDao userDao;
+    private UserService userService;
 
     @Autowired
     private CommissionService commissionService;
@@ -265,7 +261,7 @@ public final class WalletServiceImpl implements WalletService {
         walletOperationData.setAmount(amount);
         walletOperationData.setBalanceType(WalletOperationData.BalanceType.ACTIVE);
         walletOperationData.setOperationType(operationType);
-        Commission commission = commissionService.findCommissionByType(operationType);
+        Commission commission = commissionService.findCommissionByTypeAndRole(operationType, userService.getCurrentUserRole());
         walletOperationData.setCommission(commission);
         BigDecimal commissionAmount = specialCommissionAmount == null ?
                 BigDecimalProcessing.doAction(amount, commission.getValue(), ActionType.MULTIPLY_PERCENT) : specialCommissionAmount;
@@ -290,13 +286,13 @@ public final class WalletServiceImpl implements WalletService {
         }
 
         Wallet fromUserWallet =  walletDao.findById(fromUserWalletId);
-        Commission commission = commissionService.findCommissionByType(OperationType.USER_TRANSFER);
+        Commission commission = commissionService.findCommissionByTypeAndRole(OperationType.USER_TRANSFER, userService.getCurrentUserRole());
         BigDecimal commissionAmount = BigDecimalProcessing.doAction(amount, commission.getValue(), ActionType.MULTIPLY_PERCENT);
         BigDecimal totalAmount = amount.add(commissionAmount);
         if (totalAmount.compareTo(fromUserWallet.getActiveBalance()) > 0) {
             throw new InvalidAmountException(messageSource.getMessage("transfer.invalidAmount", null, locale));
         }
-        Integer userId = userDao.getIdByNickname(toUserNickname);
+        Integer userId = userService.getIdByNickname(toUserNickname);
         if (userId == 0) {
             throw new UserNotFoundException(messageSource.getMessage("transfer.userNotFound", new Object[]{toUserNickname}, locale));
         }

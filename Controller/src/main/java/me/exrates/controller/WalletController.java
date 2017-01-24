@@ -80,7 +80,7 @@ public class WalletController {
         Currency currency = currencyService.findByName(currencyName);
         User user = userService.findByEmail(principal.getName());
         Wallet wallet = walletService.findByUserAndCurrency(user, currency);
-        BigDecimal commissionRate = commissionService.findCommissionByType(OperationType.USER_TRANSFER).getValue();
+        BigDecimal commissionRate = commissionService.findCommissionByTypeAndRole(OperationType.USER_TRANSFER, userService.getCurrentUserRole()).getValue();
         BigDecimal commissionDecimal = BigDecimalProcessing.doAction(commissionRate, BigDecimal.valueOf(100), ActionType.DEVIDE);
         BigDecimal commissionMultiplier = BigDecimalProcessing.doAction(commissionDecimal, BigDecimal.ONE, ActionType.ADD);
         BigDecimal maxForTransfer = BigDecimalProcessing.doAction(wallet.getActiveBalance(), commissionMultiplier, ActionType.DEVIDE);

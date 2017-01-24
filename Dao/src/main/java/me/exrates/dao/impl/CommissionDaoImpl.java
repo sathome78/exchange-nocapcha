@@ -3,7 +3,9 @@ package me.exrates.dao.impl;
 import me.exrates.dao.CommissionDao;
 import me.exrates.model.Commission;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.UserRole;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -13,26 +15,44 @@ import java.util.List;
 import java.util.Map;
 
 @Repository
-public class CommissionDaoImpl implements CommissionDao{
+public class CommissionDaoImpl implements CommissionDao {
+
+	private static final RowMapper<Commission> commissionRowMapper = (resultSet, i) -> {
+		Commission commission = new Commission();
+		commission.setDateOfChange(resultSet.getDate("date"));
+		commission.setId(resultSet.getInt("id"));
+		commission.setOperationType(OperationType.convert(resultSet.getInt("operation_type")));
+		commission.setValue(resultSet.getBigDecimal("value"));
+		return commission;
+	};
 
 	@Autowired  
 	NamedParameterJdbcTemplate jdbcTemplate;
 
 	@Override
-	public Commission getCommission(OperationType operationType) {
-		final String sql = "SELECT * FROM COMMISSION WHERE operation_type = :operationType "
-				+ "order by date desc limit 1";
+	public Commission getCommission(OperationType operationType, UserRole userRole) {
+		final String sql = "SELECT COMMISSION.id, COMMISSION.operation_type, COMMISSION.date, COMMISSION.editable, " +
+				"  IFNULL(COMMISSION_USER_ROLE.value, COMMISSION.default_value) AS value " +
+				"FROM commission " +
+				"LEFT JOIN COMMISSION_USER_ROLE ON COMMISSION_USER_ROLE.commission_id = COMMISSION.id " +
+				"WHERE COMMISSION.operation_type = :operation_type AND (COMMISSION_USER_ROLE.user_role_id = :role_id " +
+				"                                                       OR COMMISSION_USER_ROLE.user_role_id IS NULL);";
 		final HashMap<String,Integer> params = new HashMap<>();
-		params.put("operationType",operationType.type);
-		return jdbcTemplate.queryForObject(sql,params,(resultSet, i) -> {
-			Commission commission = new Commission();
-			commission.setDateOfChange(resultSet.getDate("date"));
-			commission.setId(resultSet.getInt("id"));
-			commission.setOperationType(OperationType.convert(resultSet.getInt("operation_type")));
-			commission.setValue(resultSet.getBigDecimal("value"));
-			return commission;
-		});
+		params.put("operation_type",operationType.type);
+		params.put("role_id", userRole.getRole());
+		return jdbcTemplate.queryForObject(sql,params, commissionRowMapper);
 	}
+
+	@Override
+	public Commission getDefaultCommission(OperationType operationType) {
+		final String sql = "SELECT id, operation_type, date, editable, default_value AS value " +
+				"FROM COMMISSION " +
+				"WHERE operation_type = :operation_type;";
+		final HashMap<String,Integer> params = new HashMap<>();
+		params.put("operation_type",operationType.type);
+		return jdbcTemplate.queryForObject(sql,params,commissionRowMapper);
+	}
+
 
 	@Override
 	public BigDecimal getCommissionMerchant(String merchant, String currency) {
@@ -51,14 +71,7 @@ public class CommissionDaoImpl implements CommissionDao{
 		final String sql = "SELECT id, operation_type, value, date " +
 				"FROM COMMISSION WHERE editable = 1 " +
 				"ORDER BY id";
-		return jdbcTemplate.query(sql, (rs, rowNum) -> {
-			Commission commission = new Commission();
-			commission.setId(rs.getInt("id"));
-			commission.setOperationType(OperationType.convert(rs.getInt("operation_type")));
-			commission.setValue(rs.getBigDecimal("value"));
-			commission.setDateOfChange(rs.getTimestamp("date"));
-			return commission;
-		});
+		return jdbcTemplate.query(sql, commissionRowMapper);
 	}
 
 	@Override

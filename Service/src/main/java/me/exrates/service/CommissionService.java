@@ -2,6 +2,7 @@ package me.exrates.service;
 
 import me.exrates.model.Commission;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.UserRole;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -9,7 +10,9 @@ import java.util.List;
 
 public interface CommissionService {
 	
-	Commission findCommissionByType(OperationType operationType);
+	Commission findCommissionByTypeAndRole(OperationType operationType, UserRole userRole);
+
+	Commission getDefaultCommission(OperationType operationType);
 
 	/**
 	 * Returns individual commission for current merchant

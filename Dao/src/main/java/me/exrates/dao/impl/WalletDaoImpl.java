@@ -532,7 +532,7 @@ public class WalletDaoImpl implements WalletDao {
         transaction.setUserWallet(wallet);
         transaction.setCompanyWallet(companyWallet);
         transaction.setAmount(amount);
-        Commission commission = commissionDao.getCommission(OperationType.WALLET_INNER_TRANSFER);
+        Commission commission = commissionDao.getDefaultCommission(OperationType.WALLET_INNER_TRANSFER);
         transaction.setCommissionAmount(commission.getValue());
         transaction.setCommission(commission);
         transaction.setCurrency(companyWallet.getCurrency());

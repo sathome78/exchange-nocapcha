@@ -386,7 +386,7 @@ public class MerchantServiceImpl implements MerchantService {
                                                                   final String merchant)
     {
         final Map<String, String> result = new HashMap<>();
-        final BigDecimal commission = commissionService.findCommissionByType(type).getValue();
+        final BigDecimal commission = commissionService.findCommissionByTypeAndRole(type, userService.getCurrentUserRole()).getValue();
 
         final BigDecimal commissionMerchant = type == USER_TRANSFER ? BigDecimal.ZERO : commissionService.getCommissionMerchant(merchant, currency);
         final BigDecimal commissionTotal = type == OUTPUT ? commission.add(commissionMerchant).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP) :
@@ -427,7 +427,7 @@ public class MerchantServiceImpl implements MerchantService {
                     "Input" : "Output");
             throw new UnsupportedMerchantException(exceptionMessage);
         }
-        final Commission commissionByType = commissionService.findCommissionByType(operationType);
+        final Commission commissionByType = commissionService.findCommissionByTypeAndRole(operationType, userService.getCurrentUserRole());
         final BigDecimal commissionMerchant = commissionService.getCommissionMerchant(merchant.getName(), currency.getName());
         final BigDecimal commissionTotal = operationType == OUTPUT ? commissionByType.getValue().add(commissionMerchant)
                 .setScale(currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP) :

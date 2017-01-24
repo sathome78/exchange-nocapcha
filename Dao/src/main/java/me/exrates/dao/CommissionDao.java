@@ -2,15 +2,18 @@ package me.exrates.dao;
 
 import me.exrates.model.Commission;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.UserRole;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 public interface CommissionDao {
 
-	Commission getCommission(OperationType operationType);
+	Commission getCommission(OperationType operationType, UserRole userRole);
 
-	BigDecimal getCommissionMerchant(String merchant, String currency);
+    Commission getDefaultCommission(OperationType operationType);
+
+    BigDecimal getCommissionMerchant(String merchant, String currency);
 
     List<Commission> getEditableCommissions();
 

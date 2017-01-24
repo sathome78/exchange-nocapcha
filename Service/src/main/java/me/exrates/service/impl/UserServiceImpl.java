@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -164,6 +165,11 @@ public class UserServiceImpl implements UserService {
 
     public int getIdByEmail(String email) {
         return userDao.getIdByEmail(email);
+    }
+
+    @Override
+    public int getIdByNickname(String nickname) {
+        return userDao.getIdByNickname(nickname);
     }
 
     @Override
@@ -557,6 +563,15 @@ public class UserServiceImpl implements UserService {
             throw new ForbiddenOperationException("Status modification not permitted");
         }
         userDao.updateAdminAuthorities(options, userId);
+
+    }
+
+    @Override
+    public UserRole getCurrentUserRole() {
+        String grantedAuthority = SecurityContextHolder.getContext().getAuthentication().getAuthorities().
+                stream().findFirst().orElseThrow(() -> new MissingUserRoleException("Missing user role!")).getAuthority();
+        LOGGER.debug("Granted authority: " + grantedAuthority);
+        return UserRole.valueOf(grantedAuthority);
 
     }
 
