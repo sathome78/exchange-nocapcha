@@ -3,6 +3,7 @@ package me.exrates.controller;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.InvalidNicknameException;
 import me.exrates.model.*;
+import me.exrates.model.Currency;
 import me.exrates.model.dto.MyWalletConfirmationDetailDto;
 import me.exrates.model.dto.UserWalletSummaryDto;
 import me.exrates.model.enums.ActionType;
@@ -24,14 +25,16 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.security.Principal;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Controller
 public class WalletController {
 
     private static final Logger LOG = LogManager.getLogger(WalletController.class);
+
+    private final Set<String> CRYPTO_CURRENCY_NAMES = Stream.of("BTC", "EDRC", "EDR").collect(Collectors.toSet());
 
 
     @Autowired
@@ -80,14 +83,23 @@ public class WalletController {
         Currency currency = currencyService.findByName(currencyName);
         User user = userService.findByEmail(principal.getName());
         Wallet wallet = walletService.findByUserAndCurrency(user, currency);
-        BigDecimal commissionRate = commissionService.findCommissionByType(OperationType.USER_TRANSFER).getValue();
-        BigDecimal commissionDecimal = BigDecimalProcessing.doAction(commissionRate, BigDecimal.valueOf(100), ActionType.DEVIDE);
-        BigDecimal commissionMultiplier = BigDecimalProcessing.doAction(commissionDecimal, BigDecimal.ONE, ActionType.ADD);
-        BigDecimal maxForTransfer = BigDecimalProcessing.doAction(wallet.getActiveBalance(), commissionMultiplier, ActionType.DEVIDE);
+        BigDecimal maxForTransfer = resolveMaxTransferAmount(wallet, currencyName);
         modelAndView.addObject("currency", currency);
         modelAndView.addObject("wallet", wallet);
         modelAndView.addObject("maxForTransfer", maxForTransfer);
         return modelAndView;
+    }
+
+    private BigDecimal resolveMaxTransferAmount(Wallet wallet, String currencyName) {
+        BigDecimal commissionRate = commissionService.findCommissionByType(OperationType.USER_TRANSFER).getValue();
+        BigDecimal commissionDecimal = BigDecimalProcessing.doAction(commissionRate, BigDecimal.valueOf(100), ActionType.DEVIDE);
+        BigDecimal commissionMultiplier = BigDecimalProcessing.doAction(commissionDecimal, BigDecimal.ONE, ActionType.ADD);
+        BigDecimal maxForTransfer = BigDecimalProcessing.doAction(wallet.getActiveBalance(), commissionMultiplier, ActionType.DEVIDE);
+        if (!CRYPTO_CURRENCY_NAMES.contains(currencyName)) {
+            maxForTransfer = maxForTransfer.setScale(2, BigDecimal.ROUND_DOWN);
+        }
+        return maxForTransfer;
+
     }
 
     @RequestMapping(value = "/transfer/submit", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
