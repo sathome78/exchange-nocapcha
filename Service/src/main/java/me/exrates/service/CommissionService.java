@@ -24,8 +24,12 @@ public interface CommissionService {
 
     List<Commission> getEditableCommissions();
 
+    List<Commission> getEditableCommissionsByRole(String role);
+
     void updateCommission(Integer id, BigDecimal value);
 
-    @Transactional
+	void updateCommission(OperationType operationType, String roleName, BigDecimal value);
+
+	@Transactional
     void updateMerchantCommission(Integer merchantId, Integer currencyId, BigDecimal value);
 }

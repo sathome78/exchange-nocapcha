@@ -17,7 +17,11 @@ public interface CommissionDao {
 
     List<Commission> getEditableCommissions();
 
+    List<Commission> getEditableCommissionsByRoles(List<Integer> roleIds);
+
     void updateCommission(Integer id, BigDecimal value);
+
+    void updateCommission(OperationType operationType, List<Integer> roleIds, BigDecimal value);
 
     void updateMerchantCurrencyCommission(Integer merchantId, Integer currencyId, BigDecimal value);
 }

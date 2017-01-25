@@ -26,7 +26,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -710,13 +709,14 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     @Override
     public OrderCommissionsDto getCommissionForOrder() {
-        return orderDao.getCommissionForOrder();
+        return orderDao.getCommissionForOrder(userService.getCurrentUserRole());
     }
 
     @Transactional(readOnly = true)
     @Override
     public CommissionsDto getAllCommissions() {
-        return orderDao.getAllCommissions();
+        UserRole userRole = userService.getCurrentUserRole();
+        return orderDao.getAllCommissions(userRole);
     }
 
     @Transactional(readOnly = true)
@@ -749,7 +749,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public WalletsAndCommissionsForOrderCreationDto getWalletAndCommission(String email, Currency currency,
                                                                            OperationType operationType) {
-        return orderDao.getWalletAndCommission(email, currency, operationType);
+        return orderDao.getWalletAndCommission(email, currency, operationType, userService.getCurrentUserRole());
     }
 
     public void setMessageSource(final MessageSource messageSource) {

@@ -93,6 +93,8 @@ public class AdminController {
     @Autowired
     private CommissionService commissionService;
 
+    private final List<String> ROLE_NAMES = Arrays.asList("ADMIN", "USER", "EXCHANGE", "VIP_USER");
+
     @Autowired
     @Qualifier("ExratesSessionRegistry")
     private SessionRegistry sessionRegistry;
@@ -740,20 +742,7 @@ public class AdminController {
     }
 
 
-    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
-    @ExceptionHandler(OrderDeletingException.class)
-    @ResponseBody
-    public ErrorInfo OrderDeletingExceptionHandler(HttpServletRequest req, Exception exception) {
-        return new ErrorInfo(req.getRequestURL(), exception);
-    }
 
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ExceptionHandler(RuntimeException.class)
-    @ResponseBody
-    public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
-        LOG.error(exception);
-        return new ErrorInfo(req.getRequestURL(), exception);
-    }
 
     @RequestMapping(value = "/2a8fy7b07dxe44/invoiceConfirmation")
     public ModelAndView invoiceTransactions(HttpSession httpSession) {
@@ -846,20 +835,27 @@ public class AdminController {
 
     @RequestMapping(value = "/2a8fy7b07dxe44/commissions", method = RequestMethod.GET)
     public ModelAndView commissions() {
-        List<Commission> commissions = commissionService.getEditableCommissions();
         List<MerchantCurrencyOptionsDto> merchantCurrencies = merchantService.findMerchantCurrencyOptions();
         ModelAndView modelAndView = new ModelAndView("admin/editCommissions");
-        modelAndView.addObject("commissions", commissions);
+        modelAndView.addObject("roleNames", ROLE_NAMES);
         modelAndView.addObject("merchantCurrencies", merchantCurrencies);
         return modelAndView;
     }
 
+    @RequestMapping(value = "/2a8fy7b07dxe44/getCommissionsForRole", method = RequestMethod.GET)
+    @ResponseBody
+    public List<Commission> retrieveCommissionsForRole(@RequestParam String role) {
+        return commissionService.getEditableCommissionsByRole(role);
+
+    }
+
     @RequestMapping(value = "/2a8fy7b07dxe44/commissions/editCommission", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseEntity<Void> editCommission(@RequestParam("commissionId") Integer id,
+    public ResponseEntity<Void> editCommission(@RequestParam("operationType") OperationType operationType,
+                                               @RequestParam("userRole") String role,
                                                @RequestParam("commissionValue") BigDecimal value) {
-        LOG.debug("id = " + id + ", value = " + value);
-        commissionService.updateCommission(id, value);
+        LOG.debug("operationType = " + operationType + ", userRole = " + role + ", value = " + value);
+        commissionService.updateCommission(operationType, role, value);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -898,7 +894,21 @@ public class AdminController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+    @ExceptionHandler(OrderDeletingException.class)
+    @ResponseBody
+    public ErrorInfo OrderDeletingExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
 
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(RuntimeException.class)
+    @ResponseBody
+    public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
+        LOG.error(exception);
+        exception.printStackTrace();
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
 
 
 }

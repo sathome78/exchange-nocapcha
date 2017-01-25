@@ -199,6 +199,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     private void setTransactionMerchantAndOrder(OperationViewDto view, Transaction transaction) {
+        LOG.debug(transaction);
         TransactionSourceType sourceType = transaction.getSourceType();
         OperationType operationType = transaction.getOperationType();
         view.setOperationType(TransactionType.resolveFromOperationTypeAndSource(sourceType, operationType));

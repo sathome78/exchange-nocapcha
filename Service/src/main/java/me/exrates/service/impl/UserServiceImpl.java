@@ -34,6 +34,7 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -57,6 +58,9 @@ public class UserServiceImpl implements UserService {
     private TokenScheduler tokenScheduler;
 
     private final int USER_FILES_THRESHOLD = 3;
+
+    private final Set<String> USER_ROLES = Stream.of(UserRole.values()).map(UserRole::name).collect(Collectors.toSet());
+    private final UserRole ROLE_DEFAULT_COMMISSION = UserRole.USER;
 
     private static final Logger LOGGER = LogManager.getLogger(UserServiceImpl.class);
 
@@ -568,8 +572,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserRole getCurrentUserRole() {
-        String grantedAuthority = SecurityContextHolder.getContext().getAuthentication().getAuthorities().
-                stream().findFirst().orElseThrow(() -> new MissingUserRoleException("Missing user role!")).getAuthority();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        LOGGER.debug("Authentication: " + authentication);
+        String grantedAuthority = authentication.getAuthorities().
+                stream().map(GrantedAuthority::getAuthority)
+                .filter(USER_ROLES::contains)
+                .findFirst().orElse(ROLE_DEFAULT_COMMISSION.name());
         LOGGER.debug("Granted authority: " + grantedAuthority);
         return UserRole.valueOf(grantedAuthority);
 

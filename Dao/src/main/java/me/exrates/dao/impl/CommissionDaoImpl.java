@@ -10,6 +10,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,18 +26,22 @@ public class CommissionDaoImpl implements CommissionDao {
 		commission.setValue(resultSet.getBigDecimal("value"));
 		return commission;
 	};
+	private static final RowMapper<Commission> commissionShortRowMapper = (resultSet, i) -> {
+		Commission commission = new Commission();
+		commission.setOperationType(OperationType.convert(resultSet.getInt("operation_type")));
+		commission.setValue(resultSet.getBigDecimal("value"));
+		return commission;
+	};
+
 
 	@Autowired  
 	NamedParameterJdbcTemplate jdbcTemplate;
 
 	@Override
 	public Commission getCommission(OperationType operationType, UserRole userRole) {
-		final String sql = "SELECT COMMISSION.id, COMMISSION.operation_type, COMMISSION.date, COMMISSION.editable, " +
-				"  IFNULL(COMMISSION_USER_ROLE.value, COMMISSION.default_value) AS value " +
-				"FROM commission " +
-				"LEFT JOIN COMMISSION_USER_ROLE ON COMMISSION_USER_ROLE.commission_id = COMMISSION.id " +
-				"WHERE COMMISSION.operation_type = :operation_type AND (COMMISSION_USER_ROLE.user_role_id = :role_id " +
-				"                                                       OR COMMISSION_USER_ROLE.user_role_id IS NULL);";
+		final String sql = "SELECT COMMISSION.id, COMMISSION.operation_type, COMMISSION.date, COMMISSION.value " +
+				"FROM COMMISSION " +
+				"WHERE operation_type = :operation_type AND user_role = :role_id";
 		final HashMap<String,Integer> params = new HashMap<>();
 		params.put("operation_type",operationType.type);
 		params.put("role_id", userRole.getRole());
@@ -45,9 +50,9 @@ public class CommissionDaoImpl implements CommissionDao {
 
 	@Override
 	public Commission getDefaultCommission(OperationType operationType) {
-		final String sql = "SELECT id, operation_type, date, editable, default_value AS value " +
+		final String sql = "SELECT id, operation_type, date, value " +
 				"FROM COMMISSION " +
-				"WHERE operation_type = :operation_type;";
+				"WHERE operation_type = :operation_type AND user_role = 4;";
 		final HashMap<String,Integer> params = new HashMap<>();
 		params.put("operation_type",operationType.type);
 		return jdbcTemplate.queryForObject(sql,params,commissionRowMapper);
@@ -68,17 +73,45 @@ public class CommissionDaoImpl implements CommissionDao {
 
 	@Override
 	public List<Commission> getEditableCommissions() {
-		final String sql = "SELECT id, operation_type, value, date " +
-				"FROM COMMISSION WHERE editable = 1 " +
-				"ORDER BY id";
-		return jdbcTemplate.query(sql, commissionRowMapper);
+		final String sql = "SELECT COMMISSION.id, COMMISSION.operation_type, COMMISSION.value, " +
+				"COMMISSION.date, USER_ROLE.name AS user_role_name " +
+				"FROM COMMISSION " +
+				"JOIN USER_ROLE ON COMMISSION.user_role = USER_ROLE.id " +
+				"WHERE COMMISSION.operation_type NOT IN (5, 6, 7, 8) " +
+				"ORDER BY COMMISSION.id";
+		return jdbcTemplate.query(sql, commissionShortRowMapper);
 	}
+
+	@Override
+	public List<Commission> getEditableCommissionsByRoles(List<Integer> roleIds) {
+		final String sql = "SELECT DISTINCT COMMISSION.operation_type, COMMISSION.value " +
+				"FROM COMMISSION " +
+				"JOIN USER_ROLE ON COMMISSION.user_role = USER_ROLE.id " +
+				"WHERE COMMISSION.user_role IN(:roles) AND COMMISSION.operation_type NOT IN (5, 6, 7, 8) " +
+				"ORDER BY COMMISSION.operation_type";
+		Map<String, List<Integer>> params = Collections.singletonMap("roles", roleIds);
+		return jdbcTemplate.query(sql, params, commissionShortRowMapper);
+	}
+
+
 
 	@Override
 	public void updateCommission(Integer id, BigDecimal value) {
 		final String sql = "UPDATE COMMISSION SET value = :value, date = NOW() where id = :id";
 		Map<String, Number> params = new HashMap<String, Number>() {{
 			put("id", id);
+			put("value", value);
+		}};
+		jdbcTemplate.update(sql, params);
+	}
+
+	@Override
+	public void updateCommission(OperationType operationType, List<Integer> roleIds, BigDecimal value) {
+		final String sql = "UPDATE COMMISSION SET value = :value, date = NOW() " +
+				"where operation_type = :operation_type AND user_role IN (:user_roles)";
+		Map<String, Object> params = new HashMap<String, Object>() {{
+			put("operation_type", operationType.getType());
+			put("user_roles", roleIds);
 			put("value", value);
 		}};
 		jdbcTemplate.update(sql, params);
