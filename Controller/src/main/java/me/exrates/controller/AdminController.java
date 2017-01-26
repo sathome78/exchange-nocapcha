@@ -792,13 +792,27 @@ public class AdminController {
 
     @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits", method = RequestMethod.GET)
     public ModelAndView currencyLimits() {
-        return new ModelAndView("admin/currencyLimits", "currencies", currencyService.findAllCurrencies());
+        ModelAndView modelAndView = new ModelAndView("admin/currencyLimits");
+        modelAndView.addObject("roleNames", ROLE_NAMES);
+        modelAndView.addObject("operationTypes", Arrays.asList(OperationType.OUTPUT.name(), OperationType.USER_TRANSFER.name()));
+        return modelAndView;
+    }
+
+    @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits/retrieve", method = RequestMethod.GET)
+    @ResponseBody
+    public List<CurrencyLimit> retrieveCurrencyLimits(@RequestParam String roleName,
+                                                      @RequestParam OperationType operationType) {
+        return currencyService.retrieveCurrencyLimitsFroRole(roleName, operationType);
     }
 
     @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits/submit", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseEntity<Void> editCurrencyLimit(@RequestParam int currencyId, @RequestParam BigDecimal minAmount) {
-        currencyService.updateMinWithdraw(currencyId, minAmount);
+    public ResponseEntity<Void> editCurrencyLimit(@RequestParam int currencyId,
+                                                  @RequestParam OperationType operationType,
+                                                  @RequestParam String roleName,
+                                                  @RequestParam BigDecimal minAmount) {
+
+        currencyService.updateCurrencyLimit(currencyId, operationType, roleName, minAmount);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

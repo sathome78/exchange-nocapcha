@@ -1,7 +1,9 @@
 package me.exrates.service;
 
 import me.exrates.model.Currency;
+import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.enums.OperationType;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -22,6 +24,10 @@ public interface CurrencyService {
     List<Currency> findAllCurrencies();
 
     boolean updateMinWithdraw(int currencyId, BigDecimal minAmount);
+
+    void updateCurrencyLimit(int currencyId, OperationType operationType, String roleName, BigDecimal minAmount);
+
+    List<CurrencyLimit> retrieveCurrencyLimitsFroRole(String roleName, OperationType operationType);
 
     List<CurrencyPair> getAllCurrencyPairs();
 

@@ -47,7 +47,8 @@ public class CommissionServiceImpl implements CommissionService {
 		return commissionDao.getEditableCommissionsByRoles(resolveRoleIdsByName(roleName));
 	}
 
-	private List<Integer> resolveRoleIdsByName(String roleName) {
+	@Override
+	public List<Integer> resolveRoleIdsByName(String roleName) {
 		List<UserRole> userRoles;
 		if ("ADMIN".equals(roleName)) {
 			userRoles = Arrays.asList(UserRole.ADMINISTRATOR, UserRole.ACCOUNTANT, UserRole.ADMIN_USER);

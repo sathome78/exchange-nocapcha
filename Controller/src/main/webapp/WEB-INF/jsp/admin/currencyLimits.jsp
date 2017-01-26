@@ -31,16 +31,36 @@
                         <h5>
                             <loc:message code="admin.currencyLimits.table"/>
                         </h5>
+                        <div class="col-md-6">
+                            <select id="roleName" class="input-block-wrapper__input admin-form-input">
+                                <c:forEach items="${roleNames}" var="roleName">
+                                    <option value="${roleName}">${roleName}</option>
+                                </c:forEach>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <select id="operationType" class="input-block-wrapper__input admin-form-input">
+                                <c:forEach items="${operationTypes}" var="operationType">
+                                    <option value="${operationType}">${operationType}</option>
+                                </c:forEach>
+                            </select>
+                        </div>
+                        <hr/>
+
+
+
+
+
                         <table id="currency-limits-table">
                             <thead>
                             <tr>
+                                <th></th>
                                 <th><loc:message code="admin.currencyLimits.name"/> </th>
-                                <th><loc:message code="admin.currencyLimits.description"/></th>
                                 <th><loc:message code="admin.currencyLimits.minLimit"/></th>
                             </tr>
                             </thead>
                             <tbody>
-                            <c:forEach items="${currencies}" var="currency">
+                            <%--<c:forEach items="${currencies}" var="currency">
                                 <tr data-id="${currency.id}">
                                     <td>
                                             ${currency.name}
@@ -69,7 +89,7 @@
                                         </c:choose>
                                     </td>
                                 </tr>
-                            </c:forEach>
+                            </c:forEach>--%>
                             </tbody>
                         </table>
                     </div>
@@ -95,6 +115,22 @@
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
                             <input id="currency-name" class="input-block-wrapper__input" readonly type="text">
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="admin.commissions.operationType"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input name="operationType" class="input-block-wrapper__input" readonly type="text">
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="admin.role"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input name="roleName" class="input-block-wrapper__input" readonly type="text">
                         </div>
                     </div>
                     <div class="input-block-wrapper">

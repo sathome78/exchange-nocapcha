@@ -26,6 +26,8 @@ public interface CommissionService {
 
     List<Commission> getEditableCommissionsByRole(String role);
 
+    List<Integer> resolveRoleIdsByName(String roleName);
+
     void updateCommission(Integer id, BigDecimal value);
 
 	void updateCommission(OperationType operationType, String roleName, BigDecimal value);

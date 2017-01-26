@@ -2,13 +2,16 @@ package me.exrates.dao.impl;
 
 import me.exrates.dao.CurrencyDao;
 import me.exrates.model.Currency;
+import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.enums.OperationType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,6 +91,47 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
         return jdbcTemplate.update(sql, params) > 0;
     }
+
+    @Override
+	public List<CurrencyLimit> retrieveCurrencyLimitsForRoles(List<Integer> roleIds, OperationType operationType) {
+		String sql = "SELECT DISTINCT CURRENCY_LIMIT.currency_id, CURRENCY.name, " +
+				"CURRENCY_LIMIT.min_sum, CURRENCY_LIMIT.max_sum " +
+				"FROM CURRENCY_LIMIT " +
+				"JOIN CURRENCY ON CURRENCY_LIMIT.currency_id = CURRENCY.id " +
+				"WHERE user_role_id IN(:role_ids) AND CURRENCY_LIMIT.operation_type_id = :operation_type_id";
+		Map<String, Object> params = new HashMap<String, Object>() {{
+			put("role_ids", roleIds);
+			put("operation_type_id", operationType.getType());
+		}};
+
+		return jdbcTemplate.query(sql, params, (rs, row) -> {
+			CurrencyLimit currencyLimit = new CurrencyLimit();
+			Currency currency = new Currency();
+			currency.setId(rs.getInt("currency_id"));
+			currency.setName(rs.getString("name"));
+			currencyLimit.setCurrency(currency);
+			currencyLimit.setMinSum(rs.getBigDecimal("min_sum"));
+			currencyLimit.setMaxSum(rs.getBigDecimal("max_sum"));
+			return currencyLimit;
+		});
+
+	}
+
+    @Override
+	public void updateCurrencyLimit(int currencyId, OperationType operationType, List<Integer> roleIds, BigDecimal minAmount) {
+		String sql = "UPDATE CURRENCY_LIMIT SET min_sum = :min_sum WHERE currency_id = :currency_id " +
+				"AND operation_type_id = :operation_type_id AND user_role_id IN (:role_ids)";
+		final Map<String,Object> params = new HashMap<String,Object>(){
+			{
+				put("min_sum", minAmount);
+				put("currency_id", currencyId);
+				put("operation_type_id", operationType.getType());
+				put("role_ids", roleIds);
+			}
+		};
+
+		jdbcTemplate.update(sql, params);
+	}
 
 	@Override
 		public List<CurrencyPair> getAllCurrencyPairs() {

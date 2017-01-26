@@ -1,40 +1,85 @@
 /**
  * Created by OLEG on 23.09.2016.
  */
+var currencyLimitDataTable;
+
 $(document).ready(function () {
 
-    $('#currency-limits-table').DataTable({
-        "bFilter": false,
-        "paging": false,
-        "order": [],
-        "bLengthChange": false,
-        "bPaginate": false,
-        "bInfo": false
-    });
+    var $currencyLimitsTable = $('#currency-limits-table');
+    var $editCurrencyLimitForm = $('#edit-currency-limit-form');
 
-    $('#currency-limits-table tbody').on('click', 'tr', function () {
-        var currencyId = $(this).data('id');
-        var currencyName = $(this).find('td:first').text().trim();
-        var currentMinLimit = parseFloat($(this).find('td:nth-child(3) .minLimitUnformatted').text());
-        $('#edit-currency-limit-form').find('input[name="currencyId"]').val(currencyId);
+
+
+    $('#roleName, #operationType').change(updateCurrencyLimitsDataTable);
+
+    $($currencyLimitsTable).find('tbody').on('click', 'tr', function () {
+        var rowData = currencyLimitDataTable.row(this).data();
+        var currencyId = rowData.currency.id;
+        var currencyName = rowData.currency.name;
+        var currentMinLimit = rowData.minSum;
+        var operationType = $('#operationType').val();
+        var userRole = $('#roleName').val();
+        $($editCurrencyLimitForm).find('input[name="currencyId"]').val(currencyId);
         $('#currency-name').val(currencyName);
-        $('#edit-currency-limit-form').find('input[name="minAmount"]').val(currentMinLimit);
+        $($editCurrencyLimitForm).find('input[name="operationType"]').val(operationType);
+        $($editCurrencyLimitForm).find('input[name="roleName"]').val(userRole);
+        $($editCurrencyLimitForm).find('input[name="minAmount"]').val(currentMinLimit);
         $('#editLimitModal').modal();
     });
     $('#submitNewLimit').click(function(e) {
         e.preventDefault();
-        var id = $('#edit-currency-limit-form').find('input[name="currencyId"]').val();
-        var newLimit =  $('#edit-currency-limit-form').find('input[name="minAmount"]').val();
-        submitNewLimit(id, parseFloat(newLimit))
+        submitNewLimit()
     });
+
+
+
+    updateCurrencyLimitsDataTable();
 
 
 });
 
+function updateCurrencyLimitsDataTable() {
+    var $currencyLimitsTable = $('#currency-limits-table');
+    var userRole = $('#roleName').val();
+    var operationType = $('#operationType').val();
+    var urlBase = '/2a8fy7b07dxe44/editCurrencyLimits/retrieve';
+    var currencyLimitUrl = urlBase + '?roleName=' + userRole + '&operationType=' + operationType;
+    if ($.fn.dataTable.isDataTable('#currency-limits-table')) {
+        currencyLimitDataTable = $($currencyLimitsTable).DataTable();
+        currencyLimitDataTable.ajax.url(currencyLimitUrl).load();
+    } else {
+        currencyLimitDataTable = $($currencyLimitsTable).DataTable({
+            "ajax": {
+                "url": currencyLimitUrl,
+                "dataSrc": ""
+            },
+            "bFilter": false,
+            "paging": false,
+            "order": [],
+            "bLengthChange": false,
+            "bPaginate": false,
+            "bInfo": false,
+            "columns": [
+                {
+                    "data":"currency.id",
+                    "visible": false
+                },
+                {
+                    "data": "currency.name"
+                },
+                {
+                    "data": "minSum"
+                }
+            ]
+        });
+    }
+}
 
 
-function submitNewLimit(currencyId, minLimit) {
+
+function submitNewLimit() {
     var formData =  $('#edit-currency-limit-form').serialize();
+    console.log(formData);
     $.ajax({
         headers: {
             'X-CSRF-Token': $("input[name='_csrf']").val()
@@ -42,18 +87,8 @@ function submitNewLimit(currencyId, minLimit) {
         url: '/2a8fy7b07dxe44/editCurrencyLimits/submit',
         type: 'POST',
         data: formData,
-        success: function (data) {
-            var minFractionDigits = 2;
-            var fractionPart = minLimit.toString().split('.')[1];
-            if (fractionPart && fractionPart.length > minFractionDigits) {
-                minFractionDigits = fractionPart.length;
-            }
-            var $cell = $('#currency-limits-table').find('tr[data-id="' + currencyId + '"] td:nth-child(3)');
-            $($cell).find('.minLimitFormatted').text(minLimit.toLocaleString(undefined, {
-                minimumFractionDigits: minFractionDigits
-            }));
-            $($cell).find('.minLimitUnformatted').text(minLimit);
-
+        success: function () {
+            updateCurrencyLimitsDataTable();
             $('#editLimitModal').modal('hide');
         },
         error: function (error) {
