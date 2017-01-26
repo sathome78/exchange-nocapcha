@@ -20,7 +20,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 	private NamedParameterJdbcTemplate jdbcTemplate;
 
 	public List<Currency> getCurrList() {
-		String sql = "SELECT id, name FROM CURRENCY";
+		String sql = "SELECT id, name FROM CURRENCY WHERE hidden IS NOT TRUE ";
 		List<Currency> currList;
 		currList = jdbcTemplate.query(sql, (rs, row) -> {
 			Currency currency = new Currency();
@@ -72,7 +72,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
 	@Override
 	public List<Currency> findAllCurrencies() {
-		final String sql = "SELECT * FROM CURRENCY";
+		final String sql = "SELECT * FROM CURRENCY WHERE hidden IS NOT TRUE ";
 		return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Currency.class));
 	}
 
