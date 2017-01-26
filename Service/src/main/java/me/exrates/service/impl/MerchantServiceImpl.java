@@ -32,6 +32,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.math.BigDecimal.ROUND_DOWN;
 import static java.math.BigDecimal.ROUND_HALF_UP;
 import static java.math.BigDecimal.valueOf;
 import static java.util.Collections.singletonMap;
@@ -397,8 +398,9 @@ public class MerchantServiceImpl implements MerchantService {
                 commissionAmount = commissionAmount.add(new BigDecimal("0.00000001"));
             }
         }
+
         final BigDecimal resultAmount = type == INPUT ? amount.add(commissionAmount).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP) :
-                amount.subtract(commissionAmount).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP);
+                amount.subtract(commissionAmount).setScale(currencyService.resolvePrecision(currency), ROUND_DOWN);
         result.put("commission", commissionTotal.stripTrailingZeros().toString());
         result.put("commissionAmount", currencyService.amountToString(commissionAmount, currency));
         result.put("amount", currencyService.amountToString(resultAmount, currency));
@@ -443,7 +445,7 @@ public class MerchantServiceImpl implements MerchantService {
         final User user = userService.findByEmail(userEmail);
         final BigDecimal newAmount = payment.getOperationType() == INPUT ?
                 amount :
-                amount.subtract(commissionAmount).setScale(currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP);
+                amount.subtract(commissionAmount).setScale(currencyService.resolvePrecision(currency.getName()), ROUND_DOWN);
         final CreditsOperation creditsOperation = new CreditsOperation.Builder()
                 .amount(newAmount)
                 .commissionAmount(commissionAmount)
@@ -498,6 +500,11 @@ public class MerchantServiceImpl implements MerchantService {
         merchantDao.setBlockForAll(operationType, blockStatus);
     }
 
+    @Override
+    @Transactional
+    public void setBlockForMerchant(Integer merchantId, Integer currencyId, OperationType operationType, boolean blockStatus) {
+        merchantDao.setBlockForMerchant(merchantId, currencyId, operationType, blockStatus);
+    }
 
 
     private void checkMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType) {

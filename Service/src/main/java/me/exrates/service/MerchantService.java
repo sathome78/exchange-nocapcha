@@ -77,4 +77,7 @@ public interface MerchantService {
 
     @Transactional
     void setBlockForAll(OperationType operationType, boolean blockStatus);
+
+    @Transactional
+    void setBlockForMerchant(Integer merchantId, Integer currencyId, OperationType operationType, boolean blockStatus);
 }
