@@ -6,6 +6,7 @@ import me.exrates.model.dto.MerchantCurrencyOptionsDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.UserRole;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -28,7 +29,7 @@ public interface MerchantDao {
 
     List<MerchantCurrency> findAllByCurrencies(List<Integer> currenciesId, OperationType operationType);
 
-    List<MerchantCurrencyApiDto> findAllMerchantCurrencies(Integer currencyId);
+    List<MerchantCurrencyApiDto> findAllMerchantCurrencies(Integer currencyId, UserRole userRole);
 
     List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions();
 

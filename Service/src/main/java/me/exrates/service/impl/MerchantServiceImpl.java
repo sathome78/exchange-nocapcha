@@ -308,7 +308,7 @@ public class MerchantServiceImpl implements MerchantService {
 
     @Override
     public List<MerchantCurrencyApiDto> findAllMerchantCurrencies(Integer currencyId) {
-        return merchantDao.findAllMerchantCurrencies(currencyId);
+        return merchantDao.findAllMerchantCurrencies(currencyId, userService.getCurrentUserRole());
     }
 
     @Override

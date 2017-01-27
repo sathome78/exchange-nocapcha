@@ -10,6 +10,7 @@ import me.exrates.model.dto.mobileApiDto.MerchantImageShortenedDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -140,15 +141,20 @@ public class MerchantDaoImpl implements MerchantDao {
     }
 
     @Override
-    public List<MerchantCurrencyApiDto> findAllMerchantCurrencies(Integer currencyId) {
-        String whereClause = currencyId == null ? "" : " WHERE CURRENCY.id = :currency_id";
+    public List<MerchantCurrencyApiDto> findAllMerchantCurrencies(Integer currencyId, UserRole userRole) {
+        String whereClause = currencyId == null ? "" : " AND MERCHANT_CURRENCY.currency_id = :currency_id";
 
         final String sql = "SELECT MERCHANT.id as merchant_id, MERCHANT.name, MERCHANT_CURRENCY.min_sum," +
                 " MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_commission, MERCHANT_CURRENCY.withdraw_block," +
-                " CURRENCY.min_withdraw_sum FROM MERCHANT " +
+                " CURRENCY_LIMIT.min_sum AS min_withdraw_sum FROM MERCHANT " +
                 "JOIN MERCHANT_CURRENCY ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id " +
-                "JOIN CURRENCY ON MERCHANT_CURRENCY.currency_id = CURRENCY.id " + whereClause;
-        Map<String, Integer> paramMap = Collections.singletonMap("currency_id", currencyId);
+                "JOIN CURRENCY_LIMIT ON MERCHANT_CURRENCY.currency_id = CURRENCY_LIMIT.currency_id " +
+                "WHERE CURRENCY_LIMIT.user_role_id = :user_role_id AND CURRENCY_LIMIT.operation_type_id = 2 " + whereClause;
+        Map<String, Integer> paramMap = new HashMap<String, Integer>() {{
+            put("currency_id", currencyId);
+            put("user_role_id", userRole.getRole());
+        }};
+
         try {
             return jdbcTemplate.query(sql, paramMap, (resultSet, i) -> {
                 MerchantCurrencyApiDto merchantCurrencyApiDto = new MerchantCurrencyApiDto();
