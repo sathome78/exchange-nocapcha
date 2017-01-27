@@ -5,6 +5,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.UserRole;
 import me.exrates.service.CommissionService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.exception.CurrencyPairNotFoundException;
@@ -81,9 +82,14 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
 
     @Override
-    public List<CurrencyLimit> retrieveCurrencyLimitsFroRole(String roleName, OperationType operationType) {
+    public List<CurrencyLimit> retrieveCurrencyLimitsForRole(String roleName, OperationType operationType) {
         List<Integer> roleIds = commissionService.resolveRoleIdsByName(roleName);
         return currencyDao.retrieveCurrencyLimitsForRoles(roleIds, operationType);
+    }
+
+    @Override
+    public BigDecimal retrieveMinLimitForRoleAndCurrency(UserRole userRole, OperationType operationType, Integer currencyId) {
+        return currencyDao.retrieveMinLimitForRoleAndCurrency(userRole, operationType, currencyId);
     }
 
     @Override

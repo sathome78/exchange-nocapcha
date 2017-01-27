@@ -849,7 +849,7 @@ public class OrderDaoImpl implements OrderDao {
                 "    LEFT JOIN WALLET ON (WALLET.user_id=USER.id) AND (WALLET.currency_id = :currency_id) " +
                 "    LEFT JOIN ((SELECT COMMISSION.id, COMMISSION.value " +
                 "           FROM COMMISSION " +
-                "           WHERE COMMISSION.operation_type=:operation_type_id ORDER BY COMMISSION.date " +
+                "           WHERE COMMISSION.operation_type=:operation_type_id AND COMMISSION.user_role = :user_role ORDER BY COMMISSION.date " +
                 "           DESC LIMIT 1) AS COMM) ON (1=1) " +
                 "  WHERE USER.email = :email";
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
@@ -857,6 +857,7 @@ public class OrderDaoImpl implements OrderDao {
         namedParameters.put("email", email);
         namedParameters.put("operation_type_id", operationType.getType());
         namedParameters.put("currency_id", currency.getId());
+        namedParameters.put("user_role", userRole.getRole());
         try {
             return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, new RowMapper<WalletsAndCommissionsForOrderCreationDto>() {
                 @Override

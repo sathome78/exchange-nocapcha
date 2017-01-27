@@ -36,6 +36,11 @@
                     <input class="form-control input-block-wrapper__input numericInputField"
                                 id="sum" name="amount" />
                 </div>
+                <div class="col-md-6 input-block-wrapper__label-wrapper">
+                    <div id="min-sum-notification" class="red"><loc:message code="mercnahts.output.minSum"/>
+                        <strong> ${currency.name} <span><fmt:formatNumber value="${minAmount}" pattern="###,##0.00######"/></span>
+                        </strong></div>
+                </div>
             </div>
             <input hidden id="walletId" name="walletId" value="${wallet.id}" />
             <input hidden id="nickname" name="nickname" />
@@ -49,6 +54,7 @@
         </form>
     </div>
     <span hidden id="maxForTransfer">${maxForTransfer}</span>
+    <span hidden id="minAmount">${minAmount}</span>
 </div>
 
 <%@include file="modal/check_fin_pass_modal.jsp"%>

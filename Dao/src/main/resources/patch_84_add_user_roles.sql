@@ -52,3 +52,5 @@ INSERT INTO CURRENCY_LIMIT (currency_id, operation_type_id, user_role_id, min_su
     JOIN USER_ROLE
   WHERE CURRENCY.hidden IS NOT TRUE AND OPERATION_TYPE.id IN (2, 9) AND USER_ROLE.id != 5
   ORDER BY currency_id, op_type, role;
+
+ALTER TABLE CURRENCY_LIMIT DROP min_withdraw_sum;

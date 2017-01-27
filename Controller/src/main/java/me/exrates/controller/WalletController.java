@@ -84,9 +84,11 @@ public class WalletController {
         User user = userService.findByEmail(principal.getName());
         Wallet wallet = walletService.findByUserAndCurrency(user, currency);
         BigDecimal maxForTransfer = resolveMaxTransferAmount(wallet, currencyName);
+        BigDecimal minAmount = currencyService.retrieveMinLimitForRoleAndCurrency(user.getRole(), OperationType.USER_TRANSFER, currency.getId());
         modelAndView.addObject("currency", currency);
         modelAndView.addObject("wallet", wallet);
         modelAndView.addObject("maxForTransfer", maxForTransfer);
+        modelAndView.addObject("minAmount", minAmount);
         return modelAndView;
     }
 

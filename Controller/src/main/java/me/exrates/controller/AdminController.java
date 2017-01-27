@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
-import static me.exrates.model.enums.UserRole.ADMINISTRATOR;
+import static me.exrates.model.enums.UserRole.*;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -185,8 +185,7 @@ public class AdminController {
     @RequestMapping(value = "/2a8fy7b07dxe44/usersList", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public DataTable<List<User>> getAllUsers(@RequestParam Map<String, String> params) {
         params.forEach((key, value) -> LOG.debug(key + " :: " + value));
-        List<UserRole> userRoles = new ArrayList<>();
-        userRoles.add(UserRole.USER);
+        List<UserRole> userRoles = asList(USER, EXCHANGE, VIP_USER);
         return userSecureService.getUsersByRolesPaginated(userRoles, params);
     }
 
@@ -802,7 +801,7 @@ public class AdminController {
     @ResponseBody
     public List<CurrencyLimit> retrieveCurrencyLimits(@RequestParam String roleName,
                                                       @RequestParam OperationType operationType) {
-        return currencyService.retrieveCurrencyLimitsFroRole(roleName, operationType);
+        return currencyService.retrieveCurrencyLimitsForRole(roleName, operationType);
     }
 
     @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits/submit", method = RequestMethod.POST)

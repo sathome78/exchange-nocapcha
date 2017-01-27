@@ -115,12 +115,15 @@ $(function(){
                 $(this).val(maxSum);
             }
             var minLimit = 0;
-            if (operationType.val() === 'OUTPUT') {
-                minLimit = parseFloat($('#min-withdraw-sum').text());
-                maxWalletSum = parseFloat($("#currencyFull").val().split(' ')[1]);
+            if (operationType.val() === 'OUTPUT' || operationType.val() === 'USER_TRANSFER') {
+                var maxWalletSum;
+                if (operationType.val() === 'USER_TRANSFER') maxWalletSum = parseFloat($('#maxForTransfer').text());
+                if (operationType.val() === 'OUTPUT') maxWalletSum = parseFloat($("#currencyFull").val().split(' ')[1]);
                 if ( val >= maxWalletSum){
                     $(this).val(maxWalletSum);
                 }
+                minLimit = parseFloat($('#minAmount').text());
+
                 if (val >= minLimit) {
                     $('#min-sum-notification').hide();
                 } else {
@@ -128,12 +131,12 @@ $(function(){
                 }
 
             }
-            if (operationType.val() === 'USER_TRANSFER') {
+            /*if (operationType.val() === 'USER_TRANSFER') {
                 var maxTransferSum = parseFloat($('#maxForTransfer').text())
                 if ( val >= maxTransferSum){
                     $(this).val(maxTransferSum);
                 }
-            }
+            }*/
             var decimal = $(this).val().split('.')[1];
             if (decimal && decimal.length > fractionalAmount) {
                 $(this).val($(this).val().slice(0,-1));

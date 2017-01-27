@@ -17,7 +17,7 @@
                 <c:set var="notificationOptions" value="${notificationOptionsForm.options}"/>
                 <c:if test="${notificationOptions.size() > 0}">
                     <form:form method="post" action="/settings/notificationOptions/submit" modelAttribute="notificationOptionsForm">
-                    <table class="table">
+                    <table id="notification-options-table" class="table">
                         <thead>
                         <tr>
                             <th></th>
@@ -35,9 +35,12 @@
                                 <td hidden><form:input path="options[${optStatus.index}].userId" value="${notificationOption.userId}"/></td>
                             </tr>
                         </c:forEach>
+                        <tr>
+                            <td colspan="5"><span id="optionsError" class="red"><loc:message code="notifications.invalid" /></span> </td>
+                        </tr>
                         </tbody>
                     </table>
-                        <button type="submit" class="blue-box"><loc:message code="login.submit"/></button>
+                        <button id="submitNoitficationOptionsButton" type="submit" class="blue-box"><loc:message code="admin.submit"/></button>
                     </form:form>
                 </c:if>
 

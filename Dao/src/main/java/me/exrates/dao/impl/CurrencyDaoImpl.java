@@ -5,6 +5,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.UserRole;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -114,7 +115,18 @@ public class CurrencyDaoImpl implements CurrencyDao {
 			currencyLimit.setMaxSum(rs.getBigDecimal("max_sum"));
 			return currencyLimit;
 		});
+	}
 
+	@Override
+	public BigDecimal retrieveMinLimitForRoleAndCurrency(UserRole userRole, OperationType operationType, Integer currencyId) {
+		String sql = "SELECT min_sum FROM CURRENCY_LIMIT " +
+				"WHERE user_role_id = :role_id AND operation_type_id = :operation_type_id AND currency_id = :currency_id";
+		Map<String, Integer> params = new HashMap<String, Integer>() {{
+			put("role_id", userRole.getRole());
+			put("operation_type_id", operationType.getType());
+			put("currency_id", currencyId);
+		}};
+		return jdbcTemplate.queryForObject(sql, params, BigDecimal.class);
 	}
 
     @Override

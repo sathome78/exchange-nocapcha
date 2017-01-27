@@ -1,9 +1,6 @@
 package me.exrates.controller;
 
-import me.exrates.controller.exception.ErrorInfo;
-import me.exrates.controller.exception.FileLoadingException;
-import me.exrates.controller.exception.NewsCreationException;
-import me.exrates.controller.exception.NoFileForLoadingException;
+import me.exrates.controller.exception.*;
 import me.exrates.controller.listener.StoreSessionListener;
 import me.exrates.model.News;
 import me.exrates.model.NotificationOption;
@@ -25,6 +22,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.support.RequestContextUtils;
 import org.springframework.web.servlet.view.RedirectView;
 
@@ -123,10 +121,20 @@ public class EntryController {
     }
 
     @RequestMapping("/settings/notificationOptions/submit")
-    public RedirectView submitNotificationOptions(@ModelAttribute NotificationOptionsForm notificationOptionsForm) {
+    public RedirectView submitNotificationOptions(@ModelAttribute NotificationOptionsForm notificationOptionsForm, RedirectAttributes redirectAttributes,
+                                                  HttpServletRequest request) {
         notificationOptionsForm.getOptions().forEach(LOGGER::debug);
-        notificationService.updateUserNotifications(notificationOptionsForm.getOptions());
-        return new RedirectView("/settings");
+        RedirectView redirectView = new RedirectView("/settings");
+        List<NotificationOption> notificationOptions = notificationOptionsForm.getOptions();
+        if (notificationOptions.stream().anyMatch(option -> !option.isSendEmail() && !option.isSendNotification())) {
+            redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("notifications.invalid", null,
+                    localeResolver.resolveLocale(request)));
+            return redirectView;
+
+        }
+
+        notificationService.updateUserNotifications(notificationOptions);
+        return redirectView;
     }
 
     /*skip resources: img, css, js*/
