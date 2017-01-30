@@ -117,7 +117,8 @@ public class WalletDaoImpl implements WalletDao {
     @Override
     public List<Wallet> findAllByUser(int userId) {
         final String sql = "SELECT WALLET.id,WALLET.currency_id,WALLET.user_id,WALLET.active_balance, WALLET.reserved_balance, CURRENCY.name as name FROM WALLET" +
-                "  INNER JOIN CURRENCY On WALLET.currency_id = CURRENCY.id and WALLET.user_id = :userId";
+                "  INNER JOIN CURRENCY On WALLET.currency_id = CURRENCY.id and WALLET.user_id = :userId " +
+                " WHERE CURRENCY.hidden != 1 ";
         final Map<String, Integer> params = new HashMap<String, Integer>() {
             {
                 put("userId", userId);
@@ -136,7 +137,7 @@ public class WalletDaoImpl implements WalletDao {
                         " FROM USER " +
                         "   JOIN WALLET ON (WALLET.user_id = USER.id) " +
                         "   LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
-                        " WHERE USER.email = :email ";
+                        " WHERE USER.email = :email  AND CURRENCY.hidden != 1 ";
         final Map<String, String> params = new HashMap<String, String>() {{
             put("email", email);
         }};
@@ -191,7 +192,7 @@ public class WalletDaoImpl implements WalletDao {
                         " LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
                         " LEFT JOIN CURRENCY_PAIR CP1 ON (CP1.currency1_id = WALLET.currency_id) " +
                         " LEFT JOIN EXORDERS SELL ON (SELL.operation_type_id=3) AND (SELL.user_id=USER.id) AND (SELL.currency_pair_id = CP1.id) AND (SELL.status_id = 2) " +
-                        " WHERE USER.email =  :email " + currencyFilterClause +
+                        " WHERE USER.email =  :email AND CURRENCY.hidden != 1 " + currencyFilterClause +
                         "  " +
                         " UNION ALL " +
                         "  " +
@@ -204,7 +205,7 @@ public class WalletDaoImpl implements WalletDao {
                         " LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
                         " LEFT JOIN CURRENCY_PAIR CP2 ON (CP2.currency2_id = WALLET.currency_id) " +
                         " LEFT JOIN EXORDERS BUY ON (BUY.operation_type_id=4) AND (BUY.user_id=USER.id) AND (BUY.currency_pair_id = CP2.id) AND (BUY.status_id = 2) " +
-                        " WHERE USER.email =  :email " + currencyFilterClause +
+                        " WHERE USER.email =  :email  AND CURRENCY.hidden != 1 " + currencyFilterClause +
                         "  " +
                         " UNION ALL " +
                         "  " +
@@ -216,7 +217,7 @@ public class WalletDaoImpl implements WalletDao {
                         " JOIN WALLET ON (WALLET.user_id = USER.id)  " +
                         " LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
                         " JOIN TRANSACTION ON (TRANSACTION.operation_type_id=2) AND (TRANSACTION.user_wallet_id = WALLET.id) AND (TRANSACTION.provided = 0)  " +
-                        " WHERE USER.email =  :email " + currencyFilterClause +
+                        " WHERE USER.email =  :email AND CURRENCY.hidden != 1 " + currencyFilterClause +
                         "  " +
                         " UNION ALL " +
                         "  " +
@@ -228,7 +229,7 @@ public class WalletDaoImpl implements WalletDao {
                         " JOIN WALLET ON (WALLET.user_id = USER.id)  " +
                         " JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
                         " JOIN TRANSACTION ON (TRANSACTION.operation_type_id=1) AND (TRANSACTION.user_wallet_id = WALLET.id) AND (TRANSACTION.confirmation BETWEEN 0 AND 3)  " +
-                        " WHERE USER.email =  :email " + currencyFilterClause +
+                        " WHERE USER.email =  :email  AND CURRENCY.hidden != 1" + currencyFilterClause +
                         " GROUP BY wallet_id, user_id, currency_id, currency_name,  active_balance, reserved_balance, " +
                         "          amount_base, amount_convert, commission_fixed_amount, " +
                         "          withdraw_amount, withdraw_commission " +
@@ -452,6 +453,7 @@ public class WalletDaoImpl implements WalletDao {
                 "(SELECT SUM(amount) FROM TRANSACTION where provided=1 AND merchant_id is not null AND operation_type_id=2 AND currency_id=CURRENCY.id) as merchant_amount_output " +
                 " FROM WALLET " +
                 " JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
+                " WHERE CURRENCY.hidden != 1 " +
                 " GROUP BY CURRENCY.name, CURRENCY.id";
 
         ArrayList<UserWalletSummaryDto> result = (ArrayList<UserWalletSummaryDto>) jdbcTemplate.query(sql, new BeanPropertyRowMapper<UserWalletSummaryDto>() {
