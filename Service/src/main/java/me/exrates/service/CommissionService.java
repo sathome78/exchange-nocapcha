@@ -1,12 +1,14 @@
 package me.exrates.service;
 
 import me.exrates.model.Commission;
+import me.exrates.model.dto.CommissionShortEditDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Locale;
 
 public interface CommissionService {
 	
@@ -24,7 +26,7 @@ public interface CommissionService {
 
     List<Commission> getEditableCommissions();
 
-    List<Commission> getEditableCommissionsByRole(String role);
+    List<CommissionShortEditDto> getEditableCommissionsByRole(String role, Locale locale);
 
     List<Integer> resolveRoleIdsByName(String roleName);
 

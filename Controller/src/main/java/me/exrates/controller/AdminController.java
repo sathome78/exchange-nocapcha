@@ -857,8 +857,8 @@ public class AdminController {
 
     @RequestMapping(value = "/2a8fy7b07dxe44/getCommissionsForRole", method = RequestMethod.GET)
     @ResponseBody
-    public List<Commission> retrieveCommissionsForRole(@RequestParam String role) {
-        return commissionService.getEditableCommissionsByRole(role);
+    public List<CommissionShortEditDto> retrieveCommissionsForRole(@RequestParam String role, HttpServletRequest request) {
+        return commissionService.getEditableCommissionsByRole(role, localeResolver.resolveLocale(request));
 
     }
 

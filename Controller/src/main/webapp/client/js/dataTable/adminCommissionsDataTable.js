@@ -31,8 +31,9 @@ $(document).ready(function () {
 
     $($commissionTable).find('tbody').on('click', 'tr', function () {
         var currentRoleName = $($roleNameSelect).val();
-        var operationType = $(this).find('td:first').text().trim();
-        var commissionValue = parseFloat($(this).find('td:nth-child(2)').text());
+        var rowData = commissionsDataTable.row(this).data();
+        var operationType = rowData.operationType;
+        var commissionValue = parseFloat(rowData.value);
         $($commissionForm).find('input[name="userRole"]').val(currentRoleName);
         $('#operationType').val(operationType);
         $($commissionForm).find('input[name="commissionValue"]').val(commissionValue);
@@ -93,7 +94,10 @@ function updateCommissionsDataTable() {
             "bInfo": false,
             "columns": [
                 {
-                    "data": "operationType"
+                    "data": "operationType",
+                    "render": function (data, type, row) {
+                        return row.operationTypeLocalized;
+                    }
                 },
                 {
                     "data": "value"
@@ -105,7 +109,6 @@ function updateCommissionsDataTable() {
 
 function submitCommission() {
     var formData =  $('#edit-commission-form').serialize();
-    console.log(formData);
     $.ajax({
         headers: {
             'X-CSRF-Token': $("input[name='_csrf']").val()

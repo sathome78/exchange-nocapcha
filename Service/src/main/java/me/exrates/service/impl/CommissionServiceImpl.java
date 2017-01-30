@@ -2,6 +2,7 @@ package me.exrates.service.impl;
 
 import me.exrates.dao.CommissionDao;
 import me.exrates.model.Commission;
+import me.exrates.model.dto.CommissionShortEditDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.service.CommissionService;
@@ -13,6 +14,7 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 @Service
@@ -43,8 +45,8 @@ public class CommissionServiceImpl implements CommissionService {
 	}
 
 	@Override
-	public List<Commission> getEditableCommissionsByRole(String roleName) {
-		return commissionDao.getEditableCommissionsByRoles(resolveRoleIdsByName(roleName));
+	public List<CommissionShortEditDto> getEditableCommissionsByRole(String roleName, Locale locale) {
+		return commissionDao.getEditableCommissionsByRoles(resolveRoleIdsByName(roleName), locale);
 	}
 
 	@Override
