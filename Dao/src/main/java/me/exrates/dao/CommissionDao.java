@@ -15,16 +15,17 @@ public interface CommissionDao {
 
     Commission getDefaultCommission(OperationType operationType);
 
-    BigDecimal getCommissionMerchant(String merchant, String currency);
+	BigDecimal getCommissionMerchant(String merchant, String currency, OperationType operationType);
 
     List<Commission> getEditableCommissions();
 
     List<CommissionShortEditDto> getEditableCommissionsByRoles(List<Integer> roleIds, Locale locale);
 
+    void updateMerchantCurrencyCommission(Integer merchantId, Integer currencyId, BigDecimal inputValue, BigDecimal outputValue);
+
     void updateCommission(Integer id, BigDecimal value);
 
     void updateCommission(OperationType operationType, List<Integer> roleIds, BigDecimal value);
 
-    void updateMerchantCurrencyCommission(Integer merchantId, Integer currencyId, BigDecimal value);
 }
 

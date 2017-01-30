@@ -30,7 +30,7 @@ public class CommissionDaoImpl implements CommissionDao {
 	};
 
 
-	@Autowired  
+	@Autowired
 	NamedParameterJdbcTemplate jdbcTemplate;
 
 	@Override
@@ -56,8 +56,11 @@ public class CommissionDaoImpl implements CommissionDao {
 
 
 	@Override
-	public BigDecimal getCommissionMerchant(String merchant, String currency) {
-		final String sql = "SELECT merchant_commission FROM birzha.MERCHANT_CURRENCY " +
+	public BigDecimal getCommissionMerchant(String merchant, String currency, OperationType operationType) {
+		String selectedField = operationType == OperationType.INPUT ? "merchant_input_commission" : "merchant_output_commission";
+
+
+		final String sql = "SELECT " + selectedField + " FROM birzha.MERCHANT_CURRENCY " +
 				"where merchant_id = (select id from MERCHANT where name = :merchant) \n" +
 				"and currency_id = (select id from CURRENCY where name = :currency)";
 		final HashMap<String, String> params = new HashMap<>();
@@ -126,13 +129,15 @@ public class CommissionDaoImpl implements CommissionDao {
 	}
 
 	@Override
-	public void updateMerchantCurrencyCommission(Integer merchantId, Integer currencyId, BigDecimal value){
-		final String sql = "UPDATE MERCHANT_CURRENCY SET merchant_commission = :value " +
+	public void updateMerchantCurrencyCommission(Integer merchantId, Integer currencyId, BigDecimal inputValue, BigDecimal outputValue){
+		final String sql = "UPDATE MERCHANT_CURRENCY SET merchant_input_commission = :input_value, " +
+				"merchant_output_commission = :output_value " +
 				"where merchant_id = :merchant_id AND currency_id = :currency_id";
 		Map<String, Number> params = new HashMap<String, Number>() {{
 			put("merchant_id", merchantId);
 			put("currency_id", currencyId);
-			put("value", value);
+			put("input_value", inputValue);
+			put("output_value", outputValue);
 		}};
 		jdbcTemplate.update(sql, params);
 	}

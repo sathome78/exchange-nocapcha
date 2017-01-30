@@ -876,9 +876,9 @@ public class AdminController {
     @ResponseBody
     public ResponseEntity<Void> editMerchantCommission(@RequestParam("merchantId") Integer merchantId,
                                                        @RequestParam("currencyId") Integer currencyId,
-                                               @RequestParam("commissionValue") BigDecimal value) {
-        LOG.debug("merchantId = " + merchantId + ", currencyId = " + currencyId + ", value = " + value);
-        commissionService.updateMerchantCommission(merchantId, currencyId, value);
+                                                       @RequestParam("inputValue") BigDecimal inputValue,
+                                                       @RequestParam("outputValue") BigDecimal outputValue) {
+        commissionService.updateMerchantCommission(merchantId, currencyId, inputValue, outputValue);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

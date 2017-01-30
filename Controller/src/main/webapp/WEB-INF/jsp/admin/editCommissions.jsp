@@ -89,9 +89,9 @@
                                     <td>${merchantCurrency.merchantName}</td>
                                     <td>${merchantCurrency.currencyName}</td>
                                     <td>
-                                        <span hidden class="merchantCommissionUnformatted">${merchantCurrency.commission}</span>
+                                        <span hidden class="merchantCommissionUnformatted">${merchantCurrency.inputCommission}</span>
                                         <span class="merchantCommissionFormatted">
-                                                <fmt:formatNumber value="${merchantCurrency.commission}" pattern="###,##0.00########"/>
+                                                <fmt:formatNumber value="${merchantCurrency.inputCommission}" pattern="###,##0.00########"/>
                                             </span>
                                     </td>
 

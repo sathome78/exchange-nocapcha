@@ -113,8 +113,9 @@ public class MerchantDaoImpl implements MerchantDao {
         } else if (operationType == OperationType.OUTPUT) {
             blockClause = " AND MERCHANT_CURRENCY.withdraw_block = 0";
         }
-        final String sql = "SELECT MERCHANT.id as merchant_id,MERCHANT.name,MERCHANT.description,MERCHANT_CURRENCY.min_sum," +
-                " MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_commission FROM MERCHANT JOIN MERCHANT_CURRENCY" +
+        final String sql = "SELECT MERCHANT.id as merchant_id,MERCHANT.name,MERCHANT.description,MERCHANT_CURRENCY.min_sum, " +
+                " MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_input_commission, MERCHANT_CURRENCY.merchant_output_commission " +
+                " FROM MERCHANT JOIN MERCHANT_CURRENCY " +
                 " ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id WHERE MERCHANT_CURRENCY.currency_id in (:currenciesId)" +
                 blockClause;
 
@@ -126,7 +127,8 @@ public class MerchantDaoImpl implements MerchantDao {
                 merchantCurrency.setDescription(resultSet.getString("description"));
                 merchantCurrency.setMinSum(resultSet.getBigDecimal("min_sum"));
                 merchantCurrency.setCurrencyId(resultSet.getInt("currency_id"));
-                merchantCurrency.setCommission(resultSet.getBigDecimal("merchant_commission"));
+                merchantCurrency.setInputCommission(resultSet.getBigDecimal("merchant_input_commission"));
+                merchantCurrency.setOutputCommission(resultSet.getBigDecimal("merchant_output_commission"));
                 final String sqlInner = "SELECT * FROM birzha.MERCHANT_IMAGE where merchant_id = :merchant_id" +
                         " AND currency_id = :currency_id;";
                 Map<String, Integer> params = new HashMap<String, Integer>();
@@ -145,8 +147,8 @@ public class MerchantDaoImpl implements MerchantDao {
         String whereClause = currencyId == null ? "" : " AND MERCHANT_CURRENCY.currency_id = :currency_id";
 
         final String sql = "SELECT MERCHANT.id as merchant_id, MERCHANT.name, MERCHANT_CURRENCY.min_sum," +
-                " MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_commission, MERCHANT_CURRENCY.withdraw_block," +
-                " CURRENCY_LIMIT.min_sum AS min_withdraw_sum FROM MERCHANT " +
+                " MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_input_commission, MERCHANT_CURRENCY.merchant_output_commission," +
+                " MERCHANT_CURRENCY.withdraw_block, MERCHANT_CURRENCY.refill_block, CURRENCY_LIMIT.min_sum AS min_withdraw_sum FROM MERCHANT " +
                 "JOIN MERCHANT_CURRENCY ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id " +
                 "JOIN CURRENCY_LIMIT ON MERCHANT_CURRENCY.currency_id = CURRENCY_LIMIT.currency_id " +
                 "WHERE CURRENCY_LIMIT.user_role_id = :user_role_id AND CURRENCY_LIMIT.operation_type_id = 2 " + whereClause;
@@ -163,8 +165,10 @@ public class MerchantDaoImpl implements MerchantDao {
                 merchantCurrencyApiDto.setName(resultSet.getString("name"));
                 merchantCurrencyApiDto.setMinInputSum(resultSet.getBigDecimal("min_sum"));
                 merchantCurrencyApiDto.setMinOutputSum(resultSet.getBigDecimal("min_withdraw_sum"));
-                merchantCurrencyApiDto.setCommission(resultSet.getBigDecimal("merchant_commission"));
+                merchantCurrencyApiDto.setInputCommission(resultSet.getBigDecimal("merchant_input_commission"));
+                merchantCurrencyApiDto.setOutputCommission(resultSet.getBigDecimal("merchant_output_commission"));
                 merchantCurrencyApiDto.setWithdrawBlocked(resultSet.getBoolean("withdraw_block"));
+                merchantCurrencyApiDto.setRefillBlocked(resultSet.getBoolean("refill_block"));
                 final String sqlInner = "SELECT id, image_path FROM birzha.MERCHANT_IMAGE where merchant_id = :merchant_id" +
                         " AND currency_id = :currency_id;";
                 Map<String, Integer> params = new HashMap<String, Integer>();
@@ -193,7 +197,7 @@ public class MerchantDaoImpl implements MerchantDao {
             dto.setCurrencyId(rs.getInt("currency_id"));
             dto.setMerchantName(rs.getString("merchant_name"));
             dto.setCurrencyName(rs.getString("currency_name"));
-            dto.setCommission(rs.getBigDecimal("merchant_commission"));
+            dto.setInputCommission(rs.getBigDecimal("merchant_commission"));
             dto.setRefillBlocked(rs.getBoolean("refill_block"));
             dto.setWithdrawBlocked(rs.getBoolean("withdraw_block"));
             return dto;

@@ -20,9 +20,10 @@ public interface CommissionService {
 	 * Returns individual commission for current merchant
 	 * @param merchant
 	 * @param currency
+	 * @param operationType
 	 * @return BigDecimal commission
 	 */
-	BigDecimal getCommissionMerchant(String merchant, String currency);
+	BigDecimal getCommissionMerchant(String merchant, String currency, OperationType operationType);
 
     List<Commission> getEditableCommissions();
 
@@ -34,6 +35,6 @@ public interface CommissionService {
 
 	void updateCommission(OperationType operationType, String roleName, BigDecimal value);
 
-	@Transactional
-    void updateMerchantCommission(Integer merchantId, Integer currencyId, BigDecimal value);
+    @Transactional
+    void updateMerchantCommission(Integer merchantId, Integer currencyId, BigDecimal inputValue, BigDecimal outputValue);
 }

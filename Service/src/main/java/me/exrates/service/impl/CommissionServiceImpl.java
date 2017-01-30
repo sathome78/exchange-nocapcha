@@ -35,8 +35,11 @@ public class CommissionServiceImpl implements CommissionService {
 	}
 
 	@Override
-	public BigDecimal getCommissionMerchant(String merchant, String currency) {
-		return commissionDao.getCommissionMerchant(merchant, currency);
+	public BigDecimal getCommissionMerchant(String merchant, String currency, OperationType operationType) {
+		if (!(operationType == OperationType.INPUT || operationType == OperationType.OUTPUT)) {
+			throw new IllegalArgumentException("Invalid operation type");
+		}
+		return commissionDao.getCommissionMerchant(merchant, currency, operationType);
 	}
 
 	@Override
@@ -76,8 +79,8 @@ public class CommissionServiceImpl implements CommissionService {
 
 	@Override
 	@Transactional
-	public void updateMerchantCommission(Integer merchantId, Integer currencyId, BigDecimal value) {
-		commissionDao.updateMerchantCurrencyCommission(merchantId, currencyId, value);
+	public void updateMerchantCommission(Integer merchantId, Integer currencyId, BigDecimal inputValue, BigDecimal outputValue) {
+		commissionDao.updateMerchantCurrencyCommission(merchantId, currencyId, inputValue, outputValue);
 	}
 
 }
