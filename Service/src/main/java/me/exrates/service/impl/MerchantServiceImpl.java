@@ -392,13 +392,9 @@ public class MerchantServiceImpl implements MerchantService {
         final BigDecimal commissionTotal = type == OUTPUT ? commission.add(commissionMerchant).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP) :
                 commission;
         BigDecimal commissionAmount = amount.multiply(commissionTotal).divide(HUNDREDTH).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP);
-        if (commissionAmount.compareTo(BigDecimal.ZERO) == 0){
-            if (currencyService.resolvePrecision(currency) == 2) {
-                commissionAmount = commissionAmount.add(new BigDecimal("0.01"));
-            }else {
-                commissionAmount = commissionAmount.add(new BigDecimal("0.00000001"));
-            }
-        }
+
+        //TODO fix method
+        //     commissionAmount = addMinimalCommission(commissionAmount, currency);
 
         final BigDecimal resultAmount = type != OUTPUT ? amount.add(commissionAmount).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP) :
                 amount.subtract(commissionAmount).setScale(currencyService.resolvePrecision(currency), ROUND_DOWN);
@@ -436,13 +432,7 @@ public class MerchantServiceImpl implements MerchantService {
                 commissionTotal
                 .multiply(amount)
                 .divide(valueOf(100), currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP);
-        if (commissionAmount.compareTo(BigDecimal.ZERO) == 0){
-            if (currencyService.resolvePrecision(currency.getName()) == 2) {
-                commissionAmount = commissionAmount.add(new BigDecimal("0.01"));
-            }else {
-                commissionAmount = commissionAmount.add(new BigDecimal("0.00000001"));
-            }
-        }
+      //  commissionAmount = addMinimalCommission(commissionAmount, currency.getName());
         final User user = userService.findByEmail(userEmail);
         final BigDecimal newAmount = payment.getOperationType() == INPUT ?
                 amount :
@@ -459,6 +449,17 @@ public class MerchantServiceImpl implements MerchantService {
                 .merchantImage(merchantImage)
                 .build();
         return Optional.of(creditsOperation);
+    }
+
+    private BigDecimal addMinimalCommission(BigDecimal commissionAmount, String name) {
+        if (commissionAmount.compareTo(BigDecimal.ZERO) == 0) {
+            if (currencyService.resolvePrecision(name) == 2) {
+                commissionAmount = commissionAmount.add(new BigDecimal("0.01"));
+            } else {
+                commissionAmount = commissionAmount.add(new BigDecimal("0.00000001"));
+            }
+        }
+        return commissionAmount;
     }
 
     private boolean isPayable(Merchant merchant, Currency currency, BigDecimal sum) {
