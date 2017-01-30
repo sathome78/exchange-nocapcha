@@ -60,6 +60,7 @@ $(function(){
     const INTERKASSA = 'Interkassa';
     const INVOICE = 'Invoice';
     const EDC = 'EDC';
+    const OKPAY = 'OkPay';
 
     const NO_ACTION = 'javascript:void(0);';
 
@@ -174,7 +175,8 @@ $(function(){
             nixmoney:'/merchants/nixmoney/payment/prepare',
             yandex_kassa:'http://din24.net/index.php?route=acc/success/order',
             privat24:'https://api.privatbank.ua/p24api/ishop',
-            interkassa:'https://sci.interkassa.com/'
+            interkassa:'https://sci.interkassa.com/',
+            okpay:'/merchants/okpay/payment/prepare/'
 
         };
         if (operationType === 'INPUT') {
@@ -202,6 +204,9 @@ $(function(){
                     break;
                 case INTERKASSA :
                     form.attr('action', formAction.interkassa);
+                    break;
+                case OKPAY :
+                    form.attr('action', formAction.okpay);
                     break;
                 case BLOCKCHAIN:
                 case EDC:
