@@ -147,6 +147,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, "/merchants/yandex_kassa/payment/status",
                         "/merchants/yandex_kassa/payment/success",
                         "/merchants/yandex_kassa/payment/failure").permitAll()
+                .antMatchers(HttpMethod.POST, "/merchants/okpay/payment/status",
+                        "/merchants/okpay/payment/success",
+                        "/merchants/okpay/payment/failure").permitAll()
                 .antMatchers(HttpMethod.POST, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**").permitAll()
                 .antMatchers(HttpMethod.GET, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**", "/chat/history").permitAll()
                 .antMatchers(HttpMethod.GET, "/generateReferral").permitAll()
@@ -233,6 +236,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/merchants/yandex_kassa/payment/failure",
                         "/merchants/yandex_kassa/payment/success",
                         "/merchants/yandex_kassa/payment/status",
+                        "/merchants/okpay/payment/failure",
+                        "/merchants/okpay/payment/success",
+                        "/merchants/okpay/payment/status",
                         "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword");
         http
                 .headers()
