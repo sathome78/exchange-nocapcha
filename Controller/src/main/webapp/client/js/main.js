@@ -633,7 +633,9 @@ $(function(){
          validateNickname();
         $('.nickname_input').show();
          requestControls();
-         $('#transferModal').modal();
+         $('#transferModal').modal({
+             backdrop: 'static'
+         });
     }
     $('#nicknameInput').on('keyup', validateNickname);
 

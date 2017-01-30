@@ -18,7 +18,9 @@ function finPassCheck(id, opFunc, oType, event) {
         orderId = id;
         orderType = oType;
         form = $('#submitFinPassForm');
-        $('#finPassModal').modal(); //modal must call finPassCheck without parameter
+        $('#finPassModal').modal({
+            backdrop: 'static'
+        }); //modal must call finPassCheck without parameter
     } else {
         //to call finPassCheck for check finpass and subsequent (if check is success) call :
         // - beginAcceptOrder
