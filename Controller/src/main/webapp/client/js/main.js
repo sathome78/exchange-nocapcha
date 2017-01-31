@@ -664,7 +664,11 @@ $(function(){
             success: function (response) {
                 $('.paymentInfo').html(response.result);
                 $('.nickname_input').hide();
-                responseControls ()
+                responseControls();
+                setTimeout(function()
+                {
+                    location.reload();
+                },5000);
             },
             error: function (err) {
                 console.log(err);
