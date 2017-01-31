@@ -309,6 +309,9 @@ public class OrderDaoImpl implements OrderDao {
                 public ExOrderStatisticsShortByPairsDto mapRow(ResultSet rs, int rowNum) throws SQLException {
                     BigDecimal lastRate = rs.getBigDecimal("last_exrate");
                     BigDecimal predLastRate = rs.getBigDecimal("pred_last_exrate");
+                    if (predLastRate == null) {
+                        predLastRate = lastRate;
+                    }
                     BigDecimal percentChange = BigDecimalProcessing.doAction(predLastRate, lastRate, ActionType.PERCENT_GROWTH);
                     ExOrderStatisticsShortByPairsDto exOrderStatisticsDto = new ExOrderStatisticsShortByPairsDto();
                     exOrderStatisticsDto.setCurrencyPairName(rs.getString("currency_pair_name"));

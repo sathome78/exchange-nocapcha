@@ -8,6 +8,7 @@ import javax.mail.internet.MimeMessage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 
 import me.exrates.model.Email;
@@ -26,13 +27,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class SendMailServiceImpl implements SendMailService{
 
 	@Autowired
+    @Qualifier("InfoMailSender")
 	private JavaMailSender mailSender;
 	
 	private static final Logger logger = LogManager.getLogger(SendMailServiceImpl.class);
 
 	public void sendMail(Email email){
 		logger.debug(email);
-		email.setFrom("support@exrates.me");
+		email.setFrom("no-replay@exrates.tech");
         mailSender.send(new MimeMessagePreparator() {
 			  public void prepare(MimeMessage mimeMessage) throws MessagingException {
 			    MimeMessageHelper message;
