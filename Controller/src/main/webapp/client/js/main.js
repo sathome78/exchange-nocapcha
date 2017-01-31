@@ -123,21 +123,16 @@ $(function(){
                 if ( val >= maxWalletSum){
                     $(this).val(maxWalletSum);
                 }
-                minLimit = parseFloat($('#minAmount').text());
-
-                if (val >= minLimit) {
-                    $('#min-sum-notification').hide();
-                } else {
-                    $('#min-sum-notification').show();
-                }
-
             }
-            /*if (operationType.val() === 'USER_TRANSFER') {
-                var maxTransferSum = parseFloat($('#maxForTransfer').text())
-                if ( val >= maxTransferSum){
-                    $(this).val(maxTransferSum);
-                }
-            }*/
+
+            minLimit = parseFloat($('#minAmount').text());
+
+            if (val >= minLimit) {
+                $('#min-sum-notification').hide();
+            } else {
+                $('#min-sum-notification').show();
+            }
+
             var decimal = $(this).val().split('.')[1];
             if (decimal && decimal.length > fractionalAmount) {
                 $(this).val($(this).val().slice(0,-1));
