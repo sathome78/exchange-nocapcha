@@ -793,7 +793,7 @@ public class AdminController {
     public ModelAndView currencyLimits() {
         ModelAndView modelAndView = new ModelAndView("admin/currencyLimits");
         modelAndView.addObject("roleNames", ROLE_NAMES);
-        modelAndView.addObject("operationTypes", Arrays.asList(OperationType.OUTPUT.name(), OperationType.USER_TRANSFER.name()));
+        modelAndView.addObject("operationTypes", Arrays.asList(OperationType.INPUT.name(), OperationType.OUTPUT.name(), OperationType.USER_TRANSFER.name()));
         return modelAndView;
     }
 

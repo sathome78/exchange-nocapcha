@@ -110,10 +110,15 @@ public class WalletController {
                                                               @RequestParam String nickname,
                                                               @RequestParam Integer currencyId,
                                                               @RequestParam BigDecimal amount,
+                                                              Principal principal,
                                                               HttpServletRequest request) {
 
         if (!nickname.matches("^\\D+[\\w\\d\\-_]+")) {
             throw new InvalidNicknameException(messageSource.getMessage("transfer.invalidNickname", null, localeResolver.resolveLocale(request)));
+        }
+        String principalNickname = userService.findByEmail(principal.getName()).getNickname();
+        if (nickname.equals(principalNickname)) {
+            throw new InvalidNicknameException(messageSource.getMessage("transfer.selfNickname", null, localeResolver.resolveLocale(request)));
         }
         String result = walletService.transferCostsToUser(walletId, nickname, currencyId, amount, localeResolver.resolveLocale(request));
         LOG.debug(result);

@@ -630,6 +630,8 @@ $(function(){
         $('#transferProcess').prop('disabled', true);
          merchantName = 'transfer';
          fillModalWindow('USER_TRANSFER', sum.val(), getCurrentCurrency());
+        $('#nicknameInput').val('');
+        $('#nickname').val('');
          validateNickname();
         $('.nickname_input').show();
          requestControls();
