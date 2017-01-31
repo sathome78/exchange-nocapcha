@@ -278,12 +278,11 @@ public class MerchantServiceImpl implements MerchantService {
                 .getMessage("merchants.depositNotification.header",null,locale));
         mail.setMessage(notification);
 
-        //TODO temporary disable
-        /*try {
-            sendMailService.sendMail(mail);
+        try {
+            sendMailService.sendInfoMail(mail);
         } catch (MailException e) {
             LOG.error(e);
-        }*/
+        }
         return notification;
     }
 

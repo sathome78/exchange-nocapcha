@@ -68,15 +68,14 @@ public class NotificationServiceImpl implements NotificationService {
         if (option.isSendNotification()) {
             createLocalizedNotification(userId, cause, titleCode, messageCode, messageArgs);
         }
-        //TODO Temporary disabled
-        /*if (option.isSendEmail()) {
+        if (option.isSendEmail()) {
             Locale locale = new Locale(userService.getPreferedLang(userId));
             Email email = new Email();
             email.setMessage(messageSource.getMessage(messageCode, messageArgs, locale));
             email.setSubject(messageSource.getMessage(titleCode, null, locale));
             email.setTo(user.getEmail());
-            sendMailService.sendMail(email);
-        }*/
+            sendMailService.sendInfoMail(email);
+        }
     }
 
     @Override
