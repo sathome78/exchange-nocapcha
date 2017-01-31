@@ -29,28 +29,29 @@ public class SendMailServiceImpl implements SendMailService{
 	private final String INFO_EMAIL = "no-replay@exrates.tech";
 
 	public void sendMail(Email email){
-		sendMail(email, SUPPORT_EMAIL, supportMailSender);
+		sendMail(email, INFO_EMAIL, infoMailSender);
 	}
 
 	@Override
 	public void sendInfoMail(Email email) {
-		sendMail(email, INFO_EMAIL, infoMailSender);
+		//TODO temporary disable info emailing
+
+	//	sendMail(email, INFO_EMAIL, infoMailSender);
 	}
 
 	private void sendMail(Email email, String fromAddress, JavaMailSender mailSender) {
 		email.setFrom(fromAddress);
 		logger.debug(email);
 
-		//TODO temporary disable info emailing
 
-		/*mailSender.send(mimeMessage -> {
+		mailSender.send(mimeMessage -> {
 			MimeMessageHelper message;
 			message = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 			message.setFrom(email.getFrom());
 			message.setTo(email.getTo());
 			message.setSubject(email.getSubject());
 			message.setText(email.getMessage(), true);
-		});*/
+		});
 	}
 
 	@Override
