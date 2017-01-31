@@ -298,7 +298,8 @@ public class OrderDaoImpl implements OrderDao {
                     "   GROUP BY status_id, currency_pair_id          " +
                     "   ) " +
                     " AGRIGATE " +
-                    " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = AGRIGATE.currency_pair_id) AND (CURRENCY_PAIR.hidden IS NOT TRUE)" +
+                    " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = AGRIGATE.currency_pair_id) AND (CURRENCY_PAIR.hidden IS NOT TRUE) " +
+                    "" +
                     " ORDER BY -CURRENCY_PAIR.pair_order DESC ";
             NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
             Map<String, String> namedParameters = new HashMap<>();
@@ -308,6 +309,9 @@ public class OrderDaoImpl implements OrderDao {
                 public ExOrderStatisticsShortByPairsDto mapRow(ResultSet rs, int rowNum) throws SQLException {
                     BigDecimal lastRate = rs.getBigDecimal("last_exrate");
                     BigDecimal predLastRate = rs.getBigDecimal("pred_last_exrate");
+                    if (predLastRate == null) {
+                        predLastRate = lastRate;
+                    }
                     BigDecimal percentChange = BigDecimalProcessing.doAction(predLastRate, lastRate, ActionType.PERCENT_GROWTH);
                     ExOrderStatisticsShortByPairsDto exOrderStatisticsDto = new ExOrderStatisticsShortByPairsDto();
                     exOrderStatisticsDto.setCurrencyPairName(rs.getString("currency_pair_name"));
