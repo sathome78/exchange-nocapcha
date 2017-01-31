@@ -54,3 +54,5 @@ INSERT INTO CURRENCY_LIMIT (currency_id, operation_type_id, user_role_id, min_su
   ORDER BY currency_id, op_type, role;
 
 ALTER TABLE CURRENCY DROP min_withdraw_sum;
+
+INSERT INTO DATABASE_PATCH VALUES ('patch_88_add_useer_roles', default, 1);
