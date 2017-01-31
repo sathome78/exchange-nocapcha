@@ -41,14 +41,16 @@ public class SendMailServiceImpl implements SendMailService{
 		email.setFrom(fromAddress);
 		logger.debug(email);
 
-		mailSender.send(mimeMessage -> {
+		//TODO temporary disable info emailing
+
+		/*mailSender.send(mimeMessage -> {
 			MimeMessageHelper message;
 			message = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 			message.setFrom(email.getFrom());
 			message.setTo(email.getTo());
 			message.setSubject(email.getSubject());
 			message.setText(email.getMessage(), true);
-		});
+		});*/
 	}
 
 	@Override
