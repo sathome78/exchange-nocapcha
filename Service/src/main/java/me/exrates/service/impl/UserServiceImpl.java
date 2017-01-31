@@ -343,7 +343,8 @@ public class UserServiceImpl implements UserService {
         email.setTo(user.getEmail());
         email.setMessage(messageSource.getMessage(emailText, new Object[]{user.getIp()}, locale));
         email.setSubject(messageSource.getMessage(emailSubject, null, locale));
-        sendMailService.sendMail(email);
+        //TODO temporary disable
+      //  sendMailService.sendMail(email);
     }
 
     public boolean createTemporalToken(TemporalToken token) {
