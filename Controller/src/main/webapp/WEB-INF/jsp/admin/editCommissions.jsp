@@ -53,20 +53,6 @@
                                 <th><loc:message code="admin.commissions.value"/></th>
                             </tr>
                             </thead>
-                            <tbody>
-                           <%-- <c:forEach items="${commissions}" var="commission">
-                                <tr data-id="${commission.id}">
-                                    <td>${commission.operationType}</td>
-                                    <td>
-                                        <span hidden class="commissionUnformatted">${commission.value}</span>
-                                        <span class="commissionFormatted">
-                                                <fmt:formatNumber value="${commission.value}" pattern="###,##0.00########"/>
-                                            </span>
-                                    </td>
-
-                                </tr>
-                            </c:forEach>--%>
-                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -79,7 +65,8 @@
                             <tr>
                                 <th><loc:message code="withdrawal.merchant"/> </th>
                                 <th><loc:message code="withdrawal.currency"/> </th>
-                                <th><loc:message code="withdrawal.commission"/></th>
+                                <th><loc:message code="admin.merchantsCommissions.input"/></th>
+                                <th><loc:message code="admin.merchantsCommissions.output"/></th>
                             </tr>
                             </thead>
                             <tbody>
@@ -92,6 +79,12 @@
                                         <span hidden class="merchantCommissionUnformatted">${merchantCurrency.inputCommission}</span>
                                         <span class="merchantCommissionFormatted">
                                                 <fmt:formatNumber value="${merchantCurrency.inputCommission}" pattern="###,##0.00########"/>
+                                            </span>
+                                    </td>
+                                    <td>
+                                        <span hidden class="merchantCommissionUnformatted">${merchantCurrency.inputCommission}</span>
+                                        <span class="merchantCommissionFormatted">
+                                                <fmt:formatNumber value="${merchantCurrency.outputCommission}" pattern="###,##0.00########"/>
                                             </span>
                                     </td>
 

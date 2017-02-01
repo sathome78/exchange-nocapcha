@@ -186,8 +186,8 @@ public class MerchantDaoImpl implements MerchantDao {
     @Override
     public List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions() {
         final String sql = "SELECT MERCHANT.id as merchant_id, MERCHANT.name AS merchant_name, " +
-                " CURRENCY.id AS currency_id, CURRENCY.name AS currency_name, MERCHANT_CURRENCY.merchant_commission," +
-                " MERCHANT_CURRENCY.withdraw_block, MERCHANT_CURRENCY.refill_block " +
+                " CURRENCY.id AS currency_id, CURRENCY.name AS currency_name, MERCHANT_CURRENCY.merchant_input_commission," +
+                " MERCHANT_CURRENCY.merchant_output_commission, MERCHANT_CURRENCY.withdraw_block, MERCHANT_CURRENCY.refill_block " +
                 " FROM MERCHANT " +
                 "JOIN MERCHANT_CURRENCY ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id " +
                 "JOIN CURRENCY ON MERCHANT_CURRENCY.currency_id = CURRENCY.id " +
@@ -198,7 +198,8 @@ public class MerchantDaoImpl implements MerchantDao {
             dto.setCurrencyId(rs.getInt("currency_id"));
             dto.setMerchantName(rs.getString("merchant_name"));
             dto.setCurrencyName(rs.getString("currency_name"));
-            dto.setInputCommission(rs.getBigDecimal("merchant_commission"));
+            dto.setInputCommission(rs.getBigDecimal("merchant_input_commission"));
+            dto.setOutputCommission(rs.getBigDecimal("merchant_output_commission"));
             dto.setRefillBlocked(rs.getBoolean("refill_block"));
             dto.setWithdrawBlocked(rs.getBoolean("withdraw_block"));
             return dto;
