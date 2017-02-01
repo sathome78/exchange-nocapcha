@@ -11,6 +11,7 @@ import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.WithdrawalRequestStatus;
+import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.CacheData;
 import me.exrates.service.*;
 import me.exrates.service.exception.MerchantCurrencyBlockedException;
@@ -265,7 +266,7 @@ public class MerchantServiceImpl implements MerchantService {
         final BigDecimal amount = creditsOperation
                 .getAmount()
                 .add(creditsOperation.getCommissionAmount());
-        final String sumWithCurrency = amount.stripTrailingZeros() + " " +
+        final String sumWithCurrency = BigDecimalProcessing.formatSpacePoint(amount, false) + " " +
                 creditsOperation
                         .getCurrency()
                         .getName();
