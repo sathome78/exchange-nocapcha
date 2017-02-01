@@ -29,7 +29,7 @@ public class SendMailServiceImpl implements SendMailService{
 	private final String INFO_EMAIL = "no-replay@exrates.tech";
 
 	public void sendMail(Email email){
-		sendMail(email, INFO_EMAIL, infoMailSender);
+		sendMail(email, SUPPORT_EMAIL, supportMailSender);
 	}
 
 	@Override

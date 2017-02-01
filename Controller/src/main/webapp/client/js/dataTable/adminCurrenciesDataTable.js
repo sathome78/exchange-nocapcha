@@ -11,21 +11,27 @@ $(document).ready(function () {
 
 
     $('#roleName, #operationType').change(updateCurrencyLimitsDataTable);
+    updateCurrencyLimitsDataTable(addClickListener);
 
-    $($currencyLimitsTable).find('tbody').on('click', 'tr', function () {
-        var rowData = currencyLimitDataTable.row(this).data();
-        var currencyId = rowData.currency.id;
-        var currencyName = rowData.currency.name;
-        var currentMinLimit = rowData.minSum;
-        var operationType = $('#operationType').val();
-        var userRole = $('#roleName').val();
-        $($editCurrencyLimitForm).find('input[name="currencyId"]').val(currencyId);
-        $('#currency-name').val(currencyName);
-        $($editCurrencyLimitForm).find('input[name="operationType"]').val(operationType);
-        $($editCurrencyLimitForm).find('input[name="roleName"]').val(userRole);
-        $($editCurrencyLimitForm).find('input[name="minAmount"]').val(currentMinLimit);
-        $('#editLimitModal').modal();
-    });
+    function addClickListener() {
+        $($currencyLimitsTable).find('tbody').on('click', 'tr', function () {
+            var rowData = currencyLimitDataTable.row(this).data();
+            var currencyId = rowData.currency.id;
+             var currencyName = rowData.currency.name;
+             var currentMinLimit = rowData.minSum;
+             var operationType = $('#operationType').val();
+             var userRole = $('#roleName').val();
+             $($editCurrencyLimitForm).find('input[name="currencyId"]').val(currencyId);
+             $('#currency-name').val(currencyName);
+             $($editCurrencyLimitForm).find('input[name="operationType"]').val(operationType);
+             $($editCurrencyLimitForm).find('input[name="roleName"]').val(userRole);
+             $($editCurrencyLimitForm).find('input[name="minAmount"]').val(currentMinLimit);
+             $('#editLimitModal').modal();
+        });
+    }
+
+
+
     $('#submitNewLimit').click(function(e) {
         e.preventDefault();
         submitNewLimit()
@@ -33,12 +39,11 @@ $(document).ready(function () {
 
 
 
-    updateCurrencyLimitsDataTable();
 
 
 });
 
-function updateCurrencyLimitsDataTable() {
+function updateCurrencyLimitsDataTable(initCallback) {
     var $currencyLimitsTable = $('#currency-limits-table');
     var userRole = $('#roleName').val();
     var operationType = $('#operationType').val();
@@ -59,6 +64,7 @@ function updateCurrencyLimitsDataTable() {
             "bLengthChange": false,
             "bPaginate": false,
             "bInfo": false,
+            "initComplete": initCallback,
             "columns": [
                 {
                     "data":"currency.id",
@@ -79,7 +85,6 @@ function updateCurrencyLimitsDataTable() {
 
 function submitNewLimit() {
     var formData =  $('#edit-currency-limit-form').serialize();
-    console.log(formData);
     $.ajax({
         headers: {
             'X-CSRF-Token': $("input[name='_csrf']").val()

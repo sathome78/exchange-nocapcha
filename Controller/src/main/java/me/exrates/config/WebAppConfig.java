@@ -198,7 +198,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
         mailSenderImpl.setProtocol("smtp");
         mailSenderImpl.setUsername("support@exrates.me");
-        mailSenderImpl.setPassword("Hgdr35lKN103b");
+        mailSenderImpl.setPassword("EXratesme");
         final Properties javaMailProps = new Properties();
         javaMailProps.put("mail.smtp.auth", true);
         javaMailProps.put("mail.smtp.starttls.enable", true);
