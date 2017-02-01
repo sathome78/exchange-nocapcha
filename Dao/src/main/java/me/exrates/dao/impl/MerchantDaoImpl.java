@@ -145,14 +145,18 @@ public class MerchantDaoImpl implements MerchantDao {
 
     @Override
     public List<MerchantCurrencyApiDto> findAllMerchantCurrencies(Integer currencyId, UserRole userRole) {
-        String whereClause = currencyId == null ? "" : " AND MERCHANT_CURRENCY.currency_id = :currency_id";
+        String whereClause = currencyId == null ? "" : " WHERE MERCHANT_CURRENCY.currency_id = :currency_id";
 
-        final String sql = "SELECT MERCHANT.id as merchant_id, MERCHANT.name, MERCHANT_CURRENCY.min_sum," +
-                " MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_input_commission, MERCHANT_CURRENCY.merchant_output_commission," +
-                " MERCHANT_CURRENCY.withdraw_block, MERCHANT_CURRENCY.refill_block, CURRENCY_LIMIT.min_sum AS min_withdraw_sum FROM MERCHANT " +
-                "JOIN MERCHANT_CURRENCY ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id " +
-                "JOIN CURRENCY_LIMIT ON MERCHANT_CURRENCY.currency_id = CURRENCY_LIMIT.currency_id " +
-                "WHERE CURRENCY_LIMIT.user_role_id = :user_role_id AND CURRENCY_LIMIT.operation_type_id = 2 " + whereClause;
+        final String sql = "SELECT MERCHANT.id as merchant_id, MERCHANT.name, " +
+                "                 MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_input_commission, MERCHANT_CURRENCY.merchant_output_commission, " +
+                "                 MERCHANT_CURRENCY.withdraw_block, MERCHANT_CURRENCY.refill_block, LIMIT_WITHDRAW.min_sum AS min_withdraw_sum, " +
+                "                 LIMIT_REFILL.min_sum AS min_refill_sum " +
+                "                FROM MERCHANT " +
+                "                JOIN MERCHANT_CURRENCY ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id " +
+                "                JOIN CURRENCY_LIMIT AS LIMIT_WITHDRAW ON MERCHANT_CURRENCY.currency_id = LIMIT_WITHDRAW.currency_id " +
+                "                                  AND LIMIT_WITHDRAW.operation_type_id = 2 AND LIMIT_WITHDRAW.user_role_id = :user_role_id " +
+                "                  JOIN CURRENCY_LIMIT AS LIMIT_REFILL ON MERCHANT_CURRENCY.currency_id = LIMIT_REFILL.currency_id " +
+                "                                  AND LIMIT_REFILL.operation_type_id = 1 AND LIMIT_REFILL.user_role_id = :user_role_id " + whereClause;
         Map<String, Integer> paramMap = new HashMap<String, Integer>() {{
             put("currency_id", currencyId);
             put("user_role_id", userRole.getRole());
@@ -164,7 +168,7 @@ public class MerchantDaoImpl implements MerchantDao {
                 merchantCurrencyApiDto.setMerchantId(resultSet.getInt("merchant_id"));
                 merchantCurrencyApiDto.setCurrencyId(resultSet.getInt("currency_id"));
                 merchantCurrencyApiDto.setName(resultSet.getString("name"));
-                merchantCurrencyApiDto.setMinInputSum(resultSet.getBigDecimal("min_sum"));
+                merchantCurrencyApiDto.setMinInputSum(resultSet.getBigDecimal("min_refill_sum"));
                 merchantCurrencyApiDto.setMinOutputSum(resultSet.getBigDecimal("min_withdraw_sum"));
                 merchantCurrencyApiDto.setInputCommission(resultSet.getBigDecimal("merchant_input_commission"));
                 merchantCurrencyApiDto.setOutputCommission(resultSet.getBigDecimal("merchant_output_commission"));

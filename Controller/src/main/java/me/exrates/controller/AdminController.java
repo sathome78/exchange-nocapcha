@@ -848,10 +848,8 @@ public class AdminController {
 
     @RequestMapping(value = "/2a8fy7b07dxe44/commissions", method = RequestMethod.GET)
     public ModelAndView commissions() {
-        List<MerchantCurrencyOptionsDto> merchantCurrencies = merchantService.findMerchantCurrencyOptions();
         ModelAndView modelAndView = new ModelAndView("admin/editCommissions");
         modelAndView.addObject("roleNames", ROLE_NAMES);
-        modelAndView.addObject("merchantCurrencies", merchantCurrencies);
         return modelAndView;
     }
 
@@ -859,6 +857,13 @@ public class AdminController {
     @ResponseBody
     public List<CommissionShortEditDto> retrieveCommissionsForRole(@RequestParam String role, HttpServletRequest request) {
         return commissionService.getEditableCommissionsByRole(role, localeResolver.resolveLocale(request));
+
+    }
+
+    @RequestMapping(value = "/2a8fy7b07dxe44/getMerchantCommissions", method = RequestMethod.GET)
+    @ResponseBody
+    public List<MerchantCurrencyOptionsDto> retrieveMerchantCommissions() {
+        return merchantService.findMerchantCurrencyOptions();
 
     }
 
