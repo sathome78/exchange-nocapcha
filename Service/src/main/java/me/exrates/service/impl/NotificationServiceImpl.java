@@ -74,7 +74,7 @@ public class NotificationServiceImpl implements NotificationService {
             email.setMessage(messageSource.getMessage(messageCode, messageArgs, locale));
             email.setSubject(messageSource.getMessage(titleCode, null, locale));
             email.setTo(user.getEmail());
-            sendMailService.sendMail(email);
+            sendMailService.sendInfoMail(email);
         }
     }
 

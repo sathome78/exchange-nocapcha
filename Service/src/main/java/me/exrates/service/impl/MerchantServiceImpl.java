@@ -277,8 +277,9 @@ public class MerchantServiceImpl implements MerchantService {
         mail.setSubject(messageSource
                 .getMessage("merchants.depositNotification.header",null,locale));
         mail.setMessage(notification);
+
         try {
-            sendMailService.sendMail(mail);
+            sendMailService.sendInfoMail(mail);
         } catch (MailException e) {
             LOG.error(e);
         }

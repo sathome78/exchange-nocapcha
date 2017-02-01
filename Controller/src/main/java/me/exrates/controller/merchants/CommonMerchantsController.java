@@ -77,6 +77,7 @@ public class CommonMerchantsController {
         final List<Integer> currenciesId = new ArrayList<>();
         currenciesId.add(currencyId);
         modelAndView.addObject("merchantCurrencyData",merchantService.findAllByCurrencies(currenciesId, OperationType.INPUT));
+        modelAndView.addObject("minAmount", currencyService.retrieveMinLimitForRoleAndCurrency(userService.getCurrentUserRole(), INPUT, currencyId));
 
         return modelAndView;
     }

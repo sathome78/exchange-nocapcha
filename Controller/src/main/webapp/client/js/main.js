@@ -123,21 +123,16 @@ $(function(){
                 if ( val >= maxWalletSum){
                     $(this).val(maxWalletSum);
                 }
-                minLimit = parseFloat($('#minAmount').text());
-
-                if (val >= minLimit) {
-                    $('#min-sum-notification').hide();
-                } else {
-                    $('#min-sum-notification').show();
-                }
-
             }
-            /*if (operationType.val() === 'USER_TRANSFER') {
-                var maxTransferSum = parseFloat($('#maxForTransfer').text())
-                if ( val >= maxTransferSum){
-                    $(this).val(maxTransferSum);
-                }
-            }*/
+
+            minLimit = parseFloat($('#minAmount').text());
+
+            if (val >= minLimit) {
+                $('#min-sum-notification').hide();
+            } else {
+                $('#min-sum-notification').show();
+            }
+
             var decimal = $(this).val().split('.')[1];
             if (decimal && decimal.length > fractionalAmount) {
                 $(this).val($(this).val().slice(0,-1));
@@ -630,6 +625,8 @@ $(function(){
         $('#transferProcess').prop('disabled', true);
          merchantName = 'transfer';
          fillModalWindow('USER_TRANSFER', sum.val(), getCurrentCurrency());
+        $('#nicknameInput').val('');
+        $('#nickname').val('');
          validateNickname();
         $('.nickname_input').show();
          requestControls();
@@ -667,7 +664,11 @@ $(function(){
             success: function (response) {
                 $('.paymentInfo').html(response.result);
                 $('.nickname_input').hide();
-                responseControls ()
+                responseControls();
+                setTimeout(function()
+                {
+                    location.reload();
+                },5000);
             },
             error: function (err) {
                 console.log(err);

@@ -7,4 +7,4 @@ ALTER TABLE `TRANSACTION`
   CHANGE COLUMN `source_type` `source_type` ENUM('ORDER', 'MERCHANT', 'REFERRAL', 'ACCRUAL', 'MANUAL', 'USER_TRANSFER') NULL DEFAULT NULL ;
 
 
-INSERT INTO DATABASE_PATCH (version, datetime, patched) VALUES ('patch_84_add_user_transfer', DEFAULT, 1);
+INSERT INTO DATABASE_PATCH (version, datetime, patched) VALUES ('patch_87_add_user_transfer', DEFAULT, 1);

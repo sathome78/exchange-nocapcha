@@ -41,6 +41,11 @@
                                     <form:input class="form-control input-block-wrapper__input numericInputField"
                                                 id="sum" path="sum" />
                                 </div>
+                                <div class="col-md-6 input-block-wrapper__label-wrapper">
+                                    <div id="min-sum-notification" class="red"><loc:message code="merchants.input.minSum"/>
+                                        <strong> ${currencyName} <span><fmt:formatNumber value="${minAmount}" pattern="###,##0.00######"/></span>
+                                        </strong></div>
+                                </div>
                             </div>
 
 
@@ -65,7 +70,7 @@
                         </form:form>
                     </div>
                 </div>
-
+                <span hidden id="minAmount">${minAmount}</span>
             </c:otherwise>
         </c:choose>
 </div>

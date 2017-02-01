@@ -117,7 +117,8 @@ public class MerchantDaoImpl implements MerchantDao {
                 " MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_input_commission, MERCHANT_CURRENCY.merchant_output_commission " +
                 " FROM MERCHANT JOIN MERCHANT_CURRENCY " +
                 " ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id WHERE MERCHANT_CURRENCY.currency_id in (:currenciesId)" +
-                blockClause;
+                blockClause +
+                " order by MERCHANT.merchant_order";
 
         try {
             return jdbcTemplate.query(sql, Collections.singletonMap("currenciesId",currenciesId), (resultSet, i) -> {

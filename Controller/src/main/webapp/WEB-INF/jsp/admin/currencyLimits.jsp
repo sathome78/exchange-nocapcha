@@ -23,11 +23,11 @@
 <main class="container">
     <div class="row">
         <%@include file='left_side_menu.jsp' %>
-        <div class="col-md-8 col-md-offset-2 admin-container">
+        <div class="col-md-6 col-md-offset-2 admin-container">
             <div class="text-center"><h4><loc:message code="admin.currencyLimits.title"/></h4></div>
 
                 <div id="panel4 row" class="tab-pane">
-                    <div class="col-sm-6 text-center">
+                    <div class="col-md-6 col-md-offset-3 text-center">
                         <h5>
                             <loc:message code="admin.currencyLimits.table"/>
                         </h5>
@@ -45,53 +45,22 @@
                                 </c:forEach>
                             </select>
                         </div>
+
                         <hr/>
 
+                    <table id="currency-limits-table">
+                        <thead>
+                        <tr>
+                            <th></th>
+                            <th><loc:message code="admin.currencyLimits.name"/> </th>
+                            <th><loc:message code="admin.currencyLimits.minLimit"/></th>
+                        </tr>
+                        </thead>
+                    </table>
+                    </div>
+                    <div class="col-md-6 col-md-offset-3">
 
 
-
-
-                        <table id="currency-limits-table">
-                            <thead>
-                            <tr>
-                                <th></th>
-                                <th><loc:message code="admin.currencyLimits.name"/> </th>
-                                <th><loc:message code="admin.currencyLimits.minLimit"/></th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <%--<c:forEach items="${currencies}" var="currency">
-                                <tr data-id="${currency.id}">
-                                    <td>
-                                            ${currency.name}
-                                    </td>
-                                    <td>
-                                        <c:choose>
-                                            <c:when test="${currency.description == null}">
-                                                -
-                                            </c:when>
-                                            <c:otherwise>
-                                                ${currency.description}
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </td>
-                                    <td>
-                                        <span hidden class="minLimitUnformatted">${currency.minWithdrawSum}</span>
-                                        <c:choose>
-                                            <c:when test="${currency.minWithdrawSum == null}">
-                                                -
-                                            </c:when>
-                                            <c:otherwise>
-                                        <span class="minLimitFormatted">
-                                                <fmt:formatNumber value="${currency.minWithdrawSum}" pattern="###,##0.00########"/>
-                                            </span>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </td>
-                                </tr>
-                            </c:forEach>--%>
-                            </tbody>
-                        </table>
                     </div>
 
 
