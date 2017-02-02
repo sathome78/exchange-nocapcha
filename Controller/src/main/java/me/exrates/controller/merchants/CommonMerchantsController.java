@@ -77,6 +77,7 @@ public class CommonMerchantsController {
         final List<Integer> currenciesId = new ArrayList<>();
         currenciesId.add(currencyId);
         modelAndView.addObject("merchantCurrencyData",merchantService.findAllByCurrencies(currenciesId, OperationType.INPUT));
+        modelAndView.addObject("minAmount", currencyService.retrieveMinLimitForRoleAndCurrency(userService.getCurrentUserRole(), INPUT, currencyId));
 
         return modelAndView;
     }
@@ -89,11 +90,13 @@ public class CommonMerchantsController {
         final Wallet wallet = walletService.findByUserAndCurrency(userService.findByEmail(principal.getName()), currency);
         final Payment payment = new Payment();
         payment.setOperationType(OUTPUT);
+        final BigDecimal minWithdrawSum = currencyService.retrieveMinLimitForRoleAndCurrency(userService.getCurrentUserRole(), OUTPUT, currency.getId());
 
         modelAndView.addObject("currency",currency);
 
         modelAndView.addObject("wallet",wallet);
         modelAndView.addObject("payment", payment);
+        modelAndView.addObject("minWithdrawSum", minWithdrawSum);
         final List<Integer> currenciesId = new ArrayList<>();
         currenciesId.add(currency.getId());
         modelAndView.addObject("merchantCurrencyData",merchantService.findAllByCurrencies(currenciesId, OperationType.OUTPUT));

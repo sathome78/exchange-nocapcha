@@ -118,6 +118,24 @@ public class BigDecimalProcessing {
         df.setDecimalFormatSymbols(dfs);
         return df.format(bigDecimal == null ? BigDecimal.ZERO : bigDecimal);
     }
+    /**
+     * Returns String converted from BigDecimal value
+     * with <b>Space</b> as group separator and <b>Point</b> as decimal separator
+     * with trailing zeros if trailingZeros is "true" or without if "false"
+     *
+     * @param bigDecimal value to convert
+     * @return string ov value or "0" if value is null
+     * 67553.116000000 => 67 553,116 or 67 553,116000000 (depending on trailingZeros)
+     */
+    public static String formatSpacePoint(BigDecimal bigDecimal, boolean trailingZeros) {
+        DecimalFormat df = new DecimalFormat(trailingZeros ? PATTERN : PATTERN_SHORT);
+        DecimalFormatSymbols dfs = df.getDecimalFormatSymbols();
+        df.setRoundingMode(ROUND_TYPE);
+        dfs.setGroupingSeparator(' ');
+        dfs.setDecimalSeparator('.');
+        df.setDecimalFormatSymbols(dfs);
+        return df.format(bigDecimal == null ? BigDecimal.ZERO : bigDecimal);
+    }
 
     /**
      * Returns String converted from BigDecimal value

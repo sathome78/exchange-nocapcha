@@ -1,49 +1,58 @@
 package me.exrates.service.impl;
 
-import java.util.Locale;
-
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import me.exrates.model.Email;
 import me.exrates.service.SendMailService;
 
-import org.springframework.mail.MailException;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.mail.javamail.MimeMessagePreparator;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class SendMailServiceImpl implements SendMailService{
 
 	@Autowired
-	private JavaMailSender mailSender;
+	@Qualifier("SupportMailSender")
+	private JavaMailSender supportMailSender;
+
+	@Autowired
+	@Qualifier("InfoMailSender")
+	private JavaMailSender infoMailSender;
 	
 	private static final Logger logger = LogManager.getLogger(SendMailServiceImpl.class);
 
+	private final String SUPPORT_EMAIL = "support@exrates.me";
+	private final String INFO_EMAIL = "no-replay@exrates.tech";
+
 	public void sendMail(Email email){
+		sendMail(email, SUPPORT_EMAIL, supportMailSender);
+	}
+
+	@Override
+	public void sendInfoMail(Email email) {
+		//TODO temporary disable info emailing
+
+	//	sendMail(email, INFO_EMAIL, infoMailSender);
+	}
+
+	private void sendMail(Email email, String fromAddress, JavaMailSender mailSender) {
+		email.setFrom(fromAddress);
 		logger.debug(email);
-		email.setFrom("support@exrates.me");
-        mailSender.send(new MimeMessagePreparator() {
-			  public void prepare(MimeMessage mimeMessage) throws MessagingException {
-			    MimeMessageHelper message;
-				message = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-				message.setFrom(email.getFrom());
-			    message.setTo(email.getTo());
-			    message.setSubject(email.getSubject());
-			    message.setText(email.getMessage(), true);
-			  }
-			});
-}
+
+
+		mailSender.send(mimeMessage -> {
+			MimeMessageHelper message;
+			message = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+			message.setFrom(email.getFrom());
+			message.setTo(email.getTo());
+			message.setSubject(email.getSubject());
+			message.setText(email.getMessage(), true);
+		});
+	}
 
 	@Override
 	public void sendFeedbackMail(String senderName, String senderMail, String messageBody, String mailTo) {

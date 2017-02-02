@@ -1,6 +1,7 @@
 package me.exrates.model;
 
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.UserRole;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -11,6 +12,7 @@ public class Commission {
     private OperationType operationType;
     private BigDecimal value;
     private Date dateOfChange;
+    private UserRole userRole;
 
     public int getId() {
         return id;
@@ -44,6 +46,14 @@ public class Commission {
         this.dateOfChange = dateOfChange;
     }
 
+    public UserRole getUserRole() {
+        return userRole;
+    }
+
+    public void setUserRole(UserRole userRole) {
+        this.userRole = userRole;
+    }
+
     @Override
     public String toString() {
         return "Commission{" +
@@ -51,6 +61,7 @@ public class Commission {
                 ", operationType=" + operationType +
                 ", value=" + value +
                 ", dateOfChange=" + dateOfChange +
+                ", userRole=" + userRole +
                 '}';
     }
 }

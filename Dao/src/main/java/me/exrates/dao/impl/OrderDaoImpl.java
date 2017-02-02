@@ -21,7 +21,6 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -299,7 +298,8 @@ public class OrderDaoImpl implements OrderDao {
                     "   GROUP BY status_id, currency_pair_id          " +
                     "   ) " +
                     " AGRIGATE " +
-                    " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = AGRIGATE.currency_pair_id) AND (CURRENCY_PAIR.hidden IS NOT TRUE)" +
+                    " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = AGRIGATE.currency_pair_id) AND (CURRENCY_PAIR.hidden IS NOT TRUE) " +
+                    "" +
                     " ORDER BY -CURRENCY_PAIR.pair_order DESC ";
             NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
             Map<String, String> namedParameters = new HashMap<>();
@@ -309,6 +309,9 @@ public class OrderDaoImpl implements OrderDao {
                 public ExOrderStatisticsShortByPairsDto mapRow(ResultSet rs, int rowNum) throws SQLException {
                     BigDecimal lastRate = rs.getBigDecimal("last_exrate");
                     BigDecimal predLastRate = rs.getBigDecimal("pred_last_exrate");
+                    if (predLastRate == null) {
+                        predLastRate = lastRate;
+                    }
                     BigDecimal percentChange = BigDecimalProcessing.doAction(predLastRate, lastRate, ActionType.PERCENT_GROWTH);
                     ExOrderStatisticsShortByPairsDto exOrderStatisticsDto = new ExOrderStatisticsShortByPairsDto();
                     exOrderStatisticsDto.setCurrencyPairName(rs.getString("currency_pair_name"));
@@ -524,7 +527,7 @@ public class OrderDaoImpl implements OrderDao {
                     walletOperationData.setWalletId(orderDetailDto.getUserWalletId());
                     walletOperationData.setAmount(orderDetailDto.getTransactionAmount());
                     walletOperationData.setBalanceType(WalletOperationData.BalanceType.ACTIVE);
-                    Commission commission = commissionDao.getCommission(OperationType.STORNO);
+                    Commission commission = commissionDao.getDefaultCommission(OperationType.STORNO);
                     walletOperationData.setCommission(commission);
                     walletOperationData.setCommissionAmount(commission.getValue());
                     walletOperationData.setSourceType(TransactionSourceType.ORDER);
@@ -646,30 +649,28 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public OrderCommissionsDto getCommissionForOrder() {
+    public OrderCommissionsDto getCommissionForOrder(UserRole userRole) {
         final String sql =
                 "  SELECT SUM(sell_commission) as sell_commission, SUM(buy_commission) as buy_commission " +
                         "  FROM " +
                         "      ((SELECT SELL.value as sell_commission, 0 as buy_commission " +
                         "      FROM COMMISSION SELL " +
-                        "      WHERE operation_type = 3 " +
+                        "      WHERE operation_type = 3 AND user_role = :user_role " +
                         "      ORDER BY date DESC LIMIT 1)  " +
                         "    UNION " +
                         "      (SELECT 0, BUY.value " +
                         "      FROM COMMISSION BUY " +
-                        "      WHERE operation_type = 4 " +
+                        "      WHERE operation_type = 4 AND user_role = :user_role " +
                         "      ORDER BY date DESC LIMIT 1) " +
                         "  ) COMMISSION";
         try {
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-            return jdbcTemplate.queryForObject(sql, new RowMapper<OrderCommissionsDto>() {
-                @Override
-                public OrderCommissionsDto mapRow(ResultSet rs, int rowNum) throws SQLException {
-                    OrderCommissionsDto orderCommissionsDto = new OrderCommissionsDto();
-                    orderCommissionsDto.setSellCommission(rs.getBigDecimal("sell_commission"));
-                    orderCommissionsDto.setBuyCommission(rs.getBigDecimal("buy_commission"));
-                    return orderCommissionsDto;
-                }
+            NamedParameterJdbcTemplate jdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+            Map<String, Integer> params = Collections.singletonMap("user_role", userRole.getRole());
+            return jdbcTemplate.queryForObject(sql, params, (rs, rowNum) -> {
+                OrderCommissionsDto orderCommissionsDto = new OrderCommissionsDto();
+                orderCommissionsDto.setSellCommission(rs.getBigDecimal("sell_commission"));
+                orderCommissionsDto.setBuyCommission(rs.getBigDecimal("buy_commission"));
+                return orderCommissionsDto;
             });
         } catch (EmptyResultDataAccessException e) {
             return null;
@@ -677,34 +678,35 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public CommissionsDto getAllCommissions(){
+    public CommissionsDto getAllCommissions(UserRole userRole){
         final String sql =
                 "  SELECT SUM(sell_commission) as sell_commission, SUM(buy_commission) as buy_commission, " +
                         "SUM(input_commission) as input_commission, SUM(output_commission) as output_commission" +
                         "  FROM " +
                         "      ((SELECT SELL.value as sell_commission, 0 as buy_commission, 0 as input_commission, 0 as output_commission " +
                         "      FROM COMMISSION SELL " +
-                        "      WHERE operation_type = 3 " +
+                        "      WHERE operation_type = 3 AND user_role = :user_role " +
                         "      ORDER BY date DESC LIMIT 1)  " +
                         "    UNION " +
                         "      (SELECT 0, BUY.value, 0, 0 " +
                         "      FROM COMMISSION BUY " +
-                        "      WHERE operation_type = 4 " +
+                        "      WHERE operation_type = 4  AND user_role = :user_role " +
                         "      ORDER BY date DESC LIMIT 1) " +
                         "    UNION " +
                         "      (SELECT 0, 0, INPUT.value, 0 " +
                         "      FROM COMMISSION INPUT " +
-                        "      WHERE operation_type = 1 " +
+                        "      WHERE operation_type = 1  AND user_role = :user_role " +
                         "      ORDER BY date DESC LIMIT 1) " +
                         "    UNION " +
                         "      (SELECT 0, 0, 0, OUTPUT.value " +
                         "      FROM COMMISSION OUTPUT " +
-                        "      WHERE operation_type = 2 " +
+                        "      WHERE operation_type = 2 AND user_role = :user_role  " +
                         "      ORDER BY date DESC LIMIT 1) " +
                         "  ) COMMISSION";
         try {
-            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-            return jdbcTemplate.queryForObject(sql, (rs, row) -> {
+            NamedParameterJdbcTemplate jdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+            Map<String, Integer> params = Collections.singletonMap("user_role", userRole.getRole());
+            return jdbcTemplate.queryForObject(sql, params, (rs, row) -> {
                     CommissionsDto commissionsDto = new CommissionsDto();
                     commissionsDto.setSellCommission(rs.getBigDecimal("sell_commission"));
                     commissionsDto.setBuyCommission(rs.getBigDecimal("buy_commission"));
@@ -845,13 +847,13 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public WalletsAndCommissionsForOrderCreationDto getWalletAndCommission(String email, Currency currency,
-                                                                           OperationType operationType) {
+                                                                           OperationType operationType, UserRole userRole) {
         String sql = "SELECT USER.id AS user_id, WALLET.id AS wallet_id, WALLET.active_balance, COMM.id AS commission_id, COMM.value AS commission_value" +
                 "  FROM USER " +
                 "    LEFT JOIN WALLET ON (WALLET.user_id=USER.id) AND (WALLET.currency_id = :currency_id) " +
                 "    LEFT JOIN ((SELECT COMMISSION.id, COMMISSION.value " +
                 "           FROM COMMISSION " +
-                "           WHERE COMMISSION.operation_type=:operation_type_id ORDER BY COMMISSION.date " +
+                "           WHERE COMMISSION.operation_type=:operation_type_id AND COMMISSION.user_role = :user_role ORDER BY COMMISSION.date " +
                 "           DESC LIMIT 1) AS COMM) ON (1=1) " +
                 "  WHERE USER.email = :email";
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
@@ -859,6 +861,7 @@ public class OrderDaoImpl implements OrderDao {
         namedParameters.put("email", email);
         namedParameters.put("operation_type_id", operationType.getType());
         namedParameters.put("currency_id", currency.getId());
+        namedParameters.put("user_role", userRole.getRole());
         try {
             return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, new RowMapper<WalletsAndCommissionsForOrderCreationDto>() {
                 @Override

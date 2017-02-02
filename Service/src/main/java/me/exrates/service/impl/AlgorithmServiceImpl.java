@@ -4,6 +4,7 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.CommissionService;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +29,9 @@ public class AlgorithmServiceImpl implements AlgorithmService {
 
     @Autowired
     private CommissionService commissionService;
+
+    @Autowired
+    private UserService userService;
 
     @Autowired
     private CurrencyService currencyService;
@@ -103,7 +107,7 @@ public class AlgorithmServiceImpl implements AlgorithmService {
 
     @Override
     public BigDecimal computeCommission(final BigDecimal amount, final OperationType type) {
-        BigDecimal commission = commissionService.findCommissionByType(type).getValue();
+        BigDecimal commission = commissionService.findCommissionByTypeAndRole(type, userService.getCurrentUserRole()).getValue();
         return amount.multiply(commission.divide(HUNDRED).setScale(decimalPlaces, ROUND_HALF_UP)).setScale(decimalPlaces, ROUND_HALF_UP);
     }
 

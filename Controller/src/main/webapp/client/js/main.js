@@ -19,6 +19,8 @@ $.fn.serializeObject = function()
 
 };
 
+const NICKNAME_REGEX = /^\D+[\w\d\-_]+/;
+
 
 /* --------- make merchants module start -------------- */
 
@@ -76,6 +78,7 @@ $(function(){
     var button = $('#payment').find('button');
     button.prop('disabled',true);
     var merchantsData;
+    var usernameToTransfer = $('#nickname');
 
     $(".input-block-wrapper__input").prop("autocomplete", "off");
     $(".numericInputField").prop("autocomplete", "off");
@@ -113,19 +116,23 @@ $(function(){
                 $(this).val(maxSum);
             }
             var minLimit = 0;
-            if (operationType.val() === 'OUTPUT') {
-                minLimit = parseFloat($('#min-withdraw-sum').text());
-                maxWalletSum = parseFloat($("#currencyFull").val().split(' ')[1]);
+            if (operationType.val() === 'OUTPUT' || operationType.val() === 'USER_TRANSFER') {
+                var maxWalletSum;
+                if (operationType.val() === 'USER_TRANSFER') maxWalletSum = parseFloat($('#maxForTransfer').text());
+                if (operationType.val() === 'OUTPUT') maxWalletSum = parseFloat($("#currencyFull").val().split(' ')[1]);
                 if ( val >= maxWalletSum){
                     $(this).val(maxWalletSum);
                 }
-                if (val >= minLimit) {
-                    $('#min-sum-notification').hide();
-                } else {
-                    $('#min-sum-notification').show();
-                }
-
             }
+
+            minLimit = parseFloat($('#minAmount').text());
+
+            if (val >= minLimit) {
+                $('#min-sum-notification').hide();
+            } else {
+                $('#min-sum-notification').show();
+            }
+
             var decimal = $(this).val().split('.')[1];
             if (decimal && decimal.length > fractionalAmount) {
                 $(this).val($(this).val().slice(0,-1));
@@ -512,7 +519,7 @@ $(function(){
             newHTMLElements[0] = newHTMLElements[0]
                 .replace(templateVariables.amount, "<span class='modal-amount'>"+amount+"</span>")
                 .replace(templateVariables.currency, "<span class='modal-amount'>"+getCurrentCurrency()+"</span>")
-                .replace(templateVariables.merchant, "<span class='modal-merchant'>"+merchantName+"</span>");
+                .replace(templateVariables.merchant, "<span class='modal-merchant'>"+merchantName+"</span>")
             newHTMLElements[1] = newHTMLElements[1]
                 .replace(templateVariables.amount, "<span class='modal-amount'>" + response['commissionAmount'] + "</span>")
                 .replace(templateVariables.currency, "<span class='modal-amount'>" + getCurrentCurrency() + "</span>")
@@ -603,15 +610,80 @@ $(function(){
             $("#destination").val(uid);
             submitProcess();
             $('#outputPaymentProcess')
-                .prop('disabled', true)
+                .prop('disabled', true);
             setTimeout(function()
             {
                 location.reload();
             },8000);
         }
     });
+    $('#transferButton').click(function () {
+        finPassCheck('transferModal', prepareTransfer);
+    });
+
+    function prepareTransfer() {
+        $('#transferProcess').prop('disabled', true);
+         merchantName = 'transfer';
+         fillModalWindow('USER_TRANSFER', sum.val(), getCurrentCurrency());
+        $('#nicknameInput').val('');
+        $('#nickname').val('');
+         validateNickname();
+        $('.nickname_input').show();
+         requestControls();
+         $('#transferModal').modal({
+             backdrop: 'static'
+         });
+    }
+    $('#nicknameInput').on('keyup', validateNickname);
+
+    function validateNickname() {
+        var value = $('#nicknameInput').val();
+        if (NICKNAME_REGEX.test(value) ) {
+            $('#transferProcess').prop('disabled', false);
+        } else {
+            $('#transferProcess').prop('disabled', true);
+        }
+    }
+    
+    $('#transferProcess').click(function (e) {
+        e.preventDefault();
+        var nickname = $('#nicknameInput').val();
+        $('#nickname').val(nickname);
+        submitTransfer();
+        $('#transferProcess').prop('disabled', true);
+    });
+
+    function submitTransfer() {
+        var transferForm = $('#payment').serialize();
+        $.ajax('/transfer/submit', {
+            type: 'POST',
+            data: transferForm,
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            success: function (response) {
+                $('.paymentInfo').html(response.result);
+                $('.nickname_input').hide();
+                responseControls();
+                setTimeout(function()
+                {
+                    location.reload();
+                },5000);
+            },
+            error: function (err) {
+                console.log(err);
+                var errorText = JSON.parse(err.responseText);
+                $('.paymentInfo').html(errorText.detail);
+                $('.nickname_input').hide();
+                responseControls ()
+            }
+        })
+
+    }
+
 
 });
+
 
 function parseNumber(numberStr) {
     /*ATTENTION: this func wil by work correctly if number always has decimal separator

@@ -7,7 +7,6 @@ public class Currency {
 	private int id;
 	private String name;
 	private String description;
-	private BigDecimal minWithdrawSum;
 
 	public Currency() {
 		
@@ -36,14 +35,6 @@ public class Currency {
 		this.name = name;
 	}
 
-	public BigDecimal getMinWithdrawSum() {
-		return minWithdrawSum;
-	}
-
-	public void setMinWithdrawSum(BigDecimal minWithdrawSum) {
-		this.minWithdrawSum = minWithdrawSum;
-	}
-
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
@@ -53,10 +44,7 @@ public class Currency {
 
 		if (id != currency.id) return false;
 		if (name != null ? !name.equals(currency.name) : currency.name != null) return false;
-		if (description != null ? !description.equals(currency.description) : currency.description != null)
-			return false;
-		return minWithdrawSum != null ? minWithdrawSum.equals(currency.minWithdrawSum) : currency.minWithdrawSum == null;
-
+		return description != null ? description.equals(currency.description) : currency.description == null;
 	}
 
 	@Override
@@ -64,7 +52,6 @@ public class Currency {
 		int result = id;
 		result = 31 * result + (name != null ? name.hashCode() : 0);
 		result = 31 * result + (description != null ? description.hashCode() : 0);
-		result = 31 * result + (minWithdrawSum != null ? minWithdrawSum.hashCode() : 0);
 		return result;
 	}
 
@@ -74,7 +61,6 @@ public class Currency {
 				"id=" + id +
 				", name='" + name + '\'' +
 				", description='" + description + '\'' +
-				", minWithdrawSum=" + minWithdrawSum +
 				'}';
 	}
 }

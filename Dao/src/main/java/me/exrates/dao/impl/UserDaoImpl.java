@@ -79,11 +79,24 @@ public class UserDaoImpl implements UserDao {
         }
     }
 
+    @Override
+    public int getIdByNickname(String nickname) {
+        String sql = "SELECT id FROM USER WHERE nickname = :nickname";
+        Map<String, String> namedParameters = new HashMap<>();
+        namedParameters.put("nickname", nickname);
+        try {
+            return jdbcTemplate.queryForObject(sql, namedParameters, Integer.class);
+        } catch (EmptyResultDataAccessException e){
+            return 0;
+        }
+    }
+
     public boolean create(User user) {
         String sqlUser = "insert into USER(nickname,email,password,phone,status,roleid ) " +
                 "values(:nickname,:email,:password,:phone,:status,:roleid)";
         String sqlWallet = "INSERT INTO WALLET (currency_id, user_id) select id, :user_id from CURRENCY where name != 'LTC';";
-        String sqlNotificationOptions = "INSERT INTO NOTIFICATION_OPTIONS(notification_event_id, user_id) select id, :user_id FROM NOTIFICATION_EVENT; ";
+        String sqlNotificationOptions = "INSERT INTO NOTIFICATION_OPTIONS(notification_event_id, user_id, send_notification, send_email) " +
+                "select id, :user_id, default_send_notification, default_send_email FROM NOTIFICATION_EVENT; ";
         Map<String, String> namedParameters = new HashMap<String, String>();
         namedParameters.put("email", user.getEmail());
         namedParameters.put("nickname", user.getNickname());

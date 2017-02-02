@@ -14,6 +14,8 @@ import java.util.Set;
 
 public interface UserDao {
 
+    int getIdByNickname(String nickname);
+
     boolean create(User user);
 
 	void createUserDoc(int userId, List<Path> paths);

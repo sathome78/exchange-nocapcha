@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
-import static me.exrates.model.enums.UserRole.ADMINISTRATOR;
+import static me.exrates.model.enums.UserRole.*;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -92,6 +92,8 @@ public class AdminController {
 
     @Autowired
     private CommissionService commissionService;
+
+    private final List<String> ROLE_NAMES = Arrays.asList("ADMIN", "USER", "EXCHANGE", "VIP_USER");
 
     @Autowired
     @Qualifier("ExratesSessionRegistry")
@@ -183,8 +185,7 @@ public class AdminController {
     @RequestMapping(value = "/2a8fy7b07dxe44/usersList", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public DataTable<List<User>> getAllUsers(@RequestParam Map<String, String> params) {
         params.forEach((key, value) -> LOG.debug(key + " :: " + value));
-        List<UserRole> userRoles = new ArrayList<>();
-        userRoles.add(UserRole.USER);
+        List<UserRole> userRoles = asList(USER, EXCHANGE, VIP_USER);
         return userSecureService.getUsersByRolesPaginated(userRoles, params);
     }
 
@@ -740,20 +741,7 @@ public class AdminController {
     }
 
 
-    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
-    @ExceptionHandler(OrderDeletingException.class)
-    @ResponseBody
-    public ErrorInfo OrderDeletingExceptionHandler(HttpServletRequest req, Exception exception) {
-        return new ErrorInfo(req.getRequestURL(), exception);
-    }
 
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ExceptionHandler(RuntimeException.class)
-    @ResponseBody
-    public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
-        LOG.error(exception);
-        return new ErrorInfo(req.getRequestURL(), exception);
-    }
 
     @RequestMapping(value = "/2a8fy7b07dxe44/invoiceConfirmation")
     public ModelAndView invoiceTransactions(HttpSession httpSession) {
@@ -803,13 +791,27 @@ public class AdminController {
 
     @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits", method = RequestMethod.GET)
     public ModelAndView currencyLimits() {
-        return new ModelAndView("admin/currencyLimits", "currencies", currencyService.findAllCurrencies());
+        ModelAndView modelAndView = new ModelAndView("admin/currencyLimits");
+        modelAndView.addObject("roleNames", ROLE_NAMES);
+        modelAndView.addObject("operationTypes", Arrays.asList(OperationType.INPUT.name(), OperationType.OUTPUT.name(), OperationType.USER_TRANSFER.name()));
+        return modelAndView;
+    }
+
+    @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits/retrieve", method = RequestMethod.GET)
+    @ResponseBody
+    public List<CurrencyLimit> retrieveCurrencyLimits(@RequestParam String roleName,
+                                                      @RequestParam OperationType operationType) {
+        return currencyService.retrieveCurrencyLimitsForRole(roleName, operationType);
     }
 
     @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits/submit", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseEntity<Void> editCurrencyLimit(@RequestParam int currencyId, @RequestParam BigDecimal minAmount) {
-        currencyService.updateMinWithdraw(currencyId, minAmount);
+    public ResponseEntity<Void> editCurrencyLimit(@RequestParam int currencyId,
+                                                  @RequestParam OperationType operationType,
+                                                  @RequestParam String roleName,
+                                                  @RequestParam BigDecimal minAmount) {
+
+        currencyService.updateCurrencyLimit(currencyId, operationType, roleName, minAmount);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -846,20 +848,27 @@ public class AdminController {
 
     @RequestMapping(value = "/2a8fy7b07dxe44/commissions", method = RequestMethod.GET)
     public ModelAndView commissions() {
-        List<Commission> commissions = commissionService.getEditableCommissions();
         List<MerchantCurrencyOptionsDto> merchantCurrencies = merchantService.findMerchantCurrencyOptions();
         ModelAndView modelAndView = new ModelAndView("admin/editCommissions");
-        modelAndView.addObject("commissions", commissions);
+        modelAndView.addObject("roleNames", ROLE_NAMES);
         modelAndView.addObject("merchantCurrencies", merchantCurrencies);
         return modelAndView;
     }
 
+    @RequestMapping(value = "/2a8fy7b07dxe44/getCommissionsForRole", method = RequestMethod.GET)
+    @ResponseBody
+    public List<Commission> retrieveCommissionsForRole(@RequestParam String role) {
+        return commissionService.getEditableCommissionsByRole(role);
+
+    }
+
     @RequestMapping(value = "/2a8fy7b07dxe44/commissions/editCommission", method = RequestMethod.POST)
     @ResponseBody
-    public ResponseEntity<Void> editCommission(@RequestParam("commissionId") Integer id,
+    public ResponseEntity<Void> editCommission(@RequestParam("operationType") OperationType operationType,
+                                               @RequestParam("userRole") String role,
                                                @RequestParam("commissionValue") BigDecimal value) {
-        LOG.debug("id = " + id + ", value = " + value);
-        commissionService.updateCommission(id, value);
+        LOG.debug("operationType = " + operationType + ", userRole = " + role + ", value = " + value);
+        commissionService.updateCommission(operationType, role, value);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -898,7 +907,21 @@ public class AdminController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+    @ExceptionHandler(OrderDeletingException.class)
+    @ResponseBody
+    public ErrorInfo OrderDeletingExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
 
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(RuntimeException.class)
+    @ResponseBody
+    public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
+        LOG.error(exception);
+        exception.printStackTrace();
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
 
 
 }

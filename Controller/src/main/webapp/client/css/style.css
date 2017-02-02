@@ -345,6 +345,10 @@ header li {
         font-size: 0.7rem;
     }
 
+    #balance-table button, #balance-table th, #balance-table td {
+        font-size: 0.85rem;
+    }
+
 
 }
 
@@ -364,6 +368,9 @@ header li {
     }
     #notification-icon span.badge {
         font-size: 0.7rem;
+    }
+    #balance-table button, #balance-table th, #balance-table td {
+        font-size: 1.1rem;
     }
 }
 
@@ -2134,4 +2141,8 @@ input[type=email], .dropdown-menu__form,
 
 .right-to-left {
     direction: rtl !important;
+}
+
+#transferButton {
+    margin-bottom: 10px;
 }

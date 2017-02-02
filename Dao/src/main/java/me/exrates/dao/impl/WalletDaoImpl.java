@@ -306,6 +306,16 @@ public class WalletDaoImpl implements WalletDao {
     }
 
     @Override
+    public Wallet findById(Integer walletId) {
+        final String sql = "SELECT WALLET.id,WALLET.currency_id,WALLET.user_id,WALLET.active_balance, WALLET.reserved_balance, CURRENCY.name as name " +
+                "FROM WALLET " +
+                "INNER JOIN CURRENCY ON WALLET.currency_id = CURRENCY.id " +
+                "WHERE WALLET.id = :id";
+        final Map<String, Integer> params = Collections.singletonMap("id", walletId);
+        return jdbcTemplate.queryForObject(sql, params, walletRowMapper);
+    }
+
+    @Override
     public Wallet createWallet(User user, int currencyId) {
         final String sql = "INSERT INTO WALLET (currency_id,user_id) VALUES(:currId,:userId)";
         final KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -524,7 +534,7 @@ public class WalletDaoImpl implements WalletDao {
         transaction.setUserWallet(wallet);
         transaction.setCompanyWallet(companyWallet);
         transaction.setAmount(amount);
-        Commission commission = commissionDao.getCommission(OperationType.WALLET_INNER_TRANSFER);
+        Commission commission = commissionDao.getDefaultCommission(OperationType.WALLET_INNER_TRANSFER);
         transaction.setCommissionAmount(commission.getValue());
         transaction.setCommission(commission);
         transaction.setCurrency(companyWallet.getCurrency());

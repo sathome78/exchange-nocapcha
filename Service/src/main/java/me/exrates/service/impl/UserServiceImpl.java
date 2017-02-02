@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,7 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -56,6 +58,9 @@ public class UserServiceImpl implements UserService {
     private TokenScheduler tokenScheduler;
 
     private final int USER_FILES_THRESHOLD = 3;
+
+    private final Set<String> USER_ROLES = Stream.of(UserRole.values()).map(UserRole::name).collect(Collectors.toSet());
+    private final UserRole ROLE_DEFAULT_COMMISSION = UserRole.USER;
 
     private static final Logger LOGGER = LogManager.getLogger(UserServiceImpl.class);
 
@@ -164,6 +169,11 @@ public class UserServiceImpl implements UserService {
 
     public int getIdByEmail(String email) {
         return userDao.getIdByEmail(email);
+    }
+
+    @Override
+    public int getIdByNickname(String nickname) {
+        return userDao.getIdByNickname(nickname);
     }
 
     @Override
@@ -333,7 +343,7 @@ public class UserServiceImpl implements UserService {
         email.setTo(user.getEmail());
         email.setMessage(messageSource.getMessage(emailText, new Object[]{user.getIp()}, locale));
         email.setSubject(messageSource.getMessage(emailSubject, null, locale));
-        sendMailService.sendMail(email);
+        sendMailService.sendInfoMail(email);
     }
 
     public boolean createTemporalToken(TemporalToken token) {
@@ -557,6 +567,19 @@ public class UserServiceImpl implements UserService {
             throw new ForbiddenOperationException("Status modification not permitted");
         }
         userDao.updateAdminAuthorities(options, userId);
+
+    }
+
+    @Override
+    public UserRole getCurrentUserRole() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        LOGGER.debug("Authentication: " + authentication);
+        String grantedAuthority = authentication.getAuthorities().
+                stream().map(GrantedAuthority::getAuthority)
+                .filter(USER_ROLES::contains)
+                .findFirst().orElse(ROLE_DEFAULT_COMMISSION.name());
+        LOGGER.debug("Granted authority: " + grantedAuthority);
+        return UserRole.valueOf(grantedAuthority);
 
     }
 

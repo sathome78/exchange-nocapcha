@@ -189,7 +189,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
+    @Bean(name = "SupportMailSender")
     public JavaMailSenderImpl javaMailSenderImpl() {
         final JavaMailSenderImpl mailSenderImpl = new JavaMailSenderImpl();
         mailSenderImpl.setHost("smtp.gmail.com");
@@ -198,7 +198,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
         mailSenderImpl.setProtocol("smtp");
         mailSenderImpl.setUsername("support@exrates.me");
-        mailSenderImpl.setPassword("Hgdr35lKN103b");
+        mailSenderImpl.setPassword("EXratesme");
         final Properties javaMailProps = new Properties();
         javaMailProps.put("mail.smtp.auth", true);
         javaMailProps.put("mail.smtp.starttls.enable", true);
@@ -219,6 +219,21 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 //		javaMailProps.put("mail.smtp.auth", true);
 //		javaMailProps.put("mail.smtp.starttls.enable", true);
 //		
+        mailSenderImpl.setJavaMailProperties(javaMailProps);
+        return mailSenderImpl;
+    }
+
+    @Bean(name = "InfoMailSender")
+    public JavaMailSenderImpl infoMailSenderImpl() {
+        final JavaMailSenderImpl mailSenderImpl = new JavaMailSenderImpl();
+        mailSenderImpl.setHost("smtp.gmail.com");
+        mailSenderImpl.setPort(587);
+        mailSenderImpl.setProtocol("smtp");
+        mailSenderImpl.setUsername("no-replay@exrates.tech");
+        mailSenderImpl.setPassword("1qaz1234");
+        final Properties javaMailProps = new Properties();
+        javaMailProps.put("mail.smtp.auth", true);
+        javaMailProps.put("mail.smtp.starttls.enable", true);
         mailSenderImpl.setJavaMailProperties(javaMailProps);
         return mailSenderImpl;
     }

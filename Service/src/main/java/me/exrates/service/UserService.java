@@ -17,6 +17,8 @@ public interface UserService {
 
     int getIdByEmail(String email);
 
+    int getIdByNickname(String nickname);
+
     User findByEmail(String email);
 
     void createUserFile(int userId, List<Path> paths);
@@ -185,4 +187,6 @@ public interface UserService {
     List<AdminAuthorityOption> getAuthorityOptionsForUser(Integer userId, Set<String> allowedAuthorities, Locale locale);
 
     void updateAdminAuthorities(List<AdminAuthorityOption> options, Integer userId, String currentUserEmail);
+
+    UserRole getCurrentUserRole();
 }

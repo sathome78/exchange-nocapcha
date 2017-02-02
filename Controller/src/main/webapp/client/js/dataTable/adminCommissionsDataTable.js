@@ -2,22 +2,23 @@
  * Created by OLEG on 23.09.2016.
  */
 var currentLocale;
+var commissionsDataTable;
 
 $(document).ready(function () {
     var $commissionTable = $('#commissions-table');
     var $merchantCommissionTable = $('#merchant-commissions-table');
     var $commissionForm = $('#edit-commission-form');
     var $merchantCommissionForm = $('#edit-merchantCommission-form');
+    var $roleNameSelect = $('#roleName');
     currentLocale = $('#language').text().trim().toLowerCase();
 
-    $($commissionTable).DataTable({
-        "bFilter": false,
-        "paging": false,
-        "order": [],
-        "bLengthChange": false,
-        "bPaginate": false,
-        "bInfo": false
-    });
+
+
+
+    updateCommissionsDataTable();
+    $($roleNameSelect).on("change", updateCommissionsDataTable);
+
+
     $($merchantCommissionTable).DataTable({
         "bFilter": false,
         "paging": false,
@@ -29,11 +30,11 @@ $(document).ready(function () {
 
 
     $($commissionTable).find('tbody').on('click', 'tr', function () {
-        var commissionId = $(this).data('id');
+        var currentRoleName = $($roleNameSelect).val();
         var operationType = $(this).find('td:first').text().trim();
-        var commissionValue = parseFloat($(this).find('td:nth-child(2) .commissionUnformatted').text());
-        $($commissionForm).find('input[name="commissionId"]').val(commissionId);
-        $('#operation-type').val(operationType);
+        var commissionValue = parseFloat($(this).find('td:nth-child(2)').text());
+        $($commissionForm).find('input[name="userRole"]').val(currentRoleName);
+        $('#operationType').val(operationType);
         $($commissionForm).find('input[name="commissionValue"]').val(commissionValue);
         $('#editCommissionModal').modal();
     });
@@ -41,7 +42,7 @@ $(document).ready(function () {
         e.preventDefault();
         var id = $($commissionForm).find('input[name="commissionId"]').val();
         var value =  $($commissionForm).find('input[name="commissionValue"]').val();
-        submitCommission(id, parseFloat(value))
+        submitCommission()
     });
 
     $($merchantCommissionTable).find('tbody').on('click', 'tr', function () {
@@ -69,10 +70,42 @@ $(document).ready(function () {
 
 });
 
+function updateCommissionsDataTable() {
+    var $commissionTable = $('#commissions-table');
 
+    var currentRoleName = $('#roleName').val();
+    var commissionUrlBase = '/2a8fy7b07dxe44/getCommissionsForRole?role=';
+    var commissionUrl = commissionUrlBase + currentRoleName;
+    if ($.fn.dataTable.isDataTable('#commissions-table')) {
+        commissionsDataTable = $($commissionTable).DataTable();
+        commissionsDataTable.ajax.url(commissionUrl).load();
+    } else {
+        commissionsDataTable = $($commissionTable).DataTable({
+            "ajax": {
+                "url": commissionUrl,
+                "dataSrc": ""
+            },
+            "bFilter": false,
+            "paging": false,
+            "order": [],
+            "bLengthChange": false,
+            "bPaginate": false,
+            "bInfo": false,
+            "columns": [
+                {
+                    "data": "operationType"
+                },
+                {
+                    "data": "value"
+                }
+            ]
+        });
+    }
+}
 
-function submitCommission(commissionId, value) {
+function submitCommission() {
     var formData =  $('#edit-commission-form').serialize();
+    console.log(formData);
     $.ajax({
         headers: {
             'X-CSRF-Token': $("input[name='_csrf']").val()
@@ -81,16 +114,7 @@ function submitCommission(commissionId, value) {
         type: 'POST',
         data: formData,
         success: function () {
-            var minFractionDigits = 2;
-            var fractionPart = value.toString().split('.')[1];
-            if (fractionPart && fractionPart.length > minFractionDigits) {
-                minFractionDigits = fractionPart.length;
-            }
-            var $cell = $('#commissions-table').find('tr[data-id="' + commissionId + '"] td:nth-child(2)');
-            $($cell).find('.commissionFormatted').text(value.toLocaleString(currentLocale, {
-                minimumFractionDigits: minFractionDigits
-            }));
-            $($cell).find('.commissionUnformatted').text(value);
+            updateCommissionsDataTable();
 
             $('#editCommissionModal').modal('hide');
         },
