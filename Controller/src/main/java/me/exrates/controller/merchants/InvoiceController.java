@@ -18,11 +18,16 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.support.RequestContextUtils;
 import org.springframework.web.servlet.view.RedirectView;
 
+import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
+import java.util.Arrays;
 import java.util.Locale;
+import java.util.Map;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
@@ -44,6 +49,24 @@ public class InvoiceController {
     private MessageSource messageSource;
 
     private static final Logger LOG = LogManager.getLogger("merchant");
+
+
+    @RequestMapping(value = "/preSubmit", method = POST)
+    public RedirectView preSubmit(final Payment payment, RedirectAttributes redirectAttributes) {
+        LOG.debug(payment);
+        redirectAttributes.addFlashAttribute("payment", payment);
+
+        return new RedirectView("/merchants/invoice/details");
+    }
+
+    @RequestMapping(value = "/details", method = GET)
+    public ModelAndView invoiceDetails(HttpServletRequest request) {
+        final Map<String, ?> flashAttrsMap = RequestContextUtils.getInputFlashMap(request);
+        flashAttrsMap.forEach((key, value) -> LOG.debug(key + " :: " + value));
+
+        ModelAndView modelAndView = new ModelAndView("/globalPages/invoiceDeatils");
+        return modelAndView;
+    }
 
     @RequestMapping(value = "/payment/prepare",method = POST)
     public ResponseEntity<String> preparePayment(final @RequestBody Payment payment,

@@ -183,7 +183,8 @@ $(function(){
             yandex_kassa:'http://din24.net/index.php?route=acc/success/order',
             privat24:'https://api.privatbank.ua/p24api/ishop',
             interkassa:'https://sci.interkassa.com/',
-            okpay:'/merchants/okpay/payment/prepare/'
+            okpay:'/merchants/okpay/payment/prepare/',
+            invoice: '/merchants/invoice/preSubmit'
 
         };
         if (operationType === 'INPUT') {
@@ -214,6 +215,9 @@ $(function(){
                     break;
                 case OKPAY :
                     form.attr('action', formAction.okpay);
+                    break;
+                case INVOICE:
+                    form.attr('action', formAction.invoice);
                     break;
                 case BLOCKCHAIN:
                 case EDC:
@@ -458,30 +462,11 @@ $(function(){
                         console.log(error);
                     });
                     break;
-                case INVOICE :
-                    $('#inputPaymentProcess')
-                        .html($('#mrcht-waiting').val())
-                        .prop('disabled', true);
-                    $.ajax('/merchants/invoice/payment/prepare', {
-                        headers: {
-                            'X-CSRF-Token': $("input[name='_csrf']").val()
-                        },
-                        type: 'POST',
-                        contentType: 'application/json;charset=utf-8',
-                        dataType: 'text',
-                        data: JSON.stringify($(form).serializeObject())
-                    }).done(function (response) {
-                        $('#inputPaymentProcess')
-                            .prop('disabled', false)
-                            .html($('#mrcht-ready').val());
-                        $('.paymentInfo').html(response);
-                        responseControls();
-                    }).fail(function (error, jqXHR, textStatus) {
-                        responseControls();
-                        $('.paymentInfo').html(error.responseText);
-                        console.log(textStatus);
-                    });
-                    break;
+                /*case INVOICE :
+                    console.log($(form).serialize());
+
+                    /!*window.location = '/merchants';*!/
+                    break;*/
                 default:
                     callback();
             }

@@ -1,5 +1,6 @@
 package me.exrates.dao;
 
+import me.exrates.model.InvoiceBank;
 import me.exrates.model.InvoiceRequest;
 import me.exrates.model.User;
 
@@ -20,4 +21,6 @@ public interface InvoiceRequestDao {
     Optional<InvoiceRequest> findById(int id);
 
     List<InvoiceRequest> findAll();
+
+    List<InvoiceBank> findInvoiceBanksByCurrency(Integer currencyId);
 }
