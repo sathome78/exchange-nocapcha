@@ -1,8 +1,10 @@
 package me.exrates.controller.merchants;
 
 import me.exrates.model.CreditsOperation;
+import me.exrates.model.InvoiceBank;
 import me.exrates.model.Payment;
 import me.exrates.model.Transaction;
+import me.exrates.model.vo.InvoiceData;
 import me.exrates.service.InvoiceService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.exception.InvalidAmountException;
@@ -18,16 +20,17 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.support.RequestContextUtils;
 import org.springframework.web.servlet.view.RedirectView;
+import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.security.Principal;
-import java.util.Arrays;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
@@ -48,64 +51,109 @@ public class InvoiceController {
     @Autowired
     private MessageSource messageSource;
 
+    @Autowired
+    private LocaleResolver localeResolver;
+
     private static final Logger LOG = LogManager.getLogger("merchant");
 
 
     @RequestMapping(value = "/preSubmit", method = POST)
-    public RedirectView preSubmit(final Payment payment, RedirectAttributes redirectAttributes) {
+    public RedirectView preSubmit(final Payment payment, final Principal principal,
+                                  RedirectAttributes redirectAttributes,
+                                  HttpServletRequest request) {
         LOG.debug(payment);
-        redirectAttributes.addFlashAttribute("payment", payment);
+        RedirectView redirectView = new RedirectView("/merchants/invoice/details");
 
-        return new RedirectView("/merchants/invoice/details");
+        if (!merchantService.checkInputRequestsLimit(payment.getMerchant(), principal.getName())){
+            redirectAttributes.addFlashAttribute("error", "merchants.InputRequestsLimit");
+            return redirectView;
+        }
+        if (/*payment.getCurrency() == 10 || */payment.getCurrency() == 12 || payment.getCurrency() == 13){
+            redirectAttributes.addFlashAttribute("error", "merchants.withoutInvoiceWallet");
+            return redirectView;
+        }
+        Optional<CreditsOperation> creditsOperationPrepared = merchantService
+                .prepareCreditsOperation(payment, principal.getName());
+        if (!creditsOperationPrepared.isPresent()) {
+            redirectAttributes.addFlashAttribute("error","merchants.incorrectPaymentDetails");
+        } else {
+            CreditsOperation creditsOperation = creditsOperationPrepared.get();
+            LOG.debug(creditsOperation);
+            HttpSession session = request.getSession();
+            Object mutex = WebUtils.getSessionMutex(session);
+            synchronized (mutex) {
+                session.setAttribute("creditsOperation", creditsOperation);
+            }
+        }
+        return redirectView;
     }
 
     @RequestMapping(value = "/details", method = GET)
     public ModelAndView invoiceDetails(HttpServletRequest request) {
-        final Map<String, ?> flashAttrsMap = RequestContextUtils.getInputFlashMap(request);
-        flashAttrsMap.forEach((key, value) -> LOG.debug(key + " :: " + value));
-
         ModelAndView modelAndView = new ModelAndView("/globalPages/invoiceDeatils");
+        Map<String, ?> flashAttrMap = RequestContextUtils.getInputFlashMap(request);
+        LOG.debug(flashAttrMap);
+        if (flashAttrMap != null && flashAttrMap.containsKey("error")) {
+            return modelAndView;
+        }
+        HttpSession session = request.getSession();
+        Object mutex = WebUtils.getSessionMutex(session);
+        CreditsOperation creditsOperation;
+
+        synchronized (mutex) {
+            creditsOperation = (CreditsOperation) session.getAttribute("creditsOperation");
+        }
+        if (creditsOperation == null) {
+            modelAndView.addObject("error", "merchant.operationNotAvailable");
+        } else {
+            modelAndView.addObject("creditsOperation", creditsOperation);
+            List<InvoiceBank> invoiceBanks = invoiceService.retrieveBanksForCurrency(creditsOperation.getCurrency().getId());
+            modelAndView.addObject("invoiceBanks", invoiceBanks);
+        }
         return modelAndView;
     }
 
     @RequestMapping(value = "/payment/prepare",method = POST)
-    public ResponseEntity<String> preparePayment(final @RequestBody Payment payment,
-                                                 final Principal principal,
-                                                 final Locale locale)
-    {
-        final HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add("Content-Type", "text/plain; charset=utf-8");
+    public RedirectView preparePayment(InvoiceData invoiceData,
+                                       final Principal principal, RedirectAttributes redirectAttributes,
+                                                 HttpServletRequest request)    {
+        RedirectView redirectView = new RedirectView("/dashboard");
+        LOG.debug(invoiceData);
 
-        if (!merchantService.checkInputRequestsLimit(payment.getMerchant(), principal.getName())){
-            final String error = messageSource.getMessage("merchants.InputRequestsLimit", null, locale);
-
-            return new ResponseEntity<>(error, httpHeaders, HttpStatus.FORBIDDEN);
-        }
         final String email = principal.getName();
-        LOG.debug("Preparing payment: " + payment + " for: " + email);
-        final CreditsOperation creditsOperation = merchantService
-            .prepareCreditsOperation(payment, email)
-            .orElseThrow(InvalidAmountException::new);
-            LOG.debug("Prepared payment: "+creditsOperation);
-            try {
-                final Transaction transaction = invoiceService.createPaymentInvoice(creditsOperation);
-                final String notification;
-                if (payment.getCurrency() == 10 || payment.getCurrency() == 12 || payment.getCurrency() == 13){
-                    notification = messageSource.getMessage("merchants.withoutInvoiceWallet", null, locale);
-                }else {
-                    notification = merchantService
-                            .sendDepositNotification("",
-                                    email , locale, creditsOperation, "merchants.depositNotificationWithCurrency" +
-                                            creditsOperation.getCurrency().getName() +
-                                            ".body");
-                }
-
-                return new ResponseEntity<>(notification, httpHeaders, OK);
-            } catch (final InvalidAmountException|RejectedPaymentInvoice e) {
-                final String error = messageSource.getMessage("merchants.incorrectPaymentDetails", null, locale);
-                LOG.warn(error);
-                return new ResponseEntity<>(error, httpHeaders, NOT_FOUND);
+        HttpSession session = request.getSession();
+        CreditsOperation creditsOperation;
+        Object mutex = WebUtils.getSessionMutex(session);
+        synchronized (mutex) {
+            creditsOperation = (CreditsOperation) session.getAttribute("creditsOperation");
+            if (creditsOperation == null) {
+                redirectAttributes.addFlashAttribute("errorNoty", "No credits operation found!");
+                return redirectView;
             }
+        }
+        try {
+            invoiceData.setCreditsOperation(creditsOperation);
+
+            final Transaction transaction = invoiceService.createPaymentInvoice(invoiceData);
+            final String notification = merchantService
+                    .sendDepositNotification("",
+                            email, localeResolver.resolveLocale(request), creditsOperation, "merchants.depositNotificationWithCurrency" +
+                                    creditsOperation.getCurrency().getName() +
+                                    ".body");
+            redirectAttributes.addFlashAttribute("successNoty", notification);
+            synchronized (mutex) {
+                session.removeAttribute("creditsOperation");
+            }
+
+        } catch (final InvalidAmountException|RejectedPaymentInvoice e) {
+            final String error = messageSource.getMessage("merchants.incorrectPaymentDetails", null, localeResolver.resolveLocale(request));
+            LOG.warn(error);
+            redirectAttributes.addFlashAttribute("errorNoty", error);
+        }
+        return redirectView;
+
+
+
     }
 
     @RequestMapping(value = "/payment/accept",method = GET)

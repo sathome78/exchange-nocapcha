@@ -5,6 +5,7 @@ import me.exrates.model.Payment;
 import me.exrates.model.Transaction;
 import me.exrates.model.dto.mobileApiDto.MerchantInputResponseDto;
 import me.exrates.model.enums.MerchantApiResponseType;
+import me.exrates.model.vo.InvoiceData;
 import me.exrates.service.InvoiceService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.exception.InvalidAmountException;
@@ -48,7 +49,9 @@ public class InvoicePaymentService implements MerchantPaymentService {
                 .orElseThrow(InvalidAmountException::new);
         MerchantInputResponseDto dto = new MerchantInputResponseDto();
         dto.setType(MerchantApiResponseType.NOTIFY);
-        final Transaction transaction = invoiceService.createPaymentInvoice(creditsOperation);
+        InvoiceData invoiceData = new InvoiceData();
+        invoiceData.setCreditsOperation(creditsOperation);
+        final Transaction transaction = invoiceService.createPaymentInvoice(invoiceData);
         final String notification = merchantService
                 .sendDepositNotification("",
                         email , locale, creditsOperation, "merchants.depositNotificationWithCurrency" +

@@ -46,6 +46,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/submits/merchantsSubmitOutput.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/submits/finPassCheck.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/loc-direction.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/inputOutput/invoiceDetails.js'/>"></script>
 
     <%----------%>
     <%--TOOLS ... --%>
@@ -67,7 +68,7 @@
     <div class="row_big">
         <%@include file="../fragments/left-sider.jsp" %>
         <div class="cols-md-8 background_white">
-            <%--<%@include file="../fragments/merchantsOutput-center.jsp" %>--%>
+            <%@include file="../fragments/invoiceDetails-center.jsp" %>
         </div>
         <%@include file="../fragments/right-sider.jsp" %>
     </div>

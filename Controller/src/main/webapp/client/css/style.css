@@ -2146,3 +2146,10 @@ input[type=email], .dropdown-menu__form,
 #transferButton {
     margin-bottom: 10px;
 }
+
+textarea#remark {
+    height: 150px;
+}
+.black-border {
+    border: 1px solid #000000;
+}

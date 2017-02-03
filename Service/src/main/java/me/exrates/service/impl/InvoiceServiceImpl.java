@@ -2,9 +2,11 @@ package me.exrates.service.impl;
 
 import me.exrates.dao.InvoiceRequestDao;
 import me.exrates.model.CreditsOperation;
+import me.exrates.model.InvoiceBank;
 import me.exrates.model.InvoiceRequest;
 import me.exrates.model.Transaction;
 import me.exrates.model.enums.NotificationEvent;
+import me.exrates.model.vo.InvoiceData;
 import me.exrates.service.InvoiceService;
 import me.exrates.service.NotificationService;
 import me.exrates.service.TransactionService;
@@ -14,9 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.util.List;
-import java.util.Set;
 
 
 @Service
@@ -35,16 +35,16 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     @Override
     @Transactional
-    public Transaction createPaymentInvoice(final CreditsOperation creditsOperation) {
-
+    public Transaction createPaymentInvoice(final InvoiceData invoiceData) {
+        CreditsOperation creditsOperation = invoiceData.getCreditsOperation();
         final Transaction transaction = transactionService.createTransactionRequest(creditsOperation);
         InvoiceRequest invoiceRequest = new InvoiceRequest();
         invoiceRequest.setTransaction(transaction);
         invoiceRequest.setUserEmail(creditsOperation.getUser().getEmail());
-        System.out.println(invoiceRequest);
+        invoiceRequest.setBankId(invoiceData.getBankId());
+        invoiceRequest.setUserAccount(invoiceData.getUserAccount());
+        invoiceRequest.setRemark(invoiceData.getRemark());
         invoiceRequestDao.create(invoiceRequest, creditsOperation.getUser());
-
-
         return transaction;
     }
 
@@ -68,7 +68,14 @@ public class InvoiceServiceImpl implements InvoiceService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<InvoiceRequest> findAllInvoiceRequests() {
         return invoiceRequestDao.findAll();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<InvoiceBank> retrieveBanksForCurrency(Integer currencyId) {
+        return invoiceRequestDao.findInvoiceBanksByCurrency(currencyId);
     }
 }

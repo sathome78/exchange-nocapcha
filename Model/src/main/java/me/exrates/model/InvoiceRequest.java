@@ -13,6 +13,9 @@ public class InvoiceRequest {
     private Integer acceptanceUserId;
     private String acceptanceUserEmail;
     private LocalDateTime acceptanceTime;
+    private Integer bankId;
+    private String userAccount;
+    private String remark;
 
     public InvoiceRequest() {
     }
@@ -65,6 +68,30 @@ public class InvoiceRequest {
         this.acceptanceUserId = acceptanceUserId;
     }
 
+    public Integer getBankId() {
+        return bankId;
+    }
+
+    public void setBankId(Integer bankId) {
+        this.bankId = bankId;
+    }
+
+    public String getUserAccount() {
+        return userAccount;
+    }
+
+    public void setUserAccount(String userAccount) {
+        this.userAccount = userAccount;
+    }
+
+    public String getRemark() {
+        return remark;
+    }
+
+    public void setRemark(String remark) {
+        this.remark = remark;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -79,8 +106,11 @@ public class InvoiceRequest {
             return false;
         if (acceptanceUserEmail != null ? !acceptanceUserEmail.equals(that.acceptanceUserEmail) : that.acceptanceUserEmail != null)
             return false;
-        return acceptanceTime != null ? acceptanceTime.equals(that.acceptanceTime) : that.acceptanceTime == null;
-
+        if (acceptanceTime != null ? !acceptanceTime.equals(that.acceptanceTime) : that.acceptanceTime != null)
+            return false;
+        if (bankId != null ? !bankId.equals(that.bankId) : that.bankId != null) return false;
+        if (userAccount != null ? !userAccount.equals(that.userAccount) : that.userAccount != null) return false;
+        return remark != null ? remark.equals(that.remark) : that.remark == null;
     }
 
     @Override
@@ -91,6 +121,9 @@ public class InvoiceRequest {
         result = 31 * result + (acceptanceUserId != null ? acceptanceUserId.hashCode() : 0);
         result = 31 * result + (acceptanceUserEmail != null ? acceptanceUserEmail.hashCode() : 0);
         result = 31 * result + (acceptanceTime != null ? acceptanceTime.hashCode() : 0);
+        result = 31 * result + (bankId != null ? bankId.hashCode() : 0);
+        result = 31 * result + (userAccount != null ? userAccount.hashCode() : 0);
+        result = 31 * result + (remark != null ? remark.hashCode() : 0);
         return result;
     }
 
@@ -103,6 +136,9 @@ public class InvoiceRequest {
                 ", acceptanceUserId=" + acceptanceUserId +
                 ", acceptanceUserEmail='" + acceptanceUserEmail + '\'' +
                 ", acceptanceTime=" + acceptanceTime +
+                ", bankId=" + bankId +
+                ", userAccount='" + userAccount + '\'' +
+                ", remark='" + remark + '\'' +
                 '}';
     }
 }

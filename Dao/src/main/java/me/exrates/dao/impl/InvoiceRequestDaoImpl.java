@@ -64,11 +64,15 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
 
     @Override
     public void create(InvoiceRequest invoiceRequest, User user) {
-        final String sql = "INSERT into INVOICE_REQUEST (transaction_id, user_id) values (:transaction_id, :user_id)";
+        final String sql = "INSERT into INVOICE_REQUEST (transaction_id, user_id, bank_id, user_account, remark) " +
+                "values (:transaction_id, :user_id, :bank_id, :user_account, :remark)";
         final Map<String, Object> params = new HashMap<String, Object>() {
             {
                 put("transaction_id", invoiceRequest.getTransaction().getId());
                 put("user_id", user.getId());
+                put("bank_id", invoiceRequest.getBankId());
+                put("user_account", invoiceRequest.getUserAccount());
+                put("remark", invoiceRequest.getRemark());
             }
         };
         jdbcTemplate.update(sql, params);
