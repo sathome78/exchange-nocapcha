@@ -27,9 +27,10 @@
                 <li><a href="/" class="nav__link">
                     <loc:message code="dashboard.trading"/></a>
                 </li>
-                <li><a href="<c:url value="http://support.exrates.me/" />" class="nav__link">
+                <%--TODO temporary remove support link--%>
+                <%--<li><a href="<c:url value="http://support.exrates.me/" />" class="nav__link">
                     <loc:message code="dashboard.support"/></a>
-                </li>
+                </li>--%>
                 <sec:authorize access="isAuthenticated()">
                     <li id="adminka-entry">
                         <c:set var="adminEnum" value="<%=me.exrates.model.enums.UserRole.ADMINISTRATOR%>"/>
