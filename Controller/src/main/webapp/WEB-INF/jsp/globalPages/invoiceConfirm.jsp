@@ -11,7 +11,6 @@
     <link href="<c:url value='/client/img/favicon.ico'/>" rel="shortcut icon" type="image/x-icon"/>
 
     <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="interkassa-verification" content="c4deb5425361141d96dd48d235b6fc4a"/>
@@ -47,7 +46,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/submits/merchantsSubmitOutput.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/submits/finPassCheck.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/loc-direction.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/inputOutput/invoiceDetails.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/inputOutput/invoiceConfirm.js'/>"></script>
 
     <%----------%>
     <%--TOOLS ... --%>
@@ -69,7 +68,7 @@
     <div class="row_big">
         <%@include file="../fragments/left-sider.jsp" %>
         <div class="cols-md-8 background_white">
-            <%@include file="../fragments/invoiceDetails-center.jsp" %>
+            <%@include file="../fragments/invoiceConfirm-center.jsp" %>
         </div>
         <%@include file="../fragments/right-sider.jsp" %>
     </div>

@@ -9,7 +9,7 @@ public class InvoiceData {
 
     private CreditsOperation creditsOperation;
     private Integer bankId;
-    private String userAccount;
+    private String userFullName;
     private String remark;
 
     public CreditsOperation getCreditsOperation() {
@@ -28,12 +28,12 @@ public class InvoiceData {
         this.bankId = bankId;
     }
 
-    public String getUserAccount() {
-        return userAccount;
+    public String getUserFullName() {
+        return userFullName;
     }
 
-    public void setUserAccount(String userAccount) {
-        this.userAccount = userAccount;
+    public void setUserFullName(String userFullName) {
+        this.userFullName = userFullName;
     }
 
     public String getRemark() {
@@ -49,7 +49,7 @@ public class InvoiceData {
         return "InvoiceData{" +
                 "creditsOperation=" + creditsOperation +
                 ", bankId=" + bankId +
-                ", userAccount='" + userAccount + '\'' +
+                ", userFullName='" + userFullName + '\'' +
                 ", remark='" + remark + '\'' +
                 '}';
     }

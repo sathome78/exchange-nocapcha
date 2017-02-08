@@ -72,6 +72,7 @@ public class EntryController {
             @RequestParam(required = false) String errorNoty,
             @RequestParam(required = false) String successNoty,
             @RequestParam(required = false) String startupPage,
+            @RequestParam(required = false) String startupSubPage,
             HttpServletRequest request, Principal principal) {
         ModelAndView model = new ModelAndView();
         if (successNoty == null) {
@@ -86,6 +87,7 @@ public class EntryController {
         model.addObject("errorNoty", errorNoty);
         model.addObject("captchaType", CAPTCHA_TYPE);
         model.addObject("startupPage", startupPage == null ? "trading" : startupPage);
+        model.addObject("startupSubPage", startupSubPage == null ? "" : startupSubPage);
         model.addObject("sessionId", request.getSession().getId());
 
         model.setViewName("globalPages/dashboard");

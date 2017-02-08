@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 
 @Service
@@ -41,8 +42,10 @@ public class InvoiceServiceImpl implements InvoiceService {
         InvoiceRequest invoiceRequest = new InvoiceRequest();
         invoiceRequest.setTransaction(transaction);
         invoiceRequest.setUserEmail(creditsOperation.getUser().getEmail());
-        invoiceRequest.setBankId(invoiceData.getBankId());
-        invoiceRequest.setUserAccount(invoiceData.getUserAccount());
+        InvoiceBank invoiceBank = new InvoiceBank();
+        invoiceBank.setId(invoiceData.getBankId());
+        invoiceRequest.setInvoiceBank(invoiceBank);
+        invoiceRequest.setUserFullName(invoiceData.getUserFullName());
         invoiceRequest.setRemark(invoiceData.getRemark());
         invoiceRequestDao.create(invoiceRequest, creditsOperation.getUser());
         return transaction;
@@ -77,5 +80,23 @@ public class InvoiceServiceImpl implements InvoiceService {
     @Transactional(readOnly = true)
     public List<InvoiceBank> retrieveBanksForCurrency(Integer currencyId) {
         return invoiceRequestDao.findInvoiceBanksByCurrency(currencyId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<InvoiceRequest> findRequestById(Integer transactionId) {
+        return invoiceRequestDao.findById(transactionId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<InvoiceRequest> findUnconfirmedRequestById(Integer transactionId) {
+        return invoiceRequestDao.findByIdAndNotConfirmed(transactionId);
+    }
+
+    @Override
+    @Transactional
+    public void updateConfirmationInfo(InvoiceRequest invoiceRequest) {
+        invoiceRequestDao.updateConfirmationInfo(invoiceRequest);
     }
 }

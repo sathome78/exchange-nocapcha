@@ -209,9 +209,13 @@ public class MerchantDaoImpl implements MerchantDao {
                 "case when OPERATION_TYPE.name = 'input' or WITHDRAW_REQUEST.merchant_image_id is null then\n" +
                 "MERCHANT.name else\n" +
                 "MERCHANT_IMAGE.image_name end as merchant,\n" +
-                "OPERATION_TYPE.name as operation_type, TRANSACTION.id, TRANSACTION.provided, USER.id AS user_id from TRANSACTION \n" +
+                "OPERATION_TYPE.name as operation_type, TRANSACTION.id, TRANSACTION.provided, " +
+                "IF(OPERATION_TYPE.id = 1 AND MERCHANT.name = 'Invoice' AND INVOICE_REQUEST.payee_account IS NULL " +
+                "AND TRANSACTION.provided IS NOT TRUE, 1, 0) AS confirmation_required, " +
+                "USER.id AS user_id from TRANSACTION \n" +
                 "left join CURRENCY on TRANSACTION.currency_id=CURRENCY.id\n" +
                 "left join WITHDRAW_REQUEST on TRANSACTION.id=WITHDRAW_REQUEST.transaction_id\n" +
+                "left join INVOICE_REQUEST on TRANSACTION.id=INVOICE_REQUEST.transaction_id\n" +
                 "left join MERCHANT_IMAGE on WITHDRAW_REQUEST.merchant_image_id=MERCHANT_IMAGE.id\n" +
                 "left join MERCHANT on TRANSACTION.merchant_id = MERCHANT.id \n" +
                 "left join OPERATION_TYPE on TRANSACTION.operation_type_id=OPERATION_TYPE.id\n" +
@@ -237,6 +241,7 @@ public class MerchantDaoImpl implements MerchantDao {
                         messageSource.getMessage("inputoutput.statusFalse", null, locale) :
                         messageSource.getMessage("inputoutput.statusTrue", null, locale));
                 myInputOutputHistoryDto.setUserId(rs.getInt("user_id"));
+                myInputOutputHistoryDto.setConfirmationRequired(rs.getBoolean("confirmation_required"));
                 return myInputOutputHistoryDto;
             }
         });

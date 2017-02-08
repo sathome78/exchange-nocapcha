@@ -11,6 +11,17 @@ public class InvoiceBank {
     private String accountNumber;
     private String recipient;
 
+    public InvoiceBank() {
+    }
+
+    public InvoiceBank(Integer id, Integer currencyId, String name, String accountNumber, String recipient) {
+        this.id = id;
+        this.currencyId = currencyId;
+        this.name = name;
+        this.accountNumber = accountNumber;
+        this.recipient = recipient;
+    }
+
     public Integer getId() {
         return id;
     }

@@ -40,6 +40,19 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
         Timestamp acceptanceTimeResult = resultSet.getTimestamp("acceptance_time");
         LocalDateTime acceptanceTime = acceptanceTimeResult == null ? null : acceptanceTimeResult.toLocalDateTime();
         invoiceRequest.setAcceptanceTime(acceptanceTime);
+        Integer bankId = resultSet.getInt("bank_id");
+        if (bankId != 0) {
+            InvoiceBank invoiceBank = new InvoiceBank();
+            invoiceBank.setId(bankId);
+            invoiceBank.setName(resultSet.getString("bank_name"));
+            invoiceBank.setAccountNumber(resultSet.getString("account_number"));
+            invoiceBank.setRecipient(resultSet.getString("recipient"));
+            invoiceRequest.setInvoiceBank(invoiceBank);
+        }
+        invoiceRequest.setPayeeBankName(resultSet.getString("payee_bank_name"));
+        invoiceRequest.setPayeeAccount(resultSet.getString("payee_account"));
+        invoiceRequest.setUserFullName(resultSet.getString("user_full_name"));
+        invoiceRequest.setRemark(resultSet.getString("remark"));
         return invoiceRequest;
     };
 
@@ -50,7 +63,9 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
             "                    TRANSACTION.source_id, TRANSACTION.source_type, WALLET.id, WALLET.active_balance, " +
             "                    WALLET.reserved_balance, WALLET.currency_id, COMPANY_WALLET.id, COMPANY_WALLET.balance, " +
             "                    COMPANY_WALLET.commission_balance, COMMISSION.id, COMMISSION.date, COMMISSION.value, " +
-            "                    CURRENCY.id, CURRENCY.description, CURRENCY.name, MERCHANT.id,MERCHANT.name,MERCHANT.description " +
+            "                    CURRENCY.id, CURRENCY.description, CURRENCY.name, MERCHANT.id,MERCHANT.name,MERCHANT.description, " +
+            "                    INVOICE_BANK.id AS bank_id, INVOICE_BANK.name AS bank_name, INVOICE_BANK.account_number, INVOICE_BANK.recipient, " +
+            "                    inv.user_full_name, inv.remark, inv.payee_bank_name, inv.payee_account " +
             "                    FROM INVOICE_REQUEST AS inv " +
             "    INNER JOIN TRANSACTION ON inv.transaction_id = TRANSACTION.id " +
             "    INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id " +
@@ -59,19 +74,20 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
             "    INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id " +
             "    INNER JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id " +
             "    INNER JOIN USER AS user ON inv.user_id = user.id " +
-            "    LEFT JOIN USER AS adm ON inv.acceptance_user_id = adm.id";
+            "    LEFT JOIN USER AS adm ON inv.acceptance_user_id = adm.id " +
+            "    LEFT JOIN INVOICE_BANK ON inv.bank_id = INVOICE_BANK.id  ";
 
 
     @Override
     public void create(InvoiceRequest invoiceRequest, User user) {
-        final String sql = "INSERT into INVOICE_REQUEST (transaction_id, user_id, bank_id, user_account, remark) " +
-                "values (:transaction_id, :user_id, :bank_id, :user_account, :remark)";
+        final String sql = "INSERT into INVOICE_REQUEST (transaction_id, user_id, bank_id, user_full_name, remark) " +
+                "values (:transaction_id, :user_id, :bank_id, :user_full_name, :remark)";
         final Map<String, Object> params = new HashMap<String, Object>() {
             {
                 put("transaction_id", invoiceRequest.getTransaction().getId());
                 put("user_id", user.getId());
-                put("bank_id", invoiceRequest.getBankId());
-                put("user_account", invoiceRequest.getUserAccount());
+                put("bank_id", invoiceRequest.getInvoiceBank().getId());
+                put("user_full_name", invoiceRequest.getUserFullName());
                 put("remark", invoiceRequest.getRemark());
             }
         };
@@ -119,6 +135,20 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
     }
 
     @Override
+    public Optional<InvoiceRequest> findByIdAndNotConfirmed(int id) {
+        final String sql = SELECT_ALL + " WHERE inv.transaction_id = :id AND inv.payee_account IS NULL";
+        try {
+            return of(jdbcTemplate
+                    .queryForObject(sql,
+                            singletonMap("id", id),
+                            invoiceRequestRowMapper)
+            );
+        } catch (EmptyResultDataAccessException e) {
+            return empty();
+        }
+    }
+
+    @Override
     public List<InvoiceRequest> findAll() {
         final String sql = SELECT_ALL + " ORDER BY acceptance_time IS NULL DESC, acceptance_time DESC";
         return jdbcTemplate.query(sql, invoiceRequestRowMapper);
@@ -139,5 +169,18 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
             bank.setRecipient(rs.getString("recipient"));
             return bank;
         });
+    }
+
+    @Override
+    public void updateConfirmationInfo(InvoiceRequest invoiceRequest) {
+        final String sql = "UPDATE INVOICE_REQUEST SET payee_bank_name = :payee_bank_name, payee_account = :payee_account, " +
+                "user_full_name = :user_full_name, remark = :remark WHERE transaction_id = :id";
+        Map<String, Object> params = new HashMap<>();
+        params.put("id", invoiceRequest.getTransaction().getId());
+        params.put("payee_bank_name", invoiceRequest.getPayeeBankName());
+        params.put("payee_account", invoiceRequest.getPayeeAccount());
+        params.put("user_full_name", invoiceRequest.getUserFullName());
+        params.put("remark", invoiceRequest.getRemark());
+        jdbcTemplate.update(sql, params);
     }
 }

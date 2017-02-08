@@ -10,6 +10,7 @@ var myStatements;
 var myHistory;
 var orders;
 var $currentPageMenuItem;
+var $currentSubMenuItem;
 var notifications;
 
 $(function dashdoardInit() {
@@ -108,6 +109,9 @@ $(function dashdoardInit() {
             syncCurrentParams(newCurrentCurrencyPairName, null, null, null, function (data) {
                 if ($currentPageMenuItem.length) {
                     $currentPageMenuItem.click();
+                    if ($currentSubMenuItem.length) {
+                        $currentSubMenuItem.click();
+                    }
                 } else {
                     onMenuTraidingItemClick();
                 }
@@ -137,6 +141,7 @@ $(function dashdoardInit() {
 
         syncCurrentParams(null, null, null, null, function (data) {
             showPage($('#startup-page-id').text().trim());
+
             trading = new TradingClass(data.period, data.chartType, data.currencyPair.name);
             leftSider.setOnWalletsRefresh(function () {
                 trading.fillOrderBalance($('.currency-pair-selector__button').first().text().trim())
@@ -145,6 +150,8 @@ $(function dashdoardInit() {
             myStatements = new MyStatementsClass();
             myHistory = new MyHistoryClass(data.currencyPair.name);
             orders = new OrdersClass(data.currencyPair.name);
+            showSubPage($('#startup-subPage-id').text().trim())
+
         });
         /*...FOR CENTER ON START UP*/
 
@@ -170,6 +177,15 @@ function showPage(pageId) {
     $('#' + pageId).removeClass('hidden');
     $currentPageMenuItem = $('#' + $('#' + pageId).data('menuitemid'));
 }
+
+function showSubPage(subPageId) {
+    if (subPageId) {
+        $currentSubMenuItem = $('#' + $('#' + subPageId).data('submenuitemid'));
+        $($currentSubMenuItem).click();
+    }
+}
+
+
 
 function syncCurrentParams(currencyPairName, period, chart, showAllPairs, callback) {
     var url = '/dashboard/currentParams?';

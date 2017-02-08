@@ -20,7 +20,11 @@ public interface InvoiceRequestDao {
 
     Optional<InvoiceRequest> findById(int id);
 
+    Optional<InvoiceRequest> findByIdAndNotConfirmed(int id);
+
     List<InvoiceRequest> findAll();
 
     List<InvoiceBank> findInvoiceBanksByCurrency(Integer currencyId);
+
+    void updateConfirmationInfo(InvoiceRequest invoiceRequest);
 }

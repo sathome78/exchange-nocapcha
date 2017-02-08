@@ -1,9 +1,7 @@
 package me.exrates.controller.merchants;
 
-import me.exrates.model.CreditsOperation;
-import me.exrates.model.InvoiceBank;
-import me.exrates.model.Payment;
-import me.exrates.model.Transaction;
+import me.exrates.model.*;
+import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.InvoiceData;
 import me.exrates.service.InvoiceService;
 import me.exrates.service.MerchantService;
@@ -15,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,8 +28,10 @@ import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
@@ -55,6 +56,7 @@ public class InvoiceController {
     private LocaleResolver localeResolver;
 
     private static final Logger LOG = LogManager.getLogger("merchant");
+
 
 
     @RequestMapping(value = "/preSubmit", method = POST)
@@ -108,18 +110,20 @@ public class InvoiceController {
         } else {
             modelAndView.addObject("creditsOperation", creditsOperation);
             List<InvoiceBank> invoiceBanks = invoiceService.retrieveBanksForCurrency(creditsOperation.getCurrency().getId());
+            String notSelected = messageSource.getMessage("merchants.notSelected", null, localeResolver.resolveLocale(request));
+            invoiceBanks.add(0, new InvoiceBank(-1, creditsOperation.getCurrency().getId(), notSelected, notSelected, notSelected));
             modelAndView.addObject("invoiceBanks", invoiceBanks);
         }
         return modelAndView;
     }
 
-    @RequestMapping(value = "/payment/prepare",method = POST)
+    @RequestMapping(value = "/payment/prepare",method = POST, consumes = "application/x-www-form-urlencoded;charset=UTF-8")
     public RedirectView preparePayment(InvoiceData invoiceData,
                                        final Principal principal, RedirectAttributes redirectAttributes,
                                                  HttpServletRequest request)    {
-        RedirectView redirectView = new RedirectView("/dashboard");
         LOG.debug(invoiceData);
-
+        LOG.debug(decodeToUTF8(invoiceData.getRemark()));
+        LOG.debug(decodeToUTF8(invoiceData.getUserFullName()));
         final String email = principal.getName();
         HttpSession session = request.getSession();
         CreditsOperation creditsOperation;
@@ -127,11 +131,13 @@ public class InvoiceController {
         synchronized (mutex) {
             creditsOperation = (CreditsOperation) session.getAttribute("creditsOperation");
             if (creditsOperation == null) {
-                redirectAttributes.addFlashAttribute("errorNoty", "No credits operation found!");
-                return redirectView;
+                redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("merchant.operationNotAvailable", null,
+                        localeResolver.resolveLocale(request)));
+                return new RedirectView("/dashboard");
             }
         }
-        try {
+        return new RedirectView("/dashboard");
+        /*try {
             invoiceData.setCreditsOperation(creditsOperation);
 
             final Transaction transaction = invoiceService.createPaymentInvoice(invoiceData);
@@ -144,17 +150,69 @@ public class InvoiceController {
             synchronized (mutex) {
                 session.removeAttribute("creditsOperation");
             }
+            return new RedirectView("/dashboard?startupPage=myhistory&startupSubPage=myinputoutput");
 
         } catch (final InvalidAmountException|RejectedPaymentInvoice e) {
             final String error = messageSource.getMessage("merchants.incorrectPaymentDetails", null, localeResolver.resolveLocale(request));
             LOG.warn(error);
             redirectAttributes.addFlashAttribute("errorNoty", error);
+            return new RedirectView("/dashboard");
+        }*/
+    }
+
+    private String decodeToUTF8(String encoded) {
+        byte[] stringBytes = encoded.getBytes(StandardCharsets.ISO_8859_1);
+        return new String(stringBytes, StandardCharsets.UTF_8);
+    }
+
+    @RequestMapping(value = "/payment/cancel",method = POST)
+    public RedirectView cancelPayment(HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        Object mutex = WebUtils.getSessionMutex(session);
+        synchronized (mutex) {
+            session.removeAttribute("creditsOperation");
+        }
+        return new RedirectView("/dashboard");
+    }
+
+    @RequestMapping(value = "/payment/confirmation", method = GET)
+    public ModelAndView confirmationPage(@RequestParam Integer transactionId) {
+        LOG.debug(transactionId);
+        ModelAndView modelAndView = new ModelAndView("/globalPages/invoiceConfirm");
+        Optional<InvoiceRequest> invoiceRequestResult = invoiceService.findRequestById(transactionId);
+        if (!invoiceRequestResult.isPresent()) {
+            modelAndView.addObject("error", "merchants.error.invoiceRequestNotFound");
+        } else {
+            InvoiceRequest invoiceRequest = invoiceRequestResult.get();
+            modelAndView.addObject("invoiceRequest", invoiceRequest);
+            List<String> bankNames = invoiceService.retrieveBanksForCurrency(invoiceRequest.getTransaction().getCurrency().getId())
+                    .stream().map(InvoiceBank::getName).collect(Collectors.toList());
+            modelAndView.addObject("bankNames", bankNames);
+            if (bankNames.stream().noneMatch(name -> name.equals(invoiceRequest.getPayeeBankName()))) {
+                modelAndView.addObject("otherBank", invoiceRequest.getPayeeBankName());
+            }
+        }
+        return modelAndView;
+    }
+    @RequestMapping(value = "/payment/confirm", method = POST)
+    public RedirectView confirmInvoice(InvoiceConfirmData invoiceConfirmData, RedirectAttributes redirectAttributes) {
+        LOG.debug(invoiceConfirmData);
+        RedirectView redirectView = new RedirectView("/dashboard?startupPage=myhistory&startupSubPage=myinputoutput");
+        Optional<InvoiceRequest> invoiceRequestResult = invoiceService.findRequestById(invoiceConfirmData.getInvoiceId());
+        if (!invoiceRequestResult.isPresent()) {
+            redirectAttributes.addFlashAttribute("error", "merchants.error.invoiceRequestNotFound");
+        } else {
+            InvoiceRequest invoiceRequest = invoiceRequestResult.get();
+            invoiceRequest.setPayeeBankName(invoiceConfirmData.getPayeeBankName());
+            invoiceRequest.setPayeeAccount(invoiceConfirmData.getUserAccount());
+            invoiceRequest.setUserFullName(invoiceConfirmData.getUserFullName());
+            invoiceRequest.setRemark(invoiceConfirmData.getRemark());
+            invoiceService.updateConfirmationInfo(invoiceRequest);
         }
         return redirectView;
-
-
-
     }
+
+
 
     @RequestMapping(value = "/payment/accept",method = GET)
     public RedirectView acceptPayment(@RequestParam int id, RedirectAttributes redir, Principal principal){

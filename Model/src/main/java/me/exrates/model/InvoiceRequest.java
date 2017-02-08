@@ -13,9 +13,11 @@ public class InvoiceRequest {
     private Integer acceptanceUserId;
     private String acceptanceUserEmail;
     private LocalDateTime acceptanceTime;
-    private Integer bankId;
-    private String userAccount;
+    private InvoiceBank invoiceBank;
+    private String userFullName;
     private String remark;
+    private String payeeBankName;
+    private String payeeAccount;
 
     public InvoiceRequest() {
     }
@@ -68,20 +70,20 @@ public class InvoiceRequest {
         this.acceptanceUserId = acceptanceUserId;
     }
 
-    public Integer getBankId() {
-        return bankId;
+    public InvoiceBank getInvoiceBank() {
+        return invoiceBank;
     }
 
-    public void setBankId(Integer bankId) {
-        this.bankId = bankId;
+    public void setInvoiceBank(InvoiceBank invoiceBank) {
+        this.invoiceBank = invoiceBank;
     }
 
-    public String getUserAccount() {
-        return userAccount;
+    public String getUserFullName() {
+        return userFullName;
     }
 
-    public void setUserAccount(String userAccount) {
-        this.userAccount = userAccount;
+    public void setUserFullName(String userFullName) {
+        this.userFullName = userFullName;
     }
 
     public String getRemark() {
@@ -90,6 +92,22 @@ public class InvoiceRequest {
 
     public void setRemark(String remark) {
         this.remark = remark;
+    }
+
+    public String getPayeeBankName() {
+        return payeeBankName;
+    }
+
+    public void setPayeeBankName(String payeeBankName) {
+        this.payeeBankName = payeeBankName;
+    }
+
+    public String getPayeeAccount() {
+        return payeeAccount;
+    }
+
+    public void setPayeeAccount(String payeeAccount) {
+        this.payeeAccount = payeeAccount;
     }
 
     @Override
@@ -108,9 +126,12 @@ public class InvoiceRequest {
             return false;
         if (acceptanceTime != null ? !acceptanceTime.equals(that.acceptanceTime) : that.acceptanceTime != null)
             return false;
-        if (bankId != null ? !bankId.equals(that.bankId) : that.bankId != null) return false;
-        if (userAccount != null ? !userAccount.equals(that.userAccount) : that.userAccount != null) return false;
-        return remark != null ? remark.equals(that.remark) : that.remark == null;
+        if (invoiceBank != null ? !invoiceBank.equals(that.invoiceBank) : that.invoiceBank != null) return false;
+        if (userFullName != null ? !userFullName.equals(that.userFullName) : that.userFullName != null) return false;
+        if (remark != null ? !remark.equals(that.remark) : that.remark != null) return false;
+        if (payeeBankName != null ? !payeeBankName.equals(that.payeeBankName) : that.payeeBankName != null)
+            return false;
+        return payeeAccount != null ? payeeAccount.equals(that.payeeAccount) : that.payeeAccount == null;
     }
 
     @Override
@@ -121,9 +142,11 @@ public class InvoiceRequest {
         result = 31 * result + (acceptanceUserId != null ? acceptanceUserId.hashCode() : 0);
         result = 31 * result + (acceptanceUserEmail != null ? acceptanceUserEmail.hashCode() : 0);
         result = 31 * result + (acceptanceTime != null ? acceptanceTime.hashCode() : 0);
-        result = 31 * result + (bankId != null ? bankId.hashCode() : 0);
-        result = 31 * result + (userAccount != null ? userAccount.hashCode() : 0);
+        result = 31 * result + (invoiceBank != null ? invoiceBank.hashCode() : 0);
+        result = 31 * result + (userFullName != null ? userFullName.hashCode() : 0);
         result = 31 * result + (remark != null ? remark.hashCode() : 0);
+        result = 31 * result + (payeeBankName != null ? payeeBankName.hashCode() : 0);
+        result = 31 * result + (payeeAccount != null ? payeeAccount.hashCode() : 0);
         return result;
     }
 
@@ -136,9 +159,11 @@ public class InvoiceRequest {
                 ", acceptanceUserId=" + acceptanceUserId +
                 ", acceptanceUserEmail='" + acceptanceUserEmail + '\'' +
                 ", acceptanceTime=" + acceptanceTime +
-                ", bankId=" + bankId +
-                ", userAccount='" + userAccount + '\'' +
+                ", invoiceBank=" + invoiceBank +
+                ", userFullName='" + userFullName + '\'' +
                 ", remark='" + remark + '\'' +
+                ", payeeBankName='" + payeeBankName + '\'' +
+                ", payeeAccount='" + payeeAccount + '\'' +
                 '}';
     }
 }
