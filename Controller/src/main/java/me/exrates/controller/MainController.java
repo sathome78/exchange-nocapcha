@@ -344,8 +344,6 @@ public class MainController {
                                      HttpServletRequest request, RedirectAttributes redirectAttributes) {
 
 
-        messageForm.setSenderName(decodeToUTF8(messageForm.getSenderName()));
-        messageForm.setMessageText(decodeToUTF8(messageForm.getMessageText()));
         ModelAndView modelAndView = new ModelAndView("redirect:/contacts");
         String captchaType = request.getParameter("captchaType");
         switch (captchaType) {
@@ -390,10 +388,7 @@ public class MainController {
         return modelAndView;
     }
 
-    private String decodeToUTF8(String encoded) {
-        byte[] stringBytes = encoded.getBytes(StandardCharsets.ISO_8859_1);
-        return new String(stringBytes, StandardCharsets.UTF_8);
-    }
+
 
 
 
