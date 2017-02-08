@@ -58,7 +58,7 @@
                     <div class="input-block-wrapper clearfix">
                         <div class="col-md-3 input-block-wrapper__label-wrapper" >
                             <label for="bankSelect" class="input-block-wrapper__label" >
-                                <loc:message code="merchants.invoiceConfirm.bankFrom"/></label>
+                                <loc:message code="merchants.invoiceConfirm.bankFrom"/>*</label>
                         </div>
                         <div class="col-md-8 " >
                             <select class="form-control input-block-wrapper__input" id="bankSelect" <c:out value="${confirmed ? disabled : ''}"/>>
@@ -84,7 +84,7 @@
                     <div class="input-block-wrapper clearfix">
                         <div class="col-md-3 input-block-wrapper__label-wrapper">
                             <label for="userAccount" class="input-block-wrapper__label" >
-                                <loc:message code="merchants.invoiceConfirm.userAccount"/></label>
+                                <loc:message code="merchants.invoiceConfirm.userAccount"/>*</label>
                         </div>
                         <div class="col-md-8 " >
                             <input class="form-control input-block-wrapper__input" type="text" id="userAccount"
@@ -97,7 +97,7 @@
                     <div class="input-block-wrapper clearfix">
                         <div class="col-md-3 input-block-wrapper__label-wrapper">
                             <label for="userFullName" class="input-block-wrapper__label" >
-                                <loc:message code="merchants.invoiceDetails.userFullName"/></label>
+                                <loc:message code="merchants.invoiceDetails.userFullName"/>*</label>
                         </div>
                         <div class="col-md-8 " >
                             <input class="form-control input-block-wrapper__input" type="text" id="userFullName"

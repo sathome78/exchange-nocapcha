@@ -748,6 +748,12 @@ public class AdminController {
         return new ModelAndView("admin/transaction_invoice", "invoiceRequests", invoiceService.findAllInvoiceRequests());
     }
 
+    @RequestMapping(value = "/2a8fy7b07dxe44/invoiceRequests")
+    @ResponseBody
+    public List<InvoiceRequest> invoiceRequests() {
+        return invoiceService.findAllInvoiceRequests();
+    }
+
     @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinConfirmation")
     public ModelAndView bitcoinTransactions(HttpSession httpSession) {
         return new ModelAndView("admin/transaction_bitcoin", "bitcoinRequests", bitcoinService.getBitcoinTransactions());

@@ -1,5 +1,8 @@
 package me.exrates.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import me.exrates.model.serializer.LocalDateTimeSerializer;
+
 import java.time.LocalDateTime;
 
 /**
@@ -12,6 +15,7 @@ public class InvoiceRequest {
     private String userEmail;
     private Integer acceptanceUserId;
     private String acceptanceUserEmail;
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime acceptanceTime;
     private InvoiceBank invoiceBank;
     private String userFullName;

@@ -63,7 +63,7 @@
                     <div class="input-block-wrapper clearfix">
                         <div class="col-md-3 input-block-wrapper__label-wrapper" >
                             <label for="bankId" class="input-block-wrapper__label" >
-                                <loc:message code="merchants.invoiceDetails.bank"/></label>
+                                <loc:message code="merchants.invoiceDetails.bank"/>*</label>
                         </div>
                         <div class="col-md-8 " >
                             <select class="form-control input-block-wrapper__input" id="bankId" name="bankId">
@@ -77,7 +77,7 @@
                     <div class="input-block-wrapper clearfix">
                             <div class="col-md-3 input-block-wrapper__label-wrapper">
                                 <label for="userFullName" class="input-block-wrapper__label" >
-                                    <loc:message code="merchants.invoiceDetails.userFullName"/></label>
+                                    <loc:message code="merchants.invoiceDetails.userFullName"/>*</label>
                             </div>
                             <div class="col-md-8 " >
                                 <input class="form-control input-block-wrapper__input" type="text" id="userFullName" name="userFullName">
