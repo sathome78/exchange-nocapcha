@@ -10,6 +10,7 @@ import me.exrates.model.vo.InvoiceData;
 import me.exrates.service.InvoiceService;
 import me.exrates.service.NotificationService;
 import me.exrates.service.TransactionService;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +47,7 @@ public class InvoiceServiceImpl implements InvoiceService {
         invoiceBank.setId(invoiceData.getBankId());
         invoiceRequest.setInvoiceBank(invoiceBank);
         invoiceRequest.setUserFullName(invoiceData.getUserFullName());
-        invoiceRequest.setRemark(invoiceData.getRemark());
+        invoiceRequest.setRemark(StringEscapeUtils.escapeHtml(invoiceData.getRemark()));
         invoiceRequestDao.create(invoiceRequest, creditsOperation.getUser());
         return transaction;
     }

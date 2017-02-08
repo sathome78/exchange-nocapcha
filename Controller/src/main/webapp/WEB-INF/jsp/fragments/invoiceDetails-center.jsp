@@ -83,7 +83,7 @@
                                 <input class="form-control input-block-wrapper__input" type="text" id="userFullName" name="userFullName">
                             </div>
                         <div id="userFullNameError" class="col-md-11 input-block-wrapper__error-wrapper">
-                            <p class="red"><loc:message code="login.latinonly" /></p>
+                            <p class="red"><loc:message code="merchants.error.fullNameInLatin" /></p>
                         </div>
                         </div>
                         <div class="input-block-wrapper clearfix">

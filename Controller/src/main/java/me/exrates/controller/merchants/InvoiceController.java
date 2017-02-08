@@ -7,6 +7,7 @@ import me.exrates.service.InvoiceService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.RejectedPaymentInvoice;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -192,14 +193,16 @@ public class InvoiceController {
         Object mutex = WebUtils.getSessionMutex(session);
         if (!invoiceRequestResult.isPresent()) {
             synchronized (mutex) {
-                session.setAttribute("errorNoty", "merchants.error.invoiceRequestNotFound");
+                session.setAttribute("errorNoty", messageSource.getMessage("merchants.error.invoiceRequestNotFound", null,
+                        localeResolver.resolveLocale(request)));
             }
         } else {
             InvoiceRequest invoiceRequest = invoiceRequestResult.get();
             invoiceRequest.setPayeeBankName(invoiceConfirmData.getPayeeBankName());
             invoiceRequest.setPayeeAccount(invoiceConfirmData.getUserAccount());
             invoiceRequest.setUserFullName(invoiceConfirmData.getUserFullName());
-            invoiceRequest.setRemark(invoiceConfirmData.getRemark());
+            //html escaping to prevent XSS
+            invoiceRequest.setRemark(StringEscapeUtils.escapeHtml(invoiceConfirmData.getRemark()));
             invoiceService.updateConfirmationInfo(invoiceRequest);
             synchronized (mutex) {
                 session.setAttribute("successNoty", messageSource.getMessage("merchants.invoiceConfirm.noty", null,
@@ -221,4 +224,5 @@ public class InvoiceController {
 
         return new RedirectView("/2a8fy7b07dxe44/invoiceConfirmation");
     }
+
 }

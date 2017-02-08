@@ -49,7 +49,7 @@ function updateBankSelection($bankSelect, $otherBankInputDiv) {
 
 function checkFields() {
     var payeeBankTest = validateString($('#payeeBankName').val(), BANK_NAME_REGEX, $('#bankNameError'));
-    var payeeAccountTest = validateString($('#userAccount').val(), DIGITS_ONLY_REGEX, $('#bankNameError'));
+    var payeeAccountTest = validateString($('#userAccount').val(), DIGITS_ONLY_REGEX, $('#userAccountError'));
     var payeeFullNameTest = validateString($('#userFullName').val(), NAME_REGEX, $('#userFullNameError'));
 
 
@@ -62,7 +62,6 @@ function checkFields() {
 }
 
 function validateString(str, regex, errorDiv) {
-    console.log(str);
     if (!str) {
         $(errorDiv).hide();
         return false;
