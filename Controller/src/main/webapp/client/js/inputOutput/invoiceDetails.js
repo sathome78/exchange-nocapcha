@@ -1,6 +1,8 @@
 /**
  * Created by OLEG on 03.02.2017.
  */
+var NAME_REGEX = /^[a-zA-Z]([-']?[a-zA-Z]+)*( [a-zA-Z]([-']?[a-zA-Z]+)*)+$/;
+
 $(function () {
 
     updateBankDetails();
@@ -35,10 +37,26 @@ function updateBankDetails() {
 function ensureCompleteInput() {
     var bankId = parseInt($('#bankId').val());
     var userFullName = $('#userFullName').val();
-
-    if (bankId === -1 || !userFullName || userFullName.length < 2) {
+    var fullNameTest = validateString(userFullName, NAME_REGEX, $('#userFullNameError'));
+    if (bankId === -1 || !fullNameTest) {
         $('#invoiceSubmit').prop('disabled', true);
     } else {
         $('#invoiceSubmit').prop('disabled', false);
     }
 }
+
+function validateString(str, regex, errorDiv) {
+    if (!str) {
+        $(errorDiv).hide();
+        return false;
+    }
+    if (regex.test(str)) {
+        $(errorDiv).hide();
+        return true;
+    } else {
+        $(errorDiv).show();
+        return false;
+    }
+
+}
+

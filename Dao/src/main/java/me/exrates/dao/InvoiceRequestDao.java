@@ -26,5 +26,7 @@ public interface InvoiceRequestDao {
 
     List<InvoiceBank> findInvoiceBanksByCurrency(Integer currencyId);
 
+    InvoiceBank findBankById(Integer bankId);
+
     void updateConfirmationInfo(InvoiceRequest invoiceRequest);
 }

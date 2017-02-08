@@ -77,6 +77,9 @@
                         <div class="col-md-8 " >
                             <input class="form-control input-block-wrapper__input" type="text" id="otherBank" value="${otherBank}" <c:out value="${readonlyIfConfirmed}"/>>
                         </div>
+                        <div id="bankNameError" class="col-md-11 input-block-wrapper__error-wrapper">
+                            <p class="red"><loc:message code="merchants.error.bankNameInLatin" /></p>
+                        </div>
                     </div>
                     <div class="input-block-wrapper clearfix">
                         <div class="col-md-3 input-block-wrapper__label-wrapper">
@@ -87,6 +90,9 @@
                             <input class="form-control input-block-wrapper__input" type="text" id="userAccount"
                                    name="userAccount" value="${invoiceRequest.payeeAccount}" <c:out value="${readonlyIfConfirmed}"/>>
                         </div>
+                        <div id="userAccountError" class="col-md-11 input-block-wrapper__error-wrapper">
+                            <p class="red"><loc:message code="merchants.error.accountDigitsOnly" /></p>
+                        </div>
                     </div>
                     <div class="input-block-wrapper clearfix">
                         <div class="col-md-3 input-block-wrapper__label-wrapper">
@@ -96,6 +102,9 @@
                         <div class="col-md-8 " >
                             <input class="form-control input-block-wrapper__input" type="text" id="userFullName"
                                    name="userFullName" value="${invoiceRequest.userFullName}" <c:out value="${readonlyIfConfirmed}"/>>
+                        </div>
+                        <div id="userFullNameError" class="col-md-11 input-block-wrapper__error-wrapper">
+                            <p class="red"><loc:message code="merchants.error.fullNameInLatin" /></p>
                         </div>
                     </div>
                     <div class="input-block-wrapper clearfix">

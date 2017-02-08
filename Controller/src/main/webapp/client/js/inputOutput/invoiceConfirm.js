@@ -1,6 +1,10 @@
 /**
  * Created by OLEG on 07.02.2017.
  */
+var DIGITS_ONLY_REGEX = /^\d+$/;
+var NAME_REGEX = /^[a-zA-Z]([-']?[a-zA-Z]+)*( [a-zA-Z]([-']?[a-zA-Z]+)*)+$/;
+var BANK_NAME_REGEX = /^[a-zA-Z]([-']?[a-zA-Z]+)*( [a-zA-Z]([-']?[a-zA-Z]+)*)*$/;
+
 $(function () {
 
     var $bankSelect = $('#bankSelect');
@@ -44,16 +48,31 @@ function updateBankSelection($bankSelect, $otherBankInputDiv) {
 }
 
 function checkFields() {
-    var payeeBank = $('#payeeBankName').val();
-    var payeeAccount = $('#userAccount').val();
-    var payeeFullName = $('#userFullName').val();
-    if (validateString(payeeBank) && validateString(payeeAccount) && validateString(payeeFullName)) {
+    var payeeBankTest = validateString($('#payeeBankName').val(), BANK_NAME_REGEX, $('#bankNameError'));
+    var payeeAccountTest = validateString($('#userAccount').val(), DIGITS_ONLY_REGEX, $('#bankNameError'));
+    var payeeFullNameTest = validateString($('#userFullName').val(), NAME_REGEX, $('#userFullNameError'));
+
+
+
+    if (payeeBankTest && payeeAccountTest && payeeFullNameTest) {
         $('#invoiceSubmit').prop('disabled', false);
     } else {
         $('#invoiceSubmit').prop('disabled', true);
     }
 }
 
-function validateString(string) {
-    return string.length > 2;
+function validateString(str, regex, errorDiv) {
+    console.log(str);
+    if (!str) {
+        $(errorDiv).hide();
+        return false;
+    }
+    if (regex.test(str)) {
+        $(errorDiv).hide();
+        return true;
+    } else {
+        $(errorDiv).show();
+        return false;
+    }
+
 }

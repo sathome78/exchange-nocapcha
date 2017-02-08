@@ -172,6 +172,23 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
     }
 
     @Override
+    public InvoiceBank findBankById(Integer bankId) {
+        final String sql = "SELECT id, currency_id, name, account_number, recipient " +
+                " FROM INVOICE_BANK " +
+                " WHERE id = :bank_id";
+        final Map<String, Integer> params = Collections.singletonMap("bank_id", bankId);
+        return jdbcTemplate.queryForObject(sql, params, (rs, rowNum) -> {
+            InvoiceBank bank = new InvoiceBank();
+            bank.setId(rs.getInt("id"));
+            bank.setName(rs.getString("name"));
+            bank.setCurrencyId(rs.getInt("currency_id"));
+            bank.setAccountNumber(rs.getString("account_number"));
+            bank.setRecipient(rs.getString("recipient"));
+            return bank;
+        });
+    }
+
+    @Override
     public void updateConfirmationInfo(InvoiceRequest invoiceRequest) {
         final String sql = "UPDATE INVOICE_REQUEST SET payee_bank_name = :payee_bank_name, payee_account = :payee_account, " +
                 "user_full_name = :user_full_name, remark = :remark WHERE transaction_id = :id";

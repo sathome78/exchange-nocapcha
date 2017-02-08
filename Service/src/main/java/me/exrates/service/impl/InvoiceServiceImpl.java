@@ -78,8 +78,14 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<InvoiceBank> retrieveBanksForCurrency(Integer currencyId) {
+    public List<InvoiceBank> findBanksForCurrency(Integer currencyId) {
         return invoiceRequestDao.findInvoiceBanksByCurrency(currencyId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public InvoiceBank findBankById(Integer bankId) {
+        return invoiceRequestDao.findBankById(bankId);
     }
 
     @Override

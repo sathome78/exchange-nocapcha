@@ -18,7 +18,10 @@ public interface InvoiceService {
 
     List<InvoiceRequest> findAllInvoiceRequests();
 
-    List<InvoiceBank> retrieveBanksForCurrency(Integer currencyId);
+    List<InvoiceBank> findBanksForCurrency(Integer currencyId);
+
+    @Transactional(readOnly = true)
+    InvoiceBank findBankById(Integer bankId);
 
     Optional<InvoiceRequest> findRequestById(Integer transactionId);
 
