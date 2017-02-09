@@ -973,9 +973,41 @@ public class MobileEntryController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/api/user/findNickname", method = RequestMethod.GET)
+    /**
+     * @api {post} /api/user/findNicknames Find nicknames
+     * @apiName findNicknames
+     * @apiUse TokenHeader
+     * @apiGroup User
+     * @apiParam {String} language language code (en, ru, cn, in, ar available)
+     * @apiParamExample {json} Request Example:
+     *      /api/user/findNicknames?part=sd
+     * @apiPermission User
+     * @apiDescription Find nickname variants by part
+     * In case of success returns empty response with HTTP 200
+     * @apiSuccess (200) {Array} data Nicknames found
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     *
+     *     [
+     *          "asda",
+     *          "chinasddyzyx"
+     *     ]
+     *
+     * @apiUse MessageNotReadableError
+     * @apiUse ExpiredAuthenticationTokenError
+     * @apiUse MissingAuthenticationTokenError
+     * @apiUse InvalidAuthenticationTokenError
+     * @apiUse MissingRequiredParamError
+     * @apiUse LanguageNotSupportedError
+     * @apiUse InternalServerError
+     */
+    @RequestMapping(value = "/api/user/findNicknames", method = RequestMethod.GET)
     @ResponseBody
-    public List<String> findNickname(@RequestBody Map<String, String> body) {
+    public List<String> findNicknames(@RequestParam String part) {
+        if (part == null || part.isEmpty()) {
+            return Collections.EMPTY_LIST;
+        }
+        return userService.findNicknamesByPart(part);
 
     }
 
@@ -1144,6 +1176,7 @@ public class MobileEntryController {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)
     public ApiError OtherErrorsHandler(HttpServletRequest req, Exception exception) {
+        exception.printStackTrace();
         return new ApiError(ErrorCode.INTERNAL_SERVER_ERROR, req.getRequestURL(), exception);
     }
 

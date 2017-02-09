@@ -947,16 +947,16 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public Integer retrieveNicknameSearchLimit() {
-        String sql = "SELECT param_name FROM API_PARAMS WHERE param_name = 'NICKNAME_SEARCH_LIMIT'";
+        String sql = "SELECT param_value FROM API_PARAMS WHERE param_name = 'NICKNAME_SEARCH_LIMIT'";
         return jdbcTemplate.queryForObject(sql, Collections.EMPTY_MAP, Integer.class);
     }
 
     @Override
     public List<String> findNicknamesByPart(String part, Integer limit) {
-        String sql = "SELECT nickname from USER WHERE nickname LIKE :part LIMIT :limit";
+        String sql = "SELECT nickname from USER WHERE nickname LIKE :part LIMIT :lim";
         Map<String, Object> params = new HashMap<>();
         params.put("part", "%" + part + "%");
-        params.put("limit", limit);
+        params.put("lim", limit);
         return jdbcTemplate.query(sql, params, (rs, rowNum) -> rs.getString("nickname"));
     }
 }

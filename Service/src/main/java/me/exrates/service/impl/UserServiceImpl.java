@@ -570,6 +570,7 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    @Override
     @Transactional(readOnly = true)
     public List<String> findNicknamesByPart(String part) {
         Integer nicknameLimit = userDao.retrieveNicknameSearchLimit();
