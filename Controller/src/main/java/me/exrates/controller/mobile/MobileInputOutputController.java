@@ -355,11 +355,11 @@ public class MobileInputOutputController {
      * @apiUse InternalServerError
      */
     @RequestMapping(value = "/transfer/submit", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Map<String,String>> submitTransfer(@RequestBody UserTransferDto userTransferDto) {
+    public ResponseEntity<Void> submitTransfer(@RequestBody UserTransferDto userTransferDto) {
         Locale userLocale = userService.getUserLocaleForMobile(SecurityContextHolder.getContext().getAuthentication().getName());
-        String result = walletService.transferCostsToUser(userTransferDto.getWalletId(), userTransferDto.getNickname(),
+        walletService.transferCostsToUser(userTransferDto.getWalletId(), userTransferDto.getNickname(),
                 userTransferDto.getAmount(), userLocale);
-        return new ResponseEntity<>(Collections.singletonMap("result", result), OK);
+        return new ResponseEntity<>(OK);
 
     }
 
