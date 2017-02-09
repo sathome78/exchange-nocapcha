@@ -66,6 +66,13 @@ public class MerchantDaoImpl implements MerchantDao {
     }
 
     @Override
+    public Merchant findByName(String name) {
+        final String sql = "SELECT * FROM MERCHANT WHERE name = :name";
+        final Map<String, String> params = Collections.singletonMap("name", name);
+        return jdbcTemplate.queryForObject(sql,params,new BeanPropertyRowMapper<>(Merchant.class));
+    }
+
+    @Override
     public List<Merchant> findAll() {
         final String sql = "SELECT * FROM MERCHANT";
         return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Merchant.class));

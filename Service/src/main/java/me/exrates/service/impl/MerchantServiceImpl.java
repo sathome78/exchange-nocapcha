@@ -301,6 +301,11 @@ public class MerchantServiceImpl implements MerchantService {
     }
 
     @Override
+    public Merchant findByNName(String name) {
+        return merchantDao.findByName(name);
+    }
+
+    @Override
     public List<MerchantCurrency> findAllByCurrencies(List<Integer> currenciesId, OperationType operationType) {
         if (currenciesId.isEmpty()) {
             return null;
