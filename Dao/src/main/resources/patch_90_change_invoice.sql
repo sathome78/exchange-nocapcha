@@ -6,7 +6,7 @@ CREATE TABLE `INVOICE_BANK` (
   `recipient` varchar(150) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `invoice_bank___fk_currency` (`currency_id`),
-  CONSTRAINT `invoice_bank___fk_currency` FOREIGN KEY (`currency_id`) REFERENCES `currency` (`id`)
+  CONSTRAINT `invoice_bank___fk_currency` FOREIGN KEY (`currency_id`) REFERENCES `CURRENCY` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO INVOICE_BANK (currency_id, name, account_number, recipient) VALUES 
