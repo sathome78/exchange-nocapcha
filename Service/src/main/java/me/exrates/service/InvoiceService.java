@@ -30,4 +30,6 @@ public interface InvoiceService {
 
     @Transactional
     void updateConfirmationInfo(InvoiceRequest invoiceRequest);
+
+    List<InvoiceRequest> findAllRequestsForUser(String userEmail);
 }

@@ -227,7 +227,7 @@ public class MobileInputOutputController {
         payment.setOperationType(OperationType.OUTPUT);
 
 
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
             return merchantService.prepareCreditsOperation(payment, userEmail)
                     .map(creditsOperation -> merchantService.withdrawRequest(creditsOperation, userLocale, userEmail))
@@ -278,7 +278,7 @@ public class MobileInputOutputController {
         payment.setSum(paymentDto.getSum());
         payment.setMerchantImage(paymentDto.getMerchantImage());
         payment.setOperationType(OperationType.INPUT);
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        String userEmail = getAuthenticatedUserEmail();
         String merchantName = merchantService.findById(payment.getMerchant()).getName();
         String beanName = String.join("", merchantName.split("[\\s.]+")).concat( "PaymentService");
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
@@ -321,9 +321,9 @@ public class MobileInputOutputController {
      * @apiUse InvalidAmountError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/prepareInvoice", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<MerchantInputResponseDto> prepareInvoice(@RequestBody @Valid InvoicePaymentDto paymentDto) {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+    @RequestMapping(value = "/invoice/prepare", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<InvoiceResponseDto> prepareInvoice(@RequestBody @Valid InvoicePaymentDto paymentDto) {
+        String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
         Payment payment = new Payment();
         payment.setCurrency(paymentDto.getCurrencyId());
@@ -333,8 +333,6 @@ public class MobileInputOutputController {
         final CreditsOperation creditsOperation = merchantService
                 .prepareCreditsOperation(payment, userEmail)
                 .orElseThrow(InvalidAmountException::new);
-        MerchantInputResponseDto dto = new MerchantInputResponseDto();
-        dto.setType(MerchantApiResponseType.NOTIFY);
         InvoiceData invoiceData = new InvoiceData();
         invoiceData.setCreditsOperation(creditsOperation);
         invoiceData.setBankId(paymentDto.getBankId());
@@ -345,9 +343,11 @@ public class MobileInputOutputController {
                 .sendDepositNotification("",
                         userEmail , userLocale, creditsOperation, "merchants.depositNotificationWithCurrency" +
                                 creditsOperation.getCurrency().getName() +
-                                ".old");
-        dto.setData(notification);
+                                ".body");
+        InvoiceResponseDto dto = new InvoiceResponseDto();
+        dto.setNotification(notification);
         dto.setWalletNumber(invoiceService.findBankById(paymentDto.getBankId()).getAccountNumber());
+        dto.setInvoiceId(transaction.getId());
         return new ResponseEntity<>(dto, OK);
     }
 
@@ -386,9 +386,9 @@ public class MobileInputOutputController {
      * @apiUse InvalidAmountError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/confirmInvoice", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @RequestMapping(value = "/invoice/confirm", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> confirmInvoice(@RequestBody InvoiceConfirmData invoiceConfirmData) {
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
         Optional<InvoiceRequest> invoiceRequestResult = invoiceService.findUnconfirmedRequestById(invoiceConfirmData.getInvoiceId());
         if (!invoiceRequestResult.isPresent()) {
@@ -405,6 +405,18 @@ public class MobileInputOutputController {
 
         return new ResponseEntity<>(OK);
     }
+
+    @RequestMapping(value = "/invoice/banks", method = GET)
+    public List<InvoiceBank> getBanks(@RequestParam Integer currencyId) {
+        return invoiceService.findBanksForCurrency(currencyId);
+    }
+
+    @RequestMapping(value = "/invoice/requests", method = GET)
+    public List<InvoiceRequest> findInvoiceRequestsForUser() {
+        return invoiceService.findAllRequestsForUser(getAuthenticatedUserEmail());
+
+    }
+
 
     @RequestMapping(value = "/merchantRedirect", method = GET)
     public ModelAndView getMerchantRedirectPage(@RequestParam Integer currencyId, @RequestParam Integer merchantId,
@@ -426,7 +438,7 @@ public class MobileInputOutputController {
         payment.setSum(paymentDto.getSum());
         payment.setMerchantImage(paymentDto.getMerchantImage());
         payment.setOperationType(OperationType.INPUT);
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        String userEmail = getAuthenticatedUserEmail();
         final CreditsOperation creditsOperation = merchantService
                 .prepareCreditsOperation(payment, userEmail)
                 .orElseThrow(InvalidAmountException::new);
@@ -437,6 +449,10 @@ public class MobileInputOutputController {
                 userLocale);
         LOGGER.debug(result);
         return new ResponseEntity<>(result, OK);
+    }
+
+    private String getAuthenticatedUserEmail() {
+        return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

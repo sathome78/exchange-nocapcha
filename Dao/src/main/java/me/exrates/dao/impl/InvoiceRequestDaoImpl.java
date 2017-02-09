@@ -6,6 +6,7 @@ import me.exrates.model.InvoiceRequest;
 import me.exrates.model.Transaction;
 import me.exrates.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -152,6 +153,17 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
     public List<InvoiceRequest> findAll() {
         final String sql = SELECT_ALL + " ORDER BY acceptance_time IS NULL DESC, acceptance_time DESC";
         return jdbcTemplate.query(sql, invoiceRequestRowMapper);
+    }
+
+    @Override
+    public List<InvoiceRequest> findAllForUser(String email) {
+        String sql = SELECT_ALL + "WHERE user.email = :email";
+        Map<String, String> params = Collections.singletonMap("email", email);
+        try {
+            return jdbcTemplate.query(sql, params, invoiceRequestRowMapper);
+        } catch (EmptyResultDataAccessException e) {
+            return Collections.EMPTY_LIST;
+        }
     }
 
     @Override

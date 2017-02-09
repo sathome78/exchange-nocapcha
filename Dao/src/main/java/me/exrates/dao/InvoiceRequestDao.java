@@ -24,6 +24,8 @@ public interface InvoiceRequestDao {
 
     List<InvoiceRequest> findAll();
 
+    List<InvoiceRequest> findAllForUser(String email);
+
     List<InvoiceBank> findInvoiceBanksByCurrency(Integer currencyId);
 
     InvoiceBank findBankById(Integer bankId);

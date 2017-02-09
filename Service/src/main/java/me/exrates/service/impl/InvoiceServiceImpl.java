@@ -106,4 +106,9 @@ public class InvoiceServiceImpl implements InvoiceService {
     public void updateConfirmationInfo(InvoiceRequest invoiceRequest) {
         invoiceRequestDao.updateConfirmationInfo(invoiceRequest);
     }
+
+    @Override
+    public List<InvoiceRequest> findAllRequestsForUser(String userEmail) {
+        return invoiceRequestDao.findAllForUser(userEmail);
+    }
 }
