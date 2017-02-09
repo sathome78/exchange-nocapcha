@@ -29,6 +29,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -521,10 +522,6 @@ public class MobileEntryController {
                                                 @RequestParam String language,
                                                 @RequestParam(required = false) MultipartFile avatar,
                                                 HttpServletRequest request) throws IOException {
-        logger.debug(nickname);
-        logger.debug(email);
-        logger.debug(password);
-        logger.debug(language);
         if (avatar != null) {
             logger.debug(avatar.getSize());
             logger.debug(avatar.getContentType());
@@ -625,7 +622,7 @@ public class MobileEntryController {
      * @apiUse InvalidAppKeyError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/rest/user/authenticate", method = RequestMethod.POST)
+    @RequestMapping(value = "/rest/user/authenticate", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<AuthTokenDto> authenticate(@RequestBody @Valid UserAuthenticationDto authenticationDto,
                                                      HttpServletRequest request) {
         logger.debug(authenticationDto.getEmail());
@@ -699,7 +696,7 @@ public class MobileEntryController {
      * @apiUse NotExistingEmailError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/rest/user/restorePassword", method = RequestMethod.POST)
+    @RequestMapping(value = "/rest/user/restorePassword", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> restorePassword(@RequestBody Map<String, String> body) {
 
         if (!(body.containsKey("email") && body.containsKey("password"))) {
@@ -757,7 +754,7 @@ public class MobileEntryController {
      * @apiUse InvalidParamError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/api/user/changePass", method = RequestMethod.POST)
+    @RequestMapping(value = "/api/user/changePass", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> changePass(@RequestBody Map<String, String> body) {
 
         logger.debug(retrieveParamFormBody(body, "password", true));
@@ -790,7 +787,7 @@ public class MobileEntryController {
      * @apiUse InvalidParamError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/api/user/changeFinPass", method = RequestMethod.POST)
+    @RequestMapping(value = "/api/user/changeFinPass", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> changeFinPass(@RequestBody Map<String, String> body) {
         logger.debug(retrieveParamFormBody(body, "finPass", true));
         changeUserPasses(null, retrieveParamFormBody(body, "finPass", true));
@@ -842,7 +839,7 @@ public class MobileEntryController {
      * @apiUse AbsentFinPasswordError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/api/user/checkFinPass", method = RequestMethod.POST)
+    @RequestMapping(value = "/api/user/checkFinPass", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> checkFinPass(@RequestBody Map<String, String> body) {
         logger.debug(retrieveParamFormBody(body, "finPass", true));
         String decodedFinPass = RestPasswordDecodingUtils.decode(retrieveParamFormBody(body, "finPass", true));
@@ -946,7 +943,7 @@ public class MobileEntryController {
      * @apiUse LanguageNotSupportedError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/api/user/setLanguage", method = RequestMethod.POST)
+    @RequestMapping(value = "/api/user/setLanguage", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> setLanguage(@RequestBody Map<String, String> body) {
         String language = retrieveParamFormBody(body, "language", true);
         Locale locale = new Locale(language);
@@ -998,7 +995,7 @@ public class MobileEntryController {
      * @apiUse InvalidSessionIdError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/api/user/authenticateQR", method = RequestMethod.POST)
+    @RequestMapping(value = "/api/user/authenticateQR", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> authenticateQR(@RequestBody Map<String, String> params, @RequestHeader("Exrates-Rest-Token") String token) {
         logger.debug(params);
         String sessionId = params.get("sessionId");

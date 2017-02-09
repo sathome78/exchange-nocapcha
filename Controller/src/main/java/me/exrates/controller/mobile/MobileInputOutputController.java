@@ -5,14 +5,12 @@ import me.exrates.model.CreditsOperation;
 import me.exrates.model.Currency;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.Payment;
-import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
-import me.exrates.model.dto.mobileApiDto.MerchantInputResponseDto;
-import me.exrates.model.dto.mobileApiDto.PaymentDto;
-import me.exrates.model.dto.mobileApiDto.WithdrawDto;
+import me.exrates.model.dto.mobileApiDto.*;
 import me.exrates.model.enums.OperationType;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.UserService;
+import me.exrates.service.WalletService;
 import me.exrates.service.exception.CurrencyPairNotFoundException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
@@ -24,6 +22,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -37,6 +36,7 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.security.Principal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -67,6 +67,9 @@ public class MobileInputOutputController {
 
     @Autowired
     private Map<String, MerchantPaymentService> merchantPaymentServices;
+
+    @Autowired
+    private WalletService walletService;
 
     @Autowired
     private MessageSource messageSource;
@@ -211,7 +214,7 @@ public class MobileInputOutputController {
      * @apiUse InvalidParamError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value="/withdraw", method = POST)
+    @RequestMapping(value="/withdraw", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Map<String,String>> withdraw(@RequestBody @Valid WithdrawDto withdrawDto) {
 
 
@@ -267,7 +270,7 @@ public class MobileInputOutputController {
      * @apiUse InvalidAmountError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/preparePayment", method = POST)
+    @RequestMapping(value = "/preparePayment", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<MerchantInputResponseDto> preparePayment(@RequestBody @Valid PaymentDto paymentDto) {
         Payment payment = new Payment();
         payment.setCurrency(paymentDto.getCurrency());
@@ -295,7 +298,7 @@ public class MobileInputOutputController {
         return modelAndView;
     }
 
-    @RequestMapping(value = "/preparePostPayment", method = POST)
+    @RequestMapping(value = "/preparePostPayment", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Map<String,String>> preparePostPayment(@RequestBody @Valid PaymentDto paymentDto) {
         LOGGER.debug(paymentDto);
         Payment payment = new Payment();
@@ -315,6 +318,49 @@ public class MobileInputOutputController {
                 userLocale);
         LOGGER.debug(result);
         return new ResponseEntity<>(result, OK);
+    }
+
+
+
+
+    /**
+     * @api {post} /api/payments/transfer/submit Submit transfer
+     * @apiName submitTransfer
+     * @apiGroup Input-Output
+     * @apiUse TokenHeader
+     * @apiPermission user
+     * @apiDescription Send transfer to other user
+     * @apiParam {Integer} walletId wallet id
+     * @apiParam {Integer} nickname nickname of receiver
+     * @apiParam {Number} amount amount of transfer
+     * @apiParam {Integer} merchantImage merchant image id (OPTIONAL)
+     *
+     * @apiParamExample {json} Request Example:
+     *      {
+     *          "walletId": 6280,
+     *          "nickname": "qwerty123",
+     *          "sum": 10.0
+     *      }
+     *
+     * @apiSuccess {String} result Notification with transfer details
+     *
+     *
+     * @apiUse ExpiredAuthenticationTokenError
+     * @apiUse MissingAuthenticationTokenError
+     * @apiUse InvalidAuthenticationTokenError
+     * @apiUse AuthenticationError
+     * @apiUse InvalidParamError
+     * @apiUse MessageNotReadableError
+     * @apiUse InvalidAmountError
+     * @apiUse InternalServerError
+     */
+    @RequestMapping(value = "/transfer/submit", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<Map<String,String>> submitTransfer(@RequestBody UserTransferDto userTransferDto) {
+        Locale userLocale = userService.getUserLocaleForMobile(SecurityContextHolder.getContext().getAuthentication().getName());
+        String result = walletService.transferCostsToUser(userTransferDto.getWalletId(), userTransferDto.getNickname(),
+                userTransferDto.getAmount(), userLocale);
+        return new ResponseEntity<>(Collections.singletonMap("result", result), OK);
+
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

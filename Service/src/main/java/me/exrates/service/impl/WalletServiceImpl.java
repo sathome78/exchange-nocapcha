@@ -280,12 +280,13 @@ public final class WalletServiceImpl implements WalletService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public String transferCostsToUser(Integer fromUserWalletId, String toUserNickname, Integer currencyId, BigDecimal amount, Locale locale) {
+    public String transferCostsToUser(Integer fromUserWalletId, String toUserNickname, BigDecimal amount, Locale locale) {
         if (amount.signum() <= 0) {
             throw new InvalidAmountException(messageSource.getMessage("transfer.negativeAmount", null, locale));
         }
 
         Wallet fromUserWallet =  walletDao.findById(fromUserWalletId);
+        Integer currencyId = fromUserWallet.getCurrencyId();
         Commission commission = commissionService.findCommissionByTypeAndRole(OperationType.USER_TRANSFER, userService.getCurrentUserRole());
         BigDecimal commissionAmount = BigDecimalProcessing.doAction(amount, commission.getValue(), ActionType.MULTIPLY_PERCENT);
         BigDecimal totalAmount = amount.add(commissionAmount);
