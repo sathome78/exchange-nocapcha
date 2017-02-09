@@ -973,6 +973,12 @@ public class MobileEntryController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @RequestMapping(value = "/api/user/findNickname", method = RequestMethod.GET)
+    @ResponseBody
+    public List<String> findNickname(@RequestBody Map<String, String> body) {
+
+    }
+
 
     /**
      * @api {post} /api/user/authenticateQR Authenticate via QR

@@ -139,4 +139,8 @@ public interface UserDao {
     boolean addUserComment(Comment comment);
 
     boolean deleteUserComment(int id);
-    }
+
+    Integer retrieveNicknameSearchLimit();
+
+    List<String> findNicknamesByPart(String part, Integer limit);
+}

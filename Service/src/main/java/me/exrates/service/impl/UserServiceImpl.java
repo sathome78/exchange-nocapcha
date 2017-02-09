@@ -570,17 +570,24 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    @Transactional(readOnly = true)
+    public List<String> findNicknamesByPart(String part) {
+        Integer nicknameLimit = userDao.retrieveNicknameSearchLimit();
+        return  userDao.findNicknamesByPart(part, nicknameLimit);
+
+    }
+
     @Override
     public UserRole getCurrentUserRole() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        LOGGER.debug("Authentication: " + authentication);
         String grantedAuthority = authentication.getAuthorities().
                 stream().map(GrantedAuthority::getAuthority)
                 .filter(USER_ROLES::contains)
                 .findFirst().orElse(ROLE_DEFAULT_COMMISSION.name());
         LOGGER.debug("Granted authority: " + grantedAuthority);
         return UserRole.valueOf(grantedAuthority);
-
     }
+
+
 
 }
