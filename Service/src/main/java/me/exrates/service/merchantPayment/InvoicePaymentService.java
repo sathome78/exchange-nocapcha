@@ -56,7 +56,7 @@ public class InvoicePaymentService implements MerchantPaymentService {
                 .sendDepositNotification("",
                         email , locale, creditsOperation, "merchants.depositNotificationWithCurrency" +
                                 creditsOperation.getCurrency().getName() +
-                                ".body");
+                                ".old");
         dto.setData(notification);
         switch (creditsOperation.getCurrency().getName()) {
             case "CNY":
