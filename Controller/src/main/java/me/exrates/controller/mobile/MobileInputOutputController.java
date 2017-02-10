@@ -333,7 +333,6 @@ public class MobileInputOutputController {
      * @apiParam {Integer} walletId wallet id
      * @apiParam {Integer} nickname nickname of receiver
      * @apiParam {Number} amount amount of transfer
-     * @apiParam {Integer} merchantImage merchant image id (OPTIONAL)
      *
      * @apiParamExample {json} Request Example:
      *      {
@@ -342,8 +341,8 @@ public class MobileInputOutputController {
      *          "sum": 10.0
      *      }
      *
-     * @apiSuccess {String} result Notification with transfer details
-     *
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
      *
      * @apiUse ExpiredAuthenticationTokenError
      * @apiUse MissingAuthenticationTokenError
