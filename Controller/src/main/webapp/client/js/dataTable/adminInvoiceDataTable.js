@@ -57,7 +57,7 @@ $(document).ready(function () {
                     }
                 },
                 {
-                    "data": "payeeBankName",
+                    "data": "payerBankName",
                     "render": function (data) {
                         return data ? data : '-';
                     },
@@ -110,8 +110,8 @@ function fillInvoiceInfoModal(rowData) {
     $('#info-bankName').text(bankName);
     $('#info-bankAccount').text(bankAccount);
     $('#info-bankRecipient').text(bankRecipient);
-    $('#info-bankFrom').text(replaceAbsentWithDash(rowData.payeeBankName));
-    $('#info-userAccount').text(replaceAbsentWithDash(rowData.payeeAccount));
+    $('#info-bankFrom').text(replaceAbsentWithDash(rowData.payerBankName));
+    $('#info-userAccount').text(replaceAbsentWithDash(rowData.payerAccount));
     $('#info-userFullName').text(replaceAbsentWithDash(rowData.userFullName));
     $('#info-remark').find('textarea').html(replaceAbsentWithDash(rowData.remark));
 }

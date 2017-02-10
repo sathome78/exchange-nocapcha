@@ -14,7 +14,7 @@
             </label>
         </c:when>
         <c:otherwise>
-            <c:set var="confirmed" value="${not empty invoiceRequest.payeeAccount || invoiceRequest.transaction.provided}" />
+            <c:set var="confirmed" value="${not empty invoiceRequest.payerAccount || invoiceRequest.transaction.provided}" />
             <c:set var="selected" value="selected" />
             <c:set var="readonly" value="readonly" />
             <c:set var="disabled" value="disabled" />
@@ -54,7 +54,7 @@
 
                 <form id="confirmationForm" action="<c:url value="/merchants/invoice/payment/confirm"/>" method="post">
                     <input type="hidden" name="invoiceId" id="invoiceId" value="${invoiceRequest.transaction.id}" <c:out value="${readonlyIfConfirmed}"/>>
-                    <input type="hidden" name="payeeBankName" id="payeeBankName" value="${invoiceRequest.payeeBankName}" <c:out value="${readonlyIfConfirmed}"/>>
+                    <input type="hidden" name="payerBankName" id="payerBankName" value="${invoiceRequest.payerBankName}" <c:out value="${readonlyIfConfirmed}"/>>
                     <div class="input-block-wrapper clearfix">
                         <div class="col-md-3 input-block-wrapper__label-wrapper" >
                             <label for="bankSelect" class="input-block-wrapper__label" >
@@ -64,7 +64,7 @@
                             <select class="form-control input-block-wrapper__input" id="bankSelect" <c:out value="${confirmed ? disabled : ''}"/>>
                                 <option value="-1"><loc:message code="merchants.notSelected"/></option>
                                 <c:forEach items="${bankNames}" var="bank" varStatus="counter" >
-                                    <option <c:out value="${bank.equals(invoiceRequest.payeeBankName) ? selected : ''}" /> value="${counter.count}">${bank}</option>
+                                    <option <c:out value="${bank.equals(invoiceRequest.payerBankName) ? selected : ''}" /> value="${counter.count}">${bank}</option>
                                 </c:forEach>
                                 <option <c:out value="${not empty otherBank ? selected : ''}" /> value="0"><loc:message code="merchants.invoice.otherBank"/></option>
                             </select>
@@ -88,7 +88,7 @@
                         </div>
                         <div class="col-md-8 " >
                             <input class="form-control input-block-wrapper__input" type="text" id="userAccount"
-                                   name="userAccount" value="${invoiceRequest.payeeAccount}" <c:out value="${readonlyIfConfirmed}"/>>
+                                   name="userAccount" value="${invoiceRequest.payerAccount}" <c:out value="${readonlyIfConfirmed}"/>>
                         </div>
                         <div id="userAccountError" class="col-md-11 input-block-wrapper__error-wrapper">
                             <p class="red"><loc:message code="merchants.error.accountDigitsOnly" /></p>

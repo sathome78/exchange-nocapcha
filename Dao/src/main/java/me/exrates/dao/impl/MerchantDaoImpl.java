@@ -217,7 +217,7 @@ public class MerchantDaoImpl implements MerchantDao {
                 "MERCHANT.name else\n" +
                 "MERCHANT_IMAGE.image_name end as merchant,\n" +
                 "OPERATION_TYPE.name as operation_type, TRANSACTION.id, TRANSACTION.provided, " +
-                "IF(OPERATION_TYPE.id = 1 AND MERCHANT.name = 'Invoice' AND INVOICE_REQUEST.payee_account IS NULL " +
+                "IF(OPERATION_TYPE.id = 1 AND MERCHANT.name = 'Invoice' AND INVOICE_REQUEST.payer_account IS NULL " +
                 "AND TRANSACTION.provided IS NOT TRUE, 1, 0) AS confirmation_required, " +
                 "USER.id AS user_id from TRANSACTION \n" +
                 "left join CURRENCY on TRANSACTION.currency_id=CURRENCY.id\n" +

@@ -49,7 +49,7 @@
 
                             <th><loc:message code="invoice.exratesBank"/></th>
 
-                            <th><loc:message code="invoice.payeeBank"/></th>
+                            <th><loc:message code="invoice.payerBank"/></th>
 
                                 <%--Дата обработки заявки--%>
                             <th><loc:message code="transaction.acceptanceDatetime"/></th>

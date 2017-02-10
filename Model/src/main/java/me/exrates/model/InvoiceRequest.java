@@ -20,8 +20,8 @@ public class InvoiceRequest {
     private InvoiceBank invoiceBank;
     private String userFullName;
     private String remark;
-    private String payeeBankName;
-    private String payeeAccount;
+    private String payerBankName;
+    private String payerAccount;
 
     public InvoiceRequest() {
     }
@@ -98,20 +98,20 @@ public class InvoiceRequest {
         this.remark = remark;
     }
 
-    public String getPayeeBankName() {
-        return payeeBankName;
+    public String getPayerBankName() {
+        return payerBankName;
     }
 
-    public void setPayeeBankName(String payeeBankName) {
-        this.payeeBankName = payeeBankName;
+    public void setPayerBankName(String payerBankName) {
+        this.payerBankName = payerBankName;
     }
 
-    public String getPayeeAccount() {
-        return payeeAccount;
+    public String getPayerAccount() {
+        return payerAccount;
     }
 
-    public void setPayeeAccount(String payeeAccount) {
-        this.payeeAccount = payeeAccount;
+    public void setPayerAccount(String payerAccount) {
+        this.payerAccount = payerAccount;
     }
 
     @Override
@@ -133,9 +133,9 @@ public class InvoiceRequest {
         if (invoiceBank != null ? !invoiceBank.equals(that.invoiceBank) : that.invoiceBank != null) return false;
         if (userFullName != null ? !userFullName.equals(that.userFullName) : that.userFullName != null) return false;
         if (remark != null ? !remark.equals(that.remark) : that.remark != null) return false;
-        if (payeeBankName != null ? !payeeBankName.equals(that.payeeBankName) : that.payeeBankName != null)
+        if (payerBankName != null ? !payerBankName.equals(that.payerBankName) : that.payerBankName != null)
             return false;
-        return payeeAccount != null ? payeeAccount.equals(that.payeeAccount) : that.payeeAccount == null;
+        return payerAccount != null ? payerAccount.equals(that.payerAccount) : that.payerAccount == null;
     }
 
     @Override
@@ -149,8 +149,8 @@ public class InvoiceRequest {
         result = 31 * result + (invoiceBank != null ? invoiceBank.hashCode() : 0);
         result = 31 * result + (userFullName != null ? userFullName.hashCode() : 0);
         result = 31 * result + (remark != null ? remark.hashCode() : 0);
-        result = 31 * result + (payeeBankName != null ? payeeBankName.hashCode() : 0);
-        result = 31 * result + (payeeAccount != null ? payeeAccount.hashCode() : 0);
+        result = 31 * result + (payerBankName != null ? payerBankName.hashCode() : 0);
+        result = 31 * result + (payerAccount != null ? payerAccount.hashCode() : 0);
         return result;
     }
 
@@ -166,8 +166,8 @@ public class InvoiceRequest {
                 ", invoiceBank=" + invoiceBank +
                 ", userFullName='" + userFullName + '\'' +
                 ", remark='" + remark + '\'' +
-                ", payeeBankName='" + payeeBankName + '\'' +
-                ", payeeAccount='" + payeeAccount + '\'' +
+                ", payerBankName='" + payerBankName + '\'' +
+                ", payerAccount='" + payerAccount + '\'' +
                 '}';
     }
 }

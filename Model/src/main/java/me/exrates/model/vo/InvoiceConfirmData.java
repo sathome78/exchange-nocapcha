@@ -5,7 +5,7 @@ package me.exrates.model.vo;
  */
 public class InvoiceConfirmData {
     private Integer invoiceId;
-    private String payeeBankName;
+    private String payerBankName;
     private String userAccount;
     private String userFullName;
     private String remark;
@@ -18,12 +18,12 @@ public class InvoiceConfirmData {
         this.invoiceId = invoiceId;
     }
 
-    public String getPayeeBankName() {
-        return payeeBankName;
+    public String getPayerBankName() {
+        return payerBankName;
     }
 
-    public void setPayeeBankName(String payeeBankName) {
-        this.payeeBankName = payeeBankName;
+    public void setPayerBankName(String payerBankName) {
+        this.payerBankName = payerBankName;
     }
 
     public String getUserAccount() {
@@ -54,7 +54,7 @@ public class InvoiceConfirmData {
     public String toString() {
         return "InvoiceConfirmData{" +
                 "invoiceId=" + invoiceId +
-                ", payeeBankName='" + payeeBankName + '\'' +
+                ", payerBankName='" + payerBankName + '\'' +
                 ", userAccount='" + userAccount + '\'' +
                 ", userFullName='" + userFullName + '\'' +
                 ", remark='" + remark + '\'' +

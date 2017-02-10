@@ -12,6 +12,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.context.NoSuchMessageException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -150,8 +151,15 @@ public class InvoiceController {
             synchronized (mutex) {
                 session.setAttribute("errorNoty", error);
             }
-            return new RedirectView("/dashboard");
+        } catch (final Exception e) {
+            final String error = messageSource.getMessage("merchants.internalError", null, localeResolver.resolveLocale(request));
+            LOG.error(error);
+            synchronized (mutex) {
+                session.setAttribute("errorNoty", error);
+            }
         }
+        return new RedirectView("/dashboard");
+
     }
 
 
@@ -178,8 +186,8 @@ public class InvoiceController {
             List<String> bankNames = invoiceService.findBanksForCurrency(invoiceRequest.getTransaction().getCurrency().getId())
                     .stream().map(InvoiceBank::getName).collect(Collectors.toList());
             modelAndView.addObject("bankNames", bankNames);
-            if (bankNames.stream().noneMatch(name -> name.equals(invoiceRequest.getPayeeBankName()))) {
-                modelAndView.addObject("otherBank", invoiceRequest.getPayeeBankName());
+            if (bankNames.stream().noneMatch(name -> name.equals(invoiceRequest.getPayerBankName()))) {
+                modelAndView.addObject("otherBank", invoiceRequest.getPayerBankName());
             }
         }
         return modelAndView;
@@ -198,15 +206,23 @@ public class InvoiceController {
             }
         } else {
             InvoiceRequest invoiceRequest = invoiceRequestResult.get();
-            invoiceRequest.setPayeeBankName(invoiceConfirmData.getPayeeBankName());
-            invoiceRequest.setPayeeAccount(invoiceConfirmData.getUserAccount());
+            invoiceRequest.setPayerBankName(invoiceConfirmData.getPayerBankName());
+            invoiceRequest.setPayerAccount(invoiceConfirmData.getUserAccount());
             invoiceRequest.setUserFullName(invoiceConfirmData.getUserFullName());
             //html escaping to prevent XSS
             invoiceRequest.setRemark(StringEscapeUtils.escapeHtml(invoiceConfirmData.getRemark()));
-            invoiceService.updateConfirmationInfo(invoiceRequest);
-            synchronized (mutex) {
-                session.setAttribute("successNoty", messageSource.getMessage("merchants.invoiceConfirm.noty", null,
-                        localeResolver.resolveLocale(request)));
+            try {
+                invoiceService.updateConfirmationInfo(invoiceRequest);
+                synchronized (mutex) {
+                    session.setAttribute("successNoty", messageSource.getMessage("merchants.invoiceConfirm.noty", null,
+                            localeResolver.resolveLocale(request)));
+                }
+            } catch (Exception e) {
+                LOG.error(e.getMessage());
+                synchronized (mutex) {
+                    session.setAttribute("errorNoty", messageSource.getMessage("merchants.internalError", null,
+                            localeResolver.resolveLocale(request)));
+                }
             }
         }
         return redirectView;

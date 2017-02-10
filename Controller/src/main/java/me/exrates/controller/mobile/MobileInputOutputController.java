@@ -3,9 +3,7 @@ package me.exrates.controller.mobile;
 import me.exrates.controller.exception.InvoiceNotFoundException;
 import me.exrates.controller.exception.NotEnoughMoneyException;
 import me.exrates.model.*;
-import me.exrates.model.Currency;
 import me.exrates.model.dto.mobileApiDto.*;
-import me.exrates.model.enums.MerchantApiResponseType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.InvoiceData;
@@ -369,15 +367,15 @@ public class MobileInputOutputController {
      * @apiPermission user
      * @apiDescription Confirm invoice by ID
      * @apiParam {Integer} invoiceId invoice id
-     * @apiParam {String} payeeBankName name of payee bank
-     * @apiParam {String} userAccount payee account number
+     * @apiParam {String} payerBankName name of payer bank
+     * @apiParam {String} userAccount payer account number
      * @apiParam {String} userFullName full name of user
      * @apiParam {String} remark additional remark (OPTIONAL)
      *
      * @apiParamExample {json} Request Example:
      *      {
      *          "invoiceId": 130720,
-     *          "payeeBankName": "AAA BANK",
+     *          "payerBankName": "AAA BANK",
      *          "userAccount": "6541325465",
      *          "userFullName": "Talalai Talalaenko",
      *          "remark": "alala ololo"
@@ -402,8 +400,8 @@ public class MobileInputOutputController {
             throw new InvoiceNotFoundException("Invoice with ID " + invoiceConfirmData.getInvoiceId() + " not found");
         } else {
             InvoiceRequest invoiceRequest = invoiceRequestResult.get();
-            invoiceRequest.setPayeeBankName(invoiceConfirmData.getPayeeBankName());
-            invoiceRequest.setPayeeAccount(invoiceConfirmData.getUserAccount());
+            invoiceRequest.setPayerBankName(invoiceConfirmData.getPayerBankName());
+            invoiceRequest.setPayerAccount(invoiceConfirmData.getUserAccount());
             invoiceRequest.setUserFullName(invoiceConfirmData.getUserFullName());
             //html escaping to prevent XSS
             invoiceRequest.setRemark(StringEscapeUtils.escapeHtml(invoiceConfirmData.getRemark()));

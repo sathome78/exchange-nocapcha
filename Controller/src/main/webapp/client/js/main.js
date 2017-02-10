@@ -108,7 +108,7 @@ $(function(){
             var val = $(this).val();
             var regx = /^(^[1-9]+\d*((\.{1}\d*)|(\d*)))|(^0{1}\.{1}\d*)|(^0{1})$/;
             var result = val.match(regx);
-            var maxSum = 999999.99;
+            var maxSum = $('#currencyName').val().trim() === 'IDR' ? 999999999999.99 : 999999.99;
             if (!result || result[0] != val) {
                 $(this).val('');
             }

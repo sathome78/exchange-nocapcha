@@ -6,7 +6,6 @@ import me.exrates.model.InvoiceRequest;
 import me.exrates.model.Transaction;
 import me.exrates.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -50,8 +49,8 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
             invoiceBank.setRecipient(resultSet.getString("recipient"));
             invoiceRequest.setInvoiceBank(invoiceBank);
         }
-        invoiceRequest.setPayeeBankName(resultSet.getString("payee_bank_name"));
-        invoiceRequest.setPayeeAccount(resultSet.getString("payee_account"));
+        invoiceRequest.setPayerBankName(resultSet.getString("payer_bank_name"));
+        invoiceRequest.setPayerAccount(resultSet.getString("payer_account"));
         invoiceRequest.setUserFullName(resultSet.getString("user_full_name"));
         invoiceRequest.setRemark(resultSet.getString("remark"));
         return invoiceRequest;
@@ -66,7 +65,7 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
             "                    COMPANY_WALLET.commission_balance, COMMISSION.id, COMMISSION.date, COMMISSION.value, " +
             "                    CURRENCY.id, CURRENCY.description, CURRENCY.name, MERCHANT.id,MERCHANT.name,MERCHANT.description, " +
             "                    INVOICE_BANK.id AS bank_id, INVOICE_BANK.name AS bank_name, INVOICE_BANK.account_number, INVOICE_BANK.recipient, " +
-            "                    inv.user_full_name, inv.remark, inv.payee_bank_name, inv.payee_account " +
+            "                    inv.user_full_name, inv.remark, inv.payer_bank_name, inv.payer_account " +
             "                    FROM INVOICE_REQUEST AS inv " +
             "    INNER JOIN TRANSACTION ON inv.transaction_id = TRANSACTION.id " +
             "    INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id " +
@@ -137,7 +136,7 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
 
     @Override
     public Optional<InvoiceRequest> findByIdAndNotConfirmed(int id) {
-        final String sql = SELECT_ALL + " WHERE inv.transaction_id = :id AND inv.payee_account IS NULL";
+        final String sql = SELECT_ALL + " WHERE inv.transaction_id = :id AND inv.payer_account IS NULL";
         try {
             return of(jdbcTemplate
                     .queryForObject(sql,
@@ -202,12 +201,12 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
 
     @Override
     public void updateConfirmationInfo(InvoiceRequest invoiceRequest) {
-        final String sql = "UPDATE INVOICE_REQUEST SET payee_bank_name = :payee_bank_name, payee_account = :payee_account, " +
+        final String sql = "UPDATE INVOICE_REQUEST SET payer_bank_name = :payer_bank_name, payer_account = :payer_account, " +
                 "user_full_name = :user_full_name, remark = :remark WHERE transaction_id = :id";
         Map<String, Object> params = new HashMap<>();
         params.put("id", invoiceRequest.getTransaction().getId());
-        params.put("payee_bank_name", invoiceRequest.getPayeeBankName());
-        params.put("payee_account", invoiceRequest.getPayeeAccount());
+        params.put("payer_bank_name", invoiceRequest.getPayerBankName());
+        params.put("payer_account", invoiceRequest.getPayerAccount());
         params.put("user_full_name", invoiceRequest.getUserFullName());
         params.put("remark", invoiceRequest.getRemark());
         jdbcTemplate.update(sql, params);

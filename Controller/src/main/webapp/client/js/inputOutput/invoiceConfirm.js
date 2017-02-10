@@ -17,7 +17,7 @@ $(function () {
         updateBankSelection(this, $otherBankInputDiv);
     });
     $($otherBank).on('input', function () {
-        $('#payeeBankName').val($(this).val());
+        $('#payerBankName').val($(this).val());
         checkFields();
     });
     $('#userAccount, #userFullName').on('input', function () {
@@ -34,27 +34,27 @@ $(function () {
 function updateBankSelection($bankSelect, $otherBankInputDiv) {
     var bankId = parseInt($($bankSelect).val());
     if (bankId === -1) {
-        $('#payeeBankName').val('');
+        $('#payerBankName').val('');
         $($otherBankInputDiv).hide();
         $($otherBankInputDiv).find('#bankSelect').val('')
     } else if (bankId === 0) {
-        $('#payeeBankName').val('');
+        $('#payerBankName').val('');
         $($otherBankInputDiv).show();
     } else {
-        $('#payeeBankName').val($($bankSelect).find('option:selected').text());
+        $('#payerBankName').val($($bankSelect).find('option:selected').text());
         $($otherBankInputDiv).find('#bankSelect').val('')
     }
     checkFields();
 }
 
 function checkFields() {
-    var payeeBankTest = validateString($('#payeeBankName').val(), BANK_NAME_REGEX, $('#bankNameError'));
-    var payeeAccountTest = validateString($('#userAccount').val(), DIGITS_ONLY_REGEX, $('#userAccountError'));
-    var payeeFullNameTest = validateString($('#userFullName').val(), NAME_REGEX, $('#userFullNameError'));
+    var payerBankTest = validateString($('#payerBankName').val(), BANK_NAME_REGEX, $('#bankNameError'));
+    var payerAccountTest = validateString($('#userAccount').val(), DIGITS_ONLY_REGEX, $('#userAccountError'));
+    var payerFullNameTest = validateString($('#userFullName').val(), NAME_REGEX, $('#userFullNameError'));
 
 
 
-    if (payeeBankTest && payeeAccountTest && payeeFullNameTest) {
+    if (payerBankTest && payerAccountTest && payerFullNameTest) {
         $('#invoiceSubmit').prop('disabled', false);
     } else {
         $('#invoiceSubmit').prop('disabled', true);
