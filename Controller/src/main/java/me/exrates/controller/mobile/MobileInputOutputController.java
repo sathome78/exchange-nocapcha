@@ -392,7 +392,7 @@ public class MobileInputOutputController {
      * @apiUse InternalServerError
      */
     @RequestMapping(value = "/invoice/confirm", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Void> confirmInvoice(@RequestBody InvoiceConfirmData invoiceConfirmData) {
+    public ResponseEntity<Void> confirmInvoice(@RequestBody @Valid InvoiceConfirmData invoiceConfirmData) {
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
         Optional<InvoiceRequest> invoiceRequestResult = invoiceService.findUnconfirmedRequestById(invoiceConfirmData.getInvoiceId());

@@ -219,10 +219,12 @@ public class MerchantDaoImpl implements MerchantDao {
                 "OPERATION_TYPE.name as operation_type, TRANSACTION.id, TRANSACTION.provided, " +
                 "IF(OPERATION_TYPE.id = 1 AND MERCHANT.name = 'Invoice' AND INVOICE_REQUEST.payer_account IS NULL " +
                 "AND TRANSACTION.provided IS NOT TRUE, 1, 0) AS confirmation_required, " +
+                "INVOICE_BANK.account_number AS bank_account, " +
                 "USER.id AS user_id from TRANSACTION \n" +
                 "left join CURRENCY on TRANSACTION.currency_id=CURRENCY.id\n" +
                 "left join WITHDRAW_REQUEST on TRANSACTION.id=WITHDRAW_REQUEST.transaction_id\n" +
                 "left join INVOICE_REQUEST on TRANSACTION.id=INVOICE_REQUEST.transaction_id\n" +
+                "left join INVOICE_BANK on INVOICE_REQUEST.bank_id = INVOICE_BANK.id " +
                 "left join MERCHANT_IMAGE on WITHDRAW_REQUEST.merchant_image_id=MERCHANT_IMAGE.id\n" +
                 "left join MERCHANT on TRANSACTION.merchant_id = MERCHANT.id \n" +
                 "left join OPERATION_TYPE on TRANSACTION.operation_type_id=OPERATION_TYPE.id\n" +
@@ -248,7 +250,9 @@ public class MerchantDaoImpl implements MerchantDao {
                         messageSource.getMessage("inputoutput.statusFalse", null, locale) :
                         messageSource.getMessage("inputoutput.statusTrue", null, locale));
                 myInputOutputHistoryDto.setUserId(rs.getInt("user_id"));
-                myInputOutputHistoryDto.setConfirmationRequired(rs.getBoolean("confirmation_required"));
+                Boolean confirmationRequired = rs.getBoolean("confirmation_required");
+                myInputOutputHistoryDto.setConfirmationRequired(confirmationRequired);
+                myInputOutputHistoryDto.setBankAccount(rs.getString("bank_account"));
                 return myInputOutputHistoryDto;
             }
         });

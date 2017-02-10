@@ -1,5 +1,6 @@
 package me.exrates.model.dto.mobileApiDto.dashboard;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.serializer.LocalDateTimeToLongSerializer;
@@ -23,6 +24,10 @@ public class MyInputOutputHistoryApiDto {
     private Integer transactionId;
     private String transactionProvided;
     private Integer userId;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String bankAccount;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Boolean invoiceConfirmed;
 
     public MyInputOutputHistoryApiDto(MyInputOutputHistoryDto dto, Locale locale) {
         this.datetime = dto.getDatetime();
@@ -34,6 +39,8 @@ public class MyInputOutputHistoryApiDto {
         this.transactionId = dto.getTransactionId();
         this.transactionProvided = dto.getTransactionProvided();
         this.userId = dto.getUserId();
+        this.invoiceConfirmed = "Invoice".equals(dto.getMerchantName()) ? !dto.getConfirmationRequired() : null;
+        this.bankAccount = dto.getBankAccount();
     }
 
     public LocalDateTime getDatetime() {
@@ -108,6 +115,22 @@ public class MyInputOutputHistoryApiDto {
         this.userId = userId;
     }
 
+    public String getBankAccount() {
+        return bankAccount;
+    }
+
+    public void setBankAccount(String bankAccount) {
+        this.bankAccount = bankAccount;
+    }
+
+    public Boolean getInvoiceConfirmed() {
+        return invoiceConfirmed;
+    }
+
+    public void setInvoiceConfirmed(Boolean invoiceConfirmed) {
+        this.invoiceConfirmed = invoiceConfirmed;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -125,8 +148,11 @@ public class MyInputOutputHistoryApiDto {
             return false;
         if (transactionId != null ? !transactionId.equals(that.transactionId) : that.transactionId != null)
             return false;
-        return transactionProvided != null ? transactionProvided.equals(that.transactionProvided) : that.transactionProvided == null;
-
+        if (transactionProvided != null ? !transactionProvided.equals(that.transactionProvided) : that.transactionProvided != null)
+            return false;
+        if (userId != null ? !userId.equals(that.userId) : that.userId != null) return false;
+        if (bankAccount != null ? !bankAccount.equals(that.bankAccount) : that.bankAccount != null) return false;
+        return invoiceConfirmed != null ? invoiceConfirmed.equals(that.invoiceConfirmed) : that.invoiceConfirmed == null;
     }
 
     @Override
@@ -139,20 +165,26 @@ public class MyInputOutputHistoryApiDto {
         result = 31 * result + (operationType != null ? operationType.hashCode() : 0);
         result = 31 * result + (transactionId != null ? transactionId.hashCode() : 0);
         result = 31 * result + (transactionProvided != null ? transactionProvided.hashCode() : 0);
+        result = 31 * result + (userId != null ? userId.hashCode() : 0);
+        result = 31 * result + (bankAccount != null ? bankAccount.hashCode() : 0);
+        result = 31 * result + (invoiceConfirmed != null ? invoiceConfirmed.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString() {
-        return "MyInputOutputHistoryDto{" +
+        return "MyInputOutputHistoryApiDto{" +
                 "datetime=" + datetime +
                 ", currencyName='" + currencyName + '\'' +
-                ", amount='" + amount + '\'' +
-                ", commissionAmount='" + commissionAmount + '\'' +
+                ", amount=" + amount +
+                ", commissionAmount=" + commissionAmount +
                 ", merchantName='" + merchantName + '\'' +
                 ", operationType='" + operationType + '\'' +
                 ", transactionId=" + transactionId +
                 ", transactionProvided='" + transactionProvided + '\'' +
+                ", userId=" + userId +
+                ", bankAccount='" + bankAccount + '\'' +
+                ", invoiceConfirmed=" + invoiceConfirmed +
                 '}';
     }
 }

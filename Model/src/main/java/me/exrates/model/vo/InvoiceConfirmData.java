@@ -1,11 +1,16 @@
 package me.exrates.model.vo;
 
+import javax.validation.constraints.NotNull;
+
 /**
  * Created by OLEG on 07.02.2017.
  */
 public class InvoiceConfirmData {
+    @NotNull
     private Integer invoiceId;
+    @NotNull
     private String payerBankName;
+    @NotNull
     private String userAccount;
     private String userFullName;
     private String remark;
