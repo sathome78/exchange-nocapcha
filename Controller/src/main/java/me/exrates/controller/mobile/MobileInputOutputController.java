@@ -288,12 +288,12 @@ public class MobileInputOutputController {
     }
 
     /**
-     * @api {post} /api/payments/prepareInvoice Prepare invoice
+     * @api {post} /api/payments/invoice/prepare Prepare invoice
      * @apiName prepareInvoice
      * @apiGroup Input-Output
      * @apiUse TokenHeader
      * @apiPermission user
-     * @apiDescription Submit request inbut through Invoice
+     * @apiDescription Submit request input through Invoice
      * @apiParam {Integer} currency currency id
      * @apiParam {Number} amount amount of payment
      * @apiParam {Integer} bankId ID of destination bank
@@ -309,8 +309,17 @@ public class MobileInputOutputController {
      *          "remark": qwerty qwerty
      *      }
      *
-     * @apiSuccess {String} data Notification with payment details (for cryptocurrencies and invoice)
+     * @apiSuccess {Integer} invoiceId  id of created invoice request
      * @apiSuccess {String} walletNumber Number of wallet
+     * @apiSuccess {String} notification Notification with payment details
+     *
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     *     {
+     *          "invoiceId": 130721,
+     *          "walletNumber": "0483087786",
+     *          "notification": "Заявка на ввод средств создана. Пожалуйста, оплатите 1 013 000 000 000 IDR на расчетный счет  и подтвердите заявку "
+     *     }
      *
      * @apiUse ExpiredAuthenticationTokenError
      * @apiUse MissingAuthenticationTokenError
@@ -353,28 +362,26 @@ public class MobileInputOutputController {
 
 
     /**
-     * @api {post} /api/payments/confirmInvoice Confirm invoice
-     * @apiName preparePayment
+     * @api {post} /api/payments/invoice/confirm Confirm invoice
+     * @apiName confirmInvoice
      * @apiGroup Input-Output
      * @apiUse TokenHeader
      * @apiPermission user
-     * @apiDescription Submit request for costs input. Response depends on concrete merchant / payment system
-     * (see <a href="https://drive.google.com/open?id=0Bx4pleRSZBP0YTdzT3h2RmZYU3c">link</a>)
-     * @apiParam {Integer} currency currency id
-     * @apiParam {Integer} merchant merchant id
-     * @apiParam {Number} sum amount of payment
-     * @apiParam {Integer} merchantImage merchant image id (OPTIONAL)
+     * @apiDescription Confirm invoice by ID
+     * @apiParam {Integer} invoiceId invoice id
+     * @apiParam {String} payeeBankName name of payee bank
+     * @apiParam {String} userAccount payee account number
      * @apiParam {String} userFullName full name of user
      * @apiParam {String} remark additional remark (OPTIONAL)
      *
      * @apiParamExample {json} Request Example:
      *      {
-     *          "invoiceId": 2654,
-     *          "payeeBankName": 1264531865,
-     *          "userFullName": John Smith Jr.,
-     *          "remark": qwerty qwerty qwerty
+     *          "invoiceId": 130720,
+     *          "payeeBankName": "AAA BANK",
+     *          "userAccount": "6541325465",
+     *          "userFullName": "Talalai Talalaenko",
+     *          "remark": "alala ololo"
      *      }
-     *
      *
      *
      * @apiUse ExpiredAuthenticationTokenError
@@ -406,8 +413,53 @@ public class MobileInputOutputController {
         return new ResponseEntity<>(OK);
     }
 
+
+    /**
+     * @api {get} /api/payments/invoice/banks Banks info
+     * @apiName getBanksByCurrency
+     * @apiGroup Input-Output
+     * @apiUse TokenHeader
+     * @apiPermission user
+     * @apiDescription returns list of banks by currency
+     * @apiParam {Integer} currencyId - currency id
+     * @apiParamExample Request example
+     * /api/payments/invoice/banks?currencyId=10
+     * @apiSuccess {Array} banks List of banks
+     * @apiSuccess {Object} data Container object
+     * @apiSuccess {Integer} data.id bank id
+     * @apiSuccess {Integer} data.currencyId currency id
+     * @apiSuccess {String} data.name bank name
+     * @apiSuccess {String} data.accountNumber bank account number
+     * @apiSuccess {Number} data.recipient recipient's full name
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     *   [
+     *      {
+     *          "id": 1,
+     *          "currencyId": 10,
+     *          "name": "BCA",
+     *          "accountNumber": "3150963141",
+     *          "recipient": "Nanda Rizal Pahlewi"
+     *      },
+     *      {
+     *          "id": 2,
+     *          "currencyId": 10,
+     *          "name": "MANDIRI",
+     *          "accountNumber": "1440099965557",
+     *          "recipient": "Nanda Rizal Pahlewi"
+     *       }
+     *   ]
+     *
+     *
+     *
+     * @apiUse ExpiredAuthenticationTokenError
+     * @apiUse MissingAuthenticationTokenError
+     * @apiUse InvalidAuthenticationTokenError
+     * @apiUse AuthenticationError
+     * @apiUse InternalServerError
+     */
     @RequestMapping(value = "/invoice/banks", method = GET)
-    public List<InvoiceBank> getBanks(@RequestParam Integer currencyId) {
+    public List<InvoiceBank> getBanksByCurrency(@RequestParam Integer currencyId) {
         return invoiceService.findBanksForCurrency(currencyId);
     }
 
