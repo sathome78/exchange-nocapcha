@@ -280,6 +280,9 @@ public class MerchantServiceImpl implements MerchantService {
         mail.setMessage(notification);
 
         try {
+            notificationService.createLocalizedNotification(email, NotificationEvent.IN_OUT,
+                    "merchants.depositNotification.header", depositNotification,
+                    new Object[]{sumWithCurrency, toWallet});
             sendMailService.sendInfoMail(mail);
         } catch (MailException e) {
             LOG.error(e);
@@ -492,7 +495,7 @@ public class MerchantServiceImpl implements MerchantService {
 
     @Override
     public boolean checkInputRequestsLimit(int merchantId, String email) {
-        boolean inLimit = merchantDao.getInputRequests(merchantId, email) < 5;
+        boolean inLimit = merchantDao.getInputRequests(merchantId, email) < 10;
 
         return inLimit;
     }
