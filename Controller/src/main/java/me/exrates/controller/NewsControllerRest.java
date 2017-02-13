@@ -5,7 +5,6 @@ import me.exrates.model.News;
 import me.exrates.model.dto.NewsSummaryDto;
 import me.exrates.model.form.NewsEditorCreationForm;
 import me.exrates.service.NewsService;
-import me.exrates.service.UserFilesService;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -137,7 +136,6 @@ public class NewsControllerRest {
     @RequestMapping(value = "/news/addNewsFromEditor", method = RequestMethod.POST, consumes = "application/json;charset=utf-8")
     public News createNewsWithEditor(@RequestBody NewsEditorCreationForm form, HttpServletRequest request) {
         String html = form.getContent();
-        LOG.debug(form);
         News news = new News();
         news.setId(form.getId());
         news.setDate(form.getDate() == null || form.getDate().isEmpty() ? LocalDate.now() : LocalDate.parse(form.getDate(), DateTimeFormatter.ISO_DATE));
@@ -165,10 +163,6 @@ public class NewsControllerRest {
     public Map<String, String> uploadNewsImage(@RequestParam MultipartFile file,
                                                @RequestParam Integer newsId,
                                                HttpServletRequest request) throws IOException {
-        LOG.debug(file.getName());
-        LOG.debug(file.getSize());
-        LOG.debug(file.getContentType());
-        LOG.debug(newsId);
         String resourcePath = "";
         String imageDir = tempImageDir;
         if (newsId != null) {

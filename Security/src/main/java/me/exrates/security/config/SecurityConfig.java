@@ -168,6 +168,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.GET, "/public/**").permitAll()
                 .antMatchers(HttpMethod.GET, "/favicon.ico").permitAll()
                 .antMatchers(HttpMethod.GET, "/news/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/pageMaterials/**").permitAll()
                 .antMatchers("/stickyImg").permitAll()
                 .antMatchers("/simpleCaptcha").permitAll()
                 .antMatchers("/botdetectcaptcha").permitAll()
