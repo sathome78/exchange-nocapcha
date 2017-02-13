@@ -5,6 +5,7 @@ import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.dto.OrderCommissionsDto;
 import me.exrates.model.dto.mobileApiDto.CandleChartItemReducedDto;
+import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.*;
 import me.exrates.model.enums.IntervalType;
 import me.exrates.model.enums.OperationType;
@@ -927,6 +928,14 @@ public class MobileDashboardController {
                 .map(dto -> new MyInputOutputHistoryApiDto(dto, localeResolver.resolveLocale(request))).collect(Collectors.toList());
 
     }
+
+    @RequestMapping(value = "/transferLimits", method = GET)
+    public List<TransferLimitDto> retrieveMinTransferLimits(@RequestParam(required = false) Integer[] currencyIds) {
+        List<Integer> currencyIdList = currencyIds == null || currencyIds.length == 0 ? Collections.EMPTY_LIST : Arrays.asList(currencyIds);
+        return currencyService.retrieveMinTransferLimits(currencyIdList);
+    }
+
+
 
 
     @ResponseStatus(BAD_REQUEST)

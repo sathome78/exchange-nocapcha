@@ -4,10 +4,12 @@ import me.exrates.dao.CurrencyDao;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.service.CommissionService;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.UserService;
 import me.exrates.service.exception.CurrencyPairNotFoundException;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -33,6 +35,9 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     @Autowired
     private CommissionService commissionService;
+
+    @Autowired
+    private UserService userService;
 
     private static final Logger logger = LogManager.getLogger(CurrencyServiceImpl.class);
     private static final Set<String> CRYPTO = new HashSet<String>() {
@@ -116,5 +121,11 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Override
     public int resolvePrecision(final String currency) {
         return CRYPTO.contains(currency) ? CRYPTO_PRECISION : DEFAULT_PRECISION;
+    }
+
+    @Override
+    public List<TransferLimitDto> retrieveMinTransferLimits(List<Integer> currencyIds) {
+        Integer roleId = userService.getCurrentUserRole().getRole();
+        return currencyDao.retrieveMinTransferLimits(currencyIds, roleId);
     }
 }

@@ -4,6 +4,7 @@ import me.exrates.dao.CurrencyDao;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -114,6 +115,22 @@ public class CurrencyDaoImpl implements CurrencyDao {
 			currencyLimit.setMinSum(rs.getBigDecimal("min_sum"));
 			currencyLimit.setMaxSum(rs.getBigDecimal("max_sum"));
 			return currencyLimit;
+		});
+	}
+
+	@Override
+	public List<TransferLimitDto> retrieveMinTransferLimits(List<Integer> currencyIds, Integer roleId) {
+		String currencyClause = currencyIds.isEmpty() ? "" : " AND currency_id IN (:currency_ids) ";
+		String sql = "SELECT currency_id, min_sum FROM CURRENCY_LIMIT WHERE operation_type_id = 9 AND user_role_id = :user_role_id " + currencyClause;
+		Map<String, Object> params = new HashMap<>();
+		params.put("user_role_id", roleId);
+		params.put("currency_ids", currencyIds);
+
+		return jdbcTemplate.query(sql, params, (rs, rowNum) -> {
+			TransferLimitDto dto = new TransferLimitDto();
+			dto.setCurrencyId(rs.getInt("currency_id"));
+			dto.setTransferLimit(rs.getBigDecimal("min_sum"));
+			return dto;
 		});
 	}
 

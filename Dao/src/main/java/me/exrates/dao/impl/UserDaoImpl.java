@@ -953,9 +953,14 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public List<String> findNicknamesByPart(String part, Integer limit) {
-        String sql = "SELECT nickname from USER WHERE nickname LIKE :part LIMIT :lim";
+        String sql = "SELECT DISTINCT nickname FROM " +
+                "  (SELECT nickname FROM USER WHERE nickname LIKE :part_begin " +
+                "  UNION " +
+                "  SELECT nickname FROM USER WHERE nickname LIKE :part_middle) AS nicks " +
+                "  LIMIT :lim ";
         Map<String, Object> params = new HashMap<>();
-        params.put("part", "%" + part + "%");
+        params.put("part_begin", part + "%");
+        params.put("part_middle", "%" + part + "%");
         params.put("lim", limit);
         return jdbcTemplate.query(sql, params, (rs, rowNum) -> rs.getString("nickname"));
     }
