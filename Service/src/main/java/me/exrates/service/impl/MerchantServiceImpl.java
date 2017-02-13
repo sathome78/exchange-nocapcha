@@ -417,7 +417,12 @@ public class MerchantServiceImpl implements MerchantService {
     public Optional<CreditsOperation> prepareCreditsOperation(Payment payment,String userEmail) {
         checkMerchantBlock(payment.getMerchant(), payment.getCurrency(), payment.getOperationType());
         final OperationType operationType = payment.getOperationType();
-        final BigDecimal amount = valueOf(payment.getSum());
+        BigDecimal amount = valueOf(payment.getSum());
+        //Addition of three digits is required for IDR input
+        if (payment.getCurrency() == 10 && payment.getOperationType() == INPUT) {
+            BigDecimal addition = BigDecimal.valueOf(Math.random() * 999);
+            amount = amount.add(addition);
+        }
         final Merchant merchant = merchantDao.findById(payment.getMerchant());
         final Currency currency = currencyService.findById(payment.getCurrency());
         final String destination = payment.getDestination();
