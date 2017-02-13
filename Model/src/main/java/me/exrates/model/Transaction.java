@@ -1,6 +1,8 @@
 package me.exrates.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import lombok.Getter;
+import lombok.Setter;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
@@ -11,6 +13,7 @@ import java.time.LocalDateTime;
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
+@Getter @Setter
 public class Transaction {
 
     private int id;
@@ -33,158 +36,6 @@ public class Transaction {
     private BigDecimal companyCommissionBalanceBefore;
     private TransactionSourceType sourceType;
     private Integer sourceId;
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public Wallet getUserWallet() {
-        return userWallet;
-    }
-
-    public void setUserWallet(Wallet userWallet) {
-        this.userWallet = userWallet;
-    }
-
-    public CompanyWallet getCompanyWallet() {
-        return companyWallet;
-    }
-
-    public void setCompanyWallet(CompanyWallet companyWallet) {
-        this.companyWallet = companyWallet;
-    }
-
-    public BigDecimal getAmount() {
-        return amount;
-    }
-
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
-
-    public BigDecimal getCommissionAmount() {
-        return commissionAmount;
-    }
-
-    public void setCommissionAmount(BigDecimal commissionAmount) {
-        this.commissionAmount = commissionAmount;
-    }
-
-    public Commission getCommission() {
-        return commission;
-    }
-
-    public void setCommission(Commission commission) {
-        this.commission = commission;
-    }
-
-    public OperationType getOperationType() {
-        return operationType;
-    }
-
-    public void setOperationType(OperationType operationType) {
-        this.operationType = operationType;
-    }
-
-    public Currency getCurrency() {
-        return currency;
-    }
-
-    public void setCurrency(Currency currency) {
-        this.currency = currency;
-    }
-
-    public Merchant getMerchant() {
-        return merchant;
-    }
-
-    public void setMerchant(Merchant merchant) {
-        this.merchant = merchant;
-    }
-
-    public LocalDateTime getDatetime() {
-        return datetime;
-    }
-
-    public void setDatetime(LocalDateTime datetime) {
-        this.datetime = datetime;
-    }
-
-    public boolean isProvided() {
-        return provided;
-    }
-
-    public void setProvided(boolean provided) {
-        this.provided = provided;
-    }
-
-    public ExOrder getOrder() {
-        return order;
-    }
-
-    public void setOrder(ExOrder order) {
-        this.order = order;
-    }
-
-    public Integer getConfirmation() {
-        return confirmation;
-    }
-
-    public void setConfirmation(Integer confirmation) {
-        this.confirmation = confirmation;
-    }
-
-    public BigDecimal getActiveBalanceBefore() {
-        return activeBalanceBefore;
-    }
-
-    public void setActiveBalanceBefore(BigDecimal activeBalanceBefore) {
-        this.activeBalanceBefore = activeBalanceBefore;
-    }
-
-    public BigDecimal getReservedBalanceBefore() {
-        return reservedBalanceBefore;
-    }
-
-    public void setReservedBalanceBefore(BigDecimal reservedBalanceBefore) {
-        this.reservedBalanceBefore = reservedBalanceBefore;
-    }
-
-    public BigDecimal getCompanyBalanceBefore() {
-        return companyBalanceBefore;
-    }
-
-    public void setCompanyBalanceBefore(BigDecimal companyBalanceBefore) {
-        this.companyBalanceBefore = companyBalanceBefore;
-    }
-
-    public BigDecimal getCompanyCommissionBalanceBefore() {
-        return companyCommissionBalanceBefore;
-    }
-
-    public void setCompanyCommissionBalanceBefore(BigDecimal companyCommissionBalanceBefore) {
-        this.companyCommissionBalanceBefore = companyCommissionBalanceBefore;
-    }
-
-    public TransactionSourceType getSourceType() {
-        return sourceType;
-    }
-
-    public void setSourceType(TransactionSourceType sourceType) {
-        this.sourceType = sourceType;
-    }
-
-    public Integer getSourceId() {
-        return sourceId;
-    }
-
-    public void setSourceId(Integer sourceId) {
-        this.sourceId = sourceId;
-    }
 
     @Override
     public boolean equals(Object o) {

@@ -16,9 +16,11 @@ public interface InvoiceRequestDao {
 
     void delete(InvoiceRequest invoiceRequest);
 
-    void setAcceptance(InvoiceRequest invoiceRequest);
+    void updateAcceptanceStatus(InvoiceRequest invoiceRequest);
 
     Optional<InvoiceRequest> findById(int id);
+
+    Optional<InvoiceRequest> findByIdAndBlock(int id);
 
     Optional<InvoiceRequest> findByIdAndNotConfirmed(int id);
 

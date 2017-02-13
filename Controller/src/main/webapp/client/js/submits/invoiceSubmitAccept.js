@@ -1,12 +1,31 @@
 
-function submitAcceptInvoice(e, id) {
+function acceptInvoice(e, id) {
     var event = e || window.event;
     event.stopPropagation();
     if (confirm($('#prompt_acc_rqst').html())) {
         $.ajax({
             url: '/merchants/invoice/payment/accept?id=' + id,
             type: 'GET',
-            success: function(){
+            success: function () {
+                window.location = '/2a8fy7b07dxe44/invoiceConfirmation';
+            },
+            error: function (jqXHR) {
+                errorInCookie(getErrorMessage(jqXHR));
+                window.location = '/2a8fy7b07dxe44/invoiceConfirmation';
+            }
+        });
+    }
+    return false;
+}
+
+function declineInvoice(e, id) {
+    var event = e || window.event;
+    event.stopPropagation();
+    if (confirm($('#prompt_decline_rqst').html())) {
+        $.ajax({
+            url: '/merchants/invoice/payment/decline?id=' + id,
+            type: 'GET',
+            success: function () {
                 window.location = '/2a8fy7b07dxe44/invoiceConfirmation';
             }
         });

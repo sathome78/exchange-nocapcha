@@ -28,6 +28,9 @@ $(function () {
         window.location = '/dashboard?startupPage=myhistory&startupSubPage=myinputoutput';
     });
 
+    $('#invoiceReturn').click(function () {
+        window.location = '/dashboard?startupPage=myhistory&startupSubPage=myinputoutput';
+    });
 
 });
 

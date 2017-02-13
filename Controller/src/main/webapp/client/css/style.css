@@ -885,6 +885,11 @@ td.blue-white {
     max-width: 6%;
 }
 
+.col-08 {
+    width: 8%;
+    max-width: 8%;
+}
+
 .col-2 {
     width: 10%;
     max-width: 10%;

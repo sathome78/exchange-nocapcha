@@ -213,25 +213,28 @@ public class MerchantDaoImpl implements MerchantDao {
     @Override
     public List<MyInputOutputHistoryDto> getMyInputOutputHistory(String email, Integer offset, Integer limit, Locale locale) {
         String sql = " select TRANSACTION.datetime, CURRENCY.name as currency, TRANSACTION.amount, TRANSACTION.commission_amount, \n" +
-                "case when OPERATION_TYPE.name = 'input' or WITHDRAW_REQUEST.merchant_image_id is null then\n" +
-                "MERCHANT.name else\n" +
-                "MERCHANT_IMAGE.image_name end as merchant,\n" +
-                "OPERATION_TYPE.name as operation_type, TRANSACTION.id, TRANSACTION.provided, " +
-                "IF(OPERATION_TYPE.id = 1 AND MERCHANT.name = 'Invoice' AND INVOICE_REQUEST.payer_account IS NULL " +
-                "AND TRANSACTION.provided IS NOT TRUE, 1, 0) AS confirmation_required, " +
-                "INVOICE_BANK.account_number AS bank_account, " +
-                "USER.id AS user_id from TRANSACTION \n" +
-                "left join CURRENCY on TRANSACTION.currency_id=CURRENCY.id\n" +
-                "left join WITHDRAW_REQUEST on TRANSACTION.id=WITHDRAW_REQUEST.transaction_id\n" +
-                "left join INVOICE_REQUEST on TRANSACTION.id=INVOICE_REQUEST.transaction_id\n" +
-                "left join INVOICE_BANK on INVOICE_REQUEST.bank_id = INVOICE_BANK.id " +
-                "left join MERCHANT_IMAGE on WITHDRAW_REQUEST.merchant_image_id=MERCHANT_IMAGE.id\n" +
-                "left join MERCHANT on TRANSACTION.merchant_id = MERCHANT.id \n" +
-                "left join OPERATION_TYPE on TRANSACTION.operation_type_id=OPERATION_TYPE.id\n" +
-                "left join WALLET on TRANSACTION.user_wallet_id=WALLET.id\n" +
-                "left join USER on WALLET.user_id=USER.id\n" +
-                "where TRANSACTION.source_type=:source_type and USER.email=:email order by datetime DESC" +
-                (limit == -1 ? "" : "  LIMIT " + limit + " OFFSET " + offset);
+            "    case when OPERATION_TYPE.name = 'input' or WITHDRAW_REQUEST.merchant_image_id is null then\n" +
+            "    MERCHANT.name else\n" +
+            "    MERCHANT_IMAGE.image_name end as merchant,\n" +
+            "    OPERATION_TYPE.name as operation_type, TRANSACTION.id, TRANSACTION.provided, " +
+            "    IF(OPERATION_TYPE.id = 1 AND MERCHANT.name = 'Invoice' AND INVOICE_REQUEST_STATUS.name IN ('CREATED_USER', 'DECLINED_ADMIN') " +
+            "    AND TRANSACTION.provided IS NOT TRUE, 1, 0) AS confirmation_required, " +
+            "    INVOICE_BANK.account_number AS bank_account, " +
+            "    USER.id AS user_id," +
+            "    INVOICE_REQUEST.invoice_request_status_id " +
+            "  from TRANSACTION \n" +
+            "    left join CURRENCY on TRANSACTION.currency_id=CURRENCY.id\n" +
+            "    left join WITHDRAW_REQUEST on TRANSACTION.id=WITHDRAW_REQUEST.transaction_id\n" +
+            "    left join INVOICE_REQUEST on TRANSACTION.id=INVOICE_REQUEST.transaction_id\n" +
+            "    left join INVOICE_BANK on INVOICE_REQUEST.bank_id = INVOICE_BANK.id " +
+            "    left join MERCHANT_IMAGE on WITHDRAW_REQUEST.merchant_image_id=MERCHANT_IMAGE.id\n" +
+            "    left join MERCHANT on TRANSACTION.merchant_id = MERCHANT.id \n" +
+            "    left join OPERATION_TYPE on TRANSACTION.operation_type_id=OPERATION_TYPE.id\n" +
+            "    left join WALLET on TRANSACTION.user_wallet_id=WALLET.id\n" +
+            "    left join INVOICE_REQUEST_STATUS on INVOICE_REQUEST_STATUS.id=INVOICE_REQUEST.invoice_request_status_id\n" +
+            "    left join USER on WALLET.user_id=USER.id\n" +
+            "  where TRANSACTION.source_type=:source_type and USER.email=:email order by datetime DESC" +
+            (limit == -1 ? "" : "  LIMIT " + limit + " OFFSET " + offset);
         final Map<String, Object> params = new HashMap<>();
         params.put("email", email);
         params.put("source_type", TransactionSourceType.MERCHANT.toString());
@@ -247,12 +250,13 @@ public class MerchantDaoImpl implements MerchantDao {
                 myInputOutputHistoryDto.setOperationType(rs.getString("operation_type"));
                 myInputOutputHistoryDto.setTransactionId(rs.getInt("id"));
                 myInputOutputHistoryDto.setTransactionProvided(rs.getInt("provided") == 0 ?
-                        messageSource.getMessage("inputoutput.statusFalse", null, locale) :
-                        messageSource.getMessage("inputoutput.statusTrue", null, locale));
+                    messageSource.getMessage("inputoutput.statusFalse", null, locale) :
+                    messageSource.getMessage("inputoutput.statusTrue", null, locale));
                 myInputOutputHistoryDto.setUserId(rs.getInt("user_id"));
                 Boolean confirmationRequired = rs.getBoolean("confirmation_required");
                 myInputOutputHistoryDto.setConfirmationRequired(confirmationRequired);
                 myInputOutputHistoryDto.setBankAccount(rs.getString("bank_account"));
+                myInputOutputHistoryDto.setInvoiceRequestStatusId(rs.getInt("invoice_request_status_id"));
                 return myInputOutputHistoryDto;
             }
         });

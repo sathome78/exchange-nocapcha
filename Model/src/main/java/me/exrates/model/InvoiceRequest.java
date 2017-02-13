@@ -1,6 +1,10 @@
 package me.exrates.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import me.exrates.model.enums.InvoiceRequestStatusEnum;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.time.LocalDateTime;
@@ -8,8 +12,9 @@ import java.time.LocalDateTime;
 /**
  * Created by ogolv on 25.07.2016.
  */
+@Getter @Setter
+@NoArgsConstructor
 public class InvoiceRequest {
-
     private Transaction transaction;
     private Integer userId;
     private String userEmail;
@@ -22,97 +27,7 @@ public class InvoiceRequest {
     private String remark;
     private String payerBankName;
     private String payerAccount;
-
-    public InvoiceRequest() {
-    }
-
-    public Transaction getTransaction() {
-        return transaction;
-    }
-
-    public void setTransaction(Transaction transaction) {
-        this.transaction = transaction;
-    }
-
-    public String getUserEmail() {
-        return userEmail;
-    }
-
-    public void setUserEmail(String userEmail) {
-        this.userEmail = userEmail;
-    }
-
-    public String getAcceptanceUserEmail() {
-        return acceptanceUserEmail;
-    }
-
-    public void setAcceptanceUserEmail(String acceptanceUserEmail) {
-        this.acceptanceUserEmail = acceptanceUserEmail;
-    }
-
-    public LocalDateTime getAcceptanceTime() {
-        return acceptanceTime;
-    }
-
-    public void setAcceptanceTime(LocalDateTime acceptanceTime) {
-        this.acceptanceTime = acceptanceTime;
-    }
-
-    public Integer getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Integer userId) {
-        this.userId = userId;
-    }
-
-    public Integer getAcceptanceUserId() {
-        return acceptanceUserId;
-    }
-
-    public void setAcceptanceUserId(Integer acceptanceUserId) {
-        this.acceptanceUserId = acceptanceUserId;
-    }
-
-    public InvoiceBank getInvoiceBank() {
-        return invoiceBank;
-    }
-
-    public void setInvoiceBank(InvoiceBank invoiceBank) {
-        this.invoiceBank = invoiceBank;
-    }
-
-    public String getUserFullName() {
-        return userFullName;
-    }
-
-    public void setUserFullName(String userFullName) {
-        this.userFullName = userFullName;
-    }
-
-    public String getRemark() {
-        return remark;
-    }
-
-    public void setRemark(String remark) {
-        this.remark = remark;
-    }
-
-    public String getPayerBankName() {
-        return payerBankName;
-    }
-
-    public void setPayerBankName(String payerBankName) {
-        this.payerBankName = payerBankName;
-    }
-
-    public String getPayerAccount() {
-        return payerAccount;
-    }
-
-    public void setPayerAccount(String payerAccount) {
-        this.payerAccount = payerAccount;
-    }
+    private InvoiceRequestStatusEnum invoiceRequestStatus;
 
     @Override
     public boolean equals(Object o) {

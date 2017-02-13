@@ -4,7 +4,6 @@ import me.exrates.model.InvoiceBank;
 import me.exrates.model.InvoiceRequest;
 import me.exrates.model.Transaction;
 import me.exrates.model.vo.InvoiceData;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,24 +11,25 @@ import java.util.Optional;
 
 public interface InvoiceService {
 
-    Transaction createPaymentInvoice(InvoiceData invoiceData);
+  Transaction createPaymentInvoice(InvoiceData invoiceData);
 
-    boolean provideTransaction(int id, String acceptanceUserEmail);
+  void acceptInvoiceAndProvideTransaction(int invoiceId, int transactionId, String acceptanceUserEmail) throws Exception;
 
-    List<InvoiceRequest> findAllInvoiceRequests();
+  void declineInvoice(int invoiceId, int transactionId, String acceptanceUserEmail) throws Exception;
 
-    List<InvoiceBank> findBanksForCurrency(Integer currencyId);
+  List<InvoiceRequest> findAllInvoiceRequests();
 
-    @Transactional(readOnly = true)
-    InvoiceBank findBankById(Integer bankId);
+  List<InvoiceBank> findBanksForCurrency(Integer currencyId);
 
-    Optional<InvoiceRequest> findRequestById(Integer transactionId);
+  InvoiceBank findBankById(Integer bankId);
 
-    @Transactional(readOnly = true)
-    Optional<InvoiceRequest> findUnconfirmedRequestById(Integer transactionId);
+  Optional<InvoiceRequest> findRequestById(Integer transactionId);
 
-    @Transactional
-    void updateConfirmationInfo(InvoiceRequest invoiceRequest);
+  Optional<InvoiceRequest> findRequestByIdAndBlock(Integer transactionId);
 
-    List<InvoiceRequest> findAllRequestsForUser(String userEmail);
+  Optional<InvoiceRequest> findUnconfirmedRequestById(Integer transactionId);
+
+  void updateConfirmationInfo(InvoiceRequest invoiceRequest);
+
+  List<InvoiceRequest> findAllRequestsForUser(String userEmail);
 }

@@ -1,5 +1,6 @@
 package me.exrates.dao.impl;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.InvoiceRequestDao;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.InvoiceRequest;
@@ -19,11 +20,14 @@ import static java.util.Collections.singletonMap;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 
+import me.exrates.model.enums.InvoiceRequestStatusEnum;
+
 
 /**
  * Created by ogolv on 26.07.2016.
  */
 @Repository
+@Log4j2
 public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
 
     @Autowired
@@ -53,6 +57,7 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
         invoiceRequest.setPayerAccount(resultSet.getString("payer_account"));
         invoiceRequest.setUserFullName(resultSet.getString("user_full_name"));
         invoiceRequest.setRemark(resultSet.getString("remark"));
+        invoiceRequest.setInvoiceRequestStatus(InvoiceRequestStatusEnum.convert(resultSet.getInt("invoice_request_status_id")));
         return invoiceRequest;
     };
 
@@ -65,7 +70,8 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
             "                    COMPANY_WALLET.commission_balance, COMMISSION.id, COMMISSION.date, COMMISSION.value, " +
             "                    CURRENCY.id, CURRENCY.description, CURRENCY.name, MERCHANT.id,MERCHANT.name,MERCHANT.description, " +
             "                    INVOICE_BANK.id AS bank_id, INVOICE_BANK.name AS bank_name, INVOICE_BANK.account_number, INVOICE_BANK.recipient, " +
-            "                    inv.user_full_name, inv.remark, inv.payer_bank_name, inv.payer_account " +
+            "                    inv.user_full_name, inv.remark, inv.payer_bank_name, inv.payer_account, " +
+            "                    inv.invoice_request_status_id " +
             "                    FROM INVOICE_REQUEST AS inv " +
             "    INNER JOIN TRANSACTION ON inv.transaction_id = TRANSACTION.id " +
             "    INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id " +
@@ -80,8 +86,8 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
 
     @Override
     public void create(InvoiceRequest invoiceRequest, User user) {
-        final String sql = "INSERT into INVOICE_REQUEST (transaction_id, user_id, bank_id, user_full_name, remark) " +
-                "values (:transaction_id, :user_id, :bank_id, :user_full_name, :remark)";
+        final String sql = "INSERT into INVOICE_REQUEST (transaction_id, user_id, bank_id, user_full_name, remark, invoice_request_status_id) " +
+            "values (:transaction_id, :user_id, :bank_id, :user_full_name, :remark, :invoice_request_status_id)";
         final Map<String, Object> params = new HashMap<String, Object>() {
             {
                 put("transaction_id", invoiceRequest.getTransaction().getId());
@@ -89,11 +95,10 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
                 put("bank_id", invoiceRequest.getInvoiceBank().getId());
                 put("user_full_name", invoiceRequest.getUserFullName());
                 put("remark", invoiceRequest.getRemark());
+                put("invoice_request_status_id", invoiceRequest.getInvoiceRequestStatus().getCode());
             }
         };
         jdbcTemplate.update(sql, params);
-
-
     }
 
     @Override
@@ -107,17 +112,19 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
     }
 
     @Override
-    public void setAcceptance(InvoiceRequest invoiceRequest) {
-        final String sql = "UPDATE INVOICE_REQUEST SET acceptance_user_id = (SELECT id FROM USER WHERE email=:email), acceptance_time = NOW() " +
-                "WHERE transaction_id = :transaction_id";
+    public void updateAcceptanceStatus(InvoiceRequest invoiceRequest) {
+        final String sql = "UPDATE INVOICE_REQUEST" +
+            " SET acceptance_user_id = (SELECT id FROM USER WHERE email=:email), acceptance_time = NOW(), " +
+            " invoice_request_status_id = :invoice_request_status_id " +
+            "WHERE transaction_id = :transaction_id";
         final Map<String, Object> params = new HashMap<String, Object>() {
             {
                 put("transaction_id", invoiceRequest.getTransaction().getId());
                 put("email", invoiceRequest.getAcceptanceUserEmail());
+                put("invoice_request_status_id", invoiceRequest.getInvoiceRequestStatus().getCode());
             }
         };
         jdbcTemplate.update(sql, params);
-
     }
 
     @Override
@@ -132,6 +139,21 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
         } catch (EmptyResultDataAccessException e) {
             return empty();
         }
+    }
+
+    @Override
+    public Optional<InvoiceRequest> findByIdAndBlock(int invoiceId) {
+        final String sql =
+            " SELECT COUNT(*) " +
+                " FROM INVOICE_REQUEST AS inv " +
+                " JOIN TRANSACTION ON inv.transaction_id = TRANSACTION.id " +
+                " WHERE inv.transaction_id = :invoice_id " +
+                " FOR UPDATE"; //FOR UPDATE Important!
+        final Map<String, Object> params = new HashMap<String, Object>() {{
+            put("invoice_id", invoiceId);
+        }};
+        jdbcTemplate.queryForObject(sql, params, Integer.class);
+        return findById(invoiceId);
     }
 
     @Override
@@ -201,14 +223,17 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
 
     @Override
     public void updateConfirmationInfo(InvoiceRequest invoiceRequest) {
-        final String sql = "UPDATE INVOICE_REQUEST SET payer_bank_name = :payer_bank_name, payer_account = :payer_account, " +
-                "user_full_name = :user_full_name, remark = :remark WHERE transaction_id = :id";
+        final String sql = "UPDATE INVOICE_REQUEST " +
+            "  SET payer_bank_name = :payer_bank_name, payer_account = :payer_account, " +
+            "      user_full_name = :user_full_name, remark = :remark, invoice_request_status_id = :invoice_request_status_id " +
+            "  WHERE transaction_id = :id";
         Map<String, Object> params = new HashMap<>();
         params.put("id", invoiceRequest.getTransaction().getId());
         params.put("payer_bank_name", invoiceRequest.getPayerBankName());
         params.put("payer_account", invoiceRequest.getPayerAccount());
         params.put("user_full_name", invoiceRequest.getUserFullName());
         params.put("remark", invoiceRequest.getRemark());
+        params.put("invoice_request_status_id", invoiceRequest.getInvoiceRequestStatus().getCode());
         jdbcTemplate.update(sql, params);
     }
 }
