@@ -6,6 +6,7 @@ import me.exrates.model.vo.InvoiceData;
 import me.exrates.service.InvoiceService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.UserFilesService;
+import me.exrates.service.exception.FileLoadingException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.RejectedPaymentInvoice;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -17,6 +18,7 @@ import org.springframework.context.NoSuchMessageException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -196,9 +198,9 @@ public class InvoiceController {
         return modelAndView;
     }
     @RequestMapping(value = "/payment/confirm", method = POST)
-    public RedirectView confirmInvoice(InvoiceConfirmData invoiceConfirmData, HttpServletRequest request) {
+    public ModelAndView confirmInvoice(InvoiceConfirmData invoiceConfirmData, HttpServletRequest request) {
         LOG.debug(invoiceConfirmData);
-        RedirectView redirectView = new RedirectView("/dashboard?startupPage=myhistory&startupSubPage=myinputoutput");
+        ModelAndView modelAndView = new ModelAndView("re/dashboard?startupPage=myhistory&startupSubPage=myinputoutput");
         Optional<InvoiceRequest> invoiceRequestResult = invoiceService.findUnconfirmedRequestById(invoiceConfirmData.getInvoiceId());
         HttpSession session = request.getSession();
         Object mutex = WebUtils.getSessionMutex(session);
@@ -216,6 +218,14 @@ public class InvoiceController {
             invoiceRequest.setRemark(StringEscapeUtils.escapeHtml(invoiceConfirmData.getRemark()));
             try {
                 invoiceService.updateConfirmationInfo(invoiceRequest);
+                MultipartFile receiptScan = invoiceConfirmData.getReceiptScan();
+                if (receiptScan != null) {
+                    if (!userFilesService.checkFileValidity(receiptScan) || receiptScan.getSize() > 1048576L) {
+                        throw new FileLoadingException(messageSource.getMessage("merchants.errorUploadReceipt", null,
+                                localeResolver.resolveLocale(request)));
+                    }
+                    userFilesService.saveReceiptScan(invoiceRequest.getUserId(), invoiceRequest.getTransaction().getId(), receiptScan);
+                }
 
                 synchronized (mutex) {
                     session.setAttribute("successNoty", messageSource.getMessage("merchants.invoiceConfirm.noty", null,
@@ -229,7 +239,7 @@ public class InvoiceController {
                 }
             }
         }
-        return redirectView;
+        return modelAndView;
     }
 
 

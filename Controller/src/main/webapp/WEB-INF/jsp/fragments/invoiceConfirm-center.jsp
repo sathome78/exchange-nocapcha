@@ -119,14 +119,25 @@
                     <div class="input-block-wrapper clearfix">
                         <div class="col-md-3 input-block-wrapper__label-wrapper">
                             <label for="remark" class="input-block-wrapper__label" >
-                                <loc:message code="merchants.invoiceDetails.remark"/></label>
+                                <loc:message code="merchants.invoiceConfirm.receiptScan"/></label>
                         </div>
                         <div class="col-md-8">
-                            <input type="file" id="receiptScan" name="receiptScan">
+                            <c:choose>
+                                <c:when test="${not empty invoiceRequest.receiptScanPath}">
+                                    <a href="${invoiceRequest.receiptScanPath}" class="col-sm-4">
+                                        <img src="${invoiceRequest.receiptScanPath}" class="img-responsive">
+                                    </a>
+                                </c:when>
+                                <c:otherwise>
+                                    <input type="file" id="receiptScan" name="receiptScan">
+                                </c:otherwise>
+                            </c:choose>
                         </div>
                     </div>
-                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
 
+
+
+                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                     <c:if test="${!confirmed}">
                         <div class="col-md-4 input-block-wrapper">
                             <button id="invoiceSubmit" class="btn btn-primary btn-lg" type="submit"><loc:message code="admin.submit" /> </button>

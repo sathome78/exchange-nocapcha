@@ -3,6 +3,7 @@ package me.exrates.service.impl;
 import me.exrates.service.InvoiceService;
 import me.exrates.service.UserFilesService;
 import me.exrates.service.UserService;
+import me.exrates.service.exception.FileLoadingException;
 import me.exrates.service.exception.api.DeleteFileException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -17,6 +18,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -109,19 +112,22 @@ public class UserFilesServiceImpl implements UserFilesService {
         userService.createUserFile(userId, logicalPaths);
     }
 
+    @Override
     public void saveReceiptScan(final int userId, final int invoiceId, final MultipartFile file) throws IOException {
         final Path path = Paths.get(userFilesDir + userId, "receipts");
         LOG.debug(path.toString());
         if (!Files.exists(path)) {
             Files.createDirectories(path);
         }
-        LocalDate currentDate = LocalDate.now();
         String baseFilename = new StringJoiner("_").add("receipt")
                 .add(String.valueOf(invoiceId))
+                .add(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")))
                 .toString();
-    //    Path logicalPath = writeUserFile(path, Paths.get(userFilesLogicalDir, String.valueOf(userId), "receipts"), );
-
+        Path logicalPath = writeUserFile(path, Paths.get(userFilesLogicalDir, String.valueOf(userId), "receipts"), baseFilename, file);
+        invoiceService.updateReceiptScan(invoiceId, logicalPath.toString());
     }
+
+
 
     @Override
     public String createUserAvatar(final int userId, final MultipartFile file) throws IOException {

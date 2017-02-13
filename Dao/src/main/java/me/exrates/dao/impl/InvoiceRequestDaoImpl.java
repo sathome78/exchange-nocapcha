@@ -50,6 +50,7 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
         invoiceRequest.setPayerAccount(resultSet.getString("payer_account"));
         invoiceRequest.setUserFullName(resultSet.getString("user_full_name"));
         invoiceRequest.setRemark(resultSet.getString("remark"));
+        invoiceRequest.setReceiptScanPath(resultSet.getString("receipt_scan"));
         return invoiceRequest;
     };
 
@@ -62,7 +63,7 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
             "                    COMPANY_WALLET.commission_balance, COMMISSION.id, COMMISSION.date, COMMISSION.value, " +
             "                    CURRENCY.id, CURRENCY.description, CURRENCY.name, MERCHANT.id,MERCHANT.name,MERCHANT.description, " +
             "                    INVOICE_BANK.id AS bank_id, INVOICE_BANK.name AS bank_name, INVOICE_BANK.account_number, INVOICE_BANK.recipient, " +
-            "                    inv.user_full_name, inv.remark, inv.payer_bank_name, inv.payer_account " +
+            "                    inv.user_full_name, inv.remark, inv.payer_bank_name, inv.payer_account, inv.receipt_scan " +
             "                    FROM INVOICE_REQUEST AS inv " +
             "    INNER JOIN TRANSACTION ON inv.transaction_id = TRANSACTION.id " +
             "    INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id " +

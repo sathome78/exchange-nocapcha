@@ -22,6 +22,7 @@ public class InvoiceRequest {
     private String remark;
     private String payerBankName;
     private String payerAccount;
+    private String receiptScanPath;
 
     public InvoiceRequest() {
     }
@@ -114,6 +115,14 @@ public class InvoiceRequest {
         this.payerAccount = payerAccount;
     }
 
+    public String getReceiptScanPath() {
+        return receiptScanPath;
+    }
+
+    public void setReceiptScanPath(String receiptScanPath) {
+        this.receiptScanPath = receiptScanPath;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -135,7 +144,8 @@ public class InvoiceRequest {
         if (remark != null ? !remark.equals(that.remark) : that.remark != null) return false;
         if (payerBankName != null ? !payerBankName.equals(that.payerBankName) : that.payerBankName != null)
             return false;
-        return payerAccount != null ? payerAccount.equals(that.payerAccount) : that.payerAccount == null;
+        if (payerAccount != null ? !payerAccount.equals(that.payerAccount) : that.payerAccount != null) return false;
+        return receiptScanPath != null ? receiptScanPath.equals(that.receiptScanPath) : that.receiptScanPath == null;
     }
 
     @Override
@@ -151,6 +161,7 @@ public class InvoiceRequest {
         result = 31 * result + (remark != null ? remark.hashCode() : 0);
         result = 31 * result + (payerBankName != null ? payerBankName.hashCode() : 0);
         result = 31 * result + (payerAccount != null ? payerAccount.hashCode() : 0);
+        result = 31 * result + (receiptScanPath != null ? receiptScanPath.hashCode() : 0);
         return result;
     }
 
@@ -168,6 +179,7 @@ public class InvoiceRequest {
                 ", remark='" + remark + '\'' +
                 ", payerBankName='" + payerBankName + '\'' +
                 ", payerAccount='" + payerAccount + '\'' +
+                ", receiptScanPath='" + receiptScanPath + '\'' +
                 '}';
     }
 }
