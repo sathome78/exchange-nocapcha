@@ -88,6 +88,21 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Value("${news.urlPath}")
     String newsUrlPath;
 
+    @Value("${news.ext.locationDir}")
+    String newsExtLocationDir;
+    @Value("${news.newstopic.urlPath}")
+    private String newstopicUrlPath;
+    @Value("${news.materialsView.urlPath}")
+    private String materialsViewUrlPath;
+    @Value("${news.webinar.urlPath}")
+    private String webinarUrlPath;
+    @Value("${news.event.urlPath}")
+    private String eventUrlPath;
+    @Value("${news.feastDay.urlPath}")
+    private String feastDayUrlPath;
+    @Value("${news.page.urlPath}")
+    private String pageUrlPath;
+
     @Bean
     public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
         return new PropertySourcesPlaceholderConfigurer();
@@ -169,6 +184,13 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         registry.addResourceHandler("/**").addResourceLocations("/public/");
         registry.addResourceHandler(newsUrlPath + "/**").addResourceLocations("file:" + newsLocationDir);
         registry.addResourceHandler(userFilesLogicalDir + "/**").addResourceLocations("file:" + userFilesDir);
+
+        registry.addResourceHandler(newstopicUrlPath + "/**").addResourceLocations("file:" + newsExtLocationDir);
+        registry.addResourceHandler(materialsViewUrlPath + "/**").addResourceLocations("file:" + newsExtLocationDir);
+        registry.addResourceHandler(webinarUrlPath + "/**").addResourceLocations("file:" + newsExtLocationDir);
+        registry.addResourceHandler(eventUrlPath + "/**").addResourceLocations("file:" + newsExtLocationDir);
+        registry.addResourceHandler(feastDayUrlPath + "/**").addResourceLocations("file:" + newsExtLocationDir);
+        registry.addResourceHandler(pageUrlPath + "/**").addResourceLocations("file:" + newsExtLocationDir);
         registry.addResourceHandler("/rest" + userFilesLogicalDir + "/**").addResourceLocations("file:" + userFilesDir);
     }
 
