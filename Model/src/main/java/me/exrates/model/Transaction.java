@@ -1,7 +1,9 @@
 package me.exrates.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -20,6 +22,7 @@ public class Transaction {
     private OperationType operationType;
     private Currency currency;
     private Merchant merchant;
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime datetime;
     private ExOrder order;
     private boolean provided;

@@ -14,76 +14,61 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="interkassa-verification" content="c4deb5425361141d96dd48d235b6fc4a"/>
-    <link href='<c:url value="/client/css/roboto-font-400_700_300.css"/>' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Roboto:400,700,300' rel='stylesheet' type='text/css'>
 
-    <script src="<c:url value="/client/js/jquery_1.11.3.min.js"/>" type="text/javascript"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js" type="text/javascript"></script>
     <script src="<c:url value='/client/js/jquery.mCustomScrollbar.concat.min.js'/>" type="text/javascript"></script>
 
-    <link rel="stylesheet" href="<c:url value="/client/css/font-awesome.min.css"/>">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
     <link href="<c:url value='/client/css/jquery.mCustomScrollbar.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet">
     <%----------%>
+    <script type="text/javascript" src="<c:url value="/client/js/function.js"/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/script.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/menuSwitcher.js'/>"></script>
+
+
+    <script type="text/javascript" src="<c:url value="/client/js/main.js"/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/tmpl.js'/>"></script>
     <%----%>
     <script type="text/javascript" src="<c:url value='/client/js/sockjs.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/app.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/globalPages/dashboard-init.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/globalPages/settings-init.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/settings/settings.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/siders/leftSider.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/siders/rightSider.js'/>"></script>
-    <%----%>
-    <script type="text/javascript" src="<c:url value='/client/js/trading/trading.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/mywallets/mywallets.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/history/history.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/myorders/myorders.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/inputOutput/inputOutput.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/myreferral/myreferral.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/mywallets/statements.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/order/orders.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/currencypair/currencyPairSelector.js'/>"></script>
     <%----%>
     <script type="text/javascript" src="<c:url value='/client/js/bootstrap.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/locale.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/dashboard/chat.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/submits/merchantsSubmitOutput.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/submits/finPassCheck.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/loc-direction.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/moment-with-locales.min.js'/>"></script>
-    <script src='//cdn.tinymce.com/4/tinymce.min.js'></script>
+    <script type="text/javascript" src="<c:url value='/client/js/inputOutput/invoiceConfirm.js'/>"></script>
 
+    <%----------%>
     <%--TOOLS ... --%>
     <!-- Google Analytics-->
     <%--<%@include file="../tools/google.jsp"%>--%>
     <!-- Yandex.Metrika counter -->
-    <%--<%@include file="../tools/yandex.jsp" %>--%>
-    <%--ZOPIM CHAT--%>
-    <%@include file="../tools/alexa.jsp" %>
     <%@include file="../tools/yandex.jsp" %>
+    <%--ZOPIM CHAT--%>
     <%@include file="../tools/zopim.jsp" %>
     <%-- ... TOOLS--%>
+    <%@include file="../tools/alexa.jsp" %>
+
 </head>
 <body>
 
-<%@include file="../fragments/header.jsp" %>
+<%@include file="../fragments/header-simple.jsp" %>
 
 <main class="container">
     <div class="row_big">
         <%@include file="../fragments/left-sider.jsp" %>
         <div class="cols-md-8 background_white">
-            <div id="startup-page-id" class="center-dummy" style="height: 1px; visibility: hidden">
-                <%--to keep panel when all pages are hidden--%>
-                <%--and to keep startup page ID--%>
-                ${startupPage}
-            </div>
-            <div id="startup-subPage-id" class="center-dummy" style="height: 1px; visibility: hidden">
-                <%--to keep panel when all pages are hidden--%>
-                <%--and to keep startup page ID--%>
-                ${startupSubPage}
-            </div>
-            <%@include file="../fragments/trading-center.jsp" %>
-            <%@include file="../fragments/mywallets-center.jsp" %>
-            <%@include file="../fragments/statement-center.jsp" %>
-            <%@include file="../fragments/history-center.jsp" %>
-            <%@include file="../fragments/orders-center.jsp" %>
+            <%@include file="../fragments/invoiceConfirm-center.jsp" %>
         </div>
         <%@include file="../fragments/right-sider.jsp" %>
     </div>
@@ -91,6 +76,7 @@
 <%@include file='../fragments/footer.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>
+<span hidden id="tabIdx">${tabIdx}</span>
 
 </body>
 </html>
