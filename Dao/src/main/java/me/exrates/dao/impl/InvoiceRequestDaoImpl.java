@@ -1,10 +1,7 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.InvoiceRequestDao;
-import me.exrates.model.InvoiceBank;
-import me.exrates.model.InvoiceRequest;
-import me.exrates.model.Transaction;
-import me.exrates.model.User;
+import me.exrates.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
@@ -183,6 +180,22 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
     }
 
     @Override
+    public List<CurrencyInputBank> findInputBanksForCurrency(Integer currencyId) {
+        final String sql = "SELECT id, currency_id, name, code " +
+                " FROM CURRENCY_INPUT_BANK " +
+                " WHERE currency_id = :currency_id";
+        final Map<String, Integer> params = Collections.singletonMap("currency_id", currencyId);
+        return jdbcTemplate.query(sql, params, (rs, rowNum) -> {
+            CurrencyInputBank bank = new CurrencyInputBank();
+            bank.setId(rs.getInt("id"));
+            bank.setName(rs.getString("name"));
+            bank.setCurrencyId(rs.getInt("currency_id"));
+            bank.setCode(rs.getString("code"));
+            return bank;
+        });
+    }
+
+    @Override
     public InvoiceBank findBankById(Integer bankId) {
         final String sql = "SELECT id, currency_id, name, account_number, recipient " +
                 " FROM INVOICE_BANK " +
@@ -209,6 +222,15 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
         params.put("payer_account", invoiceRequest.getPayerAccount());
         params.put("user_full_name", invoiceRequest.getUserFullName());
         params.put("remark", invoiceRequest.getRemark());
+        jdbcTemplate.update(sql, params);
+    }
+
+    @Override
+    public void updateReceiptScan(Integer invoiceId, String receiptScanPath) {
+        final String sql = "UPDATE INVOICE_REQUEST SET receipt_scan = :receipt_scan WHERE transaction_id = :id";
+        Map<String, Object> params = new HashMap<>();
+        params.put("id", invoiceId);
+        params.put("receipt_scan", receiptScanPath);
         jdbcTemplate.update(sql, params);
     }
 }

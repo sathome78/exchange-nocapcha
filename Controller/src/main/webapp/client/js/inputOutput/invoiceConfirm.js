@@ -41,6 +41,7 @@ function updateBankSelection($bankSelect, $otherBankInputDiv) {
         $('#payerBankName').val('');
         $($otherBankInputDiv).show();
     } else {
+        $($otherBankInputDiv).hide();
         $('#payerBankName').val($($bankSelect).find('option:selected').text());
         $($otherBankInputDiv).find('#bankSelect').val('')
     }
@@ -51,6 +52,9 @@ function checkFields() {
     var payerBankTest = validateString($('#payerBankName').val(), BANK_NAME_REGEX, $('#bankNameError'));
     var payerAccountTest = validateString($('#userAccount').val(), DIGITS_ONLY_REGEX, $('#userAccountError'));
     var payerFullNameTest = validateString($('#userFullName').val(), NAME_REGEX, $('#userFullNameError'));
+    console.log(payerBankTest);
+    console.log(payerAccountTest);
+    console.log(payerFullNameTest);
 
 
 

@@ -1,5 +1,6 @@
 package me.exrates.dao;
 
+import me.exrates.model.CurrencyInputBank;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.InvoiceRequest;
 import me.exrates.model.User;
@@ -28,7 +29,11 @@ public interface InvoiceRequestDao {
 
     List<InvoiceBank> findInvoiceBanksByCurrency(Integer currencyId);
 
+    List<CurrencyInputBank> findInputBanksForCurrency(Integer currencyId);
+
     InvoiceBank findBankById(Integer bankId);
 
     void updateConfirmationInfo(InvoiceRequest invoiceRequest);
+
+    void updateReceiptScan(Integer invoiceId, String receiptScanPath);
 }

@@ -1,5 +1,6 @@
 package me.exrates.service;
 
+import me.exrates.model.CurrencyInputBank;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.InvoiceRequest;
 import me.exrates.model.Transaction;
@@ -21,6 +22,9 @@ public interface InvoiceService {
     List<InvoiceBank> findBanksForCurrency(Integer currencyId);
 
     @Transactional(readOnly = true)
+    List<CurrencyInputBank> findInputBanksForCurrency(Integer currencyId);
+
+    @Transactional(readOnly = true)
     InvoiceBank findBankById(Integer bankId);
 
     Optional<InvoiceRequest> findRequestById(Integer transactionId);
@@ -30,6 +34,8 @@ public interface InvoiceService {
 
     @Transactional
     void updateConfirmationInfo(InvoiceRequest invoiceRequest);
+
+    void updateReceiptScan(Integer invoiceId, String receiptScanPath);
 
     List<InvoiceRequest> findAllRequestsForUser(String userEmail);
 }

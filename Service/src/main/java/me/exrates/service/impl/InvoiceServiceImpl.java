@@ -1,10 +1,7 @@
 package me.exrates.service.impl;
 
 import me.exrates.dao.InvoiceRequestDao;
-import me.exrates.model.CreditsOperation;
-import me.exrates.model.InvoiceBank;
-import me.exrates.model.InvoiceRequest;
-import me.exrates.model.Transaction;
+import me.exrates.model.*;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.vo.InvoiceData;
 import me.exrates.service.InvoiceService;
@@ -85,6 +82,12 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<CurrencyInputBank> findInputBanksForCurrency(Integer currencyId) {
+        return invoiceRequestDao.findInputBanksForCurrency(currencyId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public InvoiceBank findBankById(Integer bankId) {
         return invoiceRequestDao.findBankById(bankId);
     }
@@ -108,6 +111,13 @@ public class InvoiceServiceImpl implements InvoiceService {
     }
 
     @Override
+    @Transactional
+    public void updateReceiptScan(Integer invoiceId, String receiptScanPath) {
+        invoiceRequestDao.updateReceiptScan(invoiceId, receiptScanPath);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<InvoiceRequest> findAllRequestsForUser(String userEmail) {
         return invoiceRequestDao.findAllForUser(userEmail);
     }

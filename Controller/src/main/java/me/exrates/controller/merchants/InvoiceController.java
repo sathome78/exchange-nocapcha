@@ -5,6 +5,7 @@ import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.InvoiceData;
 import me.exrates.service.InvoiceService;
 import me.exrates.service.MerchantService;
+import me.exrates.service.UserFilesService;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.RejectedPaymentInvoice;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -42,6 +43,9 @@ public class InvoiceController {
 
     @Autowired
     private InvoiceService invoiceService;
+
+    @Autowired
+    private UserFilesService userFilesService;
 
     @Autowired
     private MessageSource messageSource;
@@ -183,10 +187,9 @@ public class InvoiceController {
         } else {
             InvoiceRequest invoiceRequest = invoiceRequestResult.get();
             modelAndView.addObject("invoiceRequest", invoiceRequest);
-            List<String> bankNames = invoiceService.findBanksForCurrency(invoiceRequest.getTransaction().getCurrency().getId())
-                    .stream().map(InvoiceBank::getName).collect(Collectors.toList());
-            modelAndView.addObject("bankNames", bankNames);
-            if (bankNames.stream().noneMatch(name -> name.equals(invoiceRequest.getPayerBankName()))) {
+            List<CurrencyInputBank> banks = invoiceService.findInputBanksForCurrency(invoiceRequest.getTransaction().getCurrency().getId());
+            modelAndView.addObject("banks", banks);
+            if (invoiceRequest.getPayerBankName() != null && banks.stream().noneMatch(bank -> invoiceRequest.getPayerBankName().equals(bank.getName()))) {
                 modelAndView.addObject("otherBank", invoiceRequest.getPayerBankName());
             }
         }
@@ -213,6 +216,7 @@ public class InvoiceController {
             invoiceRequest.setRemark(StringEscapeUtils.escapeHtml(invoiceConfirmData.getRemark()));
             try {
                 invoiceService.updateConfirmationInfo(invoiceRequest);
+
                 synchronized (mutex) {
                     session.setAttribute("successNoty", messageSource.getMessage("merchants.invoiceConfirm.noty", null,
                             localeResolver.resolveLocale(request)));

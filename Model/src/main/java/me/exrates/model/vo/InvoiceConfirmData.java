@@ -1,5 +1,7 @@
 package me.exrates.model.vo;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import javax.validation.constraints.NotNull;
 
 /**
@@ -14,6 +16,7 @@ public class InvoiceConfirmData {
     private String userAccount;
     private String userFullName;
     private String remark;
+    private MultipartFile receiptScan;
 
     public Integer getInvoiceId() {
         return invoiceId;
@@ -55,6 +58,14 @@ public class InvoiceConfirmData {
         this.remark = remark;
     }
 
+    public MultipartFile getReceiptScan() {
+        return receiptScan;
+    }
+
+    public void setReceiptScan(MultipartFile receiptScan) {
+        this.receiptScan = receiptScan;
+    }
+
     @Override
     public String toString() {
         return "InvoiceConfirmData{" +
@@ -63,6 +74,7 @@ public class InvoiceConfirmData {
                 ", userAccount='" + userAccount + '\'' +
                 ", userFullName='" + userFullName + '\'' +
                 ", remark='" + remark + '\'' +
+                ", receiptScan=" + receiptScan +
                 '}';
     }
 }

@@ -1,5 +1,6 @@
 package me.exrates.service.impl;
 
+import me.exrates.service.InvoiceService;
 import me.exrates.service.UserFilesService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.api.DeleteFileException;
@@ -15,6 +16,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -32,13 +34,15 @@ public class UserFilesServiceImpl implements UserFilesService {
     private @Value("${upload.userFilesLogicalDir}") String userFilesLogicalDir;
 
     private final UserService userService;
+    private final InvoiceService invoiceService;
     private final Set<String> contentTypes;
 
     private static final Logger LOG = LogManager.getLogger(UserFilesServiceImpl.class);
 
     @Autowired
-    public UserFilesServiceImpl(final UserService userService) {
+    public UserFilesServiceImpl(final UserService userService, final InvoiceService invoiceService) {
         this.userService = userService;
+        this.invoiceService = invoiceService;
         contentTypes = new HashSet<>();
         contentTypes.addAll(asList("image/jpg", "image/jpeg", "image/png"));
     }
@@ -105,6 +109,20 @@ public class UserFilesServiceImpl implements UserFilesService {
         userService.createUserFile(userId, logicalPaths);
     }
 
+    public void saveReceiptScan(final int userId, final int invoiceId, final MultipartFile file) throws IOException {
+        final Path path = Paths.get(userFilesDir + userId, "receipts");
+        LOG.debug(path.toString());
+        if (!Files.exists(path)) {
+            Files.createDirectories(path);
+        }
+        LocalDate currentDate = LocalDate.now();
+        String baseFilename = new StringJoiner("_").add("receipt")
+                .add(String.valueOf(invoiceId))
+                .toString();
+    //    Path logicalPath = writeUserFile(path, Paths.get(userFilesLogicalDir, String.valueOf(userId), "receipts"), );
+
+    }
+
     @Override
     public String createUserAvatar(final int userId, final MultipartFile file) throws IOException {
         final Path path = Paths.get(userFilesDir + userId, "avatar");
@@ -114,14 +132,28 @@ public class UserFilesServiceImpl implements UserFilesService {
         }
         List<Path> existingAvatars = Arrays.stream(path.toFile().listFiles())
                 .map(avatar -> Paths.get(avatar.getPath())).collect(Collectors.toList());
-        Path realPath = null;
-        Path logicalPath = null;
-        try {
-            final String name = UUID.randomUUID().toString() + "." + extractFileExtension(file);
-            realPath = Paths.get(path.toString(), name);
-            logicalPath = Paths.get(userFilesLogicalDir, String.valueOf(userId), "avatar", name);
-            Files.write(realPath, file.getBytes());
+        Path logicalPath = writeUserFile(path, Paths.get(userFilesLogicalDir, String.valueOf(userId), "avatar"), UUID.randomUUID().toString(), file);
+        userService.setUserAvatar(userId, logicalPath);
+        existingAvatars.forEach(avatar -> {
+            try {
+                Files.delete(avatar);
+            } catch (final IOException ex) {
+                LOG.error("Could not delete files");
+                throw new DeleteFileException("Could not delete files");
+            }
+        });
+        return logicalPath.toString();
+    }
 
+    private Path writeUserFile(Path initialPath, Path logicalPath, String baseFilename, MultipartFile file) throws IOException {
+        Path realPath = null;
+        Path logicalFilePath;
+        try {
+            final String name = baseFilename + "." + extractFileExtension(file);
+            realPath = Paths.get(initialPath.toString(), name);
+            logicalFilePath = Paths.get(logicalPath.toString(), name);
+            Files.write(realPath, file.getBytes());
+            return logicalFilePath;
         } catch (final IOException e) {
             if (realPath != null) {
                 final List<IOException> exceptions = new ArrayList<>();
@@ -137,16 +169,6 @@ public class UserFilesServiceImpl implements UserFilesService {
             }
             throw e;
         }
-        userService.setUserAvatar(userId, logicalPath);
-        existingAvatars.forEach(avatar -> {
-            try {
-                Files.delete(avatar);
-            } catch (final IOException ex) {
-                LOG.error("Could not delete files");
-                throw new DeleteFileException("Could not delete files");
-            }
-        });
-        return logicalPath.toString();
     }
 
 

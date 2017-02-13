@@ -52,7 +52,7 @@
                 </div>
 
 
-                <form id="confirmationForm" action="<c:url value="/merchants/invoice/payment/confirm"/>" method="post">
+                <form id="confirmationForm" action="<c:url value="/merchants/invoice/payment/confirm"/>" method="post" enctype="multipart/form-data">
                     <input type="hidden" name="invoiceId" id="invoiceId" value="${invoiceRequest.transaction.id}" <c:out value="${readonlyIfConfirmed}"/>>
                     <input type="hidden" name="payerBankName" id="payerBankName" value="${invoiceRequest.payerBankName}" <c:out value="${readonlyIfConfirmed}"/>>
                     <div class="input-block-wrapper clearfix">
@@ -63,8 +63,8 @@
                         <div class="col-md-8 " >
                             <select class="form-control input-block-wrapper__input" id="bankSelect" <c:out value="${confirmed ? disabled : ''}"/>>
                                 <option value="-1"><loc:message code="merchants.notSelected"/></option>
-                                <c:forEach items="${bankNames}" var="bank" varStatus="counter" >
-                                    <option <c:out value="${bank.equals(invoiceRequest.payerBankName) ? selected : ''}" /> value="${counter.count}">${bank}</option>
+                                <c:forEach items="${banks}" var="bank" varStatus="counter" >
+                                    <option <c:out value="${bank.name.equals(invoiceRequest.payerBankName) ? selected : ''}" /> value="${counter.count}">${bank.name}<%--<span class="pull-right">${bank.code}</span>--%></option>
                                 </c:forEach>
                                 <option <c:out value="${not empty otherBank ? selected : ''}" /> value="0"><loc:message code="merchants.invoice.otherBank"/></option>
                             </select>
@@ -114,6 +114,15 @@
                         </div>
                         <div class="col-md-8">
                             <textarea id="remark" class="form-control textarea non-resize" name="remark" <c:out value="${readonlyIfConfirmed}"/> >${invoiceRequest.remark}</textarea>
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper clearfix">
+                        <div class="col-md-3 input-block-wrapper__label-wrapper">
+                            <label for="remark" class="input-block-wrapper__label" >
+                                <loc:message code="merchants.invoiceDetails.remark"/></label>
+                        </div>
+                        <div class="col-md-8">
+                            <input type="file" id="receiptScan" name="receiptScan">
                         </div>
                     </div>
                     <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
