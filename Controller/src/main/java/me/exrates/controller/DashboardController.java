@@ -33,6 +33,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.RequestContextUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.*;
@@ -81,9 +82,12 @@ public class DashboardController {
 
     @RequestMapping(value = {"/dashboard/locale"})
     @ResponseBody
-    public void localeSwitcherCommand(Principal principal, HttpServletRequest request) {
-        LOG.debug(principal);
-        LOG.debug(localeResolver.resolveLocale(request));
+    public void localeSwitcherCommand(
+        Principal principal,
+        HttpServletRequest request,
+        HttpServletResponse response) {
+        Locale locale = localeResolver.resolveLocale(request);
+        localeResolver.setLocale(request, response, locale);
         if (principal != null) {
             userService.setPreferedLang(userService.getIdByEmail(principal.getName()), localeResolver.resolveLocale(request));
         }

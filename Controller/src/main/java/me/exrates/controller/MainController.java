@@ -275,9 +275,7 @@ public class MainController {
 
     @RequestMapping("/aboutUs")
     public ModelAndView aboutUs() {
-        ModelAndView modelAndView = new ModelAndView("aboutUs");
-        modelAndView.addObject("telephone", telephone);
-        modelAndView.addObject("email", email);
+        ModelAndView modelAndView = new ModelAndView("/globalPages/aboutUs", "captchaType", CAPTCHA_TYPE);
         return modelAndView;
     }
 

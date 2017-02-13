@@ -3,64 +3,6 @@
 
 <footer>
     <div class="container">
-        <div hidden class="row info">
-            <div class="col-sm-3">
-                <%--КАК ЭТО РАБОТАЕТ--%>
-                <div class="header"><h5><loc:message code="dashboard.howItWork"/></h5></div>
-                <div class="options">
-                    <ul>
-                        <%--Для начинающих
-                        Купить валюту
-                        Продать валюту
-                        Торговля валютой--%>
-                        <li><a href="#"><loc:message code="dashboard.forBeginners"/></a></li>
-                        <li><a href="#"><loc:message code="dashboard.buyCurrency"/></a></li>
-                        <li><a href="#"><loc:message code="dashboard.sellCurrency"/></a></li>
-                        <li><a href="#"><loc:message code="dashboard.tradeByCurrency"/></a></li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="col-sm-3">
-                <%--ДОКУМЕНТАЦИЯ--%>
-                <div class="header"><h5><loc:message code="dashboard.documentation"/></h5></div>
-                <div class="options">
-                    <ul>
-                        <li><a href="#"><loc:message code="dashboard.FAQ"/></a></li>
-                        <li><a href="#"><loc:message code="dashboard.depositAndWithdraw"/></a></li>
-                        <li><a href="#"><loc:message code="dashboard.feeForTransaction"/></a></li>
-                        <li><a href="#"><loc:message code="dashboard.legalityAndSecurity"/>ь</a></li>
-                        <li></li>
-                    </ul>
-                </div>
-
-            </div>
-            <div class="col-sm-3">
-                <%--ИНСТРУМЕНТЫ--%>
-                <div class="header"><h5><loc:message code="dashboard.tools"/></h5></div>
-                <div class="options">
-                    <ul>
-                        <li><a href="#"><loc:message code="dashboard.tradeAPI"/></a></li>
-                        <li><a href="#"><loc:message code="dashboard.mobileApp"/></a></li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="col-sm-3">
-                <%--EXRATES.ME--%>
-                <div class="header"><h5><loc:message code="dashboard.ourWeb"/></h5></div>
-                <div class="options">
-                    <ul>
-                        <li><a href="#"><loc:message code="dashboard.aboutUs"/></a></li>
-                        <li><a href="#"><loc:message code="dashboard.contactsAndSupport"/></a></li>
-                        <li><a href="#"><loc:message code="dashboard.PressAboutUs"/></a></li>
-                        <li></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-        <br/>
-
         <div class="socials-icon-wrapper ">
             <a class="socials-icon-wrapper__icon" href="https://twitter.com/exratesme" target="_blank"><img
                     src="<c:url value='/client/img/twitter.png'/>" alt="TW"/></a>
@@ -73,8 +15,7 @@
             <span class="footer_link"><a href="<c:url value="/termsAndConditions"/>"><loc:message code="dashboard.terms"/></a></span>
             <span class="footer_link"><a href="<c:url value="/privacyPolicy"/>"><loc:message code="dashboard.privacy"/></a></span>
             <span class="footer_link"><a href="<c:url value="/contacts"/>"><loc:message code="dashboard.contactsAndSupport"/></a></span>
-
+            <span class="footer_link"><a href="<c:url value="/aboutUs"/>"><loc:message code="dashboard.aboutUs"/></a></span>
         </div>
-
     </div>
 </footer>
