@@ -110,7 +110,8 @@ function fillInvoiceInfoModal(rowData) {
     $('#info-bankName').text(bankName);
     $('#info-bankAccount').text(bankAccount);
     $('#info-bankRecipient').text(bankRecipient);
-    $('#info-bankFrom').text(replaceAbsentWithDash(rowData.payerBankName));
+    var bankCode = rowData.payerBankCode ? rowData.payerBankCode : '';
+    $('#info-bankFrom').text(replaceAbsentWithDash(rowData.payerBankName) + ' ' + bankCode);
     $('#info-userAccount').text(replaceAbsentWithDash(rowData.payerAccount));
     $('#info-userFullName').text(replaceAbsentWithDash(rowData.userFullName));
     $('#info-remark').find('textarea').html(replaceAbsentWithDash(rowData.remark));

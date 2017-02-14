@@ -12,6 +12,8 @@ public class InvoiceConfirmData {
     private Integer invoiceId;
     @NotNull
     private String payerBankName;
+    private String payerBankCode;
+
     @NotNull
     private String userAccount;
     private String userFullName;
@@ -32,6 +34,14 @@ public class InvoiceConfirmData {
 
     public void setPayerBankName(String payerBankName) {
         this.payerBankName = payerBankName;
+    }
+
+    public String getPayerBankCode() {
+        return payerBankCode;
+    }
+
+    public void setPayerBankCode(String payerBankCode) {
+        this.payerBankCode = payerBankCode;
     }
 
     public String getUserAccount() {
@@ -71,6 +81,7 @@ public class InvoiceConfirmData {
         return "InvoiceConfirmData{" +
                 "invoiceId=" + invoiceId +
                 ", payerBankName='" + payerBankName + '\'' +
+                ", payerBankCode='" + payerBankCode + '\'' +
                 ", userAccount='" + userAccount + '\'' +
                 ", userFullName='" + userFullName + '\'' +
                 ", remark='" + remark + '\'' +

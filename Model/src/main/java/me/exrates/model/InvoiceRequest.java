@@ -21,6 +21,7 @@ public class InvoiceRequest {
     private String userFullName;
     private String remark;
     private String payerBankName;
+    private String payerBankCode;
     private String payerAccount;
     private String receiptScanPath;
 
@@ -123,6 +124,14 @@ public class InvoiceRequest {
         this.receiptScanPath = receiptScanPath;
     }
 
+    public String getPayerBankCode() {
+        return payerBankCode;
+    }
+
+    public void setPayerBankCode(String payerBankCode) {
+        this.payerBankCode = payerBankCode;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -144,6 +153,8 @@ public class InvoiceRequest {
         if (remark != null ? !remark.equals(that.remark) : that.remark != null) return false;
         if (payerBankName != null ? !payerBankName.equals(that.payerBankName) : that.payerBankName != null)
             return false;
+        if (payerBankCode != null ? !payerBankCode.equals(that.payerBankCode) : that.payerBankCode != null)
+            return false;
         if (payerAccount != null ? !payerAccount.equals(that.payerAccount) : that.payerAccount != null) return false;
         return receiptScanPath != null ? receiptScanPath.equals(that.receiptScanPath) : that.receiptScanPath == null;
     }
@@ -160,6 +171,7 @@ public class InvoiceRequest {
         result = 31 * result + (userFullName != null ? userFullName.hashCode() : 0);
         result = 31 * result + (remark != null ? remark.hashCode() : 0);
         result = 31 * result + (payerBankName != null ? payerBankName.hashCode() : 0);
+        result = 31 * result + (payerBankCode != null ? payerBankCode.hashCode() : 0);
         result = 31 * result + (payerAccount != null ? payerAccount.hashCode() : 0);
         result = 31 * result + (receiptScanPath != null ? receiptScanPath.hashCode() : 0);
         return result;
@@ -178,6 +190,7 @@ public class InvoiceRequest {
                 ", userFullName='" + userFullName + '\'' +
                 ", remark='" + remark + '\'' +
                 ", payerBankName='" + payerBankName + '\'' +
+                ", payerBankCode='" + payerBankCode + '\'' +
                 ", payerAccount='" + payerAccount + '\'' +
                 ", receiptScanPath='" + receiptScanPath + '\'' +
                 '}';

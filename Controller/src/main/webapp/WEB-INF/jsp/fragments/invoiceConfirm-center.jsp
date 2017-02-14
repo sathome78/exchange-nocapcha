@@ -19,7 +19,7 @@
             <c:set var="readonly" value="readonly" />
             <c:set var="disabled" value="disabled" />
             <c:set var="readonlyIfConfirmed" value="${confirmed ? readonly : ''}"/>
-            <span hidden>${confirmed}</span>
+            <span hidden id="invoiceConfirmed">${confirmed}</span>
 
             <div class="row">
                 <div class="input-block-wrapper clearfix">
@@ -63,8 +63,8 @@
                         <div class="col-md-8 " >
                             <select class="form-control input-block-wrapper__input" id="bankSelect" <c:out value="${confirmed ? disabled : ''}"/>>
                                 <option value="-1"><loc:message code="merchants.notSelected"/></option>
-                                <c:forEach items="${banks}" var="bank" varStatus="counter" >
-                                    <option <c:out value="${bank.name.equals(invoiceRequest.payerBankName) ? selected : ''}" /> value="${counter.count}">${bank.name}<%--<span class="pull-right">${bank.code}</span>--%></option>
+                                <c:forEach items="${banks}" var="bank">
+                                    <option <c:out value="${bank.name.equals(invoiceRequest.payerBankName) ? selected : ''}" /> value="${bank.code}">${bank.name}</option>
                                 </c:forEach>
                                 <option <c:out value="${not empty otherBank ? selected : ''}" /> value="0"><loc:message code="merchants.invoice.otherBank"/></option>
                             </select>
@@ -79,6 +79,17 @@
                         </div>
                         <div id="bankNameError" class="col-md-11 input-block-wrapper__error-wrapper">
                             <p class="red"><loc:message code="merchants.error.bankNameInLatin" /></p>
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper clearfix">
+                        <div class="col-md-3 input-block-wrapper__label-wrapper">
+                            <label for="bankCode" class="input-block-wrapper__label" ><loc:message code="invoice.bankCode" /></label>
+                        </div>
+                        <div class="col-md-8 " >
+                            <input class="form-control input-block-wrapper__input" type="text" id="bankCode" name="payerBankCode" value="${invoiceRequest.payerBankCode}" <c:out value="${readonlyIfConfirmed}"/>>
+                        </div>
+                        <div id="bankCodeError" class="col-md-11 input-block-wrapper__error-wrapper">
+                            <p class="red"><loc:message code="invoice.bankCode.error" /></p>
                         </div>
                     </div>
                     <div class="input-block-wrapper clearfix">

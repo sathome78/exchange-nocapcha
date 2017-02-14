@@ -414,10 +414,11 @@ public class MerchantServiceImpl implements MerchantService {
         return result;
     }
 
-    public Optional<CreditsOperation> prepareCreditsOperation(Payment payment,String userEmail) {
+    @Override
+    public Optional<CreditsOperation> prepareCreditsOperation(Payment payment, BigDecimal addition, String userEmail) {
         checkMerchantBlock(payment.getMerchant(), payment.getCurrency(), payment.getOperationType());
         final OperationType operationType = payment.getOperationType();
-        BigDecimal amount = valueOf(payment.getSum());
+        BigDecimal amount = valueOf(payment.getSum()).add(addition);
         //Addition of three digits is required for IDR input
         final Merchant merchant = merchantDao.findById(payment.getMerchant());
         final Currency currency = currencyService.findById(payment.getCurrency());
@@ -439,11 +440,11 @@ public class MerchantServiceImpl implements MerchantService {
         final BigDecimal commissionTotal = operationType == OUTPUT ? commissionByType.getValue().add(commissionMerchant)
                 .setScale(currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP) :
                 commissionByType.getValue();
-         BigDecimal commissionAmount =
+        BigDecimal commissionAmount =
                 commissionTotal
-                .multiply(amount)
-                .divide(valueOf(100), currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP);
-      //  commissionAmount = addMinimalCommission(commissionAmount, currency.getName());
+                        .multiply(amount)
+                        .divide(valueOf(100), currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP);
+        //  commissionAmount = addMinimalCommission(commissionAmount, currency.getName());
         final User user = userService.findByEmail(userEmail);
         final BigDecimal newAmount = payment.getOperationType() == INPUT ?
                 amount :
@@ -460,6 +461,10 @@ public class MerchantServiceImpl implements MerchantService {
                 .merchantImage(merchantImage)
                 .build();
         return Optional.of(creditsOperation);
+    }
+
+    public Optional<CreditsOperation> prepareCreditsOperation(Payment payment,String userEmail) {
+        return prepareCreditsOperation(payment, BigDecimal.ZERO, userEmail);
     }
 
     private BigDecimal addMinimalCommission(BigDecimal commissionAmount, String name) {

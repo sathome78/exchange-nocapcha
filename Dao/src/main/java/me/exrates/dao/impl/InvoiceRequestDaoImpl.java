@@ -47,6 +47,7 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
             invoiceRequest.setInvoiceBank(invoiceBank);
         }
         invoiceRequest.setPayerBankName(resultSet.getString("payer_bank_name"));
+        invoiceRequest.setPayerBankCode(resultSet.getString("payer_bank_code"));
         invoiceRequest.setPayerAccount(resultSet.getString("payer_account"));
         invoiceRequest.setUserFullName(resultSet.getString("user_full_name"));
         invoiceRequest.setRemark(resultSet.getString("remark"));
@@ -63,7 +64,7 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
             "                    COMPANY_WALLET.commission_balance, COMMISSION.id, COMMISSION.date, COMMISSION.value, " +
             "                    CURRENCY.id, CURRENCY.description, CURRENCY.name, MERCHANT.id,MERCHANT.name,MERCHANT.description, " +
             "                    INVOICE_BANK.id AS bank_id, INVOICE_BANK.name AS bank_name, INVOICE_BANK.account_number, INVOICE_BANK.recipient, " +
-            "                    inv.user_full_name, inv.remark, inv.payer_bank_name, inv.payer_account, inv.receipt_scan " +
+            "                    inv.user_full_name, inv.remark, inv.payer_bank_name, inv.payer_bank_code, inv.payer_account, inv.receipt_scan " +
             "                    FROM INVOICE_REQUEST AS inv " +
             "    INNER JOIN TRANSACTION ON inv.transaction_id = TRANSACTION.id " +
             "    INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id " +
@@ -148,7 +149,7 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
 
     @Override
     public List<InvoiceRequest> findAll() {
-        final String sql = SELECT_ALL + " ORDER BY acceptance_time IS NULL DESC, acceptance_time DESC";
+        final String sql = SELECT_ALL + " ORDER BY acceptance_time IS NULL DESC, IF(acceptance_time IS NULL, TRANSACTION.datetime ,acceptance_time) DESC";
         return jdbcTemplate.query(sql, invoiceRequestRowMapper);
     }
 
@@ -215,11 +216,12 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
 
     @Override
     public void updateConfirmationInfo(InvoiceRequest invoiceRequest) {
-        final String sql = "UPDATE INVOICE_REQUEST SET payer_bank_name = :payer_bank_name, payer_account = :payer_account, " +
-                "user_full_name = :user_full_name, remark = :remark WHERE transaction_id = :id";
+        final String sql = "UPDATE INVOICE_REQUEST SET payer_bank_name = :payer_bank_name, payer_bank_code = :payer_bank_code," +
+                " payer_account = :payer_account, user_full_name = :user_full_name, remark = :remark WHERE transaction_id = :id";
         Map<String, Object> params = new HashMap<>();
         params.put("id", invoiceRequest.getTransaction().getId());
         params.put("payer_bank_name", invoiceRequest.getPayerBankName());
+        params.put("payer_bank_code", invoiceRequest.getPayerBankCode());
         params.put("payer_account", invoiceRequest.getPayerAccount());
         params.put("user_full_name", invoiceRequest.getUserFullName());
         params.put("remark", invoiceRequest.getRemark());

@@ -28,6 +28,11 @@
                                     <td><loc:message code="transaction.amount"/> </td>
                                     <td><fmt:formatNumber value="${creditsOperation.amount}" pattern="###,##0.00######"/> ${creditsOperation.currency.name}</td>
                                 </tr>
+                                <c:if test="${not empty additionMessage}">
+                                    <tr>
+                                        <td colspan="2">${additionMessage}</td>
+                                    </tr>
+                                </c:if>
                                 <tr>
                                     <td><loc:message code="transaction.commission"/></td>
                                     <td><fmt:formatNumber value="${creditsOperation.commission.value}" pattern="###,##0.0#######"/></td>

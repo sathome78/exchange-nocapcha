@@ -57,6 +57,8 @@ public interface MerchantService {
 
     Map<String, String> computeCommissionAndMapAllToString(BigDecimal amount, OperationType operationType, String currency, String merchant);
 
+    Optional<CreditsOperation> prepareCreditsOperation(Payment payment, BigDecimal addition, String userEmail);
+
     Optional<CreditsOperation> prepareCreditsOperation(Payment payment, String userEmail);
 
     /**

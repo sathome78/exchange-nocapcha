@@ -71,9 +71,6 @@
                     </div>
                 </div>
                 <span hidden id="minAmount">${minAmount}</span>
-                <c:if test="${not empty addition}">
-                    <span hidden id="addition">${addition}</span>
-                </c:if>
             </c:otherwise>
         </c:choose>
 </div>

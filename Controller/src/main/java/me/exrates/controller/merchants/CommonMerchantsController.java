@@ -74,11 +74,6 @@ public class CommonMerchantsController {
         final List<Integer> currenciesId = Collections.singletonList(currencyId);
         modelAndView.addObject("merchantCurrencyData",merchantService.findAllByCurrencies(currenciesId, OperationType.INPUT));
         modelAndView.addObject("minAmount", currencyService.retrieveMinLimitForRoleAndCurrency(userService.getCurrentUserRole(), INPUT, currencyId));
-        if (currencyId == 10) {
-            BigDecimal addition = BigDecimal.valueOf(Math.random() * 899 + 100).setScale(0, BigDecimal.ROUND_DOWN);
-            modelAndView.addObject("addition", addition);
-        }
-
         return modelAndView;
     }
 

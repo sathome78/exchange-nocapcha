@@ -28,6 +28,7 @@ import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -74,8 +75,16 @@ public class InvoiceController {
             redirectAttributes.addFlashAttribute("error", "merchants.withoutInvoiceWallet");
             return redirectView;
         }
+        BigDecimal addition;
+
+        if (payment.getCurrency() == 10) {
+            addition = BigDecimal.valueOf(Math.random() * 899 + 100).setScale(0, BigDecimal.ROUND_DOWN);
+        } else {
+            addition = BigDecimal.ZERO;
+        }
+
         Optional<CreditsOperation> creditsOperationPrepared = merchantService
-                .prepareCreditsOperation(payment, principal.getName());
+                .prepareCreditsOperation(payment, addition, principal.getName());
         if (!creditsOperationPrepared.isPresent()) {
             redirectAttributes.addFlashAttribute("error","merchants.incorrectPaymentDetails");
         } else {
@@ -85,6 +94,7 @@ public class InvoiceController {
             Object mutex = WebUtils.getSessionMutex(session);
             synchronized (mutex) {
                 session.setAttribute("creditsOperation", creditsOperation);
+                session.setAttribute("addition", addition);
             }
         }
         return redirectView;
@@ -101,14 +111,20 @@ public class InvoiceController {
         HttpSession session = request.getSession();
         Object mutex = WebUtils.getSessionMutex(session);
         CreditsOperation creditsOperation;
+        BigDecimal addition;
 
         synchronized (mutex) {
             creditsOperation = (CreditsOperation) session.getAttribute("creditsOperation");
+            addition = (BigDecimal) session.getAttribute("addition");
         }
         if (creditsOperation == null) {
             modelAndView.addObject("error", "merchant.operationNotAvailable");
         } else {
             modelAndView.addObject("creditsOperation", creditsOperation);
+            if (addition.signum() > 0) {
+                modelAndView.addObject("additionMessage", messageSource.getMessage("merchants.input.addition",
+                        new Object[]{addition + " " + creditsOperation.getCurrency().getName()}, localeResolver.resolveLocale(request)));
+            }
             List<InvoiceBank> invoiceBanks = invoiceService.findBanksForCurrency(creditsOperation.getCurrency().getId());
             String notSelected = messageSource.getMessage("merchants.notSelected", null, localeResolver.resolveLocale(request));
             invoiceBanks.add(0, new InvoiceBank(-1, creditsOperation.getCurrency().getId(), notSelected, notSelected, notSelected));
@@ -200,7 +216,7 @@ public class InvoiceController {
     @RequestMapping(value = "/payment/confirm", method = POST)
     public ModelAndView confirmInvoice(InvoiceConfirmData invoiceConfirmData, HttpServletRequest request) {
         LOG.debug(invoiceConfirmData);
-        ModelAndView modelAndView = new ModelAndView("re/dashboard?startupPage=myhistory&startupSubPage=myinputoutput");
+        ModelAndView modelAndView = new ModelAndView("redirect:/dashboard?startupPage=myhistory&startupSubPage=myinputoutput");
         Optional<InvoiceRequest> invoiceRequestResult = invoiceService.findUnconfirmedRequestById(invoiceConfirmData.getInvoiceId());
         HttpSession session = request.getSession();
         Object mutex = WebUtils.getSessionMutex(session);
@@ -212,6 +228,7 @@ public class InvoiceController {
         } else {
             InvoiceRequest invoiceRequest = invoiceRequestResult.get();
             invoiceRequest.setPayerBankName(invoiceConfirmData.getPayerBankName());
+            invoiceRequest.setPayerBankCode(invoiceConfirmData.getPayerBankCode());
             invoiceRequest.setPayerAccount(invoiceConfirmData.getUserAccount());
             invoiceRequest.setUserFullName(invoiceConfirmData.getUserFullName());
             //html escaping to prevent XSS

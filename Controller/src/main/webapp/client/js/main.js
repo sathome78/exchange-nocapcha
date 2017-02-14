@@ -462,11 +462,6 @@ $(function(){
                         console.log(error);
                     });
                     break;
-                /*case INVOICE :
-                    console.log($(form).serialize());
-
-                    /!*window.location = '/merchants';*!/
-                    break;*/
                 default:
                     callback();
             }
