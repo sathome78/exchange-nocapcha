@@ -656,12 +656,30 @@ public class AdminController {
 
     }
 
+    @RequestMapping("/2a8fy7b07dxe44/userswallets")
+    public ModelAndView showUsersWalletsSummary() {
+
+        Map<String, List<UserWalletSummaryDto>> mapUsersWalletsSummaryList = new LinkedHashMap<>();
+        mapUsersWalletsSummaryList.put("ALL", walletService.getUsersWalletsSummary(new ArrayList<>()));
+        mapUsersWalletsSummaryList.put("ADMIN", walletService.getUsersWalletsSummary(userService.resolveRoleIdsByName("ADMIN")));
+        mapUsersWalletsSummaryList.put("USER", walletService.getUsersWalletsSummary(userService.resolveRoleIdsByName("USER")));
+        mapUsersWalletsSummaryList.put("EXCHANGE", walletService.getUsersWalletsSummary(userService.resolveRoleIdsByName("EXCHANGE")));
+        mapUsersWalletsSummaryList.put("VIP_USER", walletService.getUsersWalletsSummary(userService.resolveRoleIdsByName("VIP_USER")));
+
+        ModelAndView model  = new ModelAndView();
+        model.setViewName("UsersWallets");
+        model.addObject("mapUsersWalletsSummaryList", mapUsersWalletsSummaryList);
+
+        return model;
+    }
+
+
     @RequestMapping(value = "/2a8fy7b07dxe44/downloadUsersWalletsSummary", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
     @ResponseBody
-    public String getUsersWalletsSummeryTxt(@RequestParam String startDate, @RequestParam String endDate) {
+    public String getUsersWalletsSummeryTxt(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
         return
                 UserSummaryDto.getTitle() +
-                        userService.getUsersSummaryList(startDate, endDate)
+                        userService.getUsersSummaryList(startDate, endDate, userService.resolveRoleIdsByName(role))
                                 .stream()
                                 .map(e -> e.toString())
                                 .collect(Collectors.joining());
@@ -669,9 +687,9 @@ public class AdminController {
 
     @RequestMapping(value = "/2a8fy7b07dxe44/downloadUsersWalletsSummaryInOut", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
     @ResponseBody
-    public String getUsersWalletsSummeryInOut(@RequestParam String startDate, @RequestParam String endDate) {
+    public String getUsersWalletsSummeryInOut(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
         String value = UserSummaryInOutDto.getTitle() +
-                userService.getUsersSummaryInOutList(startDate, endDate)
+                userService.getUsersSummaryInOutList(startDate, endDate, userService.resolveRoleIdsByName(role))
                         .stream()
                         .map(e -> e.toString())
                         .collect(Collectors.joining());
@@ -681,9 +699,9 @@ public class AdminController {
 
     @RequestMapping(value = "/2a8fy7b07dxe44/downloadUserSummaryOrders", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
     @ResponseBody
-    public String getUserSummaryOrders(@RequestParam String startDate, @RequestParam String endDate) {
+    public String getUserSummaryOrders(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
 
-        List<UserSummaryOrdersDto> list = userService.getUserSummaryOrdersList(startDate, endDate);
+        List<UserSummaryOrdersDto> list = userService.getUserSummaryOrdersList(startDate, endDate, userService.resolveRoleIdsByName(role));
         BigDecimal sumAmountBuy = new BigDecimal(0.00);
         BigDecimal sumAmountBuyFee = new BigDecimal(0.00);
         BigDecimal sumAmountSell = new BigDecimal(0.00);
@@ -716,9 +734,9 @@ public class AdminController {
 
     @RequestMapping(value = "/2a8fy7b07dxe44/downloadUsersWalletsSummaryTotalInOut", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
     @ResponseBody
-    public String getUsersWalletsSummeryTotalInOut(@RequestParam String startDate, @RequestParam String endDate) {
+    public String getUsersWalletsSummeryTotalInOut(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
         String value = UserSummaryTotalInOutDto.getTitle() +
-                userService.getUsersSummaryTotalInOutList(startDate, endDate)
+                userService.getUsersSummaryTotalInOutList(startDate, endDate, userService.resolveRoleIdsByName(role))
                         .stream()
                         .map(e -> e.toString())
                         .collect(Collectors.joining());
