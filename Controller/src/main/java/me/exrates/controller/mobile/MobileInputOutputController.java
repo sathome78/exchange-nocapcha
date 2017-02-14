@@ -1,5 +1,6 @@
 package me.exrates.controller.mobile;
 
+import me.exrates.controller.exception.InvalidNicknameException;
 import me.exrates.controller.exception.InvoiceNotFoundException;
 import me.exrates.controller.exception.NotEnoughMoneyException;
 import me.exrates.model.CreditsOperation;
@@ -552,6 +553,10 @@ public class MobileInputOutputController {
     @RequestMapping(value = "/transfer/submit", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> submitTransfer(@RequestBody UserTransferDto userTransferDto) {
         Locale userLocale = userService.getUserLocaleForMobile(SecurityContextHolder.getContext().getAuthentication().getName());
+        String principalNickname = userService.findByEmail(getAuthenticatedUserEmail()).getNickname();
+        if (userTransferDto.getNickname().equals(principalNickname)) {
+            throw new InvalidNicknameException(messageSource.getMessage("transfer.selfNickname", null, userLocale));
+        }
         walletService.transferCostsToUser(userTransferDto.getWalletId(), userTransferDto.getNickname(),
                 userTransferDto.getAmount(), userLocale);
         return new ResponseEntity<>(OK);
@@ -610,6 +615,13 @@ public class MobileInputOutputController {
     @ResponseBody
     public ApiError userNotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ApiError(ErrorCode.USER_NOT_FOUND, req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(NOT_ACCEPTABLE)
+    @ExceptionHandler(InvalidNicknameException.class)
+    @ResponseBody
+    public ApiError invalidNicknameExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ApiError(ErrorCode.SELF_TRANSFER_NOT_ALLOWED, req.getRequestURL(), exception);
     }
 
 

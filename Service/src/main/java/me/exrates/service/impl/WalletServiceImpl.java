@@ -285,6 +285,7 @@ public final class WalletServiceImpl implements WalletService {
             throw new InvalidAmountException(messageSource.getMessage("transfer.negativeAmount", null, locale));
         }
 
+
         Wallet fromUserWallet =  walletDao.findById(fromUserWalletId);
         Integer currencyId = fromUserWallet.getCurrencyId();
         Commission commission = commissionService.findCommissionByTypeAndRole(OperationType.USER_TRANSFER, userService.getCurrentUserRole());
