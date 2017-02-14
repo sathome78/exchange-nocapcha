@@ -32,6 +32,14 @@ $(function () {
         window.location = '/dashboard?startupPage=myhistory&startupSubPage=myinputoutput';
     });
 
+    $('#invoiceRevokeAction').on('click', function (e) {
+        e.preventDefault();
+        var $form = $(this).parents('#confirmationForm');
+        var $action = $form.find('input[name=action]');
+        $action.attr("value", "revoke");
+        $form[0].submit();
+    });
+
 });
 
 function updateBankSelection($bankSelect, $otherBankInputDiv) {
@@ -54,8 +62,6 @@ function checkFields() {
     var payerBankTest = validateString($('#payerBankName').val(), BANK_NAME_REGEX, $('#bankNameError'));
     var payerAccountTest = validateString($('#userAccount').val(), DIGITS_ONLY_REGEX, $('#userAccountError'));
     var payerFullNameTest = validateString($('#userFullName').val(), NAME_REGEX, $('#userFullNameError'));
-
-
 
     if (payerBankTest && payerAccountTest && payerFullNameTest) {
         $('#invoiceSubmit').prop('disabled', false);

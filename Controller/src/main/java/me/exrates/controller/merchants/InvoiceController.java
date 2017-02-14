@@ -33,6 +33,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static me.exrates.model.enums.InvoiceRequestStatusEnum.CONFIRMED_USER;
+import static me.exrates.model.enums.InvoiceRequestStatusEnum.REVOKED_USER;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -198,44 +199,44 @@ public class InvoiceController {
   }
 
   @RequestMapping(value = "/payment/confirm", method = POST)
-  public RedirectView confirmInvoice(InvoiceConfirmData invoiceConfirmData, HttpServletRequest request) {
+  public RedirectView confirmInvoice(
+      @RequestParam(required = false) String action,
+      InvoiceConfirmData invoiceConfirmData,
+      HttpServletRequest request,
+      RedirectAttributes redirectAttributes) {
+    Boolean revokeInvoice = "revoke".equals(action);
     RedirectView redirectView = new RedirectView("/dashboard?startupPage=myhistory&startupSubPage=myinputoutput");
-    HttpSession session = request.getSession();
-    Object mutex = WebUtils.getSessionMutex(session);
     try {
       Optional<InvoiceRequest> invoiceRequestResult = invoiceService.findRequestByIdAndBlock(invoiceConfirmData.getInvoiceId());
       if (!invoiceRequestResult.isPresent()) {
-        synchronized (mutex) {
-          session.setAttribute("errorNoty", messageSource.getMessage("merchants.error.invoiceRequestNotFound", null,
-              localeResolver.resolveLocale(request)));
-        }
+        redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("merchants.error.invoiceRequestNotFound", null, localeResolver.resolveLocale(request)));
         return redirectView;
       }
       InvoiceRequest invoiceRequest = invoiceRequestResult.get();
-      if (!InvoiceRequestStatusEnum.availableToConfirm(invoiceRequest)) {
-        synchronized (mutex) {
-          session.setAttribute("errorNoty", messageSource.getMessage("merchants.invoice.error.notAllowedOperation", null,
-              localeResolver.resolveLocale(request)));
+      if (revokeInvoice) {
+        if (!InvoiceRequestStatusEnum.revokeable(invoiceRequest)) {
+          redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("merchants.invoice.error.notAllowedOperation", null, localeResolver.resolveLocale(request)));
+          return redirectView;
         }
-        return redirectView;
-      }
-      invoiceRequest.setPayerBankName(invoiceConfirmData.getPayerBankName());
-      invoiceRequest.setPayerAccount(invoiceConfirmData.getUserAccount());
-      invoiceRequest.setUserFullName(invoiceConfirmData.getUserFullName());
-      invoiceRequest.setInvoiceRequestStatus(CONFIRMED_USER);
-      //html escaping to prevent XSS
-      invoiceRequest.setRemark(StringEscapeUtils.escapeHtml(invoiceConfirmData.getRemark()));
-      invoiceService.updateConfirmationInfo(invoiceRequest);
-      synchronized (mutex) {
-        session.setAttribute("successNoty", messageSource.getMessage("merchants.invoiceConfirm.noty", null,
-            localeResolver.resolveLocale(request)));
+        invoiceService.updateInvoiceRequestStatus(invoiceRequest.getTransaction().getId(), REVOKED_USER);
+        redirectAttributes.addFlashAttribute("successNoty", messageSource.getMessage("merchants.invoice.revoke.success", null, localeResolver.resolveLocale(request)));
+      } else {
+        if (!InvoiceRequestStatusEnum.availableToConfirm(invoiceRequest)) {
+          redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("merchants.invoice.error.notAllowedOperation", null, localeResolver.resolveLocale(request)));
+          return redirectView;
+        }
+        invoiceRequest.setPayerBankName(invoiceConfirmData.getPayerBankName());
+        invoiceRequest.setPayerAccount(invoiceConfirmData.getUserAccount());
+        invoiceRequest.setUserFullName(invoiceConfirmData.getUserFullName());
+        invoiceRequest.setInvoiceRequestStatus(CONFIRMED_USER);
+        //html escaping to prevent XSS
+        invoiceRequest.setRemark(StringEscapeUtils.escapeHtml(invoiceConfirmData.getRemark()));
+        invoiceService.updateConfirmationInfo(invoiceRequest);
+        redirectAttributes.addFlashAttribute("successNoty", messageSource.getMessage("merchants.invoiceConfirm.noty", null, localeResolver.resolveLocale(request)));
       }
     } catch (Exception e) {
       log.error(e.getMessage());
-      synchronized (mutex) {
-        session.setAttribute("errorNoty", messageSource.getMessage("merchants.internalError", null,
-            localeResolver.resolveLocale(request)));
-      }
+      redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("merchants.internalError", null, localeResolver.resolveLocale(request)));
     }
     return redirectView;
   }

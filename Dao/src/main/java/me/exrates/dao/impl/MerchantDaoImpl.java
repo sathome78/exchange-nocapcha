@@ -221,7 +221,8 @@ public class MerchantDaoImpl implements MerchantDao {
             "    AND TRANSACTION.provided IS NOT TRUE, 1, 0) AS confirmation_required, " +
             "    INVOICE_BANK.account_number AS bank_account, " +
             "    USER.id AS user_id," +
-            "    INVOICE_REQUEST.invoice_request_status_id " +
+            "    INVOICE_REQUEST.invoice_request_status_id, " +
+            "    INVOICE_REQUEST.status_update_date " +
             "  from TRANSACTION \n" +
             "    left join CURRENCY on TRANSACTION.currency_id=CURRENCY.id\n" +
             "    left join WITHDRAW_REQUEST on TRANSACTION.id=WITHDRAW_REQUEST.transaction_id\n" +
@@ -257,6 +258,7 @@ public class MerchantDaoImpl implements MerchantDao {
                 myInputOutputHistoryDto.setConfirmationRequired(confirmationRequired);
                 myInputOutputHistoryDto.setBankAccount(rs.getString("bank_account"));
                 myInputOutputHistoryDto.setInvoiceRequestStatusId(rs.getInt("invoice_request_status_id"));
+                myInputOutputHistoryDto.setStatusUpdateDate(rs.getTimestamp("status_update_date").toLocalDateTime());
                 return myInputOutputHistoryDto;
             }
         });

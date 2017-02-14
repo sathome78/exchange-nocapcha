@@ -32,6 +32,11 @@ public enum InvoiceRequestStatusEnum {
     return status == CREATED_USER || status == DECLINED_ADMIN;
   }
 
+  public static Boolean revokeable(InvoiceRequest invoiceRequest) {
+    InvoiceRequestStatusEnum status = invoiceRequest.getInvoiceRequestStatus();
+    return status == CREATED_USER || status == DECLINED_ADMIN;
+  }
+
   public static InvoiceRequestStatusEnum convert(InvoiceRequestStatus invoiceRequestStatus) {
     return convert(invoiceRequestStatus.getId());
   }

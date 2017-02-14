@@ -3,6 +3,7 @@ package me.exrates.dao;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.InvoiceRequest;
 import me.exrates.model.User;
+import me.exrates.model.enums.InvoiceRequestStatusEnum;
 
 import java.util.List;
 import java.util.Optional;
@@ -33,4 +34,6 @@ public interface InvoiceRequestDao {
     InvoiceBank findBankById(Integer bankId);
 
     void updateConfirmationInfo(InvoiceRequest invoiceRequest);
+
+    void updateInvoiceRequestStatus(Integer invoiceRequestId, InvoiceRequestStatusEnum invoiceRequestStatus);
 }

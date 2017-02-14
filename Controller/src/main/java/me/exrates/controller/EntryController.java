@@ -19,6 +19,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
@@ -75,15 +76,23 @@ public class EntryController {
             @RequestParam(required = false) String startupSubPage,
             HttpServletRequest request, Principal principal) {
         ModelAndView model = new ModelAndView();
-        if (successNoty == null) {
+        if (StringUtils.isEmpty(successNoty)) {
             successNoty = (String) request.getSession().getAttribute("successNoty");
             request.getSession().removeAttribute("successNoty");
         }
+        if (StringUtils.isEmpty(successNoty) && RequestContextUtils.getInputFlashMap(request) != null){
+            successNoty = (String)RequestContextUtils.getInputFlashMap(request).get("successNoty");
+        }
         model.addObject("successNoty", successNoty);
-        if (errorNoty == null) {
+        /**/
+        if (StringUtils.isEmpty(errorNoty)) {
             errorNoty = (String) request.getSession().getAttribute("errorNoty");
             request.getSession().removeAttribute("errorNoty");
         }
+        if (StringUtils.isEmpty(errorNoty) && RequestContextUtils.getInputFlashMap(request) != null) {
+            errorNoty = (String)RequestContextUtils.getInputFlashMap(request).get("errorNoty");
+        }
+        /**/
         model.addObject("errorNoty", errorNoty);
         model.addObject("captchaType", CAPTCHA_TYPE);
         model.addObject("startupPage", startupPage == null ? "trading" : startupPage);

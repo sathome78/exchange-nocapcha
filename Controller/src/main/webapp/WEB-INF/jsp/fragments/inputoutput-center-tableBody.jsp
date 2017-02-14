@@ -21,7 +21,7 @@
         <td class="center"><@=merchantName@></td>
         <td class="right"><@=operationType@></td>
         <td class="center"><@=transactionId@></td>
-        <td class="center"><@=transactionProvided@></td>
+        <td class="center"><@=invoiceRequestStatus@></td>
         <td class="center table-button-block" style="text-align: right;">
             <form id = "inputoutput-center-tableBody__form" class="table-button-block__form" action="<c:url value="/merchants/invoice/payment/confirmation"/>">
                 <input type="text" hidden value=<@=transactionId@>  name="transactionId" >
@@ -34,6 +34,7 @@
                     return '<button type="submit" style="font-size: 1.1rem;" class="wallet-mystatement-button table-button-block__button btn btn-primary">
                               <loc:message code="merchants.invoice.confirm" />
                             </button>
+                            <%--onclick: InputOutputClass.init--%>
                             <button id="revokeInvoiceButton" type="button" style="font-size: 1.1rem;" class="wallet-mystatement-button table-button-block__button btn btn-danger">
                               <loc:message code="merchants.invoice.revoke" />
                             </button>'
@@ -41,6 +42,7 @@
                     return '<button type="submit" style="font-size: 1.1rem;" class="wallet-mystatement-button table-button-block__button btn btn-primary">
                               <loc:message code="merchants.invoice.checkAndConfirmAgain" />
                             </button>
+                            <%--onclick: InputOutputClass.init--%>
                             <button id="revokeInvoiceButton" type="button" style="font-size: 1.1rem;" class="wallet-mystatement-button table-button-block__button btn btn-danger">
                               <loc:message code="merchants.invoice.revoke" />
                             </button>'

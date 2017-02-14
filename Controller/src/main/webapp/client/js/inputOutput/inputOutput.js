@@ -99,7 +99,8 @@ function InputOutputClass(currentCurrencyPair) {
             that.getAndShowInputOutputData(true, null, 'FORWARD');
         });
         $('#inputoutput-table').on('click', '#revokeInvoiceButton', function (e) {
-            var $form = $(this).parent('#inputoutput-center-tableBody__form');
+            e.preventDefault();
+            var $form = $(this).parents('#inputoutput-center-tableBody__form');
             var $action = $form.find('input[name=action]');
             $action.attr("value", "revoke");
             $form[0].submit();

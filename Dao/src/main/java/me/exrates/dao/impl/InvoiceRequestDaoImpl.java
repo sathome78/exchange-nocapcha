@@ -58,6 +58,7 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
         invoiceRequest.setUserFullName(resultSet.getString("user_full_name"));
         invoiceRequest.setRemark(resultSet.getString("remark"));
         invoiceRequest.setInvoiceRequestStatus(InvoiceRequestStatusEnum.convert(resultSet.getInt("invoice_request_status_id")));
+        invoiceRequest.setStatusUpdateDate(resultSet.getTimestamp("acceptance_time").toLocalDateTime());
         return invoiceRequest;
     };
 
@@ -71,7 +72,8 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
             "                    CURRENCY.id, CURRENCY.description, CURRENCY.name, MERCHANT.id,MERCHANT.name,MERCHANT.description, " +
             "                    INVOICE_BANK.id AS bank_id, INVOICE_BANK.name AS bank_name, INVOICE_BANK.account_number, INVOICE_BANK.recipient, " +
             "                    inv.user_full_name, inv.remark, inv.payer_bank_name, inv.payer_account, " +
-            "                    inv.invoice_request_status_id " +
+            "                    inv.invoice_request_status_id, " +
+            "                    inv.status_update_date " +
             "                    FROM INVOICE_REQUEST AS inv " +
             "    INNER JOIN TRANSACTION ON inv.transaction_id = TRANSACTION.id " +
             "    INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id " +
@@ -87,7 +89,7 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
     @Override
     public void create(InvoiceRequest invoiceRequest, User user) {
         final String sql = "INSERT into INVOICE_REQUEST (transaction_id, user_id, bank_id, user_full_name, remark, invoice_request_status_id) " +
-            "values (:transaction_id, :user_id, :bank_id, :user_full_name, :remark, :invoice_request_status_id)";
+            "values (:transaction_id, :user_id, :bank_id, :user_full_name, :remark, :invoice_request_status_id, NOW())";
         final Map<String, Object> params = new HashMap<String, Object>() {
             {
                 put("transaction_id", invoiceRequest.getTransaction().getId());
@@ -116,6 +118,7 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
         final String sql = "UPDATE INVOICE_REQUEST" +
             " SET acceptance_user_id = (SELECT id FROM USER WHERE email=:email), acceptance_time = NOW(), " +
             " invoice_request_status_id = :invoice_request_status_id " +
+            " status_update_date = NOW() " +
             "WHERE transaction_id = :transaction_id";
         final Map<String, Object> params = new HashMap<String, Object>() {
             {
@@ -225,7 +228,8 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
     public void updateConfirmationInfo(InvoiceRequest invoiceRequest) {
         final String sql = "UPDATE INVOICE_REQUEST " +
             "  SET payer_bank_name = :payer_bank_name, payer_account = :payer_account, " +
-            "      user_full_name = :user_full_name, remark = :remark, invoice_request_status_id = :invoice_request_status_id " +
+            "      user_full_name = :user_full_name, remark = :remark, invoice_request_status_id = :invoice_request_status_id," +
+            "      status_update_date = NOW() " +
             "  WHERE transaction_id = :id";
         Map<String, Object> params = new HashMap<>();
         params.put("id", invoiceRequest.getTransaction().getId());
@@ -234,6 +238,18 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
         params.put("user_full_name", invoiceRequest.getUserFullName());
         params.put("remark", invoiceRequest.getRemark());
         params.put("invoice_request_status_id", invoiceRequest.getInvoiceRequestStatus().getCode());
+        jdbcTemplate.update(sql, params);
+    }
+
+    @Override
+    public void updateInvoiceRequestStatus(Integer invoiceRequestId, InvoiceRequestStatusEnum invoiceRequestStatus) {
+        final String sql = "UPDATE INVOICE_REQUEST " +
+            "  SET invoice_request_status_id = :invoice_request_status_id, " +
+            "      status_update_date = NOW() " +
+            "  WHERE transaction_id = :id";
+        Map<String, Object> params = new HashMap<>();
+        params.put("id", invoiceRequestId);
+        params.put("invoice_request_status_id", invoiceRequestStatus.getCode());
         jdbcTemplate.update(sql, params);
     }
 }

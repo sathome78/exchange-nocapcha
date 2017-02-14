@@ -28,6 +28,8 @@ public class InvoiceRequest {
     private String payerBankName;
     private String payerAccount;
     private InvoiceRequestStatusEnum invoiceRequestStatus;
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    private LocalDateTime statusUpdateDate;
 
     @Override
     public boolean equals(Object o) {
@@ -50,6 +52,8 @@ public class InvoiceRequest {
         if (remark != null ? !remark.equals(that.remark) : that.remark != null) return false;
         if (payerBankName != null ? !payerBankName.equals(that.payerBankName) : that.payerBankName != null)
             return false;
+        if (invoiceRequestStatus != null ? !invoiceRequestStatus.equals(that.invoiceRequestStatus) : that.invoiceRequestStatus != null)
+            return false;
         return payerAccount != null ? payerAccount.equals(that.payerAccount) : that.payerAccount == null;
     }
 
@@ -66,6 +70,7 @@ public class InvoiceRequest {
         result = 31 * result + (remark != null ? remark.hashCode() : 0);
         result = 31 * result + (payerBankName != null ? payerBankName.hashCode() : 0);
         result = 31 * result + (payerAccount != null ? payerAccount.hashCode() : 0);
+        result = 31 * result + (invoiceRequestStatus != null ? invoiceRequestStatus.hashCode() : 0);
         return result;
     }
 

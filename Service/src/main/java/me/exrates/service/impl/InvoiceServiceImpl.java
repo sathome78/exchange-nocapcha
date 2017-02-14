@@ -175,6 +175,12 @@ public class InvoiceServiceImpl implements InvoiceService {
   }
 
   @Override
+  @Transactional
+  public void updateInvoiceRequestStatus(Integer invoiceRequestId, InvoiceRequestStatusEnum invoiceRequestStatus) {
+    invoiceRequestDao.updateInvoiceRequestStatus(invoiceRequestId, invoiceRequestStatus);
+  }
+
+  @Override
   public List<InvoiceRequest> findAllRequestsForUser(String userEmail) {
     return invoiceRequestDao.findAllForUser(userEmail);
   }

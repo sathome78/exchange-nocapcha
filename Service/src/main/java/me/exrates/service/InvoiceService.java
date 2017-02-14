@@ -3,7 +3,9 @@ package me.exrates.service;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.InvoiceRequest;
 import me.exrates.model.Transaction;
+import me.exrates.model.enums.InvoiceRequestStatusEnum;
 import me.exrates.model.vo.InvoiceData;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +32,8 @@ public interface InvoiceService {
   Optional<InvoiceRequest> findUnconfirmedRequestById(Integer transactionId);
 
   void updateConfirmationInfo(InvoiceRequest invoiceRequest);
+
+  void updateInvoiceRequestStatus(Integer invoiceRequestId, InvoiceRequestStatusEnum invoiceRequestStatus);
 
   List<InvoiceRequest> findAllRequestsForUser(String userEmail);
 }

@@ -17,9 +17,8 @@
       <c:set var="needToConfirm" value='${invoiceRequest.invoiceRequestStatus == "CREATED_USER"
                                             ||invoiceRequest.invoiceRequestStatus == "DECLINED_ADMIN"}'/>
       <c:set var="selected" value="selected"/>
-      <c:set var="readonly" value="readonly"/>
-      <c:set var="disabled" value="disabled"/>
-      <c:set var="readonlyIfConfirmed" value="${confirmed ? readonly : ''}"/>
+      <c:set var="readonly" value="${!needToConfirm || revoke ? 'readonly' : ''}"/>
+      <c:set var="disabled" value="${!needToConfirm || revoke ? 'disabled' : ''}"/>
       <span hidden>${needToConfirm}</span>
 
       <div class="row">
@@ -54,10 +53,11 @@
 
 
         <form id="confirmationForm" action="<c:url value="/merchants/invoice/payment/confirm"/>" method="post">
+          <input type="text" hidden value="" name="action" >
           <input type="hidden" name="invoiceId" id="invoiceId" value="${invoiceRequest.transaction.id}" <c:out
-                  value="${readonlyIfConfirmed}"/>>
+                  value="${readonly}"/>>
           <input type="hidden" name="payerBankName" id="payerBankName" value="${invoiceRequest.payerBankName}" <c:out
-                  value="${readonlyIfConfirmed}"/>>
+                  value="${readonly}"/>>
           <div class="input-block-wrapper clearfix">
             <div class="col-md-3 input-block-wrapper__label-wrapper">
               <label for="bankSelect" class="input-block-wrapper__label">
@@ -65,7 +65,7 @@
             </div>
             <div class="col-md-8 ">
               <select class="form-control input-block-wrapper__input" id="bankSelect" <c:out
-                      value="${confirmed ? disabled : ''}"/>>
+                      value="${disabled}"/>>
                 <option value="-1"><loc:message code="merchants.notSelected"/></option>
                 <c:forEach items="${bankNames}" var="bank" varStatus="counter">
                   <option <c:out value="${bank.equals(invoiceRequest.payerBankName) ? selected : ''}"/>
@@ -82,7 +82,7 @@
             </div>
             <div class="col-md-8 ">
               <input class="form-control input-block-wrapper__input" type="text" id="otherBank" value="${otherBank}"
-                <c:out value="${readonlyIfConfirmed}"/>>
+                <c:out value="${readonly}"/>>
             </div>
             <div id="bankNameError" class="col-md-11 input-block-wrapper__error-wrapper">
               <p class="red"><loc:message code="merchants.error.bankNameInLatin"/></p>
@@ -95,7 +95,7 @@
             </div>
             <div class="col-md-8 ">
               <input class="form-control input-block-wrapper__input" type="text" id="userAccount"
-                     name="userAccount" value="${invoiceRequest.payerAccount}" <c:out value="${readonlyIfConfirmed}"/>>
+                     name="userAccount" value="${invoiceRequest.payerAccount}" <c:out value="${readonly}"/>>
             </div>
             <div id="userAccountError" class="col-md-11 input-block-wrapper__error-wrapper">
               <p class="red"><loc:message code="merchants.error.accountDigitsOnly"/></p>
@@ -108,7 +108,7 @@
             </div>
             <div class="col-md-8 ">
               <input class="form-control input-block-wrapper__input" type="text" id="userFullName"
-                     name="userFullName" value="${invoiceRequest.userFullName}" <c:out value="${readonlyIfConfirmed}"/>>
+                     name="userFullName" value="${invoiceRequest.userFullName}" <c:out value="${readonly}"/>>
             </div>
             <div id="userFullNameError" class="col-md-11 input-block-wrapper__error-wrapper">
               <p class="red"><loc:message code="merchants.error.fullNameInLatin"/></p>
@@ -121,7 +121,7 @@
             </div>
             <div class="col-md-8">
               <textarea id="remark" class="form-control textarea non-resize" name="remark" <c:out
-                      value="${readonlyIfConfirmed}"/> >${invoiceRequest.remark}</textarea>
+                      value="${readonly}"/> >${invoiceRequest.remark}</textarea>
             </div>
           </div>
           <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
@@ -131,8 +131,10 @@
               <c:choose>
                 <c:when test="${revoke}">
                   <div class="col-md-4 input-block-wrapper">
-                    <button id="invoiceCancelInvoice" class="btn btn-primary btn-lg" type="button"><loc:message
+                    <button id="invoiceRevokeAction" class="btn btn-primary btn-lg" type="button"><loc:message
                             code="merchants.invoice.revoke.submit"/></button>
+                    <button id="invoiceCancel" class="btn btn-danger btn-lg" type="button"><loc:message
+                            code="admin.cancel"/></button>
                   </div>
                 </c:when>
                 <c:otherwise>

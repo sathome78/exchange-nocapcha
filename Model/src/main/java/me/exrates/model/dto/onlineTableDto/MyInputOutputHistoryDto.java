@@ -25,6 +25,8 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
     private Boolean confirmationRequired;
     private String bankAccount;
     private Integer invoiceRequestStatusId;
+    private String invoiceRequestStatus;
+    private LocalDateTime statusUpdateDate;
 
     public MyInputOutputHistoryDto() {
         this.needRefresh = true;
