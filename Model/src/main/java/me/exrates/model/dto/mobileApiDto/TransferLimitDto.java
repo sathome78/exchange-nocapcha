@@ -7,7 +7,7 @@ import java.math.BigDecimal;
  */
 public class TransferLimitDto {
     private Integer currencyId;
-    private BigDecimal transferLimit;
+    private BigDecimal transferMinLimit;
 
     public Integer getCurrencyId() {
         return currencyId;
@@ -17,11 +17,11 @@ public class TransferLimitDto {
         this.currencyId = currencyId;
     }
 
-    public BigDecimal getTransferLimit() {
-        return transferLimit;
+    public BigDecimal getTransferMinLimit() {
+        return transferMinLimit;
     }
 
-    public void setTransferLimit(BigDecimal transferLimit) {
-        this.transferLimit = transferLimit;
+    public void setTransferMinLimit(BigDecimal transferMinLimit) {
+        this.transferMinLimit = transferMinLimit;
     }
 }

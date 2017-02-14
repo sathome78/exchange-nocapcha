@@ -13,7 +13,6 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -129,7 +128,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 		return jdbcTemplate.query(sql, params, (rs, rowNum) -> {
 			TransferLimitDto dto = new TransferLimitDto();
 			dto.setCurrencyId(rs.getInt("currency_id"));
-			dto.setTransferLimit(rs.getBigDecimal("min_sum"));
+			dto.setTransferMinLimit(rs.getBigDecimal("min_sum"));
 			return dto;
 		});
 	}

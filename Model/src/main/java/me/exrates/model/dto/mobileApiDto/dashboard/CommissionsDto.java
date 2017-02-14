@@ -11,6 +11,7 @@ public class CommissionsDto {
     private BigDecimal outputCommission;
     private BigDecimal sellCommission;
     private BigDecimal buyCommission;
+    private BigDecimal transferCommission;
 
     public BigDecimal getInputCommission() {
         return inputCommission;
@@ -42,5 +43,24 @@ public class CommissionsDto {
 
     public void setBuyCommission(BigDecimal buyCommission) {
         this.buyCommission = buyCommission;
+    }
+
+    public BigDecimal getTransferCommission() {
+        return transferCommission;
+    }
+
+    public void setTransferCommission(BigDecimal transferCommission) {
+        this.transferCommission = transferCommission;
+    }
+
+    @Override
+    public String toString() {
+        return "CommissionsDto{" +
+                "inputCommission=" + inputCommission +
+                ", outputCommission=" + outputCommission +
+                ", sellCommission=" + sellCommission +
+                ", buyCommission=" + buyCommission +
+                ", transferCommission=" + transferCommission +
+                '}';
     }
 }
