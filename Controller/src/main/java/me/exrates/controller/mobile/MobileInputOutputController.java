@@ -20,6 +20,7 @@ import me.exrates.service.WalletService;
 import me.exrates.service.exception.CurrencyPairNotFoundException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
+import me.exrates.service.exception.UserNotFoundException;
 import me.exrates.service.exception.api.ApiError;
 import me.exrates.service.exception.api.ErrorCode;
 import me.exrates.service.merchantPayment.MerchantPaymentService;
@@ -602,6 +603,13 @@ public class MobileInputOutputController {
     @ResponseBody
     public ApiError invoiceNotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ApiError(ErrorCode.INVOICE_NOT_FOUND, req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(NOT_FOUND)
+    @ExceptionHandler(UserNotFoundException.class)
+    @ResponseBody
+    public ApiError userNotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ApiError(ErrorCode.USER_NOT_FOUND, req.getRequestURL(), exception);
     }
 
 

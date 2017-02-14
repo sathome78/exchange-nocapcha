@@ -706,7 +706,7 @@ public class OrderDaoImpl implements OrderDao {
                         "    UNION " +
                         "      (SELECT 0, 0, 0, 0, TRANSFER.value " +
                         "      FROM COMMISSION TRANSFER " +
-                        "      WHERE operation_type = 2 AND user_role = :user_role  " +
+                        "      WHERE operation_type = 9 AND user_role = :user_role  " +
                         "      ORDER BY date DESC LIMIT 1) " +
                         "  ) COMMISSION";
         try {

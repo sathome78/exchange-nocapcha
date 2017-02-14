@@ -1,3 +1,5 @@
+<%@ page import="org.springframework.web.servlet.support.RequestContext"%>
+
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
@@ -155,9 +157,11 @@
                 </sec:authorize>
 
                 <li role="presentation" class="dropdown paddingtop10 open-language">
+                    <%String lang = (new RequestContext(request)).getLocale().getLanguage();%>
+                    <c:set var="lang" value="<%=me.exrates.controller.DashboardController.convertLanguageNameToMenuFormat(lang)%>"/>
                     <a id="language" class="dropdown-toggle focus-white nav__link" data-toggle="dropdown" href="#"
                        role="button" aria-haspopup="true" aria-expanded="false">
-                        ${pageContext.response.locale.toString().toUpperCase()} <span class="caret"></span>
+                        ${fn:toUpperCase(lang)} <span class="caret"></span>
                     </a>
                     <ul class="dropdown-menu choose-language">
                         <li><a href="#" class="language">EN</a></li>
