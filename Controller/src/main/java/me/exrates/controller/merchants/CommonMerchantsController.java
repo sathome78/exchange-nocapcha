@@ -24,10 +24,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import java.math.BigDecimal;
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonMap;
@@ -74,10 +71,13 @@ public class CommonMerchantsController {
         payment.setOperationType(INPUT);
         modelAndView.addObject("payment", payment);
 
-        final List<Integer> currenciesId = new ArrayList<>();
-        currenciesId.add(currencyId);
+        final List<Integer> currenciesId = Collections.singletonList(currencyId);
         modelAndView.addObject("merchantCurrencyData",merchantService.findAllByCurrencies(currenciesId, OperationType.INPUT));
         modelAndView.addObject("minAmount", currencyService.retrieveMinLimitForRoleAndCurrency(userService.getCurrentUserRole(), INPUT, currencyId));
+        if (currencyId == 10) {
+            BigDecimal addition = BigDecimal.valueOf(Math.random() * 899 + 100).setScale(0, BigDecimal.ROUND_DOWN);
+            modelAndView.addObject("addition", addition);
+        }
 
         return modelAndView;
     }

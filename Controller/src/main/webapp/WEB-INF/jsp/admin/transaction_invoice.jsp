@@ -14,6 +14,8 @@
     <meta charset="utf-8">
     <title><loc:message code="transaction.titleInvoice"/></title>
     <%@include file='links_scripts.jsp' %>
+    <link href="<c:url value="/client/css/ekko-lightbox.min.css"/>" rel="stylesheet">
+    <script type="text/javascript" src="<c:url value="/client/js/ekko-lightbox.min.js"/>"></script>
 </head>
 
 

@@ -114,8 +114,18 @@ function fillInvoiceInfoModal(rowData) {
     $('#info-userAccount').text(replaceAbsentWithDash(rowData.payerAccount));
     $('#info-userFullName').text(replaceAbsentWithDash(rowData.userFullName));
     $('#info-remark').find('textarea').html(replaceAbsentWithDash(rowData.remark));
+    var receiptImage;
+    if (rowData.receiptScanPath) {
+        receiptImage = '<a href="' + rowData.receiptScanPath + '" class="col-sm-4" data-toggle="lightbox"><img src="' +
+            rowData.receiptScanPath + '" class="img-responsive"></a>';
+    } else {
+        receiptImage = '-';
+    }
+
+    $('#info-receipt').html(receiptImage);
 }
 
 function replaceAbsentWithDash(value) {
     return value ? value : '-';
 }
+

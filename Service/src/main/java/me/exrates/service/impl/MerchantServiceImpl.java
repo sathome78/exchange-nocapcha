@@ -419,10 +419,6 @@ public class MerchantServiceImpl implements MerchantService {
         final OperationType operationType = payment.getOperationType();
         BigDecimal amount = valueOf(payment.getSum());
         //Addition of three digits is required for IDR input
-        if (payment.getCurrency() == 10 && payment.getOperationType() == INPUT) {
-            BigDecimal addition = BigDecimal.valueOf(Math.random() * 999).setScale(0, BigDecimal.ROUND_DOWN);
-            amount = amount.add(addition);
-        }
         final Merchant merchant = merchantDao.findById(payment.getMerchant());
         final Currency currency = currencyService.findById(payment.getCurrency());
         final String destination = payment.getDestination();
