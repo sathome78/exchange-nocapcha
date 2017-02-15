@@ -13,6 +13,7 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.WithdrawalRequestStatus;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.CacheData;
+import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.*;
 import me.exrates.service.exception.MerchantCurrencyBlockedException;
 import me.exrates.service.exception.MerchantInternalException;
@@ -158,8 +159,7 @@ public class MerchantServiceImpl implements MerchantService {
     @Override
     @Transactional
     public Map<String, String> withdrawRequest(final CreditsOperation creditsOperation,
-                                               final Locale locale,
-                                               final String userEmail)
+                                               WithdrawData withdrawData, final String userEmail, final Locale locale)
     {
         final Transaction transaction = transactionService.createTransactionRequest(creditsOperation);
         final BigDecimal reserved = transaction
@@ -168,13 +168,18 @@ public class MerchantServiceImpl implements MerchantService {
         walletService.depositReservedBalance(transaction.getUserWallet(), reserved);
         final WithdrawRequest request = new WithdrawRequest();
         request.setUserEmail(userEmail);
-        creditsOperation
-                .getDestination()
-                .ifPresent(request::setWallet);
+        if (creditsOperation.getDestination().isPresent()) {
+            request.setWallet(creditsOperation.getDestination().get());
+        } else {
+            request.setWallet(withdrawData.getUserAccount());
+        }
         creditsOperation
                 .getMerchantImage()
                 .ifPresent(request::setMerchantImage);
         request.setTransaction(transaction);
+        request.setPayerBankName(withdrawData.getPayerBankName());
+        request.setPayerBankCode(withdrawData.getPayerBankCode());
+        request.setRemark(withdrawData.getRemark());
         withdrawRequestDao.create(request);
         String notification = null;
         try {

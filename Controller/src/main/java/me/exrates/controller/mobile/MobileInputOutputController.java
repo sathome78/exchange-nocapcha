@@ -7,6 +7,7 @@ import me.exrates.model.dto.mobileApiDto.*;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.InvoiceData;
+import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.*;
 import me.exrates.service.exception.CurrencyPairNotFoundException;
 import me.exrates.service.exception.FileLoadingException;
@@ -231,7 +232,7 @@ public class MobileInputOutputController {
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
             return merchantService.prepareCreditsOperation(payment, userEmail)
-                    .map(creditsOperation -> merchantService.withdrawRequest(creditsOperation, userLocale, userEmail))
+                    .map(creditsOperation -> merchantService.withdrawRequest(creditsOperation, new WithdrawData(), userEmail, userLocale))
                     .map(response -> new ResponseEntity<>(response, OK))
                     .orElseThrow(InvalidAmountException::new);
 

@@ -73,7 +73,8 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
 
     @Override
     public void create(WithdrawRequest withdrawRequest) {
-        final String sql = "INSERT INTO WITHDRAW_REQUEST (transaction_id,wallet, merchant_image_id) VALUES (:id,:wallet, :merchant_image_id)";
+        final String sql = "INSERT INTO WITHDRAW_REQUEST (transaction_id,wallet, merchant_image_id, payer_bank_name, payer_bank_code, remark) " +
+                "VALUES (:id, :wallet, :merchant_image_id, :payer_bank_name, :payer_bank_code, :remark)";
         final Map<String, Object> params = new HashMap<String,Object>(){
             {
                 put("id", withdrawRequest
@@ -81,6 +82,9 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
                         .getId());
                 put("wallet", withdrawRequest.getWallet());
                 put("merchant_image_id", withdrawRequest.getMerchantImage().getId() == 0 ? null : withdrawRequest.getMerchantImage().getId());
+                put("payer_bank_name", withdrawRequest.getPayerBankName());
+                put("payer_bank_code", withdrawRequest.getPayerBankCode());
+                put("remark", withdrawRequest.getRemark());
             }
         };
         jdbcTemplate.update(sql, params);

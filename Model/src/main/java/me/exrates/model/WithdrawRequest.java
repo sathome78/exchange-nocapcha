@@ -18,6 +18,9 @@ public class WithdrawRequest {
     private String userEmail;
     private MerchantImage merchantImage;
     private WithdrawalRequestStatus status;
+    private String payerBankName;
+    private String payerBankCode;
+    private String remark;
 
     public Transaction getTransaction() {
         return transaction;
@@ -91,6 +94,30 @@ public class WithdrawRequest {
         this.status = status;
     }
 
+    public String getPayerBankName() {
+        return payerBankName;
+    }
+
+    public void setPayerBankName(String payerBankName) {
+        this.payerBankName = payerBankName;
+    }
+
+    public String getPayerBankCode() {
+        return payerBankCode;
+    }
+
+    public void setPayerBankCode(String payerBankCode) {
+        this.payerBankCode = payerBankCode;
+    }
+
+    public String getRemark() {
+        return remark;
+    }
+
+    public void setRemark(String remark) {
+        this.remark = remark;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -108,8 +135,12 @@ public class WithdrawRequest {
         if (userEmail != null ? !userEmail.equals(that.userEmail) : that.userEmail != null) return false;
         if (merchantImage != null ? !merchantImage.equals(that.merchantImage) : that.merchantImage != null)
             return false;
-        return status == that.status;
-
+        if (status != that.status) return false;
+        if (payerBankName != null ? !payerBankName.equals(that.payerBankName) : that.payerBankName != null)
+            return false;
+        if (payerBankCode != null ? !payerBankCode.equals(that.payerBankCode) : that.payerBankCode != null)
+            return false;
+        return remark != null ? remark.equals(that.remark) : that.remark == null;
     }
 
     @Override
@@ -123,6 +154,9 @@ public class WithdrawRequest {
         result = 31 * result + (userEmail != null ? userEmail.hashCode() : 0);
         result = 31 * result + (merchantImage != null ? merchantImage.hashCode() : 0);
         result = 31 * result + (status != null ? status.hashCode() : 0);
+        result = 31 * result + (payerBankName != null ? payerBankName.hashCode() : 0);
+        result = 31 * result + (payerBankCode != null ? payerBankCode.hashCode() : 0);
+        result = 31 * result + (remark != null ? remark.hashCode() : 0);
         return result;
     }
 
@@ -138,6 +172,9 @@ public class WithdrawRequest {
                 ", userEmail='" + userEmail + '\'' +
                 ", merchantImage=" + merchantImage +
                 ", status=" + status +
+                ", payerBankName='" + payerBankName + '\'' +
+                ", payerBankCode='" + payerBankCode + '\'' +
+                ", remark='" + remark + '\'' +
                 '}';
     }
 }

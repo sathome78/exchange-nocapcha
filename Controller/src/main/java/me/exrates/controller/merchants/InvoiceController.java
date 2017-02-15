@@ -3,6 +3,7 @@ package me.exrates.controller.merchants;
 import me.exrates.model.*;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.InvoiceData;
+import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.InvoiceService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.UserFilesService;
@@ -257,6 +258,65 @@ public class InvoiceController {
         return modelAndView;
     }
 
+    @RequestMapping(value = "/withdraw/prepare", method = POST)
+    public RedirectView prepareWithdraw(Payment payment, Principal principal, RedirectAttributes redirectAttributes, HttpServletRequest request) {
+        RedirectView redirectView = new RedirectView("/merchants/invoice/withdrawDetails");
+        Optional<CreditsOperation> creditsOperationResult = merchantService.prepareCreditsOperation(payment, principal.getName());
+        if (!creditsOperationResult.isPresent()) {
+            redirectAttributes.addFlashAttribute("error", "merchants.incorrectPaymentDetails");
+        } else {
+            CreditsOperation creditsOperation = creditsOperationResult.get();
+            HttpSession session = request.getSession();
+            Object mutex = WebUtils.getSessionMutex(session);
+            synchronized (mutex) {
+                session.setAttribute("creditsOperation", creditsOperation);
+            }
+        }
+
+
+
+        return redirectView;
+    }
+
+
+    @RequestMapping(value = "/withdrawDetails", method = GET)
+    public ModelAndView withdrawDetails(HttpServletRequest request) {
+        ModelAndView modelAndView = new ModelAndView("/globalPages/withdrawInvoice");
+        HttpSession session = request.getSession();
+        CreditsOperation creditsOperation = (CreditsOperation) session.getAttribute("creditsOperation");
+        if (creditsOperation == null) {
+            modelAndView.addObject("error", "merchant.operationNotAvailable");
+        } else {
+            modelAndView.addObject("payment", creditsOperation);
+            List<ClientBank> banks = invoiceService.findClientBanksForCurrency(creditsOperation.getCurrency().getId());
+            modelAndView.addObject("banks", banks);
+        }
+
+        return modelAndView;
+    }
+
+    @RequestMapping(value = "/withdraw/submit", method = POST)
+    public RedirectView submitWithdraw(WithdrawData withdrawData, Principal principal, HttpServletRequest request) {
+        RedirectView redirectView = new RedirectView("/dashboard");
+        HttpSession session = request.getSession();
+        Object mutex = WebUtils.getSessionMutex(session);
+        CreditsOperation creditsOperation = (CreditsOperation) session.getAttribute("creditsOperation");
+        if (creditsOperation == null) {
+            synchronized (mutex) {
+                session.setAttribute("errorNoty",  messageSource.getMessage("merchant.operationNotAvailable", null,
+                        localeResolver.resolveLocale(request)));
+            }
+            return new RedirectView("/merchants/invoice/withdrawDetails");
+
+        }
+       Map<String, String> result = merchantService.withdrawRequest(creditsOperation, withdrawData, principal.getName(),
+               localeResolver.resolveLocale(request));
+        synchronized (mutex) {
+            session.removeAttribute("creditsOperation");
+            session.setAttribute("successNoty",  result.get("success"));
+        }
+        return redirectView;
+    }
 
 
     @RequestMapping(value = "/payment/accept",method = GET)

@@ -5,6 +5,7 @@ import me.exrates.model.MerchantCurrency;
 import me.exrates.model.Payment;
 import me.exrates.model.Wallet;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.UserService;
@@ -130,7 +131,7 @@ public class CommonMerchantsController {
                 BAD_REQUEST);
         try {
             return merchantService.prepareCreditsOperation(payment, principal.getName())
-                    .map(creditsOperation -> merchantService.withdrawRequest(creditsOperation, locale, principal.getName()))
+                    .map(creditsOperation -> merchantService.withdrawRequest(creditsOperation, new WithdrawData(), principal.getName(), locale))
                     .map(response -> new ResponseEntity<>(response, OK))
                     .orElseGet(() -> error);
         } catch (final NotEnoughUserWalletMoneyException e) {
