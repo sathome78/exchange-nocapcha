@@ -60,7 +60,7 @@ public interface WalletDao {
      */
     WalletsForOrderAcceptionDto getWalletsForOrderByOrderIdAndBlock(Integer orderId, Integer userAcceptorId);
 
-    List<UserWalletSummaryDto> getUsersWalletsSummary();
+    List<UserWalletSummaryDto> getUsersWalletsSummary(List<Integer> roles);
 
     WalletTransferStatus walletInnerTransfer(int walletId, BigDecimal amount, TransactionSourceType sourceType, int sourceId);
 

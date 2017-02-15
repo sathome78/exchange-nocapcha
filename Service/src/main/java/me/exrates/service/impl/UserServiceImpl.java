@@ -416,8 +416,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserSummaryDto> getUsersSummaryList(String startDate, String endDate) {
-        return userDao.getUsersSummaryList(startDate, endDate);
+    public List<UserSummaryDto> getUsersSummaryList(String startDate, String endDate, List<Integer> roles) {
+        return userDao.getUsersSummaryList(startDate, endDate, roles);
     }
 
     @Override
@@ -471,18 +471,18 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public List<UserSummaryInOutDto> getUsersSummaryInOutList(String startDate, String endDate) {
-        return userDao.getUsersSummaryInOutList(startDate, endDate);
+    public List<UserSummaryInOutDto> getUsersSummaryInOutList(String startDate, String endDate, List<Integer> roles) {
+        return userDao.getUsersSummaryInOutList(startDate, endDate, roles);
     }
 
     @Override
-    public List<UserSummaryTotalInOutDto> getUsersSummaryTotalInOutList(String startDate, String endDate) {
-        return userDao.getUsersSummaryTotalInOutList(startDate, endDate);
+    public List<UserSummaryTotalInOutDto> getUsersSummaryTotalInOutList(String startDate, String endDate, List<Integer> roles) {
+        return userDao.getUsersSummaryTotalInOutList(startDate, endDate, roles);
     }
 
     @Override
-    public List<UserSummaryOrdersDto> getUserSummaryOrdersList(String startDate, String endDate) {
-        return userDao.getUserSummaryOrdersList(startDate, endDate);
+    public List<UserSummaryOrdersDto> getUserSummaryOrdersList(String startDate, String endDate, List<Integer> roles) {
+        return userDao.getUserSummaryOrdersList(startDate, endDate, roles);
     }
 
     @PostConstruct
@@ -581,6 +581,19 @@ public class UserServiceImpl implements UserService {
         LOGGER.debug("Granted authority: " + grantedAuthority);
         return UserRole.valueOf(grantedAuthority);
 
+    }
+
+    @Override
+    public List<Integer> resolveRoleIdsByName(String roleName) {
+        List<UserRole> userRoles;
+        if ("ADMIN".equals(roleName)) {
+            userRoles = Arrays.asList(UserRole.ADMINISTRATOR, UserRole.ACCOUNTANT, UserRole.ADMIN_USER);
+        }else if("ALL".equals(roleName)){
+            return new ArrayList<>();
+        }else {
+            userRoles = Collections.singletonList(UserRole.valueOf(roleName));
+        }
+        return userRoles.stream().map(UserRole::getRole).collect(Collectors.toList());
     }
 
 }
