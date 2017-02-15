@@ -20,9 +20,6 @@
     #invoice_requests td {
         padding: 5px 5px;
     }
-    #invoice_requests tr:nth-child(even) {
-        background: #e2ebf9;
-    }
 </style>
 
 
@@ -41,7 +38,7 @@
                 </c:when>
                 <c:otherwise>
                     <%--СПИСОК ИНВОЙСОВ--%>
-                    <table id="invoice_requests">
+                    <table id="invoice_requests" class="table-striped">
                         <thead>
                         <tr>
                             <th><loc:message code="transaction.id"/></th>

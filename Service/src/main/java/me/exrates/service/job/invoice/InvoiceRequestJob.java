@@ -22,8 +22,8 @@ public class InvoiceRequestJob {
   @Autowired
   InvoiceService invoiceService;
 
-  //  @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 10)
-  @Scheduled(initialDelay = 1000, fixedDelay = 1000*15)
+  @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 10)
+//  @Scheduled(initialDelay = 1000, fixedDelay = 1000*15)
   private void invoiceExpiredClean() throws Exception {
     log.debug("\nstart expired invoices cleaning ... ");
     Integer expireCount = invoiceService.clearExpiredInvoices(EXPIRE_CLEAN_INTERVAL_HOUR);

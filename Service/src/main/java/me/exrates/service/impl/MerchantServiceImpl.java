@@ -459,6 +459,7 @@ public class MerchantServiceImpl implements MerchantService {
         .merchant(merchant)
         .destination(destination)
         .merchantImage(merchantImage)
+        .transactionSourceType(TransactionSourceType.convert(merchant.getTransactionSourceTypeId()))
         .build();
     return Optional.of(creditsOperation);
   }

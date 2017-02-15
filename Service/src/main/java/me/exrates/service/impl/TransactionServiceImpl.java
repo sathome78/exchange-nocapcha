@@ -77,7 +77,7 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setOperationType(creditsOperation.getOperationType());
         transaction.setProvided(false);
         transaction.setConfirmation((currencyName).equals("BTC") ? 0 : -1);
-        transaction.setSourceType(TransactionSourceType.MERCHANT);
+        transaction.setSourceType(creditsOperation.getTransactionSourceType());
         transaction = transactionDao.create(transaction);
         if (transaction == null) {
             throw new TransactionPersistException("Failed to provide transaction ");
@@ -206,7 +206,7 @@ public class TransactionServiceImpl implements TransactionService {
         if (sourceType == TransactionSourceType.MERCHANT) {
             view.setMerchant(transaction.getMerchant());
         } else {
-            view.setMerchant(new Merchant(0, sourceType.name(), sourceType.name()));
+            view.setMerchant(new Merchant(0, sourceType.name(), sourceType.name(), null));
         }
 
     }
@@ -283,10 +283,14 @@ public class TransactionServiceImpl implements TransactionService {
         return transactionDao.maxCommissionAmount();
     }
 
-
-
     @Override
     public List<AccountStatementDto> getAccountStatement(Integer walletId, Integer offset, Integer limit, Locale locale) {
         return transactionDao.getAccountStatement(walletId, offset, limit, locale);
+    }
+
+    @Override
+    @Transactional
+    public void setSourceId(Integer trasactionId, Integer sourceId) {
+        transactionDao.setSourceId(trasactionId, sourceId);
     }
 }

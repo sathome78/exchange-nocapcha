@@ -538,4 +538,13 @@ public final class TransactionDaoImpl implements TransactionDao {
         return jdbcTemplate.queryForObject(sql, Collections.EMPTY_MAP, BigDecimal.class);
     }
 
+    @Override
+    public void setSourceId(Integer trasactionId, Integer sourceId) {
+        final String sql = "UPDATE TRANSACTION SET source_id = :source_id WHERE id  = :id";
+        final Map<String, Integer> params = new HashMap<>();
+        params.put("id", trasactionId);
+        params.put("source_id", sourceId);
+        jdbcTemplate.update(sql, params);
+    }
+
 }

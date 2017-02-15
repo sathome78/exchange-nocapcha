@@ -70,6 +70,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     invoiceRequest.setRemark(StringEscapeUtils.escapeHtml(invoiceData.getRemark()));
     invoiceRequest.setInvoiceRequestStatus(CREATED_USER);
     invoiceRequestDao.create(invoiceRequest, creditsOperation.getUser());
+    transactionService.setSourceId(transaction.getId(), transaction.getId());
     return transaction;
   }
 
@@ -142,7 +143,7 @@ public class InvoiceServiceImpl implements InvoiceService {
   @Transactional
   public Integer clearExpiredInvoices(Integer intervalHours) throws Exception {
     List<Integer> invoiceRequestStatusIdList = InvoiceRequestStatusEnum.getMayExpireStatusList().stream()
-        .map(e->e.getCode())
+        .map(e -> e.getCode())
         .collect(Collectors.toList());
     Optional<LocalDateTime> nowDate = invoiceRequestDao.getAndBlockByIntervalAndStatus(
         intervalHours,

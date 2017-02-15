@@ -62,7 +62,7 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
     invoiceRequest.setUserFullName(resultSet.getString("user_full_name"));
     invoiceRequest.setRemark(resultSet.getString("remark"));
     invoiceRequest.setInvoiceRequestStatus(InvoiceRequestStatusEnum.convert(resultSet.getInt("invoice_request_status_id")));
-    invoiceRequest.setStatusUpdateDate(resultSet.getTimestamp("acceptance_time").toLocalDateTime());
+    invoiceRequest.setStatusUpdateDate(resultSet.getTimestamp("status_update_date").toLocalDateTime());
     return invoiceRequest;
   };
 
@@ -92,7 +92,7 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
 
   @Override
   public void create(InvoiceRequest invoiceRequest, User user) {
-    final String sql = "INSERT into INVOICE_REQUEST (transaction_id, user_id, bank_id, user_full_name, remark, invoice_request_status_id) " +
+    final String sql = "INSERT into INVOICE_REQUEST (transaction_id, user_id, bank_id, user_full_name, remark, invoice_request_status_id, status_update_date) " +
         "values (:transaction_id, :user_id, :bank_id, :user_full_name, :remark, :invoice_request_status_id, NOW())";
     final Map<String, Object> params = new HashMap<String, Object>() {
       {

@@ -54,4 +54,6 @@ public interface TransactionDao {
   BigDecimal maxAmount();
 
   BigDecimal maxCommissionAmount();
+
+  void setSourceId(Integer trasactionId, Integer sourceId);
 }
