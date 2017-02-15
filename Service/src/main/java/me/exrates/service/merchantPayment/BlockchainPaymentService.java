@@ -9,19 +9,13 @@ import me.exrates.service.BitcoinService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.MerchantInternalException;
-import me.exrates.service.exception.RejectedPaymentInvoice;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-
-import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 /**
  * Created by OLEG on 05.09.2016.

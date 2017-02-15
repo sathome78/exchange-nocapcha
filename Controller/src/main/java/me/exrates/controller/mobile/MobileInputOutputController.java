@@ -5,6 +5,7 @@ import me.exrates.controller.exception.NotEnoughMoneyException;
 import me.exrates.model.*;
 import me.exrates.model.dto.mobileApiDto.*;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.UserActionOnInvoiceEnum;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.InvoiceData;
 import me.exrates.service.CurrencyService;
@@ -16,8 +17,9 @@ import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.api.ApiError;
 import me.exrates.service.exception.api.ErrorCode;
+import me.exrates.service.exception.invoice.IllegalInvoiceRequestStatusException;
 import me.exrates.service.merchantPayment.MerchantPaymentService;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -392,22 +394,13 @@ public class MobileInputOutputController {
      * @apiUse InternalServerError
      */
     @RequestMapping(value = "/invoice/confirm", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Void> confirmInvoice(@RequestBody @Valid InvoiceConfirmData invoiceConfirmData) {
+    public ResponseEntity<Void> confirmInvoice(
+        @RequestParam(required = false) String action,
+        @RequestBody @Valid InvoiceConfirmData invoiceConfirmData) throws me.exrates.service.exception.invoice.InvoiceNotFoundException, IllegalInvoiceRequestStatusException {
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-        Optional<InvoiceRequest> invoiceRequestResult = invoiceService.findUnconfirmedRequestById(invoiceConfirmData.getInvoiceId());
-        if (!invoiceRequestResult.isPresent()) {
-            throw new InvoiceNotFoundException("Invoice with ID " + invoiceConfirmData.getInvoiceId() + " not found");
-        } else {
-            InvoiceRequest invoiceRequest = invoiceRequestResult.get();
-            invoiceRequest.setPayerBankName(invoiceConfirmData.getPayerBankName());
-            invoiceRequest.setPayerAccount(invoiceConfirmData.getUserAccount());
-            invoiceRequest.setUserFullName(invoiceConfirmData.getUserFullName());
-            //html escaping to prevent XSS
-            invoiceRequest.setRemark(StringEscapeUtils.escapeHtml(invoiceConfirmData.getRemark()));
-            invoiceService.updateConfirmationInfo(invoiceRequest);
-        }
-
+        UserActionOnInvoiceEnum userActionOnInvoiceEnum = UserActionOnInvoiceEnum.convert(action);
+        invoiceService.userActionOnInvoice(invoiceConfirmData, userActionOnInvoiceEnum);
         return new ResponseEntity<>(OK);
     }
 
@@ -537,6 +530,11 @@ public class MobileInputOutputController {
         return new ApiError(INSUFFICIENT_FUNDS, req.getRequestURL(), exception);
     }
 
+  @ResponseStatus(NOT_ACCEPTABLE)
+  @ExceptionHandler({IllegalInvoiceRequestStatusException.class})
+  public ApiError illegalInvoiceRequestStatusExceptionHandler(HttpServletRequest req, Exception exception) {
+    return new ApiError(BAD_INVOICE_STATUS, req.getRequestURL(), exception);
+  }
 
     @ResponseStatus(NOT_FOUND)
     @ExceptionHandler(CurrencyPairNotFoundException.class)

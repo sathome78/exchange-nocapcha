@@ -7,7 +7,7 @@ import me.exrates.service.BlockchainService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.MerchantInternalException;
-import me.exrates.service.exception.RejectedPaymentInvoice;
+import me.exrates.service.exception.invoice.RejectedPaymentInvoice;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;

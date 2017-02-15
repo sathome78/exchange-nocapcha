@@ -9,12 +9,12 @@ $(document).ready(function () {
     var acceptedLocMessage = $('#acceptedLocMessage').text();
     var declinedLocMessage = $('#declinedLocMessage').text();
     var onConfirmationLocMessage = $('#onConfirmationLocMessage').text();
-    var cancelledByUserLocMessage = $('#cancelledByUserLocMessage').text();
+    var revokedByUserLocMessage = $('#revokedByUserLocMessage').text();
     var timeOutExpiredLocMessage = $('#timeOutExpiredLocMessage').text();
     /**/
     var $invoiceRequestsTable = $('#invoice_requests');
 
-    var url = '/2a8fy7b07dxe44/invoiceRequests/';
+    var url = '/2a8fy7b07dxe44/invoiceRequests?invoiceRequestStatusSetType=acceptable';
 
     if ($.fn.dataTable.isDataTable('#invoice_requests')) {
         invoiceRequestsDataTable = $($invoiceRequestsTable).DataTable();
@@ -86,8 +86,8 @@ $(document).ready(function () {
                             return acceptedLocMessage;
                         } else if (data === "DECLINED_ADMIN") {
                             return declinedLocMessage;
-                        } else if (data === "CANCELLED_USER") {
-                            return cancelledByUserLocMessage;
+                        } else if (data === "REVOKED_USER") {
+                            return revokedByUserLocMessage;
                         } else if (data === "EXPIRED") {
                             return timeOutExpiredLocMessage;
                         } else if (data === "CONFIRMED_USER") {

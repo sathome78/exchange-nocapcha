@@ -1,4 +1,4 @@
-package me.exrates.service.exception;
+package me.exrates.service.exception.invoice;
 
 /**
  * Created by Valk

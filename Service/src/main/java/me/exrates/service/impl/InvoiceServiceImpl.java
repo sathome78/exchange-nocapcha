@@ -7,26 +7,32 @@ import me.exrates.model.CreditsOperation;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.InvoiceRequest;
 import me.exrates.model.Transaction;
+import me.exrates.model.dto.InvoiceUserDto;
 import me.exrates.model.enums.*;
+import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.InvoiceData;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.CompanyWalletService;
 import me.exrates.service.InvoiceService;
 import me.exrates.service.NotificationService;
 import me.exrates.service.TransactionService;
-import me.exrates.service.exception.IllegalInvoiceRequestStatusException;
 import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.IllegalTransactionProvidedStatusException;
-import me.exrates.service.exception.InvoiceAcceptionException;
+import me.exrates.service.exception.invoice.IllegalInvoiceRequestStatusException;
+import me.exrates.service.exception.invoice.InvoiceAcceptionException;
+import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static me.exrates.model.enums.InvoiceRequestStatusEnum.*;
+import static me.exrates.model.enums.UserActionOnInvoiceEnum.REVOKE;
 import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 
 
@@ -133,6 +139,32 @@ public class InvoiceServiceImpl implements InvoiceService {
   }
 
   @Override
+  @Transactional
+  public Integer clearExpiredInvoices(Integer intervalHours) throws Exception {
+    List<Integer> invoiceRequestStatusIdList = InvoiceRequestStatusEnum.getMayExpireStatusList().stream()
+        .map(e->e.getCode())
+        .collect(Collectors.toList());
+    Optional<LocalDateTime> nowDate = invoiceRequestDao.getAndBlockByIntervalAndStatus(
+        intervalHours,
+        invoiceRequestStatusIdList);
+    if (nowDate.isPresent()) {
+      invoiceRequestDao.setExpiredByIntervalAndStatus(
+          nowDate.get(),
+          intervalHours,
+          EXPIRED.getCode(),
+          invoiceRequestStatusIdList);
+      List<InvoiceUserDto> userForNotificationList = invoiceRequestDao.findInvoicesListByStatusChangedAtDate(EXPIRED.getCode(), nowDate.get());
+      for (InvoiceUserDto invoice : userForNotificationList) {
+        notificationService.notifyUser(invoice.getUserId(), NotificationEvent.IN_OUT, "merchants.invoice.expired.title",
+            "merchants.invoice.expired.message", new Integer[]{invoice.getInvoiceId()});
+      }
+      return userForNotificationList.size();
+    } else {
+      return 0;
+    }
+  }
+
+  @Override
   @Transactional(readOnly = true)
   public List<InvoiceRequest> findAllInvoiceRequests() {
     return invoiceRequestDao.findAll();
@@ -157,6 +189,12 @@ public class InvoiceServiceImpl implements InvoiceService {
   }
 
   @Override
+  @Transactional(readOnly = true)
+  public Integer getInvoiceRequestStatusByInvoiceId(Integer invoiceId) {
+    return invoiceRequestDao.getStatusById(invoiceId);
+  }
+
+  @Override
   @Transactional
   public Optional<InvoiceRequest> findRequestByIdAndBlock(Integer transactionId) {
     return invoiceRequestDao.findByIdAndBlock(transactionId);
@@ -164,24 +202,58 @@ public class InvoiceServiceImpl implements InvoiceService {
 
   @Override
   @Transactional(readOnly = true)
-  public Optional<InvoiceRequest> findUnconfirmedRequestById(Integer transactionId) {
-    return invoiceRequestDao.findByIdAndNotConfirmed(transactionId);
+  public List<InvoiceRequest> findAllByStatus(List<Integer> invoiceRequestStatusIdList) {
+    return invoiceRequestDao.findByStatus(invoiceRequestStatusIdList);
   }
 
   @Override
   @Transactional
-  public void updateConfirmationInfo(InvoiceRequest invoiceRequest) {
-    invoiceRequestDao.updateConfirmationInfo(invoiceRequest);
-  }
-
-  @Override
-  @Transactional
-  public void updateInvoiceRequestStatus(Integer invoiceRequestId, InvoiceRequestStatusEnum invoiceRequestStatus) {
-    invoiceRequestDao.updateInvoiceRequestStatus(invoiceRequestId, invoiceRequestStatus);
-  }
-
-  @Override
   public List<InvoiceRequest> findAllRequestsForUser(String userEmail) {
     return invoiceRequestDao.findAllForUser(userEmail);
   }
+
+  @Override
+  @Transactional
+  public void userActionOnInvoice(
+      InvoiceConfirmData invoiceConfirmData,
+      UserActionOnInvoiceEnum userActionOnInvoiceEnum) throws IllegalInvoiceRequestStatusException, InvoiceNotFoundException {
+    Optional<InvoiceRequest> invoiceRequestResult = findRequestByIdAndBlock(invoiceConfirmData.getInvoiceId());
+    if (!invoiceRequestResult.isPresent()) {
+      throw new InvoiceNotFoundException(String.format("invoice id: %s", invoiceConfirmData.getInvoiceId()));
+    }
+    InvoiceRequest invoiceRequest = invoiceRequestResult.get();
+    if (userActionOnInvoiceEnum == REVOKE) {
+      if (!InvoiceRequestStatusEnum.revokeable(invoiceRequest)) {
+        throw new IllegalInvoiceRequestStatusException(String.format("invoice id: %s status: %s demanded action: %s",
+            invoiceRequest.getTransaction().getId(),
+            invoiceRequest.getInvoiceRequestStatus(),
+            userActionOnInvoiceEnum));
+      }
+      updateInvoiceRequestStatus(invoiceRequest.getTransaction().getId(), REVOKED_USER);
+    } else {
+      if (!InvoiceRequestStatusEnum.availableToConfirm(invoiceRequest)) {
+        throw new IllegalInvoiceRequestStatusException(String.format("invoice id: %s status: %s demanded action: %s",
+            invoiceRequest.getTransaction().getId(),
+            invoiceRequest.getInvoiceRequestStatus(),
+            userActionOnInvoiceEnum));
+      }
+      invoiceRequest.setPayerBankName(invoiceConfirmData.getPayerBankName());
+      invoiceRequest.setPayerAccount(invoiceConfirmData.getUserAccount());
+      invoiceRequest.setUserFullName(invoiceConfirmData.getUserFullName());
+      invoiceRequest.setInvoiceRequestStatus(CONFIRMED_USER);
+      invoiceRequest.setRemark(StringEscapeUtils.escapeHtml(invoiceConfirmData.getRemark()));
+      updateConfirmationInfo(invoiceRequest);
+    }
+  }
+
+  @Transactional
+  private void updateConfirmationInfo(InvoiceRequest invoiceRequest) {
+    invoiceRequestDao.updateConfirmationInfo(invoiceRequest);
+  }
+
+  @Transactional
+  private void updateInvoiceRequestStatus(Integer invoiceRequestId, InvoiceRequestStatusEnum invoiceRequestStatus) {
+    invoiceRequestDao.updateInvoiceRequestStatus(invoiceRequestId, invoiceRequestStatus);
+  }
+
 }

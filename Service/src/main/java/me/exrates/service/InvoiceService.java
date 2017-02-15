@@ -4,7 +4,11 @@ import me.exrates.model.InvoiceBank;
 import me.exrates.model.InvoiceRequest;
 import me.exrates.model.Transaction;
 import me.exrates.model.enums.InvoiceRequestStatusEnum;
+import me.exrates.model.enums.UserActionOnInvoiceEnum;
+import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.InvoiceData;
+import me.exrates.service.exception.invoice.IllegalInvoiceRequestStatusException;
+import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -19,6 +23,8 @@ public interface InvoiceService {
 
   void declineInvoice(int invoiceId, int transactionId, String acceptanceUserEmail) throws Exception;
 
+  Integer clearExpiredInvoices(Integer intervalHours) throws Exception;
+
   List<InvoiceRequest> findAllInvoiceRequests();
 
   List<InvoiceBank> findBanksForCurrency(Integer currencyId);
@@ -27,13 +33,15 @@ public interface InvoiceService {
 
   Optional<InvoiceRequest> findRequestById(Integer transactionId);
 
+  Integer getInvoiceRequestStatusByInvoiceId(Integer invoiceId);
+
   Optional<InvoiceRequest> findRequestByIdAndBlock(Integer transactionId);
 
-  Optional<InvoiceRequest> findUnconfirmedRequestById(Integer transactionId);
-
-  void updateConfirmationInfo(InvoiceRequest invoiceRequest);
-
-  void updateInvoiceRequestStatus(Integer invoiceRequestId, InvoiceRequestStatusEnum invoiceRequestStatus);
+  List<InvoiceRequest> findAllByStatus(List<Integer> invoiceRequestStatusIdList);
 
   List<InvoiceRequest> findAllRequestsForUser(String userEmail);
+
+  void userActionOnInvoice(
+      InvoiceConfirmData invoiceConfirmData,
+      UserActionOnInvoiceEnum userActionOnInvoiceEnum) throws IllegalInvoiceRequestStatusException, InvoiceNotFoundException;
 }

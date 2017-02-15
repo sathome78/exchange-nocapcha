@@ -3,8 +3,10 @@ package me.exrates.dao;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.InvoiceRequest;
 import me.exrates.model.User;
+import me.exrates.model.dto.InvoiceUserDto;
 import me.exrates.model.enums.InvoiceRequestStatusEnum;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,9 +23,17 @@ public interface InvoiceRequestDao {
 
     Optional<InvoiceRequest> findById(int id);
 
+    Integer getStatusById(int id);
+
     Optional<InvoiceRequest> findByIdAndBlock(int id);
 
-    Optional<InvoiceRequest> findByIdAndNotConfirmed(int id);
+    List<InvoiceRequest> findByStatus(List<Integer> invoiceRequestStatusIdList);
+
+    Optional<LocalDateTime> getAndBlockByIntervalAndStatus(Integer intervalHours, List<Integer> invoiceRequestStatusIdList);
+
+    void setExpiredByIntervalAndStatus(LocalDateTime boundDate, Integer intervalHours, Integer newInvoiceRequestStatusId, List<Integer> invoiceRequestStatusIdList);
+
+    List<InvoiceUserDto> findInvoicesListByStatusChangedAtDate(Integer invoiceRequestStatusId, LocalDateTime dateWhenChanged);
 
     List<InvoiceRequest> findAll();
 

@@ -89,7 +89,7 @@
 <span hidden id="acceptedLocMessage"><loc:message code="merchants.invoice.accepted"/></span>
 <span hidden id="declinedLocMessage"><loc:message code="merchants.invoice.declined"/></span>
 <span hidden id="onConfirmationLocMessage"><loc:message code="merchants.invoice.onWaitingForUserConfirmation"/></span>
-<span hidden id="cancelledByUserLocMessage"><loc:message code="merchants.invoice.revokedByUser"/></span>
+<span hidden id="revokedByUserLocMessage"><loc:message code="merchants.invoice.revokedByUser"/></span>
 <span hidden id="timeOutExpiredLocMessage"><loc:message code="merchants.invoice.timeOutExpired"/></span>
 <%@include file='../fragments/modal/invoice_info_modal.jsp' %>
 <%@include file='../fragments/footer.jsp' %>
