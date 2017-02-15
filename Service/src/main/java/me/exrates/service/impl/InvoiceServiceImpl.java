@@ -82,8 +82,8 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<CurrencyInputBank> findInputBanksForCurrency(Integer currencyId) {
-        return invoiceRequestDao.findInputBanksForCurrency(currencyId);
+    public List<ClientBank> findClientBanksForCurrency(Integer currencyId) {
+        return invoiceRequestDao.findClientBanksForCurrency(currencyId);
     }
 
     @Override

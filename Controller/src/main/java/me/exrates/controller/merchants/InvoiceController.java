@@ -14,7 +14,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.context.NoSuchMessageException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -31,7 +30,6 @@ import javax.servlet.http.HttpSession;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -205,7 +203,7 @@ public class InvoiceController {
         } else {
             InvoiceRequest invoiceRequest = invoiceRequestResult.get();
             modelAndView.addObject("invoiceRequest", invoiceRequest);
-            List<CurrencyInputBank> banks = invoiceService.findInputBanksForCurrency(invoiceRequest.getTransaction().getCurrency().getId());
+            List<ClientBank> banks = invoiceService.findClientBanksForCurrency(invoiceRequest.getTransaction().getCurrency().getId());
             modelAndView.addObject("banks", banks);
             if (invoiceRequest.getPayerBankName() != null && banks.stream().noneMatch(bank -> invoiceRequest.getPayerBankName().equals(bank.getName()))) {
                 modelAndView.addObject("otherBank", invoiceRequest.getPayerBankName());

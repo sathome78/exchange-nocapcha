@@ -182,13 +182,13 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
     }
 
     @Override
-    public List<CurrencyInputBank> findInputBanksForCurrency(Integer currencyId) {
+    public List<ClientBank> findClientBanksForCurrency(Integer currencyId) {
         final String sql = "SELECT id, currency_id, name, code " +
-                " FROM CURRENCY_INPUT_BANK " +
+                " FROM client_bank " +
                 " WHERE currency_id = :currency_id";
         final Map<String, Integer> params = Collections.singletonMap("currency_id", currencyId);
         return jdbcTemplate.query(sql, params, (rs, rowNum) -> {
-            CurrencyInputBank bank = new CurrencyInputBank();
+            ClientBank bank = new ClientBank();
             bank.setId(rs.getInt("id"));
             bank.setName(rs.getString("name"));
             bank.setCurrencyId(rs.getInt("currency_id"));
