@@ -2,7 +2,7 @@
   User: Valk
 --%>
 
-<div id="myinputoutput" class="myinputoutput center-frame-container hidden">
+<div id="myinputoutput" data-submenuitemid="myhistory-button-inputoutput" class="myinputoutput center-frame-container hidden">
     <%----%>
         <%----%>
         <div id="inputoutput-currency-pair-selector" hidden class="currency-pair-selector dropdown">

@@ -60,6 +60,17 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    public long createLocalizedNotification(String userEmail, NotificationEvent cause, String titleCode, String messageCode,
+                                            Object[] messageArgs) {
+        Integer userId = userService.getIdByEmail(userEmail);
+        Locale locale = new Locale(userService.getPreferedLang(userId));
+        return createNotification(userId, messageSource.getMessage(titleCode, null, locale),
+                messageSource.getMessage(messageCode, messageArgs, locale), cause);
+
+    }
+
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public void notifyUser(Integer userId, NotificationEvent cause, String titleCode, String messageCode,
                            Object[] messageArgs) {

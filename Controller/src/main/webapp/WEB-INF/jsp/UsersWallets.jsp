@@ -35,83 +35,125 @@
         <%@include file='admin/left_side_menu.jsp' %>
 
         <div class="col-md-8 col-md-offset-1 content admin-container">
-            <div class="text-center">
-                <h4>
-                    <b><loc:message code="admin.usersWallet"/></b>
-                </h4>
-            </div>
-            <div class="row">
-                <button id="upload-users-wallets" class="blue-box pull-right" type="submit"><loc:message
-                        code="wallets.download"/></button>
-            </div>
 
-            <div class="row">
-                <button id="upload-users-wallets-inout" class="blue-box pull-right" type="submit"><loc:message
-                        code="wallets.downloadInputOutput"/></button>
-            </div>
+            <ul class="nav nav-tabs">
 
-            <div class="row">
-                <button id="upload-users-wallets-orders" class="blue-box pull-right" type="submit"><loc:message
-                        code="wallets.downloadOrders"/></button>
-            </div>
-            <c:forEach var="wallet" items="${usersWalletsSummaryList}">
-                <div class="block">
-                    <div class="currency">${wallet.currencyName}</div>
-                    <p class="info-item info-item-title col-sm-12">
-                        <loc:message code="wallets.amount"/>:
-                            ${wallet.walletsAmount}
-                    </p>
+                <c:forEach var="mapRole" items="${mapUsersWalletsSummaryList}">
+                    <c:choose>
+                        <c:when test="${mapRole.key eq 'ALL'}">
+                            <li class="active">
+                        </c:when>
+                        <c:otherwise>
+                            <li>
+                        </c:otherwise>
+                    </c:choose>
+                    <a data-toggle="tab" href="#panel${mapRole.key}">${mapRole.key}</a>
+                    </li>
+                </c:forEach>
+            </ul>
 
-                    <p class="info-item col-sm-4">
-                        <loc:message code="wallets.balance"/>:
-                        <fmt:formatNumber type="number" maxFractionDigits="9" value="${wallet.balance}"/>
-                    </p>
+            <div class="tab-content">
 
-                    <p class="info-item next_item">
-                        <loc:message code="wallets.average"/>:
-                        <fmt:formatNumber type="number" maxFractionDigits="9" value="${wallet.balancePerWallet}"/>
-                    </p>
-                    <br/>
+                <c:forEach var="mapRole" items="${mapUsersWalletsSummaryList}">
+                <c:choose>
+                <c:when test="${mapRole.key eq 'ALL'}">
+                <div id="panel${mapRole.key}" class="tab-pane fade in active">
+                    </c:when>
+                    <c:otherwise>
+                    <div id="panel${mapRole.key}" class="tab-pane fade">
+                        </c:otherwise>
+                        </c:choose>
 
-                    <p class="info-item col-sm-4">
-                        <loc:message code="wallets.abalance"/>:
-                        <fmt:formatNumber type="number" maxFractionDigits="9" value="${wallet.activeBalance}"/>
-                    </p>
+                        <div class="text-center">
+                            <h4>
+                                <b><loc:message code="admin.usersWallet"/> ${mapRole.key}</b>
+                            </h4>
+                        </div>
+                        <div class="row">
+                            <button id="upload-users-wallets" class="blue-box pull-right"
+                                    onclick="uploadUserWallets('${mapRole.key}')" type="submit"><loc:message
+                                    code="wallets.download"/></button>
+                        </div>
 
-                    <p class="info-item next_item">
-                        <loc:message code="wallets.average"/>:
-                        <fmt:formatNumber type="number" maxFractionDigits="9" value="${wallet.activeBalancePerWallet}"/>
-                    </p>
-                    <br/>
+                        <div class="row">
+                            <button id="upload-users-wallets-inout" class="blue-box pull-right"
+                                    onclick="uploadUserWalletsInOut('${mapRole.key}')" type="submit">
+                                <loc:message
+                                        code="wallets.downloadInputOutput"/></button>
+                        </div>
 
-                    <p class="info-item  col-sm-4">
-                        <loc:message code="wallets.rbalance"/>:
-                            ${wallet.reservedBalance}
-                    </p>
+                        <div class="row">
+                            <button id="upload-users-wallets-orders" class="blue-box pull-right"
+                                    onclick="uploadUserWalletsOrders('${mapRole.key}')" type="submit">
+                                <loc:message
+                                        code="wallets.downloadOrders"/></button>
+                        </div>
+                        <c:forEach var="wallet" items="${mapRole.value}">
+                            <div class="block">
+                                <div class="currency">${wallet.currencyName}</div>
+                                <p class="info-item info-item-title col-sm-12">
+                                    <loc:message code="wallets.amount"/>:
+                                        ${wallet.walletsAmount}
+                                </p>
 
-                    <p class="info-item next_item">
-                        <loc:message code="wallets.average"/>:
-                        <fmt:formatNumber type="number" maxFractionDigits="9"
-                                          value="${wallet.reservedBalancePerWallet}"/>
-                    </p>
-                    <br/>
+                                <p class="info-item col-sm-4">
+                                    <loc:message code="wallets.balance"/>:
+                                    <fmt:formatNumber type="number" maxFractionDigits="9" value="${wallet.balance}"/>
+                                </p>
 
-                    <p class="info-item  col-sm-4">
-                        <loc:message code="wallets.totalInputAmount"/>:
-                        <fmt:formatNumber type="number" maxFractionDigits="9"
-                                          value="${wallet.merchantAmountInput}"/>
-                    </p>
+                                <p class="info-item next_item">
+                                    <loc:message code="wallets.average"/>:
+                                    <fmt:formatNumber type="number" maxFractionDigits="9"
+                                                      value="${wallet.balancePerWallet}"/>
+                                </p>
+                                <br/>
 
-                    <p class="info-item next_item">
-                        <loc:message code="wallets.totalOutputAmount"/>:
-                        <fmt:formatNumber type="number" maxFractionDigits="9"
-                                          value="${wallet.merchantAmountOutput}"/>
-                    </p>
+                                <p class="info-item col-sm-4">
+                                    <loc:message code="wallets.abalance"/>:
+                                    <fmt:formatNumber type="number" maxFractionDigits="9"
+                                                      value="${wallet.activeBalance}"/>
+                                </p>
+
+                                <p class="info-item next_item">
+                                    <loc:message code="wallets.average"/>:
+                                    <fmt:formatNumber type="number" maxFractionDigits="9"
+                                                      value="${wallet.activeBalancePerWallet}"/>
+                                </p>
+                                <br/>
+
+                                <p class="info-item  col-sm-4">
+                                    <loc:message code="wallets.rbalance"/>:
+                                        ${wallet.reservedBalance}
+                                </p>
+
+                                <p class="info-item next_item">
+                                    <loc:message code="wallets.average"/>:
+                                    <fmt:formatNumber type="number" maxFractionDigits="9"
+                                                      value="${wallet.reservedBalancePerWallet}"/>
+                                </p>
+                                <br/>
+
+                                <p class="info-item  col-sm-4">
+                                    <loc:message code="wallets.totalInputAmount"/>:
+                                    <fmt:formatNumber type="number" maxFractionDigits="9"
+                                                      value="${wallet.merchantAmountInput}"/>
+                                </p>
+
+                                <p class="info-item next_item">
+                                    <loc:message code="wallets.totalOutputAmount"/>:
+                                    <fmt:formatNumber type="number" maxFractionDigits="9"
+                                                      value="${wallet.merchantAmountOutput}"/>
+                                </p>
+                            </div>
+                        </c:forEach>
+
+                    </div>
+                    </c:forEach>
                 </div>
-            </c:forEach>
+
+            </div>
         </div>
-    </div>
-    <hr>
+        <hr>
 </main>
 <%@include file='fragments/footer.jsp' %>
 <%@include file='admin/datePicker.jsp' %>

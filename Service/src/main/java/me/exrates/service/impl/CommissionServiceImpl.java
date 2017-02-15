@@ -6,16 +6,13 @@ import me.exrates.model.dto.CommissionShortEditDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.service.CommissionService;
+import me.exrates.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
-import java.util.stream.Collectors;
 
 @Service
 public class CommissionServiceImpl implements CommissionService {
@@ -23,6 +20,9 @@ public class CommissionServiceImpl implements CommissionService {
 
 	@Autowired  
 	CommissionDao commissionDao;
+
+	@Autowired
+	UserService userService;
 
 	@Override
 	public Commission findCommissionByTypeAndRole(OperationType operationType, UserRole userRole) {
@@ -49,20 +49,8 @@ public class CommissionServiceImpl implements CommissionService {
 
 	@Override
 	public List<CommissionShortEditDto> getEditableCommissionsByRole(String roleName, Locale locale) {
-		return commissionDao.getEditableCommissionsByRoles(resolveRoleIdsByName(roleName), locale);
+		return commissionDao.getEditableCommissionsByRoles(userService.resolveRoleIdsByName(roleName), locale);
 	}
-
-	@Override
-	public List<Integer> resolveRoleIdsByName(String roleName) {
-		List<UserRole> userRoles;
-		if ("ADMIN".equals(roleName)) {
-			userRoles = Arrays.asList(UserRole.ADMINISTRATOR, UserRole.ACCOUNTANT, UserRole.ADMIN_USER);
-		} else {
-			userRoles = Collections.singletonList(UserRole.valueOf(roleName));
-		}
-		return userRoles.stream().map(UserRole::getRole).collect(Collectors.toList());
-	}
-
 
 	@Override
 	@Transactional
@@ -73,7 +61,7 @@ public class CommissionServiceImpl implements CommissionService {
 	@Override
 	@Transactional
 	public void updateCommission(OperationType operationType, String roleName, BigDecimal value) {
-		commissionDao.updateCommission(operationType, resolveRoleIdsByName(roleName), value);
+		commissionDao.updateCommission(operationType, userService.resolveRoleIdsByName(roleName), value);
 	}
 
 

@@ -1,5 +1,7 @@
 
-function submitAcceptInvoice(id) {
+function submitAcceptInvoice(e, id) {
+    var event = e || window.event;
+    event.stopPropagation();
     if (confirm($('#prompt_acc_rqst').html())) {
         $.ajax({
             url: '/merchants/invoice/payment/accept?id=' + id,

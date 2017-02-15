@@ -3,21 +3,27 @@
  */
 
 var currentId;
+var currentRole;
 
-$(function () {
-    $('#upload-users-wallets').on('click', downloadUsersWalletsSummaryDatepiker);
-});
+function uploadUserWallets(role) {
+    currentRole = role;
+    currentId = 'upload-users-wallets';
+    downloadUsersWalletsSummaryDatepiker();
+}
 
-$(function () {
-    $('#upload-users-wallets-orders').on('click', downloadUsersWalletsSummaryDatepiker);
-});
+function uploadUserWalletsInOut(role) {
+    currentRole = role;
+    currentId = 'upload-users-wallets-inout';
+    downloadUsersWalletsSummaryDatepiker();
+}
 
-$(function () {
-    $('#upload-users-wallets-inout').on('click', downloadUsersWalletsSummaryDatepiker);
-});
+function uploadUserWalletsOrders(role) {
+    currentRole = role;
+    currentId = 'upload-users-wallets-orders';
+    downloadUsersWalletsSummaryDatepiker();
+}
 
 function downloadUsersWalletsSummaryDatepiker() {
-    currentId = this.id;
     $('#order-delete-modal--date-picker').modal();
 }
 
@@ -38,7 +44,7 @@ function downloadUsersWalletsSummary() {
 
         $('#order-delete-modal--date-picker').one('hidden.bs.modal', function (e) {
             var objArr = $('#datepicker__form').serializeArray();
-            var data = "startDate="+objArr[0].value+' 00:00:00'+'&'+"endDate="+objArr[1].value+' 23:59:59';
+            var data = "startDate="+objArr[0].value+' 00:00:00'+'&'+"endDate="+objArr[1].value+' 23:59:59' + "&role="+currentRole;
             if (currentId == 'upload-users-wallets'){
                 $.ajax({
                         url: '/2a8fy7b07dxe44/downloadUsersWalletsSummary',
@@ -49,7 +55,7 @@ function downloadUsersWalletsSummary() {
                              $('<a href="data:text/plain,%EF%BB%BF' + encodeURIComponent(data) + '" download="downloadUsersWalletsSummary.csv"/a>')[0].click();*/
                             var link = document.createElement('a');
                             link.href = "data:text/plain;charset=utf-8,%EF%BB%BF" + encodeURIComponent(data);
-                            link.download = "downloadUsersWalletsSummary.csv";
+                            link.download = "downloadUsersWalletsSummary_" + currentRole + ".csv";
                             var e = document.createEvent('MouseEvents');
                             e.initEvent('click', true, true);
                             link.dispatchEvent(e);
@@ -65,7 +71,7 @@ function downloadUsersWalletsSummary() {
                         success: function (data) {
                             var link = document.createElement('a');
                             link.href = "data:text/plain;charset=utf-8,%EF%BB%BF" + encodeURIComponent(data);
-                            link.download = "downloadUsersWalletsSummaryInOut.csv";
+                            link.download = "downloadUsersWalletsSummaryInOut_" + currentRole + ".csv";
                             var e = document.createEvent('MouseEvents');
                             e.initEvent('click', true, true);
                             link.dispatchEvent(e);
@@ -79,7 +85,7 @@ function downloadUsersWalletsSummary() {
                         success: function (data) {
                             var link = document.createElement('a');
                             link.href = "data:text/plain;charset=utf-8,%EF%BB%BF" + encodeURIComponent(data);
-                            link.download = "downloadUsersWalletsTOTALSummaryInOut.csv";
+                            link.download = "downloadUsersWalletsTOTALSummaryInOut_" + currentRole + ".csv";
                             var e = document.createEvent('MouseEvents');
                             e.initEvent('click', true, true);
                             link.dispatchEvent(e);
@@ -95,7 +101,7 @@ function downloadUsersWalletsSummary() {
                         success: function (data) {
                             var link = document.createElement('a');
                             link.href = "data:text/plain;charset=utf-8,%EF%BB%BF" + encodeURIComponent(data);
-                            link.download = "downloadUsersSummaryOrders.csv";
+                            link.download = "downloadUsersSummaryOrders_" + currentRole + ".csv";
                             var e = document.createEvent('MouseEvents');
                             e.initEvent('click', true, true);
                             link.dispatchEvent(e);

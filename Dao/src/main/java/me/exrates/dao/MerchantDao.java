@@ -21,6 +21,8 @@ public interface MerchantDao {
 
     Merchant findById(int id);
 
+    Merchant findByName(String name);
+
     List<Merchant> findAll();
 
     List<Merchant> findAllByCurrency(int currencyId);

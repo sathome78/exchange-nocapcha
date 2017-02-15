@@ -35,8 +35,8 @@ public class AuthTokenServiceImpl implements AuthTokenService {
 
 
     private static final String TOKEN_KEY = "k2j34g5sdfgs8d97"; //currently a random combination of letters and digits
-    private static final long TOKEN_DURATION_TIME = 60L; //SECONDS
-    private static final long TOKEN_MAX_DURATION_TIME = 15 * 60L; //SECONDS
+    private static final long TOKEN_DURATION_TIME = 60000L; //SECONDS
+    private static final long TOKEN_MAX_DURATION_TIME = 15 * 60000L; //SECONDS
 
 
 

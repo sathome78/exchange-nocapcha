@@ -13,7 +13,6 @@ import javax.websocket.*;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 import static java.util.regex.Pattern.compile;
