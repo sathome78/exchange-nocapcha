@@ -21,6 +21,8 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
     private Integer userId;
     private Boolean confirmationRequired;
     private String bankAccount;
+    private String userFullName;
+    private String remark;
 
     public MyInputOutputHistoryDto() {
         this.needRefresh = true;
@@ -118,6 +120,22 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
         this.bankAccount = bankAccount;
     }
 
+    public String getUserFullName() {
+        return userFullName;
+    }
+
+    public void setUserFullName(String userFullName) {
+        this.userFullName = userFullName;
+    }
+
+    public String getRemark() {
+        return remark;
+    }
+
+    public void setRemark(String remark) {
+        this.remark = remark;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -135,8 +153,14 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
             return false;
         if (transactionId != null ? !transactionId.equals(that.transactionId) : that.transactionId != null)
             return false;
-        return transactionProvided != null ? transactionProvided.equals(that.transactionProvided) : that.transactionProvided == null;
-
+        if (transactionProvided != null ? !transactionProvided.equals(that.transactionProvided) : that.transactionProvided != null)
+            return false;
+        if (userId != null ? !userId.equals(that.userId) : that.userId != null) return false;
+        if (confirmationRequired != null ? !confirmationRequired.equals(that.confirmationRequired) : that.confirmationRequired != null)
+            return false;
+        if (bankAccount != null ? !bankAccount.equals(that.bankAccount) : that.bankAccount != null) return false;
+        if (userFullName != null ? !userFullName.equals(that.userFullName) : that.userFullName != null) return false;
+        return remark != null ? remark.equals(that.remark) : that.remark == null;
     }
 
     @Override
@@ -149,6 +173,11 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
         result = 31 * result + (operationType != null ? operationType.hashCode() : 0);
         result = 31 * result + (transactionId != null ? transactionId.hashCode() : 0);
         result = 31 * result + (transactionProvided != null ? transactionProvided.hashCode() : 0);
+        result = 31 * result + (userId != null ? userId.hashCode() : 0);
+        result = 31 * result + (confirmationRequired != null ? confirmationRequired.hashCode() : 0);
+        result = 31 * result + (bankAccount != null ? bankAccount.hashCode() : 0);
+        result = 31 * result + (userFullName != null ? userFullName.hashCode() : 0);
+        result = 31 * result + (remark != null ? remark.hashCode() : 0);
         return result;
     }
 
@@ -163,6 +192,11 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
                 ", operationType='" + operationType + '\'' +
                 ", transactionId=" + transactionId +
                 ", transactionProvided='" + transactionProvided + '\'' +
+                ", userId=" + userId +
+                ", confirmationRequired=" + confirmationRequired +
+                ", bankAccount='" + bankAccount + '\'' +
+                ", userFullName='" + userFullName + '\'' +
+                ", remark='" + remark + '\'' +
                 '}';
     }
 }

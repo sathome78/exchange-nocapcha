@@ -219,6 +219,7 @@ public class MerchantDaoImpl implements MerchantDao {
                 "OPERATION_TYPE.name as operation_type, TRANSACTION.id, TRANSACTION.provided, " +
                 "IF(OPERATION_TYPE.id = 1 AND MERCHANT.name = 'Invoice' AND INVOICE_REQUEST.payer_account IS NULL " +
                 "AND TRANSACTION.provided IS NOT TRUE, 1, 0) AS confirmation_required, " +
+                "INVOICE_REQUEST.user_full_name, INVOICE_REQUEST.remark, " +
                 "INVOICE_BANK.account_number AS bank_account, " +
                 "USER.id AS user_id from TRANSACTION \n" +
                 "left join CURRENCY on TRANSACTION.currency_id=CURRENCY.id\n" +
@@ -253,6 +254,8 @@ public class MerchantDaoImpl implements MerchantDao {
                 Boolean confirmationRequired = rs.getBoolean("confirmation_required");
                 myInputOutputHistoryDto.setConfirmationRequired(confirmationRequired);
                 myInputOutputHistoryDto.setBankAccount(rs.getString("bank_account"));
+                myInputOutputHistoryDto.setUserFullName(rs.getString("user_full_name"));
+                myInputOutputHistoryDto.setRemark(rs.getString("remark"));
                 return myInputOutputHistoryDto;
             }
         });

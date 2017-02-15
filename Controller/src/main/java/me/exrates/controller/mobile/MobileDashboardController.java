@@ -922,9 +922,12 @@ public class MobileDashboardController {
 
         int offsetValue = offset == null ? 0 : offset;
         int limitValue = limit == null ? -1 : limit;
-        return merchantService.getMyInputOutputHistory(getAuthenticatedUserEmail(),
+        List<MyInputOutputHistoryApiDto> data = merchantService.getMyInputOutputHistory(getAuthenticatedUserEmail(),
                 offsetValue, limitValue, localeResolver.resolveLocale(request)).stream()
                 .map(dto -> new MyInputOutputHistoryApiDto(dto, localeResolver.resolveLocale(request))).collect(Collectors.toList());
+        logger.debug(data);
+        return data;
+
 
     }
 
