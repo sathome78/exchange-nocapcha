@@ -192,8 +192,8 @@ public final class WalletServiceImpl implements WalletService {
         walletDao.update(wallet);
     }
 
-    public List<UserWalletSummaryDto> getUsersWalletsSummary() {
-        return walletDao.getUsersWalletsSummary();
+    public List<UserWalletSummaryDto> getUsersWalletsSummary(List<Integer> roles) {
+        return walletDao.getUsersWalletsSummary(roles);
     }
 
     @Override

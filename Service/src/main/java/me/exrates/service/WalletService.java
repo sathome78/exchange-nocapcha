@@ -65,7 +65,7 @@ public interface WalletService {
      * @return list the UserWalletSummaryDto
      * @author ValkSam
      */
-    List<UserWalletSummaryDto> getUsersWalletsSummary();
+    List<UserWalletSummaryDto> getUsersWalletsSummary(List<Integer> roles);
 
     /**
      * Transfers money between active balance the wallet and reserved balance the wallet

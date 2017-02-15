@@ -110,7 +110,7 @@ public interface UserDao {
 
     boolean setLastRegistrationDate(int userId, String ip);
 
-    List<UserSummaryDto> getUsersSummaryList(String startDate, String endDate);
+    List<UserSummaryDto> getUsersSummaryList(String startDate, String endDate, List<Integer> roles);
 
     Long saveTemporaryPassword(Integer userId, String password, Integer tokenId);
 
@@ -126,11 +126,11 @@ public interface UserDao {
 
     List<UserSessionInfoDto> getUserSessionInfo(Set<String> emails);
 
-    List<UserSummaryInOutDto> getUsersSummaryInOutList(String startDate, String endDate);
+    List<UserSummaryInOutDto> getUsersSummaryInOutList(String startDate, String endDate, List<Integer> roles);
 
-    List<UserSummaryTotalInOutDto> getUsersSummaryTotalInOutList(String startDate, String endDate);
+    List<UserSummaryTotalInOutDto> getUsersSummaryTotalInOutList(String startDate, String endDate, List<Integer> roles);
 
-    List<UserSummaryOrdersDto> getUserSummaryOrdersList(String startDate, String endDate);
+    List<UserSummaryOrdersDto> getUserSummaryOrdersList(String startDate, String endDate, List<Integer> roles);
 
     String getAvatarPath(Integer userId);
 

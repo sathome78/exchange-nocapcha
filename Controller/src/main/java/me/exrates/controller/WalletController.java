@@ -2,10 +2,11 @@ package me.exrates.controller;
 
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.InvalidNicknameException;
-import me.exrates.model.*;
+import me.exrates.model.CompanyWallet;
 import me.exrates.model.Currency;
+import me.exrates.model.User;
+import me.exrates.model.Wallet;
 import me.exrates.model.dto.MyWalletConfirmationDetailDto;
-import me.exrates.model.dto.UserWalletSummaryDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.util.BigDecimalProcessing;
@@ -25,7 +26,10 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.security.Principal;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -62,12 +66,6 @@ public class WalletController {
     public ModelAndView showCompanyWalletForTesting() {
         List<CompanyWallet> companyWalletList = companyWalletService.getCompanyWallets();
         return new ModelAndView("CompanyWallets", "companyWalletList", companyWalletList);
-    }
-
-    @RequestMapping("/userswallets")
-    public ModelAndView showUsersWalletsSummary() {
-        List<UserWalletSummaryDto> usersWalletsSummaryList = walletService.getUsersWalletsSummary();
-        return new ModelAndView("UsersWallets", "usersWalletsSummaryList", usersWalletsSummaryList);
     }
 
     @RequestMapping("/dashboard/myWalletsConfirmationDetail")
