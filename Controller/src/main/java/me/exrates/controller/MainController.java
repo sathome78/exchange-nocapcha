@@ -275,9 +275,7 @@ public class MainController {
 
     @RequestMapping("/aboutUs")
     public ModelAndView aboutUs() {
-        ModelAndView modelAndView = new ModelAndView("aboutUs");
-        modelAndView.addObject("telephone", telephone);
-        modelAndView.addObject("email", email);
+        ModelAndView modelAndView = new ModelAndView("/globalPages/aboutUs", "captchaType", CAPTCHA_TYPE);
         return modelAndView;
     }
 
@@ -344,8 +342,6 @@ public class MainController {
                                      HttpServletRequest request, RedirectAttributes redirectAttributes) {
 
 
-        messageForm.setSenderName(decodeToUTF8(messageForm.getSenderName()));
-        messageForm.setMessageText(decodeToUTF8(messageForm.getMessageText()));
         ModelAndView modelAndView = new ModelAndView("redirect:/contacts");
         String captchaType = request.getParameter("captchaType");
         switch (captchaType) {
@@ -390,10 +386,7 @@ public class MainController {
         return modelAndView;
     }
 
-    private String decodeToUTF8(String encoded) {
-        byte[] stringBytes = encoded.getBytes(StandardCharsets.ISO_8859_1);
-        return new String(stringBytes, StandardCharsets.UTF_8);
-    }
+
 
 
 

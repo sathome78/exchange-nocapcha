@@ -1,16 +1,14 @@
 package me.exrates.controller.mobile;
 
+import me.exrates.controller.exception.InvoiceNotFoundException;
 import me.exrates.controller.exception.NotEnoughMoneyException;
-import me.exrates.model.CreditsOperation;
-import me.exrates.model.Currency;
-import me.exrates.model.MerchantCurrency;
-import me.exrates.model.Payment;
-import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
-import me.exrates.model.dto.mobileApiDto.MerchantInputResponseDto;
-import me.exrates.model.dto.mobileApiDto.PaymentDto;
-import me.exrates.model.dto.mobileApiDto.WithdrawDto;
+import me.exrates.model.*;
+import me.exrates.model.dto.mobileApiDto.*;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.vo.InvoiceConfirmData;
+import me.exrates.model.vo.InvoiceData;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.InvoiceService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.CurrencyPairNotFoundException;
@@ -19,11 +17,13 @@ import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.api.ApiError;
 import me.exrates.service.exception.api.ErrorCode;
 import me.exrates.service.merchantPayment.MerchantPaymentService;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -31,14 +31,12 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static me.exrates.service.exception.api.ErrorCode.*;
 import static org.springframework.http.HttpStatus.*;
@@ -67,6 +65,9 @@ public class MobileInputOutputController {
 
     @Autowired
     private Map<String, MerchantPaymentService> merchantPaymentServices;
+
+    @Autowired
+    private InvoiceService invoiceService;
 
     @Autowired
     private MessageSource messageSource;
@@ -224,7 +225,7 @@ public class MobileInputOutputController {
         payment.setOperationType(OperationType.OUTPUT);
 
 
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
             return merchantService.prepareCreditsOperation(payment, userEmail)
                     .map(creditsOperation -> merchantService.withdrawRequest(creditsOperation, userLocale, userEmail))
@@ -275,7 +276,7 @@ public class MobileInputOutputController {
         payment.setSum(paymentDto.getSum());
         payment.setMerchantImage(paymentDto.getMerchantImage());
         payment.setOperationType(OperationType.INPUT);
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        String userEmail = getAuthenticatedUserEmail();
         String merchantName = merchantService.findById(payment.getMerchant()).getName();
         String beanName = String.join("", merchantName.split("[\\s.]+")).concat( "PaymentService");
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
@@ -283,6 +284,189 @@ public class MobileInputOutputController {
                 userLocale);
         return new ResponseEntity<>(result, OK);
     }
+
+    /**
+     * @api {post} /api/payments/invoice/prepare Prepare invoice
+     * @apiName prepareInvoice
+     * @apiGroup Input-Output
+     * @apiUse TokenHeader
+     * @apiPermission user
+     * @apiDescription Submit request input through Invoice
+     * @apiParam {Integer} currency currency id
+     * @apiParam {Number} amount amount of payment
+     * @apiParam {Integer} bankId ID of destination bank
+     * @apiParam {String} userFullName full name of user
+     * @apiParam {String} remark additional remark (OPTIONAL)
+     *
+     * @apiParamExample {json} Request Example:
+     *      {
+     *          "currency": 2,
+     *          "amount": 10.0,
+     *          "bankId": 3,
+     *          "userFullName": John Smith,
+     *          "remark": qwerty qwerty
+     *      }
+     *
+     * @apiSuccess {Integer} invoiceId  id of created invoice request
+     * @apiSuccess {String} walletNumber Number of wallet
+     * @apiSuccess {String} notification Notification with payment details
+     *
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     *     {
+     *          "invoiceId": 130721,
+     *          "walletNumber": "0483087786",
+     *          "notification": "Заявка на ввод средств создана. Пожалуйста, оплатите 1 013 000 000 000 IDR на расчетный счет  и подтвердите заявку "
+     *     }
+     *
+     * @apiUse ExpiredAuthenticationTokenError
+     * @apiUse MissingAuthenticationTokenError
+     * @apiUse InvalidAuthenticationTokenError
+     * @apiUse AuthenticationError
+     * @apiUse InvalidParamError
+     * @apiUse MessageNotReadableError
+     * @apiUse InvalidAmountError
+     * @apiUse InternalServerError
+     */
+    @RequestMapping(value = "/invoice/prepare", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<InvoiceResponseDto> prepareInvoice(@RequestBody @Valid InvoicePaymentDto paymentDto) {
+        String userEmail = getAuthenticatedUserEmail();
+        Locale userLocale = userService.getUserLocaleForMobile(userEmail);
+        Payment payment = new Payment();
+        payment.setCurrency(paymentDto.getCurrencyId());
+        payment.setMerchant(merchantService.findByNName("Invoice").getId());
+        payment.setSum(paymentDto.getAmount().doubleValue());
+        payment.setOperationType(OperationType.INPUT);
+        final CreditsOperation creditsOperation = merchantService
+                .prepareCreditsOperation(payment, userEmail)
+                .orElseThrow(InvalidAmountException::new);
+        InvoiceData invoiceData = new InvoiceData();
+        invoiceData.setCreditsOperation(creditsOperation);
+        invoiceData.setBankId(paymentDto.getBankId());
+        invoiceData.setUserFullName(paymentDto.getUserFullName());
+        invoiceData.setRemark(paymentDto.getRemark());
+        final Transaction transaction = invoiceService.createPaymentInvoice(invoiceData);
+        final String notification = merchantService
+                .sendDepositNotification("",
+                        userEmail , userLocale, creditsOperation, "merchants.depositNotificationWithCurrency" +
+                                creditsOperation.getCurrency().getName() +
+                                ".body");
+        InvoiceResponseDto dto = new InvoiceResponseDto();
+        dto.setNotification(notification);
+        dto.setWalletNumber(invoiceService.findBankById(paymentDto.getBankId()).getAccountNumber());
+        dto.setInvoiceId(transaction.getId());
+        return new ResponseEntity<>(dto, OK);
+    }
+
+
+    /**
+     * @api {post} /api/payments/invoice/confirm Confirm invoice
+     * @apiName confirmInvoice
+     * @apiGroup Input-Output
+     * @apiUse TokenHeader
+     * @apiPermission user
+     * @apiDescription Confirm invoice by ID
+     * @apiParam {Integer} invoiceId invoice id
+     * @apiParam {String} payerBankName name of payer bank
+     * @apiParam {String} userAccount payer account number
+     * @apiParam {String} userFullName full name of user
+     * @apiParam {String} remark additional remark (OPTIONAL)
+     *
+     * @apiParamExample {json} Request Example:
+     *      {
+     *          "invoiceId": 130720,
+     *          "payerBankName": "AAA BANK",
+     *          "userAccount": "6541325465",
+     *          "userFullName": "Talalai Talalaenko",
+     *          "remark": "alala ololo"
+     *      }
+     *
+     *
+     * @apiUse ExpiredAuthenticationTokenError
+     * @apiUse MissingAuthenticationTokenError
+     * @apiUse InvalidAuthenticationTokenError
+     * @apiUse AuthenticationError
+     * @apiUse InvalidParamError
+     * @apiUse MessageNotReadableError
+     * @apiUse InvalidAmountError
+     * @apiUse InternalServerError
+     */
+    @RequestMapping(value = "/invoice/confirm", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<Void> confirmInvoice(@RequestBody @Valid InvoiceConfirmData invoiceConfirmData) {
+        String userEmail = getAuthenticatedUserEmail();
+        Locale userLocale = userService.getUserLocaleForMobile(userEmail);
+        Optional<InvoiceRequest> invoiceRequestResult = invoiceService.findUnconfirmedRequestById(invoiceConfirmData.getInvoiceId());
+        if (!invoiceRequestResult.isPresent()) {
+            throw new InvoiceNotFoundException("Invoice with ID " + invoiceConfirmData.getInvoiceId() + " not found");
+        } else {
+            InvoiceRequest invoiceRequest = invoiceRequestResult.get();
+            invoiceRequest.setPayerBankName(invoiceConfirmData.getPayerBankName());
+            invoiceRequest.setPayerAccount(invoiceConfirmData.getUserAccount());
+            invoiceRequest.setUserFullName(invoiceConfirmData.getUserFullName());
+            //html escaping to prevent XSS
+            invoiceRequest.setRemark(StringEscapeUtils.escapeHtml(invoiceConfirmData.getRemark()));
+            invoiceService.updateConfirmationInfo(invoiceRequest);
+        }
+
+        return new ResponseEntity<>(OK);
+    }
+
+
+    /**
+     * @api {get} /api/payments/invoice/banks Banks info
+     * @apiName getBanksByCurrency
+     * @apiGroup Input-Output
+     * @apiUse TokenHeader
+     * @apiPermission user
+     * @apiDescription returns list of banks by currency
+     * @apiParam {Integer} currencyId - currency id
+     * @apiParamExample Request example
+     * /api/payments/invoice/banks?currencyId=10
+     * @apiSuccess {Array} banks List of banks
+     * @apiSuccess {Object} data Container object
+     * @apiSuccess {Integer} data.id bank id
+     * @apiSuccess {Integer} data.currencyId currency id
+     * @apiSuccess {String} data.name bank name
+     * @apiSuccess {String} data.accountNumber bank account number
+     * @apiSuccess {Number} data.recipient recipient's full name
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     *   [
+     *      {
+     *          "id": 1,
+     *          "currencyId": 10,
+     *          "name": "BCA",
+     *          "accountNumber": "3150963141",
+     *          "recipient": "Nanda Rizal Pahlewi"
+     *      },
+     *      {
+     *          "id": 2,
+     *          "currencyId": 10,
+     *          "name": "MANDIRI",
+     *          "accountNumber": "1440099965557",
+     *          "recipient": "Nanda Rizal Pahlewi"
+     *       }
+     *   ]
+     *
+     *
+     *
+     * @apiUse ExpiredAuthenticationTokenError
+     * @apiUse MissingAuthenticationTokenError
+     * @apiUse InvalidAuthenticationTokenError
+     * @apiUse AuthenticationError
+     * @apiUse InternalServerError
+     */
+    @RequestMapping(value = "/invoice/banks", method = GET)
+    public List<InvoiceBank> getBanksByCurrency(@RequestParam Integer currencyId) {
+        return invoiceService.findBanksForCurrency(currencyId);
+    }
+
+    @RequestMapping(value = "/invoice/requests", method = GET)
+    public List<InvoiceRequest> findInvoiceRequestsForUser() {
+        return invoiceService.findAllRequestsForUser(getAuthenticatedUserEmail());
+
+    }
+
 
     @RequestMapping(value = "/merchantRedirect", method = GET)
     public ModelAndView getMerchantRedirectPage(@RequestParam Integer currencyId, @RequestParam Integer merchantId,
@@ -304,7 +488,7 @@ public class MobileInputOutputController {
         payment.setSum(paymentDto.getSum());
         payment.setMerchantImage(paymentDto.getMerchantImage());
         payment.setOperationType(OperationType.INPUT);
-        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        String userEmail = getAuthenticatedUserEmail();
         final CreditsOperation creditsOperation = merchantService
                 .prepareCreditsOperation(payment, userEmail)
                 .orElseThrow(InvalidAmountException::new);
@@ -315,6 +499,10 @@ public class MobileInputOutputController {
                 userLocale);
         LOGGER.debug(result);
         return new ResponseEntity<>(result, OK);
+    }
+
+    private String getAuthenticatedUserEmail() {
+        return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -355,6 +543,13 @@ public class MobileInputOutputController {
     @ResponseBody
     public ApiError currencyPairNotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ApiError(ErrorCode.CURRENCY_PAIR_NOT_FOUND, req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(NOT_FOUND)
+    @ExceptionHandler(InvoiceNotFoundException.class)
+    @ResponseBody
+    public ApiError invoiceNotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ApiError(ErrorCode.INVOICE_NOT_FOUND, req.getRequestURL(), exception);
     }
 
 

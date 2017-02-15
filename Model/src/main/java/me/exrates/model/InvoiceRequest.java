@@ -1,5 +1,8 @@
 package me.exrates.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import me.exrates.model.serializer.LocalDateTimeSerializer;
+
 import java.time.LocalDateTime;
 
 /**
@@ -12,7 +15,13 @@ public class InvoiceRequest {
     private String userEmail;
     private Integer acceptanceUserId;
     private String acceptanceUserEmail;
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime acceptanceTime;
+    private InvoiceBank invoiceBank;
+    private String userFullName;
+    private String remark;
+    private String payerBankName;
+    private String payerAccount;
 
     public InvoiceRequest() {
     }
@@ -65,6 +74,46 @@ public class InvoiceRequest {
         this.acceptanceUserId = acceptanceUserId;
     }
 
+    public InvoiceBank getInvoiceBank() {
+        return invoiceBank;
+    }
+
+    public void setInvoiceBank(InvoiceBank invoiceBank) {
+        this.invoiceBank = invoiceBank;
+    }
+
+    public String getUserFullName() {
+        return userFullName;
+    }
+
+    public void setUserFullName(String userFullName) {
+        this.userFullName = userFullName;
+    }
+
+    public String getRemark() {
+        return remark;
+    }
+
+    public void setRemark(String remark) {
+        this.remark = remark;
+    }
+
+    public String getPayerBankName() {
+        return payerBankName;
+    }
+
+    public void setPayerBankName(String payerBankName) {
+        this.payerBankName = payerBankName;
+    }
+
+    public String getPayerAccount() {
+        return payerAccount;
+    }
+
+    public void setPayerAccount(String payerAccount) {
+        this.payerAccount = payerAccount;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -79,8 +128,14 @@ public class InvoiceRequest {
             return false;
         if (acceptanceUserEmail != null ? !acceptanceUserEmail.equals(that.acceptanceUserEmail) : that.acceptanceUserEmail != null)
             return false;
-        return acceptanceTime != null ? acceptanceTime.equals(that.acceptanceTime) : that.acceptanceTime == null;
-
+        if (acceptanceTime != null ? !acceptanceTime.equals(that.acceptanceTime) : that.acceptanceTime != null)
+            return false;
+        if (invoiceBank != null ? !invoiceBank.equals(that.invoiceBank) : that.invoiceBank != null) return false;
+        if (userFullName != null ? !userFullName.equals(that.userFullName) : that.userFullName != null) return false;
+        if (remark != null ? !remark.equals(that.remark) : that.remark != null) return false;
+        if (payerBankName != null ? !payerBankName.equals(that.payerBankName) : that.payerBankName != null)
+            return false;
+        return payerAccount != null ? payerAccount.equals(that.payerAccount) : that.payerAccount == null;
     }
 
     @Override
@@ -91,6 +146,11 @@ public class InvoiceRequest {
         result = 31 * result + (acceptanceUserId != null ? acceptanceUserId.hashCode() : 0);
         result = 31 * result + (acceptanceUserEmail != null ? acceptanceUserEmail.hashCode() : 0);
         result = 31 * result + (acceptanceTime != null ? acceptanceTime.hashCode() : 0);
+        result = 31 * result + (invoiceBank != null ? invoiceBank.hashCode() : 0);
+        result = 31 * result + (userFullName != null ? userFullName.hashCode() : 0);
+        result = 31 * result + (remark != null ? remark.hashCode() : 0);
+        result = 31 * result + (payerBankName != null ? payerBankName.hashCode() : 0);
+        result = 31 * result + (payerAccount != null ? payerAccount.hashCode() : 0);
         return result;
     }
 
@@ -103,6 +163,11 @@ public class InvoiceRequest {
                 ", acceptanceUserId=" + acceptanceUserId +
                 ", acceptanceUserEmail='" + acceptanceUserEmail + '\'' +
                 ", acceptanceTime=" + acceptanceTime +
+                ", invoiceBank=" + invoiceBank +
+                ", userFullName='" + userFullName + '\'' +
+                ", remark='" + remark + '\'' +
+                ", payerBankName='" + payerBankName + '\'' +
+                ", payerAccount='" + payerAccount + '\'' +
                 '}';
     }
 }

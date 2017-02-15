@@ -19,10 +19,12 @@ import org.springframework.security.config.annotation.web.configurers.SessionMan
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.access.channel.ChannelProcessingFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.filter.CharacterEncodingFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -89,6 +91,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return new AjaxAwareAccessDeniedHandler("/403");
     }
 
+    @Bean
+    public CharacterEncodingFilter characterEncodingFilter() {
+        return new CharacterEncodingFilter("UTF-8", true);
+    }
+
 
 
     @Autowired
@@ -102,6 +109,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.addFilterBefore(customUsernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(customQRAuthorizationFilter(), CapchaAuthorizationFilter.class);
+        http.addFilterBefore(characterEncodingFilter(), ChannelProcessingFilter.class);
         http
                 .authorizeRequests()
                 .antMatchers(HttpMethod.POST,"/2a8fy7b07dxe44/edituser/submit", "/2a8fy7b07dxe44/users/deleteUserFile").hasAuthority(AdminAuthority.EDIT_USER.name())
@@ -160,6 +168,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.GET, "/public/**").permitAll()
                 .antMatchers(HttpMethod.GET, "/favicon.ico").permitAll()
                 .antMatchers(HttpMethod.GET, "/news/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/pageMaterials/**").permitAll()
                 .antMatchers("/stickyImg").permitAll()
                 .antMatchers("/simpleCaptcha").permitAll()
                 .antMatchers("/botdetectcaptcha").permitAll()
