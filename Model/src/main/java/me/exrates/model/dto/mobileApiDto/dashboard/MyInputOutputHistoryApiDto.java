@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.serializer.LocalDateTimeToLongSerializer;
 import me.exrates.model.util.BigDecimalProcessing;
+import org.apache.commons.lang3.StringEscapeUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -48,7 +49,7 @@ public class MyInputOutputHistoryApiDto {
         this.invoiceConfirmed = "Invoice".equals(dto.getMerchantName()) ? !dto.getConfirmationRequired() : null;
         this.bankAccount = dto.getBankAccount();
         this.userFullName = dto.getUserFullName();
-        this.remark = dto.getRemark();
+        this.remark = StringEscapeUtils.unescapeHtml4(dto.getRemark());
     }
 
     public LocalDateTime getDatetime() {

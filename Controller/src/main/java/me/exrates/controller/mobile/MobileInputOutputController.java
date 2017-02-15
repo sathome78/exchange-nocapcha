@@ -7,11 +7,9 @@ import me.exrates.model.dto.mobileApiDto.*;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.InvoiceData;
-import me.exrates.service.CurrencyService;
-import me.exrates.service.InvoiceService;
-import me.exrates.service.MerchantService;
-import me.exrates.service.UserService;
+import me.exrates.service.*;
 import me.exrates.service.exception.CurrencyPairNotFoundException;
+import me.exrates.service.exception.FileLoadingException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.api.ApiError;
@@ -31,10 +29,12 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -68,6 +68,9 @@ public class MobileInputOutputController {
 
     @Autowired
     private InvoiceService invoiceService;
+
+    @Autowired
+    private UserFilesService userFilesService;
 
     @Autowired
     private MessageSource messageSource;
@@ -391,8 +394,8 @@ public class MobileInputOutputController {
      * @apiUse InvalidAmountError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/invoice/confirm", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Void> confirmInvoice(@RequestBody @Valid InvoiceConfirmData invoiceConfirmData) {
+    @RequestMapping(value = "/invoice/confirm", method = POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Void> confirmInvoice(@Valid InvoiceConfirmData invoiceConfirmData) throws IOException {
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
         Optional<InvoiceRequest> invoiceRequestResult = invoiceService.findUnconfirmedRequestById(invoiceConfirmData.getInvoiceId());
@@ -401,11 +404,20 @@ public class MobileInputOutputController {
         } else {
             InvoiceRequest invoiceRequest = invoiceRequestResult.get();
             invoiceRequest.setPayerBankName(invoiceConfirmData.getPayerBankName());
+            invoiceRequest.setPayerBankCode(invoiceConfirmData.getPayerBankCode());
             invoiceRequest.setPayerAccount(invoiceConfirmData.getUserAccount());
             invoiceRequest.setUserFullName(invoiceConfirmData.getUserFullName());
             //html escaping to prevent XSS
             invoiceRequest.setRemark(StringEscapeUtils.escapeHtml(invoiceConfirmData.getRemark()));
             invoiceService.updateConfirmationInfo(invoiceRequest);
+            MultipartFile receiptScan = invoiceConfirmData.getReceiptScan();
+            if ( !(receiptScan == null || receiptScan.isEmpty())) {
+                if (!userFilesService.checkFileValidity(receiptScan) || receiptScan.getSize() > 1048576L) {
+                    throw new FileLoadingException(messageSource.getMessage("merchants.errorUploadReceipt", null,
+                            userLocale));
+                }
+                userFilesService.saveReceiptScan(invoiceRequest.getUserId(), invoiceRequest.getTransaction().getId(), receiptScan);
+            }
         }
 
         return new ResponseEntity<>(OK);
