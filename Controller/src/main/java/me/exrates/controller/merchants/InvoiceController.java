@@ -234,7 +234,7 @@ public class InvoiceController {
             try {
                 invoiceService.updateConfirmationInfo(invoiceRequest);
                 MultipartFile receiptScan = invoiceConfirmData.getReceiptScan();
-                if (receiptScan != null) {
+                if ( !(receiptScan == null || receiptScan.isEmpty())) {
                     if (!userFilesService.checkFileValidity(receiptScan) || receiptScan.getSize() > 1048576L) {
                         throw new FileLoadingException(messageSource.getMessage("merchants.errorUploadReceipt", null,
                                 localeResolver.resolveLocale(request)));
