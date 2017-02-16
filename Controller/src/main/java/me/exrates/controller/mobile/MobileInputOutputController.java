@@ -477,6 +477,11 @@ public class MobileInputOutputController {
         return invoiceService.findBanksForCurrency(currencyId);
     }
 
+    @RequestMapping(value = "/invoice/clientBanks", method = GET)
+    public List<ClientBank> getClientBanksByCurrency(@RequestParam Integer currencyId) {
+        return invoiceService.findClientBanksForCurrency(currencyId);
+    }
+
     @RequestMapping(value = "/invoice/requests", method = GET)
     public List<InvoiceRequest> findInvoiceRequestsForUser() {
         return invoiceService.findAllRequestsForUser(getAuthenticatedUserEmail());
