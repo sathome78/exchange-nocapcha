@@ -1,7 +1,13 @@
 package me.exrates.controller.mobile;
 
+import me.exrates.controller.exception.InvalidNicknameException;
 import me.exrates.controller.exception.InvoiceNotFoundException;
 import me.exrates.controller.exception.NotEnoughMoneyException;
+import me.exrates.model.CreditsOperation;
+import me.exrates.model.Currency;
+import me.exrates.model.MerchantCurrency;
+import me.exrates.model.Payment;
+import me.exrates.model.dto.mobileApiDto.*;
 import me.exrates.model.*;
 import me.exrates.model.dto.mobileApiDto.*;
 import me.exrates.model.enums.OperationType;
@@ -10,9 +16,11 @@ import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.InvoiceData;
 import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.*;
+import me.exrates.service.WalletService;
 import me.exrates.service.exception.CurrencyPairNotFoundException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
+import me.exrates.service.exception.UserNotFoundException;
 import me.exrates.service.exception.api.ApiError;
 import me.exrates.service.exception.api.ErrorCode;
 import me.exrates.service.exception.invoice.IllegalInvoiceRequestStatusException;
@@ -35,6 +43,7 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.security.Principal;
 import java.util.*;
 
 import static me.exrates.service.exception.api.ErrorCode.*;
@@ -67,6 +76,9 @@ public class MobileInputOutputController {
 
     @Autowired
     private Map<String, MerchantPaymentService> merchantPaymentServices;
+
+    @Autowired
+    private WalletService walletService;
 
     @Autowired
     private InvoiceService invoiceService;
@@ -217,7 +229,7 @@ public class MobileInputOutputController {
      * @apiUse InvalidParamError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value="/withdraw", method = POST)
+    @RequestMapping(value="/withdraw", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Map<String,String>> withdraw(@RequestBody @Valid WithdrawDto withdrawDto) {
 
 
@@ -273,7 +285,7 @@ public class MobileInputOutputController {
      * @apiUse InvalidAmountError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/preparePayment", method = POST)
+    @RequestMapping(value = "/preparePayment", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<MerchantInputResponseDto> preparePayment(@RequestBody @Valid PaymentDto paymentDto) {
         Payment payment = new Payment();
         payment.setCurrency(paymentDto.getCurrency());
@@ -506,7 +518,7 @@ public class MobileInputOutputController {
         return modelAndView;
     }
 
-    @RequestMapping(value = "/preparePostPayment", method = POST)
+    @RequestMapping(value = "/preparePostPayment", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Map<String,String>> preparePostPayment(@RequestBody @Valid PaymentDto paymentDto) {
         LOGGER.debug(paymentDto);
         Payment payment = new Payment();
@@ -530,6 +542,52 @@ public class MobileInputOutputController {
 
     private String getAuthenticatedUserEmail() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
+    }
+
+
+
+
+    /**
+     * @api {post} /api/payments/transfer/submit Submit transfer
+     * @apiName submitTransfer
+     * @apiGroup Input-Output
+     * @apiUse TokenHeader
+     * @apiPermission user
+     * @apiDescription Send transfer to other user
+     * @apiParam {Integer} walletId wallet id
+     * @apiParam {Integer} nickname nickname of receiver
+     * @apiParam {Number} amount amount of transfer
+     *
+     * @apiParamExample {json} Request Example:
+     *      {
+     *          "walletId": 6280,
+     *          "nickname": "qwerty123",
+     *          "sum": 10.0
+     *      }
+     *
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     *
+     * @apiUse ExpiredAuthenticationTokenError
+     * @apiUse MissingAuthenticationTokenError
+     * @apiUse InvalidAuthenticationTokenError
+     * @apiUse AuthenticationError
+     * @apiUse InvalidParamError
+     * @apiUse MessageNotReadableError
+     * @apiUse InvalidAmountError
+     * @apiUse InternalServerError
+     */
+    @RequestMapping(value = "/transfer/submit", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<Void> submitTransfer(@RequestBody UserTransferDto userTransferDto) {
+        Locale userLocale = userService.getUserLocaleForMobile(SecurityContextHolder.getContext().getAuthentication().getName());
+        String principalNickname = userService.findByEmail(getAuthenticatedUserEmail()).getNickname();
+        if (userTransferDto.getNickname().equals(principalNickname)) {
+            throw new InvalidNicknameException(messageSource.getMessage("transfer.selfNickname", null, userLocale));
+        }
+        walletService.transferCostsToUser(userTransferDto.getWalletId(), userTransferDto.getNickname(),
+                userTransferDto.getAmount(), userLocale);
+        return new ResponseEntity<>(OK);
+
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -582,6 +640,20 @@ public class MobileInputOutputController {
     @ResponseBody
     public ApiError invoiceNotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ApiError(ErrorCode.INVOICE_NOT_FOUND, req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(NOT_FOUND)
+    @ExceptionHandler(UserNotFoundException.class)
+    @ResponseBody
+    public ApiError userNotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ApiError(ErrorCode.USER_NOT_FOUND, req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(NOT_ACCEPTABLE)
+    @ExceptionHandler(InvalidNicknameException.class)
+    @ResponseBody
+    public ApiError invalidNicknameExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ApiError(ErrorCode.SELF_TRANSFER_NOT_ALLOWED, req.getRequestURL(), exception);
     }
 
 

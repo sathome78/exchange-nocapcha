@@ -4,6 +4,7 @@ import me.exrates.dao.CurrencyDao;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.service.CurrencyService;
@@ -30,6 +31,9 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     @Autowired
     private CurrencyDao currencyDao;
+
+    @Autowired
+    private UserService userService;
 
     @Autowired
     private UserService userService;
@@ -116,5 +120,11 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Override
     public int resolvePrecision(final String currency) {
         return CRYPTO.contains(currency) ? CRYPTO_PRECISION : DEFAULT_PRECISION;
+    }
+
+    @Override
+    public List<TransferLimitDto> retrieveMinTransferLimits(List<Integer> currencyIds) {
+        Integer roleId = userService.getCurrentUserRole().getRole();
+        return currencyDao.retrieveMinTransferLimits(currencyIds, roleId);
     }
 }

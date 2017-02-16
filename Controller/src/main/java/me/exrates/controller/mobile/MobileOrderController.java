@@ -17,6 +17,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -212,7 +213,7 @@ public class MobileOrderController {
      *
      */
 
-    @RequestMapping(value = "/submitOrderForCreation", method = POST)
+    @RequestMapping(value = "/submitOrderForCreation", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public OrderSummaryDto submitOrderForCreation(@Valid @RequestBody OrderCreationParamsDto orderCreationParamsDto, HttpServletRequest request) {
         CurrencyPair activeCurrencyPair = currencyService.findCurrencyPairById(orderCreationParamsDto.getCurrencyPairId());
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -264,7 +265,7 @@ public class MobileOrderController {
      * @apiUse InternalServerError
      *
      */
-    @RequestMapping(value = "/createOrder", method = POST)
+    @RequestMapping(value = "/createOrder", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<OrderCreationResultDto> createOrder(@RequestBody Map<String, String> body) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
@@ -306,7 +307,7 @@ public class MobileOrderController {
      * @apiUse InternalServerError
      *
      */
-    @RequestMapping(value = "/cancelCreation", method = POST)
+    @RequestMapping(value = "/cancelCreation", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> cancelOrderCreation(@RequestBody Map<String, String> body) {
         removeOrderCreateDtoByKey(body);
         return new ResponseEntity<>(OK);
@@ -356,7 +357,7 @@ public class MobileOrderController {
      * @apiUse InternalServerError
      *
      */
-    @RequestMapping(value = "/acceptOrders", method = POST)
+    @RequestMapping(value = "/acceptOrders", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Integer acceptOrderList(@RequestBody Map<String, List<Integer>> body) {
 
 
@@ -406,7 +407,7 @@ public class MobileOrderController {
      *
      */
     @RequestMapping(value = "/delete/{orderId}", method = DELETE, produces = "application/json;charset=utf-8")
-    public boolean deleteOrder(@PathVariable Integer orderId, HttpServletRequest request) {
+    public boolean deleteOrder(@PathVariable Integer orderId) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
 
