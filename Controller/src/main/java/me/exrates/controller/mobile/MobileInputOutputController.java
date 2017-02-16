@@ -54,6 +54,9 @@ public class MobileInputOutputController {
 
     private static final Logger LOGGER = LogManager.getLogger("mobileAPI");
 
+    private static int INVOICE_MERCHANT_ID = 12;
+    private static int INVOICE_MERCHANT_IMAGE_ID = 16;
+
 
     @Autowired
     private UserService userService;
@@ -478,6 +481,32 @@ public class MobileInputOutputController {
     public List<InvoiceRequest> findInvoiceRequestsForUser() {
         return invoiceService.findAllRequestsForUser(getAuthenticatedUserEmail());
 
+    }
+
+    @RequestMapping(value = "/invoice/withdraw", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<Map<String, String>> withdrawInvoice(@RequestBody @Valid WithdrawInvoiceDto withdrawInvoiceDto) {
+        LOGGER.debug(withdrawInvoiceDto);
+        Payment payment = new Payment();
+        payment.setSum(withdrawInvoiceDto.getSum());
+        payment.setCurrency(withdrawInvoiceDto.getCurrency());
+        payment.setMerchant(INVOICE_MERCHANT_ID);
+        payment.setMerchantImage(INVOICE_MERCHANT_IMAGE_ID);
+        payment.setOperationType(OperationType.INPUT);
+        payment.setDestination(withdrawInvoiceDto.getWalletNumber());
+
+        WithdrawData withdrawData = new WithdrawData();
+        withdrawData.setRecipientBankName(withdrawInvoiceDto.getRecipientBankName());
+        withdrawData.setRecipientBankCode(withdrawInvoiceDto.getRecipientBankCode());
+        withdrawData.setUserFullName(withdrawInvoiceDto.getUserFullName());
+        withdrawData.setRemark(withdrawInvoiceDto.getRemark());
+
+
+        String userEmail = getAuthenticatedUserEmail();
+        Locale userLocale = userService.getUserLocaleForMobile(userEmail);
+        return merchantService.prepareCreditsOperation(payment, userEmail)
+                .map(creditsOperation -> merchantService.withdrawRequest(creditsOperation, withdrawData, userEmail, userLocale))
+                .map(response -> new ResponseEntity<>(response, OK))
+                .orElseThrow(InvalidAmountException::new);
     }
 
 
