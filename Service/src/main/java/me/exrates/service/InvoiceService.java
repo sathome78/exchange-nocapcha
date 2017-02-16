@@ -23,7 +23,7 @@ public interface InvoiceService {
 
   void declineInvoice(int invoiceId, int transactionId, String acceptanceUserEmail) throws Exception;
 
-  Integer clearExpiredInvoices(Integer intervalHours) throws Exception;
+  Integer clearExpiredInvoices(Integer intervalMinutes) throws Exception;
 
   List<InvoiceRequest> findAllInvoiceRequests();
 

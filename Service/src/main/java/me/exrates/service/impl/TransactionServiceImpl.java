@@ -53,7 +53,7 @@ public class TransactionServiceImpl implements TransactionService {
     private MerchantService merchantService;
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.MANDATORY)
     public Transaction createTransactionRequest(CreditsOperation creditsOperation) {
         final Currency currency = creditsOperation.getCurrency();
         final User user = creditsOperation.getUser();

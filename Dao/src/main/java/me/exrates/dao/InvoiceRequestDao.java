@@ -29,9 +29,9 @@ public interface InvoiceRequestDao {
 
     List<InvoiceRequest> findByStatus(List<Integer> invoiceRequestStatusIdList);
 
-    Optional<LocalDateTime> getAndBlockByIntervalAndStatus(Integer intervalHours, List<Integer> invoiceRequestStatusIdList);
+    Optional<LocalDateTime> getAndBlockByIntervalAndStatus(Integer intervalMinutes, List<Integer> invoiceRequestStatusIdList);
 
-    void setExpiredByIntervalAndStatus(LocalDateTime boundDate, Integer intervalHours, Integer newInvoiceRequestStatusId, List<Integer> invoiceRequestStatusIdList);
+    void setExpiredByIntervalAndStatus(LocalDateTime boundDate, Integer intervalMinutes, Integer newInvoiceRequestStatusId, List<Integer> invoiceRequestStatusIdList);
 
     List<InvoiceUserDto> findInvoicesListByStatusChangedAtDate(Integer invoiceRequestStatusId, LocalDateTime dateWhenChanged);
 

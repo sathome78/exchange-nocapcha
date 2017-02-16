@@ -37,6 +37,7 @@ function clearTable($table) {
 }
 
 function XSSescape(str) {
+    str = !str ? str : ("" + str).replace(/<\s*script\s*/g, "&lt;script ");
     str = !str ? str : ("" + str).replace(/<\s*script\s*>/g, "&lt;script&gt;");
     str = !str ? str : ("" + str).replace(/javascript\s*:/g, "javascript;");
     return str;

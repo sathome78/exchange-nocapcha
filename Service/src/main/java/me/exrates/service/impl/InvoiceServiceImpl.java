@@ -70,6 +70,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     invoiceRequest.setRemark(StringEscapeUtils.escapeHtml(invoiceData.getRemark()));
     invoiceRequest.setInvoiceRequestStatus(CREATED_USER);
     invoiceRequestDao.create(invoiceRequest, creditsOperation.getUser());
+    /*id in invoice_request is the id of the corresponding transaction. So source_id equals transaction_id*/
     transactionService.setSourceId(transaction.getId(), transaction.getId());
     return transaction;
   }
@@ -141,17 +142,17 @@ public class InvoiceServiceImpl implements InvoiceService {
 
   @Override
   @Transactional
-  public Integer clearExpiredInvoices(Integer intervalHours) throws Exception {
+  public Integer clearExpiredInvoices(Integer intervalMinutes) throws Exception {
     List<Integer> invoiceRequestStatusIdList = InvoiceRequestStatusEnum.getMayExpireStatusList().stream()
         .map(e -> e.getCode())
         .collect(Collectors.toList());
     Optional<LocalDateTime> nowDate = invoiceRequestDao.getAndBlockByIntervalAndStatus(
-        intervalHours,
+        intervalMinutes,
         invoiceRequestStatusIdList);
     if (nowDate.isPresent()) {
       invoiceRequestDao.setExpiredByIntervalAndStatus(
           nowDate.get(),
-          intervalHours,
+          intervalMinutes,
           EXPIRED.getCode(),
           invoiceRequestStatusIdList);
       List<InvoiceUserDto> userForNotificationList = invoiceRequestDao.findInvoicesListByStatusChangedAtDate(EXPIRED.getCode(), nowDate.get());

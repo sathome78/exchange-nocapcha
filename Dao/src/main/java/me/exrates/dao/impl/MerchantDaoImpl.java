@@ -260,8 +260,8 @@ public class MerchantDaoImpl implements MerchantDao {
         Boolean confirmationRequired = rs.getBoolean("confirmation_required");
         myInputOutputHistoryDto.setConfirmationRequired(confirmationRequired);
         myInputOutputHistoryDto.setBankAccount(rs.getString("bank_account"));
-        myInputOutputHistoryDto.setInvoiceRequestStatusId(rs.getInt("invoice_request_status_id"));
-        myInputOutputHistoryDto.setStatusUpdateDate(rs.getTimestamp("status_update_date").toLocalDateTime());
+        myInputOutputHistoryDto.setInvoiceRequestStatusId((Integer) rs.getObject("invoice_request_status_id"));
+        myInputOutputHistoryDto.setStatusUpdateDate(rs.getTimestamp("status_update_date") == null ? null : rs.getTimestamp("status_update_date").toLocalDateTime());
         return myInputOutputHistoryDto;
       }
     });

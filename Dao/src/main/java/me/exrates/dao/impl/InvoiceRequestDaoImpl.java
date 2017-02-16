@@ -186,12 +186,12 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
   }
 
   @Override
-  public Optional<LocalDateTime> getAndBlockByIntervalAndStatus(Integer intervalHours, List<Integer> invoiceRequestStatusIdList) {
+  public Optional<LocalDateTime> getAndBlockByIntervalAndStatus(Integer intervalMinutes, List<Integer> invoiceRequestStatusIdList) {
     LocalDateTime nowDate = jdbcTemplate.queryForObject("SELECT NOW()", LocalDateTime.class);
     String sql =
         " SELECT COUNT(*) " +
             " FROM INVOICE_REQUEST " +
-            " WHERE status_update_date <= DATE_SUB(:now_date, INTERVAL " + intervalHours + " HOUR) " +
+            " WHERE status_update_date <= DATE_SUB(:now_date, INTERVAL " + intervalMinutes + " MINUTE) " +
             "       AND invoice_request_status_id IN (:invoice_request_status_id_list)" +
             " FOR UPDATE"; //FOR UPDATE Important!
     final Map<String, Object> params = new HashMap<String, Object>() {{
@@ -202,12 +202,12 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
   }
 
   @Override
-  public void setExpiredByIntervalAndStatus(LocalDateTime nowDate, Integer intervalHours, Integer newInvoiceRequestStatusId, List<Integer> invoiceRequestStatusIdList) {
+  public void setExpiredByIntervalAndStatus(LocalDateTime nowDate, Integer intervalMinutes, Integer newInvoiceRequestStatusId, List<Integer> invoiceRequestStatusIdList) {
     final String sql =
         " UPDATE INVOICE_REQUEST " +
             " SET invoice_request_status_id = :invoice_request_status_id, " +
             "     status_update_date = :now_date " +
-            " WHERE status_update_date <= DATE_SUB(:now_date, INTERVAL " + intervalHours + " HOUR) " +
+            " WHERE status_update_date <= DATE_SUB(:now_date, INTERVAL " + intervalMinutes + " MINUTE) " +
             "       AND invoice_request_status_id IN (:invoice_request_status_id_list)";
     final Map<String, Object> params = new HashMap<String, Object>() {{
       put("now_date", nowDate);

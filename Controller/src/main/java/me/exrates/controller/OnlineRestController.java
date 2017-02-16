@@ -833,14 +833,23 @@ public class OnlineRestController {
     if (!result.isEmpty()) {
       result.get(0).setPage(tableParams.getPageNumber());
       if (result.get(0).isNeedRefresh()) {
-        result.forEach(e -> e.setInvoiceRequestStatus(
-            messageSource.getMessage("merchants.invoice.".concat(InvoiceRequestStatusEnum.convert(e.getInvoiceRequestStatusId()).name()), null, localeResolver.resolveLocale(request))));
+        result.forEach(e -> e.setSummaryStatus(
+            generateAndGetSummeryStatus(e, localeResolver.resolveLocale(request))
+        ));
       }
     }
     tableParams.updateEofState(result);
     long after = System.currentTimeMillis();
     LOGGER.debug("completed... ms: " + (after - before));
     return result;
+  }
+
+  private String generateAndGetSummeryStatus(MyInputOutputHistoryDto row, Locale locale) {
+    if (row.getInvoiceRequestStatusId() == null) {
+      return row.getTransactionProvided();
+    } else {
+      return messageSource.getMessage("merchants.invoice.".concat(InvoiceRequestStatusEnum.convert(row.getInvoiceRequestStatusId()).name()), null, locale);
+    }
   }
 
   /**

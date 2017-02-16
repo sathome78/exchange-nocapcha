@@ -88,7 +88,7 @@ public class InvoiceController {
 
   @RequestMapping(value = "/details", method = GET)
   public ModelAndView invoiceDetails(HttpServletRequest request) {
-    ModelAndView modelAndView = new ModelAndView("/globalPages/invoiceDeatils");
+    ModelAndView modelAndView = new ModelAndView("/globalPages/invoiceDetails");
     Map<String, ?> flashAttrMap = RequestContextUtils.getInputFlashMap(request);
     log.debug(flashAttrMap);
     if (flashAttrMap != null && flashAttrMap.containsKey("error")) {
@@ -124,6 +124,7 @@ public class InvoiceController {
     Object mutex = WebUtils.getSessionMutex(session);
     synchronized (mutex) {
       creditsOperation = (CreditsOperation) session.getAttribute("creditsOperation");
+      session.removeAttribute("creditsOperation");
       if (creditsOperation == null) {
         redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("merchant.operationNotAvailable", null,
             localeResolver.resolveLocale(request)));
@@ -132,8 +133,7 @@ public class InvoiceController {
     }
     try {
       invoiceData.setCreditsOperation(creditsOperation);
-
-      final Transaction transaction = invoiceService.createPaymentInvoice(invoiceData);
+      invoiceService.createPaymentInvoice(invoiceData);
       InvoiceBank invoiceBank = invoiceService.findBankById(invoiceData.getBankId());
       String toWallet = invoiceBank.getName() + ": " + invoiceBank.getAccountNumber();
       final String notification = merchantService
@@ -141,27 +141,19 @@ public class InvoiceController {
               email, localeResolver.resolveLocale(request), creditsOperation, "merchants.depositNotificationWithCurrency" +
                   creditsOperation.getCurrency().getName() +
                   ".body");
-      synchronized (mutex) {
-        session.setAttribute("successNoty", notification);
-        session.removeAttribute("creditsOperation");
-      }
+      redirectAttributes.addFlashAttribute("successNoty", notification);
       return new RedirectView("/dashboard?startupPage=myhistory&startupSubPage=myinputoutput");
-
     } catch (final InvalidAmountException | RejectedPaymentInvoice e) {
-      final String error = messageSource.getMessage("merchants.incorrectPaymentDetails", null, localeResolver.resolveLocale(request));
+      String error = messageSource.getMessage("merchants.incorrectPaymentDetails", null, localeResolver.resolveLocale(request));
       log.warn(error);
-      synchronized (mutex) {
-        session.setAttribute("errorNoty", error);
-      }
+      redirectAttributes.addFlashAttribute("errorNoty", error);
     } catch (final Exception e) {
-      final String error = messageSource.getMessage("merchants.internalError", null, localeResolver.resolveLocale(request));
+      String error = messageSource.getMessage("merchants.internalError", null, localeResolver.resolveLocale(request))
+          .concat("</br>").concat(e.getMessage());
       log.error(ExceptionUtils.getStackTrace(e));
-      synchronized (mutex) {
-        session.setAttribute("errorNoty", error);
-      }
+      redirectAttributes.addFlashAttribute("errorNoty", error);
     }
     return new RedirectView("/dashboard");
-
   }
 
 

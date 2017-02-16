@@ -16,17 +16,18 @@ import org.springframework.stereotype.Service;
 @Log4j2
 public class InvoiceRequestJob {
 
-  @Value("${ir.invoiceTimeOutIntervalHour}")
-  private Integer EXPIRE_CLEAN_INTERVAL_HOUR;
+  @Value("${ir.invoiceTimeOutIntervalMinutes}")
+  private Integer EXPIRE_CLEAN_INTERVAL_MINUTES;
 
   @Autowired
   InvoiceService invoiceService;
 
-  @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 10)
-//  @Scheduled(initialDelay = 1000, fixedDelay = 1000*15)
+//  @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 5)
+  @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 1
+  )
   private void invoiceExpiredClean() throws Exception {
     log.debug("\nstart expired invoices cleaning ... ");
-    Integer expireCount = invoiceService.clearExpiredInvoices(EXPIRE_CLEAN_INTERVAL_HOUR);
+    Integer expireCount = invoiceService.clearExpiredInvoices(EXPIRE_CLEAN_INTERVAL_MINUTES);
     log.debug("\n... end expired invoices cleaning. Mark as expired: " + expireCount);
   }
 
