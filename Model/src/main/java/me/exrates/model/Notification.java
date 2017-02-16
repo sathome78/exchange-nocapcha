@@ -77,4 +77,17 @@ public class Notification {
     public void setRead(Boolean read) {
         isRead = read;
     }
+
+    @Override
+    public String toString() {
+        return "Notification{" +
+                "id=" + id +
+                ", receiverUserId=" + receiverUserId +
+                ", title='" + title + '\'' +
+                ", message='" + message + '\'' +
+                ", creationTime=" + creationTime +
+                ", cause=" + cause +
+                ", isRead=" + isRead +
+                '}';
+    }
 }

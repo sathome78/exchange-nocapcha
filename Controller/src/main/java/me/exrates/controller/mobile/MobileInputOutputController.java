@@ -8,11 +8,10 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserActionOnInvoiceEnum;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.InvoiceData;
-import me.exrates.service.CurrencyService;
-import me.exrates.service.InvoiceService;
-import me.exrates.service.MerchantService;
-import me.exrates.service.UserService;
+import me.exrates.model.vo.WithdrawData;
+import me.exrates.service.*;
 import me.exrates.service.exception.CurrencyPairNotFoundException;
+import me.exrates.service.exception.FileLoadingException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.api.ApiError;
@@ -33,10 +32,12 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -55,6 +56,9 @@ public class MobileInputOutputController {
 
     private static final Logger LOGGER = LogManager.getLogger("mobileAPI");
 
+    private static int INVOICE_MERCHANT_ID = 12;
+    private static int INVOICE_MERCHANT_IMAGE_ID = 16;
+
 
     @Autowired
     private UserService userService;
@@ -70,6 +74,9 @@ public class MobileInputOutputController {
 
     @Autowired
     private InvoiceService invoiceService;
+
+    @Autowired
+    private UserFilesService userFilesService;
 
     @Autowired
     private MessageSource messageSource;
@@ -230,7 +237,7 @@ public class MobileInputOutputController {
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
             return merchantService.prepareCreditsOperation(payment, userEmail)
-                    .map(creditsOperation -> merchantService.withdrawRequest(creditsOperation, userLocale, userEmail))
+                    .map(creditsOperation -> merchantService.withdrawRequest(creditsOperation, new WithdrawData(), userEmail, userLocale))
                     .map(response -> new ResponseEntity<>(response, OK))
                     .orElseThrow(InvalidAmountException::new);
 
@@ -454,10 +461,41 @@ public class MobileInputOutputController {
         return invoiceService.findBanksForCurrency(currencyId);
     }
 
+    @RequestMapping(value = "/invoice/clientBanks", method = GET)
+    public List<ClientBank> getClientBanksByCurrency(@RequestParam Integer currencyId) {
+        return invoiceService.findClientBanksForCurrency(currencyId);
+    }
+
     @RequestMapping(value = "/invoice/requests", method = GET)
     public List<InvoiceRequest> findInvoiceRequestsForUser() {
         return invoiceService.findAllRequestsForUser(getAuthenticatedUserEmail());
 
+    }
+
+    @RequestMapping(value = "/invoice/withdraw", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<Map<String, String>> withdrawInvoice(@RequestBody @Valid WithdrawInvoiceDto withdrawInvoiceDto) {
+        LOGGER.debug(withdrawInvoiceDto);
+        Payment payment = new Payment();
+        payment.setSum(withdrawInvoiceDto.getSum());
+        payment.setCurrency(withdrawInvoiceDto.getCurrency());
+        payment.setMerchant(INVOICE_MERCHANT_ID);
+        payment.setMerchantImage(INVOICE_MERCHANT_IMAGE_ID);
+        payment.setOperationType(OperationType.INPUT);
+        payment.setDestination(withdrawInvoiceDto.getWalletNumber());
+
+        WithdrawData withdrawData = new WithdrawData();
+        withdrawData.setRecipientBankName(withdrawInvoiceDto.getRecipientBankName());
+        withdrawData.setRecipientBankCode(withdrawInvoiceDto.getRecipientBankCode());
+        withdrawData.setUserFullName(withdrawInvoiceDto.getUserFullName());
+        withdrawData.setRemark(withdrawInvoiceDto.getRemark());
+
+
+        String userEmail = getAuthenticatedUserEmail();
+        Locale userLocale = userService.getUserLocaleForMobile(userEmail);
+        return merchantService.prepareCreditsOperation(payment, userEmail)
+                .map(creditsOperation -> merchantService.withdrawRequest(creditsOperation, withdrawData, userEmail, userLocale))
+                .map(response -> new ResponseEntity<>(response, OK))
+                .orElseThrow(InvalidAmountException::new);
     }
 
 

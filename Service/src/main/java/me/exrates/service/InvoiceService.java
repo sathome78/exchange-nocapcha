@@ -1,5 +1,6 @@
 package me.exrates.service;
 
+import me.exrates.model.ClientBank;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.InvoiceRequest;
 import me.exrates.model.Transaction;
@@ -31,6 +32,9 @@ public interface InvoiceService {
 
   InvoiceBank findBankById(Integer bankId);
 
+  List<ClientBank> findClientBanksForCurrency(Integer currencyId);
+
+
   Optional<InvoiceRequest> findRequestById(Integer transactionId);
 
   Integer getInvoiceRequestStatusByInvoiceId(Integer invoiceId);
@@ -44,4 +48,6 @@ public interface InvoiceService {
   void userActionOnInvoice(
       InvoiceConfirmData invoiceConfirmData,
       UserActionOnInvoiceEnum userActionOnInvoiceEnum) throws IllegalInvoiceRequestStatusException, InvoiceNotFoundException;
+
+    void updateReceiptScan(Integer invoiceId, String receiptScanPath);
 }

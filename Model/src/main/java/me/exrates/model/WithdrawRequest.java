@@ -18,6 +18,10 @@ public class WithdrawRequest {
     private String userEmail;
     private MerchantImage merchantImage;
     private WithdrawalRequestStatus status;
+    private String recipientBankName;
+    private String recipientBankCode;
+    private String userFullName;
+    private String remark;
 
     public Transaction getTransaction() {
         return transaction;
@@ -91,6 +95,38 @@ public class WithdrawRequest {
         this.status = status;
     }
 
+    public String getRecipientBankName() {
+        return recipientBankName;
+    }
+
+    public void setRecipientBankName(String recipientBankName) {
+        this.recipientBankName = recipientBankName;
+    }
+
+    public String getRecipientBankCode() {
+        return recipientBankCode;
+    }
+
+    public void setRecipientBankCode(String recipientBankCode) {
+        this.recipientBankCode = recipientBankCode;
+    }
+
+    public String getRemark() {
+        return remark;
+    }
+
+    public void setRemark(String remark) {
+        this.remark = remark;
+    }
+
+    public String getUserFullName() {
+        return userFullName;
+    }
+
+    public void setUserFullName(String userFullName) {
+        this.userFullName = userFullName;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -108,8 +144,13 @@ public class WithdrawRequest {
         if (userEmail != null ? !userEmail.equals(that.userEmail) : that.userEmail != null) return false;
         if (merchantImage != null ? !merchantImage.equals(that.merchantImage) : that.merchantImage != null)
             return false;
-        return status == that.status;
-
+        if (status != that.status) return false;
+        if (recipientBankName != null ? !recipientBankName.equals(that.recipientBankName) : that.recipientBankName != null)
+            return false;
+        if (recipientBankCode != null ? !recipientBankCode.equals(that.recipientBankCode) : that.recipientBankCode != null)
+            return false;
+        if (userFullName != null ? !userFullName.equals(that.userFullName) : that.userFullName != null) return false;
+        return remark != null ? remark.equals(that.remark) : that.remark == null;
     }
 
     @Override
@@ -123,6 +164,10 @@ public class WithdrawRequest {
         result = 31 * result + (userEmail != null ? userEmail.hashCode() : 0);
         result = 31 * result + (merchantImage != null ? merchantImage.hashCode() : 0);
         result = 31 * result + (status != null ? status.hashCode() : 0);
+        result = 31 * result + (recipientBankName != null ? recipientBankName.hashCode() : 0);
+        result = 31 * result + (recipientBankCode != null ? recipientBankCode.hashCode() : 0);
+        result = 31 * result + (userFullName != null ? userFullName.hashCode() : 0);
+        result = 31 * result + (remark != null ? remark.hashCode() : 0);
         return result;
     }
 
@@ -138,6 +183,10 @@ public class WithdrawRequest {
                 ", userEmail='" + userEmail + '\'' +
                 ", merchantImage=" + merchantImage +
                 ", status=" + status +
+                ", recipientBankName='" + recipientBankName + '\'' +
+                ", recipientBankCode='" + recipientBankCode + '\'' +
+                ", userFullName='" + userFullName + '\'' +
+                ", remark='" + remark + '\'' +
                 '}';
     }
 }

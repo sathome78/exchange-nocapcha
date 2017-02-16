@@ -891,7 +891,6 @@ public class MobileEntryController {
      */
     @RequestMapping(value = "/api/user/setAvatar", method = RequestMethod.POST)
     public ResponseEntity<String> setUserAvatar(final @RequestParam("avatar") MultipartFile multipartFile, HttpServletRequest request) throws IOException {
-        logger.debug(multipartFile);
         logger.debug(multipartFile.getOriginalFilename());
         logger.debug(multipartFile.getSize());
         logger.debug(multipartFile.getContentType());

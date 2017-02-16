@@ -3,10 +3,7 @@ package me.exrates.service.impl;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.InvoiceRequestDao;
 import me.exrates.dao.WalletDao;
-import me.exrates.model.CreditsOperation;
-import me.exrates.model.InvoiceBank;
-import me.exrates.model.InvoiceRequest;
-import me.exrates.model.Transaction;
+import me.exrates.model.*;
 import me.exrates.model.dto.InvoiceUserDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.vo.InvoiceConfirmData;
@@ -184,6 +181,12 @@ public class InvoiceServiceImpl implements InvoiceService {
     return invoiceRequestDao.findBankById(bankId);
   }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<ClientBank> findClientBanksForCurrency(Integer currencyId) {
+        return invoiceRequestDao.findClientBanksForCurrency(currencyId);
+    }
+
   @Override
   @Transactional(readOnly = true)
   public Optional<InvoiceRequest> findRequestById(Integer transactionId) {
@@ -257,5 +260,17 @@ public class InvoiceServiceImpl implements InvoiceService {
   private void updateInvoiceRequestStatus(Integer invoiceRequestId, InvoiceRequestStatusEnum invoiceRequestStatus) {
     invoiceRequestDao.updateInvoiceRequestStatus(invoiceRequestId, invoiceRequestStatus);
   }
+
+    @Override
+    @Transactional
+    public void updateReceiptScan(Integer invoiceId, String receiptScanPath) {
+        invoiceRequestDao.updateReceiptScan(invoiceId, receiptScanPath);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<InvoiceRequest> findAllRequestsForUser(String userEmail) {
+        return invoiceRequestDao.findAllForUser(userEmail);
+    }
 
 }

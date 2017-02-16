@@ -225,7 +225,8 @@ public class MerchantDaoImpl implements MerchantDao {
         "    INVOICE_BANK.account_number AS bank_account, " +
         "    USER.id AS user_id," +
         "    INVOICE_REQUEST.invoice_request_status_id, " +
-        "    INVOICE_REQUEST.status_update_date " +
+        "    INVOICE_REQUEST.status_update_date," +
+            "INVOICE_REQUEST.user_full_name, INVOICE_REQUEST.remark " +
         "  from TRANSACTION \n" +
         "    left join CURRENCY on TRANSACTION.currency_id=CURRENCY.id\n" +
         "    left join WITHDRAW_REQUEST on TRANSACTION.id=WITHDRAW_REQUEST.transaction_id\n" +
@@ -262,6 +263,8 @@ public class MerchantDaoImpl implements MerchantDao {
         myInputOutputHistoryDto.setBankAccount(rs.getString("bank_account"));
         myInputOutputHistoryDto.setInvoiceRequestStatusId((Integer) rs.getObject("invoice_request_status_id"));
         myInputOutputHistoryDto.setStatusUpdateDate(rs.getTimestamp("status_update_date") == null ? null : rs.getTimestamp("status_update_date").toLocalDateTime());
+          myInputOutputHistoryDto.setUserFullName(rs.getString("user_full_name"));
+          myInputOutputHistoryDto.setRemark(rs.getString("remark"));
         return myInputOutputHistoryDto;
       }
     });

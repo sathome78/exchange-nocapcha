@@ -7,6 +7,7 @@ import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.WithdrawalRequestStatus;
 import me.exrates.model.vo.CacheData;
+import me.exrates.model.vo.WithdrawData;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -29,7 +30,7 @@ public interface MerchantService {
 
     List<Merchant> findAllByCurrency(Currency currency);
 
-    Map<String, String> withdrawRequest(CreditsOperation creditsOperation, Locale locale, String userEmail);
+    Map<String, String> withdrawRequest(CreditsOperation creditsOperation, WithdrawData withdrawData, String userEmail, Locale locale);
     List<Merchant> findAll();
 
     String resolveTransactionStatus(Transaction transaction, Locale locale);
@@ -56,6 +57,8 @@ public interface MerchantService {
     Map<String, String> formatResponseMessage(Transaction transaction);
 
     Map<String, String> computeCommissionAndMapAllToString(BigDecimal amount, OperationType operationType, String currency, String merchant);
+
+    Optional<CreditsOperation> prepareCreditsOperation(Payment payment, BigDecimal addition, String userEmail);
 
     Optional<CreditsOperation> prepareCreditsOperation(Payment payment, String userEmail);
 

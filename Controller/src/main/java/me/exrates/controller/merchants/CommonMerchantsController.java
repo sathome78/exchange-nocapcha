@@ -5,6 +5,7 @@ import me.exrates.model.MerchantCurrency;
 import me.exrates.model.Payment;
 import me.exrates.model.Wallet;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.UserService;
@@ -24,10 +25,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import java.math.BigDecimal;
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonMap;
@@ -74,11 +72,9 @@ public class CommonMerchantsController {
         payment.setOperationType(INPUT);
         modelAndView.addObject("payment", payment);
 
-        final List<Integer> currenciesId = new ArrayList<>();
-        currenciesId.add(currencyId);
+        final List<Integer> currenciesId = Collections.singletonList(currencyId);
         modelAndView.addObject("merchantCurrencyData",merchantService.findAllByCurrencies(currenciesId, OperationType.INPUT));
         modelAndView.addObject("minAmount", currencyService.retrieveMinLimitForRoleAndCurrency(userService.getCurrentUserRole(), INPUT, currencyId));
-
         return modelAndView;
     }
 
@@ -135,7 +131,7 @@ public class CommonMerchantsController {
                 BAD_REQUEST);
         try {
             return merchantService.prepareCreditsOperation(payment, principal.getName())
-                    .map(creditsOperation -> merchantService.withdrawRequest(creditsOperation, locale, principal.getName()))
+                    .map(creditsOperation -> merchantService.withdrawRequest(creditsOperation, new WithdrawData(), principal.getName(), locale))
                     .map(response -> new ResponseEntity<>(response, OK))
                     .orElseGet(() -> error);
         } catch (final NotEnoughUserWalletMoneyException e) {

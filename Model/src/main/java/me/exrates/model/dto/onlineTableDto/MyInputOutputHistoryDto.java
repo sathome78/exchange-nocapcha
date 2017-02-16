@@ -27,6 +27,8 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
     private Integer invoiceRequestStatusId;
     private LocalDateTime statusUpdateDate;
     private String summaryStatus;
+    private String userFullName;
+    private String remark;
 
     public MyInputOutputHistoryDto() {
         this.needRefresh = true;
@@ -87,6 +89,11 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
                 ", operationType='" + operationType + '\'' +
                 ", transactionId=" + transactionId +
                 ", transactionProvided='" + transactionProvided + '\'' +
+                ", userId=" + userId +
+                ", confirmationRequired=" + confirmationRequired +
+                ", bankAccount='" + bankAccount + '\'' +
+                ", userFullName='" + userFullName + '\'' +
+                ", remark='" + remark + '\'' +
                 '}';
     }
 }

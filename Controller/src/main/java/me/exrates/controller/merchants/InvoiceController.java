@@ -6,8 +6,11 @@ import me.exrates.model.*;
 import me.exrates.model.enums.UserActionOnInvoiceEnum;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.InvoiceData;
+import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.InvoiceService;
 import me.exrates.service.MerchantService;
+import me.exrates.service.UserFilesService;
+import me.exrates.service.exception.FileLoadingException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.invoice.IllegalInvoiceRequestStatusException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
@@ -18,6 +21,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -27,11 +31,11 @@ import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -50,6 +54,11 @@ public class InvoiceController {
 
   @Autowired
   private MessageSource messageSource;
+    @Autowired
+    private UserFilesService userFilesService;
+
+    @Autowired
+    private MessageSource messageSource;
 
   @Autowired
   private LocaleResolver localeResolver;
@@ -62,29 +71,35 @@ public class InvoiceController {
     log.debug(payment);
     RedirectView redirectView = new RedirectView("/merchants/invoice/details");
 
-    if (!merchantService.checkInputRequestsLimit(payment.getMerchant(), principal.getName())) {
-      redirectAttributes.addFlashAttribute("error", "merchants.InputRequestsLimit");
-      return redirectView;
+        if (!merchantService.checkInputRequestsLimit(payment.getMerchant(), principal.getName())){
+            redirectAttributes.addFlashAttribute("error", "merchants.InputRequestsLimit");
+            return redirectView;
+        }
+        if (/*payment.getCurrency() == 10 || */payment.getCurrency() == 12 || payment.getCurrency() == 13){
+            redirectAttributes.addFlashAttribute("error", "merchants.withoutInvoiceWallet");
+            return redirectView;
+        }
+        BigDecimal addition;
+
+        if (payment.getCurrency() == 10) {
+            addition = BigDecimal.valueOf(Math.random() * 899 + 100).setScale(0, BigDecimal.ROUND_DOWN);
+        } else {
+            addition = BigDecimal.ZERO;
+        }Optional<CreditsOperation> creditsOperationPrepared = merchantService
+                .prepareCreditsOperation(payment, addition,principal.getName());
+        if (!creditsOperationPrepared.isPresent()) {
+            redirectAttributes.addFlashAttribute("error","merchants.incorrectPaymentDetails");
+        } else {
+            CreditsOperation creditsOperation = creditsOperationPrepared.get();
+            log.debug(creditsOperation);
+            HttpSession session = request.getSession();
+            Object mutex = WebUtils.getSessionMutex(session);
+            synchronized (mutex) {
+                session.setAttribute("creditsOperation", creditsOperation);session.setAttribute("addition", addition);
+            }
+        }
+        return redirectView;
     }
-    if (/*payment.getCurrency() == 10 || */payment.getCurrency() == 12 || payment.getCurrency() == 13) {
-      redirectAttributes.addFlashAttribute("error", "merchants.withoutInvoiceWallet");
-      return redirectView;
-    }
-    Optional<CreditsOperation> creditsOperationPrepared = merchantService
-        .prepareCreditsOperation(payment, principal.getName());
-    if (!creditsOperationPrepared.isPresent()) {
-      redirectAttributes.addFlashAttribute("error", "merchants.incorrectPaymentDetails");
-    } else {
-      CreditsOperation creditsOperation = creditsOperationPrepared.get();
-      log.debug(creditsOperation);
-      HttpSession session = request.getSession();
-      Object mutex = WebUtils.getSessionMutex(session);
-      synchronized (mutex) {
-        session.setAttribute("creditsOperation", creditsOperation);
-      }
-    }
-    return redirectView;
-  }
 
   @RequestMapping(value = "/details", method = GET)
   public ModelAndView invoiceDetails(HttpServletRequest request) {
@@ -97,21 +112,27 @@ public class InvoiceController {
     HttpSession session = request.getSession();
     Object mutex = WebUtils.getSessionMutex(session);
     CreditsOperation creditsOperation;
+        BigDecimal addition;
 
-    synchronized (mutex) {
-      creditsOperation = (CreditsOperation) session.getAttribute("creditsOperation");
+        synchronized (mutex) {
+            creditsOperation = (CreditsOperation) session.getAttribute("creditsOperation");
+            addition = (BigDecimal) session.getAttribute("addition");
+        }
+        if (creditsOperation == null) {
+            modelAndView.addObject("error", "merchant.operationNotAvailable");
+        } else {
+            modelAndView.addObject("creditsOperation", creditsOperation);
+            if (addition.signum() > 0) {
+                modelAndView.addObject("additionMessage", messageSource.getMessage("merchants.input.addition",
+                        new Object[]{addition + " " + creditsOperation.getCurrency().getName()}, localeResolver.resolveLocale(request)));
+            }
+            List<InvoiceBank> invoiceBanks = invoiceService.findBanksForCurrency(creditsOperation.getCurrency().getId());
+            String notSelected = messageSource.getMessage("merchants.notSelected", null, localeResolver.resolveLocale(request));
+            invoiceBanks.add(0, new InvoiceBank(-1, creditsOperation.getCurrency().getId(), notSelected, notSelected, notSelected));
+            modelAndView.addObject("invoiceBanks", invoiceBanks);
+        }
+        return modelAndView;
     }
-    if (creditsOperation == null) {
-      modelAndView.addObject("error", "merchant.operationNotAvailable");
-    } else {
-      modelAndView.addObject("creditsOperation", creditsOperation);
-      List<InvoiceBank> invoiceBanks = invoiceService.findBanksForCurrency(creditsOperation.getCurrency().getId());
-      String notSelected = messageSource.getMessage("merchants.notSelected", null, localeResolver.resolveLocale(request));
-      invoiceBanks.add(0, new InvoiceBank(-1, creditsOperation.getCurrency().getId(), notSelected, notSelected, notSelected));
-      modelAndView.addObject("invoiceBanks", invoiceBanks);
-    }
-    return modelAndView;
-  }
 
   @RequestMapping(value = "/payment/prepare", method = POST)
   public RedirectView preparePayment(InvoiceData invoiceData,
@@ -179,12 +200,11 @@ public class InvoiceController {
     } else {
       InvoiceRequest invoiceRequest = invoiceRequestResult.get();
       modelAndView.addObject("invoiceRequest", invoiceRequest);
-      List<String> bankNames = invoiceService.findBanksForCurrency(invoiceRequest.getTransaction().getCurrency().getId())
-          .stream().map(InvoiceBank::getName).collect(Collectors.toList());
-      modelAndView.addObject("bankNames", bankNames);
-      if (bankNames.stream().noneMatch(name -> name.equals(invoiceRequest.getPayerBankName()))) {
-        modelAndView.addObject("otherBank", invoiceRequest.getPayerBankName());
-      }
+        List<ClientBank> banks = invoiceService.findClientBanksForCurrency(invoiceRequest.getTransaction().getCurrency().getId());
+        modelAndView.addObject("banks", banks);
+        if (invoiceRequest.getPayerBankName() != null && banks.stream().noneMatch(bank -> invoiceRequest.getPayerBankName().equals(bank.getName()))) {
+            modelAndView.addObject("otherBank", invoiceRequest.getPayerBankName());
+        }
     }
     return modelAndView;
   }
