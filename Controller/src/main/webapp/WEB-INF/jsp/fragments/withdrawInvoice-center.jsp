@@ -48,12 +48,11 @@
 
 
                 <form id="confirmationForm" action="<c:url value="/merchants/invoice/withdraw/submit"/>" method="post">
-                    <input type="hidden" name="invoiceId" id="invoiceId" value="${invoiceRequest.transaction.id}">
-                    <input type="hidden" name="payerBankName" id="payerBankName" value="${invoiceRequest.payerBankName}">
+                    <input type="hidden" name="recipientBankName" id="payerBankName">
                     <div class="input-block-wrapper clearfix">
                         <div class="col-md-3 input-block-wrapper__label-wrapper" >
                             <label for="bankSelect" class="input-block-wrapper__label" >
-                                <loc:message code="merchants.invoiceConfirm.bankFrom"/>*</label>
+                                <loc:message code="merchants.withdrawDetails.recipientBank"/>*</label>
                         </div>
                         <div class="col-md-8 " >
                             <select class="form-control input-block-wrapper__input" id="bankSelect">
@@ -81,7 +80,7 @@
                             <label for="bankCode" class="input-block-wrapper__label" ><loc:message code="invoice.bankCode" /></label>
                         </div>
                         <div class="col-md-8 " >
-                            <input class="form-control input-block-wrapper__input" type="text" id="bankCode" name="payerBankCode" >
+                            <input class="form-control input-block-wrapper__input" type="text" id="bankCode" name="recipientBankCode" >
                         </div>
                         <div id="bankCodeError" class="col-md-11 input-block-wrapper__error-wrapper">
                             <p class="red"><loc:message code="invoice.bankCode.error" /></p>
@@ -90,7 +89,7 @@
                     <div class="input-block-wrapper clearfix">
                         <div class="col-md-3 input-block-wrapper__label-wrapper">
                             <label for="userAccount" class="input-block-wrapper__label" >
-                                <loc:message code="merchants.invoiceConfirm.userAccount"/>*</label>
+                                <loc:message code="merchants.withdrawDetails.recipientAccount"/>*</label>
                         </div>
                         <div class="col-md-8 " >
                             <input class="form-control input-block-wrapper__input" type="text" id="userAccount"
@@ -103,7 +102,7 @@
                     <div class="input-block-wrapper clearfix">
                         <div class="col-md-3 input-block-wrapper__label-wrapper">
                             <label for="userFullName" class="input-block-wrapper__label" >
-                                <loc:message code="merchants.invoiceDetails.userFullName"/>*</label>
+                                <loc:message code="merchants.withdrawDetails.recipientFullName"/>*</label>
                         </div>
                         <div class="col-md-8 " >
                             <input class="form-control input-block-wrapper__input" type="text" id="userFullName"

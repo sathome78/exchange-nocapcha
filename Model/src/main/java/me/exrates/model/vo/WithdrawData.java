@@ -1,7 +1,5 @@
 package me.exrates.model.vo;
 
-import org.springframework.web.multipart.MultipartFile;
-
 import javax.validation.constraints.NotNull;
 
 /**
@@ -9,28 +7,28 @@ import javax.validation.constraints.NotNull;
  */
 public class WithdrawData {
     @NotNull
-    private String payerBankName;
-    private String payerBankCode;
+    private String recipientBankName;
+    private String recipientBankCode;
     @NotNull
     private String userAccount;
     private String userFullName;
     private String remark;
 
 
-    public String getPayerBankName() {
-        return payerBankName;
+    public String getRecipientBankName() {
+        return recipientBankName;
     }
 
-    public void setPayerBankName(String payerBankName) {
-        this.payerBankName = payerBankName;
+    public void setRecipientBankName(String recipientBankName) {
+        this.recipientBankName = recipientBankName;
     }
 
-    public String getPayerBankCode() {
-        return payerBankCode;
+    public String getRecipientBankCode() {
+        return recipientBankCode;
     }
 
-    public void setPayerBankCode(String payerBankCode) {
-        this.payerBankCode = payerBankCode;
+    public void setRecipientBankCode(String recipientBankCode) {
+        this.recipientBankCode = recipientBankCode;
     }
 
     public String getUserAccount() {
@@ -61,8 +59,8 @@ public class WithdrawData {
     @Override
     public String toString() {
         return "InvoiceConfirmData{" +
-                ", payerBankName='" + payerBankName + '\'' +
-                ", payerBankCode='" + payerBankCode + '\'' +
+                ", recipientBankName='" + recipientBankName + '\'' +
+                ", recipientBankCode='" + recipientBankCode + '\'' +
                 ", userAccount='" + userAccount + '\'' +
                 ", userFullName='" + userFullName + '\'' +
                 ", remark='" + remark + '\'' +

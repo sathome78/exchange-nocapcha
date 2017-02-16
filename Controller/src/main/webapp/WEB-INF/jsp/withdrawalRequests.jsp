@@ -50,6 +50,10 @@
                             <a href="<c:url value='/2a8fy7b07dxe44/userInfo'>
                             <c:param name="id" value="${request.userId}"/>
                             </c:url>">${request.userEmail}</a>
+                            <c:if test="${not empty request.userFullName}">
+                                <br/>
+                                ${request.userFullName}
+                            </c:if>
                         </td>
                         <td>
                             <fmt:formatNumber value="${request.transaction.amount}" maxFractionDigits="9"/>
@@ -63,6 +67,13 @@
                         <td>
                                 ${request.transaction.merchant.name}
                                 ${request.merchantImage.image_name}
+                                <c:if test="${not empty request.recipientBankName}">
+                                    <br/>
+                                    ${request.recipientBankName}
+                                </c:if>
+                                <c:if test="${not empty request.recipientBankCode}">
+                                    ${request.recipientBankCode}
+                                </c:if>
 
                         </td>
                         <td>

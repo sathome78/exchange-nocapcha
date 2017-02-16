@@ -46,13 +46,18 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
                 .getTimestamp("acceptance")
                 .toLocalDateTime()
         );
+        request.setRecipientBankName(resultSet.getString("recipient_bank_name"));
+        request.setRecipientBankCode(resultSet.getString("recipient_bank_code"));
+        request.setUserFullName(resultSet.getString("user_full_name"));
+        request.setRemark(resultSet.getString("remark"));
         request.setStatus(WithdrawalRequestStatus.convert(resultSet.getInt("status")));
         return request;
     };
 
     private final static String SELECT_ALL_REQUESTS =
             " SELECT WITHDRAW_REQUEST.acceptance, WITHDRAW_REQUEST.wallet, WITHDRAW_REQUEST.processed_by, " +
-                    "WITHDRAW_REQUEST.merchant_image_id, WITHDRAW_REQUEST.status, MERCHANT_IMAGE.image_name, " +
+                    "WITHDRAW_REQUEST.merchant_image_id, WITHDRAW_REQUEST.status, WITHDRAW_REQUEST.recipient_bank_name, " +
+                    "WITHDRAW_REQUEST.recipient_bank_code, WITHDRAW_REQUEST.user_full_name, WITHDRAW_REQUEST.remark, MERCHANT_IMAGE.image_name, " +
                     "USER.id, USER.email as user_email,(SELECT EMAIL from USER WHERE id = WITHDRAW_REQUEST.processed_by) as admin_email, " +
                     "TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime, " +
                     "TRANSACTION.operation_type_id,TRANSACTION.provided,TRANSACTION.confirmation, " +
@@ -73,8 +78,8 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
 
     @Override
     public void create(WithdrawRequest withdrawRequest) {
-        final String sql = "INSERT INTO WITHDRAW_REQUEST (transaction_id,wallet, merchant_image_id, payer_bank_name, payer_bank_code, remark) " +
-                "VALUES (:id, :wallet, :merchant_image_id, :payer_bank_name, :payer_bank_code, :remark)";
+        final String sql = "INSERT INTO WITHDRAW_REQUEST (transaction_id,wallet, merchant_image_id, recipient_bank_name, recipient_bank_code, user_full_name, remark) " +
+                "VALUES (:id, :wallet, :merchant_image_id, :payer_bank_name, :payer_bank_code, :user_full_name, :remark)";
         final Map<String, Object> params = new HashMap<String,Object>(){
             {
                 put("id", withdrawRequest
@@ -82,8 +87,9 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
                         .getId());
                 put("wallet", withdrawRequest.getWallet());
                 put("merchant_image_id", withdrawRequest.getMerchantImage().getId() == 0 ? null : withdrawRequest.getMerchantImage().getId());
-                put("payer_bank_name", withdrawRequest.getPayerBankName());
-                put("payer_bank_code", withdrawRequest.getPayerBankCode());
+                put("payer_bank_name", withdrawRequest.getRecipientBankName());
+                put("payer_bank_code", withdrawRequest.getRecipientBankCode());
+                put("user_full_name", withdrawRequest.getUserFullName());
                 put("remark", withdrawRequest.getRemark());
             }
         };

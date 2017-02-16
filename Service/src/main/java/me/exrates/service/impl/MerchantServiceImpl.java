@@ -168,7 +168,7 @@ public class MerchantServiceImpl implements MerchantService {
         walletService.depositReservedBalance(transaction.getUserWallet(), reserved);
         final WithdrawRequest request = new WithdrawRequest();
         request.setUserEmail(userEmail);
-        if (creditsOperation.getDestination().isPresent()) {
+        if (creditsOperation.getDestination().isPresent() && !creditsOperation.getDestination().get().isEmpty()) {
             request.setWallet(creditsOperation.getDestination().get());
         } else {
             request.setWallet(withdrawData.getUserAccount());
@@ -177,8 +177,9 @@ public class MerchantServiceImpl implements MerchantService {
                 .getMerchantImage()
                 .ifPresent(request::setMerchantImage);
         request.setTransaction(transaction);
-        request.setPayerBankName(withdrawData.getPayerBankName());
-        request.setPayerBankCode(withdrawData.getPayerBankCode());
+        request.setRecipientBankName(withdrawData.getRecipientBankName());
+        request.setRecipientBankCode(withdrawData.getRecipientBankCode());
+        request.setUserFullName(withdrawData.getUserFullName());
         request.setRemark(withdrawData.getRemark());
         withdrawRequestDao.create(request);
         String notification = null;

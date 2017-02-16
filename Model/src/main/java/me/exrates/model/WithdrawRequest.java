@@ -18,8 +18,9 @@ public class WithdrawRequest {
     private String userEmail;
     private MerchantImage merchantImage;
     private WithdrawalRequestStatus status;
-    private String payerBankName;
-    private String payerBankCode;
+    private String recipientBankName;
+    private String recipientBankCode;
+    private String userFullName;
     private String remark;
 
     public Transaction getTransaction() {
@@ -94,20 +95,20 @@ public class WithdrawRequest {
         this.status = status;
     }
 
-    public String getPayerBankName() {
-        return payerBankName;
+    public String getRecipientBankName() {
+        return recipientBankName;
     }
 
-    public void setPayerBankName(String payerBankName) {
-        this.payerBankName = payerBankName;
+    public void setRecipientBankName(String recipientBankName) {
+        this.recipientBankName = recipientBankName;
     }
 
-    public String getPayerBankCode() {
-        return payerBankCode;
+    public String getRecipientBankCode() {
+        return recipientBankCode;
     }
 
-    public void setPayerBankCode(String payerBankCode) {
-        this.payerBankCode = payerBankCode;
+    public void setRecipientBankCode(String recipientBankCode) {
+        this.recipientBankCode = recipientBankCode;
     }
 
     public String getRemark() {
@@ -116,6 +117,14 @@ public class WithdrawRequest {
 
     public void setRemark(String remark) {
         this.remark = remark;
+    }
+
+    public String getUserFullName() {
+        return userFullName;
+    }
+
+    public void setUserFullName(String userFullName) {
+        this.userFullName = userFullName;
     }
 
     @Override
@@ -136,10 +145,11 @@ public class WithdrawRequest {
         if (merchantImage != null ? !merchantImage.equals(that.merchantImage) : that.merchantImage != null)
             return false;
         if (status != that.status) return false;
-        if (payerBankName != null ? !payerBankName.equals(that.payerBankName) : that.payerBankName != null)
+        if (recipientBankName != null ? !recipientBankName.equals(that.recipientBankName) : that.recipientBankName != null)
             return false;
-        if (payerBankCode != null ? !payerBankCode.equals(that.payerBankCode) : that.payerBankCode != null)
+        if (recipientBankCode != null ? !recipientBankCode.equals(that.recipientBankCode) : that.recipientBankCode != null)
             return false;
+        if (userFullName != null ? !userFullName.equals(that.userFullName) : that.userFullName != null) return false;
         return remark != null ? remark.equals(that.remark) : that.remark == null;
     }
 
@@ -154,8 +164,9 @@ public class WithdrawRequest {
         result = 31 * result + (userEmail != null ? userEmail.hashCode() : 0);
         result = 31 * result + (merchantImage != null ? merchantImage.hashCode() : 0);
         result = 31 * result + (status != null ? status.hashCode() : 0);
-        result = 31 * result + (payerBankName != null ? payerBankName.hashCode() : 0);
-        result = 31 * result + (payerBankCode != null ? payerBankCode.hashCode() : 0);
+        result = 31 * result + (recipientBankName != null ? recipientBankName.hashCode() : 0);
+        result = 31 * result + (recipientBankCode != null ? recipientBankCode.hashCode() : 0);
+        result = 31 * result + (userFullName != null ? userFullName.hashCode() : 0);
         result = 31 * result + (remark != null ? remark.hashCode() : 0);
         return result;
     }
@@ -172,8 +183,9 @@ public class WithdrawRequest {
                 ", userEmail='" + userEmail + '\'' +
                 ", merchantImage=" + merchantImage +
                 ", status=" + status +
-                ", payerBankName='" + payerBankName + '\'' +
-                ", payerBankCode='" + payerBankCode + '\'' +
+                ", recipientBankName='" + recipientBankName + '\'' +
+                ", recipientBankCode='" + recipientBankCode + '\'' +
+                ", userFullName='" + userFullName + '\'' +
                 ", remark='" + remark + '\'' +
                 '}';
     }
