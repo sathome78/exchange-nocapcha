@@ -423,7 +423,8 @@ public class MerchantServiceImpl implements MerchantService {
     return result;
   }
 
-    @Overridepublic Optional<CreditsOperation> prepareCreditsOperation(Payment payment,BigDecimal addition,String userEmail) {
+    @Override
+    public Optional<CreditsOperation> prepareCreditsOperation(Payment payment,BigDecimal addition,String userEmail) {
         checkMerchantBlock(payment.getMerchant(), payment.getCurrency(), payment.getOperationType());
         final OperationType operationType = payment.getOperationType();
          BigDecimal amount = valueOf(payment.getSum()).add(addition);

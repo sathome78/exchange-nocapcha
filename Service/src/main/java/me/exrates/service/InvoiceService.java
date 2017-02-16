@@ -4,15 +4,14 @@ import me.exrates.model.ClientBank;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.InvoiceRequest;
 import me.exrates.model.Transaction;
-import me.exrates.model.enums.InvoiceRequestStatusEnum;
 import me.exrates.model.enums.UserActionOnInvoiceEnum;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.InvoiceData;
 import me.exrates.service.exception.invoice.IllegalInvoiceRequestStatusException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 
@@ -46,8 +45,8 @@ public interface InvoiceService {
   List<InvoiceRequest> findAllRequestsForUser(String userEmail);
 
   void userActionOnInvoice(
-      InvoiceConfirmData invoiceConfirmData,
-      UserActionOnInvoiceEnum userActionOnInvoiceEnum) throws IllegalInvoiceRequestStatusException, InvoiceNotFoundException;
+          InvoiceConfirmData invoiceConfirmData,
+          UserActionOnInvoiceEnum userActionOnInvoiceEnum, Locale locale) throws IllegalInvoiceRequestStatusException, InvoiceNotFoundException;
 
     void updateReceiptScan(Integer invoiceId, String receiptScanPath);
 }

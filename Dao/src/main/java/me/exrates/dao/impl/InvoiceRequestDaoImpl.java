@@ -286,22 +286,7 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
         });
     }
 
-    @Override
-    public InvoiceBank findBankById(Integer bankId) {
-        final String sql = "SELECT id, currency_id, name, account_number, recipient " +
-                " FROM INVOICE_BANK " +
-                " WHERE id = :bank_id";
-        final Map<String, Integer> params = Collections.singletonMap("bank_id", bankId);
-        return parameterJdbcTemplate.queryForObject(sql, params, (rs, rowNum) -> {
-            InvoiceBank bank = new InvoiceBank();
-            bank.setId(rs.getInt("id"));
-            bank.setName(rs.getString("name"));
-            bank.setCurrencyId(rs.getInt("currency_id"));
-            bank.setAccountNumber(rs.getString("account_number"));
-            bank.setRecipient(rs.getString("recipient"));
-            return bank;
-        });
-    }
+
   @Override
   public InvoiceBank findBankById(Integer bankId) {
     final String sql = "SELECT id, currency_id, name, account_number, recipient " +
@@ -350,10 +335,10 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
   }
     @Override
     public void updateReceiptScan(Integer invoiceId, String receiptScanPath) {
-        final String sql = "UPDATE INVOICE_REQUEST SET receipt_scan = :receipt_scan WHERE transaction_id = :id";
+        final String sql = "UPDATE INVOICE_REQUEST SET receipt_scan = :receipt_scan WHERE transaction_id = :id ";
         Map<String, Object> params = new HashMap<>();
         params.put("id", invoiceId);
         params.put("receipt_scan", receiptScanPath);
-        jdbcTemplate.update(sql, params);
+         parameterJdbcTemplate.update(sql, params);
     }
 }

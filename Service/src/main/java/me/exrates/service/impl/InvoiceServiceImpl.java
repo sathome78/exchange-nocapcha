@@ -9,10 +9,8 @@ import me.exrates.model.enums.*;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.InvoiceData;
 import me.exrates.model.vo.WalletOperationData;
-import me.exrates.service.CompanyWalletService;
-import me.exrates.service.InvoiceService;
-import me.exrates.service.NotificationService;
-import me.exrates.service.TransactionService;
+import me.exrates.service.*;
+import me.exrates.service.exception.FileLoadingException;
 import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.IllegalTransactionProvidedStatusException;
 import me.exrates.service.exception.invoice.IllegalInvoiceRequestStatusException;
@@ -20,11 +18,15 @@ import me.exrates.service.exception.invoice.InvoiceAcceptionException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -51,6 +53,12 @@ public class InvoiceServiceImpl implements InvoiceService {
 
   @Autowired
   private CompanyWalletService companyWalletService;
+
+  @Autowired
+  private UserFilesService userFilesService;
+
+  @Autowired
+  private MessageSource messageSource;
 
   @Override
   @Transactional
@@ -202,6 +210,7 @@ public class InvoiceServiceImpl implements InvoiceService {
   @Override
   @Transactional
   public Optional<InvoiceRequest> findRequestByIdAndBlock(Integer transactionId) {
+
     return invoiceRequestDao.findByIdAndBlock(transactionId);
   }
 
@@ -220,8 +229,9 @@ public class InvoiceServiceImpl implements InvoiceService {
   @Override
   @Transactional
   public void userActionOnInvoice(
-      InvoiceConfirmData invoiceConfirmData,
-      UserActionOnInvoiceEnum userActionOnInvoiceEnum) throws IllegalInvoiceRequestStatusException, InvoiceNotFoundException {
+          InvoiceConfirmData invoiceConfirmData,
+          UserActionOnInvoiceEnum userActionOnInvoiceEnum, Locale locale) throws IllegalInvoiceRequestStatusException, InvoiceNotFoundException {
+    log.debug(invoiceConfirmData);
     Optional<InvoiceRequest> invoiceRequestResult = findRequestByIdAndBlock(invoiceConfirmData.getInvoiceId());
     if (!invoiceRequestResult.isPresent()) {
       throw new InvoiceNotFoundException(String.format("invoice id: %s", invoiceConfirmData.getInvoiceId()));
@@ -248,6 +258,19 @@ public class InvoiceServiceImpl implements InvoiceService {
       invoiceRequest.setInvoiceRequestStatus(CONFIRMED_USER);
       invoiceRequest.setRemark(StringEscapeUtils.escapeHtml(invoiceConfirmData.getRemark()));
       updateConfirmationInfo(invoiceRequest);
+      MultipartFile receiptScan = invoiceConfirmData.getReceiptScan();
+      if ( !(receiptScan == null || receiptScan.isEmpty())) {
+        if (!userFilesService.checkFileValidity(receiptScan) || receiptScan.getSize() > 1048576L) {
+          throw new FileLoadingException(messageSource.getMessage("merchants.errorUploadReceipt", null,
+                  locale));
+        }
+        try {
+          userFilesService.saveReceiptScan(invoiceRequest.getUserId(), invoiceRequest.getTransaction().getId(), receiptScan);
+        } catch (IOException e) {
+          throw new FileLoadingException(messageSource.getMessage("merchants.internalError", null,
+                  locale));
+        }
+      }
     }
   }
 
@@ -267,10 +290,5 @@ public class InvoiceServiceImpl implements InvoiceService {
         invoiceRequestDao.updateReceiptScan(invoiceId, receiptScanPath);
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<InvoiceRequest> findAllRequestsForUser(String userEmail) {
-        return invoiceRequestDao.findAllForUser(userEmail);
-    }
 
 }

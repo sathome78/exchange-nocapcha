@@ -115,7 +115,6 @@ public class UserFilesServiceImpl implements UserFilesService {
     @Override
     public void saveReceiptScan(final int userId, final int invoiceId, final MultipartFile file) throws IOException {
         final Path path = Paths.get(userFilesDir + userId, "receipts");
-        LOG.debug(path.toString());
         if (!Files.exists(path)) {
             Files.createDirectories(path);
         }

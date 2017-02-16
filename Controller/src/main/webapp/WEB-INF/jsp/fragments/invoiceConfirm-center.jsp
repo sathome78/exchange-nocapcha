@@ -54,7 +54,7 @@
 
                 <form id="confirmationForm" action="<c:url value="/merchants/invoice/payment/confirm"/>" method="post"enctype="multipart/form-data">
                     <input type="text" hidden value="" name="action" >
-          <inputtype="hidden" name="invoiceId" id="invoiceId" value="${invoiceRequest.transaction.id}" <c:out value="${readonly}"/>>
+                    <input type="hidden" name="invoiceId" id="invoiceId" value="${invoiceRequest.transaction.id}" <c:out value="${readonly}"/>>
                     <input type="hidden" name="payerBankName" id="payerBankName" value="${invoiceRequest.payerBankName}" <c:out value="${readonly}"/>>
                     <div class="input-block-wrapper clearfix">
                         <div class="col-md-3 input-block-wrapper__label-wrapper" >

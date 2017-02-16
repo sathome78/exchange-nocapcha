@@ -10,7 +10,6 @@ import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.InvoiceService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.UserFilesService;
-import me.exrates.service.exception.FileLoadingException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.invoice.IllegalInvoiceRequestStatusException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
@@ -21,7 +20,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -53,12 +51,7 @@ public class InvoiceController {
   private InvoiceService invoiceService;
 
   @Autowired
-  private MessageSource messageSource;
-    @Autowired
-    private UserFilesService userFilesService;
-
-    @Autowired
-    private MessageSource messageSource;
+   private MessageSource messageSource;
 
   @Autowired
   private LocaleResolver localeResolver;
@@ -218,13 +211,14 @@ public class InvoiceController {
     RedirectView redirectView = new RedirectView("/dashboard?startupPage=myhistory&startupSubPage=myinputoutput");
     UserActionOnInvoiceEnum userActionOnInvoiceEnum = UserActionOnInvoiceEnum.convert(action);
     try {
-      invoiceService.userActionOnInvoice(invoiceConfirmData, userActionOnInvoiceEnum);
+      invoiceService.userActionOnInvoice(invoiceConfirmData, userActionOnInvoiceEnum, localeResolver.resolveLocale(request));
     } catch (IllegalInvoiceRequestStatusException e) {
       redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("merchants.invoice.error.notAllowedOperation", null, localeResolver.resolveLocale(request)));
     } catch (InvoiceNotFoundException e) {
       redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("merchants.error.invoiceRequestNotFound", null, localeResolver.resolveLocale(request)));
     } catch (Exception e) {
       log.error(e.getMessage());
+      e.printStackTrace();
       redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("merchants.internalError", null, localeResolver.resolveLocale(request)));
     }
     return redirectView;
@@ -241,6 +235,66 @@ public class InvoiceController {
     invoiceService.declineInvoice(id, id, principal.getName());
     return new RedirectView("/2a8fy7b07dxe44/invoiceConfirmation");
   }
+
+    @RequestMapping(value = "/withdraw/prepare", method = POST)
+    public RedirectView prepareWithdraw(Payment payment, Principal principal, RedirectAttributes redirectAttributes, HttpServletRequest request) {
+        RedirectView redirectView = new RedirectView("/merchants/invoice/withdrawDetails");
+        Optional<CreditsOperation> creditsOperationResult = merchantService.prepareCreditsOperation(payment, principal.getName());
+        if (!creditsOperationResult.isPresent()) {
+            redirectAttributes.addFlashAttribute("error", "merchants.incorrectPaymentDetails");
+        } else {
+            CreditsOperation creditsOperation = creditsOperationResult.get();
+            HttpSession session = request.getSession();
+            Object mutex = WebUtils.getSessionMutex(session);
+            synchronized (mutex) {
+                session.setAttribute("creditsOperation", creditsOperation);
+            }
+        }
+
+
+
+        return redirectView;
+    }
+
+
+    @RequestMapping(value = "/withdrawDetails", method = GET)
+    public ModelAndView withdrawDetails(HttpServletRequest request) {
+        ModelAndView modelAndView = new ModelAndView("/globalPages/withdrawInvoice");
+        HttpSession session = request.getSession();
+        CreditsOperation creditsOperation = (CreditsOperation) session.getAttribute("creditsOperation");
+        if (creditsOperation == null) {
+            modelAndView.addObject("error", "merchant.operationNotAvailable");
+        } else {
+            modelAndView.addObject("payment", creditsOperation);
+            List<ClientBank> banks = invoiceService.findClientBanksForCurrency(creditsOperation.getCurrency().getId());
+            modelAndView.addObject("banks", banks);
+        }
+
+        return modelAndView;
+    }
+
+    @RequestMapping(value = "/withdraw/submit", method = POST)
+    public RedirectView submitWithdraw(WithdrawData withdrawData, Principal principal, HttpServletRequest request) {
+        RedirectView redirectView = new RedirectView("/dashboard");
+        HttpSession session = request.getSession();
+        Object mutex = WebUtils.getSessionMutex(session);
+        CreditsOperation creditsOperation = (CreditsOperation) session.getAttribute("creditsOperation");
+        if (creditsOperation == null) {
+            synchronized (mutex) {
+                session.setAttribute("errorNoty",  messageSource.getMessage("merchant.operationNotAvailable", null,
+                        localeResolver.resolveLocale(request)));
+            }
+            return new RedirectView("/merchants/invoice/withdrawDetails");
+
+        }
+        Map<String, String> result = merchantService.withdrawRequest(creditsOperation, withdrawData, principal.getName(),
+                localeResolver.resolveLocale(request));
+        synchronized (mutex) {
+            session.removeAttribute("creditsOperation");
+            session.setAttribute("successNoty",  result.get("success"));
+        }
+        return redirectView;
+    }
 
 
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
