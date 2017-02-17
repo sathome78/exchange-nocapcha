@@ -257,7 +257,12 @@ $(function(){
                     //$('#currencyFull')..html(response['balance']);
                     responseControls();
                     $('.paymentInfo').html(response['success']);
+
                     $('.wallet_input').hide();
+                    $(sum).val('0.0');
+                    button.prop('disabled',true);
+                    $('#outputPaymentProcess')
+                        .prop('disabled', false);
                 }).fail(function (error, jqXHR, textStatus) {
                     console.log(textStatus);
                     console.log(jqXHR);
@@ -543,7 +548,6 @@ $(function(){
             paymentForm.append('<input type="hidden" name="merchantImage" value="' + merchantImageId + '">');
         }
         resetFormAction(operationType.val(), targetMerchant,paymentForm);
-        console.log(paymentForm.attr('action'));
         resetPaymentFormData(targetMerchant,paymentForm,function(){
             paymentForm.submit();
         });
@@ -610,10 +614,6 @@ $(function(){
                 submitProcess();
                 $('#outputPaymentProcess')
                     .prop('disabled', true);
-                setTimeout(function()
-                {
-                    location.reload();
-                },8000);
             }
         }
 

@@ -123,6 +123,17 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     }
 
     @Override
+    public Optional<WithdrawRequest> findByIdAndBlock(int id) {
+        String sql = "SELECT COUNT(*) " +
+                "FROM WITHDRAW_REQUEST " +
+                "JOIN TRANSACTION ON WITHDRAW_REQUEST.transaction_id = TRANSACTION.id " +
+                "WHERE WITHDRAW_REQUEST.transaction_id = :id " +
+                "FOR UPDATE ";
+        jdbcTemplate.queryForObject(sql, singletonMap("id", id), Integer.class);
+        return findById(id);
+    }
+
+    @Override
     public Optional<WithdrawRequest> findById(int id) {
         final String sql = SELECT_ALL_REQUESTS + " WHERE WITHDRAW_REQUEST.transaction_id = :id";
         try {

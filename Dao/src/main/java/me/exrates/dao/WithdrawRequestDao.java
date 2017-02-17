@@ -16,6 +16,8 @@ public interface WithdrawRequestDao {
 
     void update(WithdrawRequest withdrawRequest);
 
+    Optional<WithdrawRequest> findByIdAndBlock(int id);
+
     Optional<WithdrawRequest> findById(int id);
 
     List<WithdrawRequest> findAll();
