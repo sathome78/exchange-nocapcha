@@ -35,9 +35,6 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Autowired
     private UserService userService;
 
-    @Autowired
-    private UserService userService;
-
     private static final Logger logger = LogManager.getLogger(CurrencyServiceImpl.class);
     private static final Set<String> CRYPTO = new HashSet<String>() {
         {
