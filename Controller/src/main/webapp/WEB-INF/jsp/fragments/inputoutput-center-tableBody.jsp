@@ -50,7 +50,7 @@
                     console.log("illegal invoiceRequestStatusId: "+invoiceRequestStatusId);
                     return 'ERROR';
                   }
-                } else if (merchantName === 'Invoice') {
+                } else if (merchantName === 'Invoice' && operationType === 'Input') {
                     return '<button type="submit" style="font-size: 1.1rem;" class="wallet-mystatement-button table-button-block__button btn btn-info">
                               <loc:message code="merchants.invoice.viewConfirm" />
                             </button>'
