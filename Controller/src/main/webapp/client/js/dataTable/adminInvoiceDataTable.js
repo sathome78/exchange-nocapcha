@@ -14,7 +14,7 @@ $(document).ready(function () {
     /**/
     var $invoiceRequestsTable = $('#invoice_requests');
 
-    var url = '/2a8fy7b07dxe44/invoiceRequests?invoiceRequestStatusSetType=acceptable';
+    var url = '/2a8fy7b07dxe44/invoiceRequests?availableActionSet=ACCEPT_MANUAL';
 
     if ($.fn.dataTable.isDataTable('#invoice_requests')) {
         invoiceRequestsDataTable = $($invoiceRequestsTable).DataTable();

@@ -18,4 +18,6 @@ public interface PendingPaymentDao {
     Optional<PendingPayment> findByAddress(String address);
 
     void delete(int invoiceId);
+
+    Optional<PendingPayment> findByIdAndBlock(int invoiceId);
 }

@@ -3,7 +3,7 @@ package me.exrates.model;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import me.exrates.model.enums.InvoiceRequestStatusEnum;
+import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
 
 
 /**

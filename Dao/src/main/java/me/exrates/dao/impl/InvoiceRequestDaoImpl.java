@@ -4,7 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.InvoiceRequestDao;
 import me.exrates.model.*;
 import me.exrates.model.dto.InvoiceUserDto;
-import me.exrates.model.enums.InvoiceRequestStatusEnum;
+import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -198,7 +198,7 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
   }
 
   @Override
-  public void setExpiredByIntervalAndStatus(LocalDateTime nowDate, Integer intervalMinutes, Integer newInvoiceRequestStatusId, List<Integer> invoiceRequestStatusIdList) {
+  public void setNewStatusByDateIntervalAndStatus(LocalDateTime nowDate, Integer intervalMinutes, Integer newInvoiceRequestStatusId, List<Integer> invoiceRequestStatusIdList) {
     final String sql =
         " UPDATE INVOICE_REQUEST " +
             " SET invoice_request_status_id = :invoice_request_status_id, " +

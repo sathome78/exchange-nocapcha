@@ -7,6 +7,9 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.*;
+import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
+import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
+import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.form.AuthorityOptionsForm;
 import me.exrates.security.service.UserSecureServiceImpl;
 import me.exrates.service.*;
@@ -770,13 +773,14 @@ public class AdminController {
     @RequestMapping(value = "/2a8fy7b07dxe44/invoiceRequests")
     @ResponseBody
     public List<InvoiceRequest> invoiceRequests(
-        @RequestParam(required = false) String invoiceRequestStatusSetType) {
-        if (StringUtils.isEmpty(invoiceRequestStatusSetType)) {
+        @RequestParam(required = false) List<String> availableActionSet) {
+        if (availableActionSet == null || availableActionSet.isEmpty()) {
             return invoiceService.findAllInvoiceRequests();
         } else {
-            List<InvoiceRequestStatusEnum> invoiceRequestStatusList = InvoiceRequestStatusEnum.getStatusSet(invoiceRequestStatusSetType);
+            List<InvoiceActionTypeEnum> invoiceActionTypeEnumList = InvoiceActionTypeEnum.convert(availableActionSet);
+            List<InvoiceStatus> invoiceRequestStatusList = InvoiceRequestStatusEnum.getAvailableForActionStatusesList(invoiceActionTypeEnumList);
             List<Integer> invoiceRequestStatusIdList = invoiceRequestStatusList.stream()
-                .map(e -> e.getCode())
+                .map(e -> ((InvoiceRequestStatusEnum)e).getCode())
                 .collect(Collectors.toList());
             return invoiceService.findAllByStatus(invoiceRequestStatusIdList);
         }

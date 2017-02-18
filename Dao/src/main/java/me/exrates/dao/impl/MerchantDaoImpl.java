@@ -10,6 +10,7 @@ import me.exrates.model.dto.mobileApiDto.MerchantImageShortenedDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -26,6 +27,8 @@ import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CONFIRM;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -216,17 +219,15 @@ public class MerchantDaoImpl implements MerchantDao {
       List<Integer> operationTypeIdList,
       Locale locale) {
     String sql = " select TRANSACTION.datetime, CURRENCY.name as currency, TRANSACTION.amount, TRANSACTION.commission_amount, \n" +
-        "    case when OPERATION_TYPE.name = 'input' or WITHDRAW_REQUEST.merchant_image_id is null then\n" +
-        "    MERCHANT.name else\n" +
-        "    MERCHANT_IMAGE.image_name end as merchant,\n" +
+        "    case when OPERATION_TYPE.name = 'input' or WITHDRAW_REQUEST.merchant_image_id is null " +
+        "      then MERCHANT.name " +
+        "      else MERCHANT_IMAGE.image_name end as merchant,\n" +
         "    OPERATION_TYPE.name as operation_type, TRANSACTION.id, TRANSACTION.provided, " +
-        "    IF(OPERATION_TYPE.id = 1 AND MERCHANT.name = 'Invoice' AND INVOICE_REQUEST_STATUS.name IN ('CREATED_USER', 'DECLINED_ADMIN') " +
-        "    AND TRANSACTION.provided IS NOT TRUE, 1, 0) AS confirmation_required, " +
         "    INVOICE_BANK.account_number AS bank_account, " +
         "    USER.id AS user_id," +
         "    INVOICE_REQUEST.invoice_request_status_id, " +
         "    INVOICE_REQUEST.status_update_date," +
-            "INVOICE_REQUEST.user_full_name, INVOICE_REQUEST.remark " +
+        "INVOICE_REQUEST.user_full_name, INVOICE_REQUEST.remark " +
         "  from TRANSACTION \n" +
         "    left join CURRENCY on TRANSACTION.currency_id=CURRENCY.id\n" +
         "    left join WITHDRAW_REQUEST on TRANSACTION.id=WITHDRAW_REQUEST.transaction_id\n" +
@@ -258,13 +259,14 @@ public class MerchantDaoImpl implements MerchantDao {
             messageSource.getMessage("inputoutput.statusFalse", null, locale) :
             messageSource.getMessage("inputoutput.statusTrue", null, locale));
         myInputOutputHistoryDto.setUserId(rs.getInt("user_id"));
-        Boolean confirmationRequired = rs.getBoolean("confirmation_required");
+        Boolean confirmationRequired = rs.getObject("invoice_request_status_id") != null
+            && InvoiceRequestStatusEnum.convert(rs.getInt("invoice_request_status_id")).availableForAction(CONFIRM);
         myInputOutputHistoryDto.setConfirmationRequired(confirmationRequired);
         myInputOutputHistoryDto.setBankAccount(rs.getString("bank_account"));
         myInputOutputHistoryDto.setInvoiceRequestStatusId((Integer) rs.getObject("invoice_request_status_id"));
         myInputOutputHistoryDto.setStatusUpdateDate(rs.getTimestamp("status_update_date") == null ? null : rs.getTimestamp("status_update_date").toLocalDateTime());
-          myInputOutputHistoryDto.setUserFullName(rs.getString("user_full_name"));
-          myInputOutputHistoryDto.setRemark(rs.getString("remark"));
+        myInputOutputHistoryDto.setUserFullName(rs.getString("user_full_name"));
+        myInputOutputHistoryDto.setRemark(rs.getString("remark"));
         return myInputOutputHistoryDto;
       }
     });

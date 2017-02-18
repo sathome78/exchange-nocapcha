@@ -19,9 +19,9 @@ public interface InvoiceService {
 
   Transaction createPaymentInvoice(InvoiceData invoiceData);
 
-  void acceptInvoiceAndProvideTransaction(int invoiceId, int transactionId, String acceptanceUserEmail) throws Exception;
+  void acceptInvoiceAndProvideTransaction(Integer invoiceId, Integer transactionId, String acceptanceUserEmail) throws Exception;
 
-  void declineInvoice(int invoiceId, int transactionId, String acceptanceUserEmail) throws Exception;
+  void declineInvoice(Integer invoiceId, Integer transactionId, String acceptanceUserEmail) throws Exception;
 
   Integer clearExpiredInvoices(Integer intervalMinutes) throws Exception;
 

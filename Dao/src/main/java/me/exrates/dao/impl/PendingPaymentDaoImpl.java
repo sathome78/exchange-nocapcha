@@ -75,4 +75,19 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
         final Map<String, Integer> params = Collections.singletonMap("invoiceId", invoiceId);
         jdbcTemplate.update(sql,params);
     }
+
+    @Override
+    public Optional<PendingPayment> findByIdAndBlock(int invoiceId) {
+        final String sql =
+            " SELECT COUNT(*) " +
+                " FROM PENDING_PAYMENT AS pp " +
+                " JOIN TRANSACTION ON pp.invoice_id = TRANSACTION.id " +
+                " WHERE pp.invoice_id = :invoice_id " +
+                " FOR UPDATE"; //FOR UPDATE Important!
+        final Map<String, Object> params = new HashMap<String, Object>() {{
+            put("invoice_id", invoiceId);
+        }};
+        jdbcTemplate.queryForObject(sql, params, Integer.class);
+        return findByInvoiceId(invoiceId);
+    }
 }

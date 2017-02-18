@@ -20,7 +20,7 @@ function InputOutputClass(currentCurrencyPair) {
     var $inputoutputContainer = $('#inputoutput');
     var tableId = "inputoutput-table";
     var inputoutputCurrencyPairSelector;
-    var tablePageSize = 5;
+    var tablePageSize = 20;
 
     function onCurrencyPairChange(currentCurrencyPair) {
         that.updateAndShowAll(currentCurrencyPair);

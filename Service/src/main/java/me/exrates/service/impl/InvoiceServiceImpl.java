@@ -6,6 +6,8 @@ import me.exrates.dao.WalletDao;
 import me.exrates.model.*;
 import me.exrates.model.dto.InvoiceUserDto;
 import me.exrates.model.enums.*;
+import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
+import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.InvoiceData;
 import me.exrates.model.vo.WalletOperationData;
@@ -30,7 +32,7 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static me.exrates.model.enums.InvoiceRequestStatusEnum.*;
+import static me.exrates.model.enums.invoice.InvoiceRequestStatusEnum.*;
 import static me.exrates.model.enums.UserActionOnInvoiceEnum.REVOKE;
 import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 
@@ -82,8 +84,9 @@ public class InvoiceServiceImpl implements InvoiceService {
 
   @Override
   @Transactional
-  public void acceptInvoiceAndProvideTransaction(int invoiceId, int transactionId, String acceptanceUserEmail) throws Exception {
-    InvoiceRequest invoiceRequest = invoiceRequestDao.findByIdAndBlock(transactionId).get();
+  public void acceptInvoiceAndProvideTransaction(Integer invoiceId, Integer transactionId, String acceptanceUserEmail) throws Exception {
+    InvoiceRequest invoiceRequest = invoiceRequestDao.findByIdAndBlock(transactionId)
+        .orElseThrow(() -> new InvoiceNotFoundException(transactionId.toString()));
     if (invoiceRequest.getInvoiceRequestStatus() != InvoiceRequestStatusEnum.CONFIRMED_USER) {
       throw new IllegalInvoiceRequestStatusException("for transaction id = " + transactionId);
     }
@@ -124,8 +127,9 @@ public class InvoiceServiceImpl implements InvoiceService {
 
   @Override
   @Transactional
-  public void declineInvoice(int invoiceId, int transactionId, String acceptanceUserEmail) throws Exception {
-    InvoiceRequest invoiceRequest = invoiceRequestDao.findByIdAndBlock(transactionId).get();
+  public void declineInvoice(Integer invoiceId, Integer transactionId, String acceptanceUserEmail) throws Exception {
+    InvoiceRequest invoiceRequest = invoiceRequestDao.findByIdAndBlock(transactionId)
+        .orElseThrow(() -> new InvoiceNotFoundException(transactionId.toString()));
     if (invoiceRequest.getInvoiceRequestStatus() != InvoiceRequestStatusEnum.CONFIRMED_USER) {
       throw new IllegalInvoiceRequestStatusException("for transaction id = " + transactionId);
     }
@@ -148,14 +152,14 @@ public class InvoiceServiceImpl implements InvoiceService {
   @Override
   @Transactional
   public Integer clearExpiredInvoices(Integer intervalMinutes) throws Exception {
-    List<Integer> invoiceRequestStatusIdList = InvoiceRequestStatusEnum.getMayExpireStatusList().stream()
-        .map(e -> e.getCode())
+    List<Integer> invoiceRequestStatusIdList = InvoiceRequestStatusEnum.getAvailableForActionStatusesList(InvoiceActionTypeEnum.EXPIRE).stream()
+        .map(e -> ((InvoiceRequestStatusEnum)e).getCode())
         .collect(Collectors.toList());
     Optional<LocalDateTime> nowDate = invoiceRequestDao.getAndBlockByIntervalAndStatus(
         intervalMinutes,
         invoiceRequestStatusIdList);
     if (nowDate.isPresent()) {
-      invoiceRequestDao.setExpiredByIntervalAndStatus(
+      invoiceRequestDao.setNewStatusByDateIntervalAndStatus(
           nowDate.get(),
           intervalMinutes,
           EXPIRED.getCode(),
@@ -238,7 +242,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     }
     InvoiceRequest invoiceRequest = invoiceRequestResult.get();
     if (userActionOnInvoiceEnum == REVOKE) {
-      if (!InvoiceRequestStatusEnum.revokeable(invoiceRequest)) {
+      if (!invoiceRequest.getInvoiceRequestStatus().availableForAction(InvoiceActionTypeEnum.REVOKE)) {
         throw new IllegalInvoiceRequestStatusException(String.format("invoice id: %s status: %s demanded action: %s",
             invoiceRequest.getTransaction().getId(),
             invoiceRequest.getInvoiceRequestStatus(),
@@ -246,7 +250,7 @@ public class InvoiceServiceImpl implements InvoiceService {
       }
       updateInvoiceRequestStatus(invoiceRequest.getTransaction().getId(), REVOKED_USER);
     } else {
-      if (!InvoiceRequestStatusEnum.availableToConfirm(invoiceRequest)) {
+      if (!invoiceRequest.getInvoiceRequestStatus().availableForAction(InvoiceActionTypeEnum.CONFIRM)) {
         throw new IllegalInvoiceRequestStatusException(String.format("invoice id: %s status: %s demanded action: %s",
             invoiceRequest.getTransaction().getId(),
             invoiceRequest.getInvoiceRequestStatus(),
