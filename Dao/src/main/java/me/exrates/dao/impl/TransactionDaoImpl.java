@@ -31,8 +31,6 @@ import static java.util.Collections.singletonMap;
 @Repository
 public final class TransactionDaoImpl implements TransactionDao {
 
-    private static final Logger LOG = LogManager.getLogger(TransactionDaoImpl.class);
-
     protected static RowMapper<Transaction> transactionRowMapper = (resultSet, i) -> {
 
         final OperationType operationType = OperationType.convert(resultSet.getInt("TRANSACTION.operation_type_id"));

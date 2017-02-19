@@ -780,7 +780,7 @@ public class AdminController {
             List<InvoiceActionTypeEnum> invoiceActionTypeEnumList = InvoiceActionTypeEnum.convert(availableActionSet);
             List<InvoiceStatus> invoiceRequestStatusList = InvoiceRequestStatusEnum.getAvailableForActionStatusesList(invoiceActionTypeEnumList);
             List<Integer> invoiceRequestStatusIdList = invoiceRequestStatusList.stream()
-                .map(e -> ((InvoiceRequestStatusEnum)e).getCode())
+                .map(InvoiceStatus::getCode)
                 .collect(Collectors.toList());
             return invoiceService.findAllByStatus(invoiceRequestStatusIdList);
         }

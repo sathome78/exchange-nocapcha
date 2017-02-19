@@ -161,7 +161,7 @@ public class EDCServiceImpl implements EDCService {
         // cache warm
             try {
 
-            paymentDao.findAllByHash(PENDING_PAYMENT_HASH).forEach(payment -> pendingPayments.put(payment.getAddress().get(), payment));
+            paymentDao.findAllByHash(PENDING_PAYMENT_HASH).forEach(payment -> pendingPayments.put(payment.getAddress(), payment));
             workers.submit(() -> {  // processing json with transactions from server
                 while (isRunning) {
                     final String poll = rawTransactions.poll();

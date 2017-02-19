@@ -93,6 +93,11 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
+    public void updateTransactionAmount(Transaction transaction) {
+        updateAmount(transaction, transaction.getAmount());
+    }
+
+    @Override
     public void updateTransactionAmount(final Transaction transaction, final BigDecimal amount) {
         if (transaction.getOperationType() != OperationType.INPUT) {
             throw new IllegalArgumentException("Updating amount only available for INPUT operation");

@@ -21,10 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.security.Principal;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -70,8 +67,8 @@ public class BlockchainController {
                     .createPaymentInvoice(creditsOperation);
 
                 final String notification = merchantService
-                    .sendDepositNotification(pendingPayment
-                        .getAddress().orElseThrow(
+                    .sendDepositNotification(Optional.ofNullable(pendingPayment
+                            .getAddress()).orElseThrow(
                             () ->new MerchantInternalException("Address not presented"))
                         ,email ,locale, creditsOperation, "merchants.depositNotification.body");
                 LOG.info("New pending Blockchain payment :"+ pendingPayment);

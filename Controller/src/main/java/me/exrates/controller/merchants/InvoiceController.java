@@ -10,7 +10,7 @@ import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.InvoiceService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.exception.InvalidAmountException;
-import me.exrates.service.exception.invoice.IllegalInvoiceRequestStatusException;
+import me.exrates.service.exception.invoice.IllegalInvoiceStatusException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.exception.invoice.RejectedPaymentInvoice;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -132,7 +132,6 @@ public class InvoiceController {
   public RedirectView preparePayment(InvoiceData invoiceData,
                                      final Principal principal, RedirectAttributes redirectAttributes,
                                      HttpServletRequest request) {
-    log.debug(invoiceData);
     final String email = principal.getName();
     HttpSession session = request.getSession();
     CreditsOperation creditsOperation;
@@ -213,7 +212,7 @@ public class InvoiceController {
     InvoiceActionTypeEnum userActionOnInvoiceEnum = InvoiceActionTypeEnum.convert(action);
     try {
       invoiceService.userActionOnInvoice(invoiceConfirmData, userActionOnInvoiceEnum, localeResolver.resolveLocale(request));
-    } catch (IllegalInvoiceRequestStatusException e) {
+    } catch (IllegalInvoiceStatusException e) {
       redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("merchants.invoice.error.notAllowedOperation", null, localeResolver.resolveLocale(request)));
     } catch (InvoiceNotFoundException e) {
       redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("merchants.error.invoiceRequestNotFound", null, localeResolver.resolveLocale(request)));
@@ -226,8 +225,10 @@ public class InvoiceController {
   }
 
   @RequestMapping(value = "/payment/accept", method = GET)
-  public RedirectView acceptPayment(@RequestParam int id, RedirectAttributes redir, Principal principal) throws Exception {
-    invoiceService.acceptInvoiceAndProvideTransaction(id, id, principal.getName());
+  public RedirectView acceptPayment(
+      @RequestParam(name = "id") Integer invoiceId,
+      Principal principal) throws Exception {
+    invoiceService.acceptInvoiceAndProvideTransaction(invoiceId, principal.getName());
     return new RedirectView("/2a8fy7b07dxe44/invoiceConfirmation");
   }
 

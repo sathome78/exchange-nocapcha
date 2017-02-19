@@ -25,6 +25,7 @@ import java.security.Principal;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.OK;
@@ -72,8 +73,8 @@ public class EDRCoinController {
             final PendingPayment pendingPayment = edrcService
                 .createPaymentInvoice(creditsOperation);
             final String notification = merchantService
-                .sendDepositNotification(pendingPayment
-                        .getAddress().orElseThrow(() -> new MerchantInternalException("Address not presented")),
+                .sendDepositNotification(Optional.ofNullable(pendingPayment
+                        .getAddress()).orElseThrow(() -> new MerchantInternalException("Address not presented")),
                         email , locale, creditsOperation, "merchants.depositNotification.body");
             return new ResponseEntity<>(notification, httpHeaders, OK);
         } catch (final InvalidAmountException|RejectedPaymentInvoice e) {

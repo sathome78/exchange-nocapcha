@@ -7,7 +7,7 @@ import me.exrates.model.Transaction;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.InvoiceData;
-import me.exrates.service.exception.invoice.IllegalInvoiceRequestStatusException;
+import me.exrates.service.exception.invoice.IllegalInvoiceStatusException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 
 import java.util.List;
@@ -19,7 +19,7 @@ public interface InvoiceService {
 
   Transaction createPaymentInvoice(InvoiceData invoiceData);
 
-  void acceptInvoiceAndProvideTransaction(Integer invoiceId, Integer transactionId, String acceptanceUserEmail) throws Exception;
+  void acceptInvoiceAndProvideTransaction(Integer invoiceId, String acceptanceUserEmail) throws Exception;
 
   void declineInvoice(Integer invoiceId, Integer transactionId, String acceptanceUserEmail) throws Exception;
 
@@ -46,7 +46,7 @@ public interface InvoiceService {
 
   void userActionOnInvoice(
       InvoiceConfirmData invoiceConfirmData,
-      InvoiceActionTypeEnum userActionOnInvoiceEnum, Locale locale) throws IllegalInvoiceRequestStatusException, InvoiceNotFoundException;
+      InvoiceActionTypeEnum userActionOnInvoiceEnum, Locale locale) throws IllegalInvoiceStatusException, InvoiceNotFoundException;
 
   void updateReceiptScan(Integer invoiceId, String receiptScanPath);
 }

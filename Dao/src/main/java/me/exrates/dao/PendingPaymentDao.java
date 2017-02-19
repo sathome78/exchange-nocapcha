@@ -13,11 +13,13 @@ public interface PendingPaymentDao {
 
     List<PendingPayment> findAllByHash(String hash);
 
-    Optional<PendingPayment> findByInvoiceId(int invoiceId);
+    Optional<PendingPayment> findByInvoiceId(Integer invoiceId);
 
     Optional<PendingPayment> findByAddress(String address);
 
     void delete(int invoiceId);
 
-    Optional<PendingPayment> findByIdAndBlock(int invoiceId);
+    Optional<PendingPayment> findByIdAndBlock(Integer invoiceId);
+
+    void updateAcceptanceStatus(PendingPayment pendingPayment);
 }

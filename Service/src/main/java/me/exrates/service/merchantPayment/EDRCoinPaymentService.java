@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.springframework.http.HttpStatus.OK;
 
@@ -49,8 +50,8 @@ public class EDRCoinPaymentService implements MerchantPaymentService {
         dto.setType(MerchantApiResponseType.NOTIFY);
         final PendingPayment pendingPayment = edrcService
                 .createPaymentInvoice(creditsOperation);
-        final String address = pendingPayment
-                .getAddress().orElseThrow(() -> new MerchantInternalException("Address not presented"));
+        final String address = Optional.ofNullable(pendingPayment
+                .getAddress()).orElseThrow(() -> new MerchantInternalException("Address not presented"));
         final String notification = merchantService
                 .sendDepositNotification(address,
                         email , locale, creditsOperation, "merchants.depositNotification.body");

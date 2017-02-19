@@ -5,11 +5,12 @@ import me.exrates.dao.InvoiceRequestDao;
 import me.exrates.dao.WalletDao;
 import me.exrates.model.*;
 import me.exrates.model.dto.InvoiceUserDto;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.NotificationEvent;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
 import me.exrates.model.enums.invoice.InvoiceStatus;
-import me.exrates.model.exceptions.UnsupportedInvoiceActionTypeNameException;
 import me.exrates.model.exceptions.UnsupportedUserInvoiceActionTypeException;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.InvoiceData;
@@ -18,7 +19,7 @@ import me.exrates.service.*;
 import me.exrates.service.exception.FileLoadingException;
 import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.IllegalTransactionProvidedStatusException;
-import me.exrates.service.exception.invoice.IllegalInvoiceRequestStatusException;
+import me.exrates.service.exception.invoice.IllegalInvoiceStatusException;
 import me.exrates.service.exception.invoice.InvoiceAcceptionException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -36,7 +37,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.*;
-import static me.exrates.model.enums.invoice.InvoiceRequestStatusEnum.*;
+import static me.exrates.model.enums.invoice.InvoiceRequestStatusEnum.DECLINED_ADMIN;
+import static me.exrates.model.enums.invoice.InvoiceRequestStatusEnum.EXPIRED;
 import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 
 
@@ -80,24 +82,24 @@ public class InvoiceServiceImpl implements InvoiceService {
     invoiceRequest.setRemark(StringEscapeUtils.escapeHtml(invoiceData.getRemark()));
     invoiceRequest.setInvoiceRequestStatus(InvoiceRequestStatusEnum.getBeginState());
     invoiceRequestDao.create(invoiceRequest, creditsOperation.getUser());
-    /*id in invoice_request is the id of the corresponding transaction. So source_id equals transaction_id*/
+    /*id (transaction_id) in invoice_request is the id of the corresponding transaction. So source_id equals transaction_id*/
     transactionService.setSourceId(transaction.getId(), transaction.getId());
     return transaction;
   }
 
   @Override
   @Transactional
-  public void acceptInvoiceAndProvideTransaction(Integer invoiceId, Integer transactionId, String acceptanceUserEmail) throws Exception {
-    InvoiceRequest invoiceRequest = invoiceRequestDao.findByIdAndBlock(transactionId)
-        .orElseThrow(() -> new InvoiceNotFoundException(transactionId.toString()));
+  public void acceptInvoiceAndProvideTransaction(Integer invoiceId, String acceptanceUserEmail) throws Exception {
+    InvoiceRequest invoiceRequest = invoiceRequestDao.findByIdAndBlock(invoiceId)
+        .orElseThrow(() -> new InvoiceNotFoundException(invoiceId.toString()));
     InvoiceStatus newStatus = invoiceRequest.getInvoiceRequestStatus().nextState(ACCEPT_MANUAL);
     invoiceRequest.setInvoiceRequestStatus(newStatus);
     Transaction transaction = invoiceRequest.getTransaction();
     if (transaction.getOperationType() != OperationType.INPUT) {
-      throw new IllegalOperationTypeException("for transaction id = " + transactionId);
+      throw new IllegalOperationTypeException("for transaction id = " + transaction.getId());
     }
     if (transaction.isProvided()) {
-      throw new IllegalTransactionProvidedStatusException("for transaction id = " + transactionId);
+      throw new IllegalTransactionProvidedStatusException("for transaction id = " + transaction.getId());
     }
     WalletOperationData walletOperationData = new WalletOperationData();
     walletOperationData.setOperationType(transaction.getOperationType());
@@ -106,7 +108,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     walletOperationData.setBalanceType(ACTIVE);
     walletOperationData.setCommission(transaction.getCommission());
     walletOperationData.setCommissionAmount(transaction.getCommissionAmount());
-    walletOperationData.setSourceType(TransactionSourceType.INVOICE);
+    walletOperationData.setSourceType(transaction.getSourceType());
     walletOperationData.setSourceId(invoiceId);
     walletOperationData.setTransaction(transaction);
     WalletTransferStatus walletTransferStatus = walletDao.walletBalanceChange(walletOperationData);
@@ -120,7 +122,7 @@ public class InvoiceServiceImpl implements InvoiceService {
         transaction.getCommissionAmount());
     /**/
     invoiceRequest.setAcceptanceUserEmail(acceptanceUserEmail);
-    invoiceRequest.setInvoiceRequestStatus(ACCEPTED_ADMIN);
+    invoiceRequest.setInvoiceRequestStatus(newStatus);
     invoiceRequestDao.updateAcceptanceStatus(invoiceRequest);
     /**/
     notificationService.notifyUser(invoiceRequest.getUserId(), NotificationEvent.IN_OUT, "merchants.invoice.accepted.title",
@@ -154,7 +156,7 @@ public class InvoiceServiceImpl implements InvoiceService {
   @Transactional
   public Integer clearExpiredInvoices(Integer intervalMinutes) throws Exception {
     List<Integer> invoiceRequestStatusIdList = InvoiceRequestStatusEnum.getAvailableForActionStatusesList(InvoiceActionTypeEnum.EXPIRE).stream()
-        .map(e -> ((InvoiceRequestStatusEnum)e).getCode())
+        .map(InvoiceStatus::getCode)
         .collect(Collectors.toList());
     Optional<LocalDateTime> nowDate = invoiceRequestDao.getAndBlockByIntervalAndStatus(
         intervalMinutes,
@@ -194,11 +196,11 @@ public class InvoiceServiceImpl implements InvoiceService {
     return invoiceRequestDao.findBankById(bankId);
   }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<ClientBank> findClientBanksForCurrency(Integer currencyId) {
-        return invoiceRequestDao.findClientBanksForCurrency(currencyId);
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public List<ClientBank> findClientBanksForCurrency(Integer currencyId) {
+    return invoiceRequestDao.findClientBanksForCurrency(currencyId);
+  }
 
   @Override
   @Transactional(readOnly = true)
@@ -234,8 +236,8 @@ public class InvoiceServiceImpl implements InvoiceService {
   @Override
   @Transactional
   public void userActionOnInvoice(
-          InvoiceConfirmData invoiceConfirmData,
-          InvoiceActionTypeEnum userActionOnInvoiceEnum, Locale locale) throws IllegalInvoiceRequestStatusException, InvoiceNotFoundException {
+      InvoiceConfirmData invoiceConfirmData,
+      InvoiceActionTypeEnum userActionOnInvoiceEnum, Locale locale) throws IllegalInvoiceStatusException, InvoiceNotFoundException {
     log.debug(invoiceConfirmData);
     Optional<InvoiceRequest> invoiceRequestResult = findRequestByIdAndBlock(invoiceConfirmData.getInvoiceId());
     if (!invoiceRequestResult.isPresent()) {
@@ -253,16 +255,16 @@ public class InvoiceServiceImpl implements InvoiceService {
       invoiceRequest.setRemark(StringEscapeUtils.escapeHtml(invoiceConfirmData.getRemark()));
       updateConfirmationInfo(invoiceRequest);
       MultipartFile receiptScan = invoiceConfirmData.getReceiptScan();
-      if ( !(receiptScan == null || receiptScan.isEmpty())) {
+      if (!(receiptScan == null || receiptScan.isEmpty())) {
         if (!userFilesService.checkFileValidity(receiptScan) || receiptScan.getSize() > 1048576L) {
           throw new FileLoadingException(messageSource.getMessage("merchants.errorUploadReceipt", null,
-                  locale));
+              locale));
         }
         try {
           userFilesService.saveReceiptScan(invoiceRequest.getUserId(), invoiceRequest.getTransaction().getId(), receiptScan);
         } catch (IOException e) {
           throw new FileLoadingException(messageSource.getMessage("merchants.internalError", null,
-                  locale));
+              locale));
         }
       }
     } else {
@@ -280,11 +282,11 @@ public class InvoiceServiceImpl implements InvoiceService {
     invoiceRequestDao.updateInvoiceRequestStatus(invoiceRequestId, (InvoiceRequestStatusEnum) invoiceRequestStatus);
   }
 
-    @Override
-    @Transactional
-    public void updateReceiptScan(Integer invoiceId, String receiptScanPath) {
-        invoiceRequestDao.updateReceiptScan(invoiceId, receiptScanPath);
-    }
+  @Override
+  @Transactional
+  public void updateReceiptScan(Integer invoiceId, String receiptScanPath) {
+    invoiceRequestDao.updateReceiptScan(invoiceId, receiptScanPath);
+  }
 
 
 }

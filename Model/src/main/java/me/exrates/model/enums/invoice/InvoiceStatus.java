@@ -32,4 +32,6 @@ public interface InvoiceStatus {
 
   void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap);
 
+  Integer getCode();
+
 }

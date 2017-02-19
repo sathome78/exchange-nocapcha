@@ -91,8 +91,9 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
 
   @Override
   public void create(InvoiceRequest invoiceRequest, User user) {
-    final String sql = "INSERT into INVOICE_REQUEST (transaction_id, user_id, bank_id, user_full_name, remark, invoice_request_status_id, status_update_date) " +
-        "values (:transaction_id, :user_id, :bank_id, :user_full_name, :remark, :invoice_request_status_id, NOW())";
+    final String sql = "INSERT into INVOICE_REQUEST " +
+        " (transaction_id, user_id, bank_id, user_full_name, remark, invoice_request_status_id, status_update_date) " +
+        " values (:transaction_id, :user_id, :bank_id, :user_full_name, :remark, :invoice_request_status_id, NOW())";
     final Map<String, Object> params = new HashMap<String, Object>() {
       {
         put("transaction_id", invoiceRequest.getTransaction().getId());
@@ -100,7 +101,7 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
         put("bank_id", invoiceRequest.getInvoiceBank().getId());
         put("user_full_name", invoiceRequest.getUserFullName());
         put("remark", invoiceRequest.getRemark());
-        put("invoice_request_status_id", ((InvoiceRequestStatusEnum) invoiceRequest.getInvoiceRequestStatus()).getCode());
+        put("invoice_request_status_id",  invoiceRequest.getInvoiceRequestStatus().getCode());
       }
     };
     parameterJdbcTemplate.update(sql, params);
@@ -127,7 +128,7 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
       {
         put("transaction_id", invoiceRequest.getTransaction().getId());
         put("email", invoiceRequest.getAcceptanceUserEmail());
-        put("invoice_request_status_id", ((InvoiceRequestStatusEnum) invoiceRequest.getInvoiceRequestStatus()).getCode());
+        put("invoice_request_status_id", invoiceRequest.getInvoiceRequestStatus().getCode());
       }
     };
     parameterJdbcTemplate.update(sql, params);

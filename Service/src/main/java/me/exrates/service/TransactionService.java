@@ -26,6 +26,8 @@ public interface TransactionService {
 
     void updateTransactionAmount(Transaction transaction, BigDecimal amount);
 
+    void updateTransactionAmount(Transaction transaction);
+
     void nullifyTransactionAmountForWithdraw(Transaction transaction);
 
     void updateTransactionConfirmation(int transactionId, int confirmations);

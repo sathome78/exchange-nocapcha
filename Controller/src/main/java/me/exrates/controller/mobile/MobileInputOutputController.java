@@ -17,7 +17,7 @@ import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.UserNotFoundException;
 import me.exrates.service.exception.api.ApiError;
 import me.exrates.service.exception.api.ErrorCode;
-import me.exrates.service.exception.invoice.IllegalInvoiceRequestStatusException;
+import me.exrates.service.exception.invoice.IllegalInvoiceStatusException;
 import me.exrates.service.merchantPayment.MerchantPaymentService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -404,7 +404,7 @@ public class MobileInputOutputController {
     @RequestMapping(value = "/invoice/confirm", method = POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> confirmInvoice(
         @RequestParam(required = false) String action,
-        @Valid InvoiceConfirmData invoiceConfirmData) throws me.exrates.service.exception.invoice.InvoiceNotFoundException, IllegalInvoiceRequestStatusException {
+        @Valid InvoiceConfirmData invoiceConfirmData) throws me.exrates.service.exception.invoice.InvoiceNotFoundException, IllegalInvoiceStatusException {
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
         InvoiceActionTypeEnum userActionOnInvoiceEnum = InvoiceActionTypeEnum.convert(action);
@@ -616,7 +616,7 @@ public class MobileInputOutputController {
     }
 
   @ResponseStatus(NOT_ACCEPTABLE)
-  @ExceptionHandler({IllegalInvoiceRequestStatusException.class})
+  @ExceptionHandler({IllegalInvoiceStatusException.class})
   public ApiError illegalInvoiceRequestStatusExceptionHandler(HttpServletRequest req, Exception exception) {
     return new ApiError(BAD_INVOICE_STATUS, req.getRequestURL(), exception);
   }

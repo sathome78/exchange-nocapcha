@@ -42,7 +42,8 @@ public class BlockchainPaymentService implements MerchantPaymentService {
         MerchantInputResponseDto dto = new MerchantInputResponseDto();
         dto.setType(MerchantApiResponseType.NOTIFY);
         final PendingPayment pendingPayment = bitcoinService.createInvoice(creditsOperation);
-        final String address = pendingPayment.getAddress().orElseThrow(() ->new MerchantInternalException("Address not presented"));
+        final String address = Optional.ofNullable(pendingPayment
+            .getAddress()).orElseThrow(() ->new MerchantInternalException("Address not presented"));
         final String notification = merchantService
                     .sendDepositNotification(address,email ,locale, creditsOperation, "merchants.depositNotification.body");
         dto.setData(notification);

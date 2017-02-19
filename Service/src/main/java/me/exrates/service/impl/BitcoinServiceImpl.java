@@ -5,11 +5,23 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import me.exrates.dao.BTCTransactionDao;
 import me.exrates.dao.PendingPaymentDao;
+import me.exrates.dao.WalletDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.enums.WalletTransferStatus;
+import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
+import me.exrates.model.enums.invoice.InvoiceStatus;
+import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
+import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.*;
+import me.exrates.service.exception.IllegalOperationTypeException;
+import me.exrates.service.exception.IllegalTransactionProvidedStatusException;
+import me.exrates.service.exception.invoice.IllegalInvoiceAmountException;
+import me.exrates.service.exception.invoice.InvoiceAcceptionException;
+import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.util.BiTuple;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -38,7 +50,10 @@ import java.util.stream.IntStream;
 
 import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.toList;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.ACCEPT_AUTO;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.ACCEPT_MANUAL;
 import static me.exrates.model.util.BitCoinUtils.*;
+import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -46,237 +61,299 @@ import static me.exrates.model.util.BitCoinUtils.*;
 @Service
 public class BitcoinServiceImpl implements BitcoinService {
 
-    private final Logger LOG = LogManager.getLogger("merchant");
+  private final Logger LOG = LogManager.getLogger("merchant");
 
-    private WalletAppKit kit;
-    private final ListeningExecutorService pool = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
+  private WalletAppKit kit;
+  private final ListeningExecutorService pool = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
 
-    private final BitcoinWalletAppKit kitBefore;
-    private final PendingPaymentDao paymentDao;
-    private final TransactionService transactionService;
-    private final AlgorithmService algorithmService;
-    private final BTCTransactionDao btcTransactionDao;
-    private final UserService userService;
-    private final NotificationService notificationService;
-    private final MerchantService merchantService;
-    private final CurrencyService currencyService;
+  private final BitcoinWalletAppKit kitBefore;
+  private final PendingPaymentDao paymentDao;
+  private final TransactionService transactionService;
+  private final AlgorithmService algorithmService;
+  private final BTCTransactionDao btcTransactionDao;
+  private final UserService userService;
+  private final NotificationService notificationService;
+  private final MerchantService merchantService;
+  private final CurrencyService currencyService;
+  private final WalletDao walletDao;
+  private final CompanyWalletService companyWalletService;
 
 
-    private static final BigDecimal SATOSHI = new BigDecimal(100_000_000L);
-    private static final int decimalPlaces = 8;
+  private static final BigDecimal SATOSHI = new BigDecimal(100_000_000L);
+  private static final int decimalPlaces = 8;
 
-    private final Function<String, Supplier<IllegalStateException>> throwIllegalStateEx = (address) ->
-            () -> new IllegalStateException("Pending payment with address " + address + " is not exist");
+  private final Function<String, Supplier<IllegalStateException>> throwIllegalStateEx = (address) ->
+      () -> new IllegalStateException("Pending payment with address " + address + " is not exist");
 
-    @Autowired
-    public BitcoinServiceImpl(final BitcoinWalletAppKit kitBefore,
-                              final PendingPaymentDao paymentDao,
-                              final TransactionService transactionService,
-                              final AlgorithmService algorithmService,
-                              final BTCTransactionDao btcTransactionDao,
-                              final UserService userService,
-                              final NotificationService notificationService,
-                              final MerchantService merchantService,
-                              final CurrencyService currencyService)
-    {
-        this.kitBefore = kitBefore;
-        this.paymentDao = paymentDao;
-        this.transactionService = transactionService;
-        this.algorithmService = algorithmService;
-        this.btcTransactionDao = btcTransactionDao;
-        this.userService = userService;
-        this.notificationService = notificationService;
-        this.merchantService = merchantService;
-        this.currencyService = currencyService;
+  @Autowired
+  public BitcoinServiceImpl(final BitcoinWalletAppKit kitBefore,
+                            final PendingPaymentDao paymentDao,
+                            final TransactionService transactionService,
+                            final AlgorithmService algorithmService,
+                            final BTCTransactionDao btcTransactionDao,
+                            final UserService userService,
+                            final NotificationService notificationService,
+                            final MerchantService merchantService,
+                            final CurrencyService currencyService,
+                            final WalletDao walletDao,
+                            final CompanyWalletService companyWalletService) {
+    this.kitBefore = kitBefore;
+    this.paymentDao = paymentDao;
+    this.transactionService = transactionService;
+    this.algorithmService = algorithmService;
+    this.btcTransactionDao = btcTransactionDao;
+    this.userService = userService;
+    this.notificationService = notificationService;
+    this.merchantService = merchantService;
+    this.currencyService = currencyService;
+    this.walletDao = walletDao;
+    this.companyWalletService = companyWalletService;
+  }
+
+  private String extractRecipientAddress(final List<TransactionOutput> outputs) {
+    if (outputs.size() < 1) {
+      throw new IllegalArgumentException("List with transaction outputs is empty");
     }
+    return outputs.stream()
+        .filter(tx -> tx.isMine(kit.wallet()))
+        .map(tx -> tx.getScriptPubKey().getToAddress(kit.params(), true).toBase58())
+        .findFirst()
+        .orElseThrow(IllegalStateException::new); //it will never happen
+  }
 
-    private String extractRecipientAddress(final List<TransactionOutput> outputs) {
-        if (outputs.size() < 1) {
-            throw new IllegalArgumentException("List with transaction outputs is empty");
+  @PostConstruct
+  void startBitcoin() {
+
+    Currency currency = currencyService.findByName("BTC");
+    Merchant merchant = merchantService.findAllByCurrency(currency).get(0);
+
+    merchantService.setBlockForMerchant(merchant.getId(), currency.getId(), OperationType.INPUT, true);
+
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        kitBefore.startupWallet();
+        kit = kitBefore.kit();
+
+      }
+    }).start();
+
+    Timer myTimer = new Timer();
+    myTimer.schedule(new TimerTask() {
+      @Override
+      public void run() {
+        if (kit != null) {
+          init();
+          myTimer.cancel();
+          myTimer.purge();
+          merchantService.setBlockForMerchant(merchant.getId(), currency.getId(), OperationType.INPUT, false);
         }
-        return outputs.stream()
-                .filter(tx -> tx.isMine(kit.wallet()))
-                .map(tx -> tx.getScriptPubKey().getToAddress(kit.params(), true).toBase58())
-                .findFirst()
-                .orElseThrow(IllegalStateException::new); //it will never happen
+      }
+    }, 0L, 60L * 5000);
+  }
+
+  @Transactional(propagation = Propagation.REQUIRED)
+  private void changeTransactionConfidence(final String address, final int confidenceLevel) {
+    final PendingPayment payment = paymentDao.findByAddress(address)
+        .orElseThrow(throwIllegalStateEx.apply(address));
+    transactionService.updateTransactionConfirmation(payment.getInvoiceId(), confidenceLevel);
+  }
+
+  @Transactional(propagation = Propagation.REQUIRED)
+  private synchronized void approveBitcoinTransaction(final String address, final String hash) {
+    final BiTuple<PendingPayment, Transaction> tuple = findByAddress(address);
+    final PendingPayment payment = tuple.left;
+    final Transaction tx = tuple.right;
+    paymentDao.delete(payment.getInvoiceId());
+    transactionService.provideTransaction(tx);
+    final BTCTransaction BTCtx = new BTCTransaction();
+    final BigDecimal amount = compute(tx.getAmount(), tx.getCommissionAmount(), Action.ADD);
+    BTCtx.setAmount(amount);
+    BTCtx.setTransactionId(tx.getId());
+    BTCtx.setHash(hash);
+    if (SecurityContextHolder.getContext().getAuthentication() != null) {
+      try {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User user = userService.findByEmail(auth.getName());
+        BTCtx.setAcceptanceUser(user);
+      } catch (Exception e) {
+        LOG.error(e);
+      }
     }
+    btcTransactionDao.create(BTCtx);
+  }
 
-    @PostConstruct
-    void startBitcoin() {
-
-        Currency currency = currencyService.findByName("BTC");
-        Merchant merchant = merchantService.findAllByCurrency(currency).get(0);
-
-        merchantService.setBlockForMerchant(merchant.getId(), currency.getId(), OperationType.INPUT, true);
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                    kitBefore.startupWallet();
-                    kit = kitBefore.kit();
-
-            }
-        }).start();
-
-        Timer myTimer = new Timer();
-        myTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                if (kit != null){
-                    init();
-                    myTimer.cancel();
-                    myTimer.purge();
-                    merchantService.setBlockForMerchant(merchant.getId(), currency.getId(), OperationType.INPUT, false);
-                }
-            }
-        }, 0L, 60L * 5000);
+  @Transactional(propagation = Propagation.REQUIRED)
+  private void handleUncommittedTransaction(final Wallet wallet, final org.bitcoinj.core.Transaction tx) {
+    final Transaction dbTx = findByAddress(extractRecipientAddress(tx.getOutputs())).right;
+    final BigDecimal current = satoshiToBtc(tx.getValue(wallet).getValue());
+    final BigDecimal target = compute(dbTx.getAmount(), dbTx.getCommissionAmount(), Action.ADD);
+    if (target.compareTo(current) != 0) {
+      transactionService.updateTransactionAmount(dbTx, current);
     }
+  }
 
-    @Transactional(propagation = Propagation.REQUIRED)
-    private void changeTransactionConfidence(final String address, final int confidenceLevel) {
-        final PendingPayment payment = paymentDao.findByAddress(address)
-                .orElseThrow(throwIllegalStateEx.apply(address));
-        transactionService.updateTransactionConfirmation(payment.getInvoiceId(), confidenceLevel);
-    }
-
-    @Transactional(propagation = Propagation.REQUIRED)
-    private synchronized void approveBitcoinTransaction(final String address, final String hash) {
-        final BiTuple<PendingPayment, Transaction> tuple = findByAddress(address);
-        final PendingPayment payment = tuple.left;
-        final Transaction tx = tuple.right;
-        paymentDao.delete(payment.getInvoiceId());
-        transactionService.provideTransaction(tx);
-        final BTCTransaction BTCtx = new BTCTransaction();
-        final BigDecimal amount = compute(tx.getAmount(), tx.getCommissionAmount(), Action.ADD);
-        BTCtx.setAmount(amount);
-        BTCtx.setTransactionId(tx.getId());
-        BTCtx.setHash(hash);
-        if (SecurityContextHolder.getContext().getAuthentication() !=  null){
-            try {
-                Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-                User user = userService.findByEmail(auth.getName());
-                BTCtx.setAcceptanceUser(user);
-            }catch (Exception e){
-                LOG.error(e);
-            }
-        }
-        btcTransactionDao.create(BTCtx);
-    }
-
-    @Transactional(propagation = Propagation.REQUIRED)
-    private void handleUncommittedTransaction(final Wallet wallet, final org.bitcoinj.core.Transaction tx) {
-        final Transaction dbTx = findByAddress(extractRecipientAddress(tx.getOutputs())).right;
-        final BigDecimal current = satoshiToBtc(tx.getValue(wallet).getValue());
-        final BigDecimal target = compute(dbTx.getAmount(), dbTx.getCommissionAmount(), Action.ADD);
-        if (target.compareTo(current) != 0 ) {
-            transactionService.updateTransactionAmount(dbTx, current);
-        }
-    }
-
-    public void init() {
-        try {
-            kit.wallet().addCoinsReceivedEventListener((wallet, tx, prevBalance, newBalance) -> {
-                final List<ListenableFuture<TransactionConfidence>> confirmations = IntStream.rangeClosed(1, 3)
-                        .mapToObj(x -> tx.getConfidence().getDepthFuture(x))
-                        .collect(toList());
-                confirmations.forEach(confidence -> confidence.addListener(() -> {
-                    try {
-                        changeTransactionConfidence(extractRecipientAddress(tx.getOutputs()), confidence.get().getDepthInBlocks());
-                    } catch (final ExecutionException | InterruptedException e) {
-                        LOG.error(e);
-                    }
-                }, pool));
-
-                final ListenableFuture<TransactionConfidence> commit = tx.getConfidence().getDepthFuture(4);
-                commit.addListener(() -> {
-                    try {
-                        final String address = extractRecipientAddress(tx.getOutputs());
-                        final String txHash = tx.getHashAsString();
-                        changeTransactionConfidence(extractRecipientAddress(tx.getOutputs()), commit.get().getDepthInBlocks());
-                        approveBitcoinTransaction(address, txHash);
-                    } catch (final ExecutionException | InterruptedException e) {
-                        LOG.error(e);
-                    }
-
-                }, pool);
-                handleUncommittedTransaction(wallet, tx);
-            });
-        }catch (Exception e){
+  public void init() {
+    try {
+      kit.wallet().addCoinsReceivedEventListener((wallet, tx, prevBalance, newBalance) -> {
+        final List<ListenableFuture<TransactionConfidence>> confirmations = IntStream.rangeClosed(1, 3)
+            .mapToObj(x -> tx.getConfidence().getDepthFuture(x))
+            .collect(toList());
+        confirmations.forEach(confidence -> confidence.addListener(() -> {
+          try {
+            changeTransactionConfidence(extractRecipientAddress(tx.getOutputs()), confidence.get().getDepthInBlocks());
+          } catch (final ExecutionException | InterruptedException e) {
             LOG.error(e);
+          }
+        }, pool));
 
-        }
-    }
-
-    @PreDestroy
-    public void preDestroy() {
-        try {
-            pool.awaitTermination(25, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
+        final ListenableFuture<TransactionConfidence> commit = tx.getConfidence().getDepthFuture(4);
+        commit.addListener(() -> {
+          try {
+            final String address = extractRecipientAddress(tx.getOutputs());
+            final String txHash = tx.getHashAsString();
+            changeTransactionConfidence(extractRecipientAddress(tx.getOutputs()), commit.get().getDepthInBlocks());
+            approveBitcoinTransaction(address, txHash);
+          } catch (final ExecutionException | InterruptedException e) {
             LOG.error(e);
-        }
+          }
+
+        }, pool);
+        handleUncommittedTransaction(wallet, tx);
+      });
+    } catch (Exception e) {
+      LOG.error(e);
+
+    }
+  }
+
+  @PreDestroy
+  public void preDestroy() {
+    try {
+      pool.awaitTermination(25, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      LOG.error(e);
+    }
+  }
+
+  private Address address() {
+
+    boolean isFreshAddress = false;
+    Address address = kit.wallet().freshReceiveAddress();
+
+    if (paymentDao.findByAddress(address.toString()).isPresent()) {
+      final int LIMIT = 2000;
+      int i = 0;
+      while (!isFreshAddress && i++ < LIMIT) {
+        address = kit.wallet().freshReceiveAddress();
+        isFreshAddress = !paymentDao.findByAddress(address.toString()).isPresent();
+      }
+      if (i >= LIMIT) {
+        throw new IllegalStateException("Can`t generate fresh address");
+      }
     }
 
-    private Address address() {
+    return address;
+  }
 
-        boolean isFreshAddress = false;
-        Address address = kit.wallet().freshReceiveAddress();
+  private String base58Address() {
+    return address().toBase58();
+  }
 
-        if (paymentDao.findByAddress(address.toString()).isPresent()){
-            final int LIMIT = 2000;
-            int i = 0;
-            while (!isFreshAddress && i++<LIMIT){
-                address = kit.wallet().freshReceiveAddress();
-                isFreshAddress = !paymentDao.findByAddress(address.toString()).isPresent();
-            }
-            if (i >= LIMIT){
-               throw  new IllegalStateException("Can`t generate fresh address");
-            }
-        }
+  @Transactional(propagation = Propagation.REQUIRED)
+  private BiTuple<PendingPayment, Transaction> findByAddress(final String address) {
+    final PendingPayment payment = paymentDao.findByAddress(address).orElseThrow(() ->
+        new IllegalStateException("Pending payment with address " + address + " is not exist"));
+    final Transaction tx = transactionService.findById(payment.getInvoiceId());
+    return new BiTuple<>(payment, tx);
+  }
 
-        return address;
-    }
-
-    private String base58Address() {
-        return address().toBase58();
-    }
-
-    @Transactional(propagation = Propagation.REQUIRED)
-    private BiTuple<PendingPayment,Transaction> findByAddress(final String address) {
-        final PendingPayment payment = paymentDao.findByAddress(address).orElseThrow(() ->
-                new IllegalStateException("Pending payment with address " + address + " is not exist"));
-        final Transaction tx = transactionService.findById(payment.getInvoiceId());
-        return new BiTuple<>(payment, tx);
-    }
-
-    @Override
-    @Transactional(propagation = Propagation.REQUIRED)
-    public PendingPayment createInvoice(CreditsOperation operation) {
-        final me.exrates.model.Transaction tx = transactionService.createTransactionRequest(operation);
-        final Address address = address();
-        final PendingPayment payment = new PendingPayment();
+  @Override
+  @Transactional(propagation = Propagation.REQUIRED)
+  public PendingPayment createInvoice(CreditsOperation operation) {
+    Transaction transaction = transactionService.createTransactionRequest(operation);
+        /*Address address = address(); //TODO !!!!!!!!!!!!!
+        PendingPayment payment = new PendingPayment();
+        payment.setInvoiceId(transaction.getId());
         payment.setAddress(address.toBase58());
-        payment.setInvoiceId(tx.getId());
-        payment.setTransactionHash(computeTransactionHash(tx, address));
-        paymentDao.create(payment);
-        return payment;
+        payment.setTransactionHash(computeTransactionHash(transaction, address));
+        payment.setPendingPaymentStatus(PendingPaymentStatusEnum.getBeginState());*/
+    PendingPayment payment = new PendingPayment();
+    payment.setInvoiceId(transaction.getId());
+    payment.setAddress("111111");
+    payment.setTransactionHash("11111hash");
+    payment.setPendingPaymentStatus(PendingPaymentStatusEnum.getBeginState());
+        /**/
+    paymentDao.create(payment);
+        /*id (invoice_id) in pendingPayment is the id of the corresponding transaction. So source_id equals invoice_id*/
+    transactionService.setSourceId(transaction.getId(), transaction.getId());
+    return payment;
+  }
+
+  private String computeTransactionHash(final me.exrates.model.Transaction tx, Address address) {
+    if (isNull(tx) || isNull(tx.getCommission()) || isNull(tx.getCommissionAmount())) {
+      throw new IllegalArgumentException("Argument itself or contains null");
     }
+    final String target = new StringJoiner(":")
+        .add(String.valueOf(tx.getId()))
+        .add(address.toBase58())
+        .toString();
+    return algorithmService.sha256(target);
+  }
 
-    private String computeTransactionHash(final me.exrates.model.Transaction tx, Address address) {
-        if (isNull(tx) || isNull(tx.getCommission()) || isNull(tx.getCommissionAmount())) {
-            throw new IllegalArgumentException("Argument itself or contains null");
-        }
-        final String target = new StringJoiner(":")
-                .add(String.valueOf(tx.getId()))
-                .add(address.toBase58())
-                .toString();
-        return algorithmService.sha256(target);
+  @Override
+  @Transactional
+  public void provideTransaction(Integer pendingPaymentId, String hash, BigDecimal amount, String acceptanceUserEmail) throws Exception {
+    if (amount.compareTo(BigDecimal.ZERO)<=0) {
+      throw new IllegalInvoiceAmountException(amount.toString());
     }
+    PendingPayment pendingPayment = paymentDao.findByIdAndBlock(pendingPaymentId)
+        .orElseThrow(() -> new InvoiceNotFoundException(pendingPaymentId.toString()));
+    InvoiceActionTypeEnum action = acceptanceUserEmail == null ? ACCEPT_AUTO : ACCEPT_MANUAL;
+    InvoiceStatus newStatus = pendingPayment.getPendingPaymentStatus().nextState(action);
+    pendingPayment.setPendingPaymentStatus(newStatus);
+    Transaction transaction = pendingPayment.getTransaction();
+    if (transaction.getOperationType() != OperationType.INPUT) {
+      throw new IllegalOperationTypeException("for transaction id = " + pendingPaymentId);
+    }
+    if (transaction.isProvided()) {
+      throw new IllegalTransactionProvidedStatusException("for transaction id = " + transaction.getId());
+    }
+    if (transaction.getAmount().compareTo(amount) != 0){
+      transaction.setAmount(amount);
+      transactionService.updateTransactionAmount(transaction);
+    }
+    WalletOperationData walletOperationData = new WalletOperationData();
+    walletOperationData.setOperationType(transaction.getOperationType());
+    walletOperationData.setWalletId(transaction.getUserWallet().getId());
+    walletOperationData.setAmount(transaction.getAmount());
+    walletOperationData.setBalanceType(ACTIVE);
+    walletOperationData.setCommission(transaction.getCommission());
+    walletOperationData.setCommissionAmount(transaction.getCommissionAmount());
+    walletOperationData.setSourceType(transaction.getSourceType());
+    walletOperationData.setSourceId(pendingPaymentId);
+    walletOperationData.setTransaction(transaction);
+    WalletTransferStatus walletTransferStatus = walletDao.walletBalanceChange(walletOperationData);
+    if (walletTransferStatus != WalletTransferStatus.SUCCESS) {
+      String message = "error while accepting pendingPayment id (invoice_id) = " + pendingPaymentId;
+      LOG.error("\n\t" + message);
+      throw new InvoiceAcceptionException(message);
+    }
+    /**/
+    companyWalletService.deposit(transaction.getCompanyWallet(), transaction.getAmount(),
+        transaction.getCommissionAmount());
+    /**/
+    pendingPayment.setAcceptanceUserEmail(acceptanceUserEmail);
+    pendingPayment.setPendingPaymentStatus(newStatus);
+    pendingPayment.setHash(hash);
+    paymentDao.updateAcceptanceStatus(pendingPayment);
+    /**/
+    /**/
+    notificationService.notifyUser(pendingPayment.getUserId(), NotificationEvent.IN_OUT, "paymentRequest.accepted.title",
+        "paymentRequest.accepted.message", new Integer[]{pendingPaymentId});
 
-    @Override
-    @Transactional
-    public boolean provideTransaction(int id, String hash, BigDecimal amount) {
 
-        Transaction tx = transactionService.findById(id);
+        /*Transaction tx = transactionService.findById(id);
         Integer userId = tx.getUserWallet().getUser().getId();
 
         PendingPayment payment = paymentDao.findByInvoiceId(id).orElseThrow(() ->
@@ -286,7 +363,7 @@ public class BitcoinServiceImpl implements BitcoinService {
             if (tx.getAmount().compareTo(amount) != 0 ) {
                 transactionService.updateTransactionAmount(tx, amount);
             }
-            approveBitcoinTransaction(payment.getAddress().get(), hash);
+            approveBitcoinTransaction(payment.getAddress(), hash);
             notificationService.notifyUser(userId, NotificationEvent.IN_OUT, "paymentRequest.accepted.title",
                     "paymentRequest.accepted.message", null);
         }catch (Exception e){
@@ -294,21 +371,21 @@ public class BitcoinServiceImpl implements BitcoinService {
             return false;
         }
 
-        return true;
+        return true;*/
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Map<Transaction, BTCTransaction> getBitcoinTransactions() {
+    Merchant merchant = new Merchant();
+    merchant.setName("Blockchain");
+    List<Transaction> list = transactionService.getOpenTransactionsByMerchant(merchant);
+    Map<Transaction, BTCTransaction> map = new LinkedHashMap<>();
+
+    for (Transaction transaction : list) {
+      map.put(transaction, btcTransactionDao.findByTransactionId(transaction.getId()));
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public Map<Transaction, BTCTransaction> getBitcoinTransactions(){
-        Merchant merchant = new Merchant();
-        merchant.setName("Blockchain");
-        List<Transaction> list = transactionService.getOpenTransactionsByMerchant(merchant);
-        Map<Transaction,BTCTransaction> map = new LinkedHashMap<>();
-
-        for (Transaction transaction : list){
-            map.put(transaction,btcTransactionDao.findByTransactionId(transaction.getId()));
-        }
-
-        return map;
-    }
+    return map;
+  }
 }

@@ -130,6 +130,7 @@ public enum InvoiceRequestStatusEnum implements InvoiceStatus {
     this.code = code;
   }
 
+  @Override
   public Integer getCode() {
     return code;
   }

@@ -109,7 +109,7 @@ public class BlockchainServiceImpl implements BlockchainService {
             return Optional.of("Amount is invalid");
         }
         if (isNull(pretended.get("address")) ||
-            !pretended.get("address").equals(actual.getAddress().get())) {
+            !pretended.get("address").equals(actual.getAddress())) {
             return Optional.of("Address is not correct");
         }
         if (isNull(pretended.get("secret")) ||

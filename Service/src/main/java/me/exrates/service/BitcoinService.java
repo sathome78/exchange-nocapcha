@@ -4,6 +4,8 @@ import me.exrates.model.BTCTransaction;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.PendingPayment;
 import me.exrates.model.Transaction;
+import me.exrates.service.exception.IllegalOperationTypeException;
+import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -15,7 +17,7 @@ public interface BitcoinService {
 
     PendingPayment createInvoice(CreditsOperation operation);
 
-    boolean provideTransaction(int id, String hash, BigDecimal amount);
+    void provideTransaction(Integer id, String hash, BigDecimal amount, String acceptanceUserEmail) throws Exception;
 
     Map<Transaction, BTCTransaction> getBitcoinTransactions();
 }
