@@ -4,7 +4,7 @@ import me.exrates.model.ClientBank;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.InvoiceRequest;
 import me.exrates.model.Transaction;
-import me.exrates.model.enums.UserActionOnInvoiceEnum;
+import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.InvoiceData;
 import me.exrates.service.exception.invoice.IllegalInvoiceRequestStatusException;
@@ -45,8 +45,8 @@ public interface InvoiceService {
   List<InvoiceRequest> findAllRequestsForUser(String userEmail);
 
   void userActionOnInvoice(
-          InvoiceConfirmData invoiceConfirmData,
-          UserActionOnInvoiceEnum userActionOnInvoiceEnum, Locale locale) throws IllegalInvoiceRequestStatusException, InvoiceNotFoundException;
+      InvoiceConfirmData invoiceConfirmData,
+      InvoiceActionTypeEnum userActionOnInvoiceEnum, Locale locale) throws IllegalInvoiceRequestStatusException, InvoiceNotFoundException;
 
-    void updateReceiptScan(Integer invoiceId, String receiptScanPath);
+  void updateReceiptScan(Integer invoiceId, String receiptScanPath);
 }

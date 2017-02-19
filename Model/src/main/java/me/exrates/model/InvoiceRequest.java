@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
+import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.time.LocalDateTime;
@@ -28,7 +29,7 @@ public class InvoiceRequest {
     private String payerBankName;
     private String payerBankCode;
     private String payerAccount;
-    private InvoiceRequestStatusEnum invoiceRequestStatus;
+    private InvoiceStatus invoiceRequestStatus;
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime statusUpdateDate;
     private String receiptScanPath;

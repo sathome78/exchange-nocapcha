@@ -30,6 +30,6 @@ public interface InvoiceStatus {
 
   Boolean availableForAction(InvoiceActionTypeEnum action);
 
-  void initSchema();
+  void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap);
 
 }

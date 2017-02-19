@@ -8,6 +8,9 @@ import me.exrates.model.dto.InvoiceUserDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
+import me.exrates.model.enums.invoice.InvoiceStatus;
+import me.exrates.model.exceptions.UnsupportedInvoiceActionTypeNameException;
+import me.exrates.model.exceptions.UnsupportedUserInvoiceActionTypeException;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.InvoiceData;
 import me.exrates.model.vo.WalletOperationData;
@@ -32,8 +35,8 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.*;
 import static me.exrates.model.enums.invoice.InvoiceRequestStatusEnum.*;
-import static me.exrates.model.enums.UserActionOnInvoiceEnum.REVOKE;
 import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 
 
@@ -75,7 +78,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     invoiceRequest.setInvoiceBank(invoiceBank);
     invoiceRequest.setUserFullName(invoiceData.getUserFullName());
     invoiceRequest.setRemark(StringEscapeUtils.escapeHtml(invoiceData.getRemark()));
-    invoiceRequest.setInvoiceRequestStatus(CREATED_USER);
+    invoiceRequest.setInvoiceRequestStatus(InvoiceRequestStatusEnum.getBeginState());
     invoiceRequestDao.create(invoiceRequest, creditsOperation.getUser());
     /*id in invoice_request is the id of the corresponding transaction. So source_id equals transaction_id*/
     transactionService.setSourceId(transaction.getId(), transaction.getId());
@@ -87,9 +90,8 @@ public class InvoiceServiceImpl implements InvoiceService {
   public void acceptInvoiceAndProvideTransaction(Integer invoiceId, Integer transactionId, String acceptanceUserEmail) throws Exception {
     InvoiceRequest invoiceRequest = invoiceRequestDao.findByIdAndBlock(transactionId)
         .orElseThrow(() -> new InvoiceNotFoundException(transactionId.toString()));
-    if (invoiceRequest.getInvoiceRequestStatus() != InvoiceRequestStatusEnum.CONFIRMED_USER) {
-      throw new IllegalInvoiceRequestStatusException("for transaction id = " + transactionId);
-    }
+    InvoiceStatus newStatus = invoiceRequest.getInvoiceRequestStatus().nextState(ACCEPT_MANUAL);
+    invoiceRequest.setInvoiceRequestStatus(newStatus);
     Transaction transaction = invoiceRequest.getTransaction();
     if (transaction.getOperationType() != OperationType.INPUT) {
       throw new IllegalOperationTypeException("for transaction id = " + transactionId);
@@ -130,9 +132,8 @@ public class InvoiceServiceImpl implements InvoiceService {
   public void declineInvoice(Integer invoiceId, Integer transactionId, String acceptanceUserEmail) throws Exception {
     InvoiceRequest invoiceRequest = invoiceRequestDao.findByIdAndBlock(transactionId)
         .orElseThrow(() -> new InvoiceNotFoundException(transactionId.toString()));
-    if (invoiceRequest.getInvoiceRequestStatus() != InvoiceRequestStatusEnum.CONFIRMED_USER) {
-      throw new IllegalInvoiceRequestStatusException("for transaction id = " + transactionId);
-    }
+    InvoiceStatus newStatus = invoiceRequest.getInvoiceRequestStatus().nextState(DECLINE);
+    invoiceRequest.setInvoiceRequestStatus(newStatus);
     Transaction transaction = invoiceRequest.getTransaction();
     if (transaction.getOperationType() != OperationType.INPUT) {
       throw new IllegalOperationTypeException("for transaction id = " + transactionId);
@@ -234,32 +235,21 @@ public class InvoiceServiceImpl implements InvoiceService {
   @Transactional
   public void userActionOnInvoice(
           InvoiceConfirmData invoiceConfirmData,
-          UserActionOnInvoiceEnum userActionOnInvoiceEnum, Locale locale) throws IllegalInvoiceRequestStatusException, InvoiceNotFoundException {
+          InvoiceActionTypeEnum userActionOnInvoiceEnum, Locale locale) throws IllegalInvoiceRequestStatusException, InvoiceNotFoundException {
     log.debug(invoiceConfirmData);
     Optional<InvoiceRequest> invoiceRequestResult = findRequestByIdAndBlock(invoiceConfirmData.getInvoiceId());
     if (!invoiceRequestResult.isPresent()) {
       throw new InvoiceNotFoundException(String.format("invoice id: %s", invoiceConfirmData.getInvoiceId()));
     }
     InvoiceRequest invoiceRequest = invoiceRequestResult.get();
+    InvoiceStatus newStatus = invoiceRequest.getInvoiceRequestStatus().nextState(userActionOnInvoiceEnum);
+    invoiceRequest.setInvoiceRequestStatus(newStatus);
     if (userActionOnInvoiceEnum == REVOKE) {
-      if (!invoiceRequest.getInvoiceRequestStatus().availableForAction(InvoiceActionTypeEnum.REVOKE)) {
-        throw new IllegalInvoiceRequestStatusException(String.format("invoice id: %s status: %s demanded action: %s",
-            invoiceRequest.getTransaction().getId(),
-            invoiceRequest.getInvoiceRequestStatus(),
-            userActionOnInvoiceEnum));
-      }
-      updateInvoiceRequestStatus(invoiceRequest.getTransaction().getId(), REVOKED_USER);
-    } else {
-      if (!invoiceRequest.getInvoiceRequestStatus().availableForAction(InvoiceActionTypeEnum.CONFIRM)) {
-        throw new IllegalInvoiceRequestStatusException(String.format("invoice id: %s status: %s demanded action: %s",
-            invoiceRequest.getTransaction().getId(),
-            invoiceRequest.getInvoiceRequestStatus(),
-            userActionOnInvoiceEnum));
-      }
+      updateInvoiceRequestStatus(invoiceRequest.getTransaction().getId(), newStatus);
+    } else if (userActionOnInvoiceEnum == CONFIRM) {
       invoiceRequest.setPayerBankName(invoiceConfirmData.getPayerBankName());
       invoiceRequest.setPayerAccount(invoiceConfirmData.getUserAccount());
       invoiceRequest.setUserFullName(invoiceConfirmData.getUserFullName());
-      invoiceRequest.setInvoiceRequestStatus(CONFIRMED_USER);
       invoiceRequest.setRemark(StringEscapeUtils.escapeHtml(invoiceConfirmData.getRemark()));
       updateConfirmationInfo(invoiceRequest);
       MultipartFile receiptScan = invoiceConfirmData.getReceiptScan();
@@ -275,6 +265,8 @@ public class InvoiceServiceImpl implements InvoiceService {
                   locale));
         }
       }
+    } else {
+      throw new UnsupportedUserInvoiceActionTypeException(userActionOnInvoiceEnum.name());
     }
   }
 
@@ -284,8 +276,8 @@ public class InvoiceServiceImpl implements InvoiceService {
   }
 
   @Transactional
-  private void updateInvoiceRequestStatus(Integer invoiceRequestId, InvoiceRequestStatusEnum invoiceRequestStatus) {
-    invoiceRequestDao.updateInvoiceRequestStatus(invoiceRequestId, invoiceRequestStatus);
+  private void updateInvoiceRequestStatus(Integer invoiceRequestId, InvoiceStatus invoiceRequestStatus) {
+    invoiceRequestDao.updateInvoiceRequestStatus(invoiceRequestId, (InvoiceRequestStatusEnum) invoiceRequestStatus);
   }
 
     @Override

@@ -3,20 +3,14 @@ package me.exrates.controller.mobile;
 import me.exrates.controller.exception.InvalidNicknameException;
 import me.exrates.controller.exception.InvoiceNotFoundException;
 import me.exrates.controller.exception.NotEnoughMoneyException;
-import me.exrates.model.CreditsOperation;
-import me.exrates.model.Currency;
-import me.exrates.model.MerchantCurrency;
-import me.exrates.model.Payment;
-import me.exrates.model.dto.mobileApiDto.*;
 import me.exrates.model.*;
 import me.exrates.model.dto.mobileApiDto.*;
 import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.UserActionOnInvoiceEnum;
+import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.InvoiceData;
 import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.*;
-import me.exrates.service.WalletService;
 import me.exrates.service.exception.CurrencyPairNotFoundException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
@@ -43,7 +37,6 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.math.BigDecimal;
-import java.security.Principal;
 import java.util.*;
 
 import static me.exrates.service.exception.api.ErrorCode.*;
@@ -414,7 +407,7 @@ public class MobileInputOutputController {
         @Valid InvoiceConfirmData invoiceConfirmData) throws me.exrates.service.exception.invoice.InvoiceNotFoundException, IllegalInvoiceRequestStatusException {
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-        UserActionOnInvoiceEnum userActionOnInvoiceEnum = UserActionOnInvoiceEnum.convert(action);
+        InvoiceActionTypeEnum userActionOnInvoiceEnum = InvoiceActionTypeEnum.convert(action);
         invoiceService.userActionOnInvoice(invoiceConfirmData, userActionOnInvoiceEnum, userLocale);
         return new ResponseEntity<>(OK);
     }

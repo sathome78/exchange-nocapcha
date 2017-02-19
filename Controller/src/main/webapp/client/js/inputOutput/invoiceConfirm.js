@@ -39,7 +39,15 @@ $(function () {
         e.preventDefault();
         var $form = $(this).parents('#confirmationForm');
         var $action = $form.find('input[name=action]');
-        $action.attr("value", "revoke");
+        $action.attr("value", "REVOKE");
+        $form[0].submit();
+    });
+
+    $('#invoiceSubmit').on('click', function (e) {
+        e.preventDefault();
+        var $form = $(this).parents('#confirmationForm');
+        var $action = $form.find('input[name=action]');
+        $action.attr("value", "CONFIRM");
         $form[0].submit();
     });
 
@@ -56,7 +64,7 @@ function updateBankSelection($bankSelect, $otherBankInputDiv, $bankCode) {
     } else if (bankId === 0) {
         $('#payerBankName').val('');
         $($otherBankInputDiv).show();
-        if ($('#invoiceConfirmed').text().trim() != 'true' ) {
+        if ($('#invoiceConfirmed').text().trim() != 'true') {
             $($bankCode).prop('readonly', false);
             $($bankCode).val('');
         }

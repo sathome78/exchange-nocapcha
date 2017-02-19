@@ -6,10 +6,7 @@ import me.exrates.model.exceptions.UnsupportedInvoiceRequestStatusNameException;
 import me.exrates.model.exceptions.UnsupportedInvoiceStatusForActionException;
 import me.exrates.model.exceptions.UnsupportedNewsTypeIdException;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -18,137 +15,62 @@ import java.util.stream.Collectors;
 @Log4j2
 public enum InvoiceRequestStatusEnum implements InvoiceStatus {
   CREATED_USER(1) {
-    private Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap;
-
     @Override
-    public void initSchema() {
-      schemaMap = new HashMap<InvoiceActionTypeEnum, InvoiceStatus>() {{
-        put(InvoiceActionTypeEnum.CONFIRM, CONFIRMED_USER);
-        put(InvoiceActionTypeEnum.REVOKE, REVOKED_USER);
-        put(InvoiceActionTypeEnum.EXPIRE, EXPIRED);
-      }};
-    }
-
-    @Override
-    public InvoiceStatus nextState(InvoiceActionTypeEnum action) {
-      return nextState(schemaMap, action)
-          .orElseThrow(() -> new UnsupportedInvoiceStatusForActionException(String.format("current state: %s action: %s", this.name(), action.name())));
-    }
-
-    @Override
-    public Boolean availableForAction(InvoiceActionTypeEnum action) {
-      return availableForAction(schemaMap, action);
+    public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
+        schemaMap.put(InvoiceActionTypeEnum.CONFIRM, CONFIRMED_USER);
+        schemaMap.put(InvoiceActionTypeEnum.REVOKE, REVOKED_USER);
+        schemaMap.put(InvoiceActionTypeEnum.EXPIRE, EXPIRED);
     }
   },
   CONFIRMED_USER(2) {
-    private Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap;
-
     @Override
-    public void initSchema() {
-      schemaMap = new HashMap<InvoiceActionTypeEnum, InvoiceStatus>() {{
-        put(InvoiceActionTypeEnum.ACCEPT_MANUAL, ACCEPTED_ADMIN);
-        put(InvoiceActionTypeEnum.DECLINE, DECLINED_ADMIN);
-      }};
-    }
-
-    @Override
-    public InvoiceStatus nextState(InvoiceActionTypeEnum action) {
-      return nextState(schemaMap, action)
-          .orElseThrow(() -> new UnsupportedInvoiceStatusForActionException(String.format("current state: %s action: %s", this.name(), action.name())));
-    }
-
-    @Override
-    public Boolean availableForAction(InvoiceActionTypeEnum action) {
-      return availableForAction(schemaMap, action);
+    public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
+        schemaMap.put(InvoiceActionTypeEnum.ACCEPT_MANUAL, ACCEPTED_ADMIN);
+        schemaMap.put(InvoiceActionTypeEnum.DECLINE, DECLINED_ADMIN);
     }
   },
   REVOKED_USER(3) {
-    private Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap;
-
     @Override
-    public void initSchema() {
-      schemaMap = new HashMap<InvoiceActionTypeEnum, InvoiceStatus>() {{
-      }};
-    }
-
-    @Override
-    public InvoiceStatus nextState(InvoiceActionTypeEnum action) {
-      return nextState(schemaMap, action)
-          .orElseThrow(() -> new UnsupportedInvoiceStatusForActionException(String.format("current state: %s action: %s", this.name(), action.name())));
-    }
-
-    @Override
-    public Boolean availableForAction(InvoiceActionTypeEnum action) {
-      return availableForAction(schemaMap, action);
+    public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
     }
   },
   ACCEPTED_ADMIN(4) {
-    private Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap;
-
     @Override
-    public void initSchema() {
-      schemaMap = new HashMap<InvoiceActionTypeEnum, InvoiceStatus>() {{
-      }};
-    }
-
-    @Override
-    public InvoiceStatus nextState(InvoiceActionTypeEnum action) {
-      return nextState(schemaMap, action)
-          .orElseThrow(() -> new UnsupportedInvoiceStatusForActionException(String.format("current state: %s action: %s", this.name(), action.name())));
-    }
-
-    @Override
-    public Boolean availableForAction(InvoiceActionTypeEnum action) {
-      return availableForAction(schemaMap, action);
+    public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
     }
   },
   DECLINED_ADMIN(5) {
-    private Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap;
-
     @Override
-    public void initSchema() {
-      schemaMap = new HashMap<InvoiceActionTypeEnum, InvoiceStatus>() {{
-        put(InvoiceActionTypeEnum.CONFIRM, CONFIRMED_USER);
-        put(InvoiceActionTypeEnum.REVOKE, REVOKED_USER);
-        put(InvoiceActionTypeEnum.EXPIRE, EXPIRED);
-      }};
-    }
-
-    @Override
-    public InvoiceStatus nextState(InvoiceActionTypeEnum action) {
-      return nextState(schemaMap, action)
-          .orElseThrow(() -> new UnsupportedInvoiceStatusForActionException(String.format("current state: %s action: %s", this.name(), action.name())));
-    }
-
-    @Override
-    public Boolean availableForAction(InvoiceActionTypeEnum action) {
-      return availableForAction(schemaMap, action);
+    public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
+        schemaMap.put(InvoiceActionTypeEnum.CONFIRM, CONFIRMED_USER);
+        schemaMap.put(InvoiceActionTypeEnum.REVOKE, REVOKED_USER);
+        schemaMap.put(InvoiceActionTypeEnum.EXPIRE, EXPIRED);
     }
   },
   EXPIRED(6) {
-    private Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap;
-
-    public void initSchema() {
-      schemaMap = new HashMap<InvoiceActionTypeEnum, InvoiceStatus>() {{
-      }};
-    }
-
-    @Override
-    public InvoiceStatus nextState(InvoiceActionTypeEnum action) {
-      return nextState(schemaMap, action)
-          .orElseThrow(() -> new UnsupportedInvoiceStatusForActionException(String.format("current state: %s action: %s", this.name(), action.name())));
-    }
-
-    @Override
-    public Boolean availableForAction(InvoiceActionTypeEnum action) {
-      return availableForAction(schemaMap, action);
+    public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
     }
   };
 
+  final private Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap = new HashMap<>();
+
+  @Override
+  public InvoiceStatus nextState(InvoiceActionTypeEnum action) {
+    return nextState(schemaMap, action)
+        .orElseThrow(() -> new UnsupportedInvoiceStatusForActionException(String.format("current state: %s action: %s", this.name(), action.name())));
+  }
+
+  @Override
+  public Boolean availableForAction(InvoiceActionTypeEnum action) {
+    return availableForAction(schemaMap, action);
+  }
+
   static {
     for (InvoiceRequestStatusEnum status : InvoiceRequestStatusEnum.class.getEnumConstants()) {
-      status.initSchema();
+      status.initSchema(status.schemaMap);
     }
+    /*check schemaMap*/
+    getBeginState();
   }
 
   public static List<InvoiceStatus> getAvailableForActionStatusesList(InvoiceActionTypeEnum action) {
@@ -177,6 +99,29 @@ public enum InvoiceRequestStatusEnum implements InvoiceStatus {
         .filter(e -> e.name().equals(name))
         .findAny()
         .orElseThrow(() -> new UnsupportedInvoiceRequestStatusNameException(name));
+  }
+
+  public static InvoiceStatus getBeginState() {
+    Set<InvoiceStatus> allNodesSet = collectAllSchemaMapNodesSet();
+    List<InvoiceStatus> candidateList = Arrays.stream(InvoiceRequestStatusEnum.class.getEnumConstants())
+        .filter(e -> !allNodesSet.contains(e))
+        .collect(Collectors.toList());
+    if (candidateList.size() == 0){
+      System.out.println("begin state not found");
+      throw new AssertionError();
+    };
+    if (candidateList.size() > 1){
+      System.out.println("more than single begin state found: "+candidateList);
+      throw new AssertionError();
+    };
+    return candidateList.get(0);
+  }
+
+  private static Set<InvoiceStatus> collectAllSchemaMapNodesSet() {
+    Set<InvoiceStatus> result = new HashSet<>();
+    Arrays.stream(InvoiceRequestStatusEnum.class.getEnumConstants())
+        .forEach(e -> result.addAll(e.schemaMap.values()));
+    return result;
   }
 
   private Integer code;
