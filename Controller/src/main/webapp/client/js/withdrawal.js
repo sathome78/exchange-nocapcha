@@ -1,6 +1,8 @@
 var currentEmail;
-
+var $withdrawalTable;
 $(function () {
+
+    $withdrawalTable = $('#withdrawalTable');
 
     $('.accept_withdrawal_rqst').submit(function (e) {
         e.preventDefault();
@@ -14,9 +16,11 @@ $(function () {
         promptDeclineRequest(id);
     });
 
-    $('#withdrawalTable').DataTable({
+    $($withdrawalTable).DataTable({
         "order": []
     });
+
+    $withdrawalTable.find('button')
 
     $('#createCommentConfirm').on('click', function () {
 
@@ -107,4 +111,19 @@ function promptDeclineRequest(requestId) {
 
 }
 
+function viewRequestInfo($elem) {
+    var $row = $($elem).parents('tr');
+    fillModal($row);
+    $('#withdraw-info-modal').modal();
 
+}
+
+function fillModal($row) {
+    $('#info-currency').text($($row).find('td:nth-child(5)').text());
+    $('#info-amount').text($($row).find('td:nth-child(4)').text());
+    $('#info-commissionAmount').text($($row).find('td:nth-child(6)').text());
+    $('#info-bankRecipient').text($($row).find('td:nth-child(13)').text());
+    $('#info-userAccount').text($($row).find('td:nth-child(8)').text());
+    $('#info-userFullName').text($($row).find('td:nth-child(14)').text());
+    $('#info-remark').find('textarea').html($($row).find('td:nth-child(12)').text());
+}

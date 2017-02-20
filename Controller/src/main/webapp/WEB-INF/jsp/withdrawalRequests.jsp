@@ -38,13 +38,17 @@
                     <th><loc:message code="withdrawal.acceptanceDatetime"/></th>
                     <th><loc:message code="withdrawal.acceptanceUser"/></th>
                     <th><loc:message code="withdrawal.status"/></th>
+                    <th hidden></th>
+                    <th hidden></th>
+                    <th hidden></th>
                 </tr>
                 </thead>
                 <tbody>
                 <c:forEach items="${requests}" var="request">
                     <tr class="id_${request.transaction.id}">
                         <td>
-                                ${request.transaction.id}
+                            <button class="request_id_button" onclick="viewRequestInfo(this)"> ${request.transaction.id}</button>
+
                         </td>
                         <td>
                                 ${request.transaction.datetime.toLocalDate()}<br/>
@@ -130,6 +134,9 @@
                                 </c:otherwise>
                             </c:choose>
                         </td>
+                        <td hidden>${request.remark}</td>
+                        <td hidden>${request.recipientBankName} ${request.recipientBankCode}</td>
+                        <td hidden>${request.userFullName}</td>
                     </tr>
 
                 </c:forEach>
@@ -189,7 +196,7 @@
 <%--... MODAL--%>
 
 
-
+<%@include file='fragments/modal/withdraw_info_modal.jsp' %>
 <%@include file='fragments/footer.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>
