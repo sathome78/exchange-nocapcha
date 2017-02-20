@@ -16,6 +16,8 @@ public interface UserFilesService {
 
     void createUserFiles(int userId, List<MultipartFile> files) throws IOException;
 
+    void saveReceiptScan(int userId, int invoiceId, MultipartFile file) throws IOException;
+
     String createUserAvatar(int userId, MultipartFile file) throws IOException;
 
     void deleteUserFile(String filename, int userId) throws IOException;

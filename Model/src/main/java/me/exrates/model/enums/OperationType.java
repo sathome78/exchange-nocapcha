@@ -3,6 +3,8 @@ package me.exrates.model.enums;
 import me.exrates.model.exceptions.UnsupportedOperationTypeException;
 import org.springframework.context.MessageSource;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 public enum OperationType {
@@ -20,6 +22,13 @@ public enum OperationType {
 
     OperationType(int type) {
         this.type = type;
+    }
+
+    public static List<OperationType> getInputOutputOperationsList(){
+        return new ArrayList<OperationType>(){{
+            add(INPUT);
+            add(OUTPUT);
+        }};
     }
 
     public static OperationType convert(int tupleId) {

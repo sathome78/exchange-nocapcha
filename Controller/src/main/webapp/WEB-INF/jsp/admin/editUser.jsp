@@ -458,6 +458,9 @@
                                 <button id="myorders-button-deal" class="myorders__button green-box margin-box">
                                     <loc:message
                                             code="myorders.deal"/></button>
+                                <button id="myorders-button-opened" class="myorders__button blue-box margin-box">
+                                    <loc:message
+                                            code="myorders.opened"/></button>
                                 <button id="myorders-button-cancelled" class="myorders__button red-box margin-box">
                                     <loc:message
                                             code="myorders.cancelled"/></button>

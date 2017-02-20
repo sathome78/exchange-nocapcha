@@ -1,6 +1,8 @@
 package me.exrates.model.dto.onlineTableDto;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import lombok.Getter;
+import lombok.Setter;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.time.LocalDateTime;
@@ -8,6 +10,7 @@ import java.time.LocalDateTime;
 /**
  * Created by Ajet on 23.07.2016.
  */
+@Getter @Setter
 public class MyInputOutputHistoryDto extends OnlineTableDto {
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime datetime;
@@ -21,6 +24,11 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
     private Integer userId;
     private Boolean confirmationRequired;
     private String bankAccount;
+    private Integer invoiceRequestStatusId;
+    private LocalDateTime statusUpdateDate;
+    private String summaryStatus;
+    private String userFullName;
+    private String remark;
 
     public MyInputOutputHistoryDto() {
         this.needRefresh = true;
@@ -28,94 +36,6 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
 
     public MyInputOutputHistoryDto(boolean needRefresh) {
         this.needRefresh = needRefresh;
-    }
-
-    public LocalDateTime getDatetime() {
-        return datetime;
-    }
-
-    public void setDatetime(LocalDateTime datetime) {
-        this.datetime = datetime;
-    }
-
-    public String getCurrencyName() {
-        return currencyName;
-    }
-
-    public void setCurrencyName(String currencyName) {
-        this.currencyName = currencyName;
-    }
-
-    public String getAmount() {
-        return amount;
-    }
-
-    public void setAmount(String amount) {
-        this.amount = amount;
-    }
-
-    public String getCommissionAmount() {
-        return commissionAmount;
-    }
-
-    public void setCommissionAmount(String commissionAmount) {
-        this.commissionAmount = commissionAmount;
-    }
-
-    public String getMerchantName() {
-        return merchantName;
-    }
-
-    public void setMerchantName(String merchantName) {
-        this.merchantName = merchantName;
-    }
-
-    public String getOperationType() {
-        return operationType;
-    }
-
-    public void setOperationType(String operationType) {
-        this.operationType = operationType;
-    }
-
-    public Integer getTransactionId() {
-        return transactionId;
-    }
-
-    public void setTransactionId(Integer transactionId) {
-        this.transactionId = transactionId;
-    }
-
-    public String getTransactionProvided() {
-        return transactionProvided;
-    }
-
-    public void setTransactionProvided(String transactionProvided) {
-        this.transactionProvided = transactionProvided;
-    }
-
-    public Integer getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Integer userId) {
-        this.userId = userId;
-    }
-
-    public Boolean getConfirmationRequired() {
-        return confirmationRequired;
-    }
-
-    public void setConfirmationRequired(Boolean confirmationRequired) {
-        this.confirmationRequired = confirmationRequired;
-    }
-
-    public String getBankAccount() {
-        return bankAccount;
-    }
-
-    public void setBankAccount(String bankAccount) {
-        this.bankAccount = bankAccount;
     }
 
     @Override
@@ -135,6 +55,10 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
             return false;
         if (transactionId != null ? !transactionId.equals(that.transactionId) : that.transactionId != null)
             return false;
+        if (confirmationRequired != null ? !confirmationRequired.equals(that.confirmationRequired) : that.confirmationRequired != null)
+            return false;
+        if (invoiceRequestStatusId != null ? !invoiceRequestStatusId.equals(that.invoiceRequestStatusId) : that.invoiceRequestStatusId != null)
+            return false;
         return transactionProvided != null ? transactionProvided.equals(that.transactionProvided) : that.transactionProvided == null;
 
     }
@@ -149,6 +73,8 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
         result = 31 * result + (operationType != null ? operationType.hashCode() : 0);
         result = 31 * result + (transactionId != null ? transactionId.hashCode() : 0);
         result = 31 * result + (transactionProvided != null ? transactionProvided.hashCode() : 0);
+        result = 31 * result + (confirmationRequired != null ? confirmationRequired.hashCode() : 0);
+        result = 31 * result + (invoiceRequestStatusId != null ? invoiceRequestStatusId.hashCode() : 0);
         return result;
     }
 
@@ -163,6 +89,11 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
                 ", operationType='" + operationType + '\'' +
                 ", transactionId=" + transactionId +
                 ", transactionProvided='" + transactionProvided + '\'' +
+                ", userId=" + userId +
+                ", confirmationRequired=" + confirmationRequired +
+                ", bankAccount='" + bankAccount + '\'' +
+                ", userFullName='" + userFullName + '\'' +
+                ", remark='" + remark + '\'' +
                 '}';
     }
 }

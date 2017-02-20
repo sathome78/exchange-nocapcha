@@ -44,6 +44,7 @@ public class Privat24ServiceImpl implements Privat24Service {
 
 
     @Override
+    @Transactional
     public Map<String, String> preparePayment(CreditsOperation creditsOperation, String email) {
 
         Transaction transaction = transactionService.createTransactionRequest(creditsOperation);

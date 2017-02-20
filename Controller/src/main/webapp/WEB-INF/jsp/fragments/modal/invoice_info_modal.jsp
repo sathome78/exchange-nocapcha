@@ -57,6 +57,10 @@
                             <td><loc:message code="merchants.invoiceDetails.remark"/></td>
                             <td id="info-remark"><textarea class="textarea non-resize" readonly></textarea></td>
                         </tr>
+                        <tr>
+                            <td><loc:message code="admin.invoice.receipt" /> </td>
+                            <td id="info-receipt"></td>
+                        </tr>
                         </tbody>
                     </table>
                 </div>

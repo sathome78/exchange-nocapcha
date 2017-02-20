@@ -11,6 +11,7 @@ import me.exrates.model.form.AuthorityOptionsForm;
 import me.exrates.security.service.UserSecureServiceImpl;
 import me.exrates.service.*;
 import me.exrates.service.exception.OrderDeletingException;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -282,21 +283,32 @@ public class AdminController {
         String email = userService.getUserById(id).getEmail();
         Map<String,List<OrderWideListDto>> resultMap = new HashMap<>();
 
-        List<OrderWideListDto> ordersBuyClosed = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, OperationType.BUY, 0, -1, localeResolver.resolveLocale(request));
-        List<OrderWideListDto> ordersSellClosed = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, OperationType.SELL, 0, -1, localeResolver.resolveLocale(request));
-        List<OrderWideListDto> ordersBuyCancelled = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, OperationType.BUY, 0, -1, localeResolver.resolveLocale(request));
-        List<OrderWideListDto> ordersSellCancelled = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, OperationType.SELL, 0, -1, localeResolver.resolveLocale(request));
-
         List<OrderWideListDto> result = new ArrayList<>();
         switch (tableType){
-            case "ordersBuyClosed":     result = ordersBuyClosed;
-                                        break;
-            case "ordersSellClosed":    result = ordersSellClosed;
-                                        break;
-            case "ordersBuyCancelled":  result = ordersBuyCancelled;
-                                        break;
-            case "ordersSellCancelled": result = ordersSellCancelled;
-                                        break;
+            case "ordersBuyClosed":
+                List<OrderWideListDto> ordersBuyClosed = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, OperationType.BUY, 0, -1, localeResolver.resolveLocale(request));
+                result = ordersBuyClosed;
+                break;
+            case "ordersSellClosed":
+                List<OrderWideListDto> ordersSellClosed = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, OperationType.SELL, 0, -1, localeResolver.resolveLocale(request));
+                result = ordersSellClosed;
+                break;
+            case "ordersBuyOpened":
+                List<OrderWideListDto> ordersBuyOpened = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.OPENED, OperationType.BUY, 0, -1, localeResolver.resolveLocale(request));
+                result = ordersBuyOpened;
+                break;
+            case "ordersSellOpened":
+                List<OrderWideListDto> ordersSellOpened = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.OPENED, OperationType.SELL, 0, -1, localeResolver.resolveLocale(request));
+                result = ordersSellOpened;
+                break;
+            case "ordersBuyCancelled":
+                List<OrderWideListDto> ordersBuyCancelled = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, OperationType.BUY, 0, -1, localeResolver.resolveLocale(request));
+                result = ordersBuyCancelled;
+                break;
+            case "ordersSellCancelled":
+                List<OrderWideListDto> ordersSellCancelled = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, OperationType.SELL, 0, -1, localeResolver.resolveLocale(request));
+                result = ordersSellCancelled;
+                break;
         }
 
         return result;
@@ -768,8 +780,17 @@ public class AdminController {
 
     @RequestMapping(value = "/2a8fy7b07dxe44/invoiceRequests")
     @ResponseBody
-    public List<InvoiceRequest> invoiceRequests() {
-        return invoiceService.findAllInvoiceRequests();
+    public List<InvoiceRequest> invoiceRequests(
+        @RequestParam(required = false) String invoiceRequestStatusSetType) {
+        if (StringUtils.isEmpty(invoiceRequestStatusSetType)) {
+            return invoiceService.findAllInvoiceRequests();
+        } else {
+            List<InvoiceRequestStatusEnum> invoiceRequestStatusList = InvoiceRequestStatusEnum.getStatusSet(invoiceRequestStatusSetType);
+            List<Integer> invoiceRequestStatusIdList = invoiceRequestStatusList.stream()
+                .map(e -> e.getCode())
+                .collect(Collectors.toList());
+            return invoiceService.findAllByStatus(invoiceRequestStatusIdList);
+        }
     }
 
     @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinConfirmation")

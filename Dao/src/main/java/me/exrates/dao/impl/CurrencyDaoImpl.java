@@ -4,15 +4,16 @@ import me.exrates.dao.CurrencyDao;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +23,25 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
 	@Autowired
 	private NamedParameterJdbcTemplate jdbcTemplate;
+
+	protected static RowMapper<CurrencyPair> currencyPairRowMapper = (rs, row) -> {
+		CurrencyPair currencyPair = new CurrencyPair();
+		currencyPair.setId(rs.getInt("id"));
+		currencyPair.setName(rs.getString("name"));
+			/**/
+		Currency currency1 = new Currency();
+		currency1.setId(rs.getInt("currency1_id"));
+		currency1.setName(rs.getString("currency1_name"));
+		currencyPair.setCurrency1(currency1);
+			/**/
+		Currency currency2 = new Currency();
+		currency2.setId(rs.getInt("currency2_id"));
+		currency2.setName(rs.getString("currency2_name"));
+		currencyPair.setCurrency2(currency2);
+			/**/
+		return currencyPair;
+
+	};
 
 	public List<Currency> getCurrList() {
 		String sql = "SELECT id, name FROM CURRENCY WHERE hidden IS NOT TRUE ";
@@ -118,6 +138,22 @@ public class CurrencyDaoImpl implements CurrencyDao {
 	}
 
 	@Override
+	public List<TransferLimitDto> retrieveMinTransferLimits(List<Integer> currencyIds, Integer roleId) {
+		String currencyClause = currencyIds.isEmpty() ? "" : " AND currency_id IN (:currency_ids) ";
+		String sql = "SELECT currency_id, min_sum FROM CURRENCY_LIMIT WHERE operation_type_id = 9 AND user_role_id = :user_role_id " + currencyClause;
+		Map<String, Object> params = new HashMap<>();
+		params.put("user_role_id", roleId);
+		params.put("currency_ids", currencyIds);
+
+		return jdbcTemplate.query(sql, params, (rs, rowNum) -> {
+			TransferLimitDto dto = new TransferLimitDto();
+			dto.setCurrencyId(rs.getInt("currency_id"));
+			dto.setTransferMinLimit(rs.getBigDecimal("min_sum"));
+			return dto;
+		});
+	}
+
+	@Override
 	public BigDecimal retrieveMinLimitForRoleAndCurrency(UserRole userRole, OperationType operationType, Integer currencyId) {
 		String sql = "SELECT min_sum FROM CURRENCY_LIMIT " +
 				"WHERE user_role_id = :role_id AND operation_type_id = :operation_type_id AND currency_id = :currency_id";
@@ -154,24 +190,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 				" WHERE hidden IS NOT TRUE " +
 				" ORDER BY -pair_order DESC";
 
-		List<CurrencyPair> currencyPairList = jdbcTemplate.query(sql, (rs, row) -> {
-			CurrencyPair currencyPair = new CurrencyPair();
-			currencyPair.setId(rs.getInt("id"));
-			currencyPair.setName(rs.getString("name"));
-			/**/
-			Currency currency1 = new Currency();
-			currency1.setId(rs.getInt("currency1_id"));
-			currency1.setName(rs.getString("currency1_name"));
-			currencyPair.setCurrency1(currency1);
-			/**/
-			Currency currency2 = new Currency();
-			currency2.setId(rs.getInt("currency2_id"));
-			currency2.setName(rs.getString("currency2_name"));
-			currencyPair.setCurrency2(currency2);
-			/**/
-			return currencyPair;
-
-		});
+		List<CurrencyPair> currencyPairList = jdbcTemplate.query(sql, currencyPairRowMapper);
 
 		return currencyPairList;
 	}
@@ -185,23 +204,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 		Map<String, String> namedParameters = new HashMap<>();
 		namedParameters.put("currency1Id", String.valueOf(currency1Id));
 		namedParameters.put("currency2Id", String.valueOf(currency2Id));
-		return jdbcTemplate.queryForObject(sql, namedParameters,(resultSet, i) -> {
-			CurrencyPair currencyPair = new CurrencyPair();
-			currencyPair.setId(resultSet.getInt("id"));
-			currencyPair.setName(resultSet.getString("name"));
-			/**/
-			Currency currency1 = new Currency();
-			currency1.setId(resultSet.getInt("currency1_id"));
-			currency1.setName(resultSet.getString("currency1_name"));
-			currencyPair.setCurrency1(currency1);
-			/**/
-			Currency currency2 = new Currency();
-			currency2.setId(resultSet.getInt("currency2_id"));
-			currency2.setName(resultSet.getString("currency2_name"));
-			currencyPair.setCurrency2(currency2);
-			/**/
-			return currencyPair;
-		});
+		return jdbcTemplate.queryForObject(sql, namedParameters, currencyPairRowMapper);
 	}
 
 	@Override
@@ -212,22 +215,6 @@ public class CurrencyDaoImpl implements CurrencyDao {
 				" FROM CURRENCY_PAIR WHERE id = :currencyPairId";
 		Map<String, String> namedParameters = new HashMap<>();
 		namedParameters.put("currencyPairId", String.valueOf(currencyPairId));
-		return jdbcTemplate.queryForObject(sql, namedParameters,(resultSet, i) -> {
-			CurrencyPair currencyPair = new CurrencyPair();
-			currencyPair.setId(resultSet.getInt("id"));
-			currencyPair.setName(resultSet.getString("name"));
-			/**/
-			Currency currency1 = new Currency();
-			currency1.setId(resultSet.getInt("currency1_id"));
-			currency1.setName(resultSet.getString("currency1_name"));
-			currencyPair.setCurrency1(currency1);
-			/**/
-			Currency currency2 = new Currency();
-			currency2.setId(resultSet.getInt("currency2_id"));
-			currency2.setName(resultSet.getString("currency2_name"));
-			currencyPair.setCurrency2(currency2);
-			/**/
-			return currencyPair;
-		});
+		return jdbcTemplate.queryForObject(sql, namedParameters, currencyPairRowMapper);
 	}
 }

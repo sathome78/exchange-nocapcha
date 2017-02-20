@@ -681,26 +681,32 @@ public class OrderDaoImpl implements OrderDao {
     public CommissionsDto getAllCommissions(UserRole userRole){
         final String sql =
                 "  SELECT SUM(sell_commission) as sell_commission, SUM(buy_commission) as buy_commission, " +
-                        "SUM(input_commission) as input_commission, SUM(output_commission) as output_commission" +
+                        "SUM(input_commission) as input_commission, SUM(output_commission) as output_commission, SUM(transfer_commission) as transfer_commission" +
                         "  FROM " +
-                        "      ((SELECT SELL.value as sell_commission, 0 as buy_commission, 0 as input_commission, 0 as output_commission " +
+                        "      ((SELECT SELL.value as sell_commission, 0 as buy_commission, 0 as input_commission, 0 as output_commission, " +
+                        " 0 as transfer_commission " +
                         "      FROM COMMISSION SELL " +
                         "      WHERE operation_type = 3 AND user_role = :user_role " +
                         "      ORDER BY date DESC LIMIT 1)  " +
                         "    UNION " +
-                        "      (SELECT 0, BUY.value, 0, 0 " +
+                        "      (SELECT 0, BUY.value, 0, 0, 0 " +
                         "      FROM COMMISSION BUY " +
                         "      WHERE operation_type = 4  AND user_role = :user_role " +
                         "      ORDER BY date DESC LIMIT 1) " +
                         "    UNION " +
-                        "      (SELECT 0, 0, INPUT.value, 0 " +
+                        "      (SELECT 0, 0, INPUT.value, 0, 0  " +
                         "      FROM COMMISSION INPUT " +
                         "      WHERE operation_type = 1  AND user_role = :user_role " +
                         "      ORDER BY date DESC LIMIT 1) " +
                         "    UNION " +
-                        "      (SELECT 0, 0, 0, OUTPUT.value " +
+                        "      (SELECT 0, 0, 0, OUTPUT.value, 0  " +
                         "      FROM COMMISSION OUTPUT " +
                         "      WHERE operation_type = 2 AND user_role = :user_role  " +
+                        "      ORDER BY date DESC LIMIT 1) " +
+                        "    UNION " +
+                        "      (SELECT 0, 0, 0, 0, TRANSFER.value " +
+                        "      FROM COMMISSION TRANSFER " +
+                        "      WHERE operation_type = 9 AND user_role = :user_role  " +
                         "      ORDER BY date DESC LIMIT 1) " +
                         "  ) COMMISSION";
         try {
@@ -712,6 +718,7 @@ public class OrderDaoImpl implements OrderDao {
                     commissionsDto.setBuyCommission(rs.getBigDecimal("buy_commission"));
                     commissionsDto.setInputCommission(rs.getBigDecimal("input_commission"));
                     commissionsDto.setOutputCommission(rs.getBigDecimal("output_commission"));
+                    commissionsDto.setTransferCommission(rs.getBigDecimal("transfer_commission"));
                     return commissionsDto;
             });
         } catch (EmptyResultDataAccessException e) {

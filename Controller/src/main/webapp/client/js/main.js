@@ -224,6 +224,8 @@ $(function(){
                 default:
                     form.attr('action', NO_ACTION);
             }
+        } else if (operationType === 'OUTPUT' && merchant === INVOICE) {
+            form.attr('action', '/merchants/invoice/withdraw/prepare');
         }
     }
 
@@ -239,27 +241,38 @@ $(function(){
 
     function resetPaymentFormData(targetMerchant,form,callback) {
         if (operationType.val() === 'OUTPUT') {
-            $.ajax('/merchants/payment/withdraw', {
-                headers: {
-                    'X-CSRF-Token': $("input[name='_csrf']").val()
-                },
-                type: 'POST',
-                contentType: 'application/json',
-                dataType: 'json',
-                data: JSON.stringify($(form).serializeObject())
-            }).done(function (response) {
-                //$('#currency').find(':selected').html(response['balance']);
-                //$('#currencyFull')..html(response['balance']);
-                responseControls();
-                $('.paymentInfo').html(response['success']);
-                $('.wallet_input').hide();
-            }).fail(function (error, jqXHR, textStatus) {
-                console.log(textStatus);
-                console.log(jqXHR);
-                responseControls();
-                $('.paymentInfo').html(error['responseJSON']['failure']);
-                $('.wallet_input').hide();
-            });
+            if (targetMerchant === INVOICE) {
+                callback();
+            } else {
+                $.ajax('/merchants/payment/withdraw', {
+                    headers: {
+                        'X-CSRF-Token': $("input[name='_csrf']").val()
+                    },
+                    type: 'POST',
+                    contentType: 'application/json',
+                    dataType: 'json',
+                    data: JSON.stringify($(form).serializeObject())
+                }).done(function (response) {
+                    //$('#currency').find(':selected').html(response['balance']);
+                    //$('#currencyFull')..html(response['balance']);
+                    responseControls();
+                    $('.paymentInfo').html(response['success']);
+
+                    $('.wallet_input').hide();
+                    $(sum).val('0.0');
+                    button.prop('disabled',true);
+                    $('#outputPaymentProcess')
+                        .prop('disabled', false);
+                }).fail(function (error, jqXHR, textStatus) {
+                    console.log(textStatus);
+                    console.log(jqXHR);
+                    responseControls();
+                    $('.paymentInfo').html(error['responseJSON']['failure']);
+                    $('.wallet_input').hide();
+                });
+            }
+
+
         } else {
             switch (targetMerchant) {
                 case PERFECT :
@@ -462,11 +475,6 @@ $(function(){
                         console.log(error);
                     });
                     break;
-                /*case INVOICE :
-                    console.log($(form).serialize());
-
-                    /!*window.location = '/merchants';*!/
-                    break;*/
                 default:
                     callback();
             }
@@ -579,8 +587,13 @@ $(function(){
             merchantMinSum = parseFloat(arr[2]);
             merchantImageId = parseFloat(arr[3]);
 
-            $('.wallet_input').show();
-            setTimeout("$('.wallet_input>input').focus().val('')",200);
+            if (merchantName != INVOICE) {
+                $('.wallet_input').show();
+                setTimeout("$('.wallet_input>input').focus().val('')",200);
+            } else {
+                $('.wallet_input').hide();
+
+            }
             requestControls();
             fillModalWindow('OUTPUT',sum.val(),getCurrentCurrency());
         });
@@ -590,17 +603,20 @@ $(function(){
     });
 
     $("#outputPaymentProcess").on('click', function () {
-        var uid = $("input[name='walletUid']").val();
-        if (uid.length>3){
-            $("#destination").val(uid);
+        if (merchantName === INVOICE) {
             submitProcess();
             $('#outputPaymentProcess')
                 .prop('disabled', true);
-            setTimeout(function()
-            {
-                location.reload();
-            },8000);
+        } else {
+            var uid = $("input[name='walletUid']").val();
+            if (uid.length>3){
+                $("#destination").val(uid);
+                submitProcess();
+                $('#outputPaymentProcess')
+                    .prop('disabled', true);
+            }
         }
+
     });
     $('#transferButton').click(function () {
         finPassCheck('transferModal', prepareTransfer);

@@ -4,10 +4,17 @@
 var invoiceRequestsDataTable;
 
 $(document).ready(function () {
-    var confirmButtonMessage = $('#confirmButtonLocMessage').text();
-    var confirmedMessage = $('#confirmedLocMessage').text();
+    var acceptLocMessage = $('#acceptLocMessage').text();
+    var declineLocMessage = $('#declineLocMessage').text();
+    var acceptedLocMessage = $('#acceptedLocMessage').text();
+    var declinedLocMessage = $('#declinedLocMessage').text();
+    var onConfirmationLocMessage = $('#onConfirmationLocMessage').text();
+    var revokedByUserLocMessage = $('#revokedByUserLocMessage').text();
+    var timeOutExpiredLocMessage = $('#timeOutExpiredLocMessage').text();
+    /**/
     var $invoiceRequestsTable = $('#invoice_requests');
-    var url = '/2a8fy7b07dxe44/invoiceRequests/';
+
+    var url = '/2a8fy7b07dxe44/invoiceRequests?invoiceRequestStatusSetType=acceptable';
 
     if ($.fn.dataTable.isDataTable('#invoice_requests')) {
         invoiceRequestsDataTable = $($invoiceRequestsTable).DataTable();
@@ -71,10 +78,31 @@ $(document).ready(function () {
                     "className": "text-center"
                 },
                 {
-                    "data": "acceptanceTime",
+                    "data": "invoiceRequestStatus",
                     "render": function (data, type, row) {
-                        return data ? confirmedMessage : '<button class="acceptbtn" onclick="submitAcceptInvoice(event,' + row.transaction.id + ')">' +
-                            confirmButtonMessage + '</button>';
+                        if (data === "CREATED_USER") {
+                            return onConfirmationLocMessage;
+                        } else if (data === "ACCEPTED_ADMIN") {
+                            return acceptedLocMessage;
+                        } else if (data === "DECLINED_ADMIN") {
+                            return declinedLocMessage;
+                        } else if (data === "REVOKED_USER") {
+                            return revokedByUserLocMessage;
+                        } else if (data === "EXPIRED") {
+                            return timeOutExpiredLocMessage;
+                        } else if (data === "CONFIRMED_USER") {
+                            return '<div class="table-button-block" style="white-space: nowrap">' +
+                                '<button style="font-size: 11px;" class="table-button-block__button btn btn-success" onclick="acceptInvoice(event,' + row.transaction.id + ')">' +
+                                acceptLocMessage +
+                                '</button>' +
+                                '&nbsp;' +
+                                '<button style="font-size: 11px;" class="table-button-block__button btn btn-danger" onclick="declineInvoice(event,' + row.transaction.id + ')">' +
+                                declineLocMessage +
+                                '</button>' +
+                                '</div>';
+                        } else {
+                            return "unsupported value of field"
+                        }
                     },
                     "className": "text-center"
                 },
@@ -110,12 +138,23 @@ function fillInvoiceInfoModal(rowData) {
     $('#info-bankName').text(bankName);
     $('#info-bankAccount').text(bankAccount);
     $('#info-bankRecipient').text(bankRecipient);
-    $('#info-bankFrom').text(replaceAbsentWithDash(rowData.payerBankName));
+    var bankCode = rowData.payerBankCode ? rowData.payerBankCode : '';
+    $('#info-bankFrom').text(replaceAbsentWithDash(rowData.payerBankName) + ' ' + bankCode);
     $('#info-userAccount').text(replaceAbsentWithDash(rowData.payerAccount));
     $('#info-userFullName').text(replaceAbsentWithDash(rowData.userFullName));
     $('#info-remark').find('textarea').html(replaceAbsentWithDash(rowData.remark));
+    var receiptImage;
+    if (rowData.receiptScanPath) {
+        receiptImage = '<a href="' + rowData.receiptScanPath + '" class="col-sm-4" data-toggle="lightbox"><img src="' +
+            rowData.receiptScanPath + '" class="img-responsive"></a>';
+    } else {
+        receiptImage = '-';
+    }
+
+    $('#info-receipt').html(receiptImage);
 }
 
 function replaceAbsentWithDash(value) {
     return value ? value : '-';
 }
+

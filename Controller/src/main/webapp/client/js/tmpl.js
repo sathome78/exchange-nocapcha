@@ -18,7 +18,7 @@
                 str
                     .replace(/[\r\t\n]/g, " ")
                     .split("<%").join("\t").replace(/((^|%>)[^\t]*)'/g, "$1\r")
-                    .replace(/\t=(.*?)%>/g, "',$1,'")
+                    .replace(/\t=(.*?)%>/g, "',XSSescape($1),'")
                     .split("\t").join("');")
                     .split("%>").join("p.push('")
                     .split("\r").join("\\'")
@@ -28,10 +28,17 @@
     };
 })();
 
-function clearTable($table){
-    var $title =$table.find('tr').has('th');
+function clearTable($table) {
+    var $title = $table.find('tr').has('th');
     var $script = $table.find('script');
     $table.empty();
     $table.append($title);
     $table.append($script);
+}
+
+function XSSescape(str) {
+    str = !str ? str : ("" + str).replace(/<\s*script\s*/g, "&lt;script ");
+    str = !str ? str : ("" + str).replace(/<\s*script\s*>/g, "&lt;script&gt;");
+    str = !str ? str : ("" + str).replace(/javascript\s*:/g, "javascript;");
+    return str;
 }

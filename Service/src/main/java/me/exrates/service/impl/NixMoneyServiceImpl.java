@@ -43,6 +43,7 @@ public class NixMoneyServiceImpl implements NixMoneyService {
 
 
     @Override
+    @Transactional
     public RedirectView preparePayment(CreditsOperation creditsOperation, String email) {
 
         Transaction transaction = transactionService.createTransactionRequest(creditsOperation);

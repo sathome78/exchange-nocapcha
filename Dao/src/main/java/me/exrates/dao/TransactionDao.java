@@ -15,41 +15,45 @@ import java.util.Locale;
  */
 public interface TransactionDao {
 
-    Transaction create(Transaction transaction);
+  Transaction create(Transaction transaction);
 
-    Transaction findById(int id);
+  boolean updateForProvided(Transaction transaction);
 
-    PagingData<List<Transaction>> findAllByUserWallets(List<Integer> walletIds, Integer status,
-                                                       List<TransactionType> types, List<Integer> merchantIds,
-                                                       String dateFrom, String dateTo,
-                                                       BigDecimal fromAmount, BigDecimal toAmount,
-                                                       BigDecimal fromCommissionAmount, BigDecimal toCommissionAmount,
-                                                       int offset, int limit,
-                                                       String sortColumn, String sortDirection, Locale locale);
+  Transaction findById(int id);
 
-    boolean provide(int id);
+  PagingData<List<Transaction>> findAllByUserWallets(List<Integer> walletIds, Integer status,
+                                                     List<TransactionType> types, List<Integer> merchantIds,
+                                                     String dateFrom, String dateTo,
+                                                     BigDecimal fromAmount, BigDecimal toAmount,
+                                                     BigDecimal fromCommissionAmount, BigDecimal toCommissionAmount,
+                                                     int offset, int limit,
+                                                     String sortColumn, String sortDirection, Locale locale);
 
-    boolean delete(int id);
+  boolean provide(int id);
 
-    void updateTransactionAmount(int transactionId, BigDecimal amount, BigDecimal commission);
+  boolean delete(int id);
 
-    void updateTransactionConfirmations(int transactionId, int confirmations);
+  void updateTransactionAmount(int transactionId, BigDecimal amount, BigDecimal commission);
 
-    List<Transaction> findAllByUserWallets(List<Integer> walletIds);
+  void updateTransactionConfirmations(int transactionId, int confirmations);
 
-    PagingData<List<Transaction>> findAllByUserWallets(List<Integer> walletIds, int offset, int limit);
+  List<Transaction> findAllByUserWallets(List<Integer> walletIds);
 
-    PagingData<List<Transaction>> findAllByUserWallets(final List<Integer> walletIds, final int offset,
-                                                       final int limit, final String sortColumn,
-                                                       String sortDirection, Locale locale);
+  PagingData<List<Transaction>> findAllByUserWallets(List<Integer> walletIds, int offset, int limit);
 
-    List<AccountStatementDto> getAccountStatement(Integer walletId, Integer offset, Integer limit, Locale locale);
+  PagingData<List<Transaction>> findAllByUserWallets(final List<Integer> walletIds, final int offset,
+                                                     final int limit, final String sortColumn,
+                                                     String sortDirection, Locale locale);
 
-    Integer getStatementSize(Integer walletId);
+  List<AccountStatementDto> getAccountStatement(Integer walletId, Integer offset, Integer limit, Locale locale);
 
-    List<Transaction> getOpenTransactionsByMerchant(Merchant merchant);
+  Integer getStatementSize(Integer walletId);
 
-    BigDecimal maxAmount();
+  List<Transaction> getOpenTransactionsByMerchant(Merchant merchant);
 
-    BigDecimal maxCommissionAmount();
+  BigDecimal maxAmount();
+
+  BigDecimal maxCommissionAmount();
+
+  void setSourceId(Integer trasactionId, Integer sourceId);
 }

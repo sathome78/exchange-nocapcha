@@ -14,7 +14,15 @@
     <meta charset="utf-8">
     <title><loc:message code="transaction.titleInvoice"/></title>
     <%@include file='links_scripts.jsp' %>
+    <link href="<c:url value="/client/css/ekko-lightbox.min.css"/>" rel="stylesheet">
+    <script type="text/javascript" src="<c:url value="/client/js/ekko-lightbox.min.js"/>"></script>
 </head>
+
+<style>
+    #invoice_requests td {
+        padding: 5px 5px;
+    }
+</style>
 
 
 <body>
@@ -32,7 +40,7 @@
                 </c:when>
                 <c:otherwise>
                     <%--СПИСОК ИНВОЙСОВ--%>
-                    <table id="invoice_requests">
+                    <table id="invoice_requests" class="table-striped">
                         <thead>
                         <tr>
                             <th><loc:message code="transaction.id"/></th>
@@ -73,13 +81,18 @@
     </div>
     <hr/>
 </main>
-<div id="prompt_acc_rqst" style="display: none">
-    <loc:message code="merchants.promptWithdrawRequestAccept"/>
-</div>
-<span hidden id="confirmButtonLocMessage"><loc:message code="transaction.accept"/></span>
-<span hidden id="confirmedLocMessage"><loc:message code="transaction.provided"/></span>
+<div hidden id="prompt_acc_rqst" style="display: none"> <loc:message code="merchants.invoice.promptAccept"/></div>
+<div hidden id="prompt_decline_rqst"> <loc:message code="merchants.invoice.promptDecline"/></div>
+<span hidden id="acceptLocMessage"><loc:message code="merchants.invoice.accept"/></span>
+<span hidden id="declineLocMessage"><loc:message code="merchants.invoice.decline"/></span>
+<span hidden id="acceptedLocMessage"><loc:message code="merchants.invoice.accepted"/></span>
+<span hidden id="declinedLocMessage"><loc:message code="merchants.invoice.declined"/></span>
+<span hidden id="onConfirmationLocMessage"><loc:message code="merchants.invoice.onWaitingForUserConfirmation"/></span>
+<span hidden id="revokedByUserLocMessage"><loc:message code="merchants.invoice.revokedByUser"/></span>
+<span hidden id="timeOutExpiredLocMessage"><loc:message code="merchants.invoice.timeOutExpired"/></span>
 <%@include file='../fragments/modal/invoice_info_modal.jsp' %>
 <%@include file='../fragments/footer.jsp' %>
 </body>
 </html>
+
 

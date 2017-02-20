@@ -40,6 +40,7 @@ public class YandexKassaServiceImpl implements YandexKassaService {
 
 
     @Override
+    @Transactional
     public Map<String, String> preparePayment(CreditsOperation creditsOperation, String email) {
 
         Transaction transaction = transactionService.createTransactionRequest(creditsOperation);

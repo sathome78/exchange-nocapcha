@@ -9,7 +9,6 @@ import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.MerchantImageShortenedDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,83 +33,83 @@ import java.util.*;
 @Repository
 public class MerchantDaoImpl implements MerchantDao {
 
-    @Autowired
-    private NamedParameterJdbcTemplate jdbcTemplate;
+  @Autowired
+  private NamedParameterJdbcTemplate jdbcTemplate;
 
-    @Autowired
-    MessageSource messageSource;
+  @Autowired
+  MessageSource messageSource;
 
-    @Override
-    public Merchant create(Merchant merchant) {
-        final String sql = "INSERT INTO MERCHANT (description, name) VALUES (:description,:name)";
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        MapSqlParameterSource params = new MapSqlParameterSource()
-            .addValue("description",merchant.getDescription())
-            .addValue("name",merchant.getName());
-        if (jdbcTemplate.update(sql, params, keyHolder)>0) {
-            merchant.setId(keyHolder.getKey().intValue());
-            return merchant;
-        }
-        return null;
+  @Override
+  public Merchant create(Merchant merchant) {
+    final String sql = "INSERT INTO MERCHANT (description, name) VALUES (:description,:name)";
+    KeyHolder keyHolder = new GeneratedKeyHolder();
+    MapSqlParameterSource params = new MapSqlParameterSource()
+        .addValue("description", merchant.getDescription())
+        .addValue("name", merchant.getName());
+    if (jdbcTemplate.update(sql, params, keyHolder) > 0) {
+      merchant.setId(keyHolder.getKey().intValue());
+      return merchant;
     }
+    return null;
+  }
 
-    @Override
-    public Merchant findById(int id) {
-        final String sql = "SELECT * FROM MERCHANT WHERE id = :id";
-        final Map<String, Integer> params = new HashMap<String,Integer>(){
-            {
-                put("id", id);
-            }
-        };
-        return jdbcTemplate.queryForObject(sql,params,new BeanPropertyRowMapper<>(Merchant.class));
+  @Override
+  public Merchant findById(int id) {
+    final String sql = "SELECT * FROM MERCHANT WHERE id = :id";
+    final Map<String, Integer> params = new HashMap<String, Integer>() {
+      {
+        put("id", id);
+      }
+    };
+    return jdbcTemplate.queryForObject(sql, params, new BeanPropertyRowMapper<>(Merchant.class));
+  }
+
+  @Override
+  public Merchant findByName(String name) {
+    final String sql = "SELECT * FROM MERCHANT WHERE name = :name";
+    final Map<String, String> params = Collections.singletonMap("name", name);
+    return jdbcTemplate.queryForObject(sql, params, new BeanPropertyRowMapper<>(Merchant.class));
+  }
+
+  @Override
+  public List<Merchant> findAll() {
+    final String sql = "SELECT * FROM MERCHANT";
+    return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Merchant.class));
+  }
+
+
+  @Override
+  public List<Merchant> findAllByCurrency(int currencyId) {
+    final String sql = "SELECT * FROM MERCHANT WHERE id in (SELECT merchant_id FROM MERCHANT_CURRENCY WHERE currency_id = :currencyId)";
+    Map<String, Integer> params = new HashMap<String, Integer>() {
+      {
+        put("currencyId", currencyId);
+      }
+    };
+    try {
+      return jdbcTemplate.query(sql, params, (resultSet, i) -> {
+        Merchant merchant = new Merchant();
+        merchant.setDescription(resultSet.getString("description"));
+        merchant.setId(resultSet.getInt("id"));
+        merchant.setName(resultSet.getString("name"));
+        return merchant;
+      });
+    } catch (EmptyResultDataAccessException e) {
+      return null;
     }
+  }
 
-    @Override
-    public Merchant findByName(String name) {
-        final String sql = "SELECT * FROM MERCHANT WHERE name = :name";
-        final Map<String, String> params = Collections.singletonMap("name", name);
-        return jdbcTemplate.queryForObject(sql,params,new BeanPropertyRowMapper<>(Merchant.class));
-    }
-
-    @Override
-    public List<Merchant> findAll() {
-        final String sql = "SELECT * FROM MERCHANT";
-        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Merchant.class));
-    }
-
-
-    @Override
-    public List<Merchant> findAllByCurrency(int currencyId) {
-        final String sql = "SELECT * FROM MERCHANT WHERE id in (SELECT merchant_id FROM MERCHANT_CURRENCY WHERE currency_id = :currencyId)";
-        Map<String, Integer> params = new HashMap<String,Integer>() {
-            {
-                put("currencyId", currencyId);
-            }
-        };
-        try {
-            return jdbcTemplate.query(sql, params, (resultSet, i) -> {
-                Merchant merchant = new Merchant();
-                merchant.setDescription(resultSet.getString("description"));
-                merchant.setId(resultSet.getInt("id"));
-                merchant.setName(resultSet.getString("name"));
-                return merchant;
-            });
-        } catch (EmptyResultDataAccessException e) {
-            return null;
-        }
-    }
-
-    @Override
-    public BigDecimal getMinSum(int merchant, int currency) {
-        final String sql = "SELECT min_sum FROM MERCHANT_CURRENCY WHERE merchant_id = :merchant AND currency_id = :currency";
-        final Map<String, Integer> params = new HashMap<String,Integer>(){
-            {
-                put("merchant", merchant);
-                put("currency", currency);
-            }
-        };
-        return jdbcTemplate.queryForObject(sql,params,BigDecimal.class);
-    }
+  @Override
+  public BigDecimal getMinSum(int merchant, int currency) {
+    final String sql = "SELECT min_sum FROM MERCHANT_CURRENCY WHERE merchant_id = :merchant AND currency_id = :currency";
+    final Map<String, Integer> params = new HashMap<String, Integer>() {
+      {
+        put("merchant", merchant);
+        put("currency", currency);
+      }
+    };
+    return jdbcTemplate.queryForObject(sql, params, BigDecimal.class);
+  }
 
     @Override
     public List<MerchantCurrency> findAllByCurrencies(List<Integer> currenciesId, OperationType operationType) {
@@ -218,125 +217,138 @@ public class MerchantDaoImpl implements MerchantDao {
     }
 
 
+  @Override
+  public List<MyInputOutputHistoryDto> findMyInputOutputHistoryByOperationType(
+      String email,
+      Integer offset,
+      Integer limit,
+      List<Integer> operationTypeIdList,
+      Locale locale) {
+    String sql = " select TRANSACTION.datetime, CURRENCY.name as currency, TRANSACTION.amount, TRANSACTION.commission_amount, \n" +
+        "    case when OPERATION_TYPE.name = 'input' or WITHDRAW_REQUEST.merchant_image_id is null then\n" +
+        "    MERCHANT.name else\n" +
+        "    MERCHANT_IMAGE.image_name end as merchant,\n" +
+        "    OPERATION_TYPE.name as operation_type, TRANSACTION.id, TRANSACTION.provided, " +
+        "    IF(OPERATION_TYPE.id = 1 AND MERCHANT.name = 'Invoice' AND INVOICE_REQUEST_STATUS.name IN ('CREATED_USER', 'DECLINED_ADMIN') " +
+        "    AND TRANSACTION.provided IS NOT TRUE, 1, 0) AS confirmation_required, " +
+        "    INVOICE_BANK.account_number AS bank_account, " +
+        "    USER.id AS user_id," +
+        "    INVOICE_REQUEST.invoice_request_status_id, " +
+        "    INVOICE_REQUEST.status_update_date," +
+            "INVOICE_REQUEST.user_full_name, INVOICE_REQUEST.remark " +
+        "  from TRANSACTION \n" +
+        "    left join CURRENCY on TRANSACTION.currency_id=CURRENCY.id\n" +
+        "    left join WITHDRAW_REQUEST on TRANSACTION.id=WITHDRAW_REQUEST.transaction_id\n" +
+        "    left join INVOICE_REQUEST on TRANSACTION.id=INVOICE_REQUEST.transaction_id\n" +
+        "    left join INVOICE_BANK on INVOICE_REQUEST.bank_id = INVOICE_BANK.id " +
+        "    left join MERCHANT_IMAGE on WITHDRAW_REQUEST.merchant_image_id=MERCHANT_IMAGE.id\n" +
+        "    left join MERCHANT on TRANSACTION.merchant_id = MERCHANT.id \n" +
+        "    left join OPERATION_TYPE on TRANSACTION.operation_type_id=OPERATION_TYPE.id\n" +
+        "    left join WALLET on TRANSACTION.user_wallet_id=WALLET.id\n" +
+        "    left join INVOICE_REQUEST_STATUS on INVOICE_REQUEST_STATUS.id=INVOICE_REQUEST.invoice_request_status_id\n" +
+        "    left join USER on WALLET.user_id=USER.id\n" +
+        "  where TRANSACTION.operation_type_id IN (:operation_type_id_list) and USER.email=:email order by datetime DESC" +
+        (limit == -1 ? "" : "  LIMIT " + limit + " OFFSET " + offset);
+    final Map<String, Object> params = new HashMap<>();
+    params.put("email", email);
+    params.put("operation_type_id_list", operationTypeIdList);
+    return jdbcTemplate.query(sql, params, new RowMapper<MyInputOutputHistoryDto>() {
+      @Override
+      public MyInputOutputHistoryDto mapRow(ResultSet rs, int i) throws SQLException {
+        MyInputOutputHistoryDto myInputOutputHistoryDto = new MyInputOutputHistoryDto();
+        myInputOutputHistoryDto.setDatetime(rs.getTimestamp("datetime").toLocalDateTime());
+        myInputOutputHistoryDto.setCurrencyName(rs.getString("currency"));
+        myInputOutputHistoryDto.setAmount(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount"), locale, 2));
+        myInputOutputHistoryDto.setCommissionAmount(BigDecimalProcessing.formatLocale(rs.getBigDecimal("commission_amount"), locale, 2));
+        myInputOutputHistoryDto.setMerchantName(rs.getString("merchant"));
+        myInputOutputHistoryDto.setOperationType(rs.getString("operation_type"));
+        myInputOutputHistoryDto.setTransactionId(rs.getInt("id"));
+        myInputOutputHistoryDto.setTransactionProvided(rs.getInt("provided") == 0 ?
+            messageSource.getMessage("inputoutput.statusFalse", null, locale) :
+            messageSource.getMessage("inputoutput.statusTrue", null, locale));
+        myInputOutputHistoryDto.setUserId(rs.getInt("user_id"));
+        Boolean confirmationRequired = rs.getBoolean("confirmation_required");
+        myInputOutputHistoryDto.setConfirmationRequired(confirmationRequired);
+        myInputOutputHistoryDto.setBankAccount(rs.getString("bank_account"));
+        myInputOutputHistoryDto.setInvoiceRequestStatusId((Integer) rs.getObject("invoice_request_status_id"));
+        myInputOutputHistoryDto.setStatusUpdateDate(rs.getTimestamp("status_update_date") == null ? null : rs.getTimestamp("status_update_date").toLocalDateTime());
+          myInputOutputHistoryDto.setUserFullName(rs.getString("user_full_name"));
+          myInputOutputHistoryDto.setRemark(rs.getString("remark"));
+        return myInputOutputHistoryDto;
+      }
+    });
+  }
 
-    @Override
-    public List<MyInputOutputHistoryDto> getMyInputOutputHistory(String email, Integer offset, Integer limit, Locale locale) {
-        String sql = " select TRANSACTION.datetime, CURRENCY.name as currency, TRANSACTION.amount, TRANSACTION.commission_amount, \n" +
-                "case when OPERATION_TYPE.name = 'input' or WITHDRAW_REQUEST.merchant_image_id is null then\n" +
-                "MERCHANT.name else\n" +
-                "MERCHANT_IMAGE.image_name end as merchant,\n" +
-                "OPERATION_TYPE.name as operation_type, TRANSACTION.id, TRANSACTION.provided, " +
-                "IF(OPERATION_TYPE.id = 1 AND MERCHANT.name = 'Invoice' AND INVOICE_REQUEST.payer_account IS NULL " +
-                "AND TRANSACTION.provided IS NOT TRUE, 1, 0) AS confirmation_required, " +
-                "INVOICE_BANK.account_number AS bank_account, " +
-                "USER.id AS user_id from TRANSACTION \n" +
-                "left join CURRENCY on TRANSACTION.currency_id=CURRENCY.id\n" +
-                "left join WITHDRAW_REQUEST on TRANSACTION.id=WITHDRAW_REQUEST.transaction_id\n" +
-                "left join INVOICE_REQUEST on TRANSACTION.id=INVOICE_REQUEST.transaction_id\n" +
-                "left join INVOICE_BANK on INVOICE_REQUEST.bank_id = INVOICE_BANK.id " +
-                "left join MERCHANT_IMAGE on WITHDRAW_REQUEST.merchant_image_id=MERCHANT_IMAGE.id\n" +
-                "left join MERCHANT on TRANSACTION.merchant_id = MERCHANT.id \n" +
-                "left join OPERATION_TYPE on TRANSACTION.operation_type_id=OPERATION_TYPE.id\n" +
-                "left join WALLET on TRANSACTION.user_wallet_id=WALLET.id\n" +
-                "left join USER on WALLET.user_id=USER.id\n" +
-                "where TRANSACTION.source_type=:source_type and USER.email=:email order by datetime DESC" +
-                (limit == -1 ? "" : "  LIMIT " + limit + " OFFSET " + offset);
-        final Map<String, Object> params = new HashMap<>();
-        params.put("email", email);
-        params.put("source_type", TransactionSourceType.MERCHANT.toString());
-        return jdbcTemplate.query(sql, params, new RowMapper<MyInputOutputHistoryDto>() {
-            @Override
-            public MyInputOutputHistoryDto mapRow(ResultSet rs, int i) throws SQLException {
-                MyInputOutputHistoryDto myInputOutputHistoryDto = new MyInputOutputHistoryDto();
-                myInputOutputHistoryDto.setDatetime(rs.getTimestamp("datetime").toLocalDateTime());
-                myInputOutputHistoryDto.setCurrencyName(rs.getString("currency"));
-                myInputOutputHistoryDto.setAmount(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount"), locale, 2));
-                myInputOutputHistoryDto.setCommissionAmount(BigDecimalProcessing.formatLocale(rs.getBigDecimal("commission_amount"), locale, 2));
-                myInputOutputHistoryDto.setMerchantName(rs.getString("merchant"));
-                myInputOutputHistoryDto.setOperationType(rs.getString("operation_type"));
-                myInputOutputHistoryDto.setTransactionId(rs.getInt("id"));
-                myInputOutputHistoryDto.setTransactionProvided(rs.getInt("provided") == 0 ?
-                        messageSource.getMessage("inputoutput.statusFalse", null, locale) :
-                        messageSource.getMessage("inputoutput.statusTrue", null, locale));
-                myInputOutputHistoryDto.setUserId(rs.getInt("user_id"));
-                Boolean confirmationRequired = rs.getBoolean("confirmation_required");
-                myInputOutputHistoryDto.setConfirmationRequired(confirmationRequired);
-                myInputOutputHistoryDto.setBankAccount(rs.getString("bank_account"));
-                return myInputOutputHistoryDto;
-            }
-        });
-    }
+  public Integer getInputRequests(int merchantId, String email) {
+    String sql = "SELECT COUNT(*) FROM birzha.TRANSACTION \n" +
+        "join WALLET ON(WALLET.id = TRANSACTION.user_wallet_id)\n" +
+        "join USER ON(USER.id = WALLET.user_id)\n" +
+        " where \n" +
+        " TRANSACTION.source_type = 'MERCHANT' and TRANSACTION.provided = 0 \n" +
+        " and USER.email = :email and TRANSACTION.merchant_id = :merchantId \n" +
+        " and SUBSTRING_INDEX(TRANSACTION.datetime, ' ', 1) = CURDATE() ; ";
+    Map<String, Object> params = new HashMap<String, Object>();
+    params.put("merchantId", merchantId);
+    params.put("email", email);
+    return jdbcTemplate.queryForObject(sql, params, Integer.class);
+  }
 
-    public Integer getInputRequests(int merchantId, String email){
-        String sql = "SELECT COUNT(*) FROM birzha.TRANSACTION \n" +
-                "join WALLET ON(WALLET.id = TRANSACTION.user_wallet_id)\n" +
-                "join USER ON(USER.id = WALLET.user_id)\n" +
-                " where \n" +
-                " TRANSACTION.source_type = 'MERCHANT' and TRANSACTION.provided = 0 \n" +
-                " and USER.email = :email and TRANSACTION.merchant_id = :merchantId \n" +
-                " and SUBSTRING_INDEX(TRANSACTION.datetime, ' ', 1) = CURDATE() ; ";
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("merchantId", merchantId);
-        params.put("email", email);
-        return jdbcTemplate.queryForObject(sql,params,Integer.class);
-    }
+  @Override
+  public void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType) {
+    String fieldToToggle = resolveBlockFieldByOperationType(operationType);
+    String sql = "UPDATE MERCHANT_CURRENCY SET " + fieldToToggle + " = !" + fieldToToggle +
+        " WHERE merchant_id = :merchant_id AND currency_id = :currency_id ";
+    Map<String, Integer> params = new HashMap<>();
+    params.put("merchant_id", merchantId);
+    params.put("currency_id", currencyId);
+    jdbcTemplate.update(sql, params);
+  }
 
-    @Override
-    public void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType) {
-        String fieldToToggle = resolveBlockFieldByOperationType(operationType);
-        String sql = "UPDATE MERCHANT_CURRENCY SET " + fieldToToggle + " = !" + fieldToToggle +
-                " WHERE merchant_id = :merchant_id AND currency_id = :currency_id ";
-        Map<String, Integer> params = new HashMap<>();
-        params.put("merchant_id", merchantId);
-        params.put("currency_id", currencyId);
-        jdbcTemplate.update(sql, params);
-    }
+  @Override
+  public void setBlockForAll(OperationType operationType, boolean blockStatus) {
+    String blockField = resolveBlockFieldByOperationType(operationType);
+    String sql = "UPDATE MERCHANT_CURRENCY SET " + blockField + " = :block";
+    Map<String, Integer> params = Collections.singletonMap("block", blockStatus ? 1 : 0);
+    jdbcTemplate.update(sql, params);
+  }
 
-    @Override
-    public void setBlockForAll(OperationType operationType, boolean blockStatus) {
-        String blockField = resolveBlockFieldByOperationType(operationType);
-        String sql = "UPDATE MERCHANT_CURRENCY SET " + blockField + " = :block";
-        Map<String, Integer> params = Collections.singletonMap("block", blockStatus ? 1 : 0);
-        jdbcTemplate.update(sql, params);
-    }
+  @Override
+  public void setBlockForMerchant(Integer merchantId, Integer currencyId, OperationType operationType, boolean blockStatus) {
+    String blockField = resolveBlockFieldByOperationType(operationType);
+    String sql = "UPDATE MERCHANT_CURRENCY SET " + blockField + " = :block" +
+        " WHERE merchant_id = :merchant_id AND currency_id = :currency_id ";
+    Map<String, Integer> params = new HashMap<>();
+    params.put("block", blockStatus ? 1 : 0);
+    params.put("merchant_id", merchantId);
+    params.put("currency_id", currencyId);
+    jdbcTemplate.update(sql, params);
+  }
 
-    @Override
-    public void setBlockForMerchant(Integer merchantId, Integer currencyId, OperationType operationType, boolean blockStatus) {
-        String blockField = resolveBlockFieldByOperationType(operationType);
-        String sql = "UPDATE MERCHANT_CURRENCY SET " + blockField + " = :block" +
-            " WHERE merchant_id = :merchant_id AND currency_id = :currency_id ";
-        Map<String, Integer> params = new HashMap<>();
-        params.put("block", blockStatus ? 1 : 0);
-        params.put("merchant_id", merchantId);
-        params.put("currency_id", currencyId);
-        jdbcTemplate.update(sql, params);
-    }
+  @Override
+  public boolean checkMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType) {
+    String blockField = resolveBlockFieldByOperationType(operationType);
+    String sql = "SELECT " + blockField + " FROM MERCHANT_CURRENCY " +
+        " WHERE merchant_id = :merchant_id AND currency_id = :currency_id ";
+    Map<String, Integer> params = new HashMap<>();
+    params.put("merchant_id", merchantId);
+    params.put("currency_id", currencyId);
+    return jdbcTemplate.queryForObject(sql, params, Boolean.class);
+  }
 
-    @Override
-    public boolean checkMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType) {
-        String blockField = resolveBlockFieldByOperationType(operationType);
-        String sql = "SELECT " + blockField + " FROM MERCHANT_CURRENCY " +
-                " WHERE merchant_id = :merchant_id AND currency_id = :currency_id ";
-        Map<String, Integer> params = new HashMap<>();
-        params.put("merchant_id", merchantId);
-        params.put("currency_id", currencyId);
-        return jdbcTemplate.queryForObject(sql, params, Boolean.class);
+  private String resolveBlockFieldByOperationType(OperationType operationType) {
+    String blockField;
+    switch (operationType) {
+      case INPUT:
+        blockField = "refill_block";
+        break;
+      case OUTPUT:
+        blockField = "withdraw_block";
+        break;
+      default:
+        throw new IllegalArgumentException("Incorrect operation type!");
     }
-
-    private String resolveBlockFieldByOperationType(OperationType operationType) {
-        String blockField;
-        switch (operationType) {
-            case INPUT:
-                blockField = "refill_block";
-                break;
-            case OUTPUT:
-                blockField = "withdraw_block";
-                break;
-            default:
-                throw new IllegalArgumentException("Incorrect operation type!");
-        }
-        return blockField;
-    }
+    return blockField;
+  }
 
 
 }

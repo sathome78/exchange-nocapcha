@@ -1,5 +1,6 @@
 package me.exrates.dao.impl;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.CommissionDao;
 import me.exrates.dao.TransactionDao;
 import me.exrates.dao.UserDao;
@@ -16,8 +17,7 @@ import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.WalletOperationData;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -34,6 +34,7 @@ import java.sql.SQLException;
 import java.util.*;
 
 @Repository
+@Log4j2
 public class WalletDaoImpl implements WalletDao {
 
     @Autowired
@@ -44,8 +45,6 @@ public class WalletDaoImpl implements WalletDao {
     private UserDao userDao;
     @Autowired
     private NamedParameterJdbcTemplate jdbcTemplate;
-
-    private static final Logger LOG = LogManager.getLogger(WalletDaoImpl.class);
 
     protected final RowMapper<Wallet> walletRowMapper = (resultSet, i) -> {
 
@@ -610,7 +609,7 @@ public class WalletDaoImpl implements WalletDao {
                 return result;
             });
         } catch (EmptyResultDataAccessException e) {
-            LOG.error(e);
+            log.error(ExceptionUtils.getStackTrace(e));
             return WalletTransferStatus.WALLET_NOT_FOUND;
         }
         /**/
@@ -639,28 +638,48 @@ public class WalletDaoImpl implements WalletDao {
             return WalletTransferStatus.WALLET_UPDATE_ERROR;
         }
         /**/
-        Transaction transaction = new Transaction();
-        transaction.setOperationType(walletOperationData.getOperationType());
-        transaction.setUserWallet(wallet);
-        transaction.setCompanyWallet(companyWallet);
-        transaction.setAmount(walletOperationData.getAmount());
-        transaction.setCommissionAmount(walletOperationData.getCommissionAmount());
-        transaction.setCommission(walletOperationData.getCommission());
-        transaction.setCurrency(companyWallet.getCurrency());
-        transaction.setProvided(true);
-        transaction.setActiveBalanceBefore(wallet.getActiveBalance());
-        transaction.setReservedBalanceBefore(wallet.getReservedBalance());
-        transaction.setCompanyBalanceBefore(companyWallet.getBalance());
-        transaction.setCompanyCommissionBalanceBefore(companyWallet.getCommissionBalance());
-        transaction.setSourceType(walletOperationData.getSourceType());
-        transaction.setSourceId(walletOperationData.getSourceId());
-        try {
-            transactionDao.create(transaction);
-        } catch (Exception e) {
-            LOG.error(e);
-            return WalletTransferStatus.TRANSACTION_CREATION_ERROR;
+        if (walletOperationData.getTransaction() == null) {
+            Transaction transaction = new Transaction();
+            transaction.setOperationType(walletOperationData.getOperationType());
+            transaction.setUserWallet(wallet);
+            transaction.setCompanyWallet(companyWallet);
+            transaction.setAmount(walletOperationData.getAmount());
+            transaction.setCommissionAmount(walletOperationData.getCommissionAmount());
+            transaction.setCommission(walletOperationData.getCommission());
+            transaction.setCurrency(companyWallet.getCurrency());
+            transaction.setProvided(true);
+            transaction.setActiveBalanceBefore(wallet.getActiveBalance());
+            transaction.setReservedBalanceBefore(wallet.getReservedBalance());
+            transaction.setCompanyBalanceBefore(companyWallet.getBalance());
+            transaction.setCompanyCommissionBalanceBefore(companyWallet.getCommissionBalance());
+            transaction.setSourceType(walletOperationData.getSourceType());
+            transaction.setSourceId(walletOperationData.getSourceId());
+            try {
+                transactionDao.create(transaction);
+            } catch (Exception e) {
+                log.error(ExceptionUtils.getStackTrace(e));
+                return WalletTransferStatus.TRANSACTION_CREATION_ERROR;
+            }
+            walletOperationData.setTransaction(transaction);
+        } else {
+            Transaction transaction = walletOperationData.getTransaction();
+            transaction.setProvided(true);
+            transaction.setUserWallet(wallet);
+            transaction.setCompanyWallet(companyWallet);
+            transaction.setActiveBalanceBefore(wallet.getActiveBalance());
+            transaction.setReservedBalanceBefore(wallet.getReservedBalance());
+            transaction.setCompanyBalanceBefore(companyWallet.getBalance());
+            transaction.setCompanyCommissionBalanceBefore(companyWallet.getCommissionBalance());
+            transaction.setSourceType(walletOperationData.getSourceType());
+            transaction.setSourceId(walletOperationData.getSourceId());
+            try {
+                transactionDao.updateForProvided(transaction);
+            } catch (Exception e) {
+                log.error(ExceptionUtils.getStackTrace(e));
+                return WalletTransferStatus.TRANSACTION_UPDATE_ERROR;
+            }
+            walletOperationData.setTransaction(transaction);
         }
-        walletOperationData.setTransaction(transaction);
         /**/
         return WalletTransferStatus.SUCCESS;
     }
