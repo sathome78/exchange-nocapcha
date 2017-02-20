@@ -72,9 +72,9 @@ function promptAcceptRequest(requestId) {
                 alert(result['success']);
                 var classname = '.id_' + requestId;
                 var acceptance = result['acceptance'].split(/\s/);
-                $(classname + ' td:nth-child(8)').html(acceptance[0] + '<br\>' + acceptance[1]);
-                $(classname + ' td:nth-child(9)').html(result['email']);
-                $(classname + ' td:last-child').html($('#accepted').html());
+                $(classname + ' td:nth-child(9)').html(acceptance[0] + '<br\>' + acceptance[1]);
+                $(classname + ' td:nth-child(10)').html(result['email']);
+                $(classname + ' td:nth-child(11)').html($('#accepted').html());
             }
         });
     }
@@ -96,9 +96,9 @@ function promptDeclineRequest(requestId) {
                 alert(result['success']);
                 var classname = '.id_' + requestId;
                 var acceptance = result['acceptance'].split(/\s/);
-                $(classname + ' td:nth-child(8)').html(acceptance[0] + '<br\>' + acceptance[1]);
-                $(classname + ' td:nth-child(9)').html(result['email']);
-                $(classname + ' td:last-child').html($('#declined').html());
+                $(classname + ' td:nth-child(9)').html(acceptance[0] + '<br\>' + acceptance[1]);
+                $(classname + ' td:nth-child(10)').html(result['email']);
+                $(classname + ' td:nth-child(11)').html($('#declined').html());
                 $("#myModal").modal();
                 document.getElementById("sendMessageCheckbox").checked = true;
                 currentEmail = result.userEmail;
