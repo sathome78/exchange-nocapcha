@@ -27,6 +27,7 @@
             <table id="withdrawalTable">
                 <thead>
                 <tr>
+                    <th><loc:message code="transaction.id"/></th>
                     <th><loc:message code="withdrawal.requestDatetime"/></th>
                     <th><loc:message code="withdrawal.user"/></th>
                     <th><loc:message code="withdrawal.amount"/></th>
@@ -42,6 +43,9 @@
                 <tbody>
                 <c:forEach items="${requests}" var="request">
                     <tr class="id_${request.transaction.id}">
+                        <td>
+                                ${request.transaction.id}
+                        </td>
                         <td>
                                 ${request.transaction.datetime.toLocalDate()}<br/>
                                 ${request.transaction.datetime.toLocalTime()}
@@ -183,6 +187,8 @@
     <!-- /.modal-dialog -->
 </div>
 <%--... MODAL--%>
+
+
 
 <%@include file='fragments/footer.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>

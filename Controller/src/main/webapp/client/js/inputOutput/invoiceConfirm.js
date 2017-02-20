@@ -3,7 +3,7 @@
  */
 var DIGITS_ONLY_REGEX = /^\d+$/;
 var NAME_REGEX = /^[a-zA-Z]([-']?[a-zA-Z]+)*( [a-zA-Z]([-']?[a-zA-Z]+)*)+$/;
-var BANK_NAME_REGEX = /^[a-zA-Z]([-']?[a-zA-Z]+)*([ ,.]{0,2}[a-zA-Z\d]([-']?[a-zA-Z\d]+)*)*$/;
+var BANK_NAME_REGEX = /^[a-zA-Z]([-']?[a-zA-Z]+[.]*)*([ ,.]{0,2}[a-zA-Z\d&]([-']?[a-zA-Z\d]+)*[.]*)*$/;
 var BANK_CODE_REGEX = /^[\d]{2,5}$/;
 
 $(function () {
