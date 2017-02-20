@@ -9,6 +9,7 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -22,6 +23,25 @@ public class CurrencyDaoImpl implements CurrencyDao {
 
 	@Autowired
 	private NamedParameterJdbcTemplate jdbcTemplate;
+
+	protected static RowMapper<CurrencyPair> currencyPairRowMapper = (rs, row) -> {
+		CurrencyPair currencyPair = new CurrencyPair();
+		currencyPair.setId(rs.getInt("id"));
+		currencyPair.setName(rs.getString("name"));
+			/**/
+		Currency currency1 = new Currency();
+		currency1.setId(rs.getInt("currency1_id"));
+		currency1.setName(rs.getString("currency1_name"));
+		currencyPair.setCurrency1(currency1);
+			/**/
+		Currency currency2 = new Currency();
+		currency2.setId(rs.getInt("currency2_id"));
+		currency2.setName(rs.getString("currency2_name"));
+		currencyPair.setCurrency2(currency2);
+			/**/
+		return currencyPair;
+
+	};
 
 	public List<Currency> getCurrList() {
 		String sql = "SELECT id, name FROM CURRENCY WHERE hidden IS NOT TRUE ";
@@ -170,24 +190,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 				" WHERE hidden IS NOT TRUE " +
 				" ORDER BY -pair_order DESC";
 
-		List<CurrencyPair> currencyPairList = jdbcTemplate.query(sql, (rs, row) -> {
-			CurrencyPair currencyPair = new CurrencyPair();
-			currencyPair.setId(rs.getInt("id"));
-			currencyPair.setName(rs.getString("name"));
-			/**/
-			Currency currency1 = new Currency();
-			currency1.setId(rs.getInt("currency1_id"));
-			currency1.setName(rs.getString("currency1_name"));
-			currencyPair.setCurrency1(currency1);
-			/**/
-			Currency currency2 = new Currency();
-			currency2.setId(rs.getInt("currency2_id"));
-			currency2.setName(rs.getString("currency2_name"));
-			currencyPair.setCurrency2(currency2);
-			/**/
-			return currencyPair;
-
-		});
+		List<CurrencyPair> currencyPairList = jdbcTemplate.query(sql, currencyPairRowMapper);
 
 		return currencyPairList;
 	}
@@ -201,23 +204,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 		Map<String, String> namedParameters = new HashMap<>();
 		namedParameters.put("currency1Id", String.valueOf(currency1Id));
 		namedParameters.put("currency2Id", String.valueOf(currency2Id));
-		return jdbcTemplate.queryForObject(sql, namedParameters,(resultSet, i) -> {
-			CurrencyPair currencyPair = new CurrencyPair();
-			currencyPair.setId(resultSet.getInt("id"));
-			currencyPair.setName(resultSet.getString("name"));
-			/**/
-			Currency currency1 = new Currency();
-			currency1.setId(resultSet.getInt("currency1_id"));
-			currency1.setName(resultSet.getString("currency1_name"));
-			currencyPair.setCurrency1(currency1);
-			/**/
-			Currency currency2 = new Currency();
-			currency2.setId(resultSet.getInt("currency2_id"));
-			currency2.setName(resultSet.getString("currency2_name"));
-			currencyPair.setCurrency2(currency2);
-			/**/
-			return currencyPair;
-		});
+		return jdbcTemplate.queryForObject(sql, namedParameters, currencyPairRowMapper);
 	}
 
 	@Override
@@ -228,22 +215,6 @@ public class CurrencyDaoImpl implements CurrencyDao {
 				" FROM CURRENCY_PAIR WHERE id = :currencyPairId";
 		Map<String, String> namedParameters = new HashMap<>();
 		namedParameters.put("currencyPairId", String.valueOf(currencyPairId));
-		return jdbcTemplate.queryForObject(sql, namedParameters,(resultSet, i) -> {
-			CurrencyPair currencyPair = new CurrencyPair();
-			currencyPair.setId(resultSet.getInt("id"));
-			currencyPair.setName(resultSet.getString("name"));
-			/**/
-			Currency currency1 = new Currency();
-			currency1.setId(resultSet.getInt("currency1_id"));
-			currency1.setName(resultSet.getString("currency1_name"));
-			currencyPair.setCurrency1(currency1);
-			/**/
-			Currency currency2 = new Currency();
-			currency2.setId(resultSet.getInt("currency2_id"));
-			currency2.setName(resultSet.getString("currency2_name"));
-			currencyPair.setCurrency2(currency2);
-			/**/
-			return currencyPair;
-		});
+		return jdbcTemplate.queryForObject(sql, namedParameters, currencyPairRowMapper);
 	}
 }

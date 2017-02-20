@@ -3,27 +3,23 @@ package me.exrates.controller.mobile;
 import me.exrates.controller.exception.*;
 import me.exrates.controller.listener.StoreSessionListener;
 import me.exrates.model.User;
+import me.exrates.model.dto.StockExchangeRateDto;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
-import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserAgent;
 import me.exrates.model.enums.UserStatus;
 import me.exrates.security.exception.IncorrectPasswordException;
 import me.exrates.security.exception.MissingCredentialException;
 import me.exrates.security.exception.UserNotEnabledException;
 import me.exrates.security.service.AuthTokenService;
-import me.exrates.service.ApiService;
-import me.exrates.service.ReferralService;
-import me.exrates.service.UserFilesService;
-import me.exrates.service.UserService;
+import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.*;
 import me.exrates.service.util.RestPasswordDecodingUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -39,7 +35,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -49,6 +44,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static me.exrates.service.exception.api.ErrorCode.*;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 /**
  * Created by OLEG on 19.08.2016.
@@ -1045,6 +1041,10 @@ public class MobileEntryController {
         }
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
+
+
+
 
 
 
