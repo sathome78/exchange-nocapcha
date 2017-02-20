@@ -10,6 +10,7 @@ import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.InvoiceService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.UserFilesService;
+import me.exrates.service.exception.FileLoadingException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.invoice.IllegalInvoiceRequestStatusException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
@@ -216,6 +217,8 @@ public class InvoiceController {
       redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("merchants.invoice.error.notAllowedOperation", null, localeResolver.resolveLocale(request)));
     } catch (InvoiceNotFoundException e) {
       redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("merchants.error.invoiceRequestNotFound", null, localeResolver.resolveLocale(request)));
+    } catch (FileLoadingException e) {
+        redirectAttributes.addFlashAttribute("errorNoty", e.getMessage());
     } catch (Exception e) {
       log.error(e.getMessage());
       e.printStackTrace();
