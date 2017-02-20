@@ -17,16 +17,16 @@ public enum InvoiceRequestStatusEnum implements InvoiceStatus {
   CREATED_USER(1) {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
-        schemaMap.put(InvoiceActionTypeEnum.CONFIRM, CONFIRMED_USER);
-        schemaMap.put(InvoiceActionTypeEnum.REVOKE, REVOKED_USER);
-        schemaMap.put(InvoiceActionTypeEnum.EXPIRE, EXPIRED);
+      schemaMap.put(InvoiceActionTypeEnum.CONFIRM, CONFIRMED_USER);
+      schemaMap.put(InvoiceActionTypeEnum.REVOKE, REVOKED_USER);
+      schemaMap.put(InvoiceActionTypeEnum.EXPIRE, EXPIRED);
     }
   },
   CONFIRMED_USER(2) {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
-        schemaMap.put(InvoiceActionTypeEnum.ACCEPT_MANUAL, ACCEPTED_ADMIN);
-        schemaMap.put(InvoiceActionTypeEnum.DECLINE, DECLINED_ADMIN);
+      schemaMap.put(InvoiceActionTypeEnum.ACCEPT_MANUAL, ACCEPTED_ADMIN);
+      schemaMap.put(InvoiceActionTypeEnum.DECLINE, DECLINED_ADMIN);
     }
   },
   REVOKED_USER(3) {
@@ -42,9 +42,9 @@ public enum InvoiceRequestStatusEnum implements InvoiceStatus {
   DECLINED_ADMIN(5) {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
-        schemaMap.put(InvoiceActionTypeEnum.CONFIRM, CONFIRMED_USER);
-        schemaMap.put(InvoiceActionTypeEnum.REVOKE, REVOKED_USER);
-        schemaMap.put(InvoiceActionTypeEnum.EXPIRE, EXPIRED);
+      schemaMap.put(InvoiceActionTypeEnum.CONFIRM, CONFIRMED_USER);
+      schemaMap.put(InvoiceActionTypeEnum.REVOKE, REVOKED_USER);
+      schemaMap.put(InvoiceActionTypeEnum.EXPIRE, EXPIRED);
     }
   },
   EXPIRED(6) {
@@ -106,15 +106,27 @@ public enum InvoiceRequestStatusEnum implements InvoiceStatus {
     List<InvoiceStatus> candidateList = Arrays.stream(InvoiceRequestStatusEnum.class.getEnumConstants())
         .filter(e -> !allNodesSet.contains(e))
         .collect(Collectors.toList());
-    if (candidateList.size() == 0){
+    if (candidateList.size() == 0) {
       System.out.println("begin state not found");
       throw new AssertionError();
-    };
-    if (candidateList.size() > 1){
-      System.out.println("more than single begin state found: "+candidateList);
+    }
+    if (candidateList.size() > 1) {
+      System.out.println("more than single begin state found: " + candidateList);
       throw new AssertionError();
-    };
+    }
     return candidateList.get(0);
+  }
+
+  public static Set<InvoiceStatus> getMiddleStatesSet() {
+    return Arrays.stream(InvoiceRequestStatusEnum.class.getEnumConstants())
+        .filter(e -> !e.schemaMap.isEmpty())
+        .collect(Collectors.toSet());
+  }
+
+  public static Set<InvoiceStatus> getEndStatesSet() {
+    return Arrays.stream(InvoiceRequestStatusEnum.class.getEnumConstants())
+        .filter(e -> e.schemaMap.isEmpty())
+        .collect(Collectors.toSet());
   }
 
   private static Set<InvoiceStatus> collectAllSchemaMapNodesSet() {

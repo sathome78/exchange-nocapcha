@@ -1,25 +1,34 @@
 package me.exrates.dao;
 
+import me.exrates.model.PendingPayment;
+import me.exrates.model.dto.PendingPaymentSimpleDto;
+import me.exrates.model.dto.onlineTableDto.PendingPaymentStatusDto;
+
 import java.util.List;
 import java.util.Optional;
-import me.exrates.model.PendingPayment;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 public interface PendingPaymentDao {
 
-    void create(PendingPayment pendingPayment);
+  void create(PendingPayment pendingPayment);
 
-    List<PendingPayment> findAllByHash(String hash);
+  List<PendingPaymentSimpleDto> findAllByHash(String hash);
 
-    Optional<PendingPayment> findByInvoiceId(Integer invoiceId);
+  Optional<PendingPayment> findByInvoiceId(Integer invoiceId);
 
-    Optional<PendingPayment> findByAddress(String address);
+  void setStatusById(Integer invoiceId, Integer newStatus);
 
-    void delete(int invoiceId);
+  Optional<PendingPaymentStatusDto> setStatusAndHashByAddressAndStatus(String address, Integer currentStatus, Integer newStatus, String hash);
 
-    Optional<PendingPayment> findByIdAndBlock(Integer invoiceId);
+  Optional<PendingPaymentSimpleDto> findByAddressAndNotProvided(String address);
 
-    void updateAcceptanceStatus(PendingPayment pendingPayment);
+  boolean existsPendingPaymentWithAddressAndStatus(String address, List<Integer> paymentStatusIdList);
+
+  void delete(int invoiceId);
+
+  Optional<PendingPayment> findByIdAndBlock(Integer invoiceId);
+
+  void updateAcceptanceStatus(PendingPayment pendingPayment);
 }

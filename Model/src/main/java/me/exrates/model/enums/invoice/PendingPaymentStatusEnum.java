@@ -17,10 +17,10 @@ public enum PendingPaymentStatusEnum implements InvoiceStatus {
   CREATED_USER(1) {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
-        schemaMap.put(InvoiceActionTypeEnum.ACCEPT_AUTO, ACCEPTED_AUTO);
-        schemaMap.put(InvoiceActionTypeEnum.ACCEPT_MANUAL, ACCEPTED_ADMIN);
-        schemaMap.put(InvoiceActionTypeEnum.REVOKE, REVOKED_USER);
-        schemaMap.put(InvoiceActionTypeEnum.EXPIRE, EXPIRED);
+      schemaMap.put(InvoiceActionTypeEnum.BCH_EXAMINE, ON_BCH_EXAM);
+      schemaMap.put(InvoiceActionTypeEnum.ACCEPT_MANUAL, ACCEPTED_ADMIN);
+      schemaMap.put(InvoiceActionTypeEnum.REVOKE, REVOKED_USER);
+      schemaMap.put(InvoiceActionTypeEnum.EXPIRE, EXPIRED);
     }
   },
   REVOKED_USER(2) {
@@ -40,16 +40,13 @@ public enum PendingPaymentStatusEnum implements InvoiceStatus {
   },
   EXPIRED(5) {
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
-      schemaMap.put(InvoiceActionTypeEnum.RESTORE, RESTORED);
     }
   },
-  RESTORED(6) {
+  ON_BCH_EXAM(6) {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
-        schemaMap.put(InvoiceActionTypeEnum.ACCEPT_AUTO, ACCEPTED_AUTO);
-        schemaMap.put(InvoiceActionTypeEnum.ACCEPT_MANUAL, ACCEPTED_ADMIN);
-        schemaMap.put(InvoiceActionTypeEnum.REVOKE, REVOKED_USER);
-        schemaMap.put(InvoiceActionTypeEnum.EXPIRE, EXPIRED);
+      schemaMap.put(InvoiceActionTypeEnum.ACCEPT_AUTO, ACCEPTED_AUTO);
+      schemaMap.put(InvoiceActionTypeEnum.ACCEPT_MANUAL, ACCEPTED_ADMIN);
     }
   };
 
@@ -107,15 +104,27 @@ public enum PendingPaymentStatusEnum implements InvoiceStatus {
     List<InvoiceStatus> candidateList = Arrays.stream(PendingPaymentStatusEnum.class.getEnumConstants())
         .filter(e -> !allNodesSet.contains(e))
         .collect(Collectors.toList());
-    if (candidateList.size() == 0){
+    if (candidateList.size() == 0) {
       System.out.println("begin state not found");
       throw new AssertionError();
-    };
-    if (candidateList.size() > 1){
-      System.out.println("more than single begin state found: "+candidateList);
+    }
+    if (candidateList.size() > 1) {
+      System.out.println("more than single begin state found: " + candidateList);
       throw new AssertionError();
-    };
+    }
     return candidateList.get(0);
+  }
+
+  public static Set<InvoiceStatus> getMiddleStatesSet() {
+    return Arrays.stream(PendingPaymentStatusEnum.class.getEnumConstants())
+        .filter(e -> !e.schemaMap.isEmpty())
+        .collect(Collectors.toSet());
+  }
+
+  public static Set<InvoiceStatus> getEndStatesSet() {
+    return Arrays.stream(PendingPaymentStatusEnum.class.getEnumConstants())
+        .filter(e -> e.schemaMap.isEmpty())
+        .collect(Collectors.toSet());
   }
 
   private static Set<InvoiceStatus> collectAllSchemaMapNodesSet() {

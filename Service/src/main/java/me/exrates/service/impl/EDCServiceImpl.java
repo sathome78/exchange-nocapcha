@@ -15,6 +15,8 @@ import me.exrates.model.CreditsOperation;
 import me.exrates.model.EDCAccount;
 import me.exrates.model.PendingPayment;
 import me.exrates.model.Transaction;
+import me.exrates.model.dto.PendingPaymentSimpleDto;
+import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
 import me.exrates.service.EDCService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.util.BiTuple;
@@ -66,7 +68,7 @@ public class EDCServiceImpl implements EDCService {
     private final OkHttpClient HTTP_CLIENT = new OkHttpClient();
     private final MediaType MEDIA_TYPE = MediaType.parse("application/x-www-form-urlencoded");
 
-    private final ConcurrentMap<String, PendingPayment> pendingPayments = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, PendingPaymentSimpleDto> pendingPayments = new ConcurrentHashMap<>();
     private final BlockingQueue<String> rawTransactions = new LinkedBlockingQueue<>();
     private final BlockingQueue<BiTuple<String,String>> incomingPayments = new LinkedBlockingQueue<>();
     private final ExecutorService workers = Executors.newFixedThreadPool(2);
@@ -127,7 +129,7 @@ public class EDCServiceImpl implements EDCService {
         try {
 
         final String accountId = tuple.left;
-        final PendingPayment payment = pendingPayments.get(accountId);
+        final PendingPaymentSimpleDto payment = pendingPayments.get(accountId);
         if (payment != null) {
             final Transaction tx = transactionService.findById(payment.getInvoiceId());
             if (debugLog) {
@@ -161,7 +163,8 @@ public class EDCServiceImpl implements EDCService {
         // cache warm
             try {
 
-            paymentDao.findAllByHash(PENDING_PAYMENT_HASH).forEach(payment -> pendingPayments.put(payment.getAddress(), payment));
+            paymentDao.findAllByHash(PENDING_PAYMENT_HASH)
+                .forEach(payment -> pendingPayments.put(payment.getAddress(), payment));
             workers.submit(() -> {  // processing json with transactions from server
                 while (isRunning) {
                     final String poll = rawTransactions.poll();
@@ -200,7 +203,8 @@ public class EDCServiceImpl implements EDCService {
         payment.setAddress(accountId);
         payment.setInvoiceId(tx.getId());
         payment.setTransactionHash(PENDING_PAYMENT_HASH); // every edc payment invoice has uniform tx-hash to distinguish them from other invoices
-        pendingPayments.put(accountId, payment);
+        payment.setPendingPaymentStatus(PendingPaymentStatusEnum.getBeginState());
+        pendingPayments.put(accountId, new PendingPaymentSimpleDto(payment));
         paymentDao.create(payment);
         return account;
     }

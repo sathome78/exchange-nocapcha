@@ -13,7 +13,7 @@ VALUES
 (3, "ACCEPTED_AUTO"),
 (4, "ACCEPTED_ADMIN"),
 (5, "EXPIRED"),
-(6, "RESTORED");
+(6, "ON_BCH_EXAM");
 
 ALTER TABLE PENDING_PAYMENT ADD COLUMN `pending_payment_status_id` INT NOT NULL;
 
@@ -44,3 +44,6 @@ ALTER TABLE PENDING_PAYMENT
 
 ALTER TABLE PENDING_PAYMENT
   ADD COLUMN hash VARCHAR(64) NULL DEFAULT NULL;
+
+ALTER TABLE PENDING_PAYMENT
+	ADD INDEX address_pending_payment_status_id (address, pending_payment_status_id);

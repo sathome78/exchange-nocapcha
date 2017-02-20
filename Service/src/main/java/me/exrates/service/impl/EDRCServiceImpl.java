@@ -8,6 +8,7 @@ import me.exrates.dao.PendingPaymentDao;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.PendingPayment;
 import me.exrates.model.Transaction;
+import me.exrates.model.dto.PendingPaymentSimpleDto;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.EDRCService;
 import me.exrates.service.TransactionService;
@@ -134,12 +135,12 @@ public class EDRCServiceImpl implements EDRCService {
             return false;
         }
         final String address = result.get("address");
-        final Optional<PendingPayment> optional = pendingPaymentDao
-            .findByAddress(address);
+        final Optional<PendingPaymentSimpleDto> optional = pendingPaymentDao
+            .findByAddressAndNotProvided(address);
         if (!optional.isPresent()) {
             return false;
         }
-        final PendingPayment pending = optional.get();
+        final PendingPaymentSimpleDto pending = optional.get();
         if (!Objects.equals(pending.getTransactionHash(),
             computePaymentHash(pending.getInvoiceId(),
                 result.get("merchantId")))) {

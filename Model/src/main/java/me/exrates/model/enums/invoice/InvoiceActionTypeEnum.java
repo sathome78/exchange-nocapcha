@@ -13,7 +13,7 @@ public enum InvoiceActionTypeEnum {
   CONFIRM,
   REVOKE,
   EXPIRE,
-  RESTORE,
+  BCH_EXAMINE,
   ACCEPT_MANUAL,
   ACCEPT_AUTO,
   DECLINE;
