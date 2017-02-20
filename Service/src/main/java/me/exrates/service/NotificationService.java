@@ -18,6 +18,9 @@ public interface NotificationService {
     long createLocalizedNotification(Integer userId, NotificationEvent cause, String titleCode, String messageCode,
                                      Object[] messageArgs);
 
+    long createLocalizedNotification(String userEmail, NotificationEvent cause, String titleCode, String messageCode,
+                                     Object[] messageArgs);
+
     @Transactional(rollbackFor = Exception.class)
     void notifyUser(Integer userId, NotificationEvent cause, String titleCode, String messageCode,
                     Object[] messageArgs);

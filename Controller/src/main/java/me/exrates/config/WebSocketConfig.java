@@ -32,6 +32,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
         registry.addHandler(handlers.get(EN), "/chat-en").withSockJS();
         registry.addHandler(handlers.get(RU), "/chat-ru").withSockJS();
         registry.addHandler(handlers.get(CN), "/chat-cn").withSockJS();
+        registry.addHandler(handlers.get(AR), "/chat-ar").withSockJS();
     }
 
     @Bean(name = "chatEN")
@@ -46,6 +47,11 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Bean(name = "chatCN")
     public ChatWebSocketHandler chatCNWebSocketHandler() {
+        return new ChatWebSocketHandler();
+    }
+
+    @Bean(name = "chatAR")
+    public ChatWebSocketHandler chatARWebSocketHandler() {
         return new ChatWebSocketHandler();
     }
 }

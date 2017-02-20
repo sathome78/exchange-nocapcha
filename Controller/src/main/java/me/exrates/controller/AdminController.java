@@ -3,9 +3,7 @@ package me.exrates.controller;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.*;
-import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
-import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.*;
@@ -52,7 +50,7 @@ import java.util.stream.Collectors;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
-import static me.exrates.model.enums.UserRole.ADMINISTRATOR;
+import static me.exrates.model.enums.UserRole.*;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -95,11 +93,13 @@ public class AdminController {
     @Autowired
     private CommissionService commissionService;
 
+    private final List<String> ROLE_NAMES = Arrays.asList("ADMIN", "USER", "EXCHANGE", "VIP_USER");
+
     @Autowired
     @Qualifier("ExratesSessionRegistry")
     private SessionRegistry sessionRegistry;
 
-    @RequestMapping(value = {"/admin", "/admin/users"})
+    @RequestMapping(value = {"/2a8fy7b07dxe44", "/2a8fy7b07dxe44/users"})
     public ModelAndView admin(Principal principal, HttpSession httpSession) {
 
         final Object mutex = WebUtils.getSessionMutex(httpSession);
@@ -114,12 +114,12 @@ public class AdminController {
         return model;
     }
 
-    @RequestMapping(value = "/admin/administrators", method = GET)
+    @RequestMapping(value = "/2a8fy7b07dxe44/administrators", method = GET)
     public String administrators() {
         return "admin/administrators";
     }
 
-    @RequestMapping(value = "/admin/referral", method = GET)
+    @RequestMapping(value = "/2a8fy7b07dxe44/referral", method = GET)
     public ModelAndView referral() {
         ModelAndView model = new ModelAndView();
         model.addObject("referralLevels", referralService.findAllReferralLevels());
@@ -129,7 +129,7 @@ public class AdminController {
         return model;
     }
 
-    @RequestMapping(value = "/admin/removeOrder", method = GET)
+    @RequestMapping(value = "/2a8fy7b07dxe44/removeOrder", method = GET)
     public ModelAndView orderDeletion() {
         ModelAndView model = new ModelAndView();
         List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairs();
@@ -138,14 +138,14 @@ public class AdminController {
         return model;
     }
 
-    @RequestMapping(value = "/admin/editCmnRefRoot", method = POST)
+    @RequestMapping(value = "/2a8fy7b07dxe44/editCmnRefRoot", method = POST)
     @ResponseBody
     public ResponseEntity<Void> editCommonReferralRoot(final @RequestParam("id") int id) {
         userService.updateCommonReferralRoot(id);
         return new ResponseEntity<>(OK);
     }
 
-    @RequestMapping(value = "/admin/editLevel", method = POST)
+    @RequestMapping(value = "/2a8fy7b07dxe44/editLevel", method = POST)
     @ResponseBody
     public ResponseEntity<Map<String, String>> editReferralLevel(final @RequestParam("level") int level, final @RequestParam("oldLevelId") int oldLevelId, final @RequestParam("percent") BigDecimal percent, final Locale locale) {
         final int result;
@@ -162,7 +162,7 @@ public class AdminController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "/admin/users/deleteUserFile", method = POST)
+    @RequestMapping(value = "/2a8fy7b07dxe44/users/deleteUserFile", method = POST)
     public ResponseEntity<Map<String, String>> deleteUserDoc(final @RequestParam("fileId") int fileId,
                                                              final @RequestParam("userId") int userId,
                                                              final @RequestParam("path") String path,
@@ -182,16 +182,15 @@ public class AdminController {
 
 
     @ResponseBody
-    @RequestMapping(value = "/admin/usersList", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/2a8fy7b07dxe44/usersList", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public DataTable<List<User>> getAllUsers(@RequestParam Map<String, String> params) {
         params.forEach((key, value) -> LOG.debug(key + " :: " + value));
-        List<UserRole> userRoles = new ArrayList<>();
-        userRoles.add(UserRole.USER);
+        List<UserRole> userRoles = asList(USER, EXCHANGE, VIP_USER);
         return userSecureService.getUsersByRolesPaginated(userRoles, params);
     }
 
     @ResponseBody
-    @RequestMapping(value = "/admin/admins", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/2a8fy7b07dxe44/admins", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<User> getAllAdmins() {
         List<UserRole> adminRoles = new ArrayList<>();
         adminRoles.add(UserRole.ADMINISTRATOR);
@@ -201,7 +200,7 @@ public class AdminController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "/admin/transactions", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/2a8fy7b07dxe44/transactions", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public DataTable<List<OperationViewDto>> getUserTransactions(final @RequestParam(required = false) int id,
                                                                  final @RequestParam(required = false) Integer status,
                                                                  final @RequestParam(required = false) String[] type,
@@ -224,20 +223,20 @@ public class AdminController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "/admin/wallets", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/2a8fy7b07dxe44/wallets", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<Wallet> getUserWallets(@RequestParam int id, HttpServletRequest request) {
         return walletService.getAllWallets(id);
     }
 
     @ResponseBody
-    @RequestMapping(value = "/admin/comments", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/2a8fy7b07dxe44/comments", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public Collection<Comment> getUserComments(@RequestParam int id, HttpServletRequest request) {
 
         return userService.getUserComments(id);
     }
 
     @ResponseBody
-    @RequestMapping(value = "/admin/addComment", method = POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/2a8fy7b07dxe44/addComment", method = POST, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, String>> addUserComment(@RequestParam String newComment, @RequestParam String email,
                                                               @RequestParam boolean sendMessage, HttpServletRequest request, final Locale locale) {
 
@@ -254,7 +253,7 @@ public class AdminController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "/admin/deleteUserComment", method = POST)
+    @RequestMapping(value = "/2a8fy7b07dxe44/deleteUserComment", method = POST)
     public ResponseEntity<Map<String, String>> deleteUserComment(final @RequestParam("commentId") int commentId,
                                                              final Locale locale) {
         try {
@@ -270,7 +269,7 @@ public class AdminController {
 
 
     @ResponseBody
-    @RequestMapping(value = "/admin/orders", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/2a8fy7b07dxe44/orders", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public  List<OrderWideListDto> getUserOrders(final @RequestParam int id, final @RequestParam("tableType") String tableType,
                              final @RequestParam("currencyPairId") int currencyPairId, final HttpServletRequest request) {
 
@@ -283,27 +282,38 @@ public class AdminController {
         String email = userService.getUserById(id).getEmail();
         Map<String,List<OrderWideListDto>> resultMap = new HashMap<>();
 
-        List<OrderWideListDto> ordersBuyClosed = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, OperationType.BUY, 0, -1, localeResolver.resolveLocale(request));
-        List<OrderWideListDto> ordersSellClosed = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, OperationType.SELL, 0, -1, localeResolver.resolveLocale(request));
-        List<OrderWideListDto> ordersBuyCancelled = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, OperationType.BUY, 0, -1, localeResolver.resolveLocale(request));
-        List<OrderWideListDto> ordersSellCancelled = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, OperationType.SELL, 0, -1, localeResolver.resolveLocale(request));
-
         List<OrderWideListDto> result = new ArrayList<>();
         switch (tableType){
-            case "ordersBuyClosed":     result = ordersBuyClosed;
-                                        break;
-            case "ordersSellClosed":    result = ordersSellClosed;
-                                        break;
-            case "ordersBuyCancelled":  result = ordersBuyCancelled;
-                                        break;
-            case "ordersSellCancelled": result = ordersSellCancelled;
-                                        break;
+            case "ordersBuyClosed":
+                List<OrderWideListDto> ordersBuyClosed = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, OperationType.BUY, 0, -1, localeResolver.resolveLocale(request));
+                result = ordersBuyClosed;
+                break;
+            case "ordersSellClosed":
+                List<OrderWideListDto> ordersSellClosed = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, OperationType.SELL, 0, -1, localeResolver.resolveLocale(request));
+                result = ordersSellClosed;
+                break;
+            case "ordersBuyOpened":
+                List<OrderWideListDto> ordersBuyOpened = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.OPENED, OperationType.BUY, 0, -1, localeResolver.resolveLocale(request));
+                result = ordersBuyOpened;
+                break;
+            case "ordersSellOpened":
+                List<OrderWideListDto> ordersSellOpened = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.OPENED, OperationType.SELL, 0, -1, localeResolver.resolveLocale(request));
+                result = ordersSellOpened;
+                break;
+            case "ordersBuyCancelled":
+                List<OrderWideListDto> ordersBuyCancelled = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, OperationType.BUY, 0, -1, localeResolver.resolveLocale(request));
+                result = ordersBuyCancelled;
+                break;
+            case "ordersSellCancelled":
+                List<OrderWideListDto> ordersSellCancelled = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, OperationType.SELL, 0, -1, localeResolver.resolveLocale(request));
+                result = ordersSellCancelled;
+                break;
         }
 
         return result;
     }
 
-    @RequestMapping("/admin/addUser")
+    @RequestMapping("/2a8fy7b07dxe44/addUser")
     public ModelAndView addUser(HttpSession httpSession) {
 
         final Object mutex = WebUtils.getSessionMutex(httpSession);
@@ -324,7 +334,7 @@ public class AdminController {
         return model;
     }
 
-    @RequestMapping(value = "/admin/adduser/submit", method = RequestMethod.POST)
+    @RequestMapping(value = "/2a8fy7b07dxe44/adduser/submit", method = RequestMethod.POST)
     public ModelAndView submitcreate(@Valid @ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request,
                                      HttpSession httpSession) {
 
@@ -345,7 +355,7 @@ public class AdminController {
             model.setViewName("admin/addUser");
         } else {
             userService.createUserByAdmin(user);
-            model.setViewName("redirect:/admin");
+            model.setViewName("redirect:/2a8fy7b07dxe44");
         }
 
         model.addObject("user", user);
@@ -353,7 +363,7 @@ public class AdminController {
         return model;
     }
 
-    @RequestMapping({"/admin/editUser", "/admin/userInfo"})
+    @RequestMapping({"/2a8fy7b07dxe44/editUser", "/2a8fy7b07dxe44/userInfo"})
     public ModelAndView editUser(@RequestParam int id, HttpSession httpSession, HttpServletRequest request) {
 
         ModelAndView model = new ModelAndView();
@@ -365,9 +375,7 @@ public class AdminController {
         synchronized (mutex) {
             currentRole = (String) httpSession.getAttribute("currentRole");
         }
-        if (currentRole.equals(UserRole.ADMIN_USER.name()) || currentRole.equals(UserRole.ACCOUNTANT.name())) {
-            roleList.add(UserRole.USER);
-        } else {
+        if (currentRole.equals(UserRole.ADMINISTRATOR.name())) {
             roleList = userService.getAllRoles();
         }
         model.addObject("roleList", roleList);
@@ -395,13 +403,17 @@ public class AdminController {
         return model;
     }
 
-    @RequestMapping(value = "/admin/edituser/submit", method = RequestMethod.POST)
+    @RequestMapping(value = "/2a8fy7b07dxe44/edituser/submit", method = RequestMethod.POST)
     public ModelAndView submitedit(@Valid @ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request, HttpServletResponse response,
                                    HttpSession httpSession) {
+        LOG.debug(user.getRole());
         final Object mutex = WebUtils.getSessionMutex(httpSession);
         String currentRole = "";
         synchronized (mutex) {
             currentRole = (String) httpSession.getAttribute("currentRole");
+        }
+        if (!currentRole.equals(UserRole.ADMINISTRATOR.name()) && user.getRole() == ADMINISTRATOR) {
+            return new ModelAndView("403");
         }
         user.setConfirmPassword(user.getPassword());
         if (user.getFinpassword() == null) {
@@ -410,15 +422,19 @@ public class AdminController {
         /**/
         registerFormValidation.validateEditUser(user, result, localeResolver.resolveLocale(request));
         if (result.hasErrors()) {
-            model.addObject("statusList", UserStatus.values());
-            model.addObject("roleList", userService.getAllRoles());
             model.setViewName("admin/editUser");
+            model.addObject("statusList", UserStatus.values());
+            if (currentRole.equals(ADMINISTRATOR.name())) {
+                model.addObject("roleList", userService.getAllRoles());
+            }
         } else {
             UpdateUserDto updateUserDto = new UpdateUserDto(user.getId());
             updateUserDto.setEmail(user.getEmail());
             updateUserDto.setPassword(user.getPassword());
             updateUserDto.setPhone(user.getPhone());
-            updateUserDto.setRole(user.getRole());
+            if (currentRole.equals(UserRole.ADMINISTRATOR.name())) {
+                updateUserDto.setRole(user.getRole());
+            }
             updateUserDto.setStatus(user.getUserStatus());
             userService.updateUserByAdmin(updateUserDto);
             if (updateUserDto.getStatus() == UserStatus.DELETED) {
@@ -427,7 +443,7 @@ public class AdminController {
                 notificationService.notifyUser(user.getEmail(), NotificationEvent.ADMIN, "account.bannedInChat.title", "dashboard.onlinechatbanned", null);
             }
 
-            model.setViewName("redirect:/admin");
+            model.setViewName("redirect:/2a8fy7b07dxe44");
         }
         /**/
         model.addObject("user", user);
@@ -580,7 +596,7 @@ public class AdminController {
         return model;
     }
 
-    @RequestMapping(value = "/admin/withdrawal")
+    @RequestMapping(value = "/2a8fy7b07dxe44/withdrawal")
     public ModelAndView withdrawalRequests() {
         final List<UserRole> admins = new ArrayList<>();
         admins.addAll(asList(UserRole.ADMINISTRATOR, UserRole.ACCOUNTANT));
@@ -591,13 +607,13 @@ public class AdminController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "/admin/orderinfo", method = RequestMethod.GET)
+    @RequestMapping(value = "/2a8fy7b07dxe44/orderinfo", method = RequestMethod.GET)
     public OrderInfoDto getOrderInfo(@RequestParam int id, HttpServletRequest request) {
         return orderService.getOrderInfo(id, localeResolver.resolveLocale(request));
     }
 
     @ResponseBody
-    @RequestMapping(value = "/admin/orderdelete", method = RequestMethod.POST)
+    @RequestMapping(value = "/2a8fy7b07dxe44/orderdelete", method = RequestMethod.POST)
     public Integer deleteOrderByAdmin(@RequestParam int id) {
         try {
             return orderService.deleteOrderByAdmin(id);
@@ -608,7 +624,7 @@ public class AdminController {
     }
 
     @ResponseBody
-    @RequestMapping(value = "/admin/searchorder", method = RequestMethod.GET)
+    @RequestMapping(value = "/2a8fy7b07dxe44/searchorder", method = RequestMethod.GET)
     public Integer searchOrderByAdmin(@RequestParam Integer currencyPair,
                                       @RequestParam String orderType,
                                       @RequestParam String orderDate,
@@ -619,7 +635,7 @@ public class AdminController {
 
 
     @ResponseBody
-    @RequestMapping(value = "/admin/searchorders", method = RequestMethod.GET)
+    @RequestMapping(value = "/2a8fy7b07dxe44/searchorders", method = RequestMethod.GET)
     public DataTable<List<OrderBasicInfoDto>> searchOrderByAdmin(@RequestParam(required = false) Integer currencyPair,
                                                                  @RequestParam(required = false) Integer orderId,
                                       @RequestParam(required = false) String orderType,
@@ -651,22 +667,40 @@ public class AdminController {
 
     }
 
-    @RequestMapping(value = "admin/downloadUsersWalletsSummary", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
+    @RequestMapping("/2a8fy7b07dxe44/userswallets")
+    public ModelAndView showUsersWalletsSummary() {
+
+        Map<String, List<UserWalletSummaryDto>> mapUsersWalletsSummaryList = new LinkedHashMap<>();
+        mapUsersWalletsSummaryList.put("ALL", walletService.getUsersWalletsSummary(new ArrayList<>()));
+        mapUsersWalletsSummaryList.put("ADMIN", walletService.getUsersWalletsSummary(userService.resolveRoleIdsByName("ADMIN")));
+        mapUsersWalletsSummaryList.put("USER", walletService.getUsersWalletsSummary(userService.resolveRoleIdsByName("USER")));
+        mapUsersWalletsSummaryList.put("EXCHANGE", walletService.getUsersWalletsSummary(userService.resolveRoleIdsByName("EXCHANGE")));
+        mapUsersWalletsSummaryList.put("VIP_USER", walletService.getUsersWalletsSummary(userService.resolveRoleIdsByName("VIP_USER")));
+
+        ModelAndView model  = new ModelAndView();
+        model.setViewName("UsersWallets");
+        model.addObject("mapUsersWalletsSummaryList", mapUsersWalletsSummaryList);
+
+        return model;
+    }
+
+
+    @RequestMapping(value = "/2a8fy7b07dxe44/downloadUsersWalletsSummary", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
     @ResponseBody
-    public String getUsersWalletsSummeryTxt(@RequestParam String startDate, @RequestParam String endDate) {
+    public String getUsersWalletsSummeryTxt(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
         return
                 UserSummaryDto.getTitle() +
-                        userService.getUsersSummaryList(startDate, endDate)
+                        userService.getUsersSummaryList(startDate, endDate, userService.resolveRoleIdsByName(role))
                                 .stream()
                                 .map(e -> e.toString())
                                 .collect(Collectors.joining());
     }
 
-    @RequestMapping(value = "admin/downloadUsersWalletsSummaryInOut", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
+    @RequestMapping(value = "/2a8fy7b07dxe44/downloadUsersWalletsSummaryInOut", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
     @ResponseBody
-    public String getUsersWalletsSummeryInOut(@RequestParam String startDate, @RequestParam String endDate) {
+    public String getUsersWalletsSummeryInOut(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
         String value = UserSummaryInOutDto.getTitle() +
-                userService.getUsersSummaryInOutList(startDate, endDate)
+                userService.getUsersSummaryInOutList(startDate, endDate, userService.resolveRoleIdsByName(role))
                         .stream()
                         .map(e -> e.toString())
                         .collect(Collectors.joining());
@@ -674,11 +708,11 @@ public class AdminController {
         return value;
     }
 
-    @RequestMapping(value = "admin/downloadUserSummaryOrders", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
+    @RequestMapping(value = "/2a8fy7b07dxe44/downloadUserSummaryOrders", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
     @ResponseBody
-    public String getUserSummaryOrders(@RequestParam String startDate, @RequestParam String endDate) {
+    public String getUserSummaryOrders(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
 
-        List<UserSummaryOrdersDto> list = userService.getUserSummaryOrdersList(startDate, endDate);
+        List<UserSummaryOrdersDto> list = userService.getUserSummaryOrdersList(startDate, endDate, userService.resolveRoleIdsByName(role));
         BigDecimal sumAmountBuy = new BigDecimal(0.00);
         BigDecimal sumAmountBuyFee = new BigDecimal(0.00);
         BigDecimal sumAmountSell = new BigDecimal(0.00);
@@ -709,11 +743,11 @@ public class AdminController {
         return value;
     }
 
-    @RequestMapping(value = "admin/downloadUsersWalletsSummaryTotalInOut", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
+    @RequestMapping(value = "/2a8fy7b07dxe44/downloadUsersWalletsSummaryTotalInOut", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
     @ResponseBody
-    public String getUsersWalletsSummeryTotalInOut(@RequestParam String startDate, @RequestParam String endDate) {
+    public String getUsersWalletsSummeryTotalInOut(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
         String value = UserSummaryTotalInOutDto.getTitle() +
-                userService.getUsersSummaryTotalInOutList(startDate, endDate)
+                userService.getUsersSummaryTotalInOutList(startDate, endDate, userService.resolveRoleIdsByName(role))
                         .stream()
                         .map(e -> e.toString())
                         .collect(Collectors.joining());
@@ -721,12 +755,12 @@ public class AdminController {
         return value;
     }
 
-    @RequestMapping(value = "admin/userStatements/{walletId}")
+    @RequestMapping(value = "/2a8fy7b07dxe44/userStatements/{walletId}")
     public ModelAndView accountStatementPage(@PathVariable("walletId") Integer walletId) {
         return new ModelAndView("/admin/user_statement", "walletId", walletId);
     }
 
-    @RequestMapping(value = "admin/getStatements", method = RequestMethod.GET)
+    @RequestMapping(value = "/2a8fy7b07dxe44/getStatements", method = RequestMethod.GET)
     @ResponseBody
     public DataTable<List<AccountStatementDto>> getStatements(@RequestParam Integer walletId, @RequestParam Map<String, String> params,
                                                    HttpServletRequest request) {
@@ -736,38 +770,31 @@ public class AdminController {
     }
 
 
-    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
-    @ExceptionHandler(OrderDeletingException.class)
-    @ResponseBody
-    public ErrorInfo OrderDeletingExceptionHandler(HttpServletRequest req, Exception exception) {
-        return new ErrorInfo(req.getRequestURL(), exception);
-    }
 
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ExceptionHandler(RuntimeException.class)
-    @ResponseBody
-    public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
-        LOG.error(exception);
-        return new ErrorInfo(req.getRequestURL(), exception);
-    }
 
-    @RequestMapping(value = "/admin/invoiceConfirmation")
+    @RequestMapping(value = "/2a8fy7b07dxe44/invoiceConfirmation")
     public ModelAndView invoiceTransactions(HttpSession httpSession) {
         return new ModelAndView("admin/transaction_invoice", "invoiceRequests", invoiceService.findAllInvoiceRequests());
     }
 
-    @RequestMapping(value = "/admin/bitcoinConfirmation")
+    @RequestMapping(value = "/2a8fy7b07dxe44/invoiceRequests")
+    @ResponseBody
+    public List<InvoiceRequest> invoiceRequests() {
+        return invoiceService.findAllInvoiceRequests();
+    }
+
+    @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinConfirmation")
     public ModelAndView bitcoinTransactions(HttpSession httpSession) {
         return new ModelAndView("admin/transaction_bitcoin", "bitcoinRequests", bitcoinService.getBitcoinTransactions());
     }
 
-    @RequestMapping(value = "/admin/sessionControl")
+    @RequestMapping(value = "/2a8fy7b07dxe44/sessionControl")
     public ModelAndView sessionControl() {
         return new ModelAndView("admin/sessionControl");
     }
 
 
-    @RequestMapping(value = "/admin/userSessions")
+    @RequestMapping(value = "/2a8fy7b07dxe44/userSessions")
     @ResponseBody
     public List<UserSessionDto> retrieveUserSessionInfo() {
         Map<String, String> usersSessions = sessionRegistry.getAllPrincipals().stream()
@@ -786,7 +813,7 @@ public class AdminController {
         return result;
     }
 
-    @RequestMapping(value = "/admin/expireSession", method = RequestMethod.POST)
+    @RequestMapping(value = "/2a8fy7b07dxe44/expireSession", method = RequestMethod.POST)
     @ResponseBody
     public ResponseEntity<String> expireSession(@RequestParam String sessionId) {
         SessionInformation sessionInfo = sessionRegistry.getSessionInformation(sessionId);
@@ -797,24 +824,38 @@ public class AdminController {
         return new ResponseEntity<>("Session " + sessionId + " expired", HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/admin/editCurrencyLimits", method = RequestMethod.GET)
+    @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits", method = RequestMethod.GET)
     public ModelAndView currencyLimits() {
-        return new ModelAndView("admin/currencyLimits", "currencies", currencyService.findAllCurrencies());
+        ModelAndView modelAndView = new ModelAndView("admin/currencyLimits");
+        modelAndView.addObject("roleNames", ROLE_NAMES);
+        modelAndView.addObject("operationTypes", Arrays.asList(OperationType.INPUT.name(), OperationType.OUTPUT.name(), OperationType.USER_TRANSFER.name()));
+        return modelAndView;
     }
 
-    @RequestMapping(value = "/admin/editCurrencyLimits/submit", method = RequestMethod.POST)
+    @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits/retrieve", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseEntity<Void> editCurrencyLimit(@RequestParam int currencyId, @RequestParam BigDecimal minAmount) {
-        currencyService.updateMinWithdraw(currencyId, minAmount);
+    public List<CurrencyLimit> retrieveCurrencyLimits(@RequestParam String roleName,
+                                                      @RequestParam OperationType operationType) {
+        return currencyService.retrieveCurrencyLimitsForRole(roleName, operationType);
+    }
+
+    @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits/submit", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity<Void> editCurrencyLimit(@RequestParam int currencyId,
+                                                  @RequestParam OperationType operationType,
+                                                  @RequestParam String roleName,
+                                                  @RequestParam BigDecimal minAmount) {
+
+        currencyService.updateCurrencyLimit(currencyId, operationType, roleName, minAmount);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/admin/editAuthorities/submit", method = RequestMethod.POST)
+    @RequestMapping(value = "/2a8fy7b07dxe44/editAuthorities/submit", method = RequestMethod.POST)
     public RedirectView editAuthorities(@ModelAttribute AuthorityOptionsForm authorityOptionsForm, Principal principal,
                                         RedirectAttributes redirectAttributes) {
         LOG.debug(authorityOptionsForm.getOptions());
         LOG.debug(authorityOptionsForm.getUserId());
-        RedirectView redirectView = new RedirectView("/admin/userInfo?id=" + authorityOptionsForm.getUserId());
+        RedirectView redirectView = new RedirectView("/2a8fy7b07dxe44/userInfo?id=" + authorityOptionsForm.getUserId());
         try {
             userService.updateAdminAuthorities(authorityOptionsForm.getOptions(), authorityOptionsForm.getUserId(), principal.getName());
         } catch (Exception e) {
@@ -829,7 +870,7 @@ public class AdminController {
         return redirectView;
     }
 
-    @RequestMapping(value = "/admin/changeActiveBalance/submit", method = RequestMethod.POST)
+    @RequestMapping(value = "/2a8fy7b07dxe44/changeActiveBalance/submit", method = RequestMethod.POST)
     @ResponseBody
     public ResponseEntity<Void> changeActiveBalance(@RequestParam Integer userId, @RequestParam("currency") Integer currencyId,
                                             @RequestParam BigDecimal amount) {
@@ -840,26 +881,33 @@ public class AdminController {
     }
 
 
-    @RequestMapping(value = "/admin/commissions", method = RequestMethod.GET)
+    @RequestMapping(value = "/2a8fy7b07dxe44/commissions", method = RequestMethod.GET)
     public ModelAndView commissions() {
-        List<Commission> commissions = commissionService.getEditableCommissions();
-        List<MerchantCurrencyCommissionDto> merchantCurrencies = merchantService.findMerchantCurrencyCommissions();
+        List<MerchantCurrencyOptionsDto> merchantCurrencies = merchantService.findMerchantCurrencyOptions();
         ModelAndView modelAndView = new ModelAndView("admin/editCommissions");
-        modelAndView.addObject("commissions", commissions);
+        modelAndView.addObject("roleNames", ROLE_NAMES);
         modelAndView.addObject("merchantCurrencies", merchantCurrencies);
         return modelAndView;
     }
 
-    @RequestMapping(value = "/admin/commissions/editCommission", method = RequestMethod.POST)
+    @RequestMapping(value = "/2a8fy7b07dxe44/getCommissionsForRole", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseEntity<Void> editCommission(@RequestParam("commissionId") Integer id,
+    public List<Commission> retrieveCommissionsForRole(@RequestParam String role) {
+        return commissionService.getEditableCommissionsByRole(role);
+
+    }
+
+    @RequestMapping(value = "/2a8fy7b07dxe44/commissions/editCommission", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity<Void> editCommission(@RequestParam("operationType") OperationType operationType,
+                                               @RequestParam("userRole") String role,
                                                @RequestParam("commissionValue") BigDecimal value) {
-        LOG.debug("id = " + id + ", value = " + value);
-        commissionService.updateCommission(id, value);
+        LOG.debug("operationType = " + operationType + ", userRole = " + role + ", value = " + value);
+        commissionService.updateCommission(operationType, role, value);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/admin/commissions/editMerchantCommission", method = RequestMethod.POST)
+    @RequestMapping(value = "/2a8fy7b07dxe44/commissions/editMerchantCommission", method = RequestMethod.POST)
     @ResponseBody
     public ResponseEntity<Void> editMerchantCommission(@RequestParam("merchantId") Integer merchantId,
                                                        @RequestParam("currencyId") Integer currencyId,
@@ -869,7 +917,46 @@ public class AdminController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @RequestMapping(value = "/2a8fy7b07dxe44/merchantAccess", method = RequestMethod.GET)
+    public ModelAndView merchantAccess() {
+        List<MerchantCurrencyOptionsDto> merchantCurrencyOptions = merchantService.findMerchantCurrencyOptions();
+        LOG.debug(merchantCurrencyOptions);
+        return new ModelAndView("admin/merchantAccess", "merchantCurrencies", merchantCurrencyOptions);
+    }
 
+    @RequestMapping(value = "/2a8fy7b07dxe44/merchantAccess/toggleBlock", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity<Void> toggleBlock(@RequestParam Integer merchantId,
+                                            @RequestParam Integer currencyId,
+                                            @RequestParam OperationType operationType) {
+        LOG.debug("merchantId = " + merchantId + ", currencyId = " + currencyId + ", operationType = " + operationType);
+        merchantService.toggleMerchantBlock(merchantId, currencyId, operationType);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/2a8fy7b07dxe44/merchantAccess/setBlockForAll", method = RequestMethod.POST)
+    @ResponseBody
+    public ResponseEntity<Void> switchBlockStatusForAll(@RequestParam OperationType operationType,
+                                                        @RequestParam boolean blockStatus) {
+        merchantService.setBlockForAll(operationType, blockStatus);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+    @ExceptionHandler(OrderDeletingException.class)
+    @ResponseBody
+    public ErrorInfo OrderDeletingExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(Exception.class)
+    @ResponseBody
+    public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
+        LOG.error(exception);
+        exception.printStackTrace();
+        return new ErrorInfo(req.getRequestURL(), exception);
+    }
 
 
 }

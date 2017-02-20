@@ -11,7 +11,7 @@
             <c:set var="accountantEnum" value="<%=me.exrates.model.enums.UserRole.ACCOUNTANT%>"/>
             <c:set var="admin_userEnum" value="<%=me.exrates.model.enums.UserRole.ADMIN_USER%>"/>
             <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
-                <a class="side_menu__item side_menu--admin" href="<c:url value="/admin"/>" class="navabr__link"><loc:message code="admin.title"/></a>
+                <a class="side_menu__item side_menu--admin" href="<c:url value="/2a8fy7b07dxe44"/>" class="navabr__link"><loc:message code="admin.title"/></a>
             </sec:authorize>
         </li>
 

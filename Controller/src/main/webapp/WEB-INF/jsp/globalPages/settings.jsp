@@ -38,6 +38,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/notyInit.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/dashboard/chat.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/loc-direction.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/notifications/notification-settings.js'/>"></script>
     <%----------%>
     <%--TOOLS ... --%>
     <!-- Google Analytics-->

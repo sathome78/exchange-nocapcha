@@ -17,6 +17,8 @@ public interface UserService {
 
     int getIdByEmail(String email);
 
+    int getIdByNickname(String nickname);
+
     User findByEmail(String email);
 
     void createUserFile(int userId, List<Path> paths);
@@ -126,7 +128,7 @@ public interface UserService {
      * @return list the UserSummaryDto
      * @author ValkSam
      */
-    List<UserSummaryDto> getUsersSummaryList(String startDate, String endDate);
+    List<UserSummaryDto> getUsersSummaryList(String startDate, String endDate, List<Integer> roles);
 
     /**
      * Returns user's total info, including total input-ouput amounts for period by each records
@@ -137,7 +139,7 @@ public interface UserService {
      * @return list the UserSummaryDto
      * @author sjet
      */
-    List<UserSummaryInOutDto> getUsersSummaryInOutList(String startDate, String endDate);
+    List<UserSummaryInOutDto> getUsersSummaryInOutList(String startDate, String endDate, List<Integer> roles);
 
     /**
      * Returns user's total info, including total input-ouput amounts for period
@@ -148,7 +150,7 @@ public interface UserService {
      * @return list the UserSummaryTotalInOutDto
      * @author ajet
      */
-    List<UserSummaryTotalInOutDto> getUsersSummaryTotalInOutList(String startDate, String endDate);
+    List<UserSummaryTotalInOutDto> getUsersSummaryTotalInOutList(String startDate, String endDate, List<Integer> roles);
 
     /**
      * Returns user's total info, including total orders amounts for period
@@ -159,7 +161,7 @@ public interface UserService {
      * @return list the UserSummaryOrdersDto
      * @author ajet
      */
-    List<UserSummaryOrdersDto> getUserSummaryOrdersList(String startDate, String endDate);
+    List<UserSummaryOrdersDto> getUserSummaryOrdersList(String startDate, String endDate, List<Integer> roles);
 
     List<UserSessionInfoDto> getUserSessionInfo(Set<String> emails);
 
@@ -185,4 +187,8 @@ public interface UserService {
     List<AdminAuthorityOption> getAuthorityOptionsForUser(Integer userId, Set<String> allowedAuthorities, Locale locale);
 
     void updateAdminAuthorities(List<AdminAuthorityOption> options, Integer userId, String currentUserEmail);
+
+    UserRole getCurrentUserRole();
+
+    List<Integer> resolveRoleIdsByName(String roleName);
 }

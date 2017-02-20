@@ -406,7 +406,7 @@ public class OrderServiceImpl implements OrderService {
             comissionForCreator.setId(exOrder.getComissionId());
             /*calculate convert currency amount for acceptor - calculate at the current commission rate*/
             OperationType operationTypeForAcceptor = exOrder.getOperationType() == OperationType.BUY ? OperationType.SELL : OperationType.BUY;
-            Commission comissionForAcceptor = commissionDao.getCommission(operationTypeForAcceptor);
+            Commission comissionForAcceptor = commissionDao.getCommission(operationTypeForAcceptor, userService.getCurrentUserRole());
             BigDecimal comissionRateForAcceptor = comissionForAcceptor.getValue();
             BigDecimal amountComissionForAcceptor = BigDecimalProcessing.doAction(exOrder.getAmountConvert(), comissionRateForAcceptor, ActionType.MULTIPLY_PERCENT);
             BigDecimal amountWithComissionForAcceptor;
@@ -709,13 +709,14 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     @Override
     public OrderCommissionsDto getCommissionForOrder() {
-        return orderDao.getCommissionForOrder();
+        return orderDao.getCommissionForOrder(userService.getCurrentUserRole());
     }
 
     @Transactional(readOnly = true)
     @Override
     public CommissionsDto getAllCommissions() {
-        return orderDao.getAllCommissions();
+        UserRole userRole = userService.getCurrentUserRole();
+        return orderDao.getAllCommissions(userRole);
     }
 
     @Transactional(readOnly = true)
@@ -748,7 +749,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public WalletsAndCommissionsForOrderCreationDto getWalletAndCommission(String email, Currency currency,
                                                                            OperationType operationType) {
-        return orderDao.getWalletAndCommission(email, currency, operationType);
+        return orderDao.getWalletAndCommission(email, currency, operationType, userService.getCurrentUserRole());
     }
 
     public void setMessageSource(final MessageSource messageSource) {

@@ -16,6 +16,12 @@ $(function () {
 
     $('#myorders-button-deal').addClass('active');
     /**/
+    $('#myorders-button-opened').on('click', function () {
+        $('.myorders__button').removeClass('active');
+        $(this).addClass('active');
+        myordersStatusForShow = 'Opened';
+        update();
+    });
     $('#myorders-button-cancelled').on('click', function () {
         $('.myorders__button').removeClass('active');
         $(this).addClass('active');
@@ -36,7 +42,7 @@ $(function () {
             var id = $("#user-id").val();
             ordersSellTable = $('#ordersSellTable').DataTable({
                 "ajax": {
-                    "url": '/admin/orders',
+                    "url": '/2a8fy7b07dxe44/orders',
                     "type": "GET",
                     "data": function(d){
                         d.id = id;
@@ -102,7 +108,7 @@ $(function () {
             var id = $("#user-id").val();
             ordersBuyTable = $('#ordersBuyTable').DataTable({
                 "ajax": {
-                    "url": '/admin/orders',
+                    "url": '/2a8fy7b07dxe44/orders',
                     "type": "GET",
                     "data": function(d){
                         d.id = id;

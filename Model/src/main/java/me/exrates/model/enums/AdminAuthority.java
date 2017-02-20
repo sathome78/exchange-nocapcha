@@ -16,7 +16,8 @@ public enum AdminAuthority {
     MANAGE_SESSIONS(5),
     SET_CURRENCY_LIMIT(6),
     MANAGE_ACCESS(7),
-    MANUAL_BALANCE_CHANGE(8);
+    MANUAL_BALANCE_CHANGE(8),
+    EDIT_USER(9);
 
     private final int authority;
 
@@ -38,6 +39,7 @@ public enum AdminAuthority {
             case 6: return SET_CURRENCY_LIMIT;
             case 7: return MANAGE_ACCESS;
             case 8: return MANUAL_BALANCE_CHANGE;
+            case 9: return EDIT_USER;
             default: throw new UnsupportedAuthorityException("Unsupported type of authority");
         }
     }

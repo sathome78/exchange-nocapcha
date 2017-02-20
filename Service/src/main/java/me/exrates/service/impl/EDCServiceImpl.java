@@ -96,6 +96,9 @@ public class EDCServiceImpl implements EDCService {
     }
 
     private void handleRawTransactions(final String tx) {
+
+        try {
+
         final String transactions = tx.substring(tx.indexOf("transactions"), tx.length());
         final String[] operationses = transactions.split("operations");
         for (String str : operationses) {
@@ -103,22 +106,26 @@ public class EDCServiceImpl implements EDCService {
             if (extensions > 0) {
                 str = str.substring(0, extensions);
                 if (str.contains("\":[[0,{\"fee\"")) {
-                    str = str .substring(str.indexOf("to"));
-                    final String accountId =  str.substring(str.indexOf("to") + 5, str.indexOf("amount") - 3);
+                    str = str.substring(str.indexOf("to"));
+                    final String accountId = str.substring(str.indexOf("to") + 5, str.indexOf("amount") - 3);
                     final String amount = str.substring(str.lastIndexOf("amount") + 8, str.indexOf("asset_id") - 2);
-                    try {
-                        incomingPayments.put(new BiTuple<>(accountId, amount));
-                        System.out.println(incomingPayments);
-                    } catch (final InterruptedException e) {
-                        LOG.error(e);
-                    }
+                    incomingPayments.put(new BiTuple<>(accountId, amount));
                 }
             }
+        }
+        }catch (InterruptedException e){
+            LOG.info("Method acceptTransaction InterruptedException........................................... error: ");
+            LOG.error(e);
+        }catch (Exception e){
+            LOG.info("Method acceptTransaction Exception........................................... error: ");
+            LOG.error(e);
         }
     }
 
     @Transactional
     private void acceptTransaction(final BiTuple<String,String> tuple) {
+        try {
+
         final String accountId = tuple.left;
         final PendingPayment payment = pendingPayments.get(accountId);
         if (payment != null) {
@@ -134,34 +141,47 @@ public class EDCServiceImpl implements EDCService {
             transactionService.provideTransaction(tx);
             paymentDao.delete(payment.getInvoiceId());
             pendingPayments.remove(accountId);
-            try {
-                transferToMainAccount(accountId, tx);
-            } catch (IOException e) {
-                LOG.error(e);
-            }
+            transferToMainAccount(accountId, tx);
         }
+        }catch (InterruptedException e){
+            LOG.info("Method acceptTransaction InterruptedException........................................... error: ");
+            LOG.error(e);
+        }catch (IOException e){
+            LOG.info("Method acceptTransaction IOException........................................... error: ");
+            LOG.error(e);
+        }catch (Exception e){
+            LOG.info("Method acceptTransaction Exception........................................... error: ");
+            LOG.error(e);
+        }
+
     }
 
     @PostConstruct
     public void init() {
         // cache warm
-        paymentDao.findAllByHash(PENDING_PAYMENT_HASH).forEach(payment -> pendingPayments.put(payment.getAddress().get(), payment));
-        workers.submit(() -> {  // processing json with transactions from server
-            while (isRunning) {
-                final String poll = rawTransactions.poll();
-                if (poll != null) {
-                    handleRawTransactions(poll);
+            try {
+
+            paymentDao.findAllByHash(PENDING_PAYMENT_HASH).forEach(payment -> pendingPayments.put(payment.getAddress().get(), payment));
+            workers.submit(() -> {  // processing json with transactions from server
+                while (isRunning) {
+                    final String poll = rawTransactions.poll();
+                    if (poll != null) {
+                        handleRawTransactions(poll);
+                    }
                 }
-            }
-        });
-        workers.submit(() -> {
-            while (isRunning) { // accepting transactions
-                final BiTuple<String, String> poll = incomingPayments.poll();
-                if (poll != null) {
-                    acceptTransaction(poll);
+            });
+            workers.submit(() -> {
+                while (isRunning) { // accepting transactions
+                    final BiTuple<String, String> poll = incomingPayments.poll();
+                    if (poll != null) {
+                        acceptTransaction(poll);
+                    }
                 }
+            });
+            }catch (Exception e){
+                LOG.info("Method init Exception........................................... error: ");
+                LOG.error(e);
             }
-        });
     }
 
     @PreDestroy
@@ -245,14 +265,15 @@ public class EDCServiceImpl implements EDCService {
         return amount.subtract(new BigDecimal("0.001")).toString();
     }
 
-    public void transferToMainAccount(final String accountId, final Transaction tx) throws IOException {
+    public void transferToMainAccount(final String accountId, final Transaction tx) throws IOException, InterruptedException {
+
         final EDCAccount edcAccount = edcAccountDao.findByTransactionId(tx.getId());
         final String responseImportKey = makeRpcCallFast(IMPORT_KEY, accountId, edcAccount.getWifPrivKey(), tx.getId());
         if (responseImportKey.contains("true")) {
             String accountBalance = extractBalance(accountId, tx.getId());
                 final String responseTransfer = makeRpcCallFast(TRANSFER_EDC,accountId, MAIN_ACCOUNT, accountBalance, "EDC", "Inner transfer", String.valueOf(tx.getId()));
                 if (responseTransfer.contains("error")) {
-                    throw new IOException("Could not transfer money to main account!\n" + responseTransfer);
+                    throw new InterruptedException("Could not transfer money to main account!\n" + responseTransfer);
                 }
         }
     }

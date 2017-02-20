@@ -4,5 +4,7 @@
 
 function submitMerchantsOutput(formId) {
     form = $('#'+formId);
-    form.modal();
+    form.modal({
+        backdrop: 'static'
+    });
 }

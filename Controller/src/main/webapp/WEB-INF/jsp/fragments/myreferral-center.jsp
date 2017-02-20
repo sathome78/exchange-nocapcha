@@ -2,7 +2,7 @@
   User: Valk
 --%>
 
-<div id="myreferral" class="myreferral center-frame-container hidden">
+<div id="myreferral" data-submenuitemid="myhistory-button-referral" class="myreferral center-frame-container hidden">
     <%----%>
     <div id="myreferral-currency-pair-selector" hidden class="currency-pair-selector dropdown">
         <%@include file="currencyPairSelector.jsp" %>

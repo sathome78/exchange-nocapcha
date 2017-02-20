@@ -102,9 +102,9 @@ READS SQL DATA
         FROM EXORDERS EO
           JOIN CURRENCY_PAIR CP ON (CP.id = EO.currency_pair_id) AND (CP.hidden IS NOT TRUE)
         WHERE
-          (currency_pair IS NULL OR currency_pair = "" OR EO.currency_pair_id = (SELECT CURRENCY_PAIR.id
-                                                                                 FROM CURRENCY_PAIR
-                                                                                 WHERE CURRENCY_PAIR.name = currency_pair)) AND
+          (currency_pair IS NULL OR currency_pair = "" OR UPPER(currency_pair) = "NULL" OR EO.currency_pair_id = (SELECT CURRENCY_PAIR.id
+                                                                                                                  FROM CURRENCY_PAIR
+                                                                                                                  WHERE CURRENCY_PAIR.name = currency_pair)) AND
           EO.status_id = 3 AND
           EO.date_acception >= now() - INTERVAL 24 HOUR
         GROUP BY CP.name, EO.currency_pair_id, EO.status_id;

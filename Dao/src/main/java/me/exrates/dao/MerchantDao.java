@@ -2,10 +2,11 @@ package me.exrates.dao;
 
 import me.exrates.model.Merchant;
 import me.exrates.model.MerchantCurrency;
-import me.exrates.model.dto.MerchantCurrencyCommissionDto;
+import me.exrates.model.dto.MerchantCurrencyOptionsDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.UserRole;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -20,6 +21,8 @@ public interface MerchantDao {
 
     Merchant findById(int id);
 
+    Merchant findByName(String name);
+
     List<Merchant> findAll();
 
     List<Merchant> findAllByCurrency(int currencyId);
@@ -28,11 +31,19 @@ public interface MerchantDao {
 
     List<MerchantCurrency> findAllByCurrencies(List<Integer> currenciesId, OperationType operationType);
 
-    List<MerchantCurrencyApiDto> findAllMerchantCurrencies(Integer currencyId);
+    List<MerchantCurrencyApiDto> findAllMerchantCurrencies(Integer currencyId, UserRole userRole);
 
-    List<MerchantCurrencyCommissionDto> findMerchantCurrencyCommissions();
+    List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions();
 
     List<MyInputOutputHistoryDto> getMyInputOutputHistory(String email, Integer offset, Integer limit, Locale locale);
 
     Integer getInputRequests(int merchantId, String email);
+
+    void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType);
+
+    void setBlockForAll(OperationType operationType, boolean blockStatus);
+
+    void setBlockForMerchant(Integer merchantId, Integer currencyId, OperationType operationType, boolean blockStatus);
+
+    boolean checkMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType);
 }

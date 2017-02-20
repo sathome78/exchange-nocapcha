@@ -12,6 +12,7 @@ import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.vo.BackDealInterval;
 
 import java.math.BigDecimal;
@@ -53,9 +54,9 @@ public interface OrderDao {
 
     List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriod(String email, BackDealInterval backDealInterval, Integer limit, CurrencyPair currencyPair, Locale locale);
 
-    OrderCommissionsDto getCommissionForOrder();
+    OrderCommissionsDto getCommissionForOrder(UserRole userRole);
 
-    CommissionsDto getAllCommissions();
+    CommissionsDto getAllCommissions(UserRole userRole);
 
     List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
                                                 OperationType operationType,
@@ -68,7 +69,7 @@ public interface OrderDao {
     OrderCreateDto getMyOrderById(int orderId);
 
     WalletsAndCommissionsForOrderCreationDto getWalletAndCommission(String email, Currency currency,
-                                                                    OperationType operationType);
+                                                                    OperationType operationType, UserRole userRole);
 
     boolean lockOrdersListForAcception(List<Integer> ordersList);
 

@@ -6,7 +6,7 @@ $(function () {
     } else {
         adminsDataTable = $('#adminsTable').DataTable({
             "ajax": {
-                "url": '/admin/admins/',
+                "url": '/2a8fy7b07dxe44/admins/',
                 "dataSrc": ""
             },
             "paging": true,
@@ -16,7 +16,7 @@ $(function () {
                     "data": "nickname",
                     "render": function (data, type, row){
                         if (type == 'display') {
-                            return '<a href="/admin/userInfo?id='+row['id']+'">'+data+'</a>';
+                            return '<a href="/2a8fy7b07dxe44/userInfo?id='+row['id']+'">'+data+'</a>';
                         }
                         return data;
                     }

@@ -19,6 +19,8 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
     private Integer transactionId;
     private String transactionProvided;
     private Integer userId;
+    private Boolean confirmationRequired;
+    private String bankAccount;
 
     public MyInputOutputHistoryDto() {
         this.needRefresh = true;
@@ -98,6 +100,22 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
 
     public void setUserId(Integer userId) {
         this.userId = userId;
+    }
+
+    public Boolean getConfirmationRequired() {
+        return confirmationRequired;
+    }
+
+    public void setConfirmationRequired(Boolean confirmationRequired) {
+        this.confirmationRequired = confirmationRequired;
+    }
+
+    public String getBankAccount() {
+        return bankAccount;
+    }
+
+    public void setBankAccount(String bankAccount) {
+        this.bankAccount = bankAccount;
     }
 
     @Override

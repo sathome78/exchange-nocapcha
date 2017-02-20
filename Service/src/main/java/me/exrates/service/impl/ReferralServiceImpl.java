@@ -72,7 +72,7 @@ public class ReferralServiceImpl implements ReferralService {
         this.referralTransactionDao = referralTransactionDao;
         this.walletService = walletService;
         this.userService = userService;
-        this.commission = commissionService.findCommissionByType(REFERRAL);
+        this.commission = commissionService.getDefaultCommission(REFERRAL);
         this.companyWalletService = companyWalletService;
         this.notificationService = notificationService;
     }

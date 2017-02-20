@@ -6,7 +6,9 @@ import com.google.common.util.concurrent.MoreExecutors;
 import me.exrates.dao.BTCTransactionDao;
 import me.exrates.dao.PendingPaymentDao;
 import me.exrates.model.*;
+import me.exrates.model.Currency;
 import me.exrates.model.enums.NotificationEvent;
+import me.exrates.model.enums.OperationType;
 import me.exrates.service.*;
 import me.exrates.service.util.BiTuple;
 import org.apache.logging.log4j.LogManager;
@@ -26,10 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.math.BigDecimal;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.StringJoiner;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -49,15 +48,18 @@ public class BitcoinServiceImpl implements BitcoinService {
 
     private final Logger LOG = LogManager.getLogger("merchant");
 
-    private final WalletAppKit kit;
+    private WalletAppKit kit;
     private final ListeningExecutorService pool = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
 
+    private final BitcoinWalletAppKit kitBefore;
     private final PendingPaymentDao paymentDao;
     private final TransactionService transactionService;
     private final AlgorithmService algorithmService;
     private final BTCTransactionDao btcTransactionDao;
     private final UserService userService;
     private final NotificationService notificationService;
+    private final MerchantService merchantService;
+    private final CurrencyService currencyService;
 
 
     private static final BigDecimal SATOSHI = new BigDecimal(100_000_000L);
@@ -67,21 +69,25 @@ public class BitcoinServiceImpl implements BitcoinService {
             () -> new IllegalStateException("Pending payment with address " + address + " is not exist");
 
     @Autowired
-    public BitcoinServiceImpl(final BitcoinWalletAppKit kit,
+    public BitcoinServiceImpl(final BitcoinWalletAppKit kitBefore,
                               final PendingPaymentDao paymentDao,
                               final TransactionService transactionService,
                               final AlgorithmService algorithmService,
                               final BTCTransactionDao btcTransactionDao,
                               final UserService userService,
-                              final NotificationService notificationService)
+                              final NotificationService notificationService,
+                              final MerchantService merchantService,
+                              final CurrencyService currencyService)
     {
-        this.kit = kit.kit();
+        this.kitBefore = kitBefore;
         this.paymentDao = paymentDao;
         this.transactionService = transactionService;
         this.algorithmService = algorithmService;
         this.btcTransactionDao = btcTransactionDao;
         this.userService = userService;
         this.notificationService = notificationService;
+        this.merchantService = merchantService;
+        this.currencyService = currencyService;
     }
 
     private String extractRecipientAddress(final List<TransactionOutput> outputs) {
@@ -93,6 +99,37 @@ public class BitcoinServiceImpl implements BitcoinService {
                 .map(tx -> tx.getScriptPubKey().getToAddress(kit.params(), true).toBase58())
                 .findFirst()
                 .orElseThrow(IllegalStateException::new); //it will never happen
+    }
+
+    @PostConstruct
+    void startBitcoin() {
+
+        Currency currency = currencyService.findByName("BTC");
+        Merchant merchant = merchantService.findAllByCurrency(currency).get(0);
+
+        merchantService.setBlockForMerchant(merchant.getId(), currency.getId(), OperationType.INPUT, true);
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                    kitBefore.startupWallet();
+                    kit = kitBefore.kit();
+
+            }
+        }).start();
+
+        Timer myTimer = new Timer();
+        myTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if (kit != null){
+                    init();
+                    myTimer.cancel();
+                    myTimer.purge();
+                    merchantService.setBlockForMerchant(merchant.getId(), currency.getId(), OperationType.INPUT, false);
+                }
+            }
+        }, 0L, 60L * 5000);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -136,34 +173,38 @@ public class BitcoinServiceImpl implements BitcoinService {
         }
     }
 
-    @PostConstruct
     public void init() {
-        kit.wallet().addCoinsReceivedEventListener((wallet, tx, prevBalance, newBalance) -> {
-            final List<ListenableFuture<TransactionConfidence>> confirmations = IntStream.rangeClosed(1, 3)
-                    .mapToObj(x -> tx.getConfidence().getDepthFuture(x))
-                    .collect(toList());
-            confirmations.forEach(confidence -> confidence.addListener(() -> {
-                try {
-                    changeTransactionConfidence(extractRecipientAddress(tx.getOutputs()), confidence.get().getDepthInBlocks());
-                } catch (final ExecutionException|InterruptedException e) {
-                    LOG.error(e);
-                }
-            }, pool));
+        try {
+            kit.wallet().addCoinsReceivedEventListener((wallet, tx, prevBalance, newBalance) -> {
+                final List<ListenableFuture<TransactionConfidence>> confirmations = IntStream.rangeClosed(1, 3)
+                        .mapToObj(x -> tx.getConfidence().getDepthFuture(x))
+                        .collect(toList());
+                confirmations.forEach(confidence -> confidence.addListener(() -> {
+                    try {
+                        changeTransactionConfidence(extractRecipientAddress(tx.getOutputs()), confidence.get().getDepthInBlocks());
+                    } catch (final ExecutionException | InterruptedException e) {
+                        LOG.error(e);
+                    }
+                }, pool));
 
-            final ListenableFuture<TransactionConfidence> commit = tx.getConfidence().getDepthFuture(4);
-            commit.addListener(() -> {
-                try {
-                    final String address = extractRecipientAddress(tx.getOutputs());
-                    final String txHash = tx.getHashAsString();
-                    changeTransactionConfidence(extractRecipientAddress(tx.getOutputs()), commit.get().getDepthInBlocks());
-                    approveBitcoinTransaction(address, txHash);
-                } catch (final ExecutionException|InterruptedException e) {
-                    LOG.error(e);
-                }
+                final ListenableFuture<TransactionConfidence> commit = tx.getConfidence().getDepthFuture(4);
+                commit.addListener(() -> {
+                    try {
+                        final String address = extractRecipientAddress(tx.getOutputs());
+                        final String txHash = tx.getHashAsString();
+                        changeTransactionConfidence(extractRecipientAddress(tx.getOutputs()), commit.get().getDepthInBlocks());
+                        approveBitcoinTransaction(address, txHash);
+                    } catch (final ExecutionException | InterruptedException e) {
+                        LOG.error(e);
+                    }
 
-            }, pool);
-            handleUncommittedTransaction(wallet, tx);
-        });
+                }, pool);
+                handleUncommittedTransaction(wallet, tx);
+            });
+        }catch (Exception e){
+            LOG.error(e);
+
+        }
     }
 
     @PreDestroy

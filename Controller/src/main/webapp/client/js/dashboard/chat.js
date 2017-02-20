@@ -12,6 +12,9 @@ function connect(chatLang) {
             removeMessageFromChatHistory(messageObj.id);
         } else {
             appendNewMessage(messageObj);
+            if (chatLang === 'ar') {
+                $('#chat').find('.chat_message:last').addClass('right-to-left')
+            }
         }
 
     };
@@ -34,7 +37,7 @@ function toJson(a) {
 
 function formatNewMessage(o) {
     var deletionButton = '';
-    if ($("a[href='/admin']").length > 0) {
+    if ($("a[href='/2a8fy7b07dxe44']").length > 0) {
         deletionButton = '<button class="btn btn-sm btn-danger pull-right" onclick="deleteMessage.call(this, event)">' +
             '<span class="glyphicon glyphicon-remove"></span></button>';
     }
@@ -68,12 +71,20 @@ function loadChatHistory(lang) {
             $('#chat .mCSB_container').append(formatNewMessage(data[i]));
         }
         scrollChat();
+        if (lang === 'ar') {
+            $('#chat').find('.chat_message p').addClass('right-to-left')
+        }
     }).fail(function(e){
         console.log(e)
     })
 }
 
 function changeChatLocale(lang) {
+    if (lang === 'ar') {
+        $('#new_mess').find('input[name="body"]').addClass('right-to-left');
+    } else {
+        $('#new_mess').find('input[name="body"]').removeClass('right-to-left');
+    }
     $('#chat .mCSB_container').empty();
     $('#new_mess').find('input[name="lang"]').val(lang);
     connect(lang);
@@ -133,7 +144,7 @@ function deleteMessage(event) {
         nickname: $chat_message.find('.nickname').text(),
         lang: $('#new_mess').find('input[name="lang"]').val()
     };
-    $.ajax('/admin/chat/deleteMessage', {
+    $.ajax('/2a8fy7b07dxe44/chat/deleteMessage', {
         headers: {
             'X-CSRF-Token': $("input[name='_csrf']").val()
         },

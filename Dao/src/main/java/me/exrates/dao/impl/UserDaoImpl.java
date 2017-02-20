@@ -79,11 +79,24 @@ public class UserDaoImpl implements UserDao {
         }
     }
 
+    @Override
+    public int getIdByNickname(String nickname) {
+        String sql = "SELECT id FROM USER WHERE nickname = :nickname";
+        Map<String, String> namedParameters = new HashMap<>();
+        namedParameters.put("nickname", nickname);
+        try {
+            return jdbcTemplate.queryForObject(sql, namedParameters, Integer.class);
+        } catch (EmptyResultDataAccessException e){
+            return 0;
+        }
+    }
+
     public boolean create(User user) {
         String sqlUser = "insert into USER(nickname,email,password,phone,status,roleid ) " +
                 "values(:nickname,:email,:password,:phone,:status,:roleid)";
         String sqlWallet = "INSERT INTO WALLET (currency_id, user_id) select id, :user_id from CURRENCY where name != 'LTC';";
-        String sqlNotificationOptions = "INSERT INTO NOTIFICATION_OPTIONS(notification_event_id, user_id) select id, :user_id FROM NOTIFICATION_EVENT; ";
+        String sqlNotificationOptions = "INSERT INTO NOTIFICATION_OPTIONS(notification_event_id, user_id, send_notification, send_email) " +
+                "select id, :user_id, default_send_notification, default_send_email FROM NOTIFICATION_EVENT; ";
         Map<String, String> namedParameters = new HashMap<String, String>();
         namedParameters.put("email", user.getEmail());
         namedParameters.put("nickname", user.getNickname());
@@ -658,7 +671,12 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public List<UserSummaryDto> getUsersSummaryList(String startDate, String endDate) {
+    public List<UserSummaryDto> getUsersSummaryList(String startDate, String endDate, List<Integer> roles) {
+        String condition = "";
+        if (!roles.isEmpty()){
+            condition = " WHERE USER_ROLE.id IN (:roles) ";
+        }
+
         String sql =
                 " SELECT  " +
                         "   USER.nickname as user_nickname,  " +
@@ -683,10 +701,14 @@ public class UserDaoImpl implements UserDao {
                         "   AS output_amount     " +
                         " FROM USER  " +
                         "   LEFT JOIN WALLET ON (WALLET.user_id = USER.id) " +
-                        "   LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id)";
-        Map<String, String> namedParameters = new HashMap<>();
+                        "   LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id)" +
+                        "   JOIN USER_ROLE ON (USER_ROLE.id = USER.roleid) " +
+                        condition;
+
+        Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("start_date", startDate);
         namedParameters.put("end_date", endDate);
+        namedParameters.put("roles", roles);
         ArrayList<UserSummaryDto> result = (ArrayList<UserSummaryDto>) jdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<UserSummaryDto>() {
             @Override
             public UserSummaryDto mapRow(ResultSet rs, int rowNumber) throws SQLException {
@@ -707,7 +729,12 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public List<UserSummaryInOutDto> getUsersSummaryInOutList(String startDate, String endDate) {
+    public List<UserSummaryInOutDto> getUsersSummaryInOutList(String startDate, String endDate, List<Integer> roles) {
+        String condition = "";
+        if (!roles.isEmpty()){
+            condition = " AND USER_ROLE.id IN (:roles) ";
+        }
+
         String sql =
                 " SELECT USER.nickname as user_nickname, USER.email as user_email, \n" +
                         "case when operation_type_id=1 then\n" +
@@ -722,11 +749,14 @@ public class UserDaoImpl implements UserDao {
                         "LEFT JOIN MERCHANT ON (MERCHANT.id = TRANSACTION.merchant_id)    \n" +
                         "JOIN USER ON (USER.id = WALLET.user_id)  \n" +
                         "JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id)    \n" +
+                        "JOIN USER_ROLE ON (USER_ROLE.id = USER.roleid)    \n" +
                         "where provided=1 AND merchant_id is not null AND (operation_type_id=1 OR operation_type_id=2) " +
-                        "AND (DATE_FORMAT(TRANSACTION.datetime, '%Y-%m-%d %H:%i:%s') BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s')) ORDER BY TRANSACTION.datetime";
-        Map<String, String> namedParameters = new HashMap<>();
+                        condition + "AND (DATE_FORMAT(TRANSACTION.datetime, '%Y-%m-%d %H:%i:%s') BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s')) ORDER BY TRANSACTION.datetime";
+        Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("start_date", startDate);
         namedParameters.put("end_date", endDate);
+        namedParameters.put("roles", roles);
+
         ArrayList<UserSummaryInOutDto> result = (ArrayList<UserSummaryInOutDto>) jdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<UserSummaryInOutDto>() {
             @Override
             public UserSummaryInOutDto mapRow(ResultSet rs, int rowNumber) throws SQLException {
@@ -746,7 +776,12 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public List<UserSummaryTotalInOutDto> getUsersSummaryTotalInOutList(String startDate, String endDate) {
+    public List<UserSummaryTotalInOutDto> getUsersSummaryTotalInOutList(String startDate, String endDate, List<Integer> roles) {
+        String condition = "";
+        if (!roles.isEmpty()){
+            condition = " AND USER_ROLE.id IN (:roles) ";
+        }
+
         String sql = "SELECT CURRENCY.name as currency_name, \n " +
         "SUM(case when operation_type_id=1 then\n" +
                 "TRANSACTION.amount end) as amountIn, \n" +
@@ -754,12 +789,17 @@ public class UserDaoImpl implements UserDao {
                 "TRANSACTION.amount end) as amountOut\n" +
                 "  FROM TRANSACTION \n" +
                 "JOIN CURRENCY ON (CURRENCY.id = TRANSACTION.currency_id)    \n" +
+                "JOIN WALLET ON (WALLET.id = TRANSACTION.user_wallet_id)     \n" +
+                "JOIN USER ON (USER.id = WALLET.user_id)  \n" +
+                "JOIN USER_ROLE ON (USER_ROLE.id = USER.roleid)    \n" +
                 "where provided=1 AND merchant_id is not null AND (operation_type_id=1 OR operation_type_id=2)\n" +
-                " AND (DATE_FORMAT(TRANSACTION.datetime, '%Y-%m-%d %H:%i:%s') BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))" +
+                condition + " AND (DATE_FORMAT(TRANSACTION.datetime, '%Y-%m-%d %H:%i:%s') BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))" +
                 "GROUP BY CURRENCY.name, CURRENCY.id";
-        Map<String, String> namedParameters = new HashMap<>();
+        Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("start_date", startDate);
         namedParameters.put("end_date", endDate);
+        namedParameters.put("roles", roles);
+
         ArrayList<UserSummaryTotalInOutDto> result = (ArrayList<UserSummaryTotalInOutDto>) jdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<UserSummaryTotalInOutDto>() {
             @Override
             public UserSummaryTotalInOutDto mapRow(ResultSet rs, int rowNumber) throws SQLException {
@@ -774,7 +814,12 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public List<UserSummaryOrdersDto> getUserSummaryOrdersList(String startDate, String endDate) {
+    public List<UserSummaryOrdersDto> getUserSummaryOrdersList(String startDate, String endDate, List<Integer> roles) {
+        String condition = "";
+        if (!roles.isEmpty()){
+            condition = " AND USER_ROLE.id IN (:roles) ";
+        }
+
         String sql = "select * from (SELECT USER.email,WALLET.user_id, CURRENCY.name as currency_name, USER_ROLE.name as role,\n" +
                 "\t(select sum(amount) from TRANSACTION join EXORDERS on(EXORDERS.id = TRANSACTION.source_id) where TRANSACTION.operation_type_id=1 and TRANSACTION.provided  = 1 \n" +
                 "    and TRANSACTION.source_type='ORDER' and TRANSACTION.user_wallet_id=WALLET.id \n" +
@@ -790,11 +835,15 @@ public class UserDaoImpl implements UserDao {
                 "    and (DATE_FORMAT(EXORDERS.date_acception, '%Y-%m-%d %H:%i:%s') BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))) as amount_sell_fee\n" +
                 "    \n" +
                 "\tFROM birzha.WALLET join USER on(USER.id=WALLET.user_id) join USER_ROLE on(USER_ROLE.id = USER.roleid) join CURRENCY on(CURRENCY.id = WALLET.currency_id)\n" +
-                "    where WALLET.currency_id is not null group by WALLET.user_id, WALLET.currency_id) \n" +
+                "    where WALLET.currency_id is not null " +
+                condition +
+                " group by WALLET.user_id, WALLET.currency_id) \n" +
                 "     as innerQuery where amount_buy is not null or amount_sell is not null";
-        Map<String, String> namedParameters = new HashMap<>();
+        Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("start_date", startDate);
         namedParameters.put("end_date", endDate);
+        namedParameters.put("roles", roles);
+
         ArrayList<UserSummaryOrdersDto> result = (ArrayList<UserSummaryOrdersDto>) jdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<UserSummaryOrdersDto>() {
             @Override
             public UserSummaryOrdersDto mapRow(ResultSet rs, int rowNumber) throws SQLException {

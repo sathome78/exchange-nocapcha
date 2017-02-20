@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,7 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -56,6 +58,9 @@ public class UserServiceImpl implements UserService {
     private TokenScheduler tokenScheduler;
 
     private final int USER_FILES_THRESHOLD = 3;
+
+    private final Set<String> USER_ROLES = Stream.of(UserRole.values()).map(UserRole::name).collect(Collectors.toSet());
+    private final UserRole ROLE_DEFAULT_COMMISSION = UserRole.USER;
 
     private static final Logger LOGGER = LogManager.getLogger(UserServiceImpl.class);
 
@@ -167,6 +172,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public int getIdByNickname(String nickname) {
+        return userDao.getIdByNickname(nickname);
+    }
+
+    @Override
     public User findByEmail(String email) {
         return userDao.findByEmail(email);
     }
@@ -243,7 +253,8 @@ public class UserServiceImpl implements UserService {
             if (user.getRole() == UserRole.USER && hasAdminAuthorities) {
                 return userDao.removeUserAuthorities(user.getId());
             }
-            if (!hasAdminAuthorities && user.getRole() != UserRole.USER && user.getRole() != UserRole.ROLE_CHANGE_PASSWORD) {
+            if (!hasAdminAuthorities && user.getRole() != null &&
+                    user.getRole() != UserRole.USER && user.getRole() != UserRole.ROLE_CHANGE_PASSWORD) {
                 return userDao.createAdminAuthoritiesForUser(user.getId(), user.getRole());
             }
         }
@@ -332,7 +343,7 @@ public class UserServiceImpl implements UserService {
         email.setTo(user.getEmail());
         email.setMessage(messageSource.getMessage(emailText, new Object[]{user.getIp()}, locale));
         email.setSubject(messageSource.getMessage(emailSubject, null, locale));
-        sendMailService.sendMail(email);
+        sendMailService.sendInfoMail(email);
     }
 
     public boolean createTemporalToken(TemporalToken token) {
@@ -405,8 +416,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserSummaryDto> getUsersSummaryList(String startDate, String endDate) {
-        return userDao.getUsersSummaryList(startDate, endDate);
+    public List<UserSummaryDto> getUsersSummaryList(String startDate, String endDate, List<Integer> roles) {
+        return userDao.getUsersSummaryList(startDate, endDate, roles);
     }
 
     @Override
@@ -460,18 +471,18 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public List<UserSummaryInOutDto> getUsersSummaryInOutList(String startDate, String endDate) {
-        return userDao.getUsersSummaryInOutList(startDate, endDate);
+    public List<UserSummaryInOutDto> getUsersSummaryInOutList(String startDate, String endDate, List<Integer> roles) {
+        return userDao.getUsersSummaryInOutList(startDate, endDate, roles);
     }
 
     @Override
-    public List<UserSummaryTotalInOutDto> getUsersSummaryTotalInOutList(String startDate, String endDate) {
-        return userDao.getUsersSummaryTotalInOutList(startDate, endDate);
+    public List<UserSummaryTotalInOutDto> getUsersSummaryTotalInOutList(String startDate, String endDate, List<Integer> roles) {
+        return userDao.getUsersSummaryTotalInOutList(startDate, endDate, roles);
     }
 
     @Override
-    public List<UserSummaryOrdersDto> getUserSummaryOrdersList(String startDate, String endDate) {
-        return userDao.getUserSummaryOrdersList(startDate, endDate);
+    public List<UserSummaryOrdersDto> getUserSummaryOrdersList(String startDate, String endDate, List<Integer> roles) {
+        return userDao.getUserSummaryOrdersList(startDate, endDate, roles);
     }
 
     @PostConstruct
@@ -557,6 +568,32 @@ public class UserServiceImpl implements UserService {
         }
         userDao.updateAdminAuthorities(options, userId);
 
+    }
+
+    @Override
+    public UserRole getCurrentUserRole() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        LOGGER.debug("Authentication: " + authentication);
+        String grantedAuthority = authentication.getAuthorities().
+                stream().map(GrantedAuthority::getAuthority)
+                .filter(USER_ROLES::contains)
+                .findFirst().orElse(ROLE_DEFAULT_COMMISSION.name());
+        LOGGER.debug("Granted authority: " + grantedAuthority);
+        return UserRole.valueOf(grantedAuthority);
+
+    }
+
+    @Override
+    public List<Integer> resolveRoleIdsByName(String roleName) {
+        List<UserRole> userRoles;
+        if ("ADMIN".equals(roleName)) {
+            userRoles = Arrays.asList(UserRole.ADMINISTRATOR, UserRole.ACCOUNTANT, UserRole.ADMIN_USER);
+        }else if("ALL".equals(roleName)){
+            return new ArrayList<>();
+        }else {
+            userRoles = Collections.singletonList(UserRole.valueOf(roleName));
+        }
+        return userRoles.stream().map(UserRole::getRole).collect(Collectors.toList());
     }
 
 }

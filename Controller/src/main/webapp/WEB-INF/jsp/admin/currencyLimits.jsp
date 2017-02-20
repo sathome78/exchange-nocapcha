@@ -23,55 +23,44 @@
 <main class="container">
     <div class="row">
         <%@include file='left_side_menu.jsp' %>
-        <div class="col-md-8 col-md-offset-2 admin-container">
+        <div class="col-md-6 col-md-offset-2 admin-container">
             <div class="text-center"><h4><loc:message code="admin.currencyLimits.title"/></h4></div>
 
                 <div id="panel4 row" class="tab-pane">
-                    <div class="col-sm-6 text-center">
+                    <div class="col-md-6 col-md-offset-3 text-center">
                         <h5>
                             <loc:message code="admin.currencyLimits.table"/>
                         </h5>
-                        <table id="currency-limits-table">
-                            <thead>
-                            <tr>
-                                <th><loc:message code="admin.currencyLimits.name"/> </th>
-                                <th><loc:message code="admin.currencyLimits.description"/></th>
-                                <th><loc:message code="admin.currencyLimits.minLimit"/></th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <c:forEach items="${currencies}" var="currency">
-                                <tr data-id="${currency.id}">
-                                    <td>
-                                            ${currency.name}
-                                    </td>
-                                    <td>
-                                        <c:choose>
-                                            <c:when test="${currency.description == null}">
-                                                -
-                                            </c:when>
-                                            <c:otherwise>
-                                                ${currency.description}
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </td>
-                                    <td>
-                                        <span hidden class="minLimitUnformatted">${currency.minWithdrawSum}</span>
-                                        <c:choose>
-                                            <c:when test="${currency.minWithdrawSum == null}">
-                                                -
-                                            </c:when>
-                                            <c:otherwise>
-                                        <span class="minLimitFormatted">
-                                                <fmt:formatNumber value="${currency.minWithdrawSum}" pattern="###,##0.00########"/>
-                                            </span>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </td>
-                                </tr>
-                            </c:forEach>
-                            </tbody>
-                        </table>
+                        <div class="col-md-6">
+                            <select id="roleName" class="input-block-wrapper__input admin-form-input">
+                                <c:forEach items="${roleNames}" var="roleName">
+                                    <option value="${roleName}">${roleName}</option>
+                                </c:forEach>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <select id="operationType" class="input-block-wrapper__input admin-form-input">
+                                <c:forEach items="${operationTypes}" var="operationType">
+                                    <option value="${operationType}">${operationType}</option>
+                                </c:forEach>
+                            </select>
+                        </div>
+
+                        <hr/>
+
+                    <table id="currency-limits-table">
+                        <thead>
+                        <tr>
+                            <th></th>
+                            <th><loc:message code="admin.currencyLimits.name"/> </th>
+                            <th><loc:message code="admin.currencyLimits.minLimit"/></th>
+                        </tr>
+                        </thead>
+                    </table>
+                    </div>
+                    <div class="col-md-6 col-md-offset-3">
+
+
                     </div>
 
 
@@ -95,6 +84,22 @@
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
                             <input id="currency-name" class="input-block-wrapper__input" readonly type="text">
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="admin.commissions.operationType"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input name="operationType" class="input-block-wrapper__input" readonly type="text">
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="admin.role"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input name="roleName" class="input-block-wrapper__input" readonly type="text">
                         </div>
                     </div>
                     <div class="input-block-wrapper">

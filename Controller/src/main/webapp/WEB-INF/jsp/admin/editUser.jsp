@@ -113,7 +113,7 @@
 
                             <div class="panel-body">
 
-                                <form:form class="form-horizontal" id="user-edit-form" action="/admin/edituser/submit"
+                                <form:form class="form-horizontal" id="user-edit-form" action="/2a8fy7b07dxe44/edituser/submit"
                                            method="post" modelAttribute="user">
                                     <div>
                                         <fieldset class="field-user">
@@ -179,7 +179,7 @@
                                                                  style="color:red"/>
                                                 </div>
                                             </div>
-
+                                            <sec:authorize access="hasAuthority('${adminEnum}')">
                                             <div class="input-block-wrapper">
                                                 <div class="col-md-3 input-block-wrapper__label-wrapper">
                                                     <label for="user-role"
@@ -197,7 +197,10 @@
                                                     </form:select>
                                                 </div>
                                             </div>
-
+                                            </sec:authorize>
+                                            <sec:authorize access="hasAnyAuthority('${accountantEnum}', '${admin_userEnum}')">
+                                                <form:hidden path="role" name="user-role"  />
+                                            </sec:authorize>
                                             <div class="input-block-wrapper">
                                                 <div class="col-md-3 input-block-wrapper__label-wrapper">
                                                     <label for="user-status"
@@ -229,15 +232,15 @@
                                                                 id="parentEmail"/>
                                                 </div>
                                             </div>
-                                            <sec:authorize access="hasAuthority('${adminEnum}')">
-                                            <div class="admin-submit-group">
+                                            <sec:authorize access="hasAuthority('${admin_editUser}')">
+                                                <div class="admin-submit-group">
                                                 <div>
                                                     <loc:message code="admin.save" var="saveSubmit"></loc:message>
                                                     <button class="blue-box" type="submit">${saveSubmit}</button>
 
                                                     <loc:message code="admin.cancel" var="cancelSubmit"></loc:message>
                                                     <button class="blue-box" type="reset"
-                                                            onclick="javascript:window.location='/admin';">${cancelSubmit}</button>
+                                                            onclick="javascript:window.location='/2a8fy7b07dxe44';">${cancelSubmit}</button>
                                                 </div>
                                             </div>
                                             </sec:authorize>
@@ -424,7 +427,7 @@
                                 <hr />
                                 <div class="text-center"><h4><loc:message code="admin.manualBalanceChange.title"/></h4></div>
                                 <div class="col-md-12">
-                                    <form id="manualBalanceChangeForm" action="/admin/changeActiveBalance/submit" method="post">
+                                    <form id="manualBalanceChangeForm" action="/2a8fy7b07dxe44/changeActiveBalance/submit" method="post">
                                         <div class="form-item form-group" >
                                             <label for="currency"><loc:message code="mywallets.currency"/> </label>
                                             <select id="currency" name="currency" class="form-control">
@@ -455,6 +458,9 @@
                                 <button id="myorders-button-deal" class="myorders__button green-box margin-box">
                                     <loc:message
                                             code="myorders.deal"/></button>
+                                <button id="myorders-button-opened" class="myorders__button blue-box margin-box">
+                                    <loc:message
+                                            code="myorders.opened"/></button>
                                 <button id="myorders-button-cancelled" class="myorders__button red-box margin-box">
                                     <loc:message
                                             code="myorders.cancelled"/></button>
@@ -612,7 +618,7 @@
                                         <div class="text-center"><h4><loc:message code="admin.accessRights"/></h4></div>
                                         <hr/>
                                         <div>
-                                            <form:form method="post" action="/admin/editAuthorities/submit"
+                                            <form:form method="post" action="/2a8fy7b07dxe44/editAuthorities/submit"
                                                        modelAttribute="authorityOptionsForm">
                                                 <table id="authoritiesTable" class="table table-striped table-bordered">
                                                     <tbody>

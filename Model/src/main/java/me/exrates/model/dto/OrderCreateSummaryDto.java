@@ -99,4 +99,18 @@ public class OrderCreateSummaryDto {
     public void setTotalWithComission(String totalWithComission) {
         this.totalWithComission = totalWithComission;
     }
+
+    @Override
+    public String toString() {
+        return "OrderCreateSummaryDto{" +
+                "currencyPairName='" + currencyPairName + '\'' +
+                ", operationTypeName='" + operationTypeName + '\'' +
+                ", balance='" + balance + '\'' +
+                ", amount='" + amount + '\'' +
+                ", exrate='" + exrate + '\'' +
+                ", total='" + total + '\'' +
+                ", commission='" + commission + '\'' +
+                ", totalWithComission='" + totalWithComission + '\'' +
+                '}';
+    }
 }

@@ -2,13 +2,9 @@ package me.exrates.controller;
 
 import me.exrates.controller.annotation.OnlineMethod;
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.Notification;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.onlineTableDto.*;
-import me.exrates.model.enums.ChartType;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.OrderStatus;
-import me.exrates.model.enums.PagingDirection;
+import me.exrates.model.enums.*;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
 import me.exrates.service.*;
@@ -53,7 +49,7 @@ public class OnlineRestController {
     private static final Logger LOGGER = LogManager.getLogger(OnlineRestController.class);
     /* if SESSION_LIFETIME_HARD set, session will be killed after time expired, regardless of activity the session
     set SESSION_LIFETIME_HARD = 0 to ignore it*/
-    public static final long SESSION_LIFETIME_HARD = Math.round(60 * 60); //SECONDS
+    public static final long SESSION_LIFETIME_HARD = Math.round(90 * 60); //SECONDS
     /* if SESSION_LIFETIME_INACTIVE set, session will be killed if it is inactive during the time
     * set SESSION_LIFETIME_INACTIVE = 0 to ignore it and session lifetime will be set to default value (30 mins)
     * The time of end the current session is stored in session param "sessionEndTime", which calculated in millisec as
@@ -95,6 +91,9 @@ public class OnlineRestController {
     MerchantService merchantService;
 
     @Autowired
+    private UserService userService;
+
+    @Autowired
     private NotificationService notificationService;
 
     @Autowired
@@ -106,12 +105,13 @@ public class OnlineRestController {
     @RequestMapping(value = "/dashboard/commission/{type}", method = RequestMethod.GET)
     public BigDecimal getCommissions(@PathVariable("type") String type) {
         long before = System.currentTimeMillis();
+        UserRole userRole = userService.getCurrentUserRole();
         try {
             switch (type) {
                 case "sell":
-                    return commissionService.findCommissionByType(OperationType.SELL).getValue();
+                    return commissionService.findCommissionByTypeAndRole(OperationType.SELL, userRole).getValue();
                 case "buy":
-                    return commissionService.findCommissionByType(OperationType.BUY).getValue();
+                    return commissionService.findCommissionByTypeAndRole(OperationType.BUY, userRole).getValue();
                 default:
                     return null;
             }

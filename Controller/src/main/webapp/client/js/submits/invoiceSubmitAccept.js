@@ -1,11 +1,13 @@
 
-function submitAcceptInvoice(id) {
+function submitAcceptInvoice(e, id) {
+    var event = e || window.event;
+    event.stopPropagation();
     if (confirm($('#prompt_acc_rqst').html())) {
         $.ajax({
             url: '/merchants/invoice/payment/accept?id=' + id,
             type: 'GET',
             success: function(){
-                window.location = '/admin/invoiceConfirmation';
+                window.location = '/2a8fy7b07dxe44/invoiceConfirmation';
             }
         });
     }
@@ -34,7 +36,7 @@ function submitAcceptBitcoin(id) {
 
             type: 'GET',
             success: function () {
-                window.location = '/admin/bitcoinConfirmation';
+                window.location = '/2a8fy7b07dxe44/bitcoinConfirmation';
             }
         });
     }

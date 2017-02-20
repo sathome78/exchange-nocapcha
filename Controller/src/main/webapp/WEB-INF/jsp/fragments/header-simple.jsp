@@ -1,3 +1,4 @@
+<%@ page import="org.springframework.web.servlet.support.RequestContext"%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
@@ -27,9 +28,10 @@
                 <li><a href="/" class="nav__link">
                     <loc:message code="dashboard.trading"/></a>
                 </li>
-                <li><a href="<c:url value="http://support.exrates.me/" />" class="nav__link">
+                <%--TODO temporary remove support link--%>
+                <%--<li><a href="<c:url value="http://support.exrates.me/" />" class="nav__link">
                     <loc:message code="dashboard.support"/></a>
-                </li>
+                </li>--%>
                 <sec:authorize access="isAuthenticated()">
                     <li id="adminka-entry">
                         <c:set var="adminEnum" value="<%=me.exrates.model.enums.UserRole.ADMINISTRATOR%>"/>
@@ -40,7 +42,7 @@
                             <sec:authorize
                                     access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
 
-                                <a class="nav__link" href="<c:url value='/admin'/>">
+                                <a class="nav__link" href="<c:url value='/2a8fy7b07dxe44'/>">
                                     <loc:message code="admin.title"/>
                                 </a>
 
@@ -129,9 +131,11 @@
                 </sec:authorize>
 
                 <li role="presentation" class="dropdown paddingtop10 open-language">
+                    <%String lang = (new RequestContext(request)).getLocale().getLanguage();%>
+                    <c:set var="lang" value="<%=me.exrates.controller.DashboardController.convertLanguageNameToMenuFormat(lang)%>"/>
                     <a id="language" class="dropdown-toggle focus-white nav__link" data-toggle="dropdown" href="#"
                        role="button" aria-haspopup="true" aria-expanded="false">
-                        ${pageContext.response.locale.toString().toUpperCase()} <span class="caret"></span>
+                        ${fn:toUpperCase(lang)} <span class="caret"></span>
                     </a>
                     <ul class="dropdown-menu choose-language">
                         <li><a href="#" class="language">EN</a></li>

@@ -7,59 +7,72 @@
             <loc:message code="${error}"/>
         </c:if>
     </label>
-    <div class="row">
-            <%--Deposit--%>
+        <c:choose>
+            <c:when test="${empty merchantCurrencyData}">
+                <p class="red noMerchants"><loc:message code="merchant.operationNotAvailable" /> </p>
+            </c:when>
+            <c:otherwise>
+                <div class="row">
+                        <%--Deposit--%>
 
-            <label class="alert-danger has-error">
-                <c:if test="${not empty error}">
-                    <loc:message code="${error}"/>
-                </c:if>
-            </label>
-            <div class="row">
-                    <form:form class="form-horizontal withdraw__money" id="payment" name="payment" method="post"
-                                      modelAttribute="payment" action="">
-                        <div class="input-block-wrapper clearfix">
-                            <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:225px">
-                                <label style="font-size: 15px" for="currencyName" class="input-block-wrapper__label" ><loc:message code="merchants.inputCurrency"/></label>
+                    <label class="alert-danger has-error">
+                        <c:if test="${not empty error}">
+                            <loc:message code="${error}"/>
+                        </c:if>
+                    </label>
+                    <div class="row">
+                        <form:form class="form-horizontal withdraw__money" id="payment" name="payment" method="post"
+                                   modelAttribute="payment" action="">
+                            <div class="input-block-wrapper clearfix">
+                                <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:225px">
+                                    <label style="font-size: 15px" for="currencyName" class="input-block-wrapper__label" ><loc:message code="merchants.inputCurrency"/></label>
+                                </div>
+                                <div class="col-md-8 input-block-wrapper__input-wrapper" >
+                                    <input id="currency" name="currency" hidden="true" value="${currency}" />
+                                    <input style="float: left; width: auto"  class="form-control input-block-wrapper__input" id="currencyName" readonly="true" value="${currencyName}" />
+                                </div>
+
                             </div>
-                            <div class="col-md-8 input-block-wrapper__input-wrapper" >
-                                <input id="currency" name="currency" hidden="true" value="${currency}" />
-                                <input style="float: left; width: auto"  class="form-control input-block-wrapper__input" id="currencyName" readonly="true" value="${currencyName}" />
+                            <div class="input-block-wrapper clearfix">
+                                <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:225px">
+                                    <label style="font-size: 15px" for="sum"><loc:message code="withdrawal.amount"/></label>
+                                </div>
+                                <div style="width: auto; " class="col-md-8 input-block-wrapper__input-wrapper">
+                                    <form:input class="form-control input-block-wrapper__input numericInputField"
+                                                id="sum" path="sum" />
+                                </div>
+                                <div class="col-md-6 input-block-wrapper__label-wrapper">
+                                    <div id="min-sum-notification" class="red"><loc:message code="merchants.input.minSum"/>
+                                        <strong> ${currencyName} <span><fmt:formatNumber value="${minAmount}" pattern="###,##0.00######"/></span>
+                                        </strong></div>
+                                </div>
                             </div>
 
-                        </div>
-                        <div class="input-block-wrapper clearfix">
-                        <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:225px">
-                            <label style="font-size: 15px" for="sum"><loc:message code="withdrawal.amount"/></label>
-                        </div>
-                        <div style="width: auto; " class="col-md-8 input-block-wrapper__input-wrapper">
-                            <form:input class="form-control input-block-wrapper__input numericInputField"
-                                        id="sum" path="sum" />
-                        </div>
-                        </div>
 
+                            <b hidden id="buttonMessage"><loc:message code="merchants.deposit" /></b>
+                            <div id="merchantList">
+                                <br>
+                                <c:forEach var="merchantCurrency" items="${merchantCurrencyData}" >
+                                    <c:forEach var="merchantImage" items="${merchantCurrency.listMerchantImage}" >
+                                        <div style=" width: 700px; height: 48px; ">
+                                            <div style="float: left; width: 408px; text-align: right; margin-right: 10px; ">
+                                                <img class="img-thumbnail" src="${merchantImage.image_path}" style="width: 168px; height: 52px"/>
 
-                        <b hidden id="buttonMessage"><loc:message code="merchants.deposit" /></b>
-                        <div id="merchantList">
-                            <br>
-                            <c:forEach var="merchantCurrency" items="${merchantCurrencyData}" >
-                                <c:forEach var="merchantImage" items="${merchantCurrency.listMerchantImage}" >
-                                    <div style=" width: 700px; height: 48px; ">
-                                        <div style="float: left; width: 408px; text-align: right; margin-right: 10px; ">
-                                            <img class="img-thumbnail" src="${merchantImage.image_path}" style="width: 168px; height: 52px"/>
-
+                                            </div>
+                                            <button style="position: relative; top: 50%; -webkit-transform: translateY(-50%); -ms-transform: translateY(-50%); transform: translateY(-50%);" type="button" value="${merchantCurrency.merchantId}:${merchantCurrency.name}:${merchantCurrency.minSum}:${merchantImage.id}"  name="assertInputPay"
+                                                    data-toggle="modal" data-target="#myModal" class="btn btn-primary btn-lg"><loc:message code="merchants.deposit"/></button>
                                         </div>
-                                        <button style="position: relative; top: 50%; -webkit-transform: translateY(-50%); -ms-transform: translateY(-50%); transform: translateY(-50%);" type="button" value="${merchantCurrency.merchantId}:${merchantCurrency.name}:${merchantCurrency.minSum}:${merchantImage.id}"  name="assertInputPay"
-                                                data-toggle="modal" data-target="#myModal" class="btn btn-primary btn-lg"><loc:message code="merchants.deposit"/></button>
-                                    </div>
-                                    <br>
+                                        <br>
+                                    </c:forEach>
                                 </c:forEach>
-                            </c:forEach>
-                        </div>
-                        <form:hidden path="operationType"/>
-                    </form:form>
-            </div>
-    </div>
+                            </div>
+                            <form:hidden path="operationType"/>
+                        </form:form>
+                    </div>
+                </div>
+                <span hidden id="minAmount">${minAmount}</span>
+            </c:otherwise>
+        </c:choose>
 </div>
 
 <%--MODAL ... --%>

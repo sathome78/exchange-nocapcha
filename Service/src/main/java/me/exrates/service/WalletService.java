@@ -65,7 +65,7 @@ public interface WalletService {
      * @return list the UserWalletSummaryDto
      * @author ValkSam
      */
-    List<UserWalletSummaryDto> getUsersWalletsSummary();
+    List<UserWalletSummaryDto> getUsersWalletsSummary(List<Integer> roles);
 
     /**
      * Transfers money between active balance the wallet and reserved balance the wallet
@@ -95,4 +95,6 @@ public interface WalletService {
 
     @Transactional(rollbackFor = Exception.class)
     void manualBalanceChange(Integer userId, Integer currencyId, BigDecimal amount);
+
+    String transferCostsToUser(Integer fromUserWalletId, String toUserNickname, Integer currencyId, BigDecimal amount, Locale locale);
 }

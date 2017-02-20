@@ -39,6 +39,13 @@
                     <div class="col-sm-6">
                         <div class="text-center"><h4><loc:message code="admin.stockExchangeCommissions"/></h4></div>
 
+                        <select id="roleName" class="input-block-wrapper__input admin-form-input">
+                            <c:forEach items="${roleNames}" var="roleName">
+                                <option value="${roleName}">${roleName}</option>
+                            </c:forEach>
+                        </select>
+                        <hr/>
+
                         <table id="commissions-table">
                             <thead>
                             <tr>
@@ -47,7 +54,7 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <c:forEach items="${commissions}" var="commission">
+                           <%-- <c:forEach items="${commissions}" var="commission">
                                 <tr data-id="${commission.id}">
                                     <td>${commission.operationType}</td>
                                     <td>
@@ -58,7 +65,7 @@
                                     </td>
 
                                 </tr>
-                            </c:forEach>
+                            </c:forEach>--%>
                             </tbody>
                         </table>
                     </div>
@@ -111,21 +118,28 @@
             </div>
             <div class="modal-body">
                 <form id="edit-commission-form">
-                    <input type="hidden" name="commissionId" >
                     <div class="input-block-wrapper">
                         <div class="col-md-5 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label"><loc:message code="admin.commissions.operationType"/></label>
+                            <label for="userRole" class="input-block-wrapper__label"><loc:message code="admin.role"/></label>
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input id="operation-type" class="input-block-wrapper__input" readonly type="text">
+                            <input id="userRole" name="userRole" class="input-block-wrapper__input" readonly type="text">
                         </div>
                     </div>
                     <div class="input-block-wrapper">
                         <div class="col-md-5 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label"><loc:message code="admin.commissions.value"/></label>
+                            <label for="operationType" class="input-block-wrapper__label"><loc:message code="admin.commissions.operationType"/></label>
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input  name="commissionValue" class="input-block-wrapper__input" type="number">
+                            <input id="operationType" name="operationType" class="input-block-wrapper__input" readonly type="text">
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label for="commissionValue" class="input-block-wrapper__label"><loc:message code="admin.commissions.value"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input id="commissionValue" name="commissionValue" class="input-block-wrapper__input" type="number">
                         </div>
                     </div>
                     <button id="submitCommission" class="blue-box admin-form-submit" type="submit"><loc:message code="admin.refSubmitEditCommonRoot"/></button>

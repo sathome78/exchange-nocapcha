@@ -40,6 +40,8 @@ public interface WalletDao {
 
     Wallet findByUserAndCurrency(int userId, int currencyId);
 
+    Wallet findById(Integer walletId);
+
     Wallet createWallet(User user, int currencyId);
 
     boolean update(Wallet wallet);
@@ -58,7 +60,7 @@ public interface WalletDao {
      */
     WalletsForOrderAcceptionDto getWalletsForOrderByOrderIdAndBlock(Integer orderId, Integer userAcceptorId);
 
-    List<UserWalletSummaryDto> getUsersWalletsSummary();
+    List<UserWalletSummaryDto> getUsersWalletsSummary(List<Integer> roles);
 
     WalletTransferStatus walletInnerTransfer(int walletId, BigDecimal amount, TransactionSourceType sourceType, int sourceId);
 

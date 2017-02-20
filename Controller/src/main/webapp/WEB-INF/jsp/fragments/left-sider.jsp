@@ -69,4 +69,12 @@
         </script>
     </table>
     </div>
+    <br>
+    <br>
+    <br>
+    <div style="text-align: center; height: 1000px; vertical-align: top">
+            <a href="/client/img/cert.jpg">
+                <img src="/client/img/cert.gif" style="width: 185px; height: 185px; "/>
+            </a>
+    </div>
 </div>

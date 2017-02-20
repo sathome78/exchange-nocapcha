@@ -2,7 +2,7 @@
   User: Valk
 --%>
 
-<div id="myorders" class="myorders center-frame-container hidden">
+<div id="myorders" data-submenuitemid="myhistory-button-orders" class="myorders center-frame-container hidden">
     <%----%>
     <div id="myorders-currency-pair-selector" class="currency-pair-selector dropdown">
         <c:set value="true" var="showAllPairsEnabled"/>
