@@ -12,6 +12,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.servlet.view.RedirectView;
@@ -37,6 +38,7 @@ public class LiqPayPaymentService implements MerchantPaymentService {
     private static final Logger LOGGER = LogManager.getLogger("merchant");
 
     @Override
+    @Transactional
     public MerchantInputResponseDto preparePayment(String email, Payment payment, Locale locale) {
         final CreditsOperation creditsOperation = merchantService
                 .prepareCreditsOperation(payment, email)
