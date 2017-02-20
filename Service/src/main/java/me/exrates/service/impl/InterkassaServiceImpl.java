@@ -37,6 +37,7 @@ public class InterkassaServiceImpl implements InterkassaService {
 
 
     @Override
+    @Transactional
     public Map<String, String> preparePayment(final CreditsOperation creditsOperation,final String email) {
 
         LOG.debug("Begin method: preparePayment.");

@@ -138,6 +138,7 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
     }
 
     @Override
+    @Transactional
     public Transaction preparePaymentTransactionRequest(CreditsOperation creditsOperation) {
         return transactionService.createTransactionRequest(creditsOperation);
     }
