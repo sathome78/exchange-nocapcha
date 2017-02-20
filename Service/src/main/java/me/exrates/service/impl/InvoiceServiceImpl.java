@@ -267,7 +267,7 @@ public class InvoiceServiceImpl implements InvoiceService {
         try {
           userFilesService.saveReceiptScan(invoiceRequest.getUserId(), invoiceRequest.getTransaction().getId(), receiptScan);
         } catch (IOException e) {
-          throw new FileLoadingException(messageSource.getMessage("merchants.internalError", null,
+          throw new FileLoadingException(messageSource.getMessage("merchants.errorUploadReceipt", null,
                   locale));
         }
       }
