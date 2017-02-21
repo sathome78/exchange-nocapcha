@@ -17,7 +17,8 @@ public enum TransactionSourceType {
   ACCRUAL(4),
   MANUAL(5),
   USER_TRANSFER(6),
-  INVOICE(7);
+  INVOICE(7),
+  BTC_INVOICE(8);
 
   private final int code;
 

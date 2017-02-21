@@ -3,6 +3,7 @@ package me.exrates.dao.impl;
 import me.exrates.dao.PendingPaymentDao;
 import me.exrates.model.PendingPayment;
 import me.exrates.model.Transaction;
+import me.exrates.model.dto.PendingPaymentFlatDto;
 import me.exrates.model.dto.PendingPaymentSimpleDto;
 import me.exrates.model.dto.onlineTableDto.PendingPaymentStatusDto;
 import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
@@ -241,4 +242,53 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
     }};
     return jdbcTemplate.queryForObject(sql, params, Integer.class) != 0;
   }
+
+  @Override
+  public Integer getStatusById(int id) {
+    final String sql = "SELECT pending_payment_status_id " +
+        " FROM PENDING_PAYMENT " +
+        " WHERE invoice_id = :id";
+    return jdbcTemplate.queryForObject(sql, singletonMap("id", id), Integer.class);
+  }
+
+  @Override
+  public List<PendingPaymentFlatDto> findFlattenDtoByStatus(List<Integer> pendingPaymentStatusIdList) {
+    String sql = "SELECT  PP.*, " +
+        "                 TX.amount, TX.commission_amount, TX.datetime, TX.confirmation, TX.provided, " +
+        "                 USER.id AS user_id, USER.email AS user_email, " +
+        "                 ADM.id AS acceptance_id, ADM.email AS acceptance_user_email " +
+        " FROM PENDING_PAYMENT PP " +
+        " JOIN TRANSACTION TX ON (TX.id = PP.invoice_id) " +
+        " JOIN WALLET ON WALLET.id = TX.user_wallet_id " +
+        " JOIN USER AS USER ON USER.id = WALLET.user_id " +
+        " LEFT JOIN USER AS ADM ON ADM.id = PP.acceptance_user_id " +
+        " WHERE pending_payment_status_id IN (:pending_payment_status_id_list) ";
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("pending_payment_status_id_list", pendingPaymentStatusIdList);
+    }};
+    return jdbcTemplate.query(sql, params, new RowMapper<PendingPaymentFlatDto>() {
+      @Override
+      public PendingPaymentFlatDto mapRow(ResultSet rs, int i) throws SQLException {
+        PendingPaymentFlatDto pendingPaymentFlatDto = new PendingPaymentFlatDto();
+        pendingPaymentFlatDto.setInvoiceId(rs.getInt("invoice_id"));
+        pendingPaymentFlatDto.setTransactionHash(rs.getString("transaction_hash"));
+        pendingPaymentFlatDto.setAddress(rs.getString("address"));
+        pendingPaymentFlatDto.setPendingPaymentStatus(PendingPaymentStatusEnum.convert(rs.getInt("pending_payment_status_id")));
+        pendingPaymentFlatDto.setStatusUpdateDate(rs.getTimestamp("status_update_date") == null ? null : rs.getTimestamp("status_update_date").toLocalDateTime());
+        pendingPaymentFlatDto.setAcceptanceTime(rs.getTimestamp("acceptance_time") == null ? null : rs.getTimestamp("acceptance_time").toLocalDateTime());
+        pendingPaymentFlatDto.setHash(rs.getString("hash"));
+        pendingPaymentFlatDto.setUserEmail(rs.getString("user_email"));
+        pendingPaymentFlatDto.setUserId(rs.getInt("user_id"));
+        pendingPaymentFlatDto.setAcceptanceUserEmail(rs.getString("acceptance_user_email"));
+        pendingPaymentFlatDto.setAcceptanceUserId(rs.getInt("acceptance_id"));
+        pendingPaymentFlatDto.setAmount(rs.getBigDecimal("amount"));
+        pendingPaymentFlatDto.setCommissionAmount(rs.getBigDecimal("commission_amount"));
+        pendingPaymentFlatDto.setDatetime(rs.getTimestamp("datetime") == null ? null : rs.getTimestamp("datetime").toLocalDateTime());
+        pendingPaymentFlatDto.setConfirmation(rs.getInt("confirmation"));
+        pendingPaymentFlatDto.setProvided(rs.getBoolean("provided"));
+        return pendingPaymentFlatDto;
+      }
+    });
+  }
+
 }

@@ -1,6 +1,7 @@
 package me.exrates.dao;
 
 import me.exrates.model.PendingPayment;
+import me.exrates.model.dto.PendingPaymentFlatDto;
 import me.exrates.model.dto.PendingPaymentSimpleDto;
 import me.exrates.model.dto.onlineTableDto.PendingPaymentStatusDto;
 
@@ -31,4 +32,8 @@ public interface PendingPaymentDao {
   Optional<PendingPayment> findByIdAndBlock(Integer invoiceId);
 
   void updateAcceptanceStatus(PendingPayment pendingPayment);
+
+  Integer getStatusById(int id);
+
+  List<PendingPaymentFlatDto> findFlattenDtoByStatus(List<Integer> pendingPaymentStatusIdList);
 }

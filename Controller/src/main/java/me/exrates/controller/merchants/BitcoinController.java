@@ -91,7 +91,7 @@ public class BitcoinController {
     } catch (final Exception e) {
       Map<String, String> error = new HashMap<>();
       error.put("error", messageSource.getMessage("merchants.internalError", null, locale));
-      log.warn(error);
+      log.error(ExceptionUtils.getStackTrace(e));
       return new ResponseEntity<>(error, INTERNAL_SERVER_ERROR);
     }
   }

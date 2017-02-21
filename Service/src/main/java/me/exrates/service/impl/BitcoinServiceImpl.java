@@ -8,6 +8,7 @@ import me.exrates.dao.PendingPaymentDao;
 import me.exrates.dao.WalletDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
+import me.exrates.model.dto.PendingPaymentFlatDto;
 import me.exrates.model.dto.onlineTableDto.PendingPaymentStatusDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.NotificationEvent;
@@ -46,6 +47,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static java.util.Objects.isNull;
@@ -83,8 +85,6 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   private final Function<String, Supplier<IllegalStateException>> throwIllegalStateEx = (address) ->
       () -> new IllegalStateException("Pending payment with address " + address + " is not exist");
-
-  private final int CONFIRMATION_NEEDED_COUNT = 1;
 
   @Autowired
   public BitcoinServiceImpl(final BitcoinWalletAppKit kitBefore,
@@ -142,15 +142,15 @@ public class BitcoinServiceImpl implements BitcoinService {
     myTimer.schedule(new TimerTask() {
       @Override
       public void run() {
-        System.out.println(1);
         if (kit != null) {
           init();
           myTimer.cancel();
           myTimer.purge();
           merchantService.setBlockForMerchant(merchant.getId(), currency.getId(), OperationType.INPUT, false);
+          LOG.debug("BTC init completed");
         }
       }
-    }, 0L, 1000);
+    }, 0L, 10000);
 //    }, 0L, 60L * 5000);
   }
 
@@ -317,16 +317,16 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   @Override
   @Transactional(readOnly = true)
-  public Map<Transaction, BTCTransaction> getBitcoinTransactions() {
-    Merchant merchant = new Merchant();
-    merchant.setName("Blockchain");
-    List<Transaction> list = transactionService.getOpenTransactionsByMerchant(merchant);
-    Map<Transaction, BTCTransaction> map = new LinkedHashMap<>();
+  public List<PendingPaymentFlatDto> getBitcoinTransactions() {
+    List<Integer> pendingPaymentStatusIdList = PendingPaymentStatusEnum.getAvailableForActionStatusesList(ACCEPT_MANUAL).stream()
+        .map(InvoiceStatus::getCode)
+        .collect(Collectors.toList());
+    return paymentDao.findFlattenDtoByStatus(pendingPaymentStatusIdList);
+  }
 
-    for (Transaction transaction : list) {
-      map.put(transaction, btcTransactionDao.findByTransactionId(transaction.getId()));
-    }
-
-    return map;
+  @Override
+  @Transactional(readOnly = true)
+  public Integer getPendingPaymentStatusByInvoiceId(Integer invoiceId) {
+    return paymentDao.getStatusById(invoiceId);
   }
 }

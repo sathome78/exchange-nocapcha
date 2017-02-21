@@ -13,6 +13,7 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.WithdrawalRequestStatus;
 import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
+import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WithdrawData;
@@ -80,6 +81,9 @@ public class MerchantServiceImpl implements MerchantService {
 
   @Autowired
   private InvoiceService invoiceService;
+
+  @Autowired
+  private BitcoinService bitcoinService;
 
   private static final BigDecimal HUNDREDTH = new BigDecimal(100L);
   private static final Logger LOG = LogManager.getLogger("merchant");
@@ -208,6 +212,19 @@ public class MerchantServiceImpl implements MerchantService {
       Integer statusId = invoiceService.getInvoiceRequestStatusByInvoiceId(transaction.getSourceId());
       InvoiceRequestStatusEnum invoiceRequestStatus = InvoiceRequestStatusEnum.convert(statusId);
       return messageSource.getMessage("merchants.invoice.".concat(invoiceRequestStatus.name()), null, locale);
+    }
+    if (transaction.getSourceType() == TransactionSourceType.BTC_INVOICE) {
+      Integer statusId = bitcoinService.getPendingPaymentStatusByInvoiceId(transaction.getSourceId());
+      PendingPaymentStatusEnum pendingPaymentStatus = PendingPaymentStatusEnum.convert(statusId);
+      String message = messageSource.getMessage("merchants.invoice.".concat(pendingPaymentStatus.name()), null, locale);
+      if (message.isEmpty()) {
+        message = messageSource.getMessage("transaction.confirmations",
+            new Object[]{
+                transaction.getConfirmation(),
+                BitcoinService.CONFIRMATION_NEEDED_COUNT
+            }, locale);
+      }
+      return message;
     }
     if (transaction.isProvided()) {
       return messageSource.getMessage("transaction.provided", null, locale);
