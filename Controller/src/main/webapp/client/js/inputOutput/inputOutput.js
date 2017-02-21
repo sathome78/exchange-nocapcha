@@ -98,5 +98,12 @@ function InputOutputClass(currentCurrencyPair) {
             e.preventDefault();
             that.getAndShowInputOutputData(true, null, 'FORWARD');
         });
+        $('#inputoutput-table').on('click', '#revokeInvoiceButton', function (e) {
+            e.preventDefault();
+            var $form = $(this).parents('#inputoutput-center-tableBody__form');
+            var $action = $form.find('input[name=action]');
+            $action.attr("value", "revoke");
+            $form[0].submit();
+        });
     })(currentCurrencyPair);
 }

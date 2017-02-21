@@ -33,6 +33,9 @@
 
 
                         </form>
+                        <div id="clearFormDialog">
+                            <loc:message code="news.clearform.prompt"/>
+                        </div>
                         <%--<button id="submitImage" type="button">submit</button>--%>
 
 

@@ -3,6 +3,7 @@ package me.exrates.service;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 
@@ -39,4 +40,6 @@ public interface CurrencyService {
     String amountToString(BigDecimal amount, String currency);
 
     int resolvePrecision(String currency);
+
+    List<TransferLimitDto> retrieveMinTransferLimits(List<Integer> currencyIds);
 }

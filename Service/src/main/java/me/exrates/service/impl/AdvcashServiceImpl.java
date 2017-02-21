@@ -80,6 +80,7 @@ public class AdvcashServiceImpl implements AdvcashService{
     }
 
     @Override
+    @Transactional
     public RedirectView preparePayment(CreditsOperation creditsOperation, String email) {
 
         Transaction transaction = transactionService.createTransactionRequest(creditsOperation);
@@ -117,6 +118,7 @@ public class AdvcashServiceImpl implements AdvcashService{
     }
 
     @Override
+    @Transactional
     public Transaction preparePaymentTransactionRequest(CreditsOperation creditsOperation) {
         return transactionService.createTransactionRequest(creditsOperation);
     }

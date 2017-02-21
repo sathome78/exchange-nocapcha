@@ -885,6 +885,11 @@ td.blue-white {
     max-width: 6%;
 }
 
+.col-08 {
+    width: 8%;
+    max-width: 8%;
+}
+
 .col-2 {
     width: 10%;
     max-width: 10%;
@@ -2160,4 +2165,8 @@ textarea#remark {
 
 #invoiceInfoTable tr td:first-child {
     width: 200px;
+}
+
+.ui-dialog[aria-describedby="clearFormDialog"] {
+    z-index: 5000;
 }

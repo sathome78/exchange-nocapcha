@@ -1,6 +1,7 @@
 package me.exrates.model;
 
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.TransactionSourceType;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -10,175 +11,189 @@ import java.util.Optional;
  */
 public class CreditsOperation {
 
-    private final User user;
-    private final BigDecimal amount;
-    private final BigDecimal commissionAmount;
-    private final OperationType operationType;
-    private final Commission commission;
-    private final Currency currency;
-    private final Merchant merchant;
-    private final Optional<String> destination;
-    private final Optional<MerchantImage> merchantImage;
+  private final User user;
+  private final BigDecimal amount;
+  private final BigDecimal commissionAmount;
+  private final OperationType operationType;
+  private final Commission commission;
+  private final Currency currency;
+  private final Merchant merchant;
+  private final Optional<String> destination;
+  private final Optional<MerchantImage> merchantImage;
+  private final TransactionSourceType transactionSourceType;
 
-    private CreditsOperation(Builder builder) {
-        this.user = builder.user;
-        this.amount = builder.amount;
-        this.commissionAmount = builder.commissionAmount;
-        this.operationType = builder.operationType;
-        this.commission = builder.commission;
-        this.currency = builder.currency;
-        this.merchant = builder.merchant;
-        this.destination = builder.destination == null ?
-                Optional.empty() : builder.destination;
-        this.merchantImage = builder.merchantImage == null ?
-                Optional.empty() : builder.merchantImage;
+  private CreditsOperation(Builder builder) {
+    this.user = builder.user;
+    this.amount = builder.amount;
+    this.commissionAmount = builder.commissionAmount;
+    this.operationType = builder.operationType;
+    this.commission = builder.commission;
+    this.currency = builder.currency;
+    this.merchant = builder.merchant;
+    this.destination = builder.destination == null ?
+        Optional.empty() : builder.destination;
+    this.merchantImage = builder.merchantImage == null ?
+        Optional.empty() : builder.merchantImage;
+    this.transactionSourceType = builder.transactionSourceType;
+  }
 
+  public User getUser() {
+    return user;
+  }
+
+  public BigDecimal getAmount() {
+    return amount;
+  }
+
+  public BigDecimal getCommissionAmount() {
+    return commissionAmount;
+  }
+
+  public OperationType getOperationType() {
+    return operationType;
+  }
+
+  public Commission getCommission() {
+    return commission;
+  }
+
+  public Currency getCurrency() {
+    return currency;
+  }
+
+  public Merchant getMerchant() {
+    return merchant;
+  }
+
+  public Optional<String> getDestination() {
+    return destination;
+  }
+
+  public Optional<MerchantImage> getMerchantImage() {
+    return merchantImage;
+  }
+
+  public TransactionSourceType getTransactionSourceType() {
+    return transactionSourceType;
+  }
+
+  public static class Builder {
+
+    private User user;
+    private BigDecimal amount;
+    private BigDecimal commissionAmount;
+    private OperationType operationType;
+    private Commission commission;
+    private Currency currency;
+    private Merchant merchant;
+    private Optional<String> destination;
+    private Optional<MerchantImage> merchantImage;
+    private TransactionSourceType transactionSourceType;
+
+    public Builder user(User user) {
+      this.user = user;
+      return this;
     }
 
-    public User getUser() {
-        return user;
+    public Builder amount(BigDecimal amount) {
+      this.amount = amount;
+      return this;
     }
 
-    public BigDecimal getAmount() {
-        return amount;
+    public Builder commissionAmount(BigDecimal commissionAmount) {
+      this.commissionAmount = commissionAmount;
+      return this;
     }
 
-    public BigDecimal getCommissionAmount() {
-        return commissionAmount;
+    public Builder operationType(OperationType operationType) {
+      this.operationType = operationType;
+      return this;
     }
 
-    public OperationType getOperationType() {
-        return operationType;
+    public Builder commission(Commission commission) {
+      this.commission = commission;
+      return this;
     }
 
-    public Commission getCommission() {
-        return commission;
+    public Builder currency(Currency currency) {
+      this.currency = currency;
+      return this;
     }
 
-    public Currency getCurrency() {
-        return currency;
+    public Builder merchant(Merchant merchant) {
+      this.merchant = merchant;
+      return this;
     }
 
-    public Merchant getMerchant() {
-        return merchant;
+    public Builder destination(String destination) {
+      this.destination = Optional.ofNullable(destination);
+      return this;
     }
 
-    public Optional<String> getDestination() {
-        return destination;
+    public Builder merchantImage(MerchantImage merchantImage) {
+      this.merchantImage = Optional.ofNullable(merchantImage);
+      return this;
     }
 
-    public Optional<MerchantImage> getMerchantImage() {
-        return merchantImage;
+    public Builder transactionSourceType(TransactionSourceType transactionSourceType) {
+      this.transactionSourceType = transactionSourceType;
+      return this;
     }
 
-    public static class Builder {
-
-        private User user;
-        private BigDecimal amount;
-        private BigDecimal commissionAmount;
-        private OperationType operationType;
-        private Commission commission;
-        private Currency currency;
-        private Merchant merchant;
-        private Optional<String> destination;
-        private Optional<MerchantImage> merchantImage;
-
-        public Builder user(User user) {
-            this.user = user;
-            return this;
-        }
-
-        public Builder amount(BigDecimal amount) {
-            this.amount = amount;
-            return this;
-        }
-
-        public Builder commissionAmount(BigDecimal commissionAmount) {
-            this.commissionAmount = commissionAmount;
-            return this;
-        }
-
-        public Builder operationType(OperationType operationType) {
-            this.operationType = operationType;
-            return this;
-        }
-
-        public Builder commission(Commission commission) {
-            this.commission = commission;
-            return this;
-        }
-
-        public Builder currency(Currency currency) {
-            this.currency = currency;
-            return this;
-        }
-
-        public Builder merchant(Merchant merchant) {
-            this.merchant = merchant;
-            return this;
-        }
-
-        public Builder destination(String destination) {
-            this.destination = Optional.ofNullable(destination);
-            return this;
-        }
-
-        public Builder merchantImage(MerchantImage merchantImage) {
-            this.merchantImage = Optional.ofNullable(merchantImage);
-            return this;
-        }
-
-        public CreditsOperation build() {
-            return new CreditsOperation(this);
-        }
+    public CreditsOperation build() {
+      return new CreditsOperation(this);
     }
+  }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
 
-        CreditsOperation that = (CreditsOperation) o;
+    CreditsOperation that = (CreditsOperation) o;
 
-        if (user != null ? !user.equals(that.user) : that.user != null) return false;
-        if (amount != null ? !amount.equals(that.amount) : that.amount != null) return false;
-        if (commissionAmount != null ? !commissionAmount.equals(that.commissionAmount) : that.commissionAmount != null)
-            return false;
-        if (operationType != that.operationType) return false;
-        if (commission != null ? !commission.equals(that.commission) : that.commission != null) return false;
-        if (currency != null ? !currency.equals(that.currency) : that.currency != null) return false;
-        if (merchant != null ? !merchant.equals(that.merchant) : that.merchant != null) return false;
-        if (destination != null ? !destination.equals(that.destination) : that.destination != null) return false;
-        return merchantImage != null ? merchantImage.equals(that.merchantImage) : that.merchantImage == null;
+    if (user != null ? !user.equals(that.user) : that.user != null) return false;
+    if (amount != null ? !amount.equals(that.amount) : that.amount != null) return false;
+    if (commissionAmount != null ? !commissionAmount.equals(that.commissionAmount) : that.commissionAmount != null)
+      return false;
+    if (operationType != that.operationType) return false;
+    if (commission != null ? !commission.equals(that.commission) : that.commission != null) return false;
+    if (currency != null ? !currency.equals(that.currency) : that.currency != null) return false;
+    if (merchant != null ? !merchant.equals(that.merchant) : that.merchant != null) return false;
+    if (destination != null ? !destination.equals(that.destination) : that.destination != null) return false;
+    if (transactionSourceType != null ? !transactionSourceType.equals(that.transactionSourceType) : that.transactionSourceType != null) return false;
+    return merchantImage != null ? merchantImage.equals(that.merchantImage) : that.merchantImage == null;
 
-    }
+  }
 
-    @Override
-    public int hashCode() {
-        int result = user != null ? user.hashCode() : 0;
-        result = 31 * result + (amount != null ? amount.hashCode() : 0);
-        result = 31 * result + (commissionAmount != null ? commissionAmount.hashCode() : 0);
-        result = 31 * result + (operationType != null ? operationType.hashCode() : 0);
-        result = 31 * result + (commission != null ? commission.hashCode() : 0);
-        result = 31 * result + (currency != null ? currency.hashCode() : 0);
-        result = 31 * result + (merchant != null ? merchant.hashCode() : 0);
-        result = 31 * result + (destination != null ? destination.hashCode() : 0);
-        result = 31 * result + (merchantImage != null ? merchantImage.hashCode() : 0);
-        return result;
-    }
+  @Override
+  public int hashCode() {
+    int result = user != null ? user.hashCode() : 0;
+    result = 31 * result + (amount != null ? amount.hashCode() : 0);
+    result = 31 * result + (commissionAmount != null ? commissionAmount.hashCode() : 0);
+    result = 31 * result + (operationType != null ? operationType.hashCode() : 0);
+    result = 31 * result + (commission != null ? commission.hashCode() : 0);
+    result = 31 * result + (currency != null ? currency.hashCode() : 0);
+    result = 31 * result + (merchant != null ? merchant.hashCode() : 0);
+    result = 31 * result + (destination != null ? destination.hashCode() : 0);
+    result = 31 * result + (merchantImage != null ? merchantImage.hashCode() : 0);
+    result = 31 * result + (transactionSourceType != null ? transactionSourceType.hashCode() : 0);
+    return result;
+  }
 
-    @Override
-    public String toString() {
-        return "CreditsOperation{" +
-                "user=" + user +
-                ", amount=" + amount +
-                ", commissionAmount=" + commissionAmount +
-                ", operationType=" + operationType +
-                ", commission=" + commission +
-                ", currency=" + currency +
-                ", merchant=" + merchant +
-                ", destination=" + destination +
-                ", merchantImage=" + merchantImage +
-                '}';
-    }
+  @Override
+  public String toString() {
+    return "CreditsOperation{" +
+        "user=" + user +
+        ", amount=" + amount +
+        ", commissionAmount=" + commissionAmount +
+        ", operationType=" + operationType +
+        ", commission=" + commission +
+        ", currency=" + currency +
+        ", merchant=" + merchant +
+        ", destination=" + destination +
+        ", merchantImage=" + merchantImage +
+        ", transactionSourceType=" + transactionSourceType +
+        '}';
+  }
 }

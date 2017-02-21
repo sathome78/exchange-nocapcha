@@ -11,6 +11,7 @@ import me.exrates.model.form.AuthorityOptionsForm;
 import me.exrates.security.service.UserSecureServiceImpl;
 import me.exrates.service.*;
 import me.exrates.service.exception.OrderDeletingException;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -779,8 +780,17 @@ public class AdminController {
 
     @RequestMapping(value = "/2a8fy7b07dxe44/invoiceRequests")
     @ResponseBody
-    public List<InvoiceRequest> invoiceRequests() {
-        return invoiceService.findAllInvoiceRequests();
+    public List<InvoiceRequest> invoiceRequests(
+        @RequestParam(required = false) String invoiceRequestStatusSetType) {
+        if (StringUtils.isEmpty(invoiceRequestStatusSetType)) {
+            return invoiceService.findAllInvoiceRequests();
+        } else {
+            List<InvoiceRequestStatusEnum> invoiceRequestStatusList = InvoiceRequestStatusEnum.getStatusSet(invoiceRequestStatusSetType);
+            List<Integer> invoiceRequestStatusIdList = invoiceRequestStatusList.stream()
+                .map(e -> e.getCode())
+                .collect(Collectors.toList());
+            return invoiceService.findAllByStatus(invoiceRequestStatusIdList);
+        }
     }
 
     @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinConfirmation")

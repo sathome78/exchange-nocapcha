@@ -1,35 +1,52 @@
 package me.exrates.service;
 
+import me.exrates.model.ClientBank;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.InvoiceRequest;
 import me.exrates.model.Transaction;
+import me.exrates.model.enums.UserActionOnInvoiceEnum;
+import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.InvoiceData;
-import org.springframework.transaction.annotation.Transactional;
+import me.exrates.service.exception.invoice.IllegalInvoiceRequestStatusException;
+import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 
 public interface InvoiceService {
 
-    Transaction createPaymentInvoice(InvoiceData invoiceData);
+  Transaction createPaymentInvoice(InvoiceData invoiceData);
 
-    boolean provideTransaction(int id, String acceptanceUserEmail);
+  void acceptInvoiceAndProvideTransaction(int invoiceId, int transactionId, String acceptanceUserEmail) throws Exception;
 
-    List<InvoiceRequest> findAllInvoiceRequests();
+  void declineInvoice(int invoiceId, int transactionId, String acceptanceUserEmail) throws Exception;
 
-    List<InvoiceBank> findBanksForCurrency(Integer currencyId);
+  Integer clearExpiredInvoices(Integer intervalMinutes) throws Exception;
 
-    @Transactional(readOnly = true)
-    InvoiceBank findBankById(Integer bankId);
+  List<InvoiceRequest> findAllInvoiceRequests();
 
-    Optional<InvoiceRequest> findRequestById(Integer transactionId);
+  List<InvoiceBank> findBanksForCurrency(Integer currencyId);
 
-    @Transactional(readOnly = true)
-    Optional<InvoiceRequest> findUnconfirmedRequestById(Integer transactionId);
+  InvoiceBank findBankById(Integer bankId);
 
-    @Transactional
-    void updateConfirmationInfo(InvoiceRequest invoiceRequest);
+  List<ClientBank> findClientBanksForCurrency(Integer currencyId);
 
-    List<InvoiceRequest> findAllRequestsForUser(String userEmail);
+
+  Optional<InvoiceRequest> findRequestById(Integer transactionId);
+
+  Integer getInvoiceRequestStatusByInvoiceId(Integer invoiceId);
+
+  Optional<InvoiceRequest> findRequestByIdAndBlock(Integer transactionId);
+
+  List<InvoiceRequest> findAllByStatus(List<Integer> invoiceRequestStatusIdList);
+
+  List<InvoiceRequest> findAllRequestsForUser(String userEmail);
+
+  void userActionOnInvoice(
+          InvoiceConfirmData invoiceConfirmData,
+          UserActionOnInvoiceEnum userActionOnInvoiceEnum, Locale locale) throws IllegalInvoiceRequestStatusException, InvoiceNotFoundException;
+
+    void updateReceiptScan(Integer invoiceId, String receiptScanPath);
 }

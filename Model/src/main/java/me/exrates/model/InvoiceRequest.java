@@ -1,6 +1,10 @@
 package me.exrates.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import me.exrates.model.enums.InvoiceRequestStatusEnum;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.time.LocalDateTime;
@@ -8,8 +12,9 @@ import java.time.LocalDateTime;
 /**
  * Created by ogolv on 25.07.2016.
  */
+@Getter @Setter
+@NoArgsConstructor
 public class InvoiceRequest {
-
     private Transaction transaction;
     private Integer userId;
     private String userEmail;
@@ -21,98 +26,14 @@ public class InvoiceRequest {
     private String userFullName;
     private String remark;
     private String payerBankName;
+    private String payerBankCode;
     private String payerAccount;
+    private InvoiceRequestStatusEnum invoiceRequestStatus;
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    private LocalDateTime statusUpdateDate;
+    private String receiptScanPath;
 
-    public InvoiceRequest() {
-    }
 
-    public Transaction getTransaction() {
-        return transaction;
-    }
-
-    public void setTransaction(Transaction transaction) {
-        this.transaction = transaction;
-    }
-
-    public String getUserEmail() {
-        return userEmail;
-    }
-
-    public void setUserEmail(String userEmail) {
-        this.userEmail = userEmail;
-    }
-
-    public String getAcceptanceUserEmail() {
-        return acceptanceUserEmail;
-    }
-
-    public void setAcceptanceUserEmail(String acceptanceUserEmail) {
-        this.acceptanceUserEmail = acceptanceUserEmail;
-    }
-
-    public LocalDateTime getAcceptanceTime() {
-        return acceptanceTime;
-    }
-
-    public void setAcceptanceTime(LocalDateTime acceptanceTime) {
-        this.acceptanceTime = acceptanceTime;
-    }
-
-    public Integer getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Integer userId) {
-        this.userId = userId;
-    }
-
-    public Integer getAcceptanceUserId() {
-        return acceptanceUserId;
-    }
-
-    public void setAcceptanceUserId(Integer acceptanceUserId) {
-        this.acceptanceUserId = acceptanceUserId;
-    }
-
-    public InvoiceBank getInvoiceBank() {
-        return invoiceBank;
-    }
-
-    public void setInvoiceBank(InvoiceBank invoiceBank) {
-        this.invoiceBank = invoiceBank;
-    }
-
-    public String getUserFullName() {
-        return userFullName;
-    }
-
-    public void setUserFullName(String userFullName) {
-        this.userFullName = userFullName;
-    }
-
-    public String getRemark() {
-        return remark;
-    }
-
-    public void setRemark(String remark) {
-        this.remark = remark;
-    }
-
-    public String getPayerBankName() {
-        return payerBankName;
-    }
-
-    public void setPayerBankName(String payerBankName) {
-        this.payerBankName = payerBankName;
-    }
-
-    public String getPayerAccount() {
-        return payerAccount;
-    }
-
-    public void setPayerAccount(String payerAccount) {
-        this.payerAccount = payerAccount;
-    }
 
     @Override
     public boolean equals(Object o) {
@@ -135,7 +56,12 @@ public class InvoiceRequest {
         if (remark != null ? !remark.equals(that.remark) : that.remark != null) return false;
         if (payerBankName != null ? !payerBankName.equals(that.payerBankName) : that.payerBankName != null)
             return false;
-        return payerAccount != null ? payerAccount.equals(that.payerAccount) : that.payerAccount == null;
+        if (invoiceRequestStatus != null ? !invoiceRequestStatus.equals(that.invoiceRequestStatus) : that.invoiceRequestStatus != null)
+            return false;
+        if (payerBankCode != null ? !payerBankCode.equals(that.payerBankCode) : that.payerBankCode != null)
+            return false;
+        if (payerAccount != null ? !payerAccount.equals(that.payerAccount) : that.payerAccount != null) return false;
+        return receiptScanPath != null ? receiptScanPath.equals(that.receiptScanPath) : that.receiptScanPath == null;
     }
 
     @Override
@@ -150,7 +76,10 @@ public class InvoiceRequest {
         result = 31 * result + (userFullName != null ? userFullName.hashCode() : 0);
         result = 31 * result + (remark != null ? remark.hashCode() : 0);
         result = 31 * result + (payerBankName != null ? payerBankName.hashCode() : 0);
+        result = 31 * result + (payerBankCode != null ? payerBankCode.hashCode() : 0);
         result = 31 * result + (payerAccount != null ? payerAccount.hashCode() : 0);
+        result = 31 * result + (invoiceRequestStatus != null ? invoiceRequestStatus.hashCode() : 0);
+        result = 31 * result + (receiptScanPath != null ? receiptScanPath.hashCode() : 0);
         return result;
     }
 
@@ -167,7 +96,9 @@ public class InvoiceRequest {
                 ", userFullName='" + userFullName + '\'' +
                 ", remark='" + remark + '\'' +
                 ", payerBankName='" + payerBankName + '\'' +
+                ", payerBankCode='" + payerBankCode + '\'' +
                 ", payerAccount='" + payerAccount + '\'' +
+                ", receiptScanPath='" + receiptScanPath + '\'' +
                 '}';
     }
 }

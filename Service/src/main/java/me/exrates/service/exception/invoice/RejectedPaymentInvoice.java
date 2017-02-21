@@ -1,4 +1,4 @@
-package me.exrates.service.exception;
+package me.exrates.service.exception.invoice;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)

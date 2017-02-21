@@ -106,7 +106,6 @@ public class WalletController {
     @ResponseBody
     public ResponseEntity<Map<String, String>> submitTransfer(@RequestParam Integer walletId,
                                                               @RequestParam String nickname,
-                                                              @RequestParam Integer currencyId,
                                                               @RequestParam BigDecimal amount,
                                                               Principal principal,
                                                               HttpServletRequest request) {
@@ -118,7 +117,7 @@ public class WalletController {
         if (nickname.equals(principalNickname)) {
             throw new InvalidNicknameException(messageSource.getMessage("transfer.selfNickname", null, localeResolver.resolveLocale(request)));
         }
-        String result = walletService.transferCostsToUser(walletId, nickname, currencyId, amount, localeResolver.resolveLocale(request));
+        String result = walletService.transferCostsToUser(walletId, nickname, amount, localeResolver.resolveLocale(request));
         LOG.debug(result);
 
         return new ResponseEntity<>(Collections.singletonMap("result", result), HttpStatus.OK);

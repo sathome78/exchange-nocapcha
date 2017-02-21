@@ -49,6 +49,7 @@ public class OkPayServiceImpl implements OkPayService {
 
 
     @Override
+    @Transactional
     public RedirectView preparePayment(CreditsOperation creditsOperation, String email) {
 
         logger.debug("Begin method: preparePayment.");

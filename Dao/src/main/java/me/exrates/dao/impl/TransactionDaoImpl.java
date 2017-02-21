@@ -171,15 +171,15 @@ public final class TransactionDaoImpl implements TransactionDao {
     @Override
     public Transaction create(Transaction transaction) {
         final String sql = "INSERT INTO TRANSACTION (user_wallet_id, company_wallet_id, amount, commission_amount, " +
-                " commission_id, operation_type_id, currency_id, merchant_id, datetime, order_id, confirmation, provided," +
-                " active_balance_before, reserved_balance_before, company_balance_before, company_commission_balance_before, " +
-                " source_type, " +
-                " source_id)" +
-                "   VALUES (:userWallet,:companyWallet,:amount,:commissionAmount,:commission,:operationType, :currency," +
-                "   :merchant, :datetime, :order_id, :confirmation, :provided," +
-                "   :active_balance_before, :reserved_balance_before, :company_balance_before, :company_commission_balance_before," +
-                "   :source_type, " +
-                "   :source_id)";
+            " commission_id, operation_type_id, currency_id, merchant_id, datetime, order_id, confirmation, provided," +
+            " active_balance_before, reserved_balance_before, company_balance_before, company_commission_balance_before, " +
+            " source_type, " +
+            " source_id)" +
+            "   VALUES (:userWallet,:companyWallet,:amount,:commissionAmount,:commission,:operationType, :currency," +
+            "   :merchant, :datetime, :order_id, :confirmation, :provided," +
+            "   :active_balance_before, :reserved_balance_before, :company_balance_before, :company_commission_balance_before," +
+            "   :source_type, " +
+            "   :source_id)";
         final KeyHolder keyHolder = new GeneratedKeyHolder();
         final Map<String, Object> params = new HashMap<String, Object>() {
             {
@@ -208,6 +208,33 @@ public final class TransactionDaoImpl implements TransactionDao {
             return transaction;
         }
         throw new RuntimeException("Transaction creating failed");
+    }
+
+    @Override
+    public boolean updateForProvided(Transaction transaction) {
+        final String sql = "UPDATE TRANSACTION " +
+            " SET provided = :provided, " +
+            "     active_balance_before = :active_balance_before, " +
+            "     reserved_balance_before = :reserved_balance_before, " +
+            "     company_balance_before = :company_balance_before, " +
+            "     company_commission_balance_before = :company_commission_balance_before, " +
+            "     source_type = :source_type, " +
+            "     source_id = :source_id " +
+            " WHERE id = :id";
+        final int PROVIDED = 1;
+        final Map<String, Object> params = new HashMap<String, Object>() {
+            {
+                put("provided", PROVIDED);
+                put("id", transaction.getId());
+                put("active_balance_before", transaction.getActiveBalanceBefore());
+                put("reserved_balance_before", transaction.getReservedBalanceBefore());
+                put("company_balance_before", transaction.getCompanyBalanceBefore());
+                put("company_commission_balance_before", transaction.getCompanyCommissionBalanceBefore());
+                put("source_type", transaction.getSourceType().name());
+                put("source_id", transaction.getSourceId());
+            }
+        };
+        return jdbcTemplate.update(sql, params) > 0;
     }
 
     @Override
@@ -509,6 +536,15 @@ public final class TransactionDaoImpl implements TransactionDao {
         String sql = "SELECT MAX(TRANSACTION.commission_amount)" +
                 " FROM TRANSACTION ";
         return jdbcTemplate.queryForObject(sql, Collections.EMPTY_MAP, BigDecimal.class);
+    }
+
+    @Override
+    public void setSourceId(Integer trasactionId, Integer sourceId) {
+        final String sql = "UPDATE TRANSACTION SET source_id = :source_id WHERE id  = :id";
+        final Map<String, Integer> params = new HashMap<>();
+        params.put("id", trasactionId);
+        params.put("source_id", sourceId);
+        jdbcTemplate.update(sql, params);
     }
 
 }

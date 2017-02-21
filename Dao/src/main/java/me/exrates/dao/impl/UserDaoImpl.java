@@ -980,4 +980,24 @@ public class UserDaoImpl implements UserDao {
         Map<String, Integer> namedParameters = Collections.singletonMap("id", id);
         return jdbcTemplate.update(sql, namedParameters) > 0;
     }
+
+    @Override
+    public Integer retrieveNicknameSearchLimit() {
+        String sql = "SELECT param_value FROM API_PARAMS WHERE param_name = 'NICKNAME_SEARCH_LIMIT'";
+        return jdbcTemplate.queryForObject(sql, Collections.EMPTY_MAP, Integer.class);
+    }
+
+    @Override
+    public List<String> findNicknamesByPart(String part, Integer limit) {
+        String sql = "SELECT DISTINCT nickname FROM " +
+                "  (SELECT nickname FROM USER WHERE nickname LIKE :part_begin " +
+                "  UNION " +
+                "  SELECT nickname FROM USER WHERE nickname LIKE :part_middle) AS nicks " +
+                "  LIMIT :lim ";
+        Map<String, Object> params = new HashMap<>();
+        params.put("part_begin", part + "%");
+        params.put("part_middle", "%" + part + "%");
+        params.put("lim", limit);
+        return jdbcTemplate.query(sql, params, (rs, rowNum) -> rs.getString("nickname"));
+    }
 }

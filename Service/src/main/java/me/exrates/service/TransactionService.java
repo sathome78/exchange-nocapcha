@@ -8,6 +8,7 @@ import me.exrates.model.dto.DataTable;
 import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.enums.TransactionType;
 import me.exrates.model.vo.CacheData;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -67,4 +68,6 @@ public interface TransactionService {
     BigDecimal maxCommissionAmount();
 
     List<AccountStatementDto> getAccountStatement(Integer walletId, Integer offset, Integer limit, Locale locale);
+
+    void setSourceId(Integer trasactionId, Integer sourceId);
 }

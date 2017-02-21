@@ -51,6 +51,7 @@ public class LiqpayServiceImpl implements LiqpayService {
     private PendingPaymentDao pendingPaymentDao;
 
 
+    @Transactional
     public RedirectView preparePayment(CreditsOperation creditsOperation, String email){
         Transaction transaction = transactionService.createTransactionRequest(creditsOperation);
 

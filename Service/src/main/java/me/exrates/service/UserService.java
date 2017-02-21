@@ -188,6 +188,9 @@ public interface UserService {
 
     void updateAdminAuthorities(List<AdminAuthorityOption> options, Integer userId, String currentUserEmail);
 
+    @Transactional(readOnly = true)
+    List<String> findNicknamesByPart(String part);
+
     UserRole getCurrentUserRole();
 
     List<Integer> resolveRoleIdsByName(String roleName);
