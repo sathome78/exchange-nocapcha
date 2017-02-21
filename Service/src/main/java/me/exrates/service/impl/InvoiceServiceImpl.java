@@ -259,7 +259,12 @@ public class InvoiceServiceImpl implements InvoiceService {
       invoiceRequest.setRemark(StringEscapeUtils.escapeHtml(invoiceConfirmData.getRemark()));
       updateConfirmationInfo(invoiceRequest);
       MultipartFile receiptScan = invoiceConfirmData.getReceiptScan();
-      if ( !(receiptScan == null || receiptScan.isEmpty())) {
+      if ( receiptScan == null || receiptScan.isEmpty()) {
+          throw new FileLoadingException(messageSource.getMessage("merchants.invoice.error.fieldsNotField", null,
+                  locale));
+      }
+
+
         if (!userFilesService.checkFileValidity(receiptScan) || receiptScan.getSize() > 1048576L) {
           throw new FileLoadingException(messageSource.getMessage("merchants.errorUploadReceipt", null,
                   locale));
@@ -270,7 +275,7 @@ public class InvoiceServiceImpl implements InvoiceService {
           throw new FileLoadingException(messageSource.getMessage("merchants.errorUploadReceipt", null,
                   locale));
         }
-      }
+
     }
   }
 

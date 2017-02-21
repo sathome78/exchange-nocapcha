@@ -27,6 +27,10 @@ $(function () {
         checkFields();
     });
 
+    $('#receiptScan').on('change', function () {
+        checkFields();
+    });
+
     $('#invoiceCancel').click(function () {
         window.location = '/dashboard?startupPage=myhistory&startupSubPage=myinputoutput';
     });
@@ -75,8 +79,9 @@ function checkFields() {
     var payerBankCodeTest = validateString($('#bankCode').val(), BANK_CODE_REGEX, $('#bankCodeError'), true);
     var payerAccountTest = validateString($('#userAccount').val(), DIGITS_ONLY_REGEX, $('#userAccountError'), false);
     var payerFullNameTest = validateString($('#userFullName').val(), NAME_REGEX, $('#userFullNameError'), false);
+    var fileAttachedTest = checkFileInput("receiptScan");
 
-    if (payerBankTest && payerAccountTest && payerFullNameTest && payerBankCodeTest) {
+    if (payerBankTest && payerAccountTest && payerFullNameTest && payerBankCodeTest && fileAttachedTest) {
         $('#invoiceSubmit').prop('disabled', false);
     } else {
         $('#invoiceSubmit').prop('disabled', true);
@@ -95,5 +100,14 @@ function validateString(str, regex, errorDiv, allowAbsent) {
         $(errorDiv).show();
         return false;
     }
+
+}
+
+function checkFileInput(inputId) {
+    if( document.getElementById(inputId).files.length == 0 ){
+        console.log("no files selected");
+        return false;
+    }
+    return true;
 
 }
