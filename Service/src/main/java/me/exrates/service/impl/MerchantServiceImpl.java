@@ -475,7 +475,9 @@ public class MerchantServiceImpl implements MerchantService {
 
     public Optional<CreditsOperation> prepareCreditsOperation(Payment payment,String userEmail) {
         return prepareCreditsOperation(payment, BigDecimal.ZERO, userEmail);
-    }private BigDecimal addMinimalCommission(BigDecimal commissionAmount, String name) {
+    }
+
+    private BigDecimal addMinimalCommission(BigDecimal commissionAmount, String name) {
         if (commissionAmount.compareTo(BigDecimal.ZERO) == 0) {
             if (currencyService.resolvePrecision(name) == 2) {
                 commissionAmount = commissionAmount.add(new BigDecimal("0.01"));

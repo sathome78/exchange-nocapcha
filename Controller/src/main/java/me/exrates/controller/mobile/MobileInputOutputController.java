@@ -1,5 +1,6 @@
 package me.exrates.controller.mobile;
 
+import me.exrates.controller.exception.InputRequestLimitExceededException;
 import me.exrates.controller.exception.InvalidNicknameException;
 import me.exrates.controller.exception.InvoiceNotFoundException;
 import me.exrates.controller.exception.NotEnoughMoneyException;
@@ -17,14 +18,12 @@ import me.exrates.model.vo.InvoiceData;
 import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.*;
 import me.exrates.service.WalletService;
-import me.exrates.service.exception.CurrencyPairNotFoundException;
-import me.exrates.service.exception.InvalidAmountException;
-import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
-import me.exrates.service.exception.UserNotFoundException;
+import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.ApiError;
 import me.exrates.service.exception.api.ErrorCode;
 import me.exrates.service.exception.invoice.IllegalInvoiceRequestStatusException;
 import me.exrates.service.merchantPayment.MerchantPaymentService;
+import me.exrates.service.util.RestApiUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -287,16 +286,20 @@ public class MobileInputOutputController {
      */
     @RequestMapping(value = "/preparePayment", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<MerchantInputResponseDto> preparePayment(@RequestBody @Valid PaymentDto paymentDto) {
+        String userEmail = getAuthenticatedUserEmail();
+        Locale userLocale = userService.getUserLocaleForMobile(userEmail);
+        if (!merchantService.checkInputRequestsLimit(paymentDto.getMerchant(), userEmail)){
+            throw new InputRequestLimitExceededException(messageSource.getMessage("merchants.InputRequestsLimit", null, userLocale));
+        }
+
         Payment payment = new Payment();
         payment.setCurrency(paymentDto.getCurrency());
         payment.setMerchant(paymentDto.getMerchant());
         payment.setSum(paymentDto.getSum());
         payment.setMerchantImage(paymentDto.getMerchantImage());
         payment.setOperationType(OperationType.INPUT);
-        String userEmail = getAuthenticatedUserEmail();
         String merchantName = merchantService.findById(payment.getMerchant()).getName();
         String beanName = String.join("", merchantName.split("[\\s.]+")).concat( "PaymentService");
-        Locale userLocale = userService.getUserLocaleForMobile(userEmail);
         final MerchantInputResponseDto result = merchantPaymentServices.get(beanName).preparePayment(userEmail, payment,
                 userLocale);
         return new ResponseEntity<>(result, OK);
@@ -409,13 +412,21 @@ public class MobileInputOutputController {
      * @apiUse InternalServerError
      */
     @RequestMapping(value = "/invoice/confirm", method = POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Void> confirmInvoice(
-        @RequestParam(required = false) String action,
-        @Valid InvoiceConfirmData invoiceConfirmData) throws me.exrates.service.exception.invoice.InvoiceNotFoundException, IllegalInvoiceRequestStatusException {
+    public ResponseEntity<Void> confirmInvoice(@Valid InvoiceConfirmData invoiceConfirmData) throws me.exrates.service.exception.invoice.InvoiceNotFoundException, IllegalInvoiceRequestStatusException {
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-        UserActionOnInvoiceEnum userActionOnInvoiceEnum = UserActionOnInvoiceEnum.convert(action);
-        invoiceService.userActionOnInvoice(invoiceConfirmData, userActionOnInvoiceEnum, userLocale);
+        invoiceService.userActionOnInvoice(invoiceConfirmData, UserActionOnInvoiceEnum.CONFIRM, userLocale);
+        return new ResponseEntity<>(OK);
+    }
+    @RequestMapping(value = "/invoice/revoke", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    public ResponseEntity<Void> revokeInvoice(@RequestBody Map<String, String> params) throws me.exrates.service.exception.invoice.InvoiceNotFoundException, IllegalInvoiceRequestStatusException {
+        String invoiceIdString = RestApiUtils.retrieveParamFormBody(params, "invoiceId", true);
+        Integer invoiceId = Integer.parseInt(invoiceIdString);
+        InvoiceConfirmData invoiceConfirmData = new InvoiceConfirmData();
+        invoiceConfirmData.setInvoiceId(invoiceId);
+        String userEmail = getAuthenticatedUserEmail();
+        Locale userLocale = userService.getUserLocaleForMobile(userEmail);
+        invoiceService.userActionOnInvoice(invoiceConfirmData, UserActionOnInvoiceEnum.REVOKE, userLocale);
         return new ResponseEntity<>(OK);
     }
 
@@ -479,6 +490,19 @@ public class MobileInputOutputController {
         return invoiceService.findAllRequestsForUser(getAuthenticatedUserEmail());
 
     }
+
+   /* @RequestMapping(value = "/invoice/details", method = GET)
+    public InvoiceDetailsDto findInvoiceRequestDetails(@RequestParam Integer invoiceId) {
+        Optional<InvoiceRequest> invoiceRequestResult = invoiceService.findRequestById(invoiceId);
+        if (!invoiceRequestResult.isPresent()) {
+            throw new InvoiceNotFoundException(String.format("Invoice with id %s not found", invoiceId));
+        }  {
+            InvoiceRequest invoiceRequest = invoiceRequestResult.get();
+        }
+
+
+
+    }*/
 
     @RequestMapping(value = "/invoice/withdraw", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Map<String, String>> withdrawInvoice(@RequestBody @Valid WithdrawInvoiceDto withdrawInvoiceDto) {
@@ -655,6 +679,22 @@ public class MobileInputOutputController {
     public ApiError invalidNicknameExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ApiError(ErrorCode.SELF_TRANSFER_NOT_ALLOWED, req.getRequestURL(), exception);
     }
+
+    @ResponseStatus(NOT_ACCEPTABLE)
+    @ExceptionHandler(MerchantCurrencyBlockedException.class)
+    @ResponseBody
+    public ApiError merchantCurrencyBlockedExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ApiError(ErrorCode.BLOCKED_CURRENCY_FOR_MERCHANT, req.getRequestURL(), exception);
+    }
+
+    @ResponseStatus(NOT_ACCEPTABLE)
+    @ExceptionHandler(InputRequestLimitExceededException.class)
+    @ResponseBody
+    public ApiError inputRequestLimitExceededExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ApiError(ErrorCode.INPUT_REQUEST_LIMIT_EXCEEDED, req.getRequestURL(), exception);
+    }
+
+
 
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
