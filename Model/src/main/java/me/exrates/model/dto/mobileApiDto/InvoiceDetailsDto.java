@@ -1,14 +1,13 @@
 package me.exrates.model.dto.mobileApiDto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import me.exrates.model.InvoiceBank;
 import me.exrates.model.InvoiceRequest;
 import me.exrates.model.enums.InvoiceRequestStatusEnum;
-
 import me.exrates.model.serializer.LocalDateTimeToLongSerializer;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 /**
  * Created by OLEG on 21.02.2017.
@@ -21,17 +20,26 @@ public class InvoiceDetailsDto {
     private Double commissionAmount;
     @JsonSerialize(using = LocalDateTimeToLongSerializer.class)
     private LocalDateTime creationTime;
+    @JsonInclude(NON_NULL)
     @JsonSerialize(using = LocalDateTimeToLongSerializer.class)
     private LocalDateTime acceptanceTime;
     private Integer targetBankId;
+    @JsonInclude(NON_NULL)
     private String userFullName;
+    @JsonInclude(NON_NULL)
     private String remark;
+    @JsonInclude(NON_NULL)
     private String payerBankName;
+    @JsonInclude(NON_NULL)
     private String payerBankCode;
+    @JsonInclude(NON_NULL)
     private String payerAccount;
+    @JsonInclude(NON_NULL)
     private InvoiceRequestStatusEnum invoiceRequestStatus;
+    @JsonInclude(NON_NULL)
     @JsonSerialize(using = LocalDateTimeToLongSerializer.class)
     private LocalDateTime statusUpdateDate;
+    @JsonInclude(NON_NULL)
     private String receiptScanPath;
 
     public InvoiceDetailsDto() {

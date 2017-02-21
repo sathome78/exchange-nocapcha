@@ -491,18 +491,15 @@ public class MobileInputOutputController {
 
     }
 
-   /* @RequestMapping(value = "/invoice/details", method = GET)
+    @RequestMapping(value = "/invoice/details", method = GET)
     public InvoiceDetailsDto findInvoiceRequestDetails(@RequestParam Integer invoiceId) {
         Optional<InvoiceRequest> invoiceRequestResult = invoiceService.findRequestById(invoiceId);
         if (!invoiceRequestResult.isPresent()) {
             throw new InvoiceNotFoundException(String.format("Invoice with id %s not found", invoiceId));
-        }  {
-            InvoiceRequest invoiceRequest = invoiceRequestResult.get();
         }
-
-
-
-    }*/
+        InvoiceRequest invoiceRequest = invoiceRequestResult.get();
+        return new InvoiceDetailsDto(invoiceRequest);
+    }
 
     @RequestMapping(value = "/invoice/withdraw", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Map<String, String>> withdrawInvoice(@RequestBody @Valid WithdrawInvoiceDto withdrawInvoiceDto) {
@@ -660,7 +657,7 @@ public class MobileInputOutputController {
     }
 
     @ResponseStatus(NOT_FOUND)
-    @ExceptionHandler(InvoiceNotFoundException.class)
+    @ExceptionHandler({InvoiceNotFoundException.class, me.exrates.service.exception.invoice.InvoiceNotFoundException.class})
     @ResponseBody
     public ApiError invoiceNotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
         return new ApiError(ErrorCode.INVOICE_NOT_FOUND, req.getRequestURL(), exception);
