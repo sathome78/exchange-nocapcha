@@ -3,7 +3,7 @@ package me.exrates.service.impl;
 import me.exrates.dao.TransactionDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
-import me.exrates.model.dto.DataTable;
+import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.enums.OperationType;

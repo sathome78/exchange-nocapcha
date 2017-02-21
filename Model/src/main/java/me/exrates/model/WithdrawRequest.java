@@ -1,6 +1,8 @@
 package me.exrates.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import me.exrates.model.enums.WithdrawalRequestStatus;
+import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.time.LocalDateTime;
 
@@ -10,6 +12,7 @@ import java.time.LocalDateTime;
 public class WithdrawRequest {
 
     private Transaction transaction;
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime acceptance;
     private Integer processedById;
     private String processedBy;

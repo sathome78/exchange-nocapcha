@@ -4,11 +4,10 @@ import me.exrates.model.CreditsOperation;
 import me.exrates.model.Merchant;
 import me.exrates.model.Transaction;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
-import me.exrates.model.dto.DataTable;
+import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.enums.TransactionType;
 import me.exrates.model.vo.CacheData;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;

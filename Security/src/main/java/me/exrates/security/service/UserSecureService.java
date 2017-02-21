@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import me.exrates.model.User;
-import me.exrates.model.dto.DataTable;
+import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.enums.UserRole;
 
 public interface UserSecureService {

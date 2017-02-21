@@ -4,6 +4,8 @@ import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.dataTable.DataTable;
+import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.*;
@@ -612,11 +614,21 @@ public class AdminController {
     return new ModelAndView("withdrawalRequests", params);
   }
 
-  @ResponseBody
-  @RequestMapping(value = "/2a8fy7b07dxe44/orderinfo", method = RequestMethod.GET)
-  public OrderInfoDto getOrderInfo(@RequestParam int id, HttpServletRequest request) {
-    return orderService.getOrderInfo(id, localeResolver.resolveLocale(request));
-  }
+    @RequestMapping(value = "/2a8fy7b07dxe44/withdrawRequests", method = GET)
+    @ResponseBody
+    public List<WithdrawRequest> findRequestByStatus(/*@RequestParam Integer requestStatus, */@RequestParam Map<String, String> params) {
+        params.forEach((key, value) -> LOG.debug(String.format("%s :: %s", key, value)));
+        DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
+        LOG.debug(dataTableParams);
+
+        return merchantService.findAllWithdrawRequests();
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/2a8fy7b07dxe44/orderinfo", method = RequestMethod.GET)
+    public OrderInfoDto getOrderInfo(@RequestParam int id, HttpServletRequest request) {
+        return orderService.getOrderInfo(id, localeResolver.resolveLocale(request));
+    }
 
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/orderdelete", method = RequestMethod.POST)

@@ -1,4 +1,4 @@
-package me.exrates.model.dto;
+package me.exrates.model.dto.dataTable;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)

@@ -1821,13 +1821,9 @@ form span.repass,  form span.repass-error{
 
 #withdrawalTable th, #withdrawalTable td,
 #withdrawalTable td button {
-    font-size: 9px;
     text-align: center;
 }
 
-#withdrawalTable td {
-    padding: 4px 6px;
-}
 
 .delete-order-info__modal {
     max-width: 520px;

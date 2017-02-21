@@ -22,7 +22,7 @@
 <main class="container">
     <div class="row">
         <%@include file='admin/left_side_menu.jsp' %>
-        <div class="col-md-10 content text-center admin-container">
+        <div class="col-md-8 col-sm-offset-1 content text-center admin-container">
             <h4><loc:message code="admin.withdrawRequests"/></h4>
             <table id="withdrawalTable">
                 <thead>
@@ -34,16 +34,11 @@
                     <th><loc:message code="withdrawal.currency"/></th>
                     <th><loc:message code="withdrawal.commission"/></th>
                     <th><loc:message code="withdrawal.merchant"/></th>
-                    <th><loc:message code="withdrawal.wallet"/></th>
                     <th><loc:message code="withdrawal.acceptanceDatetime"/></th>
                     <th><loc:message code="withdrawal.acceptanceUser"/></th>
-                    <th><loc:message code="withdrawal.status"/></th>
-                    <th hidden></th>
-                    <th hidden></th>
-                    <th hidden></th>
                 </tr>
                 </thead>
-                <tbody>
+                <%--<tbody>
                 <c:forEach items="${requests}" var="request">
                     <tr class="id_${request.transaction.id}">
                         <td>
@@ -140,12 +135,19 @@
                     </tr>
 
                 </c:forEach>
-                </tbody>
+                </tbody>--%>
             </table>
         </div>
     </div>
 
 </main>
+<div id="acceptRequestMessage" style="display: none">
+    <loc:message code="merchants.withdrawRequestAccept"/>
+</div>
+<div id="declineRequestMessage" style="display: none">
+    <loc:message code="merchants.withdrawRequestDecline"/>
+</div>
+
 <div id="accepted" style="display: none">
     <loc:message code="merchants.withdrawRequestAccepted"/>
 </div>
