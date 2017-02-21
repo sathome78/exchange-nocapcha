@@ -79,7 +79,8 @@ public class InvoiceController {
             addition = BigDecimal.valueOf(Math.random() * 899 + 100).setScale(0, BigDecimal.ROUND_DOWN);
         } else {
             addition = BigDecimal.ZERO;
-        }Optional<CreditsOperation> creditsOperationPrepared = merchantService
+        }
+        Optional<CreditsOperation> creditsOperationPrepared = merchantService
                 .prepareCreditsOperation(payment, addition,principal.getName());
         if (!creditsOperationPrepared.isPresent()) {
             redirectAttributes.addFlashAttribute("error","merchants.incorrectPaymentDetails");

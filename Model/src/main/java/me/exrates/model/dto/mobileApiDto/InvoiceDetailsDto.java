@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import me.exrates.model.InvoiceRequest;
 import me.exrates.model.enums.InvoiceRequestStatusEnum;
 import me.exrates.model.serializer.LocalDateTimeToLongSerializer;
+import org.apache.commons.lang3.StringEscapeUtils;
 
 import java.time.LocalDateTime;
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
@@ -54,7 +55,7 @@ public class InvoiceDetailsDto {
         this.acceptanceTime = invoiceRequest.getAcceptanceTime();
         this.targetBankId = invoiceRequest.getInvoiceBank().getId();
         this.userFullName = invoiceRequest.getUserFullName();
-        this.remark = invoiceRequest.getRemark();
+        this.remark = StringEscapeUtils.unescapeHtml4(invoiceRequest.getRemark());
         this.payerBankName = invoiceRequest.getPayerBankName();
         this.payerBankCode = invoiceRequest.getPayerBankCode();
         this.payerAccount = invoiceRequest.getPayerAccount();
