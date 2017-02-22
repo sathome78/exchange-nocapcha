@@ -114,15 +114,15 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Value("${mail_support.password}")
     String mailSupportPassword;
     @Value("${mail_info.host}")
-    String mailIhfoHost;
+    String mailInfoHost;
     @Value("${mail_info.port}")
-    String mailIhfoPort;
+    String mailInfoPort;
     @Value("${mail_info.protocol}")
-    String mailIhfoProtocol;
+    String mailInfoProtocol;
     @Value("${mail_info.user}")
-    String mailIhfoUser;
+    String mailInfoUser;
     @Value("${mail_info.password}")
-    String mailIhfoPassword;
+    String mailInfoPassword;
 
 
     @Bean
@@ -252,15 +252,15 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "InfoMailSender")
     public JavaMailSenderImpl infoMailSenderImpl() {
         final JavaMailSenderImpl mailSenderImpl = new JavaMailSenderImpl();
-        mailSenderImpl.setHost(mailIhfoHost);
-        mailSenderImpl.setPort(Integer.parseInt(mailIhfoPort));
-        mailSenderImpl.setProtocol(mailIhfoProtocol);
-        mailSenderImpl.setUsername(mailIhfoUser);
-        mailSenderImpl.setPassword(mailIhfoPassword);
+        mailSenderImpl.setHost(mailInfoHost);
+        mailSenderImpl.setPort(Integer.parseInt(mailInfoPort));
+        mailSenderImpl.setProtocol(mailInfoProtocol);
+        mailSenderImpl.setUsername(mailInfoUser);
+        mailSenderImpl.setPassword(mailInfoPassword);
         final Properties javaMailProps = new Properties();
         javaMailProps.put("mail.smtp.auth", true);
         javaMailProps.put("mail.smtp.starttls.enable", true);
-        javaMailProps.put("mail.smtp.ssl.trust", mailIhfoHost);
+        javaMailProps.put("mail.smtp.ssl.trust", mailInfoHost);
         mailSenderImpl.setJavaMailProperties(javaMailProps);
         return mailSenderImpl;
     }
