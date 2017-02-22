@@ -492,13 +492,14 @@ public class MobileInputOutputController {
     }
 
     @RequestMapping(value = "/invoice/details", method = GET)
-    public InvoiceDetailsDto findInvoiceRequestDetails(@RequestParam Integer invoiceId) {
+    public InvoiceDetailsDto findInvoiceRequestDetails(@RequestParam Integer invoiceId, HttpServletRequest request) {
         Optional<InvoiceRequest> invoiceRequestResult = invoiceService.findRequestById(invoiceId);
         if (!invoiceRequestResult.isPresent()) {
             throw new InvoiceNotFoundException(String.format("Invoice with id %s not found", invoiceId));
         }
         InvoiceRequest invoiceRequest = invoiceRequestResult.get();
-        return new InvoiceDetailsDto(invoiceRequest);
+        String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+        return new InvoiceDetailsDto(invoiceRequest, baseUrl);
     }
 
     @RequestMapping(value = "/invoice/withdraw", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)

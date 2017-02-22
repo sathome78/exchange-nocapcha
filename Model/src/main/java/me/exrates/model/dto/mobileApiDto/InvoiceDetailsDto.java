@@ -2,17 +2,28 @@ package me.exrates.model.dto.mobileApiDto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import me.exrates.model.InvoiceBank;
 import me.exrates.model.InvoiceRequest;
 import me.exrates.model.enums.InvoiceRequestStatusEnum;
 import me.exrates.model.serializer.LocalDateTimeToLongSerializer;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
+
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 /**
  * Created by OLEG on 21.02.2017.
  */
+@Getter @Setter
+@NoArgsConstructor
+@ToString
 public class InvoiceDetailsDto {
 
     private Integer id;
@@ -24,7 +35,7 @@ public class InvoiceDetailsDto {
     @JsonInclude(NON_NULL)
     @JsonSerialize(using = LocalDateTimeToLongSerializer.class)
     private LocalDateTime acceptanceTime;
-    private Integer targetBankId;
+    private InvoiceBank targetBank;
     @JsonInclude(NON_NULL)
     private String userFullName;
     @JsonInclude(NON_NULL)
@@ -41,19 +52,19 @@ public class InvoiceDetailsDto {
     @JsonSerialize(using = LocalDateTimeToLongSerializer.class)
     private LocalDateTime statusUpdateDate;
     @JsonInclude(NON_NULL)
-    private String receiptScanPath;
+    private String receiptScanFullPath;
+    @JsonInclude(NON_NULL)
+    private String receiptScanFilename;
 
-    public InvoiceDetailsDto() {
-    }
 
-    public InvoiceDetailsDto(InvoiceRequest invoiceRequest) {
+    public InvoiceDetailsDto(InvoiceRequest invoiceRequest, String baseUrl) {
         this.id = invoiceRequest.getTransaction().getId();
         this.currencyId = invoiceRequest.getTransaction().getCurrency().getId();
         this.amount = invoiceRequest.getTransaction().getAmount().doubleValue();
         this.commissionAmount = invoiceRequest.getTransaction().getCommissionAmount().doubleValue();
         this.creationTime = invoiceRequest.getTransaction().getDatetime();
         this.acceptanceTime = invoiceRequest.getAcceptanceTime();
-        this.targetBankId = invoiceRequest.getInvoiceBank().getId();
+        this.targetBank = invoiceRequest.getInvoiceBank();
         this.userFullName = invoiceRequest.getUserFullName();
         this.remark = StringEscapeUtils.unescapeHtml4(invoiceRequest.getRemark());
         this.payerBankName = invoiceRequest.getPayerBankName();
@@ -61,147 +72,12 @@ public class InvoiceDetailsDto {
         this.payerAccount = invoiceRequest.getPayerAccount();
         this.invoiceRequestStatus = invoiceRequest.getInvoiceRequestStatus();
         this.statusUpdateDate = invoiceRequest.getStatusUpdateDate();
-        this.receiptScanPath = invoiceRequest.getReceiptScanPath();
+        if (!StringUtils.isEmpty(invoiceRequest.getReceiptScanPath())) {
+            this.receiptScanFullPath = baseUrl + invoiceRequest.getReceiptScanPath();
+            //Regex \\\\|/ splits path by slash (for Unix) or backslash (for Windows)
+            String[] pathElements = invoiceRequest.getReceiptScanPath().split("\\\\|/");
+            this.receiptScanFilename = pathElements[pathElements.length - 1];
+        }
     }
 
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public Integer getCurrencyId() {
-        return currencyId;
-    }
-
-    public void setCurrencyId(Integer currencyId) {
-        this.currencyId = currencyId;
-    }
-
-    public Double getAmount() {
-        return amount;
-    }
-
-    public void setAmount(Double amount) {
-        this.amount = amount;
-    }
-
-    public Double getCommissionAmount() {
-        return commissionAmount;
-    }
-
-    public void setCommissionAmount(Double commissionAmount) {
-        this.commissionAmount = commissionAmount;
-    }
-
-    public LocalDateTime getCreationTime() {
-        return creationTime;
-    }
-
-    public void setCreationTime(LocalDateTime creationTime) {
-        this.creationTime = creationTime;
-    }
-
-    public LocalDateTime getAcceptanceTime() {
-        return acceptanceTime;
-    }
-
-    public void setAcceptanceTime(LocalDateTime acceptanceTime) {
-        this.acceptanceTime = acceptanceTime;
-    }
-
-    public Integer getTargetBankId() {
-        return targetBankId;
-    }
-
-    public void setTargetBankId(Integer targetBankId) {
-        this.targetBankId = targetBankId;
-    }
-
-    public String getUserFullName() {
-        return userFullName;
-    }
-
-    public void setUserFullName(String userFullName) {
-        this.userFullName = userFullName;
-    }
-
-    public String getRemark() {
-        return remark;
-    }
-
-    public void setRemark(String remark) {
-        this.remark = remark;
-    }
-
-    public String getPayerBankName() {
-        return payerBankName;
-    }
-
-    public void setPayerBankName(String payerBankName) {
-        this.payerBankName = payerBankName;
-    }
-
-    public String getPayerBankCode() {
-        return payerBankCode;
-    }
-
-    public void setPayerBankCode(String payerBankCode) {
-        this.payerBankCode = payerBankCode;
-    }
-
-    public String getPayerAccount() {
-        return payerAccount;
-    }
-
-    public void setPayerAccount(String payerAccount) {
-        this.payerAccount = payerAccount;
-    }
-
-    public InvoiceRequestStatusEnum getInvoiceRequestStatus() {
-        return invoiceRequestStatus;
-    }
-
-    public void setInvoiceRequestStatus(InvoiceRequestStatusEnum invoiceRequestStatus) {
-        this.invoiceRequestStatus = invoiceRequestStatus;
-    }
-
-    public LocalDateTime getStatusUpdateDate() {
-        return statusUpdateDate;
-    }
-
-    public void setStatusUpdateDate(LocalDateTime statusUpdateDate) {
-        this.statusUpdateDate = statusUpdateDate;
-    }
-
-    public String getReceiptScanPath() {
-        return receiptScanPath;
-    }
-
-    public void setReceiptScanPath(String receiptScanPath) {
-        this.receiptScanPath = receiptScanPath;
-    }
-
-    @Override
-    public String toString() {
-        return "InvoiceDetailsDto{" +
-                "id=" + id +
-                ", currencyId=" + currencyId +
-                ", amount=" + amount +
-                ", commissionAmount=" + commissionAmount +
-                ", creationTime=" + creationTime +
-                ", acceptanceTime=" + acceptanceTime +
-                ", targetBankId=" + targetBankId +
-                ", userFullName='" + userFullName + '\'' +
-                ", remark='" + remark + '\'' +
-                ", payerBankName='" + payerBankName + '\'' +
-                ", payerBankCode='" + payerBankCode + '\'' +
-                ", payerAccount='" + payerAccount + '\'' +
-                ", invoiceRequestStatus=" + invoiceRequestStatus +
-                ", statusUpdateDate=" + statusUpdateDate +
-                ", receiptScanPath='" + receiptScanPath + '\'' +
-                '}';
-    }
 }

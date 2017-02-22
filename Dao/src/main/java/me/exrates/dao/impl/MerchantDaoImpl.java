@@ -263,8 +263,6 @@ public class MerchantDaoImpl implements MerchantDao {
         myInputOutputHistoryDto.setBankAccount(rs.getString("bank_account"));
         myInputOutputHistoryDto.setInvoiceRequestStatusId((Integer) rs.getObject("invoice_request_status_id"));
         myInputOutputHistoryDto.setStatusUpdateDate(rs.getTimestamp("status_update_date") == null ? null : rs.getTimestamp("status_update_date").toLocalDateTime());
-          myInputOutputHistoryDto.setUserFullName(rs.getString("user_full_name"));
-          myInputOutputHistoryDto.setRemark(rs.getString("remark"));
         return myInputOutputHistoryDto;
       }
     });
