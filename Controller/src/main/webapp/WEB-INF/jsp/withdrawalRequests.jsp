@@ -23,6 +23,18 @@
     <div class="row">
         <%@include file='admin/left_side_menu.jsp' %>
         <div class="col-md-8 col-sm-offset-1 content text-center admin-container">
+            <div class="row">
+                <div style="float: left; display: inline-block">
+                    <button id="withdraw-requests-new" class="myorders__button blue-box margin-box">
+                        <loc:message code="admin.withdraw.new"/></button>
+                    <button id="withdraw-requests-accepted" class="myorders__button green-box margin-box">
+                        <loc:message code="admin.withdraw.accepted"/></button>
+                    <button id="withdraw-requests-declined" class="myorders__button red-box margin-box">
+                        <loc:message code="admin.withdraw.declined"/></button>
+                </div>
+            </div>
+
+
             <h4><loc:message code="admin.withdrawRequests"/></h4>
             <table id="withdrawalTable">
                 <thead>

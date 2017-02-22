@@ -1,34 +1,36 @@
 var currentEmail;
 var $withdrawalTable;
 var withdrawalDataTable;
+var requestStatus;
+var withdrawRequestsBaseUrl;
 $(function () {
 
-    $.get('/2a8fy7b07dxe44/withdrawRequests', function (data) {
-        console.log(data);
-    });
 
     $withdrawalTable = $('#withdrawalTable');
-    var withdrawRequestsBaseUrl
+    requestStatus = 1;
+    withdrawRequestsBaseUrl = '/2a8fy7b07dxe44/withdrawRequests?status=';
+    $('#withdraw-requests-new').addClass('active');
 
-    $('.accept_withdrawal_rqst').submit(function (e) {
-        e.preventDefault();
-        var id = $(this).serializeArray()[0]['value'];
-        promptAcceptRequest(id);
+
+    $('#withdraw-requests-new').click(function () {
+        changeStatus(this, 1)
     });
-    
-    $('.decline_withdrawal_rqst').submit(function (e) {
-        e.preventDefault();
-        var id = $(this).serializeArray()[0]['value'];
-        promptDeclineRequest(id);
+    $('#withdraw-requests-accepted').click(function () {
+        changeStatus(this, 2)
+    });
+    $('#withdraw-requests-declined').click(function () {
+        changeStatus(this, 3)
     });
 
-    updateWithdrawalTable('/2a8fy7b07dxe44/withdrawRequests');
+    function changeStatus($elem, newStatus) {
+        requestStatus = newStatus;
+        $('.myorders__button').removeClass('active');
+        $($elem).addClass('active');
+        updateWithdrawalTable();
+    }
 
 
-
-
-
-    $withdrawalTable.find('button')
+    updateWithdrawalTable(withdrawRequestsBaseUrl + requestStatus);
 
     $('#createCommentConfirm').on('click', function () {
 
@@ -66,6 +68,13 @@ $(function () {
     });
 });
 
+function submitAccept($elem) {
+    promptAcceptRequest(getRowId($elem))
+}
+function submitDecline($elem) {
+    promptDeclineRequest(getRowId($elem))
+}
+
 function promptAcceptRequest(requestId) {
     if (confirm($('#prompt_acc_rqst').html())) {
         var data = "requestId=" + requestId;
@@ -78,11 +87,7 @@ function promptAcceptRequest(requestId) {
             data: data,
             success: function (result) {
                 alert(result['success']);
-                var classname = '.id_' + requestId;
-                var acceptance = result['acceptance'].split(/\s/);
-                $(classname + ' td:nth-child(9)').html(acceptance[0] + '<br\>' + acceptance[1]);
-                $(classname + ' td:nth-child(10)').html(result['email']);
-                $(classname + ' td:nth-child(11)').html($('#accepted').html());
+                updateWithdrawalTable();
             }
         });
     }
@@ -102,11 +107,7 @@ function promptDeclineRequest(requestId) {
             data: data,
             success: function (result) {
                 alert(result['success']);
-                var classname = '.id_' + requestId;
-                var acceptance = result['acceptance'].split(/\s/);
-                $(classname + ' td:nth-child(9)').html(acceptance[0] + '<br\>' + acceptance[1]);
-                $(classname + ' td:nth-child(10)').html(result['email']);
-                $(classname + ' td:nth-child(11)').html($('#declined').html());
+                updateWithdrawalTable();
                 $("#myModal").modal();
                 document.getElementById("sendMessageCheckbox").checked = true;
                 currentEmail = result.userEmail;
@@ -119,24 +120,41 @@ function promptDeclineRequest(requestId) {
 
 }
 
-function viewRequestInfo($elem) {
+function getRowId($elem) {
+    var rowData = retrieveRowDataForElement($elem)
+    return rowData.transaction.id;
+}
+
+function retrieveRowDataForElement($elem) {
     var $row = $($elem).parents('tr');
-    fillModal($row);
+    return withdrawalDataTable.row($row).data();
+}
+
+function viewRequestInfo($elem) {
+    var rowData = retrieveRowDataForElement($elem);
+    fillModal(rowData);
     $('#withdraw-info-modal').modal();
 
 }
 
-function fillModal($row) {
-    $('#info-currency').text($($row).find('td:nth-child(5)').text());
-    $('#info-amount').text($($row).find('td:nth-child(4)').text());
-    $('#info-commissionAmount').text($($row).find('td:nth-child(6)').text());
-    $('#info-bankRecipient').text($($row).find('td:nth-child(13)').text());
-    $('#info-userAccount').text($($row).find('td:nth-child(8)').text());
-    $('#info-userFullName').text($($row).find('td:nth-child(14)').text());
-    $('#info-remark').find('textarea').html($($row).find('td:nth-child(12)').text());
+function fillModal(rowData) {
+
+    $('#info-currency').text(rowData.transaction.currency.name);
+    $('#info-amount').text(rowData.transaction.amount);
+    $('#info-commissionAmount').text(rowData.transaction.commissionAmount);
+    var recipientBank = rowData.recipientBankName ? rowData.recipientBankName : '';
+    var recipientBankCode = rowData.recipientBankCode ? rowData.recipientBankCode : '';
+    var userFullName = rowData.userFullName ? rowData.userFullName : '';
+    $('#info-bankRecipient').text(recipientBank + ' ' + recipientBankCode);
+    $('#info-userAccount').text(rowData.wallet);
+    $('#info-userFullName').text(userFullName);
+    $('#info-remark').find('textarea').html(rowData.remark);
 }
 
-function updateWithdrawalTable(url) {
+
+
+function updateWithdrawalTable() {
+    var url = withdrawRequestsBaseUrl + requestStatus;
     if ($.fn.dataTable.isDataTable('#withdrawalTable')) {
         withdrawalDataTable = $($withdrawalTable).DataTable();
         withdrawalDataTable.ajax.url(url).load();
@@ -144,7 +162,7 @@ function updateWithdrawalTable(url) {
         withdrawalDataTable = $($withdrawalTable).DataTable({
             "ajax": {
                 "url": url,
-                "dataSrc": ""
+                "dataSrc": "data"
             },
             "serverSide": true,
             "paging": true,
@@ -217,11 +235,11 @@ function updateWithdrawalTable(url) {
                             var acceptLocMessage = $('#acceptRequestMessage').text();
                             var declineLocMessage = $('#declineRequestMessage').text();
                             return '<div class="table-button-block" style="white-space: nowrap">' +
-                                '<button style="font-size: 11px;" class="table-button-block__button btn btn-success" >' +
+                                '<button style="font-size: 11px;" class="table-button-block__button btn btn-success" onclick="submitAccept(this)" >' +
                                 acceptLocMessage +
                                 '</button>' +
                                 '&nbsp;' +
-                                '<button style="font-size: 11px;" class="table-button-block__button btn btn-danger" >' +
+                                '<button style="font-size: 11px;" class="table-button-block__button btn btn-danger" onclick="submitDecline(this)" >' +
                                 declineLocMessage +
                                 '</button>' +
                                 '</div>';
@@ -232,7 +250,7 @@ function updateWithdrawalTable(url) {
                 }
 
             ],
-            "order": []
+            "order": [[ 0, 'desc' ]]
         });
     }
 }

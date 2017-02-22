@@ -67,7 +67,6 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
                     "FROM WITHDRAW_REQUEST " +
                     "INNER JOIN TRANSACTION ON TRANSACTION.id = WITHDRAW_REQUEST.transaction_id " +
                     "INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id " +
-
                     "INNER JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id " +
                     "INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id " +
                     "INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id " +
@@ -76,16 +75,16 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
                     "LEFT JOIN USER AS ADMIN ON ADMIN.id =  WITHDRAW_REQUEST.processed_by " +
                     "LEFT JOIN MERCHANT_IMAGE ON WITHDRAW_REQUEST.merchant_image_id = MERCHANT_IMAGE.id";
 
-    private static final String SELECT_COUNT = "SELECT COUNT (*) " +
+    private static final String SELECT_COUNT = "SELECT COUNT(*) " +
             "FROM WITHDRAW_REQUEST " +
             "INNER JOIN TRANSACTION ON TRANSACTION.id = WITHDRAW_REQUEST.transaction_id " +
             "INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id " +
-
             "INNER JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id " +
             "INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id " +
             "INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id " +
             "INNER JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id " +
             "INNER JOIN USER ON WALLET.user_id = USER.id " +
+            "LEFT JOIN USER AS ADMIN ON ADMIN.id =  WITHDRAW_REQUEST.processed_by " +
             "LEFT JOIN MERCHANT_IMAGE ON WITHDRAW_REQUEST.merchant_image_id = MERCHANT_IMAGE.id";
 
     @Override
@@ -175,17 +174,17 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
             searchClause = " AND (CONVERT(USER.email USING utf8) LIKE :searchValue OR CONVERT(ADMIN.email USING utf8) LIKE :searchValue " +
                     "OR CONVERT(MERCHANT.name USING utf8) LIKE :searchValue OR CONVERT(MERCHANT_IMAGE.image_name USING utf8) LIKE :searchValue) ";
         }
-        String orderClause = " ORDER BY :orderColumn";
-        String offsetAndLimit = " OFFSET :offset LIMIT :limit";
+        String orderClause = String.format(" ORDER BY %s ", dataTableParams.getOrderColumnName());
+        String offsetAndLimit = " LIMIT :limit OFFSET :offset ";
         String sqlTotal = new StringJoiner(" ").add(SELECT_ALL_REQUESTS).add(whereClauseBasic)
-                .add(searchClause).add(orderClause).add(offsetAndLimit).toString();
+                .add(searchClause).add(orderClause).add(dataTableParams.getOrderDirectionName()).add(offsetAndLimit).toString();
         String sqlCount = new StringJoiner(" ").add(SELECT_COUNT).add(whereClauseBasic).add(searchClause).toString();
         log.debug(String.format("sql for total: %s", sqlTotal));
         log.debug(String.format("sql count: %s", sqlCount));
+        log.debug(dataTableParams.getOrderColumnName());
         Map<String, Object> params = new HashMap<>();
         params.put("status", requestStatus);
-        params.put("searchValue", dataTableParams.getSearchValue());
-        params.put("orderColumn", dataTableParams.getOrderColumnName());
+        params.put("searchValue","%" + dataTableParams.getSearchValue() + "%");
         params.put("offset", dataTableParams.getStart());
         params.put("limit", dataTableParams.getLength());
         List<WithdrawRequest> requests = jdbcTemplate.query(sqlTotal, params, withdrawRequestRowMapper);

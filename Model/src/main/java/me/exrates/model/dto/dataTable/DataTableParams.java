@@ -1,9 +1,8 @@
 package me.exrates.model.dto.dataTable;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import me.exrates.model.exceptions.IllegalColumnNameException;
+
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -93,16 +92,29 @@ public class DataTableParams {
         dataTableParams.start = Integer.parseInt(requestParams.getOrDefault("start", "0"));
         dataTableParams.length = Integer.parseInt(requestParams.getOrDefault("length", "10"));
         dataTableParams.searchValue = requestParams.getOrDefault("search[value]", "");
-        dataTableParams.columns = requestParams.entrySet().stream()
+        List<String> columnNames = requestParams.entrySet().stream()
                 .filter(entry -> entry.getKey().matches("^columns(.+)name\\]$"))
                 .sorted(Comparator.comparing(Map.Entry::getKey))
                 .map(Map.Entry::getValue)
                 .collect(Collectors.toList());
+        validateColumnNames(columnNames);
+        dataTableParams.columns = columnNames;
         return dataTableParams;
     }
 
     public String getOrderColumnName() {
         return columns.get(orderColumn);
+    }
+
+    private static void validateColumnNames(List<String> columnNames) {
+        if (!columnNames.stream().allMatch(Pattern.compile("^[a-zA-z]+([_.]{1}[a-zA-z]+)*[a-zA-z]$").asPredicate())) {
+            throw new IllegalColumnNameException("Illegal column name!");
+        }
+    }
+
+
+    public String getOrderDirectionName() {
+        return orderDirection.name();
     }
 
     @Override

@@ -157,6 +157,7 @@ public class MerchantServiceImpl implements MerchantService {
   @Override
   public DataTable<List<WithdrawRequest>> findWithdrawRequestsByStatus(Integer requestStatus, DataTableParams dataTableParams) {
     PagingData<List<WithdrawRequest>> result = withdrawRequestDao.findByStatus(requestStatus, dataTableParams);
+    LOG.debug(result.getData().stream().map(request -> request.getTransaction().getId()).collect(Collectors.toList()));
     DataTable<List<WithdrawRequest>> output = new DataTable<>();
     output.setData(result.getData());
     output.setRecordsTotal(result.getTotal());
