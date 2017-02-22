@@ -59,7 +59,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
                 SecurityConfig.class, WebSocketConfig.class
         }
 )
-@PropertySource(value = {"classpath:/db.properties", "classpath:/uploadfiles.properties", "classpath:/news.properties"})
+@PropertySource(value = {"classpath:/db.properties", "classpath:/uploadfiles.properties", "classpath:/news.properties", "classpath:/mail.properties"})
 @MultipartConfig(location = "/tmp")
 public class WebAppConfig extends WebMvcConfigurerAdapter {
 
@@ -102,6 +102,28 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     private String feastDayUrlPath;
     @Value("${news.page.urlPath}")
     private String pageUrlPath;
+
+    @Value("${mail_support.host}")
+    String mailSupportHost;
+    @Value("${mail_support.port}")
+    String mailSupportPort;
+    @Value("${mail_support.protocol}")
+    String mailSupportProtocol;
+    @Value("${mail_support.user}")
+    String mailSupportUser;
+    @Value("${mail_support.password}")
+    String mailSupportPassword;
+    @Value("${mail_info.host}")
+    String mailIhfoHost;
+    @Value("${mail_info.port}")
+    String mailIhfoPort;
+    @Value("${mail_info.protocol}")
+    String mailIhfoProtocol;
+    @Value("${mail_info.user}")
+    String mailIhfoUser;
+    @Value("${mail_info.password}")
+    String mailIhfoPassword;
+
 
     @Bean
     public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
@@ -214,33 +236,15 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "SupportMailSender")
     public JavaMailSenderImpl javaMailSenderImpl() {
         final JavaMailSenderImpl mailSenderImpl = new JavaMailSenderImpl();
-        mailSenderImpl.setHost("smtp.gmail.com");
-        mailSenderImpl.setPort(587);
-        //mailSenderImpl.setUsername("195.154.176.137");;
-
-        mailSenderImpl.setProtocol("smtp");
-        mailSenderImpl.setUsername("support@exrates.me");
-        mailSenderImpl.setPassword("EXratesme");
+        mailSenderImpl.setHost(mailSupportHost);
+        mailSenderImpl.setPort(Integer.parseInt(mailSupportPort));
+        mailSenderImpl.setProtocol(mailSupportProtocol);
+        mailSenderImpl.setUsername(mailSupportUser);
+        mailSenderImpl.setPassword(mailSupportPassword);
         final Properties javaMailProps = new Properties();
         javaMailProps.put("mail.smtp.auth", true);
         javaMailProps.put("mail.smtp.starttls.enable", true);
-//		//javaMailProps.put("mail.smtp.socketFactory.port", 587);
-//	//	javaMailProps.put("mail.smtp.socketFactory.fallback", false);
-//		//javaMailProps.put("mail.smtp.starttls.required", true);
-//		//javaMailProps.put("mail.smtp.debug", true);
-//		//javaMailProps.put("mail.smtp.quitwait", false);
-//		javaMailProps.put("mail.smtp.ssl.trust", "smtp.gmail.com");
-
-//		final JavaMailSenderImpl mailSenderImpl = new JavaMailSenderImpl();
-//		mailSenderImpl.setHost("smtp.mail.ru");
-//		mailSenderImpl.setPort(465);
-//		mailSenderImpl.setProtocol("smtps");
-//		mailSenderImpl.setUsername("exrates.me@mail.ru");
-//		mailSenderImpl.setPassword("R345Jdber34O90");
-//		final Properties javaMailProps = new Properties();
-//		javaMailProps.put("mail.smtp.auth", true);
-//		javaMailProps.put("mail.smtp.starttls.enable", true);
-//		
+        javaMailProps.put("mail.smtp.ssl.trust", mailSupportHost);
         mailSenderImpl.setJavaMailProperties(javaMailProps);
         return mailSenderImpl;
     }
@@ -248,14 +252,15 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "InfoMailSender")
     public JavaMailSenderImpl infoMailSenderImpl() {
         final JavaMailSenderImpl mailSenderImpl = new JavaMailSenderImpl();
-        mailSenderImpl.setHost("smtp.gmail.com");
-        mailSenderImpl.setPort(587);
-        mailSenderImpl.setProtocol("smtp");
-        mailSenderImpl.setUsername("no-replay@exrates.tech");
-        mailSenderImpl.setPassword("1qaz1234");
+        mailSenderImpl.setHost(mailIhfoHost);
+        mailSenderImpl.setPort(Integer.parseInt(mailIhfoPort));
+        mailSenderImpl.setProtocol(mailIhfoProtocol);
+        mailSenderImpl.setUsername(mailIhfoUser);
+        mailSenderImpl.setPassword(mailIhfoPassword);
         final Properties javaMailProps = new Properties();
         javaMailProps.put("mail.smtp.auth", true);
         javaMailProps.put("mail.smtp.starttls.enable", true);
+        javaMailProps.put("mail.smtp.ssl.trust", mailIhfoHost);
         mailSenderImpl.setJavaMailProperties(javaMailProps);
         return mailSenderImpl;
     }
