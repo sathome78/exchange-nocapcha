@@ -2,6 +2,8 @@ package me.exrates.service;
 
 import me.exrates.model.*;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
+import me.exrates.model.dto.dataTable.DataTable;
+import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.OperationType;
@@ -27,6 +29,8 @@ public interface MerchantService {
     Map<String, Object> declineWithdrawalRequest(int requestId, Locale locale, String email);
 
     List<WithdrawRequest> findAllWithdrawRequests();
+
+    DataTable<List<WithdrawRequest>> findWithdrawRequestsByStatus(Integer requestStatus, DataTableParams dataTableParams);
 
     List<Merchant> findAllByCurrency(Currency currency);
 

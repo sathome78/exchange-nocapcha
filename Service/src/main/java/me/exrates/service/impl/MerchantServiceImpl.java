@@ -154,6 +154,7 @@ public class MerchantServiceImpl implements MerchantService {
     return withdrawRequestDao.findAll();
   }
 
+  @Override
   public DataTable<List<WithdrawRequest>> findWithdrawRequestsByStatus(Integer requestStatus, DataTableParams dataTableParams) {
     PagingData<List<WithdrawRequest>> result = withdrawRequestDao.findByStatus(requestStatus, dataTableParams);
     DataTable<List<WithdrawRequest>> output = new DataTable<>();
@@ -161,8 +162,6 @@ public class MerchantServiceImpl implements MerchantService {
     output.setRecordsTotal(result.getTotal());
     output.setRecordsFiltered(result.getFiltered());
     return output;
-
-
   }
 
   @Override

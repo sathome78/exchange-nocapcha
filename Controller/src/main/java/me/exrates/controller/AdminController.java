@@ -616,12 +616,12 @@ public class AdminController {
 
     @RequestMapping(value = "/2a8fy7b07dxe44/withdrawRequests", method = GET)
     @ResponseBody
-    public List<WithdrawRequest> findRequestByStatus(/*@RequestParam Integer requestStatus, */@RequestParam Map<String, String> params) {
+    public DataTable<List<WithdrawRequest>> findRequestByStatus(@RequestParam Integer requestStatus, @RequestParam Map<String, String> params) {
         params.forEach((key, value) -> LOG.debug(String.format("%s :: %s", key, value)));
         DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
         LOG.debug(dataTableParams);
 
-        return merchantService.findAllWithdrawRequests();
+        return merchantService.findWithdrawRequestsByStatus(requestStatus, dataTableParams);
     }
 
     @ResponseBody
