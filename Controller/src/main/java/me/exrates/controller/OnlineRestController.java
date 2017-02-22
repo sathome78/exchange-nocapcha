@@ -6,6 +6,7 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.onlineTableDto.*;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
+import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
 import me.exrates.service.*;
@@ -28,6 +29,7 @@ import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static me.exrates.model.enums.invoice.PendingPaymentStatusEnum.ON_BCH_EXAM;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 /**
@@ -846,10 +848,23 @@ public class OnlineRestController {
   }
 
   private String generateAndGetSummeryStatus(MyInputOutputHistoryDto row, Locale locale) {
-    if (row.getInvoiceRequestStatusId() == null) {
-      return row.getTransactionProvided();
-    } else {
-      return messageSource.getMessage("merchants.invoice.".concat(InvoiceRequestStatusEnum.convert(row.getInvoiceRequestStatusId()).name()), null, locale);
+    switch (TransactionSourceType.convert(row.getSourceType())) {
+      case INVOICE: {
+        return messageSource.getMessage("merchants.invoice.".concat(InvoiceRequestStatusEnum.convert(row.getInvoiceRequestStatusId()).name()), null, locale);
+      }
+      case BTC_INVOICE: {
+        PendingPaymentStatusEnum status = PendingPaymentStatusEnum.convert(row.getInvoiceRequestStatusId());
+        if (status == ON_BCH_EXAM) {
+          String confirmations = row.getConfirmation() == null ? "0" : row.getConfirmation().toString();
+          String message = confirmations.concat("/").concat(String.valueOf(BitcoinService.CONFIRMATION_NEEDED_COUNT));
+          return message;
+        } else {
+          return messageSource.getMessage("merchants.invoice.".concat(PendingPaymentStatusEnum.convert(row.getInvoiceRequestStatusId()).name()), null, locale);
+        }
+      }
+      default: {
+        return row.getTransactionProvided();
+      }
     }
   }
 

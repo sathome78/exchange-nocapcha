@@ -3,7 +3,9 @@ package me.exrates.controller.merchants;
 import lombok.extern.log4j.Log4j;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.*;
+import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
+import me.exrates.model.exceptions.UnsupportedTransactionSourceTypeNameException;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.InvoiceData;
 import me.exrates.model.vo.WithdrawData;
@@ -34,6 +36,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static me.exrates.model.enums.TransactionSourceType.BTC_INVOICE;
+import static me.exrates.model.enums.TransactionSourceType.INVOICE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -184,20 +188,33 @@ public class InvoiceController {
   @RequestMapping(value = "/payment/confirmation", method = GET)
   public ModelAndView confirmationPage(
       @RequestParam Integer transactionId,
-      @RequestParam(required = false) String action) {
-    ModelAndView modelAndView = new ModelAndView("/globalPages/invoiceConfirm");
-    modelAndView.addObject("revoke", "revoke".equals(action));
-    Optional<InvoiceRequest> invoiceRequestResult = invoiceService.findRequestById(transactionId);
-    if (!invoiceRequestResult.isPresent()) {
-      modelAndView.addObject("error", "merchants.error.invoiceRequestNotFound");
-    } else {
-      InvoiceRequest invoiceRequest = invoiceRequestResult.get();
-      modelAndView.addObject("invoiceRequest", invoiceRequest);
-      List<ClientBank> banks = invoiceService.findClientBanksForCurrency(invoiceRequest.getTransaction().getCurrency().getId());
-      modelAndView.addObject("banks", banks);
-      if (invoiceRequest.getPayerBankName() != null && banks.stream().noneMatch(bank -> invoiceRequest.getPayerBankName().equals(bank.getName()))) {
-        modelAndView.addObject("otherBank", invoiceRequest.getPayerBankName());
+      @RequestParam(required = false) String action,
+      @RequestParam(required = false) String sourceType) {
+    ModelAndView modelAndView;
+    if (sourceType == null) {
+      sourceType = "INVOICE";
+    }
+    TransactionSourceType transactionSourceType = TransactionSourceType.convert(sourceType);
+    if (transactionSourceType == INVOICE) {
+      modelAndView = new ModelAndView("/globalPages/invoiceConfirm");
+      modelAndView.addObject("revoke", "revoke".equals(action));
+      Optional<InvoiceRequest> invoiceRequestResult = invoiceService.findRequestById(transactionId);
+      if (!invoiceRequestResult.isPresent()) {
+        modelAndView.addObject("error", "merchants.error.invoiceRequestNotFound");
+      } else {
+        InvoiceRequest invoiceRequest = invoiceRequestResult.get();
+        modelAndView.addObject("invoiceRequest", invoiceRequest);
+        List<ClientBank> banks = invoiceService.findClientBanksForCurrency(invoiceRequest.getTransaction().getCurrency().getId());
+        modelAndView.addObject("banks", banks);
+        if (invoiceRequest.getPayerBankName() != null && banks.stream().noneMatch(bank -> invoiceRequest.getPayerBankName().equals(bank.getName()))) {
+          modelAndView.addObject("otherBank", invoiceRequest.getPayerBankName());
+        }
       }
+    } else if (transactionSourceType == BTC_INVOICE) {
+      //TODO
+      modelAndView = new ModelAndView("it need TODO");
+    } else {
+      throw new UnsupportedTransactionSourceTypeNameException(sourceType);
     }
     return modelAndView;
   }

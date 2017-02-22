@@ -103,6 +103,17 @@ function InputOutputClass(currentCurrencyPair) {
             var $form = $(this).parents('#inputoutput-center-tableBody__form');
             var $action = $form.find('input[name=action]');
             $action.attr("value", "revoke");
+            var $sourceType = $form.find('input[name=sourceType]');
+            $action.attr("value", "INVOICE");
+            $form[0].submit();
+        });
+        $('#inputoutput-table').on('click', '#revokeBtcInvoiceButton', function (e) {
+            e.preventDefault();
+            var $form = $(this).parents('#inputoutput-center-tableBody__form');
+            var $action = $form.find('input[name=action]');
+            $action.attr("value", "revoke");
+            var $sourceType = $form.find('input[name=sourceType]');
+            $action.attr("value", "BTC_INVOICE");
             $form[0].submit();
         });
     })(currentCurrencyPair);

@@ -26,35 +26,48 @@
             <form id = "inputoutput-center-tableBody__form" class="table-button-block__form" action="<c:url value="/merchants/invoice/payment/confirmation"/>">
                 <input type="text" hidden value=<@=transactionId@>  name="transactionId" >
                 <input type="text" hidden value="" name="action" >
+                <input type="text" hidden value="" name="sourceType" >
             <@=(function() {
                 const CREATED_USER = 1;
                 const DECLINED_ADMIN = 5;
+                var buttonsSet = '';
                 if (confirmationRequired) {
                   if (invoiceRequestStatusId == CREATED_USER){
-                    return '<button type="submit" style="font-size: 1.1rem;" class="wallet-mystatement-button table-button-block__button btn btn-primary">
-                              <loc:message code="merchants.invoice.confirm" />
-                            </button>
-                            <%--onclick: InputOutputClass.init--%>
-                            <button id="revokeInvoiceButton" type="button" style="font-size: 1.1rem;" class="wallet-mystatement-button table-button-block__button btn btn-danger">
-                              <loc:message code="merchants.invoice.revoke" />
-                            </button>'
+                    buttonsSet = buttonsSet +
+                      '<button type="submit" style="font-size: 1.1rem;" class="wallet-mystatement-button table-button-block__button btn btn-primary">
+                          <loc:message code="merchants.invoice.confirm" />
+                      </button>&nbsp;';
                   } else if (invoiceRequestStatusId == DECLINED_ADMIN){
-                    return '<button type="submit" style="font-size: 1.1rem;" class="wallet-mystatement-button table-button-block__button btn btn-primary">
-                              <loc:message code="merchants.invoice.checkAndConfirmAgain" />
-                            </button>
-                            <%--onclick: InputOutputClass.init--%>
-                            <button id="revokeInvoiceButton" type="button" style="font-size: 1.1rem;" class="wallet-mystatement-button table-button-block__button btn btn-danger">
-                              <loc:message code="merchants.invoice.revoke" />
-                            </button>'
+                    buttonsSet = buttonsSet +
+                      '<button type="submit" style="font-size: 1.1rem;" class="wallet-mystatement-button table-button-block__button btn btn-primary">
+                          <loc:message code="merchants.invoice.confirm" />
+                      </button>&nbsp;';
                   } else {
                     console.log("illegal invoiceRequestStatusId: "+invoiceRequestStatusId);
-                    return 'ERROR';
+                    buttonsSet = buttonsSet +'<span>ERROR</span>';
                   }
-                } else if (merchantName === 'Invoice' && operationType === 'Input') {
-                    return '<button type="submit" style="font-size: 1.1rem;" class="wallet-mystatement-button table-button-block__button btn btn-info">
-                              <loc:message code="merchants.invoice.viewConfirm" />
-                            </button>'
                 }
+                if (mayBeRevoked) {
+                  <%--onclick: InputOutputClass.init--%>
+                  if (sourceType === 'INVOICE') {
+                    buttonsSet = buttonsSet +
+                      '<button id="revokeInvoiceButton" type="button" style="font-size: 1.1rem;" class="wallet-mystatement-button table-button-block__button btn btn-danger">
+                        <loc:message code="merchants.invoice.revoke" />
+                      </button>&nbsp;';
+                  } else if (false && sourceType === 'BTC_INVOICE') {
+                    buttonsSet = buttonsSet +
+                      '<button id="revokeBtcInvoiceButton" type="button" style="font-size: 1.1rem;" class="wallet-mystatement-button table-button-block__button btn btn-danger">
+                        <loc:message code="merchants.invoice.revoke" />
+                      </button>&nbsp;';
+                  }
+                }
+                if ((sourceType === 'INVOICE') && operationType === 'Input') {
+                  buttonsSet = buttonsSet +
+                    '<button type="submit" style="font-size: 1.1rem;" class="wallet-mystatement-button table-button-block__button btn btn-info">
+                      <loc:message code="merchants.invoice.viewConfirm" />
+                     </button>&nbsp;';
+                }
+                return buttonsSet;
             })()
 
             @>
