@@ -267,7 +267,8 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
         " JOIN WALLET ON WALLET.id = TX.user_wallet_id " +
         " JOIN USER AS USER ON USER.id = WALLET.user_id " +
         " LEFT JOIN USER AS ADM ON ADM.id = PP.acceptance_user_id " +
-        " WHERE pending_payment_status_id IN (:pending_payment_status_id_list) ";
+        " WHERE pending_payment_status_id IN (:pending_payment_status_id_list) " +
+        " ORDER BY PP.status_update_date DESC ";
     Map<String, Object> params = new HashMap<String, Object>() {{
       put("pending_payment_status_id_list", pendingPaymentStatusIdList);
     }};

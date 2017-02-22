@@ -23,33 +23,44 @@
 
 <%@include file='../fragments/header-simple.jsp' %>
 
+<style>
+  #btc_invoice_requests th{
+    padding: 5px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+  }
+  #btc_invoice_requests td{
+    padding: 5px 10px;
+    font-size: 11px;
+    text-align: center;
+  }
+
+  .address-ref{
+    cursor: pointer;
+  }
+
+</style>
+
 <main class="container">
   <div class="row">
     <%@include file='left_side_menu.jsp' %>
     <div class="col-md-10 content admin-container">
       <div class="text-center"><h4><loc:message code="transaction.titleBitcoin"/></h4></div>
-      <table id="invoice_requests">
+      <table id="btc_invoice_requests"  class="table-striped">
         <thead>
         <tr>
-          <%--Дата--%>
           <th><loc:message code="transaction.datetime"/></th>
-          <%--Номер--%>
           <th><loc:message code="transaction.id"/></th>
-          <%--Email--%>
           <th><loc:message code="transaction.initiatorEmail"/></th>
-          <%--Сумма--%>
+          <th><loc:message code="transaction.status"/></th>
           <th><loc:message code="transaction.amount"/></th>
-          <%--Сумма <br> комиссии--%>
           <th><loc:message code="transaction.commissionAmount"/></th>
-          <%--Сумма <br> комиссии--%>
           <th><loc:message code="transaction.acceptanceDatetime"/></th>
-          <%--Hash--%>
           <th>Hash</th>
-          <%--Manual amount--%>
           <th>Manual amount</th>
-          <%--Confirmation/Acceptance user--%>
+          <th><loc:message code="transaction.confirmation"/></th>
           <th><loc:message code="transaction.acceptanceUser"/></th>
-
         </tr>
         </thead>
         <tbody>
@@ -60,74 +71,65 @@
                 ${maptransaction.datetime.toLocalDate()}<br/>
                 ${maptransaction.datetime.toLocalTime()}
             </td>
-              <%--Transaction id--%>
             <td>
+              <button class="address-ref"
+                    onclick="alert('${maptransaction.address}')">
                 ${maptransaction.invoiceId}
+              </button>
             </td>
-              <%--Transaction email--%>
             <td>
               <a href="<c:url value='/2a8fy7b07dxe44/userInfo'>
                                     <c:param name="id" value="${maptransaction.userId}"/>
                                     </c:url>">
                   ${maptransaction.userEmail}</a>
             </td>
-              <%--Amount--%>
+            <td>
+                ${maptransaction.pendingPaymentStatus}
+            </td>
             <td>
               <fmt:formatNumber value="${maptransaction.amount}" maxFractionDigits="9"/>
             </td>
-              <%--комиссия--%>
             <td>
               <fmt:formatNumber value="${maptransaction.commissionAmount}" maxFractionDigits="9"/>
             </td>
-            <c:choose>
-              <c:when test="${maptransaction.provided}">
-                <%--Acceptance date--%>
-                <td>
-                    ${maptransaction.acceptanceTime.toLocalDate()}<br/>
-                    ${maptransaction.acceptanceTime.toLocalTime()}
-                </td>
-                <%--Hash--%>
-                <td>
-                  <input readonly value="${maptransaction.hash}" style="width: 130px"
-                         class="form-control input-block-wrapper__input">
-                </td>
-                <%--Manual amount--%>
-                <td>
-                  <fmt:formatNumber value="${maptransaction.amount+maptransaction.commissionAmount}"
-                                    maxFractionDigits="9"/>
-                </td>
-                <%--Подтвердить--%>
-                <td>
+            <td>
+                ${maptransaction.acceptanceTime.toLocalDate()}<br/>
+                ${maptransaction.acceptanceTime.toLocalTime()}
+            </td>
+            <td>
+              <input id="bitcoin_hash${maptransaction.invoiceId}"
+                    <c:if test="${maptransaction.hash!=null && !''.equals(maptransaction.hash)}">
+                      <c:out value="readonly"/>
+                      </c:if>
+                     value="${maptransaction.hash}"
+                     style="width: 130px" class="form-control input-block-wrapper__input">
+            </td>
+            <td>
+              <input id="manual_amount${maptransaction.invoiceId}"
+                     <c:if test="${maptransaction.hash!=null && !''.equals(maptransaction.hash)}">
+                        <c:out value="readonly"/>
+                      </c:if>
+                     value="${maptransaction.amount+maptransaction.commissionAmount}" style="width: 130px"
+                     maxlength="9" class="form-control input-block-wrapper__input numericInputField">
+            </td>
+            <td>
+              ${maptransaction.confirmation}
+            </td>
+            <td>
+              <c:choose>
+                <c:when test="${maptransaction.provided}">
                   <c:choose>
                     <c:when test="${maptransaction.acceptanceUserId == null}">by service</c:when>
                     <c:otherwise>${maptransaction.acceptanceUserEmail}</c:otherwise>
                   </c:choose>
-                </td>
-              </c:when>
-              <c:otherwise>
-                <%--Acceptance date--%>
-                <td>
-                  -
-                </td>
-                <%--Hash--%>
-                <td>
-                  <input id="bitcoin_hash${maptransaction.invoiceId}" value="${maptransaction.hash}"
-                         style="width: 130px" class="form-control input-block-wrapper__input">
-                </td>
-                <%--Manual amount--%>
-                <td>
-                  <input id="manual_amount${maptransaction.invoiceId}"
-                         value="${maptransaction.amount+maptransaction.commissionAmount}" style="width: 130px"
-                         maxlength="9" class="form-control input-block-wrapper__input numericInputField">
-                </td>
-                <%--Подтвердить--%>
-                <td>
+                </c:when>
+                <c:otherwise>
                   <button class="acceptbtn" type="submit"
                           onclick="submitAcceptBitcoin(${maptransaction.invoiceId})"><loc:message
                           code="transaction.accept"/></button>
-                </td>
-              </c:otherwise>
-            </c:choose>
+                </c:otherwise>
+              </c:choose>
+            </td>
           </tr>
         </c:forEach>
         </tbody>
