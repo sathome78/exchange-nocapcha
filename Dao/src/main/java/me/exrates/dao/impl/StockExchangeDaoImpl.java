@@ -112,9 +112,8 @@ public class StockExchangeDaoImpl implements StockExchangeDao {
     }
 
     @Override
-    public List<StockExchangeRateDto> getStockExchangeStatistics(List<Integer> currencyPairIds) {
-        String currencyPairClause = currencyPairIds == null ? "" : " WHERE stock_1.currency_pair_id IN (:currency_pair_ids) ";
-        String sql = "SELECT stock_1.currency_pair_id, stock_1.stock_exchange_id, " +
+    public List<StockExchangeStats> getStockExchangeStatistics(Integer currencyPairId) {
+        String sql = "SELECT stock_1.stock_exchange_id, " +
                 "              CURRENCY_PAIR.name AS currency_pair_name, STOCK_EXCHANGE.name AS stock_exchange_name, stock_1.price_last, " +
                 "              stock_1.price_buy, stock_1.price_sell, stock_1.price_low, stock_1.price_high, stock_1.volume," +
                 "              stock_1.date FROM STOCK_EXRATE AS stock_1 " +
@@ -124,42 +123,25 @@ public class StockExchangeDaoImpl implements StockExchangeDao {
                 "              AND stock_1.date = stock_2.date " +
                 "              JOIN STOCK_EXCHANGE ON stock_1.stock_exchange_id = STOCK_EXCHANGE.id " +
                 "              JOIN CURRENCY_PAIR ON stock_1.currency_pair_id = CURRENCY_PAIR.id " +
-                currencyPairClause +
-                "              ORDER BY stock_1.currency_pair_id, stock_1.stock_exchange_id;";
-        Map<String, List<Integer>> params = currencyPairIds == null ? Collections.EMPTY_MAP :
-                Collections.singletonMap("currency_pair_ids", currencyPairIds);
+                "       WHERE stock_1.currency_pair_id = :currency_pair_id " +
+                "       ORDER BY stock_1.currency_pair_id, stock_1.stock_exchange_id;";
+        Map<String, Integer> params = Collections.singletonMap("currency_pair_id", currencyPairId);
 
 
-        return jdbcTemplate.query(sql, params, resultSet -> {
-            List<StockExchangeRateDto> result = new ArrayList<>();
-            StockExchangeRateDto dto = null;
-            int lastCurrencyPairId = 0;
-            while (resultSet.next()) {
-                int currentCurrencyPairId = resultSet.getInt("currency_pair_id");
-                if (currentCurrencyPairId != lastCurrencyPairId) {
-                    lastCurrencyPairId = currentCurrencyPairId;
-                    dto = new StockExchangeRateDto();
-                    result.add(dto);
-                    dto.setCurrencyPairName(resultSet.getString("currency_pair_name"));
-                }
-                if (dto != null) {
-                    StockExchangeStats stockExchangeStats = new StockExchangeStats();
-                    StockExchange stockExchange = new StockExchange();
-                    stockExchange.setId(resultSet.getInt("stock_exchange_id"));
-                    stockExchange.setName(resultSet.getString("stock_exchange_name"));
-                    stockExchangeStats.setStockExchange(stockExchange);
-                    stockExchangeStats.setPriceLast(resultSet.getBigDecimal("price_last"));
-                    stockExchangeStats.setPriceBuy(resultSet.getBigDecimal("price_buy"));
-                    stockExchangeStats.setPriceSell(resultSet.getBigDecimal("price_sell"));
-                    stockExchangeStats.setPriceLow(resultSet.getBigDecimal("price_low"));
-                    stockExchangeStats.setPriceHigh(resultSet.getBigDecimal("price_high"));
-                    stockExchangeStats.setVolume(resultSet.getBigDecimal("volume"));
-                    stockExchangeStats.setDate(resultSet.getTimestamp("date").toLocalDateTime());
-                    dto.getExchangeStats().add(stockExchangeStats);
-                }
-            }
-            LOGGER.debug(result);
-            return result;
+        return jdbcTemplate.query(sql, params, (resultSet, rowNum) -> {
+            StockExchangeStats stockExchangeStats = new StockExchangeStats();
+            StockExchange stockExchange = new StockExchange();
+            stockExchange.setId(resultSet.getInt("stock_exchange_id"));
+            stockExchange.setName(resultSet.getString("stock_exchange_name"));
+            stockExchangeStats.setStockExchange(stockExchange);
+            stockExchangeStats.setPriceLast(resultSet.getBigDecimal("price_last"));
+            stockExchangeStats.setPriceBuy(resultSet.getBigDecimal("price_buy"));
+            stockExchangeStats.setPriceSell(resultSet.getBigDecimal("price_sell"));
+            stockExchangeStats.setPriceLow(resultSet.getBigDecimal("price_low"));
+            stockExchangeStats.setPriceHigh(resultSet.getBigDecimal("price_high"));
+            stockExchangeStats.setVolume(resultSet.getBigDecimal("volume"));
+            stockExchangeStats.setDate(resultSet.getTimestamp("date").toLocalDateTime());
+            return stockExchangeStats;
         });
     }
 

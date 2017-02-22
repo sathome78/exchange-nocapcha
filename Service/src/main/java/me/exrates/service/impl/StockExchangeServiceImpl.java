@@ -3,7 +3,6 @@ package me.exrates.service.impl;
 import me.exrates.dao.StockExchangeDao;
 import me.exrates.model.StockExchange;
 import me.exrates.model.StockExchangeStats;
-import me.exrates.model.dto.StockExchangeRateDto;
 import me.exrates.service.StockExchangeService;
 import me.exrates.service.stockExratesRetrieval.StockExrateRetrievalService;
 import org.apache.logging.log4j.LogManager;
@@ -49,7 +48,7 @@ public class StockExchangeServiceImpl implements StockExchangeService {
     }
 
     @Override
-    public List<StockExchangeRateDto> getStockExchangeStatistics(List<Integer> currencyPairIds) {
-        return stockExchangeDao.getStockExchangeStatistics(currencyPairIds);
+    public List<StockExchangeStats> getStockExchangeStatistics(Integer currencyPairId) {
+        return stockExchangeDao.getStockExchangeStatistics(currencyPairId);
     }
 }

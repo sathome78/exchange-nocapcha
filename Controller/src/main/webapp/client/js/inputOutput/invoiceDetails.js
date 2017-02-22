@@ -1,7 +1,7 @@
 /**
  * Created by OLEG on 03.02.2017.
  */
-var NAME_REGEX = /^[a-zA-Z]([-']?[a-zA-Z]+)*( [a-zA-Z]([-']?[a-zA-Z]+)*)+$/;
+var NAME_REGEX = /^[a-zA-Z]([-']?[a-zA-Z]+)*( [a-zA-Z]([-']?[a-zA-Z]+)*)*$/;
 
 $(function () {
 

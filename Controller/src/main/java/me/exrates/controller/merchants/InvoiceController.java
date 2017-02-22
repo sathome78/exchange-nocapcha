@@ -73,13 +73,8 @@ public class InvoiceController {
             redirectAttributes.addFlashAttribute("error", "merchants.withoutInvoiceWallet");
             return redirectView;
         }
-        BigDecimal addition;
+        BigDecimal addition = computeRandomizedAdditionForIdr(payment);
 
-        if (payment.getCurrency() == 10) {
-            addition = BigDecimal.valueOf(Math.random() * 899 + 100).setScale(0, BigDecimal.ROUND_DOWN);
-        } else {
-            addition = BigDecimal.ZERO;
-        }
         Optional<CreditsOperation> creditsOperationPrepared = merchantService
                 .prepareCreditsOperation(payment, addition,principal.getName());
         if (!creditsOperationPrepared.isPresent()) {
@@ -90,10 +85,21 @@ public class InvoiceController {
             HttpSession session = request.getSession();
             Object mutex = WebUtils.getSessionMutex(session);
             synchronized (mutex) {
-                session.setAttribute("creditsOperation", creditsOperation);session.setAttribute("addition", addition);
+                session.setAttribute("creditsOperation", creditsOperation);
+                session.setAttribute("addition", addition);
             }
         }
         return redirectView;
+    }
+
+    private BigDecimal computeRandomizedAdditionForIdr(Payment payment) {
+      BigDecimal addition;
+        if (payment.getCurrency() == 10) {
+            addition = BigDecimal.valueOf(Math.random() * 899 + 100).setScale(0, BigDecimal.ROUND_DOWN);
+        } else {
+            addition = BigDecimal.ZERO;
+        }
+        return addition;
     }
 
   @RequestMapping(value = "/details", method = GET)
@@ -151,7 +157,7 @@ public class InvoiceController {
       invoiceData.setCreditsOperation(creditsOperation);
       invoiceService.createPaymentInvoice(invoiceData);
       InvoiceBank invoiceBank = invoiceService.findBankById(invoiceData.getBankId());
-      String toWallet = invoiceBank.getName() + ": " + invoiceBank.getAccountNumber();
+      String toWallet = String.format("%s: %s - %s", invoiceBank.getName(), invoiceBank.getAccountNumber(), invoiceBank.getRecipient());
       final String notification = merchantService
           .sendDepositNotification(toWallet,
               email, localeResolver.resolveLocale(request), creditsOperation, "merchants.depositNotificationWithCurrency" +

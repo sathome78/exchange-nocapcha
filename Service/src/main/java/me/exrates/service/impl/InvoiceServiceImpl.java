@@ -17,6 +17,7 @@ import me.exrates.service.exception.invoice.IllegalInvoiceRequestStatusException
 import me.exrates.service.exception.invoice.InvoiceAcceptionException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
@@ -259,12 +260,12 @@ public class InvoiceServiceImpl implements InvoiceService {
       invoiceRequest.setRemark(StringEscapeUtils.escapeHtml(invoiceConfirmData.getRemark()));
       updateConfirmationInfo(invoiceRequest);
       MultipartFile receiptScan = invoiceConfirmData.getReceiptScan();
-      if ( receiptScan == null || receiptScan.isEmpty()) {
+      boolean emptyFile = receiptScan == null || receiptScan.isEmpty();
+      if (StringUtils.isEmpty(invoiceRequest.getReceiptScanPath()) && emptyFile) {
           throw new FileLoadingException(messageSource.getMessage("merchants.invoice.error.fieldsNotField", null,
                   locale));
       }
-
-
+      if (!emptyFile) {
         if (!userFilesService.checkFileValidity(receiptScan) || receiptScan.getSize() > 1048576L) {
           throw new FileLoadingException(messageSource.getMessage("merchants.errorUploadReceipt", null,
                   locale));
@@ -275,7 +276,7 @@ public class InvoiceServiceImpl implements InvoiceService {
           throw new FileLoadingException(messageSource.getMessage("merchants.errorUploadReceipt", null,
                   locale));
         }
-
+      }
     }
   }
 

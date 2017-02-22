@@ -60,7 +60,7 @@
 
                                             </div>
                                             <button style="position: relative; top: 50%; -webkit-transform: translateY(-50%); -ms-transform: translateY(-50%); transform: translateY(-50%);" type="button" value="${merchantCurrency.merchantId}:${merchantCurrency.name}:${merchantCurrency.minSum}:${merchantImage.id}"  name="assertInputPay"
-                                                    data-toggle="modal" data-target="#myModal" class="btn btn-primary btn-lg"><loc:message code="merchants.deposit"/></button>
+                                                    class="btn btn-primary btn-lg"><loc:message code="merchants.deposit"/></button>
                                         </div>
                                         <br>
                                     </c:forEach>
