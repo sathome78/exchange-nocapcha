@@ -8,6 +8,7 @@ import me.exrates.dao.PendingPaymentDao;
 import me.exrates.dao.WalletDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
+import me.exrates.model.dto.InvoiceUserDto;
 import me.exrates.model.dto.PendingPaymentFlatDto;
 import me.exrates.model.dto.onlineTableDto.PendingPaymentStatusDto;
 import me.exrates.model.enums.ActionType;
@@ -41,6 +42,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -53,6 +55,7 @@ import java.util.stream.IntStream;
 import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.toList;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.*;
+import static me.exrates.model.enums.invoice.PendingPaymentStatusEnum.EXPIRED;
 import static me.exrates.model.util.BitCoinUtils.satoshiToBtc;
 import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 
@@ -328,5 +331,31 @@ public class BitcoinServiceImpl implements BitcoinService {
   @Transactional(readOnly = true)
   public Integer getPendingPaymentStatusByInvoiceId(Integer invoiceId) {
     return paymentDao.getStatusById(invoiceId);
+  }
+
+  @Override
+  @Transactional
+  public Integer clearExpiredInvoices(Integer intervalMinutes) throws Exception {
+    List<Integer> pendingPaymentStatusIdList = PendingPaymentStatusEnum.getAvailableForActionStatusesList(EXPIRE).stream()
+        .map(InvoiceStatus::getCode)
+        .collect(Collectors.toList());
+    Optional<LocalDateTime> nowDate = paymentDao.getAndBlockByIntervalAndStatus(
+        intervalMinutes,
+        pendingPaymentStatusIdList);
+    if (nowDate.isPresent()) {
+      paymentDao.setNewStatusByDateIntervalAndStatus(
+          nowDate.get(),
+          intervalMinutes,
+          EXPIRED.getCode(),
+          pendingPaymentStatusIdList);
+      List<InvoiceUserDto> userForNotificationList = paymentDao.findInvoicesListByStatusChangedAtDate(EXPIRED.getCode(), nowDate.get());
+      for (InvoiceUserDto invoice : userForNotificationList) {
+        notificationService.notifyUser(invoice.getUserId(), NotificationEvent.IN_OUT, "merchants.invoice.expired.title",
+            "merchants.btc_invoice.expired.message", new Integer[]{invoice.getInvoiceId()});
+      }
+      return userForNotificationList.size();
+    } else {
+      return 0;
+    }
   }
 }

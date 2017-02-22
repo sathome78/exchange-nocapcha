@@ -3,6 +3,7 @@ package me.exrates.dao.impl;
 import me.exrates.dao.PendingPaymentDao;
 import me.exrates.model.PendingPayment;
 import me.exrates.model.Transaction;
+import me.exrates.model.dto.InvoiceUserDto;
 import me.exrates.model.dto.PendingPaymentFlatDto;
 import me.exrates.model.dto.PendingPaymentSimpleDto;
 import me.exrates.model.dto.onlineTableDto.PendingPaymentStatusDto;
@@ -10,6 +11,7 @@ import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -32,7 +34,10 @@ import static java.util.Optional.of;
 public class PendingPaymentDaoImpl implements PendingPaymentDao {
 
   @Autowired
-  private NamedParameterJdbcTemplate jdbcTemplate;
+  private NamedParameterJdbcTemplate parameterJdbcTemplate;
+
+  @Autowired
+  private JdbcTemplate jdbcTemplate;
 
   private final static RowMapper<PendingPayment> pendingPaymentRowMapper = (resultSet, i) -> {
     PendingPayment pendingPayment = new PendingPayment();
@@ -85,14 +90,14 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
         put("pending_payment_status_id", pendingPayment.getPendingPaymentStatus().getCode());
       }
     };
-    jdbcTemplate.update(sql, params);
+    parameterJdbcTemplate.update(sql, params);
   }
 
   @Override
   public List<PendingPaymentSimpleDto> findAllByHash(String hash) {
     final String sql = "SELECT * FROM PENDING_PAYMENT WHERE transaction_hash = :hash";
     final Map<String, String> params = Collections.singletonMap("hash", hash);
-    return jdbcTemplate.query(sql, params, new BeanPropertyRowMapper<>(PendingPaymentSimpleDto.class));
+    return parameterJdbcTemplate.query(sql, params, new BeanPropertyRowMapper<>(PendingPaymentSimpleDto.class));
   }
 
   @Override
@@ -101,7 +106,7 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
         " WHERE invoice_id = :invoice_id";
     final Map<String, Integer> params = Collections.singletonMap("invoiceId", invoiceId);
     try {
-      return of(jdbcTemplate
+      return of(parameterJdbcTemplate
           .queryForObject(sql,
               singletonMap("invoice_id", invoiceId),
               pendingPaymentRowMapper)
@@ -115,7 +120,7 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
   public void delete(final int invoiceId) {
     final String sql = "DELETE FROM PENDING_PAYMENT WHERE invoice_id = :invoiceId";
     final Map<String, Integer> params = Collections.singletonMap("invoiceId", invoiceId);
-    jdbcTemplate.update(sql, params);
+    parameterJdbcTemplate.update(sql, params);
   }
 
   @Override
@@ -129,7 +134,7 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
     final Map<String, Object> params = new HashMap<String, Object>() {{
       put("invoice_id", invoiceId);
     }};
-    jdbcTemplate.queryForObject(sql, params, Integer.class);
+    parameterJdbcTemplate.queryForObject(sql, params, Integer.class);
     return findByInvoiceId(invoiceId);
   }
 
@@ -150,7 +155,7 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
         put("pending_payment_status_id", pendingPayment.getPendingPaymentStatus().getCode());
       }
     };
-    jdbcTemplate.update(sql, params);
+    parameterJdbcTemplate.update(sql, params);
   }
 
   @Override
@@ -165,7 +170,7 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
         put("pending_payment_status_id", newStatus);
       }
     };
-    jdbcTemplate.update(sql, params);
+    parameterJdbcTemplate.update(sql, params);
   }
 
   @Override
@@ -187,7 +192,7 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
         put("hash", hash);
       }
     };
-    jdbcTemplate.update(sql, params);
+    parameterJdbcTemplate.update(sql, params);
     pendingPayment.setPendingPaymentStatus(PendingPaymentStatusEnum.convert(newStatus));
     return of(pendingPayment);
   }
@@ -203,7 +208,7 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
       put("pending_payment_status_id", statusId);
     }};
     try {
-      return jdbcTemplate.queryForObject(sql, params, (rs, i) -> {
+      return parameterJdbcTemplate.queryForObject(sql, params, (rs, i) -> {
         PendingPaymentStatusDto result = new PendingPaymentStatusDto();
         result.setInvoiceId(rs.getInt("invoice_id"));
         result.setPendingPaymentStatus(PendingPaymentStatusEnum.convert(rs.getInt("pending_payment_status_id")));
@@ -224,7 +229,7 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
       put("address", address);
     }};
     try {
-      return of(jdbcTemplate.queryForObject(sql, params, new BeanPropertyRowMapper<>(PendingPaymentSimpleDto.class)));
+      return of(parameterJdbcTemplate.queryForObject(sql, params, new BeanPropertyRowMapper<>(PendingPaymentSimpleDto.class)));
     } catch (EmptyResultDataAccessException e) {
       return empty();
     }
@@ -240,7 +245,7 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
       put("address", address);
       put("pending_payment_status_id_list", paymentStatusIdList);
     }};
-    return jdbcTemplate.queryForObject(sql, params, Integer.class) != 0;
+    return parameterJdbcTemplate.queryForObject(sql, params, Integer.class) != 0;
   }
 
   @Override
@@ -248,7 +253,7 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
     final String sql = "SELECT pending_payment_status_id " +
         " FROM PENDING_PAYMENT " +
         " WHERE invoice_id = :id";
-    return jdbcTemplate.queryForObject(sql, singletonMap("id", id), Integer.class);
+    return parameterJdbcTemplate.queryForObject(sql, singletonMap("id", id), Integer.class);
   }
 
   @Override
@@ -266,7 +271,7 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
     Map<String, Object> params = new HashMap<String, Object>() {{
       put("pending_payment_status_id_list", pendingPaymentStatusIdList);
     }};
-    return jdbcTemplate.query(sql, params, new RowMapper<PendingPaymentFlatDto>() {
+    return parameterJdbcTemplate.query(sql, params, new RowMapper<PendingPaymentFlatDto>() {
       @Override
       public PendingPaymentFlatDto mapRow(ResultSet rs, int i) throws SQLException {
         PendingPaymentFlatDto pendingPaymentFlatDto = new PendingPaymentFlatDto();
@@ -289,6 +294,63 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
         return pendingPaymentFlatDto;
       }
     });
+  }
+
+  @Override
+  public Optional<LocalDateTime> getAndBlockByIntervalAndStatus(Integer intervalMinutes, List<Integer> pendingPaymentStatusIdList) {
+    LocalDateTime nowDate = jdbcTemplate.queryForObject("SELECT NOW()", LocalDateTime.class);
+    String sql =
+        " SELECT COUNT(*) " +
+            " FROM PENDING_PAYMENT " +
+            " WHERE status_update_date <= DATE_SUB(:now_date, INTERVAL " + intervalMinutes + " MINUTE) " +
+            "       AND pending_payment_status_id IN (:pending_payment_status_id_list)" +
+            " FOR UPDATE"; //FOR UPDATE Important!
+    final Map<String, Object> params = new HashMap<String, Object>() {{
+      put("now_date", nowDate);
+      put("pending_payment_status_id_list", pendingPaymentStatusIdList);
+    }};
+    return Optional.ofNullable(parameterJdbcTemplate.queryForObject(sql, params, Integer.class) > 0 ? nowDate : null);
+  }
+
+  @Override
+  public void setNewStatusByDateIntervalAndStatus(LocalDateTime nowDate, Integer intervalMinutes, Integer newPendingPaymentStatusId, List<Integer> pendingPaymentStatusIdList) {
+    final String sql =
+        " UPDATE PENDING_PAYMENT " +
+            " SET pending_payment_status_id = :pending_payment_status_id, " +
+            "     status_update_date = :now_date " +
+            " WHERE status_update_date <= DATE_SUB(:now_date, INTERVAL " + intervalMinutes + " MINUTE) " +
+            "       AND pending_payment_status_id IN (:pending_payment_status_id_list)";
+    final Map<String, Object> params = new HashMap<String, Object>() {{
+      put("now_date", nowDate);
+      put("pending_payment_status_id", newPendingPaymentStatusId);
+      put("pending_payment_status_id_list", pendingPaymentStatusIdList);
+    }};
+    parameterJdbcTemplate.update(sql, params);
+  }
+
+  @Override
+  public List<InvoiceUserDto> findInvoicesListByStatusChangedAtDate(Integer pendingPaymentStatusId, LocalDateTime dateWhenChanged) {
+    String sql =
+        " SELECT PP.invoice_id, W.user_id " +
+            " FROM PENDING_PAYMENT PP " +
+            " JOIN TRANSACTION TX ON TX.id = PP.invoice_id " +
+            " JOIN WALLET W ON W.id = TX.user_wallet_id " +
+            " WHERE status_update_date = :date " +
+            "       AND pending_payment_status_id = :pending_payment_status_id";
+    final Map<String, Object> params = new HashMap<String, Object>() {{
+      put("date", dateWhenChanged);
+      put("pending_payment_status_id", pendingPaymentStatusId);
+    }};
+    try {
+      return parameterJdbcTemplate.query(sql, params, (resultSet, i) -> {
+        InvoiceUserDto invoiceUserDto = new InvoiceUserDto();
+        invoiceUserDto.setUserId(resultSet.getInt("user_id"));
+        invoiceUserDto.setInvoiceId(resultSet.getInt("invoice_id"));
+        return invoiceUserDto;
+      });
+    } catch (EmptyResultDataAccessException e) {
+      return Collections.EMPTY_LIST;
+    }
   }
 
 }

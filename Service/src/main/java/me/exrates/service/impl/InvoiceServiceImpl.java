@@ -155,7 +155,7 @@ public class InvoiceServiceImpl implements InvoiceService {
   @Override
   @Transactional
   public Integer clearExpiredInvoices(Integer intervalMinutes) throws Exception {
-    List<Integer> invoiceRequestStatusIdList = InvoiceRequestStatusEnum.getAvailableForActionStatusesList(InvoiceActionTypeEnum.EXPIRE).stream()
+    List<Integer> invoiceRequestStatusIdList = InvoiceRequestStatusEnum.getAvailableForActionStatusesList(EXPIRE).stream()
         .map(InvoiceStatus::getCode)
         .collect(Collectors.toList());
     Optional<LocalDateTime> nowDate = invoiceRequestDao.getAndBlockByIntervalAndStatus(

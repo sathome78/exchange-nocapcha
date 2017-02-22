@@ -5,6 +5,7 @@ import me.exrates.model.dto.PendingPaymentFlatDto;
 import me.exrates.model.dto.PendingPaymentSimpleDto;
 import me.exrates.model.dto.onlineTableDto.PendingPaymentStatusDto;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,4 +37,10 @@ public interface PendingPaymentDao {
   Integer getStatusById(int id);
 
   List<PendingPaymentFlatDto> findFlattenDtoByStatus(List<Integer> pendingPaymentStatusIdList);
+
+  Optional<LocalDateTime> getAndBlockByIntervalAndStatus(Integer intervalMinutes, List<Integer> invoiceRequestStatusIdList);
+
+  void setNewStatusByDateIntervalAndStatus(LocalDateTime nowDate, Integer intervalMinutes, Integer newInvoiceRequestStatusId, List<Integer> invoiceRequestStatusIdList);
+
+  List findInvoicesListByStatusChangedAtDate(Integer invoiceRequestStatusId, LocalDateTime dateWhenChanged);
 }
