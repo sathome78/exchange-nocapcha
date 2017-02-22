@@ -36,11 +36,11 @@ public interface PendingPaymentDao {
 
   Integer getStatusById(int id);
 
-  List<PendingPaymentFlatDto> findFlattenDtoByStatus(List<Integer> pendingPaymentStatusIdList);
+  List<PendingPaymentFlatDto> findFlattenDtoByStatus(String sourceName, List<Integer> pendingPaymentStatusIdList);
 
-  Optional<LocalDateTime> getAndBlockByIntervalAndStatus(Integer intervalMinutes, List<Integer> invoiceRequestStatusIdList);
+  Optional<LocalDateTime> getAndBlockBySourceTypeAndIntervalAndStatus(String sourceName, Integer intervalMinutes, List<Integer> invoiceRequestStatusIdList);
 
-  void setNewStatusByDateIntervalAndStatus(LocalDateTime nowDate, Integer intervalMinutes, Integer newInvoiceRequestStatusId, List<Integer> invoiceRequestStatusIdList);
+  void setNewStatusBySourceTypeAndDateIntervalAndStatus(String sourceName, LocalDateTime nowDate, Integer intervalMinutes, Integer newInvoiceRequestStatusId, List<Integer> invoiceRequestStatusIdList);
 
-  List findInvoicesListByStatusChangedAtDate(Integer invoiceRequestStatusId, LocalDateTime dateWhenChanged);
+  List findInvoicesListBySourceTypeAndStatusChangedAtDate(String sourceName, Integer invoiceRequestStatusId, LocalDateTime dateWhenChanged);
 }

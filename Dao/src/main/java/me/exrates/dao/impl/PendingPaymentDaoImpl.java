@@ -257,19 +257,20 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
   }
 
   @Override
-  public List<PendingPaymentFlatDto> findFlattenDtoByStatus(List<Integer> pendingPaymentStatusIdList) {
+  public List<PendingPaymentFlatDto> findFlattenDtoByStatus(String sourceName, List<Integer> pendingPaymentStatusIdList) {
     String sql = "SELECT  PP.*, " +
         "                 TX.amount, TX.commission_amount, TX.datetime, TX.confirmation, TX.provided, " +
         "                 USER.id AS user_id, USER.email AS user_email, " +
         "                 ADM.id AS acceptance_id, ADM.email AS acceptance_user_email " +
         " FROM PENDING_PAYMENT PP " +
-        " JOIN TRANSACTION TX ON (TX.id = PP.invoice_id) " +
+        " JOIN TRANSACTION TX ON (TX.id = PP.invoice_id) AND TX.source_type=:source_type " +
         " JOIN WALLET ON WALLET.id = TX.user_wallet_id " +
         " JOIN USER AS USER ON USER.id = WALLET.user_id " +
         " LEFT JOIN USER AS ADM ON ADM.id = PP.acceptance_user_id " +
         " WHERE pending_payment_status_id IN (:pending_payment_status_id_list) " +
         " ORDER BY PP.status_update_date DESC ";
     Map<String, Object> params = new HashMap<String, Object>() {{
+      put("source_type", sourceName);
       put("pending_payment_status_id_list", pendingPaymentStatusIdList);
     }};
     return parameterJdbcTemplate.query(sql, params, new RowMapper<PendingPaymentFlatDto>() {
@@ -298,15 +299,17 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
   }
 
   @Override
-  public Optional<LocalDateTime> getAndBlockByIntervalAndStatus(Integer intervalMinutes, List<Integer> pendingPaymentStatusIdList) {
+  public Optional<LocalDateTime> getAndBlockBySourceTypeAndIntervalAndStatus(String sourceName, Integer intervalMinutes, List<Integer> pendingPaymentStatusIdList) {
     LocalDateTime nowDate = jdbcTemplate.queryForObject("SELECT NOW()", LocalDateTime.class);
     String sql =
         " SELECT COUNT(*) " +
-            " FROM PENDING_PAYMENT " +
+            " FROM PENDING_PAYMENT PP " +
+            " JOIN TRANSACTION TX ON TX.id = PP.invoice_id AND TX.source_type = :source_type " +
             " WHERE status_update_date <= DATE_SUB(:now_date, INTERVAL " + intervalMinutes + " MINUTE) " +
             "       AND pending_payment_status_id IN (:pending_payment_status_id_list)" +
             " FOR UPDATE"; //FOR UPDATE Important!
     final Map<String, Object> params = new HashMap<String, Object>() {{
+      put("source_type", sourceName);
       put("now_date", nowDate);
       put("pending_payment_status_id_list", pendingPaymentStatusIdList);
     }};
@@ -314,14 +317,16 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
   }
 
   @Override
-  public void setNewStatusByDateIntervalAndStatus(LocalDateTime nowDate, Integer intervalMinutes, Integer newPendingPaymentStatusId, List<Integer> pendingPaymentStatusIdList) {
+  public void setNewStatusBySourceTypeAndDateIntervalAndStatus(String sourceName, LocalDateTime nowDate, Integer intervalMinutes, Integer newPendingPaymentStatusId, List<Integer> pendingPaymentStatusIdList) {
     final String sql =
-        " UPDATE PENDING_PAYMENT " +
+        " UPDATE PENDING_PAYMENT PP " +
             " SET pending_payment_status_id = :pending_payment_status_id, " +
             "     status_update_date = :now_date " +
             " WHERE status_update_date <= DATE_SUB(:now_date, INTERVAL " + intervalMinutes + " MINUTE) " +
-            "       AND pending_payment_status_id IN (:pending_payment_status_id_list)";
+            "       AND pending_payment_status_id IN (:pending_payment_status_id_list)" +
+            "       AND EXISTS(SELECT id FROM TRANSACTION TX WHERE TX.id = PP.invoice_id AND TX.source_type=:source_type) ";
     final Map<String, Object> params = new HashMap<String, Object>() {{
+      put("source_type", sourceName);
       put("now_date", nowDate);
       put("pending_payment_status_id", newPendingPaymentStatusId);
       put("pending_payment_status_id_list", pendingPaymentStatusIdList);
@@ -330,15 +335,17 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
   }
 
   @Override
-  public List<InvoiceUserDto> findInvoicesListByStatusChangedAtDate(Integer pendingPaymentStatusId, LocalDateTime dateWhenChanged) {
+  public List<InvoiceUserDto> findInvoicesListBySourceTypeAndStatusChangedAtDate(String sourceName, Integer pendingPaymentStatusId, LocalDateTime dateWhenChanged) {
     String sql =
         " SELECT PP.invoice_id, W.user_id " +
             " FROM PENDING_PAYMENT PP " +
-            " JOIN TRANSACTION TX ON TX.id = PP.invoice_id " +
+            " JOIN TRANSACTION TX ON TX.id = PP.invoice_id AND TX.source_type = :source_type " +
             " JOIN WALLET W ON W.id = TX.user_wallet_id " +
-            " WHERE status_update_date = :date " +
-            "       AND pending_payment_status_id = :pending_payment_status_id";
+            " WHERE " +
+            "       PP.status_update_date = :date " +
+            "       AND PP.pending_payment_status_id = :pending_payment_status_id";
     final Map<String, Object> params = new HashMap<String, Object>() {{
+      put("source_type", sourceName);
       put("date", dateWhenChanged);
       put("pending_payment_status_id", pendingPaymentStatusId);
     }};
