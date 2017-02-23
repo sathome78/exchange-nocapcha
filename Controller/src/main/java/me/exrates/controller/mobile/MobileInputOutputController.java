@@ -498,7 +498,7 @@ public class MobileInputOutputController {
             throw new InvoiceNotFoundException(String.format("Invoice with id %s not found", invoiceId));
         }
         InvoiceRequest invoiceRequest = invoiceRequestResult.get();
-        String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
+        String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + "/rest";
         return new InvoiceDetailsDto(invoiceRequest, baseUrl);
     }
 

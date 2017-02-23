@@ -59,7 +59,9 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
         invoiceRequest.setUserFullName(resultSet.getString("user_full_name"));
         invoiceRequest.setRemark(resultSet.getString("remark"));invoiceRequest.setReceiptScanPath(resultSet.getString("receipt_scan"));
     invoiceRequest.setInvoiceRequestStatus(InvoiceRequestStatusEnum.convert(resultSet.getInt("invoice_request_status_id")));
-    invoiceRequest.setStatusUpdateDate(resultSet.getTimestamp("status_update_date").toLocalDateTime());    return invoiceRequest;
+    invoiceRequest.setStatusUpdateDate(resultSet.getTimestamp("status_update_date").toLocalDateTime());
+    invoiceRequest.setReceiptScanName(resultSet.getString("receipt_scan_name"));
+    return invoiceRequest;
     };
 
     private static final String SELECT_ALL = "SELECT inv.acceptance_time, user.id AS user_id, user.email AS user_email, " +
@@ -72,8 +74,7 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
             "                    CURRENCY.id, CURRENCY.description, CURRENCY.name, MERCHANT.id,MERCHANT.name,MERCHANT.description, " +
             "                    INVOICE_BANK.id AS bank_id, INVOICE_BANK.name AS bank_name, INVOICE_BANK.account_number, INVOICE_BANK.recipient, " +
             "                    inv.user_full_name, inv.remark, inv.payer_bank_name,  inv.payer_bank_code, inv.payer_account, inv.receipt_scan, " +
-            "                    inv.invoice_request_status_id, " +
-            "                    inv.status_update_date " +
+            "                    inv.receipt_scan_name, inv.invoice_request_status_id, inv.status_update_date " +
             "                    FROM INVOICE_REQUEST AS inv " +
             "    INNER JOIN TRANSACTION ON inv.transaction_id = TRANSACTION.id " +
             "    INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id " +
@@ -308,8 +309,8 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
   public void updateConfirmationInfo(InvoiceRequest invoiceRequest) {
     final String sql = "UPDATE INVOICE_REQUEST " +
         "  SET payer_bank_name = :payer_bank_name, payer_account = :payer_account, payer_bank_code = :payer_bank_code," +
-        "      user_full_name = :user_full_name, remark = :remark, invoice_request_status_id = :invoice_request_status_id," +
-        "      status_update_date = NOW() " +
+        "      user_full_name = :user_full_name, remark = :remark, invoice_request_status_id = :invoice_request_status_id, " +
+        "      receipt_scan_name = :receipt_scan_name, status_update_date = NOW() " +
         "  WHERE transaction_id = :id";
     Map<String, Object> params = new HashMap<>();
     params.put("id", invoiceRequest.getTransaction().getId());
@@ -319,6 +320,7 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
     params.put("user_full_name", invoiceRequest.getUserFullName());
     params.put("remark", invoiceRequest.getRemark());
     params.put("invoice_request_status_id", invoiceRequest.getInvoiceRequestStatus().getCode());
+    params.put("receipt_scan_name", invoiceRequest.getReceiptScanName());
     parameterJdbcTemplate.update(sql, params);
   }
 

@@ -32,6 +32,7 @@ public class InvoiceRequest {
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime statusUpdateDate;
     private String receiptScanPath;
+    private String receiptScanName;
 
 
 

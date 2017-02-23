@@ -14,7 +14,6 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
@@ -54,7 +53,7 @@ public class InvoiceDetailsDto {
     @JsonInclude(NON_NULL)
     private String receiptScanFullPath;
     @JsonInclude(NON_NULL)
-    private String receiptScanFilename;
+    private String receiptScanName;
 
 
     public InvoiceDetailsDto(InvoiceRequest invoiceRequest, String baseUrl) {
@@ -72,11 +71,16 @@ public class InvoiceDetailsDto {
         this.payerAccount = invoiceRequest.getPayerAccount();
         this.invoiceRequestStatus = invoiceRequest.getInvoiceRequestStatus();
         this.statusUpdateDate = invoiceRequest.getStatusUpdateDate();
-        if (!StringUtils.isEmpty(invoiceRequest.getReceiptScanPath())) {
+        boolean hasReceiptPath = !StringUtils.isEmpty(invoiceRequest.getReceiptScanPath());
+        if (hasReceiptPath) {
             this.receiptScanFullPath = baseUrl + invoiceRequest.getReceiptScanPath();
+        }
+        if (!StringUtils.isEmpty(invoiceRequest.getReceiptScanName())) {
+            this.receiptScanName = invoiceRequest.getReceiptScanName();
+        } else if (hasReceiptPath) {
             //Regex \\\\|/ splits path by slash (for Unix) or backslash (for Windows)
             String[] pathElements = invoiceRequest.getReceiptScanPath().split("\\\\|/");
-            this.receiptScanFilename = pathElements[pathElements.length - 1];
+            this.receiptScanName = pathElements[pathElements.length - 1];
         }
     }
 

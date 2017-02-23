@@ -258,6 +258,7 @@ public class InvoiceServiceImpl implements InvoiceService {
       invoiceRequest.setUserFullName(invoiceConfirmData.getUserFullName());
       invoiceRequest.setInvoiceRequestStatus(CONFIRMED_USER);
       invoiceRequest.setRemark(StringEscapeUtils.escapeHtml(invoiceConfirmData.getRemark()));
+      invoiceRequest.setReceiptScanName(invoiceConfirmData.getReceiptScanName());
       updateConfirmationInfo(invoiceRequest);
       MultipartFile receiptScan = invoiceConfirmData.getReceiptScan();
       boolean emptyFile = receiptScan == null || receiptScan.isEmpty();
