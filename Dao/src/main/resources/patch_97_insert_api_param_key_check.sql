@@ -1,0 +1,1 @@
+INSERT INTO API_PARAMS (param_name, param_value) VALUES ('KEY_CHECK_ENABLED', 'ON')

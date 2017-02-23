@@ -22,4 +22,9 @@ public class ApiServiceImpl implements ApiService {
         Optional<String> searchResult = mobileAppDao.getAppKey(userAgent);
         return searchResult.orElseThrow(KeyNotFoundException::new);
     }
+
+    @Override
+    public boolean appKeyCheckEnabled() {
+        return mobileAppDao.appKeyCheckEnabled();
+    }
 }
