@@ -131,6 +131,8 @@ public interface OrderService {
      */
     List<CoinmarketApiDto> getCoinmarketData(String currencyPairName, BackDealInterval backDealInterval);
 
+    List<CoinmarketApiDto> getCoinmarketDataForActivePairs(String currencyPairName, BackDealInterval backDealInterval);
+
     /**
      * Returns detailed info about the order, including info from related transactions
      *

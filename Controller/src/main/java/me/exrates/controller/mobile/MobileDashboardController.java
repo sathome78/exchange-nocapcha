@@ -2,6 +2,7 @@ package me.exrates.controller.mobile;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.StockExchangeStats;
 import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.dto.OrderCommissionsDto;
 import me.exrates.model.dto.StockExchangeRateDto;
@@ -960,26 +961,20 @@ public class MobileDashboardController {
      *      /api/dashboard/stockExchangeStatistics?pairs=1,2
      * @apiPermission User
      * @apiDescription Get statistics from other cryptocurrency exchanges
-     * @apiSuccess (200) {Array} statsData Request result
-     * @apiSuccess (200) {Object} data Stats data item - statistics for certain currency pair
-     * @apiSuccess (200) {String} data.currencyPair currency pair name
-     * @apiSuccess (200) {Array} data.exchangeStats statistics for currency pair
-     * @apiSuccess (200) {Object} exchangeStatsItem item of exchange stats - corresponds to single stock exchange
-     * @apiSuccess (200) {String} exchangeStatsItem.stockExchange stock exchange name
-     * @apiSuccess (200) {Number} exchangeStatsItem.last price of last deal
-     * @apiSuccess (200) {Number} exchangeStatsItem.buy highest bid price
-     * @apiSuccess (200) {Number} exchangeStatsItem.sell lowest ask price
-     * @apiSuccess (200) {Number} exchangeStatsItem.low lowest price for last 24 hours
-     * @apiSuccess (200) {Number} exchangeStatsItem.high highest price for last 24 hours
-     * @apiSuccess (200) {Number} exchangeStatsItem.volume trade volume
-     * @apiSuccess (200) {Number} exchangeStatsItem.timestamp time when data were retrieved
+     * @apiSuccess (200) {Array} exchangeStats statistics for currency pair
+     * @apiSuccess (200) {Object} data item of exchange stats - corresponds to single stock exchange
+     * @apiSuccess (200) {String} data.stockExchange stock exchange name
+     * @apiSuccess (200) {Number} data.last price of last deal
+     * @apiSuccess (200) {Number} data.buy highest bid price
+     * @apiSuccess (200) {Number} data.sell lowest ask price
+     * @apiSuccess (200) {Number} data.low lowest price for last 24 hours
+     * @apiSuccess (200) {Number} data.high highest price for last 24 hours
+     * @apiSuccess (200) {Number} data.volume trade volume
+     * @apiSuccess (200) {Number} data.timestamp time when data were retrieved
      *
      * @apiSuccessExample {json} Success-Response:
      *     HTTP/1.1 200 OK
      * [
-     *  {
-     *      "currencyPair": "BTC/USD",
-     *      "exchangeStats": [
      *          {
      *              "stockExchange": "xBTCe",
      *              "last": 848,
@@ -1000,8 +995,6 @@ public class MobileDashboardController {
      *              "volume": 19583.3610558,
      *              "timestamp": 1482404750000
      *          }
-     *       ]
-     *  }
      * ]
      *
      * @apiUse ExpiredAuthenticationTokenError
@@ -1014,8 +1007,8 @@ public class MobileDashboardController {
      *
      */
     @RequestMapping(value = "/stockExchangeStatistics", method = GET, produces = "application/json; charset=UTF-8")
-    public List<StockExchangeRateDto> getStockExchangeStatistics(@RequestParam(required = false) Integer[] pairs) {
-        return stockExchangeService.getStockExchangeStatistics(pairs == null ? null : Arrays.asList(pairs));
+    public List<StockExchangeStats> getStockExchangeStatistics(@RequestParam Integer currencyPairId) {
+        return stockExchangeService.getStockExchangeStatistics(currencyPairId);
     }
 
 

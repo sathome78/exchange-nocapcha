@@ -557,7 +557,8 @@ $(function(){
         return $("#currencyName").val();
     }
 
-    $('button[name=assertInputPay]').click(function()  {
+    $('button[name=assertInputPay]').click(function(e)  {
+        e.preventDefault();
         var arr = this.value.split(':');
         merchant = arr[0];
         merchantName = arr[1];
@@ -576,7 +577,12 @@ $(function(){
             .html($('#mrcht-ready').val());
 
         if (isCorrectSum()) {
-            fillModalWindow('INPUT', sum.val(), getCurrentCurrency());
+            if (merchantName === INVOICE) {
+                submitProcess();
+            } else {
+                fillModalWindow('INPUT', sum.val(), getCurrentCurrency());
+                $('#myModal').modal();
+            }
         }
     });
 

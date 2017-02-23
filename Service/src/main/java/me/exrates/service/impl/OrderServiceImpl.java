@@ -649,6 +649,12 @@ public class OrderServiceImpl implements OrderService {
         return result;
     }
 
+    @Override
+    public List<CoinmarketApiDto> getCoinmarketDataForActivePairs(String currencyPairName, BackDealInterval backDealInterval) {
+        return orderDao.getCoinmarketData(currencyPairName);
+    }
+
+
     @Transactional
     @Override
     public OrderInfoDto getOrderInfo(int orderId, Locale locale) {

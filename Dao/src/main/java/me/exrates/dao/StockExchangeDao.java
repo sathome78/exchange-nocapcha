@@ -2,7 +2,6 @@ package me.exrates.dao;
 
 import me.exrates.model.StockExchange;
 import me.exrates.model.StockExchangeStats;
-import me.exrates.model.dto.StockExchangeRateDto;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,5 +18,5 @@ public interface StockExchangeDao {
 
     List<StockExchange> findAll();
 
-    List<StockExchangeRateDto> getStockExchangeStatistics(List<Integer> currencyPairIds);
+    List<StockExchangeStats> getStockExchangeStatistics(Integer currencyPairId);
 }

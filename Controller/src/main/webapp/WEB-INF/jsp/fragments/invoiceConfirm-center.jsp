@@ -95,7 +95,7 @@
                     </div>
                     <div class="input-block-wrapper clearfix">
                         <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <labelfor="userAccount" class="input-block-wrapper__label" >
+                            <label for="userAccount" class="input-block-wrapper__label" >
                                 <loc:message code="merchants.invoiceConfirm.userAccount"/>*</label>
                         </div>
                         <div class="col-md-8 " >
@@ -131,19 +131,17 @@
                     <div class="input-block-wrapper clearfix">
                         <div class="col-md-3 input-block-wrapper__label-wrapper">
                             <label for="remark" class="input-block-wrapper__label" >
-                                <loc:message code="merchants.invoiceConfirm.receiptScan"/></label>
+                                <loc:message code="merchants.invoiceConfirm.receiptScan"/>*</label>
                         </div>
-                        <div class="col-md-8">
-                            <c:choose>
-                                <c:when test="${not empty invoiceRequest.receiptScanPath}">
-                                    <a href="${invoiceRequest.receiptScanPath}" class="col-sm-4">
-                                        <img src="${invoiceRequest.receiptScanPath}" class="img-responsive">
-                                    </a>
-                                </c:when>
-                                <c:otherwise>
-                                    <input type="file" id="receiptScan" name="receiptScan">
-                                </c:otherwise>
-                            </c:choose>
+                        <div id="receiptScanContainer" class="col-md-8">
+                            <c:if test="${not empty invoiceRequest.receiptScanPath}">
+                                <a href="${invoiceRequest.receiptScanPath}" class="col-sm-4">
+                                    <img src="${invoiceRequest.receiptScanPath}" class="img-responsive">
+                                </a>
+                            </c:if>
+                            <c:if test="${needToConfirm}">
+                                <input type="file" id="receiptScan" name="receiptScan">
+                            </c:if>
                         </div>
                     </div>
 

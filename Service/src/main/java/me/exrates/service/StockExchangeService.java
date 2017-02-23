@@ -1,6 +1,6 @@
 package me.exrates.service;
 
-import me.exrates.model.dto.StockExchangeRateDto;
+import me.exrates.model.StockExchangeStats;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
@@ -12,5 +12,5 @@ public interface StockExchangeService {
     @PostConstruct
     void retrieveCurrencies();
 
-    List<StockExchangeRateDto> getStockExchangeStatistics(List<Integer> currencyPairIds);
+    List<StockExchangeStats> getStockExchangeStatistics(Integer currencyPairId);
 }
