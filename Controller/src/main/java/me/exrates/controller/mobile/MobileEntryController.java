@@ -17,6 +17,7 @@ import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.*;
 import me.exrates.service.util.RestPasswordDecodingUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -541,7 +542,7 @@ public class MobileEntryController {
         }
 
 
-            user.setPassword(decodedPassword);
+        user.setPassword(decodedPassword);
         user.setParentEmail(sponsor);
         user.setPhone("");
         user.setIp(request.getRemoteHost());
@@ -553,7 +554,14 @@ public class MobileEntryController {
             if (userService.createUserRest(user, locale)) {
                 logger.info("User registered with parameters = " + user.toString());
                 final int userId = userService.getIdByEmail(user.getEmail());
-                final int parentId = userService.getIdByEmail(user.getParentEmail());
+                final int parentId;
+                if (StringUtils.isNotEmpty((user.getParentEmail()))) {
+                    parentId = userService.getIdByEmail(user.getParentEmail());
+
+                } else {
+                    User commonReferralRoot = userService.getCommonReferralRoot();
+                        parentId = commonReferralRoot == null ? 0 : commonReferralRoot.getId();
+                }
                 if (userId > 0 && parentId > 0) {
                     referralService.bindChildAndParent(userId, parentId);
                 }
