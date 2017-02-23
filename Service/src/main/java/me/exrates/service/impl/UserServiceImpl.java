@@ -5,10 +5,7 @@ import me.exrates.dao.UserDao;
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
-import me.exrates.model.enums.NotificationEvent;
-import me.exrates.model.enums.TokenType;
-import me.exrates.model.enums.UserRole;
-import me.exrates.model.enums.UserStatus;
+import me.exrates.model.enums.*;
 import me.exrates.service.NotificationService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
@@ -519,7 +516,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean addUserComment(String newComment, String email, boolean sendMessage, Locale locale){
+    public boolean addUserComment(UserCommentTopicEnum topic, String newComment, String email, boolean sendMessage){
 
         User user = findByEmail(email);
         User creator;
@@ -527,6 +524,7 @@ public class UserServiceImpl implements UserService {
         comment.setMessageSent(sendMessage);
         comment.setUser(user);
         comment.setComment(newComment);
+        comment.setUserCommentTopic(topic);
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             creator = findByEmail(auth.getName());

@@ -7,6 +7,7 @@ import me.exrates.model.*;
 import me.exrates.model.dto.InvoiceUserDto;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
@@ -37,6 +38,7 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static me.exrates.model.enums.UserCommentTopicEnum.INVOICE_DECLINE;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.*;
 import static me.exrates.model.enums.invoice.InvoiceRequestStatusEnum.DECLINED_ADMIN;
 import static me.exrates.model.enums.invoice.InvoiceRequestStatusEnum.EXPIRED;
@@ -67,6 +69,9 @@ public class InvoiceServiceImpl implements InvoiceService {
 
   @Autowired
   private MessageSource messageSource;
+
+  @Autowired
+  private UserService userService;
 
   @Override
   @Transactional
@@ -132,7 +137,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 
   @Override
   @Transactional
-  public void declineInvoice(Integer invoiceId, Integer transactionId, String acceptanceUserEmail) throws Exception {
+  public void declineInvoice(Integer invoiceId, Integer transactionId, String acceptanceUserEmail, String comment) throws Exception {
     InvoiceRequest invoiceRequest = invoiceRequestDao.findByIdAndBlock(transactionId)
         .orElseThrow(() -> new InvoiceNotFoundException(transactionId.toString()));
     InvoiceStatus newStatus = invoiceRequest.getInvoiceRequestStatus().nextState(DECLINE);
@@ -149,8 +154,13 @@ public class InvoiceServiceImpl implements InvoiceService {
     invoiceRequest.setInvoiceRequestStatus(DECLINED_ADMIN);
     invoiceRequestDao.updateAcceptanceStatus(invoiceRequest);
     /**/
-    notificationService.notifyUser(invoiceRequest.getUserId(), NotificationEvent.IN_OUT, "merchants.invoice.declined.title",
-        "merchants.invoice.declined.message", new Integer[]{invoiceId});
+    Locale locale = new Locale(userService.getPreferedLang(invoiceRequest.getUserId()));
+    String title = messageSource.getMessage("merchants.invoice.declined.title", new Integer[]{invoiceId}, locale);
+    if (StringUtils.isEmpty(comment)) {
+      comment = messageSource.getMessage("merchants.invoice.declined.message", new Integer[]{invoiceId}, locale);
+    }
+    userService.addUserComment(INVOICE_DECLINE, comment, invoiceRequest.getUserEmail(), true);
+    notificationService.notifyUser(invoiceRequest.getUserId(), NotificationEvent.IN_OUT, title, comment);
   }
 
   @Override
@@ -258,8 +268,8 @@ public class InvoiceServiceImpl implements InvoiceService {
       MultipartFile receiptScan = invoiceConfirmData.getReceiptScan();
       boolean emptyFile = receiptScan == null || receiptScan.isEmpty();
       if (StringUtils.isEmpty(invoiceRequest.getReceiptScanPath()) && emptyFile) {
-          throw new FileLoadingException(messageSource.getMessage("merchants.invoice.error.fieldsNotField", null,
-                  locale));
+        throw new FileLoadingException(messageSource.getMessage("merchants.invoice.error.fieldsNotField", null,
+            locale));
       }
       if (!emptyFile) {
         if (!userFilesService.checkFileValidity(receiptScan) || receiptScan.getSize() > 1048576L) {
@@ -270,7 +280,7 @@ public class InvoiceServiceImpl implements InvoiceService {
           userFilesService.saveReceiptScan(invoiceRequest.getUserId(), invoiceRequest.getTransaction().getId(), receiptScan);
         } catch (IOException e) {
           throw new FileLoadingException(messageSource.getMessage("merchants.errorUploadReceipt", null,
-                  locale));
+              locale));
         }
       }
     } else {

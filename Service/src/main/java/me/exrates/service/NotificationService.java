@@ -5,48 +5,49 @@ import me.exrates.model.NotificationOption;
 import me.exrates.model.dto.onlineTableDto.NotificationDto;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.vo.CacheData;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by OLEG on 10.11.2016.
  */
 public interface NotificationService {
 
+  long createLocalizedNotification(Integer userId, NotificationEvent cause, String titleCode, String messageCode,
+                                   Object[] messageArgs);
 
-    long createLocalizedNotification(Integer userId, NotificationEvent cause, String titleCode, String messageCode,
-                                     Object[] messageArgs);
+  long createLocalizedNotification(String userEmail, NotificationEvent cause, String titleCode, String messageCode,
+                                   Object[] messageArgs);
 
-    long createLocalizedNotification(String userEmail, NotificationEvent cause, String titleCode, String messageCode,
-                                     Object[] messageArgs);
+  void notifyUser(String email, NotificationEvent cause, String titleCode, String messageCode,
+                  Object[] messageArgs, Locale locale);
 
-    @Transactional(rollbackFor = Exception.class)
-    void notifyUser(Integer userId, NotificationEvent cause, String titleCode, String messageCode,
-                    Object[] messageArgs);
+  void notifyUser(Integer userId, NotificationEvent cause, String titleCode, String messageCode,
+                  Object[] messageArgs);
 
-    @Transactional(rollbackFor = Exception.class)
-    void notifyUser(String email, NotificationEvent cause, String titleCode, String messageCode,
-                    Object[] messageArgs);
+  void notifyUser(String email, NotificationEvent cause, String titleCode, String messageCode,
+                  Object[] messageArgs);
 
-    @Transactional(readOnly = true)
-    List<Notification> findAllByUser(String email);
+  void notifyUser(Integer userId, NotificationEvent cause, String titleCode, String messageCode,
+                  Object[] messageArgs, Locale locale);
 
-    @Transactional(readOnly = true)
-    List<NotificationDto> findByUser(String email, CacheData cacheData, Integer offset, Integer limit);
+  void notifyUser(Integer userId, NotificationEvent cause, String titleMessage, String message);
 
-    boolean setRead(Long notificationId);
+  List<Notification> findAllByUser(String email);
 
-    boolean remove(Long notificationId);
+  List<NotificationDto> findByUser(String email, CacheData cacheData, Integer offset, Integer limit);
 
-    @Transactional(readOnly = true)
-    int setReadAllByUser(String email);
+  boolean setRead(Long notificationId);
 
-    @Transactional(readOnly = true)
-    int removeAllByUser(String email);
+  boolean remove(Long notificationId);
 
-    @Transactional(readOnly = true)
-    List<NotificationOption> getNotificationOptionsByUser(Integer userId);
+  int setReadAllByUser(String email);
 
-    void updateUserNotifications(List<NotificationOption> options);
+  int removeAllByUser(String email);
+
+  List<NotificationOption> getNotificationOptionsByUser(Integer userId);
+
+  void updateUserNotifications(List<NotificationOption> options);
+
 }

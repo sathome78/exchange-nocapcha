@@ -964,13 +964,15 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public boolean addUserComment(Comment comment){
-        String sql = "INSERT INTO USER_COMMENT (user_id, users_comment, user_creator_id, message_sent) " +
-                "VALUES (:user_id, :comment, :user_creator_id, :message_sent);";
+        String sql = "INSERT INTO USER_COMMENT (user_id, users_comment, user_creator_id, message_sent, topic_id) " +
+                "VALUES (:user_id, :comment, :user_creator_id, :message_sent, :topic_id);";
         Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("user_id", comment.getUser().getId());
         namedParameters.put("comment", comment.getComment());
         namedParameters.put("user_creator_id", comment.getCreator().getId());
         namedParameters.put("message_sent", comment.isMessageSent());
+        namedParameters.put("message_sent", comment.isMessageSent());
+        namedParameters.put("topic_id", comment.getUserCommentTopic().getCode());
         return jdbcTemplate.update(sql, namedParameters) > 0;
     }
 

@@ -1,4 +1,3 @@
-
 function acceptInvoice(e, id) {
     var event = e || window.event;
     event.stopPropagation();
@@ -18,19 +17,42 @@ function acceptInvoice(e, id) {
     return false;
 }
 
-function declineInvoice(e, id) {
+function declineInvoice(e, id, email) {
     var event = e || window.event;
     event.stopPropagation();
-    if (confirm($('#prompt_decline_rqst').html())) {
-        $.ajax({
-            url: '/merchants/invoice/payment/decline?id=' + id,
-            type: 'GET',
-            success: function () {
-                window.location = '/2a8fy7b07dxe44/invoiceConfirmation';
-            }
-        });
-    }
-    return false;
+    var $modal = $("#note-before-decline-modal");
+    $.ajax({
+        url: '/2a8fy7b07dxe44/phrases/invoice_decline?email=' + email,
+        type: 'GET',
+        success: function (data) {
+            $list = $modal.find("#phrase-template-list");
+            $list.html("<option></option>");
+            data.forEach(function (e) {
+                $list.append($("<option></option>").append(e));
+            });
+            $modal.find("#createCommentConfirm").one("click", function () {
+                var comment = $('#commentText').val().trim();
+                if (!comment) {
+                    return;
+                }
+                $modal.modal('hide');
+                $.ajax({
+                    url: '/merchants/invoice/payment/decline?id=' + id+'&comment='+comment,
+                    headers: {
+                        'X-CSRF-Token': $("input[name='_csrf']").val(),
+                    },
+                    type: 'POST',
+                    success: function () {
+                        window.location = '/2a8fy7b07dxe44/invoiceConfirmation';
+                    }
+                });
+            });
+            $modal.find("#createCommentCancel").one("click", function () {
+                $modal.modal('hide');
+            });
+            $modal.modal();
+        }
+    });
 }
 
 function submitAcceptBitcoin(id) {

@@ -21,7 +21,7 @@ public interface InvoiceService {
 
   void acceptInvoiceAndProvideTransaction(Integer invoiceId, String acceptanceUserEmail) throws Exception;
 
-  void declineInvoice(Integer invoiceId, Integer transactionId, String acceptanceUserEmail) throws Exception;
+  void declineInvoice(Integer invoiceId, Integer transactionId, String acceptanceUserEmail, String comment) throws Exception;
 
   Integer clearExpiredInvoices(Integer intervalMinutes) throws Exception;
 

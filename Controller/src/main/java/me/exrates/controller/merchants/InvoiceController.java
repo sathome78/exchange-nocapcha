@@ -11,7 +11,7 @@ import me.exrates.model.vo.InvoiceData;
 import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.InvoiceService;
 import me.exrates.service.MerchantService;
-import me.exrates.service.UserFilesService;
+import me.exrates.service.UserService;
 import me.exrates.service.exception.FileLoadingException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.invoice.IllegalInvoiceStatusException;
@@ -61,7 +61,6 @@ public class InvoiceController {
   @Autowired
   private LocaleResolver localeResolver;
 
-
   @RequestMapping(value = "/preSubmit", method = POST)
   public RedirectView preSubmit(final Payment payment, final Principal principal,
                                 RedirectAttributes redirectAttributes,
@@ -69,42 +68,42 @@ public class InvoiceController {
     log.debug(payment);
     RedirectView redirectView = new RedirectView("/merchants/invoice/details");
 
-        if (!merchantService.checkInputRequestsLimit(payment.getMerchant(), principal.getName())){
-            redirectAttributes.addFlashAttribute("error", "merchants.InputRequestsLimit");
-            return redirectView;
-        }
-        if (/*payment.getCurrency() == 10 || */payment.getCurrency() == 12 || payment.getCurrency() == 13){
-            redirectAttributes.addFlashAttribute("error", "merchants.withoutInvoiceWallet");
-            return redirectView;
-        }
-        BigDecimal addition = computeRandomizedAdditionForIdr(payment);
-
-        Optional<CreditsOperation> creditsOperationPrepared = merchantService
-                .prepareCreditsOperation(payment, addition,principal.getName());
-        if (!creditsOperationPrepared.isPresent()) {
-            redirectAttributes.addFlashAttribute("error","merchants.incorrectPaymentDetails");
-        } else {
-            CreditsOperation creditsOperation = creditsOperationPrepared.get();
-            log.debug(creditsOperation);
-            HttpSession session = request.getSession();
-            Object mutex = WebUtils.getSessionMutex(session);
-            synchronized (mutex) {
-                session.setAttribute("creditsOperation", creditsOperation);
-                session.setAttribute("addition", addition);
-            }
-        }
-        return redirectView;
+    if (!merchantService.checkInputRequestsLimit(payment.getMerchant(), principal.getName())) {
+      redirectAttributes.addFlashAttribute("error", "merchants.InputRequestsLimit");
+      return redirectView;
     }
-
-    private BigDecimal computeRandomizedAdditionForIdr(Payment payment) {
-      BigDecimal addition;
-        if (payment.getCurrency() == 10) {
-            addition = BigDecimal.valueOf(Math.random() * 899 + 100).setScale(0, BigDecimal.ROUND_DOWN);
-        } else {
-            addition = BigDecimal.ZERO;
-        }
-        return addition;
+    if (/*payment.getCurrency() == 10 || */payment.getCurrency() == 12 || payment.getCurrency() == 13) {
+      redirectAttributes.addFlashAttribute("error", "merchants.withoutInvoiceWallet");
+      return redirectView;
     }
+    BigDecimal addition = computeRandomizedAdditionForIdr(payment);
+
+    Optional<CreditsOperation> creditsOperationPrepared = merchantService
+        .prepareCreditsOperation(payment, addition, principal.getName());
+    if (!creditsOperationPrepared.isPresent()) {
+      redirectAttributes.addFlashAttribute("error", "merchants.incorrectPaymentDetails");
+    } else {
+      CreditsOperation creditsOperation = creditsOperationPrepared.get();
+      log.debug(creditsOperation);
+      HttpSession session = request.getSession();
+      Object mutex = WebUtils.getSessionMutex(session);
+      synchronized (mutex) {
+        session.setAttribute("creditsOperation", creditsOperation);
+        session.setAttribute("addition", addition);
+      }
+    }
+    return redirectView;
+  }
+
+  private BigDecimal computeRandomizedAdditionForIdr(Payment payment) {
+    BigDecimal addition;
+    if (payment.getCurrency() == 10) {
+      addition = BigDecimal.valueOf(Math.random() * 899 + 100).setScale(0, BigDecimal.ROUND_DOWN);
+    } else {
+      addition = BigDecimal.ZERO;
+    }
+    return addition;
+  }
 
   @RequestMapping(value = "/details", method = GET)
   public ModelAndView invoiceDetails(HttpServletRequest request) {
@@ -241,7 +240,7 @@ public class InvoiceController {
     } catch (InvoiceNotFoundException e) {
       redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("merchants.error.invoiceRequestNotFound", null, localeResolver.resolveLocale(request)));
     } catch (FileLoadingException e) {
-        redirectAttributes.addFlashAttribute("errorNoty", e.getMessage());
+      redirectAttributes.addFlashAttribute("errorNoty", e.getMessage());
     } catch (Exception e) {
       log.error(e.getMessage());
       e.printStackTrace();
@@ -258,10 +257,13 @@ public class InvoiceController {
     return new RedirectView("/2a8fy7b07dxe44/invoiceConfirmation");
   }
 
-  @RequestMapping(value = "/payment/decline", method = GET)
-  public RedirectView declinePayment(@RequestParam int id, RedirectAttributes redir, Principal principal) throws Exception {
-    invoiceService.declineInvoice(id, id, principal.getName());
-    return new RedirectView("/2a8fy7b07dxe44/invoiceConfirmation");
+  @RequestMapping(value = "/payment/decline", method = POST)
+  @ResponseBody
+  public void declinePayment(
+      @RequestParam int id,
+      @RequestParam String comment,
+      Principal principal) throws Exception {
+    invoiceService.declineInvoice(id, id, principal.getName(), comment);
   }
 
   @RequestMapping(value = "/withdraw/prepare", method = POST)
@@ -278,8 +280,6 @@ public class InvoiceController {
         session.setAttribute("creditsOperation", creditsOperation);
       }
     }
-
-
     return redirectView;
   }
 

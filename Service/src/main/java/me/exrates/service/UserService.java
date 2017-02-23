@@ -3,6 +3,7 @@ package me.exrates.service;
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
 import me.exrates.model.enums.TokenType;
+import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserRole;
 import me.exrates.service.exception.UnRegisteredUserDeleteException;
 import org.springframework.transaction.annotation.Transactional;
@@ -180,7 +181,7 @@ public interface UserService {
 
     Collection<Comment> getUserComments(int id);
 
-    boolean addUserComment(String newComment, String email, boolean sendMessage, Locale locale);
+    boolean addUserComment(UserCommentTopicEnum topic, String newComment, String email, boolean sendMessage);
 
     boolean deleteUserComment(int id);
 

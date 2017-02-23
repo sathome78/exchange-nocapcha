@@ -69,26 +69,6 @@ public class NotificationServiceImpl implements NotificationService {
 
     }
 
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void notifyUser(Integer userId, NotificationEvent cause, String titleCode, String messageCode,
-                           Object[] messageArgs) {
-        User user = userService.getUserById(userId);
-        NotificationOption option = notificationDao.findUserOptionForEvent(userId, cause);
-        if (option.isSendNotification()) {
-            createLocalizedNotification(userId, cause, titleCode, messageCode, messageArgs);
-        }
-        if (option.isSendEmail()) {
-            Locale locale = new Locale(userService.getPreferedLang(userId));
-            Email email = new Email();
-            email.setMessage(messageSource.getMessage(messageCode, messageArgs, locale));
-            email.setSubject(messageSource.getMessage(titleCode, null, locale));
-            email.setTo(user.getEmail());
-            sendMailService.sendInfoMail(email);
-        }
-    }
-
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void notifyUser(String email, NotificationEvent cause, String titleCode, String messageCode,
@@ -96,7 +76,50 @@ public class NotificationServiceImpl implements NotificationService {
         notifyUser(userService.getIdByEmail(email), cause, titleCode, messageCode, messageArgs);
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void notifyUser(String email, NotificationEvent cause, String titleCode, String messageCode,
+                           Object[] messageArgs, Locale locale) {
+        notifyUser(userService.getIdByEmail(email), cause, titleCode, messageCode, messageArgs, locale);
+    }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void notifyUser(Integer userId, NotificationEvent cause, String titleCode, String messageCode,
+                           Object[] messageArgs) {
+        Locale locale = new Locale(userService.getPreferedLang(userId));
+        notifyUser(userId, cause, titleCode, messageCode, messageArgs, locale);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void notifyUser(Integer userId, NotificationEvent cause, String titleCode, String messageCode,
+                           Object[] messageArgs, Locale locale) {
+        String titleMessage = messageSource.getMessage(titleCode, null, locale);
+        String message = messageSource.getMessage(messageCode, null, locale);
+        notifyUser(userId, cause, titleMessage, message);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void notifyUser(Integer userId, NotificationEvent cause, String titleMessage, String message) {
+      User user = userService.getUserById(userId);
+      NotificationOption option = notificationDao.findUserOptionForEvent(userId, cause);
+      if (option.isSendNotification()) {
+        createNotification(
+            userId,
+            titleMessage,
+            message,
+            cause);
+      }
+      if (option.isSendEmail()) {
+        Email email = new Email();
+        email.setSubject(titleMessage);
+        email.setMessage(message);
+        email.setTo(user.getEmail());
+        sendMailService.sendInfoMail(email);
+      }
+    }
 
 
     @Override
@@ -147,7 +170,5 @@ public class NotificationServiceImpl implements NotificationService {
     public void updateUserNotifications(List<NotificationOption> options) {
         notificationDao.updateNotificationOptions(options);
     }
-
-
 
 }

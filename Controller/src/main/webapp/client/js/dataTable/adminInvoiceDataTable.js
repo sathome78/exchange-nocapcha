@@ -96,7 +96,8 @@ $(document).ready(function () {
                                 acceptLocMessage +
                                 '</button>' +
                                 '&nbsp;' +
-                                '<button style="font-size: 11px;" class="table-button-block__button btn btn-danger" onclick="declineInvoice(event,' + row.transaction.id + ')">' +
+                                // '<button style="font-size: 11px;" class="table-button-block__button btn btn-danger" onclick="declineInvoice(event,' + row.transaction.id + ')">' +
+                                '<button style="font-size: 11px;" class="table-button-block__button btn btn-danger" onclick=declineInvoice(event,' + row.transaction.id + ',"'+row.userEmail+'")>' +
                                 declineLocMessage +
                                 '</button>' +
                                 '</div>';

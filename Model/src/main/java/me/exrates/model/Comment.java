@@ -1,6 +1,9 @@
 package me.exrates.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import lombok.Getter;
+import lombok.Setter;
+import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.time.LocalDateTime;
@@ -8,8 +11,8 @@ import java.time.LocalDateTime;
 /**
  * Created by ajet on 03.11.2016.
  */
+@Getter @Setter
 public class Comment {
-
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime commentsTime;
     private User creator;
@@ -17,57 +20,7 @@ public class Comment {
     private boolean messageSent;
     private int id;
     private User user;
-
-    public Comment() {
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public LocalDateTime getCommentsTime() {
-        return commentsTime;
-    }
-
-    public void setCommentsTime(LocalDateTime commentsTime) {
-        this.commentsTime = commentsTime;
-    }
-
-    public User getCreator() {
-        return creator;
-    }
-
-    public void setCreator(User commentsCreator) {
-        this.creator = commentsCreator;
-    }
-
-    public String getComment() {
-        return comment;
-    }
-
-    public void setComment(String comment) {
-        this.comment = comment;
-    }
-
-    public boolean isMessageSent() {
-        return messageSent;
-    }
-
-    public void setMessageSent(boolean messageSent) {
-        this.messageSent = messageSent;
-    }
+    private UserCommentTopicEnum userCommentTopic;
 
     @Override
     public boolean equals(Object o) {
