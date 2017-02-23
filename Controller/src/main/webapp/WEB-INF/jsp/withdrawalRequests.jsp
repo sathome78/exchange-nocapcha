@@ -27,6 +27,7 @@
             <table id="withdrawalTable">
                 <thead>
                 <tr>
+                    <th><loc:message code="transaction.id"/></th>
                     <th><loc:message code="withdrawal.requestDatetime"/></th>
                     <th><loc:message code="withdrawal.user"/></th>
                     <th><loc:message code="withdrawal.amount"/></th>
@@ -37,11 +38,18 @@
                     <th><loc:message code="withdrawal.acceptanceDatetime"/></th>
                     <th><loc:message code="withdrawal.acceptanceUser"/></th>
                     <th><loc:message code="withdrawal.status"/></th>
+                    <th hidden></th>
+                    <th hidden></th>
+                    <th hidden></th>
                 </tr>
                 </thead>
                 <tbody>
                 <c:forEach items="${requests}" var="request">
                     <tr class="id_${request.transaction.id}">
+                        <td>
+                            <button class="request_id_button" onclick="viewRequestInfo(this)"> ${request.transaction.id}</button>
+
+                        </td>
                         <td>
                                 ${request.transaction.datetime.toLocalDate()}<br/>
                                 ${request.transaction.datetime.toLocalTime()}
@@ -126,6 +134,9 @@
                                 </c:otherwise>
                             </c:choose>
                         </td>
+                        <td hidden>${request.remark}</td>
+                        <td hidden>${request.recipientBankName} ${request.recipientBankCode}</td>
+                        <td hidden>${request.userFullName}</td>
                     </tr>
 
                 </c:forEach>
@@ -184,6 +195,8 @@
 </div>
 <%--... MODAL--%>
 
+
+<%@include file='fragments/modal/withdraw_info_modal.jsp' %>
 <%@include file='fragments/footer.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>

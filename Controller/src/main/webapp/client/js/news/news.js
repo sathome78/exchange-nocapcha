@@ -12,6 +12,8 @@ function NewsClass($loadingImg) {
     var that = this;
     /**/
     var tableNewsId = "news-table";
+    var $imageUpload = $('#imageUpload');
+    var $clearFormDialog = $('#clearFormDialog');
     /**/
     var timeOutIdForStatisticsForNews;
     var refreshIntervalForStatisticsForNews = 5000 * REFRESH_INTERVAL_MULTIPLIER;
@@ -183,6 +185,28 @@ function NewsClass($loadingImg) {
                 retrieveNewsWithContent($('#newsIdEd').val())
             }
         });
+
+        $($clearFormDialog).dialog({
+            autoOpen: false,
+            resizable: false,
+            modal: true,
+            position: {
+                my: "center top",
+                at: "center top",
+                of:  $('#editor')
+            },
+            buttons: {
+                "Yes": function () {
+                    clearAddNewsForm();
+                    $(this).dialog("close");
+                },
+                "No": function () {
+                    $('#titleEd').prop('readonly', false);
+                    $('#briefEd').prop('readonly', false);
+                    $(this).dialog("close");
+                }
+            }
+        });
         initTinyMce();
     })();
 
@@ -231,14 +255,15 @@ function NewsClass($loadingImg) {
             "Wingdings=wingdings,zapf dingbats",
             fontsize_formats: '8pt 10pt 12pt 14pt 18pt 24pt 36pt',
             file_browser_callback: function(field_name, url, type, win) {
-                $('#imageUpload').one('change', function () {
+                $($imageUpload).one('change', function () {
                     submitImage(function (data) {
-                         if (data.location) {
-                             $('#' + field_name).val(data.location);
+                        if (data.location) {
+                            $('#' + field_name).val(data.location);
                         }
+                        $($imageUpload).val('');
                     })
                 });
-                $('#imageUpload').trigger('click');
+                $($imageUpload).trigger('click');
             },
             file_browser_callback_types: 'image',
             templates: [
@@ -257,7 +282,7 @@ function NewsClass($loadingImg) {
         });
     }
 
-    function submitImage(success) {
+    function submitImage(successCallback) {
         var data = new FormData($('#imageUploadForm')[0]);
         data.append("newsId", $('#newsIdEd').val());
         $.ajax('/news/uploadImage', {
@@ -269,7 +294,7 @@ function NewsClass($loadingImg) {
             processData: false,
             data: data,
             success: function (data) {
-                success(data);
+                successCallback(data);
             }
         });
     }
@@ -333,7 +358,7 @@ function NewsClass($loadingImg) {
             type: "GET",
             success: function (data) {
                 if (!data || data.length === 0) {
-                    clearAddNewsForm();
+                    $($clearFormDialog).dialog('open');
                 } else {
                     $('#newsIdEd').val(data.id);
                     $('#dateEd').val(data.date);

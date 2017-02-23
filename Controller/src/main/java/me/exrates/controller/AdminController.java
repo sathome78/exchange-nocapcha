@@ -286,21 +286,32 @@ public class AdminController {
         String email = userService.getUserById(id).getEmail();
         Map<String,List<OrderWideListDto>> resultMap = new HashMap<>();
 
-        List<OrderWideListDto> ordersBuyClosed = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, OperationType.BUY, 0, -1, localeResolver.resolveLocale(request));
-        List<OrderWideListDto> ordersSellClosed = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, OperationType.SELL, 0, -1, localeResolver.resolveLocale(request));
-        List<OrderWideListDto> ordersBuyCancelled = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, OperationType.BUY, 0, -1, localeResolver.resolveLocale(request));
-        List<OrderWideListDto> ordersSellCancelled = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, OperationType.SELL, 0, -1, localeResolver.resolveLocale(request));
-
         List<OrderWideListDto> result = new ArrayList<>();
         switch (tableType){
-            case "ordersBuyClosed":     result = ordersBuyClosed;
-                                        break;
-            case "ordersSellClosed":    result = ordersSellClosed;
-                                        break;
-            case "ordersBuyCancelled":  result = ordersBuyCancelled;
-                                        break;
-            case "ordersSellCancelled": result = ordersSellCancelled;
-                                        break;
+            case "ordersBuyClosed":
+                List<OrderWideListDto> ordersBuyClosed = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, OperationType.BUY, 0, -1, localeResolver.resolveLocale(request));
+                result = ordersBuyClosed;
+                break;
+            case "ordersSellClosed":
+                List<OrderWideListDto> ordersSellClosed = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CLOSED, OperationType.SELL, 0, -1, localeResolver.resolveLocale(request));
+                result = ordersSellClosed;
+                break;
+            case "ordersBuyOpened":
+                List<OrderWideListDto> ordersBuyOpened = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.OPENED, OperationType.BUY, 0, -1, localeResolver.resolveLocale(request));
+                result = ordersBuyOpened;
+                break;
+            case "ordersSellOpened":
+                List<OrderWideListDto> ordersSellOpened = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.OPENED, OperationType.SELL, 0, -1, localeResolver.resolveLocale(request));
+                result = ordersSellOpened;
+                break;
+            case "ordersBuyCancelled":
+                List<OrderWideListDto> ordersBuyCancelled = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, OperationType.BUY, 0, -1, localeResolver.resolveLocale(request));
+                result = ordersBuyCancelled;
+                break;
+            case "ordersSellCancelled":
+                List<OrderWideListDto> ordersSellCancelled = orderService.getUsersOrdersWithStateForAdmin(email, currencyPair, OrderStatus.CANCELLED, OperationType.SELL, 0, -1, localeResolver.resolveLocale(request));
+                result = ordersSellCancelled;
+                break;
         }
 
         return result;

@@ -11,6 +11,8 @@ import me.exrates.model.vo.InvoiceData;
 import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.InvoiceService;
 import me.exrates.service.MerchantService;
+import me.exrates.service.UserFilesService;
+import me.exrates.service.exception.FileLoadingException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.invoice.IllegalInvoiceStatusException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
@@ -67,37 +69,42 @@ public class InvoiceController {
     log.debug(payment);
     RedirectView redirectView = new RedirectView("/merchants/invoice/details");
 
-    if (!merchantService.checkInputRequestsLimit(payment.getMerchant(), principal.getName())) {
-      redirectAttributes.addFlashAttribute("error", "merchants.InputRequestsLimit");
-      return redirectView;
-    }
-    if (/*payment.getCurrency() == 10 || */payment.getCurrency() == 12 || payment.getCurrency() == 13) {
-      redirectAttributes.addFlashAttribute("error", "merchants.withoutInvoiceWallet");
-      return redirectView;
-    }
-    BigDecimal addition;
+        if (!merchantService.checkInputRequestsLimit(payment.getMerchant(), principal.getName())){
+            redirectAttributes.addFlashAttribute("error", "merchants.InputRequestsLimit");
+            return redirectView;
+        }
+        if (/*payment.getCurrency() == 10 || */payment.getCurrency() == 12 || payment.getCurrency() == 13){
+            redirectAttributes.addFlashAttribute("error", "merchants.withoutInvoiceWallet");
+            return redirectView;
+        }
+        BigDecimal addition = computeRandomizedAdditionForIdr(payment);
 
-    if (payment.getCurrency() == 10) {
-      addition = BigDecimal.valueOf(Math.random() * 899 + 100).setScale(0, BigDecimal.ROUND_DOWN);
-    } else {
-      addition = BigDecimal.ZERO;
+        Optional<CreditsOperation> creditsOperationPrepared = merchantService
+                .prepareCreditsOperation(payment, addition,principal.getName());
+        if (!creditsOperationPrepared.isPresent()) {
+            redirectAttributes.addFlashAttribute("error","merchants.incorrectPaymentDetails");
+        } else {
+            CreditsOperation creditsOperation = creditsOperationPrepared.get();
+            log.debug(creditsOperation);
+            HttpSession session = request.getSession();
+            Object mutex = WebUtils.getSessionMutex(session);
+            synchronized (mutex) {
+                session.setAttribute("creditsOperation", creditsOperation);
+                session.setAttribute("addition", addition);
+            }
+        }
+        return redirectView;
     }
-    Optional<CreditsOperation> creditsOperationPrepared = merchantService
-        .prepareCreditsOperation(payment, addition, principal.getName());
-    if (!creditsOperationPrepared.isPresent()) {
-      redirectAttributes.addFlashAttribute("error", "merchants.incorrectPaymentDetails");
-    } else {
-      CreditsOperation creditsOperation = creditsOperationPrepared.get();
-      log.debug(creditsOperation);
-      HttpSession session = request.getSession();
-      Object mutex = WebUtils.getSessionMutex(session);
-      synchronized (mutex) {
-        session.setAttribute("creditsOperation", creditsOperation);
-        session.setAttribute("addition", addition);
-      }
+
+    private BigDecimal computeRandomizedAdditionForIdr(Payment payment) {
+      BigDecimal addition;
+        if (payment.getCurrency() == 10) {
+            addition = BigDecimal.valueOf(Math.random() * 899 + 100).setScale(0, BigDecimal.ROUND_DOWN);
+        } else {
+            addition = BigDecimal.ZERO;
+        }
+        return addition;
     }
-    return redirectView;
-  }
 
   @RequestMapping(value = "/details", method = GET)
   public ModelAndView invoiceDetails(HttpServletRequest request) {
@@ -153,7 +160,7 @@ public class InvoiceController {
       invoiceData.setCreditsOperation(creditsOperation);
       invoiceService.createPaymentInvoice(invoiceData);
       InvoiceBank invoiceBank = invoiceService.findBankById(invoiceData.getBankId());
-      String toWallet = invoiceBank.getName() + ": " + invoiceBank.getAccountNumber();
+      String toWallet = String.format("%s: %s - %s", invoiceBank.getName(), invoiceBank.getAccountNumber(), invoiceBank.getRecipient());
       final String notification = merchantService
           .sendDepositNotification(toWallet,
               email, localeResolver.resolveLocale(request), creditsOperation, "merchants.depositNotificationWithCurrency" +
@@ -233,6 +240,8 @@ public class InvoiceController {
       redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("merchants.invoice.error.notAllowedOperation", null, localeResolver.resolveLocale(request)));
     } catch (InvoiceNotFoundException e) {
       redirectAttributes.addFlashAttribute("errorNoty", messageSource.getMessage("merchants.error.invoiceRequestNotFound", null, localeResolver.resolveLocale(request)));
+    } catch (FileLoadingException e) {
+        redirectAttributes.addFlashAttribute("errorNoty", e.getMessage());
     } catch (Exception e) {
       log.error(e.getMessage());
       e.printStackTrace();

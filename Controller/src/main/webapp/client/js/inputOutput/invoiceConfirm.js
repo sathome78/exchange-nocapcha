@@ -2,8 +2,8 @@
  * Created by OLEG on 07.02.2017.
  */
 var DIGITS_ONLY_REGEX = /^\d+$/;
-var NAME_REGEX = /^[a-zA-Z]([-']?[a-zA-Z]+)*( [a-zA-Z]([-']?[a-zA-Z]+)*)+$/;
-var BANK_NAME_REGEX = /^[a-zA-Z]([-']?[a-zA-Z]+)*([ ,.]{0,2}[a-zA-Z\d]([-']?[a-zA-Z\d]+)*)*$/;
+var NAME_REGEX = /^[a-zA-Z]([-']?[a-zA-Z]+)*( [a-zA-Z]([-']?[a-zA-Z]+)*)*$/;
+var BANK_NAME_REGEX = /^[a-zA-Z]([-']?[a-zA-Z]+[.]*)*([ ,.]{0,2}[a-zA-Z\d&]([-']?[a-zA-Z\d]+)*[.]*)*$/;
 var BANK_CODE_REGEX = /^[\d]{2,5}$/;
 
 $(function () {
@@ -24,6 +24,10 @@ $(function () {
         checkFields();
     });
     $('#userAccount, #userFullName, #bankCode').on('input', function () {
+        checkFields();
+    });
+
+    $('#receiptScan').on('change', function () {
         checkFields();
     });
 
@@ -83,8 +87,9 @@ function checkFields() {
     var payerBankCodeTest = validateString($('#bankCode').val(), BANK_CODE_REGEX, $('#bankCodeError'), true);
     var payerAccountTest = validateString($('#userAccount').val(), DIGITS_ONLY_REGEX, $('#userAccountError'), false);
     var payerFullNameTest = validateString($('#userFullName').val(), NAME_REGEX, $('#userFullNameError'), false);
+    var fileAttachedTest = checkFileInput("receiptScan") || $('#receiptScanContainer').find('img').length > 0;
 
-    if (payerBankTest && payerAccountTest && payerFullNameTest && payerBankCodeTest) {
+    if (payerBankTest && payerAccountTest && payerFullNameTest && payerBankCodeTest && fileAttachedTest) {
         $('#invoiceSubmit').prop('disabled', false);
     } else {
         $('#invoiceSubmit').prop('disabled', true);
@@ -103,5 +108,16 @@ function validateString(str, regex, errorDiv, allowAbsent) {
         $(errorDiv).show();
         return false;
     }
+
+}
+
+function checkFileInput(inputId) {
+    var fileInput = document.getElementById(inputId);
+
+    if(fileInput && fileInput.files.length == 0 ){
+        console.log("no files selected");
+        return false;
+    }
+    return true;
 
 }

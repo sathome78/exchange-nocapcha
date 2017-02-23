@@ -2,8 +2,10 @@ package me.exrates.controller.mobile;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.StockExchangeStats;
 import me.exrates.model.dto.ExOrderStatisticsDto;
 import me.exrates.model.dto.OrderCommissionsDto;
+import me.exrates.model.dto.StockExchangeRateDto;
 import me.exrates.model.dto.mobileApiDto.CandleChartItemReducedDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.*;
@@ -19,6 +21,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -64,6 +68,9 @@ public class MobileDashboardController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private StockExchangeService stockExchangeService;
 
     @Autowired
     private LocaleResolver localeResolver;
@@ -936,6 +943,72 @@ public class MobileDashboardController {
     public List<TransferLimitDto> retrieveMinTransferLimits(@RequestParam(required = false) Integer[] currencyIds) {
         List<Integer> currencyIdList = currencyIds == null || currencyIds.length == 0 ? Collections.EMPTY_LIST : Arrays.asList(currencyIds);
         return currencyService.retrieveMinTransferLimits(currencyIdList);
+    }
+
+    @RequestMapping(value = "/test/currencyPairRates", method = GET, produces = "application/json; charset=UTF-8")
+    public ResponseEntity<Void> retrieveCurrencyPairRates() {
+        stockExchangeService.retrieveCurrencies();
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    /**
+     * @api {get} /api/dashboard/stockExchangeStatistics Get stock exchange statistics
+     * @apiName getStockExchangeStatistics
+     * @apiGroup Dashboard
+     * @apiUse TokenHeader
+     * @apiParam {Array} pairs id of currency pair
+     * @apiParamExample Request Example:
+     *      /api/dashboard/stockExchangeStatistics?pairs=1,2
+     * @apiPermission User
+     * @apiDescription Get statistics from other cryptocurrency exchanges
+     * @apiSuccess (200) {Array} exchangeStats statistics for currency pair
+     * @apiSuccess (200) {Object} data item of exchange stats - corresponds to single stock exchange
+     * @apiSuccess (200) {String} data.stockExchange stock exchange name
+     * @apiSuccess (200) {Number} data.last price of last deal
+     * @apiSuccess (200) {Number} data.buy highest bid price
+     * @apiSuccess (200) {Number} data.sell lowest ask price
+     * @apiSuccess (200) {Number} data.low lowest price for last 24 hours
+     * @apiSuccess (200) {Number} data.high highest price for last 24 hours
+     * @apiSuccess (200) {Number} data.volume trade volume
+     * @apiSuccess (200) {Number} data.timestamp time when data were retrieved
+     *
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     * [
+     *          {
+     *              "stockExchange": "xBTCe",
+     *              "last": 848,
+     *              "buy": 848.11,
+     *              "sell": 848,
+     *              "low": 797.002,
+     *              "high": 856.007,
+     *              "volume": 21525.02,
+     *              "timestamp": 1482404750000
+     *          },
+     *          {
+     *              "stockExchange": "BITFINEX",
+     *              "last": 865,
+     *              "buy": 865,
+     *              "sell": 865.08,
+     *              "low": 807.14,
+     *              "high": 874,
+     *              "volume": 19583.3610558,
+     *              "timestamp": 1482404750000
+     *          }
+     * ]
+     *
+     * @apiUse ExpiredAuthenticationTokenError
+     * @apiUse MissingAuthenticationTokenError
+     * @apiUse InvalidAuthenticationTokenError
+     * @apiUse AuthenticationError
+     * @apiUse InvalidParamError
+     * @apiUse CurrencyPairNotFoundError
+     * @apiUse InternalServerError
+     *
+     */
+    @RequestMapping(value = "/stockExchangeStatistics", method = GET, produces = "application/json; charset=UTF-8")
+    public List<StockExchangeStats> getStockExchangeStatistics(@RequestParam Integer currencyPairId) {
+        return stockExchangeService.getStockExchangeStatistics(currencyPairId);
     }
 
 

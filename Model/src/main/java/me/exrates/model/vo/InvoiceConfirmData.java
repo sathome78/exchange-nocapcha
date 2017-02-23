@@ -16,8 +16,10 @@ public class InvoiceConfirmData {
 
     @NotNull
     private String userAccount;
+    @NotNull
     private String userFullName;
     private String remark;
+    @NotNull
     private MultipartFile receiptScan;
 
     public Integer getInvoiceId() {

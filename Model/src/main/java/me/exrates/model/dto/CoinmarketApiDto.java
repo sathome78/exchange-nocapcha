@@ -20,7 +20,15 @@ public class CoinmarketApiDto {
     private Integer isFrozen;
     private BigDecimal high24hr;
     private BigDecimal low24hr;
+    private Integer currencyPairId;
 
+    public Integer getCurrencyPairId() {
+        return currencyPairId;
+    }
+
+    public void setCurrencyPairId(Integer currencyPairId) {
+        this.currencyPairId = currencyPairId;
+    }
     /*constructor*/
 
     public CoinmarketApiDto() {

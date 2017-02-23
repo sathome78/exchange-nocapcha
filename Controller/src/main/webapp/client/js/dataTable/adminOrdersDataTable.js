@@ -16,6 +16,12 @@ $(function () {
 
     $('#myorders-button-deal').addClass('active');
     /**/
+    $('#myorders-button-opened').on('click', function () {
+        $('.myorders__button').removeClass('active');
+        $(this).addClass('active');
+        myordersStatusForShow = 'Opened';
+        update();
+    });
     $('#myorders-button-cancelled').on('click', function () {
         $('.myorders__button').removeClass('active');
         $(this).addClass('active');
