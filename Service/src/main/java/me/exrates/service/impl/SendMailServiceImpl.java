@@ -22,11 +22,11 @@ public class SendMailServiceImpl implements SendMailService{
 	@Autowired
 	@Qualifier("InfoMailSender")
 	private JavaMailSender infoMailSender;
-	
+
 	private static final Logger logger = LogManager.getLogger(SendMailServiceImpl.class);
 
-	private final String SUPPORT_EMAIL = "support@exrates.me";
-	private final String INFO_EMAIL = "no-replay@exrates.tech";
+	private final String SUPPORT_EMAIL = "mail@exrates.top";
+	private final String INFO_EMAIL = "no-replay@exrates.top";
 
 	public void sendMail(Email email){
 		sendMail(email, SUPPORT_EMAIL, supportMailSender);
@@ -34,9 +34,7 @@ public class SendMailServiceImpl implements SendMailService{
 
 	@Override
 	public void sendInfoMail(Email email) {
-		//TODO temporary disable info emailing
-
-	//	sendMail(email, INFO_EMAIL, infoMailSender);
+		sendMail(email, INFO_EMAIL, infoMailSender);
 	}
 
 	private void sendMail(Email email, String fromAddress, JavaMailSender mailSender) {

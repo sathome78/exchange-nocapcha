@@ -125,7 +125,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/2a8fy7b07dxe44/editCmnRefRoot", "/admin/merchantAccess/setBlockForAll").hasAuthority(UserRole.ADMINISTRATOR.name())
                 .antMatchers("/2a8fy7b07dxe44/editAuthorities/submit").hasAuthority(AdminAuthority.MANAGE_ACCESS.name())
                 .antMatchers("/2a8fy7b07dxe44/changeActiveBalance/submit").hasAuthority(AdminAuthority.MANUAL_BALANCE_CHANGE.name())
-                .antMatchers("/2a8fy7b07dxe44/**", "/2a8fy7b07dxe44", "/companywallet").hasAnyAuthority(UserRole.ADMINISTRATOR.name(),
+                .antMatchers( "/companywallet", "/2a8fy7b07dxe44/userswallets", "/2a8fy7b07dxe44/editCurrencyLimits",
+                        "/2a8fy7b07dxe44/commissions", "/2a8fy7b07dxe44/merchantAccess").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name())
+                .antMatchers("/2a8fy7b07dxe44/**", "/2a8fy7b07dxe44").hasAnyAuthority(UserRole.ADMINISTRATOR.name(),
                 UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
                 .antMatchers(HttpMethod.POST, "/2a8fy7b07dxe44/chat/deleteMessage").hasAnyAuthority(UserRole.ADMINISTRATOR.name(),
                 UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())

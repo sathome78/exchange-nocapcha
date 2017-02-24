@@ -539,7 +539,7 @@ public class MobileEntryController {
         }
 
 
-            user.setPassword(decodedPassword);
+        user.setPassword(decodedPassword);
         user.setParentEmail(sponsor);
         user.setPhone("");
         user.setIp(request.getRemoteHost());
@@ -551,7 +551,14 @@ public class MobileEntryController {
             if (userService.createUserRest(user, locale)) {
                 logger.info("User registered with parameters = " + user.toString());
                 final int userId = userService.getIdByEmail(user.getEmail());
-                final int parentId = userService.getIdByEmail(user.getParentEmail());
+                final int parentId;
+                if (StringUtils.isNotEmpty((user.getParentEmail()))) {
+                    parentId = userService.getIdByEmail(user.getParentEmail());
+
+                } else {
+                    User commonReferralRoot = userService.getCommonReferralRoot();
+                        parentId = commonReferralRoot == null ? 0 : commonReferralRoot.getId();
+                }
                 if (userId > 0 && parentId > 0) {
                     referralService.bindChildAndParent(userId, parentId);
                 }
@@ -624,7 +631,9 @@ public class MobileEntryController {
         String appKey = authenticationDto.getAppKey();
         String userAgentHeader = request.getHeader("User-Agent");
         logger.debug(userAgentHeader);
-        checkAppKey(appKey, userAgentHeader);
+        if (apiService.appKeyCheckEnabled()) {
+            checkAppKey(appKey, userAgentHeader);
+        }
 
         Optional<AuthTokenDto> authTokenResult = authTokenService.retrieveToken(authenticationDto.getEmail(), authenticationDto.getPassword());
         AuthTokenDto authTokenDto = authTokenResult.get();
