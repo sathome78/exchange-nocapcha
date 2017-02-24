@@ -80,7 +80,7 @@
     </div>
 </main>
 
-<div id="refModal" class="modal fade edit-ref-lvl-modal">
+<div id="refModal" class="modal modal-small fade edit-ref-lvl-modal">
     <div class="modal-dialog modal-md">
         <div class="modal-content">
             <div class="modal-header">

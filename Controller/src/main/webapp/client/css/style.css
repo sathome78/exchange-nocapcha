@@ -1736,7 +1736,7 @@ form span.repass,  form span.repass-error{
 			9. Modal Change Referral System
 ****************************************/
 
-#refModal, #editLimitModal {
+.modal-small {
     max-width: 400px;
     max-height: 400px;
     background-size: cover;
@@ -1745,27 +1745,23 @@ form span.repass,  form span.repass-error{
     padding: 0 10px;
 }
 
-#refModal .modal-header,
-#editLimitModal .modal-header {
+.modal-small .modal-header {
 /*    color: rgba(255, 255, 255, .5);
     border-bottom: solid 1px rgba(255, 255, 255, .25);*/
     padding: 5px 15px;
 }
 
-#refModal .modal-dialog,
-#editLimitModal .modal-dialog
+.modal-small .modal-dialog
 {
     width: 100%;
     margin: 10px auto 0 auto;
 }
 
-#refModal .modal-content,
-#editLimitModal .modal-content {
+.modal-small .modal-content {
     background: #e2ebf9;
 }
 
-#refModal .content form input,
-#editLimitModal .content form input{
+.modal-small .content form input{
     display: block;
     width: 75%;
     border: none;

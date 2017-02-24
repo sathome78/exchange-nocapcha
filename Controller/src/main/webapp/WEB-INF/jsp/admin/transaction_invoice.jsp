@@ -73,7 +73,7 @@
 <span hidden id="timeOutExpiredLocMessage"><loc:message code="merchants.invoice.timeOutExpired"/></span>
 <span hidden id="updateAmountLocMessage"><loc:message code="admin.invoice.updateAmount"/></span>
 
-<div id="editAmountModal" class="modal fade">
+<div id="editAmountModal" class="modal modal-small fade">
     <div class="modal-dialog modal-md">
         <div class="modal-content">
             <div class="modal-header">
@@ -85,7 +85,7 @@
                 <form id="edit-amount-form">
                     <div class="input-block-wrapper">
                         <div class="col-md-5 input-block-wrapper__label-wrapper">
-                            <label for="amountValue" class="input-block-wrapper__label"><loc:message code="admin.commissions.value"/></label>
+                            <label for="amountValue" class="input-block-wrapper__label"><loc:message code="transaction.amount"/></label>
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
                             <input id="amountValue" name="amount" class="input-block-wrapper__input" type="number">
