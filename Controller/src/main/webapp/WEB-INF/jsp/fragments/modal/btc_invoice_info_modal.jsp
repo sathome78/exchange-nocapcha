@@ -16,7 +16,7 @@
         </input>
         <%----%>
         <label for="btc-transaction">
-          <loc:message code="merchants.btc_invoice."/>:
+          <loc:message code="merchants.btc_invoice.transactionHash"/>:
         </label>
         <input class="form-control"
                id="btc-transaction"
