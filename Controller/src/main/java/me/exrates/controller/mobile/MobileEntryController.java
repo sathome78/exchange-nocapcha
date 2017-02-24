@@ -15,6 +15,7 @@ import me.exrates.security.service.AuthTokenService;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.*;
+import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
