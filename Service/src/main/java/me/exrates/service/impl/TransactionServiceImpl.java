@@ -110,7 +110,7 @@ public class TransactionServiceImpl implements TransactionService {
         BigDecimal mass = BigDecimal.valueOf(100L).add(commissionRate);
         BigDecimal commission = amount
             .multiply(commissionRate)
-            .divide(mass).setScale(decimalPlaces, ROUND_HALF_UP);
+            .divide(mass, decimalPlaces, ROUND_HALF_UP).setScale(decimalPlaces, ROUND_HALF_UP);
         final BigDecimal newAmount = amount.subtract(commission).setScale(decimalPlaces, ROUND_HALF_UP);
         transaction.setCommissionAmount(commission);
         transaction.setAmount(newAmount);
