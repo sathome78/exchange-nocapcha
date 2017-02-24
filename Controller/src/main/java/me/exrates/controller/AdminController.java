@@ -961,17 +961,27 @@ public class AdminController {
     return new ResponseEntity<>(HttpStatus.OK);
   }
 
-  @ResponseBody
-  @RequestMapping(value = "/2a8fy7b07dxe44/phrases/{topic:.+}", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
-  public List<String> getPhrases(
-      @PathVariable String topic,
-      @RequestParam String email) {
-    Locale locale = Locale.forLanguageTag(userService.getPreferedLangByEmail(email));
-    UserCommentTopicEnum userCommentTopic = UserCommentTopicEnum.convert(topic.toUpperCase());
-    return phraseTemplateService.getAllByTopic(userCommentTopic).stream()
-        .map(e -> messageSource.getMessage(e, null, locale))
-        .collect(Collectors.toList());
-  }
+    @RequestMapping(value = "/2a8fy7b07dxe44/updateTransactionAmount", method = POST)
+    @ResponseBody
+    public ResponseEntity<Void> updateTransactionAmount(@RequestParam Integer transactionId, @RequestParam BigDecimal amount) {
+        Transaction transaction = transactionService.findById(transactionId);
+        transactionService.updateTransactionAmount(transaction, amount);
+        return new ResponseEntity<>(OK);
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/2a8fy7b07dxe44/phrases/{topic:.+}", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<String> getPhrases(
+            @PathVariable String topic,
+            @RequestParam String email) {
+        Locale locale = Locale.forLanguageTag(userService.getPreferedLangByEmail(email));
+        UserCommentTopicEnum userCommentTopic = UserCommentTopicEnum.convert(topic.toUpperCase());
+        return phraseTemplateService.getAllByTopic(userCommentTopic).stream()
+                .map(e -> messageSource.getMessage(e, null, locale))
+                .collect(Collectors.toList());
+    }
+
+
 
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
   @ExceptionHandler(OrderDeletingException.class)

@@ -116,7 +116,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/withdrawal/request/accept", "/withdrawal/request/decline").hasAuthority(AdminAuthority.PROCESS_WITHDRAW.name())
                 .antMatchers("/2a8fy7b07dxe44/addComment", "/2a8fy7b07dxe44/deleteUserComment").hasAuthority(AdminAuthority.COMMENT_USER.name())
                 .antMatchers("/unsafe/**").hasAnyAuthority(UserRole.ADMINISTRATOR.name())
-                .antMatchers("/merchants/bitcoin/payment/accept", "/merchants/invoice/payment/accept").hasAuthority(AdminAuthority.PROCESS_INVOICE.name())
+                .antMatchers("/merchants/bitcoin/payment/accept", "/merchants/invoice/payment/accept", "/2a8fy7b07dxe44/updateTransactionAmount").hasAuthority(AdminAuthority.PROCESS_INVOICE.name())
                 .antMatchers("/2a8fy7b07dxe44/orderdelete").hasAuthority(AdminAuthority.DELETE_ORDER.name())
                 .antMatchers("/2a8fy7b07dxe44/expireSession").hasAuthority(AdminAuthority.MANAGE_SESSIONS.name())
                 .antMatchers("/2a8fy7b07dxe44/editCurrencyLimits/submit",

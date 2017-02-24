@@ -11,6 +11,7 @@ $(document).ready(function () {
     var onConfirmationLocMessage = $('#onConfirmationLocMessage').text();
     var revokedByUserLocMessage = $('#revokedByUserLocMessage').text();
     var timeOutExpiredLocMessage = $('#timeOutExpiredLocMessage').text();
+    var updateAmountLocMessage = $('#updateAmountLocMessage').text();
     /**/
     var $invoiceRequestsTable = $('#invoice_requests');
 
@@ -100,6 +101,10 @@ $(document).ready(function () {
                                 '<button style="font-size: 11px;" class="table-button-block__button btn btn-danger" onclick=declineInvoice(event,' + row.transaction.id + ',"'+row.userEmail+'")>' +
                                 declineLocMessage +
                                 '</button>' +
+                                '&nbsp;' +
+                                '<button style="font-size: 11px;" class="table-button-block__button btn btn-primary" >' +
+                                updateAmountLocMessage +
+                                '</button>' +
                                 '</div>';
                         } else {
                             return "unsupported value of field"
@@ -159,3 +164,6 @@ function replaceAbsentWithDash(value) {
     return value ? value : '-';
 }
 
+function updateInvoiceAmount(invoiceId) {
+
+}

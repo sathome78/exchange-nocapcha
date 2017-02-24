@@ -83,3 +83,5 @@ function submitAcceptBitcoin(id) {
     }
     return false;
 }
+
+
