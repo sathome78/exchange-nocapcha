@@ -53,25 +53,11 @@
                                 <th><loc:message code="admin.commissions.value"/></th>
                             </tr>
                             </thead>
-                            <tbody>
-                           <%-- <c:forEach items="${commissions}" var="commission">
-                                <tr data-id="${commission.id}">
-                                    <td>${commission.operationType}</td>
-                                    <td>
-                                        <span hidden class="commissionUnformatted">${commission.value}</span>
-                                        <span class="commissionFormatted">
-                                                <fmt:formatNumber value="${commission.value}" pattern="###,##0.00########"/>
-                                            </span>
-                                    </td>
-
-                                </tr>
-                            </c:forEach>--%>
-                            </tbody>
                         </table>
                     </div>
                 </div>
                 <div id="panel2" class="tab-pane">
-                    <div class="col-sm-6">
+                    <div class="col-sm-8">
                         <div class="text-center"><h4><loc:message code="admin.merchantsCommissions"/></h4></div>
 
                         <table id="merchant-commissions-table">
@@ -79,25 +65,10 @@
                             <tr>
                                 <th><loc:message code="withdrawal.merchant"/> </th>
                                 <th><loc:message code="withdrawal.currency"/> </th>
-                                <th><loc:message code="withdrawal.commission"/></th>
+                                <th><loc:message code="admin.merchantsCommissions.input"/></th>
+                                <th><loc:message code="admin.merchantsCommissions.output"/></th>
                             </tr>
                             </thead>
-                            <tbody>
-                            <c:forEach items="${merchantCurrencies}" var="merchantCurrency">
-                                <tr data-merchantid="${merchantCurrency.merchantId}"
-                                    data-currencyid="${merchantCurrency.currencyId}">
-                                    <td>${merchantCurrency.merchantName}</td>
-                                    <td>${merchantCurrency.currencyName}</td>
-                                    <td>
-                                        <span hidden class="merchantCommissionUnformatted">${merchantCurrency.commission}</span>
-                                        <span class="merchantCommissionFormatted">
-                                                <fmt:formatNumber value="${merchantCurrency.commission}" pattern="###,##0.00########"/>
-                                            </span>
-                                    </td>
-
-                                </tr>
-                            </c:forEach>
-                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -179,10 +150,18 @@
                     </div>
                     <div class="input-block-wrapper">
                         <div class="col-md-5 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label"><loc:message code="admin.commissions.value"/></label>
+                            <label class="input-block-wrapper__label"><loc:message code="admin.merchantsCommissions.input"/></label>
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input  name="commissionValue" class="input-block-wrapper__input" type="number">
+                            <input  name="inputValue" class="input-block-wrapper__input" type="number">
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="admin.merchantsCommissions.output"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input  name="outputValue" class="input-block-wrapper__input" type="number">
                         </div>
                     </div>
                     <button id="submitMerchantCommission" class="blue-box admin-form-submit" type="submit"><loc:message code="admin.refSubmitEditCommonRoot"/></button>

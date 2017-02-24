@@ -893,17 +893,22 @@ public class AdminController {
 
     @RequestMapping(value = "/2a8fy7b07dxe44/commissions", method = RequestMethod.GET)
     public ModelAndView commissions() {
-        List<MerchantCurrencyOptionsDto> merchantCurrencies = merchantService.findMerchantCurrencyOptions();
         ModelAndView modelAndView = new ModelAndView("admin/editCommissions");
         modelAndView.addObject("roleNames", ROLE_NAMES);
-        modelAndView.addObject("merchantCurrencies", merchantCurrencies);
         return modelAndView;
     }
 
     @RequestMapping(value = "/2a8fy7b07dxe44/getCommissionsForRole", method = RequestMethod.GET)
     @ResponseBody
-    public List<Commission> retrieveCommissionsForRole(@RequestParam String role) {
-        return commissionService.getEditableCommissionsByRole(role);
+    public List<CommissionShortEditDto> retrieveCommissionsForRole(@RequestParam String role, HttpServletRequest request) {
+        return commissionService.getEditableCommissionsByRole(role, localeResolver.resolveLocale(request));
+
+    }
+
+    @RequestMapping(value = "/2a8fy7b07dxe44/getMerchantCommissions", method = RequestMethod.GET)
+    @ResponseBody
+    public List<MerchantCurrencyOptionsDto> retrieveMerchantCommissions() {
+        return merchantService.findMerchantCurrencyOptions();
 
     }
 
@@ -921,9 +926,9 @@ public class AdminController {
     @ResponseBody
     public ResponseEntity<Void> editMerchantCommission(@RequestParam("merchantId") Integer merchantId,
                                                        @RequestParam("currencyId") Integer currencyId,
-                                               @RequestParam("commissionValue") BigDecimal value) {
-        LOG.debug("merchantId = " + merchantId + ", currencyId = " + currencyId + ", value = " + value);
-        commissionService.updateMerchantCommission(merchantId, currencyId, value);
+                                                       @RequestParam("inputValue") BigDecimal inputValue,
+                                                       @RequestParam("outputValue") BigDecimal outputValue) {
+        commissionService.updateMerchantCommission(merchantId, currencyId, inputValue, outputValue);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

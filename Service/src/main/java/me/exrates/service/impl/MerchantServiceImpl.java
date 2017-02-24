@@ -407,10 +407,9 @@ public class MerchantServiceImpl implements MerchantService {
     final Map<String, String> result = new HashMap<>();
     final BigDecimal commission = commissionService.findCommissionByTypeAndRole(type, userService.getCurrentUserRole()).getValue();
 
-    final BigDecimal commissionMerchant = type == USER_TRANSFER ? BigDecimal.ZERO : commissionService.getCommissionMerchant(merchant, currency);
-    final BigDecimal commissionTotal = type == OUTPUT ? commission.add(commissionMerchant).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP) :
-        commission;
-    BigDecimal commissionAmount = amount.multiply(commissionTotal).divide(HUNDREDTH).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP);
+        final BigDecimal commissionMerchant = type == USER_TRANSFER ? BigDecimal.ZERO : commissionService.getCommissionMerchant(merchant, currency, type);
+        final BigDecimal commissionTotal = commission.add(commissionMerchant).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP);
+        BigDecimal commissionAmount = amount.multiply(commissionTotal).divide(HUNDREDTH).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP);
 
     //TODO fix method
     //     commissionAmount = addMinimalCommission(commissionAmount, currency);
@@ -445,10 +444,9 @@ public class MerchantServiceImpl implements MerchantService {
             throw new UnsupportedMerchantException(exceptionMessage);
         }
         final Commission commissionByType = commissionService.findCommissionByTypeAndRole(operationType, userService.getCurrentUserRole());
-        final BigDecimal commissionMerchant = commissionService.getCommissionMerchant(merchant.getName(), currency.getName());
-        final BigDecimal commissionTotal = operationType == OUTPUT ? commissionByType.getValue().add(commissionMerchant)
-                .setScale(currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP) :
-                commissionByType.getValue();
+        final BigDecimal commissionMerchant = commissionService.getCommissionMerchant(merchant.getName(), currency.getName(), operationType);
+        final BigDecimal commissionTotal = commissionByType.getValue().add(commissionMerchant)
+                .setScale(currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP);
          BigDecimal commissionAmount =
                 commissionTotal
                 .multiply(amount)

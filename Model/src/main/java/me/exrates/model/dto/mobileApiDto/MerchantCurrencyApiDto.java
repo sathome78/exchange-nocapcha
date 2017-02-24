@@ -1,7 +1,5 @@
 package me.exrates.model.dto.mobileApiDto;
 
-import me.exrates.model.MerchantImage;
-
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -14,7 +12,8 @@ public class MerchantCurrencyApiDto {
     private String name;
     private BigDecimal minInputSum;
     private BigDecimal minOutputSum;
-    private BigDecimal commission;
+    private BigDecimal inputCommission;
+    private BigDecimal outputCommission;
     private Boolean isWithdrawBlocked;
     private Boolean isRefillBlocked;
     private List<MerchantImageShortenedDto> listMerchantImage;
@@ -67,12 +66,20 @@ public class MerchantCurrencyApiDto {
         this.listMerchantImage = listMerchantImage;
     }
 
-    public BigDecimal getCommission() {
-        return commission;
+    public BigDecimal getInputCommission() {
+        return inputCommission;
     }
 
-    public void setCommission(BigDecimal commission) {
-        this.commission = commission;
+    public void setInputCommission(BigDecimal inputCommission) {
+        this.inputCommission = inputCommission;
+    }
+
+    public BigDecimal getOutputCommission() {
+        return outputCommission;
+    }
+
+    public void setOutputCommission(BigDecimal outputCommission) {
+        this.outputCommission = outputCommission;
     }
 
     public Boolean getWithdrawBlocked() {
@@ -99,7 +106,8 @@ public class MerchantCurrencyApiDto {
                 ", name='" + name + '\'' +
                 ", minInputSum=" + minInputSum +
                 ", minOutputSum=" + minOutputSum +
-                ", commission=" + commission +
+                ", inputCommission=" + inputCommission +
+                ", outputCommission=" + outputCommission +
                 ", isWithdrawBlocked=" + isWithdrawBlocked +
                 ", isRefillBlocked=" + isRefillBlocked +
                 ", listMerchantImage=" + listMerchantImage +

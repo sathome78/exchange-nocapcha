@@ -10,7 +10,9 @@ public class MerchantCurrencyOptionsDto {
     private Integer currencyId;
     private String merchantName;
     private String currencyName;
-    private BigDecimal commission;
+    private BigDecimal inputCommission;
+    private BigDecimal outputCommission;
+
     private Boolean isRefillBlocked;
     private Boolean isWithdrawBlocked;
 
@@ -46,12 +48,20 @@ public class MerchantCurrencyOptionsDto {
         this.currencyName = currencyName;
     }
 
-    public BigDecimal getCommission() {
-        return commission;
+    public BigDecimal getInputCommission() {
+        return inputCommission;
     }
 
-    public void setCommission(BigDecimal commission) {
-        this.commission = commission;
+    public void setInputCommission(BigDecimal inputCommission) {
+        this.inputCommission = inputCommission;
+    }
+
+    public BigDecimal getOutputCommission() {
+        return outputCommission;
+    }
+
+    public void setOutputCommission(BigDecimal outputCommission) {
+        this.outputCommission = outputCommission;
     }
 
     public Boolean getRefillBlocked() {
@@ -70,16 +80,5 @@ public class MerchantCurrencyOptionsDto {
         isWithdrawBlocked = withdrawBlocked;
     }
 
-    @Override
-    public String toString() {
-        return "MerchantCurrencyOptionsDto{" +
-                "merchantId=" + merchantId +
-                ", currencyId=" + currencyId +
-                ", merchantName='" + merchantName + '\'' +
-                ", currencyName='" + currencyName + '\'' +
-                ", commission=" + commission +
-                ", isRefillBlocked=" + isRefillBlocked +
-                ", isWithdrawBlocked=" + isWithdrawBlocked +
-                '}';
-    }
+
 }
