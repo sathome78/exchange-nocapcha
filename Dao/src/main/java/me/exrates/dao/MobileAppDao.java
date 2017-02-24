@@ -9,4 +9,6 @@ import java.util.Optional;
  */
 public interface MobileAppDao {
     Optional<String> getAppKey(UserAgent userAgent);
+
+    boolean appKeyCheckEnabled();
 }

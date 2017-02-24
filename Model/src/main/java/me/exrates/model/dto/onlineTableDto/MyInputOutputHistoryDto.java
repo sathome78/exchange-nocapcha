@@ -95,8 +95,6 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
                 ", userId=" + userId +
                 ", confirmationRequired=" + confirmationRequired +
                 ", bankAccount='" + bankAccount + '\'' +
-                ", userFullName='" + userFullName + '\'' +
-                ", remark='" + remark + '\'' +
                 '}';
     }
 }

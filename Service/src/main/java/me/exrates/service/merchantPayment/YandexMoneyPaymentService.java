@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.Locale;
@@ -40,6 +41,7 @@ public class YandexMoneyPaymentService implements MerchantPaymentService {
     private static final Logger LOGGER = LogManager.getLogger("merchant");
 
     @Override
+    @Transactional
     public MerchantInputResponseDto preparePayment(String email, Payment payment, Locale locale) {
         int paymentId = yandexMoneyService.saveInputPayment(payment);
         MerchantInputResponseDto dto = new MerchantInputResponseDto();

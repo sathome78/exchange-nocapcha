@@ -10,6 +10,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
@@ -36,6 +37,7 @@ public class InterkassaPaymentService implements MerchantPaymentService {
     private static final Logger LOGGER = LogManager.getLogger("merchant");
 
     @Override
+    @Transactional
     public MerchantInputResponseDto preparePayment(String email, Payment payment, Locale locale) {
         MerchantInputResponseDto dto = new MerchantInputResponseDto();
         dto.setType(MerchantApiResponseType.POST);
@@ -52,6 +54,7 @@ public class InterkassaPaymentService implements MerchantPaymentService {
     }
 
     @Override
+    @Transactional
     public Map<String, String> preparePostPayment(String email, CreditsOperation creditsOperation, Locale locale) {
         return interkassaService.preparePayment(creditsOperation, email);
     }

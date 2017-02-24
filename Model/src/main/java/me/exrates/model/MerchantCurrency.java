@@ -13,7 +13,8 @@ public class MerchantCurrency {
     private String name;
     private String description;
     private BigDecimal minSum;
-    private BigDecimal commission;
+    private BigDecimal inputCommission;
+    private BigDecimal outputCommission;
     private List<MerchantImage> listMerchantImage;
 
     public int getMerchantId() {
@@ -64,12 +65,20 @@ public class MerchantCurrency {
         this.listMerchantImage = listMerchantImage;
     }
 
-    public BigDecimal getCommission() {
-        return commission;
+    public BigDecimal getInputCommission() {
+        return inputCommission;
     }
 
-    public void setCommission(BigDecimal commission) {
-        this.commission = commission;
+    public void setInputCommission(BigDecimal inputCommission) {
+        this.inputCommission = inputCommission;
+    }
+
+    public BigDecimal getOutputCommission() {
+        return outputCommission;
+    }
+
+    public void setOutputCommission(BigDecimal outputCommission) {
+        this.outputCommission = outputCommission;
     }
 
     @Override
@@ -84,10 +93,11 @@ public class MerchantCurrency {
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (description != null ? !description.equals(that.description) : that.description != null) return false;
         if (minSum != null ? !minSum.equals(that.minSum) : that.minSum != null) return false;
-        if (listMerchantImage != null ? !listMerchantImage.equals(that.listMerchantImage) : that.listMerchantImage != null)
+        if (inputCommission != null ? !inputCommission.equals(that.inputCommission) : that.inputCommission != null)
             return false;
-        return commission != null ? commission.equals(that.commission) : that.commission == null;
-
+        if (outputCommission != null ? !outputCommission.equals(that.outputCommission) : that.outputCommission != null)
+            return false;
+        return listMerchantImage != null ? listMerchantImage.equals(that.listMerchantImage) : that.listMerchantImage == null;
     }
 
     @Override
@@ -97,8 +107,9 @@ public class MerchantCurrency {
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (description != null ? description.hashCode() : 0);
         result = 31 * result + (minSum != null ? minSum.hashCode() : 0);
+        result = 31 * result + (inputCommission != null ? inputCommission.hashCode() : 0);
+        result = 31 * result + (outputCommission != null ? outputCommission.hashCode() : 0);
         result = 31 * result + (listMerchantImage != null ? listMerchantImage.hashCode() : 0);
-        result = 31 * result + (commission != null ? commission.hashCode() : 0);
         return result;
     }
 
@@ -110,8 +121,9 @@ public class MerchantCurrency {
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", minSum=" + minSum +
+                ", inputCommission=" + inputCommission +
+                ", outputCommission=" + outputCommission +
                 ", listMerchantImage=" + listMerchantImage +
-                ", commission=" + commission +
                 '}';
     }
 }

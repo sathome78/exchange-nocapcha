@@ -62,31 +62,31 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
     invoiceRequest.setReceiptScanPath(resultSet.getString("receipt_scan"));
     invoiceRequest.setInvoiceRequestStatus(InvoiceRequestStatusEnum.convert(resultSet.getInt("invoice_request_status_id")));
     invoiceRequest.setStatusUpdateDate(resultSet.getTimestamp("status_update_date").toLocalDateTime());
+    invoiceRequest.setReceiptScanName(resultSet.getString("receipt_scan_name"));
     return invoiceRequest;
-  };
+    };
 
-  private static final String SELECT_ALL = "SELECT inv.acceptance_time, user.id AS user_id, user.email AS user_email, " +
-      "adm.id AS acceptance_id, adm.email AS acceptance_user_email, " +
-      "TRANSACTION.id, TRANSACTION.amount, TRANSACTION.commission_amount, TRANSACTION.datetime, " +
-      "                    TRANSACTION.operation_type_id,TRANSACTION.provided,TRANSACTION.confirmation, " +
-      "                    TRANSACTION.source_id, TRANSACTION.source_type, WALLET.id, WALLET.active_balance, " +
-      "                    WALLET.reserved_balance, WALLET.currency_id, COMPANY_WALLET.id, COMPANY_WALLET.balance, " +
-      "                    COMPANY_WALLET.commission_balance, COMMISSION.id, COMMISSION.date, COMMISSION.value, " +
-      "                    CURRENCY.id, CURRENCY.description, CURRENCY.name, MERCHANT.id,MERCHANT.name,MERCHANT.description, " +
-      "                    INVOICE_BANK.id AS bank_id, INVOICE_BANK.name AS bank_name, INVOICE_BANK.account_number, INVOICE_BANK.recipient, " +
-      "                    inv.user_full_name, inv.remark, inv.payer_bank_name,  inv.payer_bank_code, inv.payer_account, inv.receipt_scan, " +
-      "                    inv.invoice_request_status_id, " +
-      "                    inv.status_update_date " +
-      "                    FROM INVOICE_REQUEST AS inv " +
-      "    INNER JOIN TRANSACTION ON inv.transaction_id = TRANSACTION.id " +
-      "    INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id " +
-      "    INNER JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id " +
-      "    INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id " +
-      "    INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id " +
-      "    INNER JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id " +
-      "    INNER JOIN USER AS user ON inv.user_id = user.id " +
-      "    LEFT JOIN USER AS adm ON inv.acceptance_user_id = adm.id " +
-      "    LEFT JOIN INVOICE_BANK ON inv.bank_id = INVOICE_BANK.id  ";
+    private static final String SELECT_ALL = "SELECT inv.acceptance_time, user.id AS user_id, user.email AS user_email, " +
+            "adm.id AS acceptance_id, adm.email AS acceptance_user_email, " +
+            "TRANSACTION.id, TRANSACTION.amount, TRANSACTION.commission_amount, TRANSACTION.datetime, " +
+            "                    TRANSACTION.operation_type_id,TRANSACTION.provided,TRANSACTION.confirmation, " +
+            "                    TRANSACTION.source_id, TRANSACTION.source_type, WALLET.id, WALLET.active_balance, " +
+            "                    WALLET.reserved_balance, WALLET.currency_id, COMPANY_WALLET.id, COMPANY_WALLET.balance, " +
+            "                    COMPANY_WALLET.commission_balance, COMMISSION.id, COMMISSION.date, COMMISSION.value, " +
+            "                    CURRENCY.id, CURRENCY.description, CURRENCY.name, MERCHANT.id,MERCHANT.name,MERCHANT.description, " +
+            "                    INVOICE_BANK.id AS bank_id, INVOICE_BANK.name AS bank_name, INVOICE_BANK.account_number, INVOICE_BANK.recipient, " +
+            "                    inv.user_full_name, inv.remark, inv.payer_bank_name,  inv.payer_bank_code, inv.payer_account, inv.receipt_scan, " +
+            "                    inv.receipt_scan_name, inv.invoice_request_status_id, inv.status_update_date " +
+            "                    FROM INVOICE_REQUEST AS inv " +
+            "    INNER JOIN TRANSACTION ON inv.transaction_id = TRANSACTION.id " +
+            "    INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id " +
+            "    INNER JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id " +
+            "    INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id " +
+            "    INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id " +
+            "    INNER JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id " +
+            "    INNER JOIN USER AS user ON inv.user_id = user.id " +
+            "    LEFT JOIN USER AS adm ON inv.acceptance_user_id = adm.id " +
+            "    LEFT JOIN INVOICE_BANK ON inv.bank_id = INVOICE_BANK.id  ";
 
 
   @Override
@@ -312,8 +312,8 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
   public void updateConfirmationInfo(InvoiceRequest invoiceRequest) {
     final String sql = "UPDATE INVOICE_REQUEST " +
         "  SET payer_bank_name = :payer_bank_name, payer_account = :payer_account, payer_bank_code = :payer_bank_code," +
-        "      user_full_name = :user_full_name, remark = :remark, invoice_request_status_id = :invoice_request_status_id," +
-        "      status_update_date = NOW() " +
+        "      user_full_name = :user_full_name, remark = :remark, invoice_request_status_id = :invoice_request_status_id, " +
+        "      receipt_scan_name = :receipt_scan_name, status_update_date = NOW() " +
         "  WHERE transaction_id = :id";
     Map<String, Object> params = new HashMap<>();
     params.put("id", invoiceRequest.getTransaction().getId());
@@ -322,7 +322,8 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
     params.put("payer_account", invoiceRequest.getPayerAccount());
     params.put("user_full_name", invoiceRequest.getUserFullName());
     params.put("remark", invoiceRequest.getRemark());
-    params.put("invoice_request_status_id", ((InvoiceRequestStatusEnum) invoiceRequest.getInvoiceRequestStatus()).getCode());
+    params.put("invoice_request_status_id", invoiceRequest.getInvoiceRequestStatus().getCode());
+    params.put("receipt_scan_name", invoiceRequest.getReceiptScanName());
     parameterJdbcTemplate.update(sql, params);
   }
 

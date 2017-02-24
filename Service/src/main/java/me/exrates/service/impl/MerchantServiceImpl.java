@@ -427,10 +427,9 @@ public class MerchantServiceImpl implements MerchantService {
     final Map<String, String> result = new HashMap<>();
     final BigDecimal commission = commissionService.findCommissionByTypeAndRole(type, userService.getCurrentUserRole()).getValue();
 
-    final BigDecimal commissionMerchant = type == USER_TRANSFER ? BigDecimal.ZERO : commissionService.getCommissionMerchant(merchant, currency);
-    final BigDecimal commissionTotal = type == OUTPUT ? commission.add(commissionMerchant).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP) :
-        commission;
-    BigDecimal commissionAmount = amount.multiply(commissionTotal).divide(HUNDREDTH).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP);
+        final BigDecimal commissionMerchant = type == USER_TRANSFER ? BigDecimal.ZERO : commissionService.getCommissionMerchant(merchant, currency, type);
+        final BigDecimal commissionTotal = commission.add(commissionMerchant).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP);
+        BigDecimal commissionAmount = amount.multiply(commissionTotal).divide(HUNDREDTH).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP);
 
     //TODO fix method
     //     commissionAmount = addMinimalCommission(commissionAmount, currency);
@@ -443,70 +442,69 @@ public class MerchantServiceImpl implements MerchantService {
     return result;
   }
 
-  @Override
-  public Optional<CreditsOperation> prepareCreditsOperation(Payment payment, BigDecimal addition, String userEmail) {
-    checkMerchantBlock(payment.getMerchant(), payment.getCurrency(), payment.getOperationType());
-    final OperationType operationType = payment.getOperationType();
-    BigDecimal amount = valueOf(payment.getSum()).add(addition);
-    //Addition of three digits is required for IDR input
-    final Merchant merchant = merchantDao.findById(payment.getMerchant());
-    final Currency currency = currencyService.findById(payment.getCurrency());
-    final String destination = payment.getDestination();
-    final MerchantImage merchantImage = new MerchantImage();
-    merchantImage.setId(payment.getMerchantImage());
-    try {
-      if (!isPayable(merchant, currency, amount)) {
-        LOG.warn("Merchant respond as not support this pay " + payment);
-        return Optional.empty();
-      }
-    } catch (EmptyResultDataAccessException e) {
-      final String exceptionMessage = "MerchantService".concat(operationType == INPUT ?
-          "Input" : "Output");
-      throw new UnsupportedMerchantException(exceptionMessage);
-    }
-    final Commission commissionByType = commissionService.findCommissionByTypeAndRole(operationType, userService.getCurrentUserRole());
-    final BigDecimal commissionMerchant = commissionService.getCommissionMerchant(merchant.getName(), currency.getName());
-    final BigDecimal commissionTotal = operationType == OUTPUT ? commissionByType.getValue().add(commissionMerchant)
-        .setScale(currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP) :
-        commissionByType.getValue();
-    BigDecimal commissionAmount =
-        commissionTotal
-            .multiply(amount)
-            .divide(valueOf(100), currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP);
-    //  commissionAmount = addMinimalCommission(commissionAmount, currency.getName());
-    final User user = userService.findByEmail(userEmail);
-    final BigDecimal newAmount = payment.getOperationType() == INPUT ?
-        amount :
-        amount.subtract(commissionAmount).setScale(currencyService.resolvePrecision(currency.getName()), ROUND_DOWN);
-    final CreditsOperation creditsOperation = new CreditsOperation.Builder()
-        .amount(newAmount)
-        .commissionAmount(commissionAmount)
-        .commission(commissionByType)
-        .operationType(operationType)
-        .user(user)
-        .currency(currency)
-        .merchant(merchant)
-        .destination(destination)
-        .merchantImage(merchantImage)
-        .transactionSourceType(TransactionSourceType.convert(merchant.getTransactionSourceTypeId()))
+    @Override
+    public Optional<CreditsOperation> prepareCreditsOperation(Payment payment,BigDecimal addition,String userEmail) {
+        checkMerchantBlock(payment.getMerchant(), payment.getCurrency(), payment.getOperationType());
+        final OperationType operationType = payment.getOperationType();
+         BigDecimal amount = valueOf(payment.getSum()).add(addition);
+        //Addition of three digits is required for IDR input
+        final Merchant merchant = merchantDao.findById(payment.getMerchant());
+        final Currency currency = currencyService.findById(payment.getCurrency());
+        final String destination = payment.getDestination();
+        final MerchantImage merchantImage = new MerchantImage();
+        merchantImage.setId(payment.getMerchantImage());
+        try {
+            if (!isPayable(merchant,currency,amount)) {
+                LOG.warn("Merchant respond as not support this pay " + payment);
+                return Optional.empty();
+            }
+        } catch (EmptyResultDataAccessException e) {
+            final String exceptionMessage = "MerchantService".concat(operationType == INPUT ?
+                    "Input" : "Output");
+            throw new UnsupportedMerchantException(exceptionMessage);
+        }
+        final Commission commissionByType = commissionService.findCommissionByTypeAndRole(operationType, userService.getCurrentUserRole());
+        final BigDecimal commissionMerchant = commissionService.getCommissionMerchant(merchant.getName(), currency.getName(), operationType);
+        final BigDecimal commissionTotal = commissionByType.getValue().add(commissionMerchant)
+                .setScale(currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP);
+         BigDecimal commissionAmount =
+                commissionTotal
+                .multiply(amount)
+                .divide(valueOf(100), currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP);
+      //  commissionAmount = addMinimalCommission(commissionAmount, currency.getName());
+        final User user = userService.findByEmail(userEmail);
+        final BigDecimal newAmount = payment.getOperationType() == INPUT ?
+                amount :
+                amount.subtract(commissionAmount).setScale(currencyService.resolvePrecision(currency.getName()), ROUND_DOWN);
+        final CreditsOperation creditsOperation = new CreditsOperation.Builder()
+                .amount(newAmount)
+                .commissionAmount(commissionAmount)
+                .commission(commissionByType)
+                .operationType(operationType)
+                .user(user)
+                .currency(currency)
+                .merchant(merchant)
+                .destination(destination)
+                .merchantImage(merchantImage)
+                .transactionSourceType(TransactionSourceType.convert(merchant.getTransactionSourceTypeId()))
         .build();
     return Optional.of(creditsOperation);
   }
 
-  public Optional<CreditsOperation> prepareCreditsOperation(Payment payment, String userEmail) {
-    return prepareCreditsOperation(payment, BigDecimal.ZERO, userEmail);
-  }
-
-  private BigDecimal addMinimalCommission(BigDecimal commissionAmount, String name) {
-    if (commissionAmount.compareTo(BigDecimal.ZERO) == 0) {
-      if (currencyService.resolvePrecision(name) == 2) {
-        commissionAmount = commissionAmount.add(new BigDecimal("0.01"));
-      } else {
-        commissionAmount = commissionAmount.add(new BigDecimal("0.00000001"));
-      }
+    public Optional<CreditsOperation> prepareCreditsOperation(Payment payment,String userEmail) {
+        return prepareCreditsOperation(payment, BigDecimal.ZERO, userEmail);
     }
-    return commissionAmount;
-  }
+
+    private BigDecimal addMinimalCommission(BigDecimal commissionAmount, String name) {
+        if (commissionAmount.compareTo(BigDecimal.ZERO) == 0) {
+            if (currencyService.resolvePrecision(name) == 2) {
+                commissionAmount = commissionAmount.add(new BigDecimal("0.01"));
+            } else {
+                commissionAmount = commissionAmount.add(new BigDecimal("0.00000001"));
+            }
+        }
+        return commissionAmount;
+    }
 
   private boolean isPayable(Merchant merchant, Currency currency, BigDecimal sum) {
     final BigDecimal minSum = merchantDao.getMinSum(merchant.getId(), currency.getId());

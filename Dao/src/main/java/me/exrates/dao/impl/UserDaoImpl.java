@@ -9,6 +9,7 @@ import me.exrates.model.util.BigDecimalProcessing;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
@@ -1000,6 +1001,10 @@ public class UserDaoImpl implements UserDao {
         params.put("part_begin", part + "%");
         params.put("part_middle", "%" + part + "%");
         params.put("lim", limit);
-        return jdbcTemplate.query(sql, params, (rs, rowNum) -> rs.getString("nickname"));
+        try {
+            return jdbcTemplate.query(sql, params, (rs, rowNum) -> rs.getString("nickname"));
+        } catch (EmptyResultDataAccessException e) {
+            return Collections.EMPTY_LIST;
+        }
     }
 }

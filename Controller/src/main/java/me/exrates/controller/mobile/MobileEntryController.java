@@ -3,7 +3,6 @@ package me.exrates.controller.mobile;
 import me.exrates.controller.exception.*;
 import me.exrates.controller.listener.StoreSessionListener;
 import me.exrates.model.User;
-import me.exrates.model.dto.StockExchangeRateDto;
 import me.exrates.model.dto.UpdateUserDto;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.model.dto.mobileApiDto.UserAuthenticationDto;
@@ -16,7 +15,7 @@ import me.exrates.security.service.AuthTokenService;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.*;
-import me.exrates.service.util.RestPasswordDecodingUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +43,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static me.exrates.service.exception.api.ErrorCode.*;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static me.exrates.service.util.RestApiUtils.*;
 
 /**
  * Created by OLEG on 19.08.2016.
@@ -532,7 +531,7 @@ public class MobileEntryController {
             throw new InvalidEmailException("Invalid email");
         }
         user.setEmail(email);
-        String decodedPassword = RestPasswordDecodingUtils.decode(password);
+        String decodedPassword = decodePassword(password);
         if (!decodedPassword.matches(PASSWORD_REGEX)) {
             throw new InvalidPasswordException("Password must be between 8 and 20 symbols, contain letters and numbers");
         }
@@ -541,7 +540,7 @@ public class MobileEntryController {
         }
 
 
-            user.setPassword(decodedPassword);
+        user.setPassword(decodedPassword);
         user.setParentEmail(sponsor);
         user.setPhone("");
         user.setIp(request.getRemoteHost());
@@ -553,7 +552,14 @@ public class MobileEntryController {
             if (userService.createUserRest(user, locale)) {
                 logger.info("User registered with parameters = " + user.toString());
                 final int userId = userService.getIdByEmail(user.getEmail());
-                final int parentId = userService.getIdByEmail(user.getParentEmail());
+                final int parentId;
+                if (StringUtils.isNotEmpty((user.getParentEmail()))) {
+                    parentId = userService.getIdByEmail(user.getParentEmail());
+
+                } else {
+                    User commonReferralRoot = userService.getCommonReferralRoot();
+                        parentId = commonReferralRoot == null ? 0 : commonReferralRoot.getId();
+                }
                 if (userId > 0 && parentId > 0) {
                     referralService.bindChildAndParent(userId, parentId);
                 }
@@ -626,7 +632,9 @@ public class MobileEntryController {
         String appKey = authenticationDto.getAppKey();
         String userAgentHeader = request.getHeader("User-Agent");
         logger.debug(userAgentHeader);
-        checkAppKey(appKey, userAgentHeader);
+        if (apiService.appKeyCheckEnabled()) {
+            checkAppKey(appKey, userAgentHeader);
+        }
 
         Optional<AuthTokenDto> authTokenResult = authTokenService.retrieveToken(authenticationDto.getEmail(), authenticationDto.getPassword());
         AuthTokenDto authTokenDto = authTokenResult.get();
@@ -699,7 +707,7 @@ public class MobileEntryController {
             throw new MissingCredentialException("Credentials missing");
         }
         String email = body.get("email");
-        String newPass = RestPasswordDecodingUtils.decode(body.get("password"));
+        String newPass = decodePassword(body.get("password"));
         try {
             User user = userService.findByEmail(email);
             if (user.getStatus() == UserStatus.DELETED) {
@@ -791,8 +799,8 @@ public class MobileEntryController {
     }
 
     private void changeUserPasses(String password, String finPass) {
-        String decodedPassword = password == null ? null : RestPasswordDecodingUtils.decode(password);
-        String decodedFinPass = finPass == null ? null : RestPasswordDecodingUtils.decode(finPass);
+        String decodedPassword = password == null ? null : decodePassword(password);
+        String decodedFinPass = finPass == null ? null : decodePassword(finPass);
         if ((decodedPassword != null && !decodedPassword.matches(PASSWORD_REGEX)) ||
                 (decodedFinPass != null && !decodedFinPass.matches(PASSWORD_REGEX))) {
             throw new InvalidPasswordException("Password must be between 8 and 20 symbols, contain letters and numbers");
@@ -838,7 +846,7 @@ public class MobileEntryController {
     @RequestMapping(value = "/api/user/checkFinPass", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Void> checkFinPass(@RequestBody Map<String, String> body) {
         logger.debug(retrieveParamFormBody(body, "finPass", true));
-        String decodedFinPass = RestPasswordDecodingUtils.decode(retrieveParamFormBody(body, "finPass", true));
+        String decodedFinPass = decodePassword(retrieveParamFormBody(body, "finPass", true));
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userService.findByEmail(userEmail);
         userService.checkFinPassword(decodedFinPass, user, new Locale(userService.getPreferedLang(user.getId())));
@@ -896,15 +904,6 @@ public class MobileEntryController {
         logger.debug(avatarUrl);
         return new ResponseEntity<>(avatarUrl, HttpStatus.OK);
     }
-
-    private String retrieveParamFormBody(Map<String, String> body, String paramName, boolean required) {
-        String paramValue = body.get(paramName);
-        if (required && (paramValue == null || paramValue.isEmpty())) {
-            throw new MissingBodyParamException("Param " + paramName + " missing");
-        }
-        return paramValue;
-    }
-
 
 
     private String getAvatarPathPrefix(HttpServletRequest request) {

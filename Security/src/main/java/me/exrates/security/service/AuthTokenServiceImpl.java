@@ -10,7 +10,7 @@ import me.exrates.model.ApiAuthToken;
 import me.exrates.model.dto.mobileApiDto.AuthTokenDto;
 import me.exrates.security.exception.*;
 import me.exrates.service.exception.api.ErrorCode;
-import me.exrates.service.util.RestPasswordDecodingUtils;
+import me.exrates.service.util.RestApiUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +56,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         if (username == null || encodedPassword == null) {
             throw new MissingCredentialException("Credentials missing");
         }
-        String password = RestPasswordDecodingUtils.decode(encodedPassword);
+        String password = RestApiUtils.decodePassword(encodedPassword);
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         if (passwordEncoder.matches(password, userDetails.getPassword())) {
             ApiAuthToken token = createAuthToken(userDetails.getUsername());

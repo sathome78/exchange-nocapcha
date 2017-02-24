@@ -36,10 +36,6 @@ public class MyInputOutputHistoryApiDto {
     private String bankAccount;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String invoiceStatus;
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private String userFullName;
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private String remark;
 
     public MyInputOutputHistoryApiDto(MyInputOutputHistoryDto dto, Locale locale) {
         this.datetime = dto.getDatetime();
@@ -53,8 +49,6 @@ public class MyInputOutputHistoryApiDto {
         this.userId = dto.getUserId();
         this.invoiceStatus = dto.getInvoiceRequestStatusId() == null ? null : InvoiceRequestStatusEnum.convert(dto.getInvoiceRequestStatusId()).name();
         this.bankAccount = dto.getBankAccount();
-        this.userFullName = dto.getUserFullName();
-        this.remark = StringEscapeUtils.unescapeHtml4(dto.getRemark());
     }
 
 

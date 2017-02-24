@@ -2,21 +2,23 @@ package me.exrates.dao.impl;
 
 import me.exrates.dao.CommissionDao;
 import me.exrates.model.Commission;
+import me.exrates.model.dto.CommissionShortEditDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Repository
 public class CommissionDaoImpl implements CommissionDao {
+
+	@Autowired
+	private MessageSource messageSource;
 
 	private static final RowMapper<Commission> commissionRowMapper = (resultSet, i) -> {
 		Commission commission = new Commission();
@@ -26,15 +28,9 @@ public class CommissionDaoImpl implements CommissionDao {
 		commission.setValue(resultSet.getBigDecimal("value"));
 		return commission;
 	};
-	private static final RowMapper<Commission> commissionShortRowMapper = (resultSet, i) -> {
-		Commission commission = new Commission();
-		commission.setOperationType(OperationType.convert(resultSet.getInt("operation_type")));
-		commission.setValue(resultSet.getBigDecimal("value"));
-		return commission;
-	};
 
 
-	@Autowired  
+	@Autowired
 	NamedParameterJdbcTemplate jdbcTemplate;
 
 	@Override
@@ -60,8 +56,11 @@ public class CommissionDaoImpl implements CommissionDao {
 
 
 	@Override
-	public BigDecimal getCommissionMerchant(String merchant, String currency) {
-		final String sql = "SELECT merchant_commission FROM birzha.MERCHANT_CURRENCY " +
+	public BigDecimal getCommissionMerchant(String merchant, String currency, OperationType operationType) {
+		String selectedField = operationType == OperationType.INPUT ? "merchant_input_commission" : "merchant_output_commission";
+
+
+		final String sql = "SELECT " + selectedField + " FROM birzha.MERCHANT_CURRENCY " +
 				"where merchant_id = (select id from MERCHANT where name = :merchant) \n" +
 				"and currency_id = (select id from CURRENCY where name = :currency)";
 		final HashMap<String, String> params = new HashMap<>();
@@ -79,18 +78,30 @@ public class CommissionDaoImpl implements CommissionDao {
 				"JOIN USER_ROLE ON COMMISSION.user_role = USER_ROLE.id " +
 				"WHERE COMMISSION.operation_type NOT IN (5, 6, 7, 8) " +
 				"ORDER BY COMMISSION.id";
-		return jdbcTemplate.query(sql, commissionShortRowMapper);
+		return jdbcTemplate.query(sql, (resultSet, i) -> {
+			Commission commission = new Commission();
+			commission.setOperationType(OperationType.convert(resultSet.getInt("operation_type")));
+			commission.setValue(resultSet.getBigDecimal("value"));
+			return commission;
+		});
 	}
 
 	@Override
-	public List<Commission> getEditableCommissionsByRoles(List<Integer> roleIds) {
+	public List<CommissionShortEditDto> getEditableCommissionsByRoles(List<Integer> roleIds, Locale locale) {
 		final String sql = "SELECT DISTINCT COMMISSION.operation_type, COMMISSION.value " +
 				"FROM COMMISSION " +
 				"JOIN USER_ROLE ON COMMISSION.user_role = USER_ROLE.id " +
 				"WHERE COMMISSION.user_role IN(:roles) AND COMMISSION.operation_type NOT IN (5, 6, 7, 8) " +
 				"ORDER BY COMMISSION.operation_type";
 		Map<String, List<Integer>> params = Collections.singletonMap("roles", roleIds);
-		return jdbcTemplate.query(sql, params, commissionShortRowMapper);
+		return jdbcTemplate.query(sql, params, (resultSet, i) -> {
+			CommissionShortEditDto commission = new CommissionShortEditDto();
+			OperationType operationType = OperationType.convert(resultSet.getInt("operation_type"));
+			commission.setOperationType(operationType);
+			commission.setOperationTypeLocalized(operationType.toString(messageSource, locale));
+			commission.setValue(resultSet.getBigDecimal("value"));
+			return commission;
+		});
 	}
 
 
@@ -118,13 +129,15 @@ public class CommissionDaoImpl implements CommissionDao {
 	}
 
 	@Override
-	public void updateMerchantCurrencyCommission(Integer merchantId, Integer currencyId, BigDecimal value){
-		final String sql = "UPDATE MERCHANT_CURRENCY SET merchant_commission = :value " +
+	public void updateMerchantCurrencyCommission(Integer merchantId, Integer currencyId, BigDecimal inputValue, BigDecimal outputValue){
+		final String sql = "UPDATE MERCHANT_CURRENCY SET merchant_input_commission = :input_value, " +
+				"merchant_output_commission = :output_value " +
 				"where merchant_id = :merchant_id AND currency_id = :currency_id";
 		Map<String, Number> params = new HashMap<String, Number>() {{
 			put("merchant_id", merchantId);
 			put("currency_id", currencyId);
-			put("value", value);
+			put("input_value", inputValue);
+			put("output_value", outputValue);
 		}};
 		jdbcTemplate.update(sql, params);
 	}
