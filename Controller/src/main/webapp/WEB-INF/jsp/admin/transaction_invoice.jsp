@@ -71,6 +71,34 @@
 <span hidden id="onConfirmationLocMessage"><loc:message code="merchants.invoice.onWaitingForUserConfirmation"/></span>
 <span hidden id="revokedByUserLocMessage"><loc:message code="merchants.invoice.revokedByUser"/></span>
 <span hidden id="timeOutExpiredLocMessage"><loc:message code="merchants.invoice.timeOutExpired"/></span>
+<span hidden id="updateAmountLocMessage"><loc:message code="admin.invoice.updateAmount"/></span>
+
+<div id="editAmountModal" class="modal modal-small fade">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title"><loc:message code="admin.invoice.updateAmount"/></h4>
+            </div>
+            <div class="modal-body">
+                <form id="edit-amount-form">
+                    <div class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label for="amountValue" class="input-block-wrapper__label"><loc:message code="transaction.amount"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input id="amountValue" name="amount" class="input-block-wrapper__input" type="number">
+                        </div>
+                        <input hidden id="transactionId" name="transactionId">
+                    </div>
+                    <button id="submitAmount" class="blue-box admin-form-submit" type="button"><loc:message code="admin.submit"/></button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <%@include file='../fragments/modal/enter_note_before_decline_modal.jsp' %>
 <%@include file='../fragments/modal/invoice_info_modal.jsp' %>
 <%@include file='../fragments/footer.jsp' %>

@@ -2,6 +2,7 @@
  * Created by ogolv on 26.07.2016.
  */
 var invoiceRequestsDataTable;
+var $invoiceRequestsTable;
 
 $(document).ready(function () {
     var acceptLocMessage = $('#acceptLocMessage').text();
@@ -11,12 +12,13 @@ $(document).ready(function () {
     var onConfirmationLocMessage = $('#onConfirmationLocMessage').text();
     var revokedByUserLocMessage = $('#revokedByUserLocMessage').text();
     var timeOutExpiredLocMessage = $('#timeOutExpiredLocMessage').text();
+    var updateAmountLocMessage = $('#updateAmountLocMessage').text();
     /**/
-    var $invoiceRequestsTable = $('#invoice_requests');
+    $invoiceRequestsTable = $('#invoice_requests');
 
     var url = '/2a8fy7b07dxe44/invoiceRequests?availableActionSet=ACCEPT_MANUAL';
 
-    if ($.fn.dataTable.isDataTable('#invoice_requests')) {
+    function updateInvoiceTable() {if ($.fn.dataTable.isDataTable('#invoice_requests')) {
         invoiceRequestsDataTable = $($invoiceRequestsTable).DataTable();
         invoiceRequestsDataTable.ajax.url(url).load();
     } else {
@@ -96,9 +98,12 @@ $(document).ready(function () {
                                 acceptLocMessage +
                                 '</button>' +
                                 '&nbsp;' +
-                                // '<button style="font-size: 11px;" class="table-button-block__button btn btn-danger" onclick="declineInvoice(event,' + row.transaction.id + ')">' +
-                                '<button style="font-size: 11px;" class="table-button-block__button btn btn-danger" onclick=declineInvoice(event,' + row.transaction.id + ',"'+row.userEmail+'")>' +
-                                declineLocMessage +
+                                //'<button style="font-size: 11px;" class="table-button-block__button btn btn-danger" onclick="declineInvoice(event,' + row.transaction.id + ')">' +
+                                '<button style="font-size: 11px;" class="table-button-block__button btn btn-danger" onclick=declineInvoice(event,' + row.transaction.id + ',"'+row.userEmail+'")>' +declineLocMessage +
+                                '</button>' +
+                                '&nbsp;' +
+                                '<button style="font-size: 11px;" class="table-button-block__button btn btn-primary" onclick="showUpdateAmountModal(this)">' +
+                                updateAmountLocMessage +
                                 '</button>' +
                                 '</div>';
                         } else {
@@ -116,7 +121,26 @@ $(document).ready(function () {
                 }
             ],
             "order": []
-        });
+        });}
+    }
+
+    updateInvoiceTable();
+
+    $('#submitAmount').click(updateAmount);
+
+    function updateAmount() {
+        $.ajax({
+            url: '/2a8fy7b07dxe44/updateTransactionAmount',
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            type: 'POST',
+            data: $('#edit-amount-form').serialize(),
+            success: function () {
+                updateInvoiceTable();
+                $('#editAmountModal').modal('hide');
+            }
+        })
     }
 
 
@@ -158,4 +182,14 @@ function fillInvoiceInfoModal(rowData) {
 function replaceAbsentWithDash(value) {
     return value ? value : '-';
 }
+
+function showUpdateAmountModal($elem) {
+    var $row = $($elem).parents('tr');
+    var rowData = invoiceRequestsDataTable.row($row).data();
+    $('#amountValue').val(0);
+    $('#transactionId').val(rowData.transaction.id);
+    $('#editAmountModal').modal();
+}
+
+
 

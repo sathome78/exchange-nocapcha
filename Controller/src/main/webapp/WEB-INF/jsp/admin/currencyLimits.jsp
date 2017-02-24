@@ -67,7 +67,7 @@
         </div>
     </div>
 </main>
-<div id="editLimitModal" class="modal fade">
+<div id="editLimitModal" class="modal modal-small fade">
     <div class="modal-dialog modal-md">
         <div class="modal-content">
             <div class="modal-header">
