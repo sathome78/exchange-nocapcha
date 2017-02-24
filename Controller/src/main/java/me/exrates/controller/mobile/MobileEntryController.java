@@ -634,7 +634,9 @@ public class MobileEntryController {
         String appKey = authenticationDto.getAppKey();
         String userAgentHeader = request.getHeader("User-Agent");
         logger.debug(userAgentHeader);
-        checkAppKey(appKey, userAgentHeader);
+        if (apiService.appKeyCheckEnabled()) {
+            checkAppKey(appKey, userAgentHeader);
+        }
 
         Optional<AuthTokenDto> authTokenResult = authTokenService.retrieveToken(authenticationDto.getEmail(), authenticationDto.getPassword());
         AuthTokenDto authTokenDto = authTokenResult.get();

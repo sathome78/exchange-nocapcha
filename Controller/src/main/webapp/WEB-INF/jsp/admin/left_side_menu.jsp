@@ -88,7 +88,7 @@
 
         <li>
             <%--Финансисты--%>
-            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
                 <a href="#finMenu"  data-toggle="collapse"><loc:message code="admin.finance"/><i class="fa fa-caret-down"></i></a>
                 <div class="collapse" id="finMenu">
                     <ul>

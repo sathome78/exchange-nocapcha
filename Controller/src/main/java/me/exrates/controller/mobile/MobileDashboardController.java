@@ -947,7 +947,12 @@ public class MobileDashboardController {
 
     @RequestMapping(value = "/test/currencyPairRates", method = GET, produces = "application/json; charset=UTF-8")
     public ResponseEntity<Void> retrieveCurrencyPairRates() {
-        stockExchangeService.retrieveCurrencies();
+        try {
+            stockExchangeService.retrieveCurrencies();
+        } catch (Exception e) {
+            logger.error(e);
+            throw e;
+        }
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
