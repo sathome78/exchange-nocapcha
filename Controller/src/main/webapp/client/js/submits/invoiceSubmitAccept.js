@@ -25,9 +25,10 @@ function declineInvoice(e, id, email) {
         url: '/2a8fy7b07dxe44/phrases/invoice_decline?email=' + email,
         type: 'GET',
         success: function (data) {
+            $modal.find("#user-language").val(data["lang"]);
             $list = $modal.find("#phrase-template-list");
             $list.html("<option></option>");
-            data.forEach(function (e) {
+            data["list"].forEach(function (e) {
                 $list.append($("<option></option>").append(e));
             });
             $modal.find("#createCommentConfirm").one("click", function () {

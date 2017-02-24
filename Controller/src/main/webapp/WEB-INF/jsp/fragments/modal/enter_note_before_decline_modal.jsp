@@ -19,6 +19,15 @@
       </div>
       <div class="modal-body">
         <label for="phrase-template-list">
+          <loc:message code="admin.userLanguage"/>:
+        </label>
+        <input class="form-control"
+                  id="user-language"
+                  readonly>
+        </input>
+        <br>
+        <%----%>
+        <label for="phrase-template-list">
           <loc:message code="merchants.invoice.phrases.decline.cause"/>:
         </label>
         <textarea class="form-control" cols="40" rows="3"
