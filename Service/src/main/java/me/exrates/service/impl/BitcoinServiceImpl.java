@@ -10,6 +10,7 @@ import me.exrates.model.*;
 import me.exrates.model.Currency;
 import me.exrates.model.dto.InvoiceUserDto;
 import me.exrates.model.dto.PendingPaymentFlatDto;
+import me.exrates.model.dto.PendingPaymentSimpleDto;
 import me.exrates.model.dto.onlineTableDto.PendingPaymentStatusDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
@@ -362,4 +363,32 @@ public class BitcoinServiceImpl implements BitcoinService {
       return 0;
     }
   }
+
+
+  @Override
+  @Transactional
+  public void revoke(Integer pendingPaymentId) throws Exception {
+    PendingPayment pendingPayment = paymentDao.findByIdAndBlock(pendingPaymentId)
+        .orElseThrow(() -> new InvoiceNotFoundException(pendingPaymentId.toString()));
+    InvoiceActionTypeEnum action = REVOKE;
+    InvoiceStatus newStatus = pendingPayment.getPendingPaymentStatus().nextState(action);
+    pendingPayment.setPendingPaymentStatus(newStatus);
+    Transaction transaction = pendingPayment.getTransaction();
+    if (transaction.getOperationType() != OperationType.INPUT) {
+      throw new IllegalOperationTypeException("for transaction id = " + pendingPaymentId);
+    }
+    if (transaction.isProvided()) {
+      throw new IllegalTransactionProvidedStatusException("for transaction id = " + transaction.getId());
+    }
+    pendingPayment.setPendingPaymentStatus(newStatus);
+    paymentDao.updateAcceptanceStatus(pendingPayment);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public PendingPaymentSimpleDto getPendingPaymentSimple(Integer pendingPaymentId) throws Exception {
+    return paymentDao.findById(pendingPaymentId)
+        .orElseThrow(() -> new InvoiceNotFoundException(pendingPaymentId.toString()));
+  }
+
 }

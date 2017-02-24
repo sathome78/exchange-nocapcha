@@ -5,6 +5,7 @@ import me.exrates.model.CreditsOperation;
 import me.exrates.model.PendingPayment;
 import me.exrates.model.Transaction;
 import me.exrates.model.dto.PendingPaymentFlatDto;
+import me.exrates.model.dto.PendingPaymentSimpleDto;
 import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,4 +30,8 @@ public interface BitcoinService {
     Integer getPendingPaymentStatusByInvoiceId(Integer invoiceId);
 
     Integer clearExpiredInvoices(Integer intervalMinutes) throws Exception;
+
+    void revoke(Integer pendingPaymentId) throws Exception;
+
+    PendingPaymentSimpleDto getPendingPaymentSimple(Integer pendingPaymentId) throws Exception;
 }

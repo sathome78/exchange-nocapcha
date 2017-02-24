@@ -2,13 +2,17 @@ package me.exrates.controller.merchants;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.controller.exception.ErrorInfoDto;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.model.PendingPayment;
+import me.exrates.model.dto.PendingPaymentSimpleDto;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.MerchantInternalException;
+import me.exrates.service.exception.invoice.IllegalInvoiceStatusException;
+import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.exception.invoice.RejectedPaymentInvoice;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +22,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.view.RedirectView;
 
 import javax.servlet.http.HttpServletRequest;
@@ -41,6 +46,9 @@ public class BitcoinController {
   private final BitcoinService bitcoinService;
   private final MerchantService merchantService;
   private final MessageSource messageSource;
+
+  @Autowired
+  private LocaleResolver localeResolver;
 
   @Autowired
   public BitcoinController(final BitcoinService bitcoinService,
@@ -104,6 +112,58 @@ public class BitcoinController {
       Principal principal) throws Exception {
     bitcoinService.provideTransaction(pendingPaymentId, hash, amount, principal.getName());
     return new RedirectView("/2a8fy7b07dxe44/bitcoinConfirmation");
+  }
+
+  @RequestMapping(value = "/payment/revoke", method = POST)
+  @ResponseBody
+  public void confirmInvoice(
+      @RequestParam(name = "id") Integer pendingPaymentId,
+      HttpServletRequest request) throws Exception {
+    try {
+      bitcoinService.revoke(pendingPaymentId);
+    } catch (IllegalInvoiceStatusException e) {
+      throw new IllegalInvoiceStatusException(messageSource.getMessage("merchants.invoice.error.notAllowedOperation", null, localeResolver.resolveLocale(request)));
+    } catch (InvoiceNotFoundException e) {
+      throw new InvoiceNotFoundException(messageSource.getMessage("merchants.error.invoiceRequestNotFound", null, localeResolver.resolveLocale(request)));
+    }
+  }
+
+  @RequestMapping(value = "/payment/address", method = GET)
+  @ResponseBody
+  public PendingPaymentSimpleDto getAddress(
+      @RequestParam(name = "id") Integer pendingPaymentId,
+      HttpServletRequest request) throws Exception {
+    try {
+      return bitcoinService.getPendingPaymentSimple(pendingPaymentId);
+    } catch (InvoiceNotFoundException e) {
+      throw new InvoiceNotFoundException(messageSource.getMessage("merchants.error.invoiceRequestNotFound", null, localeResolver.resolveLocale(request)));
+    }
+  }
+
+  @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+  @ExceptionHandler({
+      IllegalInvoiceStatusException.class})
+  @ResponseBody
+  public ErrorInfoDto bitcoinErrorNotAcceptableHandler(HttpServletRequest req, Exception exception) {
+    log.error("\n\t" + ExceptionUtils.getStackTrace(exception));
+    if (exception.getLocalizedMessage() == null || exception.getLocalizedMessage().isEmpty()) {
+      return new ErrorInfoDto(exception.getClass().getSimpleName());
+    } else {
+      return new ErrorInfoDto(exception.getClass().getSimpleName(), exception.getLocalizedMessage());
+    }
+  }
+
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  @ExceptionHandler({
+      InvoiceNotFoundException.class})
+  @ResponseBody
+  public ErrorInfoDto bitcoinErrorNotFoundHandler(HttpServletRequest req, Exception exception) {
+    log.error("\n\t" + ExceptionUtils.getStackTrace(exception));
+    if (exception.getLocalizedMessage() == null || exception.getLocalizedMessage().isEmpty()) {
+      return new ErrorInfoDto(exception.getClass().getSimpleName());
+    } else {
+      return new ErrorInfoDto(exception.getClass().getSimpleName(), exception.getLocalizedMessage());
+    }
   }
 
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

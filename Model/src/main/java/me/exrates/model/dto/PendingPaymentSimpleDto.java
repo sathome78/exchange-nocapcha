@@ -16,6 +16,7 @@ public class PendingPaymentSimpleDto {
   private int invoiceId;
   private String transactionHash;
   private String address;
+  private String hash;
 
   public PendingPaymentSimpleDto(PendingPayment pendingPayment){
     this.invoiceId = pendingPayment.getInvoiceId();

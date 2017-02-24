@@ -19,5 +19,9 @@
             <c:set value="inputoutput-table_row" var="table_row_id"/>
             <%@include file="inputoutput-center-tableBody.jsp" %>
         </table>
+
+        <%@include file="../fragments/modal/btc_invoice_revoke_modal.jsp" %>
+        <%@include file="../fragments/modal/btc_invoice_info_modal.jsp" %>
 </div>
+
 

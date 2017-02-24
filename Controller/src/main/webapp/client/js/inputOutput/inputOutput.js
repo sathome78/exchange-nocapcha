@@ -110,11 +110,50 @@ function InputOutputClass(currentCurrencyPair) {
         $('#inputoutput-table').on('click', '#revokeBtcInvoiceButton', function (e) {
             e.preventDefault();
             var $form = $(this).parents('#inputoutput-center-tableBody__form');
-            var $action = $form.find('input[name=action]');
-            $action.attr("value", "revoke");
-            var $sourceType = $form.find('input[name=sourceType]');
-            $action.attr("value", "BTC_INVOICE");
-            $form[0].submit();
+            var invoiceId = $form.find('input[name=transactionId]').val();
+            $.ajax({
+                url: '/merchants/bitcoin/payment/address?id=' + invoiceId,
+                type: 'GET',
+                success: function (data) {
+                    var $modal = $("#btc-invoice-revoke-modal");
+                    $modal.find("#invoiceId").val(invoiceId);
+                    $modal.find("#address-to-pay").val(data.address);
+
+                    $modal.find("#btcInvoiceRevokeConfirm").one("click", function () {
+                        var invoiceId = $('#invoiceId').val().trim();
+                        $modal.modal('hide');
+                        $.ajax({
+                            url: '/merchants/bitcoin/payment/revoke?id=' + invoiceId,
+                            headers: {
+                                'X-CSRF-Token': $("input[name='_csrf']").val(),
+                            },
+                            type: 'POST',
+                            success: function () {
+                                that.updateAndShowAll(false);
+                            }
+                        });
+                    });
+
+                    $modal.modal();
+                }
+            });
+        });
+
+        $('#inputoutput-table').on('click', '#viewBtcInvoiceButton', function (e) {
+            e.preventDefault();
+            var $form = $(this).parents('#inputoutput-center-tableBody__form');
+            var invoiceId = $form.find('input[name=transactionId]').val();
+            $.ajax({
+                url: '/merchants/bitcoin/payment/address?id=' + invoiceId,
+                type: 'GET',
+                success: function (data) {
+                    var $modal = $("#btc-invoice-info-modal");
+                    $modal.find("#invoiceId").val(invoiceId);
+                    $modal.find("#address-to-pay").val(data.address);
+                    $modal.find("#btc-transaction").val(data.hash);
+                    $modal.modal();
+                }
+            });
         });
     })(currentCurrencyPair);
 }

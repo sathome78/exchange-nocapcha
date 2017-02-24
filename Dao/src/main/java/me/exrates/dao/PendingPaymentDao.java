@@ -43,4 +43,6 @@ public interface PendingPaymentDao {
   void setNewStatusBySourceTypeAndDateIntervalAndStatus(String sourceName, LocalDateTime nowDate, Integer intervalMinutes, Integer newInvoiceRequestStatusId, List<Integer> invoiceRequestStatusIdList);
 
   List findInvoicesListBySourceTypeAndStatusChangedAtDate(String sourceName, Integer invoiceRequestStatusId, LocalDateTime dateWhenChanged);
+
+  Optional<PendingPaymentSimpleDto> findById(Integer pendingPaymentId);
 }

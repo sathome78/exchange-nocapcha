@@ -361,4 +361,19 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
     }
   }
 
+  @Override
+  public Optional<PendingPaymentSimpleDto> findById(Integer pendingPaymentId) {
+    String sql = "SELECT PP.* " +
+        " FROM PENDING_PAYMENT PP " +
+        " WHERE invoice_id= :invoice_id ";
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("invoice_id", pendingPaymentId);
+    }};
+    try {
+      return of(parameterJdbcTemplate.queryForObject(sql, params, new BeanPropertyRowMapper<>(PendingPaymentSimpleDto.class)));
+    } catch (EmptyResultDataAccessException e) {
+      return empty();
+    }
+  }
+
 }

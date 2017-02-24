@@ -54,9 +54,11 @@
                       '<button id="revokeInvoiceButton" type="button" style="font-size: 1.1rem;" class="wallet-mystatement-button table-button-block__button btn btn-danger">
                         <loc:message code="merchants.invoice.revoke" />
                       </button>&nbsp;';
-                  } else if (false && sourceType === 'BTC_INVOICE') {
+                  } else if (sourceType === 'BTC_INVOICE') {
                     buttonsSet = buttonsSet +
-                      '<button id="revokeBtcInvoiceButton" type="button" style="font-size: 1.1rem;" class="wallet-mystatement-button table-button-block__button btn btn-danger">
+                      '<button id="revokeBtcInvoiceButton"
+                               type="button" style="font-size: 1.1rem;"
+                               class="wallet-mystatement-button table-button-block__button btn btn-danger">
                         <loc:message code="merchants.invoice.revoke" />
                       </button>&nbsp;';
                   }
@@ -67,6 +69,14 @@
                       <loc:message code="merchants.invoice.viewConfirm" />
                      </button>&nbsp;';
                 }
+                if ((sourceType === 'BTC_INVOICE') && operationType === 'Input') {
+                  buttonsSet = buttonsSet +
+                    '<button id="viewBtcInvoiceButton"
+                             type="button" style="font-size: 1.1rem;"
+                             class="wallet-mystatement-button table-button-block__button btn btn-info">
+                      <loc:message code="merchants.invoice.viewConfirm" />
+                    </button>&nbsp;';
+              }
                 return buttonsSet;
             })()
 
