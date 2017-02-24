@@ -63,6 +63,7 @@ $(function(){
     const INVOICE = 'Invoice';
     const EDC = 'EDC';
     const OKPAY = 'OkPay';
+    const PAYEER = 'Payeer';
 
     const NO_ACTION = 'javascript:void(0);';
 
@@ -184,6 +185,7 @@ $(function(){
             privat24:'https://api.privatbank.ua/p24api/ishop',
             interkassa:'https://sci.interkassa.com/',
             okpay:'/merchants/okpay/payment/prepare/',
+            payeer:'/merchants/payeer/payment/prepare/',
             invoice: '/merchants/invoice/preSubmit'
 
         };
@@ -215,6 +217,9 @@ $(function(){
                     break;
                 case OKPAY :
                     form.attr('action', formAction.okpay);
+                    break;
+                case PAYEER :
+                    form.attr('action', formAction.payeer);
                     break;
                 case INVOICE:
                     form.attr('action', formAction.invoice);
