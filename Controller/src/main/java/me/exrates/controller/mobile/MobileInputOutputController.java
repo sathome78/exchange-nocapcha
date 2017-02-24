@@ -7,12 +7,10 @@ import me.exrates.controller.exception.NotEnoughMoneyException;
 import me.exrates.model.*;
 import me.exrates.model.dto.mobileApiDto.*;
 import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.InvoiceData;
 import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.*;
-import me.exrates.service.WalletService;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.ApiError;
 import me.exrates.service.exception.api.ErrorCode;
@@ -39,6 +37,8 @@ import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.util.*;
 
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CONFIRM;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.REVOKE;
 import static me.exrates.service.exception.api.ErrorCode.*;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
@@ -406,21 +406,21 @@ public class MobileInputOutputController {
      * @apiUse InternalServerError
      */
     @RequestMapping(value = "/invoice/confirm", method = POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Void> confirmInvoice(@Valid InvoiceConfirmData invoiceConfirmData) throws me.exrates.service.exception.invoice.InvoiceNotFoundException, IllegalInvoiceRequestStatusException {
+    public ResponseEntity<Void> confirmInvoice(@Valid InvoiceConfirmData invoiceConfirmData) throws Exception {
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-        invoiceService.userActionOnInvoice(invoiceConfirmData, UserActionOnInvoiceEnum.CONFIRM, userLocale);
+        invoiceService.userActionOnInvoice(invoiceConfirmData, CONFIRM, userLocale);
         return new ResponseEntity<>(OK);
     }
     @RequestMapping(value = "/invoice/revoke", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Void> revokeInvoice(@RequestBody Map<String, String> params) throws me.exrates.service.exception.invoice.InvoiceNotFoundException, IllegalInvoiceRequestStatusException {
+    public ResponseEntity<Void> revokeInvoice(@RequestBody Map<String, String> params) throws Exception {
         String invoiceIdString = RestApiUtils.retrieveParamFormBody(params, "invoiceId", true);
         Integer invoiceId = Integer.parseInt(invoiceIdString);
         InvoiceConfirmData invoiceConfirmData = new InvoiceConfirmData();
         invoiceConfirmData.setInvoiceId(invoiceId);
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-        invoiceService.userActionOnInvoice(invoiceConfirmData, UserActionOnInvoiceEnum.REVOKE, userLocale);
+        invoiceService.userActionOnInvoice(invoiceConfirmData, REVOKE, userLocale);
         return new ResponseEntity<>(OK);
     }
 

@@ -8,7 +8,7 @@ import lombok.Setter;
 import lombok.ToString;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.InvoiceRequest;
-import me.exrates.model.enums.InvoiceRequestStatusEnum;
+import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.serializer.LocalDateTimeToLongSerializer;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -46,7 +46,7 @@ public class InvoiceDetailsDto {
     @JsonInclude(NON_NULL)
     private String payerAccount;
     @JsonInclude(NON_NULL)
-    private InvoiceRequestStatusEnum invoiceRequestStatus;
+    private InvoiceStatus invoiceRequestStatus;
     @JsonInclude(NON_NULL)
     @JsonSerialize(using = LocalDateTimeToLongSerializer.class)
     private LocalDateTime statusUpdateDate;

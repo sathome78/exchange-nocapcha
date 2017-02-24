@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
@@ -197,7 +198,7 @@ public class InvoiceController {
       @RequestParam(required = false) String action,
       @RequestParam(required = false) String sourceType) {
     ModelAndView modelAndView;
-    if (sourceType == null) {
+    if (StringUtils.isEmpty(sourceType)) {
       sourceType = "INVOICE";
     }
     TransactionSourceType transactionSourceType = TransactionSourceType.convert(sourceType);
