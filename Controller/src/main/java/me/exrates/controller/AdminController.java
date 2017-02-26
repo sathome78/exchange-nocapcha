@@ -981,17 +981,21 @@ public class AdminController {
         return new ResponseEntity<>(OK);
     }
 
-    @ResponseBody
-    @RequestMapping(value = "/2a8fy7b07dxe44/phrases/{topic:.+}", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<String> getPhrases(
-            @PathVariable String topic,
-            @RequestParam String email) {
-        Locale locale = Locale.forLanguageTag(userService.getPreferedLangByEmail(email));
-        UserCommentTopicEnum userCommentTopic = UserCommentTopicEnum.convert(topic.toUpperCase());
-        return phraseTemplateService.getAllByTopic(userCommentTopic).stream()
-                .map(e -> messageSource.getMessage(e, null, locale))
-                .collect(Collectors.toList());
-    }
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/phrases/{topic:.+}", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
+  public Map<String, List<String>> getPhrases(
+      @PathVariable String topic,
+      @RequestParam String email) {
+    Locale userLocale = Locale.forLanguageTag(userService.getPreferedLangByEmail(email));
+    UserCommentTopicEnum userCommentTopic = UserCommentTopicEnum.convert(topic.toUpperCase());
+    List<String> phrases = phraseTemplateService.getAllByTopic(userCommentTopic).stream()
+        .map(e -> messageSource.getMessage(e, null, userLocale))
+        .collect(Collectors.toList());
+    return new HashMap<String, List<String>>(){{
+      put("lang", Arrays.asList(userLocale.getISO3Language()));
+      put("list", phrases);
+    }};
+  }
 
 
 
