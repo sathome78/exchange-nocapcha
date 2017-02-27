@@ -52,8 +52,8 @@
                <h4><loc:message code="contacts.feedback"/></h4>
            </div>
             <div class="panel-body">
-                <form:form action="/sendFeedback" id="feedback-form" method="post" accept-charset="UTF-8"
-                           modelAttribute="messageForm">
+                <form:form action="/sendFeedback" id="feedback-form" cssClass="form_auto_height form_full_width"
+                           method="post" accept-charset="UTF-8" modelAttribute="messageForm">
                     <div class="input-block-wrapper">
                         <div class="col-md-3 input-block-wrapper__label-wrapper">
                             <label for="sender-name" class="input-block-wrapper__label"><loc:message

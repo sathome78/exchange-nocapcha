@@ -8,7 +8,6 @@ $(function () {
     $($optionsError).hide();
 
     $($options).change(function () {
-        console.log($(this).prop('checked'));
         var checkedInRow = $(this).parents('tr').find('input[type="checkbox"]').filter(function () {
             return $(this).prop('checked');
         }).length;

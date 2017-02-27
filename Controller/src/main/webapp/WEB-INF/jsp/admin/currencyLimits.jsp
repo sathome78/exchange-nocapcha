@@ -76,7 +76,7 @@
                 <h4 class="modal-title"><loc:message code="admin.currencyLimits.modalTitle"/></h4>
             </div>
             <div class="modal-body">
-                <form id="edit-currency-limit-form">
+                <form id="edit-currency-limit-form" class="form_full_width">
                     <input type="hidden" name="currencyId" >
                     <div class="input-block-wrapper">
                         <div class="col-md-5 input-block-wrapper__label-wrapper">

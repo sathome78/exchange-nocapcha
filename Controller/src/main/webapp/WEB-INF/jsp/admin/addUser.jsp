@@ -45,7 +45,8 @@
                     </h4>
                 </div>
                 <div class="panel-body">
-                    <form:form class="form-horizontal" id="user-add-form" action="/2a8fy7b07dxe44/adduser/submit" method="post" modelAttribute="user">
+                    <form:form class="form-horizontal" id="user-add-form" cssClass="form_full_height_width"
+                               action="/2a8fy7b07dxe44/adduser/submit" method="post" modelAttribute="user">
                         <div>
                             <fieldset class="field-user">
 

@@ -24,23 +24,13 @@
                 <div class="tab-content">
                     <div id="editor" class="tab-pane fade in active">
                         <form id="imageUploadForm" action="/news/uploadImage" method="post" enctype="multipart/form-data">
-
-                            <div class="input-block-wrapper">
-                                <div class="col-md-9 input-block-wrapper__input-wrapper">
-                                    <input name="file" id="imageUpload" type="file" />
-                                </div>
-                            </div>
-
-
+                            <input name="file" id="imageUpload" type="file" />
                         </form>
                         <div id="clearFormDialog">
                             <loc:message code="news.clearform.prompt"/>
                         </div>
-                        <%--<button id="submitImage" type="button">submit</button>--%>
 
-
-
-                        <form id="news-add-editor-form">
+                        <form id="news-add-editor-form" class="form_full_width form_auto_height">
                             <div class="input-block-wrapper">
                             <div class="col-md-3 input-block-wrapper__label-wrapper">
                                 <label for="variantEd" class="input-block-wrapper__label"><loc:message code="news.locale"/></label>

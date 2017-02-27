@@ -1772,11 +1772,7 @@ form span.repass,  form span.repass-error{
     outline: 0;
 }
 
-#user-add-form .input-block-wrapper,
-#user-edit-form .input-block-wrapper,
-#delete-order-info__form .input-block-wrapper,
-#order-delete-modal--date-picker .input-block-wrapper,
-#transaction-search-form .input-block-wrapper {
+.form_full_height_width .input-block-wrapper {
     display: inline-block;
     height: 100%;
     width: 100%;
@@ -1865,23 +1861,14 @@ form span.repass,  form span.repass-error{
 .legal_content p, .legal_content h5 {
     margin-top: 15px;
 }
-#feedback-form .input-block-wrapper,
-#edit-currency-limit-form .input-block-wrapper,
-#news-add-editor-form .input-block-wrapper,
-#edit-merchantCommission-form .input-block-wrapper,
-#edit-commission-form .input-block-wrapper{
+.form_full_width .input-block-wrapper {
     display: inline-block;
     width: 100%;
     overflow: hidden;
     margin: 5px 0;
 }
 
-#feedback-form .input-block-wrapper__input-wrapper,
-#transaction-search-form .input-block-wrapper__input-wrapper,
-#edit-currency-limit-form .input-block-wrapper__input-wrapper,
-#news-add-editor-form .input-block-wrapper__input-wrapper,
-#edit-merchantCommission-form .input-block-wrapper__input-wrapper,
-#edit-commission-form .input-block-wrapper__input-wrapper {
+.form_auto_height .input-block-wrapper__input-wrapper {
     overflow: hidden;
     height: auto;
 }

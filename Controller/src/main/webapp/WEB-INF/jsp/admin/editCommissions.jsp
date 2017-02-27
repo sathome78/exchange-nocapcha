@@ -88,7 +88,7 @@
                 <h4 class="modal-title"><loc:message code="admin.editCommission"/></h4>
             </div>
             <div class="modal-body">
-                <form id="edit-commission-form">
+                <form id="edit-commission-form" class="form_full_width form_auto_height">
                     <div class="input-block-wrapper">
                         <div class="col-md-5 input-block-wrapper__label-wrapper">
                             <label for="userRole" class="input-block-wrapper__label"><loc:message code="admin.role"/></label>
@@ -129,7 +129,7 @@
                 <h4 class="modal-title"><loc:message code="admin.editCommission"/></h4>
             </div>
             <div class="modal-body">
-                <form id="edit-merchantCommission-form">
+                <form id="edit-merchantCommission-form" class="form_full_width form_auto_height">
                     <input type="hidden" name="merchantId" >
                     <input type="hidden" name="currencyId" >
                     <div class="input-block-wrapper">

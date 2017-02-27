@@ -28,7 +28,7 @@
 </script>
 <%----------%>
 
-<div id="order-delete-modal--date-picker" class="modal fade delete-order-info__modal" tabindex="-1" role="dialog">
+<div id="order-delete-modal--date-picker" class="modal fade delete-order-info__modal form_full_height_width" tabindex="-1" role="dialog">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">

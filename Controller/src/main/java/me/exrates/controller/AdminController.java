@@ -973,13 +973,6 @@ public class AdminController {
     return new ResponseEntity<>(HttpStatus.OK);
   }
 
-    @RequestMapping(value = "/2a8fy7b07dxe44/updateTransactionAmount", method = POST)
-    @ResponseBody
-    public ResponseEntity<Void> updateTransactionAmount(@RequestParam Integer transactionId, @RequestParam BigDecimal amount) {
-        Transaction transaction = transactionService.findById(transactionId);
-        transactionService.updateTransactionAmount(transaction, amount);
-        return new ResponseEntity<>(OK);
-    }
 
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/phrases/{topic:.+}", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)

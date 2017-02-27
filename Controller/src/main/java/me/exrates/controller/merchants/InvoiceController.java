@@ -11,7 +11,6 @@ import me.exrates.model.vo.InvoiceData;
 import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.InvoiceService;
 import me.exrates.service.MerchantService;
-import me.exrates.service.UserService;
 import me.exrates.service.exception.FileLoadingException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.invoice.IllegalInvoiceStatusException;
@@ -253,8 +252,9 @@ public class InvoiceController {
   @RequestMapping(value = "/payment/accept", method = GET)
   public RedirectView acceptPayment(
       @RequestParam(name = "id") Integer invoiceId,
+      @RequestParam(name = "actualPaymentSum", required = false) BigDecimal actualPaymentSum,
       Principal principal) throws Exception {
-    invoiceService.acceptInvoiceAndProvideTransaction(invoiceId, principal.getName());
+    invoiceService.acceptInvoiceAndProvideTransaction(invoiceId, principal.getName(), actualPaymentSum);
     return new RedirectView("/2a8fy7b07dxe44/invoiceConfirmation");
   }
 

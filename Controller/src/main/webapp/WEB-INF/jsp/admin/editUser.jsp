@@ -113,7 +113,7 @@
 
                             <div class="panel-body">
 
-                                <form:form class="form-horizontal" id="user-edit-form" action="/2a8fy7b07dxe44/edituser/submit"
+                                <form:form class="form-horizontal form_full_height_width" id="user-edit-form" action="/2a8fy7b07dxe44/edituser/submit"
                                            method="post" modelAttribute="user">
                                     <div>
                                         <fieldset class="field-user">
@@ -279,7 +279,7 @@
                             <div class="text-center"><h4><loc:message code="transactions.title"/></h4></div>
                             <button data-toggle="collapse" class="blue-box" style="margin: 10px 0;" data-target="#transaction-filter"><loc:message code="admin.user.transactions.extendedFilter"/> </button>
                             <div id="transaction-filter" class="collapse">
-                            <form id="transaction-search-form" method="get">
+                            <form id="transaction-search-form" class="form_auto_height" method="get">
                                 <%--STATUS--%>
                                     <div class="input-block-wrapper">
                                 <div class="col-md-3 input-block-wrapper__label-wrapper">
