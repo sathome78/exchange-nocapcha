@@ -249,7 +249,7 @@ public class InvoiceController {
     return redirectView;
   }
 
-  @RequestMapping(value = "/payment/accept", method = GET)
+  @RequestMapping(value = "/payment/accept", method = POST)
   public RedirectView acceptPayment(
       @RequestParam(name = "id") Integer invoiceId,
       @RequestParam(name = "actualPaymentSum", required = false) BigDecimal actualPaymentSum,

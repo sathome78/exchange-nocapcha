@@ -82,8 +82,10 @@
                 <h4 class="modal-title"><loc:message code="merchants.invoice.accept.modalTitle"/></h4>
             </div>
             <div class="modal-body">
-                <p style="font-size: 1.3rem"><loc:message code="merchants.invoice.promptAccept"/></p>
-                <form id="edit-amount-form">
+                <div class="row text-center">
+                    <p style="font-size: 1.34rem"><loc:message code="merchants.invoice.promptAccept"/></p>
+                </div>
+                <form id="invoice-accept-form">
                     <div class="input-block-wrapper">
                         <div class="col-md-6 input-block-wrapper__label-wrapper">
                             <label for="changeAmountBox" class="input-block-wrapper__label"><loc:message code="admin.invoice.updateAmount"/></label>
@@ -97,9 +99,9 @@
                             <label for="amountValue" class="input-block-wrapper__label"><loc:message code="transaction.amount"/></label>
                         </div>
                         <div class="col-md-6 input-block-wrapper__input-wrapper">
-                            <input id="amountValue" name="amount" class="input-block-wrapper__input" type="number">
+                            <input id="amountValue" name="actualPaymentSum" class="input-block-wrapper__input" type="number">
                         </div>
-                        <input hidden id="transactionId" name="transactionId">
+                        <input hidden id="transactionId" name="id">
                     </div>
                     <div class="table-button-block" style="white-space: nowrap; margin-top: 20px">
                         <button id="submitAccept" class="blue-box" type="button"><loc:message code="admin.submit"/></button>

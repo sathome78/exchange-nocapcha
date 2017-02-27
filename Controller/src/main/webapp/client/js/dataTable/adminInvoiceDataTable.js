@@ -123,14 +123,23 @@ $(document).ready(function () {
     updateInvoiceTable();
 
     $('#changeAmountBox').on('change', function () {
-        console.log($(this).prop('checked'));
         var $amountInput = $('#amountValue');
         if ($(this).prop('checked')) {
             $($amountInput).prop('readonly', false);
+            $($amountInput).prop('disabled', false);
         } else {
             $($amountInput).val('');
             $($amountInput).prop('readonly', true);
+            $($amountInput).prop('disabled', true);
         }
+    });
+
+    $('#submitAccept').on('click', function () {
+        acceptInvoice(updateInvoiceTable)
+    });
+    $('#cancelAccept').on('click', function () {
+        $('#acceptModal').modal('hide');
+
     })
 
 });
@@ -178,6 +187,8 @@ function showAcceptModal($elem) {
     var rowData = invoiceRequestsDataTable.row($row).data();
     $($amountInput).val('');
     $($amountInput).prop('readonly', true);
+    $($amountInput).prop('disabled', true);
+    $('#changeAmountBox').prop('checked', false);
     $('#transactionId').val(rowData.transaction.id);
     $('#acceptModal').modal();
 }
