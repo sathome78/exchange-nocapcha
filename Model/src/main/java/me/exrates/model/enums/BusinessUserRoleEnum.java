@@ -27,13 +27,11 @@ public enum BusinessUserRoleEnum {
   private List<UserRole> realUserRoles = new ArrayList<>();
 
   BusinessUserRoleEnum(UserRole... userRole) {
-    for (UserRole ur : userRole) {
-      realUserRoles.add(ur);
-    }
+    Collections.addAll(realUserRoles, userRole);
   }
 
   public static List<Integer> getRealUserRoleIdList(String name) {
-    return getRealUserRoleList(name).stream().map(e -> e.getRole()).collect(Collectors.toList());
+    return getRealUserRoleList(name).stream().map(UserRole::getRole).collect(Collectors.toList());
   }
 
   public static List<UserRole> getRealUserRoleList(String name) {
@@ -44,7 +42,7 @@ public enum BusinessUserRoleEnum {
   }
 
   public List<Integer> getRealUserRoleIdList() {
-    return getRealUserRoleList().stream().map(e -> e.getRole()).collect(Collectors.toList());
+    return getRealUserRoleList().stream().map(UserRole::getRole).collect(Collectors.toList());
   }
 
   public List<UserRole> getRealUserRoleList() {
