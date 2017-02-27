@@ -38,7 +38,7 @@
                     <h4 class="modal-title"><loc:message code="ordersearch.title"/></h4>
                 </div>
 
-                <form id="delete-order-info__form" action="/2a8fy7b07dxe44/searchorders" method="get">
+                <form id="delete-order-info__form" class="form_full_height_width" action="/2a8fy7b07dxe44/searchorders" method="get">
 
                     <div class="input-block-wrapper">
                         <div class="col-md-3 input-block-wrapper__label-wrapper">

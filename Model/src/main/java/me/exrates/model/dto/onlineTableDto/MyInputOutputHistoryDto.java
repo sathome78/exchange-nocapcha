@@ -3,6 +3,7 @@ package me.exrates.model.dto.onlineTableDto;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.time.LocalDateTime;
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
  * Created by Ajet on 23.07.2016.
  */
 @Getter @Setter
+@ToString
 public class MyInputOutputHistoryDto extends OnlineTableDto {
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime datetime;
@@ -81,20 +83,4 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
         return result;
     }
 
-    @Override
-    public String toString() {
-        return "MyInputOutputHistoryDto{" +
-                "datetime=" + datetime +
-                ", currencyName='" + currencyName + '\'' +
-                ", amount='" + amount + '\'' +
-                ", commissionAmount='" + commissionAmount + '\'' +
-                ", merchantName='" + merchantName + '\'' +
-                ", operationType='" + operationType + '\'' +
-                ", transactionId=" + transactionId +
-                ", transactionProvided='" + transactionProvided + '\'' +
-                ", userId=" + userId +
-                ", confirmationRequired=" + confirmationRequired +
-                ", bankAccount='" + bankAccount + '\'' +
-                '}';
-    }
 }

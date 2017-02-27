@@ -73,26 +73,40 @@
 <span hidden id="timeOutExpiredLocMessage"><loc:message code="merchants.invoice.timeOutExpired"/></span>
 <span hidden id="updateAmountLocMessage"><loc:message code="admin.invoice.updateAmount"/></span>
 
-<div id="editAmountModal" class="modal modal-small fade">
+<div id="acceptModal" class="modal fade form_full_width">
     <div class="modal-dialog modal-md">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
                         aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title"><loc:message code="admin.invoice.updateAmount"/></h4>
+                <h4 class="modal-title"><loc:message code="merchants.invoice.accept.modalTitle"/></h4>
             </div>
             <div class="modal-body">
-                <form id="edit-amount-form">
+                <div class="row text-center">
+                    <p style="font-size: 1.34rem"><loc:message code="merchants.invoice.promptAccept"/></p>
+                </div>
+                <form id="invoice-accept-form">
                     <div class="input-block-wrapper">
-                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                        <div class="col-md-6 input-block-wrapper__label-wrapper">
+                            <label for="changeAmountBox" class="input-block-wrapper__label"><loc:message code="admin.invoice.updateAmount"/></label>
+                        </div>
+                        <div class="col-md-6 input-block-wrapper__input-wrapper">
+                            <input type="checkbox" id="changeAmountBox" class="input-block-wrapper__input" >
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-6 input-block-wrapper__label-wrapper">
                             <label for="amountValue" class="input-block-wrapper__label"><loc:message code="transaction.amount"/></label>
                         </div>
-                        <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input id="amountValue" name="amount" class="input-block-wrapper__input" type="number">
+                        <div class="col-md-6 input-block-wrapper__input-wrapper">
+                            <input id="amountValue" name="actualPaymentSum" class="input-block-wrapper__input" type="number">
                         </div>
-                        <input hidden id="transactionId" name="transactionId">
+                        <input hidden id="transactionId" name="id">
                     </div>
-                    <button id="submitAmount" class="blue-box admin-form-submit" type="button"><loc:message code="admin.submit"/></button>
+                    <div class="table-button-block" style="white-space: nowrap; margin-top: 20px">
+                        <button id="submitAccept" class="blue-box" type="button"><loc:message code="admin.submit"/></button>
+                        <button id="cancelAccept" class="red-box" type="button"><loc:message code="admin.cancel"/></button>
+                    </div>
                 </form>
             </div>
         </div>

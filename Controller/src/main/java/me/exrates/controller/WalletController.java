@@ -38,8 +38,6 @@ public class WalletController {
 
     private static final Logger LOG = LogManager.getLogger(WalletController.class);
 
-    private final Set<String> CRYPTO_CURRENCY_NAMES = Stream.of("BTC", "EDRC", "EDR").collect(Collectors.toSet());
-
 
     @Autowired
     UserService userService;
@@ -94,10 +92,8 @@ public class WalletController {
         BigDecimal commissionRate = commissionService.findCommissionByTypeAndRole(OperationType.USER_TRANSFER, userService.getCurrentUserRole()).getValue();
         BigDecimal commissionDecimal = BigDecimalProcessing.doAction(commissionRate, BigDecimal.valueOf(100), ActionType.DEVIDE);
         BigDecimal commissionMultiplier = BigDecimalProcessing.doAction(commissionDecimal, BigDecimal.ONE, ActionType.ADD);
-        BigDecimal maxForTransfer = BigDecimalProcessing.doAction(wallet.getActiveBalance(), commissionMultiplier, ActionType.DEVIDE);
-        if (!CRYPTO_CURRENCY_NAMES.contains(currencyName)) {
-            maxForTransfer = maxForTransfer.setScale(2, BigDecimal.ROUND_DOWN);
-        }
+        BigDecimal maxForTransfer = BigDecimalProcessing.doAction(wallet.getActiveBalance(), commissionMultiplier, ActionType.DEVIDE)
+                .setScale(currencyService.resolvePrecision(currencyName), BigDecimal.ROUND_DOWN);
         return maxForTransfer;
 
     }

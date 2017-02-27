@@ -94,16 +94,12 @@ $(document).ready(function () {
                             return timeOutExpiredLocMessage;
                         } else if (data === "CONFIRMED_USER") {
                             return '<div class="table-button-block" style="white-space: nowrap">' +
-                                '<button style="font-size: 11px;" class="table-button-block__button btn btn-success" onclick="acceptInvoice(event,' + row.transaction.id + ')">' +
+                                '<button style="font-size: 11px;" class="table-button-block__button btn btn-success" onclick="showAcceptModal(this)">' +
                                 acceptLocMessage +
                                 '</button>' +
                                 '&nbsp;' +
                                 //'<button style="font-size: 11px;" class="table-button-block__button btn btn-danger" onclick="declineInvoice(event,' + row.transaction.id + ')">' +
                                 '<button style="font-size: 11px;" class="table-button-block__button btn btn-danger" onclick=declineInvoice(event,' + row.transaction.id + ',"'+row.userEmail+'")>' +declineLocMessage +
-                                '</button>' +
-                                '&nbsp;' +
-                                '<button style="font-size: 11px;" class="table-button-block__button btn btn-primary" onclick="showUpdateAmountModal(this)">' +
-                                updateAmountLocMessage +
                                 '</button>' +
                                 '</div>';
                         } else {
@@ -126,23 +122,25 @@ $(document).ready(function () {
 
     updateInvoiceTable();
 
-    $('#submitAmount').click(updateAmount);
+    $('#changeAmountBox').on('change', function () {
+        var $amountInput = $('#amountValue');
+        if ($(this).prop('checked')) {
+            $($amountInput).prop('readonly', false);
+            $($amountInput).prop('disabled', false);
+        } else {
+            $($amountInput).val('');
+            $($amountInput).prop('readonly', true);
+            $($amountInput).prop('disabled', true);
+        }
+    });
 
-    function updateAmount() {
-        $.ajax({
-            url: '/2a8fy7b07dxe44/updateTransactionAmount',
-            headers: {
-                'X-CSRF-Token': $("input[name='_csrf']").val()
-            },
-            type: 'POST',
-            data: $('#edit-amount-form').serialize(),
-            success: function () {
-                updateInvoiceTable();
-                $('#editAmountModal').modal('hide');
-            }
-        })
-    }
+    $('#submitAccept').on('click', function () {
+        acceptInvoice(updateInvoiceTable)
+    });
+    $('#cancelAccept').on('click', function () {
+        $('#acceptModal').modal('hide');
 
+    })
 
 });
 
@@ -183,12 +181,16 @@ function replaceAbsentWithDash(value) {
     return value ? value : '-';
 }
 
-function showUpdateAmountModal($elem) {
+function showAcceptModal($elem) {
     var $row = $($elem).parents('tr');
+    var $amountInput = $('#amountValue');
     var rowData = invoiceRequestsDataTable.row($row).data();
-    $('#amountValue').val(0);
+    $($amountInput).val('');
+    $($amountInput).prop('readonly', true);
+    $($amountInput).prop('disabled', true);
+    $('#changeAmountBox').prop('checked', false);
     $('#transactionId').val(rowData.transaction.id);
-    $('#editAmountModal').modal();
+    $('#acceptModal').modal();
 }
 
 

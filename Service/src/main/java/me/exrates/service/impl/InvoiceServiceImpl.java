@@ -7,7 +7,6 @@ import me.exrates.model.*;
 import me.exrates.model.dto.InvoiceUserDto;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
@@ -96,7 +95,8 @@ public class InvoiceServiceImpl implements InvoiceService {
 
   @Override
   @Transactional
-  public void acceptInvoiceAndProvideTransaction(Integer invoiceId, String acceptanceUserEmail) throws Exception {
+  public void acceptInvoiceAndProvideTransaction(Integer invoiceId, String acceptanceUserEmail, BigDecimal actualPaymentSum) throws Exception {
+    updateAmountIfPositive(invoiceId, actualPaymentSum);
     InvoiceRequest invoiceRequest = invoiceRequestDao.findByIdAndBlock(invoiceId)
         .orElseThrow(() -> new InvoiceNotFoundException(invoiceId.toString()));
     InvoiceStatus newStatus = invoiceRequest.getInvoiceRequestStatus().nextState(ACCEPT_MANUAL);
@@ -134,6 +134,13 @@ public class InvoiceServiceImpl implements InvoiceService {
     /**/
     notificationService.notifyUser(invoiceRequest.getUserId(), NotificationEvent.IN_OUT, "merchants.invoice.accepted.title",
         "merchants.invoice.accepted.message", new Integer[]{invoiceId});
+  }
+
+  private void updateAmountIfPositive(int invoiceId, BigDecimal actualPaymentSum) {
+    if (actualPaymentSum != null && actualPaymentSum.signum() > 0) {
+      Transaction transaction = transactionService.findById(invoiceId);
+      transactionService.updateTransactionAmount(transaction, actualPaymentSum);
+    }
   }
 
   @Override

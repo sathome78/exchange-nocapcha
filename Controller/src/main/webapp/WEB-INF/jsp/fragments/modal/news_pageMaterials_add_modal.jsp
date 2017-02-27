@@ -31,7 +31,7 @@
           <div class="tab-content">
             <div id="editor">
                 <%--LOAD FROM EDITOR--%>
-              <form id="news-add-editor-form">
+              <form id="news-add-editor-form" class="form_full_width form_auto_height">
                 <div class="modal-header row">
                   <div class="col-md-3">
                     <label for="variantEd"><loc:message code="news.locale"/></label>

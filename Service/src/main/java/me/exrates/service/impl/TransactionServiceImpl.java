@@ -51,6 +51,8 @@ public class TransactionServiceImpl implements TransactionService {
     private OrderService orderService;
     @Autowired
     private MerchantService merchantService;
+    @Autowired
+    private CurrencyService currencyService;
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
@@ -108,10 +110,11 @@ public class TransactionServiceImpl implements TransactionService {
     private void updateAmount(Transaction transaction, BigDecimal amount) {
         BigDecimal commissionRate = transaction.getCommission().getValue();
         BigDecimal mass = BigDecimal.valueOf(100L).add(commissionRate);
+        int scale = currencyService.resolvePrecision(transaction.getCurrency().getName());
         BigDecimal commission = amount
             .multiply(commissionRate)
-            .divide(mass, decimalPlaces, ROUND_HALF_UP).setScale(decimalPlaces, ROUND_HALF_UP);
-        final BigDecimal newAmount = amount.subtract(commission).setScale(decimalPlaces, ROUND_HALF_UP);
+            .divide(mass, scale, ROUND_HALF_UP).setScale(scale, ROUND_HALF_UP);
+        final BigDecimal newAmount = amount.subtract(commission).setScale(scale, ROUND_HALF_UP);
         transaction.setCommissionAmount(commission);
         transaction.setAmount(newAmount);
         transactionDao.updateTransactionAmount(transaction.getId(), newAmount, commission);

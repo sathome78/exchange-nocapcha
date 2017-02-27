@@ -42,6 +42,7 @@ public class CurrencyServiceImpl implements CurrencyService {
             add("EDRC");
             add("BTC");
             add("LTC");
+            add("EDR");
         }
     };
     private static final int CRYPTO_PRECISION = 8;

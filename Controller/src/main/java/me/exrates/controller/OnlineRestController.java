@@ -837,7 +837,7 @@ public class OnlineRestController {
       result.get(0).setPage(tableParams.getPageNumber());
       if (result.get(0).isNeedRefresh()) {
         result.forEach(e -> e.setSummaryStatus(
-            generateAndGetSummeryStatus(e, localeResolver.resolveLocale(request))
+            generateAndGetSummaryStatus(e, localeResolver.resolveLocale(request))
         ));
       }
     }
@@ -847,10 +847,13 @@ public class OnlineRestController {
     return result;
   }
 
-  private String generateAndGetSummeryStatus(MyInputOutputHistoryDto row, Locale locale) {
+  private String generateAndGetSummaryStatus(MyInputOutputHistoryDto row, Locale locale) {
     switch (TransactionSourceType.convert(row.getSourceType())) {
       case INVOICE: {
         return messageSource.getMessage("merchants.invoice.".concat(InvoiceRequestStatusEnum.convert(row.getInvoiceRequestStatusId()).name()), null, locale);
+      }
+      case WITHDRAW: {
+        return messageSource.getMessage("merchants.withdraw.".concat(WithdrawalRequestStatus.convert(row.getInvoiceRequestStatusId()).name().toLowerCase()), null, locale);
       }
       case BTC_INVOICE: {
         PendingPaymentStatusEnum status = PendingPaymentStatusEnum.convert(row.getInvoiceRequestStatusId());

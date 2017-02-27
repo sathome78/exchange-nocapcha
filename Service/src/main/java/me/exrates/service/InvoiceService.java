@@ -10,6 +10,7 @@ import me.exrates.model.vo.InvoiceData;
 import me.exrates.service.exception.invoice.IllegalInvoiceStatusException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -19,7 +20,7 @@ public interface InvoiceService {
 
   Transaction createPaymentInvoice(InvoiceData invoiceData);
 
-  void acceptInvoiceAndProvideTransaction(Integer invoiceId, String acceptanceUserEmail) throws Exception;
+  void acceptInvoiceAndProvideTransaction(Integer invoiceId, String acceptanceUserEmail, BigDecimal actualPaymentSum) throws Exception;
 
   void declineInvoice(Integer invoiceId, Integer transactionId, String acceptanceUserEmail, String comment) throws Exception;
 

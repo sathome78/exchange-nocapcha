@@ -1,20 +1,21 @@
-function acceptInvoice(e, id) {
-    var event = e || window.event;
-    event.stopPropagation();
-    if (confirm($('#prompt_acc_rqst').html())) {
-        $.ajax({
-            url: '/merchants/invoice/payment/accept?id=' + id,
-            type: 'GET',
-            success: function () {
-                window.location = '/2a8fy7b07dxe44/invoiceConfirmation';
-            },
-            error: function (jqXHR) {
-                errorInCookie(getErrorMessage(jqXHR));
-                window.location = '/2a8fy7b07dxe44/invoiceConfirmation';
-            }
-        });
-    }
-    return false;
+function acceptInvoice(callback) {
+    var data = $('#invoice-accept-form').serialize();
+    $.ajax({
+        url: '/merchants/invoice/payment/accept',
+        headers: {
+            'X-CSRF-Token': $("input[name='_csrf']").val()
+        },
+        type: 'POST',
+        data: data,
+        success: function () {
+            $('#acceptModal').modal('hide');
+            callback();
+        },
+        error: function (jqXHR) {
+            errorInCookie(getErrorMessage(jqXHR));
+            window.location = '/2a8fy7b07dxe44/invoiceConfirmation';
+        }
+    });
 }
 
 function declineInvoice(e, id, email) {
@@ -40,7 +41,7 @@ function declineInvoice(e, id, email) {
                 $.ajax({
                     url: '/merchants/invoice/payment/decline?id=' + id+'&comment='+comment,
                     headers: {
-                        'X-CSRF-Token': $("input[name='_csrf']").val(),
+                        'X-CSRF-Token': $("input[name='_csrf']").val()
                     },
                     type: 'POST',
                     success: function () {
