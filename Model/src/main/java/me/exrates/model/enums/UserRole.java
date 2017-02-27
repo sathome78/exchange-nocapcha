@@ -9,7 +9,8 @@ public enum UserRole {
   ROLE_CHANGE_PASSWORD(5),
   EXCHANGE(6),
   VIP_USER(7),
-  TRADER(8);
+  TRADER(8),
+  FIN_OPERATOR(9);
 
   private final int role;
 
