@@ -18,7 +18,7 @@ import static me.exrates.model.enums.UserRole.*;
 
 @NoArgsConstructor
 public enum BusinessUserRoleEnum {
-  ADMIN(ADMINISTRATOR, ACCOUNTANT, ADMIN_USER),
+  ADMIN(ADMINISTRATOR, ACCOUNTANT, ADMIN_USER, FIN_OPERATOR),
   USER,
   EXCHANGE,
   VIP_USER,
