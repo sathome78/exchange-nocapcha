@@ -101,8 +101,6 @@ public class AdminController {
   @Autowired
   private CommissionService commissionService;
 
-  private final List<String> ROLE_NAMES = Arrays.asList("ADMIN", "USER", "EXCHANGE", "VIP_USER");
-
   @Autowired
   @Qualifier("ExratesSessionRegistry")
   private SessionRegistry sessionRegistry;
@@ -614,21 +612,21 @@ public class AdminController {
     return new ModelAndView("withdrawalRequests", params);
   }
 
-    @RequestMapping(value = "/2a8fy7b07dxe44/withdrawRequests", method = GET)
-    @ResponseBody
-    public DataTable<List<WithdrawRequest>> findRequestByStatus(@RequestParam("status") Integer requestStatus, @RequestParam Map<String, String> params) {
-        params.forEach((key, value) -> LOG.debug(String.format("%s :: %s", key, value)));
-        DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
-        LOG.debug(dataTableParams);
+  @RequestMapping(value = "/2a8fy7b07dxe44/withdrawRequests", method = GET)
+  @ResponseBody
+  public DataTable<List<WithdrawRequest>> findRequestByStatus(@RequestParam("status") Integer requestStatus, @RequestParam Map<String, String> params) {
+    params.forEach((key, value) -> LOG.debug(String.format("%s :: %s", key, value)));
+    DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
+    LOG.debug(dataTableParams);
 
-        return merchantService.findWithdrawRequestsByStatus(requestStatus, dataTableParams);
-    }
+    return merchantService.findWithdrawRequestsByStatus(requestStatus, dataTableParams);
+  }
 
-    @ResponseBody
-    @RequestMapping(value = "/2a8fy7b07dxe44/orderinfo", method = RequestMethod.GET)
-    public OrderInfoDto getOrderInfo(@RequestParam int id, HttpServletRequest request) {
-        return orderService.getOrderInfo(id, localeResolver.resolveLocale(request));
-    }
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/orderinfo", method = RequestMethod.GET)
+  public OrderInfoDto getOrderInfo(@RequestParam int id, HttpServletRequest request) {
+    return orderService.getOrderInfo(id, localeResolver.resolveLocale(request));
+  }
 
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/orderdelete", method = RequestMethod.POST)
@@ -689,11 +687,12 @@ public class AdminController {
   public ModelAndView showUsersWalletsSummary() {
 
     Map<String, List<UserWalletSummaryDto>> mapUsersWalletsSummaryList = new LinkedHashMap<>();
-    mapUsersWalletsSummaryList.put("ALL", walletService.getUsersWalletsSummary(new ArrayList<>()));
-    mapUsersWalletsSummaryList.put("ADMIN", walletService.getUsersWalletsSummary(userService.resolveRoleIdsByName("ADMIN")));
-    mapUsersWalletsSummaryList.put("USER", walletService.getUsersWalletsSummary(userService.resolveRoleIdsByName("USER")));
-    mapUsersWalletsSummaryList.put("EXCHANGE", walletService.getUsersWalletsSummary(userService.resolveRoleIdsByName("EXCHANGE")));
-    mapUsersWalletsSummaryList.put("VIP_USER", walletService.getUsersWalletsSummary(userService.resolveRoleIdsByName("VIP_USER")));
+    mapUsersWalletsSummaryList.put("ALL", walletService.getUsersWalletsSummary(BusinessUserRoleEnum.getRealUserRoleIdList("ALL")));
+    mapUsersWalletsSummaryList.put("ADMIN", walletService.getUsersWalletsSummary(BusinessUserRoleEnum.ADMIN.getRealUserRoleIdList()));
+    mapUsersWalletsSummaryList.put("USER", walletService.getUsersWalletsSummary(BusinessUserRoleEnum.USER.getRealUserRoleIdList()));
+    mapUsersWalletsSummaryList.put("EXCHANGE", walletService.getUsersWalletsSummary(BusinessUserRoleEnum.EXCHANGE.getRealUserRoleIdList()));
+    mapUsersWalletsSummaryList.put("VIP_USER", walletService.getUsersWalletsSummary(BusinessUserRoleEnum.VIP_USER.getRealUserRoleIdList()));
+    mapUsersWalletsSummaryList.put("TRADER", walletService.getUsersWalletsSummary(BusinessUserRoleEnum.TRADER.getRealUserRoleIdList()));
 
     ModelAndView model = new ModelAndView();
     model.setViewName("UsersWallets");
@@ -708,7 +707,7 @@ public class AdminController {
   public String getUsersWalletsSummeryTxt(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
     return
         UserSummaryDto.getTitle() +
-            userService.getUsersSummaryList(startDate, endDate, userService.resolveRoleIdsByName(role))
+            userService.getUsersSummaryList(startDate, endDate, BusinessUserRoleEnum.getRealUserRoleIdList(role))
                 .stream()
                 .map(e -> e.toString())
                 .collect(Collectors.joining());
@@ -718,7 +717,7 @@ public class AdminController {
   @ResponseBody
   public String getUsersWalletsSummeryInOut(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
     String value = UserSummaryInOutDto.getTitle() +
-        userService.getUsersSummaryInOutList(startDate, endDate, userService.resolveRoleIdsByName(role))
+        userService.getUsersSummaryInOutList(startDate, endDate, BusinessUserRoleEnum.getRealUserRoleIdList(role))
             .stream()
             .map(e -> e.toString())
             .collect(Collectors.joining());
@@ -730,7 +729,7 @@ public class AdminController {
   @ResponseBody
   public String getUserSummaryOrders(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
 
-    List<UserSummaryOrdersDto> list = userService.getUserSummaryOrdersList(startDate, endDate, userService.resolveRoleIdsByName(role));
+    List<UserSummaryOrdersDto> list = userService.getUserSummaryOrdersList(startDate, endDate, BusinessUserRoleEnum.getRealUserRoleIdList(role));
     BigDecimal sumAmountBuy = new BigDecimal(0.00);
     BigDecimal sumAmountBuyFee = new BigDecimal(0.00);
     BigDecimal sumAmountSell = new BigDecimal(0.00);
@@ -765,7 +764,7 @@ public class AdminController {
   @ResponseBody
   public String getUsersWalletsSummeryTotalInOut(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
     String value = UserSummaryTotalInOutDto.getTitle() +
-        userService.getUsersSummaryTotalInOutList(startDate, endDate, userService.resolveRoleIdsByName(role))
+        userService.getUsersSummaryTotalInOutList(startDate, endDate, BusinessUserRoleEnum.getRealUserRoleIdList(role))
             .stream()
             .map(e -> e.toString())
             .collect(Collectors.joining());
@@ -853,7 +852,7 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits", method = RequestMethod.GET)
   public ModelAndView currencyLimits() {
     ModelAndView modelAndView = new ModelAndView("admin/currencyLimits");
-    modelAndView.addObject("roleNames", ROLE_NAMES);
+    modelAndView.addObject("roleNames", BusinessUserRoleEnum.values());
     modelAndView.addObject("operationTypes", Arrays.asList(OperationType.INPUT.name(), OperationType.OUTPUT.name(), OperationType.USER_TRANSFER.name()));
     return modelAndView;
   }
@@ -907,24 +906,24 @@ public class AdminController {
   }
 
 
-    @RequestMapping(value = "/2a8fy7b07dxe44/commissions", method = RequestMethod.GET)
-    public ModelAndView commissions() {
-        ModelAndView modelAndView = new ModelAndView("admin/editCommissions");
-        modelAndView.addObject("roleNames", ROLE_NAMES);
-        return modelAndView;
-    }
+  @RequestMapping(value = "/2a8fy7b07dxe44/commissions", method = RequestMethod.GET)
+  public ModelAndView commissions() {
+    ModelAndView modelAndView = new ModelAndView("admin/editCommissions");
+    modelAndView.addObject("roleNames", BusinessUserRoleEnum.values());
+    return modelAndView;
+  }
 
-    @RequestMapping(value = "/2a8fy7b07dxe44/getCommissionsForRole", method = RequestMethod.GET)
-    @ResponseBody
-    public List<CommissionShortEditDto> retrieveCommissionsForRole(@RequestParam String role, HttpServletRequest request) {
-        return commissionService.getEditableCommissionsByRole(role, localeResolver.resolveLocale(request));
+  @RequestMapping(value = "/2a8fy7b07dxe44/getCommissionsForRole", method = RequestMethod.GET)
+  @ResponseBody
+  public List<CommissionShortEditDto> retrieveCommissionsForRole(@RequestParam String role, HttpServletRequest request) {
+    return commissionService.getEditableCommissionsByRole(role, localeResolver.resolveLocale(request));
 
-    }
+  }
 
-    @RequestMapping(value = "/2a8fy7b07dxe44/getMerchantCommissions", method = RequestMethod.GET)
-    @ResponseBody
-    public List<MerchantCurrencyOptionsDto> retrieveMerchantCommissions() {
-        return merchantService.findMerchantCurrencyOptions();
+  @RequestMapping(value = "/2a8fy7b07dxe44/getMerchantCommissions", method = RequestMethod.GET)
+  @ResponseBody
+  public List<MerchantCurrencyOptionsDto> retrieveMerchantCommissions() {
+    return merchantService.findMerchantCurrencyOptions();
 
   }
 
@@ -938,15 +937,15 @@ public class AdminController {
     return new ResponseEntity<>(HttpStatus.OK);
   }
 
-    @RequestMapping(value = "/2a8fy7b07dxe44/commissions/editMerchantCommission", method = RequestMethod.POST)
-    @ResponseBody
-    public ResponseEntity<Void> editMerchantCommission(@RequestParam("merchantId") Integer merchantId,
-                                                       @RequestParam("currencyId") Integer currencyId,
-                                                       @RequestParam("inputValue") BigDecimal inputValue,
-                                                       @RequestParam("outputValue") BigDecimal outputValue) {
-        commissionService.updateMerchantCommission(merchantId, currencyId, inputValue, outputValue);
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
+  @RequestMapping(value = "/2a8fy7b07dxe44/commissions/editMerchantCommission", method = RequestMethod.POST)
+  @ResponseBody
+  public ResponseEntity<Void> editMerchantCommission(@RequestParam("merchantId") Integer merchantId,
+                                                     @RequestParam("currencyId") Integer currencyId,
+                                                     @RequestParam("inputValue") BigDecimal inputValue,
+                                                     @RequestParam("outputValue") BigDecimal outputValue) {
+    commissionService.updateMerchantCommission(merchantId, currencyId, inputValue, outputValue);
+    return new ResponseEntity<>(HttpStatus.OK);
+  }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/merchantAccess", method = RequestMethod.GET)
   public ModelAndView merchantAccess() {
@@ -973,13 +972,13 @@ public class AdminController {
     return new ResponseEntity<>(HttpStatus.OK);
   }
 
-    @RequestMapping(value = "/2a8fy7b07dxe44/updateTransactionAmount", method = POST)
-    @ResponseBody
-    public ResponseEntity<Void> updateTransactionAmount(@RequestParam Integer transactionId, @RequestParam BigDecimal amount) {
-        Transaction transaction = transactionService.findById(transactionId);
-        transactionService.updateTransactionAmount(transaction, amount);
-        return new ResponseEntity<>(OK);
-    }
+  @RequestMapping(value = "/2a8fy7b07dxe44/updateTransactionAmount", method = POST)
+  @ResponseBody
+  public ResponseEntity<Void> updateTransactionAmount(@RequestParam Integer transactionId, @RequestParam BigDecimal amount) {
+    Transaction transaction = transactionService.findById(transactionId);
+    transactionService.updateTransactionAmount(transaction, amount);
+    return new ResponseEntity<>(OK);
+  }
 
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/phrases/{topic:.+}", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -991,12 +990,11 @@ public class AdminController {
     List<String> phrases = phraseTemplateService.getAllByTopic(userCommentTopic).stream()
         .map(e -> messageSource.getMessage(e, null, userLocale))
         .collect(Collectors.toList());
-    return new HashMap<String, List<String>>(){{
+    return new HashMap<String, List<String>>() {{
       put("lang", Arrays.asList(userLocale.getISO3Language()));
       put("list", phrases);
     }};
   }
-
 
 
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)

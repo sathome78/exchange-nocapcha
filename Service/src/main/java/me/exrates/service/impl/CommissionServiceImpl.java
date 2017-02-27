@@ -3,6 +3,7 @@ package me.exrates.service.impl;
 import me.exrates.dao.CommissionDao;
 import me.exrates.model.Commission;
 import me.exrates.model.dto.CommissionShortEditDto;
+import me.exrates.model.enums.BusinessUserRoleEnum;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.service.CommissionService;
@@ -50,7 +51,7 @@ public class CommissionServiceImpl implements CommissionService {
 
 	@Override
 	public List<CommissionShortEditDto> getEditableCommissionsByRole(String roleName, Locale locale) {
-		return commissionDao.getEditableCommissionsByRoles(userService.resolveRoleIdsByName(roleName), locale);
+		return commissionDao.getEditableCommissionsByRoles(BusinessUserRoleEnum.getRealUserRoleIdList(roleName), locale);
 	}
 
 	@Override
@@ -62,7 +63,7 @@ public class CommissionServiceImpl implements CommissionService {
 	@Override
 	@Transactional
 	public void updateCommission(OperationType operationType, String roleName, BigDecimal value) {
-		commissionDao.updateCommission(operationType, userService.resolveRoleIdsByName(roleName), value);
+		commissionDao.updateCommission(operationType, BusinessUserRoleEnum.getRealUserRoleIdList(roleName), value);
 	}
 
 

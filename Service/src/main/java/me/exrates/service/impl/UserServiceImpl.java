@@ -587,17 +587,5 @@ public class UserServiceImpl implements UserService {
         return UserRole.valueOf(grantedAuthority);
     }
 
-    @Override
-    public List<Integer> resolveRoleIdsByName(String roleName) {
-        List<UserRole> userRoles;
-        if ("ADMIN".equals(roleName)) {
-            userRoles = Arrays.asList(UserRole.ADMINISTRATOR, UserRole.ACCOUNTANT, UserRole.ADMIN_USER);
-        }else if("ALL".equals(roleName)){
-            return new ArrayList<>();
-        }else {
-            userRoles = Collections.singletonList(UserRole.valueOf(roleName));
-        }
-        return userRoles.stream().map(UserRole::getRole).collect(Collectors.toList());
-    }
 
 }
