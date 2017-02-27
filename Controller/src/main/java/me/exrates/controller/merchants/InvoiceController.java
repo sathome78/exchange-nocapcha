@@ -20,6 +20,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -250,12 +251,13 @@ public class InvoiceController {
   }
 
   @RequestMapping(value = "/payment/accept", method = POST)
-  public RedirectView acceptPayment(
+  @ResponseBody
+  public ResponseEntity<Void> acceptPayment(
       @RequestParam(name = "id") Integer invoiceId,
       @RequestParam(name = "actualPaymentSum", required = false) BigDecimal actualPaymentSum,
       Principal principal) throws Exception {
     invoiceService.acceptInvoiceAndProvideTransaction(invoiceId, principal.getName(), actualPaymentSum);
-    return new RedirectView("/2a8fy7b07dxe44/invoiceConfirmation");
+    return new ResponseEntity<>(HttpStatus.OK);
   }
 
   @RequestMapping(value = "/payment/decline", method = POST)
