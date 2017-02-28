@@ -163,6 +163,17 @@ public interface UserService {
      */
     List<UserSummaryOrdersDto> getUserSummaryOrdersList(String startDate, String endDate, List<Integer> roles);
 
+    /**
+     * Returns user's total info, including orders by currency pair for period
+     * Used to unload data to csv file
+     *
+     * @param startDate is the begin the period (including)
+     * @param endDate is the end the period (including)
+     * @return list the UserSummaryOrdersByCurrencyPairDto
+     * @author ajet
+     */
+    List<UserSummaryOrdersByCurrencyPairsDto> getUserSummaryOrdersByCurrencyPairList(String startDate, String endDate, List<Integer> roles);
+
     List<UserSessionInfoDto> getUserSessionInfo(Set<String> emails);
 
     void saveTemporaryPasswordAndNotify(UpdateUserDto user, String temporaryPass, Locale locale);
