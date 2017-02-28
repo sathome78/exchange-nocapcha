@@ -3,7 +3,6 @@ package me.exrates.service;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.CurrencyPermission;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.enums.OperationType;
@@ -47,9 +46,9 @@ public interface CurrencyService {
 
     List<TransferLimitDto> retrieveMinTransferLimits(List<Integer> currencyIds);
 
-    List<CurrencyPermission> findPermittedCurrenciesForRefill(String userEmail);
+    List<UserCurrencyOperationPermissionDto> findPermittedCurrenciesForRefill(String userEmail);
 
-    List<CurrencyPermission> findPermittedCurrenciesForWithdraw(String userEmail);
+    List<UserCurrencyOperationPermissionDto> findPermittedCurrenciesForWithdraw(String userEmail);
 
   List<UserCurrencyOperationPermissionDto> findWithOperationPermissionByUserAndDirection(Integer userId, InvoiceOperationDirection operationDirection);
 }

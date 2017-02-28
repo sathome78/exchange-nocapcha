@@ -4,6 +4,7 @@ import me.exrates.model.*;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.OperationType;
@@ -30,7 +31,7 @@ public interface MerchantService {
 
     List<WithdrawRequest> findAllWithdrawRequests();
 
-    DataTable<List<WithdrawRequest>> findWithdrawRequestsByStatus(Integer requestStatus, DataTableParams dataTableParams);
+    DataTable<List<WithdrawRequest>> findWithdrawRequestsByStatus(Integer requestStatus, DataTableParams dataTableParams, WithdrawFilterData withdrawFilterData);
 
     List<Merchant> findAllByCurrency(Currency currency);
 

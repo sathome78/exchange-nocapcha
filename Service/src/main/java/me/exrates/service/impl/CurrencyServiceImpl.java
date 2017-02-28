@@ -4,7 +4,6 @@ import me.exrates.dao.CurrencyDao;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.CurrencyPermission;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.enums.BusinessUserRoleEnum;
@@ -136,16 +135,18 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
 
     @Override
-    public List<CurrencyPermission> findPermittedCurrenciesForRefill(String userEmail) {
+    @Transactional(readOnly = true)
+    public List<UserCurrencyOperationPermissionDto> findPermittedCurrenciesForRefill(String userEmail) {
         return findPermittedCurrencies(userEmail, InvoiceOperationDirection.REFILL);
     }
     @Override
-    public List<CurrencyPermission> findPermittedCurrenciesForWithdraw(String userEmail) {
+    @Transactional(readOnly = true)
+    public List<UserCurrencyOperationPermissionDto> findPermittedCurrenciesForWithdraw(String userEmail) {
         return findPermittedCurrencies(userEmail, InvoiceOperationDirection.WITHDRAW);
     }
 
-    private List<CurrencyPermission> findPermittedCurrencies(String userEmail, InvoiceOperationDirection direction) {
+    private List<UserCurrencyOperationPermissionDto> findPermittedCurrencies(String userEmail, InvoiceOperationDirection direction) {
         Integer userId = userService.getIdByEmail(userEmail);
-        return currencyDao.findPermittedCurrenciesForUser(userId, direction);
+        return currencyDao.findWithOperationPermissionByUserAndDirection(userId, direction.name());
     }
 }

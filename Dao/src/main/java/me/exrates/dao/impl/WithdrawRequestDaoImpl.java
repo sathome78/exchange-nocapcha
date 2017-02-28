@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j;
 import me.exrates.dao.WithdrawRequestDao;
 import me.exrates.model.*;
 import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.enums.WithdrawalRequestStatus;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +73,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
                     "INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id " +
                     "INNER JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id " +
                     "INNER JOIN USER ON WALLET.user_id = USER.id " +
+                    "INNER JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION AS permission ON permission.user_id = USER.id AND permission.currency_id = TRANSACTION.currency_id " +
                     "LEFT JOIN USER AS ADMIN ON ADMIN.id =  WITHDRAW_REQUEST.processed_by " +
                     "LEFT JOIN MERCHANT_IMAGE ON WITHDRAW_REQUEST.merchant_image_id = MERCHANT_IMAGE.id";
 
@@ -84,6 +86,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
             "INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id " +
             "INNER JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id " +
             "INNER JOIN USER ON WALLET.user_id = USER.id " +
+            "INNER JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION AS permission ON permission.user_id = USER.id " +
             "LEFT JOIN USER AS ADMIN ON ADMIN.id =  WITHDRAW_REQUEST.processed_by " +
             "LEFT JOIN MERCHANT_IMAGE ON WITHDRAW_REQUEST.merchant_image_id = MERCHANT_IMAGE.id";
 
@@ -165,28 +168,28 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     }
 
     @Override
-    public PagingData<List<WithdrawRequest>> findByStatus(Integer requestStatus, DataTableParams dataTableParams) {
+    public PagingData<List<WithdrawRequest>> findByStatus(Integer requestStatus, DataTableParams dataTableParams, WithdrawFilterData withdrawFilterData) {
         String whereClauseBasic = " WHERE WITHDRAW_REQUEST.status = :status ";
-        String searchClause;
-        if (StringUtils.isEmpty(dataTableParams.getSearchValue())) {
-            searchClause = "";
-        } else {
-            searchClause = " AND (CONVERT(USER.email USING utf8) LIKE :searchValue OR CONVERT(ADMIN.email USING utf8) LIKE :searchValue " +
-                    "OR CONVERT(MERCHANT.name USING utf8) LIKE :searchValue OR CONVERT(MERCHANT_IMAGE.image_name USING utf8) LIKE :searchValue) ";
+        String whereClauseFilter;
+        String filter = withdrawFilterData.getSQLFilterClause();
+            if (StringUtils.isEmpty(filter)) {
+                whereClauseFilter = "";
+            } else {
+                whereClauseFilter = " AND ".concat(filter);
         }
         String orderClause = String.format(" ORDER BY %s ", dataTableParams.getOrderColumnName());
         String offsetAndLimit = " LIMIT :limit OFFSET :offset ";
         String sqlTotal = new StringJoiner(" ").add(SELECT_ALL_REQUESTS).add(whereClauseBasic)
-                .add(searchClause).add(orderClause).add(dataTableParams.getOrderDirectionName()).add(offsetAndLimit).toString();
-        String sqlCount = new StringJoiner(" ").add(SELECT_COUNT).add(whereClauseBasic).add(searchClause).toString();
+                .add(whereClauseFilter).add(orderClause).add(dataTableParams.getOrderDirectionName()).add(offsetAndLimit).toString();
+        String sqlCount = new StringJoiner(" ").add(SELECT_COUNT).add(whereClauseBasic).add(whereClauseFilter).toString();
         log.debug(String.format("sql for total: %s", sqlTotal));
         log.debug(String.format("sql count: %s", sqlCount));
         log.debug(dataTableParams.getOrderColumnName());
         Map<String, Object> params = new HashMap<>();
         params.put("status", requestStatus);
-        params.put("searchValue","%" + dataTableParams.getSearchValue() + "%");
         params.put("offset", dataTableParams.getStart());
         params.put("limit", dataTableParams.getLength());
+        params.putAll(withdrawFilterData.getNamedParams());
         List<WithdrawRequest> requests = jdbcTemplate.query(sqlTotal, params, withdrawRequestRowMapper);
         Integer totalQuantity = jdbcTemplate.queryForObject(sqlCount, params, Integer.class);
         PagingData<List<WithdrawRequest>> result = new PagingData<>();

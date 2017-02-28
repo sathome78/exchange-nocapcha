@@ -4,7 +4,6 @@ import me.exrates.dao.CurrencyDao;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
-import me.exrates.model.CurrencyPermission;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.enums.OperationType;
@@ -223,28 +222,10 @@ public class CurrencyDaoImpl implements CurrencyDao {
 	}
 
 	@Override
-	public List<CurrencyPermission> findPermittedCurrenciesForUser(Integer userId, InvoiceOperationDirection direction) {
-		String sql = "SELECT CURRENCY.id AS currency_id, CURRENCY.name, perm.invoice_operation_permission_id FROM CURRENCY " +
-				" JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION AS perm ON perm.currency_id = CURRENCY.id AND perm.user_id = :user_id " +
-				" AND perm.operation_direction = :direction ";
-		Map<String, Object> params = new HashMap<>();
-		params.put("user_id", userId);
-		params.put("direction", direction.name());
-		return jdbcTemplate.query(sql, params, (rs, row) -> {
-			CurrencyPermission currencyPermission = new CurrencyPermission();
-			Currency currency = new Currency();
-			currency.setId(rs.getInt("currency_id"));
-			currency.setName(rs.getString("name"));
-			currencyPermission.setCurrency(currency);
-			return currencyPermission;
-		});
-	}
-
-	@Override
 	public List<UserCurrencyOperationPermissionDto> findWithOperationPermissionByUserAndDirection(Integer userId, String operationDirection) {
 		String sql = "SELECT CUR.id, CUR.name, IOP.invoice_operation_permission_id" +
 				" FROM CURRENCY CUR " +
-				" LEFT 	JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
+				" LEFT JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
 				"				(IOP.currency_id=CUR.id) " +
 				"			 	AND (IOP.operation_direction=:operation_direction) " +
 				"				AND (IOP.user_id=:user_id) " +

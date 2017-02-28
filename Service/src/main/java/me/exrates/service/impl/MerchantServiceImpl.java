@@ -8,6 +8,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.NotificationEvent;
@@ -154,8 +155,8 @@ public class MerchantServiceImpl implements MerchantService {
   }
 
   @Override
-  public DataTable<List<WithdrawRequest>> findWithdrawRequestsByStatus(Integer requestStatus, DataTableParams dataTableParams) {
-    PagingData<List<WithdrawRequest>> result = withdrawRequestDao.findByStatus(requestStatus, dataTableParams);
+  public DataTable<List<WithdrawRequest>> findWithdrawRequestsByStatus(Integer requestStatus, DataTableParams dataTableParams, WithdrawFilterData withdrawFilterData) {
+    PagingData<List<WithdrawRequest>> result = withdrawRequestDao.findByStatus(requestStatus, dataTableParams, withdrawFilterData);
     LOG.debug(result.getData().stream().map(request -> request.getTransaction().getId()).collect(Collectors.toList()));
     DataTable<List<WithdrawRequest>> output = new DataTable<>();
     output.setData(result.getData());

@@ -67,7 +67,7 @@
                             <div class="col-md-9 ">
                                 <ul class="checkbox-grid">
                                     <c:forEach items="${currencies}" var="currency">
-                                        <li><input type="checkbox" name="merchant" value="${currency.id}"><span>${currency.name}</span></li>
+                                        <li><input type="checkbox" name="currencyIds" value="${currency.currencyId}"><span>${currency.currencyName}</span></li>
                                     </c:forEach>
                                 </ul>
                             </div>
@@ -79,10 +79,10 @@
                                     <loc:message code="withdrawal.merchant" />
                                 </label>
                             </div>
-                            <div class="col-md-9 input-block-wrapper__input-wrapper">
+                            <div class="col-md-9 ">
                                 <ul class="checkbox-grid">
                                      <c:forEach items="${merchants}" var="merchant">
-                                         <li><input type="checkbox" name="merchant" value="${merchant.}"><span>${merchant.name}</span></li>
+                                         <li><input type="checkbox" name="merchantIds" value="${merchant.id}"><span>${merchant.name}</span></li>
                                      </c:forEach>
                                 </ul>
 
@@ -126,6 +126,17 @@
                                 <input type="number" id="filter-commission-amount-to" name="commissionAmountTo">
                             </div>
                         </div>
+                            <%--USER EMAIL--%>
+                            <div class="input-block-wrapper">
+                                <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                    <label class="input-block-wrapper__label">
+                                        <loc:message code="transaction.initiatorEmail" />
+                                    </label>
+                                </div>
+                                <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                    <input id="filter-email" class="input-block-wrapper__input admin-form-input" name="email">
+                                </div>
+                            </div>
                         <%--WALLET--%>
                         <div class="input-block-wrapper">
                             <div class="col-md-3 input-block-wrapper__label-wrapper">

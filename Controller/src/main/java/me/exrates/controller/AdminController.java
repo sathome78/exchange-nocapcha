@@ -7,10 +7,12 @@ import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
+import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.form.AuthorityOptionsForm;
@@ -617,22 +619,32 @@ public class AdminController {
     admins.addAll(asList(UserRole.ADMINISTRATOR, UserRole.ACCOUNTANT));
     final Map<String, Object> params = new HashMap<>();
     params.put("admins", admins);
-    List<Currency> permittedCurrencies = currencyService.findPermittedCurrenciesForWithdraw(principal.getName()).stream()
-            .map(CurrencyPermission::getCurrency).collect(Collectors.toList());
+    List<UserCurrencyOperationPermissionDto> permittedCurrencies = currencyService.findPermittedCurrenciesForWithdraw(principal.getName())
+            .stream().filter(dto -> dto.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE).collect(Collectors.toList());
     params.put("currencies", permittedCurrencies);
-    params.put("merchants", merchantService.findAllByCurrencies(permittedCurrencies.stream()
-            .map(Currency::getId).collect(Collectors.toList()), OperationType.OUTPUT));
+    List<Merchant> merchants = merchantService.findAllByCurrencies(permittedCurrencies.stream()
+            .map(UserCurrencyOperationPermissionDto::getCurrencyId).collect(Collectors.toList()), OperationType.OUTPUT).stream()
+            .map(item -> new Merchant(item.getMerchantId(), item.getName(), item.getDescription(), null))
+            .distinct().collect(Collectors.toList());
+    params.put("merchants", merchants);
     return new ModelAndView("withdrawalRequests", params);
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/withdrawRequests", method = GET)
   @ResponseBody
-  public DataTable<List<WithdrawRequest>> findRequestByStatus(@RequestParam("status") Integer requestStatus, @RequestParam Map<String, String> params) {
+  public DataTable<List<WithdrawRequest>> findRequestByStatus(@RequestParam("status") Integer requestStatus, WithdrawFilterData withdrawFilterData,
+                                                              @RequestParam Map<String, String> params) {
     params.forEach((key, value) -> LOG.debug(String.format("%s :: %s", key, value)));
     DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
-    LOG.debug(dataTableParams);
+    LOG.debug(withdrawFilterData);
+    if (withdrawFilterData != null) {
+        withdrawFilterData.initFilterItems();
+        LOG.debug(withdrawFilterData.getNamedParams());
+        LOG.debug(withdrawFilterData.getSQLFilterClause());
+    }
 
-    return merchantService.findWithdrawRequestsByStatus(requestStatus, dataTableParams);
+
+    return merchantService.findWithdrawRequestsByStatus(requestStatus, dataTableParams, withdrawFilterData);
   }
 
   @ResponseBody

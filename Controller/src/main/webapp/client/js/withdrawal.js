@@ -38,6 +38,7 @@ $(function () {
 
     $withdrawalTable = $('#withdrawalTable');
     requestStatus = 1;
+    filterParams = '';
     withdrawRequestsBaseUrl = '/2a8fy7b07dxe44/withdrawRequests?status=';
     $('#withdraw-requests-new').addClass('active');
 
@@ -60,7 +61,7 @@ $(function () {
     }
 
 
-    updateWithdrawalTable(withdrawRequestsBaseUrl + requestStatus);
+    updateWithdrawalTable();
 
     $('#createCommentConfirm').on('click', function () {
 
@@ -100,13 +101,14 @@ $(function () {
     $('#filter-apply').on('click', function (e) {
         e.preventDefault();
         filterParams = $('#withdrawal-request-search-form').serialize();
-        console.log(filterParams);
+        updateWithdrawalTable();
     });
 
     $('#filter-reset').on('click', function (e) {
         e.preventDefault();
         $('#withdrawal-request-search-form')[0].reset();
-     //   reloadTable();
+        filterParams = '';
+        updateWithdrawalTable();
 
     });
 });
@@ -197,7 +199,8 @@ function fillModal(rowData) {
 
 
 function updateWithdrawalTable() {
-    var url = withdrawRequestsBaseUrl + requestStatus;
+    var filter = filterParams.length > 0 ? '&' + filterParams : '';
+    var url = withdrawRequestsBaseUrl + requestStatus + filter;
     if ($.fn.dataTable.isDataTable('#withdrawalTable')) {
         withdrawalDataTable = $($withdrawalTable).DataTable();
         withdrawalDataTable.ajax.url(url).load();
@@ -210,6 +213,7 @@ function updateWithdrawalTable() {
             "serverSide": true,
             "paging": true,
             "info": true,
+            "bFilter": false,
             "columns":[
                 {
                     "data": "transaction.id",
