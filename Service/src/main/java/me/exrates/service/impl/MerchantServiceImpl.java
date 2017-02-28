@@ -203,7 +203,7 @@ public class MerchantServiceImpl implements MerchantService {
 
   @Override
   public String resolveTransactionStatus(final Transaction transaction, final Locale locale) {
-    if (transaction.getSourceType() == TransactionSourceType.INVOICE) {
+    if (transaction.getSourceType() == TransactionSourceType.INVOICE && transaction.getOperationType() == INPUT) {
       Integer statusId = invoiceService.getInvoiceRequestStatusByInvoiceId(transaction.getSourceId());
       InvoiceRequestStatusEnum invoiceRequestStatus = InvoiceRequestStatusEnum.convert(statusId);
       return messageSource.getMessage("merchants.invoice.".concat(invoiceRequestStatus.name()), null, locale);
