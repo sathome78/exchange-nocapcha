@@ -833,6 +833,15 @@ public class AdminController {
     }
   }
 
+  @RequestMapping(value = "/2a8fy7b07dxe44/invoiceRequests/{status}")
+  @ResponseBody
+  public List<InvoiceRequest> invoiceRequestsByStatus(@PathVariable String status) {
+    return invoiceService.findAllByStatus(Collections.singletonList(InvoiceRequestStatusEnum.convert(status).getCode()));
+
+  }
+
+
+
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinConfirmation")
   public ModelAndView bitcoinTransactions(HttpSession httpSession) {
     return new ModelAndView("admin/transaction_bitcoin", "bitcoinRequests", bitcoinService.getBitcoinTransactions());

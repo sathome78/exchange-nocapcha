@@ -33,6 +33,16 @@
   <div class="row">
     <%@include file='left_side_menu.jsp' %>
     <div class="col-md-10 content admin-container">
+        <div class="row text-center">
+            <div style="float: left; display: inline-block">
+                <button id="invoice-requests-for-accept" class="myorders__button blue-box margin-box">
+                    <loc:message code="admin.invoice.new"/></button>
+                <button id="invoice-requests-accepted" class="myorders__button green-box margin-box">
+                    <loc:message code="admin.invoice.accepted"/></button>
+            </div>
+        </div>
+
+
       <div class="text-center"><h4><loc:message code="transaction.titleInvoice"/></h4></div>
       <c:choose>
         <c:when test="${fn:length(invoiceRequests)==0}">

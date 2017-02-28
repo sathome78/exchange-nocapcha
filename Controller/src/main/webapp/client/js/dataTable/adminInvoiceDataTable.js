@@ -15,16 +15,36 @@ $(document).ready(function () {
     var updateAmountLocMessage = $('#updateAmountLocMessage').text();
     /**/
     $invoiceRequestsTable = $('#invoice_requests');
+    var urlBase = '/2a8fy7b07dxe44/invoiceRequests';
+    var urlVarPart = '?availableActionSet=ACCEPT_MANUAL';
 
-    var url = '/2a8fy7b07dxe44/invoiceRequests?availableActionSet=ACCEPT_MANUAL';
+
+    $('#invoice-requests-for-accept').addClass('active');
+
+
+    $('#invoice-requests-for-accept').click(function () {
+        changeUrlAndReload(this, '?availableActionSet=ACCEPT_MANUAL')
+    });
+    $('#invoice-requests-accepted').click(function () {
+        changeUrlAndReload(this, '/ACCEPTED_ADMIN')
+    });
+
+    function changeUrlAndReload($elem, urlPart) {
+        urlVarPart = urlPart;
+        $('.myorders__button').removeClass('active');
+        $($elem).addClass('active');
+        updateInvoiceTable();
+    }
+
+
 
     function updateInvoiceTable() {if ($.fn.dataTable.isDataTable('#invoice_requests')) {
         invoiceRequestsDataTable = $($invoiceRequestsTable).DataTable();
-        invoiceRequestsDataTable.ajax.url(url).load();
+        invoiceRequestsDataTable.ajax.url(urlBase + urlVarPart).load();
     } else {
         invoiceRequestsDataTable = $($invoiceRequestsTable).DataTable({
             "ajax": {
-                "url": url,
+                "url": urlBase + urlVarPart,
                 "dataSrc": ""
             },
             "paging": true,
