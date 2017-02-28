@@ -33,3 +33,15 @@ ENGINE=InnoDB;
 ALTER TABLE USER_CURRENCY_INVOICE_OPERATION_PERMISSION ADD operation_direction ENUM('REFILL', 'WITHDRAW') NOT NULL;
 ALTER TABLE USER_CURRENCY_INVOICE_OPERATION_PERMISSION
 	MODIFY COLUMN invoice_operation_permission_id INT(11) NOT NULL AFTER operation_direction;
+
+INSERT INTO USER_CURRENCY_INVOICE_OPERATION_PERMISSION (user_id, currency_id, operation_direction, invoice_operation_permission_id)
+		SELECT USER.id, CURRENCY.id, 'REFILL', 2
+FROM USER
+JOIN CURRENCY
+WHERE USER.roleid IN(1, 2, 3) AND CURRENCY.id IN(4, 10);
+
+INSERT INTO USER_CURRENCY_INVOICE_OPERATION_PERMISSION (user_id, currency_id, operation_direction, invoice_operation_permission_id)
+	SELECT USER.id, CURRENCY.id, 'WITHDRAW', 2
+	FROM USER
+		JOIN CURRENCY
+	WHERE USER.roleid IN(1, 2, 3);

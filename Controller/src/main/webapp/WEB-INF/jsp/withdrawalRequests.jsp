@@ -13,6 +13,11 @@
     <meta name="description" content="" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <%@include file='admin/links_scripts.jsp'%>
+    <link rel="stylesheet" href="<c:url value="/client/css/jquery-ui.css"/>">
+    <script type="text/javascript" src="<c:url value='/client/js/jquery-ui.js'/>"></script>
+    <link rel="stylesheet" href="<c:url value="/client/css/jquery.datetimepicker.css"/>">
+    <script type="text/javascript" src="<c:url value='/client/js/jquery.datetimepicker.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/moment-with-locales.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/withdrawal.js'/>"></script>
 
 </head>
@@ -22,8 +27,8 @@
 <main class="container">
     <div class="row">
         <%@include file='admin/left_side_menu.jsp' %>
-        <div class="col-md-8 col-sm-offset-1 content text-center admin-container">
-            <div class="row">
+        <div class="col-md-8 col-sm-offset-1 content admin-container">
+            <div class="row text-center">
                 <div style="float: left; display: inline-block">
                     <button id="withdraw-requests-new" class="myorders__button blue-box margin-box">
                         <loc:message code="admin.withdraw.new"/></button>
@@ -35,7 +40,137 @@
             </div>
 
 
-            <h4><loc:message code="admin.withdrawRequests"/></h4>
+            <div class="row text-center"><h4><loc:message code="admin.withdrawRequests"/></h4></div>
+            <div class="col-md-8">
+                <button data-toggle="collapse" class="blue-box" style="margin: 10px 0;" data-target="#withdrawal-request-filter">
+                    <loc:message code="admin.user.transactions.extendedFilter"/> </button>
+                <div id="withdrawal-request-filter" class="collapse">
+                    <form id="withdrawal-request-search-form" class="form_full_height_width" method="get">
+                        <%--ID--%>
+                        <div class="input-block-wrapper">
+                            <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                <label class="input-block-wrapper__label">
+                                    <loc:message code="transaction.id"/>
+                                </label>
+                            </div>
+                            <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                <input type="number" id="filter-id" name="requestId">
+                            </div>
+                        </div>
+                        <%--CURRENCY--%>
+                        <div class="input-block-wrapper">
+                            <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                <label class="input-block-wrapper__label">
+                                    <loc:message code="transaction.currency" />
+                                </label>
+                            </div>
+                            <div class="col-md-9 ">
+                                <ul class="checkbox-grid">
+                                    <c:forEach items="${currencies}" var="currency">
+                                        <li><input type="checkbox" name="merchant" value="${currency.id}"><span>${currency.name}</span></li>
+                                    </c:forEach>
+                                </ul>
+                            </div>
+                        </div>
+                        <%--MERCHANT--%>
+                        <div class="input-block-wrapper">
+                            <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                <label class="input-block-wrapper__label">
+                                    <loc:message code="withdrawal.merchant" />
+                                </label>
+                            </div>
+                            <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                <ul class="checkbox-grid">
+                                     <c:forEach items="${merchants}" var="merchant">
+                                         <li><input type="checkbox" name="merchant" value="${merchant.}"><span>${merchant.name}</span></li>
+                                     </c:forEach>
+                                </ul>
+
+                            </div>
+
+                        </div>
+                        <%--TIME--%>
+                        <div class="input-block-wrapper">
+                            <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                <label class="input-block-wrapper__label">
+                                    <loc:message code="ordersearch.date" />
+                                </label>
+                            </div>
+                            <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                <input id="filter-datetimepicker_start" type="text" name="startDate">
+                                <input id="filter-datetimepicker_end" type="text" name="endDate">
+                            </div>
+
+                        </div>
+                        <%--AMOUNT--%>
+                        <div class="input-block-wrapper">
+                            <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                <label class="input-block-wrapper__label">
+                                    <loc:message code="orders.amount" />
+                                </label>
+                            </div>
+                            <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                <input type="number" id="filter-amountFrom" name="amountFrom">
+                                <input type="number" id="filter-amountTo" name="amountTo">
+                            </div>
+                        </div>
+                        <%--COMMISSION_AMOUNT--%>
+                        <div class="input-block-wrapper">
+                            <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                <label class="input-block-wrapper__label">
+                                    <loc:message code="inputoutput.commissionAmount" />
+                                </label>
+                            </div>
+                            <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                <input type="number" id="filter-commission-amount-from" name="commissionAmountFrom">
+                                <input type="number" id="filter-commission-amount-to" name="commissionAmountTo">
+                            </div>
+                        </div>
+                        <%--WALLET--%>
+                        <div class="input-block-wrapper">
+                            <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                <label class="input-block-wrapper__label">
+                                    <loc:message code="merchants.withdrawDetails.recipientAccount" />
+                                </label>
+                            </div>
+                            <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                <input id="filter-wallet" class="input-block-wrapper__input admin-form-input" name="wallet">
+                            </div>
+                        </div>
+                        <%--RECIPIENT_BANK--%>
+                        <div class="input-block-wrapper">
+                            <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                <label class="input-block-wrapper__label">
+                                    <loc:message code="merchants.withdrawDetails.recipientBank" />
+                                </label>
+                            </div>
+                            <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                <input id="filter-bank-recipient" class="input-block-wrapper__input admin-form-input" name="recipientBank">
+                            </div>
+                        </div>
+                        <%--full name--%>
+                        <div class="input-block-wrapper">
+                            <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                <label class="input-block-wrapper__label">
+                                    <loc:message code="merchants.withdrawDetails.recipientFullName" />
+                                </label>
+                            </div>
+                            <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                <input id="filter-full-name" class="input-block-wrapper__input admin-form-input" name="fullName">
+                            </div>
+                        </div>
+
+                        <button id="filter-apply" class="blue-box"><loc:message code="admin.user.transactions.applyFilter" /></button>
+                        <button id="filter-reset" class="blue-box"><loc:message code="admin.user.transactions.resetFilter" /></button>
+                    </form>
+
+                </div>
+            </div>
+
+
+
+
+
             <table id="withdrawalTable">
                 <thead>
                 <tr>
@@ -50,104 +185,7 @@
                     <th><loc:message code="withdrawal.acceptanceUser"/></th>
                 </tr>
                 </thead>
-                <%--<tbody>
-                <c:forEach items="${requests}" var="request">
-                    <tr class="id_${request.transaction.id}">
-                        <td>
-                            <button class="request_id_button" onclick="viewRequestInfo(this)"> ${request.transaction.id}</button>
 
-                        </td>
-                        <td>
-                                ${request.transaction.datetime.toLocalDate()}<br/>
-                                ${request.transaction.datetime.toLocalTime()}
-                         </td>
-                        <td>
-                            <a href="<c:url value='/2a8fy7b07dxe44/userInfo'>
-                            <c:param name="id" value="${request.userId}"/>
-                            </c:url>">${request.userEmail}</a>
-                            <c:if test="${not empty request.userFullName}">
-                                <br/>
-                                ${request.userFullName}
-                            </c:if>
-                        </td>
-                        <td>
-                            <fmt:formatNumber value="${request.transaction.amount}" maxFractionDigits="9"/>
-                        </td>
-                        <td>
-                                ${request.transaction.currency.name}
-                        </td>
-                        <td>
-                            <fmt:formatNumber value="${request.transaction.commissionAmount}" maxFractionDigits="9"/>
-                        </td>
-                        <td>
-                                ${request.transaction.merchant.name}
-                                ${request.merchantImage.image_name}
-                                <c:if test="${not empty request.recipientBankName}">
-                                    <br/>
-                                    ${request.recipientBankName}
-                                </c:if>
-                                <c:if test="${not empty request.recipientBankCode}">
-                                    ${request.recipientBankCode}
-                                </c:if>
-
-                        </td>
-                        <td>
-                                ${request.wallet}
-                        </td>
-                        <td>
-                            <c:choose>
-                                <c:when test="${request.acceptance.isAfter(request.transaction.datetime)}">
-                                    ${request.acceptance.toLocalDate()}<br/>
-                                    ${request.acceptance.toLocalTime()}
-                                 </c:when>
-                                <c:otherwise>
-                                    _
-                                </c:otherwise>
-                            </c:choose>
-                        </td>
-                        <td>
-                            <c:choose>
-                                <c:when test="${not empty request.processedBy}">
-                                    <a href="<c:url value='/2a8fy7b07dxe44/userInfo'>
-                                    <c:param name="id" value="${request.processedById}"/>
-                                    </c:url>">${request.processedBy}</a>
-                                </c:when>
-                                <c:otherwise>
-                                    _
-                                </c:otherwise>
-                            </c:choose>
-                        </td>
-                        <td>
-                            <c:choose>
-                                <c:when test="${request.status.type == 2}">
-                                    <loc:message code="merchants.withdrawRequestAccepted"/>
-                                </c:when>
-                                <c:when test="${request.status.type == 3}">
-                                    <loc:message code="merchants.WithdrawRequestDecline"/>
-                                </c:when>
-                                <c:otherwise>
-                                    <form class="accept_withdrawal_rqst">
-                                        <input type="hidden" name="requestId" value="${request.transaction.id}">
-                                        <button type="submit" class="btn btn-link">
-                                            <loc:message code="merchants.withdrawRequestAccept"/>
-                                        </button>
-                                    </form>
-                                    <form class="decline_withdrawal_rqst">
-                                        <input type="hidden" name="requestId" value="${request.transaction.id}">
-                                        <button type="submit" class="btn btn-link">
-                                            <loc:message code="merchants.withdrawRequestDecline"/>
-                                        </button>
-                                    </form>
-                                </c:otherwise>
-                            </c:choose>
-                        </td>
-                        <td hidden>${request.remark}</td>
-                        <td hidden>${request.recipientBankName} ${request.recipientBankCode}</td>
-                        <td hidden>${request.userFullName}</td>
-                    </tr>
-
-                </c:forEach>
-                </tbody>--%>
             </table>
         </div>
     </div>

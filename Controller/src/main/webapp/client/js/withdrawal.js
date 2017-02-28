@@ -1,9 +1,39 @@
 var currentEmail;
 var $withdrawalTable;
 var withdrawalDataTable;
-var requestStatus;
 var withdrawRequestsBaseUrl;
+var requestStatus;
+var filterParams;
+
 $(function () {
+
+    $.datetimepicker.setDateFormatter({
+        parseDate: function (date, format) {
+            var d = moment(date, format);
+            return d.isValid() ? d.toDate() : false;
+        },
+
+        formatDate: function (date, format) {
+            return moment(date).format(format);
+        }
+    });
+
+    $('#filter-datetimepicker_start').datetimepicker({
+        format: 'YYYY-MM-DD HH:mm',
+        formatDate: 'YYYY-MM-DD',
+        formatTime: 'HH:mm',
+        lang:'ru',
+        defaultDate: new Date(),
+        defaultTime: '00:00'
+    });
+    $('#filter-datetimepicker_end').datetimepicker({
+        format: 'YYYY-MM-DD HH:mm',
+        formatDate: 'YYYY-MM-DD',
+        formatTime: 'HH:mm',
+        lang:'ru',
+        defaultDate: new Date(),
+        defaultTime: '00:00'
+    });
 
 
     $withdrawalTable = $('#withdrawalTable');
@@ -66,6 +96,19 @@ $(function () {
         $("[data-dismiss=modal]").trigger({ type: "click" });
         return;
     });
+
+    $('#filter-apply').on('click', function (e) {
+        e.preventDefault();
+        filterParams = $('#withdrawal-request-search-form').serialize();
+        console.log(filterParams);
+    });
+
+    $('#filter-reset').on('click', function (e) {
+        e.preventDefault();
+        $('#withdrawal-request-search-form')[0].reset();
+     //   reloadTable();
+
+    });
 });
 
 function submitAccept($elem) {
@@ -121,7 +164,7 @@ function promptDeclineRequest(requestId) {
 }
 
 function getRowId($elem) {
-    var rowData = retrieveRowDataForElement($elem)
+    var rowData = retrieveRowDataForElement($elem);
     return rowData.transaction.id;
 }
 

@@ -3,6 +3,7 @@ package me.exrates.controller;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.*;
+import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
@@ -611,12 +612,16 @@ public class AdminController {
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/withdrawal")
-  public ModelAndView withdrawalRequests() {
+  public ModelAndView withdrawalRequests(Principal principal) {
     final List<UserRole> admins = new ArrayList<>();
     admins.addAll(asList(UserRole.ADMINISTRATOR, UserRole.ACCOUNTANT));
     final Map<String, Object> params = new HashMap<>();
     params.put("admins", admins);
-    params.put("requests", this.merchantService.findAllWithdrawRequests());
+    List<Currency> permittedCurrencies = currencyService.findPermittedCurrenciesForWithdraw(principal.getName()).stream()
+            .map(CurrencyPermission::getCurrency).collect(Collectors.toList());
+    params.put("currencies", permittedCurrencies);
+    params.put("merchants", merchantService.findAllByCurrencies(permittedCurrencies.stream()
+            .map(Currency::getId).collect(Collectors.toList()), OperationType.OUTPUT));
     return new ModelAndView("withdrawalRequests", params);
   }
 
