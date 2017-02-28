@@ -134,7 +134,6 @@ public class MerchantServiceImpl implements MerchantService {
       return singletonMap("error", messageSource.getMessage("merchants.WithdrawRequestError", null, locale));
     }
     final WithdrawRequest requestUpdated = withdrawUpdated.get();
-    transactionService.nullifyTransactionAmountForWithdraw(requestUpdated.getTransaction());
     final BigDecimal amount = transaction.getAmount().add(transaction.getCommissionAmount());
     walletService.withdrawReservedBalance(transaction.getUserWallet(), amount);
     walletService.depositActiveBalance(transaction.getUserWallet(), amount);
