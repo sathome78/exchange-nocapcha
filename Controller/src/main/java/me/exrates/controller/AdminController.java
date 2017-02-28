@@ -13,9 +13,12 @@ import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.form.AuthorityOptionsForm;
+import me.exrates.security.exception.UserNotEnabledException;
 import me.exrates.security.service.UserSecureServiceImpl;
 import me.exrates.service.*;
+import me.exrates.service.exception.NoPermissionForOperationException;
 import me.exrates.service.exception.OrderDeletingException;
+import me.exrates.service.exception.api.ApiError;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +62,7 @@ import static me.exrates.model.enums.UserCommentTopicEnum.GENERAL;
 import static me.exrates.model.enums.UserRole.*;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.REFILL;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
+import static me.exrates.service.exception.api.ErrorCode.ACCOUNT_DISABLED;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -997,7 +1001,12 @@ public class AdminController {
   @ResponseBody
   public Integer editCurrencyPermissions(
       @RequestBody List<UserCurrencyOperationPermissionDto> userCurrencyOperationPermissionDtoList,
+      HttpSession httpSession,
       Principal principal) {
+    String currentRole = (String) httpSession.getAttribute("currentRole");
+    if (!currentRole.equals(UserRole.ADMINISTRATOR.name())) {
+      throw new NoPermissionForOperationException();
+  }
     Integer userId = userService.getIdByEmail(principal.getName());
     userService.setCurrencyPermissionsByUserId(userId, userCurrencyOperationPermissionDtoList);
     return userId;
@@ -1008,6 +1017,13 @@ public class AdminController {
   @ExceptionHandler(OrderDeletingException.class)
   @ResponseBody
   public ErrorInfo OrderDeletingExceptionHandler(HttpServletRequest req, Exception exception) {
+    return new ErrorInfo(req.getRequestURL(), exception);
+  }
+
+  @ResponseStatus(HttpStatus.FORBIDDEN)
+  @ExceptionHandler(NoPermissionForOperationException.class)
+  @ResponseBody
+  public ErrorInfo userNotEnabledExceptionHandler(HttpServletRequest req, Exception exception) {
     return new ErrorInfo(req.getRequestURL(), exception);
   }
 
