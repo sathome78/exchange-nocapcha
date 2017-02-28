@@ -182,7 +182,8 @@ public class WalletDaoImpl implements WalletDao {
                         "   SUM(input_confirmation_stage) AS input_confirmation_stage, SUM(input_count) AS input_count" +
                         " FROM " +
                         " ( " +
-                        " SELECT WALLET.id AS wallet_id, WALLET.user_id AS user_id, CURRENCY.id AS currency_id, CURRENCY.name AS currency_name, WALLET.active_balance AS active_balance, WALLET.reserved_balance AS reserved_balance,   " +
+                        " SELECT WALLET.id AS wallet_id, WALLET.user_id AS user_id, CURRENCY.id AS currency_id, CURRENCY.name AS currency_name, WALLET.active_balance AS active_balance, " +
+                        " WALLET.reserved_balance AS reserved_balance,   " +
                         " IFNULL(SELL.amount_base,0) as amount_base, 0 as amount_convert, 0 AS commission_fixed_amount, " +
                         " 0 AS withdraw_amount, 0 AS withdraw_commission,  " +
                         " 0 AS input_confirmation_amount, 0 AS input_confirmation_commission, 0 AS input_confirmation_stage, 0 AS input_count  " +
@@ -215,7 +216,8 @@ public class WalletDaoImpl implements WalletDao {
                         " FROM USER " +
                         " JOIN WALLET ON (WALLET.user_id = USER.id)  " +
                         " LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
-                        " JOIN TRANSACTION ON (TRANSACTION.operation_type_id=2) AND (TRANSACTION.user_wallet_id = WALLET.id) AND (TRANSACTION.provided = 0)  " +
+                        " JOIN TRANSACTION ON (TRANSACTION.operation_type_id=2) AND (TRANSACTION.user_wallet_id = WALLET.id) AND (TRANSACTION.provided = 0) " +
+                        " JOIN WITHDRAW_REQUEST ON WITHDRAW_REQUEST.transaction_id = TRANSACTION.id AND WITHDRAW_REQUEST.status = 1 " +
                         " WHERE USER.email =  :email AND CURRENCY.hidden != 1 " + currencyFilterClause +
                         "  " +
                         " UNION ALL " +
