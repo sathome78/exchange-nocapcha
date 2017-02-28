@@ -180,7 +180,9 @@ public class MerchantServiceImpl implements MerchantService {
         request.setUserFullName(withdrawData.getUserFullName());
         request.setRemark(withdrawData.getRemark());
         withdrawRequestDao.create(request);
-        String notification = null;
+        transactionService.setSourceId(transaction.getId(), transaction.getId());
+
+      String notification = null;
         try {
             notification = sendWithdrawalNotification(request, NEW, locale);
         } catch (final MailException e) {
