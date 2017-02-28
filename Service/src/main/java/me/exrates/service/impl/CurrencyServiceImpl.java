@@ -4,10 +4,12 @@ import me.exrates.dao.CurrencyDao;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.enums.BusinessUserRoleEnum;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.CurrencyPairNotFoundException;
@@ -16,6 +18,7 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
@@ -123,5 +126,11 @@ public class CurrencyServiceImpl implements CurrencyService {
     public List<TransferLimitDto> retrieveMinTransferLimits(List<Integer> currencyIds) {
         Integer roleId = userService.getCurrentUserRole().getRole();
         return currencyDao.retrieveMinTransferLimits(currencyIds, roleId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserCurrencyOperationPermissionDto> findWithOperationPermissionByUserAndDirection(Integer userId, InvoiceOperationDirection operationDirection) {
+        return currencyDao.findWithOperationPermissionByUserAndDirection(userId, operationDirection.name());
     }
 }

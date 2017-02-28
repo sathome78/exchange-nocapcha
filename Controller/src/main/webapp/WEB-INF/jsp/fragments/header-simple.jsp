@@ -1,4 +1,5 @@
 <%@ page import="org.springframework.web.servlet.support.RequestContext"%>
+<%@ page import="me.exrates.model.enums.UserRole" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
@@ -37,6 +38,7 @@
                         <c:set var="adminEnum" value="<%=me.exrates.model.enums.UserRole.ADMINISTRATOR%>"/>
                         <c:set var="accountantEnum" value="<%=me.exrates.model.enums.UserRole.ACCOUNTANT%>"/>
                         <c:set var="admin_userEnum" value="<%=me.exrates.model.enums.UserRole.ADMIN_USER%>"/>
+                        <c:set var="fin_operatorEnum" value="<%=UserRole.FIN_OPERATOR%>"/>
                         <sec:authorize
                                 access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
                             <sec:authorize

@@ -4,9 +4,11 @@ import me.exrates.dao.CurrencyDao;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
@@ -216,5 +218,29 @@ public class CurrencyDaoImpl implements CurrencyDao {
 		Map<String, String> namedParameters = new HashMap<>();
 		namedParameters.put("currencyPairId", String.valueOf(currencyPairId));
 		return jdbcTemplate.queryForObject(sql, namedParameters, currencyPairRowMapper);
+	}
+
+	@Override
+	public List<UserCurrencyOperationPermissionDto> findWithOperationPermissionByUserAndDirection(Integer userId, String operationDirection) {
+		String sql = "SELECT CUR.id, CUR.name, IOP.invoice_operation_permission_id" +
+				" FROM CURRENCY CUR " +
+				" LEFT 	JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
+				"				(IOP.currency_id=CUR.id) " +
+				"			 	AND (IOP.operation_direction=:operation_direction) " +
+				"				AND (IOP.user_id=:user_id) " +
+				" WHERE CUR.hidden IS NOT TRUE " +
+        " ORDER BY CUR.id ";
+		Map<String, Object> params = new HashMap<String, Object>(){{
+			put("user_id", userId);
+			put("operation_direction", operationDirection);
+		}};
+		return jdbcTemplate.query(sql, params, (rs, row) -> {
+			UserCurrencyOperationPermissionDto dto = new UserCurrencyOperationPermissionDto();
+			dto.setCurrencyId(rs.getInt("id"));
+			dto.setCurrencyName(rs.getString("name"));
+			Integer permissionCode = rs.getObject("invoice_operation_permission_id")==null?0:(Integer)rs.getObject("invoice_operation_permission_id");
+			dto.setInvoiceOperationPermission(InvoiceOperationPermission.convert(permissionCode));
+			return dto;
+		});
 	}
 }

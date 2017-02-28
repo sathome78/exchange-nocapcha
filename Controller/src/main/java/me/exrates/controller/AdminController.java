@@ -57,6 +57,8 @@ import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static me.exrates.model.enums.UserCommentTopicEnum.GENERAL;
 import static me.exrates.model.enums.UserRole.*;
+import static me.exrates.model.enums.invoice.InvoiceOperationDirection.REFILL;
+import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -405,6 +407,8 @@ public class AdminController {
     form.setOptions(userService.getAuthorityOptionsForUser(id, allowedAuthorities, localeResolver.resolveLocale(request)));
     model.addObject("authorityOptionsForm", form);
     model.addObject("userLang", userService.getPreferedLang(id).toUpperCase());
+    model.addObject("usersInvoiceRefillCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), REFILL));
+    model.addObject("usersInvoiceWithdrawCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), WITHDRAW));
 
     return model;
   }
@@ -987,6 +991,16 @@ public class AdminController {
       put("lang", Arrays.asList(userLocale.getISO3Language()));
       put("list", phrases);
     }};
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyPermissions/submit", method = RequestMethod.POST, consumes = "application/json")
+  @ResponseBody
+  public Integer editCurrencyPermissions(
+      @RequestBody List<UserCurrencyOperationPermissionDto> userCurrencyOperationPermissionDtoList,
+      Principal principal) {
+    Integer userId = userService.getIdByEmail(principal.getName());
+    userService.setCurrencyPermissionsByUserId(userId, userCurrencyOperationPermissionDtoList);
+    return userId;
   }
 
 

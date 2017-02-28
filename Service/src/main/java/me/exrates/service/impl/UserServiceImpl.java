@@ -6,6 +6,7 @@ import me.exrates.model.*;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.*;
+import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.service.NotificationService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
@@ -586,6 +587,16 @@ public class UserServiceImpl implements UserService {
         LOGGER.debug("Granted authority: " + grantedAuthority);
         return UserRole.valueOf(grantedAuthority);
     }
+
+  @Override
+  @Transactional
+  public void setCurrencyPermissionsByUserId(Integer userId, List<UserCurrencyOperationPermissionDto> userCurrencyOperationPermissionDtoList) {
+    userDao.setCurrencyPermissionsByUserId(
+        userId,
+        userCurrencyOperationPermissionDtoList.stream()
+            .filter(e -> e.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE)
+            .collect(Collectors.toList()));
+  }
 
 
 }

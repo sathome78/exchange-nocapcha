@@ -8,7 +8,7 @@ import java.util.stream.Stream;
  * Created by OLEG on 28.02.2017.
  */
 public enum InvoiceOperationPermission {
-    VIEW_ONLY(1), ACCEPT_DECLINE(2);
+    NONE(0), VIEW_ONLY(1), ACCEPT_DECLINE(2);
 
     private int code;
 

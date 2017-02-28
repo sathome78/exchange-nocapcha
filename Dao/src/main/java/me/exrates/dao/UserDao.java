@@ -143,4 +143,6 @@ public interface UserDao {
     Integer retrieveNicknameSearchLimit();
 
     List<String> findNicknamesByPart(String part, Integer limit);
+
+    void setCurrencyPermissionsByUserId(Integer userId, List<UserCurrencyOperationPermissionDto> userCurrencyOperationPermissionDtoList);
 }

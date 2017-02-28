@@ -3,6 +3,7 @@ package me.exrates.dao;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
@@ -39,4 +40,6 @@ public interface CurrencyDao {
 	CurrencyPair getCurrencyPairById(int currency1Id, int currency2Id);
 
 	CurrencyPair findCurrencyPairById(int currencyPairId);
+
+	List<UserCurrencyOperationPermissionDto> findWithOperationPermissionByUserAndDirection(Integer userId, String operationDirection);
 }
