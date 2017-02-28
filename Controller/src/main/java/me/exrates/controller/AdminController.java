@@ -999,7 +999,7 @@ public class AdminController {
 
   @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyPermissions/submit", method = RequestMethod.POST, consumes = "application/json")
   @ResponseBody
-  public Integer editCurrencyPermissions(
+  public void editCurrencyPermissions(
       @RequestBody List<UserCurrencyOperationPermissionDto> userCurrencyOperationPermissionDtoList,
       HttpSession httpSession,
       Principal principal) {
@@ -1007,9 +1007,7 @@ public class AdminController {
     if (!currentRole.equals(UserRole.ADMINISTRATOR.name())) {
       throw new NoPermissionForOperationException();
   }
-    Integer userId = userService.getIdByEmail(principal.getName());
-    userService.setCurrencyPermissionsByUserId(userId, userCurrencyOperationPermissionDtoList);
-    return userId;
+    userService.setCurrencyPermissionsByUserId(userCurrencyOperationPermissionDtoList);
   }
 
 

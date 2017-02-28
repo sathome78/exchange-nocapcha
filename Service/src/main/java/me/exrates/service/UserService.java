@@ -193,5 +193,5 @@ public interface UserService {
 
     UserRole getCurrentUserRole();
 
-    void setCurrencyPermissionsByUserId(Integer userId, List<UserCurrencyOperationPermissionDto> userCurrencyOperationPermissionDtoList);
+    void setCurrencyPermissionsByUserId(List<UserCurrencyOperationPermissionDto> userCurrencyOperationPermissionDtoList);
 }

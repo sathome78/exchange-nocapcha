@@ -694,18 +694,21 @@
                       </td>
                       <td class="center">
                         <input type="radio" name=refill"${refillPermission.currencyId}" value="${none}"
+                               data-userId="${refillPermission.userId}"
                                data-id="${refillPermission.currencyId}"
                                data-direction="REFILL"
                                data-checked="${refillPermission.invoiceOperationPermission==none}">
                       </td>
                       <td class="center">
                         <input type="radio" name=refill"${refillPermission.currencyId}" value="${view}"
+                               data-userId="${refillPermission.userId}"
                                data-id="${refillPermission.currencyId}"
                                data-direction="REFILL"
                                data-checked="${refillPermission.invoiceOperationPermission==view}">
                       </td>
                       <td class="center">
                         <input type="radio" name=refill"${refillPermission.currencyId}" value="${write}"
+                               data-userId="${refillPermission.userId}"
                                data-id="${refillPermission.currencyId}"
                                data-direction="REFILL"
                                data-checked="${refillPermission.invoiceOperationPermission==write}">
@@ -737,18 +740,21 @@
                       </td>
                       <td class="center">
                         <input type="radio" name=withdraw"${withdrawPermission.currencyId}" value="${none}"
+                               data-userId="${withdrawPermission.userId}"
                                data-id="${withdrawPermission.currencyId}"
                                data-direction="WITHDRAW"
                                data-checked="${withdrawPermission.invoiceOperationPermission==none}">
                       </td>
                       <td class="center">
                         <input type="radio" name=withdraw"${withdrawPermission.currencyId}" value="${view}"
+                               data-userId="${withdrawPermission.userId}"
                                data-id="${withdrawPermission.currencyId}"
                                data-direction="WITHDRAW"
                                data-checked="${withdrawPermission.invoiceOperationPermission==view}">
                       </td>
                       <td class="center">
                         <input type="radio" name=withdraw"${withdrawPermission.currencyId}" value="${write}"
+                               data-userId="${withdrawPermission.userId}"
                                data-id="${withdrawPermission.currencyId}"
                                data-direction="WITHDRAW"
                                data-checked="${withdrawPermission.invoiceOperationPermission==write}">

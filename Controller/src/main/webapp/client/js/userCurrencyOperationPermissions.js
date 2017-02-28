@@ -12,14 +12,19 @@ $(function(){
         event.preventDefault();
         var $items = $(this).closest("#currency_permissions").find(".currency_permissions__item");
         var resultArray = [];
+        var userId;
         for (var i = 0; i<$items.length; i++){
             var $checked = $($items.get(i)).find("input").filter(function(idx, elem){return elem.checked});
             var currency = {
+                userId: $checked.attr("data-userId"),
                 currencyId: $checked.attr("data-id"),
                 invoiceOperationDirection: $checked.attr("data-direction"),
                 invoiceOperationPermission: $checked.attr("value"),
             };
             resultArray.push(currency);
+            if (!userId) {
+                userId = $checked.attr("data-userId");
+            };
         };
         $.ajax({
             url: '/2a8fy7b07dxe44/editCurrencyPermissions/submit',
@@ -29,8 +34,8 @@ $(function(){
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(resultArray),
-            success: function (data) {
-                window.location ="/2a8fy7b07dxe44/userInfo?id="+data;
+            success: function () {
+                window.location ="/2a8fy7b07dxe44/userInfo?id="+userId;
             }
         });
     });
