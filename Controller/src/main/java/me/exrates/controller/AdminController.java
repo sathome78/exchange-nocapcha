@@ -750,7 +750,7 @@ public class AdminController {
 
         List<UserSummaryOrdersByCurrencyPairsDto> list = userService.getUserSummaryOrdersByCurrencyPairList(startDate, endDate, userService.resolveRoleIdsByName(role));
 
-        String value = "Orders from by currency pairs " + startDate.substring(0,10) + " till " + endDate.substring(0,10) + ": \n \n" + UserSummaryOrdersByCurrencyPairsDto.getTitle() +
+        String value = "Orders by currency pairs from" + startDate.substring(0,10) + " till " + endDate.substring(0,10) + ": \n \n" + UserSummaryOrdersByCurrencyPairsDto.getTitle() +
                 list.stream()
                         .map(e -> e.toString())
                         .collect(Collectors.joining());
