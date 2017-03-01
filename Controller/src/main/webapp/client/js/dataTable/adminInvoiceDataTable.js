@@ -3,7 +3,7 @@
  */
 var invoiceRequestsDataTable;
 var $invoiceRequestsTable;
-
+var amountChanging;
 $(document).ready(function () {
     var acceptLocMessage = $('#acceptLocMessage').text();
     var declineLocMessage = $('#declineLocMessage').text();
@@ -12,7 +12,8 @@ $(document).ready(function () {
     var onConfirmationLocMessage = $('#onConfirmationLocMessage').text();
     var revokedByUserLocMessage = $('#revokedByUserLocMessage').text();
     var timeOutExpiredLocMessage = $('#timeOutExpiredLocMessage').text();
-    var updateAmountLocMessage = $('#updateAmountLocMessage').text();
+    var changeAmountLocMessage = $('#changeAmountLocMessage').text();
+    var cancelLocMessage = $('#cancelLocMessage').text();
     /**/
     $invoiceRequestsTable = $('#invoice_requests');
     var urlBase = '/2a8fy7b07dxe44/invoiceRequests';
@@ -142,17 +143,27 @@ $(document).ready(function () {
 
     updateInvoiceTable();
 
-    $('#changeAmountBox').on('change', function () {
-        var $amountInput = $('#amountValue');
-        if ($(this).prop('checked')) {
-            $($amountInput).prop('readonly', false);
-            $($amountInput).prop('disabled', false);
-        } else {
-            $($amountInput).val('');
+    $('#changeAmount').on('click', function () {
+        var $amountInput = $('#actualAmount');
+        if (amountChanging) {
+            amountChanging = false;
+            $(this).text(changeAmountLocMessage);
+            $($amountInput).val($('#initialAmount').val());
+            $('#actualPaymentSum').val('');
             $($amountInput).prop('readonly', true);
             $($amountInput).prop('disabled', true);
+        } else {
+            amountChanging = true;
+            $(this).text(cancelLocMessage);
+            $($amountInput).prop('readonly', false);
+            $($amountInput).prop('disabled', false);
+            $($amountInput).val('');
         }
     });
+    $('#actualAmount').on('input', function () {
+        $('#actualPaymentSum').val($(this).val());
+    });
+
 
     $('#submitAccept').on('click', function () {
         acceptInvoice(updateInvoiceTable)
@@ -203,13 +214,18 @@ function replaceAbsentWithDash(value) {
 
 function showAcceptModal($elem) {
     var $row = $($elem).parents('tr');
-    var $amountInput = $('#amountValue');
+    var $initialAmountInput = $('#initialAmount');
+    var $actualAmountInput = $('#actualAmount');
     var rowData = invoiceRequestsDataTable.row($row).data();
-    $($amountInput).val('');
-    $($amountInput).prop('readonly', true);
-    $($amountInput).prop('disabled', true);
-    $('#changeAmountBox').prop('checked', false);
+    var totelAmount = rowData.transaction.amount + rowData.transaction.commissionAmount;
+    $($initialAmountInput).val(totelAmount);
+    $($actualAmountInput).val(totelAmount);
+    $($actualAmountInput).prop('readonly', true);
+    $($actualAmountInput).prop('disabled', true);
+    amountChanging = false;
+    $('#changeAmount').text($('#changeAmountLocMessage').text());
     $('#transactionId').val(rowData.transaction.id);
+    $('#actualPaymentSum').val('');
     $('#acceptModal').modal();
 }
 

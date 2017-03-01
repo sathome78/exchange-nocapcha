@@ -81,7 +81,9 @@
 <span hidden id="onConfirmationLocMessage"><loc:message code="merchants.invoice.onWaitingForUserConfirmation"/></span>
 <span hidden id="revokedByUserLocMessage"><loc:message code="merchants.invoice.revokedByUser"/></span>
 <span hidden id="timeOutExpiredLocMessage"><loc:message code="merchants.invoice.timeOutExpired"/></span>
-<span hidden id="updateAmountLocMessage"><loc:message code="admin.invoice.updateAmount"/></span>
+<span hidden id="changeAmountLocMessage"><loc:message code="admin.invoice.changeAmount"/></span>
+<span hidden id="cancelLocMessage"><loc:message code="admin.cancel"/></span>
+
 
 <div id="acceptModal" class="modal fade form_full_width">
     <div class="modal-dialog modal-md">
@@ -97,21 +99,25 @@
                 </div>
                 <form id="invoice-accept-form">
                     <div class="input-block-wrapper">
-                        <div class="col-md-6 input-block-wrapper__label-wrapper">
-                            <label for="changeAmountBox" class="input-block-wrapper__label"><loc:message code="admin.invoice.updateAmount"/></label>
+                        <div class="col-md-4 input-block-wrapper__label-wrapper">
+                            <label for="initialAmount" class="input-block-wrapper__label"><loc:message code="admin.invoice.initialAmount"/></label>
                         </div>
-                        <div class="col-md-6 input-block-wrapper__input-wrapper">
-                            <input type="checkbox" id="changeAmountBox" class="input-block-wrapper__input" >
+                        <div class="col-md-8 input-block-wrapper__input-wrapper">
+                            <input id="initialAmount" class="input-block-wrapper__input" type="number" step="0.01">
                         </div>
                     </div>
                     <div class="input-block-wrapper">
-                        <div class="col-md-6 input-block-wrapper__label-wrapper">
-                            <label for="amountValue" class="input-block-wrapper__label"><loc:message code="transaction.amount"/></label>
+                        <div class="col-md-4 input-block-wrapper__label-wrapper">
+                            <label for="actualAmount" class="input-block-wrapper__label"><loc:message code="admin.invoice.actualAmount"/></label>
                         </div>
-                        <div class="col-md-6 input-block-wrapper__input-wrapper">
-                            <input id="amountValue" name="actualPaymentSum" class="input-block-wrapper__input" type="number">
+                        <div class="col-md-5 input-block-wrapper__input-wrapper">
+                            <input id="actualAmount" class="input-block-wrapper__input" type="number" step="0.01">
+                        </div>
+                        <div class="col-md-3 input-block-wrapper__input-wrapper">
+                            <button type="button" id="changeAmount" class="btn btn-sm btn-danger"><loc:message code="admin.invoice.changeAmount"/></button>
                         </div>
                         <input hidden id="transactionId" name="id">
+                        <input hidden id="actualPaymentSum" name="actualPaymentSum">
                     </div>
                     <div class="table-button-block" style="white-space: nowrap; margin-top: 20px">
                         <button id="submitAccept" class="blue-box" type="button"><loc:message code="admin.submit"/></button>
