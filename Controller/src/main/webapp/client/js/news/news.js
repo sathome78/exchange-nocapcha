@@ -16,7 +16,7 @@ function NewsClass($loadingImg) {
     var $clearFormDialog = $('#clearFormDialog');
     /**/
     var timeOutIdForStatisticsForNews;
-    var refreshIntervalForStatisticsForNews = 5000 * REFRESH_INTERVAL_MULTIPLIER;
+    var refreshIntervalForStatisticsForNews = 60000 * REFRESH_INTERVAL_MULTIPLIER;
     /**/
     var showLog = false;
 

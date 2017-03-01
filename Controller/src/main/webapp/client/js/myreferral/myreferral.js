@@ -12,7 +12,7 @@ function MyReferralClass(currentCurrencyPair) {
     /**/
     var that = this;
     var timeOutIdForMyReferralData;
-    var refreshIntervalForMyReferralData = 5000 * REFRESH_INTERVAL_MULTIPLIER;
+    var refreshIntervalForMyReferralData = 30000 * REFRESH_INTERVAL_MULTIPLIER;
     /**/
     var showLog = false;
     /**/

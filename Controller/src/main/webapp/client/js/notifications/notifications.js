@@ -13,7 +13,7 @@ function NotificationsClass() {
 
     var tableNotificationsId = 'notification-table';
     var notificationsTimeoutId;
-    var refreshIntervalForNotifications = 5000 * REFRESH_INTERVAL_MULTIPLIER;
+    var refreshIntervalForNotifications = 30000 * REFRESH_INTERVAL_MULTIPLIER;
 
     var $notificationContainer;
     var $counter;
