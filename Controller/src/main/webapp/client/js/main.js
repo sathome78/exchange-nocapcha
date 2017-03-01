@@ -253,8 +253,7 @@ $(function(){
                     dataType: 'json',
                     data: JSON.stringify($(form).serializeObject())
                 }).done(function (response) {
-                    //$('#currency').find(':selected').html(response['balance']);
-                    //$('#currencyFull')..html(response['balance']);
+                    $('#currencyFull').val(response['balance']);
                     responseControls();
                     $('.paymentInfo').html(response['success']);
 
