@@ -45,18 +45,17 @@ $(document).ready(function () {
              var currencyName = rowData.currencyName;
              var inputCommissionValue = parseFloat(rowData.inputCommission);
              var outputCommissionValue = parseFloat(rowData.outputCommission);
+             var minFixedOutputCommission = parseFloat(rowData.minFixedCommission);
              $($merchantCommissionForm).find('input[name="merchantId"]').val(merchantId);
              $($merchantCommissionForm).find('input[name="currencyId"]').val(currencyId);
              $('#merchantName').val(merchantName);
              $('#currencyName').val(currencyName);
              $($merchantCommissionForm).find('input[name="inputValue"]').val(inputCommissionValue);
              $($merchantCommissionForm).find('input[name="outputValue"]').val(outputCommissionValue);
-
+             $($merchantCommissionForm).find('input[name="minFixedAmount"]').val(minFixedOutputCommission);
              $('#editMerchantCommissionModal').modal();
         });
     }
-
-
 
 
 
@@ -105,6 +104,9 @@ function updateMerchantCommissionsDataTable(initCallback) {
                 },
                 {
                     "data": "outputCommission"
+                },
+                {
+                    "data": "minFixedCommission"
                 }
             ]
         });

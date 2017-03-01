@@ -39,6 +39,7 @@ import java.security.Principal;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.math.BigDecimal.*;
 import static java.math.BigDecimal.valueOf;
@@ -439,17 +440,21 @@ public class MerchantServiceImpl implements MerchantService {
                                                                 final String merchant) {
     final Map<String, String> result = new HashMap<>();
     final BigDecimal commission = commissionService.findCommissionByTypeAndRole(type, userService.getCurrentUserRole()).getValue();
-
-        final BigDecimal commissionMerchant = type == USER_TRANSFER ? BigDecimal.ZERO : commissionService.getCommissionMerchant(merchant, currency, type);
-        final BigDecimal commissionTotal = commission.add(commissionMerchant).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP);
-        BigDecimal commissionAmount = amount.multiply(commissionTotal).divide(HUNDREDTH).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP);
-
-    //TODO fix method
-    //     commissionAmount = addMinimalCommission(commissionAmount, currency);
-
+    final BigDecimal commissionMerchant = type == USER_TRANSFER ? BigDecimal.ZERO : commissionService.getCommissionMerchant(merchant, currency, type);
+    final BigDecimal commissionTotal = commission.add(commissionMerchant).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP);
+    BigDecimal commissionAmount = amount.multiply(commissionTotal).divide(HUNDREDTH).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP);
+    String commissionString = Stream.of("(", commissionTotal.stripTrailingZeros().toString(), "%)").collect(Collectors.joining(""));
+    if (type == OUTPUT) {
+      BigDecimal merchantMinFixedCommission = commissionService.getMinFixedCommission(merchant, currency);
+      if (commissionAmount.compareTo(merchantMinFixedCommission) < 0) {
+        commissionAmount = merchantMinFixedCommission;
+        commissionString = "";
+      }
+    }
+    LOG.debug("commission: " + commissionString);
     final BigDecimal resultAmount = type != OUTPUT ? amount.add(commissionAmount).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP) :
         amount.subtract(commissionAmount).setScale(currencyService.resolvePrecision(currency), ROUND_DOWN);
-    result.put("commission", commissionTotal.stripTrailingZeros().toString());
+    result.put("commission", commissionString);
     result.put("commissionAmount", currencyService.amountToString(commissionAmount, currency));
     result.put("amount", currencyService.amountToString(resultAmount, currency));
     return result;
@@ -484,7 +489,7 @@ public class MerchantServiceImpl implements MerchantService {
                 commissionTotal
                 .multiply(amount)
                 .divide(valueOf(100), currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP);
-      //  commissionAmount = addMinimalCommission(commissionAmount, currency.getName());
+        commissionAmount = correctForMerchantFixedCommission(merchant.getName(), currency.getName(), operationType, commissionAmount);
         final User user = userService.findByEmail(userEmail);
         final BigDecimal newAmount = payment.getOperationType() == INPUT ?
                 amount :
@@ -504,9 +509,17 @@ public class MerchantServiceImpl implements MerchantService {
     return Optional.of(creditsOperation);
   }
 
-    public Optional<CreditsOperation> prepareCreditsOperation(Payment payment,String userEmail) {
-        return prepareCreditsOperation(payment, BigDecimal.ZERO, userEmail);
+  public Optional<CreditsOperation> prepareCreditsOperation(Payment payment,String userEmail) {
+    return prepareCreditsOperation(payment, BigDecimal.ZERO, userEmail);
+  }
+
+  private BigDecimal correctForMerchantFixedCommission(String merchantName, String currencyName, OperationType operationType, BigDecimal commissionAmount) {
+    if (operationType != OUTPUT) {
+      return commissionAmount;
     }
+    BigDecimal merchantMinFixedCommission = commissionService.getMinFixedCommission(merchantName, currencyName);
+    return commissionAmount.compareTo(merchantMinFixedCommission) < 0 ? merchantMinFixedCommission : commissionAmount;
+  }
 
     private BigDecimal addMinimalCommission(BigDecimal commissionAmount, String name) {
         if (commissionAmount.compareTo(BigDecimal.ZERO) == 0) {

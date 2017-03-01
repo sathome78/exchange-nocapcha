@@ -3,7 +3,6 @@ package me.exrates.controller;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.*;
-import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
@@ -16,12 +15,10 @@ import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.form.AuthorityOptionsForm;
-import me.exrates.security.exception.UserNotEnabledException;
 import me.exrates.security.service.UserSecureServiceImpl;
 import me.exrates.service.*;
 import me.exrates.service.exception.NoPermissionForOperationException;
 import me.exrates.service.exception.OrderDeletingException;
-import me.exrates.service.exception.api.ApiError;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,7 +62,6 @@ import static me.exrates.model.enums.UserCommentTopicEnum.GENERAL;
 import static me.exrates.model.enums.UserRole.*;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.REFILL;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
-import static me.exrates.service.exception.api.ErrorCode.ACCOUNT_DISABLED;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -973,11 +969,8 @@ public class AdminController {
 
   @RequestMapping(value = "/2a8fy7b07dxe44/commissions/editMerchantCommission", method = RequestMethod.POST)
   @ResponseBody
-  public ResponseEntity<Void> editMerchantCommission(@RequestParam("merchantId") Integer merchantId,
-                                                     @RequestParam("currencyId") Integer currencyId,
-                                                     @RequestParam("inputValue") BigDecimal inputValue,
-                                                     @RequestParam("outputValue") BigDecimal outputValue) {
-    commissionService.updateMerchantCommission(merchantId, currencyId, inputValue, outputValue);
+  public ResponseEntity<Void> editMerchantCommission(EditMerchantCommissionDto editMerchantCommissionDto) {
+    commissionService.updateMerchantCommission(editMerchantCommissionDto);
     return new ResponseEntity<>(HttpStatus.OK);
   }
 

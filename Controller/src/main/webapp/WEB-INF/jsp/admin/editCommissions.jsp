@@ -67,6 +67,7 @@
                                 <th><loc:message code="withdrawal.currency"/> </th>
                                 <th><loc:message code="admin.merchantsCommissions.input"/></th>
                                 <th><loc:message code="admin.merchantsCommissions.output"/></th>
+                                <th><loc:message code="admin.merchantsCommissions.minFixed"/></th>
                             </tr>
                             </thead>
                         </table>
@@ -162,6 +163,14 @@
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
                             <input  name="outputValue" class="input-block-wrapper__input" type="number">
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="admin.merchantsCommissions.minFixed"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input  name="minFixedAmount" class="input-block-wrapper__input" type="number">
                         </div>
                     </div>
                     <button id="submitMerchantCommission" class="blue-box admin-form-submit" type="submit"><loc:message code="admin.refSubmitEditCommonRoot"/></button>

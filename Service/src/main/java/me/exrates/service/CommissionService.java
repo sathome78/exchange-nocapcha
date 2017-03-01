@@ -2,6 +2,7 @@ package me.exrates.service;
 
 import me.exrates.model.Commission;
 import me.exrates.model.dto.CommissionShortEditDto;
+import me.exrates.model.dto.EditMerchantCommissionDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,5 +35,7 @@ public interface CommissionService {
 	void updateCommission(OperationType operationType, String roleName, BigDecimal value);
 
     @Transactional
-    void updateMerchantCommission(Integer merchantId, Integer currencyId, BigDecimal inputValue, BigDecimal outputValue);
+    void updateMerchantCommission(EditMerchantCommissionDto editMerchantCommissionDto);
+
+	BigDecimal getMinFixedCommission(String merchant, String currency);
 }

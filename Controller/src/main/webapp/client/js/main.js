@@ -511,11 +511,11 @@ $(function(){
             newHTMLElements[0] = newHTMLElements[0]
                 .replace(templateVariables.amount, "<span class='modal-amount'>"+amount+"</span>")
                 .replace(templateVariables.currency, "<span class='modal-amount'>"+getCurrentCurrency()+"</span>")
-                .replace(templateVariables.merchant, "<span class='modal-merchant'>"+merchantName+"</span>")
+                .replace(templateVariables.merchant, "<span class='modal-merchant'>"+merchantName+"</span>");
             newHTMLElements[1] = newHTMLElements[1]
                 .replace(templateVariables.amount, "<span class='modal-amount'>" + response['commissionAmount'] + "</span>")
                 .replace(templateVariables.currency, "<span class='modal-amount'>" + getCurrentCurrency() + "</span>")
-                .replace(templateVariables.percent, "<span class='modal-amount'>"+response['commission'] + "%" + "</span>");
+                .replace(templateVariables.percent, "<span class='modal-amount'>"+response['commission'] + "</span>");
             newHTMLElements[2] = newHTMLElements[2]
                 .replace(templateVariables.amount, "<span class='modal-amount'>" + response['amount'] + "</span>")
                 .replace(templateVariables.currency, "<span class='modal-amount'>" + getCurrentCurrency() + "</span>");
