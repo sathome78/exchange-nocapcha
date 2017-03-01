@@ -28,7 +28,7 @@
         <%@include file='left_side_menu.jsp' %>
         <div class="col-md-10 content admin-container">
             <div class="text-center"><h4><loc:message code="transaction.titleBitcoin"/></h4></div>
-                    <table id="invoice_requests">
+                    <table id="bitcoin_manual_requests">
                         <thead>
                         <tr>
                                 <%--Дата--%>
