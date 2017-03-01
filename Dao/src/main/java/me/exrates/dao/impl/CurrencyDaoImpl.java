@@ -237,6 +237,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 		}};
 		return jdbcTemplate.query(sql, params, (rs, row) -> {
 			UserCurrencyOperationPermissionDto dto = new UserCurrencyOperationPermissionDto();
+			dto.setUserId(userId);
 			dto.setCurrencyId(rs.getInt("id"));
 			dto.setCurrencyName(rs.getString("name"));
 			Integer permissionCode = rs.getObject("invoice_operation_permission_id")==null?0:(Integer)rs.getObject("invoice_operation_permission_id");

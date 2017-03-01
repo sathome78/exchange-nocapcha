@@ -590,8 +590,9 @@ public class UserServiceImpl implements UserService {
 
   @Override
   @Transactional
-  public void setCurrencyPermissionsByUserId(Integer userId, List<UserCurrencyOperationPermissionDto> userCurrencyOperationPermissionDtoList) {
-    userDao.setCurrencyPermissionsByUserId(
+  public void setCurrencyPermissionsByUserId(List<UserCurrencyOperationPermissionDto> userCurrencyOperationPermissionDtoList) {
+      Integer userId = userCurrencyOperationPermissionDtoList.get(0).getUserId();
+      userDao.setCurrencyPermissionsByUserId(
         userId,
         userCurrencyOperationPermissionDtoList.stream()
             .filter(e -> e.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE)

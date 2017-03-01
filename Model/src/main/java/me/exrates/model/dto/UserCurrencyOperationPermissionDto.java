@@ -10,6 +10,7 @@ import me.exrates.model.enums.invoice.InvoiceOperationPermission;
  */
 @Getter @Setter
 public class UserCurrencyOperationPermissionDto {
+  private Integer userId;
   private Integer currencyId;
   private String currencyName;
   private InvoiceOperationDirection invoiceOperationDirection;
