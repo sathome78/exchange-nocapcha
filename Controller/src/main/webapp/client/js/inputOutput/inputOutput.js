@@ -104,7 +104,7 @@ function InputOutputClass(currentCurrencyPair) {
             var $action = $form.find('input[name=action]');
             $action.attr("value", "revoke");
             var $sourceType = $form.find('input[name=sourceType]');
-            $action.attr("value", "INVOICE");
+            $sourceType.attr("value", "INVOICE");
             $form[0].submit();
         });
         $('#inputoutput-table').on('click', '#revokeBtcInvoiceButton', function (e) {

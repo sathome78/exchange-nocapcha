@@ -139,7 +139,7 @@
                                     <img src="${invoiceRequest.receiptScanPath}" class="img-responsive">
                                 </a>
                             </c:if>
-                            <c:if test="${needToConfirm}">
+                            <c:if test="${needToConfirm && !revoke}">
                                 <input type="file" id="receiptScan" name="receiptScan">
                             </c:if>
                         </div>
@@ -153,7 +153,7 @@
             <c:when test="${needToConfirm}">
               <c:choose>
                 <c:when test="${revoke}">
-                  <div class="col-md-4 input-block-wrapper">
+                  <div class="col-md-6 input-block-wrapper">
                     <button id="invoiceRevokeAction" class="btn btn-primary btn-lg" type="button"><loc:message
                             code="merchants.invoice.revoke.submit"/></button>
                     <button id="invoiceCancel" class="btn btn-danger btn-lg" type="button"><loc:message
