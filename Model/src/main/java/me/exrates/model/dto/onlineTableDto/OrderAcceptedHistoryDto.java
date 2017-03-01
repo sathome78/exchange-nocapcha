@@ -1,88 +1,47 @@
 package me.exrates.model.dto.onlineTableDto;
 
+import lombok.Getter;
+import lombok.Setter;
 import me.exrates.model.enums.OperationType;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 /**
  * Created by Valk on 03.06.2016.
  */
+@Getter @Setter
 public class OrderAcceptedHistoryDto extends OnlineTableDto {
-    private Integer orderId;
-    private String dateAcceptionTime;
-    private Timestamp acceptionTime;
-    private String rate;
-    private String amountBase;
-    private OperationType operationType;
+  private Integer orderId;
+  private String dateAcceptionTime;
+  private Timestamp acceptionTime;
+  private String rate;
+  private String amountBase;
+  private OperationType operationType;
 
-    public OrderAcceptedHistoryDto() {
-        this.needRefresh = true;
-    }
+  public OrderAcceptedHistoryDto() {
+    this.needRefresh = true;
+  }
 
-    public OrderAcceptedHistoryDto(boolean needRefresh) {
-        this.needRefresh = needRefresh;
-    }
+  public OrderAcceptedHistoryDto(boolean needRefresh) {
+    this.needRefresh = needRefresh;
+  }
 
-    /*hash*/
-    @Override
-    public int hashCode() {
-        return orderId != null ? orderId.hashCode() : 0;
-    }
-   /*getters setters*/
+  public OrderAcceptedHistoryDto(OrderAcceptedHistoryDto orderAcceptedHistoryDto) {
+    this.needRefresh = orderAcceptedHistoryDto.needRefresh;
+    this.page = orderAcceptedHistoryDto.page;
+    this.orderId = orderAcceptedHistoryDto.orderId;
+    this.dateAcceptionTime = orderAcceptedHistoryDto.dateAcceptionTime;
+    this.acceptionTime = orderAcceptedHistoryDto.acceptionTime;
+    this.rate = orderAcceptedHistoryDto.rate;
+    this.orderId = orderAcceptedHistoryDto.orderId;
+    this.amountBase = orderAcceptedHistoryDto.amountBase;
+    this.operationType = orderAcceptedHistoryDto.operationType;
+  }
 
-    public Integer getOrderId() {
-        return orderId;
-    }
+  @Override
+  public int hashCode() {
+    return orderId != null ? orderId.hashCode() : 0;
+  }
 
-    public void setOrderId(Integer orderId) {
-        this.orderId = orderId;
-    }
-
-    public boolean isNeedRefresh() {
-        return needRefresh;
-    }
-
-    public void setNeedRefresh(boolean needRefresh) {
-        this.needRefresh = needRefresh;
-    }
-
-    public String getDateAcceptionTime() {
-        return dateAcceptionTime;
-    }
-
-    public void setDateAcceptionTime(String dateAcceptionTime) {
-        this.dateAcceptionTime = dateAcceptionTime;
-    }
-
-    public String getRate() {
-        return rate;
-    }
-
-    public void setRate(String rate) {
-        this.rate = rate;
-    }
-
-    public String getAmountBase() {
-        return amountBase;
-    }
-
-    public void setAmountBase(String amountBase) {
-        this.amountBase = amountBase;
-    }
-
-    public OperationType getOperationType() {
-        return operationType;
-    }
-
-    public void setOperationType(OperationType operationType) {
-        this.operationType = operationType;
-    }
-
-    public Timestamp getAcceptionTime() {
-        return acceptionTime;
-    }
-
-    public void setAcceptionTime(Timestamp acceptionTime) {
-        this.acceptionTime = acceptionTime;
-    }
 }

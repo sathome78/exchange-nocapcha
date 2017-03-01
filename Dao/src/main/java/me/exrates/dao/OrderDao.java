@@ -30,17 +30,17 @@ public interface OrderDao {
 
     boolean updateOrder(ExOrder exOrder);
 
-    List<OrderListDto> getOrdersBuyForCurrencyPair(CurrencyPair currencyPair, String email, Locale locale);
+    List<OrderListDto> getOrdersBuyForCurrencyPair(CurrencyPair currencyPair);
 
-    List<OrderListDto> getOrdersSellForCurrencyPair(CurrencyPair currencyPair, String email, Locale locale);
+    List<OrderListDto> getOrdersSellForCurrencyPair(CurrencyPair currencyPair);
 
     List<Map<String, Object>> getDataForAreaChart(CurrencyPair currencyPair, BackDealInterval backDealInterval);
 
     List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval backDealInterval);
 
-    ExOrderStatisticsDto getOrderStatistic(CurrencyPair currencyPair, BackDealInterval backDealInterval, Locale locale);
+    ExOrderStatisticsDto getOrderStatistic(CurrencyPair currencyPair, BackDealInterval backDealInterval);
 
-    List<ExOrderStatisticsShortByPairsDto> getOrderStatisticByPairs(Locale locale);
+    List<ExOrderStatisticsShortByPairsDto> getOrderStatisticByPairs();
 
     List<CoinmarketApiDto> getCoinmarketData(String currencyPairName);
 
@@ -52,7 +52,7 @@ public interface OrderDao {
 
     Object deleteOrderForPartialAccept(int orderId);
 
-    List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriod(String email, BackDealInterval backDealInterval, Integer limit, CurrencyPair currencyPair, Locale locale);
+    List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriod(String email, BackDealInterval backDealInterval, Integer limit, CurrencyPair currencyPair);
 
     OrderCommissionsDto getCommissionForOrder(UserRole userRole);
 

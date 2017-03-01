@@ -18,7 +18,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
     var timeOutIdForOrders;
     var ordersRefreshInterval = 5000 * REFRESH_INTERVAL_MULTIPLIER;
     var timeOutIdForStatistics;
-    var statisticsRefreshInterval = 30000 * REFRESH_INTERVAL_MULTIPLIER;
+    var statisticsRefreshInterval = 10000 * REFRESH_INTERVAL_MULTIPLIER;
     var $graphicsLoadingImg = $('#graphics-container').find('.loading');
     /**/
     var showLog = false;
