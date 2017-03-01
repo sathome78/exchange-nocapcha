@@ -97,4 +97,6 @@ public interface WalletService {
     void manualBalanceChange(Integer userId, Integer currencyId, BigDecimal amount);
 
     String transferCostsToUser(Integer fromUserWalletId, String toUserNickname, BigDecimal amount, Locale locale);
+
+    List<UserWalletSummaryDto> getUsersWalletsSummaryForPermittedCurrency(List<Integer> roles, Integer requesterUserId);
 }

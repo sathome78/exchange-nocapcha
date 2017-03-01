@@ -11,10 +11,7 @@ import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.*;
-import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
-import me.exrates.model.enums.invoice.InvoiceOperationPermission;
-import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
-import me.exrates.model.enums.invoice.InvoiceStatus;
+import me.exrates.model.enums.invoice.*;
 import me.exrates.model.form.AuthorityOptionsForm;
 import me.exrates.security.exception.UserNotEnabledException;
 import me.exrates.security.service.UserSecureServiceImpl;
@@ -106,9 +103,10 @@ public class AdminController {
   private NotificationService notificationService;
   @Autowired
   private PhraseTemplateService phraseTemplateService;
-
   @Autowired
   private CommissionService commissionService;
+  @Autowired
+  ReportService reportService;
 
   @Autowired
   @Qualifier("ExratesSessionRegistry")
@@ -709,15 +707,15 @@ public class AdminController {
   }
 
   @RequestMapping("/2a8fy7b07dxe44/userswallets")
-  public ModelAndView showUsersWalletsSummary() {
-
+  public ModelAndView showUsersWalletsSummary(Principal principal) {
+    Integer requesterUserId = userService.getIdByEmail(principal.getName());
     Map<String, List<UserWalletSummaryDto>> mapUsersWalletsSummaryList = new LinkedHashMap<>();
-    mapUsersWalletsSummaryList.put("ALL", walletService.getUsersWalletsSummary(BusinessUserRoleEnum.getRealUserRoleIdList("ALL")));
-    mapUsersWalletsSummaryList.put("ADMIN", walletService.getUsersWalletsSummary(BusinessUserRoleEnum.ADMIN.getRealUserRoleIdList()));
-    mapUsersWalletsSummaryList.put("USER", walletService.getUsersWalletsSummary(BusinessUserRoleEnum.USER.getRealUserRoleIdList()));
-    mapUsersWalletsSummaryList.put("EXCHANGE", walletService.getUsersWalletsSummary(BusinessUserRoleEnum.EXCHANGE.getRealUserRoleIdList()));
-    mapUsersWalletsSummaryList.put("VIP_USER", walletService.getUsersWalletsSummary(BusinessUserRoleEnum.VIP_USER.getRealUserRoleIdList()));
-    mapUsersWalletsSummaryList.put("TRADER", walletService.getUsersWalletsSummary(BusinessUserRoleEnum.TRADER.getRealUserRoleIdList()));
+    mapUsersWalletsSummaryList.put("ALL", walletService.getUsersWalletsSummaryForPermittedCurrency(BusinessUserRoleEnum.getRealUserRoleIdList("ALL"), requesterUserId));
+    mapUsersWalletsSummaryList.put("ADMIN", walletService.getUsersWalletsSummaryForPermittedCurrency(BusinessUserRoleEnum.ADMIN.getRealUserRoleIdList(), requesterUserId));
+    mapUsersWalletsSummaryList.put("USER", walletService.getUsersWalletsSummaryForPermittedCurrency(BusinessUserRoleEnum.USER.getRealUserRoleIdList(), requesterUserId));
+    mapUsersWalletsSummaryList.put("EXCHANGE", walletService.getUsersWalletsSummaryForPermittedCurrency(BusinessUserRoleEnum.EXCHANGE.getRealUserRoleIdList(), requesterUserId));
+    mapUsersWalletsSummaryList.put("VIP_USER", walletService.getUsersWalletsSummaryForPermittedCurrency(BusinessUserRoleEnum.VIP_USER.getRealUserRoleIdList(), requesterUserId));
+    mapUsersWalletsSummaryList.put("TRADER", walletService.getUsersWalletsSummaryForPermittedCurrency(BusinessUserRoleEnum.TRADER.getRealUserRoleIdList(), requesterUserId));
 
     ModelAndView model = new ModelAndView();
     model.setViewName("UsersWallets");
@@ -1034,6 +1032,24 @@ public class AdminController {
       throw new NoPermissionForOperationException();
   }
     userService.setCurrencyPermissionsByUserId(userCurrencyOperationPermissionDtoList);
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/downloadUsersInvoiceReport/{direction}", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
+  @ResponseBody
+  public String getUsersWalletsSummeryTotalInOut(
+      @RequestParam String startDate,
+      @RequestParam String endDate,
+      @RequestParam String role,
+      @RequestParam String direction,
+      @RequestParam List<String> currencyList,
+      Principal principal) {
+    String value = UserSummaryTotalInOutDto.getTitle() +
+        reportService.getInvoiceReport(startDate, endDate, role, direction, currencyList)
+            .stream()
+            .map(e -> e.toString())
+            .collect(Collectors.joining());
+
+    return value;
   }
 
 

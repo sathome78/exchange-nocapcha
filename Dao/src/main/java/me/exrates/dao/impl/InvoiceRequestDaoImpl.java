@@ -347,4 +347,22 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
     params.put("receipt_scan", receiptScanPath);
     parameterJdbcTemplate.update(sql, params);
   }
+
+  @Override
+  public List<InvoiceRequest> findAllByUserNameAndDateIntervalAndRoleAndCurrency(
+      String startDate,
+      String endDate,
+      List<Integer> roleIdList,
+      String direction,
+      List<String> currencyList) {
+    String sql = SELECT_ALL + " WHERE " +
+        "  TRANSACTION.datetime BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))) " +
+        "";
+    Map<String, String> params = Collections.singletonMap("email", email);
+    try {
+      return parameterJdbcTemplate.query(sql, params, invoiceRequestRowMapper);
+    } catch (EmptyResultDataAccessException e) {
+      return Collections.EMPTY_LIST;
+    }
+  }
 }

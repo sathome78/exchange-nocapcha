@@ -27,6 +27,8 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.math.BigDecimal.ROUND_HALF_UP;
 import static java.math.BigDecimal.ZERO;
@@ -192,6 +194,8 @@ public final class WalletServiceImpl implements WalletService {
         walletDao.update(wallet);
     }
 
+    @Override
+    @Transactional(readOnly = true)
     public List<UserWalletSummaryDto> getUsersWalletsSummary(List<Integer> roles) {
         return walletDao.getUsersWalletsSummary(roles);
     }
@@ -317,8 +321,16 @@ public final class WalletServiceImpl implements WalletService {
         return result;
     }
 
-
-
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserWalletSummaryDto> getUsersWalletsSummaryForPermittedCurrency(List<Integer> roles, Integer requesterUserId) {
+        Set<String> permittedCurrencies = currencyDao.getCurrencyWithPermittedOperationsByUser(requesterUserId).stream()
+            .map(e -> e.getCurrencyName())
+            .collect(Collectors.toSet());
+        return  walletDao.getUsersWalletsSummary(roles).stream()
+            .filter(e->permittedCurrencies.contains(e.getCurrencyName()))
+            .collect(Collectors.toList());
+    }
 
 
 }

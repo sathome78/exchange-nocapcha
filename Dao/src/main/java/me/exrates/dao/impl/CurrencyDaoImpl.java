@@ -230,8 +230,8 @@ public class CurrencyDaoImpl implements CurrencyDao {
 				"			 	AND (IOP.operation_direction=:operation_direction) " +
 				"				AND (IOP.user_id=:user_id) " +
 				" WHERE CUR.hidden IS NOT TRUE " +
-        " ORDER BY CUR.id ";
-		Map<String, Object> params = new HashMap<String, Object>(){{
+				" ORDER BY CUR.id ";
+		Map<String, Object> params = new HashMap<String, Object>() {{
 			put("user_id", userId);
 			put("operation_direction", operationDirection);
 		}};
@@ -240,7 +240,31 @@ public class CurrencyDaoImpl implements CurrencyDao {
 			dto.setUserId(userId);
 			dto.setCurrencyId(rs.getInt("id"));
 			dto.setCurrencyName(rs.getString("name"));
-			Integer permissionCode = rs.getObject("invoice_operation_permission_id")==null?0:(Integer)rs.getObject("invoice_operation_permission_id");
+			Integer permissionCode = rs.getObject("invoice_operation_permission_id") == null ? 0 : (Integer) rs.getObject("invoice_operation_permission_id");
+			dto.setInvoiceOperationPermission(InvoiceOperationPermission.convert(permissionCode));
+			return dto;
+		});
+	}
+
+	@Override
+	public List<UserCurrencyOperationPermissionDto> getCurrencyWithPermittedOperationsByUser(Integer userId) {
+		String sql = "SELECT CUR.id, CUR.name, IOP.invoice_operation_permission_id, IOP.operation_direction " +
+				" FROM CURRENCY CUR " +
+				" JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
+				"				(IOP.currency_id=CUR.id) " +
+				"				AND (IOP.user_id=:user_id) " +
+				" WHERE CUR.hidden IS NOT TRUE " +
+				" ORDER BY CUR.id ";
+		Map<String, Object> params = new HashMap<String, Object>() {{
+			put("user_id", userId);
+		}};
+		return jdbcTemplate.query(sql, params, (rs, row) -> {
+			UserCurrencyOperationPermissionDto dto = new UserCurrencyOperationPermissionDto();
+			dto.setUserId(userId);
+			dto.setCurrencyId(rs.getInt("id"));
+			dto.setCurrencyName(rs.getString("name"));
+			dto.setInvoiceOperationDirection(InvoiceOperationDirection.valueOf(rs.getString("operation_direction")));
+			Integer permissionCode = rs.getObject("invoice_operation_permission_id") == null ? 0 : (Integer) rs.getObject("invoice_operation_permission_id");
 			dto.setInvoiceOperationPermission(InvoiceOperationPermission.convert(permissionCode));
 			return dto;
 		});

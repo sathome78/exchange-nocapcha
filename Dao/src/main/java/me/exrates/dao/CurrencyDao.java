@@ -43,4 +43,6 @@ public interface CurrencyDao {
 	CurrencyPair findCurrencyPairById(int currencyPairId);
 
 	List<UserCurrencyOperationPermissionDto> findWithOperationPermissionByUserAndDirection(Integer userId, String operationDirection);
+
+  List<UserCurrencyOperationPermissionDto> getCurrencyWithPermittedOperationsByUser(Integer userId);
 }

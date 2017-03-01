@@ -51,4 +51,11 @@ public interface InvoiceRequestDao {
     void updateReceiptScan(Integer invoiceId, String receiptScanPath);
 
     void updateInvoiceRequestStatus(Integer invoiceRequestId, InvoiceRequestStatusEnum invoiceRequestStatus);
+
+    List<InvoiceRequest> findAllByUserNameAndDateIntervalAndRoleAndCurrency(
+        String startDate,
+        String endDate,
+        List<Integer> roleIdList,
+        String direction,
+        List<String> currencyList);
 }
