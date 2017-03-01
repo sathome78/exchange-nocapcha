@@ -54,9 +54,9 @@ public class PayeerServiceImpl implements PayeerService {
         properties.put("m_curr", creditsOperation.getCurrency().getName());
         properties.put("m_desc", algorithmService.base64Encode(m_desc));
 
-        String sign = algorithmService.sha256(properties.getProperty(m_shop) + ":" + properties.getProperty("m_orderid")
+        String sign = algorithmService.sha256(properties.getProperty("m_shop") + ":" + properties.getProperty("m_orderid")
                 + ":" + properties.getProperty("m_amount") + ":" + properties.getProperty("m_curr")
-                + ":" + properties.getProperty(m_desc) + ":" + m_key).toUpperCase();
+                + ":" + properties.getProperty("m_desc") + ":" + m_key).toUpperCase();
 
         properties.put("m_sign", sign);
 
