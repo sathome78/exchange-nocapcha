@@ -155,13 +155,6 @@ public class BitcoinServiceImpl implements BitcoinService {
 //    }, 0L, 60L * 5000);
   }
 
-  @Transactional
-  private void changeTransactionConfidenceForPendingPayment(
-      Integer invoiceId,
-      int confidenceLevel) {
-    transactionService.updateTransactionConfirmation(invoiceId, confidenceLevel);
-  }
-
   public void init() {
     try {
       InvoiceStatus beginStatus = PendingPaymentStatusEnum.getBeginState();
@@ -170,12 +163,7 @@ public class BitcoinServiceImpl implements BitcoinService {
         System.out.println(address);
         if (paymentDao.existsPendingPaymentWithAddressAndStatus(address, Arrays.asList(beginStatus.getCode()))) {
           String txHash = tx.getHashAsString();
-          PendingPaymentStatusDto pendingPayment = paymentDao.setStatusAndHashByAddressAndStatus(
-              address,
-              beginStatus.getCode(),
-              beginStatus.nextState(BCH_EXAMINE).getCode(),
-              txHash)
-              .orElseThrow(() -> new InvoiceNotFoundException(address));
+          PendingPaymentStatusDto pendingPayment = markStartConfirmationProcessing(address, txHash);
           final Integer invoiceId = pendingPayment.getInvoiceId();
           List<ListenableFuture<TransactionConfidence>> confirmations = IntStream.rangeClosed(1, CONFIRMATION_NEEDED_COUNT)
               .mapToObj(x -> tx.getConfidence().getDepthFuture(x))
@@ -389,6 +377,27 @@ public class BitcoinServiceImpl implements BitcoinService {
   public PendingPaymentSimpleDto getPendingPaymentSimple(Integer pendingPaymentId) throws Exception {
     return paymentDao.findById(pendingPaymentId)
         .orElseThrow(() -> new InvoiceNotFoundException(pendingPaymentId.toString()));
+  }
+
+  @Transactional
+  private PendingPaymentStatusDto markStartConfirmationProcessing(String address, String txHash){
+    InvoiceStatus beginStatus = PendingPaymentStatusEnum.getBeginState();
+    PendingPaymentStatusDto pendingPayment = paymentDao.setStatusAndHashByAddressAndStatus(
+        address,
+        beginStatus.getCode(),
+        beginStatus.nextState(BCH_EXAMINE).getCode(),
+        txHash)
+        .orElseThrow(() -> new InvoiceNotFoundException(address));
+    Integer invoiceId = pendingPayment.getInvoiceId();
+    changeTransactionConfidenceForPendingPayment(invoiceId, 0);
+    return pendingPayment;
+  }
+
+  @Transactional
+  private void changeTransactionConfidenceForPendingPayment(
+      Integer invoiceId,
+      int confidenceLevel) {
+    transactionService.updateTransactionConfirmation(invoiceId, confidenceLevel);
   }
 
 }

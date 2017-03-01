@@ -78,7 +78,7 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setMerchant(creditsOperation.getMerchant());
         transaction.setOperationType(creditsOperation.getOperationType());
         transaction.setProvided(false);
-        transaction.setConfirmation((currencyName).equals("BTC") ? 0 : -1);
+        transaction.setConfirmation((currencyName).equals("BTC") ? -1 : -1);
         transaction.setSourceType(creditsOperation.getTransactionSourceType());
         transaction = transactionDao.create(transaction);
         if (transaction == null) {

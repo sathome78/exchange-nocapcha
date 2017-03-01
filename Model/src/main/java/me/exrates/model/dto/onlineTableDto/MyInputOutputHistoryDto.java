@@ -64,6 +64,8 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
             return false;
         if (invoiceRequestStatusId != null ? !invoiceRequestStatusId.equals(that.invoiceRequestStatusId) : that.invoiceRequestStatusId != null)
             return false;
+        if (confirmation != null ? !confirmation.equals(that.confirmation) : that.confirmation != null)
+            return false;
         return transactionProvided != null ? transactionProvided.equals(that.transactionProvided) : that.transactionProvided == null;
 
     }
@@ -80,6 +82,7 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
         result = 31 * result + (transactionProvided != null ? transactionProvided.hashCode() : 0);
         result = 31 * result + (confirmationRequired != null ? confirmationRequired.hashCode() : 0);
         result = 31 * result + (invoiceRequestStatusId != null ? invoiceRequestStatusId.hashCode() : 0);
+        result = 31 * result + (confirmation != null ? confirmation.hashCode() : 0);
         return result;
     }
 
