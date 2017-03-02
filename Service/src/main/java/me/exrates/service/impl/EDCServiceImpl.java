@@ -224,9 +224,11 @@ public class EDCServiceImpl implements EDCService {
 
     @Transactional(propagation = NESTED)
     private String createAccount(final int id) throws Exception {
+        LOG.info("Start method createAccount");
         final String accountName = (ACCOUNT_PREFIX + id + UUID.randomUUID()).toLowerCase();
         final EnumMap<KEY_TYPE, String> keys = extractKeys(makeRpcCallDelayed(NEW_KEY_PAIR_RPC, id)); // retrieve public and private from server
         final String response = makeRpcCallDelayed(REGISTER_NEW_ACCOUNT_RPC, accountName, keys.get(KEY_TYPE.PUBLIC), keys.get(KEY_TYPE.PUBLIC), REGISTRAR_ACCOUNT, REFERRER_ACCOUNT, String.valueOf(id));
+        LOG.info("bit_response: " + response.toString());
         if (response.contains("error")) {
             throw new Exception("Could not create new account!\n" + response);
         }
