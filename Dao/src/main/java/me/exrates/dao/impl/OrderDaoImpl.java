@@ -7,6 +7,8 @@ import me.exrates.jdbc.OrderRowMapper;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.AdminOrderFilterData;
 import me.exrates.model.dto.mobileApiDto.dashboard.CommissionsDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
@@ -52,20 +54,6 @@ public class OrderDaoImpl implements OrderDao {
 
     @Autowired
     WalletDao walletDao;
-
-    private static final Map<String, String> SEARCH_CLAUSES = new HashMap<String, String>() {{
-        put("order_id", "EXORDERS.id = :order_id");
-        put("currency_pair_id", "EXORDERS.currency_pair_id = :currency_pair_id");
-        put("operation_type_id", "EXORDERS.operation_type_id = :operation_type_id");
-        put("date_from", "EXORDERS.date_creation >= STR_TO_DATE(:date_from, '%Y-%m-%d %H:%i:%s')");
-        put("date_to", "EXORDERS.date_creation <= STR_TO_DATE(:date_to, '%Y-%m-%d %H:%i:%s')");
-        put("exrate_from", "EXORDERS.exrate >= :exrate_from");
-        put("exrate_to", "EXORDERS.exrate <= :exrate_to");
-        put("amount_base_from", "EXORDERS.amount_base >= :amount_base_from");
-        put("amount_base_to", "EXORDERS.amount_base <= :amount_base_to");
-        put("creator_email", "EXORDERS.user_id = (SELECT id FROM USER WHERE email = :creator_email)");
-        put("acceptor_email", "EXORDERS.user_acceptor_id = (SELECT id FROM USER WHERE email = :acceptor_email)");
-    }};
 
     public int createOrder(ExOrder exOrder) {
         String sql = "INSERT INTO EXORDERS" +
@@ -905,10 +893,7 @@ public class OrderDaoImpl implements OrderDao {
 
 
     @Override
-    public PagingData<List<OrderBasicInfoDto>> searchOrders(Integer currencyPair, Integer orderId, Integer orderType, String orderDateFrom, String orderDateTo,
-                                                            BigDecimal orderRateFrom, BigDecimal orderRateTo, BigDecimal orderVolumeFrom,
-                                                            BigDecimal orderVolumeTo, String creatorEmail, String acceptorEmail, Locale locale,
-                                                            int offset, int limit, String orderColumnName, String orderDirection) {
+    public PagingData<List<OrderBasicInfoDto>> searchOrders(AdminOrderFilterData adminOrderFilterData, DataTableParams dataTableParams, Locale locale) {
         String sqlSelect = " SELECT  " +
                 "     EXORDERS.id, EXORDERS.date_creation, EXORDERS.status_id AS status, " +
                 "     CURRENCY_PAIR.name as currency_pair_name,  " +
@@ -920,32 +905,31 @@ public class OrderDaoImpl implements OrderDao {
                 "      JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) " +
                 "      JOIN USER CREATOR ON (CREATOR.id = EXORDERS.user_id) ";
         String sqlSelectCount = "SELECT COUNT(*) ";
-        String orderAndPageClause = new StringJoiner(" ").add(" ORDER BY")
-                .add(orderColumnName)
-                .add(orderDirection)
-                .add("LIMIT").add(String.valueOf(limit))
-                .add("OFFSET").add(String.valueOf(offset)).toString();
+        String limit;
+        if (dataTableParams.getLength() > 0) {
+            String offset = dataTableParams.getStart() > 0 ? " OFFSET :offset " : "";
+            limit = " LIMIT :limit " + offset;
+        } else {
+            limit = "";
+        }
+
+
+        String orderBy = new StringJoiner(" ").add(" ORDER BY")
+                .add(dataTableParams.getOrderColumnName())
+                .add(dataTableParams.getOrderDirectionName()).toString();
 
 
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-        Map<String, String> namedParameters = new HashMap<>();
-        namedParameters.put("order_id", String.valueOf(orderId));
-        namedParameters.put("currency_pair_id", String.valueOf(currencyPair));
-        namedParameters.put("operation_type_id", String.valueOf(orderType));
-        namedParameters.put("date_from", orderDateFrom);
-        namedParameters.put("date_to", orderDateTo);
-        namedParameters.put("exrate_from", String.valueOf(orderRateFrom));
-        namedParameters.put("exrate_to", String.valueOf(orderRateTo));
-        namedParameters.put("amount_base_from", String.valueOf(orderVolumeFrom));
-        namedParameters.put("amount_base_to", String.valueOf(orderVolumeTo));
-        namedParameters.put("creator_email", creatorEmail);
-        namedParameters.put("acceptor_email", acceptorEmail);
-        String criteria = defineCriteria(namedParameters);
-        String whereClause = criteria.isEmpty() ? "" : "WHERE " + criteria;
+        Map<String, Object> namedParameters = new HashMap<>();
+        namedParameters.put("offset", dataTableParams.getStart());
+        namedParameters.put("limit", dataTableParams.getLength());
+
+        String criteria = adminOrderFilterData.getSQLFilterClause();
+        String whereClause = StringUtils.isNotEmpty(criteria) ? "WHERE " + criteria : "";
         String selectQuery = new StringJoiner(" ").add(sqlSelect)
                 .add(sqlFrom)
                 .add(whereClause)
-                .add(orderAndPageClause).toString();
+                .add(orderBy).add(limit).toString();
         String selectCountQuery = new StringJoiner(" ").add(sqlSelectCount)
                 .add(sqlFrom)
                 .add(whereClause).toString();
@@ -963,6 +947,7 @@ public class OrderDaoImpl implements OrderDao {
             infoDto.setExrate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("exrate"), locale, 2));
             infoDto.setAmountBase(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount_base"), locale, 2));
             infoDto.setOrderCreatorEmail(rs.getString("order_creator_email"));
+            infoDto.setStatusId(rs.getInt("status"));
             infoDto.setStatus(OrderStatus.convert(rs.getInt("status")).toString());
             return infoDto;
 
@@ -976,23 +961,6 @@ public class OrderDaoImpl implements OrderDao {
         return result;
 
 
-    }
-
-
-    private String defineCriteria(Map<String, String> namedParameters) {
-        String emptyValue = "";
-        StringJoiner stringJoiner = new StringJoiner(" AND ");
-        stringJoiner.setEmptyValue(emptyValue);
-        namedParameters.forEach((name, value) -> {
-            if (checkPresent(value)) {
-                stringJoiner.add(SEARCH_CLAUSES.get(name));
-            }
-        });
-        return stringJoiner.toString();
-    }
-
-    private boolean checkPresent(String param) {
-        return !(param == null || param.isEmpty() || "null".equals(param));
     }
 
     @Override

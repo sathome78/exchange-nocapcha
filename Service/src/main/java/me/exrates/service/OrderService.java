@@ -5,6 +5,8 @@ import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
+import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.AdminOrderFilterData;
 import me.exrates.model.dto.mobileApiDto.dashboard.CommissionsDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
@@ -255,20 +257,7 @@ public interface OrderService {
                                                                            OperationType operationType);
 
     @Transactional
-    DataTable<List<OrderBasicInfoDto>> findOrders(Integer currencyPair, Integer orderId, String orderType, String orderDateFrom, String orderDateTo,
-                                                  BigDecimal orderRateFrom, BigDecimal orderRateTo, BigDecimal orderVolumeFrom,
-                                                  BigDecimal orderVolumeTo, String creatorEmail, String acceptorEmail, Locale locale);
-
-    DataTable<List<OrderBasicInfoDto>> findOrders(Integer currencyPair, Integer orderId, String orderType, String orderDateFrom, String orderDateTo,
-                                                  BigDecimal orderRateFrom, BigDecimal orderRateTo, BigDecimal orderVolumeFrom,
-                                                  BigDecimal orderVolumeTo, String creatorEmail, String acceptorEmail, Locale locale,
-                                                  int offset, int limit, String orderColumnName, String orderDirection);
-
-    @Transactional
-    DataTable<List<OrderBasicInfoDto>> searchOrdersByAdmin(Integer currencyPair, Integer orderId, String orderType, String orderDateFrom, String orderDateTo,
-                                                           BigDecimal orderRateFrom, BigDecimal orderRateTo, BigDecimal orderVolumeFrom,
-                                                           BigDecimal orderVolumeTo, String creatorEmail, String acceptorEmail, Locale locale,
-                                                           Map<String, String> params);
+    DataTable<List<OrderBasicInfoDto>> searchOrdersByAdmin(AdminOrderFilterData adminOrderFilterData, DataTableParams dataTableParams, Locale locale);
 
     List<OrderWideListDto> getUsersOrdersWithStateForAdmin(String email, CurrencyPair currencyPair, OrderStatus status,
                                                            OperationType operationType,

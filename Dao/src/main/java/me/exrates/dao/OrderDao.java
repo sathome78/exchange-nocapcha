@@ -5,6 +5,8 @@ import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.PagingData;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.AdminOrderFilterData;
 import me.exrates.model.dto.mobileApiDto.dashboard.CommissionsDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
@@ -73,10 +75,7 @@ public interface OrderDao {
 
     boolean lockOrdersListForAcception(List<Integer> ordersList);
 
-    PagingData<List<OrderBasicInfoDto>> searchOrders(Integer currencyPair, Integer orderId, Integer orderType, String orderDateFrom, String orderDateTo,
-                                                     BigDecimal orderRateFrom, BigDecimal orderRateTo, BigDecimal orderVolumeFrom,
-                                                     BigDecimal orderVolumeTo, String creatorEmail, String acceptorEmail, Locale locale,
-                                                     int offset, int limit, String orderColumnName, String orderDirection);
+    PagingData<List<OrderBasicInfoDto>> searchOrders(AdminOrderFilterData adminOrderFilterData, DataTableParams dataTableParams, Locale locale);
 
     List<ExOrder> selectTopOrders(Integer currencyPairId, BigDecimal exrate,
                                   OperationType orderType);

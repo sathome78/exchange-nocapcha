@@ -6,6 +6,7 @@ import me.exrates.model.*;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.AdminOrderFilterData;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
@@ -145,6 +146,7 @@ public class AdminController {
     ModelAndView model = new ModelAndView();
     List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairs();
     model.addObject("currencyPairList", currencyPairList);
+    model.addObject("statusList", Arrays.asList(OrderStatus.values()));
     model.setViewName("admin/order_delete");
     return model;
   }
@@ -661,36 +663,21 @@ public class AdminController {
   }
 
   @ResponseBody
-  @RequestMapping(value = "/2a8fy7b07dxe44/searchorder", method = RequestMethod.GET)
-  public Integer searchOrderByAdmin(@RequestParam Integer currencyPair,
-                                    @RequestParam String orderType,
-                                    @RequestParam String orderDate,
-                                    @RequestParam BigDecimal orderRate,
-                                    @RequestParam BigDecimal orderVolume) {
-    return orderService.searchOrderByAdmin(currencyPair, orderType, orderDate, orderRate, orderVolume);
-  }
-
-
-  @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/searchorders", method = RequestMethod.GET)
-  public DataTable<List<OrderBasicInfoDto>> searchOrderByAdmin(@RequestParam(required = false) Integer currencyPair,
-                                                               @RequestParam(required = false) Integer orderId,
-                                                               @RequestParam(required = false) String orderType,
-                                                               @RequestParam(required = false) String orderDateFrom,
-                                                               @RequestParam(required = false) String orderDateTo,
-                                                               @RequestParam(required = false) BigDecimal orderRateFrom,
-                                                               @RequestParam(required = false) BigDecimal orderRateTo,
-                                                               @RequestParam(required = false) BigDecimal orderVolumeFrom,
-                                                               @RequestParam(required = false) BigDecimal orderVolumeTo,
-                                                               @RequestParam(required = false) String creator,
-                                                               @RequestParam(required = false) String acceptor,
+  public DataTable<List<OrderBasicInfoDto>> searchOrderByAdmin(AdminOrderFilterData adminOrderFilterData,
                                                                @RequestParam Map<String, String> params,
                                                                HttpServletRequest request) {
 
     try {
-      DataTable<List<OrderBasicInfoDto>> orderInfo = orderService.searchOrdersByAdmin(currencyPair, orderId, orderType,
-          orderDateFrom, orderDateTo, orderRateFrom, orderRateTo, orderVolumeFrom,
-          orderVolumeTo, creator, acceptor, localeResolver.resolveLocale(request), params);
+      adminOrderFilterData.initFilterItems();
+      LOG.debug(adminOrderFilterData);
+      LOG.debug(adminOrderFilterData.getNamedParams());
+      LOG.debug(adminOrderFilterData.getSQLFilterClause());
+      DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
+      LOG.debug(dataTableParams);
+
+      DataTable<List<OrderBasicInfoDto>> orderInfo = orderService.searchOrdersByAdmin(adminOrderFilterData, dataTableParams,
+              localeResolver.resolveLocale(request));
       LOG.debug(orderInfo);
 
       return orderInfo;

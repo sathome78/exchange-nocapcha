@@ -126,10 +126,12 @@ function searchOrder() {
             "bFilter": false,
             "columns": [
                 {
-                    "data": "id"
+                    "data": "id",
+                    "name": "EXORDERS.id"
                 },
                 {
                     "data": "dateCreation",
+                    "name": "EXORDERS.date_creation",
                     "render": function (data, type, row) {
                         if (type == 'display') {
                             return data.split(' ')[0] + '<br/>' + data.split(' ')[1];
@@ -138,22 +140,28 @@ function searchOrder() {
                     }
                 },
                 {
-                    "data": "currencyPairName"
+                    "data": "currencyPairName",
+                    "name": "CURRENCY_PAIR.name"
                 },
                 {
-                    "data": "orderTypeName"
+                    "data": "orderTypeName",
+                    "name": "ORDER_OPERATION.name"
                 },
                 {
-                    "data": "exrate"
+                    "data": "exrate",
+                    "name": "EXORDERS.exrate"
                 },
                 {
-                    "data": "amountBase"
+                    "data": "amount_base",
+                    "name": "EXORDERS.amount_base"
                 },
                 {
-                    "data": "orderCreatorEmail"
+                    "data": "orderCreatorEmail",
+                    "name": "CREATOR.email"
                 },
                 {
-                    "data": "status"
+                    "data": "status",
+                    "name": "EXORDERS.status_id"
                 }
 
 
