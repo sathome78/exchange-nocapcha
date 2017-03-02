@@ -58,7 +58,7 @@ public class EDCClientWebSocketHandler {
     private void subscribeForBlockchainUpdates() {
         try {
             session = ContainerProvider.getWebSocketContainer()
-                    .connectToServer(this, URI.create("ws://127.0.0.1:8089"));
+                    .connectToServer(this, URI.create("wss://blockchain-delayed.edinarcoin.com"));
             session.setMaxBinaryMessageBufferSize(5012000);
             session.setMaxTextMessageBufferSize(5012000);
             session.setMaxIdleTimeout(Long.MAX_VALUE);
