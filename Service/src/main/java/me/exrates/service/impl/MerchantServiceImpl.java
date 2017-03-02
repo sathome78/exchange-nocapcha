@@ -81,6 +81,7 @@ public class MerchantServiceImpl implements MerchantService {
   private static final Logger LOG = LogManager.getLogger("merchant");
 
   @Override
+  @Transactional
   public Map<String, String> acceptWithdrawalRequest(final int requestId,
                                                      final Locale locale,
                                                      final Principal principal) {
@@ -109,6 +110,7 @@ public class MerchantServiceImpl implements MerchantService {
   }
 
   @Override
+  @Transactional
   public Map<String, Object> declineWithdrawalRequest(final int requestId, final Locale locale, String email) {
     final Optional<WithdrawRequest> withdraw = withdrawRequestDao.findById(requestId);
     if (!withdraw.isPresent()) {
