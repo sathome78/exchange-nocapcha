@@ -13,7 +13,7 @@ function InputOutputClass(currentCurrencyPair) {
     /**/
     var that = this;
     var timeOutIdForInputOutputData;
-    var refreshIntervalForInputOutputData = 5000 * REFRESH_INTERVAL_MULTIPLIER;
+    var refreshIntervalForInputOutputData = 30000 * REFRESH_INTERVAL_MULTIPLIER;
     /**/
     var showLog = false;
     /**/

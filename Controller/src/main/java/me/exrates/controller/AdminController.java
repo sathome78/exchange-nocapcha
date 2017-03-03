@@ -781,14 +781,28 @@ public class AdminController {
     return value;
   }
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/downloadUsersWalletsSummaryTotalInOut", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
-  @ResponseBody
-  public String getUsersWalletsSummeryTotalInOut(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
-    String value = UserSummaryTotalInOutDto.getTitle() +
-        userService.getUsersSummaryTotalInOutList(startDate, endDate, BusinessUserRoleEnum.getRealUserRoleIdList(role))
-            .stream()
-            .map(e -> e.toString())
-            .collect(Collectors.joining());
+    @RequestMapping(value = "/2a8fy7b07dxe44/downloadUserSummaryOrdersByCurrencyPairs", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
+    @ResponseBody
+    public String getUserSummaryOrdersByCurrencyPairs(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
+
+        List<UserSummaryOrdersByCurrencyPairsDto> list = userService.getUserSummaryOrdersByCurrencyPairList(startDate, endDate, userService.resolveRoleIdsByName(role));
+
+        String value = "Orders by currency pairs from" + startDate.substring(0,10) + " till " + endDate.substring(0,10) + ": \n \n" + UserSummaryOrdersByCurrencyPairsDto.getTitle() +
+                list.stream()
+                        .map(e -> e.toString())
+                        .collect(Collectors.joining());
+
+        return value;
+    }
+
+    @RequestMapping(value = "/2a8fy7b07dxe44/downloadUsersWalletsSummaryTotalInOut", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
+    @ResponseBody
+    public String getUsersWalletsSummeryTotalInOut(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
+        String value = UserSummaryTotalInOutDto.getTitle() +
+                userService.getUsersSummaryTotalInOutList(startDate, endDate, userService.resolveRoleIdsByName(role))
+                        .stream()
+                        .map(e -> e.toString())
+                        .collect(Collectors.joining());
 
     return value;
   }

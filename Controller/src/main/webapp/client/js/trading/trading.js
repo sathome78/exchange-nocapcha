@@ -15,8 +15,10 @@ function TradingClass(period, chartType, currentCurrencyPair) {
 
     var $tradingContainer = $('#trading');
     var dashboardCurrencyPairSelector;
-    var refreshInterval = 5000 * REFRESH_INTERVAL_MULTIPLIER;
-    var timeOutId;
+    var timeOutIdForOrders;
+    var ordersRefreshInterval = 5000 * REFRESH_INTERVAL_MULTIPLIER;
+    var timeOutIdForStatistics;
+    var statisticsRefreshInterval = 10000 * REFRESH_INTERVAL_MULTIPLIER;
     var $graphicsLoadingImg = $('#graphics-container').find('.loading');
     /**/
     var showLog = false;
@@ -37,15 +39,31 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         dashboardCurrencyPairSelector.syncState();
     };
 
-    this.updateAndShowAll = function (refreshIfNeeded) {
+    this.updateAndShowStatistics = function (refreshIfNeeded) {
+        if (showLog) {
+            console.log("statistics");
+        }
         that.getAndShowAcceptedOrdersHistory(refreshIfNeeded, function () {
             that.getAndShowAcceptedOrdersHistory_myDeals(refreshIfNeeded);
             that.getAndShowStatisticsForCurrency();
             that.getAndShowChart();
         });
+    };
+
+    this.updateAndShowOrders = function (refreshIfNeeded) {
+        if (showLog) {
+            console.log("orders");
+        }
         that.getAndShowSellOrders(refreshIfNeeded);
         that.getAndShowBuyOrders(refreshIfNeeded);
+    };
 
+    this.updateAndShowAll = function (refreshIfNeeded) {
+        if (showLog) {
+            console.log("all");
+        }
+        that.updateAndShowStatistics(refreshIfNeeded);
+        that.updateAndShowOrders(refreshIfNeeded);
     };
 
     this.getAndShowStatisticsForCurrency = function () {
@@ -69,6 +87,9 @@ function TradingClass(period, chartType, currentCurrencyPair) {
     };
 
     this.getAndShowChart = function () {
+        if (showLog) {
+            console.log("chart")
+        }
         if ($tradingContainer.hasClass('hidden') || !windowIsActive) {
             return;
         }
@@ -79,10 +100,10 @@ function TradingClass(period, chartType, currentCurrencyPair) {
 
     this.getAndShowAcceptedOrdersHistory = function (refreshIfNeeded, callback) {
         if ($tradingContainer.hasClass('hidden') || !windowIsActive) {
-            clearTimeout(timeOutId);
-            timeOutId = setTimeout(function () {
-                that.updateAndShowAll(true);
-            }, refreshInterval);
+            clearTimeout(timeOutIdForStatistics);
+            timeOutIdForStatistics = setTimeout(function () {
+                that.updateAndShowStatistics(true);
+            }, statisticsRefreshInterval);
             return;
         }
         if (showLog) {
@@ -109,20 +130,20 @@ function TradingClass(period, chartType, currentCurrencyPair) {
                         callback();
                     }
                 }
-                clearTimeout(timeOutId);
-                timeOutId = setTimeout(function () {
-                    that.updateAndShowAll(true);
-                }, refreshInterval);
+                clearTimeout(timeOutIdForStatistics);
+                timeOutIdForStatistics = setTimeout(function () {
+                    that.updateAndShowStatistics(true);
+                }, statisticsRefreshInterval);
             }
         });
     };
 
     this.getAndShowAcceptedOrdersHistory_myDeals = function (refreshIfNeeded) {
         if ($tradingContainer.hasClass('hidden') || !windowIsActive || $('#orders-history-table__my-deals').hasClass('hidden')) {
-            clearTimeout(timeOutId);
-            timeOutId = setTimeout(function () {
-                that.updateAndShowAll(true);
-            }, refreshInterval);
+            clearTimeout(timeOutIdForStatistics);
+            timeOutIdForStatistics = setTimeout(function () {
+                that.updateAndShowStatistics(true);
+            }, statisticsRefreshInterval);
             return;
         }
         if (showLog) {
@@ -146,20 +167,20 @@ function TradingClass(period, chartType, currentCurrencyPair) {
                     });
                     blink($ordersHistoryTable);
                 }
-                clearTimeout(timeOutId);
-                timeOutId = setTimeout(function () {
-                    that.updateAndShowAll(true);
-                }, refreshInterval);
+                clearTimeout(timeOutIdForStatistics);
+                timeOutIdForStatistics = setTimeout(function () {
+                    that.updateAndShowStatistics(true);
+                }, statisticsRefreshInterval);
             }
         });
     };
 
     this.getAndShowSellOrders = function (refreshIfNeeded) {
         if ($tradingContainer.hasClass('hidden') || !windowIsActive) {
-            clearTimeout(timeOutId);
-            timeOutId = setTimeout(function () {
-                that.updateAndShowAll(true);
-            }, refreshInterval);
+            clearTimeout(timeOutIdForOrders);
+            timeOutIdForOrders = setTimeout(function () {
+                that.updateAndShowOrders(true);
+            }, ordersRefreshInterval);
             return;
         }
         if (showLog) {
@@ -183,20 +204,20 @@ function TradingClass(period, chartType, currentCurrencyPair) {
                     });
                     blink($('#dashboard-orders-sell-table'));
                 }
-                clearTimeout(timeOutId);
-                timeOutId = setTimeout(function () {
-                    that.updateAndShowAll(true);
-                }, refreshInterval);
+                clearTimeout(timeOutIdForOrders);
+                timeOutIdForOrders = setTimeout(function () {
+                    that.updateAndShowOrders(true);
+                }, ordersRefreshInterval);
             }
         });
     };
 
     this.getAndShowBuyOrders = function (refreshIfNeeded) {
         if ($tradingContainer.hasClass('hidden') || !windowIsActive) {
-            clearTimeout(timeOutId);
-            timeOutId = setTimeout(function () {
-                that.updateAndShowAll(true);
-            }, refreshInterval);
+            clearTimeout(timeOutIdForOrders);
+            timeOutIdForOrders = setTimeout(function () {
+                that.updateAndShowOrders(true);
+            }, ordersRefreshInterval);
             return;
         }
         if (showLog) {
@@ -220,15 +241,15 @@ function TradingClass(period, chartType, currentCurrencyPair) {
                     });
                     blink($('#dashboard-orders-buy-table'));
                 }
-                clearTimeout(timeOutId);
-                timeOutId = setTimeout(function () {
-                    that.updateAndShowAll(true);
-                }, refreshInterval);
+                clearTimeout(timeOutIdForOrders);
+                timeOutIdForOrders = setTimeout(function () {
+                    that.updateAndShowOrders(true);
+                }, ordersRefreshInterval);
             }
         });
     };
 
-    this.fillOrderCreationFormFields = function() {
+    this.fillOrderCreationFormFields = function () {
         $(document).one("ajaxStop", function () {
             var currencyPairName = $('.currency-pair-selector__button').first().text().trim();
             var initialAmount = 1;
@@ -248,7 +269,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
     };
 
     this.fillOrderBalance = function (currencyPairName) {
-        if ($('#currentBaseBalance').length > 0 && $('#currentConvertBalance').length > 0)  {
+        if ($('#currentBaseBalance').length > 0 && $('#currentConvertBalance').length > 0) {
             var currencies = currencyPairName.split('\/');
             var currentBaseBalance = getCurrentBalanceByCurrency(currencies[0]);
             var currentConvertBalance = getCurrentBalanceByCurrency(currencies[1]);
@@ -281,15 +302,14 @@ function TradingClass(period, chartType, currentCurrencyPair) {
     }
 
 
-
-    this.resetOrdersListForAccept = function() {
+    this.resetOrdersListForAccept = function () {
         if (that.ordersListForAccept.length != 0) {
             that.ordersListForAccept = [];
             switchCreateOrAcceptButtons();
         }
     };
 
-    this.clearOrdersCreationForm = function() {
+    this.clearOrdersCreationForm = function () {
         $('.item__input').val('');
         $('.buyBTC__input').val('');
         calculateFieldsForBuy();

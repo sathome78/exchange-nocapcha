@@ -88,6 +88,12 @@
                                 <loc:message
                                         code="wallets.downloadOrders"/></button>
                         </div>
+                        <div class="row">
+                            <button id="upload-users-wallets-orders-by-currency-pairs" class="blue-box pull-right"
+                                    onclick="uploadUserWalletsOrdersByCurrencyPairs('${mapRole.key}')" type="submit">
+                                <loc:message
+                                        code="wallets.downloadOrdersByCurrencyPairs"/></button>
+                        </div>
                         <c:forEach var="wallet" items="${mapRole.value}">
                             <div class="block">
                                 <div class="currency">${wallet.currencyName}</div>

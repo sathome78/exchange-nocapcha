@@ -850,22 +850,67 @@ public class UserDaoImpl implements UserDao {
     namedParameters.put("end_date", endDate);
     namedParameters.put("roles", roles);
 
-    ArrayList<UserSummaryOrdersDto> result = (ArrayList<UserSummaryOrdersDto>) namedParameterJdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<UserSummaryOrdersDto>() {
-      @Override
-      public UserSummaryOrdersDto mapRow(ResultSet rs, int rowNumber) throws SQLException {
-        UserSummaryOrdersDto userSummaryOrdersDto = new UserSummaryOrdersDto();
-        userSummaryOrdersDto.setUserEmail(rs.getString("email"));
-        userSummaryOrdersDto.setWallet(rs.getString("currency_name"));
-        userSummaryOrdersDto.setRole(rs.getString("role"));
-        userSummaryOrdersDto.setAmountBuy(rs.getBigDecimal("amount_buy"));
-        userSummaryOrdersDto.setAmountBuyFee(rs.getBigDecimal("amount_buy_fee"));
-        userSummaryOrdersDto.setAmountSell(rs.getBigDecimal("amount_sell"));
-        userSummaryOrdersDto.setAmountSellFee(rs.getBigDecimal("amount_sell_fee"));
-        return userSummaryOrdersDto;
-      }
-    });
-    return result;
-  }
+        ArrayList<UserSummaryOrdersDto> result = (ArrayList<UserSummaryOrdersDto>) jdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<UserSummaryOrdersDto>() {
+            @Override
+            public UserSummaryOrdersDto mapRow(ResultSet rs, int rowNumber) throws SQLException {
+                UserSummaryOrdersDto userSummaryOrdersDto = new UserSummaryOrdersDto();
+                userSummaryOrdersDto.setUserEmail(rs.getString("email"));
+                userSummaryOrdersDto.setWallet(rs.getString("currency_name"));
+                userSummaryOrdersDto.setRole(rs.getString("role"));
+                userSummaryOrdersDto.setAmountBuy(rs.getBigDecimal("amount_buy"));
+                userSummaryOrdersDto.setAmountBuyFee(rs.getBigDecimal("amount_buy_fee"));
+                userSummaryOrdersDto.setAmountSell(rs.getBigDecimal("amount_sell"));
+                userSummaryOrdersDto.setAmountSellFee(rs.getBigDecimal("amount_sell_fee"));
+                return userSummaryOrdersDto;
+            }
+        });
+        return result;
+    }
+
+    @Override
+    public List<UserSummaryOrdersByCurrencyPairsDto> getUserSummaryOrdersByCurrencyPairList(String startDate, String endDate, List<Integer> roles) {
+        String condition = "";
+        if (!roles.isEmpty()){
+            condition = " AND USER_ROLE.id IN (:roles) ";
+        }
+
+        String sql = "SELECT (select name from OPERATION_TYPE where id = EXORDERS.operation_type_id) as operation, date_acception, " +
+                "(select email from USER where id = EXORDERS.user_id) as user_owner, \n" +
+                "(select nickname from USER where id = EXORDERS.user_id) as user_owner_nickname, \n" +
+                "(select email from USER where id = EXORDERS.user_acceptor_id) as user_acceptor, \n" +
+                "(select nickname from USER where id = EXORDERS.user_acceptor_id) as user_acceptor_nickname, \n" +
+                "(select name from CURRENCY_PAIR where id = EXORDERS.currency_pair_id) as currency_pair, amount_base, amount_convert, exrate \n" +
+                "from EXORDERS join USER on(USER.id=EXORDERS.user_id) join USER_ROLE on(USER_ROLE.id = USER.roleid) \n" +
+                "  WHERE status_id =3    \n" +
+                condition +
+                "AND (operation_type_id IN (3,4))  \n" +
+                "AND  (DATE_FORMAT(EXORDERS.date_acception, '%Y-%m-%d %H:%i:%s') BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') \n" +
+                "AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))\n" +
+                "ORDER BY date_acception, date_creation";
+        Map<String, Object> namedParameters = new HashMap<>();
+        namedParameters.put("start_date", startDate);
+        namedParameters.put("end_date", endDate);
+        namedParameters.put("roles", roles);
+
+        ArrayList<UserSummaryOrdersByCurrencyPairsDto> result = (ArrayList<UserSummaryOrdersByCurrencyPairsDto>) jdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<UserSummaryOrdersByCurrencyPairsDto>() {
+            @Override
+            public UserSummaryOrdersByCurrencyPairsDto mapRow(ResultSet rs, int rowNumber) throws SQLException {
+                UserSummaryOrdersByCurrencyPairsDto userSummaryOrdersByCurrencyPairsDto = new UserSummaryOrdersByCurrencyPairsDto();
+                userSummaryOrdersByCurrencyPairsDto.setOperationType(rs.getString("operation"));
+                userSummaryOrdersByCurrencyPairsDto.setDate(rs.getTimestamp("date_acception").toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                userSummaryOrdersByCurrencyPairsDto.setOwnerEmail(rs.getString("user_owner"));
+                userSummaryOrdersByCurrencyPairsDto.setOwnerNickname(rs.getString("user_owner_nickname"));
+                userSummaryOrdersByCurrencyPairsDto.setAcceptorEmail(rs.getString("user_acceptor"));
+                userSummaryOrdersByCurrencyPairsDto.setAcceptorNickname(rs.getString("user_acceptor_nickname"));
+                userSummaryOrdersByCurrencyPairsDto.setCurrencyPair(rs.getString("currency_pair"));
+                userSummaryOrdersByCurrencyPairsDto.setAmountBase(rs.getBigDecimal("amount_base"));
+                userSummaryOrdersByCurrencyPairsDto.setAmountConvert(rs.getBigDecimal("amount_convert"));
+                userSummaryOrdersByCurrencyPairsDto.setExrate(rs.getBigDecimal("exrate"));
+                return userSummaryOrdersByCurrencyPairsDto;
+            }
+        });
+        return result;
+    }
 
   @Override
   public List<UserSessionInfoDto> getUserSessionInfo(Set<String> emails) {

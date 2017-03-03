@@ -29,10 +29,11 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(final WebSocketHandlerRegistry registry) {
-        registry.addHandler(handlers.get(EN), "/chat-en").withSockJS();
+        //TODO temporary disable
+        /*registry.addHandler(handlers.get(EN), "/chat-en").withSockJS();
         registry.addHandler(handlers.get(RU), "/chat-ru").withSockJS();
         registry.addHandler(handlers.get(CN), "/chat-cn").withSockJS();
-        registry.addHandler(handlers.get(AR), "/chat-ar").withSockJS();
+        registry.addHandler(handlers.get(AR), "/chat-ar").withSockJS();*/
     }
 
     @Bean(name = "chatEN")

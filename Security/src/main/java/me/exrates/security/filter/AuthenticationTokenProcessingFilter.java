@@ -38,7 +38,6 @@ public class AuthenticationTokenProcessingFilter extends AbstractAuthenticationP
         this.authenticationManager = authenticationManager;
         setAuthenticationSuccessHandler((request, response, authentication) ->
         {
-            SecurityContextHolder.getContext().setAuthentication(authentication);
             String pathInfo = request.getPathInfo() == null ? "" : request.getPathInfo();
             request.getRequestDispatcher(request.getServletPath() + pathInfo).forward(request, response);
         });

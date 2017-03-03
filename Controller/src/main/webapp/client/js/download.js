@@ -23,6 +23,12 @@ function uploadUserWalletsOrders(role) {
     downloadUsersWalletsSummaryDatepiker();
 }
 
+function uploadUserWalletsOrdersByCurrencyPairs(role) {
+    currentRole = role;
+    currentId = 'upload-users-wallets-orders-by-currency-pairs';
+    downloadUsersWalletsSummaryDatepiker();
+}
+
 function downloadUsersWalletsSummaryDatepiker() {
     $('#order-delete-modal--date-picker').modal();
 }
@@ -109,7 +115,22 @@ function downloadUsersWalletsSummary() {
                     }
                 );
             }
-
+            if (currentId == 'upload-users-wallets-orders-by-currency-pairs') {
+                $.ajax({
+                        url: '/2a8fy7b07dxe44/downloadUserSummaryOrdersByCurrencyPairs',
+                        type: 'GET',
+                        data: data,
+                        success: function (data) {
+                            var link = document.createElement('a');
+                            link.href = "data:text/plain;charset=utf-8,%EF%BB%BF" + encodeURIComponent(data);
+                            link.download = "downloadUsersSummaryOrdersByCurrencyPairs_" + currentRole + ".csv";
+                            var e = document.createEvent('MouseEvents');
+                            e.initEvent('click', true, true);
+                            link.dispatchEvent(e);
+                        }
+                    }
+                );
+            }
             });
 
     $('#order-delete-modal--date-picker').modal('hide');

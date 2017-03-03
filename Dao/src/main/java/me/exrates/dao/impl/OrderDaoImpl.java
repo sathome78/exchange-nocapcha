@@ -16,6 +16,7 @@ import me.exrates.model.enums.*;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.WalletOperationData;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,10 +93,11 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<OrderListDto> getOrdersSellForCurrencyPair(CurrencyPair currencyPair, String email, Locale locale) {
+    public List<OrderListDto> getOrdersSellForCurrencyPair(CurrencyPair currencyPair) {
+        String email = null;
         String sql = "SELECT EXORDERS.id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, commission_fixed_amount" +
                 "  FROM EXORDERS " +
-                (email == null || email.isEmpty() ? "" : " JOIN USER ON (USER.id=EXORDERS.user_id)  AND (USER.email != '" + email + "') ") +
+                (StringUtils.isEmpty(email) ? "" : " JOIN USER ON (USER.id=EXORDERS.user_id)  AND (USER.email != '" + email + "') ") +
                 "  WHERE status_id = 2 and operation_type_id= 3 and currency_pair_id=:currency_pair_id" +
                 "  ORDER BY exrate ASC";
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
@@ -106,18 +108,19 @@ public class OrderDaoImpl implements OrderDao {
             order.setId(rs.getInt("id"));
             order.setUserId(rs.getInt("user_id"));
             order.setOrderType(OperationType.convert(rs.getInt("operation_type_id")));
-            order.setExrate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("exrate"), locale, 2));
-            order.setAmountBase(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount_base"), locale, true));
-            order.setAmountConvert(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount_convert"), locale, true));
+            order.setExrate(rs.getString("exrate"));
+            order.setAmountBase(rs.getString("amount_base"));
+            order.setAmountConvert(rs.getString("amount_convert"));
             return order;
         });
     }
 
     @Override
-    public List<OrderListDto> getOrdersBuyForCurrencyPair(CurrencyPair currencyPair, String email, Locale locale) {
+    public List<OrderListDto> getOrdersBuyForCurrencyPair(CurrencyPair currencyPair) {
+        String email = null;
         String sql = "SELECT EXORDERS.id, user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, commission_fixed_amount" +
                 "  FROM EXORDERS " +
-                (email == null || email.isEmpty() ? "" : " JOIN USER ON (USER.id=EXORDERS.user_id)  AND (USER.email != '" + email + "') ") +
+                (StringUtils.isEmpty(email) ? "" : " JOIN USER ON (USER.id=EXORDERS.user_id)  AND (USER.email != '" + email + "') ") +
                 "  WHERE status_id = 2 and operation_type_id= 4 and currency_pair_id=:currency_pair_id" +
                 "  ORDER BY exrate DESC";
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
@@ -128,9 +131,9 @@ public class OrderDaoImpl implements OrderDao {
             order.setId(rs.getInt("id"));
             order.setUserId(rs.getInt("user_id"));
             order.setOrderType(OperationType.convert(rs.getInt("operation_type_id")));
-            order.setExrate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("exrate"), locale, 2));
-            order.setAmountBase(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount_base"), locale, true));
-            order.setAmountConvert(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount_convert"), locale, true));
+            order.setExrate(rs.getString("exrate"));
+            order.setAmountBase(rs.getString("amount_base"));
+            order.setAmountConvert(rs.getString("amount_convert"));
             return order;
         });
     }
@@ -226,7 +229,7 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public ExOrderStatisticsDto getOrderStatistic(CurrencyPair currencyPair, BackDealInterval backDealInterval, Locale locale) {
+    public ExOrderStatisticsDto getOrderStatistic(CurrencyPair currencyPair, BackDealInterval backDealInterval) {
         String sql = "SELECT FIRSTORDER.amount_base AS first_amount_base, FIRSTORDER.exrate AS first_exrate," +
                 "            LASTORDER.amount_base AS last_amount_base, LASTORDER.exrate AS last_exrate," +
                 "            AGRIGATE.* " +
@@ -253,14 +256,14 @@ public class OrderDaoImpl implements OrderDao {
                 @Override
                 public ExOrderStatisticsDto mapRow(ResultSet rs, int rowNum) throws SQLException {
                     ExOrderStatisticsDto exOrderStatisticsDto = new ExOrderStatisticsDto(currencyPair);
-                    exOrderStatisticsDto.setFirstOrderAmountBase(BigDecimalProcessing.formatLocale(rs.getBigDecimal("first_amount_base"), locale, true));
-                    exOrderStatisticsDto.setFirstOrderRate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("first_exrate"), locale, true));
-                    exOrderStatisticsDto.setLastOrderAmountBase(BigDecimalProcessing.formatLocale(rs.getBigDecimal("last_amount_base"), locale, true));
-                    exOrderStatisticsDto.setLastOrderRate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("last_exrate"), locale, true));
-                    exOrderStatisticsDto.setMinRate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("min_exrate"), locale, true));
-                    exOrderStatisticsDto.setMaxRate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("max_exrate"), locale, true));
-                    exOrderStatisticsDto.setSumBase(BigDecimalProcessing.formatLocale(rs.getBigDecimal("deal_sum_base"), locale, true));
-                    exOrderStatisticsDto.setSumConvert(BigDecimalProcessing.formatLocale(rs.getBigDecimal("deal_sum_convert"), locale, true));
+                    exOrderStatisticsDto.setFirstOrderAmountBase(rs.getString("first_amount_base"));
+                    exOrderStatisticsDto.setFirstOrderRate(rs.getString("first_exrate"));
+                    exOrderStatisticsDto.setLastOrderAmountBase(rs.getString("last_amount_base"));
+                    exOrderStatisticsDto.setLastOrderRate(rs.getString("last_exrate"));
+                    exOrderStatisticsDto.setMinRate(rs.getString("min_exrate"));
+                    exOrderStatisticsDto.setMaxRate(rs.getString("max_exrate"));
+                    exOrderStatisticsDto.setSumBase(rs.getString("deal_sum_base"));
+                    exOrderStatisticsDto.setSumConvert(rs.getString("deal_sum_convert"));
                     return exOrderStatisticsDto;
                 }
             });
@@ -270,7 +273,7 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<ExOrderStatisticsShortByPairsDto> getOrderStatisticByPairs(Locale locale) {
+    public List<ExOrderStatisticsShortByPairsDto> getOrderStatisticByPairs() {
         long before = System.currentTimeMillis();
         try {
             String sql = "SELECT  " +
@@ -307,17 +310,10 @@ public class OrderDaoImpl implements OrderDao {
             return namedParameterJdbcTemplate.query(sql, namedParameters, new RowMapper<ExOrderStatisticsShortByPairsDto>() {
                 @Override
                 public ExOrderStatisticsShortByPairsDto mapRow(ResultSet rs, int rowNum) throws SQLException {
-                    BigDecimal lastRate = rs.getBigDecimal("last_exrate");
-                    BigDecimal predLastRate = rs.getBigDecimal("pred_last_exrate");
-                    if (predLastRate == null) {
-                        predLastRate = lastRate;
-                    }
-                    BigDecimal percentChange = BigDecimalProcessing.doAction(predLastRate, lastRate, ActionType.PERCENT_GROWTH);
                     ExOrderStatisticsShortByPairsDto exOrderStatisticsDto = new ExOrderStatisticsShortByPairsDto();
                     exOrderStatisticsDto.setCurrencyPairName(rs.getString("currency_pair_name"));
-                    exOrderStatisticsDto.setLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(lastRate, locale, 12));
-                    exOrderStatisticsDto.setPredLastOrderRate(BigDecimalProcessing.formatLocaleFixedSignificant(predLastRate, locale, 12));
-                    exOrderStatisticsDto.setPercentChange(BigDecimalProcessing.formatLocaleFixedDecimal(percentChange, locale, 2));
+                    exOrderStatisticsDto.setLastOrderRate(rs.getString("last_exrate"));
+                    exOrderStatisticsDto.setPredLastOrderRate(rs.getString("pred_last_exrate"));
                     return exOrderStatisticsDto;
                 }
             });
@@ -620,7 +616,7 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriod(String email, BackDealInterval backDealInterval, Integer limit, CurrencyPair currencyPair, Locale locale) {
+    public List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriod(String email, BackDealInterval backDealInterval, Integer limit, CurrencyPair currencyPair) {
         String sql = "SELECT EXORDERS.id, EXORDERS.date_acception, EXORDERS.exrate, EXORDERS.amount_base, EXORDERS.operation_type_id " +
                 "  FROM EXORDERS " +
                 (email == null || email.isEmpty() ? "" : " JOIN USER ON ((USER.id = EXORDERS.user_id) OR (USER.id = EXORDERS.user_acceptor_id)) AND USER.email='" + email + "'") +
@@ -641,8 +637,8 @@ public class OrderDaoImpl implements OrderDao {
                 orderAcceptedHistoryDto.setOrderId(rs.getInt("id"));
                 orderAcceptedHistoryDto.setDateAcceptionTime(rs.getTimestamp("date_acception").toLocalDateTime().toLocalTime().format(DateTimeFormatter.ISO_LOCAL_TIME));
                 orderAcceptedHistoryDto.setAcceptionTime(rs.getTimestamp("date_acception"));
-                orderAcceptedHistoryDto.setRate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("exrate"), locale, true));
-                orderAcceptedHistoryDto.setAmountBase(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount_base"), locale, true));
+                orderAcceptedHistoryDto.setRate(rs.getString("exrate"));
+                orderAcceptedHistoryDto.setAmountBase(rs.getString("amount_base"));
                 orderAcceptedHistoryDto.setOperationType(OperationType.convert(rs.getInt("operation_type_id")));
                 return orderAcceptedHistoryDto;
             }

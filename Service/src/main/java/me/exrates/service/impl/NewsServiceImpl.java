@@ -8,6 +8,7 @@ import me.exrates.model.vo.CacheData;
 import me.exrates.service.NewsService;
 import me.exrates.service.exception.FileLoadingException;
 import me.exrates.service.exception.NewsCreationException;
+import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.util.Cache;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -42,9 +43,13 @@ public class NewsServiceImpl implements NewsService {
     @Autowired
     private NewsDao newsDao;
 
+    @Autowired
+    ServiceCacheableProxy serviceCacheableProxy;
+
     @Override
+    @Transactional(readOnly = true)
     public List<NewsDto> getNewsBriefList(CacheData cacheData, Integer offset, Integer limit, Locale locale) {
-        List<NewsDto> result = newsDao.getNewsBriefList(offset, limit, locale);
+        List<NewsDto> result = serviceCacheableProxy.getNewsBriefList(offset, limit, locale);
         if (Cache.checkCache(cacheData, result)) {
             result = new ArrayList<NewsDto>() {{
                 add(new NewsDto(false));
