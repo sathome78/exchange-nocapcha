@@ -850,7 +850,7 @@ public class UserDaoImpl implements UserDao {
     namedParameters.put("end_date", endDate);
     namedParameters.put("roles", roles);
 
-        ArrayList<UserSummaryOrdersDto> result = (ArrayList<UserSummaryOrdersDto>) jdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<UserSummaryOrdersDto>() {
+        ArrayList<UserSummaryOrdersDto> result = (ArrayList<UserSummaryOrdersDto>) namedParameterJdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<UserSummaryOrdersDto>() {
             @Override
             public UserSummaryOrdersDto mapRow(ResultSet rs, int rowNumber) throws SQLException {
                 UserSummaryOrdersDto userSummaryOrdersDto = new UserSummaryOrdersDto();
@@ -892,7 +892,7 @@ public class UserDaoImpl implements UserDao {
         namedParameters.put("end_date", endDate);
         namedParameters.put("roles", roles);
 
-        ArrayList<UserSummaryOrdersByCurrencyPairsDto> result = (ArrayList<UserSummaryOrdersByCurrencyPairsDto>) jdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<UserSummaryOrdersByCurrencyPairsDto>() {
+        ArrayList<UserSummaryOrdersByCurrencyPairsDto> result = (ArrayList<UserSummaryOrdersByCurrencyPairsDto>) namedParameterJdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<UserSummaryOrdersByCurrencyPairsDto>() {
             @Override
             public UserSummaryOrdersByCurrencyPairsDto mapRow(ResultSet rs, int rowNumber) throws SQLException {
                 UserSummaryOrdersByCurrencyPairsDto userSummaryOrdersByCurrencyPairsDto = new UserSummaryOrdersByCurrencyPairsDto();

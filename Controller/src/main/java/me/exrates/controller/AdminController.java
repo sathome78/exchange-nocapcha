@@ -785,7 +785,7 @@ public class AdminController {
     @ResponseBody
     public String getUserSummaryOrdersByCurrencyPairs(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
 
-        List<UserSummaryOrdersByCurrencyPairsDto> list = userService.getUserSummaryOrdersByCurrencyPairList(startDate, endDate, userService.resolveRoleIdsByName(role));
+        List<UserSummaryOrdersByCurrencyPairsDto> list = userService.getUserSummaryOrdersByCurrencyPairList(startDate, endDate, BusinessUserRoleEnum.getRealUserRoleIdList(role));
 
         String value = "Orders by currency pairs from" + startDate.substring(0,10) + " till " + endDate.substring(0,10) + ": \n \n" + UserSummaryOrdersByCurrencyPairsDto.getTitle() +
                 list.stream()
@@ -799,7 +799,7 @@ public class AdminController {
     @ResponseBody
     public String getUsersWalletsSummeryTotalInOut(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
         String value = UserSummaryTotalInOutDto.getTitle() +
-                userService.getUsersSummaryTotalInOutList(startDate, endDate, userService.resolveRoleIdsByName(role))
+                userService.getUsersSummaryTotalInOutList(startDate, endDate, BusinessUserRoleEnum.getRealUserRoleIdList(role))
                         .stream()
                         .map(e -> e.toString())
                         .collect(Collectors.joining());

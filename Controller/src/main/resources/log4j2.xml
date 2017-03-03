@@ -106,11 +106,11 @@
     </Appenders>
     <Loggers>
         <Logger name="merchant" level="TRACE" additivity="false">
-            <AppenderRef ref="Console"/>
+            <!--<AppenderRef ref="Console"/>-->
             <AppenderRef ref="Merchants"/>
         </Logger>
         <Logger name="merchant_edr" level="TRACE" additivity="false">
-            <AppenderRef ref="Console"/>
+            <!--<AppenderRef ref="Console"/>-->
             <AppenderRef ref="Merchants_edr"/>
         </Logger>
         <logger name="org.quartz" level="ERROR" additivity="false">

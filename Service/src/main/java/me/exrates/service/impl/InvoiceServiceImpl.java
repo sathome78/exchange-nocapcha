@@ -25,7 +25,9 @@ import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -47,7 +49,11 @@ import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 
 @Service
 @Log4j2
+@PropertySource(value = {"classpath:/job.properties"})
 public class InvoiceServiceImpl implements InvoiceService {
+
+  @Value("${invoice.blockNotifyUsers}")
+  private Boolean BLOCK_NOTIFYING;
 
   @Autowired
   private TransactionService transactionService;
@@ -187,9 +193,11 @@ public class InvoiceServiceImpl implements InvoiceService {
           EXPIRED.getCode(),
           invoiceRequestStatusIdList);
       List<InvoiceUserDto> userForNotificationList = invoiceRequestDao.findInvoicesListByStatusChangedAtDate(EXPIRED.getCode(), nowDate.get());
-      for (InvoiceUserDto invoice : userForNotificationList) {
-        notificationService.notifyUser(invoice.getUserId(), NotificationEvent.IN_OUT, "merchants.invoice.expired.title",
-            "merchants.invoice.expired.message", new Integer[]{invoice.getInvoiceId()});
+      if (!BLOCK_NOTIFYING) {
+        for (InvoiceUserDto invoice : userForNotificationList) {
+          notificationService.notifyUser(invoice.getUserId(), NotificationEvent.IN_OUT, "merchants.invoice.expired.title",
+              "merchants.invoice.expired.message", new Integer[]{invoice.getInvoiceId()});
+        }
       }
       return userForNotificationList.size();
     } else {
