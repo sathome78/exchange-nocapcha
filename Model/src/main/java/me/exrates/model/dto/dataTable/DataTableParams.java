@@ -66,10 +66,11 @@ public class DataTableParams {
         return dataTableParams;
     }
 
-    public String getOrderAndDirection() {
-        if (columns.isEmpty() || )
-
-        return columns.get(orderColumn);
+    public String getOrderByClause() {
+        if (columns.isEmpty() || orderColumn >= columns.size()) {
+            return "";
+        }
+        return new StringJoiner(" ").add("ORDER BY").add(columns.get(orderColumn)).add(orderDirection.name()).toString();
     }
 
     private static void validateColumnNames(List<String> columnNames) {

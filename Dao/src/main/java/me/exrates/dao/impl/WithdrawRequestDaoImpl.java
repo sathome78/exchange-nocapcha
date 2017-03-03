@@ -164,14 +164,13 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
         String whereClauseBasic = " WHERE WITHDRAW_REQUEST.status = :status ";
         String filter = withdrawFilterData.getSQLFilterClause();
         String whereClauseFilter = StringUtils.isEmpty(filter) ? "" :  " AND ".concat(filter);
-        String orderClause = String.format(" ORDER BY %s ", dataTableParams.getOrderColumnName());
+        String orderClause = dataTableParams.getOrderByClause();
         String offsetAndLimit = " LIMIT :limit OFFSET :offset ";
         String sqlTotal = new StringJoiner(" ").add(SELECT_ALL_REQUESTS).add(whereClauseBasic)
-                .add(whereClauseFilter).add(orderClause).add(dataTableParams.getOrderDirectionName()).add(offsetAndLimit).toString();
+                .add(whereClauseFilter).add(orderClause).add(offsetAndLimit).toString();
         String sqlCount = new StringJoiner(" ").add(SELECT_COUNT).add(whereClauseBasic).add(whereClauseFilter).toString();
         log.debug(String.format("sql for total: %s", sqlTotal));
         log.debug(String.format("sql count: %s", sqlCount));
-        log.debug(dataTableParams.getOrderColumnName());
         Map<String, Object> params = new HashMap<>();
         params.put("status", requestStatus);
         params.put("offset", dataTableParams.getStart());

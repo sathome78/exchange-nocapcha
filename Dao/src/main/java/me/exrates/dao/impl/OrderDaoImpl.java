@@ -912,13 +912,7 @@ public class OrderDaoImpl implements OrderDao {
         } else {
             limit = "";
         }
-
-
-        String orderBy = new StringJoiner(" ").add(" ORDER BY")
-                .add(dataTableParams.getOrderColumnName())
-                .add(dataTableParams.getOrderDirectionName()).toString();
-
-
+        String orderBy = dataTableParams.getOrderByClause();
         NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("offset", dataTableParams.getStart());
