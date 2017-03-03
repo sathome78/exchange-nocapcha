@@ -61,10 +61,10 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
             "INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id " +
             "INNER JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id " +
             "INNER JOIN USER ON WALLET.user_id = USER.id " +
-            "INNER JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION AS permission ON permission.user_id = USER.id " +
-            "AND permission.currency_id = TRANSACTION.currency_id AND permission.operation_direction = 'WITHDRAW'" +
             "LEFT JOIN USER AS ADMIN ON ADMIN.id =  WITHDRAW_REQUEST.processed_by " +
             "LEFT JOIN MERCHANT_IMAGE ON WITHDRAW_REQUEST.merchant_image_id = MERCHANT_IMAGE.id";
+    private final static String JOIN_FOR_PERMITTED = "INNER JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION AS permission ON permission.user_id = :current_user_id " +
+            "AND permission.currency_id = TRANSACTION.currency_id AND permission.operation_direction = 'WITHDRAW'";
 
     private final static String SELECT_ALL_REQUESTS =
             " SELECT WITHDRAW_REQUEST.acceptance, WITHDRAW_REQUEST.wallet, WITHDRAW_REQUEST.processed_by, " +
@@ -160,21 +160,22 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     }
 
     @Override
-    public PagingData<List<WithdrawRequest>> findByStatus(Integer requestStatus, DataTableParams dataTableParams, WithdrawFilterData withdrawFilterData) {
+    public PagingData<List<WithdrawRequest>> findByStatus(Integer requestStatus, Integer currentUserId, DataTableParams dataTableParams, WithdrawFilterData withdrawFilterData) {
         String whereClauseBasic = " WHERE WITHDRAW_REQUEST.status = :status ";
         String filter = withdrawFilterData.getSQLFilterClause();
         String whereClauseFilter = StringUtils.isEmpty(filter) ? "" :  " AND ".concat(filter);
         String orderClause = dataTableParams.getOrderByClause();
         String offsetAndLimit = " LIMIT :limit OFFSET :offset ";
-        String sqlTotal = new StringJoiner(" ").add(SELECT_ALL_REQUESTS).add(whereClauseBasic)
+        String sqlTotal = new StringJoiner(" ").add(SELECT_ALL_REQUESTS).add(JOIN_FOR_PERMITTED).add(whereClauseBasic)
                 .add(whereClauseFilter).add(orderClause).add(offsetAndLimit).toString();
-        String sqlCount = new StringJoiner(" ").add(SELECT_COUNT).add(whereClauseBasic).add(whereClauseFilter).toString();
+        String sqlCount = new StringJoiner(" ").add(SELECT_COUNT).add(JOIN_FOR_PERMITTED).add(whereClauseBasic).add(whereClauseFilter).toString();
         log.debug(String.format("sql for total: %s", sqlTotal));
         log.debug(String.format("sql count: %s", sqlCount));
         Map<String, Object> params = new HashMap<>();
         params.put("status", requestStatus);
         params.put("offset", dataTableParams.getStart());
         params.put("limit", dataTableParams.getLength());
+        params.put("current_user_id", currentUserId);
         params.putAll(withdrawFilterData.getNamedParams());
         List<WithdrawRequest> requests = jdbcTemplate.query(sqlTotal, params, withdrawRequestRowMapper);
         Integer totalQuantity = jdbcTemplate.queryForObject(sqlCount, params, Integer.class);

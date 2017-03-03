@@ -632,18 +632,10 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/withdrawRequests", method = GET)
   @ResponseBody
   public DataTable<List<WithdrawRequest>> findRequestByStatus(@RequestParam("status") Integer requestStatus, WithdrawFilterData withdrawFilterData,
-                                                              @RequestParam Map<String, String> params) {
-    params.forEach((key, value) -> LOG.debug(String.format("%s :: %s", key, value)));
+                                                              @RequestParam Map<String, String> params, Principal principal) {
     DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
-    LOG.debug(withdrawFilterData);
-    if (withdrawFilterData != null) {
-        withdrawFilterData.initFilterItems();
-        LOG.debug(withdrawFilterData.getNamedParams());
-        LOG.debug(withdrawFilterData.getSQLFilterClause());
-    }
-
-
-    return merchantService.findWithdrawRequestsByStatus(requestStatus, dataTableParams, withdrawFilterData);
+    withdrawFilterData.initFilterItems();
+    return merchantService.findWithdrawRequestsByStatus(requestStatus, dataTableParams, withdrawFilterData, principal.getName());
   }
 
   @ResponseBody
@@ -671,16 +663,9 @@ public class AdminController {
 
     try {
       adminOrderFilterData.initFilterItems();
-      LOG.debug(adminOrderFilterData);
-      LOG.debug(adminOrderFilterData.getNamedParams());
-      LOG.debug(adminOrderFilterData.getSQLFilterClause());
       DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
-      LOG.debug(dataTableParams);
-
       DataTable<List<OrderBasicInfoDto>> orderInfo = orderService.searchOrdersByAdmin(adminOrderFilterData, dataTableParams,
               localeResolver.resolveLocale(request));
-      LOG.debug(orderInfo);
-
       return orderInfo;
     } catch (Exception ex) {
       LOG.error(ex.getMessage(), ex);

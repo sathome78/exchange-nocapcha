@@ -215,7 +215,9 @@ $(function () {
     $('#delete-order-info__reset').on('click', function () {
         $('#delete-order-info__form')[0].reset();
         searchOrder();
-    })
+    });
 
-    searchOrder();
+    if ($('#delete-order-info__form').size() > 0) {
+        searchOrder();
+    }
 });
