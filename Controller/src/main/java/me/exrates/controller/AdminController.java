@@ -146,6 +146,7 @@ public class AdminController {
     ModelAndView model = new ModelAndView();
     List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairs();
     model.addObject("currencyPairList", currencyPairList);
+    model.addObject("operationTypes", Arrays.asList(OperationType.SELL, OperationType.BUY));
     model.addObject("statusList", Arrays.asList(OrderStatus.values()));
     model.setViewName("admin/order_delete");
     return model;

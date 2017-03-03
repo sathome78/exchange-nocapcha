@@ -152,7 +152,7 @@ function searchOrder() {
                     "name": "EXORDERS.exrate"
                 },
                 {
-                    "data": "amount_base",
+                    "data": "amountBase",
                     "name": "EXORDERS.amount_base"
                 },
                 {
@@ -167,7 +167,7 @@ function searchOrder() {
 
             ],
             "order": [
-                [0, 'asc']
+                [0, 'desc']
             ]
         });
         $('#order-info-table tbody').on('click', 'tr', function () {
@@ -211,5 +211,11 @@ $(function () {
         defaultDate: new Date(),
         defaultTime: '00:00'
     });
-    $('#delete-order-info__search').on('click', searchOrder)
+    $('#delete-order-info__search').on('click', searchOrder);
+    $('#delete-order-info__reset').on('click', function () {
+        $('#delete-order-info__form')[0].reset();
+        searchOrder();
+    })
+
+    searchOrder();
 });

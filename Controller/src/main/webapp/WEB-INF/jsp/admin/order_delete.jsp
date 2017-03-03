@@ -33,10 +33,14 @@
         <%@include file='left_side_menu.jsp' %>
         <div class="row">
         <div class="col-md-6 col-md-offset-2 content admin-container">
-            <div id="order-search">
-                <div class="text-center">
-                    <h4 class="modal-title"><loc:message code="ordersearch.title"/></h4>
-                </div>
+            <div class="text-center">
+                <h4 class="modal-title"><loc:message code="ordersearch.title"/></h4>
+            </div>
+            <button data-toggle="collapse" class="blue-box" style="margin: 10px 0;" data-target="#order-search">
+                <loc:message code="admin.user.transactions.extendedFilter"/> </button>
+
+            <div id="order-search" class="collapse">
+
 
                 <form id="delete-order-info__form" class="form_full_height_width" action="/2a8fy7b07dxe44/searchorders" method="get">
 
@@ -75,14 +79,15 @@
                         <div class="col-md-9 input-block-wrapper__input-wrapper">
                             <select id="orderType" class="input-block-wrapper__input admin-form-input" name="orderType">
                                 <option value="">ANY</option>
-                                <option value="SELL">SELL</option>
-                                <option value="BUY">BUY</option>
+                                <c:forEach items="${operationTypes}" var="type">
+                                    <option value="${type.type}">${type.name()}</option>
+                                </c:forEach>
                             </select>
                         </div>
                     </div>
                     <div class="input-block-wrapper">
                         <div class="col-md-3 input-block-wrapper__label-wrapper">
-                            <label class="input-block-wrapper__label"><loc:message code="ordersearch.type"/></label>
+                            <label class="input-block-wrapper__label"><loc:message code="orderinfo.status"/></label>
                         </div>
                         <div class="col-md-9 input-block-wrapper__input-wrapper">
                             <select id="orderStatus" class="input-block-wrapper__input admin-form-input" name="statusId">
@@ -181,6 +186,8 @@
                     <div class="delete-order-info__button-wrapper">
                         <button id="delete-order-info__search" class="delete-order-info__button blue-box"
                                 type="button"><loc:message code="ordersearch.submit"/></button>
+                        <button id="delete-order-info__reset" class="delete-order-info__button blue-box"
+                                type="button"><loc:message code="admin.user.transactions.resetFilter"/></button>
 
                     </div>
 

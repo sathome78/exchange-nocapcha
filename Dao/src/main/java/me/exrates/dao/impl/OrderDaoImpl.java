@@ -917,7 +917,7 @@ public class OrderDaoImpl implements OrderDao {
         Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("offset", dataTableParams.getStart());
         namedParameters.put("limit", dataTableParams.getLength());
-
+        namedParameters.putAll(adminOrderFilterData.getNamedParams());
         String criteria = adminOrderFilterData.getSQLFilterClause();
         String whereClause = StringUtils.isNotEmpty(criteria) ? "WHERE " + criteria : "";
         String selectQuery = new StringJoiner(" ").add(sqlSelect)
@@ -950,8 +950,6 @@ public class OrderDaoImpl implements OrderDao {
         result.setData(infoDtoList);
         result.setTotal(total);
         result.setFiltered(total);
-        LOGGER.debug(result);
-
         return result;
 
 
