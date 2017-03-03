@@ -5,8 +5,10 @@ import me.exrates.model.PendingPayment;
 import me.exrates.model.Transaction;
 import me.exrates.model.dto.InvoiceUserDto;
 import me.exrates.model.dto.PendingPaymentFlatDto;
+import me.exrates.model.dto.PendingPaymentFlatForReportDto;
 import me.exrates.model.dto.PendingPaymentSimpleDto;
 import me.exrates.model.dto.onlineTableDto.PendingPaymentStatusDto;
+import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -374,6 +376,64 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
     } catch (EmptyResultDataAccessException e) {
       return empty();
     }
+  }
+
+  @Override
+  public List<PendingPaymentFlatForReportDto> findAllByDateIntervalAndRoleAndCurrencyAndSourceType(
+      String startDate,
+      String endDate,
+      List<Integer> roleIdList,
+      List<Integer> currencyList,
+      List<String> sourceTypeList) {
+    String sql = "SELECT  PP.*, " +
+        "         USER.email AS user_email, " +
+        "         ADM.email AS acceptance_user_email, " +
+        "         TX.id, TX.amount, TX.commission_amount, TX.datetime, " +
+        "         TX.operation_type_id,TX.provided,TX.confirmation, " +
+        "         TX.source_type, " +
+        "         CURRENCY.name AS currency_name" +
+        " FROM PENDING_PAYMENT PP " +
+        " JOIN TRANSACTION TX ON (TX.id = PP.invoice_id) AND TX.source_type IN (:source_type_list) AND (TX.currency_id IN (:currency_list)) " +
+        " JOIN CURRENCY ON CURRENCY.id = TX.currency_id " +
+        " JOIN WALLET ON WALLET.id = TX.user_wallet_id " +
+        " JOIN USER AS USER ON USER.id = WALLET.user_id " +
+        " LEFT JOIN USER AS ADM ON ADM.id = PP.acceptance_user_id " +
+        " WHERE " +
+        "    TX.datetime BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s') " +
+        (roleIdList.isEmpty() ? "" :
+            " AND USER.roleid IN (:role_id_list)");
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("start_date", startDate);
+      put("end_date", endDate);
+      if (!roleIdList.isEmpty()) {
+        put("role_id_list", roleIdList);
+      }
+      put("currency_list", currencyList);
+      put("source_type_list", sourceTypeList);
+    }};
+    return parameterJdbcTemplate.query(sql, params, new RowMapper<PendingPaymentFlatForReportDto>() {
+      @Override
+      public PendingPaymentFlatForReportDto mapRow(ResultSet rs, int i) throws SQLException {
+        PendingPaymentFlatForReportDto pendingPaymentFlatForReportDto = new PendingPaymentFlatForReportDto();
+        pendingPaymentFlatForReportDto.setInvoiceId(rs.getInt("invoice_id"));
+        pendingPaymentFlatForReportDto.setTransactionHash(rs.getString("transaction_hash"));
+        pendingPaymentFlatForReportDto.setAddress(rs.getString("address"));
+        pendingPaymentFlatForReportDto.setPendingPaymentStatus(PendingPaymentStatusEnum.convert(rs.getInt("pending_payment_status_id")));
+        pendingPaymentFlatForReportDto.setStatusUpdateDate(rs.getTimestamp("status_update_date") == null ? null : rs.getTimestamp("status_update_date").toLocalDateTime());
+        pendingPaymentFlatForReportDto.setAcceptanceTime(rs.getTimestamp("acceptance_time") == null ? null : rs.getTimestamp("acceptance_time").toLocalDateTime());
+        pendingPaymentFlatForReportDto.setHash(rs.getString("hash"));
+        pendingPaymentFlatForReportDto.setUserEmail(rs.getString("user_email"));
+        pendingPaymentFlatForReportDto.setAcceptanceUserEmail(rs.getString("acceptance_user_email"));
+        pendingPaymentFlatForReportDto.setAmount(rs.getBigDecimal("amount"));
+        pendingPaymentFlatForReportDto.setCommissionAmount(rs.getBigDecimal("commission_amount"));
+        pendingPaymentFlatForReportDto.setDatetime(rs.getTimestamp("datetime") == null ? null : rs.getTimestamp("datetime").toLocalDateTime());
+        pendingPaymentFlatForReportDto.setConfirmation(rs.getInt("confirmation"));
+        pendingPaymentFlatForReportDto.setProvided(rs.getBoolean("provided"));
+        pendingPaymentFlatForReportDto.setCurrency(rs.getString("currency_name"));
+        pendingPaymentFlatForReportDto.setSourceType(TransactionSourceType.valueOf(rs.getString("source_type")));
+        return pendingPaymentFlatForReportDto;
+      }
+    });
   }
 
 }

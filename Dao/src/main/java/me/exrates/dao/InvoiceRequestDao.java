@@ -16,46 +16,41 @@ import java.util.Optional;
  */
 public interface InvoiceRequestDao {
 
-    void create(InvoiceRequest invoiceRequest, User user);
+  void create(InvoiceRequest invoiceRequest, User user);
 
-    void delete(InvoiceRequest invoiceRequest);
+  void delete(InvoiceRequest invoiceRequest);
 
-    void updateAcceptanceStatus(InvoiceRequest invoiceRequest);
+  void updateAcceptanceStatus(InvoiceRequest invoiceRequest);
 
-    Optional<InvoiceRequest> findById(int id);
+  Optional<InvoiceRequest> findById(int id);
 
-    Integer getStatusById(int id);
+  Integer getStatusById(int id);
 
-    Optional<InvoiceRequest> findByIdAndBlock(int id);
+  Optional<InvoiceRequest> findByIdAndBlock(int id);
 
-    List<InvoiceRequest> findByStatus(List<Integer> invoiceRequestStatusIdList);
+  List<InvoiceRequest> findByStatus(List<Integer> invoiceRequestStatusIdList);
 
-    Optional<LocalDateTime> getAndBlockByIntervalAndStatus(Integer intervalMinutes, List<Integer> invoiceRequestStatusIdList);
+  Optional<LocalDateTime> getAndBlockByIntervalAndStatus(Integer intervalMinutes, List<Integer> invoiceRequestStatusIdList);
 
-    void setNewStatusByDateIntervalAndStatus(LocalDateTime boundDate, Integer intervalMinutes, Integer newInvoiceRequestStatusId, List<Integer> invoiceRequestStatusIdList);
+  void setNewStatusByDateIntervalAndStatus(LocalDateTime boundDate, Integer intervalMinutes, Integer newInvoiceRequestStatusId, List<Integer> invoiceRequestStatusIdList);
 
-    List<InvoiceUserDto> findInvoicesListByStatusChangedAtDate(Integer invoiceRequestStatusId, LocalDateTime dateWhenChanged);
+  List<InvoiceUserDto> findInvoicesListByStatusChangedAtDate(Integer invoiceRequestStatusId, LocalDateTime dateWhenChanged);
 
-    List<InvoiceRequest> findAll();
+  List<InvoiceRequest> findAll();
 
-    List<InvoiceRequest> findAllForUser(String email);
+  List<InvoiceRequest> findAllForUser(String email);
 
-    List<InvoiceBank> findInvoiceBanksByCurrency(Integer currencyId);
+  List<InvoiceBank> findInvoiceBanksByCurrency(Integer currencyId);
 
-    List<ClientBank> findClientBanksForCurrency(Integer currencyId);
+  List<ClientBank> findClientBanksForCurrency(Integer currencyId);
 
-    InvoiceBank findBankById(Integer bankId);
+  InvoiceBank findBankById(Integer bankId);
 
-    void updateConfirmationInfo(InvoiceRequest invoiceRequest);
+  void updateConfirmationInfo(InvoiceRequest invoiceRequest);
 
-    void updateReceiptScan(Integer invoiceId, String receiptScanPath);
+  void updateReceiptScan(Integer invoiceId, String receiptScanPath);
 
-    void updateInvoiceRequestStatus(Integer invoiceRequestId, InvoiceRequestStatusEnum invoiceRequestStatus);
+  void updateInvoiceRequestStatus(Integer invoiceRequestId, InvoiceRequestStatusEnum invoiceRequestStatus);
 
-    List<InvoiceRequest> findAllByUserNameAndDateIntervalAndRoleAndCurrency(
-        String startDate,
-        String endDate,
-        List<Integer> roleIdList,
-        String direction,
-        List<String> currencyList);
+  List<InvoiceRequest> findAllByDateIntervalAndRoleAndCurrency(String startDate, String endDate, List<Integer> roleIdList, List<Integer> currencyList);
 }

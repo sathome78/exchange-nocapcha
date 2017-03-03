@@ -98,5 +98,5 @@ public interface WalletService {
 
     String transferCostsToUser(Integer fromUserWalletId, String toUserNickname, BigDecimal amount, Locale locale);
 
-    List<UserWalletSummaryDto> getUsersWalletsSummaryForPermittedCurrency(List<Integer> roles, Integer requesterUserId);
+    List<UserWalletSummaryDto> getUsersWalletsSummaryForPermittedCurrencyList(List<Integer> roles, Integer requesterUserId);
 }

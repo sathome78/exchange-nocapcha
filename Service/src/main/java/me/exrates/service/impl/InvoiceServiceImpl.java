@@ -313,9 +313,10 @@ public class InvoiceServiceImpl implements InvoiceService {
     invoiceRequestDao.updateReceiptScan(invoiceId, receiptScanPath);
   }
 
-    public void updateTransactionAmount(Integer transactionId, BigDecimal newAmount) {
-
-    }
-
+  @Override
+  @Transactional(readOnly = true)
+  public List<InvoiceRequest> getByDateIntervalAndRoleAndCurrency(String startDate, String endDate, List<Integer> roleIdList, List<Integer> currencyList) {
+    return invoiceRequestDao.findAllByDateIntervalAndRoleAndCurrency(startDate, endDate, roleIdList, currencyList);
+  }
 
 }

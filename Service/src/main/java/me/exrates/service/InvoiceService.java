@@ -9,6 +9,7 @@ import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.InvoiceData;
 import me.exrates.service.exception.invoice.IllegalInvoiceStatusException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -50,4 +51,6 @@ public interface InvoiceService {
       InvoiceActionTypeEnum userActionOnInvoiceEnum, Locale locale) throws IllegalInvoiceStatusException, InvoiceNotFoundException;
 
   void updateReceiptScan(Integer invoiceId, String receiptScanPath);
+
+  List<InvoiceRequest> getByDateIntervalAndRoleAndCurrency(String startDate, String endDate, List<Integer> roleIdList, List<Integer> currencyList);
 }

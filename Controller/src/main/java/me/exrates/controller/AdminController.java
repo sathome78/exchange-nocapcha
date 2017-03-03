@@ -3,7 +3,6 @@ package me.exrates.controller;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.*;
-import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
@@ -13,12 +12,10 @@ import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.*;
 import me.exrates.model.form.AuthorityOptionsForm;
-import me.exrates.security.exception.UserNotEnabledException;
 import me.exrates.security.service.UserSecureServiceImpl;
 import me.exrates.service.*;
 import me.exrates.service.exception.NoPermissionForOperationException;
 import me.exrates.service.exception.OrderDeletingException;
-import me.exrates.service.exception.api.ApiError;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +59,6 @@ import static me.exrates.model.enums.UserCommentTopicEnum.GENERAL;
 import static me.exrates.model.enums.UserRole.*;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.REFILL;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
-import static me.exrates.service.exception.api.ErrorCode.ACCOUNT_DISABLED;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -617,7 +613,7 @@ public class AdminController {
     admins.addAll(asList(UserRole.ADMINISTRATOR, UserRole.ACCOUNTANT));
     final Map<String, Object> params = new HashMap<>();
     params.put("admins", admins);
-    List<UserCurrencyOperationPermissionDto> permittedCurrencies = currencyService.findPermittedCurrenciesForWithdraw(principal.getName())
+    List<UserCurrencyOperationPermissionDto> permittedCurrencies = currencyService.getCurrencyOperationPermittedForWithdraw(principal.getName())
             .stream().filter(dto -> dto.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE).collect(Collectors.toList());
     params.put("currencies", permittedCurrencies);
     List<Merchant> merchants = merchantService.findAllByCurrencies(permittedCurrencies.stream()
@@ -710,16 +706,21 @@ public class AdminController {
   public ModelAndView showUsersWalletsSummary(Principal principal) {
     Integer requesterUserId = userService.getIdByEmail(principal.getName());
     Map<String, List<UserWalletSummaryDto>> mapUsersWalletsSummaryList = new LinkedHashMap<>();
-    mapUsersWalletsSummaryList.put("ALL", walletService.getUsersWalletsSummaryForPermittedCurrency(BusinessUserRoleEnum.getRealUserRoleIdList("ALL"), requesterUserId));
-    mapUsersWalletsSummaryList.put("ADMIN", walletService.getUsersWalletsSummaryForPermittedCurrency(BusinessUserRoleEnum.ADMIN.getRealUserRoleIdList(), requesterUserId));
-    mapUsersWalletsSummaryList.put("USER", walletService.getUsersWalletsSummaryForPermittedCurrency(BusinessUserRoleEnum.USER.getRealUserRoleIdList(), requesterUserId));
-    mapUsersWalletsSummaryList.put("EXCHANGE", walletService.getUsersWalletsSummaryForPermittedCurrency(BusinessUserRoleEnum.EXCHANGE.getRealUserRoleIdList(), requesterUserId));
-    mapUsersWalletsSummaryList.put("VIP_USER", walletService.getUsersWalletsSummaryForPermittedCurrency(BusinessUserRoleEnum.VIP_USER.getRealUserRoleIdList(), requesterUserId));
-    mapUsersWalletsSummaryList.put("TRADER", walletService.getUsersWalletsSummaryForPermittedCurrency(BusinessUserRoleEnum.TRADER.getRealUserRoleIdList(), requesterUserId));
+    mapUsersWalletsSummaryList.put("ALL", walletService.getUsersWalletsSummaryForPermittedCurrencyList(BusinessUserRoleEnum.getRealUserRoleIdList("ALL"), requesterUserId));
+    mapUsersWalletsSummaryList.put("ADMIN", walletService.getUsersWalletsSummaryForPermittedCurrencyList(BusinessUserRoleEnum.ADMIN.getRealUserRoleIdList(), requesterUserId));
+    mapUsersWalletsSummaryList.put("USER", walletService.getUsersWalletsSummaryForPermittedCurrencyList(BusinessUserRoleEnum.USER.getRealUserRoleIdList(), requesterUserId));
+    mapUsersWalletsSummaryList.put("EXCHANGE", walletService.getUsersWalletsSummaryForPermittedCurrencyList(BusinessUserRoleEnum.EXCHANGE.getRealUserRoleIdList(), requesterUserId));
+    mapUsersWalletsSummaryList.put("VIP_USER", walletService.getUsersWalletsSummaryForPermittedCurrencyList(BusinessUserRoleEnum.VIP_USER.getRealUserRoleIdList(), requesterUserId));
+    mapUsersWalletsSummaryList.put("TRADER", walletService.getUsersWalletsSummaryForPermittedCurrencyList(BusinessUserRoleEnum.TRADER.getRealUserRoleIdList(), requesterUserId));
 
     ModelAndView model = new ModelAndView();
     model.setViewName("UsersWallets");
     model.addObject("mapUsersWalletsSummaryList", mapUsersWalletsSummaryList);
+    Set<String> usersCurrencyPermittedList = new LinkedHashSet<String>(){{add("ALL");}};
+    usersCurrencyPermittedList.addAll(currencyService.getCurrencyPermittedNameList(requesterUserId));
+    model.addObject("usersCurrencyPermittedList", usersCurrencyPermittedList);
+    List<String> operationDirectionList = Arrays.asList("ANY", InvoiceOperationDirection.REFILL.name(), InvoiceOperationDirection.WITHDRAW.name());
+    model.addObject("operationDirectionList", operationDirectionList);
 
     return model;
   }
@@ -1034,7 +1035,7 @@ public class AdminController {
     userService.setCurrencyPermissionsByUserId(userCurrencyOperationPermissionDtoList);
   }
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/downloadUsersInvoiceReport/{direction}", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
+  @RequestMapping(value = "/2a8fy7b07dxe44/downloadInputOutputSummaryReport", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
   @ResponseBody
   public String getUsersWalletsSummeryTotalInOut(
       @RequestParam String startDate,
@@ -1043,8 +1044,8 @@ public class AdminController {
       @RequestParam String direction,
       @RequestParam List<String> currencyList,
       Principal principal) {
-    String value = UserSummaryTotalInOutDto.getTitle() +
-        reportService.getInvoiceReport(startDate, endDate, role, direction, currencyList)
+    String value = InvoiceReportDto.getTitle() +
+        reportService.getInvoiceReport(principal.getName(), startDate, endDate, role, direction, currencyList)
             .stream()
             .map(e -> e.toString())
             .collect(Collectors.joining());

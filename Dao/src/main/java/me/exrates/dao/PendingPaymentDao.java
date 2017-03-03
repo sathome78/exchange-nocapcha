@@ -2,6 +2,7 @@ package me.exrates.dao;
 
 import me.exrates.model.PendingPayment;
 import me.exrates.model.dto.PendingPaymentFlatDto;
+import me.exrates.model.dto.PendingPaymentFlatForReportDto;
 import me.exrates.model.dto.PendingPaymentSimpleDto;
 import me.exrates.model.dto.onlineTableDto.PendingPaymentStatusDto;
 
@@ -45,4 +46,11 @@ public interface PendingPaymentDao {
   List findInvoicesListBySourceTypeAndStatusChangedAtDate(String sourceName, Integer invoiceRequestStatusId, LocalDateTime dateWhenChanged);
 
   Optional<PendingPaymentSimpleDto> findById(Integer pendingPaymentId);
+
+  List<PendingPaymentFlatForReportDto> findAllByDateIntervalAndRoleAndCurrencyAndSourceType(
+      String startDate,
+      String endDate,
+      List<Integer> roleIdList,
+      List<Integer> currencyList,
+      List<String> sourceTypeList);
 }

@@ -3,6 +3,7 @@ package me.exrates.dao.impl;
 import me.exrates.dao.TransactionDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
+import me.exrates.model.dto.TransactionFlatForReportDto;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.util.BigDecimalProcessing;
@@ -33,18 +34,32 @@ public final class TransactionDaoImpl implements TransactionDao {
 
     final OperationType operationType = OperationType.convert(resultSet.getInt("TRANSACTION.operation_type_id"));
 
-    final Currency currency = new Currency();
-    currency.setId(resultSet.getInt("CURRENCY.id"));
-    currency.setName(resultSet.getString("CURRENCY.name"));
-    currency.setDescription(resultSet.getString("CURRENCY.description"));
-
-    final Merchant merchant = new Merchant();
-    merchant.setId(resultSet.getInt("MERCHANT.id"));
-    merchant.setName(resultSet.getString("MERCHANT.name"));
-    merchant.setDescription(resultSet.getString("MERCHANT.description"));
-
-    final ExOrder order = new ExOrder();
+    Currency currency = null;
     try {
+      resultSet.findColumn("CURRENCY.id");
+      currency = new Currency();
+      currency.setId(resultSet.getInt("CURRENCY.id"));
+      currency.setName(resultSet.getString("CURRENCY.name"));
+      currency.setDescription(resultSet.getString("CURRENCY.description"));
+    } catch (SQLException e){
+      //NOP
+    }
+
+    Merchant merchant = null;
+    try {
+      resultSet.findColumn("MERCHANT.id");
+      merchant = new Merchant();
+      merchant.setId(resultSet.getInt("MERCHANT.id"));
+      merchant.setName(resultSet.getString("MERCHANT.name"));
+      merchant.setDescription(resultSet.getString("MERCHANT.description"));
+    } catch (SQLException e){
+      //NOP
+    }
+
+    ExOrder order = null;
+    try {
+      resultSet.findColumn("EXORDERS.id");
+      order = new ExOrder();
       order.setId(resultSet.getInt("EXORDERS.id"));
       order.setUserId(resultSet.getInt("EXORDERS.user_id"));
       order.setCurrencyPairId(resultSet.getInt("EXORDERS.currency_pair_id"));
@@ -56,31 +71,50 @@ public final class TransactionDaoImpl implements TransactionDao {
       order.setDateCreation(resultSet.getTimestamp("EXORDERS.date_creation") == null ? null : resultSet.getTimestamp("EXORDERS.date_creation").toLocalDateTime());
       order.setDateAcception(resultSet.getTimestamp("EXORDERS.date_acception") == null ? null : resultSet.getTimestamp("EXORDERS.date_acception").toLocalDateTime());
     } catch (SQLException e) {
+      //NOP
     }
 
-    final Commission commission = new Commission();
-    commission.setId(resultSet.getInt("COMMISSION.id"));
-    commission.setOperationType(operationType);
-    commission.setValue(resultSet.getBigDecimal("COMMISSION.value"));
-    commission.setDateOfChange(resultSet.getTimestamp("COMMISSION.date"));
+    Commission commission = null;
+    try {
+      resultSet.findColumn("COMMISSION.id");
+      commission = new Commission();
+      commission.setId(resultSet.getInt("COMMISSION.id"));
+      commission.setOperationType(operationType);
+      commission.setValue(resultSet.getBigDecimal("COMMISSION.value"));
+      commission.setDateOfChange(resultSet.getTimestamp("COMMISSION.date"));
+    } catch (SQLException e) {
+      //NOP
+    }
 
-    final CompanyWallet companyWallet = new CompanyWallet();
-    companyWallet.setBalance(resultSet.getBigDecimal("COMPANY_WALLET.balance"));
-    companyWallet.setCommissionBalance(resultSet.getBigDecimal("COMPANY_WALLET.commission_balance"));
-    companyWallet.setCurrency(currency);
-    companyWallet.setId(resultSet.getInt("COMPANY_WALLET.id"));
+    CompanyWallet companyWallet = null;
+    try {
+      resultSet.findColumn("COMPANY_WALLET.id");
+      companyWallet = new CompanyWallet();
+      companyWallet.setBalance(resultSet.getBigDecimal("COMPANY_WALLET.balance"));
+      companyWallet.setCommissionBalance(resultSet.getBigDecimal("COMPANY_WALLET.commission_balance"));
+      companyWallet.setCurrency(currency);
+      companyWallet.setId(resultSet.getInt("COMPANY_WALLET.id"));
+    } catch (SQLException e) {
+      //NOP
+    }
 
-    final Wallet userWallet = new Wallet();
-    userWallet.setActiveBalance(resultSet.getBigDecimal("WALLET.active_balance"));
-    userWallet.setReservedBalance(resultSet.getBigDecimal("WALLET.reserved_balance"));
-    userWallet.setId(resultSet.getInt("WALLET.id"));
-    userWallet.setCurrencyId(currency.getId());
-    User user = new User();
-    user.setId(resultSet.getInt("user_id"));
-    user.setEmail(resultSet.getString("user_email"));
-    userWallet.setUser(user);
+    Wallet userWallet = null;
+    try {
+      resultSet.findColumn("WALLET.id");
+      userWallet = new Wallet();
+      userWallet.setActiveBalance(resultSet.getBigDecimal("WALLET.active_balance"));
+      userWallet.setReservedBalance(resultSet.getBigDecimal("WALLET.reserved_balance"));
+      userWallet.setId(resultSet.getInt("WALLET.id"));
+      userWallet.setCurrencyId(currency.getId());
+      User user = new User();
+      user.setId(resultSet.getInt("user_id"));
+      user.setEmail(resultSet.getString("user_email"));
+      userWallet.setUser(user);
+    } catch (SQLException e) {
+      //NOP
+    }
 
-    final Transaction transaction = new Transaction();
+    Transaction transaction = new Transaction();
     transaction.setId(resultSet.getInt("TRANSACTION.id"));
     transaction.setAmount(resultSet.getBigDecimal("TRANSACTION.amount"));
     transaction.setCommissionAmount(resultSet.getBigDecimal("TRANSACTION.commission_amount"));
@@ -101,6 +135,7 @@ public final class TransactionDaoImpl implements TransactionDao {
     transaction.setSourceId(resultSet.getInt("source_id"));
     return transaction;
   };
+
   private final String SELECT_COUNT =
       " SELECT COUNT(*)" +
           " FROM TRANSACTION " +
@@ -217,6 +252,7 @@ public final class TransactionDaoImpl implements TransactionDao {
         "     company_commission_balance_before = :company_commission_balance_before, " +
         "     source_type = :source_type, " +
         "     source_id = :source_id " +
+        "     provided_modification_date = NOW() " +
         " WHERE id = :id";
     final int PROVIDED = 1;
     final Map<String, Object> params = new HashMap<String, Object>() {
@@ -355,7 +391,7 @@ public final class TransactionDaoImpl implements TransactionDao {
   @Override
   public boolean provide(int id) {
     final int PROVIDED = 1;
-    final String sql = "UPDATE TRANSACTION SET provided = :provided WHERE id = :id";
+    final String sql = "UPDATE TRANSACTION SET provided = :provided, provided_modification_date = NOW() WHERE id = :id";
     final Map<String, Integer> params = new HashMap<String, Integer>() {
       {
         put("provided", PROVIDED);
@@ -542,6 +578,61 @@ public final class TransactionDaoImpl implements TransactionDao {
     params.put("id", trasactionId);
     params.put("source_id", sourceId);
     jdbcTemplate.update(sql, params);
+  }
+
+  @Override
+  public List<TransactionFlatForReportDto> findAllByDateIntervalAndRoleAndOperationTypeAndCurrencyAndSourceType(
+      String startDate,
+      String endDate,
+      Integer operationType,
+      List<Integer> roleIdList,
+      List<Integer> currencyList,
+      List<String> sourceTypeList) {
+    String sql = "SELECT  " +
+        "         USER.email AS user_email, " +
+        "         TX.id AS transaction_id, TX.amount, TX.commission_amount, TX.datetime, " +
+        "         TX.operation_type_id,TX.provided,TX.confirmation, " +
+        "         TX.source_type, " +
+        "         TX.provided_modification_date, " +
+        "         MERCHANT.name AS merchant_name, " +
+        "         CURRENCY.name AS currency_name" +
+        " FROM TRANSACTION TX  " +
+        " JOIN CURRENCY ON CURRENCY.id = TX.currency_id " +
+        " JOIN WALLET ON WALLET.id = TX.user_wallet_id " +
+        " JOIN USER AS USER ON USER.id = WALLET.user_id " +
+        " JOIN MERCHANT ON MERCHANT.id = TX.merchant_id " +
+        " WHERE " +
+        "    TX.source_type IN (:source_type_list) AND (TX.currency_id IN (:currency_list)) " +
+        "    AND TX.datetime BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s') " +
+        (roleIdList.isEmpty() ? "" :
+            " AND USER.roleid IN (:role_id_list)");
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("start_date", startDate);
+      put("end_date", endDate);
+      if (!roleIdList.isEmpty()) {
+        put("role_id_list", roleIdList);
+      }
+      put("currency_list", currencyList);
+      put("source_type_list", sourceTypeList);
+    }};
+    return jdbcTemplate.query(sql, params, new RowMapper<TransactionFlatForReportDto>() {
+      @Override
+      public TransactionFlatForReportDto mapRow(ResultSet rs, int i) throws SQLException {
+        TransactionFlatForReportDto transactionFlatForReportDto = new TransactionFlatForReportDto();
+        transactionFlatForReportDto.setTransactionId(rs.getInt("transaction_id"));
+        transactionFlatForReportDto.setMerchant(rs.getString("merchant_name"));
+        transactionFlatForReportDto.setUserEmail(rs.getString("user_email"));
+        transactionFlatForReportDto.setAmount(rs.getBigDecimal("amount"));
+        transactionFlatForReportDto.setCommissionAmount(rs.getBigDecimal("commission_amount"));
+        transactionFlatForReportDto.setDatetime(rs.getTimestamp("datetime") == null ? null : rs.getTimestamp("datetime").toLocalDateTime());
+        transactionFlatForReportDto.setProvidedDate(rs.getTimestamp("provided_modification_date") == null ? null : rs.getTimestamp("provided_modification_date").toLocalDateTime());
+        transactionFlatForReportDto.setConfirmation(rs.getInt("confirmation"));
+        transactionFlatForReportDto.setProvided(rs.getBoolean("provided"));
+        transactionFlatForReportDto.setCurrency(rs.getString("currency_name"));
+        transactionFlatForReportDto.setSourceType(TransactionSourceType.valueOf(rs.getString("source_type")));
+        return transactionFlatForReportDto;
+      }
+    });
   }
 
 }

@@ -222,7 +222,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 	}
 
 	@Override
-	public List<UserCurrencyOperationPermissionDto> findWithOperationPermissionByUserAndDirection(Integer userId, String operationDirection) {
+	public List<UserCurrencyOperationPermissionDto> findCurrencyOperationPermittedByUserAndDirection(Integer userId, String operationDirection) {
 		String sql = "SELECT CUR.id, CUR.name, IOP.invoice_operation_permission_id" +
 				" FROM CURRENCY CUR " +
 				" LEFT JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
@@ -247,7 +247,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 	}
 
 	@Override
-	public List<UserCurrencyOperationPermissionDto> getCurrencyWithPermittedOperationsByUser(Integer userId) {
+	public List<UserCurrencyOperationPermissionDto> findCurrencyOperationPermittedByUserList(Integer userId) {
 		String sql = "SELECT CUR.id, CUR.name, IOP.invoice_operation_permission_id, IOP.operation_direction " +
 				" FROM CURRENCY CUR " +
 				" JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +

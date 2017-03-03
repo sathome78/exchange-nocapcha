@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -46,9 +47,15 @@ public interface CurrencyService {
 
     List<TransferLimitDto> retrieveMinTransferLimits(List<Integer> currencyIds);
 
-    List<UserCurrencyOperationPermissionDto> findPermittedCurrenciesForRefill(String userEmail);
+    List<UserCurrencyOperationPermissionDto> getCurrencyOperationPermittedForRefill(String userEmail);
 
-    List<UserCurrencyOperationPermissionDto> findPermittedCurrenciesForWithdraw(String userEmail);
+    List<UserCurrencyOperationPermissionDto> getCurrencyOperationPermittedForWithdraw(String userEmail);
 
   List<UserCurrencyOperationPermissionDto> findWithOperationPermissionByUserAndDirection(Integer userId, InvoiceOperationDirection operationDirection);
+
+  Set<String> getCurrencyPermittedNameList(String userEmail);
+
+  List<UserCurrencyOperationPermissionDto> getCurrencyPermittedOperationList(Integer userId);
+
+  Set<String> getCurrencyPermittedNameList(Integer userId);
 }

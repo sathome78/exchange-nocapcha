@@ -3,9 +3,10 @@ package me.exrates.service;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Merchant;
 import me.exrates.model.Transaction;
-import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
-import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.OperationViewDto;
+import me.exrates.model.dto.TransactionFlatForReportDto;
+import me.exrates.model.dto.dataTable.DataTable;
+import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.enums.TransactionType;
 import me.exrates.model.vo.CacheData;
 
@@ -71,4 +72,6 @@ public interface TransactionService {
     List<AccountStatementDto> getAccountStatement(Integer walletId, Integer offset, Integer limit, Locale locale);
 
     void setSourceId(Integer trasactionId, Integer sourceId);
+
+    List<TransactionFlatForReportDto> getAllByDateIntervalAndRoleAndOperationTypeAndCurrencyAndSourceType(String startDate, String endDate, Integer operationType, List<Integer> roleIdList, List<Integer> currencyList, List<String> sourceTypeList);
 }

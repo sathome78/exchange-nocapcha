@@ -64,29 +64,29 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
     invoiceRequest.setStatusUpdateDate(resultSet.getTimestamp("status_update_date").toLocalDateTime());
     invoiceRequest.setReceiptScanName(resultSet.getString("receipt_scan_name"));
     return invoiceRequest;
-    };
+  };
 
-    private static final String SELECT_ALL = "SELECT inv.acceptance_time, user.id AS user_id, user.email AS user_email, " +
-            "adm.id AS acceptance_id, adm.email AS acceptance_user_email, " +
-            "TRANSACTION.id, TRANSACTION.amount, TRANSACTION.commission_amount, TRANSACTION.datetime, " +
-            "                    TRANSACTION.operation_type_id,TRANSACTION.provided,TRANSACTION.confirmation, " +
-            "                    TRANSACTION.source_id, TRANSACTION.source_type, WALLET.id, WALLET.active_balance, " +
-            "                    WALLET.reserved_balance, WALLET.currency_id, COMPANY_WALLET.id, COMPANY_WALLET.balance, " +
-            "                    COMPANY_WALLET.commission_balance, COMMISSION.id, COMMISSION.date, COMMISSION.value, " +
-            "                    CURRENCY.id, CURRENCY.description, CURRENCY.name, MERCHANT.id,MERCHANT.name,MERCHANT.description, " +
-            "                    INVOICE_BANK.id AS bank_id, INVOICE_BANK.name AS bank_name, INVOICE_BANK.account_number, INVOICE_BANK.recipient, " +
-            "                    inv.user_full_name, inv.remark, inv.payer_bank_name,  inv.payer_bank_code, inv.payer_account, inv.receipt_scan, " +
-            "                    inv.receipt_scan_name, inv.invoice_request_status_id, inv.status_update_date " +
-            "                    FROM INVOICE_REQUEST AS inv " +
-            "    INNER JOIN TRANSACTION ON inv.transaction_id = TRANSACTION.id " +
-            "    INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id " +
-            "    INNER JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id " +
-            "    INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id " +
-            "    INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id " +
-            "    INNER JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id " +
-            "    INNER JOIN USER AS user ON inv.user_id = user.id " +
-            "    LEFT JOIN USER AS adm ON inv.acceptance_user_id = adm.id " +
-            "    LEFT JOIN INVOICE_BANK ON inv.bank_id = INVOICE_BANK.id  ";
+  private static final String SELECT_ALL = "SELECT inv.acceptance_time, user.id AS user_id, user.email AS user_email, " +
+      "adm.id AS acceptance_id, adm.email AS acceptance_user_email, " +
+      "TRANSACTION.id, TRANSACTION.amount, TRANSACTION.commission_amount, TRANSACTION.datetime, " +
+      "                    TRANSACTION.operation_type_id,TRANSACTION.provided,TRANSACTION.confirmation, " +
+      "                    TRANSACTION.source_id, TRANSACTION.source_type, WALLET.id, WALLET.active_balance, " +
+      "                    WALLET.reserved_balance, WALLET.currency_id, COMPANY_WALLET.id, COMPANY_WALLET.balance, " +
+      "                    COMPANY_WALLET.commission_balance, COMMISSION.id, COMMISSION.date, COMMISSION.value, " +
+      "                    CURRENCY.id, CURRENCY.description, CURRENCY.name, MERCHANT.id,MERCHANT.name,MERCHANT.description, " +
+      "                    INVOICE_BANK.id AS bank_id, INVOICE_BANK.name AS bank_name, INVOICE_BANK.account_number, INVOICE_BANK.recipient, " +
+      "                    inv.user_full_name, inv.remark, inv.payer_bank_name,  inv.payer_bank_code, inv.payer_account, inv.receipt_scan, " +
+      "                    inv.receipt_scan_name, inv.invoice_request_status_id, inv.status_update_date " +
+      "                    FROM INVOICE_REQUEST AS inv " +
+      "    INNER JOIN TRANSACTION ON inv.transaction_id = TRANSACTION.id " +
+      "    INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id " +
+      "    INNER JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id " +
+      "    INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id " +
+      "    INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id " +
+      "    INNER JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id " +
+      "    INNER JOIN USER AS user ON inv.user_id = user.id " +
+      "    LEFT JOIN USER AS adm ON inv.acceptance_user_id = adm.id " +
+      "    LEFT JOIN INVOICE_BANK ON inv.bank_id = INVOICE_BANK.id  ";
 
 
   @Override
@@ -101,7 +101,7 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
         put("bank_id", invoiceRequest.getInvoiceBank().getId());
         put("user_full_name", invoiceRequest.getUserFullName());
         put("remark", invoiceRequest.getRemark());
-        put("invoice_request_status_id",  invoiceRequest.getInvoiceRequestStatus().getCode());
+        put("invoice_request_status_id", invoiceRequest.getInvoiceRequestStatus().getCode());
       }
     };
     parameterJdbcTemplate.update(sql, params);
@@ -349,20 +349,40 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
   }
 
   @Override
-  public List<InvoiceRequest> findAllByUserNameAndDateIntervalAndRoleAndCurrency(
+  public List<InvoiceRequest> findAllByDateIntervalAndRoleAndCurrency(
       String startDate,
       String endDate,
       List<Integer> roleIdList,
-      String direction,
-      List<String> currencyList) {
-    String sql = SELECT_ALL + " WHERE " +
-        "  TRANSACTION.datetime BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))) " +
-        "";
-    Map<String, String> params = Collections.singletonMap("email", email);
-    try {
-      return parameterJdbcTemplate.query(sql, params, invoiceRequestRowMapper);
-    } catch (EmptyResultDataAccessException e) {
-      return Collections.EMPTY_LIST;
-    }
+      List<Integer> currencyList) {
+    String sql = "SELECT " +
+        "         INV.user_full_name, INV.remark, INV.payer_bank_name,  INV.payer_bank_code, INV.payer_account, INV.receipt_scan, " +
+        "         INV.receipt_scan_name, INV.invoice_request_status_id, INV.status_update_date, INV.acceptance_time, " +
+        "         USER.id AS user_id, USER.email AS user_email, " +
+        "         ADM.id AS acceptance_id, ADM.email AS acceptance_user_email, " +
+        "         TRANSACTION.id, TRANSACTION.amount, TRANSACTION.commission_amount, TRANSACTION.datetime, " +
+        "         TRANSACTION.operation_type_id,TRANSACTION.provided,TRANSACTION.confirmation, " +
+        "         TRANSACTION.source_id, TRANSACTION.source_type, " +
+        "         CURRENCY.id, CURRENCY.description, CURRENCY.name, " +
+        "         INVOICE_BANK.id AS bank_id, INVOICE_BANK.name AS bank_name, INVOICE_BANK.account_number, INVOICE_BANK.recipient " +
+        "    FROM INVOICE_REQUEST AS INV " +
+        "    JOIN TRANSACTION ON TRANSACTION.id = INV.transaction_id AND TRANSACTION.currency_id IN (:currency_list)" +
+        "    JOIN CURRENCY ON CURRENCY.id = TRANSACTION.currency_id " +
+        "    JOIN USER AS USER ON USER.id = INV.user_id " +
+        "    LEFT JOIN USER AS ADM ON ADM.id = INV.acceptance_user_id " +
+        "    LEFT JOIN INVOICE_BANK ON INVOICE_BANK.id = INV.bank_id " +
+        "  WHERE " +
+        "    TRANSACTION.datetime BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s') " +
+        (roleIdList.isEmpty() ? "" :
+            " AND USER.roleid IN (:role_id_list)");
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("start_date", startDate);
+      put("end_date", endDate);
+      if (!roleIdList.isEmpty()) {
+        put("role_id_list", roleIdList);
+      }
+      put("currency_list", currencyList);
+    }};
+    return parameterJdbcTemplate.query(sql, params, invoiceRequestRowMapper);
   }
+
 }

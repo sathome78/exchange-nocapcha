@@ -323,8 +323,8 @@ public final class WalletServiceImpl implements WalletService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<UserWalletSummaryDto> getUsersWalletsSummaryForPermittedCurrency(List<Integer> roles, Integer requesterUserId) {
-        Set<String> permittedCurrencies = currencyDao.getCurrencyWithPermittedOperationsByUser(requesterUserId).stream()
+    public List<UserWalletSummaryDto> getUsersWalletsSummaryForPermittedCurrencyList(List<Integer> roles, Integer requesterUserId) {
+        Set<String> permittedCurrencies = currencyDao.findCurrencyOperationPermittedByUserList(requesterUserId).stream()
             .map(e -> e.getCurrencyName())
             .collect(Collectors.toSet());
         return  walletDao.getUsersWalletsSummary(roles).stream()

@@ -3,6 +3,7 @@ package me.exrates.dao;
 import me.exrates.model.Merchant;
 import me.exrates.model.PagingData;
 import me.exrates.model.Transaction;
+import me.exrates.model.dto.TransactionFlatForReportDto;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.enums.TransactionType;
 
@@ -56,4 +57,7 @@ public interface TransactionDao {
   BigDecimal maxCommissionAmount();
 
   void setSourceId(Integer trasactionId, Integer sourceId);
+
+  List<TransactionFlatForReportDto> findAllByDateIntervalAndRoleAndOperationTypeAndCurrencyAndSourceType(String startDate, String endDate, Integer operationType, List<Integer> roleIdList, List<Integer> currencyList, List<String> sourceTypeList);
+
 }

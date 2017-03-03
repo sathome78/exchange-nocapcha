@@ -452,22 +452,22 @@ public class WalletDaoImpl implements WalletDao {
 
         String condition = "";
         if (!roles.isEmpty()){
-            condition = " AND USER_ROLE.id IN (:roles) ";
+            condition = " AND USER.roleid IN (:roles) ";
         }
 
         String sql = "SELECT CURRENCY.name as currency_name, COUNT(*) as wallets_amount, SUM(WALLET.active_balance) as active_balance, SUM(WALLET.reserved_balance) as reserved_balance, " +
                 "(SELECT SUM(amount) FROM TRANSACTION " +
                 " JOIN WALLET ON (WALLET.id = TRANSACTION.user_wallet_id) " +
                 " JOIN USER ON (USER.id = WALLET.user_id) " +
-                " JOIN USER_ROLE ON (USER_ROLE.id = USER.roleid) " +
                 condition +
-                "where provided=1 AND merchant_id is not null AND operation_type_id=1 AND TRANSACTION.currency_id=CURRENCY.id) as merchant_amount_input, " +
+                " WHERE provided=1 AND merchant_id is not null AND operation_type_id=1 AND TRANSACTION.currency_id=CURRENCY.id) as merchant_amount_input, " +
+
                 "(SELECT SUM(amount) FROM TRANSACTION " +
                 " JOIN WALLET ON (WALLET.id = TRANSACTION.user_wallet_id) " +
                 " JOIN USER ON (USER.id = WALLET.user_id) " +
-                " JOIN USER_ROLE ON (USER_ROLE.id = USER.roleid) " +
                 condition +
-                "where provided=1 AND merchant_id is not null AND operation_type_id=2 AND TRANSACTION.currency_id=CURRENCY.id) as merchant_amount_output " +
+                " WHERE provided=1 AND merchant_id is not null AND operation_type_id=2 AND TRANSACTION.currency_id=CURRENCY.id) as merchant_amount_output " +
+
                 " FROM WALLET " +
                 " JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
                 " JOIN USER ON (USER.id = WALLET.user_id) " +

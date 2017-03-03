@@ -3,6 +3,7 @@ package me.exrates.service.impl;
 import me.exrates.dao.TransactionDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
+import me.exrates.model.dto.TransactionFlatForReportDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
@@ -302,5 +303,17 @@ public class TransactionServiceImpl implements TransactionService {
     @Transactional
     public void setSourceId(Integer trasactionId, Integer sourceId) {
         transactionDao.setSourceId(trasactionId, sourceId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TransactionFlatForReportDto> getAllByDateIntervalAndRoleAndOperationTypeAndCurrencyAndSourceType(
+        String startDate,
+        String endDate,
+        Integer operationType,
+        List<Integer> roleIdList,
+        List<Integer> currencyList,
+        List<String> sourceTypeList) {
+        return transactionDao.findAllByDateIntervalAndRoleAndOperationTypeAndCurrencyAndSourceType(startDate, endDate, operationType, roleIdList, currencyList, sourceTypeList);
     }
 }

@@ -19,6 +19,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href='<c:url value="/client/css/roboto-font-400_700_300.css"/>' rel='stylesheet' type='text/css'>
     <link href="/client/css/jquery-ui.css" rel='stylesheet' type='text/css'>
+
     <%@include file='admin/links_scripts.jsp' %>
 
 
@@ -88,6 +89,14 @@
                                 <loc:message
                                         code="wallets.downloadOrders"/></button>
                         </div>
+
+                            <div class="row">
+                                <button id="download-input-output-summery-report" class="blue-box pull-right"
+                                        onclick="uploadInputOutputSummaryReport('${mapRole.key}')" type="submit">
+                                    <loc:message
+                                            code="wallets.downloadInputOutputReport"/></button>
+                            </div>
+
                         <c:forEach var="wallet" items="${mapRole.value}">
                             <div class="block">
                                 <div class="currency">${wallet.currencyName}</div>
@@ -157,6 +166,7 @@
 </main>
 <%@include file='fragments/footer.jsp' %>
 <%@include file='admin/datePicker.jsp' %>
+<%@include file='fragments/modal/dialogWithCurrencyAndDateAndDirection_modal.jsp' %>
 </body>
 </html>
 

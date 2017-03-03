@@ -24,6 +24,7 @@ import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.math.BigDecimal.ROUND_HALF_UP;
 
@@ -131,22 +132,44 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Override
     @Transactional(readOnly = true)
     public List<UserCurrencyOperationPermissionDto> findWithOperationPermissionByUserAndDirection(Integer userId, InvoiceOperationDirection operationDirection) {
-        return currencyDao.findWithOperationPermissionByUserAndDirection(userId, operationDirection.name());
+        return currencyDao.findCurrencyOperationPermittedByUserAndDirection(userId, operationDirection.name());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<UserCurrencyOperationPermissionDto> findPermittedCurrenciesForRefill(String userEmail) {
-        return findPermittedCurrencies(userEmail, InvoiceOperationDirection.REFILL);
-    }
-    @Override
-    @Transactional(readOnly = true)
-    public List<UserCurrencyOperationPermissionDto> findPermittedCurrenciesForWithdraw(String userEmail) {
-        return findPermittedCurrencies(userEmail, InvoiceOperationDirection.WITHDRAW);
+    public List<UserCurrencyOperationPermissionDto> getCurrencyOperationPermittedForRefill(String userEmail) {
+        return getCurrencyOperationPermittedList(userEmail, InvoiceOperationDirection.REFILL);
     }
 
-    private List<UserCurrencyOperationPermissionDto> findPermittedCurrencies(String userEmail, InvoiceOperationDirection direction) {
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserCurrencyOperationPermissionDto> getCurrencyOperationPermittedForWithdraw(String userEmail) {
+        return getCurrencyOperationPermittedList(userEmail, InvoiceOperationDirection.WITHDRAW);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Set<String> getCurrencyPermittedNameList(String userEmail) {
         Integer userId = userService.getIdByEmail(userEmail);
-        return currencyDao.findWithOperationPermissionByUserAndDirection(userId, direction.name());
+        return getCurrencyPermittedNameList(userId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserCurrencyOperationPermissionDto> getCurrencyPermittedOperationList(Integer userId) {
+        return currencyDao.findCurrencyOperationPermittedByUserList(userId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Set<String> getCurrencyPermittedNameList(Integer userId) {
+        return currencyDao.findCurrencyOperationPermittedByUserList(userId).stream()
+            .map(e -> e.getCurrencyName())
+            .collect(Collectors.toSet());
+    }
+
+    private List<UserCurrencyOperationPermissionDto> getCurrencyOperationPermittedList(String userEmail, InvoiceOperationDirection direction) {
+        Integer userId = userService.getIdByEmail(userEmail);
+        return findWithOperationPermissionByUserAndDirection(userId, direction);
     }
 }
