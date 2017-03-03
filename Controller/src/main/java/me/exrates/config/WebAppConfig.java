@@ -133,7 +133,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new PropertySourcesPlaceholderConfigurer();
     }
 
-    @Bean(name = "dataSource")
+    /*@Bean(name = "dataSource")*/
     public DataSource dataSource() {
         final BasicDataSource dataSource = new BasicDataSource();
         dataSource.setDriverClassName(dbClassname);
@@ -150,6 +150,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         hikariConfig.setJdbcUrl(dbUrl);
         hikariConfig.setUsername(dbUser);
         hikariConfig.setPassword(dbPassword);
+        hikariConfig.setMaximumPoolSize(50);
         return new HikariDataSource(hikariConfig);
     }
 
@@ -219,7 +220,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         registry.addResourceHandler("/**").addResourceLocations("/public/");
         registry.addResourceHandler(newsUrlPath + "/**").addResourceLocations("file:" + newsLocationDir);
         registry.addResourceHandler(userFilesLogicalDir + "/**").addResourceLocations("file:" + userFilesDir);
-
         registry.addResourceHandler(newstopicUrlPath + "/**").addResourceLocations("file:" + newsExtLocationDir);
         registry.addResourceHandler(materialsViewUrlPath + "/**").addResourceLocations("file:" + newsExtLocationDir);
         registry.addResourceHandler(webinarUrlPath + "/**").addResourceLocations("file:" + newsExtLocationDir);
@@ -238,7 +238,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
     @Bean
     public PlatformTransactionManager platformTransactionManager() {
-        return new DataSourceTransactionManager(dataSource());
+        return new DataSourceTransactionManager(hikariDataSource());
     }
 
     @Bean
