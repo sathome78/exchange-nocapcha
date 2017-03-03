@@ -580,14 +580,10 @@ public class OnlineRestController {
                                               Principal principal, HttpServletRequest request) {
     long before = System.currentTimeMillis();
     CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
-    String email = principal == null ? "" : principal.getName();
-        /*unlock the displaying of own orders*/
-    email = null;
-        /**/
     String cacheKey = "sellOrders" + request.getHeader("windowid");
     refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
     CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
-    List<OrderListDto> result = orderService.getAllSellOrders(cacheData, currencyPair, email, localeResolver.resolveLocale(request));
+    List<OrderListDto> result = orderService.getAllSellOrders(cacheData, currencyPair, localeResolver.resolveLocale(request));
     long after = System.currentTimeMillis();
     LOGGER.debug("completed... ms: " + (after - before));
     return result;
@@ -610,14 +606,10 @@ public class OnlineRestController {
                                              Principal principal, HttpServletRequest request) {
     long before = System.currentTimeMillis();
     CurrencyPair currencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
-    String email = principal == null ? "" : principal.getName();
-        /*unlock the displaying of own orders*/
-    email = null;
-        /**/
     String cacheKey = "BuyOrders" + request.getHeader("windowid");
     refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
     CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
-    List<OrderListDto> result = orderService.getAllBuyOrders(cacheData, currencyPair, email, localeResolver.resolveLocale(request));
+    List<OrderListDto> result = orderService.getAllBuyOrders(cacheData, currencyPair, localeResolver.resolveLocale(request));
     long after = System.currentTimeMillis();
     LOGGER.debug("completed... ms: " + (after - before));
     return result;

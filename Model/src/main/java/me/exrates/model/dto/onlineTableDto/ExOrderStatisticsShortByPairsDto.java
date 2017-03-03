@@ -1,69 +1,41 @@
 package me.exrates.model.dto.onlineTableDto;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * Created by Valk
  */
+@Getter @Setter
 public class ExOrderStatisticsShortByPairsDto extends OnlineTableDto {
-    private String currencyPairName;
-    private String lastOrderRate;
-    private String predLastOrderRate;
-    private String percentChange;
+  private String currencyPairName;
+  private String lastOrderRate;
+  private String predLastOrderRate;
+  private String percentChange;
 
-    public ExOrderStatisticsShortByPairsDto() {
-        this.needRefresh = true;
-    }
+  public ExOrderStatisticsShortByPairsDto() {
+    this.needRefresh = true;
+  }
 
-    public ExOrderStatisticsShortByPairsDto(boolean needRefresh) {
-        this.needRefresh = needRefresh;
-    }
+  public ExOrderStatisticsShortByPairsDto(boolean needRefresh) {
+    this.needRefresh = needRefresh;
+  }
 
-    /*hash*/
-    @Override
-    public int hashCode() {
-        int result = currencyPairName != null ? currencyPairName.hashCode() : 0;
-        result = 31 * result + (lastOrderRate != null ? lastOrderRate.hashCode() : 0);
-        result = 31 * result + (predLastOrderRate != null ? predLastOrderRate.hashCode() : 0);
-        return result;
-    }
-/*getters setters*/
+  public ExOrderStatisticsShortByPairsDto(ExOrderStatisticsShortByPairsDto exOrderStatisticsShortByPairsDto) {
+    this.needRefresh = exOrderStatisticsShortByPairsDto.needRefresh;
+    this.page = exOrderStatisticsShortByPairsDto.page;
+    this.currencyPairName = exOrderStatisticsShortByPairsDto.currencyPairName;
+    this.lastOrderRate = exOrderStatisticsShortByPairsDto.lastOrderRate;
+    this.predLastOrderRate = exOrderStatisticsShortByPairsDto.predLastOrderRate;
+    this.percentChange = exOrderStatisticsShortByPairsDto.percentChange;
+  }
 
-    public boolean isNeedRefresh() {
-        return needRefresh;
-    }
+  @Override
+  public int hashCode() {
+    int result = currencyPairName != null ? currencyPairName.hashCode() : 0;
+    result = 31 * result + (lastOrderRate != null ? lastOrderRate.hashCode() : 0);
+    result = 31 * result + (predLastOrderRate != null ? predLastOrderRate.hashCode() : 0);
+    return result;
+  }
 
-    public void setNeedRefresh(boolean needRefresh) {
-        this.needRefresh = needRefresh;
-    }
-
-    public String getCurrencyPairName() {
-        return currencyPairName;
-    }
-
-    public void setCurrencyPairName(String currencyPairName) {
-        this.currencyPairName = currencyPairName;
-    }
-
-    public String getLastOrderRate() {
-        return lastOrderRate;
-    }
-
-    public void setLastOrderRate(String lastOrderRate) {
-        this.lastOrderRate = lastOrderRate;
-    }
-
-    public String getPredLastOrderRate() {
-        return predLastOrderRate;
-    }
-
-    public void setPredLastOrderRate(String predLastOrderRate) {
-        this.predLastOrderRate = predLastOrderRate;
-    }
-
-    public String getPercentChange() {
-        return percentChange;
-    }
-
-    public void setPercentChange(String percentChange) {
-        this.percentChange = percentChange;
-    }
 }
