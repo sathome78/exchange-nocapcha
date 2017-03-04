@@ -2,6 +2,8 @@ package me.exrates.dao;
 
 import me.exrates.model.EDCAccount;
 
+import java.util.List;
+
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
@@ -12,5 +14,9 @@ public interface EDCAccountDao {
     void deleteByTransactionId(int id);
 
     void create(EDCAccount edcAccount);
+
+    void setAccountIdByTransactionId(int transactionId, String accountId);
+
+    List<EDCAccount> getAccountsWithoutId();
 
 }

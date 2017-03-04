@@ -30,9 +30,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.EnumMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -195,14 +193,34 @@ public class EDCServiceImpl implements EDCService {
     public String createInvoice(CreditsOperation operation) throws Exception {
         final Transaction tx = transactionService.createTransactionRequest(operation);
         final String account = createAccount(tx.getId());
-        final String accountId = extractAccountId(account, tx.getId());
-        final PendingPayment payment = new PendingPayment();
-        payment.setAddress(accountId);
-        payment.setInvoiceId(tx.getId());
-        payment.setTransactionHash(PENDING_PAYMENT_HASH); // every edc payment invoice has uniform tx-hash to distinguish them from other invoices
-        pendingPayments.put(accountId, payment);
-        paymentDao.create(payment);
+        getDelayedAccountId(account, tx);
         return account;
+    }
+
+    private void getDelayedAccountId (String account, Transaction tx) throws IOException {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                String accountId = "";
+                try {
+                    Thread.sleep(60000);
+                    accountId = extractAccountId(account, tx.getId());
+                    final PendingPayment payment = new PendingPayment();
+                    payment.setAddress(accountId);
+                    payment.setInvoiceId(tx.getId());
+                    payment.setTransactionHash(PENDING_PAYMENT_HASH); // every edc payment invoice has uniform tx-hash to distinguish them from other invoices
+                    pendingPayments.put(accountId, payment);
+                    paymentDao.create(payment);
+                    edcAccountDao.setAccountIdByTransactionId(tx.getId(), accountId);
+                } catch (IOException e) {
+                    LOG.error(e);
+                } catch (InterruptedException e) {
+                    LOG.error(e);
+                }
+            }
+        }).start();
+
     }
 
     @Override
@@ -214,7 +232,9 @@ public class EDCServiceImpl implements EDCService {
         }
     }
 
-    private String extractAccountId(final String account, final int invoiceId) throws IOException {
+
+    @Override
+    public String extractAccountId(final String account, final int invoiceId) throws IOException {
         final String GET_ACCOUNT_ID_RPC = "{\"method\": \"get_account_id\", \"jsonrpc\": \"2.0\", \"params\": [\"%s\"], \"id\": %d}";
         final String response = makeRpcCallDelayed(GET_ACCOUNT_ID_RPC, account, invoiceId);
         final ObjectMapper mapper = new ObjectMapper();
@@ -226,8 +246,8 @@ public class EDCServiceImpl implements EDCService {
     private String createAccount(final int id) throws Exception {
         LOG.info("Start method createAccount");
         final String accountName = (ACCOUNT_PREFIX + id + UUID.randomUUID()).toLowerCase();
-        final EnumMap<KEY_TYPE, String> keys = extractKeys(makeRpcCallDelayed(NEW_KEY_PAIR_RPC, id)); // retrieve public and private from server
-        final String response = makeRpcCallDelayed(REGISTER_NEW_ACCOUNT_RPC, accountName, keys.get(KEY_TYPE.PUBLIC), keys.get(KEY_TYPE.PUBLIC), REGISTRAR_ACCOUNT, REFERRER_ACCOUNT, String.valueOf(id));
+        final EnumMap<KEY_TYPE, String> keys = extractKeys(makeRpcCallFast(NEW_KEY_PAIR_RPC, id)); // retrieve public and private from server
+        final String response = makeRpcCallFast(REGISTER_NEW_ACCOUNT_RPC, accountName, keys.get(KEY_TYPE.PUBLIC), keys.get(KEY_TYPE.PUBLIC), REGISTRAR_ACCOUNT, REFERRER_ACCOUNT, String.valueOf(id));
         LOG.info("bit_response: " + response.toString());
         if (response.contains("error")) {
             throw new Exception("Could not create new account!\n" + response);
@@ -237,6 +257,7 @@ public class EDCServiceImpl implements EDCService {
         edcAccount.setBrainPrivKey(keys.get(KEY_TYPE.BRAIN));
         edcAccount.setPubKey(keys.get(KEY_TYPE.PUBLIC));
         edcAccount.setWifPrivKey(keys.get(KEY_TYPE.PRIVATE));
+        edcAccount.setAccountName(accountName);
         edcAccountDao.create(edcAccount);
         return accountName;
     }
