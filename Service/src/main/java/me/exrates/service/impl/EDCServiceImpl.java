@@ -11,10 +11,7 @@ import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import me.exrates.dao.EDCAccountDao;
 import me.exrates.dao.PendingPaymentDao;
-import me.exrates.model.CreditsOperation;
-import me.exrates.model.EDCAccount;
-import me.exrates.model.PendingPayment;
-import me.exrates.model.Transaction;
+import me.exrates.model.*;
 import me.exrates.service.EDCService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.util.BiTuple;
@@ -140,6 +137,7 @@ public class EDCServiceImpl implements EDCService {
             paymentDao.delete(payment.getInvoiceId());
             pendingPayments.remove(accountId);
             transferToMainAccount(accountId, tx);
+            edcAccountDao.setAccountUsed(tx.getId());
         }
         }catch (InterruptedException e){
             LOG.info("Method acceptTransaction InterruptedException........................................... error: ");
@@ -152,6 +150,48 @@ public class EDCServiceImpl implements EDCService {
             LOG.error(e);
         }
 
+    }
+
+    @Transactional
+    @Override
+    public void rescanUnusedAccounts(){
+        List<EDCAccount> list = edcAccountDao.getUnusedAccounts();
+        for (EDCAccount account : list){
+            final String responseImportKey;
+            try {
+                responseImportKey = makeRpcCallFast(IMPORT_KEY, account.getAccountId(), account.getWifPrivKey(), account.getTransactionId());
+                if (responseImportKey.contains("true")) {
+                    String accountBalance = extractBalance(account.getAccountId(), account.getTransactionId());
+                    if (Double.valueOf(accountBalance) > 0){
+                        final String responseTransfer = makeRpcCallFast(TRANSFER_EDC,account.getAccountId(), MAIN_ACCOUNT, accountBalance, "EDC", "Inner transfer", String.valueOf(account.getTransactionId()));
+                        if (responseTransfer.contains("error")) {
+                            throw new InterruptedException("Could not transfer money to main account!\n" + responseTransfer);
+                        }
+                        edcAccountDao.setAccountUsed(account.getTransactionId());
+                        Optional<PendingPayment> payment = paymentDao.findByInvoiceId(account.getTransactionId());
+                        if (payment.isPresent()){
+                            paymentDao.delete(account.getTransactionId());
+                        }
+                        Transaction transaction = transactionService.findById(account.getTransactionId());
+                        if (!transaction.isProvided()){
+
+                            final BigDecimal targetAmount = transaction.getAmount().add(transaction.getCommissionAmount()).setScale(DEC_PLACES, ROUND_HALF_UP);
+                            final BigDecimal currentAmount = new BigDecimal(accountBalance).add(new BigDecimal("0.001")).setScale(DEC_PLACES, ROUND_HALF_UP);
+                            if (targetAmount.compareTo(currentAmount) != 0) {
+                                transactionService.updateTransactionAmount(transaction, currentAmount);
+                            }
+                            transactionService.provideTransaction(transaction);
+                        }
+                    }else {
+                        edcAccountDao.setAccountUsed(account.getTransactionId());
+                    }
+                }
+            } catch (IOException e) {
+                LOG.error(e);
+            } catch (InterruptedException e) {
+                LOG.error(e);
+            }
+        }
     }
 
     @PostConstruct
@@ -281,7 +321,7 @@ public class EDCServiceImpl implements EDCService {
         JsonObject object = parser.parse(response).getAsJsonObject();
         JsonArray result = object.getAsJsonArray("result");
         if (result.size() != 1) {
-            throw new IllegalArgumentException(String.format("Json with balances [%s] contains illegal amount of balances", object));
+            return new BigDecimal("0.000").toString();
         }
         BigDecimal amount = BigDecimal.valueOf(result.get(0).getAsJsonObject().get("amount").getAsLong()).divide(BTS);
 

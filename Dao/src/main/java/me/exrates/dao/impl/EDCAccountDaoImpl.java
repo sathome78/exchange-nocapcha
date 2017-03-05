@@ -80,4 +80,26 @@ public class EDCAccountDaoImpl implements EDCAccountDao {
 
         return jdbcTemplate.query(sql, new BeanPropertyRowMapper(EDCAccount.class));
     }
+
+    @Override
+    public List<EDCAccount> getUnusedAccounts() {
+        final String sql = "SELECT * FROM EDC_TEMP_ACCOUNT WHERE used = 0" +
+                " AND account_id is not null AND account_id <> '' order by transaction_id desc limit 50";
+
+        return jdbcTemplate.query(sql, new BeanPropertyRowMapper(EDCAccount.class));
+    }
+
+    @Override
+    public void setAccountUsed(int transactionId) {
+        final String sql = "UPDATE EDC_TEMP_ACCOUNT set used = 1 " +
+                "where transaction_id = :transactionId";
+
+        final Map<String, Object> params = new HashMap<>();
+        params.put("transactionId", transactionId);
+         try {
+            jdbcTemplate.update(sql, params);
+        } catch (Exception e) {
+            LOG.error(e);
+        }
+    }
 }

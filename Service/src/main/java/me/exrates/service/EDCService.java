@@ -14,4 +14,6 @@ public interface EDCService {
     void submitTransactionsForProcessing(String list);
 
     String extractAccountId(final String account, final int invoiceId) throws IOException;
+
+    void rescanUnusedAccounts();
 }
