@@ -86,6 +86,10 @@ public class PayeerServiceImpl implements PayeerService {
                 logger.error(e);
                 return false;
             }
+            if (transaction.isProvided()) {
+                return true;
+            }
+
             Double transactionSum = transaction.getAmount().add(transaction.getCommissionAmount()).doubleValue();
 
             if(Double.parseDouble(params.get("m_amount"))==transactionSum
