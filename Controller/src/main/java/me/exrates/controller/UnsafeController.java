@@ -37,11 +37,15 @@ public class UnsafeController {
     }
 
     @RequestMapping(value = "unsafe/rescanUnusedAccounts")
-    public void rescanUnusedAccounts(){
+    public ResponseEntity<String> rescanUnusedAccounts(){
         try {
-            edcService.rescanUnusedAccounts();
+            LOGGER.info("STARTING EDC RESCAN UNUSED ACCOUNTS");
+            final Thread job = new Thread(() -> edcService.rescanUnusedAccounts());
+            job.start();
+            return new ResponseEntity<>("Started EDC rescan unused accouts. Checkout merchant.log", HttpStatus.OK);
         }catch (Exception e){
             LOGGER.error(e);
+            return new ResponseEntity<>("Error EDC rescan unused accouts. Checkout merchant.log", HttpStatus.BAD_REQUEST);
         }
     }
 

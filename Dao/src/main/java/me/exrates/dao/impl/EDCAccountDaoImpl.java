@@ -84,7 +84,7 @@ public class EDCAccountDaoImpl implements EDCAccountDao {
     @Override
     public List<EDCAccount> getUnusedAccounts() {
         final String sql = "SELECT * FROM EDC_TEMP_ACCOUNT WHERE used = 0" +
-                " AND account_id is not null AND account_id <> '' order by transaction_id desc limit 50";
+                " AND account_id is not null AND account_id <> '' order by transaction_id desc limit 200";
 
         return jdbcTemplate.query(sql, new BeanPropertyRowMapper(EDCAccount.class));
     }
