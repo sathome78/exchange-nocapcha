@@ -39,7 +39,8 @@ $(document).ready(function () {
 
 
 
-    function updateInvoiceTable() {if ($.fn.dataTable.isDataTable('#invoice_requests')) {
+    function updateInvoiceTable() {
+        if ($.fn.dataTable.isDataTable('#invoice_requests')) {
         invoiceRequestsDataTable = $($invoiceRequestsTable).DataTable();
         invoiceRequestsDataTable.ajax.url(urlBase + urlVarPart).load();
     } else {

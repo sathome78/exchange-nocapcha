@@ -826,9 +826,18 @@ public class AdminController {
 
 
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinConfirmation")
-  public ModelAndView bitcoinTransactions(HttpSession httpSession) {
-    return new ModelAndView("admin/transaction_bitcoin", "bitcoinRequests", bitcoinService.getBitcoinTransactions());
+  public ModelAndView bitcoinTransactions() {
+    return new ModelAndView("admin/transaction_bitcoin");
   }
+  
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinRequests")
+  @ResponseBody
+  public List<PendingPaymentFlatDto> getBitcoinRequests() {
+    return bitcoinService.getBitcoinTransactions();
+  }
+  
+  
+  
 
   @RequestMapping(value = "/2a8fy7b07dxe44/sessionControl")
   public ModelAndView sessionControl() {
