@@ -15,6 +15,7 @@ import me.exrates.model.CreditsOperation;
 import me.exrates.model.EDCAccount;
 import me.exrates.model.PendingPayment;
 import me.exrates.model.Transaction;
+import me.exrates.model.dto.PendingPaymentSimpleDto;
 import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
 import me.exrates.service.EDCService;
 import me.exrates.service.TransactionService;
