@@ -9,7 +9,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%----------%>
-<script src="<c:url value="/client/js/jquery-ui.js"/>"></script>
+<%--<script src="<c:url value="/client/js/jquery-ui.js"/>"></script>
 <script src="<c:url value="/client/js/datepicker-local/datepicker-ru.js"/>"></script>
 <script src="<c:url value="/client/js/datepicker-local/datepicker-zh-CN.js"/>"></script>
 <script>
@@ -26,7 +26,7 @@
         }
         $.datepicker.setDefaults( $.datepicker.regional[ datePickerLocale ] );
     });
-</script>
+</script>--%>
 <%----------%>
 
 <div id="report-dialog-currency-date-direction-dialog" class="modal fade delete-order-info__modal form_full_height_width" tabindex="-1" role="dialog">
@@ -44,12 +44,12 @@
                             <label class="input-block-wrapper__label"><loc:message code="userwallets.startDate"/></label>
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input id="startDate" name="startDate"
+                            <input id="start-date" name="startDate"
                                    placeholder="<loc:message code="ordersearch.datelaceholder"/>"
                                    class="form-control input-block-wrapper__input datepicker"/>
                         </div>
-                        <div for="startDate" hidden class="col-md-7 input-block-wrapper__error-wrapper" >
-                            <label for="startDate" class="input-block-wrapper__input"><loc:message code="ordersearch.errordate"/></label>
+                        <div for="start-date" hidden class="col-md-7 input-block-wrapper__error-wrapper" >
+                            <label for="start-date" class="input-block-wrapper__input"><loc:message code="ordersearch.errordate"/></label>
                         </div>
                     </div>
                     <div class="input-block-wrapper">
@@ -57,12 +57,12 @@
                             <label class="input-block-wrapper__label"><loc:message code="userwallets.endDate"/></label>
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
-                            <input id="endDate" name="endDate"
+                            <input id="end-date" name="endDate"
                                    placeholder="<loc:message code="ordersearch.datelaceholder"/>"
                                    class="form-control input-block-wrapper__input datepicker"/>
                         </div>
-                        <div for="endDate" hidden class="col-md-7 input-block-wrapper__error-wrapper" >
-                            <label for="endDate" class="input-block-wrapper__input"><loc:message code="ordersearch.errordate"/></label>
+                        <div for="end-date" hidden class="col-md-7 input-block-wrapper__error-wrapper" >
+                            <label for="end-date" class="input-block-wrapper__input"><loc:message code="ordersearch.errordate"/></label>
                         </div>
                     </div>
                     <div class="input-block-wrapper">

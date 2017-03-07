@@ -3,8 +3,10 @@ package me.exrates.dao.impl;
 import lombok.extern.log4j.Log4j;
 import me.exrates.dao.WithdrawRequestDao;
 import me.exrates.model.*;
+import me.exrates.model.dto.WithdrawRequestFlatForReportDto;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
+import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.WithdrawalRequestStatus;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +15,8 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
 
 import static java.util.Collections.singletonMap;
@@ -186,6 +190,61 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
         return result;
     }
 
+    @Override
+    public List<WithdrawRequestFlatForReportDto> findAllByDateIntervalAndRoleAndCurrency(
+        String startDate,
+        String endDate,
+        List<Integer> roleIdList,
+        List<Integer> currencyList) {
+        String sql = "SELECT  WR.*, " +
+            "         USER.email AS user_email, " +
+            "         ADM.email AS acceptance_user_email, " +
+            "         TX.id, TX.amount, TX.commission_amount, TX.datetime, " +
+            "         TX.operation_type_id,TX.provided,TX.confirmation, " +
+            "         TX.source_type, " +
+            "         MERCHANT.name AS merchant_name, " +
+            "         CURRENCY.name AS currency_name" +
+            " FROM WITHDRAW_REQUEST WR " +
+            " JOIN TRANSACTION TX ON (TX.id = WR.transaction_id) AND (TX.currency_id IN (:currency_list)) " +
+            " JOIN CURRENCY ON CURRENCY.id = TX.currency_id " +
+            " JOIN WALLET ON WALLET.id = TX.user_wallet_id " +
+            " JOIN MERCHANT ON MERCHANT.id = TX.merchant_id " +
+            " JOIN USER AS USER ON USER.id = WALLET.user_id " +
+            " LEFT JOIN USER AS ADM ON ADM.id = WR.processed_by " +
+            " WHERE " +
+            "    TX.datetime BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s') " +
+            (roleIdList.isEmpty() ? "" :
+                " AND USER.roleid IN (:role_id_list)");
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("start_date", startDate);
+            put("end_date", endDate);
+            if (!roleIdList.isEmpty()) {
+                put("role_id_list", roleIdList);
+            }
+            put("currency_list", currencyList);
+        }};
+        return jdbcTemplate.query(sql, params, new RowMapper<WithdrawRequestFlatForReportDto>() {
+            @Override
+            public WithdrawRequestFlatForReportDto mapRow(ResultSet rs, int i) throws SQLException {
+                WithdrawRequestFlatForReportDto withdrawRequestFlatForReportDto = new WithdrawRequestFlatForReportDto();
+                withdrawRequestFlatForReportDto.setInvoiceId(rs.getInt("transaction_id"));
+                withdrawRequestFlatForReportDto.setWallet(rs.getString("wallet"));
+                withdrawRequestFlatForReportDto.setRecipientBank(rs.getString("recipient_bank_name"));
+                withdrawRequestFlatForReportDto.setAcceptanceUserEmail(rs.getString("acceptance_user_email"));
+                withdrawRequestFlatForReportDto.setAcceptanceTime(rs.getTimestamp("acceptance") == null ? null : rs.getTimestamp("acceptance").toLocalDateTime());
+                withdrawRequestFlatForReportDto.setStatus(WithdrawalRequestStatus.convert(rs.getInt("status")));
+                withdrawRequestFlatForReportDto.setUserFullName(rs.getString("user_full_name"));
+                withdrawRequestFlatForReportDto.setUserEmail(rs.getString("user_email"));
+                withdrawRequestFlatForReportDto.setAmount(rs.getBigDecimal("amount"));
+                withdrawRequestFlatForReportDto.setCommissionAmount(rs.getBigDecimal("commission_amount"));
+                withdrawRequestFlatForReportDto.setDatetime(rs.getTimestamp("datetime") == null ? null : rs.getTimestamp("datetime").toLocalDateTime());
+                withdrawRequestFlatForReportDto.setCurrency(rs.getString("currency_name"));
+                withdrawRequestFlatForReportDto.setSourceType(TransactionSourceType.valueOf(rs.getString("source_type")));
+                withdrawRequestFlatForReportDto.setMerchant(rs.getString("merchant_name"));
+                return withdrawRequestFlatForReportDto;
+            }
+        });
+    }
 
 
 }

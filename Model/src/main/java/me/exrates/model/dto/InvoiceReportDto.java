@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 
 import static me.exrates.model.enums.OperationType.INPUT;
+import static me.exrates.model.enums.OperationType.OUTPUT;
 
 /**
  * Created by Valk
@@ -96,6 +97,22 @@ public class InvoiceReportDto {
     this.acceptanceDate = transactionFlatForReportDto.getProvidedDate() == null ? "" : transactionFlatForReportDto.getProvidedDate().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
     this.operation = transactionFlatForReportDto.getOperationType().name();
     this.system = transactionFlatForReportDto.getSourceType().name();
+  }
+
+  public InvoiceReportDto(WithdrawRequestFlatForReportDto withdrawRequestFlatForReportDto) {
+    this.docId = withdrawRequestFlatForReportDto.getInvoiceId();
+    this.currency = withdrawRequestFlatForReportDto.getCurrency();
+    this.creationDate = withdrawRequestFlatForReportDto.getDatetime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
+    this.userEmail = withdrawRequestFlatForReportDto.getUserEmail();
+    this.recipientBank = withdrawRequestFlatForReportDto.getRecipientBank();
+    this.amount = withdrawRequestFlatForReportDto.getAmount();
+    this.payerName = withdrawRequestFlatForReportDto.getMerchant();
+    this.payerBankCode = withdrawRequestFlatForReportDto.getMerchant();
+    this.status = withdrawRequestFlatForReportDto.getStatus().name();
+    this.acceptorUserEmail = withdrawRequestFlatForReportDto.getAcceptanceUserEmail();
+    this.acceptanceDate = withdrawRequestFlatForReportDto.getAcceptanceTime() == null ? "" : withdrawRequestFlatForReportDto.getAcceptanceTime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
+    this.operation = OUTPUT.name();
+    this.system = withdrawRequestFlatForReportDto.getSourceType().name();
   }
 
   public static String getTitle() {

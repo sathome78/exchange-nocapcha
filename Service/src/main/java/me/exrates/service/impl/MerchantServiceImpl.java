@@ -6,6 +6,7 @@ import me.exrates.dao.WithdrawRequestDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
+import me.exrates.model.dto.WithdrawRequestFlatForReportDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
@@ -599,5 +600,14 @@ public class MerchantServiceImpl implements MerchantService {
     }
   }
 
+  @Override
+  @Transactional
+  public List<WithdrawRequestFlatForReportDto> findAllByDateIntervalAndRoleAndCurrency(
+      String startDate,
+      String endDate,
+      List<Integer> roleIdList,
+      List<Integer> currencyList){
+    return withdrawRequestDao.findAllByDateIntervalAndRoleAndCurrency(startDate, endDate, roleIdList, currencyList);
+  }
 
 }

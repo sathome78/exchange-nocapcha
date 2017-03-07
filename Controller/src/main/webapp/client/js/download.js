@@ -183,12 +183,12 @@ function makeReport() {
 }
 
 function isDatesValid($form){
-    var $startDateErrorWrapper= $form.find('.input-block-wrapper__error-wrapper[for=startDate]');
-    var $endDateErrorWrapper= $form.find('.input-block-wrapper__error-wrapper[for=endDate]');
+    var $startDateErrorWrapper= $form.find('.input-block-wrapper__error-wrapper[for=start-date]');
+    var $endDateErrorWrapper= $form.find('.input-block-wrapper__error-wrapper[for=end-date]');
     $startDateErrorWrapper.toggle(false);
     $endDateErrorWrapper.toggle(false);
-    var $startDatePiker = $form.find('#startDate');
-    var $endDatePiker = $form.find('#endDate');
+    var $startDatePiker = $form.find('#start-date');
+    var $endDatePiker = $form.find('#end-date');
     var isError = false;
     if (!$startDatePiker.val().match(/\d{4}\-\d{2}\-\d{2}/)){
         $startDateErrorWrapper.toggle(true);

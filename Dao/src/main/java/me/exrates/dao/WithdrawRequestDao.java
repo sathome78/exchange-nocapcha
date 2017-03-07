@@ -2,6 +2,7 @@ package me.exrates.dao;
 
 import me.exrates.model.PagingData;
 import me.exrates.model.WithdrawRequest;
+import me.exrates.model.dto.WithdrawRequestFlatForReportDto;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
 
@@ -26,4 +27,10 @@ public interface WithdrawRequestDao {
     List<WithdrawRequest> findAll();
 
     PagingData<List<WithdrawRequest>> findByStatus(Integer requestStatus, Integer currentUserId, DataTableParams dataTableParams, WithdrawFilterData withdrawFilterData);
+
+  List<WithdrawRequestFlatForReportDto> findAllByDateIntervalAndRoleAndCurrency(
+      String startDate,
+      String endDate,
+      List<Integer> roleIdList,
+      List<Integer> currencyList);
 }

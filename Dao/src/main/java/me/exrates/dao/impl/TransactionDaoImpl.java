@@ -602,7 +602,8 @@ public final class TransactionDaoImpl implements TransactionDao {
         " JOIN USER AS USER ON USER.id = WALLET.user_id " +
         " JOIN MERCHANT ON MERCHANT.id = TX.merchant_id " +
         " WHERE " +
-        "    TX.source_type IN (:source_type_list) AND (TX.currency_id IN (:currency_list)) " +
+        "    TX.operation_type_id = :operation_type_id " +
+        "    AND TX.source_type IN (:source_type_list) AND (TX.currency_id IN (:currency_list)) " +
         "    AND TX.datetime BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s') " +
         (roleIdList.isEmpty() ? "" :
             " AND USER.roleid IN (:role_id_list)");
@@ -614,6 +615,7 @@ public final class TransactionDaoImpl implements TransactionDao {
       }
       put("currency_list", currencyList);
       put("source_type_list", sourceTypeList);
+      put("operation_type_id", operationType);
     }};
     return jdbcTemplate.query(sql, params, new RowMapper<TransactionFlatForReportDto>() {
       @Override

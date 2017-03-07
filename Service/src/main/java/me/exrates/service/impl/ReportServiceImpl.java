@@ -1,6 +1,5 @@
 package me.exrates.service.impl;
 
-import me.exrates.model.InvoiceRequest;
 import me.exrates.model.dto.*;
 import me.exrates.model.enums.BusinessUserRoleEnum;
 import me.exrates.model.enums.TransactionSourceType;
@@ -32,6 +31,9 @@ public class ReportServiceImpl implements ReportService {
 
   @Autowired
   TransactionService transactionService;
+
+  @Autowired
+  MerchantService merchantService;
 
   @Autowired
   CurrencyService currencyService;
@@ -71,7 +73,7 @@ public class ReportServiceImpl implements ReportService {
     /**/
     List<InvoiceReportDto> result = new ArrayList<>();
     /**/
-    if (StringUtils.isEmpty(direction) || InvoiceOperationDirection.valueOf(direction) == REFILL
+    if ((StringUtils.isEmpty(direction) || InvoiceOperationDirection.valueOf(direction) == REFILL)
         && !currencyListForRefillOperation.isEmpty()) {
       /*get list based on the table "invoice_request"
       * Now source_type the INVOICE is source_type that is represented in "invoice_request" */
@@ -104,12 +106,16 @@ public class ReportServiceImpl implements ReportService {
           .collect(Collectors.toList()));
     }
     /**/
-    if (StringUtils.isEmpty(direction) || InvoiceOperationDirection.valueOf(direction) == WITHDRAW
+    if ((StringUtils.isEmpty(direction) || InvoiceOperationDirection.valueOf(direction) == WITHDRAW)
         && !currencyListForWithdrawOperation.isEmpty()) {
-
+      List<WithdrawRequestFlatForReportDto> withdrawRequestList = merchantService.findAllByDateIntervalAndRoleAndCurrency(
+          startDate, endDate, realRoleIdList, currencyListForWithdrawOperation);
+      result.addAll(withdrawRequestList.stream()
+          .map(InvoiceReportDto::new)
+          .collect(Collectors.toList()));
     }
     return result.stream()
-        .sorted((a,b)->a.getCreationDate().compareTo(b.getCreationDate()))
+        .sorted((a, b) -> a.getCreationDate().compareTo(b.getCreationDate()))
         .collect(Collectors.toList());
   }
 }
