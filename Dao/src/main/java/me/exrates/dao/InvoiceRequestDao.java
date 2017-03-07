@@ -4,6 +4,7 @@ import me.exrates.model.ClientBank;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.InvoiceRequest;
 import me.exrates.model.User;
+import me.exrates.model.dto.InvoiceRequestFlatForReportDto;
 import me.exrates.model.dto.InvoiceUserDto;
 import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
 
@@ -52,5 +53,5 @@ public interface InvoiceRequestDao {
 
   void updateInvoiceRequestStatus(Integer invoiceRequestId, InvoiceRequestStatusEnum invoiceRequestStatus);
 
-  List<InvoiceRequest> findAllByDateIntervalAndRoleAndCurrency(String startDate, String endDate, List<Integer> roleIdList, List<Integer> currencyList);
+  List<InvoiceRequestFlatForReportDto> findAllByDateIntervalAndRoleAndCurrency(String startDate, String endDate, List<Integer> roleIdList, List<Integer> currencyList);
 }

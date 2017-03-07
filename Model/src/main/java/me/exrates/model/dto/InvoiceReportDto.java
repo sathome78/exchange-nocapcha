@@ -3,12 +3,15 @@ package me.exrates.model.dto;
 import lombok.Getter;
 import lombok.Setter;
 import me.exrates.model.InvoiceRequest;
+import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 
 import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
+
+import static me.exrates.model.enums.OperationType.INPUT;
 
 /**
  * Created by Valk
@@ -29,6 +32,7 @@ public class InvoiceReportDto {
   private String acceptorUserEmail;
   private String acceptanceDate;
   private String system;
+  private String operation;
 
   public InvoiceReportDto(InvoiceRequest invoiceRequest) {
     this.docId = invoiceRequest.getTransaction().getId();
@@ -42,6 +46,23 @@ public class InvoiceReportDto {
     this.status = ((InvoiceRequestStatusEnum) invoiceRequest.getInvoiceRequestStatus()).name();
     this.acceptorUserEmail = invoiceRequest.getAcceptanceUserEmail();
     this.acceptanceDate = invoiceRequest.getAcceptanceTime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
+    this.operation = INPUT.name();
+    this.system = TransactionSourceType.INVOICE.name();
+  }
+
+  public InvoiceReportDto(InvoiceRequestFlatForReportDto InvoiceRequestFlatForReportDto) {
+    this.docId = InvoiceRequestFlatForReportDto.getInvoiceId();
+    this.currency = InvoiceRequestFlatForReportDto.getCurrency();
+    this.creationDate = InvoiceRequestFlatForReportDto.getDatetime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
+    this.userEmail = InvoiceRequestFlatForReportDto.getUserEmail();
+    this.recipientBank = InvoiceRequestFlatForReportDto.getRecipientBank();
+    this.amount = InvoiceRequestFlatForReportDto.getAmount();
+    this.payerName = InvoiceRequestFlatForReportDto.getUserFullName();
+    this.payerBankCode = InvoiceRequestFlatForReportDto.getPayerBankCode();
+    this.status = InvoiceRequestFlatForReportDto.getStatus().name();
+    this.acceptorUserEmail = InvoiceRequestFlatForReportDto.getAcceptanceUserEmail();
+    this.acceptanceDate = InvoiceRequestFlatForReportDto.getAcceptanceTime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
+    this.operation = INPUT.name();
     this.system = TransactionSourceType.INVOICE.name();
   }
 
@@ -57,6 +78,7 @@ public class InvoiceReportDto {
     this.status = pendingPaymentFlatForReportDto.getPendingPaymentStatus().name();
     this.acceptorUserEmail = pendingPaymentFlatForReportDto.getAcceptanceUserEmail();
     this.acceptanceDate = pendingPaymentFlatForReportDto.getAcceptanceTime() == null ? "" : pendingPaymentFlatForReportDto.getAcceptanceTime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
+    this.operation = INPUT.name();
     this.system = pendingPaymentFlatForReportDto.getSourceType().name();
   }
 
@@ -72,6 +94,7 @@ public class InvoiceReportDto {
     this.status = transactionFlatForReportDto.getProvided() ? "PROVIDED" : "WAITING_FOR_PROVIDING";
     this.acceptorUserEmail = "";
     this.acceptanceDate = transactionFlatForReportDto.getProvidedDate() == null ? "" : transactionFlatForReportDto.getProvidedDate().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
+    this.operation = transactionFlatForReportDto.getOperationType().name();
     this.system = transactionFlatForReportDto.getSourceType().name();
   }
 
@@ -87,6 +110,7 @@ public class InvoiceReportDto {
         "status" + ";" +
         "Acceptor's Email" + ";" +
         "Acceptance date" + ";" +
+        "Operation" + ";" +
         "System" +
         "\r\n";
   }
@@ -104,6 +128,7 @@ public class InvoiceReportDto {
         status + ";" +
         (acceptorUserEmail == null ? "" : acceptorUserEmail) + ";" +
         (acceptanceDate == null ? "" : acceptanceDate) + ";" +
+        (operation == null ? "" : operation) + ";" +
         (system == null ? "" : system) +
         "\r\n";
   }

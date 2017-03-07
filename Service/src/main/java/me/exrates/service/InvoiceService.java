@@ -4,6 +4,7 @@ import me.exrates.model.ClientBank;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.InvoiceRequest;
 import me.exrates.model.Transaction;
+import me.exrates.model.dto.InvoiceRequestFlatForReportDto;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.InvoiceData;
@@ -52,5 +53,5 @@ public interface InvoiceService {
 
   void updateReceiptScan(Integer invoiceId, String receiptScanPath);
 
-  List<InvoiceRequest> getByDateIntervalAndRoleAndCurrency(String startDate, String endDate, List<Integer> roleIdList, List<Integer> currencyList);
+  List<InvoiceRequestFlatForReportDto> getByDateIntervalAndRoleAndCurrency(String startDate, String endDate, List<Integer> roleIdList, List<Integer> currencyList);
 }

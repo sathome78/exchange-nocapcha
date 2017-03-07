@@ -591,7 +591,7 @@ public final class TransactionDaoImpl implements TransactionDao {
     String sql = "SELECT  " +
         "         USER.email AS user_email, " +
         "         TX.id AS transaction_id, TX.amount, TX.commission_amount, TX.datetime, " +
-        "         TX.operation_type_id,TX.provided,TX.confirmation, " +
+        "         TX.operation_type_id, TX.provided, TX.confirmation, TX.operation_type_id, " +
         "         TX.source_type, " +
         "         TX.provided_modification_date, " +
         "         MERCHANT.name AS merchant_name, " +
@@ -630,6 +630,7 @@ public final class TransactionDaoImpl implements TransactionDao {
         transactionFlatForReportDto.setProvided(rs.getBoolean("provided"));
         transactionFlatForReportDto.setCurrency(rs.getString("currency_name"));
         transactionFlatForReportDto.setSourceType(TransactionSourceType.valueOf(rs.getString("source_type")));
+        transactionFlatForReportDto.setOperationType(OperationType.convert(rs.getInt("operation_type_id")));
         return transactionFlatForReportDto;
       }
     });

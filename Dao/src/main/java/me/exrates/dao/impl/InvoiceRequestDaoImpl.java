@@ -3,6 +3,7 @@ package me.exrates.dao.impl;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.InvoiceRequestDao;
 import me.exrates.model.*;
+import me.exrates.model.dto.InvoiceRequestFlatForReportDto;
 import me.exrates.model.dto.InvoiceUserDto;
 import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,8 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -349,21 +352,19 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
   }
 
   @Override
-  public List<InvoiceRequest> findAllByDateIntervalAndRoleAndCurrency(
+  public List<InvoiceRequestFlatForReportDto> findAllByDateIntervalAndRoleAndCurrency(
       String startDate,
       String endDate,
       List<Integer> roleIdList,
       List<Integer> currencyList) {
     String sql = "SELECT " +
-        "         INV.user_full_name, INV.remark, INV.payer_bank_name,  INV.payer_bank_code, INV.payer_account, INV.receipt_scan, " +
-        "         INV.receipt_scan_name, INV.invoice_request_status_id, INV.status_update_date, INV.acceptance_time, " +
+        "         INV.transaction_id, INV.payer_bank_name,  INV.payer_bank_code, INV.user_full_name,  " +
+        "         INV.invoice_request_status_id, INV.acceptance_time, " +
         "         USER.id AS user_id, USER.email AS user_email, " +
         "         ADM.id AS acceptance_id, ADM.email AS acceptance_user_email, " +
-        "         TRANSACTION.id, TRANSACTION.amount, TRANSACTION.commission_amount, TRANSACTION.datetime, " +
-        "         TRANSACTION.operation_type_id,TRANSACTION.provided,TRANSACTION.confirmation, " +
-        "         TRANSACTION.source_id, TRANSACTION.source_type, " +
-        "         CURRENCY.id, CURRENCY.description, CURRENCY.name, " +
-        "         INVOICE_BANK.id AS bank_id, INVOICE_BANK.name AS bank_name, INVOICE_BANK.account_number, INVOICE_BANK.recipient " +
+        "         TRANSACTION.amount, TRANSACTION.commission_amount, TRANSACTION.datetime, " +
+        "         CURRENCY.name AS currency_name, " +
+        "         INVOICE_BANK.name AS bank_name " +
         "    FROM INVOICE_REQUEST AS INV " +
         "    JOIN TRANSACTION ON TRANSACTION.id = INV.transaction_id AND TRANSACTION.currency_id IN (:currency_list)" +
         "    JOIN CURRENCY ON CURRENCY.id = TRANSACTION.currency_id " +
@@ -382,7 +383,25 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
       }
       put("currency_list", currencyList);
     }};
-    return parameterJdbcTemplate.query(sql, params, invoiceRequestRowMapper);
+    return parameterJdbcTemplate.query(sql, params, new RowMapper<InvoiceRequestFlatForReportDto>() {
+      @Override
+      public InvoiceRequestFlatForReportDto mapRow(ResultSet rs, int i) throws SQLException {
+        InvoiceRequestFlatForReportDto pendingPaymentFlatForReportDto = new InvoiceRequestFlatForReportDto();
+        pendingPaymentFlatForReportDto.setInvoiceId(rs.getInt("transaction_id"));
+        pendingPaymentFlatForReportDto.setDatetime(rs.getTimestamp("datetime") == null ? null : rs.getTimestamp("datetime").toLocalDateTime());
+        pendingPaymentFlatForReportDto.setUserEmail(rs.getString("user_email"));
+        pendingPaymentFlatForReportDto.setRecipientBank(rs.getString("bank_name"));
+        pendingPaymentFlatForReportDto.setAmount(rs.getBigDecimal("amount"));
+        pendingPaymentFlatForReportDto.setCommissionAmount(rs.getBigDecimal("commission_amount"));
+        pendingPaymentFlatForReportDto.setCurrency(rs.getString("currency_name"));
+        pendingPaymentFlatForReportDto.setUserFullName(rs.getString("user_full_name"));
+        pendingPaymentFlatForReportDto.setPayerBankCode(rs.getString("payer_bank_code"));
+        pendingPaymentFlatForReportDto.setStatus(InvoiceRequestStatusEnum.convert(rs.getInt("invoice_request_status_id")));
+        pendingPaymentFlatForReportDto.setAcceptanceUserEmail(rs.getString("acceptance_user_email"));
+        pendingPaymentFlatForReportDto.setAcceptanceTime(rs.getTimestamp("acceptance_time") == null ? null : rs.getTimestamp("acceptance_time").toLocalDateTime());
+        return pendingPaymentFlatForReportDto;
+      }
+    });
   }
 
 }

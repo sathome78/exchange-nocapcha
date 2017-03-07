@@ -1,10 +1,7 @@
 package me.exrates.service.impl;
 
 import me.exrates.model.InvoiceRequest;
-import me.exrates.model.dto.InvoiceReportDto;
-import me.exrates.model.dto.PendingPaymentFlatForReportDto;
-import me.exrates.model.dto.TransactionFlatForReportDto;
-import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.enums.BusinessUserRoleEnum;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
@@ -78,7 +75,7 @@ public class ReportServiceImpl implements ReportService {
         && !currencyListForRefillOperation.isEmpty()) {
       /*get list based on the table "invoice_request"
       * Now source_type the INVOICE is source_type that is represented in "invoice_request" */
-      List<InvoiceRequest> invoiceRequestList = invoiceService.getByDateIntervalAndRoleAndCurrency(
+      List<InvoiceRequestFlatForReportDto> invoiceRequestList = invoiceService.getByDateIntervalAndRoleAndCurrency(
           startDate, endDate, realRoleIdList, currencyListForRefillOperation);
       result.addAll(invoiceRequestList.stream()
           .map(InvoiceReportDto::new)
@@ -107,7 +104,10 @@ public class ReportServiceImpl implements ReportService {
           .collect(Collectors.toList()));
     }
     /**/
-    //TODO аналогично собрать для биткоинов и для вывода, потом склеить
+    if (StringUtils.isEmpty(direction) || InvoiceOperationDirection.valueOf(direction) == WITHDRAW
+        && !currencyListForWithdrawOperation.isEmpty()) {
+
+    }
     return result.stream()
         .sorted((a,b)->a.getCreationDate().compareTo(b.getCreationDate()))
         .collect(Collectors.toList());

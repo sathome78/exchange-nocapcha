@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.InvoiceRequestDao;
 import me.exrates.dao.WalletDao;
 import me.exrates.model.*;
+import me.exrates.model.dto.InvoiceRequestFlatForReportDto;
 import me.exrates.model.dto.InvoiceUserDto;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
@@ -315,7 +316,7 @@ public class InvoiceServiceImpl implements InvoiceService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<InvoiceRequest> getByDateIntervalAndRoleAndCurrency(String startDate, String endDate, List<Integer> roleIdList, List<Integer> currencyList) {
+  public List<InvoiceRequestFlatForReportDto> getByDateIntervalAndRoleAndCurrency(String startDate, String endDate, List<Integer> roleIdList, List<Integer> currencyList) {
     return invoiceRequestDao.findAllByDateIntervalAndRoleAndCurrency(startDate, endDate, roleIdList, currencyList);
   }
 
