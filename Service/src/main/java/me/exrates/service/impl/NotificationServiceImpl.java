@@ -96,7 +96,7 @@ public class NotificationServiceImpl implements NotificationService {
     public void notifyUser(Integer userId, NotificationEvent cause, String titleCode, String messageCode,
                            Object[] messageArgs, Locale locale) {
         String titleMessage = messageSource.getMessage(titleCode, null, locale);
-        String message = messageSource.getMessage(messageCode, null, locale);
+        String message = messageSource.getMessage(messageCode, messageArgs, locale);
         notifyUser(userId, cause, titleMessage, message);
     }
 
