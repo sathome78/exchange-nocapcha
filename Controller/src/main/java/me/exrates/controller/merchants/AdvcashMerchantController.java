@@ -95,7 +95,9 @@ public class AdvcashMerchantController {
                 && advcashService.checkHashTransactionByTransactionId(transaction.getId(), params.get("transaction_hash"))
                 && Double.parseDouble(params.get("ac_amount"))==transactionSum ){
 
-            advcashService.provideTransaction(transaction);
+            if (!transaction.isProvided()) {
+                advcashService.provideTransaction(transaction);
+            }
 
             return response;
 

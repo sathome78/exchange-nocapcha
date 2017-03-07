@@ -33,10 +33,14 @@
         <%@include file='left_side_menu.jsp' %>
         <div class="row">
         <div class="col-md-6 col-md-offset-2 content admin-container">
-            <div id="order-search">
-                <div class="text-center">
-                    <h4 class="modal-title"><loc:message code="ordersearch.title"/></h4>
-                </div>
+            <div class="text-center">
+                <h4 class="modal-title"><loc:message code="ordersearch.title"/></h4>
+            </div>
+            <button data-toggle="collapse" class="blue-box" style="margin: 10px 0;" data-target="#order-search">
+                <loc:message code="admin.user.transactions.extendedFilter"/> </button>
+
+            <div id="order-search" class="collapse">
+
 
                 <form id="delete-order-info__form" class="form_full_height_width" action="/2a8fy7b07dxe44/searchorders" method="get">
 
@@ -60,8 +64,8 @@
                                     code="ordersearch.currencypair"/></label>
                         </div>
                         <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <select id="currencyPair" class="input-block-wrapper__input admin-form-input" name="currencyPair">
-                                    <option value="-1">ANY</option>
+                            <select id="currencyPair" class="input-block-wrapper__input admin-form-input" name="currencyPairId">
+                                    <option value="">ANY</option>
                                 <c:forEach items="${currencyPairList}" var="currencyPair">
                                     <option value="${currencyPair.id}">${currencyPair.name}</option>
                                 </c:forEach>
@@ -73,11 +77,24 @@
                             <label class="input-block-wrapper__label"><loc:message code="ordersearch.type"/></label>
                         </div>
                         <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <%--<div class="input-block-wrapper__inner-label">${orderCreateDto.currencyPair.getCurrency2().getName()}</div>--%>
                             <select id="orderType" class="input-block-wrapper__input admin-form-input" name="orderType">
-                                <option value="ANY">ANY</option>
-                                <option value="SELL">SELL</option>
-                                <option value="BUY">BUY</option>
+                                <option value="">ANY</option>
+                                <c:forEach items="${operationTypes}" var="type">
+                                    <option value="${type.type}">${type.name()}</option>
+                                </c:forEach>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-3 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="orderinfo.status"/></label>
+                        </div>
+                        <div class="col-md-9 input-block-wrapper__input-wrapper">
+                            <select id="orderStatus" class="input-block-wrapper__input admin-form-input" name="statusId">
+                                <option value="">ANY</option>
+                                <c:forEach items="${statusList}" var="status">
+                                    <option value="${status.status}">${status.name()}</option>
+                                </c:forEach>
                             </select>
                         </div>
                     </div>
@@ -88,8 +105,8 @@
                             </label>
                         </div>
                         <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input id="datetimepicker_start" type="text" name="orderDateFrom">
-                            <input id="datetimepicker_end" type="text" name="orderDateTo">
+                            <input id="datetimepicker_start" type="text" name="dateFrom">
+                            <input id="datetimepicker_end" type="text" name="dateTo">
                         </div>
                         <div for="datetimepicker_start" hidden class="col-md-7 input-block-wrapper__error-wrapper">
                             <label for="datetimepicker_start" class="input-block-wrapper__input"><loc:message
@@ -106,8 +123,8 @@
                             <label class="input-block-wrapper__label"><loc:message code="ordersearch.rate"/></label>
                         </div>
                         <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="number" id="orderRateFrom" name="orderRateFrom" placeholder="0.0"/>
-                            <input type="number" id="orderRateTo" name="orderRateTo" placeholder="0.0"/>
+                            <input type="number" id="orderRateFrom" name="exrateFrom" placeholder="0.0"/>
+                            <input type="number" id="orderRateTo" name="exrateTo" placeholder="0.0"/>
                         </div>
                         <div for="orderRateFrom" hidden class="col-md-7 input-block-wrapper__error-wrapper">
                             <label for="orderRateFrom" class="input-block-wrapper__input"><loc:message
@@ -123,9 +140,9 @@
                             <label class="input-block-wrapper__label"><loc:message code="ordersearch.volume"/></label>
                         </div>
                         <div class="col-md-9 input-block-wrapper__input-wrapper">
-                            <input type="number" id="orderVolumeFrom" name="orderVolumeFrom"
+                            <input type="number" id="orderVolumeFrom" name="volumeFrom"
                                    placeholder="0.0"/>
-                            <input type="number" id="orderVolumeTo" name="orderVolumeTo"
+                            <input type="number" id="orderVolumeTo" name="volumeTo"
                                    placeholder="0.0"/>
                         </div>
                         <div for="orderVolumeFrom" hidden class="col-md-7 input-block-wrapper__error-wrapper">
@@ -169,6 +186,8 @@
                     <div class="delete-order-info__button-wrapper">
                         <button id="delete-order-info__search" class="delete-order-info__button blue-box"
                                 type="button"><loc:message code="ordersearch.submit"/></button>
+                        <button id="delete-order-info__reset" class="delete-order-info__button blue-box"
+                                type="button"><loc:message code="admin.user.transactions.resetFilter"/></button>
 
                     </div>
 

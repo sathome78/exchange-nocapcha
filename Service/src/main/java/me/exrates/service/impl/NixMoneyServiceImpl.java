@@ -87,6 +87,10 @@ public class NixMoneyServiceImpl implements NixMoneyService {
             logger.error(e);
             return false;
         }
+        if (transaction.isProvided()) {
+            return true;
+        }
+
         Double transactionSum = transaction.getAmount().add(transaction.getCommissionAmount()).doubleValue();
 
         String passwordMD5 = algorithmService.computeMD5Hash(payeePassword).toUpperCase();;

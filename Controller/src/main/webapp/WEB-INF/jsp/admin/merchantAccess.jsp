@@ -45,7 +45,7 @@
                                     <td>${merchantCurrency.currencyName}</td>
                                     <td data-operationtype="INPUT">
                                         <c:choose>
-                                            <c:when test="${merchantCurrency.refillBlocked}">
+                                            <c:when test="${merchantCurrency.isRefillBlocked}">
                                                 <i class="fa fa-lock red" aria-hidden="true"></i>
                                             </c:when>
                                             <c:otherwise>
@@ -55,7 +55,7 @@
                                     </td>
                                     <td data-operationtype="OUTPUT">
                                         <c:choose>
-                                            <c:when test="${merchantCurrency.withdrawBlocked}">
+                                            <c:when test="${merchantCurrency.isWithdrawBlocked}">
                                                 <i class="fa fa-lock red" aria-hidden="true"></i>
                                             </c:when>
                                             <c:otherwise>

@@ -32,9 +32,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.EnumMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -144,6 +142,7 @@ public class EDCServiceImpl implements EDCService {
             paymentDao.delete(payment.getInvoiceId());
             pendingPayments.remove(accountId);
             transferToMainAccount(accountId, tx);
+            edcAccountDao.setAccountUsed(tx.getId());
         }
         }catch (InterruptedException e){
             LOG.info("Method acceptTransaction InterruptedException........................................... error: ");
@@ -156,6 +155,48 @@ public class EDCServiceImpl implements EDCService {
             LOG.error(e);
         }
 
+    }
+
+    @Transactional
+    @Override
+    public void rescanUnusedAccounts(){
+        List<EDCAccount> list = edcAccountDao.getUnusedAccounts();
+        for (EDCAccount account : list){
+            final String responseImportKey;
+            try {
+                responseImportKey = makeRpcCallFast(IMPORT_KEY, account.getAccountId(), account.getWifPrivKey(), account.getTransactionId());
+                if (responseImportKey.contains("true")) {
+                    String accountBalance = extractBalance(account.getAccountId(), account.getTransactionId());
+                    if (Double.valueOf(accountBalance) > 0){
+                        final String responseTransfer = makeRpcCallFast(TRANSFER_EDC,account.getAccountId(), MAIN_ACCOUNT, accountBalance, "EDC", "Inner transfer", String.valueOf(account.getTransactionId()));
+                        if (responseTransfer.contains("error")) {
+                            throw new InterruptedException("Could not transfer money to main account!\n" + responseTransfer);
+                        }
+                        edcAccountDao.setAccountUsed(account.getTransactionId());
+                        Optional<PendingPayment> payment = paymentDao.findByInvoiceId(account.getTransactionId());
+                        if (payment.isPresent()){
+                            paymentDao.delete(account.getTransactionId());
+                        }
+                        Transaction transaction = transactionService.findById(account.getTransactionId());
+                        if (!transaction.isProvided()){
+
+                            final BigDecimal targetAmount = transaction.getAmount().add(transaction.getCommissionAmount()).setScale(DEC_PLACES, ROUND_HALF_UP);
+                            final BigDecimal currentAmount = new BigDecimal(accountBalance).add(new BigDecimal("0.001")).setScale(DEC_PLACES, ROUND_HALF_UP);
+                            if (targetAmount.compareTo(currentAmount) != 0) {
+                                transactionService.updateTransactionAmount(transaction, currentAmount);
+                            }
+                            transactionService.provideTransaction(transaction);
+                        }
+                    }else {
+                        edcAccountDao.setAccountUsed(account.getTransactionId());
+                    }
+                }
+            } catch (IOException e) {
+                LOG.error(e);
+            } catch (InterruptedException e) {
+                LOG.error(e);
+            }
+        }
     }
 
     @PostConstruct
@@ -198,15 +239,35 @@ public class EDCServiceImpl implements EDCService {
     public String createInvoice(CreditsOperation operation) throws Exception {
         final Transaction tx = transactionService.createTransactionRequest(operation);
         final String account = createAccount(tx.getId());
-        final String accountId = extractAccountId(account, tx.getId());
-        final PendingPayment payment = new PendingPayment();
-        payment.setAddress(accountId);
-        payment.setInvoiceId(tx.getId());
-        payment.setTransactionHash(PENDING_PAYMENT_HASH); // every edc payment invoice has uniform tx-hash to distinguish them from other invoices
-        payment.setPendingPaymentStatus(PendingPaymentStatusEnum.getBeginState());
-        pendingPayments.put(accountId, new PendingPaymentSimpleDto(payment));
-        paymentDao.create(payment);
+        getDelayedAccountId(account, tx);
         return account;
+    }
+
+    private void getDelayedAccountId (String account, Transaction tx) throws IOException {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                String accountId = "";
+                try {
+                    Thread.sleep(60000);
+                    accountId = extractAccountId(account, tx.getId());
+                    final PendingPayment payment = new PendingPayment();
+                    payment.setAddress(accountId);
+                    payment.setInvoiceId(tx.getId());
+                    payment.setTransactionHash(PENDING_PAYMENT_HASH); // every edc payment invoice has uniform tx-hash to distinguish them from other invoices
+                  payment.setPendingPaymentStatus(PendingPaymentStatusEnum.getBeginState());
+                    pendingPayments.put(accountId, new PendingPaymentSimpleDto(payment));
+                    paymentDao.create(payment);
+                    edcAccountDao.setAccountIdByTransactionId(tx.getId(), accountId);
+                } catch (IOException e) {
+                    LOG.error(e);
+                } catch (InterruptedException e) {
+                    LOG.error(e);
+                }
+            }
+        }).start();
+
     }
 
     @Override
@@ -218,7 +279,9 @@ public class EDCServiceImpl implements EDCService {
         }
     }
 
-    private String extractAccountId(final String account, final int invoiceId) throws IOException {
+
+    @Override
+    public String extractAccountId(final String account, final int invoiceId) throws IOException {
         final String GET_ACCOUNT_ID_RPC = "{\"method\": \"get_account_id\", \"jsonrpc\": \"2.0\", \"params\": [\"%s\"], \"id\": %d}";
         final String response = makeRpcCallDelayed(GET_ACCOUNT_ID_RPC, account, invoiceId);
         final ObjectMapper mapper = new ObjectMapper();
@@ -228,9 +291,11 @@ public class EDCServiceImpl implements EDCService {
 
     @Transactional(propagation = NESTED)
     private String createAccount(final int id) throws Exception {
+        LOG.info("Start method createAccount");
         final String accountName = (ACCOUNT_PREFIX + id + UUID.randomUUID()).toLowerCase();
-        final EnumMap<KEY_TYPE, String> keys = extractKeys(makeRpcCallDelayed(NEW_KEY_PAIR_RPC, id)); // retrieve public and private from server
-        final String response = makeRpcCallDelayed(REGISTER_NEW_ACCOUNT_RPC, accountName, keys.get(KEY_TYPE.PUBLIC), keys.get(KEY_TYPE.PUBLIC), REGISTRAR_ACCOUNT, REFERRER_ACCOUNT, String.valueOf(id));
+        final EnumMap<KEY_TYPE, String> keys = extractKeys(makeRpcCallFast(NEW_KEY_PAIR_RPC, id)); // retrieve public and private from server
+        final String response = makeRpcCallFast(REGISTER_NEW_ACCOUNT_RPC, accountName, keys.get(KEY_TYPE.PUBLIC), keys.get(KEY_TYPE.PUBLIC), REGISTRAR_ACCOUNT, REFERRER_ACCOUNT, String.valueOf(id));
+        LOG.info("bit_response: " + response.toString());
         if (response.contains("error")) {
             throw new Exception("Could not create new account!\n" + response);
         }
@@ -239,6 +304,7 @@ public class EDCServiceImpl implements EDCService {
         edcAccount.setBrainPrivKey(keys.get(KEY_TYPE.BRAIN));
         edcAccount.setPubKey(keys.get(KEY_TYPE.PUBLIC));
         edcAccount.setWifPrivKey(keys.get(KEY_TYPE.PRIVATE));
+        edcAccount.setAccountName(accountName);
         edcAccountDao.create(edcAccount);
         return accountName;
     }
@@ -262,7 +328,7 @@ public class EDCServiceImpl implements EDCService {
         JsonObject object = parser.parse(response).getAsJsonObject();
         JsonArray result = object.getAsJsonArray("result");
         if (result.size() != 1) {
-            throw new IllegalArgumentException(String.format("Json with balances [%s] contains illegal amount of balances", object));
+            return new BigDecimal("0.000").toString();
         }
         BigDecimal amount = BigDecimal.valueOf(result.get(0).getAsJsonObject().get("amount").getAsLong()).divide(BTS);
 

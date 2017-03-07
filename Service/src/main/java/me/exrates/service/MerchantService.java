@@ -31,7 +31,7 @@ public interface MerchantService {
 
     List<WithdrawRequest> findAllWithdrawRequests();
 
-    DataTable<List<WithdrawRequest>> findWithdrawRequestsByStatus(Integer requestStatus, DataTableParams dataTableParams, WithdrawFilterData withdrawFilterData);
+    DataTable<List<WithdrawRequest>> findWithdrawRequestsByStatus(Integer requestStatus, DataTableParams dataTableParams, WithdrawFilterData withdrawFilterData, String userEmail);
 
     List<Merchant> findAllByCurrency(Currency currency);
 

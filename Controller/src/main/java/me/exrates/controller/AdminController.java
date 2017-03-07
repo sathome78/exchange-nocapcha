@@ -6,6 +6,7 @@ import me.exrates.model.*;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.AdminOrderFilterData;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
@@ -143,6 +144,8 @@ public class AdminController {
     ModelAndView model = new ModelAndView();
     List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairs();
     model.addObject("currencyPairList", currencyPairList);
+    model.addObject("operationTypes", Arrays.asList(OperationType.SELL, OperationType.BUY));
+    model.addObject("statusList", Arrays.asList(OrderStatus.values()));
     model.setViewName("admin/order_delete");
     return model;
   }
@@ -627,18 +630,10 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/withdrawRequests", method = GET)
   @ResponseBody
   public DataTable<List<WithdrawRequest>> findRequestByStatus(@RequestParam("status") Integer requestStatus, WithdrawFilterData withdrawFilterData,
-                                                              @RequestParam Map<String, String> params) {
-    params.forEach((key, value) -> LOG.debug(String.format("%s :: %s", key, value)));
+                                                              @RequestParam Map<String, String> params, Principal principal) {
     DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
-    LOG.debug(withdrawFilterData);
-    if (withdrawFilterData != null) {
-        withdrawFilterData.initFilterItems();
-        LOG.debug(withdrawFilterData.getNamedParams());
-        LOG.debug(withdrawFilterData.getSQLFilterClause());
-    }
-
-
-    return merchantService.findWithdrawRequestsByStatus(requestStatus, dataTableParams, withdrawFilterData);
+    withdrawFilterData.initFilterItems();
+    return merchantService.findWithdrawRequestsByStatus(requestStatus, dataTableParams, withdrawFilterData, principal.getName());
   }
 
   @ResponseBody
@@ -659,38 +654,16 @@ public class AdminController {
   }
 
   @ResponseBody
-  @RequestMapping(value = "/2a8fy7b07dxe44/searchorder", method = RequestMethod.GET)
-  public Integer searchOrderByAdmin(@RequestParam Integer currencyPair,
-                                    @RequestParam String orderType,
-                                    @RequestParam String orderDate,
-                                    @RequestParam BigDecimal orderRate,
-                                    @RequestParam BigDecimal orderVolume) {
-    return orderService.searchOrderByAdmin(currencyPair, orderType, orderDate, orderRate, orderVolume);
-  }
-
-
-  @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/searchorders", method = RequestMethod.GET)
-  public DataTable<List<OrderBasicInfoDto>> searchOrderByAdmin(@RequestParam(required = false) Integer currencyPair,
-                                                               @RequestParam(required = false) Integer orderId,
-                                                               @RequestParam(required = false) String orderType,
-                                                               @RequestParam(required = false) String orderDateFrom,
-                                                               @RequestParam(required = false) String orderDateTo,
-                                                               @RequestParam(required = false) BigDecimal orderRateFrom,
-                                                               @RequestParam(required = false) BigDecimal orderRateTo,
-                                                               @RequestParam(required = false) BigDecimal orderVolumeFrom,
-                                                               @RequestParam(required = false) BigDecimal orderVolumeTo,
-                                                               @RequestParam(required = false) String creator,
-                                                               @RequestParam(required = false) String acceptor,
+  public DataTable<List<OrderBasicInfoDto>> searchOrderByAdmin(AdminOrderFilterData adminOrderFilterData,
                                                                @RequestParam Map<String, String> params,
                                                                HttpServletRequest request) {
 
     try {
-      DataTable<List<OrderBasicInfoDto>> orderInfo = orderService.searchOrdersByAdmin(currencyPair, orderId, orderType,
-          orderDateFrom, orderDateTo, orderRateFrom, orderRateTo, orderVolumeFrom,
-          orderVolumeTo, creator, acceptor, localeResolver.resolveLocale(request), params);
-      LOG.debug(orderInfo);
-
+      adminOrderFilterData.initFilterItems();
+      DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
+      DataTable<List<OrderBasicInfoDto>> orderInfo = orderService.searchOrdersByAdmin(adminOrderFilterData, dataTableParams,
+              localeResolver.resolveLocale(request));
       return orderInfo;
     } catch (Exception ex) {
       LOG.error(ex.getMessage(), ex);
@@ -784,14 +757,28 @@ public class AdminController {
     return value;
   }
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/downloadUsersWalletsSummaryTotalInOut", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
-  @ResponseBody
-  public String getUsersWalletsSummeryTotalInOut(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
-    String value = UserSummaryTotalInOutDto.getTitle() +
-        userService.getUsersSummaryTotalInOutList(startDate, endDate, BusinessUserRoleEnum.getRealUserRoleIdList(role))
-            .stream()
-            .map(e -> e.toString())
-            .collect(Collectors.joining());
+    @RequestMapping(value = "/2a8fy7b07dxe44/downloadUserSummaryOrdersByCurrencyPairs", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
+    @ResponseBody
+    public String getUserSummaryOrdersByCurrencyPairs(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
+
+        List<UserSummaryOrdersByCurrencyPairsDto> list = userService.getUserSummaryOrdersByCurrencyPairList(startDate, endDate, BusinessUserRoleEnum.getRealUserRoleIdList(role));
+
+        String value = "Orders by currency pairs from" + startDate.substring(0,10) + " till " + endDate.substring(0,10) + ": \n \n" + UserSummaryOrdersByCurrencyPairsDto.getTitle() +
+                list.stream()
+                        .map(e -> e.toString())
+                        .collect(Collectors.joining());
+
+        return value;
+    }
+
+    @RequestMapping(value = "/2a8fy7b07dxe44/downloadUsersWalletsSummaryTotalInOut", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
+    @ResponseBody
+    public String getUsersWalletsSummeryTotalInOut(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
+        String value = UserSummaryTotalInOutDto.getTitle() +
+                userService.getUsersSummaryTotalInOutList(startDate, endDate, BusinessUserRoleEnum.getRealUserRoleIdList(role))
+                        .stream()
+                        .map(e -> e.toString())
+                        .collect(Collectors.joining());
 
     return value;
   }
@@ -842,9 +829,18 @@ public class AdminController {
 
 
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinConfirmation")
-  public ModelAndView bitcoinTransactions(HttpSession httpSession) {
-    return new ModelAndView("admin/transaction_bitcoin", "bitcoinRequests", bitcoinService.getBitcoinTransactions());
+  public ModelAndView bitcoinTransactions() {
+    return new ModelAndView("admin/transaction_bitcoin");
   }
+  
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinRequests")
+  @ResponseBody
+  public List<PendingPaymentFlatDto> getBitcoinRequests() {
+    return bitcoinService.getBitcoinTransactions();
+  }
+  
+  
+  
 
   @RequestMapping(value = "/2a8fy7b07dxe44/sessionControl")
   public ModelAndView sessionControl() {
@@ -972,11 +968,8 @@ public class AdminController {
 
   @RequestMapping(value = "/2a8fy7b07dxe44/commissions/editMerchantCommission", method = RequestMethod.POST)
   @ResponseBody
-  public ResponseEntity<Void> editMerchantCommission(@RequestParam("merchantId") Integer merchantId,
-                                                     @RequestParam("currencyId") Integer currencyId,
-                                                     @RequestParam("inputValue") BigDecimal inputValue,
-                                                     @RequestParam("outputValue") BigDecimal outputValue) {
-    commissionService.updateMerchantCommission(merchantId, currencyId, inputValue, outputValue);
+  public ResponseEntity<Void> editMerchantCommission(EditMerchantCommissionDto editMerchantCommissionDto) {
+    commissionService.updateMerchantCommission(editMerchantCommissionDto);
     return new ResponseEntity<>(HttpStatus.OK);
   }
 

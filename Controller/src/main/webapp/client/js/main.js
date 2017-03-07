@@ -63,6 +63,7 @@ $(function(){
     const INVOICE = 'Invoice';
     const EDC = 'EDC';
     const OKPAY = 'OkPay';
+    const PAYEER = 'Payeer';
 
     const NO_ACTION = 'javascript:void(0);';
 
@@ -184,6 +185,7 @@ $(function(){
             privat24:'https://api.privatbank.ua/p24api/ishop',
             interkassa:'https://sci.interkassa.com/',
             okpay:'/merchants/okpay/payment/prepare/',
+            payeer:'/merchants/payeer/payment/prepare/',
             invoice: '/merchants/invoice/preSubmit'
 
         };
@@ -215,6 +217,9 @@ $(function(){
                     break;
                 case OKPAY :
                     form.attr('action', formAction.okpay);
+                    break;
+                case PAYEER :
+                    form.attr('action', formAction.payeer);
                     break;
                 case INVOICE:
                     form.attr('action', formAction.invoice);
@@ -253,8 +258,7 @@ $(function(){
                     dataType: 'json',
                     data: JSON.stringify($(form).serializeObject())
                 }).done(function (response) {
-                    //$('#currency').find(':selected').html(response['balance']);
-                    //$('#currencyFull')..html(response['balance']);
+                    $('#currencyFull').val(response['balance']);
                     responseControls();
                     $('.paymentInfo').html(response['success']);
 
@@ -512,11 +516,11 @@ $(function(){
             newHTMLElements[0] = newHTMLElements[0]
                 .replace(templateVariables.amount, "<span class='modal-amount'>"+amount+"</span>")
                 .replace(templateVariables.currency, "<span class='modal-amount'>"+getCurrentCurrency()+"</span>")
-                .replace(templateVariables.merchant, "<span class='modal-merchant'>"+merchantName+"</span>")
+                .replace(templateVariables.merchant, "<span class='modal-merchant'>"+merchantName+"</span>");
             newHTMLElements[1] = newHTMLElements[1]
                 .replace(templateVariables.amount, "<span class='modal-amount'>" + response['commissionAmount'] + "</span>")
                 .replace(templateVariables.currency, "<span class='modal-amount'>" + getCurrentCurrency() + "</span>")
-                .replace(templateVariables.percent, "<span class='modal-amount'>"+response['commission'] + "%" + "</span>");
+                .replace(templateVariables.percent, "<span class='modal-amount'>"+response['commission'] + "</span>");
             newHTMLElements[2] = newHTMLElements[2]
                 .replace(templateVariables.amount, "<span class='modal-amount'>" + response['amount'] + "</span>")
                 .replace(templateVariables.currency, "<span class='modal-amount'>" + getCurrentCurrency() + "</span>");

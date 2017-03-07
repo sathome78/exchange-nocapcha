@@ -36,10 +36,9 @@
                     </li>
                     <li id="menu-orders"><a href="#" class="nav__link"><loc:message code="usermenu.orders"/></a></li>
                 </sec:authorize>
-                <%--TODO temporary remove support link--%>
-                <%--<li><a href="<c:url value="http://support.exrates.me/" />" class="nav__link">
+                <li><a href="<c:url value="http://support.exrates.me/" />" target="_blank" class="nav__link">
                     <loc:message code="dashboard.support"/></a>
-                </li>--%>
+                </li>
 
                 <sec:authorize access="isAuthenticated()">
                     <li id="adminka-entry">

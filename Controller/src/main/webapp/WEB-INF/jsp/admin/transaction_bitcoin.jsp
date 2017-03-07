@@ -63,82 +63,13 @@
           <th><loc:message code="transaction.acceptanceUser"/></th>
         </tr>
         </thead>
-        <tbody>
-
-        <c:forEach var="maptransaction" items="${bitcoinRequests}">
-          <tr>
-            <td style="white-space: nowrap;">
-                ${maptransaction.datetime.toLocalDate()}<br/>
-                ${maptransaction.datetime.toLocalTime()}
-            </td>
-            <td>
-              <button class="address-ref"
-                    onclick="alert('${maptransaction.address}')">
-                ${maptransaction.invoiceId}
-              </button>
-            </td>
-            <td>
-              <a href="<c:url value='/2a8fy7b07dxe44/userInfo'>
-                                    <c:param name="id" value="${maptransaction.userId}"/>
-                                    </c:url>">
-                  ${maptransaction.userEmail}</a>
-            </td>
-            <td>
-                ${maptransaction.pendingPaymentStatus}
-            </td>
-            <td>
-              <fmt:formatNumber value="${maptransaction.amount}" maxFractionDigits="9"/>
-            </td>
-            <td>
-              <fmt:formatNumber value="${maptransaction.commissionAmount}" maxFractionDigits="9"/>
-            </td>
-            <td>
-                ${maptransaction.acceptanceTime.toLocalDate()}<br/>
-                ${maptransaction.acceptanceTime.toLocalTime()}
-            </td>
-            <td>
-              <input id="bitcoin_hash${maptransaction.invoiceId}"
-                    <c:if test="${maptransaction.hash!=null && !''.equals(maptransaction.hash)}">
-                      <c:out value="readonly"/>
-                      </c:if>
-                     value="${maptransaction.hash}"
-                     style="width: 130px" class="form-control input-block-wrapper__input">
-            </td>
-            <td>
-              <input id="manual_amount${maptransaction.invoiceId}"
-                     <c:if test="${maptransaction.hash!=null && !''.equals(maptransaction.hash)}">
-                        <c:out value="readonly"/>
-                      </c:if>
-                     value="${maptransaction.amount+maptransaction.commissionAmount}" style="width: 130px"
-                     maxlength="9" class="form-control input-block-wrapper__input numericInputField">
-            </td>
-            <td>
-              ${maptransaction.confirmation}
-            </td>
-            <td>
-              <c:choose>
-                <c:when test="${maptransaction.provided}">
-                  <c:choose>
-                    <c:when test="${maptransaction.acceptanceUserId == null}">by service</c:when>
-                    <c:otherwise>${maptransaction.acceptanceUserEmail}</c:otherwise>
-                  </c:choose>
-                </c:when>
-                <c:otherwise>
-                  <button class="acceptbtn" type="submit"
-                          onclick="submitAcceptBitcoin(${maptransaction.invoiceId})"><loc:message
-                          code="transaction.accept"/></button>
-                </c:otherwise>
-              </c:choose>
-            </td>
-          </tr>
-        </c:forEach>
-        </tbody>
       </table>
     </div>
   </div>
   </div>
   <hr/>
 </main>
+<span hidden id="acceptButtonLocMessage"><loc:message code="transaction.accept"/></span>
 <div id="prompt_acc_rqst" style="display: none">
   <loc:message code="merchants.promptWithdrawRequestAccept"/>
 </div>

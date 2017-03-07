@@ -1,5 +1,7 @@
 package me.exrates.model.dto;
 
+import lombok.Getter;
+import lombok.Setter;
 import me.exrates.model.CurrencyPair;
 
 import java.math.BigDecimal;
@@ -7,6 +9,7 @@ import java.math.BigDecimal;
 /**
  * Created by Valk on 12.04.16.
  */
+@Getter @Setter
 public class ExOrderStatisticsDto {
     private CurrencyPair currencyPair;
     private String firstOrderAmountBase;
@@ -18,8 +21,6 @@ public class ExOrderStatisticsDto {
     private String sumBase;
     private String sumConvert;
 
-    /*constructors*/
-
     public ExOrderStatisticsDto() {
     }
 
@@ -27,77 +28,15 @@ public class ExOrderStatisticsDto {
         this.currencyPair = currencyPair;
     }
 
-    /*getters setters*/
-
-    public CurrencyPair getCurrencyPair() {
-        return currencyPair;
-    }
-
-    public void setCurrencyPair(CurrencyPair currencyPair) {
-        this.currencyPair = currencyPair;
-    }
-
-    public String getFirstOrderAmountBase() {
-        return firstOrderAmountBase;
-    }
-
-    public void setFirstOrderAmountBase(String firstOrderAmountBase) {
-        this.firstOrderAmountBase = firstOrderAmountBase;
-    }
-
-    public String getFirstOrderRate() {
-        return firstOrderRate;
-    }
-
-    public void setFirstOrderRate(String firstOrderRate) {
-        this.firstOrderRate = firstOrderRate;
-    }
-
-    public String getLastOrderAmountBase() {
-        return lastOrderAmountBase;
-    }
-
-    public void setLastOrderAmountBase(String lastOrderAmountBase) {
-        this.lastOrderAmountBase = lastOrderAmountBase;
-    }
-
-    public String getLastOrderRate() {
-        return lastOrderRate;
-    }
-
-    public void setLastOrderRate(String lastOrderRate) {
-        this.lastOrderRate = lastOrderRate;
-    }
-
-    public String getMinRate() {
-        return minRate;
-    }
-
-    public void setMinRate(String minRate) {
-        this.minRate = minRate;
-    }
-
-    public String getMaxRate() {
-        return maxRate;
-    }
-
-    public void setMaxRate(String maxRate) {
-        this.maxRate = maxRate;
-    }
-
-    public String getSumBase() {
-        return sumBase;
-    }
-
-    public void setSumBase(String sumBase) {
-        this.sumBase = sumBase;
-    }
-
-    public String getSumConvert() {
-        return sumConvert;
-    }
-
-    public void setSumConvert(String sumConvert) {
-        this.sumConvert = sumConvert;
+    public ExOrderStatisticsDto(ExOrderStatisticsDto exOrderStatisticsDto) {
+        this.currencyPair = exOrderStatisticsDto.currencyPair;
+        this.firstOrderAmountBase = exOrderStatisticsDto.firstOrderAmountBase;
+        this.firstOrderRate = exOrderStatisticsDto.firstOrderRate;
+        this.lastOrderAmountBase = exOrderStatisticsDto.lastOrderAmountBase;
+        this.lastOrderRate = exOrderStatisticsDto.lastOrderRate;
+        this.minRate = exOrderStatisticsDto.minRate;
+        this.maxRate = exOrderStatisticsDto.maxRate;
+        this.sumBase = exOrderStatisticsDto.sumBase;
+        this.sumConvert = exOrderStatisticsDto.sumConvert;
     }
 }

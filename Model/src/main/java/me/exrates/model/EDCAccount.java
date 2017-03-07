@@ -9,6 +9,8 @@ public class EDCAccount {
     private String wifPrivKey;
     private String pubKey;
     private String brainPrivKey;
+    private String accountId;
+    private String accountName;
 
     public int getTransactionId() {
         return transactionId;
@@ -42,6 +44,22 @@ public class EDCAccount {
         this.brainPrivKey = brainPrivKey;
     }
 
+    public String getAccountId() {
+        return accountId;
+    }
+
+    public void setAccountId(String accountId) {
+        this.accountId = accountId;
+    }
+
+    public String getAccountName() {
+        return accountName;
+    }
+
+    public void setAccountName(String accountName) {
+        this.accountName = accountName;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -52,7 +70,9 @@ public class EDCAccount {
         if (transactionId != that.transactionId) return false;
         if (wifPrivKey != null ? !wifPrivKey.equals(that.wifPrivKey) : that.wifPrivKey != null) return false;
         if (pubKey != null ? !pubKey.equals(that.pubKey) : that.pubKey != null) return false;
-        return brainPrivKey != null ? brainPrivKey.equals(that.brainPrivKey) : that.brainPrivKey == null;
+        if (brainPrivKey != null ? !brainPrivKey.equals(that.brainPrivKey) : that.brainPrivKey != null) return false;
+        if (accountId != null ? !accountId.equals(that.accountId) : that.accountId != null) return false;
+        return accountName != null ? accountName.equals(that.accountName) : that.accountName == null;
 
     }
 
@@ -62,6 +82,8 @@ public class EDCAccount {
         result = 31 * result + (wifPrivKey != null ? wifPrivKey.hashCode() : 0);
         result = 31 * result + (pubKey != null ? pubKey.hashCode() : 0);
         result = 31 * result + (brainPrivKey != null ? brainPrivKey.hashCode() : 0);
+        result = 31 * result + (accountId != null ? accountId.hashCode() : 0);
+        result = 31 * result + (accountName != null ? accountName.hashCode() : 0);
         return result;
     }
 
@@ -72,6 +94,8 @@ public class EDCAccount {
                 ", wifPrivKey='" + wifPrivKey + '\'' +
                 ", pubKey='" + pubKey + '\'' +
                 ", brainPrivKey='" + brainPrivKey + '\'' +
+                ", accountId='" + accountId + '\'' +
+                ", accountName='" + accountName + '\'' +
                 '}';
     }
 }

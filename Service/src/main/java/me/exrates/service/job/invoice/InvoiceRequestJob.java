@@ -24,9 +24,11 @@ public class InvoiceRequestJob {
 
   @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 5)
   private void invoiceExpiredClean() throws Exception {
-    log.debug("\nstart expired invoices cleaning ... ");
-    Integer expireCount = invoiceService.clearExpiredInvoices(EXPIRE_CLEAN_INTERVAL_MINUTES);
-    log.debug("\n... end expired invoices cleaning. Mark as expired: " + expireCount);
+    if (EXPIRE_CLEAN_INTERVAL_MINUTES > 0) {
+      log.debug("\nstart expired invoices cleaning ... ");
+      Integer expireCount = invoiceService.clearExpiredInvoices(EXPIRE_CLEAN_INTERVAL_MINUTES);
+      log.debug("\n... end expired invoices cleaning. Mark as expired: " + expireCount);
+    }
   }
 
 }

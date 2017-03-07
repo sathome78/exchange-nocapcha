@@ -3,6 +3,7 @@ package me.exrates.dao.impl;
 import me.exrates.dao.CommissionDao;
 import me.exrates.model.Commission;
 import me.exrates.model.dto.CommissionShortEditDto;
+import me.exrates.model.dto.EditMerchantCommissionDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -129,17 +130,29 @@ public class CommissionDaoImpl implements CommissionDao {
 	}
 
 	@Override
-	public void updateMerchantCurrencyCommission(Integer merchantId, Integer currencyId, BigDecimal inputValue, BigDecimal outputValue){
+	public void updateMerchantCurrencyCommission(EditMerchantCommissionDto editMerchantCommissionDto){
 		final String sql = "UPDATE MERCHANT_CURRENCY SET merchant_input_commission = :input_value, " +
-				"merchant_output_commission = :output_value " +
+				"merchant_output_commission = :output_value, merchant_fixed_commission = :fixed_commision " +
 				"where merchant_id = :merchant_id AND currency_id = :currency_id";
 		Map<String, Number> params = new HashMap<String, Number>() {{
-			put("merchant_id", merchantId);
-			put("currency_id", currencyId);
-			put("input_value", inputValue);
-			put("output_value", outputValue);
+			put("merchant_id", editMerchantCommissionDto.getMerchantId());
+			put("currency_id", editMerchantCommissionDto.getCurrencyId());
+			put("input_value", editMerchantCommissionDto.getInputValue());
+			put("output_value", editMerchantCommissionDto.getOutputValue());
+			put("fixed_commision", editMerchantCommissionDto.getMinFixedAmount());
 		}};
 		jdbcTemplate.update(sql, params);
+	}
+
+	@Override
+	public BigDecimal getMinFixedCommission(String merchant, String currency) {
+		final String sql = "SELECT merchant_fixed_commission FROM birzha.MERCHANT_CURRENCY " +
+				"where merchant_id = (select id from MERCHANT where name = :merchant) \n" +
+				"and currency_id = (select id from CURRENCY where name = :currency)";
+		final HashMap<String, String> params = new HashMap<>();
+		params.put("currency", currency);
+		params.put("merchant", merchant);
+		return BigDecimal.valueOf(jdbcTemplate.queryForObject(sql, params, Double.class));
 	}
 
 

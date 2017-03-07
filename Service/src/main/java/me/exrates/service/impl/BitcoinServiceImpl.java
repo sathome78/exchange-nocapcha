@@ -33,6 +33,8 @@ import org.bitcoinj.core.TransactionConfidence;
 import org.bitcoinj.core.TransactionOutput;
 import org.bitcoinj.kits.WalletAppKit;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,9 +63,13 @@ import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 @Service
+@PropertySource(value = {"classpath:/job.properties"})
 public class BitcoinServiceImpl implements BitcoinService {
 
   private final Logger LOG = LogManager.getLogger("merchant");
+
+  @Value("${btcInvoice.blockNotifyUsers}")
+  private Boolean BLOCK_NOTIFYING;
 
   private WalletAppKit kit;
   private final ListeningExecutorService pool = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
@@ -342,9 +348,11 @@ public class BitcoinServiceImpl implements BitcoinService {
           TransactionSourceType.BTC_INVOICE.name(),
           EXPIRED.getCode(),
           nowDate.get());
-      for (InvoiceUserDto invoice : userForNotificationList) {
-        notificationService.notifyUser(invoice.getUserId(), NotificationEvent.IN_OUT, "merchants.invoice.expired.title",
-            "merchants.btc_invoice.expired.message", new Integer[]{invoice.getInvoiceId()});
+      if (!BLOCK_NOTIFYING) {
+        for (InvoiceUserDto invoice : userForNotificationList) {
+          notificationService.notifyUser(invoice.getUserId(), NotificationEvent.IN_OUT, "merchants.invoice.expired.title",
+              "merchants.btc_invoice.expired.message", new Integer[]{invoice.getInvoiceId()});
+        }
       }
       return userForNotificationList.size();
     } else {

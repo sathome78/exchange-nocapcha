@@ -25,5 +25,5 @@ public interface WithdrawRequestDao {
 
     List<WithdrawRequest> findAll();
 
-    PagingData<List<WithdrawRequest>> findByStatus(Integer requestStatus, DataTableParams dataTableParams, WithdrawFilterData withdrawFilterData);
+    PagingData<List<WithdrawRequest>> findByStatus(Integer requestStatus, Integer currentUserId, DataTableParams dataTableParams, WithdrawFilterData withdrawFilterData);
 }

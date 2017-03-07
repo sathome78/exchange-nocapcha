@@ -5,6 +5,8 @@ import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
+import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.AdminOrderFilterData;
 import me.exrates.model.dto.mobileApiDto.dashboard.CommissionsDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
@@ -229,18 +231,16 @@ public interface OrderService {
     /**
      * Returns list of Buy orders of status open
      * @param currencyPair
-     * @param email is the email of current user
      * @return list of Buy orders
      */
-    List<OrderListDto> getAllBuyOrders(CacheData cacheData, CurrencyPair currencyPair, String email, Locale locale);
+    List<OrderListDto> getAllBuyOrders(CacheData cacheData, CurrencyPair currencyPair, Locale locale);
 
     /**
      * Returns list of Sell orders of status open, exclude the orders of current user
      * @param currencyPair
-     * @param email is the email of current user
      * @return list of Sell orders
      */
-    List<OrderListDto> getAllSellOrders(CacheData cacheData, CurrencyPair currencyPair, String email, Locale locale);
+    List<OrderListDto> getAllSellOrders(CacheData cacheData, CurrencyPair currencyPair, Locale locale);
 
     /**
      * Returns data of
@@ -257,27 +257,11 @@ public interface OrderService {
                                                                            OperationType operationType);
 
     @Transactional
-    DataTable<List<OrderBasicInfoDto>> findOrders(Integer currencyPair, Integer orderId, String orderType, String orderDateFrom, String orderDateTo,
-                                                  BigDecimal orderRateFrom, BigDecimal orderRateTo, BigDecimal orderVolumeFrom,
-                                                  BigDecimal orderVolumeTo, String creatorEmail, String acceptorEmail, Locale locale);
-
-    DataTable<List<OrderBasicInfoDto>> findOrders(Integer currencyPair, Integer orderId, String orderType, String orderDateFrom, String orderDateTo,
-                                                  BigDecimal orderRateFrom, BigDecimal orderRateTo, BigDecimal orderVolumeFrom,
-                                                  BigDecimal orderVolumeTo, String creatorEmail, String acceptorEmail, Locale locale,
-                                                  int offset, int limit, String orderColumnName, String orderDirection);
-
-    @Transactional
-    DataTable<List<OrderBasicInfoDto>> searchOrdersByAdmin(Integer currencyPair, Integer orderId, String orderType, String orderDateFrom, String orderDateTo,
-                                                           BigDecimal orderRateFrom, BigDecimal orderRateTo, BigDecimal orderVolumeFrom,
-                                                           BigDecimal orderVolumeTo, String creatorEmail, String acceptorEmail, Locale locale,
-                                                           Map<String, String> params);
+    DataTable<List<OrderBasicInfoDto>> searchOrdersByAdmin(AdminOrderFilterData adminOrderFilterData, DataTableParams dataTableParams, Locale locale);
 
     List<OrderWideListDto> getUsersOrdersWithStateForAdmin(String email, CurrencyPair currencyPair, OrderStatus status,
                                                            OperationType operationType,
                                                            Integer offset, Integer limit, Locale locale);
-
-    @Transactional
-    List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairs(Locale locale);
 
     @Transactional(readOnly = true)
     List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
@@ -295,8 +279,8 @@ public interface OrderService {
                                                             Integer limit, CurrencyPair currencyPair, Locale locale);
 
     @Transactional(readOnly = true)
-    List<OrderListDto> getAllBuyOrders(CurrencyPair currencyPair, String email, Locale locale);
+    List<OrderListDto> getAllBuyOrders(CurrencyPair currencyPair, Locale locale);
 
     @Transactional(readOnly = true)
-    List<OrderListDto> getAllSellOrders(CurrencyPair currencyPair, String email, Locale locale);
+    List<OrderListDto> getAllSellOrders(CurrencyPair currencyPair, Locale locale);
 }

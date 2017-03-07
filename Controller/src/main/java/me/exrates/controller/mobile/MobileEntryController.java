@@ -668,8 +668,7 @@ public class MobileEntryController {
         if (userAgent == UserAgent.ANDROID || userAgent == UserAgent.IOS) {
             String actualKey = apiService.retrieveApplicationKey(userAgent);
             logger.debug(actualKey);
-            //temporary support of old IOS app key
-            if (!(appKey.equals(actualKey) || (userAgent == UserAgent.IOS && "I1.0.0".equals(appKey)))) {
+            if (!appKey.equals(actualKey)) {
                 throw new InvalidAppKeyException("Invalid app key");
             }
         }

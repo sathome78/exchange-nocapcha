@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 /**
  * Created by OLEG on 20.12.2016.
  */
-@Service
+/*@Service*/
 public class YoBitRetrievalService implements StockExrateRetrievalService {
 
     private static final Logger LOGGER = LogManager.getLogger(YoBitRetrievalService.class);

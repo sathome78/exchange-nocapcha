@@ -3,6 +3,7 @@ package me.exrates.service.impl;
 import me.exrates.dao.CommissionDao;
 import me.exrates.model.Commission;
 import me.exrates.model.dto.CommissionShortEditDto;
+import me.exrates.model.dto.EditMerchantCommissionDto;
 import me.exrates.model.enums.BusinessUserRoleEnum;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
@@ -69,8 +70,13 @@ public class CommissionServiceImpl implements CommissionService {
 
 	@Override
 	@Transactional
-	public void updateMerchantCommission(Integer merchantId, Integer currencyId, BigDecimal inputValue, BigDecimal outputValue) {
-		commissionDao.updateMerchantCurrencyCommission(merchantId, currencyId, inputValue, outputValue);
+	public void updateMerchantCommission(EditMerchantCommissionDto editMerchantCommissionDto) {
+		commissionDao.updateMerchantCurrencyCommission(editMerchantCommissionDto);
+	}
+
+	@Override
+	public BigDecimal getMinFixedCommission(String merchant, String currency) {
+		return commissionDao.getMinFixedCommission(merchant, currency);
 	}
 
 }

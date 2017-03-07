@@ -89,6 +89,12 @@
                                 <loc:message
                                         code="wallets.downloadOrders"/></button>
                         </div>
+                        <div class="row">
+                            <button id="upload-users-wallets-orders-by-currency-pairs" class="blue-box pull-right"
+                                    onclick="uploadUserWalletsOrdersByCurrencyPairs('${mapRole.key}')" type="submit">
+                                <loc:message
+                                        code="wallets.downloadOrdersByCurrencyPairs"/></button>
+                        </div>
 
                             <div class="row">
                                 <button id="download-input-output-summery-report" class="blue-box pull-right"

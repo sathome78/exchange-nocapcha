@@ -54,6 +54,18 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
         return request;
     };
 
+    private final static String JOINS_FOR_ALL_REQUESTS = "INNER JOIN TRANSACTION ON TRANSACTION.id = WITHDRAW_REQUEST.transaction_id " +
+            "INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id " +
+            "INNER JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id " +
+            "INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id " +
+            "INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id " +
+            "INNER JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id " +
+            "INNER JOIN USER ON WALLET.user_id = USER.id " +
+            "LEFT JOIN USER AS ADMIN ON ADMIN.id =  WITHDRAW_REQUEST.processed_by " +
+            "LEFT JOIN MERCHANT_IMAGE ON WITHDRAW_REQUEST.merchant_image_id = MERCHANT_IMAGE.id";
+    private final static String JOIN_FOR_PERMITTED = "INNER JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION AS permission ON permission.user_id = :current_user_id " +
+            "AND permission.currency_id = TRANSACTION.currency_id AND permission.operation_direction = 'WITHDRAW'";
+
     private final static String SELECT_ALL_REQUESTS =
             " SELECT WITHDRAW_REQUEST.acceptance, WITHDRAW_REQUEST.wallet, WITHDRAW_REQUEST.processed_by, " +
                     "WITHDRAW_REQUEST.merchant_image_id, WITHDRAW_REQUEST.status, WITHDRAW_REQUEST.recipient_bank_name, " +
@@ -65,30 +77,10 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
                     "WALLET.user_id, WALLET.reserved_balance,WALLET.currency_id,COMPANY_WALLET.id,COMPANY_WALLET.balance, " +
                     "COMPANY_WALLET.commission_balance,COMMISSION.id,COMMISSION.date,COMMISSION.value," +
                     "CURRENCY.id,CURRENCY.description,CURRENCY.name,MERCHANT.id,MERCHANT.name,MERCHANT.description " +
-                    "FROM WITHDRAW_REQUEST " +
-                    "INNER JOIN TRANSACTION ON TRANSACTION.id = WITHDRAW_REQUEST.transaction_id " +
-                    "INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id " +
-                    "INNER JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id " +
-                    "INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id " +
-                    "INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id " +
-                    "INNER JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id " +
-                    "INNER JOIN USER ON WALLET.user_id = USER.id " +
-                    "INNER JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION AS permission ON permission.user_id = USER.id AND permission.currency_id = TRANSACTION.currency_id " +
-                    "LEFT JOIN USER AS ADMIN ON ADMIN.id =  WITHDRAW_REQUEST.processed_by " +
-                    "LEFT JOIN MERCHANT_IMAGE ON WITHDRAW_REQUEST.merchant_image_id = MERCHANT_IMAGE.id";
+                    "FROM WITHDRAW_REQUEST " + JOINS_FOR_ALL_REQUESTS;
 
-    private static final String SELECT_COUNT = "SELECT COUNT(*) " +
-            "FROM WITHDRAW_REQUEST " +
-            "INNER JOIN TRANSACTION ON TRANSACTION.id = WITHDRAW_REQUEST.transaction_id " +
-            "INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id " +
-            "INNER JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id " +
-            "INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id " +
-            "INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id " +
-            "INNER JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id " +
-            "INNER JOIN USER ON WALLET.user_id = USER.id " +
-            "INNER JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION AS permission ON permission.user_id = USER.id " +
-            "LEFT JOIN USER AS ADMIN ON ADMIN.id =  WITHDRAW_REQUEST.processed_by " +
-            "LEFT JOIN MERCHANT_IMAGE ON WITHDRAW_REQUEST.merchant_image_id = MERCHANT_IMAGE.id";
+
+    private static final String SELECT_COUNT = "SELECT COUNT(*) FROM WITHDRAW_REQUEST " + JOINS_FOR_ALL_REQUESTS;
 
     @Override
     public void create(WithdrawRequest withdrawRequest) {
@@ -168,27 +160,22 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     }
 
     @Override
-    public PagingData<List<WithdrawRequest>> findByStatus(Integer requestStatus, DataTableParams dataTableParams, WithdrawFilterData withdrawFilterData) {
+    public PagingData<List<WithdrawRequest>> findByStatus(Integer requestStatus, Integer currentUserId, DataTableParams dataTableParams, WithdrawFilterData withdrawFilterData) {
         String whereClauseBasic = " WHERE WITHDRAW_REQUEST.status = :status ";
-        String whereClauseFilter;
         String filter = withdrawFilterData.getSQLFilterClause();
-            if (StringUtils.isEmpty(filter)) {
-                whereClauseFilter = "";
-            } else {
-                whereClauseFilter = " AND ".concat(filter);
-        }
-        String orderClause = String.format(" ORDER BY %s ", dataTableParams.getOrderColumnName());
+        String whereClauseFilter = StringUtils.isEmpty(filter) ? "" :  " AND ".concat(filter);
+        String orderClause = dataTableParams.getOrderByClause();
         String offsetAndLimit = " LIMIT :limit OFFSET :offset ";
-        String sqlTotal = new StringJoiner(" ").add(SELECT_ALL_REQUESTS).add(whereClauseBasic)
-                .add(whereClauseFilter).add(orderClause).add(dataTableParams.getOrderDirectionName()).add(offsetAndLimit).toString();
-        String sqlCount = new StringJoiner(" ").add(SELECT_COUNT).add(whereClauseBasic).add(whereClauseFilter).toString();
+        String sqlTotal = new StringJoiner(" ").add(SELECT_ALL_REQUESTS).add(JOIN_FOR_PERMITTED).add(whereClauseBasic)
+                .add(whereClauseFilter).add(orderClause).add(offsetAndLimit).toString();
+        String sqlCount = new StringJoiner(" ").add(SELECT_COUNT).add(JOIN_FOR_PERMITTED).add(whereClauseBasic).add(whereClauseFilter).toString();
         log.debug(String.format("sql for total: %s", sqlTotal));
         log.debug(String.format("sql count: %s", sqlCount));
-        log.debug(dataTableParams.getOrderColumnName());
         Map<String, Object> params = new HashMap<>();
         params.put("status", requestStatus);
         params.put("offset", dataTableParams.getStart());
         params.put("limit", dataTableParams.getLength());
+        params.put("current_user_id", currentUserId);
         params.putAll(withdrawFilterData.getNamedParams());
         List<WithdrawRequest> requests = jdbcTemplate.query(sqlTotal, params, withdrawRequestRowMapper);
         Integer totalQuantity = jdbcTemplate.queryForObject(sqlCount, params, Integer.class);

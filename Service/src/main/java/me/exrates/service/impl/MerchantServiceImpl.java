@@ -39,6 +39,7 @@ import java.security.Principal;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.math.BigDecimal.*;
 import static java.math.BigDecimal.valueOf;
@@ -92,6 +93,7 @@ public class MerchantServiceImpl implements MerchantService {
   private static final Logger LOG = LogManager.getLogger("merchant");
 
   @Override
+  @Transactional
   public Map<String, String> acceptWithdrawalRequest(final int requestId,
                                                      final Locale locale,
                                                      final Principal principal) {
@@ -120,6 +122,7 @@ public class MerchantServiceImpl implements MerchantService {
   }
 
   @Override
+  @Transactional
   public Map<String, Object> declineWithdrawalRequest(final int requestId, final Locale locale, String email) {
     final Optional<WithdrawRequest> withdraw = withdrawRequestDao.findById(requestId);
     if (!withdraw.isPresent()) {
@@ -155,8 +158,8 @@ public class MerchantServiceImpl implements MerchantService {
   }
 
   @Override
-  public DataTable<List<WithdrawRequest>> findWithdrawRequestsByStatus(Integer requestStatus, DataTableParams dataTableParams, WithdrawFilterData withdrawFilterData) {
-    PagingData<List<WithdrawRequest>> result = withdrawRequestDao.findByStatus(requestStatus, dataTableParams, withdrawFilterData);
+  public DataTable<List<WithdrawRequest>> findWithdrawRequestsByStatus(Integer requestStatus, DataTableParams dataTableParams, WithdrawFilterData withdrawFilterData, String userEmail) {
+    PagingData<List<WithdrawRequest>> result = withdrawRequestDao.findByStatus(requestStatus, userService.getIdByEmail(userEmail), dataTableParams, withdrawFilterData);
     LOG.debug(result.getData().stream().map(request -> request.getTransaction().getId()).collect(Collectors.toList()));
     DataTable<List<WithdrawRequest>> output = new DataTable<>();
     output.setData(result.getData());
@@ -175,53 +178,56 @@ public class MerchantServiceImpl implements MerchantService {
     return merchantDao.findAll();
   }
 
-  @Override
-  @Transactional
-  public Map<String, String> withdrawRequest(final CreditsOperation creditsOperation,
-                                             WithdrawData withdrawData, final String userEmail, final Locale locale) {
-    final Transaction transaction = transactionService.createTransactionRequest(creditsOperation);
-    final BigDecimal reserved = transaction
-        .getAmount()
-        .add(transaction.getCommissionAmount()).setScale(currencyService.resolvePrecision(creditsOperation.getCurrency().getName()), BigDecimal.ROUND_HALF_UP);
-    walletService.depositReservedBalance(transaction.getUserWallet(), reserved);
-    final WithdrawRequest request = new WithdrawRequest();
-    request.setUserEmail(userEmail);
-    if (creditsOperation.getDestination().isPresent() && !creditsOperation.getDestination().get().isEmpty()) {
-      request.setWallet(creditsOperation.getDestination().get());
-    } else {
-      request.setWallet(withdrawData.getUserAccount());
+    @Override
+    @Transactional
+    public Map<String, String> withdrawRequest(final CreditsOperation creditsOperation,
+                                               WithdrawData withdrawData, final String userEmail, final Locale locale)
+    {
+        final Transaction transaction = transactionService.createTransactionRequest(creditsOperation);
+        final BigDecimal reserved = transaction
+                .getAmount()
+                .add(transaction.getCommissionAmount()).setScale(currencyService.resolvePrecision(creditsOperation.getCurrency().getName()), BigDecimal.ROUND_HALF_UP);
+        walletService.depositReservedBalance(transaction.getUserWallet(), reserved);
+        final WithdrawRequest request = new WithdrawRequest();
+        request.setUserEmail(userEmail);
+        if (creditsOperation.getDestination().isPresent() && !creditsOperation.getDestination().get().isEmpty()) {
+            request.setWallet(creditsOperation.getDestination().get());
+        } else {
+            request.setWallet(withdrawData.getUserAccount());
+        }
+        creditsOperation
+                .getMerchantImage()
+                .ifPresent(request::setMerchantImage);
+        request.setTransaction(transaction);
+        request.setRecipientBankName(withdrawData.getRecipientBankName());
+        request.setRecipientBankCode(withdrawData.getRecipientBankCode());
+        request.setUserFullName(withdrawData.getUserFullName());
+        request.setRemark(withdrawData.getRemark());
+        withdrawRequestDao.create(request);
+        transactionService.setSourceId(transaction.getId(), transaction.getId());
+
+      String notification = null;
+        try {
+            notification = sendWithdrawalNotification(request, NEW, locale);
+        } catch (final MailException e) {
+            LOG.error(e);
+        }
+        final BigDecimal newAmount = transaction
+                .getUserWallet()
+                .getActiveBalance();
+        final String currency = transaction
+                .getCurrency()
+                .getName();
+        final String balance = currency + " " + currencyService.amountToString(newAmount, currency);
+        final Map<String, String> result = new HashMap<>();
+        result.put("success", notification);
+        result.put("balance", balance);
+        return result;
     }
-    creditsOperation
-        .getMerchantImage()
-        .ifPresent(request::setMerchantImage);
-    request.setTransaction(transaction);
-    request.setRecipientBankName(withdrawData.getRecipientBankName());
-    request.setRecipientBankCode(withdrawData.getRecipientBankCode());
-    request.setUserFullName(withdrawData.getUserFullName());
-    request.setRemark(withdrawData.getRemark());
-    withdrawRequestDao.create(request);
-    String notification = null;
-    try {
-      notification = sendWithdrawalNotification(request, NEW, locale);
-    } catch (final MailException e) {
-      LOG.error(e);
-    }
-    final BigDecimal newAmount = transaction
-        .getUserWallet()
-        .getActiveBalance();
-    final String currency = transaction
-        .getCurrency()
-        .getName();
-    final String balance = currency + " " + currencyService.amountToString(newAmount, currency);
-    final Map<String, String> result = new HashMap<>();
-    result.put("success", notification);
-    result.put("balance", balance);
-    return result;
-  }
 
   @Override
   public String resolveTransactionStatus(final Transaction transaction, final Locale locale) {
-    if (transaction.getSourceType() == TransactionSourceType.INVOICE) {
+    if (transaction.getSourceType() == TransactionSourceType.INVOICE && transaction.getOperationType() == INPUT) {
       Integer statusId = invoiceService.getInvoiceRequestStatusByInvoiceId(transaction.getSourceId());
       InvoiceRequestStatusEnum invoiceRequestStatus = InvoiceRequestStatusEnum.convert(statusId);
       return messageSource.getMessage("merchants.invoice.".concat(invoiceRequestStatus.name()), null, locale);
@@ -439,17 +445,21 @@ public class MerchantServiceImpl implements MerchantService {
                                                                 final String merchant) {
     final Map<String, String> result = new HashMap<>();
     final BigDecimal commission = commissionService.findCommissionByTypeAndRole(type, userService.getCurrentUserRole()).getValue();
-
-        final BigDecimal commissionMerchant = type == USER_TRANSFER ? BigDecimal.ZERO : commissionService.getCommissionMerchant(merchant, currency, type);
-        final BigDecimal commissionTotal = commission.add(commissionMerchant).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP);
-        BigDecimal commissionAmount = amount.multiply(commissionTotal).divide(HUNDREDTH).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP);
-
-    //TODO fix method
-    //     commissionAmount = addMinimalCommission(commissionAmount, currency);
-
+    final BigDecimal commissionMerchant = type == USER_TRANSFER ? BigDecimal.ZERO : commissionService.getCommissionMerchant(merchant, currency, type);
+    final BigDecimal commissionTotal = commission.add(commissionMerchant).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP);
+    BigDecimal commissionAmount = amount.multiply(commissionTotal).divide(HUNDREDTH).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP);
+    String commissionString = Stream.of("(", commissionTotal.stripTrailingZeros().toString(), "%)").collect(Collectors.joining(""));
+    if (type == OUTPUT) {
+      BigDecimal merchantMinFixedCommission = commissionService.getMinFixedCommission(merchant, currency);
+      if (commissionAmount.compareTo(merchantMinFixedCommission) < 0) {
+        commissionAmount = merchantMinFixedCommission;
+        commissionString = "";
+      }
+    }
+    LOG.debug("commission: " + commissionString);
     final BigDecimal resultAmount = type != OUTPUT ? amount.add(commissionAmount).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP) :
         amount.subtract(commissionAmount).setScale(currencyService.resolvePrecision(currency), ROUND_DOWN);
-    result.put("commission", commissionTotal.stripTrailingZeros().toString());
+    result.put("commission", commissionString);
     result.put("commissionAmount", currencyService.amountToString(commissionAmount, currency));
     result.put("amount", currencyService.amountToString(resultAmount, currency));
     return result;
@@ -484,7 +494,7 @@ public class MerchantServiceImpl implements MerchantService {
                 commissionTotal
                 .multiply(amount)
                 .divide(valueOf(100), currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP);
-      //  commissionAmount = addMinimalCommission(commissionAmount, currency.getName());
+        commissionAmount = correctForMerchantFixedCommission(merchant.getName(), currency.getName(), operationType, commissionAmount);
         final User user = userService.findByEmail(userEmail);
         final BigDecimal newAmount = payment.getOperationType() == INPUT ?
                 amount :
@@ -504,9 +514,17 @@ public class MerchantServiceImpl implements MerchantService {
     return Optional.of(creditsOperation);
   }
 
-    public Optional<CreditsOperation> prepareCreditsOperation(Payment payment,String userEmail) {
-        return prepareCreditsOperation(payment, BigDecimal.ZERO, userEmail);
+  public Optional<CreditsOperation> prepareCreditsOperation(Payment payment,String userEmail) {
+    return prepareCreditsOperation(payment, BigDecimal.ZERO, userEmail);
+  }
+
+  private BigDecimal correctForMerchantFixedCommission(String merchantName, String currencyName, OperationType operationType, BigDecimal commissionAmount) {
+    if (operationType != OUTPUT) {
+      return commissionAmount;
     }
+    BigDecimal merchantMinFixedCommission = commissionService.getMinFixedCommission(merchantName, currencyName);
+    return commissionAmount.compareTo(merchantMinFixedCommission) < 0 ? merchantMinFixedCommission : commissionAmount;
+  }
 
     private BigDecimal addMinimalCommission(BigDecimal commissionAmount, String name) {
         if (commissionAmount.compareTo(BigDecimal.ZERO) == 0) {

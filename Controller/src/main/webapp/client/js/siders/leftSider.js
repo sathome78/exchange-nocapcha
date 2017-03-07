@@ -13,9 +13,9 @@ function LeftSiderClass() {
     var that = this;
     /**/
     var timeOutIdForStatisticsForMyWallets;
-    var refreshIntervalForStatisticsForMyWallets = 5000 * REFRESH_INTERVAL_MULTIPLIER;
+    var refreshIntervalForStatisticsForMyWallets = 30000 * REFRESH_INTERVAL_MULTIPLIER;
     var timeOutIdForStatisticsForAllCurrencies;
-    var refreshIntervalForStatisticsForAllCurrencies = 5000 * REFRESH_INTERVAL_MULTIPLIER;
+    var refreshIntervalForStatisticsForAllCurrencies = 10000 * REFRESH_INTERVAL_MULTIPLIER;
     /**/
     var showLog = false;
 

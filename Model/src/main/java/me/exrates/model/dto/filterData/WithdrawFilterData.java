@@ -4,12 +4,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+
+import static me.exrates.model.dto.filterData.FilterDataItem.*;
 
 /**
  * Created by OLEG on 28.02.2017.
@@ -33,23 +32,25 @@ public class WithdrawFilterData extends TableFilterData {
     private String email;
 
 
+
+
     @Override
     public void initFilterItems() {
-        filterItems = Stream.of(
+        FilterDataItem[] items = new FilterDataItem[] {
                 new FilterDataItem("request_id", "WITHDRAW_REQUEST.transaction_id =", requestId),
-                new FilterDataItem("currency_ids", "TRANSACTION.currency_id IN", currencyIds),
-                new FilterDataItem("merchant_ids", "TRANSACTION.merchant_id IN", merchantIds),
-                new FilterDataItem("start_date", "TRANSACTION.datetime >", startDate),
-                new FilterDataItem("end_date", "TRANSACTION.datetime <", endDate),
+                new FilterDataItem("currency_ids", "TRANSACTION.currency_id IN", currencyIds, IN_FORMAT),
+                new FilterDataItem("merchant_ids", "TRANSACTION.merchant_id IN", merchantIds, IN_FORMAT),
+                new FilterDataItem("start_date", "TRANSACTION.datetime >", startDate, DATE_FORMAT),
+                new FilterDataItem("end_date", "TRANSACTION.datetime <", endDate, DATE_FORMAT),
                 new FilterDataItem("amount_from", "TRANSACTION.amount >", amountFrom),
                 new FilterDataItem("amount_to", "TRANSACTION.amount <", amountTo),
                 new FilterDataItem("commission_amount_from", "TRANSACTION.commission_amount >", commissionAmountFrom),
                 new FilterDataItem("commission_amount_to", "TRANSACTION.commission_amount <", commissionAmountTo),
-                new FilterDataItem("wallet", "WITHDRAW_REQUEST.wallet LIKE", StringUtils.isEmpty(wallet) ? "" : "%".concat(wallet).concat("%")),
-                new FilterDataItem("recipient_bank", "WITHDRAW_REQUEST.recipient_bank_name LIKE", StringUtils.isEmpty(recipientBank) ? "" : "%".concat(recipientBank).concat("%")),
-                new FilterDataItem("full_name", "WITHDRAW_REQUEST.user_full_name LIKE", StringUtils.isEmpty(fullName) ? "" : "%".concat(fullName).concat("%")),
-                new FilterDataItem("full_name", "USER.email LIKE", StringUtils.isEmpty(email) ? "" : "%".concat(email).concat("%"))
-        ).filter(item -> !(item.getValue() == null || String.valueOf(item.getValue()).isEmpty()))
-        .collect(Collectors.toList());
+                new FilterDataItem("wallet", "WITHDRAW_REQUEST.wallet LIKE", wallet, LIKE_FORMAT_MIDDLE),
+                new FilterDataItem("recipient_bank", "WITHDRAW_REQUEST.recipient_bank_name LIKE", recipientBank, LIKE_FORMAT_MIDDLE),
+                new FilterDataItem("full_name", "WITHDRAW_REQUEST.user_full_name LIKE", fullName, LIKE_FORMAT_MIDDLE),
+                new FilterDataItem("email", "USER.email LIKE", email, LIKE_FORMAT_MIDDLE)
+        };
+        populateFilterItemsNonEmpty(items);
     }
 }

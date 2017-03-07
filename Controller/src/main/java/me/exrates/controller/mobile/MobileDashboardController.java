@@ -532,7 +532,7 @@ public class MobileDashboardController {
     @RequestMapping(value = "/sellOrders", method = GET, produces = APPLICATION_JSON_VALUE)
     public List<OrderListApiDto> getSellOrdersList(@RequestParam(value = "currencyPairId") Integer currencyPairId, HttpServletRequest request) {
         CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
-        return orderService.getAllSellOrders(currencyPair, null, localeResolver.resolveLocale(request)).stream()
+        return orderService.getAllSellOrders(currencyPair, localeResolver.resolveLocale(request)).stream()
                 .map(dto -> new OrderListApiDto(dto, localeResolver.resolveLocale(request))).collect(Collectors.toList());
     }
 
@@ -589,7 +589,7 @@ public class MobileDashboardController {
     @RequestMapping(value = "/buyOrders", method = GET, produces = APPLICATION_JSON_VALUE)
     public List<OrderListApiDto> getBuyOrdersList(@RequestParam(value = "currencyPairId") Integer currencyPairId, HttpServletRequest request) {
         CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
-        return orderService.getAllBuyOrders(currencyPair, null, localeResolver.resolveLocale(request)).stream()
+        return orderService.getAllBuyOrders(currencyPair, localeResolver.resolveLocale(request)).stream()
                 .map(dto -> new OrderListApiDto(dto, localeResolver.resolveLocale(request))).collect(Collectors.toList());
 
     }

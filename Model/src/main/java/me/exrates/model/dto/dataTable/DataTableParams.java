@@ -32,56 +32,20 @@ public class DataTableParams {
         return draw;
     }
 
-    public void setDraw(int draw) {
-        this.draw = draw;
-    }
-
-    public int getOrderColumn() {
-        return orderColumn;
-    }
-
-    public void setOrderColumn(int orderColumn) {
-        this.orderColumn = orderColumn;
-    }
-
-    public OrderDirection getOrderDirection() {
-        return orderDirection;
-    }
-
-    public void setOrderDirection(OrderDirection orderDirection) {
-        this.orderDirection = orderDirection;
-    }
-
     public int getStart() {
         return start;
-    }
-
-    public void setStart(int start) {
-        this.start = start;
     }
 
     public int getLength() {
         return length;
     }
 
-    public void setLength(int length) {
-        this.length = length;
-    }
-
     public String getSearchValue() {
         return searchValue;
     }
 
-    public void setSearchValue(String searchValue) {
-        this.searchValue = searchValue;
-    }
-
     public List<String> getColumns() {
         return columns;
-    }
-
-    public void setColumns(List<String> columns) {
-        this.columns = columns;
     }
 
     public static DataTableParams resolveParamsFromRequest(Map<String, String> requestParams) {
@@ -90,7 +54,7 @@ public class DataTableParams {
         dataTableParams.orderColumn = Integer.parseInt(requestParams.getOrDefault("order[0][column]", "0"));
         dataTableParams.orderDirection = OrderDirection.valueOf(requestParams.getOrDefault("order[0][dir]", "asc").toUpperCase());
         dataTableParams.start = Integer.parseInt(requestParams.getOrDefault("start", "0"));
-        dataTableParams.length = Integer.parseInt(requestParams.getOrDefault("length", "10"));
+        dataTableParams.length = Integer.parseInt(requestParams.getOrDefault("length", "0"));
         dataTableParams.searchValue = requestParams.getOrDefault("search[value]", "");
         List<String> columnNames = requestParams.entrySet().stream()
                 .filter(entry -> entry.getKey().matches("^columns(.+)name\\]$"))
@@ -102,19 +66,17 @@ public class DataTableParams {
         return dataTableParams;
     }
 
-    public String getOrderColumnName() {
-        return columns.get(orderColumn);
+    public String getOrderByClause() {
+        if (columns.isEmpty() || orderColumn >= columns.size()) {
+            return "";
+        }
+        return new StringJoiner(" ").add("ORDER BY").add(columns.get(orderColumn)).add(orderDirection.name()).toString();
     }
 
     private static void validateColumnNames(List<String> columnNames) {
         if (!columnNames.stream().allMatch(Pattern.compile("^[a-zA-z]+([_.]{1}[a-zA-z]+)*[a-zA-z]$").asPredicate())) {
             throw new IllegalColumnNameException("Illegal column name!");
         }
-    }
-
-
-    public String getOrderDirectionName() {
-        return orderDirection.name();
     }
 
     @Override

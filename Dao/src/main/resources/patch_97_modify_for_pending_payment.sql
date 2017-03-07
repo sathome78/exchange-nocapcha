@@ -1,3 +1,6 @@
+SET sql_mode = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION';
+
+
 CREATE TABLE PENDING_PAYMENT_STATUS (
 	`id` INT(11) NOT NULL AUTO_INCREMENT,
 	`name` VARCHAR(100) NULL DEFAULT NULL,
@@ -106,14 +109,39 @@ SELECT transaction_id FROM BTC_TRANSACTION BTX WHERE BTX.transaction_id = PP.inv
 
 MAKE IT BEFORE NEXT UPDATE
 
+/*тут  все транзакции (с учетом условия)*/
 SELECT source_type, COUNT(*)
 FROM TRANSACTION TX
-WHERE TX.company_wallet_id=4
+WHERE TX.currency_id=4
+AND source_type = "MERCHANT"
+AND operation_type_id = 1
 GROUP BY source_type
+
+/*тут те из них, которые имеют связь с PENDING_PAYMENT */
+SELECT source_type, COUNT(*)
+FROM TRANSACTION TX
+JOIN PENDING_PAYMENT PP ON (PP.invoice_id = TX.id)
+WHERE TX.currency_id=4
+AND source_type = "MERCHANT"
+AND operation_type_id = 1
+GROUP BY source_type
+
+
+/*список тех, которые не имеют связи*/
+SELECT *
+FROM TRANSACTION TX
+WHERE TX.currency_id=4
+AND source_type = "MERCHANT"
+AND operation_type_id = 1
+AND NOT EXISTS (SELECT * FROM PENDING_PAYMENT PP WHERE (PP.invoice_id = TX.id))
+
 --!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 UPDATE TRANSACTION TX
 SET source_type = 8,
 source_id = id
 WHERE TX.company_wallet_id=4
-AND source_type = 2
+AND source_type = "MERCHANT"
+AND operation_type_id = 1
+AND EXISTS (SELECT * FROM PENDING_PAYMENT PP WHERE (PP.invoice_id = TX.id))
+

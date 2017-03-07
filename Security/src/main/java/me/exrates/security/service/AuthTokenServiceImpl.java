@@ -15,6 +15,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -30,14 +32,16 @@ import java.util.*;
  * Created by OLEG on 23.08.2016.
  */
 @Service
+@PropertySource(value = {"classpath:/mobile.properties"})
 public class AuthTokenServiceImpl implements AuthTokenService {
     private static final Logger logger = LogManager.getLogger("mobileAPI");
 
-
-    private static final String TOKEN_KEY = "k2j34g5sdfgs8d97"; //currently a random combination of letters and digits
-    private static final long TOKEN_DURATION_TIME = 60000L; //SECONDS
-    private static final long TOKEN_MAX_DURATION_TIME = 15 * 60000L; //SECONDS
-
+    @Value("${token.key}")
+    private String TOKEN_KEY;
+    @Value("${token.duration}")
+    private long TOKEN_DURATION_TIME;
+    @Value("${token.max.duration}")
+    private long TOKEN_MAX_DURATION_TIME;
 
 
     @Autowired

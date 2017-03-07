@@ -94,14 +94,23 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="proxy_log" fileName="${sys:catalina.home}/logs/proxy_log.log"
+                     filePattern="${sys:catalina.home}/logs/proxy_log_%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
     </Appenders>
     <Loggers>
         <Logger name="merchant" level="TRACE" additivity="false">
-            <AppenderRef ref="Console"/>
+            <!--<AppenderRef ref="Console"/>-->
             <AppenderRef ref="Merchants"/>
         </Logger>
         <Logger name="merchant_edr" level="TRACE" additivity="false">
-            <AppenderRef ref="Console"/>
+            <!--<AppenderRef ref="Console"/>-->
             <AppenderRef ref="Merchants_edr"/>
         </Logger>
         <logger name="org.quartz" level="ERROR" additivity="false">
@@ -120,25 +129,25 @@
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Logs"/>
         </logger>
-        <logger name="org.springframework.jdbc.core.JdbcTemplate" level="OFF" additivity="false">
+        <logger name="org.springframework.jdbc.core.JdbcTemplate" level="ERROR" additivity="false">
             <appender-ref ref="Console" />
         </logger>
-        <logger name="org.springframework.jdbc.core.StatementCreatorUtils" level="OFF" additivity="false">
+        <logger name="org.springframework.jdbc.core.StatementCreatorUtils" level="ERROR" additivity="false">
             <appender-ref ref="Console" />
         </logger>
         <Logger name="me.exrates.controller.OnlineRestController" level="DEBUG" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="OnlineServices"/>
         </Logger>
-        <Logger name="me.exrates.controller.OrderControllerRest" level="DEBUG" additivity="false">
+        <Logger name="me.exrates.controller.OrderControllerRest" level="ERROR" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="RestServices"/>
         </Logger>
-        <Logger name="me.exrates.controller.PublicController" level="DEBUG" additivity="false">
+        <Logger name="me.exrates.controller.PublicController" level="ERROR" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="PublicServices"/>
         </Logger>
-        <Logger name="me.exrates.controller.filter.RequestFilter" level="DEBUG" additivity="false">
+        <Logger name="me.exrates.controller.filter.RequestFilter" level="ERROR" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="SessionLog"/>
         </Logger>
@@ -148,37 +157,43 @@
         </Logger>
 
         <!--INVOICE ... -->
-        <Logger name="me.exrates.controller.merchants.InvoiceController" level="DEBUG" additivity="false">
+        <Logger name="me.exrates.controller.merchants.InvoiceController" level="ERROR" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="invoice_log"/>
         </Logger>
-        <Logger name="me.exrates.service.impl.InvoiceServiceImpl" level="DEBUG" additivity="false">
+        <Logger name="me.exrates.service.impl.InvoiceServiceImpl" level="ERROR" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="invoice_log"/>
         </Logger>
-        <Logger name="me.exrates.dao.impl.InvoiceRequestDaoImpl" level="DEBUG" additivity="false">
+        <Logger name="me.exrates.dao.impl.InvoiceRequestDaoImpl" level="ERROR" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="invoice_log"/>
         </Logger>
         <!--... INVOICE-->
 
         <!--WALLET ... -->
-        <Logger name="me.exrates.controller.WalletController" level="DEBUG" additivity="false">
+        <Logger name="me.exrates.controller.WalletController" level="ERROR" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="wallet_log"/>
         </Logger>
-        <Logger name="me.exrates.service.impl.WalletServiceImpl" level="DEBUG" additivity="false">
+        <Logger name="me.exrates.service.impl.WalletServiceImpl" level="ERROR" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="wallet_log"/>
         </Logger>
-        <Logger name="me.exrates.dao.impl.WalletDaoImpl" level="DEBUG" additivity="false">
+        <Logger name="me.exrates.dao.impl.WalletDaoImpl" level="ERROR" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="wallet_log"/>
         </Logger>
         <!--... WALLET-->
 
+        <!--PROXY-->
+        <Logger name="me.exrates.service.impl.proxy" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="proxy_log"/>
+        </Logger>
 
-        <Root level="TRACE">
+
+        <Root level="DEBUG">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Logs"/>
         </Root>

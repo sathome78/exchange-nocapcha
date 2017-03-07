@@ -42,4 +42,24 @@ public class BackDealInterval {
                 ", intervalType=" + intervalType +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        BackDealInterval that = (BackDealInterval) o;
+
+        if (intervalValue != null ? !intervalValue.equals(that.intervalValue) : that.intervalValue != null)
+            return false;
+        return intervalType == that.intervalType;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = intervalValue != null ? intervalValue.hashCode() : 0;
+        result = 31 * result + (intervalType != null ? intervalType.hashCode() : 0);
+        return result;
+    }
 }

@@ -5,6 +5,8 @@ import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.PagingData;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.AdminOrderFilterData;
 import me.exrates.model.dto.mobileApiDto.dashboard.CommissionsDto;
 import me.exrates.model.dto.onlineTableDto.ExOrderStatisticsShortByPairsDto;
 import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
@@ -30,17 +32,17 @@ public interface OrderDao {
 
     boolean updateOrder(ExOrder exOrder);
 
-    List<OrderListDto> getOrdersBuyForCurrencyPair(CurrencyPair currencyPair, String email, Locale locale);
+    List<OrderListDto> getOrdersBuyForCurrencyPair(CurrencyPair currencyPair);
 
-    List<OrderListDto> getOrdersSellForCurrencyPair(CurrencyPair currencyPair, String email, Locale locale);
+    List<OrderListDto> getOrdersSellForCurrencyPair(CurrencyPair currencyPair);
 
     List<Map<String, Object>> getDataForAreaChart(CurrencyPair currencyPair, BackDealInterval backDealInterval);
 
     List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval backDealInterval);
 
-    ExOrderStatisticsDto getOrderStatistic(CurrencyPair currencyPair, BackDealInterval backDealInterval, Locale locale);
+    ExOrderStatisticsDto getOrderStatistic(CurrencyPair currencyPair, BackDealInterval backDealInterval);
 
-    List<ExOrderStatisticsShortByPairsDto> getOrderStatisticByPairs(Locale locale);
+    List<ExOrderStatisticsShortByPairsDto> getOrderStatisticByPairs();
 
     List<CoinmarketApiDto> getCoinmarketData(String currencyPairName);
 
@@ -52,7 +54,7 @@ public interface OrderDao {
 
     Object deleteOrderForPartialAccept(int orderId);
 
-    List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriod(String email, BackDealInterval backDealInterval, Integer limit, CurrencyPair currencyPair, Locale locale);
+    List<OrderAcceptedHistoryDto> getOrderAcceptedForPeriod(String email, BackDealInterval backDealInterval, Integer limit, CurrencyPair currencyPair);
 
     OrderCommissionsDto getCommissionForOrder(UserRole userRole);
 
@@ -73,10 +75,7 @@ public interface OrderDao {
 
     boolean lockOrdersListForAcception(List<Integer> ordersList);
 
-    PagingData<List<OrderBasicInfoDto>> searchOrders(Integer currencyPair, Integer orderId, Integer orderType, String orderDateFrom, String orderDateTo,
-                                                     BigDecimal orderRateFrom, BigDecimal orderRateTo, BigDecimal orderVolumeFrom,
-                                                     BigDecimal orderVolumeTo, String creatorEmail, String acceptorEmail, Locale locale,
-                                                     int offset, int limit, String orderColumnName, String orderDirection);
+    PagingData<List<OrderBasicInfoDto>> searchOrders(AdminOrderFilterData adminOrderFilterData, DataTableParams dataTableParams, Locale locale);
 
     List<ExOrder> selectTopOrders(Integer currencyPairId, BigDecimal exrate,
                                   OperationType orderType);

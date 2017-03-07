@@ -103,7 +103,7 @@
                             <label for="initialAmount" class="input-block-wrapper__label"><loc:message code="admin.invoice.initialAmount"/></label>
                         </div>
                         <div class="col-md-8 input-block-wrapper__input-wrapper">
-                            <input id="initialAmount" class="input-block-wrapper__input" type="number" step="0.01">
+                            <input id="initialAmount" readonly class="input-block-wrapper__input" type="number" step="0.01">
                         </div>
                     </div>
                     <div class="input-block-wrapper">
