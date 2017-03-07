@@ -75,7 +75,7 @@ public class PayeerMerchantController {
     @RequestMapping(value = "payment/status",method = RequestMethod.POST)
     public ResponseEntity<String> statusPayment(@RequestParam Map<String,String> params, RedirectAttributes redir) {
 
-        final ResponseEntity<String> response = new ResponseEntity<>(params.get("m_orderid"), OK);
+        final ResponseEntity<String> response = new ResponseEntity<>(params.get("m_orderid")+"|success", OK);
         logger.info("Response: " + params);
 
         if (payeerService.confirmPayment(params)) {
@@ -85,13 +85,13 @@ public class PayeerMerchantController {
         return new ResponseEntity<>(params.get("m_orderid"), BAD_REQUEST);
     }
 
-    @RequestMapping(value = "payment/success",method = RequestMethod.POST)
+    @RequestMapping(value = "payment/success",method = RequestMethod.GET)
     public RedirectView successPayment(@RequestParam Map<String,String> response, RedirectAttributes redir, final HttpServletRequest request) {
 
         Transaction transaction;
         logger.info("Response: " + response);
         try{
-            transaction = transactionService.findById(Integer.parseInt(response.get("ok_invoice")));
+            transaction = transactionService.findById(Integer.parseInt(response.get("m_orderid")));
             if (!transaction.isProvided()){
                 redir.addAttribute("errorNoty", messageSource.getMessage("merchants.authRejected", null, localeResolver.resolveLocale(request)));
                 return new RedirectView("/dashboard");

@@ -3,6 +3,7 @@ package me.exrates.dao.impl;
 import me.exrates.dao.DashboardDao;
 import me.exrates.model.enums.OrderStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -17,6 +18,7 @@ import java.util.Map;
 public class DashboardDaoImpl implements DashboardDao {
 
     @Autowired
+    @Qualifier("hikariDataSource")
     DataSource dataSource;
 
     @Override

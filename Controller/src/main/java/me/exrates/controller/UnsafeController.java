@@ -35,4 +35,18 @@ public class UnsafeController {
         job.start();
         return new ResponseEntity<>("Started blockchain rescan. Checkout merchant.log", HttpStatus.OK);
     }
+
+    @RequestMapping(value = "unsafe/rescanUnusedAccounts")
+    public ResponseEntity<String> rescanUnusedAccounts(){
+        try {
+            LOGGER.info("STARTING EDC RESCAN UNUSED ACCOUNTS");
+            final Thread job = new Thread(() -> edcService.rescanUnusedAccounts());
+            job.start();
+            return new ResponseEntity<>("Started EDC rescan unused accouts. Checkout merchant.log", HttpStatus.OK);
+        }catch (Exception e){
+            LOGGER.error(e);
+            return new ResponseEntity<>("Error EDC rescan unused accouts. Checkout merchant.log", HttpStatus.BAD_REQUEST);
+        }
+    }
+
 }

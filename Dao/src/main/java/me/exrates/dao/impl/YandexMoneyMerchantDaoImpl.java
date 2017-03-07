@@ -5,6 +5,7 @@ import me.exrates.dao.YandexMoneyMerchantDao;
 import me.exrates.model.Payment;
 import me.exrates.model.enums.OperationType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -28,6 +29,7 @@ import static me.exrates.jdbc.TokenRowMapper.tokenRowMapper;
 public final class YandexMoneyMerchantDaoImpl implements YandexMoneyMerchantDao {
 
     @Autowired
+    @Qualifier("hikariDataSource")
     private DataSource dataSource;
 
     private static final String YMONEY_TABLE = "YANDEX_MONEY_MERCHANT";

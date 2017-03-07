@@ -2,6 +2,8 @@ package me.exrates.controller.handler;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import me.exrates.dao.EDCAccountDao;
+import me.exrates.model.EDCAccount;
 import me.exrates.service.EDCService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,7 +14,11 @@ import org.springframework.stereotype.Service;
 import javax.websocket.*;
 import java.io.IOException;
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 import static java.util.regex.Pattern.compile;
@@ -36,14 +42,18 @@ public class EDCClientWebSocketHandler {
     private final String METHOD_GET_BLOCK_BY_ID = "{\"method\": \"call\", \"params\": [2, \"get_block_by_id\", [\"%s\"]], \"id\": %s}";
     private final String METHOD_GET_BLOCK = "{\"method\": \"call\", \"params\": [2, \"get_block\", [\"%s\"]], \"id\": %s}";
     private final Logger LOG = LogManager.getLogger("merchant");
+    private final BlockingQueue<String> listTempDelayedRawTransactions = new LinkedBlockingQueue<>();;
+    private final BlockingQueue<String> listDelayedRawTransactions = new LinkedBlockingQueue<>();;
 
     private final EDCService edcService;
+    private final EDCAccountDao edcAccountDao;
 
     private volatile Session session;
 
     @Autowired
-    public EDCClientWebSocketHandler(EDCService edcService) {
+    public EDCClientWebSocketHandler(EDCService edcService, EDCAccountDao edcAccountDao) {
         this.edcService = edcService;
+        this.edcAccountDao = edcAccountDao;
         subscribeForBlockchainUpdates();
     }
 
@@ -68,6 +78,7 @@ public class EDCClientWebSocketHandler {
             endpoint.sendText("{\"method\": \"call\", \"params\": [1, \"login\", [\"\", \"\"]], \"id\": 1}"); // 1 step - Login to the Full Node
             endpoint.sendText("{\"method\": \"call\", \"params\": [1, \"database\", []], \"id\": 1}");        // 2 step - Request access to an API
             endpoint.sendText(String.format("{\"id\": %s ,\"method\":\"call\",\"params\":[2,\"set_block_applied_callback\",[%s]]}", BLOCK_APPLIED_CALL_ID, BLOCK_APPLIED_CALL_ID)); // step 3 - subscribe for new block notifications
+
         } catch (DeploymentException | IOException e) {
             LOG.error(e);
         }
@@ -81,6 +92,20 @@ public class EDCClientWebSocketHandler {
             subscribeForBlockchainUpdates();
         }
     }
+
+    @Scheduled(fixedDelay = 900000)
+    public void updateAccountIds() {
+        List<EDCAccount> listAccounts = edcAccountDao.getAccountsWithoutId();
+        for (EDCAccount account : listAccounts){
+            try {
+                String accountId = edcService.extractAccountId(account.getAccountName(), 1);
+                edcAccountDao.setAccountIdByTransactionId(account.getTransactionId(), accountId);
+            } catch (IOException e) {
+                LOG.error(e);
+            }
+        }
+    }
+
 
     public void rescanBlockchain(final int from, final int to) {
         for (int index = from; index <= to; ) {
@@ -111,11 +136,29 @@ public class EDCClientWebSocketHandler {
                 getBlockInfo(message);
             } else if (blockInfoPattern.test(message)) {
                 LOG.info(message);
-                edcService.submitTransactionsForProcessing(message);
+                listTempDelayedRawTransactions.add(message);
             } else {
                 LOG.info("EDC Blockchain info\n" + message);
             }
         }
+    }
+
+    @Scheduled(fixedDelay = 180000)
+    public void submitTransactions(){
+        while (listTempDelayedRawTransactions.size() != 0){
+            final String pollTemp = listTempDelayedRawTransactions.poll();
+            listDelayedRawTransactions.add(pollTemp);
+        }
+        try {
+            TimeUnit.SECONDS.sleep(120);
+            while (listDelayedRawTransactions.size() != 0){
+                final String poll = listDelayedRawTransactions.poll();
+                edcService.submitTransactionsForProcessing(poll);
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
     }
 
     @OnClose

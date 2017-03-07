@@ -72,6 +72,10 @@ public class PerfectMoneyMerchantController {
         Transaction transaction = transactionService.findById(Integer.parseInt(params.get("PAYMENT_ID")));
         Double transactionSum = transaction.getAmount().add(transaction.getCommissionAmount()).doubleValue();
 
+        if (transaction.isProvided()) {
+            return response;
+        }
+
         if (params.get("V2_HASH").equals(hash) && Double.parseDouble(params.get("PAYMENT_AMOUNT"))==transactionSum) {
             if (perfectMoneyService.provideTransaction(Integer.parseInt(params.get("PAYMENT_ID")))){
                 return response;

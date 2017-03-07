@@ -1,5 +1,7 @@
 package me.exrates.config;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import me.exrates.controller.filter.RequestFilter;
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.controller.listener.StoreSessionListener;
@@ -12,6 +14,7 @@ import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.MessageSource;
@@ -130,7 +133,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new PropertySourcesPlaceholderConfigurer();
     }
 
-    @Bean
+    /*@Bean(name = "dataSource")*/
     public DataSource dataSource() {
         final BasicDataSource dataSource = new BasicDataSource();
         dataSource.setDriverClassName(dbClassname);
@@ -139,14 +142,25 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         dataSource.setPassword(dbPassword);
         return dataSource;
     }
+    
+    @Bean(name = "hikariDataSource")
+    public DataSource hikariDataSource() {
+        HikariConfig hikariConfig = new HikariConfig();
+        hikariConfig.setDriverClassName(dbClassname);
+        hikariConfig.setJdbcUrl(dbUrl);
+        hikariConfig.setUsername(dbUser);
+        hikariConfig.setPassword(dbPassword);
+        hikariConfig.setMaximumPoolSize(50);
+        return new HikariDataSource(hikariConfig);
+    }
 
-    @DependsOn("dataSource")
+    @DependsOn("hikariDataSource")
     @Bean
     public NamedParameterJdbcTemplate namedParameterJdbcTemplate(DataSource dataSource) {
         return new NamedParameterJdbcTemplate(dataSource);
     }
 
-    @DependsOn("dataSource")
+    @DependsOn("hikariDataSource")
     @Bean
     public JdbcTemplate jdbcTemplate(DataSource dataSource) {
         return new JdbcTemplate(dataSource);
@@ -206,7 +220,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         registry.addResourceHandler("/**").addResourceLocations("/public/");
         registry.addResourceHandler(newsUrlPath + "/**").addResourceLocations("file:" + newsLocationDir);
         registry.addResourceHandler(userFilesLogicalDir + "/**").addResourceLocations("file:" + userFilesDir);
-
         registry.addResourceHandler(newstopicUrlPath + "/**").addResourceLocations("file:" + newsExtLocationDir);
         registry.addResourceHandler(materialsViewUrlPath + "/**").addResourceLocations("file:" + newsExtLocationDir);
         registry.addResourceHandler(webinarUrlPath + "/**").addResourceLocations("file:" + newsExtLocationDir);
@@ -225,7 +238,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
     @Bean
     public PlatformTransactionManager platformTransactionManager() {
-        return new DataSourceTransactionManager(dataSource());
+        return new DataSourceTransactionManager(hikariDataSource());
     }
 
     @Bean
