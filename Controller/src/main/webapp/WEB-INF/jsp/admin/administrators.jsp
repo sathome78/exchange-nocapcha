@@ -1,4 +1,4 @@
-<%--
+<%@ page import="me.exrates.controller.AdminController" %><%--
   Created by IntelliJ IDEA.
   User: ogolv
   Date: 27.07.2016
@@ -25,11 +25,8 @@
 <main class="container">
     <div class="row">
         <%@include file='left_side_menu.jsp' %>
-        <c:set var="adminEnum" value="<%=me.exrates.model.enums.UserRole.ADMINISTRATOR%>"/>
-        <c:set var="accountantEnum" value="<%=me.exrates.model.enums.UserRole.ACCOUNTANT%>"/>
-        <c:set var="admin_userEnum" value="<%=me.exrates.model.enums.UserRole.ADMIN_USER%>"/>
 
-        <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+        <sec:authorize access="<%=AdminController.adminAnyAuthority%>">
 
             <div id="panel2" class="col-md-8 col-md-offset-1 admin-container">
                 <div class="col-md-12 text-center">

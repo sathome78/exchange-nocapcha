@@ -133,11 +133,7 @@
                                class="form-control input-block-wrapper__input"/>
                     </div>
                 </div>
-                <c:set var="adminEnum" value="<%=me.exrates.model.enums.UserRole.ADMINISTRATOR%>"/>
-                <c:set var="accountantEnum" value="<%=me.exrates.model.enums.UserRole.ACCOUNTANT%>"/>
-                <c:set var="admin_userEnum" value="<%=me.exrates.model.enums.UserRole.ADMIN_USER%>"/>
-                <sec:authorize
-                        access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+                <sec:authorize access="<%=AdminController.adminAnyAuthority%>">
                     </br>
                     <div class="input-block-wrapper clearfix">
                         <div class="col-md-5 input-block-wrapper__label-wrapper">

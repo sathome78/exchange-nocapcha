@@ -7,7 +7,7 @@
 <%----------%>
 <script src="<c:url value="/client/js/jquery.form.js"/>"></script>
 <%----------%>
-<sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+<sec:authorize access="<%=AdminController.adminAnyAuthority%>">
 <div id="news-list-modal" class="modal fade modal-form-dialog" tabindex="-1" role="dialog">
     <div class="modal-dialog">
         <div class="modal-content">

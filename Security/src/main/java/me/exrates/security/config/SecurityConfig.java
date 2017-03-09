@@ -129,7 +129,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/2a8fy7b07dxe44/commissions", "/2a8fy7b07dxe44/merchantAccess").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name())
                 .antMatchers("/2a8fy7b07dxe44/candleTable, /2a8fy7b07dxe44/getCandleTableData").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
                 .antMatchers("/2a8fy7b07dxe44/**", "/2a8fy7b07dxe44").hasAnyAuthority(UserRole.ADMINISTRATOR.name(),
-                UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
+                UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.FIN_OPERATOR.name())
                 .antMatchers(HttpMethod.POST, "/2a8fy7b07dxe44/chat/deleteMessage").hasAnyAuthority(UserRole.ADMINISTRATOR.name(),
                 UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
                 .antMatchers("/", "/index.jsp", "/client/**", "/dashboard/**", "/registrationConfirm/**",

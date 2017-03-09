@@ -1,4 +1,4 @@
-<%--
+<%@ page import="me.exrates.controller.AdminController" %><%--
   Created by IntelliJ IDEA.
   User: Valk
 --%>
@@ -17,7 +17,7 @@
     z-index: 9999
   }
 </style>
-<sec:authorize access="hasAnyAuthority('${adminEnum}')">
+<sec:authorize access="<%=AdminController.adminAnyAuthority%>">
   <div id="news-pageMaterials-add-modal" class="modal fade modal-form-dialog" tabindex="-1" role="dialog"
        ng-controller="newsUploadCtrl as newsUploadCtrl">
     <div class="modal-dialog">

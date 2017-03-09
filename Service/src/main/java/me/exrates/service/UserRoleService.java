@@ -13,6 +13,8 @@ public interface UserRoleService {
 
   List<Integer> getRealUserRoleIdByBusinessRoleList(BusinessUserRoleEnum businessUserRoleEnum);
 
+  String[] getRealUserRoleNameByBusinessRoleArray(BusinessUserRoleEnum businessUserRoleEnum);
+
   List<Integer> getRealUserRoleIdByBusinessRoleList(String businessUserRoleName);
 
   List<UserRole> getRealUserRoleByGroupRoleList(GroupUserRoleEnum groupUserRoleEnum);

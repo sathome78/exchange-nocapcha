@@ -44,6 +44,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.WebUtils;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -61,6 +62,7 @@ import java.util.stream.Collectors;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
+import static me.exrates.model.enums.BusinessUserRoleEnum.ADMIN;
 import static me.exrates.model.enums.GroupUserRoleEnum.ADMINS;
 import static me.exrates.model.enums.GroupUserRoleEnum.USERS;
 import static me.exrates.model.enums.UserCommentTopicEnum.GENERAL;
@@ -117,6 +119,23 @@ public class AdminController {
   @Autowired
   @Qualifier("ExratesSessionRegistry")
   private SessionRegistry sessionRegistry;
+
+  public static String adminAnyAuthority;
+  public static String pureAdminAnyAuthority;
+
+  @PostConstruct
+  private void init(){
+    List<UserRole> adminRoles = userRoleService.getRealUserRoleByBusinessRoleList(ADMIN);
+    String adminList = adminRoles.stream()
+        .map(e->"'"+e.name()+"'")
+        .collect(Collectors.joining(","));
+    adminAnyAuthority = "hasAnyAuthority("+adminList+")";
+    String pureAdminList = adminRoles.stream()
+        .filter(e->e!=FIN_OPERATOR)
+        .map(e->"'"+e.name()+"'")
+        .collect(Collectors.joining(","));
+    pureAdminAnyAuthority = "hasAnyAuthority("+adminList+")";
+  }
 
   @RequestMapping(value = {"/2a8fy7b07dxe44", "/2a8fy7b07dxe44/users"})
   public ModelAndView admin(Principal principal, HttpSession httpSession) {

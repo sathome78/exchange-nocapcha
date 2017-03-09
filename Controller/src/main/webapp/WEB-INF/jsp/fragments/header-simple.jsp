@@ -1,5 +1,6 @@
 <%@ page import="org.springframework.web.servlet.support.RequestContext"%>
 <%@ page import="me.exrates.model.enums.UserRole" %>
+<%@ page import="me.exrates.controller.AdminController" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
@@ -34,20 +35,12 @@
                 </li>
                 <sec:authorize access="isAuthenticated()">
                     <li id="adminka-entry">
-                        <c:set var="adminEnum" value="<%=me.exrates.model.enums.UserRole.ADMINISTRATOR%>"/>
-                        <c:set var="accountantEnum" value="<%=me.exrates.model.enums.UserRole.ACCOUNTANT%>"/>
-                        <c:set var="admin_userEnum" value="<%=me.exrates.model.enums.UserRole.ADMIN_USER%>"/>
-                        <c:set var="fin_operatorEnum" value="<%=UserRole.FIN_OPERATOR%>"/>
-                        <sec:authorize
-                                access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
-                            <sec:authorize
-                                    access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+                        <sec:authorize access="<%=AdminController.adminAnyAuthority%>">
 
                                 <a class="nav__link" href="<c:url value='/2a8fy7b07dxe44'/>">
                                     <loc:message code="admin.title"/>
                                 </a>
 
-                            </sec:authorize>
                         </sec:authorize>
                     </li>
 

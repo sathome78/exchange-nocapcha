@@ -1,4 +1,5 @@
 <%@ page import="me.exrates.model.enums.invoice.InvoiceOperationPermission" %>
+<%@ page import="me.exrates.controller.AdminController" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@taglib uri="http://www.springframework.org/tags" prefix="loc" %>
@@ -58,44 +59,41 @@
     <%@include file='left_side_menu.jsp' %>
     <div class="col-md-8 col-md-offset-1 content admin-container">
       <div class="buttons">
-        <c:set var="adminEnum" value="<%=me.exrates.model.enums.UserRole.ADMINISTRATOR%>"/>
-        <c:set var="accountantEnum" value="<%=me.exrates.model.enums.UserRole.ACCOUNTANT%>"/>
-        <c:set var="admin_userEnum" value="<%=me.exrates.model.enums.UserRole.ADMIN_USER%>"/>
         <%--Редактирование пользователя--%>
-        <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+        <sec:authorize access="<%=AdminController.adminAnyAuthority%>">
           <button class="active adminForm-toggler blue-box">
             <loc:message code="admin.user"/>
           </button>
         </sec:authorize>
         <%--Список транзакций--%>
-        <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+        <sec:authorize access="<%=AdminController.adminAnyAuthority%>">
           <button class="adminForm-toggler blue-box">
             <loc:message code="admin.transactions"/>
           </button>
         </sec:authorize>
         <%--Список кошельков--%>
-        <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+        <sec:authorize access="<%=AdminController.adminAnyAuthority%>">
           <button class="adminForm-toggler blue-box">
             <loc:message code="admin.wallets"/>
           </button>
         </sec:authorize>
-        <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+        <sec:authorize access="<%=AdminController.adminAnyAuthority%>">
           <%--Orders list--%>
           <button class="adminForm-toggler blue-box">
             <loc:message code="orders.title"/>
           </button>
           <%--Comments--%>
-          <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+          <sec:authorize access="<%=AdminController.adminAnyAuthority%>">
             <button class="adminForm-toggler blue-box">
               <loc:message code="admin.comments"/>
             </button>
           </sec:authorize>
           <sec:authorize access="hasAuthority('${admin_manageAccess}')">
-            <c:if test="${user.role == adminEnum || user.role == accountantEnum || user.role == admin_userEnum}">
+            <sec:authorize access="<%=AdminController.adminAnyAuthority%>">
               <button class="adminForm-toggler red-box">
                 <loc:message code="admin.accessRights"/>
               </button>
-            </c:if>
+            </sec:authorize>
 
           </sec:authorize>
 
@@ -210,7 +208,7 @@
                         </div>
                       </div>
                     </sec:authorize>
-                    <sec:authorize access="hasAnyAuthority('${accountantEnum}', '${admin_userEnum}')">
+                    <sec:authorize access="<%=AdminController.adminAnyAuthority%>">
                       <form:hidden path="role" name="user-role"/>
                     </sec:authorize>
                     <div class="input-block-wrapper">

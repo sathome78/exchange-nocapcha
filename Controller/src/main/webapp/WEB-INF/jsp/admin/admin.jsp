@@ -1,3 +1,4 @@
+<%@ page import="me.exrates.controller.AdminController" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@taglib uri="http://www.springframework.org/tags" prefix="loc" %>
@@ -24,16 +25,13 @@
 <main class="container orders_new admin side_menu">
     <div class="row">
         <%@include file='left_side_menu.jsp' %>
-        <c:set var="adminEnum" value="<%=me.exrates.model.enums.UserRole.ADMINISTRATOR%>"/>
-        <c:set var="accountantEnum" value="<%=me.exrates.model.enums.UserRole.ACCOUNTANT%>"/>
-        <c:set var="admin_userEnum" value="<%=me.exrates.model.enums.UserRole.ADMIN_USER%>"/>
 
         <div class="col-sm-9 content">
 
             <%--контейнер форм ролей пользователей--%>
             <div class=" col-md-8 col-md-offset-2 tab-content admin-container">
                 <%--форма Пользователи--%>
-                <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+                <sec:authorize access="<%=AdminController.adminAnyAuthority%>">
                     <div id="panel1" class="tab-pane active">
                         <div class="text-center">
                         <h4>

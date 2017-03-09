@@ -1,3 +1,4 @@
+<%@ page import="me.exrates.controller.AdminController" %>
 <%@ page contentType="text/html; charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@taglib uri="http://www.springframework.org/tags" prefix="loc"%>
@@ -38,10 +39,7 @@
                 <a href="<c:url value="/settings"/>" class="navabr__link"><loc:message code="usermenu.settings"/></a>
             </li>
             <li class="navabr__item">
-                <c:set var="adminEnum" value="<%=me.exrates.model.enums.UserRole.ADMINISTRATOR%>"/>
-                <c:set var="accountantEnum" value="<%=me.exrates.model.enums.UserRole.ACCOUNTANT%>"/>
-                <c:set var="admin_userEnum" value="<%=me.exrates.model.enums.UserRole.ADMIN_USER%>"/>
-                <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+                <sec:authorize access="<%=AdminController.adminAnyAuthority%>">
                     <a href="<c:url value="/2a8fy7b07dxe44"/>" class="navabr__link"><loc:message code="admin.title"/></a>
                 </sec:authorize>
             </li>

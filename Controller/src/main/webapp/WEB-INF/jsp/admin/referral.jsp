@@ -1,4 +1,4 @@
-<%--
+<%@ page import="me.exrates.controller.AdminController" %><%--
   Created by IntelliJ IDEA.
   User: ogolv
   Date: 27.07.2016
@@ -25,7 +25,7 @@
         <div class="col-md-4 col-md-offset-2 admin-container">
             <div class="text-center"><h4><loc:message code="admin.referral"/></h4></div>
 
-            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+            <sec:authorize access="<%=AdminController.adminAnyAuthority%>">
                 <div id="panel4 row" class="tab-pane">
                     <div class="col-sm-6 text-center">
                         <h5>

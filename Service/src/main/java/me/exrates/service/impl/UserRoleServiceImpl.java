@@ -38,6 +38,13 @@ public class UserRoleServiceImpl implements UserRoleService {
 
   @Override
   @Transactional(readOnly = true)
+  public String[] getRealUserRoleNameByBusinessRoleArray(BusinessUserRoleEnum businessUserRoleEnum) {
+    return getRealUserRoleByBusinessRoleList(businessUserRoleEnum).stream()
+        .toArray(size->new String[size]);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public List<Integer> getRealUserRoleIdByBusinessRoleList(String businessUserRoleName) {
     if ("ALL".equals(businessUserRoleName)) {
       return Collections.EMPTY_LIST;
