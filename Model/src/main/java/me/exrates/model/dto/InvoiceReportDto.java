@@ -46,23 +46,23 @@ public class InvoiceReportDto {
     this.payerBankCode = invoiceRequest.getPayerBankCode();
     this.status = ((InvoiceRequestStatusEnum) invoiceRequest.getInvoiceRequestStatus()).name();
     this.acceptorUserEmail = invoiceRequest.getAcceptanceUserEmail();
-    this.acceptanceDate = invoiceRequest.getAcceptanceTime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
+    this.acceptanceDate = invoiceRequest.getAcceptanceTime()==null?"":invoiceRequest.getAcceptanceTime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
     this.operation = INPUT.name();
     this.system = TransactionSourceType.INVOICE.name();
   }
 
-  public InvoiceReportDto(InvoiceRequestFlatForReportDto InvoiceRequestFlatForReportDto) {
-    this.docId = InvoiceRequestFlatForReportDto.getInvoiceId();
-    this.currency = InvoiceRequestFlatForReportDto.getCurrency();
-    this.creationDate = InvoiceRequestFlatForReportDto.getDatetime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
-    this.userEmail = InvoiceRequestFlatForReportDto.getUserEmail();
-    this.recipientBank = InvoiceRequestFlatForReportDto.getRecipientBank();
-    this.amount = InvoiceRequestFlatForReportDto.getAmount();
-    this.payerName = InvoiceRequestFlatForReportDto.getUserFullName();
-    this.payerBankCode = InvoiceRequestFlatForReportDto.getPayerBankCode();
-    this.status = InvoiceRequestFlatForReportDto.getStatus().name();
-    this.acceptorUserEmail = InvoiceRequestFlatForReportDto.getAcceptanceUserEmail();
-    this.acceptanceDate = InvoiceRequestFlatForReportDto.getAcceptanceTime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
+  public InvoiceReportDto(InvoiceRequestFlatForReportDto invoiceRequestFlatForReportDto) {
+    this.docId = invoiceRequestFlatForReportDto.getInvoiceId();
+    this.currency = invoiceRequestFlatForReportDto.getCurrency();
+    this.creationDate = invoiceRequestFlatForReportDto.getDatetime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
+    this.userEmail = invoiceRequestFlatForReportDto.getUserEmail();
+    this.recipientBank = invoiceRequestFlatForReportDto.getRecipientBank();
+    this.amount = invoiceRequestFlatForReportDto.getAmount();
+    this.payerName = invoiceRequestFlatForReportDto.getUserFullName();
+    this.payerBankCode = invoiceRequestFlatForReportDto.getPayerBankCode();
+    this.status = invoiceRequestFlatForReportDto.getStatus().name();
+    this.acceptorUserEmail = invoiceRequestFlatForReportDto.getAcceptanceUserEmail();
+    this.acceptanceDate = invoiceRequestFlatForReportDto.getAcceptanceTime()==null?"":invoiceRequestFlatForReportDto.getAcceptanceTime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
     this.operation = INPUT.name();
     this.system = TransactionSourceType.INVOICE.name();
   }
