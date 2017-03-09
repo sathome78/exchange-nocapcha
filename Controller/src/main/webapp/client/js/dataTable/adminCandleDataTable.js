@@ -29,11 +29,12 @@ $(function () {
         defaultTime: '00:00',
         value: moment().subtract(1, 'days').format('YYYY-MM-DD HH:mm:ss'),
         onChangeDateTime: function(current_time, $input){
-            console.log($filterForm.serialize());
+            updateCandleTable();
+            $($input).datetimepicker('hide');
         }
     });
 
-    $('#currencyPair, #interval').on('change', updateCandleTable());
+    $('#currencyPair, #interval').on('change', updateCandleTable);
 
 
 
@@ -51,15 +52,19 @@ $(function () {
                 },
                 "paging": false,
                 "info": false,
+                "bFilter": false,
                 "columns": [
                     {
-                        "data": "beginDate"
+                        "data": "beginDate",
+                        "render": function (data) {
+                            return moment(data).format('YYYY-MM-DD HH:mm:ss');
+                        }
                     },
                     {
-                        "data": "endDate"/*,
-                        "render": function (data, type, row) {
-                            return '<button class="address-ref" onclick="alert(\'' + row.address +'\')">' + data +' </button>';
-                        }*/
+                        "data": "endDate",
+                        "render": function (data) {
+                            return moment(data).format('YYYY-MM-DD HH:mm:ss');
+                        }
                     },
                     {
                         "data": "lowRate",

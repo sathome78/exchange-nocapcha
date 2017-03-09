@@ -31,6 +31,7 @@
     <c:set var="adminEnum" value="<%=me.exrates.model.enums.UserRole.ADMINISTRATOR%>"/>
     <c:set var="accountantEnum" value="<%=me.exrates.model.enums.UserRole.ACCOUNTANT%>"/>
     <c:set var="admin_userEnum" value="<%=me.exrates.model.enums.UserRole.ADMIN_USER%>"/>
+    <c:set var="admin_finOperatorEnum" value="<%=me.exrates.model.enums.UserRole.FIN_OPERATOR%>"/>
     <c:set var="admin_processWithdraw" value="<%=AdminAuthority.PROCESS_WITHDRAW%>"/>
     <c:set var="admin_processInvoice" value="<%=AdminAuthority.PROCESS_INVOICE%>"/>
     <c:set var="admin_deleteOrder" value="<%=AdminAuthority.DELETE_ORDER%>"/>
@@ -59,21 +60,21 @@
 
         <li>
             <%--Заявки на пополнение валюты--%>
-            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}', '${admin_finOperatorEnum}')">
                 <a href="<c:url value='/2a8fy7b07dxe44/invoiceConfirmation'/>"><loc:message code="transaction.titleInvoice"/></a>
             </sec:authorize>
         </li>
 
         <li>
             <%--Заявки на пополнение Bitcoin--%>
-            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}', '${admin_finOperatorEnum}')">
                 <a href="<c:url value='/2a8fy7b07dxe44/bitcoinConfirmation'/>"><loc:message code="transaction.titleBitcoin"/></a>
             </sec:authorize>
         </li>
 
         <li>
             <%--withdraw--%>
-            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}', '${admin_finOperatorEnum}')">
                 <a href="<c:url value='/2a8fy7b07dxe44/withdrawal'/>"><loc:message code="admin.withdrawRequests"/></a>
             </sec:authorize>
         </li>
@@ -97,13 +98,18 @@
                         <li><a href="<c:url value='/2a8fy7b07dxe44/editCurrencyLimits'/>"><loc:message code="admin.currencyLimits.title"/></a></li>
                         <li><a href="<c:url value='/2a8fy7b07dxe44/commissions'/>"><loc:message code="admin.commissions"/></a></li>
                         <li><a href="<c:url value='/2a8fy7b07dxe44/merchantAccess'/>"><loc:message code="admin.merchantAccess"/></a></li>
-                        <li><a href="<c:url value='/2a8fy7b07dxe44/candleTable'/>"><loc:message code="admin.candleTable.title"/></a></li>
                     </ul>
                 </div>
 
             </sec:authorize>
         </li>
+        <li>
+            <%--candle--%>
+            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+                <a href="<c:url value='/2a8fy7b07dxe44/candleTable'/>"><loc:message code="admin.candleTable.title"/></a>
+            </sec:authorize>
 
+        </li>
 
         <li>
             <%--referral--%>
@@ -111,6 +117,7 @@
                 <a href="<c:url value='/2a8fy7b07dxe44/referral'/>"><loc:message code="admin.referral"/></a>
             </sec:authorize>
         </li>
+
 
         <li>
             <%--referral--%>

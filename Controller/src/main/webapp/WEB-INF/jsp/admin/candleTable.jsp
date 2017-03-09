@@ -23,7 +23,7 @@
 <main class="container">
     <div class="row">
         <%@include file='left_side_menu.jsp' %>
-        <div class="col-md-6 col-md-offset-2 admin-container">
+        <div class="col-md-8 col-md-offset-1 admin-container">
             <div class="text-center"><h4><loc:message code="admin.candleTable.title"/></h4></div>
 
             <div>
