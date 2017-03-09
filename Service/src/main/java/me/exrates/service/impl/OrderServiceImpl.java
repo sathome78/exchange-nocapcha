@@ -117,6 +117,13 @@ public class OrderServiceImpl implements OrderService {
   public List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval interval) {
     return serviceCacheableProxy.getDataForCandleChart(currencyPair, interval);
   }
+  
+  @Override
+  @Transactional
+  public List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval interval, LocalDateTime startTime) {
+    LocalDateTime endTime = startTime.plus((long) interval.intervalValue, interval.intervalType.getCorrespondingTimeUnit());
+    return orderDao.getDataForCandleChart(currencyPair, interval, endTime);
+  }
 
   @Transactional
   @Override

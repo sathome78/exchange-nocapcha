@@ -38,6 +38,7 @@ import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -191,29 +192,38 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval backDealInterval) {
-        String s = "{call GET_DATA_FOR_CANDLE(NOW(), " + backDealInterval.intervalValue + ", '" + backDealInterval.intervalType.name() + "', " + currencyPair.getId() + ")}";
+        return getCandleChartData(currencyPair, backDealInterval, "NOW()");
+    }
+    
+    @Override
+    public List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval backDealInterval, LocalDateTime endTime) {
+        String startTimeString = endTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        String startTimeSql = String.format("STR_TO_DATE('%s', '%%Y-%%m-%%d %%H:%%i:%%s')", startTimeString);
+        return getCandleChartData(currencyPair, backDealInterval, startTimeSql);
+    }
+    
+    
+    private List<CandleChartItemDto> getCandleChartData(CurrencyPair currencyPair, BackDealInterval backDealInterval, String startTimeSql) {
+        String s = "{call GET_DATA_FOR_CANDLE(" + startTimeSql + ", " + backDealInterval.intervalValue + ", '" + backDealInterval.intervalType.name() + "', " + currencyPair.getId() + ")}";
         NamedParameterJdbcTemplate jdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-        List<CandleChartItemDto> result = jdbcTemplate.execute(s, new PreparedStatementCallback<List<CandleChartItemDto>>() {
-            @Override
-            public List<CandleChartItemDto> doInPreparedStatement(PreparedStatement ps) throws SQLException, DataAccessException {
-                ResultSet rs = ps.executeQuery();
-                List<CandleChartItemDto> list = new ArrayList();
-                while (rs.next()) {
-                    CandleChartItemDto candleChartItemDto = new CandleChartItemDto();
-                    candleChartItemDto.setBeginDate(rs.getTimestamp("pred_point"));
-                    candleChartItemDto.setBeginPeriod(rs.getTimestamp("pred_point").toLocalDateTime());
-                    candleChartItemDto.setEndDate(rs.getTimestamp("current_point"));
-                    candleChartItemDto.setEndPeriod(rs.getTimestamp("current_point").toLocalDateTime());
-                    candleChartItemDto.setOpenRate(rs.getBigDecimal("open_rate"));
-                    candleChartItemDto.setCloseRate(rs.getBigDecimal("close_rate"));
-                    candleChartItemDto.setLowRate(rs.getBigDecimal("low_rate"));
-                    candleChartItemDto.setHighRate(rs.getBigDecimal("high_rate"));
-                    candleChartItemDto.setBaseVolume(rs.getBigDecimal("base_volume"));
-                    list.add(candleChartItemDto);
-                }
-                rs.close();
-                return list;
+        List<CandleChartItemDto> result = jdbcTemplate.execute(s, ps -> {
+            ResultSet rs = ps.executeQuery();
+            List<CandleChartItemDto> list = new ArrayList<>();
+            while (rs.next()) {
+                CandleChartItemDto candleChartItemDto = new CandleChartItemDto();
+                candleChartItemDto.setBeginDate(rs.getTimestamp("pred_point"));
+                candleChartItemDto.setBeginPeriod(rs.getTimestamp("pred_point").toLocalDateTime());
+                candleChartItemDto.setEndDate(rs.getTimestamp("current_point"));
+                candleChartItemDto.setEndPeriod(rs.getTimestamp("current_point").toLocalDateTime());
+                candleChartItemDto.setOpenRate(rs.getBigDecimal("open_rate"));
+                candleChartItemDto.setCloseRate(rs.getBigDecimal("close_rate"));
+                candleChartItemDto.setLowRate(rs.getBigDecimal("low_rate"));
+                candleChartItemDto.setHighRate(rs.getBigDecimal("high_rate"));
+                candleChartItemDto.setBaseVolume(rs.getBigDecimal("base_volume"));
+                list.add(candleChartItemDto);
             }
+            rs.close();
+            return list;
         });
         return result;
     }

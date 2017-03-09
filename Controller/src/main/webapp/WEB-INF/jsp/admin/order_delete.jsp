@@ -21,9 +21,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <%@include file='links_scripts.jsp'%>
     <script type="text/javascript" src="<c:url value='/client/js/order/adminDeleteOrder.js'/>"></script>
-    <link rel="stylesheet" href="<c:url value="/client/css/jquery.datetimepicker.css"/>">
-    <script type="text/javascript" src="<c:url value='/client/js/jquery.datetimepicker.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/moment-with-locales.min.js'/>"></script>
 </head>
 
 <body>

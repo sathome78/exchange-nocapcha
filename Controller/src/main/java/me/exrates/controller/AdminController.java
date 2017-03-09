@@ -8,11 +8,13 @@ import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
+import me.exrates.model.dto.mobileApiDto.CandleChartItemReducedDto;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.*;
 import me.exrates.model.form.AuthorityOptionsForm;
+import me.exrates.model.vo.BackDealInterval;
 import me.exrates.security.service.UserSecureServiceImpl;
 import me.exrates.service.*;
 import me.exrates.service.exception.NoPermissionForOperationException;
@@ -50,6 +52,9 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAmount;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -1043,7 +1048,22 @@ public class AdminController {
 
     return value;
   }
-
+  
+  @RequestMapping(value = "/2a8fy7b07dxe44/candleTable", method = RequestMethod.GET)
+  public ModelAndView candleChartTable() {
+    return new ModelAndView("/admin/candleTable", "currencyPairs", currencyService.getAllCurrencyPairs());
+  }
+  
+  @RequestMapping(value = "/2a8fy7b07dxe44/getCandleTableData", method = RequestMethod.GET)
+  @ResponseBody
+  public List<CandleChartItemDto> getCandleChartData(@RequestParam("currencyPair") Integer currencyPairId,
+                                                            @RequestParam("interval") String interval,
+                                                            @RequestParam("startTime") String startTimeString) {
+    CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
+    BackDealInterval backDealInterval = new BackDealInterval(interval);
+    LocalDateTime startTime = LocalDateTime.parse(startTimeString, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+    return orderService.getDataForCandleChart(currencyPair, backDealInterval, startTime);
+  }
 
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
   @ExceptionHandler(OrderDeletingException.class)

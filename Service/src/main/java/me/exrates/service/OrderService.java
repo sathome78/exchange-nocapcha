@@ -19,6 +19,7 @@ import me.exrates.model.vo.CacheData;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -184,8 +185,11 @@ public interface OrderService {
      * @return statistics of orders for currencyPair
      */
     ExOrderStatisticsDto getOrderStatistic(CurrencyPair currencyPair, BackDealInterval backDealInterval, Locale locale);
-
-    /**
+  
+  @Transactional
+  List<CandleChartItemDto> getDataForCandleChart(CurrencyPair currencyPair, BackDealInterval interval, LocalDateTime startTime);
+  
+  /**
      * Returns statistics of orders by currency pairs.
      * Statistics contains last and pred last rates for each currency pair
      * @author ValkSam
