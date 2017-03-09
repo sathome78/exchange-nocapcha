@@ -216,7 +216,7 @@ public class MerchantDaoImpl implements MerchantDao {
                 " MERCHANT_CURRENCY.merchant_fixed_commission " +
                 " FROM MERCHANT " +
                 "JOIN MERCHANT_CURRENCY ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id " +
-                "JOIN CURRENCY ON MERCHANT_CURRENCY.currency_id = CURRENCY.id " +
+                "JOIN CURRENCY ON MERCHANT_CURRENCY.currency_id = CURRENCY.id AND CURRENCY.hidden != 1 " +
                 "ORDER BY merchant_id, currency_id";
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
             MerchantCurrencyOptionsDto dto = new MerchantCurrencyOptionsDto();
