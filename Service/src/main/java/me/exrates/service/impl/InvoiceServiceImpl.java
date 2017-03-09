@@ -174,7 +174,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     if (StringUtils.isEmpty(comment)) {
       comment = messageSource.getMessage("merchants.invoice.declined.message", new Integer[]{invoiceId}, locale);
     }
-    userService.addUserComment(INVOICE_DECLINE, comment, invoiceRequest.getUserEmail(), true);
+    userService.addUserComment(INVOICE_DECLINE, comment, invoiceRequest.getUserEmail(), false);
     notificationService.notifyUser(invoiceRequest.getUserId(), NotificationEvent.IN_OUT, title, comment);
   }
 
