@@ -14,10 +14,7 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
@@ -73,7 +70,7 @@ public class PayeerMerchantController {
     }
 
     @RequestMapping(value = "payment/status",method = RequestMethod.POST)
-    public ResponseEntity<String> statusPayment(@RequestParam Map<String,String> params, RedirectAttributes redir) {
+    public ResponseEntity<String> statusPayment(@RequestBody Map<String,String> params, RedirectAttributes redir) {
 
         final ResponseEntity<String> response = new ResponseEntity<>(params.get("m_orderid")+"|success", OK);
         logger.info("Response: " + params);
