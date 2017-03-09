@@ -56,6 +56,8 @@ import java.util.stream.Collectors;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
+import static me.exrates.model.enums.GroupUserRoleEnum.ADMINS;
+import static me.exrates.model.enums.GroupUserRoleEnum.USERS;
 import static me.exrates.model.enums.UserCommentTopicEnum.GENERAL;
 import static me.exrates.model.enums.UserRole.*;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.REFILL;
@@ -104,6 +106,8 @@ public class AdminController {
   private CommissionService commissionService;
   @Autowired
   ReportService reportService;
+  @Autowired
+  UserRoleService userRoleService;
 
   @Autowired
   @Qualifier("ExratesSessionRegistry")
@@ -197,17 +201,14 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/usersList", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
   public DataTable<List<User>> getAllUsers(@RequestParam Map<String, String> params) {
     params.forEach((key, value) -> LOG.debug(key + " :: " + value));
-    List<UserRole> userRoles = asList(USER, EXCHANGE, VIP_USER);
+    List<UserRole> userRoles = userRoleService.getRealUserRoleByGroupRoleList(USERS);
     return userSecureService.getUsersByRolesPaginated(userRoles, params);
   }
 
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/admins", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
   public Collection<User> getAllAdmins() {
-    List<UserRole> adminRoles = new ArrayList<>();
-    adminRoles.add(UserRole.ADMINISTRATOR);
-    adminRoles.add(UserRole.ACCOUNTANT);
-    adminRoles.add(UserRole.ADMIN_USER);
+    List<UserRole> adminRoles = userRoleService.getRealUserRoleByGroupRoleList(ADMINS);
     return userSecureService.getUsersByRoles(adminRoles);
   }
 
@@ -612,10 +613,7 @@ public class AdminController {
 
   @RequestMapping(value = "/2a8fy7b07dxe44/withdrawal")
   public ModelAndView withdrawalRequests(Principal principal) {
-    final List<UserRole> admins = new ArrayList<>();
-    admins.addAll(asList(UserRole.ADMINISTRATOR, UserRole.ACCOUNTANT));
     final Map<String, Object> params = new HashMap<>();
-    params.put("admins", admins);
     List<UserCurrencyOperationPermissionDto> permittedCurrencies = currencyService.getCurrencyOperationPermittedForWithdraw(principal.getName())
             .stream().filter(dto -> dto.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE).collect(Collectors.toList());
     params.put("currencies", permittedCurrencies);
@@ -679,12 +677,12 @@ public class AdminController {
   public ModelAndView showUsersWalletsSummary(Principal principal) {
     Integer requesterUserId = userService.getIdByEmail(principal.getName());
     Map<String, List<UserWalletSummaryDto>> mapUsersWalletsSummaryList = new LinkedHashMap<>();
-    mapUsersWalletsSummaryList.put("ALL", walletService.getUsersWalletsSummaryForPermittedCurrencyList(BusinessUserRoleEnum.getRealUserRoleIdList("ALL"), requesterUserId));
-    mapUsersWalletsSummaryList.put("ADMIN", walletService.getUsersWalletsSummaryForPermittedCurrencyList(BusinessUserRoleEnum.ADMIN.getRealUserRoleIdList(), requesterUserId));
-    mapUsersWalletsSummaryList.put("USER", walletService.getUsersWalletsSummaryForPermittedCurrencyList(BusinessUserRoleEnum.USER.getRealUserRoleIdList(), requesterUserId));
-    mapUsersWalletsSummaryList.put("EXCHANGE", walletService.getUsersWalletsSummaryForPermittedCurrencyList(BusinessUserRoleEnum.EXCHANGE.getRealUserRoleIdList(), requesterUserId));
-    mapUsersWalletsSummaryList.put("VIP_USER", walletService.getUsersWalletsSummaryForPermittedCurrencyList(BusinessUserRoleEnum.VIP_USER.getRealUserRoleIdList(), requesterUserId));
-    mapUsersWalletsSummaryList.put("TRADER", walletService.getUsersWalletsSummaryForPermittedCurrencyList(BusinessUserRoleEnum.TRADER.getRealUserRoleIdList(), requesterUserId));
+    mapUsersWalletsSummaryList.put("ALL", walletService.getUsersWalletsSummaryForPermittedCurrencyList(userRoleService.getRealUserRoleIdByBusinessRoleList("ALL"), requesterUserId));
+    mapUsersWalletsSummaryList.put("ADMIN", walletService.getUsersWalletsSummaryForPermittedCurrencyList(userRoleService.getRealUserRoleIdByBusinessRoleList("ADMIN"), requesterUserId));
+    mapUsersWalletsSummaryList.put("USER", walletService.getUsersWalletsSummaryForPermittedCurrencyList(userRoleService.getRealUserRoleIdByBusinessRoleList("USER"), requesterUserId));
+    mapUsersWalletsSummaryList.put("EXCHANGE", walletService.getUsersWalletsSummaryForPermittedCurrencyList(userRoleService.getRealUserRoleIdByBusinessRoleList("EXCHANGE"), requesterUserId));
+    mapUsersWalletsSummaryList.put("VIP_USER", walletService.getUsersWalletsSummaryForPermittedCurrencyList(userRoleService.getRealUserRoleIdByBusinessRoleList("VIP_USER"), requesterUserId));
+    mapUsersWalletsSummaryList.put("TRADER", walletService.getUsersWalletsSummaryForPermittedCurrencyList(userRoleService.getRealUserRoleIdByBusinessRoleList("TRADER"), requesterUserId));
 
     ModelAndView model = new ModelAndView();
     model.setViewName("UsersWallets");
@@ -704,7 +702,7 @@ public class AdminController {
   public String getUsersWalletsSummeryTxt(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
     return
         UserSummaryDto.getTitle() +
-            userService.getUsersSummaryList(startDate, endDate, BusinessUserRoleEnum.getRealUserRoleIdList(role))
+            userService.getUsersSummaryList(startDate, endDate, userRoleService.getRealUserRoleIdByBusinessRoleList(role))
                 .stream()
                 .map(e -> e.toString())
                 .collect(Collectors.joining());
@@ -714,7 +712,7 @@ public class AdminController {
   @ResponseBody
   public String getUsersWalletsSummeryInOut(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
     String value = UserSummaryInOutDto.getTitle() +
-        userService.getUsersSummaryInOutList(startDate, endDate, BusinessUserRoleEnum.getRealUserRoleIdList(role))
+        userService.getUsersSummaryInOutList(startDate, endDate, userRoleService.getRealUserRoleIdByBusinessRoleList(role))
             .stream()
             .map(e -> e.toString())
             .collect(Collectors.joining());
@@ -726,7 +724,7 @@ public class AdminController {
   @ResponseBody
   public String getUserSummaryOrders(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
 
-    List<UserSummaryOrdersDto> list = userService.getUserSummaryOrdersList(startDate, endDate, BusinessUserRoleEnum.getRealUserRoleIdList(role));
+    List<UserSummaryOrdersDto> list = userService.getUserSummaryOrdersList(startDate, endDate, userRoleService.getRealUserRoleIdByBusinessRoleList(role));
     BigDecimal sumAmountBuy = new BigDecimal(0.00);
     BigDecimal sumAmountBuyFee = new BigDecimal(0.00);
     BigDecimal sumAmountSell = new BigDecimal(0.00);
@@ -761,7 +759,7 @@ public class AdminController {
     @ResponseBody
     public String getUserSummaryOrdersByCurrencyPairs(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
 
-        List<UserSummaryOrdersByCurrencyPairsDto> list = userService.getUserSummaryOrdersByCurrencyPairList(startDate, endDate, BusinessUserRoleEnum.getRealUserRoleIdList(role));
+        List<UserSummaryOrdersByCurrencyPairsDto> list = userService.getUserSummaryOrdersByCurrencyPairList(startDate, endDate, userRoleService.getRealUserRoleIdByBusinessRoleList(role));
 
         String value = "Orders by currency pairs from" + startDate.substring(0,10) + " till " + endDate.substring(0,10) + ": \n \n" + UserSummaryOrdersByCurrencyPairsDto.getTitle() +
                 list.stream()
@@ -775,7 +773,7 @@ public class AdminController {
     @ResponseBody
     public String getUsersWalletsSummeryTotalInOut(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
         String value = UserSummaryTotalInOutDto.getTitle() +
-                userService.getUsersSummaryTotalInOutList(startDate, endDate, BusinessUserRoleEnum.getRealUserRoleIdList(role))
+                userService.getUsersSummaryTotalInOutList(startDate, endDate, userRoleService.getRealUserRoleIdByBusinessRoleList(role))
                         .stream()
                         .map(e -> e.toString())
                         .collect(Collectors.joining());

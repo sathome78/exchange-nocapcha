@@ -8,6 +8,7 @@ import me.exrates.model.enums.BusinessUserRoleEnum;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.service.CommissionService;
+import me.exrates.service.UserRoleService;
 import me.exrates.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,9 @@ public class CommissionServiceImpl implements CommissionService {
 
 	@Autowired
 	UserService userService;
+
+	@Autowired
+	UserRoleService userRoleService;
 
 	@Override
 	public Commission findCommissionByTypeAndRole(OperationType operationType, UserRole userRole) {
@@ -52,7 +56,7 @@ public class CommissionServiceImpl implements CommissionService {
 
 	@Override
 	public List<CommissionShortEditDto> getEditableCommissionsByRole(String roleName, Locale locale) {
-		return commissionDao.getEditableCommissionsByRoles(BusinessUserRoleEnum.getRealUserRoleIdList(roleName), locale);
+		return commissionDao.getEditableCommissionsByRoles(userRoleService.getRealUserRoleIdByBusinessRoleList(roleName), locale);
 	}
 
 	@Override
@@ -64,7 +68,7 @@ public class CommissionServiceImpl implements CommissionService {
 	@Override
 	@Transactional
 	public void updateCommission(OperationType operationType, String roleName, BigDecimal value) {
-		commissionDao.updateCommission(operationType, BusinessUserRoleEnum.getRealUserRoleIdList(roleName), value);
+		commissionDao.updateCommission(operationType, userRoleService.getRealUserRoleIdByBusinessRoleList(roleName), value);
 	}
 
 

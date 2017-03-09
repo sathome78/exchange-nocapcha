@@ -11,6 +11,7 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.service.CurrencyService;
+import me.exrates.service.UserRoleService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.CurrencyPairNotFoundException;
 import org.apache.log4j.LogManager;
@@ -39,6 +40,9 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     @Autowired
     private UserService userService;
+
+  @Autowired
+  UserRoleService userRoleService;
 
     private static final Logger logger = LogManager.getLogger(CurrencyServiceImpl.class);
     private static final Set<String> CRYPTO = new HashSet<String>() {
@@ -84,12 +88,12 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     @Override
     public void updateCurrencyLimit(int currencyId, OperationType operationType, String roleName, BigDecimal minAmount) {
-        currencyDao.updateCurrencyLimit(currencyId, operationType, BusinessUserRoleEnum.getRealUserRoleIdList(roleName), minAmount);
+        currencyDao.updateCurrencyLimit(currencyId, operationType, userRoleService.getRealUserRoleIdByBusinessRoleList(roleName), minAmount);
     }
 
     @Override
     public List<CurrencyLimit> retrieveCurrencyLimitsForRole(String roleName, OperationType operationType) {
-        return currencyDao.retrieveCurrencyLimitsForRoles(BusinessUserRoleEnum.getRealUserRoleIdList(roleName), operationType);
+        return currencyDao.retrieveCurrencyLimitsForRoles(userRoleService.getRealUserRoleIdByBusinessRoleList(roleName), operationType);
     }
 
     @Override

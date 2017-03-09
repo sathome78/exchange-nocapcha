@@ -41,6 +41,9 @@ public class ReportServiceImpl implements ReportService {
   @Autowired
   UserService userService;
 
+  @Autowired
+  UserRoleService userRoleService;
+
   @Override
   @Transactional
   public List<InvoiceReportDto> getInvoiceReport(
@@ -69,7 +72,7 @@ public class ReportServiceImpl implements ReportService {
         .collect(Collectors.toList());
     /**/
     direction = "ANY".equals(direction) ? "" : InvoiceOperationDirection.valueOf(direction).name();
-    List<Integer> realRoleIdList = BusinessUserRoleEnum.getRealUserRoleIdList(businessRole);
+    List<Integer> realRoleIdList = userRoleService.getRealUserRoleIdByBusinessRoleList(businessRole);
     /**/
     List<InvoiceReportDto> result = new ArrayList<>();
     /**/

@@ -1,5 +1,9 @@
 package me.exrates.model.enums;
 
+import me.exrates.model.exceptions.UnsupportedUserRoleIdException;
+
+import java.util.Arrays;
+
 public enum UserRole {
 
   ADMINISTRATOR(1),
@@ -20,6 +24,13 @@ public enum UserRole {
 
   public int getRole() {
     return role;
+  }
+
+  public static UserRole convert(int id) {
+    return Arrays.stream(UserRole.class.getEnumConstants())
+        .filter(e -> e.role == id)
+        .findAny()
+        .orElseThrow(() -> new UnsupportedUserRoleIdException(String.valueOf(id)));
   }
 
 }
