@@ -71,8 +71,8 @@ public class EDCController {
                 .prepareCreditsOperation(payment, email)
                 .orElseThrow(InvalidAmountException::new);
         try {
-//            final String account = edcService.createInvoice(creditsOperation);
-            final String account = edcMerchantService.createInvoice(creditsOperation);
+//            final String account = edcService.createInvoice(creditsOperation); // node
+            final String account = edcMerchantService.createAddress(creditsOperation); // merchant
             final String notification = merchantService
                     .sendDepositNotification(account,email ,locale, creditsOperation, "merchants.depositNotification.body");
             final HttpHeaders httpHeaders = new HttpHeaders();
@@ -95,28 +95,20 @@ public class EDCController {
     @RequestMapping(value = "payment/received",method = RequestMethod.POST)
     public ResponseEntity<Void> statusPayment(@RequestBody Map<String,String> params, RedirectAttributes redir) {
 
-        final ResponseEntity<Void> response = new ResponseEntity<>(OK);
+        final ResponseEntity<Void> responseOK = new ResponseEntity<>(OK);
         LOG.info("Response: " + params);
 
-//        if (nixMoneyService.confirmPayment(params)) {
-//            return response;
-//        }
-
-
-        return new ResponseEntity<>(BAD_REQUEST);
-    }
-
-    @RequestMapping(value = "payment/received1",method = RequestMethod.POST)
-    public ResponseEntity<Void> statusPayment1(@RequestBody String params, RedirectAttributes redir) {
-
-        final ResponseEntity<Void> response = new ResponseEntity<>(OK);
-        LOG.info("Response: " + params);
-
-//        if (nixMoneyService.confirmPayment(params)) {
-//            return response;
-//        }
-
-
-        return new ResponseEntity<>(BAD_REQUEST);
+        try {
+            boolean isEmpty = edcMerchantService.checkMerchantTransactionIdIsEmpty(params.get("id"));
+            if (isEmpty){
+                edcMerchantService.createAndProvideTransaction(params);
+                return responseOK;
+            }else {
+                return responseOK;
+            }
+        }catch (Exception e){
+            LOG.error(e);
+            return new ResponseEntity<>(BAD_REQUEST);
+        }
     }
 }

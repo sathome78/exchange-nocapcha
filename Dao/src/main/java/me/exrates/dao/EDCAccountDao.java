@@ -19,8 +19,8 @@ public interface EDCAccountDao {
 
     List<EDCAccount> getAccountsWithoutId();
 
-    public List<EDCAccount> getUnusedAccounts();
+    List<EDCAccount> getUnusedAccounts();
 
-    public void setAccountUsed(int transactionId);
+    void setAccountUsed(int transactionId);
 
 }
