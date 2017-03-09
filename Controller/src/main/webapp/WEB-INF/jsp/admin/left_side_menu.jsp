@@ -44,7 +44,7 @@
     <ul>
         <li>
             <%--Пользователи--%>
-            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}', '${admin_finOperatorEnum}')">
                 <a href="<c:url value='/2a8fy7b07dxe44/users'/>"><loc:message code="admin.users"/></a>
             </sec:authorize>
         </li>
@@ -67,7 +67,7 @@
 
         <li>
             <%--Заявки на пополнение Bitcoin--%>
-            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}', '${admin_finOperatorEnum}')">
+            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
                 <a href="<c:url value='/2a8fy7b07dxe44/bitcoinConfirmation'/>"><loc:message code="transaction.titleBitcoin"/></a>
             </sec:authorize>
         </li>

@@ -2,6 +2,7 @@ package me.exrates.model.util;
 
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.exceptions.BigDecimalParseException;
+import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -190,7 +191,8 @@ public class BigDecimalProcessing {
   }
 
   public static String formatLocale(String value, Locale locale, boolean trailingZeros) {
-    return formatLocale(new BigDecimal(value), locale, trailingZeros);
+    BigDecimal decimalValue = StringUtils.isEmpty(value) ? BigDecimal.ZERO : new BigDecimal(value);
+    return formatLocale(decimalValue, locale, trailingZeros);
   }
 
   /**
