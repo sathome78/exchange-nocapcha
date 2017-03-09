@@ -140,6 +140,7 @@ public class CommonMerchantsController {
     }
 
     @RequestMapping(value = "/withdrawal/request/accept",method = POST)
+    @ResponseBody
     public ResponseEntity<Map<String,String>> acceptWithdrawRequest(final @RequestParam("requestId") int request,
                                                                     final Locale locale, final Principal principal) {
         final Map<String, String> result = merchantService.acceptWithdrawalRequest(request, locale, principal);
@@ -150,6 +151,7 @@ public class CommonMerchantsController {
     }
 
     @RequestMapping(value = "/withdrawal/request/decline")
+    @ResponseBody
     public ResponseEntity<Map<String,Object>> declineWithdrawRequest(final @RequestParam("requestId") int request,
                                                                     final Locale locale, Principal principal) {
         final Map<String, Object> result = merchantService.declineWithdrawalRequest(request, locale, principal.getName());
