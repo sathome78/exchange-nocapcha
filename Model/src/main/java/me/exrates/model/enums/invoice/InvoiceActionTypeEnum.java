@@ -16,7 +16,11 @@ public enum InvoiceActionTypeEnum {
   BCH_EXAMINE,
   ACCEPT_MANUAL,
   ACCEPT_AUTO,
-  DECLINE;
+  DECLINE,
+  PUT_FOR_MANUAL,
+  PUT_FOR_AUTO,
+  PUT_FOR_CONFIRM,
+  POST;
 
   public static InvoiceActionTypeEnum convert(String name) {
     return Arrays.stream(InvoiceActionTypeEnum.class.getEnumConstants())
