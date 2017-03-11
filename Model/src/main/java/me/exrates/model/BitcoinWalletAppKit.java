@@ -40,7 +40,7 @@ public class BitcoinWalletAppKit {
             final DeterministicSeed seed;
             if (context.getParams().equals(MainNetParams.get())) {
                 creationTime =  1469197851L;
-                mnemonic = "split right tray move where party rug voice rely damp review lawsuit";
+                mnemonic = "endless salad seek salon proof year wreck song nominee meadow idea setup";
             } else {
                 creationTime = 1470405562L;
                 mnemonic = "cake diesel gain private room lazy tank online miracle manual economy final";

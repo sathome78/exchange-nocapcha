@@ -33,10 +33,10 @@ import java.util.Map;
  * Created by ajet on 06.03.2017.
  */
 @Service
-@PropertySource("classpath:edcmerchant.properties")
+@PropertySource("classpath:/merchants/edcmerchant.properties")
 public class EDCMerchantServiceImpl implements EDCMerchantService{
 
-    private @Value("${edrmerchant.token}") String token;
+    private @Value("${edcmerchant.token}") String token;
     private @Value("${edcmerchant.main_account}") String main_account;
     private @Value("${edcmerchant.hook}") String hook;
 
