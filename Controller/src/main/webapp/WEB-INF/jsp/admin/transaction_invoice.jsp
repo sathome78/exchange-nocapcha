@@ -81,7 +81,7 @@
 <span hidden id="onConfirmationLocMessage"><loc:message code="merchants.invoice.onWaitingForUserConfirmation"/></span>
 <span hidden id="revokedByUserLocMessage"><loc:message code="merchants.invoice.revokedByUser"/></span>
 <span hidden id="timeOutExpiredLocMessage"><loc:message code="merchants.invoice.timeOutExpired"/></span>
-<span hidden id="changeAmountLocMessage"><loc:message code="admin.invoice.changeAmount"/></span>
+<span hidden id="computeCommissionLocMessage"><loc:message code="admin.invoice.computeCommission"/></span>
 <span hidden id="cancelLocMessage"><loc:message code="admin.cancel"/></span>
 
 
@@ -103,25 +103,33 @@
                             <label for="initialAmount" class="input-block-wrapper__label"><loc:message code="admin.invoice.initialAmount"/></label>
                         </div>
                         <div class="col-md-8 input-block-wrapper__input-wrapper">
-                            <input id="initialAmount" readonly class="input-block-wrapper__input" type="number" step="0.01">
+                            <input id="initialAmount" readonly disabled class="input-block-wrapper__input" type="number" step="0.01">
                         </div>
                     </div>
                     <div class="input-block-wrapper">
                         <div class="col-md-4 input-block-wrapper__label-wrapper">
                             <label for="actualAmount" class="input-block-wrapper__label"><loc:message code="admin.invoice.actualAmount"/></label>
                         </div>
-                        <div class="col-md-5 input-block-wrapper__input-wrapper">
+                        <div class="col-md-4 input-block-wrapper__input-wrapper">
                             <input id="actualAmount" class="input-block-wrapper__input" type="number" step="0.01">
                         </div>
-                        <div class="col-md-3 input-block-wrapper__input-wrapper">
-                            <button type="button" id="changeAmount" class="btn btn-sm btn-danger"><loc:message code="admin.invoice.changeAmount"/></button>
+                        <div class="col-md-4 input-block-wrapper__input-wrapper">
+                            <button type="button" id="computeCommission" class="btn btn-sm btn-danger"><loc:message code="admin.invoice.computeCommission"/></button>
                         </div>
-                        <input hidden id="transactionId" name="id">
-                        <input hidden id="actualPaymentSum" name="actualPaymentSum">
                     </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-4 input-block-wrapper__label-wrapper">
+                            <label for="newCommission" class="input-block-wrapper__label"><loc:message code="transaction.commissionAmount"/></label>
+                        </div>
+                        <div class="col-md-8 input-block-wrapper__input-wrapper">
+                            <input id="newCommission" readonly disabled class="input-block-wrapper__input" type="number" step="0.01">
+                        </div>
+                    </div>
+                    <input hidden id="transactionId" name="id">
+                    <input hidden id="actualPaymentSum" name="actualPaymentSum">
                     <div class="table-button-block" style="white-space: nowrap; margin-top: 20px">
-                        <button id="submitAccept" class="blue-box" type="button"><loc:message code="admin.submit"/></button>
-                        <button id="cancelAccept" class="red-box" type="button"><loc:message code="admin.cancel"/></button>
+                        <button id="submitAcceptInvoice" class="blue-box" type="button"><loc:message code="admin.submit"/></button>
+                        <button id="cancelAcceptInvoice" class="red-box" type="button"><loc:message code="admin.cancel"/></button>
                     </div>
                 </form>
             </div>
