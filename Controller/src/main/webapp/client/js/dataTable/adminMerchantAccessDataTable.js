@@ -6,15 +6,47 @@ var currentLocale;
 $(document).ready(function () {
     var $merchantAccessTable = $('#merchant-options-table');
     $($merchantAccessTable).DataTable({
-        "bFilter": false,
+        "ajax": {
+            "url": "/2a8fy7b07dxe44/merchantAccess/data",
+            "dataSrc": ""
+        },
+        "bFilter": true,
         "paging": false,
         "order": [],
         "bLengthChange": false,
         "bPaginate": false,
-        "bInfo": false
+        "bInfo": false,
+        "columns": [
+            {
+                "data": "merchantName",
+            },
+            {
+                "data": "currencyName",
+            },
+            {
+                "data": "isRefillBlocked",
+                "render": function (data) {
+                    return'<span data-operationtype="INPUT">'.
+                    concat(data ? '<i class="fa fa-lock red" aria-hidden="true"></i>' : '<i class="fa fa-unlock" aria-hidden="true"></i>')
+                        .concat('</span>');
+                },
+            },
+            {
+                "data": "isWithdrawBlocked",
+                "render": function (data) {
+                    return'<span data-operationtype="OUTPUT">'.
+                    concat(data ? '<i class="fa fa-lock red" aria-hidden="true"></i>' : '<i class="fa fa-unlock" aria-hidden="true"></i>')
+                        .concat('</span>');
+                },
+            },
+        ],
+        "createdRow": function ( row, data, index ) {
+            $(row).attr("data-merchantid", data.merchantId);
+            $(row).attr("data-currencyid", data.currencyId);
+        }
     });
 
-    $merchantAccessTable.find('td').on('click', 'i', function () {
+    $merchantAccessTable.find('tbody').on('click', 'i', function () {
         var operationType = $(this).parent().data('operationtype');
         var merchantId = $(this).parents('tr').data('merchantid');
         var currencyId = $(this).parents('tr').data('currencyid');

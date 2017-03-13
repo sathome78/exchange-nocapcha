@@ -997,9 +997,18 @@ public class AdminController {
 
   @RequestMapping(value = "/2a8fy7b07dxe44/merchantAccess", method = RequestMethod.GET)
   public ModelAndView merchantAccess() {
+//    List<MerchantCurrencyOptionsDto> merchantCurrencyOptions = merchantService.findMerchantCurrencyOptions();
+//    LOG.debug(merchantCurrencyOptions);
+//    return new ModelAndView("admin/merchantAccess", "merchantCurrencies", merchantCurrencyOptions);
+    return new ModelAndView("admin/merchantAccess");
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/merchantAccess/data", method = RequestMethod.GET)
+  @ResponseBody
+  public List<MerchantCurrencyOptionsDto> merchantAccessData() {
     List<MerchantCurrencyOptionsDto> merchantCurrencyOptions = merchantService.findMerchantCurrencyOptions();
     LOG.debug(merchantCurrencyOptions);
-    return new ModelAndView("admin/merchantAccess", "merchantCurrencies", merchantCurrencyOptions);
+    return merchantCurrencyOptions;
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/merchantAccess/toggleBlock", method = RequestMethod.POST)

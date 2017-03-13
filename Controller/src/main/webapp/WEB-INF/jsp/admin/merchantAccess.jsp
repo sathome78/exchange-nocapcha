@@ -33,39 +33,12 @@
                             <tr>
                                 <th><loc:message code="withdrawal.merchant"/> </th>
                                 <th><loc:message code="withdrawal.currency"/> </th>
-                                <th><loc:message code="transaction.operationTypeINPUT"/></th>
+                                <th data-operationtype="INPUT"><loc:message code="transaction.operationTypeINPUT"/></th>
                                 <th><loc:message code="transaction.operationTypeOUTPUT"/></th>
                             </tr>
                             </thead>
                             <tbody>
-                            <c:forEach items="${merchantCurrencies}" var="merchantCurrency">
-                                <tr data-merchantid="${merchantCurrency.merchantId}"
-                                    data-currencyid="${merchantCurrency.currencyId}">
-                                    <td>${merchantCurrency.merchantName}</td>
-                                    <td>${merchantCurrency.currencyName}</td>
-                                    <td data-operationtype="INPUT">
-                                        <c:choose>
-                                            <c:when test="${merchantCurrency.isRefillBlocked}">
-                                                <i class="fa fa-lock red" aria-hidden="true"></i>
-                                            </c:when>
-                                            <c:otherwise>
-                                                <i class="fa fa-unlock" aria-hidden="true"></i>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </td>
-                                    <td data-operationtype="OUTPUT">
-                                        <c:choose>
-                                            <c:when test="${merchantCurrency.isWithdrawBlocked}">
-                                                <i class="fa fa-lock red" aria-hidden="true"></i>
-                                            </c:when>
-                                            <c:otherwise>
-                                                <i class="fa fa-unlock" aria-hidden="true"></i>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </td>
 
-                                </tr>
-                            </c:forEach>
                             </tbody>
 
                         </table>

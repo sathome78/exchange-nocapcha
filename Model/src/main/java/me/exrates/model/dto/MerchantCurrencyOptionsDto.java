@@ -23,5 +23,8 @@ public class MerchantCurrencyOptionsDto {
     private BigDecimal minFixedCommission;
     private Boolean isRefillBlocked;
     private Boolean isWithdrawBlocked;
+    private Boolean withdrawAutoEnabled;
+    private Integer withdrawAutoDelaySeconds;
+    private BigDecimal withdrawAutoThresholdAmount;
 
 }
