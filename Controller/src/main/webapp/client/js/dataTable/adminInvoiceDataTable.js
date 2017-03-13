@@ -3,7 +3,7 @@
  */
 var invoiceRequestsDataTable;
 var $invoiceRequestsTable;
-var amountChanging;
+var updateInvoiceTable;
 $(document).ready(function () {
     var acceptLocMessage = $('#acceptLocMessage').text();
     var declineLocMessage = $('#declineLocMessage').text();
@@ -12,8 +12,12 @@ $(document).ready(function () {
     var onConfirmationLocMessage = $('#onConfirmationLocMessage').text();
     var revokedByUserLocMessage = $('#revokedByUserLocMessage').text();
     var timeOutExpiredLocMessage = $('#timeOutExpiredLocMessage').text();
-    var changeAmountLocMessage = $('#changeAmountLocMessage').text();
+    var computeCommissionLocMessage = $('#computeCommissionLocMessage').text();
     var cancelLocMessage = $('#cancelLocMessage').text();
+
+    var $submitAcceptButton = $('#submitAcceptInvoice');
+
+
     /**/
     $invoiceRequestsTable = $('#invoice_requests');
     var urlBase = '/2a8fy7b07dxe44/invoiceRequests';
@@ -39,7 +43,7 @@ $(document).ready(function () {
 
 
 
-    function updateInvoiceTable() {
+    updateInvoiceTable = function () {
         if ($.fn.dataTable.isDataTable('#invoice_requests')) {
         invoiceRequestsDataTable = $($invoiceRequestsTable).DataTable();
         invoiceRequestsDataTable.ajax.url(urlBase + urlVarPart).load();
@@ -120,8 +124,7 @@ $(document).ready(function () {
                                 acceptLocMessage +
                                 '</button>' +
                                 '&nbsp;' +
-                                //'<button style="font-size: 11px;" class="table-button-block__button btn btn-danger" onclick="declineInvoice(event,' + row.transaction.id + ')">' +
-                                '<button style="font-size: 11px;" class="table-button-block__button btn btn-danger" onclick=declineInvoice(event,' + row.transaction.id + ',"'+row.userEmail+'")>' +declineLocMessage +
+                                '<button style="font-size: 11px;" class="table-button-block__button btn btn-danger" onclick=declineInvoice(event,' + row.transaction.id + ',"'+row.userEmail+'",updateInvoiceTable)>' +declineLocMessage +
                                 '</button>' +
                                 '</div>';
                         } else {
@@ -140,36 +143,30 @@ $(document).ready(function () {
             ],
             "order": []
         });}
-    }
+    };
 
     updateInvoiceTable();
 
-    $('#changeAmount').on('click', function () {
-        var $amountInput = $('#actualAmount');
-        if (amountChanging) {
-            amountChanging = false;
-            $(this).text(changeAmountLocMessage);
-            $($amountInput).val($('#initialAmount').val());
-            $('#actualPaymentSum').val('');
-            $($amountInput).prop('readonly', true);
-            $($amountInput).prop('disabled', true);
-        } else {
-            amountChanging = true;
-            $(this).text(cancelLocMessage);
-            $($amountInput).prop('readonly', false);
-            $($amountInput).prop('disabled', false);
-            $($amountInput).val('');
-        }
+    $('#computeCommission').on('click', function () {
+        var url = '/merchants/invoice/payment/newCommission?' + $('#invoice-accept-form').serialize();
+        $.get(url, function (data) {
+            $('#newCommission').val(data);
+            $($submitAcceptButton).prop('disabled', false);
+            $('#computeCommission').prop('disabled', true);
+        })
     });
+
     $('#actualAmount').on('input', function () {
         $('#actualPaymentSum').val($(this).val());
+        $($submitAcceptButton).prop('disabled', true);
+        $('#computeCommission').prop('disabled', false);
     });
 
 
-    $('#submitAccept').on('click', function () {
+    $($submitAcceptButton).on('click', function () {
         acceptInvoice(updateInvoiceTable)
     });
-    $('#cancelAccept').on('click', function () {
+    $('#cancelAcceptInvoice').on('click', function () {
         $('#acceptModal').modal('hide');
 
     })
@@ -221,11 +218,10 @@ function showAcceptModal($elem) {
     var totelAmount = rowData.transaction.amount + rowData.transaction.commissionAmount;
     $($initialAmountInput).val(totelAmount);
     $($actualAmountInput).val(totelAmount);
-    $($actualAmountInput).prop('readonly', true);
-    $($actualAmountInput).prop('disabled', true);
-    amountChanging = false;
-    $('#changeAmount').text($('#changeAmountLocMessage').text());
+    $('#newCommission').val(rowData.transaction.commissionAmount);
     $('#transactionId').val(rowData.transaction.id);
+    $('#submitAcceptInvoice').prop('disabled', false);
+    $('#computeCommission').prop('disabled', true);
     $('#actualPaymentSum').val('');
     $('#acceptModal').modal();
 }

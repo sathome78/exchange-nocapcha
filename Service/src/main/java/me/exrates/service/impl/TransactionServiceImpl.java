@@ -107,18 +107,27 @@ public class TransactionServiceImpl implements TransactionService {
         }
         updateAmount(transaction, amount);
     }
+    
+    @Override
+    public BigDecimal calculateNewCommission(Transaction transaction, BigDecimal amount) {
+        return calculateCommissionFromAmpunt(amount, transaction.getCommission().getValue(),
+                currencyService.resolvePrecision(transaction.getCurrency().getName()));
+    }
 
     private void updateAmount(Transaction transaction, BigDecimal amount) {
-        BigDecimal commissionRate = transaction.getCommission().getValue();
-        BigDecimal mass = BigDecimal.valueOf(100L).add(commissionRate);
         int scale = currencyService.resolvePrecision(transaction.getCurrency().getName());
-        BigDecimal commission = amount
-            .multiply(commissionRate)
-            .divide(mass, scale, ROUND_HALF_UP).setScale(scale, ROUND_HALF_UP);
+        BigDecimal commissionRate = transaction.getCommission().getValue();
+        BigDecimal commission = calculateCommissionFromAmpunt(amount, commissionRate, scale);
         final BigDecimal newAmount = amount.subtract(commission).setScale(scale, ROUND_HALF_UP);
         transaction.setCommissionAmount(commission);
         transaction.setAmount(newAmount);
         transactionDao.updateTransactionAmount(transaction.getId(), newAmount, commission);
+    }
+    
+    private BigDecimal calculateCommissionFromAmpunt(BigDecimal amount, BigDecimal commissionRate, int scale) {
+        BigDecimal mass = BigDecimal.valueOf(100L).add(commissionRate);
+        return amount.multiply(commissionRate)
+                .divide(mass, scale, ROUND_HALF_UP).setScale(scale, ROUND_HALF_UP);
     }
 
     @Override
