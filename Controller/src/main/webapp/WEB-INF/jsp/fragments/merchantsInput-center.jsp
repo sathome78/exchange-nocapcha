@@ -7,6 +7,11 @@
             <loc:message code="${error}"/>
         </c:if>
     </label>
+        <c:if test="${not empty warning}">
+            <div class="row text-center inout-warning">
+                <loc:message code="${warning}"/>
+            </div>
+        </c:if>
         <c:choose>
             <c:when test="${empty merchantCurrencyData}">
                 <p class="red noMerchants"><loc:message code="merchant.operationNotAvailable" /> </p>

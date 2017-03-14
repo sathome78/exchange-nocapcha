@@ -8,10 +8,10 @@ import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -58,4 +58,6 @@ public interface CurrencyService {
   List<UserCurrencyOperationPermissionDto> getCurrencyPermittedOperationList(Integer userId);
 
   Set<String> getCurrencyPermittedNameList(Integer userId);
+  
+  Optional<String> getWarningForCurrency(Integer currencyId);
 }

@@ -11,15 +11,15 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Repository
 public class CurrencyDaoImpl implements CurrencyDao {
@@ -268,5 +268,15 @@ public class CurrencyDaoImpl implements CurrencyDao {
 			dto.setInvoiceOperationPermission(InvoiceOperationPermission.convert(permissionCode));
 			return dto;
 		});
+	}
+	
+	@Override
+	public Optional<String> getWarningForCurrency(Integer currencyId) {
+		String sql = "SELECT warning_code FROM CURRENCY_WARNING WHERE currency_id = :currency_id";
+		try {
+			return Optional.of(jdbcTemplate.queryForObject(sql, Collections.singletonMap("currency_id", currencyId), String.class));
+		} catch (EmptyResultDataAccessException e) {
+			return Optional.empty();
+		}
 	}
 }

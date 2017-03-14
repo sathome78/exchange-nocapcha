@@ -11,6 +11,7 @@ import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 public interface CurrencyDao {
 
@@ -45,4 +46,6 @@ public interface CurrencyDao {
 	List<UserCurrencyOperationPermissionDto> findCurrencyOperationPermittedByUserAndDirection(Integer userId, String operationDirection);
 
   List<UserCurrencyOperationPermissionDto> findCurrencyOperationPermittedByUserList(Integer userId);
+  
+  Optional<String> getWarningForCurrency(Integer currencyId);
 }
