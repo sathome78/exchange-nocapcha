@@ -75,6 +75,8 @@ public class CommonMerchantsController {
         final List<Integer> currenciesId = Collections.singletonList(currencyId);
         modelAndView.addObject("merchantCurrencyData",merchantService.findAllByCurrencies(currenciesId, OperationType.INPUT));
         modelAndView.addObject("minAmount", currencyService.retrieveMinLimitForRoleAndCurrency(userService.getCurrentUserRole(), INPUT, currencyId));
+        Optional<String> warningCode = currencyService.getWarningForCurrency(currencyId);
+        warningCode.ifPresent(s -> modelAndView.addObject("warning", s));
         return modelAndView;
     }
 

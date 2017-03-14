@@ -2149,3 +2149,8 @@ textarea#remark {
 .ui-dialog[aria-describedby="clearFormDialog"] {
     z-index: 5000;
 }
+
+.inout-warning {
+    color: #ff0800;
+    font-size: 1.4rem;
+}

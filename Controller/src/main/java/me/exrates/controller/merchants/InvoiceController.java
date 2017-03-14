@@ -9,6 +9,7 @@ import me.exrates.model.exceptions.UnsupportedTransactionSourceTypeNameException
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.InvoiceData;
 import me.exrates.model.vo.WithdrawData;
+import me.exrates.service.CommissionService;
 import me.exrates.service.InvoiceService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.TransactionService;
@@ -59,6 +60,9 @@ public class InvoiceController {
   
   @Autowired
   private TransactionService transactionService;
+  
+  @Autowired
+  private CommissionService commissionService;
 
   @Autowired
   private MessageSource messageSource;
@@ -300,6 +304,8 @@ public class InvoiceController {
       modelAndView.addObject("error", "merchant.operationNotAvailable");
     } else {
       modelAndView.addObject("payment", creditsOperation);
+      modelAndView.addObject("merchantCommission", commissionService.getCommissionMerchant(creditsOperation.getMerchant().getName(),
+              creditsOperation.getCurrency().getName(), creditsOperation.getOperationType()));
       List<ClientBank> banks = invoiceService.findClientBanksForCurrency(creditsOperation.getCurrency().getId());
       modelAndView.addObject("banks", banks);
     }
