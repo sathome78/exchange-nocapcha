@@ -301,6 +301,57 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
   }
 
   @Override
+  public List<PendingPaymentFlatDto> findFlattenDtoByStatusAndCurrencyPermittedForUser(
+      String sourceName,
+      List<Integer> pendingPaymentStatusIdList,
+      Integer requesterUserId) {
+    String sql = "SELECT  PP.*, " +
+        "                 TX.amount, TX.commission_amount, TX.datetime, TX.confirmation, TX.provided, " +
+        "                 USER.id AS user_id, USER.email AS user_email, " +
+        "                 ADM.id AS acceptance_id, ADM.email AS acceptance_user_email " +
+        " FROM PENDING_PAYMENT PP " +
+        " JOIN TRANSACTION TX ON (TX.id = PP.invoice_id) AND TX.source_type=:source_type " +
+        " JOIN WALLET ON WALLET.id = TX.user_wallet_id " +
+        " JOIN USER AS USER ON USER.id = WALLET.user_id " +
+        " JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
+        "				(IOP.currency_id=TX.currency_id) " +
+        "				AND (IOP.user_id=:requester_user_id) " +
+        "				AND (IOP.operation_direction=:operation_direction) " +
+        " LEFT JOIN USER AS ADM ON ADM.id = PP.acceptance_user_id " +
+        " WHERE pending_payment_status_id IN (:pending_payment_status_id_list) " +
+        " ORDER BY PP.status_update_date DESC ";
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("source_type", sourceName);
+      put("pending_payment_status_id_list", pendingPaymentStatusIdList);
+      put("requester_user_id", requesterUserId);
+      put("operation_direction", "REFILL");
+    }};
+    return parameterJdbcTemplate.query(sql, params, new RowMapper<PendingPaymentFlatDto>() {
+      @Override
+      public PendingPaymentFlatDto mapRow(ResultSet rs, int i) throws SQLException {
+        PendingPaymentFlatDto pendingPaymentFlatDto = new PendingPaymentFlatDto();
+        pendingPaymentFlatDto.setInvoiceId(rs.getInt("invoice_id"));
+        pendingPaymentFlatDto.setTransactionHash(rs.getString("transaction_hash"));
+        pendingPaymentFlatDto.setAddress(rs.getString("address"));
+        pendingPaymentFlatDto.setPendingPaymentStatus(PendingPaymentStatusEnum.convert(rs.getInt("pending_payment_status_id")));
+        pendingPaymentFlatDto.setStatusUpdateDate(rs.getTimestamp("status_update_date") == null ? null : rs.getTimestamp("status_update_date").toLocalDateTime());
+        pendingPaymentFlatDto.setAcceptanceTime(rs.getTimestamp("acceptance_time") == null ? null : rs.getTimestamp("acceptance_time").toLocalDateTime());
+        pendingPaymentFlatDto.setHash(rs.getString("hash"));
+        pendingPaymentFlatDto.setUserEmail(rs.getString("user_email"));
+        pendingPaymentFlatDto.setUserId(rs.getInt("user_id"));
+        pendingPaymentFlatDto.setAcceptanceUserEmail(rs.getString("acceptance_user_email"));
+        pendingPaymentFlatDto.setAcceptanceUserId(rs.getInt("acceptance_id"));
+        pendingPaymentFlatDto.setAmount(rs.getBigDecimal("amount"));
+        pendingPaymentFlatDto.setCommissionAmount(rs.getBigDecimal("commission_amount"));
+        pendingPaymentFlatDto.setDatetime(rs.getTimestamp("datetime") == null ? null : rs.getTimestamp("datetime").toLocalDateTime());
+        pendingPaymentFlatDto.setConfirmation(rs.getInt("confirmation"));
+        pendingPaymentFlatDto.setProvided(rs.getBoolean("provided"));
+        return pendingPaymentFlatDto;
+      }
+    });
+  }
+
+  @Override
   public Optional<LocalDateTime> getAndBlockBySourceTypeAndIntervalAndStatus(String sourceName, Integer intervalMinutes, List<Integer> pendingPaymentStatusIdList) {
     LocalDateTime nowDate = jdbcTemplate.queryForObject("SELECT NOW()", LocalDateTime.class);
     String sql =

@@ -44,11 +44,6 @@
 
 
       <div class="text-center"><h4><loc:message code="transaction.titleInvoice"/></h4></div>
-      <c:choose>
-        <c:when test="${fn:length(invoiceRequests)==0}">
-          <loc:message code="transactions.absent"/>
-        </c:when>
-        <c:otherwise>
           <table id="invoice_requests" class="table-striped">
             <thead>
             <tr>
@@ -66,8 +61,6 @@
             </tr>
             </thead>
           </table>
-        </c:otherwise>
-      </c:choose>
     </div>
   </div>
   <hr/>

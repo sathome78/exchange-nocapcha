@@ -822,30 +822,38 @@ public class AdminController {
 
 
   @RequestMapping(value = "/2a8fy7b07dxe44/invoiceConfirmation")
-  public ModelAndView invoiceTransactions(HttpSession httpSession) {
-    return new ModelAndView("admin/transaction_invoice", "invoiceRequests", invoiceService.findAllInvoiceRequests());
+  public ModelAndView invoiceTransactions(Principal principal) {
+    Integer requesterUserId = userService.getIdByEmail(principal.getName());
+    return new ModelAndView("admin/transaction_invoice");
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/invoiceRequests")
   @ResponseBody
   public List<InvoiceRequest> invoiceRequests(
+      Principal principal,
       @RequestParam(required = false) List<String> availableActionSet) {
+    Integer requesterUserId = userService.getIdByEmail(principal.getName());
     if (availableActionSet == null || availableActionSet.isEmpty()) {
-      return invoiceService.findAllInvoiceRequests();
+      return invoiceService.findAllInvoiceRequestsByCurrencyPermittedForUser(requesterUserId);
     } else {
       List<InvoiceActionTypeEnum> invoiceActionTypeEnumList = InvoiceActionTypeEnum.convert(availableActionSet);
       List<InvoiceStatus> invoiceRequestStatusList = InvoiceRequestStatusEnum.getAvailableForActionStatusesList(invoiceActionTypeEnumList);
       List<Integer> invoiceRequestStatusIdList = invoiceRequestStatusList.stream()
           .map(InvoiceStatus::getCode)
           .collect(Collectors.toList());
-      return invoiceService.findAllByStatus(invoiceRequestStatusIdList);
+      return invoiceService.findAllByStatusAndByCurrencyPermittedForUser(invoiceRequestStatusIdList, requesterUserId);
     }
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/invoiceRequests/{status}")
   @ResponseBody
-  public List<InvoiceRequest> invoiceRequestsByStatus(@PathVariable String status) {
-    return invoiceService.findAllByStatus(Collections.singletonList(InvoiceRequestStatusEnum.convert(status).getCode()));
+  public List<InvoiceRequest> invoiceRequestsByStatus(
+      Principal principal,
+      @PathVariable String status) {
+    Integer requesterUserId = userService.getIdByEmail(principal.getName());
+    return invoiceService.findAllByStatusAndByCurrencyPermittedForUser(
+        Collections.singletonList(InvoiceRequestStatusEnum.convert(status).getCode()),
+        requesterUserId);
 
   }
 
@@ -858,8 +866,9 @@ public class AdminController {
   
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinRequests")
   @ResponseBody
-  public List<PendingPaymentFlatDto> getBitcoinRequests() {
-    return bitcoinService.getBitcoinTransactions();
+  public List<PendingPaymentFlatDto> getBitcoinRequests(Principal principal) {
+    Integer requesterUserId = userService.getIdByEmail(principal.getName());
+    return bitcoinService.getBitcoinTransactionsForCurrencyPermitted(requesterUserId);
   }
   
   
