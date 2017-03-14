@@ -272,7 +272,9 @@ public class CurrencyDaoImpl implements CurrencyDao {
 	
 	@Override
 	public Optional<String> getWarningForCurrency(Integer currencyId) {
-		String sql = "SELECT warning_code FROM CURRENCY_WARNING WHERE currency_id = :currency_id";
+		String sql = "SELECT PHRASE_TEMPLATE.template FROM CURRENCY_WARNING " +
+						"JOIN PHRASE_TEMPLATE ON CURRENCY_WARNING.phrase_template_id = PHRASE_TEMPLATE.id " +
+						"WHERE currency_id = :currency_id";
 		try {
 			return Optional.of(jdbcTemplate.queryForObject(sql, Collections.singletonMap("currency_id", currencyId), String.class));
 		} catch (EmptyResultDataAccessException e) {
