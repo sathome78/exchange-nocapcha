@@ -13,8 +13,8 @@
             <loc:message code="${error}"/>
         </c:if>
     </label>
-    <div class="row text-center inout-warning">
-        <loc:message code="transfer.warning"/>
+    <div class="row inout-warning">
+        <strong><loc:message code="transfer.warning"/></strong>
     </div>
     <div class="row">
         <form class="form-horizontal withdraw__money" id="payment" method="post" action="">
