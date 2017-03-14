@@ -6,6 +6,7 @@ import me.exrates.model.CreditsOperation;
 import me.exrates.model.PendingPayment;
 import me.exrates.model.Transaction;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
 import me.exrates.service.AdvcashService;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.TransactionService;
@@ -106,6 +107,7 @@ public class AdvcashServiceImpl implements AdvcashService{
         final PendingPayment payment = new PendingPayment();
         payment.setTransactionHash(transactionHash);
         payment.setInvoiceId(transaction.getId());
+        payment.setPendingPaymentStatus(InvoiceRequestStatusEnum.CREATED_USER);
         pendingPaymentDao.create(payment);
 
         properties.put("ac_success_url", paymentSuccess);
