@@ -129,7 +129,7 @@ public class BitcoinServiceImpl implements BitcoinService {
         .orElseThrow(IllegalStateException::new); //it will never happen
   }
 
-  @PostConstruct
+  /*@PostConstruct*/
   void startBitcoin() {
 
     Currency currency = currencyService.findByName("BTC");
