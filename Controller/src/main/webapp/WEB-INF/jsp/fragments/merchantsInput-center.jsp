@@ -7,11 +7,7 @@
             <loc:message code="${error}"/>
         </c:if>
     </label>
-        <c:if test="${not empty warning}">
-            <div class="row text-center inout-warning">
-                <loc:message code="${warning}"/>
-            </div>
-        </c:if>
+
         <c:choose>
             <c:when test="${empty merchantCurrencyData}">
                 <p class="red noMerchants"><loc:message code="merchant.operationNotAvailable" /> </p>
@@ -79,7 +75,11 @@
             </c:otherwise>
         </c:choose>
 </div>
-
+<c:if test="${not empty warning}">
+    <div class="row inout-warning">
+        <strong><loc:message code="${warning}"/></strong>
+    </div>
+</c:if>
 <%--MODAL ... --%>
 <div class="modal fade merchant-input" id="myModal">
     <div class="modal-dialog modal-sm">
