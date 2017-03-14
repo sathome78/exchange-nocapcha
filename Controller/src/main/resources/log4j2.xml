@@ -103,6 +103,15 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="bitcoinj_log" fileName="${sys:catalina.home}/logs/bitcoinj_log.log"
+                     filePattern="${sys:catalina.home}/logs/proxy_log_%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
     </Appenders>
     <Loggers>
         <Logger name="merchant" level="TRACE" additivity="false">
@@ -119,7 +128,7 @@
         </logger>
         <logger name="org.bitcoinj" level="INFO" additivity="false">
             <!--<AppenderRef ref="Console"/>-->
-            <AppenderRef ref="Logs"/>
+            <AppenderRef ref="bitcoinj_log"/>
         </logger>
         <logger name="org.springframework" level="ERROR" additivity="false">
             <AppenderRef ref="Console"/>
