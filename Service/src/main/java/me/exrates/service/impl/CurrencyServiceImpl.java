@@ -54,6 +54,7 @@ public class CurrencyServiceImpl implements CurrencyService {
     private static final int DEFAULT_PRECISION = 2;
 
     @Override
+    @Transactional(readOnly = true)
     public String getCurrencyName(int currencyId) {
         return currencyDao.getCurrencyName(currencyId);
     }
@@ -178,4 +179,10 @@ public class CurrencyServiceImpl implements CurrencyService {
     public Optional<String> getWarningForCurrency(Integer currencyId) {
       return currencyDao.getWarningForCurrency(currencyId);
     }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Currency getById(int id){
+    return currencyDao.findById(id);
+  }
 }
