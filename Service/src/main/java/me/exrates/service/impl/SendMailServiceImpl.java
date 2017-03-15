@@ -34,7 +34,7 @@ public class SendMailServiceImpl implements SendMailService{
 
 	@Override
 	public void sendInfoMail(Email email) {
-	//	sendMail(email, INFO_EMAIL, infoMailSender);
+		sendMail(email, INFO_EMAIL, infoMailSender);
 	}
 
 	private void sendMail(Email email, String fromAddress, JavaMailSender mailSender) {
