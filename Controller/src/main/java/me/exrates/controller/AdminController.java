@@ -8,7 +8,6 @@ import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
-import me.exrates.model.dto.mobileApiDto.CandleChartItemReducedDto;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.*;
@@ -55,18 +54,17 @@ import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAmount;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static me.exrates.model.enums.BusinessUserRoleEnum.ADMIN;
 import static me.exrates.model.enums.GroupUserRoleEnum.ADMINS;
 import static me.exrates.model.enums.GroupUserRoleEnum.USERS;
 import static me.exrates.model.enums.UserCommentTopicEnum.GENERAL;
-import static me.exrates.model.enums.UserRole.*;
+import static me.exrates.model.enums.UserRole.ADMINISTRATOR;
+import static me.exrates.model.enums.UserRole.FIN_OPERATOR;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.REFILL;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
 import static org.springframework.http.HttpStatus.*;
@@ -124,17 +122,17 @@ public class AdminController {
   public static String pureAdminAnyAuthority;
 
   @PostConstruct
-  private void init(){
+  private void init() {
     List<UserRole> adminRoles = userRoleService.getRealUserRoleByBusinessRoleList(ADMIN);
     String adminList = adminRoles.stream()
-        .map(e->"'"+e.name()+"'")
+        .map(e -> "'" + e.name() + "'")
         .collect(Collectors.joining(","));
-    adminAnyAuthority = "hasAnyAuthority("+adminList+")";
+    adminAnyAuthority = "hasAnyAuthority(" + adminList + ")";
     String pureAdminList = adminRoles.stream()
-        .filter(e->e!=FIN_OPERATOR)
-        .map(e->"'"+e.name()+"'")
+        .filter(e -> e != FIN_OPERATOR)
+        .map(e -> "'" + e.name() + "'")
         .collect(Collectors.joining(","));
-    pureAdminAnyAuthority = "hasAnyAuthority("+adminList+")";
+    pureAdminAnyAuthority = "hasAnyAuthority(" + adminList + ")";
   }
 
   @RequestMapping(value = {"/2a8fy7b07dxe44", "/2a8fy7b07dxe44/users"})
@@ -435,6 +433,7 @@ public class AdminController {
     form.setUserId(id);
     form.setOptions(userService.getAuthorityOptionsForUser(id, allowedAuthorities, localeResolver.resolveLocale(request)));
     model.addObject("authorityOptionsForm", form);
+    model.addObject("userActiveAuthorityOptions", userService.getActiveAuthorityOptionsForUser(id).stream().map(e -> e.getAdminAuthority().name()).collect(Collectors.joining(",")));
     model.addObject("userLang", userService.getPreferedLang(id).toUpperCase());
     model.addObject("usersInvoiceRefillCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), REFILL));
     model.addObject("usersInvoiceWithdrawCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), WITHDRAW));
@@ -639,12 +638,12 @@ public class AdminController {
   public ModelAndView withdrawalRequests(Principal principal) {
     final Map<String, Object> params = new HashMap<>();
     List<UserCurrencyOperationPermissionDto> permittedCurrencies = currencyService.getCurrencyOperationPermittedForWithdraw(principal.getName())
-            .stream().filter(dto -> dto.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE).collect(Collectors.toList());
+        .stream().filter(dto -> dto.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE).collect(Collectors.toList());
     params.put("currencies", permittedCurrencies);
     List<Merchant> merchants = merchantService.findAllByCurrencies(permittedCurrencies.stream()
-            .map(UserCurrencyOperationPermissionDto::getCurrencyId).collect(Collectors.toList()), OperationType.OUTPUT).stream()
-            .map(item -> new Merchant(item.getMerchantId(), item.getName(), item.getDescription(), null))
-            .distinct().collect(Collectors.toList());
+        .map(UserCurrencyOperationPermissionDto::getCurrencyId).collect(Collectors.toList()), OperationType.OUTPUT).stream()
+        .map(item -> new Merchant(item.getMerchantId(), item.getName(), item.getDescription(), null))
+        .distinct().collect(Collectors.toList());
     params.put("merchants", merchants);
     return new ModelAndView("withdrawalRequests", params);
   }
@@ -685,7 +684,7 @@ public class AdminController {
       adminOrderFilterData.initFilterItems();
       DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
       DataTable<List<OrderBasicInfoDto>> orderInfo = orderService.searchOrdersByAdmin(adminOrderFilterData, dataTableParams,
-              localeResolver.resolveLocale(request));
+          localeResolver.resolveLocale(request));
       return orderInfo;
     } catch (Exception ex) {
       LOG.error(ex.getMessage(), ex);
@@ -711,7 +710,9 @@ public class AdminController {
     ModelAndView model = new ModelAndView();
     model.setViewName("UsersWallets");
     model.addObject("mapUsersWalletsSummaryList", mapUsersWalletsSummaryList);
-    Set<String> usersCurrencyPermittedList = new LinkedHashSet<String>(){{add("ALL");}};
+    Set<String> usersCurrencyPermittedList = new LinkedHashSet<String>() {{
+      add("ALL");
+    }};
     usersCurrencyPermittedList.addAll(currencyService.getCurrencyPermittedNameList(requesterUserId));
     model.addObject("usersCurrencyPermittedList", usersCurrencyPermittedList);
     List<String> operationDirectionList = Arrays.asList("ANY", InvoiceOperationDirection.REFILL.name(), InvoiceOperationDirection.WITHDRAW.name());
@@ -779,28 +780,28 @@ public class AdminController {
     return value;
   }
 
-    @RequestMapping(value = "/2a8fy7b07dxe44/downloadUserSummaryOrdersByCurrencyPairs", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
-    @ResponseBody
-    public String getUserSummaryOrdersByCurrencyPairs(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
+  @RequestMapping(value = "/2a8fy7b07dxe44/downloadUserSummaryOrdersByCurrencyPairs", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
+  @ResponseBody
+  public String getUserSummaryOrdersByCurrencyPairs(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
 
-        List<UserSummaryOrdersByCurrencyPairsDto> list = userService.getUserSummaryOrdersByCurrencyPairList(startDate, endDate, userRoleService.getRealUserRoleIdByBusinessRoleList(role));
+    List<UserSummaryOrdersByCurrencyPairsDto> list = userService.getUserSummaryOrdersByCurrencyPairList(startDate, endDate, userRoleService.getRealUserRoleIdByBusinessRoleList(role));
 
-        String value = "Orders by currency pairs from" + startDate.substring(0,10) + " till " + endDate.substring(0,10) + ": \n \n" + UserSummaryOrdersByCurrencyPairsDto.getTitle() +
-                list.stream()
-                        .map(e -> e.toString())
-                        .collect(Collectors.joining());
+    String value = "Orders by currency pairs from" + startDate.substring(0, 10) + " till " + endDate.substring(0, 10) + ": \n \n" + UserSummaryOrdersByCurrencyPairsDto.getTitle() +
+        list.stream()
+            .map(e -> e.toString())
+            .collect(Collectors.joining());
 
-        return value;
-    }
+    return value;
+  }
 
-    @RequestMapping(value = "/2a8fy7b07dxe44/downloadUsersWalletsSummaryTotalInOut", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
-    @ResponseBody
-    public String getUsersWalletsSummeryTotalInOut(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
-        String value = UserSummaryTotalInOutDto.getTitle() +
-                userService.getUsersSummaryTotalInOutList(startDate, endDate, userRoleService.getRealUserRoleIdByBusinessRoleList(role))
-                        .stream()
-                        .map(e -> e.toString())
-                        .collect(Collectors.joining());
+  @RequestMapping(value = "/2a8fy7b07dxe44/downloadUsersWalletsSummaryTotalInOut", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
+  @ResponseBody
+  public String getUsersWalletsSummeryTotalInOut(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
+    String value = UserSummaryTotalInOutDto.getTitle() +
+        userService.getUsersSummaryTotalInOutList(startDate, endDate, userRoleService.getRealUserRoleIdByBusinessRoleList(role))
+            .stream()
+            .map(e -> e.toString())
+            .collect(Collectors.joining());
 
     return value;
   }
@@ -821,48 +822,54 @@ public class AdminController {
 
 
   @RequestMapping(value = "/2a8fy7b07dxe44/invoiceConfirmation")
-  public ModelAndView invoiceTransactions(HttpSession httpSession) {
-    return new ModelAndView("admin/transaction_invoice", "invoiceRequests", invoiceService.findAllInvoiceRequests());
+  public ModelAndView invoiceTransactions(Principal principal) {
+    Integer requesterUserId = userService.getIdByEmail(principal.getName());
+    return new ModelAndView("admin/transaction_invoice");
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/invoiceRequests")
   @ResponseBody
   public List<InvoiceRequest> invoiceRequests(
+      Principal principal,
       @RequestParam(required = false) List<String> availableActionSet) {
+    Integer requesterUserId = userService.getIdByEmail(principal.getName());
     if (availableActionSet == null || availableActionSet.isEmpty()) {
-      return invoiceService.findAllInvoiceRequests();
+      return invoiceService.findAllInvoiceRequestsByCurrencyPermittedForUser(requesterUserId);
     } else {
       List<InvoiceActionTypeEnum> invoiceActionTypeEnumList = InvoiceActionTypeEnum.convert(availableActionSet);
       List<InvoiceStatus> invoiceRequestStatusList = InvoiceRequestStatusEnum.getAvailableForActionStatusesList(invoiceActionTypeEnumList);
       List<Integer> invoiceRequestStatusIdList = invoiceRequestStatusList.stream()
           .map(InvoiceStatus::getCode)
           .collect(Collectors.toList());
-      return invoiceService.findAllByStatus(invoiceRequestStatusIdList);
+      return invoiceService.findAllByStatusAndByCurrencyPermittedForUser(invoiceRequestStatusIdList, requesterUserId);
     }
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/invoiceRequests/{status}")
   @ResponseBody
-  public List<InvoiceRequest> invoiceRequestsByStatus(@PathVariable String status) {
-    return invoiceService.findAllByStatus(Collections.singletonList(InvoiceRequestStatusEnum.convert(status).getCode()));
+  public List<InvoiceRequest> invoiceRequestsByStatus(
+      Principal principal,
+      @PathVariable String status) {
+    Integer requesterUserId = userService.getIdByEmail(principal.getName());
+    return invoiceService.findAllByStatusAndByCurrencyPermittedForUser(
+        Collections.singletonList(InvoiceRequestStatusEnum.convert(status).getCode()),
+        requesterUserId);
 
   }
-
 
 
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinConfirmation")
   public ModelAndView bitcoinTransactions() {
     return new ModelAndView("admin/transaction_bitcoin");
   }
-  
+
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinRequests")
   @ResponseBody
-  public List<PendingPaymentFlatDto> getBitcoinRequests() {
-    return bitcoinService.getBitcoinTransactions();
+  public List<PendingPaymentFlatDto> getBitcoinRequests(Principal principal) {
+    Integer requesterUserId = userService.getIdByEmail(principal.getName());
+    return bitcoinService.getBitcoinTransactionsForCurrencyPermitted(requesterUserId);
   }
-  
-  
-  
+
 
   @RequestMapping(value = "/2a8fy7b07dxe44/sessionControl")
   public ModelAndView sessionControl() {
@@ -997,9 +1004,6 @@ public class AdminController {
 
   @RequestMapping(value = "/2a8fy7b07dxe44/merchantAccess", method = RequestMethod.GET)
   public ModelAndView merchantAccess() {
-//    List<MerchantCurrencyOptionsDto> merchantCurrencyOptions = merchantService.findMerchantCurrencyOptions();
-//    LOG.debug(merchantCurrencyOptions);
-//    return new ModelAndView("admin/merchantAccess", "merchantCurrencies", merchantCurrencyOptions);
     return new ModelAndView("admin/merchantAccess");
   }
 
@@ -1009,6 +1013,15 @@ public class AdminController {
     List<MerchantCurrencyOptionsDto> merchantCurrencyOptions = merchantService.findMerchantCurrencyOptions();
     LOG.debug(merchantCurrencyOptions);
     return merchantCurrencyOptions;
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/merchantAccess/autoWithdrawParams", method = RequestMethod.POST, consumes = "application/json")
+  @ResponseBody
+  public void setAutoWithdrawParams(@RequestBody MerchantCurrencyOptionsDto merchantCurrencyOptionsDto) {
+    if (merchantCurrencyOptionsDto.getWithdrawAutoEnabled() == null) {
+      merchantCurrencyOptionsDto.setWithdrawAutoEnabled(false);
+    }
+    merchantService.setAutoWithdrawParams(merchantCurrencyOptionsDto);
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/merchantAccess/toggleBlock", method = RequestMethod.POST)
@@ -1055,7 +1068,7 @@ public class AdminController {
     String currentRole = (String) httpSession.getAttribute("currentRole");
     if (!currentRole.equals(UserRole.ADMINISTRATOR.name())) {
       throw new NoPermissionForOperationException();
-  }
+    }
     userService.setCurrencyPermissionsByUserId(userCurrencyOperationPermissionDtoList);
   }
 
@@ -1076,17 +1089,17 @@ public class AdminController {
 
     return value;
   }
-  
+
   @RequestMapping(value = "/2a8fy7b07dxe44/candleTable", method = RequestMethod.GET)
   public ModelAndView candleChartTable() {
     return new ModelAndView("/admin/candleTable", "currencyPairs", currencyService.getAllCurrencyPairs());
   }
-  
+
   @RequestMapping(value = "/2a8fy7b07dxe44/getCandleTableData", method = RequestMethod.GET)
   @ResponseBody
   public List<CandleChartItemDto> getCandleChartData(@RequestParam("currencyPair") Integer currencyPairId,
-                                                            @RequestParam("interval") String interval,
-                                                            @RequestParam("startTime") String startTimeString) {
+                                                     @RequestParam("interval") String interval,
+                                                     @RequestParam("startTime") String startTimeString) {
     CurrencyPair currencyPair = currencyService.findCurrencyPairById(currencyPairId);
     BackDealInterval backDealInterval = new BackDealInterval(interval);
     LocalDateTime startTime = LocalDateTime.parse(startTimeString, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));

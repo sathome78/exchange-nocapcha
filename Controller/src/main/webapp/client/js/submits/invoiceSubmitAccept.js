@@ -13,12 +13,12 @@ function acceptInvoice(callback) {
         },
         error: function (jqXHR) {
             errorInCookie(getErrorMessage(jqXHR));
-            window.location = '/2a8fy7b07dxe44/invoiceConfirmation';
+            callback();
         }
     });
 }
 
-function declineInvoice(e, id, email) {
+function declineInvoice(e, id, email, callback) {
     var event = e || window.event;
     event.stopPropagation();
     var $modal = $("#note-before-decline-modal");
@@ -45,7 +45,7 @@ function declineInvoice(e, id, email) {
                     },
                     type: 'POST',
                     success: function () {
-                        window.location = '/2a8fy7b07dxe44/invoiceConfirmation';
+                        callback();
                     }
                 });
             });

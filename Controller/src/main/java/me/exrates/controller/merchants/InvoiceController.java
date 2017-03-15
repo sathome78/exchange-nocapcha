@@ -9,8 +9,10 @@ import me.exrates.model.exceptions.UnsupportedTransactionSourceTypeNameException
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.InvoiceData;
 import me.exrates.model.vo.WithdrawData;
+import me.exrates.service.CommissionService;
 import me.exrates.service.InvoiceService;
 import me.exrates.service.MerchantService;
+import me.exrates.service.TransactionService;
 import me.exrates.service.exception.FileLoadingException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.invoice.IllegalInvoiceStatusException;
@@ -55,6 +57,12 @@ public class InvoiceController {
 
   @Autowired
   private InvoiceService invoiceService;
+  
+  @Autowired
+  private TransactionService transactionService;
+  
+  @Autowired
+  private CommissionService commissionService;
 
   @Autowired
   private MessageSource messageSource;
@@ -296,6 +304,8 @@ public class InvoiceController {
       modelAndView.addObject("error", "merchant.operationNotAvailable");
     } else {
       modelAndView.addObject("payment", creditsOperation);
+      modelAndView.addObject("merchantCommission", commissionService.getCommissionMerchant(creditsOperation.getMerchant().getName(),
+              creditsOperation.getCurrency().getName(), creditsOperation.getOperationType()));
       List<ClientBank> banks = invoiceService.findClientBanksForCurrency(creditsOperation.getCurrency().getId());
       modelAndView.addObject("banks", banks);
     }
@@ -324,6 +334,13 @@ public class InvoiceController {
       session.setAttribute("successNoty", result.get("success"));
     }
     return redirectView;
+  }
+  
+  @RequestMapping(value = "/payment/newCommission", method = GET)
+  @ResponseBody
+  public BigDecimal calculateNewCommission(@RequestParam(name = "id") Integer invoiceId,
+                                           @RequestParam(name = "actualPaymentSum") BigDecimal actualPaymentSum) {
+    return transactionService.calculateNewCommission(transactionService.findById(invoiceId), actualPaymentSum);
   }
 
 

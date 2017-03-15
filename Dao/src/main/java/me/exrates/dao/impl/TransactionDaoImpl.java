@@ -251,7 +251,7 @@ public final class TransactionDaoImpl implements TransactionDao {
         "     company_balance_before = :company_balance_before, " +
         "     company_commission_balance_before = :company_commission_balance_before, " +
         "     source_type = :source_type, " +
-        "     source_id = :source_id " +
+        "     source_id = :source_id, " +
         "     provided_modification_date = NOW() " +
         " WHERE id = :id";
     final int PROVIDED = 1;

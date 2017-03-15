@@ -123,10 +123,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/2a8fy7b07dxe44/editCmnRefRoot", "/2a8fy7b07dxe44/editLevel", "/2a8fy7b07dxe44/commissions/editCommission", "/2a8fy7b07dxe44/commissions/editMerchantCommission",
                         "/2a8fy7b07dxe44/merchantAccess/toggleBlock", "/2a8fy7b07dxe44/merchantAccess/setBlockForAll").hasAuthority(AdminAuthority.SET_CURRENCY_LIMIT.name())
                 .antMatchers("/2a8fy7b07dxe44/editCmnRefRoot", "/admin/merchantAccess/setBlockForAll").hasAuthority(UserRole.ADMINISTRATOR.name())
+                .antMatchers("/2a8fy7b07dxe44/merchantAccess/autoWithdrawParams").hasAuthority(UserRole.ADMINISTRATOR.name())
                 .antMatchers("/2a8fy7b07dxe44/editAuthorities/submit").hasAuthority(AdminAuthority.MANAGE_ACCESS.name())
                 .antMatchers("/2a8fy7b07dxe44/changeActiveBalance/submit").hasAuthority(AdminAuthority.MANUAL_BALANCE_CHANGE.name())
                 .antMatchers( "/companywallet", "/2a8fy7b07dxe44/userswallets", "/2a8fy7b07dxe44/editCurrencyLimits",
-                        "/2a8fy7b07dxe44/commissions", "/2a8fy7b07dxe44/merchantAccess").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name())
+                        "/2a8fy7b07dxe44/commissions", "/2a8fy7b07dxe44/merchantAccess").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.FIN_OPERATOR.name())
                 .antMatchers("/2a8fy7b07dxe44/candleTable, /2a8fy7b07dxe44/getCandleTableData").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
                 .antMatchers("/2a8fy7b07dxe44/**", "/2a8fy7b07dxe44").hasAnyAuthority(UserRole.ADMINISTRATOR.name(),
                 UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.FIN_OPERATOR.name())

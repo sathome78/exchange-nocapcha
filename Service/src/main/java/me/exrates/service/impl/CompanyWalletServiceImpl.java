@@ -19,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static me.exrates.model.enums.ActionType.*;
@@ -107,5 +109,14 @@ public class CompanyWalletServiceImpl implements CompanyWalletService {
         if (!companyWalletDao.update(companyWallet)) {
             throw new WalletPersistException("Failed withdraw on company wallet " + companyWallet.toString());
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CompanyWallet> getCompanyWalletsSummaryForPermittedCurrencyList(Integer requesterUserId) {
+        Set<String> permittedCurrencies = currencyService.getCurrencyPermittedNameList(requesterUserId);
+        return  getCompanyWallets().stream()
+            .filter(e->permittedCurrencies.contains(e.getCurrency().getName()))
+            .collect(Collectors.toList());
     }
 }

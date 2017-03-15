@@ -86,15 +86,17 @@ function successNoty(text) {
 
 function failNoty(jqXHR) {
     var notyMessage = getErrorMessage(jqXHR);
-    failedNote = noty({
-        text: notyMessage,
-        template: '<div class="noty_message"><div class="noty_header"><button type="button" class="close" aria-label="Close">' +
-        '<span aria-hidden="true">&times;</span></button></div><br/><span class="noty_text"></span><div class="noty_close"></div></div>',
-        type: 'error',
-        layout: 'topCenter',
-        modal: true,
-        timeout: false
-    });
+    if (notyMessage.length > 0) {
+        failedNote = noty({
+            text: notyMessage,
+            template: '<div class="noty_message"><div class="noty_header"><button type="button" class="close" aria-label="Close">' +
+            '<span aria-hidden="true">&times;</span></button></div><br/><span class="noty_text"></span><div class="noty_close"></div></div>',
+            type: 'error',
+            layout: 'topCenter',
+            modal: true,
+            timeout: false
+        });
+    }
 }
 
 function errorNoty(text) {
@@ -132,11 +134,11 @@ function deleteCookie(name) {
 function getErrorMessage(jqXHR) {
     var errorInfo = $.parseJSON(jqXHR.responseText);
     var notyMessage = errorInfo.cause;
-    var datail = errorInfo.detail ? errorInfo.detail : errorInfo.error;
-    if (!datail && !notyMessage) {
-        notyMessage = "Unknown error !";
+    var detail = errorInfo.detail ? errorInfo.detail : errorInfo.error;
+    if (!detail && !notyMessage) {
+        notyMessage = "";
     } else {
-        notyMessage = notyMessage + "</br>" + datail;
+        notyMessage = notyMessage + "</br>" + detail;
     }
     return notyMessage;
 }

@@ -198,6 +198,8 @@ public interface UserService {
 
     List<AdminAuthorityOption> getAuthorityOptionsForUser(Integer userId, Set<String> allowedAuthorities, Locale locale);
 
+    List<AdminAuthorityOption> getActiveAuthorityOptionsForUser(Integer userId);
+
     void updateAdminAuthorities(List<AdminAuthorityOption> options, Integer userId, String currentUserEmail);
 
     List<String> findNicknamesByPart(String part);

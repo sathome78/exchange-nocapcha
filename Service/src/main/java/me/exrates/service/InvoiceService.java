@@ -54,4 +54,8 @@ public interface InvoiceService {
   void updateReceiptScan(Integer invoiceId, String receiptScanPath);
 
   List<InvoiceRequestFlatForReportDto> getByDateIntervalAndRoleAndCurrency(String startDate, String endDate, List<Integer> roleIdList, List<Integer> currencyList);
+
+  List<InvoiceRequest> findAllInvoiceRequestsByCurrencyPermittedForUser(Integer requesterUserId);
+
+  List<InvoiceRequest> findAllByStatusAndByCurrencyPermittedForUser(List<Integer> invoiceRequestStatusIdList, Integer requesterUserId);
 }

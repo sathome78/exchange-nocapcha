@@ -34,6 +34,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.apache.axis.i18n.MessagesConstants.locale;
+
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -561,6 +563,14 @@ public class UserServiceImpl implements UserService {
                 .filter(option -> allowedAuthorities.contains(option.getAdminAuthority().name()))
                 .peek(option -> option.localize(messageSource, locale))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AdminAuthorityOption> getActiveAuthorityOptionsForUser(Integer userId) {
+        return userDao.getAuthorityOptionsForUser(userId).stream()
+            .filter(AdminAuthorityOption::getEnabled)
+            .collect(Collectors.toList());
     }
 
     @Override

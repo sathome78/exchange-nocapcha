@@ -60,9 +60,13 @@ public class WalletController {
     @Autowired
     private LocaleResolver localeResolver;
 
+    @Autowired
+    UserRoleService userRoleService;
+
     @RequestMapping("/companywallet")
-    public ModelAndView showCompanyWalletForTesting() {
-        List<CompanyWallet> companyWalletList = companyWalletService.getCompanyWallets();
+    public ModelAndView showCompanyWalletForTesting(Principal principal) {
+        Integer requesterUserId = userService.getIdByEmail(principal.getName());
+        List<CompanyWallet> companyWalletList = companyWalletService.getCompanyWalletsSummaryForPermittedCurrencyList(requesterUserId);
         return new ModelAndView("CompanyWallets", "companyWalletList", companyWalletList);
     }
 

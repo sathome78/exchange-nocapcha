@@ -27,6 +27,8 @@ public interface BitcoinService {
 
     List<PendingPaymentFlatDto> getBitcoinTransactions();
 
+    List<PendingPaymentFlatDto> getBitcoinTransactionsForCurrencyPermitted(Integer requesterUserId);
+
     Integer getPendingPaymentStatusByInvoiceId(Integer invoiceId);
 
     Integer clearExpiredInvoices(Integer intervalMinutes) throws Exception;

@@ -52,7 +52,7 @@
 
         <li>
             <%--Администраторы--%>
-            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}', '${admin_finOperatorEnum}')">
                 <a href="<c:url value='/2a8fy7b07dxe44/administrators'/>"><loc:message code="admin.admins"/></a>
             </sec:authorize>
         </li>
@@ -81,7 +81,7 @@
         <%--Удаление ордера--%>
         <li>
 
-            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}', '${admin_finOperatorEnum}')">
                 <a href="<c:url value='/2a8fy7b07dxe44/removeOrder'/>"><loc:message code="deleteorder.title"/></a>
             </sec:authorize>
         </li>
@@ -89,7 +89,7 @@
 
         <li>
             <%--Финансисты--%>
-            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}')">
+            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_finOperatorEnum}')">
                 <a href="#finMenu"  data-toggle="collapse"><loc:message code="admin.finance"/><i class="fa fa-caret-down"></i></a>
                 <div class="collapse" id="finMenu">
                     <ul>
@@ -121,7 +121,7 @@
 
         <li>
             <%--referral--%>
-            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}', '${admin_finOperatorEnum}')">
                 <a href="<c:url value='/2a8fy7b07dxe44/sessionControl'/>"><loc:message code="admin.sessionControl"/></a>
             </sec:authorize>
         </li>

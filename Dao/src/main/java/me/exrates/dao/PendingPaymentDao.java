@@ -39,6 +39,8 @@ public interface PendingPaymentDao {
 
   List<PendingPaymentFlatDto> findFlattenDtoByStatus(String sourceName, List<Integer> pendingPaymentStatusIdList);
 
+  List<PendingPaymentFlatDto> findFlattenDtoByStatusAndCurrencyPermittedForUser(String sourceName, List<Integer> pendingPaymentStatusIdList, Integer requesterUserId);
+
   Optional<LocalDateTime> getAndBlockBySourceTypeAndIntervalAndStatus(String sourceName, Integer intervalMinutes, List<Integer> invoiceRequestStatusIdList);
 
   void setNewStatusBySourceTypeAndDateIntervalAndStatus(String sourceName, LocalDateTime nowDate, Integer intervalMinutes, Integer newInvoiceRequestStatusId, List<Integer> invoiceRequestStatusIdList);

@@ -1,5 +1,4 @@
 <%@ page import="me.exrates.model.enums.invoice.InvoiceOperationPermission" %>
-<%@ page import="me.exrates.controller.AdminController" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@taglib uri="http://www.springframework.org/tags" prefix="loc" %>
@@ -88,21 +87,23 @@
               <loc:message code="admin.comments"/>
             </button>
           </sec:authorize>
+
           <sec:authorize access="hasAuthority('${admin_manageAccess}')">
-            <sec:authorize access="<%=AdminController.adminAnyAuthority%>">
+            <c:if test="${user.role == adminEnum || user.role == accountantEnum || user.role == admin_userEnum || user.role == admin_finOperatorEnum}">
               <button class="adminForm-toggler red-box">
                 <loc:message code="admin.accessRights"/>
               </button>
-            </sec:authorize>
-
+            </c:if>
           </sec:authorize>
 
           <sec:authorize access="hasAuthority('${admin_manageAccess}')">
-            <c:if test="${user.role == adminEnum || user.role == accountantEnum || user.role == admin_userEnum || user.role == fin_operatorEnum}">
-              <button class="adminForm-toggler red-box">
-                <loc:message code="admin.userCurrencyPermissions"/>
-              </button>
-            </c:if>
+            <sec:authorize access="hasAnyAuthority('${admin_processInvoice}','${admin_processWithdraw}')">
+              <c:if test="${user.role == adminEnum || user.role == accountantEnum || user.role == admin_userEnum || user.role == admin_finOperatorEnum}">
+                <button class="adminForm-toggler red-box">
+                  <loc:message code="admin.userCurrencyPermissions"/>
+                </button>
+              </c:if>
+            </sec:authorize>
           </sec:authorize>
         </sec:authorize>
       </div>
@@ -631,7 +632,7 @@
         <%--Access management--%>
 
         <sec:authorize access="hasAuthority('${admin_manageAccess}')">
-          <c:if test="${user.role == adminEnum || user.role == accountantEnum || user.role == admin_userEnum}">
+          <c:if test="${user.role == adminEnum || user.role == accountantEnum || user.role == admin_userEnum || user.role == admin_finOperatorEnum}">
             <div id="panel6" class="tab-pane">
               <div class="col-md-6 content">
                 <div class="text-center"><h4><loc:message code="admin.accessRights"/></h4></div>
@@ -663,108 +664,123 @@
           </c:if>
 
         </sec:authorize>
-
         <sec:authorize access="hasAuthority('${admin_manageAccess}')">
-        <c:if test="${user.role == adminEnum || user.role == accountantEnum || user.role == admin_userEnum || user.role == fin_operatorEnum}">
+        <c:if test="${user.role == adminEnum || user.role == accountantEnum || user.role == admin_userEnum || user.role == admin_finOperatorEnum}">
         <div id="panel6" class="tab-pane">
           <div id="currency_permissions">
             <c:set value="<%=InvoiceOperationPermission.NONE%>" var="none"/>
             <c:set value="<%=InvoiceOperationPermission.VIEW_ONLY%>" var="view"/>
             <c:set value="<%=InvoiceOperationPermission.ACCEPT_DECLINE%>" var="write"/>
-            <div class="col-md-6 content">
-              <div class="text-center"><h4><loc:message code="admin.userCurrencyPermissionsRefill"/></h4></div>
-              <hr/>
-              <div id="currency_permissions-refill" class="currency_permissions">
-                <table class="table table-striped currency_permissions__table">
-                  <thead>
-                  <tr>
-                    <th class="left"><loc:message code="inputoutput.currency"/></th>
-                    <th class="center">${none}</th>
-                    <th class="center">${view}</th>
-                    <th class="center">${write}</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  <c:forEach items="${usersInvoiceRefillCurrencyPermissions}" var="refillPermission">
-                    <tr class="currency_permissions__item">
-                      <td class="left">
-                          ${refillPermission.currencyName}
-                      </td>
-                      <td class="center">
-                        <input type="radio" name=refill"${refillPermission.currencyId}" value="${none}"
-                               data-userId="${refillPermission.userId}"
-                               data-id="${refillPermission.currencyId}"
-                               data-direction="REFILL"
-                               data-checked="${refillPermission.invoiceOperationPermission==none}">
-                      </td>
-                      <td class="center">
-                        <input type="radio" name=refill"${refillPermission.currencyId}" value="${view}"
-                               data-userId="${refillPermission.userId}"
-                               data-id="${refillPermission.currencyId}"
-                               data-direction="REFILL"
-                               data-checked="${refillPermission.invoiceOperationPermission==view}">
-                      </td>
-                      <td class="center">
-                        <input type="radio" name=refill"${refillPermission.currencyId}" value="${write}"
-                               data-userId="${refillPermission.userId}"
-                               data-id="${refillPermission.currencyId}"
-                               data-direction="REFILL"
-                               data-checked="${refillPermission.invoiceOperationPermission==write}">
-                      </td>
-                    </tr>
-                  </c:forEach>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <div class="col-md-6 content">
-              <div class="text-center"><h4><loc:message code="admin.userCurrencyPermissionsWithdraw"/></h4></div>
-              <hr/>
-              <div id="currency_permissions-withdraw" class="currency_permissions">
-                <table class="table table-striped currency_permissions__table">
-                  <thead>
-                  <tr>
-                    <th class="left"><loc:message code="inputoutput.currency"/></th>
-                    <th class="center">${none}</th>
-                    <th class="center">${view}</th>
-                    <th class="center">${write}</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  <c:forEach items="${usersInvoiceWithdrawCurrencyPermissions}" var="withdrawPermission">
-                    <tr class="currency_permissions__item">
-                      <td class="left">
-                          ${withdrawPermission.currencyName}
-                      </td>
-                      <td class="center">
-                        <input type="radio" name=withdraw"${withdrawPermission.currencyId}" value="${none}"
-                               data-userId="${withdrawPermission.userId}"
-                               data-id="${withdrawPermission.currencyId}"
-                               data-direction="WITHDRAW"
-                               data-checked="${withdrawPermission.invoiceOperationPermission==none}">
-                      </td>
-                      <td class="center">
-                        <input type="radio" name=withdraw"${withdrawPermission.currencyId}" value="${view}"
-                               data-userId="${withdrawPermission.userId}"
-                               data-id="${withdrawPermission.currencyId}"
-                               data-direction="WITHDRAW"
-                               data-checked="${withdrawPermission.invoiceOperationPermission==view}">
-                      </td>
-                      <td class="center">
-                        <input type="radio" name=withdraw"${withdrawPermission.currencyId}" value="${write}"
-                               data-userId="${withdrawPermission.userId}"
-                               data-id="${withdrawPermission.currencyId}"
-                               data-direction="WITHDRAW"
-                               data-checked="${withdrawPermission.invoiceOperationPermission==write}">
-                      </td>
-                    </tr>
-                  </c:forEach>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <div class="raw">
+            <sec:authorize access="hasAuthority('${admin_processInvoice}')">
               <div class="col-md-6 content">
+                <c:if test="${!fn:contains(userActiveAuthorityOptions, admin_processInvoice)}">
+                  <c:set value="disabled" var="refillDisabledAttrib"/>
+                </c:if>
+                <div class="text-center"><h4><loc:message code="admin.userCurrencyPermissionsRefill"/></h4></div>
+                <hr/>
+                <div id="currency_permissions-refill" class="currency_permissions">
+                  <table class="table table-striped currency_permissions__table">
+                    <thead>
+                    <tr>
+                      <th class="left"><loc:message code="inputoutput.currency"/></th>
+                      <th class="center">${none}</th>
+                      <th class="center">${view}</th>
+                      <th class="center">${write}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <c:forEach items="${usersInvoiceRefillCurrencyPermissions}" var="refillPermission">
+                      <tr class="currency_permissions__item">
+                        <td class="left">
+                            ${refillPermission.currencyName}
+                        </td>
+                        <td class="center">
+                          <input type="radio" name=refill"${refillPermission.currencyId}" value="${none}"
+                                 data-userId="${refillPermission.userId}"
+                                 data-id="${refillPermission.currencyId}"
+                                 data-direction="REFILL"
+                                 data-checked="${refillPermission.invoiceOperationPermission==none}"
+                            <c:out value="${refillDisabledAttrib}"/>>
+                        </td>
+                        <td class="center">
+                          <input type="radio" name=refill"${refillPermission.currencyId}" value="${view}"
+                                 data-userId="${refillPermission.userId}"
+                                 data-id="${refillPermission.currencyId}"
+                                 data-direction="REFILL"
+                                 data-checked="${refillPermission.invoiceOperationPermission==view}"
+                            <c:out value="${refillDisabledAttrib}"/>>
+                        </td>
+                        <td class="center">
+                          <input type="radio" name=refill"${refillPermission.currencyId}" value="${write}"
+                                 data-userId="${refillPermission.userId}"
+                                 data-id="${refillPermission.currencyId}"
+                                 data-direction="REFILL"
+                                 data-checked="${refillPermission.invoiceOperationPermission==write}"
+                            <c:out value="${refillDisabledAttrib}"/>>
+                        </td>
+                      </tr>
+                    </c:forEach>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </sec:authorize>
+            <sec:authorize access="hasAuthority('${admin_processWithdraw}')">
+              <div class="col-md-6 content">
+                <c:if test="${!fn:contains(userActiveAuthorityOptions, admin_processWithdraw)}">
+                  <c:set value="disabled" var="withdrawDisabledAttrib"/>
+                </c:if>
+                <div class="text-center"><h4><loc:message code="admin.userCurrencyPermissionsWithdraw"/></h4></div>
+                <hr/>
+                <div id="currency_permissions-withdraw" class="currency_permissions">
+                  <table class="table table-striped currency_permissions__table">
+                    <thead>
+                    <tr>
+                      <th class="left"><loc:message code="inputoutput.currency"/></th>
+                      <th class="center">${none}</th>
+                      <th class="center">${view}</th>
+                      <th class="center">${write}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <c:forEach items="${usersInvoiceWithdrawCurrencyPermissions}" var="withdrawPermission">
+                      <tr class="currency_permissions__item">
+                        <td class="left">
+                            ${withdrawPermission.currencyName}
+                        </td>
+                        <td class="center">
+                          <input type="radio" name=withdraw"${withdrawPermission.currencyId}" value="${none}"
+                                 data-userId="${withdrawPermission.userId}"
+                                 data-id="${withdrawPermission.currencyId}"
+                                 data-direction="WITHDRAW"
+                                 data-checked="${withdrawPermission.invoiceOperationPermission==none}"
+                            <c:out value="${withdrawDisabledAttrib}"/>>
+                        </td>
+                        <td class="center">
+                          <input type="radio" name=withdraw"${withdrawPermission.currencyId}" value="${view}"
+                                 data-userId="${withdrawPermission.userId}"
+                                 data-id="${withdrawPermission.currencyId}"
+                                 data-direction="WITHDRAW"
+                                 data-checked="${withdrawPermission.invoiceOperationPermission==view}"
+                            <c:out value="${withdrawDisabledAttrib}"/>>
+                        </td>
+                        <td class="center">
+                          <input type="radio" name=withdraw"${withdrawPermission.currencyId}" value="${write}"
+                                 data-userId="${withdrawPermission.userId}"
+                                 data-id="${withdrawPermission.currencyId}"
+                                 data-direction="WITHDRAW"
+                                 data-checked="${withdrawPermission.invoiceOperationPermission==write}"
+                            <c:out value="${withdrawDisabledAttrib}"/>>
+                        </td>
+                      </tr>
+                    </c:forEach>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </sec:authorize>
+            <div class="raw">
+              <div class="col-md-12 content">
                 <div class="currency_permissions__buttons">
                   <button class="currency_permissions_btnOk blue-box"><loc:message code="admin.submit"/></button>
                 </div>

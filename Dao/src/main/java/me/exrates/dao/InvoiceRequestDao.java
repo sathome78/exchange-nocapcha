@@ -54,4 +54,10 @@ public interface InvoiceRequestDao {
   void updateInvoiceRequestStatus(Integer invoiceRequestId, InvoiceRequestStatusEnum invoiceRequestStatus);
 
   List<InvoiceRequestFlatForReportDto> findAllByDateIntervalAndRoleAndCurrency(String startDate, String endDate, List<Integer> roleIdList, List<Integer> currencyList);
+
+  List<InvoiceRequest> findByCurrencyPermittedForUser(Integer requesterUserId);
+
+  List<InvoiceRequest> findByStatusAndByCurrencyPermittedForUser(
+      List<Integer> invoiceRequestStatusIdList,
+      Integer requesterUserId);
 }

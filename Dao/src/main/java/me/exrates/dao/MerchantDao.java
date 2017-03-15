@@ -17,33 +17,35 @@ import java.util.Locale;
  */
 public interface MerchantDao {
 
-    Merchant create(Merchant merchant);
+  Merchant create(Merchant merchant);
 
-    Merchant findById(int id);
+  Merchant findById(int id);
 
-    Merchant findByName(String name);
+  Merchant findByName(String name);
 
-    List<Merchant> findAll();
+  List<Merchant> findAll();
 
-    List<Merchant> findAllByCurrency(int currencyId);
+  List<Merchant> findAllByCurrency(int currencyId);
 
-    BigDecimal getMinSum(int merchant, int currency);
+  BigDecimal getMinSum(int merchant, int currency);
 
-    List<MerchantCurrency> findAllByCurrencies(List<Integer> currenciesId, OperationType operationType);
+  List<MerchantCurrency> findAllByCurrencies(List<Integer> currenciesId, OperationType operationType);
 
-    List<MerchantCurrencyApiDto> findAllMerchantCurrencies(Integer currencyId, UserRole userRole);
+  List<MerchantCurrencyApiDto> findAllMerchantCurrencies(Integer currencyId, UserRole userRole);
 
-    List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions();
+  List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions();
 
-    List<MyInputOutputHistoryDto> findMyInputOutputHistoryByOperationType(String email, Integer offset, Integer limit, List<Integer> operationTypeIdList, Locale locale);
+  List<MyInputOutputHistoryDto> findMyInputOutputHistoryByOperationType(String email, Integer offset, Integer limit, List<Integer> operationTypeIdList, Locale locale);
 
-    Integer getInputRequests(int merchantId, String email);
+  Integer getInputRequests(int merchantId, String email);
 
-    void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType);
+  void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType);
 
-    void setBlockForAll(OperationType operationType, boolean blockStatus);
+  void setBlockForAll(OperationType operationType, boolean blockStatus);
 
-    void setBlockForMerchant(Integer merchantId, Integer currencyId, OperationType operationType, boolean blockStatus);
+  void setBlockForMerchant(Integer merchantId, Integer currencyId, OperationType operationType, boolean blockStatus);
 
-    boolean checkMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType);
+  boolean checkMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType);
+
+  void setAutoWithdrawParamsByMerchantAndCurrency(Integer merchantId, Integer currencyId, Boolean withdrawAutoEnabled, Integer withdrawAutoDelaySeconds, BigDecimal withdrawAutoThresholdAmount);
 }

@@ -93,4 +93,6 @@ public interface MerchantService {
     void setBlockForMerchant(Integer merchantId, Integer currencyId, OperationType operationType, boolean blockStatus);
 
   List<WithdrawRequestFlatForReportDto> findAllByDateIntervalAndRoleAndCurrency(String startDate, String endDate, List<Integer> roleIdList, List<Integer> currencyList);
+
+    void setAutoWithdrawParams(MerchantCurrencyOptionsDto merchantCurrencyOptionsDto);
 }

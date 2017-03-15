@@ -6,7 +6,6 @@ import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
-import me.exrates.model.enums.BusinessUserRoleEnum;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
@@ -22,9 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.math.BigDecimal.ROUND_HALF_UP;
@@ -57,6 +54,7 @@ public class CurrencyServiceImpl implements CurrencyService {
     private static final int DEFAULT_PRECISION = 2;
 
     @Override
+    @Transactional(readOnly = true)
     public String getCurrencyName(int currencyId) {
         return currencyDao.getCurrencyName(currencyId);
     }
@@ -176,4 +174,15 @@ public class CurrencyServiceImpl implements CurrencyService {
         Integer userId = userService.getIdByEmail(userEmail);
         return findWithOperationPermissionByUserAndDirection(userId, direction);
     }
+    
+    @Override
+    public Optional<String> getWarningForCurrency(Integer currencyId) {
+      return currencyDao.getWarningForCurrency(currencyId);
+    }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Currency getById(int id){
+    return currencyDao.findById(id);
+  }
 }

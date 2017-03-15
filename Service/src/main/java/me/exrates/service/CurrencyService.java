@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -58,4 +59,8 @@ public interface CurrencyService {
   List<UserCurrencyOperationPermissionDto> getCurrencyPermittedOperationList(Integer userId);
 
   Set<String> getCurrencyPermittedNameList(Integer userId);
+  
+  Optional<String> getWarningForCurrency(Integer currencyId);
+
+  Currency getById(int id);
 }

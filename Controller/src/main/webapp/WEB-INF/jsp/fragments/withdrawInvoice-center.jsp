@@ -30,7 +30,7 @@
                             </tr>
                             <tr>
                                 <td><loc:message code="transaction.commission"/></td>
-                                <td><fmt:formatNumber value="${creditsOperation.commission.value}" pattern="###,##0.0#######"/></td>
+                                <td><fmt:formatNumber value="${creditsOperation.commission.value.add(merchantCommission)}" pattern="###,##0.0#######"/></td>
                             </tr>
                             <tr>
                                 <td><loc:message code="transaction.commissionAmount"/></td>

@@ -404,4 +404,41 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
     });
   }
 
+  @Override
+  public List<InvoiceRequest> findByCurrencyPermittedForUser(Integer requesterUserId) {
+    final String sql = SELECT_ALL +
+        " JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
+        "				(IOP.currency_id=TRANSACTION.currency_id) " +
+        "				AND (IOP.user_id=:requester_user_id) " +
+        "				AND (IOP.operation_direction=:operation_direction) " +
+        "  ORDER BY acceptance_time IS NULL DESC, IF(acceptance_time IS NULL, TRANSACTION.datetime ,acceptance_time) DESC";
+    final Map<String, Object> params = new HashMap<String, Object>() {{
+      put("requester_user_id", requesterUserId);
+      put("operation_direction", "REFILL");
+    }};
+    return parameterJdbcTemplate.query(sql, params, invoiceRequestRowMapper);
+  }
+
+  @Override
+  public List<InvoiceRequest> findByStatusAndByCurrencyPermittedForUser(
+      List<Integer> invoiceRequestStatusIdList,
+      Integer requesterUserId) {
+    String sql = SELECT_ALL +
+        " JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
+        "				(IOP.currency_id=TRANSACTION.currency_id) " +
+        "				AND (IOP.user_id=:requester_user_id) " +
+        "				AND (IOP.operation_direction=:operation_direction) " +
+        " WHERE invoice_request_status_id IN (:invoice_request_status_id_list) ";
+    final Map<String, Object> params = new HashMap<String, Object>() {{
+      put("invoice_request_status_id_list", invoiceRequestStatusIdList);
+      put("requester_user_id", requesterUserId);
+      put("operation_direction", "REFILL");
+    }};
+    try {
+      return parameterJdbcTemplate.query(sql, params, invoiceRequestRowMapper);
+    } catch (EmptyResultDataAccessException e) {
+      return Collections.EMPTY_LIST;
+    }
+  }
+
 }

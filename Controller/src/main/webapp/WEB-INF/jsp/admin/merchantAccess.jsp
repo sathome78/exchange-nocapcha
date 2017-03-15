@@ -35,6 +35,9 @@
                                 <th><loc:message code="withdrawal.currency"/> </th>
                                 <th data-operationtype="INPUT"><loc:message code="transaction.operationTypeINPUT"/></th>
                                 <th><loc:message code="transaction.operationTypeOUTPUT"/></th>
+                                <th><loc:message code="merchant.withdrawAuto"/></th>
+                                <th><loc:message code="merchant.withdrawAutoDelay"/></th>
+                                <th><loc:message code="merchant.withdrawAutoThreshold"/></th>
                             </tr>
                             </thead>
                             <tbody>
@@ -68,4 +71,7 @@
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>
 </body>
+
+<%@include file='../fragments/modal/merchant_auto_withdraw_params.jsp'%>
+
 </html>

@@ -33,8 +33,6 @@ public interface WalletService {
 
     List<MyWalletsStatisticsDto> getAllWalletsForUserReduced(CacheData cacheData, String email, Locale locale);
 
-    List<Currency> getCurrencyList();
-
     int getWalletId(int userId, int currencyId);
 
     BigDecimal getWalletABalance(int walletId);

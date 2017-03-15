@@ -328,4 +328,18 @@ public class InvoiceServiceImpl implements InvoiceService {
     return invoiceRequestDao.findAllByDateIntervalAndRoleAndCurrency(startDate, endDate, roleIdList, currencyList);
   }
 
+  @Override
+  @Transactional(readOnly = true)
+  public List<InvoiceRequest> findAllInvoiceRequestsByCurrencyPermittedForUser(Integer requesterUserId) {
+    return invoiceRequestDao.findByCurrencyPermittedForUser(requesterUserId);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<InvoiceRequest> findAllByStatusAndByCurrencyPermittedForUser(
+      List<Integer> invoiceRequestStatusIdList,
+      Integer requesterUserId) {
+    return invoiceRequestDao.findByStatusAndByCurrencyPermittedForUser(invoiceRequestStatusIdList, requesterUserId);
+  }
+
 }

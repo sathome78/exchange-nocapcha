@@ -19,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -27,8 +26,6 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Stream;
@@ -123,115 +120,119 @@ public class MerchantDaoImpl implements MerchantDao {
     return jdbcTemplate.queryForObject(sql, params, BigDecimal.class);
   }
 
-    @Override
-    public List<MerchantCurrency> findAllByCurrencies(List<Integer> currenciesId, OperationType operationType) {
-        String blockClause = "";
-        if (operationType == OperationType.INPUT) {
-            blockClause = " AND MERCHANT_CURRENCY.refill_block = 0";
-        } else if (operationType == OperationType.OUTPUT) {
-            blockClause = " AND MERCHANT_CURRENCY.withdraw_block = 0";
-        }
-        final String sql = "SELECT MERCHANT.id as merchant_id,MERCHANT.name,MERCHANT.description,MERCHANT_CURRENCY.min_sum, " +
-                " MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_input_commission, MERCHANT_CURRENCY.merchant_output_commission, " +
-                " MERCHANT_CURRENCY.merchant_fixed_commission " +
-                " FROM MERCHANT JOIN MERCHANT_CURRENCY " +
-                " ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id WHERE MERCHANT_CURRENCY.currency_id in (:currenciesId)" +
-                blockClause +
-                " order by MERCHANT.merchant_order";
-
-        try {
-            return jdbcTemplate.query(sql, Collections.singletonMap("currenciesId",currenciesId), (resultSet, i) -> {
-                MerchantCurrency merchantCurrency = new MerchantCurrency();
-                merchantCurrency.setMerchantId(resultSet.getInt("merchant_id"));
-                merchantCurrency.setName(resultSet.getString("name"));
-                merchantCurrency.setDescription(resultSet.getString("description"));
-                merchantCurrency.setMinSum(resultSet.getBigDecimal("min_sum"));
-                merchantCurrency.setCurrencyId(resultSet.getInt("currency_id"));
-                merchantCurrency.setInputCommission(resultSet.getBigDecimal("merchant_input_commission"));
-                merchantCurrency.setOutputCommission(resultSet.getBigDecimal("merchant_output_commission"));
-                merchantCurrency.setFixedMinCommission(resultSet.getBigDecimal("merchant_fixed_commission"));
-                final String sqlInner = "SELECT * FROM birzha.MERCHANT_IMAGE where merchant_id = :merchant_id" +
-                        " AND currency_id = :currency_id;";
-                Map<String, Integer> params = new HashMap<String, Integer>();
-                params.put("merchant_id", resultSet.getInt("merchant_id"));
-                params.put("currency_id", resultSet.getInt("currency_id"));
-                merchantCurrency.setListMerchantImage(jdbcTemplate.query(sqlInner, params, new BeanPropertyRowMapper<>(MerchantImage.class)));
-                return merchantCurrency;
-            });
-        } catch (EmptyResultDataAccessException e) {
-            return null;
-        }
+  @Override
+  public List<MerchantCurrency> findAllByCurrencies(List<Integer> currenciesId, OperationType operationType) {
+    String blockClause = "";
+    if (operationType == OperationType.INPUT) {
+      blockClause = " AND MERCHANT_CURRENCY.refill_block = 0";
+    } else if (operationType == OperationType.OUTPUT) {
+      blockClause = " AND MERCHANT_CURRENCY.withdraw_block = 0";
     }
+    final String sql = "SELECT MERCHANT.id as merchant_id,MERCHANT.name,MERCHANT.description,MERCHANT_CURRENCY.min_sum, " +
+        " MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_input_commission, MERCHANT_CURRENCY.merchant_output_commission, " +
+        " MERCHANT_CURRENCY.merchant_fixed_commission " +
+        " FROM MERCHANT JOIN MERCHANT_CURRENCY " +
+        " ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id WHERE MERCHANT_CURRENCY.currency_id in (:currenciesId)" +
+        blockClause +
+        " order by MERCHANT.merchant_order";
 
-    @Override
-    public List<MerchantCurrencyApiDto> findAllMerchantCurrencies(Integer currencyId, UserRole userRole) {
-        String whereClause = currencyId == null ? "" : " WHERE MERCHANT_CURRENCY.currency_id = :currency_id";
-
-        final String sql = "SELECT MERCHANT.id as merchant_id, MERCHANT.name, " +
-                "                 MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_input_commission, MERCHANT_CURRENCY.merchant_output_commission, " +
-                "                 MERCHANT_CURRENCY.withdraw_block, MERCHANT_CURRENCY.refill_block, LIMIT_WITHDRAW.min_sum AS min_withdraw_sum, " +
-                "                 LIMIT_REFILL.min_sum AS min_refill_sum, MERCHANT_CURRENCY.merchant_fixed_commission " +
-                "                FROM MERCHANT " +
-                "                JOIN MERCHANT_CURRENCY ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id " +
-                "                JOIN CURRENCY_LIMIT AS LIMIT_WITHDRAW ON MERCHANT_CURRENCY.currency_id = LIMIT_WITHDRAW.currency_id " +
-                "                                  AND LIMIT_WITHDRAW.operation_type_id = 2 AND LIMIT_WITHDRAW.user_role_id = :user_role_id " +
-                "                  JOIN CURRENCY_LIMIT AS LIMIT_REFILL ON MERCHANT_CURRENCY.currency_id = LIMIT_REFILL.currency_id " +
-                "                                  AND LIMIT_REFILL.operation_type_id = 1 AND LIMIT_REFILL.user_role_id = :user_role_id " + whereClause;
-        Map<String, Integer> paramMap = new HashMap<String, Integer>() {{
-            put("currency_id", currencyId);
-            put("user_role_id", userRole.getRole());
-        }};
-
-        try {
-            return jdbcTemplate.query(sql, paramMap, (resultSet, i) -> {
-                MerchantCurrencyApiDto merchantCurrencyApiDto = new MerchantCurrencyApiDto();
-                merchantCurrencyApiDto.setMerchantId(resultSet.getInt("merchant_id"));
-                merchantCurrencyApiDto.setCurrencyId(resultSet.getInt("currency_id"));
-                merchantCurrencyApiDto.setName(resultSet.getString("name"));
-                merchantCurrencyApiDto.setMinInputSum(resultSet.getBigDecimal("min_refill_sum"));
-                merchantCurrencyApiDto.setMinOutputSum(resultSet.getBigDecimal("min_withdraw_sum"));
-                merchantCurrencyApiDto.setInputCommission(resultSet.getBigDecimal("merchant_input_commission"));
-                merchantCurrencyApiDto.setOutputCommission(resultSet.getBigDecimal("merchant_output_commission"));
-                merchantCurrencyApiDto.setIsWithdrawBlocked(resultSet.getBoolean("withdraw_block"));
-                merchantCurrencyApiDto.setIsRefillBlocked(resultSet.getBoolean("refill_block"));
-                merchantCurrencyApiDto.setMinFixedCommission(resultSet.getBigDecimal("merchant_fixed_commission"));
-                final String sqlInner = "SELECT id, image_path FROM birzha.MERCHANT_IMAGE where merchant_id = :merchant_id" +
-                        " AND currency_id = :currency_id;";
-                Map<String, Integer> params = new HashMap<String, Integer>();
-                params.put("merchant_id", resultSet.getInt("merchant_id"));
-                params.put("currency_id", resultSet.getInt("currency_id"));
-                merchantCurrencyApiDto.setListMerchantImage(jdbcTemplate.query(sqlInner, params, new BeanPropertyRowMapper<>(MerchantImageShortenedDto.class)));
-                return merchantCurrencyApiDto;
-            });
-        } catch (EmptyResultDataAccessException e) {
-            return Collections.EMPTY_LIST;
-        }
+    try {
+      return jdbcTemplate.query(sql, Collections.singletonMap("currenciesId", currenciesId), (resultSet, i) -> {
+        MerchantCurrency merchantCurrency = new MerchantCurrency();
+        merchantCurrency.setMerchantId(resultSet.getInt("merchant_id"));
+        merchantCurrency.setName(resultSet.getString("name"));
+        merchantCurrency.setDescription(resultSet.getString("description"));
+        merchantCurrency.setMinSum(resultSet.getBigDecimal("min_sum"));
+        merchantCurrency.setCurrencyId(resultSet.getInt("currency_id"));
+        merchantCurrency.setInputCommission(resultSet.getBigDecimal("merchant_input_commission"));
+        merchantCurrency.setOutputCommission(resultSet.getBigDecimal("merchant_output_commission"));
+        merchantCurrency.setFixedMinCommission(resultSet.getBigDecimal("merchant_fixed_commission"));
+        final String sqlInner = "SELECT * FROM birzha.MERCHANT_IMAGE where merchant_id = :merchant_id" +
+            " AND currency_id = :currency_id;";
+        Map<String, Integer> params = new HashMap<String, Integer>();
+        params.put("merchant_id", resultSet.getInt("merchant_id"));
+        params.put("currency_id", resultSet.getInt("currency_id"));
+        merchantCurrency.setListMerchantImage(jdbcTemplate.query(sqlInner, params, new BeanPropertyRowMapper<>(MerchantImage.class)));
+        return merchantCurrency;
+      });
+    } catch (EmptyResultDataAccessException e) {
+      return null;
     }
+  }
 
-    @Override
-    public List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions() {
-        final String sql = "SELECT MERCHANT.id as merchant_id, MERCHANT.name AS merchant_name, " +
-                " CURRENCY.id AS currency_id, CURRENCY.name AS currency_name, MERCHANT_CURRENCY.merchant_input_commission," +
-                " MERCHANT_CURRENCY.merchant_output_commission, MERCHANT_CURRENCY.withdraw_block, MERCHANT_CURRENCY.refill_block, " +
-                " MERCHANT_CURRENCY.merchant_fixed_commission " +
-                " FROM MERCHANT " +
-                "JOIN MERCHANT_CURRENCY ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id " +
-                "JOIN CURRENCY ON MERCHANT_CURRENCY.currency_id = CURRENCY.id AND CURRENCY.hidden != 1 " +
-                "ORDER BY merchant_id, currency_id";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> {
-            MerchantCurrencyOptionsDto dto = new MerchantCurrencyOptionsDto();
-            dto.setMerchantId(rs.getInt("merchant_id"));
-            dto.setCurrencyId(rs.getInt("currency_id"));
-            dto.setMerchantName(rs.getString("merchant_name"));
-            dto.setCurrencyName(rs.getString("currency_name"));
-            dto.setInputCommission(rs.getBigDecimal("merchant_input_commission"));
-            dto.setOutputCommission(rs.getBigDecimal("merchant_output_commission"));
-            dto.setIsRefillBlocked(rs.getBoolean("refill_block"));
-            dto.setIsWithdrawBlocked(rs.getBoolean("withdraw_block"));
-            dto.setMinFixedCommission(rs.getBigDecimal("merchant_fixed_commission"));
-            return dto;
-        });
+  @Override
+  public List<MerchantCurrencyApiDto> findAllMerchantCurrencies(Integer currencyId, UserRole userRole) {
+    String whereClause = currencyId == null ? "" : " WHERE MERCHANT_CURRENCY.currency_id = :currency_id";
+
+    final String sql = "SELECT MERCHANT.id as merchant_id, MERCHANT.name, " +
+        "                 MERCHANT_CURRENCY.currency_id, MERCHANT_CURRENCY.merchant_input_commission, MERCHANT_CURRENCY.merchant_output_commission, " +
+        "                 MERCHANT_CURRENCY.withdraw_block, MERCHANT_CURRENCY.refill_block, LIMIT_WITHDRAW.min_sum AS min_withdraw_sum, " +
+        "                 LIMIT_REFILL.min_sum AS min_refill_sum, MERCHANT_CURRENCY.merchant_fixed_commission " +
+        "                FROM MERCHANT " +
+        "                JOIN MERCHANT_CURRENCY ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id " +
+        "                JOIN CURRENCY_LIMIT AS LIMIT_WITHDRAW ON MERCHANT_CURRENCY.currency_id = LIMIT_WITHDRAW.currency_id " +
+        "                                  AND LIMIT_WITHDRAW.operation_type_id = 2 AND LIMIT_WITHDRAW.user_role_id = :user_role_id " +
+        "                  JOIN CURRENCY_LIMIT AS LIMIT_REFILL ON MERCHANT_CURRENCY.currency_id = LIMIT_REFILL.currency_id " +
+        "                                  AND LIMIT_REFILL.operation_type_id = 1 AND LIMIT_REFILL.user_role_id = :user_role_id " + whereClause;
+    Map<String, Integer> paramMap = new HashMap<String, Integer>() {{
+      put("currency_id", currencyId);
+      put("user_role_id", userRole.getRole());
+    }};
+
+    try {
+      return jdbcTemplate.query(sql, paramMap, (resultSet, i) -> {
+        MerchantCurrencyApiDto merchantCurrencyApiDto = new MerchantCurrencyApiDto();
+        merchantCurrencyApiDto.setMerchantId(resultSet.getInt("merchant_id"));
+        merchantCurrencyApiDto.setCurrencyId(resultSet.getInt("currency_id"));
+        merchantCurrencyApiDto.setName(resultSet.getString("name"));
+        merchantCurrencyApiDto.setMinInputSum(resultSet.getBigDecimal("min_refill_sum"));
+        merchantCurrencyApiDto.setMinOutputSum(resultSet.getBigDecimal("min_withdraw_sum"));
+        merchantCurrencyApiDto.setInputCommission(resultSet.getBigDecimal("merchant_input_commission"));
+        merchantCurrencyApiDto.setOutputCommission(resultSet.getBigDecimal("merchant_output_commission"));
+        merchantCurrencyApiDto.setIsWithdrawBlocked(resultSet.getBoolean("withdraw_block"));
+        merchantCurrencyApiDto.setIsRefillBlocked(resultSet.getBoolean("refill_block"));
+        merchantCurrencyApiDto.setMinFixedCommission(resultSet.getBigDecimal("merchant_fixed_commission"));
+        final String sqlInner = "SELECT id, image_path FROM birzha.MERCHANT_IMAGE where merchant_id = :merchant_id" +
+            " AND currency_id = :currency_id;";
+        Map<String, Integer> params = new HashMap<String, Integer>();
+        params.put("merchant_id", resultSet.getInt("merchant_id"));
+        params.put("currency_id", resultSet.getInt("currency_id"));
+        merchantCurrencyApiDto.setListMerchantImage(jdbcTemplate.query(sqlInner, params, new BeanPropertyRowMapper<>(MerchantImageShortenedDto.class)));
+        return merchantCurrencyApiDto;
+      });
+    } catch (EmptyResultDataAccessException e) {
+      return Collections.EMPTY_LIST;
     }
+  }
+
+  @Override
+  public List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions() {
+    final String sql = "SELECT MERCHANT.id as merchant_id, MERCHANT.name AS merchant_name, " +
+        " CURRENCY.id AS currency_id, CURRENCY.name AS currency_name, MERCHANT_CURRENCY.merchant_input_commission," +
+        " MERCHANT_CURRENCY.merchant_output_commission, MERCHANT_CURRENCY.withdraw_block, MERCHANT_CURRENCY.refill_block, " +
+        " MERCHANT_CURRENCY.merchant_fixed_commission, " +
+        " MERCHANT_CURRENCY.withdraw_auto_enabled, MERCHANT_CURRENCY.withdraw_auto_delay_seconds, MERCHANT_CURRENCY.withdraw_auto_threshold_amount " +
+        " FROM MERCHANT " +
+        "JOIN MERCHANT_CURRENCY ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id " +
+        "JOIN CURRENCY ON MERCHANT_CURRENCY.currency_id = CURRENCY.id AND CURRENCY.hidden != 1 " +
+        "ORDER BY merchant_id, currency_id";
+    return jdbcTemplate.query(sql, (rs, rowNum) -> {
+      MerchantCurrencyOptionsDto dto = new MerchantCurrencyOptionsDto();
+      dto.setMerchantId(rs.getInt("merchant_id"));
+      dto.setCurrencyId(rs.getInt("currency_id"));
+      dto.setMerchantName(rs.getString("merchant_name"));
+      dto.setCurrencyName(rs.getString("currency_name"));
+      dto.setInputCommission(rs.getBigDecimal("merchant_input_commission"));
+      dto.setOutputCommission(rs.getBigDecimal("merchant_output_commission"));
+      dto.setIsRefillBlocked(rs.getBoolean("refill_block"));
+      dto.setIsWithdrawBlocked(rs.getBoolean("withdraw_block"));
+      dto.setMinFixedCommission(rs.getBigDecimal("merchant_fixed_commission"));
+      dto.setWithdrawAutoEnabled(rs.getBoolean("withdraw_auto_enabled"));
+      dto.setWithdrawAutoDelaySeconds(rs.getInt("withdraw_auto_delay_seconds"));
+      dto.setWithdrawAutoThresholdAmount(rs.getBigDecimal("withdraw_auto_threshold_amount"));
+      return dto;
+    });
+  }
 
 
   @Override
@@ -286,15 +287,15 @@ public class MerchantDaoImpl implements MerchantDao {
       myInputOutputHistoryDto.setUserId(rs.getInt("user_id"));
       myInputOutputHistoryDto.setBankAccount(rs.getString("bank_account"));
       Stream.of(rs.getObject("invoice_request_status_id"),
-                rs.getObject("pending_payment_status_id"),
-                rs.getObject("withdraw_request_status_id")).filter(Objects::nonNull).peek(log::debug).findFirst()
-              .ifPresent(obj -> myInputOutputHistoryDto.setInvoiceRequestStatusId((Integer) obj));
+          rs.getObject("pending_payment_status_id"),
+          rs.getObject("withdraw_request_status_id")).filter(Objects::nonNull).peek(log::debug).findFirst()
+          .ifPresent(obj -> myInputOutputHistoryDto.setInvoiceRequestStatusId((Integer) obj));
 
       TransactionSourceType transactionSourceType = TransactionSourceType.convert(rs.getString("source_type"));
       myInputOutputHistoryDto.setSourceType(transactionSourceType.name());
       /**/
       Boolean confirmationRequired = false;
-      if (myInputOutputHistoryDto.getInvoiceRequestStatusId() != null){
+      if (myInputOutputHistoryDto.getInvoiceRequestStatusId() != null) {
         if (transactionSourceType == INVOICE) {
           confirmationRequired = InvoiceRequestStatusEnum.convert(myInputOutputHistoryDto.getInvoiceRequestStatusId()).availableForAction(CONFIRM);
         } else if (transactionSourceType == BTC_INVOICE) {
@@ -304,7 +305,7 @@ public class MerchantDaoImpl implements MerchantDao {
       myInputOutputHistoryDto.setConfirmationRequired(confirmationRequired);
       /**/
       Boolean mayBeRevoked = false;
-      if (myInputOutputHistoryDto.getInvoiceRequestStatusId() != null){
+      if (myInputOutputHistoryDto.getInvoiceRequestStatusId() != null) {
         if (transactionSourceType == INVOICE) {
           mayBeRevoked = InvoiceRequestStatusEnum.convert(myInputOutputHistoryDto.getInvoiceRequestStatusId()).availableForAction(REVOKE);
         } else if (transactionSourceType == BTC_INVOICE) {
@@ -313,19 +314,19 @@ public class MerchantDaoImpl implements MerchantDao {
       }
       myInputOutputHistoryDto.setMayBeRevoked(mayBeRevoked);
       /**/
-        LocalDateTime statusUpdateDate;
-        if (rs.getTimestamp("invoice_request_status_update_date") == null) {
-            statusUpdateDate = rs.getTimestamp("pending_payment_status_update_date") == null ? null :
-                    rs.getTimestamp("pending_payment_status_update_date").toLocalDateTime();
-        } else {
-            statusUpdateDate = rs.getTimestamp("invoice_request_status_update_date").toLocalDateTime();
-        }
+      LocalDateTime statusUpdateDate;
+      if (rs.getTimestamp("invoice_request_status_update_date") == null) {
+        statusUpdateDate = rs.getTimestamp("pending_payment_status_update_date") == null ? null :
+            rs.getTimestamp("pending_payment_status_update_date").toLocalDateTime();
+      } else {
+        statusUpdateDate = rs.getTimestamp("invoice_request_status_update_date").toLocalDateTime();
+      }
       myInputOutputHistoryDto.setStatusUpdateDate(statusUpdateDate);
       myInputOutputHistoryDto.setUserFullName(rs.getString("user_full_name"));
       myInputOutputHistoryDto.setRemark(rs.getString("remark"));
-      myInputOutputHistoryDto.setConfirmation((Integer)rs.getObject("confirmation"));
+      myInputOutputHistoryDto.setConfirmation((Integer) rs.getObject("confirmation"));
       log.debug(String.format("id: %s, status: %s, source: %s, optype: %s", myInputOutputHistoryDto.getTransactionId(), myInputOutputHistoryDto.getInvoiceRequestStatusId(),
-              myInputOutputHistoryDto.getSourceType(), myInputOutputHistoryDto.getOperationType()));
+          myInputOutputHistoryDto.getSourceType(), myInputOutputHistoryDto.getOperationType()));
       return myInputOutputHistoryDto;
     });
   }
@@ -399,6 +400,29 @@ public class MerchantDaoImpl implements MerchantDao {
         throw new IllegalArgumentException("Incorrect operation type!");
     }
     return blockField;
+  }
+
+  @Override
+  public void setAutoWithdrawParamsByMerchantAndCurrency(
+      Integer merchantId,
+      Integer currencyId,
+      Boolean withdrawAutoEnabled,
+      Integer withdrawAutoDelaySeconds,
+      BigDecimal withdrawAutoThresholdAmount
+  ) {
+    String sql = "UPDATE MERCHANT_CURRENCY SET " +
+        " withdraw_auto_enabled = :withdraw_auto_enabled, " +
+        " withdraw_auto_delay_seconds = :withdraw_auto_delay_seconds, " +
+        " withdraw_auto_threshold_amount = :withdraw_auto_threshold_amount " +
+        " WHERE merchant_id = :merchant_id AND currency_id = :currency_id ";
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("withdraw_auto_enabled", withdrawAutoEnabled);
+      put("withdraw_auto_delay_seconds", withdrawAutoDelaySeconds);
+      put("withdraw_auto_threshold_amount", withdrawAutoThresholdAmount);
+      put("merchant_id", merchantId);
+      put("currency_id", currencyId);
+    }};
+    jdbcTemplate.update(sql, params);
   }
 
 
