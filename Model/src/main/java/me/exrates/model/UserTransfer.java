@@ -1,65 +1,26 @@
 package me.exrates.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import lombok.Builder;
+import lombok.Data;
+import me.exrates.model.serializer.LocalDateTimeSerializer;
+
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 /**
  * Created by OLEG on 17.01.2017.
  */
+
+@Data
+@Builder(toBuilder = true)
 public class UserTransfer {
+    private Integer id;
     private Integer fromUserId;
     private Integer toUserId;
     private Integer currencyId;
     private BigDecimal amount;
     private BigDecimal commissionAmount;
-
-    public Integer getFromUserId() {
-        return fromUserId;
-    }
-
-    public void setFromUserId(Integer fromUserId) {
-        this.fromUserId = fromUserId;
-    }
-
-    public Integer getToUserId() {
-        return toUserId;
-    }
-
-    public void setToUserId(Integer toUserId) {
-        this.toUserId = toUserId;
-    }
-
-    public Integer getCurrencyId() {
-        return currencyId;
-    }
-
-    public void setCurrencyId(Integer currencyId) {
-        this.currencyId = currencyId;
-    }
-
-    public BigDecimal getAmount() {
-        return amount;
-    }
-
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
-
-    public BigDecimal getCommissionAmount() {
-        return commissionAmount;
-    }
-
-    public void setCommissionAmount(BigDecimal commissionAmount) {
-        this.commissionAmount = commissionAmount;
-    }
-
-    @Override
-    public String toString() {
-        return "UserTransfer{" +
-                "fromUserId=" + fromUserId +
-                ", toUserId=" + toUserId +
-                ", currencyId=" + currencyId +
-                ", amount=" + amount +
-                ", commissionAmount=" + commissionAmount +
-                '}';
-    }
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    private LocalDateTime creationDate;
 }

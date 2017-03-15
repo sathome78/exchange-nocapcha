@@ -45,18 +45,16 @@ public final class WalletServiceImpl implements WalletService {
   private CurrencyService currencyService;
   @Autowired
   private UserService userService;
-
   @Autowired
   private CommissionService commissionService;
-
   @Autowired
   private CompanyWalletService companyWalletService;
-
   @Autowired
   private NotificationService notificationService;
-
   @Autowired
   private MessageSource messageSource;
+  @Autowired
+  private UserTransferService userTransferService;
 
   @Override
   public void balanceRepresentation(final Wallet wallet) {
@@ -249,16 +247,18 @@ public final class WalletServiceImpl implements WalletService {
 
   private void changeWalletActiveBalance(BigDecimal amount, Wallet wallet, OperationType operationType,
                                          TransactionSourceType transactionSourceType) {
-    changeWalletActiveBalance(amount, wallet, operationType, transactionSourceType, null);
+    changeWalletActiveBalance(amount, wallet, operationType, transactionSourceType, null, null);
   }
 
   private void changeWalletActiveBalance(BigDecimal amount, Wallet wallet, OperationType operationType,
-                                         TransactionSourceType transactionSourceType, BigDecimal specialCommissionAmount) {
+                                         TransactionSourceType transactionSourceType,
+                                         BigDecimal specialCommissionAmount, Integer sourceId) {
     WalletOperationData walletOperationData = new WalletOperationData();
     walletOperationData.setWalletId(wallet.getId());
     walletOperationData.setAmount(amount);
     walletOperationData.setBalanceType(WalletOperationData.BalanceType.ACTIVE);
     walletOperationData.setOperationType(operationType);
+    walletOperationData.setSourceId(sourceId);
     Commission commission = commissionService.findCommissionByTypeAndRole(operationType, userService.getCurrentUserRole());
     walletOperationData.setCommission(commission);
     BigDecimal commissionAmount = specialCommissionAmount == null ?
@@ -301,10 +301,12 @@ public final class WalletServiceImpl implements WalletService {
     if (toUserWallet == null) {
       throw new WalletNotFoundException(messageSource.getMessage("transfer.walletNotFound", null, locale));
     }
+    UserTransfer userTransfer = userTransferService.createUserTransfer(fromUserWallet.getUser().getId(), toUserWallet.getUser().getId(),
+            currencyId, amount, commissionAmount);
     changeWalletActiveBalance(totalAmount, fromUserWallet, OperationType.OUTPUT,
-        TransactionSourceType.USER_TRANSFER, commissionAmount);
+        TransactionSourceType.USER_TRANSFER, commissionAmount, userTransfer.getId());
     changeWalletActiveBalance(amount, toUserWallet, OperationType.INPUT,
-        TransactionSourceType.USER_TRANSFER, BigDecimal.ZERO);
+        TransactionSourceType.USER_TRANSFER, BigDecimal.ZERO, userTransfer.getId());
     String currencyName = currencyService.getCurrencyName(currencyId);
     String result = messageSource.getMessage("transfer.successful", new Object[]{amount, currencyName, toUserNickname},
         locale);
