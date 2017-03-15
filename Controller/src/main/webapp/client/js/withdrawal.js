@@ -191,7 +191,7 @@ function fillModal(rowData) {
     var recipientBankCode = rowData.recipientBankCode ? rowData.recipientBankCode : '';
     var userFullName = rowData.userFullName ? rowData.userFullName : '';
     $('#info-bankRecipient').text(recipientBank + ' ' + recipientBankCode);
-    $('#info-userAccount').text(rowData.wallet);
+    $('#info-acceptance').text(rowData.acceptance);
     $('#info-userFullName').text(userFullName);
     $('#info-remark').find('textarea').html(rowData.remark);
 }
@@ -265,12 +265,8 @@ function updateWithdrawalTable() {
                     }
                 },
                 {
-                    "data": "acceptance",
-                    "name": "WITHDRAW_REQUEST.acceptance",
-                    "render": function (data) {
-                        return data ? data.replace(' ', '<br/>') : '-';
-                    },
-                    "className": "text-center"
+                    "data": "wallet",
+                    "name": "WITHDRAW_REQUEST.wallet"
                 },
                 {
                     "data": "processedById",

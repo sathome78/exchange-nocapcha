@@ -71,7 +71,6 @@
               </h4>
             </div>
 
-              <%-- TEMPORARY SWITCHED OFF. Correspnding reports ought to extended by filter of permissioned currency
           <div class="row">
               <button id="upload-users-wallets" class="blue-box pull-right"
                       onclick="uploadUserWallets('${mapRole.key}')" type="submit"><loc:message
@@ -97,7 +96,6 @@
                   <loc:message
                           code="wallets.downloadOrdersByCurrencyPairs"/></button>
           </div>
-          --%>
 
             <div class="row">
               <button id="download-input-output-summery-report" class="blue-box pull-right"
