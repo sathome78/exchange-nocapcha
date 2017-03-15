@@ -24,7 +24,6 @@ import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.MessageSource;
@@ -56,6 +55,7 @@ import org.springframework.web.servlet.view.JstlView;
 
 import javax.servlet.annotation.MultipartConfig;
 import javax.sql.DataSource;
+import java.io.IOException;
 import java.util.EnumMap;
 import java.util.Locale;
 import java.util.Properties;
@@ -72,7 +72,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
                 SecurityConfig.class, WebSocketConfig.class
         }
 )
-@PropertySource(value = {"classpath:/db.properties", "classpath:/uploadfiles.properties", "classpath:/news.properties","classpath:/withdraw.properties", "classpath:/mail.properties", "classpath:node_config.properties"})
+@PropertySource(value = {"classpath:/db.properties", "classpath:/uploadfiles.properties", "classpath:/news.properties","classpath:/withdraw.properties", "classpath:/mail.properties"})
 @MultipartConfig(location = "/tmp")
 public class WebAppConfig extends WebMvcConfigurerAdapter {
 
@@ -136,19 +136,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     String mailInfoUser;
     @Value("${mail_info.password}")
     String mailInfoPassword;
-    
-    @Value("${node.bitcoind.rpc.protocol}")
-    private String rpcProtocol;
-    @Value("${node.bitcoind.rpc.host}")
-    private String rpcHost;
-    @Value("${node.bitcoind.rpc.port}")
-    private String rpcPort;
-    @Value("${node.bitcoind.rpc.user}")
-    private String rpcUser;
-    @Value("${node.bitcoind.rpc.password}")
-    private String rpcPassword;
-    @Value("${node.bitcoind.http.auth_scheme}")
-    private String rpcAuthScheme;
 
     @Value("${withdraw.concreteClassName}")
     String withdrawConcreteClassName;
@@ -356,19 +343,15 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     }
     
     @Bean(name = "btcdClient")
-    public BtcdClient bitcoindClient() throws BitcoindException, CommunicationException {
+    public BtcdClient bitcoindClient() throws BitcoindException, CommunicationException, IOException {
         PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
         CloseableHttpClient httpProvider = HttpClients.custom().setConnectionManager(cm)
                 .build();
         Properties nodeConfig = new Properties();
-        nodeConfig.put("node.bitcoind.rpc.protocol", rpcProtocol);
-        nodeConfig.put("node.bitcoind.rpc.host", rpcHost);
-        nodeConfig.put("node.bitcoind.rpc.port", rpcPort);
-        nodeConfig.put("node.bitcoind.rpc.user", rpcUser);
-        nodeConfig.put("node.bitcoind.rpc.password", rpcPassword);
-        nodeConfig.put("node.bitcoind.http.auth_scheme", rpcAuthScheme);
+        nodeConfig.load(getClass().getClassLoader().getResourceAsStream("node_config.properties"));
         return new BtcdClientImpl(httpProvider, nodeConfig);
     }
+   
 
     @Bean
     public WithdrawService withdrawService() {
