@@ -8,7 +8,6 @@ import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
-import me.exrates.model.dto.mobileApiDto.CandleChartItemReducedDto;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.*;
@@ -55,18 +54,17 @@ import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAmount;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static me.exrates.model.enums.BusinessUserRoleEnum.ADMIN;
 import static me.exrates.model.enums.GroupUserRoleEnum.ADMINS;
 import static me.exrates.model.enums.GroupUserRoleEnum.USERS;
 import static me.exrates.model.enums.UserCommentTopicEnum.GENERAL;
-import static me.exrates.model.enums.UserRole.*;
+import static me.exrates.model.enums.UserRole.ADMINISTRATOR;
+import static me.exrates.model.enums.UserRole.FIN_OPERATOR;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.REFILL;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
 import static org.springframework.http.HttpStatus.*;
@@ -115,6 +113,8 @@ public class AdminController {
   ReportService reportService;
   @Autowired
   UserRoleService userRoleService;
+  @Autowired
+  UserTransferService userTransferService;
 
   @Autowired
   @Qualifier("ExratesSessionRegistry")
@@ -663,6 +663,12 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/orderinfo", method = RequestMethod.GET)
   public OrderInfoDto getOrderInfo(@RequestParam int id, HttpServletRequest request) {
     return orderService.getOrderInfo(id, localeResolver.resolveLocale(request));
+  }
+
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/transferInfo", method = RequestMethod.GET)
+  public UserTransferInfoDto getTransferInfo(@RequestParam int id, HttpServletRequest request) {
+    return userTransferService.getTransferInfoBySourceId(id);
   }
 
   @ResponseBody

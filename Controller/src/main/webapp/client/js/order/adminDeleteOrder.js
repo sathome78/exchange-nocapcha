@@ -37,6 +37,25 @@ function getOrderDetailedInfo(currentRow, orderId, enableDelete) {
     });
 }
 
+function getTransferDetailedInfo(orderId) {
+    $.ajax({
+        url: '/2a8fy7b07dxe44/transferInfo?id=' + orderId,
+        type: 'GET',
+        success: function (data) {
+
+
+            $("#info-date").html(data.creationDate);
+            $("#info-currency").html(data.currencyName);
+            $("#info-amount").html(data.amount);
+            $("#info-userFrom").html("<a href='mailto:" +  data.userFromEmail + "'>" + data.userFromEmail + "</a>");
+            $("#info-userTo").html("<a href='mailto:" + data.userToEmail + "'>" + data.userToEmail + "</a>");
+            $("#info-commissionAmount").html(data.comission);
+            $('#user_transfer_info_modal').modal();
+
+        }
+    });
+}
+
 function deleteOrderByAdmin(order_id, currentRow) {
     $('#order-delete-modal').one('hidden.bs.modal', function (e) {
         /*placed in close callback because we must give time for #order-delete-modal to restore parameters of <body>

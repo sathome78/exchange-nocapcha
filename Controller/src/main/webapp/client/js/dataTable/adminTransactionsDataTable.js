@@ -106,7 +106,11 @@ $(function () {
         });
         $('#transactionsTable tbody').on('click', '.transactionlist-delete-order-button', function () {
             var currentRow = transactionsDataTable.row($(this).parents('tr'));
-            getOrderDetailedInfo(currentRow, currentRow.data().order.id, false);
+            if (currentRow.data().merchant.description == 'USER_TRANSFER') {
+                getTransferDetailedInfo(currentRow.data().order.id);
+            } else {
+                getOrderDetailedInfo(currentRow, currentRow.data().order.id, false);
+            }
         });
     }
 

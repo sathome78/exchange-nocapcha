@@ -2,6 +2,7 @@ package me.exrates.service.impl;
 
 import me.exrates.dao.UserTransferDao;
 import me.exrates.model.UserTransfer;
+import me.exrates.model.dto.UserTransferInfoDto;
 import me.exrates.service.UserTransferService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,5 +31,10 @@ public class UserTransferServiceImpl implements UserTransferService {
                                                 .commissionAmount(commissionAmount)
                                                 .build();
         return userTransferDao.save(userTransfer);
+    }
+
+    @Override
+    public UserTransferInfoDto getTransferInfoBySourceId(int id) {
+        return userTransferDao.getById(id);
     }
 }
