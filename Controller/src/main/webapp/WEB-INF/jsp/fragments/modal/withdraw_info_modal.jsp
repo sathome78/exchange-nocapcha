@@ -38,6 +38,10 @@
                             <td id="info-acceptance"></td>
                         </tr>
                         <tr>
+                            <td><loc:message code="merchants.withdrawDetails.recipientAccount"/></td>
+                            <td id="info-wallet"></td>
+                        </tr>
+                        <tr>
                             <td><loc:message code="merchants.withdrawDetails.recipientFullName"/></td>
                             <td id="info-userFullName"></td>
                         </tr>
