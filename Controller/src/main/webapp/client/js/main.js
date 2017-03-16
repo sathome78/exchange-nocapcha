@@ -80,6 +80,7 @@ $(function(){
     button.prop('disabled',true);
     var merchantsData;
     var usernameToTransfer = $('#nickname');
+    var $timeoutWarning = $('.timeoutWarning');
 
     $(".input-block-wrapper__input").prop("autocomplete", "off");
     $(".numericInputField").prop("autocomplete", "off");
@@ -340,6 +341,9 @@ $(function(){
                     $('#inputPaymentProcess')
                         .prop('disabled', true)
                         .html($('#mrcht-waiting').val());
+                    if ($($timeoutWarning).size() > 0) {
+                        $($timeoutWarning).show();
+                    }
                     $.ajax('/merchants/edc/payment/prepare', {
                         headers: {
                             'X-CSRF-Token': $("input[name='_csrf']").val()
@@ -352,6 +356,9 @@ $(function(){
                                 .prop('disabled', false)
                                 .html($('#mrcht-ready').val());
                             console.log(response);
+                            if ($($timeoutWarning).size() > 0) {
+                                $($timeoutWarning).hide();
+                            }
                             $.each(response, function (key) {
                                 if(key=='notification'){
                                     $('.paymentInfo').html(response[key] + "<p>");
@@ -585,6 +592,9 @@ $(function(){
                 submitProcess();
             } else {
                 fillModalWindow('INPUT', sum.val(), getCurrentCurrency());
+                if ($($timeoutWarning).size() > 0) {
+                    $($timeoutWarning).hide();
+                }
                 $('#myModal').modal();
             }
         }

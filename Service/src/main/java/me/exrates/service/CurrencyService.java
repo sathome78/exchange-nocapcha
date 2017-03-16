@@ -5,10 +5,10 @@ import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
+import me.exrates.model.enums.CurrencyWarningType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -60,7 +60,7 @@ public interface CurrencyService {
 
   Set<String> getCurrencyPermittedNameList(Integer userId);
   
-  Optional<String> getWarningForCurrency(Integer currencyId);
+  Optional<String> getWarningForCurrency(Integer currencyId, CurrencyWarningType currencyWarningType);
 
   Currency getById(int id);
 }

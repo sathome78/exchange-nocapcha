@@ -4,6 +4,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.Payment;
 import me.exrates.model.Wallet;
+import me.exrates.model.enums.CurrencyWarningType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.CurrencyService;
@@ -75,8 +76,12 @@ public class CommonMerchantsController {
         final List<Integer> currenciesId = Collections.singletonList(currencyId);
         modelAndView.addObject("merchantCurrencyData",merchantService.findAllByCurrencies(currenciesId, OperationType.INPUT));
         modelAndView.addObject("minAmount", currencyService.retrieveMinLimitForRoleAndCurrency(userService.getCurrentUserRole(), INPUT, currencyId));
-        Optional<String> warningCode = currencyService.getWarningForCurrency(currencyId);
-        warningCode.ifPresent(s -> modelAndView.addObject("warning", s));
+        
+        //TODO refactor for a single method call
+        Optional<String> warningCodeSingleAddress = currencyService.getWarningForCurrency(currencyId, CurrencyWarningType.SINGLE_ADDRESS);
+        warningCodeSingleAddress.ifPresent(s -> modelAndView.addObject("warningSingleAddress", s));
+        Optional<String> warningCodeTimeout = currencyService.getWarningForCurrency(currencyId, CurrencyWarningType.TIMEOUT);
+        warningCodeTimeout.ifPresent(s -> modelAndView.addObject("warningCodeTimeout", s));
         return modelAndView;
     }
 
