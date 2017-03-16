@@ -2154,3 +2154,8 @@ textarea#remark {
     color: #cf0800;
     font-size: 1.4rem;
 }
+
+.timeoutWarning {
+    color: #cf0800;
+    font-size: 1.2rem;
+}

@@ -871,13 +871,20 @@ public class AdminController {
     return new ModelAndView("admin/transaction_bitcoin");
   }
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinRequests")
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinRequests/reviewed")
   @ResponseBody
   public List<PendingPaymentFlatDto> getBitcoinRequests(Principal principal) {
     Integer requesterUserId = userService.getIdByEmail(principal.getName());
     return bitcoinService.getBitcoinTransactionsForCurrencyPermitted(requesterUserId);
   }
-
+  
+  
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinRequests/accepted")
+  @ResponseBody
+  public List<PendingPaymentFlatDto> getBitcoinRequestsByStatus(Principal principal) {
+    Integer requesterUserId = userService.getIdByEmail(principal.getName());
+    return bitcoinService.getBitcoinTransactionsAcceptedForCurrencyPermitted(requesterUserId);
+  }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/sessionControl")
   public ModelAndView sessionControl() {

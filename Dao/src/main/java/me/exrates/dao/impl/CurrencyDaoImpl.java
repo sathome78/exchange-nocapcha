@@ -6,12 +6,12 @@ import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
+import me.exrates.model.enums.CurrencyWarningType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.RowMapper;
@@ -271,12 +271,16 @@ public class CurrencyDaoImpl implements CurrencyDao {
 	}
 	
 	@Override
-	public Optional<String> getWarningForCurrency(Integer currencyId) {
+	public Optional<String> getWarningForCurrency(Integer currencyId, CurrencyWarningType currencyWarningType) {
 		String sql = "SELECT PHRASE_TEMPLATE.template FROM CURRENCY_WARNING " +
 						"JOIN PHRASE_TEMPLATE ON CURRENCY_WARNING.phrase_template_id = PHRASE_TEMPLATE.id " +
-						"WHERE currency_id = :currency_id";
+						"WHERE currency_id = :currency_id AND warning_type = :warning_type";
+		Map<String, Object> params = new HashMap<>();
+		params.put("currency_id", currencyId);
+		params.put("warning_type", currencyWarningType.name());
+		
 		try {
-			return Optional.of(jdbcTemplate.queryForObject(sql, Collections.singletonMap("currency_id", currencyId), String.class));
+			return Optional.of(jdbcTemplate.queryForObject(sql, params, String.class));
 		} catch (EmptyResultDataAccessException e) {
 			return Optional.empty();
 		}

@@ -75,9 +75,9 @@
             </c:otherwise>
         </c:choose>
 </div>
-<c:if test="${not empty warning}">
+<c:if test="${not empty warningSingleAddress}">
     <div class="row inout-warning">
-        <strong><loc:message code="${warning}"/></strong>
+        <strong><loc:message code="${warningSingleAddress}"/></strong>
     </div>
 </c:if>
 <%--MODAL ... --%>
@@ -96,6 +96,15 @@
                     <p><loc:message code="merchants.modalInputFinalSum"/></p>
                     <p><loc:message code="merchants.warn"/></p>
                 </div>
+                <c:if test="${not empty warningCodeTimeout}">
+                    <div class="timeoutWarning">
+                        <strong><loc:message code="${warningCodeTimeout}"/></strong>
+                    </div>
+                </c:if>
+                <div class="timeoutWarning">
+
+                </div>
+
                 <div class="paymentQR">
 
                 </div>

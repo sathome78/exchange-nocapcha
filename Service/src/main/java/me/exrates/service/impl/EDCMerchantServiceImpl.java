@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by ajet on 06.03.2017.
@@ -72,6 +73,7 @@ public class EDCMerchantServiceImpl implements EDCMerchantService{
     private String getAddress() {
 
         final OkHttpClient client = new OkHttpClient();
+        client.setReadTimeout(60, TimeUnit.SECONDS);
 
         final FormEncodingBuilder formBuilder = new FormEncodingBuilder();
         formBuilder.add("account", main_account);

@@ -324,13 +324,22 @@ public class BitcoinServiceImpl implements BitcoinService {
   @Override
   @Transactional(readOnly = true)
   public List<PendingPaymentFlatDto> getBitcoinTransactionsForCurrencyPermitted(Integer requesterUserId) {
-    List<Integer> pendingPaymentStatusIdList = PendingPaymentStatusEnum.getAvailableForActionStatusesList(ACCEPT_MANUAL).stream()
-        .map(InvoiceStatus::getCode)
-        .collect(Collectors.toList());
+    return getBitcoinTransactionsByStatusesForCurrencyPermitted(requesterUserId,
+            PendingPaymentStatusEnum.getAvailableForActionStatusesList(ACCEPT_MANUAL));
+  }
+  
+  @Override
+  @Transactional(readOnly = true)
+  public List<PendingPaymentFlatDto> getBitcoinTransactionsAcceptedForCurrencyPermitted(Integer requesterUserId) {
+    return getBitcoinTransactionsByStatusesForCurrencyPermitted(requesterUserId, PendingPaymentStatusEnum.getAcceptedStatesSet());
+  }
+  
+  private List<PendingPaymentFlatDto> getBitcoinTransactionsByStatusesForCurrencyPermitted(Integer requesterUserId,
+                                                                                 Collection<InvoiceStatus> states) {
+    List<Integer> pendingPaymentStatusIdList = states.stream().map(InvoiceStatus::getCode).collect(toList());
     return paymentDao.findFlattenDtoByStatusAndCurrencyPermittedForUser(
-        TransactionSourceType.BTC_INVOICE.name(),
-        pendingPaymentStatusIdList,
-        requesterUserId);
+            TransactionSourceType.BTC_INVOICE.name(), pendingPaymentStatusIdList,
+            requesterUserId);
   }
 
   @Override

@@ -5,7 +5,26 @@ $(document).ready(function () {
 
     var acceptButtonLocMessage = $('#acceptButtonLocMessage').text();
     $bitcoinRequestsTable = $('#btc_invoice_requests');
-    var url = '/2a8fy7b07dxe44/bitcoinRequests';
+    var urlBase = '/2a8fy7b07dxe44/bitcoinRequests';
+    var urlReviewed = '/reviewed';
+    var urlAccepted = '/accepted';
+    var url = urlBase + urlReviewed;
+    $('#bitcoin-requests-for-accept').addClass('active');
+    $('#bitcoin-requests-for-accept').click(function () {
+        changeUrlAndReload(this, urlReviewed);
+    });
+    $('#bitcoin-requests-accepted').click(function () {
+        changeUrlAndReload(this, urlAccepted);
+    });
+
+    function changeUrlAndReload($elem, varPart) {
+        url = urlBase + varPart;
+        $('.myorders__button').removeClass('active');
+        $($elem).addClass('active');
+        updateBitcoinTable();
+    }
+
+
     function updateBitcoinTable() {
         if ($.fn.dataTable.isDataTable('#btc_invoice_requests')) {
             bitcoinRequestsDataTable = $($bitcoinRequestsTable).DataTable();
@@ -61,6 +80,14 @@ $(document).ready(function () {
                         "className": "text-center"
                     },
                     {
+                        "data": "address",
+                        "render": function (data, type, row) {
+                            var inputValue = data ? data : '';
+                            return '<input readonly value="' + inputValue + '" style="width: 130px" ' +
+                                'class="form-control input-block-wrapper__input">';
+                        }
+                    },
+                    {
                         "data": "hash",
                         "render": function (data, type, row) {
                             var readonly = data == null ? '' : 'readonly';
@@ -90,6 +117,14 @@ $(document).ready(function () {
                                 return '<button class="acceptbtn" type="submit" onclick="submitAcceptBitcoin(' + row.invoiceId +')">' + acceptButtonLocMessage + '</button>'
                             }
                         }
+                    },
+                    {
+                        "data": "hash",
+                        "visible": false
+                    },
+                    {
+                        "data": "address",
+                        "visible": false
                     }
                 ],
                 "order": []

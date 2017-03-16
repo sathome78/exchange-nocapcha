@@ -46,6 +46,15 @@
   <div class="row">
     <%@include file='left_side_menu.jsp' %>
     <div class="col-md-10 content admin-container">
+      <div class="row text-center">
+        <div style="float: left; display: inline-block">
+          <button id="bitcoin-requests-for-accept" class="myorders__button blue-box margin-box">
+            <loc:message code="admin.invoice.new"/></button>
+          <button id="bitcoin-requests-accepted" class="myorders__button green-box margin-box">
+            <loc:message code="admin.invoice.accepted"/></button>
+        </div>
+      </div>
+
       <div class="text-center"><h4><loc:message code="transaction.titleBitcoin"/></h4></div>
       <table id="btc_invoice_requests"  class="table-striped">
         <thead>
@@ -57,10 +66,13 @@
           <th><loc:message code="transaction.amount"/></th>
           <th><loc:message code="transaction.commissionAmount"/></th>
           <th><loc:message code="transaction.acceptanceDatetime"/></th>
+          <th>Address</th>
           <th>Hash</th>
           <th>Manual amount</th>
           <th><loc:message code="transaction.confirmation"/></th>
           <th><loc:message code="transaction.acceptanceUser"/></th>
+          <th></th>
+          <th></th>
         </tr>
         </thead>
       </table>

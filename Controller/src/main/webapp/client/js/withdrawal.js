@@ -192,6 +192,7 @@ function fillModal(rowData) {
     var userFullName = rowData.userFullName ? rowData.userFullName : '';
     $('#info-bankRecipient').text(recipientBank + ' ' + recipientBankCode);
     $('#info-acceptance').text(rowData.acceptance);
+    $('#info-wallet').text(rowData.wallet);
     $('#info-userFullName').text(userFullName);
     $('#info-remark').find('textarea').html(rowData.remark);
 }
