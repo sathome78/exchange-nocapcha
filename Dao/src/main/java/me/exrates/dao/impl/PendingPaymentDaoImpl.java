@@ -45,6 +45,8 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
     PendingPayment pendingPayment = new PendingPayment();
     Transaction transaction = TransactionDaoImpl.transactionRowMapper.mapRow(resultSet, i);
     pendingPayment.setTransaction(transaction);
+    pendingPayment.setTransactionHash(resultSet.getString("transaction_hash"));
+    pendingPayment.setAddress(resultSet.getString("address"));
     pendingPayment.setInvoiceId(resultSet.getInt("invoice_id"));
     pendingPayment.setUserEmail(resultSet.getString("user_email"));
     pendingPayment.setUserId(resultSet.getInt("user_id"));
