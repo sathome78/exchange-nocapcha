@@ -99,7 +99,7 @@ public class BitcoinServiceImpl implements BitcoinService {
                             final CurrencyService currencyService,
                             final WalletDao walletDao,
                             final CompanyWalletService companyWalletService,
-                            @Qualifier("BitcoinJService")
+                            @Qualifier("BitcoinCoreService")
                             final BitcoinWalletService bitcoinWalletService) {
     this.paymentDao = paymentDao;
     this.transactionService = transactionService;
