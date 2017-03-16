@@ -1,16 +1,16 @@
 
 DROP TABLE CURRENCY_WARNING;
 
-CREATE TABLE birzha.currency_warning
+CREATE TABLE CURRENCY_WARNING
 (
   id INT PRIMARY KEY,
   currency_id INT NOT NULL,
   phrase_template_id INT NOT NULL,
   warning_type ENUM('SINGLE_ADDRESS', 'TIMEOUT') NOT NULL,
-  CONSTRAINT currency_warning___fk_cur_id FOREIGN KEY (currency_id) REFERENCES currency (id),
-  CONSTRAINT currency_warning___fk_phrase FOREIGN KEY (phrase_template_id) REFERENCES phrase_template (id)
+  CONSTRAINT currency_warning___fk_cur_id FOREIGN KEY (currency_id) REFERENCES CURRENCY (id),
+  CONSTRAINT currency_warning___fk_phrase FOREIGN KEY (phrase_template_id) REFERENCES PHRASE_TEMPLATE (id)
 );
-CREATE UNIQUE INDEX currency_warning__uindex_uq ON birzha.currency_warning (currency_id, warning_type);
+CREATE UNIQUE INDEX currency_warning__uindex_uq ON CURRENCY_WARNING (currency_id, warning_type);
 
 INSERT INTO CURRENCY_WARNING VALUES (1, 4, 5, 'SINGLE_ADDRESS');
 INSERT INTO CURRENCY_WARNING VALUES (2, 9, 4, 'SINGLE_ADDRESS');
