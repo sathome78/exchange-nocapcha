@@ -1,13 +1,13 @@
 package me.exrates.service.impl;
 
-import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import me.exrates.dao.BTCTransactionDao;
 import me.exrates.dao.PendingPaymentDao;
 import me.exrates.dao.WalletDao;
-import me.exrates.model.*;
-import me.exrates.model.Currency;
+import me.exrates.model.CreditsOperation;
+import me.exrates.model.PendingPayment;
+import me.exrates.model.Transaction;
 import me.exrates.model.dto.InvoiceUserDto;
 import me.exrates.model.dto.PendingPaymentFlatDto;
 import me.exrates.model.dto.PendingPaymentSimpleDto;
@@ -25,14 +25,10 @@ import me.exrates.service.exception.invoice.IllegalInvoiceAmountException;
 import me.exrates.service.exception.invoice.InvoiceAcceptionException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.exception.invoice.InvoiceUnexpectedHashException;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.bitcoinj.core.Address;
-import org.bitcoinj.core.TransactionConfidence;
-import org.bitcoinj.core.TransactionOutput;
-import org.bitcoinj.kits.WalletAppKit;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
@@ -43,20 +39,19 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
-import java.util.concurrent.ExecutionException;
+import java.util.List;
+import java.util.Optional;
+import java.util.StringJoiner;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.toList;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.*;
 import static me.exrates.model.enums.invoice.PendingPaymentStatusEnum.EXPIRED;
-import static me.exrates.model.util.BitCoinUtils.satoshiToBtc;
 import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 
 /**
@@ -71,10 +66,8 @@ public class BitcoinServiceImpl implements BitcoinService {
   @Value("${btcInvoice.blockNotifyUsers}")
   private Boolean BLOCK_NOTIFYING;
 
-  private WalletAppKit kit;
   private final ListeningExecutorService pool = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
 
-  private final BitcoinWalletAppKit kitBefore;
   private final PendingPaymentDao paymentDao;
   private final TransactionService transactionService;
   private final AlgorithmService algorithmService;
@@ -85,6 +78,7 @@ public class BitcoinServiceImpl implements BitcoinService {
   private final CurrencyService currencyService;
   private final WalletDao walletDao;
   private final CompanyWalletService companyWalletService;
+  private BitcoinWalletService bitcoinWalletService;
 
 
   private static final BigDecimal SATOSHI = new BigDecimal(100_000_000L);
@@ -94,8 +88,7 @@ public class BitcoinServiceImpl implements BitcoinService {
       () -> new IllegalStateException("Pending payment with address " + address + " is not exist");
 
   @Autowired
-  public BitcoinServiceImpl(final BitcoinWalletAppKit kitBefore,
-                            final PendingPaymentDao paymentDao,
+  public BitcoinServiceImpl(final PendingPaymentDao paymentDao,
                             final TransactionService transactionService,
                             final AlgorithmService algorithmService,
                             final BTCTransactionDao btcTransactionDao,
@@ -104,8 +97,9 @@ public class BitcoinServiceImpl implements BitcoinService {
                             final MerchantService merchantService,
                             final CurrencyService currencyService,
                             final WalletDao walletDao,
-                            final CompanyWalletService companyWalletService) {
-    this.kitBefore = kitBefore;
+                            final CompanyWalletService companyWalletService,
+                            @Qualifier("BitcoinJService")
+                            final BitcoinWalletService bitcoinWalletService) {
     this.paymentDao = paymentDao;
     this.transactionService = transactionService;
     this.algorithmService = algorithmService;
@@ -116,84 +110,16 @@ public class BitcoinServiceImpl implements BitcoinService {
     this.currencyService = currencyService;
     this.walletDao = walletDao;
     this.companyWalletService = companyWalletService;
+    this.bitcoinWalletService = bitcoinWalletService;
   }
 
-  private String extractRecipientAddress(final List<TransactionOutput> outputs) {
-    if (outputs.size() < 1) {
-      throw new IllegalArgumentException("List with transaction outputs is empty");
-    }
-    return outputs.stream()
-        .filter(tx -> tx.isMine(kit.wallet()))
-        .map(tx -> tx.getScriptPubKey().getToAddress(kit.params(), true).toBase58())
-        .findFirst()
-        .orElseThrow(IllegalStateException::new); //it will never happen
-  }
-
-  /*@PostConstruct*/
+  
+  @PostConstruct
   void startBitcoin() {
-
-    Currency currency = currencyService.findByName("BTC");
-    Merchant merchant = merchantService.findAllByCurrency(currency).get(0);
-
-    merchantService.setBlockForMerchant(merchant.getId(), currency.getId(), OperationType.INPUT, true);
-
-    new Thread(new Runnable() {
-      @Override
-      public void run() {
-        kitBefore.startupWallet();
-        kit = kitBefore.kit();
-      }
-    }).start();
-
-    Timer myTimer = new Timer();
-    myTimer.schedule(new TimerTask() {
-      @Override
-      public void run() {
-        if (kit != null) {
-          init();
-          myTimer.cancel();
-          myTimer.purge();
-          merchantService.setBlockForMerchant(merchant.getId(), currency.getId(), OperationType.INPUT, false);
-          LOG.debug("BTC init completed");
-        }
-      }
-    }, 0L, 10000);
-//    }, 0L, 60L * 5000);
+    bitcoinWalletService.initBitcoin();
   }
 
-  public void init() {
-    try {
-      InvoiceStatus beginStatus = PendingPaymentStatusEnum.getBeginState();
-      kit.wallet().addCoinsReceivedEventListener((wallet, tx, prevBalance, newBalance) -> {
-        final String address = extractRecipientAddress(tx.getOutputs());
-        System.out.println(address);
-        if (paymentDao.existsPendingPaymentWithAddressAndStatus(address, Arrays.asList(beginStatus.getCode()))) {
-          String txHash = tx.getHashAsString();
-          PendingPaymentStatusDto pendingPayment = markStartConfirmationProcessing(address, txHash);
-          final Integer invoiceId = pendingPayment.getInvoiceId();
-          List<ListenableFuture<TransactionConfidence>> confirmations = IntStream.rangeClosed(1, CONFIRMATION_NEEDED_COUNT)
-              .mapToObj(x -> tx.getConfidence().getDepthFuture(x))
-              .collect(toList());
-          confirmations.forEach(confidence -> confidence.addListener(() -> {
-            try {
-              Integer confirmsCount = confidence.get().getDepthInBlocks();
-              changeTransactionConfidenceForPendingPayment(invoiceId, confirmsCount);
-              if (confirmsCount >= CONFIRMATION_NEEDED_COUNT) {
-                BigDecimal factPaymentAmount = satoshiToBtc(tx.getValue(wallet).getValue());
-                provideTransaction(invoiceId, txHash, factPaymentAmount, null);
-              }
-            } catch (final ExecutionException | InterruptedException e) {
-              LOG.error(e);
-            } catch (Exception e) {
-              LOG.error(ExceptionUtils.getStackTrace(e));
-            }
-          }, pool));
-        }
-      });
-    } catch (Exception e) {
-      LOG.error(ExceptionUtils.getStackTrace(e));
-    }
-  }
+  
 
   @PreDestroy
   public void preDestroy() {
@@ -204,9 +130,9 @@ public class BitcoinServiceImpl implements BitcoinService {
     }
   }
 
-  private Address address() {
+  private String address() {
     boolean isFreshAddress = false;
-    Address address = kit.wallet().freshReceiveAddress();
+    String address = bitcoinWalletService.getNewAddress();
 
     final List<Integer> unclosedPendingPaymentStatesList = PendingPaymentStatusEnum.getMiddleStatesSet().stream()
         .map(InvoiceStatus::getCode)
@@ -216,7 +142,7 @@ public class BitcoinServiceImpl implements BitcoinService {
       final int LIMIT = 2000;
       int i = 0;
       while (!isFreshAddress && i++ < LIMIT) {
-        address = kit.wallet().freshReceiveAddress();
+        address = bitcoinWalletService.getNewAddress();
         isFreshAddress = !paymentDao.existsPendingPaymentWithAddressAndStatus(address.toString(), unclosedPendingPaymentStatesList);
       }
       if (i >= LIMIT) {
@@ -231,10 +157,10 @@ public class BitcoinServiceImpl implements BitcoinService {
   @Transactional(propagation = Propagation.REQUIRED)
   public PendingPayment createInvoice(CreditsOperation operation) {
     Transaction transaction = transactionService.createTransactionRequest(operation);
-    Address address = address();
+    String address = address();
     PendingPayment payment = new PendingPayment();
     payment.setInvoiceId(transaction.getId());
-    payment.setAddress(address.toBase58());
+    payment.setAddress(address);
     payment.setTransactionHash(computeTransactionHash(transaction, address));
     payment.setPendingPaymentStatus(PendingPaymentStatusEnum.getBeginState());
     /**/
@@ -244,13 +170,13 @@ public class BitcoinServiceImpl implements BitcoinService {
     return payment;
   }
 
-  private String computeTransactionHash(final me.exrates.model.Transaction tx, Address address) {
+  private String computeTransactionHash(final me.exrates.model.Transaction tx, String address) {
     if (isNull(tx) || isNull(tx.getCommission()) || isNull(tx.getCommissionAmount())) {
       throw new IllegalArgumentException("Argument itself or contains null");
     }
     final String target = new StringJoiner(":")
         .add(String.valueOf(tx.getId()))
-        .add(address.toBase58())
+        .add(address)
         .toString();
     return algorithmService.sha256(target);
   }
