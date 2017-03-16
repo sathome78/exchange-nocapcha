@@ -5,6 +5,7 @@ import lombok.Setter;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.WithdrawalRequestStatus;
 import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
+import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -19,6 +20,7 @@ public class WithdrawRequestFlatForReportDto {
   private String recipientBank;
   private String userFullName;
   private WithdrawalRequestStatus status;
+  private WithdrawStatusEnum withdrawStatus;
   private LocalDateTime acceptanceTime;
 
   private String userEmail;

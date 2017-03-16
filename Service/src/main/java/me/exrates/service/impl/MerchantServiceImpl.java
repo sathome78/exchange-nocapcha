@@ -5,26 +5,24 @@ import me.exrates.dao.MerchantDao;
 import me.exrates.dao.WithdrawRequestDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
+import me.exrates.model.dto.MerchantCurrencyAutoParamDto;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
+import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.dto.WithdrawRequestFlatForReportDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
-import me.exrates.model.enums.NotificationEvent;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.TransactionSourceType;
-import me.exrates.model.enums.WithdrawalRequestStatus;
+import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
 import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
+import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.*;
-import me.exrates.service.exception.MerchantCurrencyBlockedException;
-import me.exrates.service.exception.MerchantInternalException;
-import me.exrates.service.exception.UnsupportedMerchantException;
+import me.exrates.service.exception.*;
 import me.exrates.service.util.Cache;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -496,16 +494,19 @@ public class MerchantServiceImpl implements MerchantService {
             .divide(valueOf(100), currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP);
     commissionAmount = correctForMerchantFixedCommission(merchant.getName(), currency.getName(), operationType, commissionAmount);
     final User user = userService.findByEmail(userEmail);
+    final Wallet wallet = walletService.findByUserAndCurrency(user, currency);
     final BigDecimal newAmount = payment.getOperationType() == INPUT ?
         amount :
         amount.subtract(commissionAmount).setScale(currencyService.resolvePrecision(currency.getName()), ROUND_DOWN);
     final CreditsOperation creditsOperation = new CreditsOperation.Builder()
+        .fullAmount(amount)
         .amount(newAmount)
         .commissionAmount(commissionAmount)
         .commission(commissionByType)
         .operationType(operationType)
         .user(user)
         .currency(currency)
+        .wallet(wallet)
         .merchant(merchant)
         .destination(destination)
         .merchantImage(merchantImage)
@@ -618,6 +619,129 @@ public class MerchantServiceImpl implements MerchantService {
         merchantCurrencyOptionsDto.getWithdrawAutoEnabled(),
         merchantCurrencyOptionsDto.getWithdrawAutoDelaySeconds(),
         merchantCurrencyOptionsDto.getWithdrawAutoThresholdAmount());
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public MerchantCurrencyAutoParamDto getAutoWithdrawParamsByMerchantAndCurrency(Integer merchantId, Integer currencyId) {
+    return merchantDao.findAutoWithdrawParamsByMerchantAndCurrency(merchantId, currencyId);
+  }
+
+  @Override
+  @Transactional
+  public Map<String, String> createWithdrawRequest(
+      CreditsOperation creditsOperation,
+      WithdrawData withdrawData,
+      String userEmail,
+      Locale locale) {
+    MerchantCurrencyAutoParamDto autoParamDto = getAutoWithdrawParamsByMerchantAndCurrency(
+        creditsOperation.getMerchant().getId(),
+        creditsOperation.getCurrency().getId());
+    WithdrawStatusEnum withdrawRequestStatus = ((WithdrawStatusEnum) WithdrawStatusEnum.getBeginState()).getStartState(
+        autoParamDto.getWithdrawAutoEnabled(),
+        creditsOperation.getFullAmount(),
+        autoParamDto.getWithdrawAutoThresholdAmount());
+    WithdrawRequestCreateDto request = new WithdrawRequestCreateDto();
+    request.setUserId(creditsOperation.getUser().getId());
+    request.setUserEmail(creditsOperation.getUser().getEmail());
+    request.setAmount(creditsOperation.getFullAmount());
+    request.setUserId(creditsOperation.getWallet().getId());
+    request.setCommission(creditsOperation.getCommissionAmount());
+    if (creditsOperation.getDestination().isPresent() && !creditsOperation.getDestination().get().isEmpty()) {
+      request.setDestinationWallet(creditsOperation.getDestination().get());
+    } else {
+      request.setDestinationWallet(withdrawData.getUserAccount());
+    }
+    creditsOperation
+        .getMerchantImage()
+        .ifPresent(request::setMerchantImage);
+    request.setStatusId(withdrawRequestStatus.getCode());
+    request.setRecipientBankName(withdrawData.getRecipientBankName());
+    request.setRecipientBankCode(withdrawData.getRecipientBankCode());
+    request.setUserFullName(withdrawData.getUserFullName());
+    request.setRemark(withdrawData.getRemark());
+    Integer requestId = createWithdrawRequest(request);
+    request.setId(requestId);
+    /**/
+    String notification = null;
+    String delayDescription = convertWithdrawAutoToString(autoParamDto.getWithdrawAutoDelaySeconds(), locale);
+    try {
+      notification = sendWithdrawalNotification(
+          new WithdrawRequest(request),
+          creditsOperation.getMerchant().getDescription(),
+          delayDescription,
+          locale);
+    } catch (final MailException e) {
+      LOG.error(e);
+    }
+    final BigDecimal newAmount = walletService.getWalletABalance(request.getUserWalletId());
+    final String currency = creditsOperation.getCurrency().getName();
+    final String balance = currency + " " + currencyService.amountToString(newAmount, currency);
+    final Map<String, String> result = new HashMap<>();
+    result.put("success", notification);
+    result.put("balance", balance);
+    return result;
+  }
+
+  @Transactional(rollbackFor = {Exception.class})
+  private Integer createWithdrawRequest(WithdrawRequestCreateDto withdrawRequestCreateDto) {
+    int createdWithdrawRequestId = 0;
+    if (walletService.ifEnoughMoney(
+        withdrawRequestCreateDto.getUserWalletId(),
+        withdrawRequestCreateDto.getAmount())) {
+      if ((createdWithdrawRequestId = withdrawRequestDao.create(withdrawRequestCreateDto)) > 0) {
+        WalletTransferStatus result = walletService.walletInnerTransfer(
+            withdrawRequestCreateDto.getUserWalletId(),
+            withdrawRequestCreateDto.getAmount().negate(),
+            TransactionSourceType.WITHDRAW,
+            createdWithdrawRequestId);
+        if (result != WalletTransferStatus.SUCCESS) {
+          throw new WithdrawRequestCreationException(result.toString());
+        }
+      }
+    } else {
+      throw new NotEnoughUserWalletMoneyException("");
+    }
+    return createdWithdrawRequestId;
+  }
+
+  public String sendWithdrawalNotification(
+      WithdrawRequest withdrawRequest,
+      String merchantDescription,
+      String withdrawDelay,
+      Locale locale) {
+    final String notification;
+    final Object[] messageParams = {
+        withdrawRequest.getId(),
+        merchantDescription,
+        withdrawDelay.isEmpty() ? "" : "within".concat(withdrawDelay)
+    };
+    String notificationMessageCode;
+    notificationMessageCode = "merchants.withdrawNotification.".concat(withdrawRequest.getWithdrawStatus().name());
+    notification = messageSource
+        .getMessage(notificationMessageCode, messageParams, locale);
+    notificationService.notifyUser(withdrawRequest.getUserEmail(), NotificationEvent.IN_OUT,
+        "merchants.withdrawNotification.header", notificationMessageCode, messageParams);
+    return notification;
+  }
+
+  private String convertWithdrawAutoToString(Integer seconds, Locale locale) {
+    if (seconds <= 0) {
+      return "";
+    }
+    if (seconds > 60 * 60 - 1) {
+      return String.valueOf(Math.round(seconds / (60 * 60)))
+          .concat(" ")
+          .concat(messageSource.getMessage("merchant.withdrawAutoDelayHour", null, locale));
+    }
+    if (seconds > 59) {
+      return String.valueOf(Math.round(seconds / 60))
+          .concat(" ")
+          .concat(messageSource.getMessage("merchant.withdrawAutoDelayMinute", null, locale));
+    }
+    return String.valueOf(seconds)
+        .concat(" ")
+        .concat(messageSource.getMessage("merchant.withdrawAutoDelaySecond", null, locale));
   }
 
 }

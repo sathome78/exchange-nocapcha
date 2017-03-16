@@ -11,6 +11,7 @@ import me.exrates.service.MerchantService;
 import me.exrates.service.UserService;
 import me.exrates.service.WalletService;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -161,5 +162,27 @@ public class CommonMerchantsController {
             return new ResponseEntity<>(result, BAD_REQUEST);
         }
         return new ResponseEntity<>(result, OK);
+    }
+
+    @RequestMapping(value="/withdraw", method = POST)
+    public ResponseEntity<Map<String,String>> merchantWithdraw(
+        @RequestBody final Payment payment,
+        Principal principal,
+        Locale locale) {
+        try {
+            return merchantService.prepareCreditsOperation(payment, principal.getName())
+                .map(creditsOperation -> merchantService.createWithdrawRequest(creditsOperation, new WithdrawData(), principal.getName(), locale))
+                .map(response -> new ResponseEntity<>(response, OK))
+                .get();
+        } catch (Exception e) {
+            LOG.error(ExceptionUtils.getStackTrace(e));
+            ResponseEntity<Map<String, String>> error = new ResponseEntity<>(
+                new HashMap<String, String>(){{
+                    put("failure", source.getMessage("merchants.withdrawRequestError", null, locale));
+                    put("detail", e.getMessage());
+                }},
+                BAD_REQUEST);
+            return error;
+        }
     }
 }

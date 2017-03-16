@@ -1,16 +1,24 @@
 package me.exrates.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.enums.WithdrawalRequestStatus;
+import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
+@Getter @Setter
+@NoArgsConstructor
 public class WithdrawRequest {
-
+    private Integer id;
     private Transaction transaction;
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime acceptance;
@@ -21,113 +29,27 @@ public class WithdrawRequest {
     private String userEmail;
     private MerchantImage merchantImage;
     private WithdrawalRequestStatus status;
+    private WithdrawStatusEnum withdrawStatus;
     private String recipientBankName;
     private String recipientBankCode;
     private String userFullName;
     private String remark;
+    private BigDecimal amount;
+    private BigDecimal commission;
 
-    public Transaction getTransaction() {
-        return transaction;
-    }
-
-    public void setTransaction(Transaction transaction) {
-        this.transaction = transaction;
-    }
-
-    public LocalDateTime getAcceptance() {
-        return acceptance;
-    }
-
-    public void setAcceptance(LocalDateTime acceptance) {
-        this.acceptance = acceptance;
-    }
-
-    public String getProcessedBy() {
-        return processedBy;
-    }
-
-    public void setProcessedBy(String processedBy) {
-        this.processedBy = processedBy;
-    }
-
-    public String getWallet() {
-        return wallet;
-    }
-
-    public void setWallet(String wallet) {
-        this.wallet = wallet;
-    }
-
-    public String getUserEmail() {
-        return userEmail;
-    }
-
-    public void setUserEmail(String userEmail) {
-        this.userEmail = userEmail;
-    }
-
-    public MerchantImage getMerchantImage() {
-        return merchantImage;
-    }
-
-    public void setMerchantImage(MerchantImage merchantImage) {
-        this.merchantImage = merchantImage;
-    }
-
-    public Integer getProcessedById() {
-        return processedById;
-    }
-
-    public void setProcessedById(Integer processedById) {
-        this.processedById = processedById;
-    }
-
-    public Integer getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Integer userId) {
-        this.userId = userId;
-    }
-
-    public WithdrawalRequestStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(WithdrawalRequestStatus status) {
-        this.status = status;
-    }
-
-    public String getRecipientBankName() {
-        return recipientBankName;
-    }
-
-    public void setRecipientBankName(String recipientBankName) {
-        this.recipientBankName = recipientBankName;
-    }
-
-    public String getRecipientBankCode() {
-        return recipientBankCode;
-    }
-
-    public void setRecipientBankCode(String recipientBankCode) {
-        this.recipientBankCode = recipientBankCode;
-    }
-
-    public String getRemark() {
-        return remark;
-    }
-
-    public void setRemark(String remark) {
-        this.remark = remark;
-    }
-
-    public String getUserFullName() {
-        return userFullName;
-    }
-
-    public void setUserFullName(String userFullName) {
-        this.userFullName = userFullName;
+    public WithdrawRequest(WithdrawRequestCreateDto withdrawRequestCreateDto) {
+        this.id = withdrawRequestCreateDto.getId();
+        this.wallet = withdrawRequestCreateDto.getDestinationWallet();
+        this.userId = withdrawRequestCreateDto.getUserId();
+        this.userEmail = withdrawRequestCreateDto.getUserEmail();
+        this.merchantImage = withdrawRequestCreateDto.getMerchantImage();
+        this.withdrawStatus = WithdrawStatusEnum.convert(withdrawRequestCreateDto.getStatusId());
+        this.recipientBankName = withdrawRequestCreateDto.getRecipientBankName();
+        this.recipientBankCode = withdrawRequestCreateDto.getRecipientBankCode();
+        this.userFullName = withdrawRequestCreateDto.getUserFullName();
+        this.remark = withdrawRequestCreateDto.getRemark();
+        this.amount = withdrawRequestCreateDto.getAmount();
+        this.commission = withdrawRequestCreateDto.getCommission();
     }
 
     @Override

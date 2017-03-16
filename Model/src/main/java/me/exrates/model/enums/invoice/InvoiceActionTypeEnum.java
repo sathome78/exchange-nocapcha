@@ -20,7 +20,9 @@ public enum InvoiceActionTypeEnum {
   PUT_FOR_MANUAL,
   PUT_FOR_AUTO,
   PUT_FOR_CONFIRM,
-  POST;
+  POST,
+  TAKE_TO_WORK,
+  RETURN_FROM_WORK;
 
   public static InvoiceActionTypeEnum convert(String name) {
     return Arrays.stream(InvoiceActionTypeEnum.class.getEnumConstants())

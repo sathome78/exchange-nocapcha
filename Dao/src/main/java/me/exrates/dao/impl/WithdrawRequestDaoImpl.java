@@ -3,16 +3,21 @@ package me.exrates.dao.impl;
 import lombok.extern.log4j.Log4j;
 import me.exrates.dao.WithdrawRequestDao;
 import me.exrates.model.*;
+import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.dto.WithdrawRequestFlatForReportDto;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.WithdrawalRequestStatus;
+import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
@@ -36,6 +41,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     private final static RowMapper<WithdrawRequest> withdrawRequestRowMapper = (resultSet, i) -> {
         final Transaction transaction = TransactionDaoImpl.transactionRowMapper.mapRow(resultSet, i);
         final WithdrawRequest request = new WithdrawRequest();
+        request.setId(resultSet.getInt("id"));
         request.setUserEmail(resultSet.getString("user_email"));
         request.setUserId(resultSet.getInt("user_id"));
         request.setWallet(resultSet.getString("wallet"));
@@ -55,6 +61,9 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
         request.setUserFullName(resultSet.getString("user_full_name"));
         request.setRemark(resultSet.getString("remark"));
         request.setStatus(WithdrawalRequestStatus.convert(resultSet.getInt("status")));
+        request.setWithdrawStatus(WithdrawStatusEnum.convert(resultSet.getInt("status_id")));
+        request.setAmount(resultSet.getBigDecimal("amount"));
+        request.setCommission(resultSet.getBigDecimal("commission"));
         return request;
     };
 
@@ -71,9 +80,8 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
             "AND permission.currency_id = TRANSACTION.currency_id AND permission.operation_direction = 'WITHDRAW'";
 
     private final static String SELECT_ALL_REQUESTS =
-            " SELECT WITHDRAW_REQUEST.acceptance, WITHDRAW_REQUEST.wallet, WITHDRAW_REQUEST.processed_by, " +
-                    "WITHDRAW_REQUEST.merchant_image_id, WITHDRAW_REQUEST.status, WITHDRAW_REQUEST.recipient_bank_name, " +
-                    "WITHDRAW_REQUEST.recipient_bank_code, WITHDRAW_REQUEST.user_full_name, WITHDRAW_REQUEST.remark, MERCHANT_IMAGE.image_name, " +
+            " SELECT WITHDRAW_REQUEST.*, " +
+                    "MERCHANT_IMAGE.image_name, " +
                     "USER.id, USER.email as user_email, ADMIN.email as admin_email, " +
                     "TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime, " +
                     "TRANSACTION.operation_type_id,TRANSACTION.provided,TRANSACTION.confirmation, " +
@@ -233,6 +241,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
                 withdrawRequestFlatForReportDto.setAcceptanceUserEmail(rs.getString("acceptance_user_email"));
                 withdrawRequestFlatForReportDto.setAcceptanceTime(rs.getTimestamp("acceptance") == null ? null : rs.getTimestamp("acceptance").toLocalDateTime());
                 withdrawRequestFlatForReportDto.setStatus(WithdrawalRequestStatus.convert(rs.getInt("status")));
+                withdrawRequestFlatForReportDto.setWithdrawStatus(WithdrawStatusEnum.convert(rs.getInt("status_id")));
                 withdrawRequestFlatForReportDto.setUserFullName(rs.getString("user_full_name"));
                 withdrawRequestFlatForReportDto.setUserEmail(rs.getString("user_email"));
                 withdrawRequestFlatForReportDto.setAmount(rs.getBigDecimal("amount"));
@@ -246,5 +255,24 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
         });
     }
 
+    @Override
+    public int create(WithdrawRequestCreateDto withdrawRequest) {
+        final String sql = "INSERT INTO WITHDRAW_REQUEST " +
+            "(wallet, merchant_image_id, recipient_bank_name, recipient_bank_code, user_full_name, remark, amount, commission, status_id) " +
+            "VALUES (:wallet, :merchant_image_id, :payer_bank_name, :payer_bank_code, :user_full_name, :remark, :amount, :commission, :status_id)";
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("wallet", withdrawRequest.getDestinationWallet())
+                .addValue("merchant_image_id", withdrawRequest.getMerchantImage().getId() == 0 ? null : withdrawRequest.getMerchantImage().getId())
+                .addValue("payer_bank_name", withdrawRequest.getRecipientBankName())
+                .addValue("payer_bank_code", withdrawRequest.getRecipientBankCode())
+                .addValue("user_full_name", withdrawRequest.getUserFullName())
+                .addValue("remark", withdrawRequest.getRemark())
+                .addValue("amount", withdrawRequest.getAmount())
+                .addValue("commission", withdrawRequest.getCommission())
+                .addValue("status_id", withdrawRequest.getStatusId());
+        jdbcTemplate.update(sql, params, keyHolder);
+        return (int) keyHolder.getKey().longValue();
+    }
 
 }
