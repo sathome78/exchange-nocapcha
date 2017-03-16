@@ -113,6 +113,8 @@ public class AdminController {
   ReportService reportService;
   @Autowired
   UserRoleService userRoleService;
+  @Autowired
+  UserTransferService userTransferService;
 
   @Autowired
   @Qualifier("ExratesSessionRegistry")
@@ -661,6 +663,12 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/orderinfo", method = RequestMethod.GET)
   public OrderInfoDto getOrderInfo(@RequestParam int id, HttpServletRequest request) {
     return orderService.getOrderInfo(id, localeResolver.resolveLocale(request));
+  }
+
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/transferInfo", method = RequestMethod.GET)
+  public UserTransferInfoDto getTransferInfo(@RequestParam int id, HttpServletRequest request) {
+    return userTransferService.getTransferInfoBySourceId(id);
   }
 
   @ResponseBody

@@ -22,7 +22,7 @@ public class WalletOperationData {
     private Commission commission;
     private BigDecimal commissionAmount;
     private TransactionSourceType sourceType;
-    private int sourceId;
+    private Integer sourceId;
     private Transaction transaction;
 
     /**/

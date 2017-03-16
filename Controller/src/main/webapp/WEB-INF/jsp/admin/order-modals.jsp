@@ -77,9 +77,60 @@
             </div>
             <div class="modal-footer">
                 <div class="delete-order-info__button-wrapper">
-                    <button class="delete-order-info__button" data-dismiss="modal"
-                    ><loc:message
+                    <button class="delete-order-info__button" data-dismiss="modal"><loc:message
                             code="submitorder.cancell"/></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="user_transfer_info_modal" class="modal fade order-info__modal modal-form-dialog" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title"><loc:message code="withdraw.infoModal.title"/></h4>
+            </div>
+            <div class="modal-body">
+                <div class="well">
+                    <table id="withdrawInfoTable" class="table">
+                        <tbody>
+                        <tr>
+                            <td><loc:message code="transaction.currency"/></td>
+                            <td id="info-currency"></td>
+                        </tr>
+                        <tr>
+                            <td><loc:message code="transaction.amount"/></td>
+                            <td id="info-amount"></td>
+                        </tr>
+                        <tr>
+                            <td><loc:message code="transaction.commissionAmount"/></td>
+                            <td id="info-commissionAmount"></td>
+                        </tr>
+                        <tr>
+                            <td><loc:message code="orderinfo.createdate"/></td>
+                            <td id="info-date"></td>
+                        </tr>
+                        <tr>
+                            <td><loc:message code="message.sender"/></td>
+                            <td id="info-userFrom"></td>
+                        </tr>
+                        <tr>
+                            <td><loc:message code="message.recipient"/></td>
+                            <td id="info-userTo"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="modal-footer">
+                    <div class="order-info__button-wrapper">
+                        <button class="order-info__button" data-dismiss="modal">
+                            <loc:message code="orderinfo.ok"/>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

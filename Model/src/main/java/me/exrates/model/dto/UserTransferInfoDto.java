@@ -1,4 +1,4 @@
-package me.exrates.model;
+package me.exrates.model.dto;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Builder;
@@ -9,18 +9,18 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * Created by OLEG on 17.01.2017.
+ * Created by maks on 15.03.2017.
  */
-
 @Data
 @Builder(toBuilder = true)
-public class UserTransfer {
-    private Integer id;
-    private Integer fromUserId;
-    private Integer toUserId;
-    private Integer currencyId;
+public class UserTransferInfoDto {
+
+    private String currencyName;
     private BigDecimal amount;
-    private BigDecimal commissionAmount;
+    private BigDecimal comission;
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime creationDate;
+    private String userFromEmail;
+    private String userToEmail;
+
 }
