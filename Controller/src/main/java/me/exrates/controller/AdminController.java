@@ -8,7 +8,6 @@ import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
-import me.exrates.model.dto.mobileApiDto.CandleChartItemReducedDto;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.*;
@@ -55,11 +54,9 @@ import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAmount;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static me.exrates.model.enums.BusinessUserRoleEnum.ADMIN;
@@ -864,14 +861,19 @@ public class AdminController {
     return new ModelAndView("admin/transaction_bitcoin");
   }
   
-  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinRequests")
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinRequests/reviewed")
   @ResponseBody
   public List<PendingPaymentFlatDto> getBitcoinRequests(Principal principal) {
     Integer requesterUserId = userService.getIdByEmail(principal.getName());
     return bitcoinService.getBitcoinTransactionsForCurrencyPermitted(requesterUserId);
   }
   
-  
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinRequests/accepted")
+  @ResponseBody
+  public List<PendingPaymentFlatDto> getBitcoinRequestsByStatus(Principal principal) {
+    Integer requesterUserId = userService.getIdByEmail(principal.getName());
+    return bitcoinService.getBitcoinTransactionsAcceptedForCurrencyPermitted(requesterUserId);
+  }
   
 
   @RequestMapping(value = "/2a8fy7b07dxe44/sessionControl")

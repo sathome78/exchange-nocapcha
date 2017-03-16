@@ -8,6 +8,7 @@ import me.exrates.model.exceptions.UnsupportedNewsTypeIdException;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Created by ValkSam
@@ -143,6 +144,10 @@ public enum PendingPaymentStatusEnum implements InvoiceStatus {
   @Override
   public Integer getCode() {
     return code;
+  }
+  
+  public static Set<InvoiceStatus> getAcceptedStatesSet() {
+    return Stream.of(ACCEPTED_AUTO, ACCEPTED_ADMIN).collect(Collectors.toSet());
   }
 
 
