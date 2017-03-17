@@ -33,4 +33,6 @@ public interface WithdrawRequestDao {
       String endDate,
       List<Integer> roleIdList,
       List<Integer> currencyList);
+    
+    Integer findStatusIdByRequestId(Integer withdrawRequestId);
 }

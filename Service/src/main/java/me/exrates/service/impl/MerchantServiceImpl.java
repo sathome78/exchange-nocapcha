@@ -228,10 +228,15 @@ public class MerchantServiceImpl implements MerchantService {
 
   @Override
   public String resolveTransactionStatus(final Transaction transaction, final Locale locale) {
-    if (transaction.getSourceType() == TransactionSourceType.INVOICE && transaction.getOperationType() == INPUT) {
+    if (transaction.getSourceType() == TransactionSourceType.INVOICE) {
       Integer statusId = invoiceService.getInvoiceRequestStatusByInvoiceId(transaction.getSourceId());
       InvoiceRequestStatusEnum invoiceRequestStatus = InvoiceRequestStatusEnum.convert(statusId);
       return messageSource.getMessage("merchants.invoice.".concat(invoiceRequestStatus.name()), null, locale);
+    }
+    if (transaction.getSourceType() == TransactionSourceType.WITHDRAW) {
+      Integer statusId = withdrawRequestDao.findStatusIdByRequestId(transaction.getId());
+      WithdrawalRequestStatus status = WithdrawalRequestStatus.convert(statusId);
+      return messageSource.getMessage("merchants.withdraw.".concat(status.name().toLowerCase()), null, locale);
     }
     if (transaction.getSourceType() == TransactionSourceType.BTC_INVOICE) {
       Integer statusId = bitcoinService.getPendingPaymentStatusByInvoiceId(transaction.getSourceId());
@@ -500,6 +505,8 @@ public class MerchantServiceImpl implements MerchantService {
         final BigDecimal newAmount = payment.getOperationType() == INPUT ?
                 amount :
                 amount.subtract(commissionAmount).setScale(currencyService.resolvePrecision(currency.getName()), ROUND_DOWN);
+        TransactionSourceType transactionSourceType = operationType == OUTPUT ? TransactionSourceType.WITHDRAW :
+                TransactionSourceType.convert(merchant.getTransactionSourceTypeId());
         final CreditsOperation creditsOperation = new CreditsOperation.Builder()
                 .amount(newAmount)
                 .commissionAmount(commissionAmount)
@@ -510,7 +517,7 @@ public class MerchantServiceImpl implements MerchantService {
                 .merchant(merchant)
                 .destination(destination)
                 .merchantImage(merchantImage)
-                .transactionSourceType(TransactionSourceType.convert(merchant.getTransactionSourceTypeId()))
+                .transactionSourceType(transactionSourceType)
         .build();
     return Optional.of(creditsOperation);
   }

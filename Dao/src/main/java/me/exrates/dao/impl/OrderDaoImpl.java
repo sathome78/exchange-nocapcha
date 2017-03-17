@@ -293,15 +293,14 @@ public class OrderDaoImpl implements OrderDao {
                     "       ORDER BY PRED_LASTORDER.date_acception DESC, PRED_LASTORDER.id DESC " +
                     "       LIMIT 1,1) AS pred_last_exrate " +
                     " FROM ( " +
-                    "   SELECT " +
+                    "   SELECT DISTINCT" +
                     "   EXORDERS.status_id AS status_id,  " +
                     "   EXORDERS.currency_pair_id AS currency_pair_id " +
                     "   FROM EXORDERS          " +
                     "   WHERE EXORDERS.status_id = :status_id         " +
-                    "   GROUP BY status_id, currency_pair_id          " +
                     "   ) " +
                     " AGRIGATE " +
-                    " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = AGRIGATE.currency_pair_id) AND (CURRENCY_PAIR.hidden IS NOT TRUE) " +
+                    " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = AGRIGATE.currency_pair_id) AND (CURRENCY_PAIR.hidden != 1) " +
                     "" +
                     " ORDER BY -CURRENCY_PAIR.pair_order DESC ";
             NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
