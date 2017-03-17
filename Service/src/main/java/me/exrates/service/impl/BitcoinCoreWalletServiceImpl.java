@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 
 /**
  * Created by OLEG on 14.03.2017.
@@ -27,6 +28,7 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
     
   @Autowired
   private BtcdClient btcdClient;
+  private BtcdDaemon daemon;
   
   
   
@@ -34,30 +36,20 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
   public void initBitcoin() {
   
     try {
-      BtcdDaemon daemon = new BtcdDaemonImpl(btcdClient);
+      daemon = new BtcdDaemonImpl(btcdClient);
       daemon.addBlockListener(new BlockListener() {
         @Override
         public void blockDetected(Block block) {
           log.debug(String.format("Block detected: hash %s ", block.getHash()));
-          try {
-            Block fullBlock = btcdClient.getBlock(block.getHash());
-            log.debug(fullBlock);
-          } catch (BitcoindException | CommunicationException e) {
-            log.error(e);
-          }
+          log.debug(String.format("Block %s ", block.toString()));
+          
         }
       });
       daemon.addWalletListener(new WalletListener() {
         @Override
         public void walletChanged(Transaction transaction) {
           log.debug(String.format("Wallet change: tx id %s", transaction.getTxId()));
-          
-          try {
-            Transaction fullTransaction = btcdClient.getTransaction(transaction.getTxId());
-            log.debug(fullTransaction);
-          } catch (BitcoindException | CommunicationException e) {
-            log.error(e);
-          }
+          log.debug(String.format("TX %s ", transaction.toString()));
         }
       });
     } catch (BitcoindException | CommunicationException e) {
@@ -75,5 +67,15 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
       throw new BitcoinCoreException("Cannot generate new address!");
     }
   }
+  
+  @PreDestroy
+  public void shutdownDaemon() {
+    daemon.removeAlertListeners();
+    daemon.removeBlockListeners();
+    daemon.removeWalletListeners();
+    daemon.shutdown();
+  }
+  
+  
   
 }

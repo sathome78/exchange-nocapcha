@@ -139,12 +139,12 @@ public class BitcoinServiceImpl implements BitcoinService {
         .map(InvoiceStatus::getCode)
         .collect(toList());
 
-    if (paymentDao.existsPendingPaymentWithAddressAndStatus(address.toString(), unclosedPendingPaymentStatesList)) {
+    if (paymentDao.existsPendingPaymentWithAddressAndStatus(address, unclosedPendingPaymentStatesList)) {
       final int LIMIT = 2000;
       int i = 0;
       while (!isFreshAddress && i++ < LIMIT) {
         address = bitcoinWalletService.getNewAddress();
-        isFreshAddress = !paymentDao.existsPendingPaymentWithAddressAndStatus(address.toString(), unclosedPendingPaymentStatesList);
+        isFreshAddress = !paymentDao.existsPendingPaymentWithAddressAndStatus(address, unclosedPendingPaymentStatesList);
       }
       if (i >= LIMIT) {
         throw new IllegalStateException("Can`t generate fresh address");
