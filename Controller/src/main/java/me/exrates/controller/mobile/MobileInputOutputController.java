@@ -504,7 +504,7 @@ public class MobileInputOutputController {
         payment.setCurrency(withdrawInvoiceDto.getCurrency());
         payment.setMerchant(INVOICE_MERCHANT_ID);
         payment.setMerchantImage(INVOICE_MERCHANT_IMAGE_ID);
-        payment.setOperationType(OperationType.INPUT);
+        payment.setOperationType(OperationType.OUTPUT);
         payment.setDestination(withdrawInvoiceDto.getWalletNumber());
 
         WithdrawData withdrawData = new WithdrawData();

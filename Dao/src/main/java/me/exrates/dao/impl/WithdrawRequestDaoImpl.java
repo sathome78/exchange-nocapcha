@@ -245,6 +245,12 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
             }
         });
     }
+    
+    @Override
+    public Integer findStatusIdByRequestId(Integer withdrawRequestId) {
+        String sql = "SELECT status FROM WITHDRAW_REQUEST WHERE transaction_id = :request_id";
+        return jdbcTemplate.queryForObject(sql, Collections.singletonMap("request_id", withdrawRequestId), Integer.class);
+    }
 
 
 }

@@ -223,7 +223,7 @@ public class TransactionServiceImpl implements TransactionService {
         TransactionSourceType sourceType = transaction.getSourceType();
         OperationType operationType = transaction.getOperationType();
         view.setOperationType(TransactionType.resolveFromOperationTypeAndSource(sourceType, operationType));
-        if (sourceType == TransactionSourceType.MERCHANT) {
+        if (sourceType == TransactionSourceType.MERCHANT || sourceType == TransactionSourceType.WITHDRAW) {
             view.setMerchant(transaction.getMerchant());
         } else {
             view.setMerchant(new Merchant(0, sourceType.name(), sourceType.name(), null));
