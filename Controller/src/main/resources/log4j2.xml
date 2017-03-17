@@ -145,7 +145,7 @@
             <AppenderRef ref="Logs"/>
         </logger>
         <logger name="org.bitcoinj" level="INFO" additivity="false">
-            <!--<AppenderRef ref="Console"/>-->
+            <AppenderRef ref="Console"/>
             <AppenderRef ref="bitcoinj_log"/>
         </logger>
         <logger name="com.neemre.btcdcli4j" level="INFO" additivity="false">
