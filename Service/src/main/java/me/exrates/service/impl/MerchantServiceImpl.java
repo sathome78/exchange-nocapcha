@@ -2,27 +2,23 @@ package me.exrates.service.impl;
 
 import javafx.util.Pair;
 import me.exrates.dao.MerchantDao;
-import me.exrates.dao.WithdrawRequestDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
-import me.exrates.model.dto.MerchantCurrencyAutoParamDto;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
-import me.exrates.model.dto.WithdrawRequestCreateDto;
-import me.exrates.model.dto.WithdrawRequestFlatForReportDto;
-import me.exrates.model.dto.dataTable.DataTable;
-import me.exrates.model.dto.dataTable.DataTableParams;
-import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.NotificationEvent;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.enums.WithdrawalRequestStatus;
 import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
 import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
-import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.CacheData;
-import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.*;
-import me.exrates.service.exception.*;
+import me.exrates.service.exception.MerchantCurrencyBlockedException;
+import me.exrates.service.exception.MerchantInternalException;
+import me.exrates.service.exception.UnsupportedMerchantException;
 import me.exrates.service.util.Cache;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -34,17 +30,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.security.Principal;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.math.BigDecimal.*;
 import static java.math.BigDecimal.valueOf;
-import static java.util.Collections.singletonMap;
 import static me.exrates.model.enums.OperationType.*;
-import static me.exrates.model.enums.WithdrawalRequestStatus.*;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -71,12 +63,6 @@ public class MerchantServiceImpl implements MerchantService {
   private MessageSource messageSource;
 
   @Autowired
-  private TransactionService transactionService;
-
-  @Autowired
-  private WithdrawRequestDao withdrawRequestDao;
-
-  @Autowired
   private WalletService walletService;
 
   @Autowired
@@ -92,82 +78,6 @@ public class MerchantServiceImpl implements MerchantService {
   private static final Logger LOG = LogManager.getLogger("merchant");
 
   @Override
-  @Transactional
-  public Map<String, String> acceptWithdrawalRequest(final int requestId,
-                                                     final Locale locale,
-                                                     final Principal principal) {
-    final Optional<WithdrawRequest> withdraw = withdrawRequestDao.findById(requestId);
-    if (!withdraw.isPresent()) {
-      return singletonMap("error", messageSource.getMessage("merchants.WithdrawRequestError", null, locale));
-    }
-    final WithdrawRequest request = withdraw.get();
-    request.setProcessedBy(principal.getName());
-    request.setStatus(ACCEPTED);
-    withdrawRequestDao.update(request);
-    final Optional<WithdrawRequest> withdrawUpdated = withdrawRequestDao.findById(requestId);
-    if (!withdrawUpdated.isPresent()) {
-      return singletonMap("error", messageSource.getMessage("merchants.WithdrawRequestError", null, locale));
-    }
-    final WithdrawRequest requestUpdated = withdrawUpdated.get();
-    transactionService.provideTransaction(request.getTransaction());
-    Locale userLocale = new Locale(userService.getPreferedLang(request.getUserId()));
-    sendWithdrawalNotification(request, ACCEPTED, userLocale);
-    final HashMap<String, String> params = new HashMap<>();
-    final String message = messageSource.getMessage("merchants.WithdrawRequestAccept", null, locale);
-    params.put("success", message);
-    params.put("acceptance", requestUpdated.getAcceptance().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-    params.put("email", principal.getName());
-    return params;
-  }
-
-  @Override
-  @Transactional
-  public Map<String, Object> declineWithdrawalRequest(final int requestId, final Locale locale, String email) {
-    final Optional<WithdrawRequest> withdraw = withdrawRequestDao.findById(requestId);
-    if (!withdraw.isPresent()) {
-      return singletonMap("error", messageSource.getMessage("merchants.WithdrawRequestError", null, locale));
-    }
-    final WithdrawRequest request = withdraw.get();
-    request.setProcessedBy(email);
-    request.setStatus(DECLINED);
-    final Transaction transaction = request.getTransaction();
-    withdrawRequestDao.update(request);
-    final Optional<WithdrawRequest> withdrawUpdated = withdrawRequestDao.findById(requestId);
-    if (!withdrawUpdated.isPresent()) {
-      return singletonMap("error", messageSource.getMessage("merchants.WithdrawRequestError", null, locale));
-    }
-    final WithdrawRequest requestUpdated = withdrawUpdated.get();
-    final BigDecimal amount = transaction.getAmount().add(transaction.getCommissionAmount());
-    walletService.withdrawReservedBalance(transaction.getUserWallet(), amount);
-    walletService.depositActiveBalance(transaction.getUserWallet(), amount);
-    Locale userLocale = new Locale(userService.getPreferedLang(request.getUserId()));
-    sendWithdrawalNotification(request, DECLINED, userLocale);
-    final HashMap<String, Object> params = new HashMap<>();
-    final String message = messageSource.getMessage("merchants.WithdrawRequestDecline", null, locale);
-    params.put("success", message);
-    params.put("acceptance", requestUpdated.getAcceptance().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-    params.put("email", email);
-    params.put("userEmail", request.getUserEmail());
-    return params;
-  }
-
-  @Override
-  public List<WithdrawRequest> findAllWithdrawRequests() {
-    return withdrawRequestDao.findAll();
-  }
-
-  @Override
-  public DataTable<List<WithdrawRequest>> findWithdrawRequestsByStatus(Integer requestStatus, DataTableParams dataTableParams, WithdrawFilterData withdrawFilterData, String userEmail) {
-    PagingData<List<WithdrawRequest>> result = withdrawRequestDao.findByStatus(requestStatus, userService.getIdByEmail(userEmail), dataTableParams, withdrawFilterData);
-    LOG.debug(result.getData().stream().map(request -> request.getTransaction().getId()).collect(Collectors.toList()));
-    DataTable<List<WithdrawRequest>> output = new DataTable<>();
-    output.setData(result.getData());
-    output.setRecordsTotal(result.getTotal());
-    output.setRecordsFiltered(result.getFiltered());
-    return output;
-  }
-
-  @Override
   public List<Merchant> findAllByCurrency(Currency currency) {
     return merchantDao.findAllByCurrency(currency.getId());
   }
@@ -175,52 +85,6 @@ public class MerchantServiceImpl implements MerchantService {
   @Override
   public List<Merchant> findAll() {
     return merchantDao.findAll();
-  }
-
-  @Override
-  @Transactional
-  public Map<String, String> withdrawRequest(final CreditsOperation creditsOperation,
-                                             WithdrawData withdrawData, final String userEmail, final Locale locale) {
-    final Transaction transaction = transactionService.createTransactionRequest(creditsOperation);
-    final BigDecimal reserved = transaction
-        .getAmount()
-        .add(transaction.getCommissionAmount()).setScale(currencyService.resolvePrecision(creditsOperation.getCurrency().getName()), BigDecimal.ROUND_HALF_UP);
-    walletService.depositReservedBalance(transaction.getUserWallet(), reserved);
-    final WithdrawRequest request = new WithdrawRequest();
-    request.setUserEmail(userEmail);
-    if (creditsOperation.getDestination().isPresent() && !creditsOperation.getDestination().get().isEmpty()) {
-      request.setWallet(creditsOperation.getDestination().get());
-    } else {
-      request.setWallet(withdrawData.getUserAccount());
-    }
-    creditsOperation
-        .getMerchantImage()
-        .ifPresent(request::setMerchantImage);
-    request.setTransaction(transaction);
-    request.setRecipientBankName(withdrawData.getRecipientBankName());
-    request.setRecipientBankCode(withdrawData.getRecipientBankCode());
-    request.setUserFullName(withdrawData.getUserFullName());
-    request.setRemark(withdrawData.getRemark());
-    withdrawRequestDao.create(request);
-    transactionService.setSourceId(transaction.getId(), transaction.getId());
-
-    String notification = null;
-    try {
-      notification = sendWithdrawalNotification(request, NEW, locale);
-    } catch (final MailException e) {
-      LOG.error(e);
-    }
-    final BigDecimal newAmount = transaction
-        .getUserWallet()
-        .getActiveBalance();
-    final String currency = transaction
-        .getCurrency()
-        .getName();
-    final String balance = currency + " " + currencyService.amountToString(newAmount, currency);
-    final Map<String, String> result = new HashMap<>();
-    result.put("success", notification);
-    result.put("balance", balance);
-    return result;
   }
 
   @Override
@@ -270,41 +134,6 @@ public class MerchantServiceImpl implements MerchantService {
   }
 
   @Override
-  public String sendWithdrawalNotification(final WithdrawRequest withdrawRequest,
-                                           final WithdrawalRequestStatus status,
-                                           final Locale locale) {
-    final String notification;
-    final Transaction transaction = withdrawRequest.getTransaction();
-    final Object[] messageParams = {
-        transaction
-            .getId(),
-        transaction
-            .getMerchant()
-            .getDescription()
-    };
-    String notificationMessageCode;
-    switch (status) {
-      case NEW:
-        notificationMessageCode = "merchants.withdrawNotification";
-        break;
-      case ACCEPTED:
-        notificationMessageCode = "merchants.withdrawNotificationAccepted";
-        break;
-      case DECLINED:
-        notificationMessageCode = "merchants.withdrawNotificationDeclined";
-        break;
-      default:
-        throw new MerchantInternalException(status + "Withdrawal status is invalid");
-    }
-    notification = messageSource
-        .getMessage(notificationMessageCode, messageParams, locale);
-    notificationService.notifyUser(withdrawRequest.getUserEmail(), NotificationEvent.IN_OUT,
-        "merchants.withdrawNotification.header", notificationMessageCode, messageParams);
-    return notification;
-  }
-
-
-  @Override
   public String sendDepositNotification(final String toWallet,
                                         final String email,
                                         final Locale locale,
@@ -337,8 +166,7 @@ public class MerchantServiceImpl implements MerchantService {
     return notification;
   }
 
-  @Override
-  public Map<Integer, List<Merchant>> mapMerchantsToCurrency(List<Currency> currencies) {
+  private Map<Integer, List<Merchant>> mapMerchantsToCurrency(List<Currency> currencies) {
     return currencies.stream()
         .map(Currency::getId)
         .map(currencyId -> new Pair<>(currencyId, merchantDao.findAllByCurrency(currencyId)))
@@ -600,148 +428,5 @@ public class MerchantServiceImpl implements MerchantService {
     }
   }
 
-  @Override
-  @Transactional
-  public List<WithdrawRequestFlatForReportDto> findAllByDateIntervalAndRoleAndCurrency(
-      String startDate,
-      String endDate,
-      List<Integer> roleIdList,
-      List<Integer> currencyList) {
-    return withdrawRequestDao.findAllByDateIntervalAndRoleAndCurrency(startDate, endDate, roleIdList, currencyList);
-  }
-
-  @Override
-  @Transactional
-  public void setAutoWithdrawParams(MerchantCurrencyOptionsDto merchantCurrencyOptionsDto) {
-    merchantDao.setAutoWithdrawParamsByMerchantAndCurrency(
-        merchantCurrencyOptionsDto.getMerchantId(),
-        merchantCurrencyOptionsDto.getCurrencyId(),
-        merchantCurrencyOptionsDto.getWithdrawAutoEnabled(),
-        merchantCurrencyOptionsDto.getWithdrawAutoDelaySeconds(),
-        merchantCurrencyOptionsDto.getWithdrawAutoThresholdAmount());
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public MerchantCurrencyAutoParamDto getAutoWithdrawParamsByMerchantAndCurrency(Integer merchantId, Integer currencyId) {
-    return merchantDao.findAutoWithdrawParamsByMerchantAndCurrency(merchantId, currencyId);
-  }
-
-  @Override
-  @Transactional
-  public Map<String, String> createWithdrawRequest(
-      CreditsOperation creditsOperation,
-      WithdrawData withdrawData,
-      String userEmail,
-      Locale locale) {
-    MerchantCurrencyAutoParamDto autoParamDto = getAutoWithdrawParamsByMerchantAndCurrency(
-        creditsOperation.getMerchant().getId(),
-        creditsOperation.getCurrency().getId());
-    WithdrawStatusEnum withdrawRequestStatus = ((WithdrawStatusEnum) WithdrawStatusEnum.getBeginState()).getStartState(
-        autoParamDto.getWithdrawAutoEnabled(),
-        creditsOperation.getFullAmount(),
-        autoParamDto.getWithdrawAutoThresholdAmount());
-    WithdrawRequestCreateDto request = new WithdrawRequestCreateDto();
-    request.setUserId(creditsOperation.getUser().getId());
-    request.setUserEmail(creditsOperation.getUser().getEmail());
-    request.setAmount(creditsOperation.getFullAmount());
-    request.setUserId(creditsOperation.getWallet().getId());
-    request.setCommission(creditsOperation.getCommissionAmount());
-    if (creditsOperation.getDestination().isPresent() && !creditsOperation.getDestination().get().isEmpty()) {
-      request.setDestinationWallet(creditsOperation.getDestination().get());
-    } else {
-      request.setDestinationWallet(withdrawData.getUserAccount());
-    }
-    creditsOperation
-        .getMerchantImage()
-        .ifPresent(request::setMerchantImage);
-    request.setStatusId(withdrawRequestStatus.getCode());
-    request.setRecipientBankName(withdrawData.getRecipientBankName());
-    request.setRecipientBankCode(withdrawData.getRecipientBankCode());
-    request.setUserFullName(withdrawData.getUserFullName());
-    request.setRemark(withdrawData.getRemark());
-    Integer requestId = createWithdrawRequest(request);
-    request.setId(requestId);
-    /**/
-    String notification = null;
-    String delayDescription = convertWithdrawAutoToString(autoParamDto.getWithdrawAutoDelaySeconds(), locale);
-    try {
-      notification = sendWithdrawalNotification(
-          new WithdrawRequest(request),
-          creditsOperation.getMerchant().getDescription(),
-          delayDescription,
-          locale);
-    } catch (final MailException e) {
-      LOG.error(e);
-    }
-    final BigDecimal newAmount = walletService.getWalletABalance(request.getUserWalletId());
-    final String currency = creditsOperation.getCurrency().getName();
-    final String balance = currency + " " + currencyService.amountToString(newAmount, currency);
-    final Map<String, String> result = new HashMap<>();
-    result.put("success", notification);
-    result.put("balance", balance);
-    return result;
-  }
-
-  @Transactional(rollbackFor = {Exception.class})
-  private Integer createWithdrawRequest(WithdrawRequestCreateDto withdrawRequestCreateDto) {
-    int createdWithdrawRequestId = 0;
-    if (walletService.ifEnoughMoney(
-        withdrawRequestCreateDto.getUserWalletId(),
-        withdrawRequestCreateDto.getAmount())) {
-      if ((createdWithdrawRequestId = withdrawRequestDao.create(withdrawRequestCreateDto)) > 0) {
-        WalletTransferStatus result = walletService.walletInnerTransfer(
-            withdrawRequestCreateDto.getUserWalletId(),
-            withdrawRequestCreateDto.getAmount().negate(),
-            TransactionSourceType.WITHDRAW,
-            createdWithdrawRequestId);
-        if (result != WalletTransferStatus.SUCCESS) {
-          throw new WithdrawRequestCreationException(result.toString());
-        }
-      }
-    } else {
-      throw new NotEnoughUserWalletMoneyException("");
-    }
-    return createdWithdrawRequestId;
-  }
-
-  public String sendWithdrawalNotification(
-      WithdrawRequest withdrawRequest,
-      String merchantDescription,
-      String withdrawDelay,
-      Locale locale) {
-    final String notification;
-    final Object[] messageParams = {
-        withdrawRequest.getId(),
-        merchantDescription,
-        withdrawDelay.isEmpty() ? "" : "within".concat(withdrawDelay)
-    };
-    String notificationMessageCode;
-    notificationMessageCode = "merchants.withdrawNotification.".concat(withdrawRequest.getWithdrawStatus().name());
-    notification = messageSource
-        .getMessage(notificationMessageCode, messageParams, locale);
-    notificationService.notifyUser(withdrawRequest.getUserEmail(), NotificationEvent.IN_OUT,
-        "merchants.withdrawNotification.header", notificationMessageCode, messageParams);
-    return notification;
-  }
-
-  private String convertWithdrawAutoToString(Integer seconds, Locale locale) {
-    if (seconds <= 0) {
-      return "";
-    }
-    if (seconds > 60 * 60 - 1) {
-      return String.valueOf(Math.round(seconds / (60 * 60)))
-          .concat(" ")
-          .concat(messageSource.getMessage("merchant.withdrawAutoDelayHour", null, locale));
-    }
-    if (seconds > 59) {
-      return String.valueOf(Math.round(seconds / 60))
-          .concat(" ")
-          .concat(messageSource.getMessage("merchant.withdrawAutoDelayMinute", null, locale));
-    }
-    return String.valueOf(seconds)
-        .concat(" ")
-        .concat(messageSource.getMessage("merchant.withdrawAutoDelaySecond", null, locale));
-  }
 
 }

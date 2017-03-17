@@ -82,7 +82,8 @@ public class MobileInputOutputController {
     @Autowired
     private MessageSource messageSource;
 
-
+    @Autowired
+    WithdrawService withdrawService;
 
 
 
@@ -238,7 +239,7 @@ public class MobileInputOutputController {
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
             return merchantService.prepareCreditsOperation(payment, userEmail)
-                    .map(creditsOperation -> merchantService.withdrawRequest(creditsOperation, new WithdrawData(), userEmail, userLocale))
+                    .map(creditsOperation -> withdrawService.withdrawRequest(creditsOperation, new WithdrawData(), userEmail, userLocale))
                     .map(response -> new ResponseEntity<>(response, OK))
                     .orElseThrow(InvalidAmountException::new);
 
@@ -517,7 +518,7 @@ public class MobileInputOutputController {
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
         return merchantService.prepareCreditsOperation(payment, userEmail)
-                .map(creditsOperation -> merchantService.withdrawRequest(creditsOperation, withdrawData, userEmail, userLocale))
+                .map(creditsOperation -> withdrawService.withdrawRequest(creditsOperation, withdrawData, userEmail, userLocale))
                 .map(response -> new ResponseEntity<>(response, OK))
                 .orElseThrow(InvalidAmountException::new);
     }

@@ -2,9 +2,7 @@ package me.exrates.model.enums.invoice;
 
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.model.exceptions.UnsupportedInvoiceRequestStatusNameException;
-import me.exrates.model.exceptions.UnsupportedInvoiceStatusForActionException;
-import me.exrates.model.exceptions.UnsupportedNewsTypeIdException;
+import me.exrates.model.exceptions.*;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -52,7 +50,7 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
   IN_WORK_OF_ADMIN(5) {
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
       schemaMap.put(InvoiceActionTypeEnum.DECLINE, DECLINED_ADMIN);
-      schemaMap.put(InvoiceActionTypeEnum.POST, POSTED_AUTO);
+      schemaMap.put(InvoiceActionTypeEnum.POST, POSTED_MANUAL);
       schemaMap.put(InvoiceActionTypeEnum.RETURN_FROM_WORK, WAITING_MANUAL_POSTING);
     }
   },
@@ -123,14 +121,14 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
     return Arrays.stream(WithdrawStatusEnum.class.getEnumConstants())
         .filter(e -> e.code == id)
         .findAny()
-        .orElseThrow(() -> new UnsupportedNewsTypeIdException(String.valueOf(id)));
+        .orElseThrow(() -> new UnsupportedWithdrawRequestStatusIdException(String.valueOf(id)));
   }
 
   public static WithdrawStatusEnum convert(String name) {
     return Arrays.stream(WithdrawStatusEnum.class.getEnumConstants())
         .filter(e -> e.name().equals(name))
         .findAny()
-        .orElseThrow(() -> new UnsupportedInvoiceRequestStatusNameException(name));
+        .orElseThrow(() -> new UnsupportedWithdrawRequestStatusNameException(name));
   }
 
   public static InvoiceStatus getBeginState() {

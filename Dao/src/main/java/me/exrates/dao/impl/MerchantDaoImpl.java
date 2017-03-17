@@ -440,9 +440,9 @@ public class MerchantDaoImpl implements MerchantDao {
     }};
     return jdbcTemplate.queryForObject(sql, params, (resultSet, i) -> {
       MerchantCurrencyAutoParamDto dto = new MerchantCurrencyAutoParamDto();
-      dto.setWithdrawAutoEnabled(resultSet.getBoolean("description"));
-      dto.setWithdrawAutoThresholdAmount(resultSet.getBigDecimal("description"));
-      dto.setWithdrawAutoDelaySeconds(resultSet.getInt("description"));
+      dto.setWithdrawAutoEnabled(resultSet.getBoolean("withdraw_auto_enabled"));
+      dto.setWithdrawAutoThresholdAmount(resultSet.getBigDecimal("withdraw_auto_threshold_amount"));
+      dto.setWithdrawAutoDelaySeconds(resultSet.getInt("withdraw_auto_delay_seconds"));
       return dto;
     });
   }

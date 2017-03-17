@@ -27,27 +27,14 @@ import java.util.Optional;
  */
 public interface MerchantService {
 
-    Map<String, String> acceptWithdrawalRequest(int requestId, Locale locale,Principal principal);
-
-    Map<String, Object> declineWithdrawalRequest(int requestId, Locale locale, String email);
-
-    List<WithdrawRequest> findAllWithdrawRequests();
-
-    DataTable<List<WithdrawRequest>> findWithdrawRequestsByStatus(Integer requestStatus, DataTableParams dataTableParams, WithdrawFilterData withdrawFilterData, String userEmail);
-
     List<Merchant> findAllByCurrency(Currency currency);
 
-    Map<String, String> withdrawRequest(CreditsOperation creditsOperation, WithdrawData withdrawData, String userEmail, Locale locale);
     List<Merchant> findAll();
 
     String resolveTransactionStatus(Transaction transaction, Locale locale);
 
-    String sendWithdrawalNotification(WithdrawRequest withdrawRequest ,WithdrawalRequestStatus status, Locale locale);
-
     String sendDepositNotification(String toWallet, String email,
         Locale locale, CreditsOperation creditsOperation, String depositNotification);
-
-    Map<Integer, List<Merchant>> mapMerchantsToCurrency(List<Currency> currencies);
 
     Merchant findById(int id);
 
@@ -93,11 +80,4 @@ public interface MerchantService {
     @Transactional
     void setBlockForMerchant(Integer merchantId, Integer currencyId, OperationType operationType, boolean blockStatus);
 
-  List<WithdrawRequestFlatForReportDto> findAllByDateIntervalAndRoleAndCurrency(String startDate, String endDate, List<Integer> roleIdList, List<Integer> currencyList);
-
-    void setAutoWithdrawParams(MerchantCurrencyOptionsDto merchantCurrencyOptionsDto);
-
-    MerchantCurrencyAutoParamDto getAutoWithdrawParamsByMerchantAndCurrency(Integer merchantId, Integer currencyId);
-
-    Map<String, String> createWithdrawRequest(CreditsOperation creditsOperation, WithdrawData withdrawData, String userEmail, Locale locale);
 }

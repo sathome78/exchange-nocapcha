@@ -2,7 +2,10 @@ package me.exrates.dao.impl;
 
 import lombok.extern.log4j.Log4j;
 import me.exrates.dao.WithdrawRequestDao;
-import me.exrates.model.*;
+import me.exrates.model.MerchantImage;
+import me.exrates.model.PagingData;
+import me.exrates.model.Transaction;
+import me.exrates.model.WithdrawRequest;
 import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.dto.WithdrawRequestFlatForReportDto;
 import me.exrates.model.dto.dataTable.DataTableParams;
@@ -25,7 +28,8 @@ import java.sql.SQLException;
 import java.util.*;
 
 import static java.util.Collections.singletonMap;
-import static java.util.Optional.*;
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
 
 
 /**
@@ -60,8 +64,8 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
         request.setRecipientBankCode(resultSet.getString("recipient_bank_code"));
         request.setUserFullName(resultSet.getString("user_full_name"));
         request.setRemark(resultSet.getString("remark"));
-        request.setStatus(WithdrawalRequestStatus.convert(resultSet.getInt("status")));
-        request.setWithdrawStatus(WithdrawStatusEnum.convert(resultSet.getInt("status_id")));
+        request.setStatus(resultSet.getObject("status") == null ? null : WithdrawalRequestStatus.convert(resultSet.getInt("status")));
+        request.setWithdrawStatus(resultSet.getObject("status_id") == null ? null : WithdrawStatusEnum.convert(resultSet.getInt("status_id")));
         request.setAmount(resultSet.getBigDecimal("amount"));
         request.setCommission(resultSet.getBigDecimal("commission"));
         return request;
@@ -240,8 +244,8 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
                 withdrawRequestFlatForReportDto.setRecipientBank(rs.getString("recipient_bank_name"));
                 withdrawRequestFlatForReportDto.setAcceptanceUserEmail(rs.getString("acceptance_user_email"));
                 withdrawRequestFlatForReportDto.setAcceptanceTime(rs.getTimestamp("acceptance") == null ? null : rs.getTimestamp("acceptance").toLocalDateTime());
-                withdrawRequestFlatForReportDto.setStatus(WithdrawalRequestStatus.convert(rs.getInt("status")));
-                withdrawRequestFlatForReportDto.setWithdrawStatus(WithdrawStatusEnum.convert(rs.getInt("status_id")));
+                withdrawRequestFlatForReportDto.setStatus(rs.getObject("status") == null ? null : WithdrawalRequestStatus.convert(rs.getInt("status")));
+                withdrawRequestFlatForReportDto.setWithdrawStatus(rs.getObject("status_id") == null ? null : WithdrawStatusEnum.convert(rs.getInt("status_id")));
                 withdrawRequestFlatForReportDto.setUserFullName(rs.getString("user_full_name"));
                 withdrawRequestFlatForReportDto.setUserEmail(rs.getString("user_email"));
                 withdrawRequestFlatForReportDto.setAmount(rs.getBigDecimal("amount"));
@@ -258,8 +262,10 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     @Override
     public int create(WithdrawRequestCreateDto withdrawRequest) {
         final String sql = "INSERT INTO WITHDRAW_REQUEST " +
-            "(wallet, merchant_image_id, recipient_bank_name, recipient_bank_code, user_full_name, remark, amount, commission, status_id) " +
-            "VALUES (:wallet, :merchant_image_id, :payer_bank_name, :payer_bank_code, :user_full_name, :remark, :amount, :commission, :status_id)";
+            "(wallet, merchant_image_id, recipient_bank_name, recipient_bank_code, user_full_name, remark, amount, commission, status_id," +
+            " date_creation, status_modification_date) " +
+            "VALUES (:wallet, :merchant_image_id, :payer_bank_name, :payer_bank_code, :user_full_name, :remark, :amount, :commission, :status_id," +
+            " NOW(), NOW())";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("wallet", withdrawRequest.getDestinationWallet())

@@ -12,7 +12,7 @@
         <c:otherwise>
             <div class="row">
                     <form:form id="payment" class="form-horizontal withdraw__money" name="payment" method="post"
-                                      modelAttribute="payment" action="/merchants/payment/withdraw">
+                                      modelAttribute="payment">
                         <div class="input-block-wrapper clearfix" >
                                 <%--Currency to withdraw--%>
                             <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:225px">

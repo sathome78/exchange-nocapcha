@@ -6,10 +6,7 @@ import me.exrates.model.Payment;
 import me.exrates.model.Wallet;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.vo.WithdrawData;
-import me.exrates.service.CurrencyService;
-import me.exrates.service.MerchantService;
-import me.exrates.service.UserService;
-import me.exrates.service.WalletService;
+import me.exrates.service.*;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
@@ -58,6 +55,9 @@ public class CommonMerchantsController {
 
     @Autowired
     private MessageSource source;
+
+    @Autowired
+    WithdrawService withdrawService;
 
     private static final Logger LOG = LogManager.getLogger("merchant");
 
@@ -134,7 +134,7 @@ public class CommonMerchantsController {
                 BAD_REQUEST);
         try {
             return merchantService.prepareCreditsOperation(payment, principal.getName())
-                    .map(creditsOperation -> merchantService.withdrawRequest(creditsOperation, new WithdrawData(), principal.getName(), locale))
+                    .map(creditsOperation -> withdrawService.withdrawRequest(creditsOperation, new WithdrawData(), principal.getName(), locale))
                     .map(response -> new ResponseEntity<>(response, OK))
                     .orElseGet(() -> error);
         } catch (final NotEnoughUserWalletMoneyException e) {
@@ -146,7 +146,7 @@ public class CommonMerchantsController {
     @ResponseBody
     public ResponseEntity<Map<String,String>> acceptWithdrawRequest(final @RequestParam("requestId") int request,
                                                                     final Locale locale, final Principal principal) {
-        final Map<String, String> result = merchantService.acceptWithdrawalRequest(request, locale, principal);
+        final Map<String, String> result = withdrawService.acceptWithdrawalRequest(request, locale, principal);
         if (result.containsKey("error")) {
             return new ResponseEntity<>(result, BAD_REQUEST);
         }
@@ -157,32 +157,11 @@ public class CommonMerchantsController {
     @ResponseBody
     public ResponseEntity<Map<String,Object>> declineWithdrawRequest(final @RequestParam("requestId") int request,
                                                                     final Locale locale, Principal principal) {
-        final Map<String, Object> result = merchantService.declineWithdrawalRequest(request, locale, principal.getName());
+        final Map<String, Object> result = withdrawService.declineWithdrawalRequest(request, locale, principal.getName());
         if (result.containsKey("error")) {
             return new ResponseEntity<>(result, BAD_REQUEST);
         }
         return new ResponseEntity<>(result, OK);
     }
 
-    @RequestMapping(value="/withdraw", method = POST)
-    public ResponseEntity<Map<String,String>> merchantWithdraw(
-        @RequestBody final Payment payment,
-        Principal principal,
-        Locale locale) {
-        try {
-            return merchantService.prepareCreditsOperation(payment, principal.getName())
-                .map(creditsOperation -> merchantService.createWithdrawRequest(creditsOperation, new WithdrawData(), principal.getName(), locale))
-                .map(response -> new ResponseEntity<>(response, OK))
-                .get();
-        } catch (Exception e) {
-            LOG.error(ExceptionUtils.getStackTrace(e));
-            ResponseEntity<Map<String, String>> error = new ResponseEntity<>(
-                new HashMap<String, String>(){{
-                    put("failure", source.getMessage("merchants.withdrawRequestError", null, locale));
-                    put("detail", e.getMessage());
-                }},
-                BAD_REQUEST);
-            return error;
-        }
-    }
 }
