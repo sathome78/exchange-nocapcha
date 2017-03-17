@@ -9,10 +9,7 @@ import me.exrates.model.exceptions.UnsupportedTransactionSourceTypeNameException
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.InvoiceData;
 import me.exrates.model.vo.WithdrawData;
-import me.exrates.service.CommissionService;
-import me.exrates.service.InvoiceService;
-import me.exrates.service.MerchantService;
-import me.exrates.service.TransactionService;
+import me.exrates.service.*;
 import me.exrates.service.exception.FileLoadingException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.invoice.IllegalInvoiceStatusException;
@@ -69,6 +66,9 @@ public class InvoiceController {
 
   @Autowired
   private LocaleResolver localeResolver;
+
+  @Autowired
+  WithdrawService withdrawService;
 
   @RequestMapping(value = "/preSubmit", method = POST)
   public RedirectView preSubmit(final Payment payment, final Principal principal,
@@ -327,7 +327,7 @@ public class InvoiceController {
       return new RedirectView("/merchants/invoice/withdrawDetails");
 
     }
-    Map<String, String> result = merchantService.withdrawRequest(creditsOperation, withdrawData, principal.getName(),
+    Map<String, String> result = withdrawService.withdrawRequest(creditsOperation, withdrawData, principal.getName(),
         localeResolver.resolveLocale(request));
     synchronized (mutex) {
       session.removeAttribute("creditsOperation");

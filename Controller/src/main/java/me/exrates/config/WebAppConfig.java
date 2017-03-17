@@ -11,6 +11,9 @@ import me.exrates.model.converter.CurrencyPairConverter;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.security.config.SecurityConfig;
 import me.exrates.security.filter.VerifyReCaptchaSec;
+import me.exrates.service.WithdrawService;
+import me.exrates.service.impl.OrigWithdrawServiceImpl;
+import me.exrates.service.impl.WithdrawServiceImpl;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
@@ -62,7 +65,12 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
                 SecurityConfig.class, WebSocketConfig.class
         }
 )
-@PropertySource(value = {"classpath:/db.properties", "classpath:/uploadfiles.properties", "classpath:/news.properties", "classpath:/mail.properties"})
+@PropertySource(value = {
+    "classpath:/db.properties",
+    "classpath:/uploadfiles.properties",
+    "classpath:/news.properties",
+    "classpath:/withdraw.properties",
+    "classpath:/mail.properties"})
 @MultipartConfig(location = "/tmp")
 public class WebAppConfig extends WebMvcConfigurerAdapter {
 
@@ -126,6 +134,9 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     String mailInfoUser;
     @Value("${mail_info.password}")
     String mailInfoPassword;
+
+    @Value("${withdraw.concreteClassName}")
+    String withdrawConcreteClassName;
 
 
     @Bean
@@ -327,6 +338,17 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean
     public StoreSessionListener storeSessionListener() {
         return new StoreSessionListenerImpl();
+    }
+
+    @Bean
+    public WithdrawService withdrawService() {
+        if ("WithdrawServiceImpl".equals(withdrawConcreteClassName)) {
+            return new WithdrawServiceImpl();
+        } else if ("OrigWithdrawServiceImpl".equals(withdrawConcreteClassName)) {
+            return new OrigWithdrawServiceImpl();
+        } else {
+            throw new AssertionError(withdrawConcreteClassName);
+        }
     }
 
 }

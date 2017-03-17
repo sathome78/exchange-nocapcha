@@ -1,5 +1,6 @@
 package me.exrates.model;
 
+import lombok.Getter;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 
@@ -9,14 +10,17 @@ import java.util.Optional;
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
+@Getter
 public class CreditsOperation {
 
   private final User user;
+  private final BigDecimal fullAmount;
   private final BigDecimal amount;
   private final BigDecimal commissionAmount;
   private final OperationType operationType;
   private final Commission commission;
   private final Currency currency;
+  private final Wallet wallet;
   private final Merchant merchant;
   private final Optional<String> destination;
   private final Optional<MerchantImage> merchantImage;
@@ -24,7 +28,9 @@ public class CreditsOperation {
 
   private CreditsOperation(Builder builder) {
     this.user = builder.user;
+    this.fullAmount = builder.fullAmount;
     this.amount = builder.amount;
+    this.wallet = builder.wallet;
     this.commissionAmount = builder.commissionAmount;
     this.operationType = builder.operationType;
     this.commission = builder.commission;
@@ -37,54 +43,17 @@ public class CreditsOperation {
     this.transactionSourceType = builder.transactionSourceType;
   }
 
-  public User getUser() {
-    return user;
-  }
-
-  public BigDecimal getAmount() {
-    return amount;
-  }
-
-  public BigDecimal getCommissionAmount() {
-    return commissionAmount;
-  }
-
-  public OperationType getOperationType() {
-    return operationType;
-  }
-
-  public Commission getCommission() {
-    return commission;
-  }
-
-  public Currency getCurrency() {
-    return currency;
-  }
-
-  public Merchant getMerchant() {
-    return merchant;
-  }
-
-  public Optional<String> getDestination() {
-    return destination;
-  }
-
-  public Optional<MerchantImage> getMerchantImage() {
-    return merchantImage;
-  }
-
-  public TransactionSourceType getTransactionSourceType() {
-    return transactionSourceType;
-  }
 
   public static class Builder {
 
     private User user;
+    private BigDecimal fullAmount;
     private BigDecimal amount;
     private BigDecimal commissionAmount;
     private OperationType operationType;
     private Commission commission;
     private Currency currency;
+    private Wallet wallet;
     private Merchant merchant;
     private Optional<String> destination;
     private Optional<MerchantImage> merchantImage;
@@ -92,6 +61,11 @@ public class CreditsOperation {
 
     public Builder user(User user) {
       this.user = user;
+      return this;
+    }
+
+    public Builder fullAmount(BigDecimal fullAmount) {
+      this.fullAmount = fullAmount;
       return this;
     }
 
@@ -117,6 +91,11 @@ public class CreditsOperation {
 
     public Builder currency(Currency currency) {
       this.currency = currency;
+      return this;
+    }
+
+    public Builder wallet(Wallet wallet) {
+      this.wallet = wallet;
       return this;
     }
 
@@ -153,6 +132,7 @@ public class CreditsOperation {
     CreditsOperation that = (CreditsOperation) o;
 
     if (user != null ? !user.equals(that.user) : that.user != null) return false;
+    if (fullAmount != null ? !fullAmount.equals(that.fullAmount) : that.fullAmount != null) return false;
     if (amount != null ? !amount.equals(that.amount) : that.amount != null) return false;
     if (commissionAmount != null ? !commissionAmount.equals(that.commissionAmount) : that.commissionAmount != null)
       return false;
@@ -169,6 +149,7 @@ public class CreditsOperation {
   @Override
   public int hashCode() {
     int result = user != null ? user.hashCode() : 0;
+    result = 31 * result + (fullAmount != null ? fullAmount.hashCode() : 0);
     result = 31 * result + (amount != null ? amount.hashCode() : 0);
     result = 31 * result + (commissionAmount != null ? commissionAmount.hashCode() : 0);
     result = 31 * result + (operationType != null ? operationType.hashCode() : 0);
@@ -185,6 +166,7 @@ public class CreditsOperation {
   public String toString() {
     return "CreditsOperation{" +
         "user=" + user +
+        ", fullAmount=" + fullAmount +
         ", amount=" + amount +
         ", commissionAmount=" + commissionAmount +
         ", operationType=" + operationType +

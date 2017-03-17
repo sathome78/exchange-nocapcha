@@ -44,6 +44,9 @@ public class ReportServiceImpl implements ReportService {
   @Autowired
   UserRoleService userRoleService;
 
+  @Autowired
+  WithdrawService withdrawService;
+
   @Override
   @Transactional
   public List<InvoiceReportDto> getInvoiceReport(
@@ -111,7 +114,7 @@ public class ReportServiceImpl implements ReportService {
     /**/
     if ((StringUtils.isEmpty(direction) || InvoiceOperationDirection.valueOf(direction) == WITHDRAW)
         && !currencyListForWithdrawOperation.isEmpty()) {
-      List<WithdrawRequestFlatForReportDto> withdrawRequestList = merchantService.findAllByDateIntervalAndRoleAndCurrency(
+      List<WithdrawRequestFlatForReportDto> withdrawRequestList = withdrawService.findAllByDateIntervalAndRoleAndCurrency(
           startDate, endDate, realRoleIdList, currencyListForWithdrawOperation);
       result.addAll(withdrawRequestList.stream()
           .map(InvoiceReportDto::new)

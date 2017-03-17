@@ -2,14 +2,9 @@ package me.exrates.service.impl;
 
 import javafx.util.Pair;
 import me.exrates.dao.MerchantDao;
-import me.exrates.dao.WithdrawRequestDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
-import me.exrates.model.dto.WithdrawRequestFlatForReportDto;
-import me.exrates.model.dto.dataTable.DataTable;
-import me.exrates.model.dto.dataTable.DataTableParams;
-import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.NotificationEvent;
@@ -20,7 +15,6 @@ import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
 import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.CacheData;
-import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.*;
 import me.exrates.service.exception.MerchantCurrencyBlockedException;
 import me.exrates.service.exception.MerchantInternalException;
@@ -36,17 +30,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.security.Principal;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.math.BigDecimal.*;
 import static java.math.BigDecimal.valueOf;
-import static java.util.Collections.singletonMap;
 import static me.exrates.model.enums.OperationType.*;
-import static me.exrates.model.enums.WithdrawalRequestStatus.*;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -73,12 +63,6 @@ public class MerchantServiceImpl implements MerchantService {
   private MessageSource messageSource;
 
   @Autowired
-  private TransactionService transactionService;
-
-  @Autowired
-  private WithdrawRequestDao withdrawRequestDao;
-
-  @Autowired
   private WalletService walletService;
 
   @Autowired
@@ -94,82 +78,6 @@ public class MerchantServiceImpl implements MerchantService {
   private static final Logger LOG = LogManager.getLogger("merchant");
 
   @Override
-  @Transactional
-  public Map<String, String> acceptWithdrawalRequest(final int requestId,
-                                                     final Locale locale,
-                                                     final Principal principal) {
-    final Optional<WithdrawRequest> withdraw = withdrawRequestDao.findById(requestId);
-    if (!withdraw.isPresent()) {
-      return singletonMap("error", messageSource.getMessage("merchants.WithdrawRequestError", null, locale));
-    }
-    final WithdrawRequest request = withdraw.get();
-    request.setProcessedBy(principal.getName());
-    request.setStatus(ACCEPTED);
-    withdrawRequestDao.update(request);
-    final Optional<WithdrawRequest> withdrawUpdated = withdrawRequestDao.findById(requestId);
-    if (!withdrawUpdated.isPresent()) {
-      return singletonMap("error", messageSource.getMessage("merchants.WithdrawRequestError", null, locale));
-    }
-    final WithdrawRequest requestUpdated = withdrawUpdated.get();
-    transactionService.provideTransaction(request.getTransaction());
-    Locale userLocale = new Locale(userService.getPreferedLang(request.getUserId()));
-    sendWithdrawalNotification(request, ACCEPTED, userLocale);
-    final HashMap<String, String> params = new HashMap<>();
-    final String message = messageSource.getMessage("merchants.WithdrawRequestAccept", null, locale);
-    params.put("success", message);
-    params.put("acceptance", requestUpdated.getAcceptance().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-    params.put("email", principal.getName());
-    return params;
-  }
-
-  @Override
-  @Transactional
-  public Map<String, Object> declineWithdrawalRequest(final int requestId, final Locale locale, String email) {
-    final Optional<WithdrawRequest> withdraw = withdrawRequestDao.findById(requestId);
-    if (!withdraw.isPresent()) {
-      return singletonMap("error", messageSource.getMessage("merchants.WithdrawRequestError", null, locale));
-    }
-    final WithdrawRequest request = withdraw.get();
-    request.setProcessedBy(email);
-    request.setStatus(DECLINED);
-    final Transaction transaction = request.getTransaction();
-    withdrawRequestDao.update(request);
-    final Optional<WithdrawRequest> withdrawUpdated = withdrawRequestDao.findById(requestId);
-    if (!withdrawUpdated.isPresent()) {
-      return singletonMap("error", messageSource.getMessage("merchants.WithdrawRequestError", null, locale));
-    }
-    final WithdrawRequest requestUpdated = withdrawUpdated.get();
-    final BigDecimal amount = transaction.getAmount().add(transaction.getCommissionAmount());
-    walletService.withdrawReservedBalance(transaction.getUserWallet(), amount);
-    walletService.depositActiveBalance(transaction.getUserWallet(), amount);
-    Locale userLocale = new Locale(userService.getPreferedLang(request.getUserId()));
-    sendWithdrawalNotification(request, DECLINED, userLocale);
-    final HashMap<String, Object> params = new HashMap<>();
-    final String message = messageSource.getMessage("merchants.WithdrawRequestDecline", null, locale);
-    params.put("success", message);
-    params.put("acceptance", requestUpdated.getAcceptance().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-    params.put("email", email);
-    params.put("userEmail", request.getUserEmail());
-    return params;
-  }
-
-  @Override
-  public List<WithdrawRequest> findAllWithdrawRequests() {
-    return withdrawRequestDao.findAll();
-  }
-
-  @Override
-  public DataTable<List<WithdrawRequest>> findWithdrawRequestsByStatus(Integer requestStatus, DataTableParams dataTableParams, WithdrawFilterData withdrawFilterData, String userEmail) {
-    PagingData<List<WithdrawRequest>> result = withdrawRequestDao.findByStatus(requestStatus, userService.getIdByEmail(userEmail), dataTableParams, withdrawFilterData);
-    LOG.debug(result.getData().stream().map(request -> request.getTransaction().getId()).collect(Collectors.toList()));
-    DataTable<List<WithdrawRequest>> output = new DataTable<>();
-    output.setData(result.getData());
-    output.setRecordsTotal(result.getTotal());
-    output.setRecordsFiltered(result.getFiltered());
-    return output;
-  }
-
-  @Override
   public List<Merchant> findAllByCurrency(Currency currency) {
     return merchantDao.findAllByCurrency(currency.getId());
   }
@@ -177,52 +85,6 @@ public class MerchantServiceImpl implements MerchantService {
   @Override
   public List<Merchant> findAll() {
     return merchantDao.findAll();
-  }
-
-  @Override
-  @Transactional
-  public Map<String, String> withdrawRequest(final CreditsOperation creditsOperation,
-                                             WithdrawData withdrawData, final String userEmail, final Locale locale) {
-    final Transaction transaction = transactionService.createTransactionRequest(creditsOperation);
-    final BigDecimal reserved = transaction
-        .getAmount()
-        .add(transaction.getCommissionAmount()).setScale(currencyService.resolvePrecision(creditsOperation.getCurrency().getName()), BigDecimal.ROUND_HALF_UP);
-    walletService.depositReservedBalance(transaction.getUserWallet(), reserved);
-    final WithdrawRequest request = new WithdrawRequest();
-    request.setUserEmail(userEmail);
-    if (creditsOperation.getDestination().isPresent() && !creditsOperation.getDestination().get().isEmpty()) {
-      request.setWallet(creditsOperation.getDestination().get());
-    } else {
-      request.setWallet(withdrawData.getUserAccount());
-    }
-    creditsOperation
-        .getMerchantImage()
-        .ifPresent(request::setMerchantImage);
-    request.setTransaction(transaction);
-    request.setRecipientBankName(withdrawData.getRecipientBankName());
-    request.setRecipientBankCode(withdrawData.getRecipientBankCode());
-    request.setUserFullName(withdrawData.getUserFullName());
-    request.setRemark(withdrawData.getRemark());
-    withdrawRequestDao.create(request);
-    transactionService.setSourceId(transaction.getId(), transaction.getId());
-
-    String notification = null;
-    try {
-      notification = sendWithdrawalNotification(request, NEW, locale);
-    } catch (final MailException e) {
-      LOG.error(e);
-    }
-    final BigDecimal newAmount = transaction
-        .getUserWallet()
-        .getActiveBalance();
-    final String currency = transaction
-        .getCurrency()
-        .getName();
-    final String balance = currency + " " + currencyService.amountToString(newAmount, currency);
-    final Map<String, String> result = new HashMap<>();
-    result.put("success", notification);
-    result.put("balance", balance);
-    return result;
   }
 
   @Override
@@ -277,41 +139,6 @@ public class MerchantServiceImpl implements MerchantService {
   }
 
   @Override
-  public String sendWithdrawalNotification(final WithdrawRequest withdrawRequest,
-                                           final WithdrawalRequestStatus status,
-                                           final Locale locale) {
-    final String notification;
-    final Transaction transaction = withdrawRequest.getTransaction();
-    final Object[] messageParams = {
-        transaction
-            .getId(),
-        transaction
-            .getMerchant()
-            .getDescription()
-    };
-    String notificationMessageCode;
-    switch (status) {
-      case NEW:
-        notificationMessageCode = "merchants.withdrawNotification";
-        break;
-      case ACCEPTED:
-        notificationMessageCode = "merchants.withdrawNotificationAccepted";
-        break;
-      case DECLINED:
-        notificationMessageCode = "merchants.withdrawNotificationDeclined";
-        break;
-      default:
-        throw new MerchantInternalException(status + "Withdrawal status is invalid");
-    }
-    notification = messageSource
-        .getMessage(notificationMessageCode, messageParams, locale);
-    notificationService.notifyUser(withdrawRequest.getUserEmail(), NotificationEvent.IN_OUT,
-        "merchants.withdrawNotification.header", notificationMessageCode, messageParams);
-    return notification;
-  }
-
-
-  @Override
   public String sendDepositNotification(final String toWallet,
                                         final String email,
                                         final Locale locale,
@@ -344,8 +171,7 @@ public class MerchantServiceImpl implements MerchantService {
     return notification;
   }
 
-  @Override
-  public Map<Integer, List<Merchant>> mapMerchantsToCurrency(List<Currency> currencies) {
+  private Map<Integer, List<Merchant>> mapMerchantsToCurrency(List<Currency> currencies) {
     return currencies.stream()
         .map(Currency::getId)
         .map(currencyId -> new Pair<>(currencyId, merchantDao.findAllByCurrency(currencyId)))
@@ -470,53 +296,56 @@ public class MerchantServiceImpl implements MerchantService {
     return result;
   }
 
-    @Override
-    public Optional<CreditsOperation> prepareCreditsOperation(Payment payment,BigDecimal addition,String userEmail) {
-        checkMerchantBlock(payment.getMerchant(), payment.getCurrency(), payment.getOperationType());
-        final OperationType operationType = payment.getOperationType();
-         BigDecimal amount = valueOf(payment.getSum()).add(addition);
-        //Addition of three digits is required for IDR input
-        final Merchant merchant = merchantDao.findById(payment.getMerchant());
-        final Currency currency = currencyService.findById(payment.getCurrency());
-        final String destination = payment.getDestination();
-        final MerchantImage merchantImage = new MerchantImage();
-        merchantImage.setId(payment.getMerchantImage());
-        try {
-            if (!isPayable(merchant,currency,amount)) {
-                LOG.warn("Merchant respond as not support this pay " + payment);
-                return Optional.empty();
-            }
-        } catch (EmptyResultDataAccessException e) {
-            final String exceptionMessage = "MerchantService".concat(operationType == INPUT ?
-                    "Input" : "Output");
-            throw new UnsupportedMerchantException(exceptionMessage);
-        }
-        final Commission commissionByType = commissionService.findCommissionByTypeAndRole(operationType, userService.getCurrentUserRole());
-        final BigDecimal commissionMerchant = commissionService.getCommissionMerchant(merchant.getName(), currency.getName(), operationType);
-        final BigDecimal commissionTotal = commissionByType.getValue().add(commissionMerchant)
-                .setScale(currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP);
-         BigDecimal commissionAmount =
-                commissionTotal
-                .multiply(amount)
-                .divide(valueOf(100), currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP);
-        commissionAmount = correctForMerchantFixedCommission(merchant.getName(), currency.getName(), operationType, commissionAmount);
-        final User user = userService.findByEmail(userEmail);
-        final BigDecimal newAmount = payment.getOperationType() == INPUT ?
-                amount :
-                amount.subtract(commissionAmount).setScale(currencyService.resolvePrecision(currency.getName()), ROUND_DOWN);
-        TransactionSourceType transactionSourceType = operationType == OUTPUT ? TransactionSourceType.WITHDRAW :
-                TransactionSourceType.convert(merchant.getTransactionSourceTypeId());
-        final CreditsOperation creditsOperation = new CreditsOperation.Builder()
-                .amount(newAmount)
-                .commissionAmount(commissionAmount)
-                .commission(commissionByType)
-                .operationType(operationType)
-                .user(user)
-                .currency(currency)
-                .merchant(merchant)
-                .destination(destination)
-                .merchantImage(merchantImage)
-                .transactionSourceType(transactionSourceType)
+  @Override
+  public Optional<CreditsOperation> prepareCreditsOperation(Payment payment, BigDecimal addition, String userEmail) {
+    checkMerchantBlock(payment.getMerchant(), payment.getCurrency(), payment.getOperationType());
+    final OperationType operationType = payment.getOperationType();
+    BigDecimal amount = valueOf(payment.getSum()).add(addition);
+    //Addition of three digits is required for IDR input
+    final Merchant merchant = merchantDao.findById(payment.getMerchant());
+    final Currency currency = currencyService.findById(payment.getCurrency());
+    final String destination = payment.getDestination();
+    final MerchantImage merchantImage = new MerchantImage();
+    merchantImage.setId(payment.getMerchantImage());
+    try {
+      if (!isPayable(merchant, currency, amount)) {
+        LOG.warn("Merchant respond as not support this pay " + payment);
+        return Optional.empty();
+      }
+    } catch (EmptyResultDataAccessException e) {
+      final String exceptionMessage = "MerchantService".concat(operationType == INPUT ?
+          "Input" : "Output");
+      throw new UnsupportedMerchantException(exceptionMessage);
+    }
+    final Commission commissionByType = commissionService.findCommissionByTypeAndRole(operationType, userService.getCurrentUserRole());
+    final BigDecimal commissionMerchant = commissionService.getCommissionMerchant(merchant.getName(), currency.getName(), operationType);
+    final BigDecimal commissionTotal = commissionByType.getValue().add(commissionMerchant)
+        .setScale(currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP);
+    BigDecimal commissionAmount =
+        commissionTotal
+            .multiply(amount)
+            .divide(valueOf(100), currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP);
+    commissionAmount = correctForMerchantFixedCommission(merchant.getName(), currency.getName(), operationType, commissionAmount);
+    final User user = userService.findByEmail(userEmail);
+    final Wallet wallet = walletService.findByUserAndCurrency(user, currency);
+    final BigDecimal newAmount = payment.getOperationType() == INPUT ?
+        amount :
+        amount.subtract(commissionAmount).setScale(currencyService.resolvePrecision(currency.getName()), ROUND_DOWN);
+    TransactionSourceType transactionSourceType = operationType == OUTPUT ? TransactionSourceType.WITHDRAW :
+        TransactionSourceType.convert(merchant.getTransactionSourceTypeId());
+    final CreditsOperation creditsOperation = new CreditsOperation.Builder()
+        .fullAmount(amount)
+        .amount(newAmount)
+        .commissionAmount(commissionAmount)
+        .commission(commissionByType)
+        .operationType(operationType)
+        .user(user)
+        .currency(currency)
+        .wallet(wallet)
+        .merchant(merchant)
+        .destination(destination)
+        .merchantImage(merchantImage)
+        .transactionSourceType(transactionSourceType)
         .build();
     return Optional.of(creditsOperation);
   }
@@ -606,25 +435,5 @@ public class MerchantServiceImpl implements MerchantService {
     }
   }
 
-  @Override
-  @Transactional
-  public List<WithdrawRequestFlatForReportDto> findAllByDateIntervalAndRoleAndCurrency(
-      String startDate,
-      String endDate,
-      List<Integer> roleIdList,
-      List<Integer> currencyList) {
-    return withdrawRequestDao.findAllByDateIntervalAndRoleAndCurrency(startDate, endDate, roleIdList, currencyList);
-  }
-
-  @Override
-  @Transactional
-  public void setAutoWithdrawParams(MerchantCurrencyOptionsDto merchantCurrencyOptionsDto) {
-    merchantDao.setAutoWithdrawParamsByMerchantAndCurrency(
-        merchantCurrencyOptionsDto.getMerchantId(),
-        merchantCurrencyOptionsDto.getCurrencyId(),
-        merchantCurrencyOptionsDto.getWithdrawAutoEnabled(),
-        merchantCurrencyOptionsDto.getWithdrawAutoDelaySeconds(),
-        merchantCurrencyOptionsDto.getWithdrawAutoThresholdAmount());
-  }
 
 }

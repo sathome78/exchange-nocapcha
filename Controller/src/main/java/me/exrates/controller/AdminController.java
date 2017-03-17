@@ -115,6 +115,8 @@ public class AdminController {
   UserRoleService userRoleService;
   @Autowired
   UserTransferService userTransferService;
+  @Autowired
+  WithdrawService withdrawService;
 
   @Autowired
   @Qualifier("ExratesSessionRegistry")
@@ -656,7 +658,7 @@ public class AdminController {
                                                               @RequestParam Map<String, String> params, Principal principal) {
     DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
     withdrawFilterData.initFilterItems();
-    return merchantService.findWithdrawRequestsByStatus(requestStatus, dataTableParams, withdrawFilterData, principal.getName());
+    return withdrawService.findWithdrawRequestsByStatus(requestStatus, dataTableParams, withdrawFilterData, principal.getName());
   }
 
   @ResponseBody
@@ -877,8 +879,8 @@ public class AdminController {
     Integer requesterUserId = userService.getIdByEmail(principal.getName());
     return bitcoinService.getBitcoinTransactionsForCurrencyPermitted(requesterUserId);
   }
-  
-  
+
+
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinRequests/accepted")
   @ResponseBody
   public List<PendingPaymentFlatDto> getBitcoinRequestsByStatus(Principal principal) {
@@ -1036,7 +1038,7 @@ public class AdminController {
     if (merchantCurrencyOptionsDto.getWithdrawAutoEnabled() == null) {
       merchantCurrencyOptionsDto.setWithdrawAutoEnabled(false);
     }
-    merchantService.setAutoWithdrawParams(merchantCurrencyOptionsDto);
+    withdrawService.setAutoWithdrawParams(merchantCurrencyOptionsDto);
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/merchantAccess/toggleBlock", method = RequestMethod.POST)

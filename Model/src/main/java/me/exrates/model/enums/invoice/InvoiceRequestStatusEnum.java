@@ -2,9 +2,9 @@ package me.exrates.model.enums.invoice;
 
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.exceptions.UnsupportedInvoiceRequestStatusIdException;
 import me.exrates.model.exceptions.UnsupportedInvoiceRequestStatusNameException;
 import me.exrates.model.exceptions.UnsupportedInvoiceStatusForActionException;
-import me.exrates.model.exceptions.UnsupportedNewsTypeIdException;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -91,7 +91,7 @@ public enum InvoiceRequestStatusEnum implements InvoiceStatus {
     return Arrays.stream(InvoiceRequestStatusEnum.class.getEnumConstants())
         .filter(e -> e.code == id)
         .findAny()
-        .orElseThrow(() -> new UnsupportedNewsTypeIdException(String.valueOf(id)));
+        .orElseThrow(() -> new UnsupportedInvoiceRequestStatusIdException(String.valueOf(id)));
   }
 
   public static InvoiceRequestStatusEnum convert(String name) {

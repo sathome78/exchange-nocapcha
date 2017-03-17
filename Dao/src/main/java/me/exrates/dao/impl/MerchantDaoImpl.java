@@ -5,6 +5,7 @@ import me.exrates.dao.MerchantDao;
 import me.exrates.model.Merchant;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.MerchantImage;
+import me.exrates.model.dto.MerchantCurrencyAutoParamDto;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.MerchantImageShortenedDto;
@@ -423,6 +424,27 @@ public class MerchantDaoImpl implements MerchantDao {
       put("currency_id", currencyId);
     }};
     jdbcTemplate.update(sql, params);
+  }
+
+  @Override
+  public MerchantCurrencyAutoParamDto findAutoWithdrawParamsByMerchantAndCurrency(
+      Integer merchantId,
+      Integer currencyId
+  ) {
+    String sql = "SELECT withdraw_auto_enabled, withdraw_auto_threshold_amount, withdraw_auto_delay_seconds " +
+        " FROM MERCHANT_CURRENCY " +
+        " WHERE merchant_id = :merchant_id AND currency_id = :currency_id ";
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("merchant_id", merchantId);
+      put("currency_id", currencyId);
+    }};
+    return jdbcTemplate.queryForObject(sql, params, (resultSet, i) -> {
+      MerchantCurrencyAutoParamDto dto = new MerchantCurrencyAutoParamDto();
+      dto.setWithdrawAutoEnabled(resultSet.getBoolean("withdraw_auto_enabled"));
+      dto.setWithdrawAutoThresholdAmount(resultSet.getBigDecimal("withdraw_auto_threshold_amount"));
+      dto.setWithdrawAutoDelaySeconds(resultSet.getInt("withdraw_auto_delay_seconds"));
+      return dto;
+    });
   }
 
 

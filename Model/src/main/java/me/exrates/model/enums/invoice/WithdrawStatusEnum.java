@@ -2,12 +2,13 @@ package me.exrates.model.enums.invoice;
 
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.model.exceptions.UnsupportedInvoiceRequestStatusNameException;
-import me.exrates.model.exceptions.UnsupportedInvoiceStatusForActionException;
-import me.exrates.model.exceptions.UnsupportedNewsTypeIdException;
+import me.exrates.model.exceptions.*;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.*;
 
 /**
  * Created by ValkSam
@@ -17,7 +18,7 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
   CREATED_USER(1) {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
-      schemaMap.put(InvoiceActionTypeEnum.PUT_FOR_MANUAL, WAITING_MANUAL_POSTING);
+      schemaMap.put(PUT_FOR_MANUAL, WAITING_MANUAL_POSTING);
       schemaMap.put(InvoiceActionTypeEnum.PUT_FOR_AUTO, WAITING_AUTO_POSTING);
       schemaMap.put(InvoiceActionTypeEnum.PUT_FOR_CONFIRM, WAITING_CONFIRMATION);
     }
@@ -26,7 +27,7 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
       schemaMap.put(InvoiceActionTypeEnum.DECLINE, DECLINED_ADMIN);
-      schemaMap.put(InvoiceActionTypeEnum.POST, POSTED_MANUAL);
+      schemaMap.put(InvoiceActionTypeEnum.TAKE_TO_WORK, IN_WORK_OF_ADMIN);
       schemaMap.put(InvoiceActionTypeEnum.REVOKE, REVOKED_USER);
     }
   },
@@ -46,29 +47,36 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
       schemaMap.put(InvoiceActionTypeEnum.REVOKE, REVOKED_USER);
     }
   },
-  WAITING_CONFIRMED_POSTING(5) {
+  IN_WORK_OF_ADMIN(5) {
+    public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
+      schemaMap.put(InvoiceActionTypeEnum.DECLINE, DECLINED_ADMIN);
+      schemaMap.put(InvoiceActionTypeEnum.POST, POSTED_MANUAL);
+      schemaMap.put(InvoiceActionTypeEnum.RETURN_FROM_WORK, WAITING_MANUAL_POSTING);
+    }
+  },
+  WAITING_CONFIRMED_POSTING(6) {
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
       schemaMap.put(InvoiceActionTypeEnum.DECLINE, DECLINED_ADMIN);
       schemaMap.put(InvoiceActionTypeEnum.POST, POSTED_AUTO);
       schemaMap.put(InvoiceActionTypeEnum.REVOKE, REVOKED_USER);
     }
   },
-  REVOKED_USER(6) {
+  REVOKED_USER(7) {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
     }
   },
-  DECLINED_ADMIN(7) {
+  DECLINED_ADMIN(8) {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
     }
   },
-  POSTED_MANUAL(8) {
+  POSTED_MANUAL(9) {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
     }
   },
-  POSTED_AUTO(9) {
+  POSTED_AUTO(10) {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
     }
@@ -113,14 +121,14 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
     return Arrays.stream(WithdrawStatusEnum.class.getEnumConstants())
         .filter(e -> e.code == id)
         .findAny()
-        .orElseThrow(() -> new UnsupportedNewsTypeIdException(String.valueOf(id)));
+        .orElseThrow(() -> new UnsupportedWithdrawRequestStatusIdException(String.valueOf(id)));
   }
 
   public static WithdrawStatusEnum convert(String name) {
     return Arrays.stream(WithdrawStatusEnum.class.getEnumConstants())
         .filter(e -> e.name().equals(name))
         .findAny()
-        .orElseThrow(() -> new UnsupportedInvoiceRequestStatusNameException(name));
+        .orElseThrow(() -> new UnsupportedWithdrawRequestStatusNameException(name));
   }
 
   public static InvoiceStatus getBeginState() {
@@ -169,6 +177,17 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
     return code;
   }
 
+  public WithdrawStatusEnum getStartState(Boolean autoEnabled, BigDecimal withdrawAutoEnabled, BigDecimal withdrawAutoThresholdAmount) {
+    if (autoEnabled) {
+      if (withdrawAutoEnabled.compareTo(withdrawAutoThresholdAmount) <= 0) {
+        return (WithdrawStatusEnum) nextState(schemaMap, PUT_FOR_AUTO).get();
+      } else {
+        return (WithdrawStatusEnum) nextState(schemaMap, PUT_FOR_CONFIRM).get();
+      }
+    } else {
+      return (WithdrawStatusEnum) nextState(schemaMap, PUT_FOR_MANUAL).get();
+    }
+  }
 
 }
 

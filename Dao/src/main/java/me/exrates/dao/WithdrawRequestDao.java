@@ -2,6 +2,7 @@ package me.exrates.dao;
 
 import me.exrates.model.PagingData;
 import me.exrates.model.WithdrawRequest;
+import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.dto.WithdrawRequestFlatForReportDto;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
@@ -33,6 +34,8 @@ public interface WithdrawRequestDao {
       String endDate,
       List<Integer> roleIdList,
       List<Integer> currencyList);
-    
+
     Integer findStatusIdByRequestId(Integer withdrawRequestId);
+
+    int create(WithdrawRequestCreateDto withdrawRequest);
 }
