@@ -1,5 +1,6 @@
 package me.exrates.service;
 
+import me.exrates.model.PendingPayment;
 import me.exrates.model.dto.onlineTableDto.PendingPaymentStatusDto;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.service.exception.IllegalOperationTypeException;
@@ -8,6 +9,7 @@ import me.exrates.service.exception.invoice.IllegalInvoiceAmountException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * Created by OLEG on 17.03.2017.
@@ -26,4 +28,6 @@ public interface BitcoinTransactionService {
   
   @Transactional
   void provideBtcTransaction(Integer pendingPaymentId, String hash, BigDecimal factAmount, String acceptanceUserEmail) throws IllegalInvoiceAmountException, IllegalOperationTypeException, IllegalTransactionProvidedStatusException;
+  
+  List<PendingPayment> findUnconfirmedBtcPayments();
 }
