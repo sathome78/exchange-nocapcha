@@ -2,6 +2,7 @@ package me.exrates.service.impl;
 
 import javafx.util.Pair;
 import me.exrates.dao.MerchantDao;
+import me.exrates.dao.WithdrawRequestDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
@@ -73,6 +74,9 @@ public class MerchantServiceImpl implements MerchantService {
 
   @Autowired
   private BitcoinService bitcoinService;
+
+  @Autowired
+  private WithdrawRequestDao withdrawRequestDao;
 
   private static final BigDecimal HUNDREDTH = new BigDecimal(100L);
   private static final Logger LOG = LogManager.getLogger("merchant");
