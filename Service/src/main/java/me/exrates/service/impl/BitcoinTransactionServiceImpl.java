@@ -31,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Collections;
+import java.util.List;
 
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.ACCEPT_AUTO;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.ACCEPT_MANUAL;
@@ -144,4 +145,10 @@ public class BitcoinTransactionServiceImpl implements BitcoinTransactionService 
     notificationService.notifyUser(pendingPayment.getUserId(), NotificationEvent.IN_OUT, "paymentRequest.accepted.title",
             "paymentRequest.accepted.message", new Integer[]{pendingPaymentId});
   }
+  
+  @Override
+  public List<PendingPayment> findUnconfirmedBtcPayments() {
+    return paymentDao.findAllUnconfirmedPayments();
+  }
+  
 }

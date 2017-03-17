@@ -77,7 +77,7 @@ public class BitcoinServiceImpl implements BitcoinService {
                             final TransactionService transactionService,
                             final AlgorithmService algorithmService,
                             final NotificationService notificationService,
-                            @Qualifier("BitcoinJService")
+                            @Qualifier("BitcoinCoreService")
                             final BitcoinWalletService bitcoinWalletService,
                             final BitcoinTransactionService bitcoinTransactionService) {
     this.paymentDao = paymentDao;

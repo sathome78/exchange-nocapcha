@@ -488,5 +488,14 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
       }
     });
   }
+  
+  @Override
+  public List<PendingPayment> findAllUnconfirmedPayments() {
+    String sql = SELECT_ALL + " WHERE PP.pending_payment_status_id = 6 AND TRANSACTION.operation_type_id = 1 " +
+            "AND TRANSACTION.source_type = 'BTC_INVOICE' " +
+            "AND TRANSACTION.confirmation BETWEEN 0 AND 3";
+    return jdbcTemplate.query(sql, pendingPaymentRowMapper);
+    
+  }
 
 }
