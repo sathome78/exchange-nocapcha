@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by OLEG on 14.03.2017.
@@ -29,6 +31,8 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
   @Autowired
   private BtcdClient btcdClient;
   private BtcdDaemon daemon;
+  
+  private Map<Integer, String> transactionsWaitingForConfirmations = new ConcurrentHashMap<>();
   
   
   
