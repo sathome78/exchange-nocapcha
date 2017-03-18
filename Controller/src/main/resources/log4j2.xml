@@ -148,7 +148,7 @@
             <AppenderRef ref="Console"/>
             <AppenderRef ref="OnlineServices"/>
         </Logger>
-        <Logger name="me.exrates.controller.OrderControllerRest" level="ERROR" additivity="false">
+        <Logger name="me.exrates.controller.OrderControllerRest" level="DEBUG" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="RestServices"/>
         </Logger>

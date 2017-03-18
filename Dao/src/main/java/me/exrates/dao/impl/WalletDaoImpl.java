@@ -503,6 +503,7 @@ public class WalletDaoImpl implements WalletDao {
     public WalletTransferStatus walletInnerTransfer(int walletId, BigDecimal amount, TransactionSourceType sourceType, int sourceId) {
         CompanyWallet companyWallet = new CompanyWallet();
         String sql = "SELECT WALLET.id AS wallet_id, WALLET.currency_id, WALLET.active_balance, WALLET.reserved_balance, " +
+                "  WALLET.user_id AS user_id, " +
                 "  COMPANY_WALLET.id AS company_wallet_id, COMPANY_WALLET.currency_id, COMPANY_WALLET.balance, COMPANY_WALLET.commission_balance " +
                 "  FROM WALLET " +
                 "  JOIN COMPANY_WALLET ON (COMPANY_WALLET.currency_id = WALLET.currency_id) " +
@@ -520,6 +521,9 @@ public class WalletDaoImpl implements WalletDao {
                     result.setCurrencyId(rs.getInt("currency_id"));
                     result.setActiveBalance(rs.getBigDecimal("active_balance"));
                     result.setReservedBalance(rs.getBigDecimal("reserved_balance"));
+                    User user = new User();
+                    user.setId(rs.getInt("user_id"));
+                    result.setUser(user);
                     /**/
                     companyWallet.setId(rs.getInt("company_wallet_id"));
                     Currency currency = new Currency();
@@ -557,7 +561,7 @@ public class WalletDaoImpl implements WalletDao {
         transaction.setUserWallet(wallet);
         transaction.setCompanyWallet(companyWallet);
         transaction.setAmount(amount);
-        Commission commission = commissionDao.getDefaultCommission(OperationType.WALLET_INNER_TRANSFER);
+        Commission commission = commissionDao.getCommission(OperationType.WALLET_INNER_TRANSFER, wallet.getUser().getId());
         transaction.setCommissionAmount(commission.getValue());
         transaction.setCommission(commission);
         transaction.setCurrency(companyWallet.getCurrency());

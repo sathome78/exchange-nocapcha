@@ -14,7 +14,9 @@ public interface CommissionDao {
 
 	Commission getCommission(OperationType operationType, UserRole userRole);
 
-    Commission getDefaultCommission(OperationType operationType);
+  Commission getCommission(OperationType operationType, Integer userId);
+
+  Commission getDefaultCommission(OperationType operationType);
 
 	BigDecimal getCommissionMerchant(String merchant, String currency, OperationType operationType);
 

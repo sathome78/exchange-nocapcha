@@ -1,5 +1,6 @@
 package me.exrates.service.impl;
 
+import me.exrates.dao.MerchantDao;
 import me.exrates.dao.WithdrawRequestDao;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.PagingData;
@@ -10,9 +11,13 @@ import me.exrates.model.dto.WithdrawRequestFlatForReportDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
+import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.*;
 import me.exrates.service.exception.NotImplimentedMethod;
+import me.exrates.service.util.Cache;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +35,7 @@ import java.util.stream.Collectors;
 import static java.util.Collections.singletonMap;
 import static me.exrates.model.enums.WithdrawalRequestStatus.*;
 
-public class OrigWithdrawServiceImpl extends BaseWithdrawServiceImpl implements WithdrawService {
+public class OrigWithdrawServiceImpl extends BaseWithdrawServiceImpl {
 
   @Autowired
   private UserService userService;
@@ -49,6 +54,9 @@ public class OrigWithdrawServiceImpl extends BaseWithdrawServiceImpl implements 
 
   @Autowired
   private WalletService walletService;
+
+  @Autowired
+  private MerchantDao merchantDao;
 
   private static final Logger LOG = LogManager.getLogger("merchant");
 
@@ -189,6 +197,21 @@ public class OrigWithdrawServiceImpl extends BaseWithdrawServiceImpl implements 
   public MerchantCurrencyAutoParamDto getAutoWithdrawParamsByMerchantAndCurrency(Integer merchantId, Integer currencyId) {
     LOG.error("NOT IMPLEMENTED");
     throw new NotImplimentedMethod("method NOT IMPLEMENTED !");
+  }
+
+  @Override
+  public List<MyInputOutputHistoryDto> getMyInputOutputHistory(CacheData cacheData, String email, Integer offset, Integer limit, Locale locale) {
+    List<Integer> operationTypeList = OperationType.getInputOutputOperationsList()
+        .stream()
+        .map(OperationType::getType)
+        .collect(Collectors.toList());
+    List<MyInputOutputHistoryDto> result = merchantDao.findMyInputOutputHistoryByOperationType(email, offset, limit, operationTypeList, locale);
+    if (Cache.checkCache(cacheData, result)) {
+      result = new ArrayList<MyInputOutputHistoryDto>() {{
+        add(new MyInputOutputHistoryDto(false));
+      }};
+    }
+    return result;
   }
 
 }

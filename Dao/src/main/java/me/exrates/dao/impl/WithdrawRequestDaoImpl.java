@@ -10,9 +10,13 @@ import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.dto.WithdrawRequestFlatForReportDto;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
+import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.WithdrawalRequestStatus;
+import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
+import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
+import me.exrates.model.util.BigDecimalProcessing;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -25,11 +29,17 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Stream;
 
 import static java.util.Collections.singletonMap;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
+import static me.exrates.model.enums.TransactionSourceType.BTC_INVOICE;
+import static me.exrates.model.enums.TransactionSourceType.INVOICE;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CONFIRM;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.REVOKE;
 
 
 /**
@@ -269,9 +279,9 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     public int create(WithdrawRequestCreateDto withdrawRequest) {
         final String sql = "INSERT INTO WITHDRAW_REQUEST " +
             "(wallet, merchant_image_id, recipient_bank_name, recipient_bank_code, user_full_name, remark, amount, commission, status_id," +
-            " date_creation, status_modification_date) " +
+            " date_creation, status_modification_date, currency_id, merchant_id) " +
             "VALUES (:wallet, :merchant_image_id, :payer_bank_name, :payer_bank_code, :user_full_name, :remark, :amount, :commission, :status_id," +
-            " NOW(), NOW())";
+            " NOW(), NOW(), :currency_id, :merchant_id)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("wallet", withdrawRequest.getDestinationWallet())
@@ -282,9 +292,109 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
                 .addValue("remark", withdrawRequest.getRemark())
                 .addValue("amount", withdrawRequest.getAmount())
                 .addValue("commission", withdrawRequest.getCommission())
-                .addValue("status_id", withdrawRequest.getStatusId());
+                .addValue("status_id", withdrawRequest.getStatusId())
+                .addValue("currency_id", withdrawRequest.getCurrencyId())
+                .addValue("merchant_id", withdrawRequest.getMerchantId());
         jdbcTemplate.update(sql, params, keyHolder);
         return (int) keyHolder.getKey().longValue();
     }
 
+    /*@Override
+    public List<MyInputOutputHistoryDto> findMyInputOutputHistoryByOperationType(
+        String email,
+        Integer offset,
+        Integer limit,
+        List<Integer> operationTypeIdList,
+        Locale locale) {
+        String sql = " SELECT " +
+            "    TRANSACTION.datetime, CURRENCY.name as currency, TRANSACTION.amount, TRANSACTION.commission_amount, " +
+            "    TRANSACTION.source_type, TRANSACTION.confirmation, " +
+            "    case when OPERATION_TYPE.name = 'input' or WITHDRAW_REQUEST.merchant_image_id is null " +
+            "      then MERCHANT.name " +
+            "      else MERCHANT_IMAGE.image_name end as merchant,\n" +
+            "    OPERATION_TYPE.name as operation_type, TRANSACTION.id, TRANSACTION.provided, " +
+            "    INVOICE_BANK.account_number AS bank_account, " +
+            "    USER.id AS user_id," +
+            "    INVOICE_REQUEST.invoice_request_status_id, " +
+            "    INVOICE_REQUEST.status_update_date AS invoice_request_status_update_date," +
+            "    INVOICE_REQUEST.user_full_name, INVOICE_REQUEST.remark, " +
+            "    PENDING_PAYMENT.pending_payment_status_id, " +
+            "    PENDING_PAYMENT.status_update_date AS pending_payment_status_update_date," +
+            "    WITHDRAW_REQUEST.status AS withdraw_request_status_id " +
+            "  from TRANSACTION \n" +
+            "    left join CURRENCY on CURRENCY.id = TRANSACTION.currency_id" +
+//            "    left join WITHDRAW_REQUEST on TRANSACTION.id=WITHDRAW_REQUEST.transaction_id\n" +
+            "    left join INVOICE_REQUEST on TRANSACTION.id=INVOICE_REQUEST.transaction_id\n" +
+            "    left join PENDING_PAYMENT on TRANSACTION.id=PENDING_PAYMENT.invoice_id\n" +
+            "    left join INVOICE_BANK on INVOICE_REQUEST.bank_id = INVOICE_BANK.id " +
+//            "    left join MERCHANT_IMAGE on WITHDRAW_REQUEST.merchant_image_id=MERCHANT_IMAGE.id\n" +
+            "    left join MERCHANT on TRANSACTION.merchant_id = MERCHANT.id \n" +
+            "    left join OPERATION_TYPE on TRANSACTION.operation_type_id=OPERATION_TYPE.id\n" +
+            "    left join WALLET on TRANSACTION.user_wallet_id=WALLET.id\n" +
+            "    left join USER on WALLET.user_id=USER.id\n" +
+            "  where TRANSACTION.operation_type_id IN (:operation_type_id_list) and USER.email=:email order by datetime DESC" +
+            (limit == -1 ? "" : "  LIMIT " + limit + " OFFSET " + offset);
+        final Map<String, Object> params = new HashMap<>();
+        params.put("email", email);
+        params.put("operation_type_id_list", operationTypeIdList);
+        return jdbcTemplate.query(sql, params, (rs, i) -> {
+            MyInputOutputHistoryDto myInputOutputHistoryDto = new MyInputOutputHistoryDto();
+            myInputOutputHistoryDto.setDatetime(rs.getTimestamp("datetime").toLocalDateTime());
+            myInputOutputHistoryDto.setCurrencyName(rs.getString("currency"));
+            myInputOutputHistoryDto.setAmount(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount"), locale, 2));
+            myInputOutputHistoryDto.setCommissionAmount(BigDecimalProcessing.formatLocale(rs.getBigDecimal("commission_amount"), locale, 2));
+            myInputOutputHistoryDto.setMerchantName(rs.getString("merchant"));
+            myInputOutputHistoryDto.setOperationType(rs.getString("operation_type"));
+            myInputOutputHistoryDto.setTransactionId(rs.getInt("id"));
+            myInputOutputHistoryDto.setTransactionProvided(rs.getInt("provided") == 0 ?
+                messageSource.getMessage("inputoutput.statusFalse", null, locale) :
+                messageSource.getMessage("inputoutput.statusTrue", null, locale));
+            myInputOutputHistoryDto.setUserId(rs.getInt("user_id"));
+            myInputOutputHistoryDto.setBankAccount(rs.getString("bank_account"));
+            Stream.of(rs.getObject("invoice_request_status_id"),
+                rs.getObject("pending_payment_status_id"),
+                rs.getObject("withdraw_request_status_id")).filter(Objects::nonNull).peek(log::debug).findFirst()
+                .ifPresent(obj -> myInputOutputHistoryDto.setInvoiceRequestStatusId((Integer) obj));
+
+            TransactionSourceType transactionSourceType = TransactionSourceType.convert(rs.getString("source_type"));
+            myInputOutputHistoryDto.setSourceType(transactionSourceType.name());
+      *//**//*
+            Boolean confirmationRequired = false;
+            if (myInputOutputHistoryDto.getInvoiceRequestStatusId() != null) {
+                if (transactionSourceType == INVOICE) {
+                    confirmationRequired = InvoiceRequestStatusEnum.convert(myInputOutputHistoryDto.getInvoiceRequestStatusId()).availableForAction(CONFIRM);
+                } else if (transactionSourceType == BTC_INVOICE) {
+                    confirmationRequired = PendingPaymentStatusEnum.convert(myInputOutputHistoryDto.getInvoiceRequestStatusId()).availableForAction(CONFIRM);
+                }
+            }
+            myInputOutputHistoryDto.setConfirmationRequired(confirmationRequired);
+      *//**//*
+            Boolean mayBeRevoked = false;
+            if (myInputOutputHistoryDto.getInvoiceRequestStatusId() != null) {
+                if (transactionSourceType == INVOICE) {
+                    mayBeRevoked = InvoiceRequestStatusEnum.convert(myInputOutputHistoryDto.getInvoiceRequestStatusId()).availableForAction(REVOKE);
+                } else if (transactionSourceType == BTC_INVOICE) {
+                    mayBeRevoked = PendingPaymentStatusEnum.convert(myInputOutputHistoryDto.getInvoiceRequestStatusId()).availableForAction(REVOKE);
+                }
+            }
+            myInputOutputHistoryDto.setMayBeRevoked(mayBeRevoked);
+      *//**//*
+            LocalDateTime statusUpdateDate;
+            if (rs.getTimestamp("invoice_request_status_update_date") == null) {
+                statusUpdateDate = rs.getTimestamp("pending_payment_status_update_date") == null ? null :
+                    rs.getTimestamp("pending_payment_status_update_date").toLocalDateTime();
+            } else {
+                statusUpdateDate = rs.getTimestamp("invoice_request_status_update_date").toLocalDateTime();
+            }
+            myInputOutputHistoryDto.setStatusUpdateDate(statusUpdateDate);
+            myInputOutputHistoryDto.setUserFullName(rs.getString("user_full_name"));
+            myInputOutputHistoryDto.setRemark(rs.getString("remark"));
+            myInputOutputHistoryDto.setConfirmation((Integer) rs.getObject("confirmation"));
+            log.debug(String.format("id: %s, status: %s, source: %s, optype: %s", myInputOutputHistoryDto.getTransactionId(), myInputOutputHistoryDto.getInvoiceRequestStatusId(),
+                myInputOutputHistoryDto.getSourceType(), myInputOutputHistoryDto.getOperationType()));
+            return myInputOutputHistoryDto;
+        });
+    }*/
+
 }
+

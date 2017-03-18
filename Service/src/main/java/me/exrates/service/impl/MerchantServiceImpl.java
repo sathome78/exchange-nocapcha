@@ -383,21 +383,6 @@ public class MerchantServiceImpl implements MerchantService {
   }
 
   @Override
-  public List<MyInputOutputHistoryDto> getMyInputOutputHistory(CacheData cacheData, String email, Integer offset, Integer limit, Locale locale) {
-    List<Integer> operationTypeList = OperationType.getInputOutputOperationsList()
-        .stream()
-        .map(e -> e.getType())
-        .collect(Collectors.toList());
-    List<MyInputOutputHistoryDto> result = merchantDao.findMyInputOutputHistoryByOperationType(email, offset, limit, operationTypeList, locale);
-    if (Cache.checkCache(cacheData, result)) {
-      result = new ArrayList<MyInputOutputHistoryDto>() {{
-        add(new MyInputOutputHistoryDto(false));
-      }};
-    }
-    return result;
-  }
-
-  @Override
   public List<MyInputOutputHistoryDto> getMyInputOutputHistory(String email, Integer offset, Integer limit, Locale locale) {
     List<Integer> operationTypeList = OperationType.getInputOutputOperationsList()
         .stream()

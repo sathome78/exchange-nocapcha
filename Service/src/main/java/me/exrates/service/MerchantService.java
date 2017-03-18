@@ -56,18 +56,6 @@ public interface MerchantService {
 
     Optional<CreditsOperation> prepareCreditsOperation(Payment payment, String userEmail);
 
-    /**
-     * Returns the list of input/output orders for user
-     * Used for displaying in History page
-     * @param cacheData stores the cach params and is used for caching result
-     * @param email is user email. Used as the user identifier
-     * @param offset used for pagination
-     * @param limit used for pagination
-     * @param locale used for formatting number
-     * @return list of input/output orders
-     */
-    List<MyInputOutputHistoryDto> getMyInputOutputHistory(CacheData cacheData, String email, Integer offset, Integer limit, Locale locale);
-
     List<MyInputOutputHistoryDto> getMyInputOutputHistory(String email, Integer offset, Integer limit, Locale locale);
 
     boolean checkInputRequestsLimit(int merchantId, String email);

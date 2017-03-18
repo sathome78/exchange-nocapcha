@@ -12,10 +12,13 @@ import me.exrates.model.dto.WithdrawRequestFlatForReportDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
+import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.NotificationEvent;
+import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
+import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.NotificationService;
@@ -24,6 +27,7 @@ import me.exrates.service.WithdrawService;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.WithdrawRequestCreationException;
+import me.exrates.service.util.Cache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.mail.MailException;
@@ -32,10 +36,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.security.Principal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author ValkSam
@@ -96,6 +98,7 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
     request.setUserId(creditsOperation.getUser().getId());
     request.setUserEmail(creditsOperation.getUser().getEmail());
     request.setUserWalletId(creditsOperation.getWallet().getId());
+    request.setCurrencyId(creditsOperation.getCurrency().getId());
     request.setAmount(creditsOperation.getFullAmount());
     request.setUserId(creditsOperation.getWallet().getId());
     request.setCommission(creditsOperation.getCommissionAmount());
@@ -104,6 +107,7 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
     } else {
       request.setDestinationWallet(withdrawData.getUserAccount());
     }
+    request.setMerchantId(creditsOperation.getMerchant().getId());
     creditsOperation
         .getMerchantImage()
         .ifPresent(request::setMerchantImage);
@@ -198,5 +202,20 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
   public DataTable<List<WithdrawRequest>> findWithdrawRequestsByStatus(Integer requestStatus, DataTableParams dataTableParams, WithdrawFilterData withdrawFilterData, String userEmail) {
     log.error("NOT IMPLEMENTED");
     throw new NotImplimentedMethod("method NOT IMPLEMENTED !");
+  }
+
+  @Override
+  public List<MyInputOutputHistoryDto> getMyInputOutputHistory(CacheData cacheData, String email, Integer offset, Integer limit, Locale locale) {
+    List<Integer> operationTypeList = OperationType.getInputOutputOperationsList()
+        .stream()
+        .map(OperationType::getType)
+        .collect(Collectors.toList());
+    List<MyInputOutputHistoryDto> result = merchantDao.findMyInputOutputHistoryByOperationType(email, offset, limit, operationTypeList, locale);
+    if (Cache.checkCache(cacheData, result)) {
+      result = new ArrayList<MyInputOutputHistoryDto>() {{
+        add(new MyInputOutputHistoryDto(false));
+      }};
+    }
+    return result;
   }
 }
