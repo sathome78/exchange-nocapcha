@@ -1,10 +1,7 @@
 package me.exrates.dao.impl;
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.dao.CommissionDao;
-import me.exrates.dao.TransactionDao;
-import me.exrates.dao.UserDao;
-import me.exrates.dao.WalletDao;
+import me.exrates.dao.*;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
@@ -43,6 +40,8 @@ public class WalletDaoImpl implements WalletDao {
     private TransactionDao transactionDao;
     @Autowired
     private UserDao userDao;
+    @Autowired
+    private CurrencyDao currencyDao;
     @Autowired
     private NamedParameterJdbcTemplate jdbcTemplate;
 
@@ -361,11 +360,10 @@ public class WalletDaoImpl implements WalletDao {
 
     @Override
     public WalletsForOrderAcceptionDto getWalletsForOrderByOrderIdAndBlock(Integer orderId, Integer userAcceptorId) {
+        CurrencyPair currencyPair = currencyDao.findCurrencyPairByOrderId(orderId);
         String sql = "SELECT " +
                 " EXORDERS.id AS order_id, " +
                 " EXORDERS.status_id AS order_status_id, " +
-                " CURRENCY_PAIR.currency1_id AS currency_base, " +
-                " CURRENCY_PAIR.currency2_id AS currency_convert, " +
                 " cw1.id AS company_wallet_currency_base, " +
                 " cw1.balance AS company_wallet_currency_base_balance, " +
                 " cw1.commission_balance AS company_wallet_currency_base_commission_balance, " +
@@ -389,21 +387,22 @@ public class WalletDaoImpl implements WalletDao {
                 " IF (EXORDERS.operation_type_id=3, w2a.active_balance, w1a.active_balance) AS wallet_out_active_for_acceptor, " +
                 " IF (EXORDERS.operation_type_id=3, w2a.reserved_balance, w1a.reserved_balance) AS wallet_out_reserved_for_acceptor" +
                 " FROM EXORDERS  " +
-                " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) " +
-                " LEFT JOIN COMPANY_WALLET cw1 ON (cw1.currency_id= CURRENCY_PAIR.currency1_id) " +
-                " LEFT JOIN COMPANY_WALLET cw2 ON (cw2.currency_id= CURRENCY_PAIR.currency2_id) " +
+                " LEFT JOIN COMPANY_WALLET cw1 ON (cw1.currency_id= :currency1_id) " +
+                " LEFT JOIN COMPANY_WALLET cw2 ON (cw2.currency_id= :currency2_id) " +
                 " LEFT JOIN WALLET w1 ON  (w1.user_id = EXORDERS.user_id) AND " +
-                "             (w1.currency_id= CURRENCY_PAIR.currency1_id) " +
+                "             (w1.currency_id= :currency1_id) " +
                 " LEFT JOIN WALLET w2 ON  (w2.user_id = EXORDERS.user_id) AND " +
-                "             (w2.currency_id= CURRENCY_PAIR.currency2_id) " +
+                "             (w2.currency_id= :currency2_id) " +
                 " LEFT JOIN WALLET w1a ON  (w1a.user_id = " + (userAcceptorId == null ? "EXORDERS.user_acceptor_id" : ":user_acceptor_id") + ") AND " +
-                "             (w1a.currency_id= CURRENCY_PAIR.currency1_id)" +
+                "             (w1a.currency_id= :currency1_id)" +
                 " LEFT JOIN WALLET w2a ON  (w2a.user_id = " + (userAcceptorId == null ? "EXORDERS.user_acceptor_id" : ":user_acceptor_id") + ") AND " +
-                "             (w2a.currency_id= CURRENCY_PAIR.currency2_id) " +
+                "             (w2a.currency_id= :currency2_id) " +
                 " WHERE (EXORDERS.id = :order_id)" +
                 " FOR UPDATE "; //FOR UPDATE !Impotant
-        Map<String, String> namedParameters = new HashMap<>();
-        namedParameters.put("order_id", String.valueOf(orderId));
+        Map<String, Object> namedParameters = new HashMap<>();
+        namedParameters.put("order_id", orderId);
+        namedParameters.put("currency1_id", currencyPair.getCurrency1().getId());
+        namedParameters.put("currency2_id", currencyPair.getCurrency2().getId());
         if (userAcceptorId != null) {
             namedParameters.put("user_acceptor_id", String.valueOf(userAcceptorId));
         }
@@ -413,8 +412,8 @@ public class WalletDaoImpl implements WalletDao {
                 walletsForOrderAcceptionDto.setOrderId(rs.getInt("order_id"));
                 walletsForOrderAcceptionDto.setOrderStatusId(rs.getInt("order_status_id"));
              /**/
-                walletsForOrderAcceptionDto.setCurrencyBase(rs.getInt("currency_base"));
-                walletsForOrderAcceptionDto.setCurrencyConvert(rs.getInt("currency_convert"));
+                walletsForOrderAcceptionDto.setCurrencyBase(currencyPair.getCurrency1().getId());
+                walletsForOrderAcceptionDto.setCurrencyConvert(currencyPair.getCurrency2().getId());
             /**/
                 walletsForOrderAcceptionDto.setCompanyWalletCurrencyBase(rs.getInt("company_wallet_currency_base"));
                 walletsForOrderAcceptionDto.setCompanyWalletCurrencyBaseBalance(rs.getBigDecimal("company_wallet_currency_base_balance"));
