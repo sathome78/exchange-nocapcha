@@ -24,6 +24,7 @@ import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.util.Cache;
+import me.exrates.service.vo.ProfileData;
 import org.apache.axis.utils.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -38,12 +39,11 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.lang.Integer.valueOf;
-
 @Service
 public class OrderServiceImpl implements OrderService {
 
   private static final Logger logger = LogManager.getLogger(OrderServiceImpl.class);
+  private static final Logger profileLog = LogManager.getLogger("profile");
 
   private final BigDecimal MAX_ORDER_VALUE = new BigDecimal(10000);
   private final BigDecimal MIN_ORDER_VALUE = new BigDecimal(0.000000001);
@@ -233,35 +233,45 @@ public class OrderServiceImpl implements OrderService {
     return errors;
   }
 
-
   @Override
   @Transactional(rollbackFor = {Exception.class})
   public int createOrder(OrderCreateDto orderCreateDto) {
-    int createdOrderId = 0;
-    int outWalletId;
-    BigDecimal outAmount;
-    if (orderCreateDto.getOperationType() == OperationType.BUY) {
-      outWalletId = orderCreateDto.getWalletIdCurrencyConvert();
-      outAmount = orderCreateDto.getTotalWithComission();
-    } else {
-      outWalletId = orderCreateDto.getWalletIdCurrencyBase();
-      outAmount = orderCreateDto.getAmount();
-    }
-    if (walletService.ifEnoughMoney(outWalletId, outAmount)) {
-      ExOrder exOrder = new ExOrder(orderCreateDto);
-      if ((createdOrderId = orderDao.createOrder(exOrder)) > 0) {
-        exOrder.setId(createdOrderId);
-        WalletTransferStatus result = walletService.walletInnerTransfer(outWalletId, outAmount.negate(), TransactionSourceType.ORDER, exOrder.getId());
-        if (result != WalletTransferStatus.SUCCESS) {
-          throw new OrderCreationException(result.toString());
-        }
-        setStatus(exOrder.getId(), OrderStatus.OPENED);
+    ProfileData profileData = new ProfileData(200);
+    try {
+      int createdOrderId = 0;
+      int outWalletId;
+      BigDecimal outAmount;
+      if (orderCreateDto.getOperationType() == OperationType.BUY) {
+        outWalletId = orderCreateDto.getWalletIdCurrencyConvert();
+        outAmount = orderCreateDto.getTotalWithComission();
+      } else {
+        outWalletId = orderCreateDto.getWalletIdCurrencyBase();
+        outAmount = orderCreateDto.getAmount();
       }
-    } else {
-      //this exception will be caught in controller, populated  with message text  and thrown further
-      throw new NotEnoughUserWalletMoneyException("");
+      if (walletService.ifEnoughMoney(outWalletId, outAmount)) {
+        profileData.setTime1();
+        ExOrder exOrder = new ExOrder(orderCreateDto);
+        if ((createdOrderId = orderDao.createOrder(exOrder)) > 0) {
+          profileData.setTime2();
+          exOrder.setId(createdOrderId);
+          WalletTransferStatus result = walletService.walletInnerTransfer(outWalletId, outAmount.negate(), TransactionSourceType.ORDER, exOrder.getId());
+          profileData.setTime3();
+          if (result != WalletTransferStatus.SUCCESS) {
+            throw new OrderCreationException(result.toString());
+          }
+          setStatus(exOrder.getId(), OrderStatus.OPENED);
+          profileData.setTime4();
+        }
+      } else {
+        //this exception will be caught in controller, populated  with message text  and thrown further
+        throw new NotEnoughUserWalletMoneyException("");
+      }
+      return createdOrderId;
+    } finally {
+      if (profileData.isExceeded()){
+        profileLog.warn("slow creation order: "+orderCreateDto+" profile: "+profileData);
+      }
     }
-    return createdOrderId;
   }
 
   @Override
@@ -292,46 +302,60 @@ public class OrderServiceImpl implements OrderService {
   @Override
   @Transactional(rollbackFor = Exception.class)
   public Optional<OrderCreationResultDto> autoAcceptOrders(OrderCreateDto orderCreateDto, Locale locale) {
-    List<ExOrder> acceptableOrders = orderDao.selectTopOrders(orderCreateDto.getCurrencyPair().getId(), orderCreateDto.getExchangeRate(),
-        OperationType.getOpposite(orderCreateDto.getOperationType()));
-    logger.debug("acceptableOrders - " + OperationType.getOpposite(orderCreateDto.getOperationType()) + " : " + acceptableOrders);
-    if (acceptableOrders.isEmpty()) {
-      return Optional.empty();
-    }
-    BigDecimal cumulativeSum = BigDecimal.ZERO;
-    List<ExOrder> ordersForAccept = new ArrayList<>();
-    ExOrder orderForPartialAccept = null;
-    for (ExOrder order : acceptableOrders) {
-      cumulativeSum = cumulativeSum.add(order.getAmountBase());
-      if (orderCreateDto.getAmount().compareTo(cumulativeSum) > 0) {
-        ordersForAccept.add(order);
-      } else if (orderCreateDto.getAmount().compareTo(cumulativeSum) == 0) {
-        ordersForAccept.add(order);
-        break;
-      } else {
-        orderForPartialAccept = order;
-        break;
+    ProfileData profileData = new ProfileData(200);
+    try {
+      List<ExOrder> acceptableOrders = orderDao.selectTopOrders(orderCreateDto.getCurrencyPair().getId(), orderCreateDto.getExchangeRate(),
+          OperationType.getOpposite(orderCreateDto.getOperationType()));
+      profileData.setTime1();
+      logger.debug("acceptableOrders - " + OperationType.getOpposite(orderCreateDto.getOperationType()) + " : " + acceptableOrders);
+      if (acceptableOrders.isEmpty()) {
+        return Optional.empty();
+      }
+      BigDecimal cumulativeSum = BigDecimal.ZERO;
+      List<ExOrder> ordersForAccept = new ArrayList<>();
+      ExOrder orderForPartialAccept = null;
+      for (ExOrder order : acceptableOrders) {
+        cumulativeSum = cumulativeSum.add(order.getAmountBase());
+        if (orderCreateDto.getAmount().compareTo(cumulativeSum) > 0) {
+          ordersForAccept.add(order);
+        } else if (orderCreateDto.getAmount().compareTo(cumulativeSum) == 0) {
+          ordersForAccept.add(order);
+          break;
+        } else {
+          orderForPartialAccept = order;
+          break;
+        }
+      }
+      OrderCreationResultDto orderCreationResultDto = new OrderCreationResultDto();
+
+      if (ordersForAccept.size() > 0) {
+        acceptOrdersList(orderCreateDto.getUserId(), ordersForAccept.stream().map(ExOrder::getId).collect(Collectors.toList()), locale);
+        orderCreationResultDto.setAutoAcceptedQuantity(ordersForAccept.size());
+      }
+      if (orderForPartialAccept != null) {
+        BigDecimal partialAcceptResult = acceptPartially(orderCreateDto, orderForPartialAccept, cumulativeSum, locale);
+        orderCreationResultDto.setPartiallyAcceptedAmount(partialAcceptResult);
+        orderCreationResultDto.setPartiallyAcceptedOrderFullAmount(orderForPartialAccept.getAmountBase());
+      } else if (orderCreateDto.getAmount().compareTo(cumulativeSum) > 0) {
+        User user = userService.getUserById(orderCreateDto.getUserId());
+        profileData.setTime2();
+        OrderCreateDto remainderNew = prepareNewOrder(
+            orderCreateDto.getCurrencyPair(),
+            orderCreateDto.getOperationType(),
+            user.getEmail(),
+            orderCreateDto.getAmount().subtract(cumulativeSum),
+            orderCreateDto.getExchangeRate());
+        profileData.setTime3();
+        Integer createdOrderId = createOrder(remainderNew);
+        profileData.setTime4();
+        orderCreationResultDto.setCreatedOrderId(createdOrderId);
+      }
+      return Optional.of(orderCreationResultDto);
+    } finally {
+      if (profileData.isExceeded()) {
+        profileLog.warn("slow creation order: " + orderCreateDto + " profile: " + profileData);
       }
     }
-    OrderCreationResultDto orderCreationResultDto = new OrderCreationResultDto();
-
-    if (ordersForAccept.size() > 0) {
-      acceptOrdersList(orderCreateDto.getUserId(), ordersForAccept.stream().map(ExOrder::getId).collect(Collectors.toList()), locale);
-      orderCreationResultDto.setAutoAcceptedQuantity(ordersForAccept.size());
-    }
-    if (orderForPartialAccept != null) {
-      BigDecimal partialAcceptResult = acceptPartially(orderCreateDto, orderForPartialAccept, cumulativeSum, locale);
-      orderCreationResultDto.setPartiallyAcceptedAmount(partialAcceptResult);
-      orderCreationResultDto.setPartiallyAcceptedOrderFullAmount(orderForPartialAccept.getAmountBase());
-
-    } else if (orderCreateDto.getAmount().compareTo(cumulativeSum) > 0) {
-      OrderCreateDto remainderNew = prepareNewOrder(orderCreateDto.getCurrencyPair(), orderCreateDto.getOperationType(),
-          userService.getUserById(orderCreateDto.getUserId()).getEmail(), orderCreateDto.getAmount().subtract(cumulativeSum),
-          orderCreateDto.getExchangeRate());
-      Integer createdOrderId = createOrder(remainderNew);
-      orderCreationResultDto.setCreatedOrderId(createdOrderId);
-    }
-    return Optional.of(orderCreationResultDto);
   }
 
 
