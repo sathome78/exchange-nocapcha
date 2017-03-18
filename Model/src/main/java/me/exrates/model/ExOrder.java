@@ -1,5 +1,7 @@
 package me.exrates.model;
 
+import lombok.Getter;
+import lombok.Setter;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
@@ -12,6 +14,7 @@ import java.time.LocalDateTime;
  * Created by Valk on 19.04.16.
  */
 @Component
+@Getter @Setter
 public class ExOrder {
     private int id;
     private int userId;
@@ -26,6 +29,7 @@ public class ExOrder {
     private LocalDateTime dateCreation;
     private LocalDateTime dateAcception;
     private OrderStatus status;
+    private CurrencyPair currencyPair;
 
     /*constructors*/
     public ExOrder() {
@@ -42,6 +46,7 @@ public class ExOrder {
         this.comissionId = orderCreateDto.getComissionId();
         this.commissionFixedAmount = orderCreateDto.getComission();
         this.status = orderCreateDto.getStatus();
+        this.currencyPair = orderCreateDto.getCurrencyPair();
     }
 
     /*hash equals*/
@@ -89,112 +94,6 @@ public class ExOrder {
         result = 31 * result + (dateAcception != null ? dateAcception.hashCode() : 0);
         result = 31 * result + (status != null ? status.hashCode() : 0);
         return result;
-    }
-
-    /*getters setters*/
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public int getUserId() {
-        return userId;
-    }
-
-    public void setUserId(int userId) {
-        this.userId = userId;
-    }
-
-    public int getCurrencyPairId() {
-        return currencyPairId;
-    }
-
-    public void setCurrencyPairId(int currencyPairId) {
-        this.currencyPairId = currencyPairId;
-    }
-
-    public OperationType getOperationType() {
-        return operationType;
-    }
-
-    public void setOperationType(OperationType operationType) {
-        this.operationType = operationType;
-    }
-
-    public BigDecimal getExRate() {
-        return exRate;
-    }
-
-    public void setExRate(BigDecimal exRate) {
-        this.exRate = exRate;
-    }
-
-    public BigDecimal getAmountBase() {
-        return amountBase;
-    }
-
-    public void setAmountBase(BigDecimal amountBase) {
-        this.amountBase = amountBase;
-    }
-
-    public BigDecimal getAmountConvert() {
-        return amountConvert;
-    }
-
-    public void setAmountConvert(BigDecimal amountConvert) {
-        this.amountConvert = amountConvert;
-    }
-
-    public int getComissionId() {
-        return comissionId;
-    }
-
-    public void setComissionId(int comissionId) {
-        this.comissionId = comissionId;
-    }
-
-    public BigDecimal getCommissionFixedAmount() {
-        return commissionFixedAmount;
-    }
-
-    public void setCommissionFixedAmount(BigDecimal commissionFixedAmount) {
-        this.commissionFixedAmount = commissionFixedAmount;
-    }
-
-    public int getUserAcceptorId() {
-        return userAcceptorId;
-    }
-
-    public void setUserAcceptorId(int userAcceptorId) {
-        this.userAcceptorId = userAcceptorId;
-    }
-
-    public LocalDateTime getDateCreation() {
-        return dateCreation;
-    }
-
-    public void setDateCreation(LocalDateTime dateCreation) {
-        this.dateCreation = dateCreation;
-    }
-
-    public LocalDateTime getDateAcception() {
-        return dateAcception;
-    }
-
-    public void setDateAcception(LocalDateTime dateAcception) {
-        this.dateAcception = dateAcception;
-    }
-
-    public OrderStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(OrderStatus status) {
-        this.status = status;
     }
 
     @Override

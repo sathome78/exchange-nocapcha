@@ -48,4 +48,6 @@ public interface CurrencyDao {
   List<UserCurrencyOperationPermissionDto> findCurrencyOperationPermittedByUserList(Integer userId);
   
   Optional<String> getWarningForCurrency(Integer currencyId, CurrencyWarningType currencyWarningType);
+
+  CurrencyPair findCurrencyPairByOrderId(int orderId);
 }

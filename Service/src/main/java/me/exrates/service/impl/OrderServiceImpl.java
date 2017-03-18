@@ -662,17 +662,17 @@ public class OrderServiceImpl implements OrderService {
   @Override
   public boolean cancellOrder(ExOrder exOrder, Locale locale) {
     try {
-      WalletsForOrderAcceptionDto walletsForOrderAcceptionDto = walletDao.getWalletsForOrderByOrderIdAndBlock(exOrder.getId(), null);
-      if (OrderStatus.convert(walletsForOrderAcceptionDto.getOrderStatusId()) != OrderStatus.OPENED) {
+      WalletsForOrderCancelDto walletsForOrderCancelDto = walletDao.getWalletForOrderByOrderIdAndOperationTypeAndBlock(
+          exOrder.getId(),
+          exOrder.getOperationType());
+      if (OrderStatus.convert(walletsForOrderCancelDto.getOrderStatusId()) != OrderStatus.OPENED) {
         throw new OrderAcceptionException(messageSource.getMessage("order.cannotcancel", null, locale));
       }
-      BigDecimal reservedAmountForCancel = null;
-      if (exOrder.getOperationType() == OperationType.SELL) {
-        reservedAmountForCancel = exOrder.getAmountBase();
-      } else if (exOrder.getOperationType() == OperationType.BUY) {
-        reservedAmountForCancel = BigDecimalProcessing.doAction(exOrder.getAmountConvert(), exOrder.getCommissionFixedAmount(), ActionType.ADD);
-      }
-      WalletTransferStatus transferResult = walletDao.walletInnerTransfer(walletsForOrderAcceptionDto.getUserCreatorOutWalletId(), reservedAmountForCancel, TransactionSourceType.ORDER, exOrder.getId());
+      WalletTransferStatus transferResult = walletDao.walletInnerTransfer(
+          walletsForOrderCancelDto.getWalletId(),
+          walletsForOrderCancelDto.getReservedAmount(),
+          TransactionSourceType.ORDER,
+          exOrder.getId());
       if (transferResult != WalletTransferStatus.SUCCESS) {
         throw new OrderCancellingException(transferResult.toString());
       }
