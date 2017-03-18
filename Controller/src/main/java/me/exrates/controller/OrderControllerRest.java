@@ -2,16 +2,15 @@ package me.exrates.controller;
 
 
 import me.exrates.controller.exception.*;
-import me.exrates.model.Currency;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderCreateSummaryDto;
 import me.exrates.model.dto.OrderInfoDto;
-import me.exrates.model.dto.WalletsAndCommissionsForOrderCreationDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
+import me.exrates.service.vo.ProfileData;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,13 +22,16 @@ import org.springframework.web.servlet.LocaleResolver;
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.security.Principal;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
 public class OrderControllerRest {
     private static final Logger LOGGER = LogManager.getLogger(OrderControllerRest.class);
-
+    private static final Logger profileLog = LogManager.getLogger("profile");
 
 
     @Autowired
@@ -81,6 +83,10 @@ public class OrderControllerRest {
                 request.getSession().setAttribute("/order/submitnew/orderCreateDto", orderCreateDto);
             }
             return orderCreateSummaryDto;
+        } catch (OrderParamsWrongException e) {
+            long after = System.currentTimeMillis();
+            LOGGER.error("error... ms: " + (after - before) + " : " + e+" "+request.getSession().getAttribute("orderCreationError"));
+            throw e;
         } catch (Exception e) {
             long after = System.currentTimeMillis();
             LOGGER.error("error... ms: " + (after - before) + " : " + e);
@@ -94,23 +100,25 @@ public class OrderControllerRest {
 
     @RequestMapping(value = "/order/create", produces = "application/json;charset=utf-8")
     public String recordOrderToDB(HttpServletRequest request) {
+        ProfileData profileData = new ProfileData(200);
         long before = System.currentTimeMillis();
+        /*restore protected orderCreateDto*/
+        OrderCreateDto orderCreateDto = (OrderCreateDto) request.getSession().getAttribute("/order/submitnew/orderCreateDto");
         try {
+            if (orderCreateDto == null) {
+                /*it may be if user twice click the create button from the current submit form. After first click orderCreateDto will be cleaned*/
+                throw new OrderCreationException(messageSource.getMessage("order.recreateerror", null, localeResolver.resolveLocale(request)));
+            }
             try {
-            /*restore protected orderCreateDto*/
-                OrderCreateDto orderCreateDto = (OrderCreateDto) request.getSession().getAttribute("/order/submitnew/orderCreateDto");
-            /*clear orderCreateDto: it's necessary to prevent re-creating order from the current submit form */
-                request.getSession().removeAttribute("/order/submitnew/orderCreateDto");
-                if (orderCreateDto == null) {
-                    /*it may be if user twice click the create button from the current submit form. After first click orderCreateDto wil be cleaned*/
-                    throw new OrderCreationException(messageSource.getMessage("order.recreateerror", null, localeResolver.resolveLocale(request)));
-                }
                 Optional<String> autoAcceptResult = orderService.autoAccept(orderCreateDto, localeResolver.resolveLocale(request));
+                profileData.setTime1();
                 if (autoAcceptResult.isPresent()) {
                     LOGGER.debug(autoAcceptResult.get());
                     return autoAcceptResult.get();
                 }
-                if ((orderService.createOrder(orderCreateDto)) <= 0) {
+                Integer orderId = orderService.createOrder(orderCreateDto);
+                profileData.setTime2();
+                if (orderId <= 0) {
                     throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, localeResolver.resolveLocale(request)));
                 }
                 return "{\"result\":\"" + messageSource.getMessage("createdorder.text", null, localeResolver.resolveLocale(request)) + "\"}";
@@ -126,7 +134,12 @@ public class OrderControllerRest {
             LOGGER.error("error... ms: " + (after - before) + " : " + e);
             throw e;
         } finally {
+            if (profileData.isExceeded()) {
+                profileLog.warn("slow creation order: " + orderCreateDto + " profile: " + profileData);
+            }
             long after = System.currentTimeMillis();
+            /*clear orderCreateDto: it's necessary to prevent re-creating order from the current submit form */
+            request.getSession().removeAttribute("/order/submitnew/orderCreateDto");
             LOGGER.debug("completed... ms: " + (after - before));
         }
     }

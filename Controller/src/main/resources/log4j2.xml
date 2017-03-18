@@ -112,6 +112,15 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="profile_log" fileName="${sys:catalina.home}/logs/profile_log.log"
+                     filePattern="${sys:catalina.home}/logs/profile_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
     </Appenders>
     <Loggers>
         <Logger name="merchant" level="TRACE" additivity="false">
@@ -199,6 +208,12 @@
         <Logger name="me.exrates.service.impl.proxy" level="DEBUG" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="proxy_log"/>
+        </Logger>
+
+        <!--profiling-->
+        <Logger name="profile" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="profile_log"/>
         </Logger>
 
 
