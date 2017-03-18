@@ -285,4 +285,17 @@ public class CurrencyDaoImpl implements CurrencyDao {
 			return Optional.empty();
 		}
 	}
+
+	@Override
+	public CurrencyPair findCurrencyPairByOrderId(int orderId) {
+		String sql = "SELECT CURRENCY_PAIR.id, CURRENCY_PAIR.currency1_id, CURRENCY_PAIR.currency2_id, name, " +
+				"(select name from CURRENCY where id = currency1_id) as currency1_name, " +
+				"(select name from CURRENCY where id = currency2_id) as currency2_name " +
+				" FROM EXORDERS "+
+				" JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) "+
+				" WHERE EXORDERS.id = :order_id";
+		Map<String, String> namedParameters = new HashMap<>();
+		namedParameters.put("order_id", String.valueOf(orderId));
+		return jdbcTemplate.queryForObject(sql, namedParameters, currencyPairRowMapper);
+	}
 }

@@ -216,10 +216,10 @@ public final class TransactionDaoImpl implements TransactionDao {
     final Map<String, Object> params = new HashMap<String, Object>() {
       {
         put("userWallet", transaction.getUserWallet().getId());
-        put("companyWallet", transaction.getCompanyWallet().getId());
+        put("companyWallet", transaction.getCompanyWallet() == null ? null : transaction.getCompanyWallet().getId());
         put("amount", transaction.getAmount());
         put("commissionAmount", transaction.getCommissionAmount());
-        put("commission", transaction.getCommission().getId());
+        put("commission", transaction.getCommission() == null ? null : transaction.getCommission().getId());
         put("operationType", transaction.getOperationType().type);
         put("currency", transaction.getCurrency().getId());
         put("merchant", transaction.getMerchant() == null ? null : transaction.getMerchant().getId());

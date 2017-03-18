@@ -1,13 +1,13 @@
 package me.exrates.dao.impl;
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.dao.CommissionDao;
-import me.exrates.dao.TransactionDao;
-import me.exrates.dao.UserDao;
-import me.exrates.dao.WalletDao;
+import me.exrates.dao.*;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
-import me.exrates.model.dto.*;
+import me.exrates.model.dto.MyWalletConfirmationDetailDto;
+import me.exrates.model.dto.UserWalletSummaryDto;
+import me.exrates.model.dto.WalletsForOrderAcceptionDto;
+import me.exrates.model.dto.WalletsForOrderCancelDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
@@ -33,6 +33,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
+import static me.exrates.model.enums.OperationType.BUY;
+import static me.exrates.model.enums.OperationType.SELL;
+
 @Repository
 @Log4j2
 public class WalletDaoImpl implements WalletDao {
@@ -43,6 +46,8 @@ public class WalletDaoImpl implements WalletDao {
     private TransactionDao transactionDao;
     @Autowired
     private UserDao userDao;
+    @Autowired
+    private CurrencyDao currencyDao;
     @Autowired
     private NamedParameterJdbcTemplate jdbcTemplate;
 
@@ -303,7 +308,6 @@ public class WalletDaoImpl implements WalletDao {
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
-
     }
 
     @Override
@@ -361,11 +365,10 @@ public class WalletDaoImpl implements WalletDao {
 
     @Override
     public WalletsForOrderAcceptionDto getWalletsForOrderByOrderIdAndBlock(Integer orderId, Integer userAcceptorId) {
+        CurrencyPair currencyPair = currencyDao.findCurrencyPairByOrderId(orderId);
         String sql = "SELECT " +
                 " EXORDERS.id AS order_id, " +
                 " EXORDERS.status_id AS order_status_id, " +
-                " CURRENCY_PAIR.currency1_id AS currency_base, " +
-                " CURRENCY_PAIR.currency2_id AS currency_convert, " +
                 " cw1.id AS company_wallet_currency_base, " +
                 " cw1.balance AS company_wallet_currency_base_balance, " +
                 " cw1.commission_balance AS company_wallet_currency_base_commission_balance, " +
@@ -389,21 +392,22 @@ public class WalletDaoImpl implements WalletDao {
                 " IF (EXORDERS.operation_type_id=3, w2a.active_balance, w1a.active_balance) AS wallet_out_active_for_acceptor, " +
                 " IF (EXORDERS.operation_type_id=3, w2a.reserved_balance, w1a.reserved_balance) AS wallet_out_reserved_for_acceptor" +
                 " FROM EXORDERS  " +
-                " JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) " +
-                " LEFT JOIN COMPANY_WALLET cw1 ON (cw1.currency_id= CURRENCY_PAIR.currency1_id) " +
-                " LEFT JOIN COMPANY_WALLET cw2 ON (cw2.currency_id= CURRENCY_PAIR.currency2_id) " +
+                " LEFT JOIN COMPANY_WALLET cw1 ON (cw1.currency_id= :currency1_id) " +
+                " LEFT JOIN COMPANY_WALLET cw2 ON (cw2.currency_id= :currency2_id) " +
                 " LEFT JOIN WALLET w1 ON  (w1.user_id = EXORDERS.user_id) AND " +
-                "             (w1.currency_id= CURRENCY_PAIR.currency1_id) " +
+                "             (w1.currency_id= :currency1_id) " +
                 " LEFT JOIN WALLET w2 ON  (w2.user_id = EXORDERS.user_id) AND " +
-                "             (w2.currency_id= CURRENCY_PAIR.currency2_id) " +
+                "             (w2.currency_id= :currency2_id) " +
                 " LEFT JOIN WALLET w1a ON  (w1a.user_id = " + (userAcceptorId == null ? "EXORDERS.user_acceptor_id" : ":user_acceptor_id") + ") AND " +
-                "             (w1a.currency_id= CURRENCY_PAIR.currency1_id)" +
+                "             (w1a.currency_id= :currency1_id)" +
                 " LEFT JOIN WALLET w2a ON  (w2a.user_id = " + (userAcceptorId == null ? "EXORDERS.user_acceptor_id" : ":user_acceptor_id") + ") AND " +
-                "             (w2a.currency_id= CURRENCY_PAIR.currency2_id) " +
+                "             (w2a.currency_id= :currency2_id) " +
                 " WHERE (EXORDERS.id = :order_id)" +
                 " FOR UPDATE "; //FOR UPDATE !Impotant
-        Map<String, String> namedParameters = new HashMap<>();
-        namedParameters.put("order_id", String.valueOf(orderId));
+        Map<String, Object> namedParameters = new HashMap<>();
+        namedParameters.put("order_id", orderId);
+        namedParameters.put("currency1_id", currencyPair.getCurrency1().getId());
+        namedParameters.put("currency2_id", currencyPair.getCurrency2().getId());
         if (userAcceptorId != null) {
             namedParameters.put("user_acceptor_id", String.valueOf(userAcceptorId));
         }
@@ -413,8 +417,8 @@ public class WalletDaoImpl implements WalletDao {
                 walletsForOrderAcceptionDto.setOrderId(rs.getInt("order_id"));
                 walletsForOrderAcceptionDto.setOrderStatusId(rs.getInt("order_status_id"));
              /**/
-                walletsForOrderAcceptionDto.setCurrencyBase(rs.getInt("currency_base"));
-                walletsForOrderAcceptionDto.setCurrencyConvert(rs.getInt("currency_convert"));
+                walletsForOrderAcceptionDto.setCurrencyBase(currencyPair.getCurrency1().getId());
+                walletsForOrderAcceptionDto.setCurrencyConvert(currencyPair.getCurrency2().getId());
             /**/
                 walletsForOrderAcceptionDto.setCompanyWalletCurrencyBase(rs.getInt("company_wallet_currency_base"));
                 walletsForOrderAcceptionDto.setCompanyWalletCurrencyBaseBalance(rs.getBigDecimal("company_wallet_currency_base_balance"));
@@ -501,12 +505,8 @@ public class WalletDaoImpl implements WalletDao {
 
     @Override
     public WalletTransferStatus walletInnerTransfer(int walletId, BigDecimal amount, TransactionSourceType sourceType, int sourceId) {
-        CompanyWallet companyWallet = new CompanyWallet();
-        String sql = "SELECT WALLET.id AS wallet_id, WALLET.currency_id, WALLET.active_balance, WALLET.reserved_balance, " +
-                "  WALLET.user_id AS user_id, " +
-                "  COMPANY_WALLET.id AS company_wallet_id, COMPANY_WALLET.currency_id, COMPANY_WALLET.balance, COMPANY_WALLET.commission_balance " +
+        String sql = "SELECT WALLET.id AS wallet_id, WALLET.currency_id, WALLET.active_balance, WALLET.reserved_balance" +
                 "  FROM WALLET " +
-                "  JOIN COMPANY_WALLET ON (COMPANY_WALLET.currency_id = WALLET.currency_id) " +
                 "  WHERE WALLET.id = :walletId " +
                 "  FOR UPDATE"; //FOR UPDATE Important!
         Map<String, String> namedParameters = new HashMap<>();
@@ -525,12 +525,8 @@ public class WalletDaoImpl implements WalletDao {
                     user.setId(rs.getInt("user_id"));
                     result.setUser(user);
                     /**/
-                    companyWallet.setId(rs.getInt("company_wallet_id"));
                     Currency currency = new Currency();
                     currency.setId(rs.getInt("currency_id"));
-                    companyWallet.setCurrency(currency);
-                    companyWallet.setBalance(rs.getBigDecimal("balance"));
-                    companyWallet.setCommissionBalance(rs.getBigDecimal("commission_balance"));
                     return result;
                 }
             });
@@ -559,17 +555,18 @@ public class WalletDaoImpl implements WalletDao {
         Transaction transaction = new Transaction();
         transaction.setOperationType(OperationType.WALLET_INNER_TRANSFER);
         transaction.setUserWallet(wallet);
-        transaction.setCompanyWallet(companyWallet);
+        transaction.setCompanyWallet(null);
         transaction.setAmount(amount);
-        Commission commission = commissionDao.getCommission(OperationType.WALLET_INNER_TRANSFER, wallet.getUser().getId());
-        transaction.setCommissionAmount(commission.getValue());
-        transaction.setCommission(commission);
-        transaction.setCurrency(companyWallet.getCurrency());
+        transaction.setCommissionAmount(BigDecimal.ZERO);
+        transaction.setCommission(null);
+        Currency currency = new Currency();
+        currency.setId(wallet.getCurrencyId());
+        transaction.setCurrency(currency);
         transaction.setProvided(true);
         transaction.setActiveBalanceBefore(wallet.getActiveBalance());
         transaction.setReservedBalanceBefore(wallet.getReservedBalance());
-        transaction.setCompanyBalanceBefore(companyWallet.getBalance());
-        transaction.setCompanyCommissionBalanceBefore(companyWallet.getCommissionBalance());
+        transaction.setCompanyBalanceBefore(null);
+        transaction.setCompanyCommissionBalanceBefore(null);
         transaction.setSourceType(sourceType);
         transaction.setSourceId(sourceId);
         try {
@@ -688,6 +685,41 @@ public class WalletDaoImpl implements WalletDao {
         }
         /**/
         return WalletTransferStatus.SUCCESS;
+    }
+
+    @Override
+    public WalletsForOrderCancelDto getWalletForOrderByOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType) {
+        CurrencyPair currencyPair = currencyDao.findCurrencyPairByOrderId(orderId);
+        String sql = "SELECT " +
+            " EXORDERS.id AS order_id, " +
+            " EXORDERS.status_id AS order_status_id, " +
+            " EXORDERS.amount_base AS amount_base, " +
+            " EXORDERS.amount_convert + commission_fixed_amount AS amount_convert_with_commission, " +
+            " WALLET.id AS wallet_id, " +
+            " WALLET.active_balance AS active_balance, " +
+            " WALLET.reserved_balance AS reserved_balance " +
+            " FROM EXORDERS  " +
+            " JOIN WALLET ON  (WALLET.user_id = EXORDERS.user_id) AND " +
+            "             (WALLET.currency_id = :currency_id) " +
+            " WHERE (EXORDERS.id = :order_id)" +
+            " FOR UPDATE "; //FOR UPDATE !Impotant
+        Map<String, Object> namedParameters = new HashMap<>();
+        namedParameters.put("order_id", orderId);
+        namedParameters.put("currency_id", operationType==SELL ? currencyPair.getCurrency1().getId() : currencyPair.getCurrency2().getId());
+        try {
+            return jdbcTemplate.queryForObject(sql, namedParameters, (rs, i) -> {
+                WalletsForOrderCancelDto result = new WalletsForOrderCancelDto();
+                result.setOrderId(rs.getInt("order_id"));
+                result.setOrderStatusId(rs.getInt("order_status_id"));
+                result.setReservedAmount(rs.getBigDecimal(operationType==SELL ? "amount_base" : "amount_convert_with_commission"));
+                result.setWalletId(rs.getInt("wallet_id"));
+                result.setActiveBalance(rs.getBigDecimal("active_balance"));
+                result.setActiveBalance(rs.getBigDecimal("reserved_balance"));
+                return result;
+            });
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
     }
 
 }
