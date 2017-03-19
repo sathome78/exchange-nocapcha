@@ -279,9 +279,9 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     public int create(WithdrawRequestCreateDto withdrawRequest) {
         final String sql = "INSERT INTO WITHDRAW_REQUEST " +
             "(wallet, merchant_image_id, recipient_bank_name, recipient_bank_code, user_full_name, remark, amount, commission, status_id," +
-            " date_creation, status_modification_date, currency_id, merchant_id) " +
+            " date_creation, status_modification_date, currency_id, merchant_id, user_id) " +
             "VALUES (:wallet, :merchant_image_id, :payer_bank_name, :payer_bank_code, :user_full_name, :remark, :amount, :commission, :status_id," +
-            " NOW(), NOW(), :currency_id, :merchant_id)";
+            " NOW(), NOW(), :currency_id, :merchant_id, :user_id)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("wallet", withdrawRequest.getDestinationWallet())
@@ -294,7 +294,8 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
                 .addValue("commission", withdrawRequest.getCommission())
                 .addValue("status_id", withdrawRequest.getStatusId())
                 .addValue("currency_id", withdrawRequest.getCurrencyId())
-                .addValue("merchant_id", withdrawRequest.getMerchantId());
+                .addValue("merchant_id", withdrawRequest.getMerchantId())
+                .addValue("user_id", withdrawRequest.getUserId());
         jdbcTemplate.update(sql, params, keyHolder);
         return (int) keyHolder.getKey().longValue();
     }

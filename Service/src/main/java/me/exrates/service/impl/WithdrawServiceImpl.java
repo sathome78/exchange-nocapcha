@@ -100,7 +100,7 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
     request.setUserWalletId(creditsOperation.getWallet().getId());
     request.setCurrencyId(creditsOperation.getCurrency().getId());
     request.setAmount(creditsOperation.getFullAmount());
-    request.setUserId(creditsOperation.getWallet().getId());
+    request.setUserId(creditsOperation.getWallet().getUser().getId());
     request.setCommission(creditsOperation.getCommissionAmount());
     if (creditsOperation.getDestination().isPresent() && !creditsOperation.getDestination().get().isEmpty()) {
       request.setDestinationWallet(creditsOperation.getDestination().get());

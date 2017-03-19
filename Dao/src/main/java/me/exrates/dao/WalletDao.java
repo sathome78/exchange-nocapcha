@@ -68,4 +68,6 @@ public interface WalletDao {
     WalletTransferStatus walletBalanceChange(WalletOperationData walletOperationData);
 
     WalletsForOrderCancelDto getWalletForOrderByOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType);
+
+    List<OrderDetailDto> getOrderRelatedDataAndBlock(int orderId);
 }
