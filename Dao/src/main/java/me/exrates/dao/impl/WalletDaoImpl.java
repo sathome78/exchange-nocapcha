@@ -4,10 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.*;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
-import me.exrates.model.dto.MyWalletConfirmationDetailDto;
-import me.exrates.model.dto.UserWalletSummaryDto;
-import me.exrates.model.dto.WalletsForOrderAcceptionDto;
-import me.exrates.model.dto.WalletsForOrderCancelDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
@@ -521,9 +518,6 @@ public class WalletDaoImpl implements WalletDao {
                     result.setCurrencyId(rs.getInt("currency_id"));
                     result.setActiveBalance(rs.getBigDecimal("active_balance"));
                     result.setReservedBalance(rs.getBigDecimal("reserved_balance"));
-                    /**/
-                    Currency currency = new Currency();
-                    currency.setId(rs.getInt("currency_id"));
                     return result;
                 }
             });
@@ -717,6 +711,58 @@ public class WalletDaoImpl implements WalletDao {
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
+    }
+
+    @Override
+    public List<OrderDetailDto> getOrderRelatedDataAndBlock(int orderId) {
+        CurrencyPair currencyPair = currencyDao.findCurrencyPairByOrderId(orderId);
+        String sql =
+            "  SELECT  " +
+                "    EXORDERS.id AS order_id, " +
+                "    EXORDERS.status_id AS order_status_id, " +
+                "    IF (EXORDERS.operation_type_id=3, EXORDERS.amount_base, EXORDERS.amount_convert+EXORDERS.commission_fixed_amount) AS order_creator_reserved_amount, " +
+                "    ORDER_CREATOR_RESERVED_WALLET.id AS order_creator_reserved_wallet_id,  " +
+                "    TRANSACTION.id AS transaction_id,  " +
+                "    TRANSACTION.operation_type_id as transaction_type_id,  " +
+                "    TRANSACTION.amount as transaction_amount, " +
+                "    USER_WALLET.id as user_wallet_id,  " +
+                "    COMPANY_WALLET.id as company_wallet_id, " +
+                "    TRANSACTION.commission_amount AS company_commission " +
+                "  FROM EXORDERS " +
+                "    JOIN WALLET ORDER_CREATOR_RESERVED_WALLET ON  " +
+                "            (ORDER_CREATOR_RESERVED_WALLET.user_id=EXORDERS.user_id) AND  " +
+                "            ( " +
+                "                (EXORDERS.operation_type_id=4 AND ORDER_CREATOR_RESERVED_WALLET.currency_id = :currency2_id)  " +
+                "                OR  " +
+                "                (EXORDERS.operation_type_id=3 AND ORDER_CREATOR_RESERVED_WALLET.currency_id = :currency1_id) " +
+                "            ) " +
+                "    LEFT JOIN TRANSACTION ON (TRANSACTION.source_type='ORDER') AND (TRANSACTION.source_id = EXORDERS.id) " +
+                "    LEFT JOIN WALLET USER_WALLET ON (USER_WALLET.id = TRANSACTION.user_wallet_id) " +
+                "    LEFT JOIN COMPANY_WALLET ON (COMPANY_WALLET.id = TRANSACTION.company_wallet_id) and (TRANSACTION.commission_amount <> 0) " +
+                "  WHERE EXORDERS.id=:deleted_order_id AND EXORDERS.status_id IN (2, 3)" +
+                "  FOR UPDATE "; //FOR UPDATE !Important
+        Map<String, Object> namedParameters = new HashMap<String, Object>() {{
+            put("deleted_order_id", orderId);
+            put("currency1_id", currencyPair.getCurrency1().getId());
+            put("currency2_id", currencyPair.getCurrency2().getId());
+        }};
+        return jdbcTemplate.query(sql, namedParameters, new RowMapper<OrderDetailDto>() {
+            @Override
+            public OrderDetailDto mapRow(ResultSet rs, int rowNum) throws SQLException {
+                return new OrderDetailDto(
+                    rs.getInt("order_id"),
+                    rs.getInt("order_status_id"),
+                    rs.getBigDecimal("order_creator_reserved_amount"),
+                    rs.getInt("order_creator_reserved_wallet_id"),
+                    rs.getInt("transaction_id"),
+                    rs.getInt("transaction_type_id"),
+                    rs.getBigDecimal("transaction_amount"),
+                    rs.getInt("user_wallet_id"),
+                    rs.getInt("company_wallet_id"),
+                    rs.getBigDecimal("company_commission")
+                );
+            }
+        });
     }
 
 }
