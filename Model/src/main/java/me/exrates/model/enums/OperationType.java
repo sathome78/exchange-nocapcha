@@ -16,8 +16,7 @@ public enum OperationType {
     REFERRAL(6),
     STORNO(7),
     MANUAL(8),
-    USER_TRANSFER(9),
-    AMOUNT_CORRECTION(10);
+    USER_TRANSFER(9);
 
     public final int type;
 
@@ -52,8 +51,6 @@ public enum OperationType {
                 return MANUAL;
             case 9:
                 return USER_TRANSFER;
-            case 10:
-                return AMOUNT_CORRECTION;
             default:
                 throw new UnsupportedOperationTypeException(tupleId);
         }
