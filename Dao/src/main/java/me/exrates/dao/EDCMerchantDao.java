@@ -2,6 +2,8 @@ package me.exrates.dao;
 
 import me.exrates.model.User;
 
+import java.util.Optional;
+
 public interface EDCMerchantDao {
 
     void createAddress(String address, User user);
@@ -11,5 +13,6 @@ public interface EDCMerchantDao {
     String findUserEmailByAddress(String address);
 
     void createMerchantTransaction(String address, String merchantTransactionId, Integer transactionId);
-
+  
+  Optional<String> getAddressForUser(Integer userId);
 }

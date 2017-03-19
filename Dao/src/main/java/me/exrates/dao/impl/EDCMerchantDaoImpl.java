@@ -4,11 +4,15 @@ import me.exrates.dao.EDCMerchantDao;
 import me.exrates.model.User;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Repository
 public class EDCMerchantDaoImpl implements EDCMerchantDao {
@@ -65,5 +69,15 @@ public class EDCMerchantDaoImpl implements EDCMerchantDao {
         params.put("merchantTransactionId", merchantTransactionId);
         params.put("transactionId", transactionId);
         jdbcTemplate.update(sql, params);
+    }
+    
+    @Override
+    public Optional<String> getAddressForUser(Integer userId) {
+        String sql = "SELECT address FROM EDC_MERCHANT_ACCOUNT WHERE user_id = :user_id LIMIT 1";
+        try {
+            return Optional.of(jdbcTemplate.queryForObject(sql, Collections.singletonMap("user_id", userId), String.class));
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
     }
 }
