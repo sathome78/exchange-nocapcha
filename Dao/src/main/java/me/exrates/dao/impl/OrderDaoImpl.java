@@ -560,15 +560,18 @@ public class OrderDaoImpl implements OrderDao {
             put("status", 3);
             put("currency_pair_id", currencyPair.getId());
         }};
-        return namedParameterJdbcTemplate.query(sql, params, (rs, rowNum) -> {
-            OrderAcceptedHistoryDto orderAcceptedHistoryDto = new OrderAcceptedHistoryDto();
-            orderAcceptedHistoryDto.setOrderId(rs.getInt("id"));
-            orderAcceptedHistoryDto.setDateAcceptionTime(rs.getTimestamp("date_acception").toLocalDateTime().toLocalTime().format(DateTimeFormatter.ISO_LOCAL_TIME));
-            orderAcceptedHistoryDto.setAcceptionTime(rs.getTimestamp("date_acception"));
-            orderAcceptedHistoryDto.setRate(rs.getString("exrate"));
-            orderAcceptedHistoryDto.setAmountBase(rs.getString("amount_base"));
-            orderAcceptedHistoryDto.setOperationType(OperationType.convert(rs.getInt("operation_type_id")));
-            return orderAcceptedHistoryDto;
+        return namedParameterJdbcTemplate.query(sql, params, new RowMapper<OrderAcceptedHistoryDto>() {
+            @Override
+            public OrderAcceptedHistoryDto mapRow(ResultSet rs, int rowNum) throws SQLException {
+                OrderAcceptedHistoryDto orderAcceptedHistoryDto = new OrderAcceptedHistoryDto();
+                orderAcceptedHistoryDto.setOrderId(rs.getInt("id"));
+                orderAcceptedHistoryDto.setDateAcceptionTime(rs.getTimestamp("date_acception").toLocalDateTime().toLocalTime().format(DateTimeFormatter.ISO_LOCAL_TIME));
+                orderAcceptedHistoryDto.setAcceptionTime(rs.getTimestamp("date_acception"));
+                orderAcceptedHistoryDto.setRate(rs.getString("exrate"));
+                orderAcceptedHistoryDto.setAmountBase(rs.getString("amount_base"));
+                orderAcceptedHistoryDto.setOperationType(OperationType.convert(rs.getInt("operation_type_id")));
+                return orderAcceptedHistoryDto;
+            }
         });
     }
 
