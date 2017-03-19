@@ -144,6 +144,10 @@
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Logs"/>
         </logger>
+        <logger name="bitcoin_core" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="bitcoin_core_log"/>
+        </logger>
         <logger name="org.bitcoinj" level="INFO" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="bitcoinj_log"/>
