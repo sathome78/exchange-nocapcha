@@ -247,8 +247,7 @@ public class ReferralServiceImpl implements ReferralService {
         if (userReferralParentId == null) {
             userReferralParentId = userService.getCommonReferralRoot().getId();
         }
-        List<Integer> children = getChildrenForParentAndBlock(user.getId());
-        log.debug(String.format("Changing ref parent from %s to %s for children %s", user.getId(), userReferralParentId, children));
+        log.debug(String.format("Changing ref parent from %s to %s", user.getId(), userReferralParentId));
         referralUserGraphDao.changeReferralParent(user.getId(), userReferralParentId);
     }
 }
