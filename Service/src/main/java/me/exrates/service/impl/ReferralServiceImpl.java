@@ -1,5 +1,6 @@
 package me.exrates.service.impl;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.ReferralLevelDao;
 import me.exrates.dao.ReferralTransactionDao;
 import me.exrates.dao.ReferralUserGraphDao;
@@ -34,6 +35,7 @@ import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
+@Log4j2
 @Service
 @PropertySource("classpath:/referral.properties")
 public class ReferralServiceImpl implements ReferralService {
@@ -174,6 +176,11 @@ public class ReferralServiceImpl implements ReferralService {
         }
         return null;
     }
+    
+    @Override
+    public Integer getReferralParentId(int childId) {
+        return referralUserGraphDao.getParent(childId);
+    }
 
     /**
      * The number of referral levels is hardcoded in database (table REFERRAL_LEVEL)
@@ -226,5 +233,22 @@ public class ReferralServiceImpl implements ReferralService {
     @Override
     public List<MyReferralDetailedDto> findAllMyReferral(String email, Integer offset, Integer limit, Locale locale) {
         return referralTransactionDao.findAllMyRefferal(email, offset, limit, locale);
+    }
+    
+    @Override
+    public List<Integer> getChildrenForParentAndBlock(Integer parentId) {
+        return referralUserGraphDao.getChildrenForParentAndBlock(parentId);
+    }
+    
+    @Override
+    @Transactional
+    public void updateReferralParentForChildren(User user) {
+        Integer userReferralParentId = getReferralParentId(user.getId());
+        if (userReferralParentId == null) {
+            userReferralParentId = userService.getCommonReferralRoot().getId();
+        }
+        List<Integer> children = getChildrenForParentAndBlock(user.getId());
+        log.debug(String.format("Changing ref parent from %s to %s for children %s", user.getId(), userReferralParentId, children));
+        referralUserGraphDao.changeReferralParent(user.getId(), userReferralParentId);
     }
 }
