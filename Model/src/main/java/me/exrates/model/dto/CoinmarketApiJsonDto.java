@@ -1,6 +1,7 @@
 package me.exrates.model.dto;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -29,6 +30,7 @@ public class CoinmarketApiJsonDto {
   private BigDecimal baseVolume;
   @JsonSerialize(using = BigDecimalNonePointSerializer.class)
   private BigDecimal quoteVolume;
+  @JsonSerialize(using = ToStringSerializer.class)
   private Integer isFrozen;
   @JsonSerialize(using = BigDecimalNonePointSerializer.class)
   private BigDecimal high24hr;

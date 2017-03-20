@@ -30,7 +30,7 @@ public class PublicController {
     @Autowired
     OrderService orderService;
 
-    @RequestMapping(value = "/public/coinmarketcap/ticker", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @RequestMapping(value = "/public/coinmarketcap/ticker", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public Map<String, CoinmarketApiJsonDto> tiker(@RequestParam(required = false) String currencyPair, HttpServletRequest request) {
         long before = System.currentTimeMillis();
@@ -53,34 +53,6 @@ public class PublicController {
             long after = System.currentTimeMillis();
             LOGGER.error(String.format("error... for pair: %s from ip: %s ms: %s : %s", currencyPair, ip, (after - before), e));
             throw e;
-        } /*finally {
-            StringBuilder stringBuilder = new StringBuilder("\r\n");
-            if (list != null) {
-                for (CoinmarketApiDto e : list) {
-                    stringBuilder
-                            .append("     ")
-                            .append(e.getCurrency_pair_name())
-                            .append(" ")
-                            .append(BigDecimalProcessing.formatNonePointQuoted(e.getLast(), true))
-                            .append(" ")
-                            .append(BigDecimalProcessing.formatNonePointQuoted(e.getLowestAsk(), true))
-                            .append(" ")
-                            .append(BigDecimalProcessing.formatNonePointQuoted(e.getHighestBid(), true))
-                            .append(" ")
-                            .append(BigDecimalProcessing.formatNonePointQuoted(e.getPercentChange(), true))
-                            .append(" ")
-                            .append(BigDecimalProcessing.formatNonePointQuoted(e.getBaseVolume(), true))
-                            .append(" ")
-                            .append(BigDecimalProcessing.formatNonePointQuoted(e.getQuoteVolume(), true))
-                            .append(" ")
-                            .append(e.getIsFrozen())
-                            .append(" ")
-                            .append(BigDecimalProcessing.formatNonePointQuoted(e.getHigh24hr(), true))
-                            .append(" ")
-                            .append(BigDecimalProcessing.formatNonePointQuoted(e.getLow24hr(), true))
-                            .append("\r\n");
-                }
-            }
-        }*/
+        }
     }
 }
