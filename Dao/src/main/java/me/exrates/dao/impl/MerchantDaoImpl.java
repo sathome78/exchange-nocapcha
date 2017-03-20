@@ -330,6 +330,7 @@ public class MerchantDaoImpl implements MerchantDao {
       myInputOutputHistoryDto.setUserFullName(rs.getString("user_full_name"));
       myInputOutputHistoryDto.setRemark(rs.getString("remark"));
       myInputOutputHistoryDto.setConfirmation((Integer)rs.getObject("confirmation"));
+
       return myInputOutputHistoryDto;
     });
   }
