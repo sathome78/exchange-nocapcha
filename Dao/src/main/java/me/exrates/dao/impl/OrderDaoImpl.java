@@ -526,8 +526,11 @@ public class OrderDaoImpl implements OrderDao {
                 /**/
                 processedRows++;
             } else if (orderStatus == OrderStatus.OPENED) {
-                walletDao.walletInnerTransfer(orderDetailDto.getOrderCreatorReservedWalletId(),
+                WalletTransferStatus walletTransferStatus = walletDao.walletInnerTransfer(orderDetailDto.getOrderCreatorReservedWalletId(),
                         orderDetailDto.getOrderCreatorReservedAmount(), TransactionSourceType.ORDER, orderId);
+                if (walletTransferStatus != WalletTransferStatus.SUCCESS) {
+                    return OrderDeleteStatus.TRANSACTION_CREATE_ERROR;
+                }
                 /**/
                 sql = "UPDATE TRANSACTION " +
                         " SET status_id = :status_id" +
