@@ -553,12 +553,13 @@ public class MobileEntryController {
                 logger.info("User registered with parameters = " + user.toString());
                 final int userId = userService.getIdByEmail(user.getEmail());
                 final int parentId;
-                if (StringUtils.isNotEmpty((user.getParentEmail()))) {
-                    parentId = userService.getIdByEmail(user.getParentEmail());
-
+                String parentEmail = user.getParentEmail();
+                
+                if (StringUtils.isEmpty(parentEmail) || parentEmail.equals(user.getEmail())) {
+                    parentId = getCommonReferralRootId();
                 } else {
-                    User commonReferralRoot = userService.getCommonReferralRoot();
-                        parentId = commonReferralRoot == null ? 0 : commonReferralRoot.getId();
+                    int idByParentEmail = userService.getIdByEmail(user.getParentEmail());
+                    parentId = idByParentEmail == 0 ? getCommonReferralRootId() : idByParentEmail;
                 }
                 if (userId > 0 && parentId > 0) {
                     referralService.bindChildAndParent(userId, parentId);
@@ -576,6 +577,11 @@ public class MobileEntryController {
             throw e;
         }
 
+    }
+    
+    private int getCommonReferralRootId() {
+        User commonReferralRoot = userService.getCommonReferralRoot();
+        return commonReferralRoot == null ? 0 : commonReferralRoot.getId();
     }
 
 

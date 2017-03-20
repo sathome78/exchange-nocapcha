@@ -1,9 +1,6 @@
 package me.exrates.service;
 
-import me.exrates.model.Currency;
-import me.exrates.model.ExOrder;
-import me.exrates.model.ReferralLevel;
-import me.exrates.model.ReferralTransaction;
+import me.exrates.model.*;
 import me.exrates.model.dto.onlineTableDto.MyReferralDetailedDto;
 import me.exrates.model.vo.CacheData;
 
@@ -28,8 +25,10 @@ public interface ReferralService {
     List<ReferralLevel> findAllReferralLevels();
 
     String getParentEmail(int childId);
-
-    int updateReferralLevel(int level, int oldLevelId, BigDecimal percent);
+  
+  Integer getReferralParentId(int childId);
+  
+  int updateReferralLevel(int level, int oldLevelId, BigDecimal percent);
 
     void bindChildAndParent(int childUserId, int parentUserId);
 
@@ -46,4 +45,8 @@ public interface ReferralService {
     List<MyReferralDetailedDto> findAllMyReferral(CacheData cacheData, String email, Integer offset, Integer limit, Locale locale);
 
     List<MyReferralDetailedDto> findAllMyReferral(String email, Integer offset, Integer limit, Locale locale);
+  
+  List<Integer> getChildrenForParentAndBlock(Integer parentId);
+  
+  void updateReferralParentForChildren(User user);
 }
