@@ -329,9 +329,7 @@ public class MerchantDaoImpl implements MerchantDao {
       myInputOutputHistoryDto.setStatusUpdateDate(statusUpdateDate);
       myInputOutputHistoryDto.setUserFullName(rs.getString("user_full_name"));
       myInputOutputHistoryDto.setRemark(rs.getString("remark"));
-      myInputOutputHistoryDto.setConfirmation((Integer) rs.getObject("confirmation"));
-      log.debug(String.format("id: %s, status: %s, source: %s, optype: %s", myInputOutputHistoryDto.getId(), myInputOutputHistoryDto.getStatus(),
-          myInputOutputHistoryDto.getSourceType(), myInputOutputHistoryDto.getOperationType()));
+      myInputOutputHistoryDto.setConfirmation((Integer)rs.getObject("confirmation"));
       return myInputOutputHistoryDto;
     });
   }

@@ -357,7 +357,6 @@ public class UserDaoImpl implements UserDao {
     result.setData(selectedUsers);
     result.setFiltered(total);
     result.setTotal(total);
-    LOGGER.debug(result);
     return result;
   }
 
@@ -572,8 +571,6 @@ public class UserDaoImpl implements UserDao {
 
   @Override
   public boolean setPreferredLang(int userId, Locale locale) {
-    LOGGER.debug(locale);
-    LOGGER.debug(userId);
     String sql = "UPDATE USER SET preferred_lang=:preferred_lang WHERE id = :id";
     Map<String, String> namedParameters = new HashMap<>();
     namedParameters.put("id", String.valueOf(userId));
@@ -653,9 +650,6 @@ public class UserDaoImpl implements UserDao {
 
   @Override
   public boolean setIpStateConfirmed(int userId, String ip) {
-    LOGGER.debug("UID: " + userId);
-    LOGGER.debug("IP: " + ip);
-
     String sql = "UPDATE USER_IP " +
         " SET confirmed = true, confirm_date = NOW() " +
         " WHERE user_id = :user_id AND ip = :ip";

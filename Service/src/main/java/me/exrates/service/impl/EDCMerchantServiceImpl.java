@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -60,10 +61,15 @@ public class EDCMerchantServiceImpl implements EDCMerchantService{
     public String createAddress(CreditsOperation creditsOperation) throws Exception{
 
         try {
-            String address = getAddress();
-            edcMerchantDao.createAddress(address, creditsOperation.getUser());
-            return address;
-        }catch (Exception e){
+            Optional<String> userAddressResult = edcMerchantDao.getAddressForUser(creditsOperation.getUser().getId());
+            if (userAddressResult.isPresent()) {
+                return userAddressResult.get();
+            } else {
+                String address = getAddress();
+                edcMerchantDao.createAddress(address, creditsOperation.getUser());
+                return address;
+            }
+        } catch (Exception e){
             log.error(e);
         }
 
@@ -71,35 +77,35 @@ public class EDCMerchantServiceImpl implements EDCMerchantService{
     }
 
     private String getAddress() {
-
-        final OkHttpClient client = new OkHttpClient();
-        client.setReadTimeout(60, TimeUnit.SECONDS);
-
-        final FormEncodingBuilder formBuilder = new FormEncodingBuilder();
-        formBuilder.add("account", main_account);
-        formBuilder.add("hook", hook);
-
-        final Request request = new Request.Builder()
-                .url("https://receive.edinarcoin.com/new-account/" + token)
-                .post(formBuilder.build())
-                .build();
-        final String returnResponse;
-
-        try {
-            returnResponse =client
-                    .newCall(request)
-                    .execute()
-                    .body()
-                    .string();
-            log.info("returnResponse: " + returnResponse);
-        } catch (IOException e) {
-            throw new MerchantInternalException(e);
-        }
-
-        JsonParser parser = new JsonParser();
-        JsonObject object = parser.parse(returnResponse).getAsJsonObject();
-
-        return object.get("address").getAsString();
+            final OkHttpClient client = new OkHttpClient();
+            client.setReadTimeout(60, TimeUnit.SECONDS);
+    
+            final FormEncodingBuilder formBuilder = new FormEncodingBuilder();
+            formBuilder.add("account", main_account);
+            formBuilder.add("hook", hook);
+    
+            final Request request = new Request.Builder()
+                    .url("https://receive.edinarcoin.com/new-account/" + token)
+                    .post(formBuilder.build())
+                    .build();
+            final String returnResponse;
+    
+            try {
+                returnResponse = client
+                        .newCall(request)
+                        .execute()
+                        .body()
+                        .string();
+                log.info("returnResponse: " + returnResponse);
+            } catch (IOException e) {
+                throw new MerchantInternalException(e);
+            }
+    
+            JsonParser parser = new JsonParser();
+            JsonObject object = parser.parse(returnResponse).getAsJsonObject();
+    
+            return object.get("address").getAsString();
+        
     }
 
     private boolean checkTransactionByHistory(Map<String,String> params) {

@@ -8,6 +8,7 @@ import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.service.NotificationService;
+import me.exrates.service.ReferralService;
 import me.exrates.service.SendMailService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.*;
@@ -56,6 +57,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private TokenScheduler tokenScheduler;
+    
+    @Autowired
+    private ReferralService referralService;
 
     private final int USER_FILES_THRESHOLD = 3;
 
@@ -158,6 +162,8 @@ public class UserServiceImpl implements UserService {
         if (temporalToken.getTokenType() == TokenType.REGISTRATION) {
             User user = userDao.getUserById(temporalToken.getUserId());
             if (user.getStatus() == UserStatus.REGISTERED) {
+                LOGGER.debug(String.format("DELETING USER %s", user.getEmail()));
+                referralService.updateReferralParentForChildren(user);
                 result = userDao.delete(user);
                 if (!result) {
                     throw new UnRegisteredUserDeleteException();
@@ -166,9 +172,9 @@ public class UserServiceImpl implements UserService {
         }
         return result;
     }
-
+        
     public int getIdByEmail(String email) {
-        return userDao.getIdByEmail(email);
+        return userDao.getIdByEmail(email) ;
     }
 
     @Override

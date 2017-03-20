@@ -41,6 +41,7 @@ $(function () {
 
     $('#invoiceRevokeAction').on('click', function (e) {
         e.preventDefault();
+        $(this).prop('disabled', true);
         var $form = $(this).parents('#confirmationForm');
         var $action = $form.find('input[name=action]');
         $action.attr("value", "REVOKE");
@@ -49,6 +50,7 @@ $(function () {
 
     $('#invoiceSubmit').on('click', function (e) {
         e.preventDefault();
+        $(this).prop('disabled', true);
         var $form = $(this).parents('#confirmationForm');
         var $action = $form.find('input[name=action]');
         $action.attr("value", "CONFIRM");

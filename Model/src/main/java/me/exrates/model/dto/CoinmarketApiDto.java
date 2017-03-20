@@ -9,6 +9,7 @@ import java.math.BigDecimal;
  * Created by Valk on 10.05.2016.
  */
 public class CoinmarketApiDto {
+    private Integer currencyPairId;
     private String currency_pair_name;
     private BigDecimal first;
     private BigDecimal last;
@@ -20,7 +21,6 @@ public class CoinmarketApiDto {
     private Integer isFrozen;
     private BigDecimal high24hr;
     private BigDecimal low24hr;
-    private Integer currencyPairId;
 
     public Integer getCurrencyPairId() {
         return currencyPairId;

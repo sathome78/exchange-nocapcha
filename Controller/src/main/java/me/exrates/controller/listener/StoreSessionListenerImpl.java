@@ -20,16 +20,14 @@ public class StoreSessionListenerImpl implements StoreSessionListener {
 
     @Override
     public void sessionCreated(HttpSessionEvent se) {
-        LOGGER.debug("Created session: " + se.getSession().getId());
         sessionStorage.put(se.getSession().getId(), se.getSession());
-        LOGGER.debug("Registered sessions: " + sessionStorage.size());
+        LOGGER.debug(String.format("created session: %s, total registered: %s", se.getSession().getId(), sessionStorage.size()));
     }
 
     @Override
     public void sessionDestroyed(HttpSessionEvent se) {
-        LOGGER.debug("Destroyed session: " + se.getSession().getId());
         sessionStorage.remove(se.getSession().getId());
-        LOGGER.debug("Registered sessions: " + sessionStorage.size());
+        LOGGER.debug(String.format("destroyed session: %s, total registered: %s", se.getSession().getId(), sessionStorage.size()));
     }
 
     @Override
