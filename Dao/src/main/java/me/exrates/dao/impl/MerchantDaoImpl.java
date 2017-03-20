@@ -14,6 +14,7 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
+import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +34,7 @@ import java.util.stream.Stream;
 
 import static me.exrates.model.enums.TransactionSourceType.BTC_INVOICE;
 import static me.exrates.model.enums.TransactionSourceType.INVOICE;
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CONFIRM;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CONFIRM_USER;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.REVOKE;
 
 /**
@@ -281,36 +282,39 @@ public class MerchantDaoImpl implements MerchantDao {
       myInputOutputHistoryDto.setCommissionAmount(BigDecimalProcessing.formatLocale(rs.getBigDecimal("commission_amount"), locale, 2));
       myInputOutputHistoryDto.setMerchantName(rs.getString("merchant"));
       myInputOutputHistoryDto.setOperationType(rs.getString("operation_type"));
-      myInputOutputHistoryDto.setTransactionId(rs.getInt("id"));
+      myInputOutputHistoryDto.setId(rs.getInt("id"));
+      myInputOutputHistoryDto.setProvided(rs.getInt("provided"));
       myInputOutputHistoryDto.setTransactionProvided(rs.getInt("provided") == 0 ?
           messageSource.getMessage("inputoutput.statusFalse", null, locale) :
           messageSource.getMessage("inputoutput.statusTrue", null, locale));
       myInputOutputHistoryDto.setUserId(rs.getInt("user_id"));
       myInputOutputHistoryDto.setBankAccount(rs.getString("bank_account"));
+      TransactionSourceType sourceType = TransactionSourceType.convert(rs.getString("source_type"));
+      myInputOutputHistoryDto.setSourceType(sourceType);
       Stream.of(rs.getObject("invoice_request_status_id"),
           rs.getObject("pending_payment_status_id"),
-          rs.getObject("withdraw_request_status_id")).filter(Objects::nonNull).peek(log::debug).findFirst()
-          .ifPresent(obj -> myInputOutputHistoryDto.setInvoiceRequestStatusId((Integer) obj));
-
-      TransactionSourceType transactionSourceType = TransactionSourceType.convert(rs.getString("source_type"));
-      myInputOutputHistoryDto.setSourceType(transactionSourceType.name());
+          rs.getObject("withdraw_request_status_id"))
+          .filter(Objects::nonNull)
+          .findFirst()
+          .ifPresent(obj -> myInputOutputHistoryDto.setStatus((Integer) obj));
+      InvoiceStatus status = myInputOutputHistoryDto.getStatus();
       /**/
       Boolean confirmationRequired = false;
-      if (myInputOutputHistoryDto.getInvoiceRequestStatusId() != null) {
-        if (transactionSourceType == INVOICE) {
-          confirmationRequired = InvoiceRequestStatusEnum.convert(myInputOutputHistoryDto.getInvoiceRequestStatusId()).availableForAction(CONFIRM);
-        } else if (transactionSourceType == BTC_INVOICE) {
-          confirmationRequired = PendingPaymentStatusEnum.convert(myInputOutputHistoryDto.getInvoiceRequestStatusId()).availableForAction(CONFIRM);
+      if (status != null) {
+        if (sourceType == INVOICE) {
+          confirmationRequired = ((InvoiceRequestStatusEnum) status).availableForAction(CONFIRM_USER);
+        } else if (sourceType == BTC_INVOICE) {
+          confirmationRequired = ((PendingPaymentStatusEnum) status).availableForAction(CONFIRM_USER);
         }
       }
       myInputOutputHistoryDto.setConfirmationRequired(confirmationRequired);
       /**/
       Boolean mayBeRevoked = false;
-      if (myInputOutputHistoryDto.getInvoiceRequestStatusId() != null) {
-        if (transactionSourceType == INVOICE) {
-          mayBeRevoked = InvoiceRequestStatusEnum.convert(myInputOutputHistoryDto.getInvoiceRequestStatusId()).availableForAction(REVOKE);
-        } else if (transactionSourceType == BTC_INVOICE) {
-          mayBeRevoked = PendingPaymentStatusEnum.convert(myInputOutputHistoryDto.getInvoiceRequestStatusId()).availableForAction(REVOKE);
+      if (status != null) {
+        if (sourceType == INVOICE) {
+          mayBeRevoked = ((InvoiceRequestStatusEnum) status).availableForAction(REVOKE);
+        } else if (sourceType == BTC_INVOICE) {
+          mayBeRevoked = ((PendingPaymentStatusEnum) status).availableForAction(REVOKE);
         }
       }
       myInputOutputHistoryDto.setMayBeRevoked(mayBeRevoked);
@@ -326,7 +330,7 @@ public class MerchantDaoImpl implements MerchantDao {
       myInputOutputHistoryDto.setUserFullName(rs.getString("user_full_name"));
       myInputOutputHistoryDto.setRemark(rs.getString("remark"));
       myInputOutputHistoryDto.setConfirmation((Integer) rs.getObject("confirmation"));
-      log.debug(String.format("id: %s, status: %s, source: %s, optype: %s", myInputOutputHistoryDto.getTransactionId(), myInputOutputHistoryDto.getInvoiceRequestStatusId(),
+      log.debug(String.format("id: %s, status: %s, source: %s, optype: %s", myInputOutputHistoryDto.getId(), myInputOutputHistoryDto.getStatus(),
           myInputOutputHistoryDto.getSourceType(), myInputOutputHistoryDto.getOperationType()));
       return myInputOutputHistoryDto;
     });

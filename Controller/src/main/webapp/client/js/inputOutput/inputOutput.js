@@ -155,5 +155,45 @@ function InputOutputClass(currentCurrencyPair) {
                 }
             });
         });
+
+        $('#inputoutput-table').on('click', 'button[data-source=WITHDRAW].revoke_button', function (e) {
+            e.preventDefault();
+            var id = $(this).data("id");
+            var $modal = $("#btc-invoice-revoke-modal");
+            $modal.find("#btcInvoiceRevokeConfirm").off("click").one("click", function () {
+                $modal.modal('hide');
+                $.ajax({
+                    url: '/withdrawal/request/revoke?id=' + id,
+                    headers: {
+                        'X-CSRF-Token': $("input[name='_csrf']").val(),
+                    },
+                    type: 'POST',
+                    success: function () {
+                        that.updateAndShowAll(false);
+                    }
+                });
+            });
+            $modal.modal();
+        });
+
     })(currentCurrencyPair);
+}
+
+function getButtonsSet(id, sourceType, data, tableIdFor, authorisedUserIsHolder) {
+    var buttonsSet = '';
+    data.forEach(function(e){
+        if (
+            (e.tableIdListOnly.indexOf(tableIdFor) > -1) &&
+            (!e.availableForHolderOnly || authorisedUserIsHolder )
+        ) {
+            buttonsSet = buttonsSet +
+                '<button data-id = '+id +
+                '        data-source = ' + sourceType +
+                '        style="font-size: 1.1rem;" ' +
+                '        class="action-button table-button-block__button btn ' + e.buttonId + '">' +
+                e.buttonTitle +
+                '</button>&nbsp;';
+        }
+    });
+    return buttonsSet;
 }

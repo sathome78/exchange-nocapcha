@@ -169,4 +169,15 @@ public class CommonMerchantsController {
         return new ResponseEntity<>(result, OK);
     }
 
+    @RequestMapping(value = "/withdrawal/request/revoke", method = POST)
+    @ResponseBody
+    public ResponseEntity<Map<String,Object>> revokeWithdrawRequest(final @RequestParam Integer id,
+                                                                     final Locale locale, Principal principal) {
+        final Map<String, Object> result = withdrawService.declineWithdrawalRequest(request, locale, principal.getName());
+        if (result.containsKey("error")) {
+            return new ResponseEntity<>(result, BAD_REQUEST);
+        }
+        return new ResponseEntity<>(result, OK);
+    }
+
 }

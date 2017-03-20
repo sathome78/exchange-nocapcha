@@ -84,6 +84,10 @@ public enum PendingPaymentStatusEnum implements InvoiceStatus {
         .collect(Collectors.toList());
   }
 
+  public Set<InvoiceActionTypeEnum> getAvailableActionList() {
+    return schemaMap.keySet();
+  }
+
   /**/
 
   public static PendingPaymentStatusEnum convert(int id) {

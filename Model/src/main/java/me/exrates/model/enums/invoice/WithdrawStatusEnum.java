@@ -43,14 +43,14 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
       schemaMap.put(InvoiceActionTypeEnum.DECLINE, DECLINED_ADMIN);
-      schemaMap.put(InvoiceActionTypeEnum.CONFIRM, WAITING_CONFIRMED_POSTING);
+      schemaMap.put(InvoiceActionTypeEnum.CONFIRM_ADMIN, WAITING_CONFIRMED_POSTING);
       schemaMap.put(InvoiceActionTypeEnum.REVOKE, REVOKED_USER);
     }
   },
   IN_WORK_OF_ADMIN(5) {
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
-      schemaMap.put(InvoiceActionTypeEnum.DECLINE, DECLINED_ADMIN);
-      schemaMap.put(InvoiceActionTypeEnum.POST, POSTED_MANUAL);
+      schemaMap.put(InvoiceActionTypeEnum.DECLINE_HOLDED, DECLINED_ADMIN);
+      schemaMap.put(InvoiceActionTypeEnum.POST_HOLDED, POSTED_MANUAL);
       schemaMap.put(InvoiceActionTypeEnum.RETURN_FROM_WORK, WAITING_MANUAL_POSTING);
     }
   },
@@ -113,6 +113,10 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
     return Arrays.stream(WithdrawStatusEnum.class.getEnumConstants())
         .filter(e -> action.stream().filter(e::availableForAction).findFirst().isPresent())
         .collect(Collectors.toList());
+  }
+
+  public Set<InvoiceActionTypeEnum> getAvailableActionList() {
+    return schemaMap.keySet();
   }
 
   /**/

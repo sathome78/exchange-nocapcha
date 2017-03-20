@@ -13,6 +13,10 @@ import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.enums.WithdrawalRequestStatus;
+import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
+import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.*;
@@ -34,6 +38,7 @@ import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonMap;
 import static me.exrates.model.enums.WithdrawalRequestStatus.*;
+import static me.exrates.model.enums.invoice.PendingPaymentStatusEnum.ON_BCH_EXAM;
 
 public class OrigWithdrawServiceImpl extends BaseWithdrawServiceImpl {
 
@@ -205,11 +210,17 @@ public class OrigWithdrawServiceImpl extends BaseWithdrawServiceImpl {
         .stream()
         .map(OperationType::getType)
         .collect(Collectors.toList());
-    List<MyInputOutputHistoryDto> result = merchantDao.findMyInputOutputHistoryByOperationType(email, offset, limit, operationTypeList, locale);
+    List<MyInputOutputHistoryDto> result = withdrawRequestDao.findMyInputOutputHistoryByOperationType(email, offset, limit, operationTypeList, locale);
     if (Cache.checkCache(cacheData, result)) {
       result = new ArrayList<MyInputOutputHistoryDto>() {{
         add(new MyInputOutputHistoryDto(false));
       }};
+    } else {
+      result.forEach(e ->
+      {
+        e.setSummaryStatus(generateAndGetSummaryStatus(e, locale));
+        e.setButtons(generateAndGetButtonsSet(e, locale));
+      });
     }
     return result;
   }

@@ -6,8 +6,10 @@ import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.dto.WithdrawRequestFlatForReportDto;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
+import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 /**
@@ -38,4 +40,11 @@ public interface WithdrawRequestDao {
     Integer findStatusIdByRequestId(Integer withdrawRequestId);
 
     int create(WithdrawRequestCreateDto withdrawRequest);
+
+  List<MyInputOutputHistoryDto> findMyInputOutputHistoryByOperationType(
+      String email,
+      Integer offset,
+      Integer limit,
+      List<Integer> operationTypeIdList,
+      Locale locale);
 }

@@ -6,14 +6,12 @@ import me.exrates.dao.WithdrawRequestDao;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.WithdrawRequest;
 import me.exrates.model.dto.MerchantCurrencyAutoParamDto;
-import me.exrates.model.dto.MerchantCurrencyOptionsDto;
 import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.dto.WithdrawRequestFlatForReportDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
-import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.WalletTransferStatus;
@@ -31,7 +29,6 @@ import me.exrates.service.util.Cache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.mail.MailException;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -102,6 +99,7 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
     request.setAmount(creditsOperation.getFullAmount());
     request.setUserId(creditsOperation.getWallet().getUser().getId());
     request.setCommission(creditsOperation.getCommissionAmount());
+    request.setCommissionId(creditsOperation.getCommission().getId());
     if (creditsOperation.getDestination().isPresent() && !creditsOperation.getDestination().get().isEmpty()) {
       request.setDestinationWallet(creditsOperation.getDestination().get());
     } else {
@@ -210,11 +208,18 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
         .stream()
         .map(OperationType::getType)
         .collect(Collectors.toList());
-    List<MyInputOutputHistoryDto> result = merchantDao.findMyInputOutputHistoryByOperationType(email, offset, limit, operationTypeList, locale);
+    List<MyInputOutputHistoryDto> result = withdrawRequestDao.findMyInputOutputHistoryByOperationType(email, offset, limit, operationTypeList, locale);
     if (Cache.checkCache(cacheData, result)) {
       result = new ArrayList<MyInputOutputHistoryDto>() {{
         add(new MyInputOutputHistoryDto(false));
       }};
+    } else {
+      result.forEach(e ->
+      {
+        e.setSummaryStatus(generateAndGetSummaryStatus(e, locale));
+        e.setButtons(generateAndGetButtonsSet(e, locale));
+        e.setAuthorisedUserId(e.getUserId());
+      });
     }
     return result;
   }

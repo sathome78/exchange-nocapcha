@@ -52,6 +52,8 @@
     <script type="text/javascript" src="<c:url value='/client/js/loc-direction.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/moment-with-locales.min.js'/>"></script>
     <script src='//cdn.tinymce.com/4/tinymce.min.js'></script>
+    <%----%>
+    <link href="<c:url value='/client/css/action-buttons.css'/>" rel="stylesheet">
 
     <%--TOOLS ... --%>
     <!-- Google Analytics-->

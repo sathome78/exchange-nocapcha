@@ -388,7 +388,7 @@ public class MerchantServiceImpl implements MerchantService {
         .stream()
         .map(e -> e.getType())
         .collect(Collectors.toList());
-    return merchantDao.findMyInputOutputHistoryByOperationType(email, offset, limit, operationTypeList, locale);
+    return withdrawRequestDao.findMyInputOutputHistoryByOperationType(email, offset, limit, operationTypeList, locale);
   }
 
   @Override

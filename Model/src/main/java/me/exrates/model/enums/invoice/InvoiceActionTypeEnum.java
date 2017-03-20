@@ -15,17 +15,20 @@ import static me.exrates.model.enums.invoice.InvoiceActionTypeButtonEnum.*;
  */
 @NoArgsConstructor
 public enum InvoiceActionTypeEnum {
-  CONFIRM(CONFIRM_BUTTON),
+  CONFIRM_USER(CONFIRM_USER_BUTTON),
+  CONFIRM_ADMIN(CONFIRM_ADMIN_BUTTON),
   REVOKE(REVOKE_BUTTON),
   EXPIRE,
   BCH_EXAMINE,
   ACCEPT_MANUAL(ACCEPT_BUTTON),
   ACCEPT_AUTO,
   DECLINE(DECLINE_BUTTON),
+  DECLINE_HOLDED(DECLINE_HOLDED_BUTTON),
   PUT_FOR_MANUAL,
   PUT_FOR_AUTO,
   PUT_FOR_CONFIRM,
   POST(POST_BUTTON),
+  POST_HOLDED(POST_HOLDED_BUTTON),
   TAKE_TO_WORK(TAKE_TO_WORK_BUTTON),
   RETURN_FROM_WORK(RETURN_FROM_WORK_BUTTON);
 
@@ -36,7 +39,7 @@ public enum InvoiceActionTypeEnum {
   }
 
   public InvoiceActionTypeButtonEnum getActionTypeButton() {
-    if (actionTypeButton == null){
+    if (actionTypeButton == null) {
       throw new NoButtonPropertyForActionTypeException(this.name());
     }
     return actionTypeButton;

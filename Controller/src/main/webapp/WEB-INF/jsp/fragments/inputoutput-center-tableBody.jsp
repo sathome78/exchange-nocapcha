@@ -20,68 +20,10 @@
         <td class="right"><@=commissionAmount@></td>
         <td class="center"><@=merchantName@></td>
         <td class="right"><@=operationType@></td>
-        <td class="center"><@=transactionId@></td>
+        <td class="center"><@=id@></td>
         <td class="center"><@=summaryStatus@></td>
         <td class="center table-button-block" style="text-align: right;">
-            <form id = "inputoutput-center-tableBody__form" class="table-button-block__form" action="<c:url value="/merchants/invoice/payment/confirmation"/>">
-                <input type="text" hidden value=<@=transactionId@>  name="transactionId" >
-                <input type="text" hidden value="" name="action" >
-                <input type="text" hidden value="" name="sourceType" >
-            <@=(function() {
-                const CREATED_USER = 1;
-                const DECLINED_ADMIN = 5;
-                var buttonsSet = '';
-                if (confirmationRequired) {
-                  if (invoiceRequestStatusId == CREATED_USER){
-                    buttonsSet = buttonsSet +
-                      '<button type="submit" style="font-size: 1.1rem;" class="wallet-mystatement-button table-button-block__button btn btn-primary">
-                          <loc:message code="merchants.invoice.confirm" />
-                      </button>&nbsp;';
-                  } else if (invoiceRequestStatusId == DECLINED_ADMIN){
-                    buttonsSet = buttonsSet +
-                      '<button type="submit" style="font-size: 1.1rem;" class="wallet-mystatement-button table-button-block__button btn btn-primary">
-                          <loc:message code="merchants.invoice.confirm" />
-                      </button>&nbsp;';
-                  } else {
-                    console.log("illegal invoiceRequestStatusId: "+invoiceRequestStatusId);
-                    buttonsSet = buttonsSet +'<span>ERROR</span>';
-                  }
-                }
-                if (mayBeRevoked) {
-                  <%--onclick: InputOutputClass.init--%>
-                  if (sourceType === 'INVOICE') {
-                    buttonsSet = buttonsSet +
-                      '<button id="revokeInvoiceButton" type="button" style="font-size: 1.1rem;" class="wallet-mystatement-button table-button-block__button btn btn-danger">
-                        <loc:message code="merchants.invoice.revoke" />
-                      </button>&nbsp;';
-                  } else if (sourceType === 'BTC_INVOICE') {
-                    buttonsSet = buttonsSet +
-                      '<button id="revokeBtcInvoiceButton"
-                               type="button" style="font-size: 1.1rem;"
-                               class="wallet-mystatement-button table-button-block__button btn btn-danger">
-                        <loc:message code="merchants.invoice.revoke" />
-                      </button>&nbsp;';
-                  }
-                }
-                if ((sourceType === 'INVOICE') && operationType === 'Input') {
-                  buttonsSet = buttonsSet +
-                    '<button type="submit" style="font-size: 1.1rem;" class="wallet-mystatement-button table-button-block__button btn btn-info">
-                      <loc:message code="merchants.invoice.viewConfirm" />
-                     </button>&nbsp;';
-                }
-                if ((sourceType === 'BTC_INVOICE') && operationType === 'Input') {
-                  buttonsSet = buttonsSet +
-                    '<button id="viewBtcInvoiceButton"
-                             type="button" style="font-size: 1.1rem;"
-                             class="wallet-mystatement-button table-button-block__button btn btn-info">
-                      <loc:message code="merchants.invoice.viewConfirm" />
-                    </button>&nbsp;';
-              }
-                return buttonsSet;
-            })()
-
-            @>
-            </form></td>
+            <@=getButtonsSet(id, sourceType, buttons, "inputoutput-table", false)@>
     </tr>
 </script>
 </tbody>

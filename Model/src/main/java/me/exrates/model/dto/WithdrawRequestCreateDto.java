@@ -19,6 +19,7 @@ public class WithdrawRequestCreateDto {
     private Integer currencyId;
     private BigDecimal amount;
     private BigDecimal commission;
+    private Integer commissionId;
     private String destinationWallet;
     private Integer merchantId;
     private MerchantImage merchantImage;

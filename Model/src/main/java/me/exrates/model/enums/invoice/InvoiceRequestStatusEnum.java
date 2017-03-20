@@ -17,7 +17,7 @@ public enum InvoiceRequestStatusEnum implements InvoiceStatus {
   CREATED_USER(1) {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
-      schemaMap.put(InvoiceActionTypeEnum.CONFIRM, CONFIRMED_USER);
+      schemaMap.put(InvoiceActionTypeEnum.CONFIRM_USER, CONFIRMED_USER);
       schemaMap.put(InvoiceActionTypeEnum.REVOKE, REVOKED_USER);
       schemaMap.put(InvoiceActionTypeEnum.EXPIRE, EXPIRED);
     }
@@ -42,7 +42,7 @@ public enum InvoiceRequestStatusEnum implements InvoiceStatus {
   DECLINED_ADMIN(5) {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
-      schemaMap.put(InvoiceActionTypeEnum.CONFIRM, CONFIRMED_USER);
+      schemaMap.put(InvoiceActionTypeEnum.CONFIRM_USER, CONFIRMED_USER);
       schemaMap.put(InvoiceActionTypeEnum.REVOKE, REVOKED_USER);
       schemaMap.put(InvoiceActionTypeEnum.EXPIRE, EXPIRED);
     }
@@ -77,6 +77,10 @@ public enum InvoiceRequestStatusEnum implements InvoiceStatus {
     return Arrays.stream(InvoiceRequestStatusEnum.class.getEnumConstants())
         .filter(e -> e.availableForAction(action))
         .collect(Collectors.toList());
+  }
+
+  public Set<InvoiceActionTypeEnum> getAvailableActionList() {
+    return schemaMap.keySet();
   }
 
   public static List<InvoiceStatus> getAvailableForActionStatusesList(List<InvoiceActionTypeEnum> action) {

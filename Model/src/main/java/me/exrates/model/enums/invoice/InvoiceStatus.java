@@ -30,8 +30,12 @@ public interface InvoiceStatus {
 
   Boolean availableForAction(InvoiceActionTypeEnum action);
 
+  Set<InvoiceActionTypeEnum> getAvailableActionList();
+
   void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap);
 
   Integer getCode();
+
+  String name();
 
 }
