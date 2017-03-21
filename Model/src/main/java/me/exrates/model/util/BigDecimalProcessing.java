@@ -310,6 +310,12 @@ public class BigDecimalProcessing {
       throw new BigDecimalParseException(e);
     }
   }
+  
+  public static BigDecimal doAction(String value1, String value2, ActionType actionType) {
+    BigDecimal decimalValue1 = value1 == null ? null : new BigDecimal(value1);
+    BigDecimal decimalValue2 = value2 == null ? null : new BigDecimal(value2);
+    return doAction(decimalValue1, decimalValue2, actionType);
+  }
 
 
 }
