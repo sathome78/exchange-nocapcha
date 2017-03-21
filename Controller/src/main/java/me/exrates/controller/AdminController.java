@@ -644,7 +644,7 @@ public class AdminController {
     List<UserCurrencyOperationPermissionDto> permittedCurrencies = currencyService.getCurrencyOperationPermittedForWithdraw(principal.getName())
         .stream().filter(dto -> dto.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE).collect(Collectors.toList());
     params.put("currencies", permittedCurrencies);
-    List<Merchant> merchants = merchantService.findAllByCurrencies(permittedCurrencies.stream()
+    List<Merchant> merchants = merchantService.findAllByCurrencies(permittedCurrencies.stream()/*todo fix NPE when permittedCurrencies.size() == 0*/
         .map(UserCurrencyOperationPermissionDto::getCurrencyId).collect(Collectors.toList()), OperationType.OUTPUT).stream()
         .map(item -> new Merchant(item.getMerchantId(), item.getName(), item.getDescription(), null))
         .distinct().collect(Collectors.toList());
@@ -654,7 +654,7 @@ public class AdminController {
 
   @RequestMapping(value = "/2a8fy7b07dxe44/withdrawRequests", method = GET)
   @ResponseBody
-  public DataTable<List<WithdrawRequest>> findRequestByStatus(@RequestParam("status") Integer requestStatus, WithdrawFilterData withdrawFilterData,
+  public DataTable<List<WithdrawRequest>> findRequestByStatus(@RequestParam(value = "status", required = false) Integer requestStatus, WithdrawFilterData withdrawFilterData,
                                                               @RequestParam Map<String, String> params, Principal principal) {
     DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
     withdrawFilterData.initFilterItems();

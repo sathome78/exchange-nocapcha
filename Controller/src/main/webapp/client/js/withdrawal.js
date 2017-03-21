@@ -52,6 +52,9 @@ $(function () {
     $('#withdraw-requests-declined').click(function () {
         changeStatus(this, 3)
     });
+    $('#withdraw-requests-All').click(function () {
+        changeStatus(this, '')
+    });
 
     function changeStatus($elem, newStatus) {
         requestStatus = newStatus;
@@ -214,7 +217,7 @@ function updateWithdrawalTable() {
             "serverSide": true,
             "paging": true,
             "info": true,
-            "bFilter": false,
+            "bFilter": true,
             "columns":[
                 {
                     "data": "transaction.id",
