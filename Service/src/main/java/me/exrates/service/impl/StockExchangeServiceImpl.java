@@ -38,7 +38,6 @@ public class StockExchangeServiceImpl implements StockExchangeService {
         LOGGER.debug("Start retrieving stock exchange statistics at: " + LocalDateTime.now());
         Map<String, StockExchange> stockExchanges = stockExchangeDao.findAll().stream()
                 .collect(Collectors.toMap(StockExchange::getName, stockExchange -> stockExchange));
-        LOGGER.debug(stockExchanges);
         List<StockExchangeStats> stockExchangeStatsList = new ArrayList<>();
 
         stockExrateRetrievalServices.forEach(service -> {

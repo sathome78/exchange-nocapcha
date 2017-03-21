@@ -39,7 +39,6 @@ public class YoBitRetrievalService implements StockExrateRetrievalService {
 
         String currencyPairsListString = currencyPairs.keySet().stream()
                 .collect(Collectors.joining("-"));
-        LOGGER.debug(currencyPairsListString);
         String url = "https://yobit.net/api/3/ticker/" + currencyPairsListString;
         Map<String, String> params = Collections.singletonMap("ignore_invalid", "1");
         String jsonResponse = OkHttpUtils.sendGetRequest(url, params);

@@ -5,8 +5,10 @@ package me.exrates.model.enums;
  */
 import static me.exrates.model.enums.TransactionSourceType.*;
 public enum TransactionType {
-    INPUT(MERCHANT, OperationType.INPUT),
-    OUTPUT(MERCHANT, OperationType.OUTPUT),
+    INPUT_MERCHANT(MERCHANT, OperationType.INPUT),
+    INPUT_INVOICE(INVOICE, OperationType.INPUT),
+    INPUT_BTC(BTC_INVOICE, OperationType.INPUT),
+    OUTPUT(WITHDRAW, OperationType.OUTPUT),
     ORDER_IN(ORDER, OperationType.INPUT),
     ORDER_OUT(ORDER, OperationType.OUTPUT),
     WALLET_INNER_TRANSFER(null, OperationType.WALLET_INNER_TRANSFER),
@@ -40,8 +42,10 @@ public enum TransactionType {
     }
 
     public static TransactionType resolveFromOperationTypeAndSource(TransactionSourceType sourceType, OperationType operationType) {
-        if (sourceType == MERCHANT && operationType == OperationType.INPUT) return INPUT;
-        if (sourceType == MERCHANT && operationType == OperationType.OUTPUT) return OUTPUT;
+        if (sourceType == MERCHANT && operationType == OperationType.INPUT) return INPUT_MERCHANT;
+        if (sourceType == INVOICE && operationType == OperationType.INPUT) return INPUT_INVOICE;
+        if (sourceType == BTC_INVOICE && operationType == OperationType.INPUT) return INPUT_BTC;
+        if (sourceType == WITHDRAW && operationType == OperationType.OUTPUT) return OUTPUT;
         if (sourceType == ORDER && operationType == OperationType.INPUT) return ORDER_IN;
         if (sourceType == ORDER && operationType == OperationType.OUTPUT) return ORDER_OUT;
         if (sourceType == USER_TRANSFER && operationType == OperationType.INPUT) return USER_TRANSFER_IN;
