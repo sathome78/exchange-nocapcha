@@ -187,6 +187,7 @@
                 <tr>
                     <th><loc:message code="transaction.id"/></th>
                     <th><loc:message code="withdrawal.requestDatetime"/></th>
+                    <%--<th><loc:message code="withdrawal.status"/></th>--%>
                     <th><loc:message code="withdrawal.user"/></th>
                     <th><loc:message code="withdrawal.amount"/></th>
                     <th><loc:message code="withdrawal.currency"/></th>

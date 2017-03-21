@@ -7,6 +7,8 @@ import me.exrates.model.PagingData;
 import me.exrates.model.Transaction;
 import me.exrates.model.WithdrawRequest;
 import me.exrates.model.dto.WithdrawRequestCreateDto;
+import me.exrates.model.dto.WithdrawRequestFlatAdditionalDataDto;
+import me.exrates.model.dto.WithdrawRequestFlatDto;
 import me.exrates.model.dto.WithdrawRequestFlatForReportDto;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
@@ -31,7 +33,6 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -161,14 +162,17 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
 
     @Override
     public Optional<WithdrawRequest> findByIdAndBlock(int id) {
-        String sql = "SELECT COUNT(*) " +
-                "FROM WITHDRAW_REQUEST " +
-                "JOIN TRANSACTION ON WITHDRAW_REQUEST.transaction_id = TRANSACTION.id " +
-                "WHERE WITHDRAW_REQUEST.transaction_id = :id " +
-                "FOR UPDATE ";
-        jdbcTemplate.queryForObject(sql, singletonMap("id", id), Integer.class);
+        blockById(id);
         return findById(id);
     }
+
+  private Optional<Integer> blockById(int id) {
+    String sql = "SELECT COUNT(*) " +
+        "FROM WITHDRAW_REQUEST " +
+        "WHERE WITHDRAW_REQUEST.id = :id " +
+        "FOR UPDATE ";
+    return of(jdbcTemplate.queryForObject(sql, singletonMap("id", id), Integer.class));
+  }
 
     @Override
     public Optional<WithdrawRequest> findById(int id) {
@@ -316,7 +320,9 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     String sql = " SELECT " +
         "    TRANSACTION.datetime, CURRENCY.name as currency, TRANSACTION.amount, TRANSACTION.commission_amount, " +
         "    TRANSACTION.source_type, TRANSACTION.confirmation, " +
-        "    MERCHANT.name AS merchant, " +
+        "    case when OPERATION_TYPE.name = 'input' or WITHDRAW_REQUEST.merchant_image_id is null  \n" +
+        "              then MERCHANT.name  \n" +
+        "              else MERCHANT_IMAGE.image_name end as merchant,  " +
         "    OPERATION_TYPE.name as operation_type, TRANSACTION.id AS id, TRANSACTION.provided, " +
         "    INVOICE_BANK.account_number AS bank_account, " +
         "    USER.id AS user_id," +
@@ -340,7 +346,6 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
         "    left join USER on WALLET.user_id=USER.id" +
         "  WHERE " +
         "    TRANSACTION.operation_type_id IN (:operation_type_id_list) and " +
-//        "    TRANSACTION.source_type <> 'WITHDRAW' and " +
         "    USER.email=:email " +
         "  UNION " +
         "  (SELECT "+
@@ -430,6 +435,151 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
           myInputOutputHistoryDto.getSourceType(), myInputOutputHistoryDto.getOperationType()));
       return myInputOutputHistoryDto;
     });
+  }
+
+  @Override
+  public void setStatusById(Integer id, InvoiceStatus newStatus) {
+    final String sql = "UPDATE WITHDRAW_REQUEST " +
+        "  SET status_id = :new_status_id, " +
+        "      status_modification_date = NOW() " +
+        "  WHERE id = :id";
+    Map<String, Object> params = new HashMap<>();
+    params.put("id", id);
+    params.put("new_status_id", newStatus.getCode());
+    jdbcTemplate.update(sql, params);
+  }
+
+  @Override
+  public Optional<WithdrawRequestFlatDto> getFlatByIdAndBlock(int id) {
+    blockById(id);
+    return getFlatById(id);
+  }
+
+  @Override
+  public Optional<WithdrawRequestFlatDto> getFlatById(int id) {
+    String sql = "SELECT * " +
+        " FROM WITHDRAW_REQUEST " +
+        " WHERE id = :id";
+      return of(jdbcTemplate.queryForObject(sql, singletonMap("id", id), (rs, idx) -> {
+            WithdrawRequestFlatDto withdrawRequestFlatDto = new WithdrawRequestFlatDto();
+            withdrawRequestFlatDto.setId(rs.getInt("id"));
+            withdrawRequestFlatDto.setWallet(rs.getString("wallet"));
+            withdrawRequestFlatDto.setUserId(rs.getInt("user_id"));
+            withdrawRequestFlatDto.setMerchantImageId(rs.getInt("merchant_image_id"));
+            withdrawRequestFlatDto.setRecipientBankName(rs.getString("recipient_bank_name"));
+            withdrawRequestFlatDto.setRecipientBankCode(rs.getString("recipient_bank_code"));
+            withdrawRequestFlatDto.setUserFullName(rs.getString("user_full_name"));
+            withdrawRequestFlatDto.setRemark(rs.getString("remark"));
+            withdrawRequestFlatDto.setAmount(rs.getBigDecimal("amount"));
+            withdrawRequestFlatDto.setCurrencyId(rs.getInt("commission_id"));
+            withdrawRequestFlatDto.setStatus(WithdrawStatusEnum.convert(rs.getInt("status_id")));
+            withdrawRequestFlatDto.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
+            withdrawRequestFlatDto.setStatusModificationDate(rs.getTimestamp("status_modification_date").toLocalDateTime());
+            withdrawRequestFlatDto.setCurrencyId(rs.getInt("currency_id"));
+            withdrawRequestFlatDto.setMerchantId(rs.getInt("merchant_id"));
+            withdrawRequestFlatDto.setAdminHolderId(rs.getInt("admin_holder_id"));
+            return withdrawRequestFlatDto;
+          })
+      );
+  }
+
+  @Override
+  public PagingData<List<WithdrawRequestFlatDto>> getFlatByStatus(
+      List<Integer> statusIdList,
+      Integer requesterUserId,
+      DataTableParams dataTableParams,
+      WithdrawFilterData withdrawFilterData) {
+    String sqlBase =
+        " FROM WITHDRAW_REQUEST " +
+        " JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
+        "				(IOP.currency_id=WITHDRAW_REQUEST.currency_id) " +
+        "				AND (IOP.user_id=:requester_user_id) " +
+        "				AND (IOP.operation_direction=:operation_direction) " +
+        " WHERE status_id IN (:status_id_list) ";
+    String filter = withdrawFilterData.getSQLFilterClause();
+    String whereClauseFilter = StringUtils.isEmpty(filter) ? "" :  " AND ".concat(filter);
+    String orderClause = dataTableParams.getOrderByClause();
+    String offsetAndLimit = " LIMIT :limit OFFSET :offset ";
+    String sqlMain = new StringJoiner(" ")
+        .add("SELECT * ")
+        .add(sqlBase)
+        .add(whereClauseFilter)
+        .add(orderClause)
+        .add(offsetAndLimit)
+        .toString();
+
+    String sqlCount = new StringJoiner(" ")
+        .add("SELECT COUNT(*) ")
+        .add(sqlBase)
+        .add(whereClauseFilter)
+        .toString();
+
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("status_id_list", statusIdList);
+      put("requester_user_id", requesterUserId);
+      put("operation_direction", "WITHDRAW");
+      put("offset", dataTableParams.getStart());
+      put("limit", dataTableParams.getLength());
+    }};
+     params.putAll(withdrawFilterData.getNamedParams());
+
+    List<WithdrawRequestFlatDto> requests = jdbcTemplate.query(sqlMain, params, (rs, i) -> {
+      WithdrawRequestFlatDto withdrawRequestFlatDto = new WithdrawRequestFlatDto();
+      withdrawRequestFlatDto.setId(rs.getInt("id"));
+      withdrawRequestFlatDto.setWallet(rs.getString("wallet"));
+      withdrawRequestFlatDto.setUserId(rs.getInt("user_id"));
+      withdrawRequestFlatDto.setMerchantImageId(rs.getInt("merchant_image_id"));
+      withdrawRequestFlatDto.setRecipientBankName(rs.getString("recipient_bank_name"));
+      withdrawRequestFlatDto.setRecipientBankCode(rs.getString("recipient_bank_code"));
+      withdrawRequestFlatDto.setUserFullName(rs.getString("user_full_name"));
+      withdrawRequestFlatDto.setRemark(rs.getString("remark"));
+      withdrawRequestFlatDto.setAmount(rs.getBigDecimal("amount"));
+      withdrawRequestFlatDto.setCurrencyId(rs.getInt("commission_id"));
+      withdrawRequestFlatDto.setStatus(WithdrawStatusEnum.convert(rs.getInt("status_id")));
+      withdrawRequestFlatDto.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
+      withdrawRequestFlatDto.setStatusModificationDate(rs.getTimestamp("status_modification_date").toLocalDateTime());
+      withdrawRequestFlatDto.setCurrencyId(rs.getInt("currency_id"));
+      withdrawRequestFlatDto.setMerchantId(rs.getInt("merchant_id"));
+      withdrawRequestFlatDto.setAdminHolderId(rs.getInt("admin_holder_id"));
+      return withdrawRequestFlatDto;
+    });
+    Integer totalQuantity = jdbcTemplate.queryForObject(sqlCount, params, Integer.class);
+    PagingData<List<WithdrawRequestFlatDto>> result = new PagingData<>();
+    result.setData(requests);
+    result.setFiltered(totalQuantity);
+    result.setTotal(totalQuantity);
+    return result;
+  }
+
+  @Override
+  public WithdrawRequestFlatAdditionalDataDto getAdditionalDataForId(int id) {
+    String sql = "SELECT " +
+        "   CUR.name AS currency_name, " +
+        "   USER.email AS user_email, " +
+        "   ADMIN.email AS admin_email, " +
+        "   M.name AS merchant_name, " +
+        "   MI.id AS merchant_image_id, " +
+        "   MI.image_name AS merchant_image_name " +
+        " FROM WITHDRAW_REQUEST WR " +
+        " JOIN CURRENCY CUR ON (CUR.id = WR.currency_id) " +
+        " JOIN USER USER ON (USER.id = WR.user_id) " +
+        " LEFT JOIN USER ADMIN ON (ADMIN.id = WR.admin_holder_id) " +
+        " JOIN MERCHANT M ON (M.id = WR.merchant_id) " +
+        " LEFT JOIN MERCHANT_IMAGE MI ON MI.id = WR.merchant_image_id" +
+        " WHERE WR.id = :id";
+    return jdbcTemplate.queryForObject(sql, singletonMap("id", id), (rs, idx) -> {
+          WithdrawRequestFlatAdditionalDataDto withdrawRequestFlatAdditionalDataDto = new WithdrawRequestFlatAdditionalDataDto();
+          withdrawRequestFlatAdditionalDataDto.setUserEmail(rs.getString("user_email"));
+          withdrawRequestFlatAdditionalDataDto.setAdminHolderEmail(rs.getString("admin_email"));
+          withdrawRequestFlatAdditionalDataDto.setCurrencyName(rs.getString("currency_name"));
+          withdrawRequestFlatAdditionalDataDto.setMerchantName(rs.getString("merchant_name"));
+          MerchantImage merchantImage = new MerchantImage();
+          merchantImage.setId(rs.getInt("merchant_image_id"));
+          merchantImage.setImage_name(rs.getString("merchant_image_name"));
+          withdrawRequestFlatAdditionalDataDto.setMerchantImage(merchantImage);
+          return withdrawRequestFlatAdditionalDataDto;
+        }
+    );
   }
 
 }

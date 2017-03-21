@@ -8,6 +8,7 @@ import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.WithdrawalRequestStatus;
 import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
+import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.service.BitcoinService;
@@ -18,9 +19,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.EMPTY_LIST;
 import static me.exrates.model.enums.invoice.PendingPaymentStatusEnum.ON_BCH_EXAM;
 
 /**
@@ -127,11 +132,15 @@ public abstract class BaseWithdrawServiceImpl implements WithdrawService {
     }
   }
 
-  protected List<Map<String, Object>> generateAndGetButtonsSet(MyInputOutputHistoryDto row, Locale locale) {
-    if (row.getStatus()==null) return Collections.EMPTY_LIST;
-    return row.getStatus().getAvailableActionList().stream()
+  protected List<Map<String, Object>> generateAndGetButtonsSet(
+      InvoiceStatus status,
+      Boolean authorisedUserIsHolder,
+      Locale locale) {
+    if (status == null) return EMPTY_LIST;
+    return status.getAvailableActionList(authorisedUserIsHolder).stream()
+        .filter(e -> e.getActionTypeButton() != null)
         .map(e -> new HashMap<String, Object>(e.getActionTypeButton().getProperty()))
-        .peek(e -> e.put("buttonTitle", messageSource.getMessage((String)e.get("buttonTitle"), null, locale)))
+        .peek(e -> e.put("buttonTitle", messageSource.getMessage((String) e.get("buttonTitle"), null, locale)))
         .collect(Collectors.toList());
   }
 

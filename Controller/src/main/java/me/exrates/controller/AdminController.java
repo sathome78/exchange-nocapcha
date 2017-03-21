@@ -10,6 +10,7 @@ import me.exrates.model.dto.filterData.AdminOrderFilterData;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
+import me.exrates.model.dto.onlineTableDto.WithdrawRequestsAdminTableDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.*;
 import me.exrates.model.form.AuthorityOptionsForm;
@@ -654,11 +655,17 @@ public class AdminController {
 
   @RequestMapping(value = "/2a8fy7b07dxe44/withdrawRequests", method = GET)
   @ResponseBody
-  public DataTable<List<WithdrawRequest>> findRequestByStatus(@RequestParam("status") Integer requestStatus, WithdrawFilterData withdrawFilterData,
-                                                              @RequestParam Map<String, String> params, Principal principal) {
+  public DataTable<List<WithdrawRequestsAdminTableDto>> findRequestByStatus(
+      @RequestParam("viewType") String viewTypeName,
+      WithdrawFilterData withdrawFilterData,
+      @RequestParam Map<String, String> params,
+      Principal principal,
+      Locale locale) {
+    WithdrawRequestTableViewTypeEnum viewTypeEnum = WithdrawRequestTableViewTypeEnum.convert(viewTypeName);
+    List<Integer> statusList = viewTypeEnum.getWithdrawStatusList().stream().map(WithdrawStatusEnum::getCode).collect(Collectors.toList());
     DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
     withdrawFilterData.initFilterItems();
-    return withdrawService.findWithdrawRequestsByStatus(requestStatus, dataTableParams, withdrawFilterData, principal.getName());
+    return withdrawService.findWithdrawRequestByStatusList(statusList, dataTableParams, withdrawFilterData, principal.getName(), locale);
   }
 
   @ResponseBody

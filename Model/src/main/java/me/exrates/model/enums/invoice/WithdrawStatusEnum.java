@@ -2,7 +2,10 @@ package me.exrates.model.enums.invoice;
 
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.model.exceptions.*;
+import me.exrates.model.exceptions.AuthorisedUserIsHolderParamNeededForThisStatusException;
+import me.exrates.model.exceptions.UnsupportedInvoiceStatusForActionException;
+import me.exrates.model.exceptions.UnsupportedWithdrawRequestStatusIdException;
+import me.exrates.model.exceptions.UnsupportedWithdrawRequestStatusNameException;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -26,7 +29,6 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
   WAITING_MANUAL_POSTING(2) {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
-      schemaMap.put(InvoiceActionTypeEnum.DECLINE, DECLINED_ADMIN);
       schemaMap.put(InvoiceActionTypeEnum.TAKE_TO_WORK, IN_WORK_OF_ADMIN);
       schemaMap.put(InvoiceActionTypeEnum.REVOKE, REVOKED_USER);
     }
@@ -116,7 +118,19 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
   }
 
   public Set<InvoiceActionTypeEnum> getAvailableActionList() {
+    schemaMap.keySet().stream()
+        .filter(InvoiceActionTypeEnum::isAvailableForHolderOnly)
+        .findAny()
+        .ifPresent(action -> {
+          throw new AuthorisedUserIsHolderParamNeededForThisStatusException(action.name());
+        });
     return schemaMap.keySet();
+  }
+
+  public Set<InvoiceActionTypeEnum> getAvailableActionList(Boolean authorisedUserIsHolder) {
+    return schemaMap.keySet().stream()
+        .filter(e -> !e.isAvailableForHolderOnly() || authorisedUserIsHolder)
+        .collect(Collectors.toSet());
   }
 
   /**/

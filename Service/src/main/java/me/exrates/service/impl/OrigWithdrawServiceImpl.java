@@ -12,11 +12,8 @@ import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
+import me.exrates.model.dto.onlineTableDto.WithdrawRequestsAdminTableDto;
 import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.TransactionSourceType;
-import me.exrates.model.enums.WithdrawalRequestStatus;
-import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
-import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.*;
@@ -27,7 +24,6 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.mail.MailException;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -38,7 +34,6 @@ import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonMap;
 import static me.exrates.model.enums.WithdrawalRequestStatus.*;
-import static me.exrates.model.enums.invoice.PendingPaymentStatusEnum.ON_BCH_EXAM;
 
 public class OrigWithdrawServiceImpl extends BaseWithdrawServiceImpl {
 
@@ -219,10 +214,27 @@ public class OrigWithdrawServiceImpl extends BaseWithdrawServiceImpl {
       result.forEach(e ->
       {
         e.setSummaryStatus(generateAndGetSummaryStatus(e, locale));
-        e.setButtons(generateAndGetButtonsSet(e, locale));
+        e.setButtons(generateAndGetButtonsSet(e.getStatus(), false, locale));
       });
     }
     return result;
+  }
+
+  @Override
+  public void revokeWithdrawalRequest(int requestId) {
+    LOG.error("NOT IMPLEMENTED");
+    throw new NotImplimentedMethod("method NOT IMPLEMENTED !");
+  }
+
+  @Override
+  public DataTable<List<WithdrawRequestsAdminTableDto>> findWithdrawRequestByStatusList(
+      List<Integer> requestStatusList,
+      DataTableParams dataTableParams,
+      WithdrawFilterData withdrawFilterData,
+      String authorizedUserEmail,
+      Locale locale){
+    LOG.error("NOT IMPLEMENTED");
+    throw new NotImplimentedMethod("method NOT IMPLEMENTED !");
   }
 
 }

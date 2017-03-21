@@ -23,26 +23,33 @@ public enum InvoiceActionTypeEnum {
   ACCEPT_MANUAL(ACCEPT_BUTTON),
   ACCEPT_AUTO,
   DECLINE(DECLINE_BUTTON),
-  DECLINE_HOLDED(DECLINE_HOLDED_BUTTON),
+  DECLINE_HOLDED(DECLINE_HOLDED_BUTTON, true),
   PUT_FOR_MANUAL,
   PUT_FOR_AUTO,
   PUT_FOR_CONFIRM,
   POST(POST_BUTTON),
-  POST_HOLDED(POST_HOLDED_BUTTON),
+  POST_HOLDED(POST_HOLDED_BUTTON, true),
   TAKE_TO_WORK(TAKE_TO_WORK_BUTTON),
-  RETURN_FROM_WORK(RETURN_FROM_WORK_BUTTON);
+  RETURN_FROM_WORK(RETURN_FROM_WORK_BUTTON, true);
 
   private InvoiceActionTypeButtonEnum actionTypeButton = null;
+  private Boolean availableForHolderOnly = false;
 
   InvoiceActionTypeEnum(InvoiceActionTypeButtonEnum actionTypeButton) {
+    this(actionTypeButton, false);
+  }
+
+  InvoiceActionTypeEnum(InvoiceActionTypeButtonEnum actionTypeButton, Boolean availableForHolderOnly) {
     this.actionTypeButton = actionTypeButton;
+    this.availableForHolderOnly = availableForHolderOnly;
   }
 
   public InvoiceActionTypeButtonEnum getActionTypeButton() {
-    if (actionTypeButton == null) {
-      throw new NoButtonPropertyForActionTypeException(this.name());
-    }
     return actionTypeButton;
+  }
+
+  public Boolean isAvailableForHolderOnly() {
+    return availableForHolderOnly;
   }
 
   public static InvoiceActionTypeEnum convert(String name) {

@@ -8,22 +8,30 @@ import java.util.Map;
  */
 public enum InvoiceActionTypeButtonEnum {
   CONFIRM_USER_BUTTON,
-  CONFIRM_ADMIN_BUTTON,
+  CONFIRM_ADMIN_BUTTON {{
+    getProperty().put("tableIdListOnly", new String[]{"withdrawalTable"});
+  }},
   REVOKE_BUTTON {{
     getProperty().put("tableIdListOnly", new String[]{"inputoutput-table"});
   }},
   ACCEPT_BUTTON,
-  DECLINE_BUTTON,
+  DECLINE_BUTTON {{
+    getProperty().put("tableIdListOnly", new String[]{"withdrawalTable"});
+  }},
   DECLINE_HOLDED_BUTTON {{
-    getProperty().put("availableForHolderOnly", true);
+    getProperty().put("tableIdListOnly", new String[]{"withdrawalTable"});
   }},
-  POST_BUTTON,
+  POST_BUTTON {{
+    getProperty().put("tableIdListOnly", new String[]{"withdrawalTable"});
+  }},
   POST_HOLDED_BUTTON {{
-    getProperty().put("availableForHolderOnly", true);
+    getProperty().put("tableIdListOnly", new String[]{"withdrawalTable"});
   }},
-  TAKE_TO_WORK_BUTTON,
+  TAKE_TO_WORK_BUTTON {{
+    getProperty().put("tableIdListOnly", new String[]{"withdrawalTable"});
+  }},
   RETURN_FROM_WORK_BUTTON {{
-    getProperty().put("availableForHolderOnly", true);
+    getProperty().put("tableIdListOnly", new String[]{"withdrawalTable"});
   }};
 
   private Map<String, Object> property = new HashMap<>();
@@ -32,7 +40,6 @@ public enum InvoiceActionTypeButtonEnum {
     property.put("buttonId", this.name().toLowerCase());
     property.put("buttonTitle", "action.button.".concat(this.name()));
     property.put("tableIdListOnly", new String[]{});
-    property.put("availableForHolderOnly", false);
   }
 
   public Map<String, Object> getProperty() {

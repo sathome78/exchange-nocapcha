@@ -2,6 +2,7 @@ package me.exrates.model.enums.invoice;
 
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.exceptions.AuthorisedUserIsHolderParamNeededForThisStatusException;
 import me.exrates.model.exceptions.UnsupportedInvoiceRequestStatusNameException;
 import me.exrates.model.exceptions.UnsupportedInvoiceStatusForActionException;
 import me.exrates.model.exceptions.UnsupportedNewsTypeIdException;
@@ -85,7 +86,19 @@ public enum PendingPaymentStatusEnum implements InvoiceStatus {
   }
 
   public Set<InvoiceActionTypeEnum> getAvailableActionList() {
+    schemaMap.keySet().stream()
+        .filter(InvoiceActionTypeEnum::isAvailableForHolderOnly)
+        .findAny()
+        .ifPresent(action -> {
+          throw new AuthorisedUserIsHolderParamNeededForThisStatusException(action.name());
+        });
     return schemaMap.keySet();
+  }
+
+  public Set<InvoiceActionTypeEnum> getAvailableActionList(Boolean authorisedUserIsHolder) {
+    return schemaMap.keySet().stream()
+        .filter(e -> !e.isAvailableForHolderOnly() || authorisedUserIsHolder)
+        .collect(Collectors.toSet());
   }
 
   /**/

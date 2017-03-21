@@ -10,6 +10,7 @@
 <%--CAPTCHA--%>
 <script type="text/javascript" src="/client/js/jquery.cookie.js"></script>
 <script src="<c:url value="/client/js/jquery.noty.packaged.min.js"/>"></script>
+<script type="text/javascript" src="<c:url value='/client/js/app.js'/>"></script>
 
 <c:set var="path" value="${fn:replace(pageContext.request.requestURI, '/WEB-INF/jsp', '')}"/>
 <c:set var="path" value="${fn:replace(path, '.jsp', '')}"/>

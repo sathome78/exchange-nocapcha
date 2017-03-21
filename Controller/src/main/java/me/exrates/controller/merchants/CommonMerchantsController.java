@@ -9,7 +9,6 @@ import me.exrates.model.enums.OperationType;
 import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.*;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -169,15 +168,12 @@ public class CommonMerchantsController {
         return new ResponseEntity<>(result, OK);
     }
 
+    /*ValkSam*/
     @RequestMapping(value = "/withdrawal/request/revoke", method = POST)
     @ResponseBody
-    public ResponseEntity<Map<String,Object>> revokeWithdrawRequest(final @RequestParam Integer id,
-                                                                     final Locale locale, Principal principal) {
-        final Map<String, Object> result = withdrawService.declineWithdrawalRequest(request, locale, principal.getName());
-        if (result.containsKey("error")) {
-            return new ResponseEntity<>(result, BAD_REQUEST);
-        }
-        return new ResponseEntity<>(result, OK);
+    public void revokeWithdrawRequest(
+        @RequestParam Integer id) {
+        withdrawService.revokeWithdrawalRequest(id);
     }
 
 }

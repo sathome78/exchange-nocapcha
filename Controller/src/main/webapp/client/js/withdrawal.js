@@ -2,7 +2,7 @@ var currentEmail;
 var $withdrawalTable;
 var withdrawalDataTable;
 var withdrawRequestsBaseUrl;
-var requestStatus;
+var tableViewType;
 var filterParams;
 
 $(function () {
@@ -37,24 +37,24 @@ $(function () {
 
 
     $withdrawalTable = $('#withdrawalTable');
-    requestStatus = 1;
+    tableViewType = "FOR_WORK";
     filterParams = '';
-    withdrawRequestsBaseUrl = '/2a8fy7b07dxe44/withdrawRequests?status=';
+    withdrawRequestsBaseUrl = '/2a8fy7b07dxe44/withdrawRequests?viewType=';
     $('#withdraw-requests-new').addClass('active');
 
 
     $('#withdraw-requests-new').click(function () {
-        changeStatus(this, 1)
+        changeTableViewType(this, "FOR_WORK")
     });
     $('#withdraw-requests-accepted').click(function () {
-        changeStatus(this, 2)
+        changeTableViewType(this, "POSTED")
     });
     $('#withdraw-requests-declined').click(function () {
-        changeStatus(this, 3)
+        changeTableViewType(this, "DECLINED")
     });
 
-    function changeStatus($elem, newStatus) {
-        requestStatus = newStatus;
+    function changeTableViewType($elem, newStatus) {
+        tableViewType = newStatus;
         $('.myorders__button').removeClass('active');
         $($elem).addClass('active');
         updateWithdrawalTable();
@@ -183,17 +183,17 @@ function viewRequestInfo($elem) {
 }
 
 function fillModal(rowData) {
-
-    $('#info-currency').text(rowData.transaction.currency.name);
-    $('#info-amount').text(rowData.transaction.amount);
-    $('#info-commissionAmount').text(rowData.transaction.commissionAmount);
+    $('#info-currency').text(rowData.currencyName);
+    $('#info-amount').text(rowData.amount);
+    $('#info-commissionAmount').text(rowData.commissionAmount);
     var recipientBank = rowData.recipientBankName ? rowData.recipientBankName : '';
     var recipientBankCode = rowData.recipientBankCode ? rowData.recipientBankCode : '';
     var userFullName = rowData.userFullName ? rowData.userFullName : '';
     $('#info-bankRecipient').text(recipientBank + ' ' + recipientBankCode);
-    $('#info-acceptance').text(rowData.acceptance);
+    $('#info-status').text(rowData.status);
+    $('#info-status-date').text(rowData.statusModificationDate);
     $('#info-wallet').text(rowData.wallet);
-    $('#info-userFullName').text(userFullName);
+    $('#info-userFullName').text(rowData.userFullName);
     $('#info-remark').find('textarea').html(rowData.remark);
 }
 
@@ -201,7 +201,7 @@ function fillModal(rowData) {
 
 function updateWithdrawalTable() {
     var filter = filterParams.length > 0 ? '&' + filterParams : '';
-    var url = withdrawRequestsBaseUrl + requestStatus + filter;
+    var url = withdrawRequestsBaseUrl + tableViewType + filter;
     if ($.fn.dataTable.isDataTable('#withdrawalTable')) {
         withdrawalDataTable = $($withdrawalTable).DataTable();
         withdrawalDataTable.ajax.url(url).load();
@@ -217,84 +217,84 @@ function updateWithdrawalTable() {
             "bFilter": false,
             "columns":[
                 {
-                    "data": "transaction.id",
-                    "name": "TRANSACTION.id",
+                    "data": "id",
+                    "name": "WITHDRAW_REQUEST.id",
                     "render": function (data) {
                         return '<button class="request_id_button" onclick="viewRequestInfo(this)">' + data + '</button>';
                     }
                 },
                 {
-                    "data": "transaction.datetime",
-                    "name": "TRANSACTION.datetime",
+                    "data": "dateCreation",
+                    "name": "WITHDRAW_REQUEST.date_creation",
                     "render": function (data) {
                         return data.replace(' ', '<br/>');
                     },
                     "className": "text-center"
                 },
+               /* {
+                    "data": "status",
+                    "name": "WITHDRAW_REQUEST.status_id",
+                },*/
                 {
                     "data": "userId",
-                    "name": "USER.email",
+                    "name": "WITHDRAW_REQUEST.user_id",
                     "render": function (data, type, row) {
                         return '<a href="/2a8fy7b07dxe44/userInfo?id=' + data + '">' + row.userEmail + '</a>'
                     }
                 },
                 {
-                    "data": "transaction.amount",
-                    "name": "TRANSACTION.amount"
+                    "data": "amount",
+                    "name": "WITHDRAW_REQUEST.amount",
                 },
                 {
-                    "data": "transaction.currency.name",
-                    "name": "CURRENCY.name"
+                    "data": "currencyName",
+                    "name": "WITHDRAW_REQUEST.currency_id",
                 },
 
                 {
-                    "data": "transaction.commissionAmount",
-                    "name": "TRANSACTION.commission_amount"
+                    "data": "commissionAmount",
+                    "name": "WITHDRAW_REQUEST.commission_amount",
                 },
                 {
-                    "data": "transaction",
-                    "name": "MERCHANT.name",
+                    "data": "merchantName",
+                    "name": "WITHDRAW_REQUEST.merchant_id",
                     "render": function (data, type, row) {
-                        var merchantName = data.merchant.name;
-                        var merchantImageName;
-                        if (data.merchantImage && data.merchantImage.image_name != merchantName) {
-                            merchantImageName = ' ' + data.merchantImage.image_name;
-                        } else {
-                            merchantImageName = '';
+                        var merchantName = data;
+                        var merchantImageName = '';
+                        if (row.merchantImage && row.merchantImage.image_name != merchantName) {
+                            merchantImageName = ' ' + row.merchantImage.image_name;
                         }
-                        return data.merchant.name + merchantImageName;
+                        return merchantName + merchantImageName;
                     }
                 },
                 {
                     "data": "wallet",
-                    "name": "WITHDRAW_REQUEST.wallet"
+                    "name": "WITHDRAW_REQUEST.wallet",
                 },
                 {
-                    "data": "processedById",
-                    "name": "ADMIN.email",
+                    "data": "adminHolderEmail",
+                    "name": "WITHDRAW_REQUEST.admin_holder_id",
                     "render": function (data, type, row) {
                         if (data) {
-                            return '<a href="/2a8fy7b07dxe44/userInfo?id=' + data + '">' + row.processedBy + '</a>';
+                            return '<a href="/2a8fy7b07dxe44/userInfo?id=' + row.adminHolderId + '">' + data + '</a>';
                         } else {
-                            var acceptLocMessage = $('#acceptRequestMessage').text();
-                            var declineLocMessage = $('#declineRequestMessage').text();
-                            return '<div class="table-button-block" style="white-space: nowrap">' +
-                                '<button style="font-size: 11px;" class="table-button-block__button btn btn-success" onclick="submitAccept(this)" >' +
-                                acceptLocMessage +
-                                '</button>' +
-                                '&nbsp;' +
-                                '<button style="font-size: 11px;" class="table-button-block__button btn btn-danger" onclick="submitDecline(this)" >' +
-                                declineLocMessage +
-                                '</button>' +
-                                '</div>';
+                            return getButtonsSet(row.id, row.sourceType, row.buttons, "withdrawalTable");
                         }
-
                     },
                     "className": "text-center"
                 }
-
             ],
             "order": [[ 0, 'desc' ]]
         });
     }
 }
+
+/*return '<div class="table-button-block" style="white-space: nowrap">' +
+ '<button style="font-size: 11px;" class="table-button-block__button btn btn-success" onclick="submitAccept(this)" >' +
+ acceptLocMessage +
+ '</button>' +
+ '&nbsp;' +
+ '<button style="font-size: 11px;" class="table-button-block__button btn btn-danger" onclick="submitDecline(this)" >' +
+ declineLocMessage +
+ '</button>' +
+ '</div>';*/

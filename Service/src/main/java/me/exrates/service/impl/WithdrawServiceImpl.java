@@ -4,27 +4,29 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantDao;
 import me.exrates.dao.WithdrawRequestDao;
 import me.exrates.model.CreditsOperation;
+import me.exrates.model.PagingData;
 import me.exrates.model.WithdrawRequest;
 import me.exrates.model.dto.MerchantCurrencyAutoParamDto;
 import me.exrates.model.dto.WithdrawRequestCreateDto;
+import me.exrates.model.dto.WithdrawRequestFlatDto;
 import me.exrates.model.dto.WithdrawRequestFlatForReportDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
+import me.exrates.model.dto.onlineTableDto.WithdrawRequestsAdminTableDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WithdrawData;
-import me.exrates.service.CurrencyService;
-import me.exrates.service.NotificationService;
-import me.exrates.service.WalletService;
-import me.exrates.service.WithdrawService;
+import me.exrates.service.*;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.WithdrawRequestCreationException;
+import me.exrates.service.exception.WithdrawRequestRevokeException;
+import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.util.Cache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -35,6 +37,8 @@ import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.REVOKE;
 
 /**
  * @author ValkSam
@@ -56,6 +60,9 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
 
   @Autowired
   private WalletService walletService;
+
+  @Autowired
+  private UserService userService;
 
   @Autowired
   private NotificationService notificationService;
@@ -203,7 +210,41 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
   }
 
   @Override
-  public List<MyInputOutputHistoryDto> getMyInputOutputHistory(CacheData cacheData, String email, Integer offset, Integer limit, Locale locale) {
+  public DataTable<List<WithdrawRequestsAdminTableDto>> findWithdrawRequestByStatusList(
+      List<Integer> requestStatus,
+      DataTableParams dataTableParams,
+      WithdrawFilterData withdrawFilterData,
+      String authorizedUserEmail,
+      Locale locale) {
+    Integer authorizedUserId = userService.getIdByEmail(authorizedUserEmail);
+    PagingData<List<WithdrawRequestFlatDto>> result = withdrawRequestDao.getFlatByStatus(
+        requestStatus,
+        authorizedUserId,
+        dataTableParams,
+        withdrawFilterData);
+    DataTable<List<WithdrawRequestsAdminTableDto>> output = new DataTable<>();
+    output.setData(result.getData().stream()
+        .map(e -> new WithdrawRequestsAdminTableDto(e, withdrawRequestDao.getAdditionalDataForId(e.getId())))
+        .peek(e -> e.setButtons(
+            generateAndGetButtonsSet(
+                e.getStatus(),
+                authorizedUserId.equals(e.getAdminHolderId()),
+                locale)
+        ))
+        .collect(Collectors.toList())
+    );
+    output.setRecordsTotal(result.getTotal());
+    output.setRecordsFiltered(result.getFiltered());
+    return output;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<MyInputOutputHistoryDto> getMyInputOutputHistory(
+      CacheData cacheData,
+      String email,
+      Integer offset, Integer limit,
+      Locale locale) {
     List<Integer> operationTypeList = OperationType.getInputOutputOperationsList()
         .stream()
         .map(OperationType::getType)
@@ -217,10 +258,28 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
       result.forEach(e ->
       {
         e.setSummaryStatus(generateAndGetSummaryStatus(e, locale));
-        e.setButtons(generateAndGetButtonsSet(e, locale));
+        e.setButtons(generateAndGetButtonsSet(e.getStatus(), false, locale));
         e.setAuthorisedUserId(e.getUserId());
       });
     }
     return result;
+  }
+
+  @Override
+  @Transactional
+  public void revokeWithdrawalRequest(int requestId) {
+    WithdrawRequestFlatDto withdrawRequest = withdrawRequestDao.getFlatByIdAndBlock(requestId)
+        .orElseThrow(() -> new InvoiceNotFoundException(String.format("withdraw request id: %s", requestId)));
+    WithdrawStatusEnum newStatus = (WithdrawStatusEnum) withdrawRequest.getStatus().nextState(REVOKE);
+    withdrawRequestDao.setStatusById(requestId, newStatus);
+    Integer userWalletId = walletService.getWalletId(withdrawRequest.getUserId(), withdrawRequest.getCurrencyId());
+    WalletTransferStatus result = walletService.walletInnerTransfer(
+        userWalletId,
+        withdrawRequest.getAmount(),
+        TransactionSourceType.WITHDRAW,
+        withdrawRequest.getId());
+    if (result != WalletTransferStatus.SUCCESS) {
+      throw new WithdrawRequestRevokeException(result.toString());
+    }
   }
 }

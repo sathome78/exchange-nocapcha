@@ -32,6 +32,8 @@ public interface InvoiceStatus {
 
   Set<InvoiceActionTypeEnum> getAvailableActionList();
 
+  Set<InvoiceActionTypeEnum> getAvailableActionList(Boolean authorisedUserIsHolder);
+
   void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap);
 
   Integer getCode();

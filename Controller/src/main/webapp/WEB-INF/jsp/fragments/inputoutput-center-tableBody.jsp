@@ -23,7 +23,7 @@
         <td class="center"><@=id@></td>
         <td class="center"><@=summaryStatus@></td>
         <td class="center table-button-block" style="text-align: right;">
-            <@=getButtonsSet(id, sourceType, buttons, "inputoutput-table", false)@>
+            <@=getButtonsSet(id, sourceType, buttons, "inputoutput-table")@>
     </tr>
 </script>
 </tbody>
