@@ -16,6 +16,7 @@ public class ExOrderStatisticsDto {
     private String firstOrderRate;
     private String lastOrderAmountBase;
     private String lastOrderRate;
+    private String percentChange;
     private String minRate;
     private String maxRate;
     private String sumBase;
@@ -34,6 +35,7 @@ public class ExOrderStatisticsDto {
         this.firstOrderRate = exOrderStatisticsDto.firstOrderRate;
         this.lastOrderAmountBase = exOrderStatisticsDto.lastOrderAmountBase;
         this.lastOrderRate = exOrderStatisticsDto.lastOrderRate;
+        this.percentChange = exOrderStatisticsDto.percentChange;
         this.minRate = exOrderStatisticsDto.minRate;
         this.maxRate = exOrderStatisticsDto.maxRate;
         this.sumBase = exOrderStatisticsDto.sumBase;

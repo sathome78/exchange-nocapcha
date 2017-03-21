@@ -75,11 +75,18 @@ function TradingClass(period, chartType, currentCurrencyPair) {
             url: url,
             type: 'GET',
             success: function (data) {
-                $('#lastOrderAmountBase>span').text(data.lastOrderAmountBase + ' ' + data.currencyPair.currency1.name);
-                $('#firstOrderRate>span').text(data.firstOrderRate + ' ' + data.currencyPair.currency2.name);
-                $('#lastOrderRate>span').text(data.lastOrderRate + ' ' + data.currencyPair.currency2.name);
-                $('#sumBase>span').text(data.sumBase + ' ' + data.currencyPair.currency1.name);
-                $('#sumConvert>span').text(data.sumConvert + ' ' + data.currencyPair.currency2.name);
+                $('#lastOrderAmountBase').find('span').text(data.lastOrderAmountBase + ' ' + data.currencyPair.currency1.name);
+                $('#firstOrderRate').find('span').text(data.firstOrderRate + ' ' + data.currencyPair.currency2.name);
+                $('#lastOrderRate').find('span').text(data.lastOrderRate + ' ' + data.currencyPair.currency2.name);
+                $('#sumBase').find('span').text(data.sumBase + ' ' + data.currencyPair.currency1.name);
+                $('#sumConvert').find('span').text(data.sumConvert + ' ' + data.currencyPair.currency2.name);
+                var $percentChangeSpan = $('#percentChange').find('span');
+
+                $($percentChangeSpan).text(data.percentChange + '%');
+                var percentChangeClass = data.lastOrderRate == data.firstOrderRate ? "black" : data.percentChange[0] == '-' ? "red" :
+                        "green";
+                $($percentChangeSpan).removeClass();
+                $($percentChangeSpan).addClass(percentChangeClass);
                 $('#minRate').text(data.minRate + ' ' + data.currencyPair.currency2.name);
                 $('#maxRate').text(data.maxRate + ' ' + data.currencyPair.currency2.name);
             }
