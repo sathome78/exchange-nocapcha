@@ -3,6 +3,7 @@ package me.exrates.service.impl;
 import com.neemre.btcdcli4j.core.BitcoindException;
 import com.neemre.btcdcli4j.core.CommunicationException;
 import com.neemre.btcdcli4j.core.client.BtcdClient;
+import com.neemre.btcdcli4j.core.client.BtcdClientImpl;
 import com.neemre.btcdcli4j.core.domain.Block;
 import com.neemre.btcdcli4j.core.domain.Output;
 import com.neemre.btcdcli4j.core.domain.Transaction;
@@ -24,12 +25,16 @@ import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.IllegalTransactionProvidedStatusException;
 import me.exrates.service.exception.invoice.IllegalInvoiceAmountException;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -41,7 +46,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @Log4j2(topic = "bitcoin_core")
 public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
     
-  @Autowired
   private BtcdClient btcdClient;
   
   @Autowired
@@ -54,6 +58,7 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
   public void initBitcoin() {
   
     try {
+      btcdClient = initBitcoindClient();
       daemon = new BtcdDaemonImpl(btcdClient);
       daemon.addBlockListener(new BlockListener() {
         @Override
@@ -107,7 +112,7 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
           }
         }
       });
-    } catch (BitcoindException | CommunicationException e) {
+    } catch (BitcoindException | CommunicationException | IOException e) {
       log.error(e);
     }
   
@@ -146,6 +151,16 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
     daemon.shutdown();
   }
   
+  
+  private BtcdClient initBitcoindClient() throws BitcoindException, CommunicationException, IOException {
+    PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+    CloseableHttpClient httpProvider = HttpClients.custom().setConnectionManager(cm)
+            .build();
+    Properties nodeConfig = new Properties();
+    nodeConfig.load(getClass().getClassLoader().getResourceAsStream("node_config.properties"));
+    log.debug(nodeConfig);
+    return new BtcdClientImpl(httpProvider, nodeConfig);
+  }
   
   
 }

@@ -1,9 +1,5 @@
 package me.exrates.config;
 
-import com.neemre.btcdcli4j.core.BitcoindException;
-import com.neemre.btcdcli4j.core.CommunicationException;
-import com.neemre.btcdcli4j.core.client.BtcdClient;
-import com.neemre.btcdcli4j.core.client.BtcdClientImpl;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import me.exrates.controller.filter.RequestFilter;
@@ -21,9 +17,6 @@ import me.exrates.service.impl.WithdrawServiceImpl;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.MessageSource;
@@ -55,7 +48,6 @@ import org.springframework.web.servlet.view.JstlView;
 
 import javax.servlet.annotation.MultipartConfig;
 import javax.sql.DataSource;
-import java.io.IOException;
 import java.util.EnumMap;
 import java.util.Locale;
 import java.util.Properties;
@@ -341,17 +333,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     public StoreSessionListener storeSessionListener() {
         return new StoreSessionListenerImpl();
     }
-    
-    @Bean(name = "btcdClient")
-    public BtcdClient bitcoindClient() throws BitcoindException, CommunicationException, IOException {
-        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
-        CloseableHttpClient httpProvider = HttpClients.custom().setConnectionManager(cm)
-                .build();
-        Properties nodeConfig = new Properties();
-        nodeConfig.load(getClass().getClassLoader().getResourceAsStream("node_config.properties"));
-        return new BtcdClientImpl(httpProvider, nodeConfig);
-    }
-   
 
     @Bean
     public WithdrawService withdrawService() {
