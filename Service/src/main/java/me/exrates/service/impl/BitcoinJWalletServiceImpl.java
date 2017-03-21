@@ -45,7 +45,6 @@ import static me.exrates.service.BitcoinService.CONFIRMATION_NEEDED_COUNT;
  * Created by OLEG on 16.03.2017.
  */
 @Log4j2
-@Component("BitcoinJService")
 public class BitcoinJWalletServiceImpl implements BitcoinWalletService {
   
   private WalletAppKit kit;

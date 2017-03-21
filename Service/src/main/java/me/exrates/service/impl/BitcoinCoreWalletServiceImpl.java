@@ -42,7 +42,6 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Created by OLEG on 14.03.2017.
  */
-@Component("BitcoinCoreService")
 @Log4j2(topic = "bitcoin_core")
 public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
     
@@ -58,6 +57,7 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
   public void initBitcoin() {
   
     try {
+      log.debug("Starting Bitcoin Core client");
       btcdClient = initBitcoindClient();
       daemon = new BtcdDaemonImpl(btcdClient);
       daemon.addBlockListener(new BlockListener() {
@@ -158,7 +158,7 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
             .build();
     Properties nodeConfig = new Properties();
     nodeConfig.load(getClass().getClassLoader().getResourceAsStream("node_config.properties"));
-    log.debug(nodeConfig);
+    log.debug("Node config: " + nodeConfig);
     return new BtcdClientImpl(httpProvider, nodeConfig);
   }
   

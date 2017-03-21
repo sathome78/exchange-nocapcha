@@ -11,7 +11,10 @@ import me.exrates.model.converter.CurrencyPairConverter;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.security.config.SecurityConfig;
 import me.exrates.security.filter.VerifyReCaptchaSec;
+import me.exrates.service.BitcoinWalletService;
 import me.exrates.service.WithdrawService;
+import me.exrates.service.impl.BitcoinCoreWalletServiceImpl;
+import me.exrates.service.impl.BitcoinJWalletServiceImpl;
 import me.exrates.service.impl.OrigWithdrawServiceImpl;
 import me.exrates.service.impl.WithdrawServiceImpl;
 import me.exrates.service.token.TokenScheduler;
@@ -64,7 +67,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
                 SecurityConfig.class, WebSocketConfig.class
         }
 )
-@PropertySource(value = {"classpath:/db.properties", "classpath:/uploadfiles.properties", "classpath:/news.properties","classpath:/withdraw.properties", "classpath:/mail.properties"})
+@PropertySource(value = {"classpath:/db.properties", "classpath:/uploadfiles.properties", "classpath:/news.properties","classpath:/withdraw.properties",
+        "classpath:/mail.properties", "classpath:/merchants/btc_wallet.properties"})
 @MultipartConfig(location = "/tmp")
 public class WebAppConfig extends WebMvcConfigurerAdapter {
 
@@ -131,6 +135,9 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
 
     @Value("${withdraw.concreteClassName}")
     String withdrawConcreteClassName;
+    
+    @Value("${bitcoin.service.class}")
+    String bitcoinConcreteClassName;
 
 
     @Bean
@@ -342,6 +349,17 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
             return new OrigWithdrawServiceImpl();
         } else {
             throw new AssertionError(withdrawConcreteClassName);
+        }
+    }
+    
+    @Bean
+    public BitcoinWalletService bitcoinWalletService() {
+        if ("BitcoinCoreWalletServiceImpl".equals(bitcoinConcreteClassName)) {
+            return new BitcoinCoreWalletServiceImpl();
+        } else if ("BitcoinJWalletServiceImpl".equals(bitcoinConcreteClassName)) {
+            return new BitcoinJWalletServiceImpl();
+        } else {
+            throw new AssertionError(bitcoinConcreteClassName);
         }
     }
 

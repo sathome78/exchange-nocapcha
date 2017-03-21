@@ -64,7 +64,6 @@ public class BitcoinServiceImpl implements BitcoinService {
   @Value("${btcInvoice.blockNotifyUsers}")
   private Boolean BLOCK_NOTIFYING;
   
-  private final String BITCOIN_WALLET_CLASS = "BitcoinCoreService";
 
 
   private final PendingPaymentDao paymentDao;
@@ -79,7 +78,6 @@ public class BitcoinServiceImpl implements BitcoinService {
                             final TransactionService transactionService,
                             final AlgorithmService algorithmService,
                             final NotificationService notificationService,
-                            @Qualifier(BITCOIN_WALLET_CLASS)
                             final BitcoinWalletService bitcoinWalletService,
                             final BitcoinTransactionService bitcoinTransactionService) {
     this.paymentDao = paymentDao;
