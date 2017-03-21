@@ -205,8 +205,9 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
             return "";
         }
         String requestStatusWhere = " WITHDRAW_REQUEST.status = :status ";
-        String quickFilterWhereClause = " CONVERT(USER.nickname USING utf8) LIKE :searchValue " +
-                "OR CONVERT(USER.email USING utf8) LIKE :searchValue OR CONVERT(WITHDRAW_REQUEST.wallet USING utf8) LIKE :searchValue";
+        String quickFilterWhereClause = " (CONVERT(USER.nickname USING utf8) LIKE CONCAT('%', :searchValue, '%') " +
+                "OR CONVERT(USER.email USING utf8) LIKE CONCAT('%', :searchValue, '%')  " +
+                "OR CONVERT(WITHDRAW_REQUEST.wallet USING utf8) LIKE CONCAT('%', :searchValue, '%'))";
         StringBuilder sb = new StringBuilder();
         sb.append(StringUtils.isEmpty(SQLFilterClause) ? StringUtils.isEmpty(searchValue) ? "" :  quickFilterWhereClause
                 : SQLFilterClause);
