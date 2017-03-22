@@ -550,13 +550,16 @@ $(function(){
 
     function submitProcess() {
         var targetMerchant = merchantName;
-
         var paymentForm = $('#payment');
         if (paymentForm.get(0).merchant == null) {
             paymentForm.append('<input type="hidden" name="merchant" value="' + merchant + '">');
+        } else {
+            $(paymentForm).find('input[name="merchant"]').val(merchant);
         }
         if (paymentForm.get(0).merchantImage == null) {
             paymentForm.append('<input type="hidden" name="merchantImage" value="' + merchantImageId + '">');
+        } else {
+            $(paymentForm).find('input[name="merchantImage"]').val(merchantImageId);
         }
         resetFormAction(operationType.val(), targetMerchant,paymentForm);
         resetPaymentFormData(targetMerchant,paymentForm,function(){

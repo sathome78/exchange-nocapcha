@@ -29,6 +29,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
     this.commissionBuy;
     /**/
     this.ROUND_SCALE = 9;
+    this.numeralFormat = '0.[' + '0'.repeat(this.ROUND_SCALE) + ']';
 
     function onCurrencyPairChange() {
         that.updateAndShowAll();
@@ -260,7 +261,8 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         $(document).one("ajaxStop", function () {
             var currencyPairName = $('.currency-pair-selector__button').first().text().trim();
             var initialAmount = 1;
-            var initialAmountString = initialAmount.toFixed(that.ROUND_SCALE);
+            console.log(that.numeralFormat);
+            var initialAmountString = numeral(initialAmount).format(that.numeralFormat);
             $('#amountBuy').val(initialAmountString);
             var lastBuyExrate = getLastExrate('#dashboard-orders-buy-table .dashboard-order__tr:first', currencyPairName);
             $('#exchangeRateBuy').val(lastBuyExrate);
@@ -300,11 +302,11 @@ function TradingClass(period, chartType, currentCurrencyPair) {
             } else {
                 lastRate = $cell.next().text()
             }
-            return (parseNumber(lastRate)).toFixed(that.ROUND_SCALE);
+            return numeral(parseNumber(lastRate)).format(that.numeralFormat);
 
         } else {
             lastRate = $($selector).find('.order_exrate').text();
-            return (parseNumber(lastRate)).toFixed(that.ROUND_SCALE);
+            return numeral(parseNumber(lastRate)).format(that.numeralFormat);
         }
     }
 
