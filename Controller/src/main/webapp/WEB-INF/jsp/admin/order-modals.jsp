@@ -78,7 +78,7 @@
             <div class="modal-footer">
                 <div class="delete-order-info__button-wrapper">
                     <button class="delete-order-info__button" data-dismiss="modal"><loc:message
-                            code="submitorder.cancell"/></button>
+                            code="orderinfo.ok"/></button>
                 </div>
             </div>
         </div>

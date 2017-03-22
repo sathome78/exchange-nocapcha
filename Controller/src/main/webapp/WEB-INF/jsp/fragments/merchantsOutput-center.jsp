@@ -23,7 +23,7 @@
                                 <input id="currency" name="currency" hidden="true" value="${currency.getId()}" />
                                 <input id="currencyName" name="currencyName" hidden="true" value="${currency.getName()}" />
                                 <input class="form-control input-block-wrapper__input"
-                                       style="float: left; width: auto" id="currencyFull" readonly="true" value="<c:out value='${wallet.name} ${wallet.activeBalance}'/>" />
+                                       style="float: left; width: auto" id="currencyFull" readonly="true" value="<c:out value='${wallet.name} ${balance}'/>" />
                             </div>
                         </div>
                         <div class="input-block-wrapper clearfix" >
