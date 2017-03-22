@@ -26,11 +26,13 @@ $(function dashdoardInit() {
                 if (decimal && decimal.length >= trading.ROUND_SCALE) {
                     return false;
                 }
-                if (e.charCode >= 48 && e.charCode <= 57 || e.charCode == 46 || e.charCode == 0) {
-                    if (e.key == '.' && $(this).val().indexOf('.') >= 0) {
+                if (e.charCode >= 48 && e.charCode <= 57 || e.charCode == 46 || e.charCode == 44 || e.charCode == 0) {
+                    var keyPressed = e.key == ',' ? '.' : e.key;
+
+                    if (keyPressed == '.' && $(this).val().indexOf('.') >= 0) {
                         return false;
                     }
-                    var str = $(this).val() + e.key;
+                    var str = $(this).val() + keyPressed;
                     if (str.length > 1 && str.indexOf('0') == 0 && str.indexOf('.') != 1) {
                         return false
                     }
@@ -42,6 +44,10 @@ $(function dashdoardInit() {
         )
             .on('input', function (e) {
                 var val = $(this).val();
+                if (val[val.length - 1] == ',') {
+                    val = val.replace(',', '.');
+                    $(this).val(val)
+                }
                 var regx = /^(^[1-9]+\d*((\.{1}\d*)|(\d*)))|(^0{1}\.{1}\d*)|(^0{1})$/;
                 var result = val.match(regx);
                 if (!result || result[0] != val) {
