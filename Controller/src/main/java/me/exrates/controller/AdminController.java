@@ -1122,6 +1122,12 @@ public class AdminController {
     LocalDateTime startTime = LocalDateTime.parse(startTimeString, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     return orderService.getDataForCandleChart(currencyPair, backDealInterval, startTime);
   }
+  
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet", method = RequestMethod.GET)
+  public ModelAndView bitcoinWallet() {
+    return new ModelAndView("/admin/btcWallet");
+  }
+  
 
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
   @ExceptionHandler(OrderDeletingException.class)
