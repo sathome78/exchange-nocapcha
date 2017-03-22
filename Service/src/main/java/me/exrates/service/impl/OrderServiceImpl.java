@@ -94,6 +94,9 @@ public class OrderServiceImpl implements OrderService {
   public ExOrderStatisticsDto getOrderStatistic(CurrencyPair currencyPair, BackDealInterval backDealInterval, Locale locale) {
     ExOrderStatisticsDto result = serviceCacheableProxy.getOrderStatistic(currencyPair, backDealInterval);
     result = new ExOrderStatisticsDto(result);
+    result.setPercentChange(BigDecimalProcessing.formatLocale(BigDecimalProcessing.doAction(
+            result.getFirstOrderRate(), result.getLastOrderRate(), ActionType.PERCENT_GROWTH),
+            locale, 2));
     result.setFirstOrderAmountBase(BigDecimalProcessing.formatLocale(result.getFirstOrderAmountBase(),locale, true));
     result.setFirstOrderRate(BigDecimalProcessing.formatLocale(result.getFirstOrderRate(), locale, true));
     result.setLastOrderAmountBase(BigDecimalProcessing.formatLocale(result.getLastOrderAmountBase(), locale, true));

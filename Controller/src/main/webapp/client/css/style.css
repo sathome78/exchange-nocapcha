@@ -549,7 +549,7 @@ input.item_input,
     margin-right: 10px;
 }
 
-.lightblue .green {
+.lightblue .green, .lightblue .red, .lightblue .black {
     margin: 6px;
 }
 
@@ -1883,7 +1883,7 @@ form span.repass,  form span.repass-error{
 
 input[type=email], .dropdown-menu__form,
 .input-block-wrapper__label-wrapper, #captchaCode, .BDC_CaptchaDiv,
-#merchantList, #amcharts-stock_chart_div {
+#merchantList, #amcharts-stock_chart_div, .graphInfo {
     direction: ltr !important;
 }
 

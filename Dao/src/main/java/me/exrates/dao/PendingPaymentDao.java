@@ -55,4 +55,6 @@ public interface PendingPaymentDao {
       List<Integer> roleIdList,
       List<Integer> currencyList,
       List<String> sourceTypeList);
+  
+  List<PendingPayment> findAllUnconfirmedPayments();
 }

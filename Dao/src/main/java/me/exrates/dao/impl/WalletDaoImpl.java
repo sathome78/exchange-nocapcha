@@ -764,5 +764,16 @@ public class WalletDaoImpl implements WalletDao {
             }
         });
     }
+    
+    @Override
+    public void addToWalletBalance(Integer walletId, BigDecimal addedAmountActive, BigDecimal addedAmountReserved) {
+        String sql = "UPDATE WALLET SET active_balance = active_balance + :add_active, " +
+                "reserved_balance = reserved_balance + :add_reserved WHERE id = :id";
+        Map<String, Number> params = new HashMap<>();
+        params.put("id", walletId);
+        params.put("add_active", addedAmountActive);
+        params.put("add_reserved", addedAmountReserved);
+        jdbcTemplate.update(sql, params);
+    }
 
 }

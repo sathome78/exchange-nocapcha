@@ -8,7 +8,7 @@ public enum TransactionType {
     INPUT_MERCHANT(MERCHANT, OperationType.INPUT),
     INPUT_INVOICE(INVOICE, OperationType.INPUT),
     INPUT_BTC(BTC_INVOICE, OperationType.INPUT),
-    OUTPUT(WITHDRAW, OperationType.OUTPUT),
+    OUTPUT(WITHDRAW, null),
     ORDER_IN(ORDER, OperationType.INPUT),
     ORDER_OUT(ORDER, OperationType.OUTPUT),
     WALLET_INNER_TRANSFER(null, OperationType.WALLET_INNER_TRANSFER),
@@ -45,12 +45,13 @@ public enum TransactionType {
         if (sourceType == MERCHANT && operationType == OperationType.INPUT) return INPUT_MERCHANT;
         if (sourceType == INVOICE && operationType == OperationType.INPUT) return INPUT_INVOICE;
         if (sourceType == BTC_INVOICE && operationType == OperationType.INPUT) return INPUT_BTC;
-        if (sourceType == WITHDRAW && operationType == OperationType.OUTPUT) return OUTPUT;
+        if (sourceType == WITHDRAW) return OUTPUT;
         if (sourceType == ORDER && operationType == OperationType.INPUT) return ORDER_IN;
         if (sourceType == ORDER && operationType == OperationType.OUTPUT) return ORDER_OUT;
         if (sourceType == USER_TRANSFER && operationType == OperationType.INPUT) return USER_TRANSFER_IN;
         if (sourceType == USER_TRANSFER && operationType == OperationType.OUTPUT) return USER_TRANSFER_OUT;
-        return TransactionType.valueOf(operationType.name());
+        if (operationType == OperationType.WALLET_INNER_TRANSFER) return WALLET_INNER_TRANSFER;
+        return TransactionType.valueOf(sourceType.name());
 
     }
 }
