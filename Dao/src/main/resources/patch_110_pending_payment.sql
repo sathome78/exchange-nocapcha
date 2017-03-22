@@ -31,5 +31,5 @@ ALTER TABLE WITHDRAW_REQUEST
 	ADD COLUMN status_modification_date TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP;
 	
 ALTER TABLE WITHDRAW_REQUEST
-	ADD CONSTRAINT FK_withdraw_request_withdraw_request_status FOREIGN KEY (status_id) REFERENCES withdraw_request_status (id);
+	ADD CONSTRAINT FK_withdraw_request_withdraw_request_status FOREIGN KEY (status_id) REFERENCES WITHDRAW_REQUEST_STATUS (id);
 

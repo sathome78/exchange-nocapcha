@@ -70,4 +70,6 @@ public interface WalletDao {
     WalletsForOrderCancelDto getWalletForOrderByOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType);
 
     List<OrderDetailDto> getOrderRelatedDataAndBlock(int orderId);
+  
+  void addToWalletBalance(Integer walletId, BigDecimal addedAmountActive, BigDecimal addedAmountReserved);
 }

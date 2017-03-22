@@ -193,14 +193,11 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
 
     @Override
     public PagingData<List<WithdrawRequest>> findByStatus(Integer requestStatus, Integer currentUserId, DataTableParams dataTableParams, WithdrawFilterData withdrawFilterData) {
-        String whereClauseBasic = " WHERE WITHDRAW_REQUEST.status = :status ";
-        String filter = withdrawFilterData.getSQLFilterClause();
-        String whereClauseFilter = StringUtils.isEmpty(filter) ? "" :  " AND ".concat(filter);
+        String whereClause = buildWhereClause(requestStatus, dataTableParams.getSearchValue(), withdrawFilterData.getSQLFilterClause());
         String orderClause = dataTableParams.getOrderByClause();
         String offsetAndLimit = " LIMIT :limit OFFSET :offset ";
-        String sqlTotal = new StringJoiner(" ").add(SELECT_ALL_REQUESTS).add(JOIN_FOR_PERMITTED).add(whereClauseBasic)
-                .add(whereClauseFilter).add(orderClause).add(offsetAndLimit).toString();
-        String sqlCount = new StringJoiner(" ").add(SELECT_COUNT).add(JOIN_FOR_PERMITTED).add(whereClauseBasic).add(whereClauseFilter).toString();
+        String sqlTotal = new StringJoiner(" ").add(SELECT_ALL_REQUESTS).add(JOIN_FOR_PERMITTED).add(whereClause).add(orderClause).add(offsetAndLimit).toString();
+        String sqlCount = new StringJoiner(" ").add(SELECT_COUNT).add(JOIN_FOR_PERMITTED).add(whereClause).toString();
         log.debug(String.format("sql for total: %s", sqlTotal));
         log.debug(String.format("sql count: %s", sqlCount));
         Map<String, Object> params = new HashMap<>();
@@ -208,6 +205,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
         params.put("offset", dataTableParams.getStart());
         params.put("limit", dataTableParams.getLength());
         params.put("current_user_id", currentUserId);
+        params.put("searchValue", dataTableParams.getSearchValue());
         params.putAll(withdrawFilterData.getNamedParams());
         List<WithdrawRequest> requests = jdbcTemplate.query(sqlTotal, params, withdrawRequestRowMapper);
         Integer totalQuantity = jdbcTemplate.queryForObject(sqlCount, params, Integer.class);
@@ -216,6 +214,29 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
         result.setFiltered(totalQuantity);
         result.setTotal(totalQuantity);
         return result;
+    }
+
+    private String buildWhereClause(Integer requestStatus, String searchValue, String SQLFilterClause) {
+        if (requestStatus == null && StringUtils.isEmpty(SQLFilterClause) && StringUtils.isEmpty(searchValue)) {
+            return "";
+        }
+        String requestStatusWhere = " WITHDRAW_REQUEST.status = :status ";
+        String quickFilterWhereClause = " (CONVERT(USER.nickname USING utf8) LIKE CONCAT('%', :searchValue, '%') " +
+                "OR CONVERT(USER.email USING utf8) LIKE CONCAT('%', :searchValue, '%')  " +
+                "OR CONVERT(WITHDRAW_REQUEST.wallet USING utf8) LIKE CONCAT('%', :searchValue, '%'))";
+        StringBuilder sb = new StringBuilder();
+        sb.append(StringUtils.isEmpty(SQLFilterClause) ? StringUtils.isEmpty(searchValue) ? "" :  quickFilterWhereClause
+                : SQLFilterClause);
+        if (requestStatus != null) {
+            if (sb.length() > 0) {
+                sb.append(" AND ");
+            }
+            sb.append(requestStatusWhere);
+        }
+        if (sb.length() > 0) {
+            sb.insert(0, " WHERE ");
+        }
+        return sb.toString();
     }
 
     @Override

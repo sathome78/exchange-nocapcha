@@ -52,6 +52,9 @@ $(function () {
     $('#withdraw-requests-declined').click(function () {
         changeTableViewType(this, "DECLINED")
     });
+    $('#withdraw-requests-All').click(function () {
+        changeStatus(this, '')
+    });
 
     function changeTableViewType($elem, newStatus) {
         tableViewType = newStatus;
@@ -302,8 +305,8 @@ function updateWithdrawalTable() {
             "serverSide": true,
             "paging": true,
             "info": true,
-            "bFilter": false,
-            "columns": [
+            "bFilter": true,
+            "columns":[
                 {
                     "data": "id",
                     "name": "WITHDRAW_REQUEST.id",

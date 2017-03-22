@@ -645,7 +645,7 @@ public class AdminController {
     List<UserCurrencyOperationPermissionDto> permittedCurrencies = currencyService.getCurrencyOperationPermittedForWithdraw(principal.getName())
         .stream().filter(dto -> dto.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE).collect(Collectors.toList());
     params.put("currencies", permittedCurrencies);
-    List<Merchant> merchants = merchantService.findAllByCurrencies(permittedCurrencies.stream()
+    List<Merchant> merchants = merchantService.findAllByCurrencies(permittedCurrencies.stream()/*todo fix NPE when permittedCurrencies.size() == 0*/
         .map(UserCurrencyOperationPermissionDto::getCurrencyId).collect(Collectors.toList()), OperationType.OUTPUT).stream()
         .map(item -> new Merchant(item.getMerchantId(), item.getName(), item.getDescription(), null))
         .distinct().collect(Collectors.toList());

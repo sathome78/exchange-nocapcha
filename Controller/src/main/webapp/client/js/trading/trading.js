@@ -29,6 +29,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
     this.commissionBuy;
     /**/
     this.ROUND_SCALE = 9;
+    this.numeralFormat = '0.[' + '0'.repeat(this.ROUND_SCALE) + ']';
 
     function onCurrencyPairChange() {
         that.updateAndShowAll();
@@ -75,11 +76,18 @@ function TradingClass(period, chartType, currentCurrencyPair) {
             url: url,
             type: 'GET',
             success: function (data) {
-                $('#lastOrderAmountBase>span').text(data.lastOrderAmountBase + ' ' + data.currencyPair.currency1.name);
-                $('#firstOrderRate>span').text(data.firstOrderRate + ' ' + data.currencyPair.currency2.name);
-                $('#lastOrderRate>span').text(data.lastOrderRate + ' ' + data.currencyPair.currency2.name);
-                $('#sumBase>span').text(data.sumBase + ' ' + data.currencyPair.currency1.name);
-                $('#sumConvert>span').text(data.sumConvert + ' ' + data.currencyPair.currency2.name);
+                $('#lastOrderAmountBase').find('span').text(data.lastOrderAmountBase + ' ' + data.currencyPair.currency1.name);
+                $('#firstOrderRate').find('span').text(data.firstOrderRate + ' ' + data.currencyPair.currency2.name);
+                $('#lastOrderRate').find('span').text(data.lastOrderRate + ' ' + data.currencyPair.currency2.name);
+                $('#sumBase').find('span').text(data.sumBase + ' ' + data.currencyPair.currency1.name);
+                $('#sumConvert').find('span').text(data.sumConvert + ' ' + data.currencyPair.currency2.name);
+                var $percentChangeSpan = $('#percentChange').find('span');
+
+                $($percentChangeSpan).text(data.percentChange + '%');
+                var percentChangeClass = data.lastOrderRate == data.firstOrderRate ? "black" : data.percentChange[0] == '-' ? "red" :
+                        "green";
+                $($percentChangeSpan).removeClass();
+                $($percentChangeSpan).addClass(percentChangeClass);
                 $('#minRate').text(data.minRate + ' ' + data.currencyPair.currency2.name);
                 $('#maxRate').text(data.maxRate + ' ' + data.currencyPair.currency2.name);
             }
@@ -253,7 +261,8 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         $(document).one("ajaxStop", function () {
             var currencyPairName = $('.currency-pair-selector__button').first().text().trim();
             var initialAmount = 1;
-            var initialAmountString = initialAmount.toFixed(that.ROUND_SCALE);
+            console.log(that.numeralFormat);
+            var initialAmountString = numeral(initialAmount).format(that.numeralFormat);
             $('#amountBuy').val(initialAmountString);
             var lastBuyExrate = getLastExrate('#dashboard-orders-buy-table .dashboard-order__tr:first', currencyPairName);
             $('#exchangeRateBuy').val(lastBuyExrate);
@@ -293,11 +302,11 @@ function TradingClass(period, chartType, currentCurrencyPair) {
             } else {
                 lastRate = $cell.next().text()
             }
-            return (parseNumber(lastRate)).toFixed(that.ROUND_SCALE);
+            return numeral(parseNumber(lastRate)).format(that.numeralFormat);
 
         } else {
             lastRate = $($selector).find('.order_exrate').text();
-            return (parseNumber(lastRate)).toFixed(that.ROUND_SCALE);
+            return numeral(parseNumber(lastRate)).format(that.numeralFormat);
         }
     }
 

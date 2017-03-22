@@ -147,10 +147,7 @@ public final class WalletServiceImpl implements WalletService {
   @Override
   @Transactional(propagation = Propagation.NESTED)
   public void depositActiveBalance(final Wallet wallet, final BigDecimal sum) {
-    final BigDecimal newBalance =
-        wallet.getActiveBalance().add(sum).setScale(decimalPlaces, ROUND_HALF_UP);
-    wallet.setActiveBalance(newBalance);
-    walletDao.update(wallet);
+    walletDao.addToWalletBalance(wallet.getId(), sum, BigDecimal.ZERO);
   }
 
   @Override
@@ -161,8 +158,7 @@ public final class WalletServiceImpl implements WalletService {
       throw new NotEnoughUserWalletMoneyException("Not enough money to withdraw on user wallet " +
           wallet.toString());
     }
-    wallet.setActiveBalance(newBalance);
-    walletDao.update(wallet);
+    walletDao.addToWalletBalance(wallet.getId(), sum.negate(), BigDecimal.ZERO);
   }
 
   @Override
@@ -172,8 +168,7 @@ public final class WalletServiceImpl implements WalletService {
     if (wallet.getActiveBalance().compareTo(ZERO) < 0) {
       throw new NotEnoughUserWalletMoneyException("Not enough money to withdraw on user wallet " + wallet);
     }
-    wallet.setReservedBalance(wallet.getReservedBalance().add(sum).setScale(decimalPlaces, ROUND_HALF_UP));
-    walletDao.update(wallet);
+    walletDao.addToWalletBalance(wallet.getId(), sum.negate(), sum);
   }
 
   @Override
@@ -183,7 +178,7 @@ public final class WalletServiceImpl implements WalletService {
     if (wallet.getReservedBalance().compareTo(ZERO) < 0) {
       throw new NotEnoughUserWalletMoneyException("Not enough money to withdraw on user wallet " + wallet);
     }
-    walletDao.update(wallet);
+    walletDao.addToWalletBalance(wallet.getId(), BigDecimal.ZERO, sum.negate());
   }
 
   @Override

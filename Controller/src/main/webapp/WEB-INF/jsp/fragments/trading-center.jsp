@@ -29,6 +29,7 @@
                     class="green">USD</span></div>
             <div id="lastOrderRate" class="graphInfo__item lightblue"><loc:message code="dashboard.priceEnd"/><span
                     class="green">USD</span></div>
+            <div id="percentChange" class="graphInfo__item lightblue"><loc:message code="dashboard.percentChange"/><span></span></div>
         </div>
     </div>
 
