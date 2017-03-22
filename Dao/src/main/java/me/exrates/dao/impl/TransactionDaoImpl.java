@@ -1,5 +1,6 @@
 package me.exrates.dao.impl;
 
+import lombok.extern.log4j.Log4j;
 import me.exrates.dao.TransactionDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
@@ -8,6 +9,8 @@ import me.exrates.model.dto.TransactionFlatForReportDto;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.util.BigDecimalProcessing;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.jdbc.core.RowMapper;
@@ -30,6 +33,8 @@ import static java.util.Collections.singletonMap;
  */
 @Repository
 public final class TransactionDaoImpl implements TransactionDao {
+
+  private static final Logger LOGGER = LogManager.getLogger(TransactionDaoImpl.class);
 
   protected static RowMapper<Transaction> transactionRowMapper = (resultSet, i) -> {
 
@@ -376,6 +381,7 @@ public final class TransactionDaoImpl implements TransactionDao {
     stringJoiner.setEmptyValue(emptyValue);
 
     namedParameters.forEach((name, value) -> {
+      LOGGER.debug("params " + name + " " + value);
       if (checkPresent(value)) {
         stringJoiner.add(SEARCH_CRITERIA.get(name));
       }
@@ -641,18 +647,20 @@ public final class TransactionDaoImpl implements TransactionDao {
 
   @Override
   public List<Transaction> getAllOperationsByUserForPeriod(List<Integer> walletIds, String startDate, String endDate, String sortColumn, String sortDirection) {
-    String sortDBColumn = TABLE_TO_DB_COLUMN_MAP.getOrDefault(sortColumn, "TRANSACTION.datetime");
     final String whereClauseBasic = "WHERE TRANSACTION.user_wallet_id in (:ids)";
     Map<String, Object> params = new HashMap<>();
     params.put("date_from", startDate);
     params.put("date_to", endDate);
+    String criteria = defineFilterClause(params);
+    String filterClause = criteria.isEmpty() ? "" : "AND " + criteria;
     params.put("ids", walletIds);
     StringJoiner sqlJoiner = new StringJoiner(" ")
             .add(SELECT_ALL)
             .add(whereClauseBasic)
-            .add("ORDER BY").add(sortDBColumn).add(sortDirection);
-
+            .add(filterClause)
+            .add("ORDER BY").add(sortColumn).add(sortDirection);
     final String selectLimitedAllSql = sqlJoiner.toString();
+    LOGGER.debug(selectLimitedAllSql);
     return jdbcTemplate.query(selectLimitedAllSql, params, transactionRowMapper);
   }
 

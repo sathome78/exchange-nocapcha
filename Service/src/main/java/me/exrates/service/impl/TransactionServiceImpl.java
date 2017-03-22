@@ -351,17 +351,23 @@ public class TransactionServiceImpl implements TransactionService {
         transactions.forEach(i -> {
             StringBuilder sb = new StringBuilder();
             setTransactionMerchant(i);
+            String transactionStatus = "";
+            try {
+                transactionStatus = merchantService.resolveTransactionStatus(i, locale);
+            } catch (Exception e) {
+                LOG.warn("cant get trans status " + e);
+            }
             sb.append(i.getDatetime())
                     .append(";")
                     .append(i.getOperationType())
                     .append(";")
-                    .append(merchantService.resolveTransactionStatus(i, locale))
+                    .append(transactionStatus)
                     .append(";")
                     .append(i.getCurrency().getName())
                     .append(";")
-                    .append(i.getAmount().setScale(9, RoundingMode.HALF_DOWN).doubleValue())
+                    .append(i.getAmount())
                     .append(";")
-                    .append(i.getCommissionAmount().setScale(9, RoundingMode.HALF_DOWN).doubleValue())
+                    .append(i.getCommissionAmount())
                     .append(";")
                     .append(i.getMerchant().getName())
                     .append(";")

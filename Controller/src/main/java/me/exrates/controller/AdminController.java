@@ -50,7 +50,6 @@ import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.io.*;
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -262,14 +261,13 @@ public class AdminController {
   }
 
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/downloadTransactions", produces = "text/csv;charset=UTF-8")
+  @RequestMapping(value = "/2a8fy7b07dxe44/downloadTransactions")
   public void getUserTransactions(final @RequestParam int id,
                                   final @RequestParam String startDate,
                                   final @RequestParam String endDate,
                                   HttpServletRequest request,
                                   HttpServletResponse response) throws IOException {
-      response.setCharacterEncoding("UTF-8");
-      response.setContentType("text/csv, charset=UTF-8");
+      response.setContentType("text/csv");
       String reportName =
               "transactions"
                       .concat(startDate)
@@ -278,17 +276,19 @@ public class AdminController {
                       .replaceAll(" ", " _")
                       .concat(".csv");
       response.setHeader("Content-disposition", "attachment;filename="+reportName);
-      List<String> transactionshistory = transactionService
+      List<String> transactionsHistory = transactionService
               .getCSVTransactionsHistory(id, startDate, endDate, localeResolver.resolveLocale(request));
       OutputStreamWriter writer = new OutputStreamWriter(response.getOutputStream());
-      writer.write('\uFEFF'); /*BOM for csv UTF-8 using*/
-      transactionshistory.forEach(p -> {
+      for(String transaction : transactionsHistory) {
         try {
-          writer.write(p);
+          writer.write(transaction);
         } catch (IOException e) {
-          LOG.error(e);
+          LOG.error("error download transactions " + e);
+          writer.flush();
+          writer.close();
+          return;
         }
-      });
+      }
       writer.flush();
       writer.close();
 
@@ -1178,6 +1178,7 @@ public class AdminController {
     exception.printStackTrace();
     return new ErrorInfo(req.getRequestURL(), exception);
   }
+
 
 
 }
