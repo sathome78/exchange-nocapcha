@@ -15,6 +15,7 @@ import static me.exrates.model.enums.invoice.WithdrawStatusEnum.*;
  */
 public enum WithdrawRequestTableViewTypeEnum {
 
+  ALL,
   FOR_WORK(WAITING_MANUAL_POSTING, IN_WORK_OF_ADMIN, WAITING_CONFIRMATION),
   POSTED(POSTED_AUTO, POSTED_MANUAL),
   DECLINED(DECLINED_ADMIN);

@@ -510,13 +510,13 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
       WithdrawFilterData withdrawFilterData) {
     String sqlBase =
         " FROM WITHDRAW_REQUEST " +
-        " JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
-        "				(IOP.currency_id=WITHDRAW_REQUEST.currency_id) " +
-        "				AND (IOP.user_id=:requester_user_id) " +
-        "				AND (IOP.operation_direction=:operation_direction) " +
-        " WHERE status_id IN (:status_id_list) ";
+            " JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
+            "				(IOP.currency_id=WITHDRAW_REQUEST.currency_id) " +
+            "				AND (IOP.user_id=:requester_user_id) " +
+            "				AND (IOP.operation_direction=:operation_direction) " +
+            (statusIdList.isEmpty() ? "" : " WHERE status_id IN (:status_id_list) ");
     String filter = withdrawFilterData.getSQLFilterClause();
-    String whereClauseFilter = StringUtils.isEmpty(filter) ? "" :  " AND ".concat(filter);
+    String whereClauseFilter = StringUtils.isEmpty(filter) ? "" : " AND ".concat(filter);
     String orderClause = dataTableParams.getOrderByClause();
     String offsetAndLimit = " LIMIT :limit OFFSET :offset ";
     String sqlMain = new StringJoiner(" ")
@@ -540,7 +540,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
       put("offset", dataTableParams.getStart());
       put("limit", dataTableParams.getLength());
     }};
-     params.putAll(withdrawFilterData.getNamedParams());
+    params.putAll(withdrawFilterData.getNamedParams());
 
     List<WithdrawRequestFlatDto> requests = jdbcTemplate.query(sqlMain, params, (rs, i) -> {
       WithdrawRequestFlatDto withdrawRequestFlatDto = new WithdrawRequestFlatDto();

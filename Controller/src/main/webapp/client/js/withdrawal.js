@@ -53,7 +53,7 @@ $(function () {
         changeTableViewType(this, "DECLINED")
     });
     $('#withdraw-requests-All').click(function () {
-        changeStatus(this, '')
+        changeTableViewType(this, "ALL")
     });
 
     function changeTableViewType($elem, newStatus) {
