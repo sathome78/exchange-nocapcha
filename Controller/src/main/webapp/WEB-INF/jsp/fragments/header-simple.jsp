@@ -12,6 +12,8 @@
 <script src="<c:url value="/client/js/jquery.noty.packaged.min.js"/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/app.js'/>"></script>
 
+<link href="<c:url value='/client/css/action-buttons.css'/>" rel="stylesheet">
+
 <c:set var="path" value="${fn:replace(pageContext.request.requestURI, '/WEB-INF/jsp', '')}"/>
 <c:set var="path" value="${fn:replace(path, '.jsp', '')}"/>
 <%--don't show entrance menu item in header for pages that contain it's own capcha because conflict occurs--%>

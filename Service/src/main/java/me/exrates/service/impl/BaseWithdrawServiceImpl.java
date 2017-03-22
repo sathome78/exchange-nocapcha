@@ -7,10 +7,7 @@ import me.exrates.model.dto.MerchantCurrencyOptionsDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.WithdrawalRequestStatus;
-import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
-import me.exrates.model.enums.invoice.InvoiceStatus;
-import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
-import me.exrates.model.enums.invoice.WithdrawStatusEnum;
+import me.exrates.model.enums.invoice.*;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.NotificationService;
 import me.exrates.service.WithdrawService;
@@ -134,10 +131,11 @@ public abstract class BaseWithdrawServiceImpl implements WithdrawService {
 
   protected List<Map<String, Object>> generateAndGetButtonsSet(
       InvoiceStatus status,
-      Boolean authorisedUserIsHolder,
+      InvoiceOperationPermission permittedOperation,
+      boolean authorisedUserIsHolder,
       Locale locale) {
     if (status == null) return EMPTY_LIST;
-    return status.getAvailableActionList(authorisedUserIsHolder).stream()
+    return status.getAvailableActionList(authorisedUserIsHolder, permittedOperation).stream()
         .filter(e -> e.getActionTypeButton() != null)
         .map(e -> new HashMap<String, Object>(e.getActionTypeButton().getProperty()))
         .peek(e -> e.put("buttonTitle", messageSource.getMessage((String) e.get("buttonTitle"), null, locale)))

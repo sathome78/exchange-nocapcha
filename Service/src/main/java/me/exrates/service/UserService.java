@@ -5,6 +5,8 @@ import me.exrates.model.dto.*;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserCommentTopicEnum;
 import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.invoice.InvoiceOperationDirection;
+import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.service.exception.UnRegisteredUserDeleteException;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -207,4 +209,6 @@ public interface UserService {
     UserRole getCurrentUserRole();
 
     void setCurrencyPermissionsByUserId(List<UserCurrencyOperationPermissionDto> userCurrencyOperationPermissionDtoList);
+
+  InvoiceOperationPermission getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection(Integer userId, Integer currencyId, InvoiceOperationDirection invoiceOperationDirection);
 }

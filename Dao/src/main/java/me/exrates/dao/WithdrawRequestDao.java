@@ -57,7 +57,9 @@ public interface WithdrawRequestDao {
 
   Optional<WithdrawRequestFlatDto> getFlatById(int id);
 
-  PagingData<List<WithdrawRequestFlatDto>> getFlatByStatus(List<Integer> statusIdList, Integer requesterUserId, DataTableParams dataTableParams, WithdrawFilterData withdrawFilterData);
+  PagingData<List<WithdrawRequestFlatDto>> getPermittedFlatByStatus(List<Integer> statusIdList, Integer requesterUserId, DataTableParams dataTableParams, WithdrawFilterData withdrawFilterData);
 
   WithdrawRequestFlatAdditionalDataDto getAdditionalDataForId(int id);
+
+  void setHolderById(Integer id, Integer holderId);
 }

@@ -168,12 +168,4 @@ public class CommonMerchantsController {
         return new ResponseEntity<>(result, OK);
     }
 
-    /*ValkSam*/
-    @RequestMapping(value = "/withdrawal/request/revoke", method = POST)
-    @ResponseBody
-    public void revokeWithdrawRequest(
-        @RequestParam Integer id) {
-        withdrawService.revokeWithdrawalRequest(id);
-    }
-
 }

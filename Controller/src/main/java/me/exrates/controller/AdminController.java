@@ -10,7 +10,7 @@ import me.exrates.model.dto.filterData.AdminOrderFilterData;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
-import me.exrates.model.dto.onlineTableDto.WithdrawRequestsAdminTableDto;
+import me.exrates.model.dto.WithdrawRequestsAdminTableDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.*;
 import me.exrates.model.form.AuthorityOptionsForm;
@@ -1089,10 +1089,6 @@ public class AdminController {
       @RequestBody List<UserCurrencyOperationPermissionDto> userCurrencyOperationPermissionDtoList,
       HttpSession httpSession,
       Principal principal) {
-    String currentRole = (String) httpSession.getAttribute("currentRole");
-    if (!currentRole.equals(UserRole.ADMINISTRATOR.name())) {
-      throw new NoPermissionForOperationException();
-    }
     userService.setCurrencyPermissionsByUserId(userCurrencyOperationPermissionDtoList);
   }
 

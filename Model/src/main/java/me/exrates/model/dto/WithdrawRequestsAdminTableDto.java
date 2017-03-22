@@ -1,4 +1,4 @@
-package me.exrates.model.dto.onlineTableDto;
+package me.exrates.model.dto;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Getter;
@@ -7,6 +7,9 @@ import lombok.ToString;
 import me.exrates.model.MerchantImage;
 import me.exrates.model.dto.WithdrawRequestFlatAdditionalDataDto;
 import me.exrates.model.dto.WithdrawRequestFlatDto;
+import me.exrates.model.dto.onlineTableDto.OnlineTableDto;
+import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
 
@@ -14,6 +17,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+
+import static me.exrates.model.enums.TransactionSourceType.WITHDRAW;
 
 /**
  * Created by ValkSam
@@ -40,6 +45,9 @@ public class WithdrawRequestsAdminTableDto extends OnlineTableDto {
   @JsonSerialize(using = LocalDateTimeSerializer.class)
   private LocalDateTime statusModificationDate;
   private MerchantImage merchantImage;
+  private TransactionSourceType sourceType = WITHDRAW;
+  private InvoiceOperationPermission invoiceOperationPermission;
+  private Boolean isEndStatus;
   private List<Map<String, Object>> buttons;
 
   public WithdrawRequestsAdminTableDto(
@@ -62,6 +70,8 @@ public class WithdrawRequestsAdminTableDto extends OnlineTableDto {
     this.status = withdrawRequestFlatDto.getStatus();
     this.statusModificationDate = withdrawRequestFlatDto.getStatusModificationDate();
     this.merchantImage = withdrawRequestFlatAdditionalDataDto.getMerchantImage();
+    this.invoiceOperationPermission = withdrawRequestFlatDto.getInvoiceOperationPermission();
+    this.isEndStatus = this.status.isEndStatus();
     this.buttons = null;
   }
 }

@@ -2,10 +2,7 @@ package me.exrates.model.enums.invoice;
 
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.model.exceptions.AuthorisedUserIsHolderParamNeededForThisStatusException;
-import me.exrates.model.exceptions.UnsupportedInvoiceStatusForActionException;
-import me.exrates.model.exceptions.UnsupportedWithdrawRequestStatusIdException;
-import me.exrates.model.exceptions.UnsupportedWithdrawRequestStatusNameException;
+import me.exrates.model.exceptions.*;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -88,6 +85,24 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
 
   @Override
   public InvoiceStatus nextState(InvoiceActionTypeEnum action) {
+    if (action.isAvailableForHolderOnly()) {
+      throw new AuthorisedUserIsHolderParamNeededForThisStatusException(action.name());
+    }
+    if (action.getOperationPermissionOnlyList() != null) {
+      throw new PermittedOperationParamNeededForThisStatusException(action.name());
+    }
+    return nextState(schemaMap, action)
+        .orElseThrow(() -> new UnsupportedInvoiceStatusForActionException(String.format("current state: %s action: %s", this.name(), action.name())));
+  }
+
+  @Override
+  public InvoiceStatus nextState(InvoiceActionTypeEnum action, Boolean authorisedUserIsHolder, InvoiceOperationPermission permittedOperation) {
+    if (action.isAvailableForHolderOnly() && !authorisedUserIsHolder) {
+      throw new InvoiceActionIsProhibitedForNotHolderException(String.format("current status: %s action: %s", this.name(), action.name()));
+    }
+    if (action.getOperationPermissionOnlyList() != null && !action.getOperationPermissionOnlyList().contains(permittedOperation)) {
+      throw new InvoiceActionIsProhibitedForCurrencyPermissionOperationException(String.format("current status: %s action: %s permittedOperation: %s", this.name(), action.name(), permittedOperation.name()));
+    }
     return nextState(schemaMap, action)
         .orElseThrow(() -> new UnsupportedInvoiceStatusForActionException(String.format("current state: %s action: %s", this.name(), action.name())));
   }
@@ -124,12 +139,19 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
         .ifPresent(action -> {
           throw new AuthorisedUserIsHolderParamNeededForThisStatusException(action.name());
         });
+    schemaMap.keySet().stream()
+        .filter(e -> e.getOperationPermissionOnlyList() != null)
+        .findAny()
+        .ifPresent(action -> {
+          throw new PermittedOperationParamNeededForThisStatusException(action.name());
+        });
     return schemaMap.keySet();
   }
 
-  public Set<InvoiceActionTypeEnum> getAvailableActionList(Boolean authorisedUserIsHolder) {
+  public Set<InvoiceActionTypeEnum> getAvailableActionList(Boolean authorisedUserIsHolder, InvoiceOperationPermission permittedOperation) {
     return schemaMap.keySet().stream()
-        .filter(e -> !e.isAvailableForHolderOnly() || authorisedUserIsHolder)
+        .filter(e -> (!e.isAvailableForHolderOnly() || authorisedUserIsHolder) &&
+            (e.getOperationPermissionOnlyList() == null || e.getOperationPermissionOnlyList().contains(permittedOperation)))
         .collect(Collectors.toSet());
   }
 
@@ -175,6 +197,11 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
     return Arrays.stream(WithdrawStatusEnum.class.getEnumConstants())
         .filter(e -> e.schemaMap.isEmpty())
         .collect(Collectors.toSet());
+  }
+
+  @Override
+  public Boolean isEndStatus() {
+    return schemaMap.isEmpty();
   }
 
   private static Set<InvoiceStatus> collectAllSchemaMapNodesSet() {

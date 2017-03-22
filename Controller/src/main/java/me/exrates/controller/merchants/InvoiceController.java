@@ -313,29 +313,6 @@ public class InvoiceController {
     return modelAndView;
   }
 
-  @RequestMapping(value = "/withdraw/submit", method = POST)
-  public RedirectView submitWithdraw(WithdrawData withdrawData, Principal principal, HttpServletRequest request) {
-    RedirectView redirectView = new RedirectView("/dashboard");
-    HttpSession session = request.getSession();
-    Object mutex = WebUtils.getSessionMutex(session);
-    CreditsOperation creditsOperation = (CreditsOperation) session.getAttribute("creditsOperation");
-    if (creditsOperation == null) {
-      synchronized (mutex) {
-        session.setAttribute("errorNoty", messageSource.getMessage("merchant.operationNotAvailable", null,
-            localeResolver.resolveLocale(request)));
-      }
-      return new RedirectView("/merchants/invoice/withdrawDetails");
-
-    }
-    Map<String, String> result = withdrawService.withdrawRequest(creditsOperation, withdrawData, principal.getName(),
-        localeResolver.resolveLocale(request));
-    synchronized (mutex) {
-      session.removeAttribute("creditsOperation");
-      session.setAttribute("successNoty", result.get("success"));
-    }
-    return redirectView;
-  }
-  
   @RequestMapping(value = "/payment/newCommission", method = GET)
   @ResponseBody
   public BigDecimal calculateNewCommission(@RequestParam(name = "id") Integer invoiceId,

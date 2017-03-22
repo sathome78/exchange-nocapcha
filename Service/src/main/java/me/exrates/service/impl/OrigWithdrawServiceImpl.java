@@ -12,7 +12,7 @@ import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
-import me.exrates.model.dto.onlineTableDto.WithdrawRequestsAdminTableDto;
+import me.exrates.model.dto.WithdrawRequestsAdminTableDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WithdrawData;
@@ -214,14 +214,34 @@ public class OrigWithdrawServiceImpl extends BaseWithdrawServiceImpl {
       result.forEach(e ->
       {
         e.setSummaryStatus(generateAndGetSummaryStatus(e, locale));
-        e.setButtons(generateAndGetButtonsSet(e.getStatus(), false, locale));
+        e.setButtons(generateAndGetButtonsSet(e.getStatus(), null, false, locale));
       });
     }
     return result;
   }
 
   @Override
+  @Transactional
   public void revokeWithdrawalRequest(int requestId) {
+    LOG.error("NOT IMPLEMENTED");
+    throw new NotImplimentedMethod("method NOT IMPLEMENTED !");
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public void takeInWorkWithdrawalRequest(int requestId, Integer requesterAdminId) {
+    LOG.error("NOT IMPLEMENTED");
+    throw new NotImplimentedMethod("method NOT IMPLEMENTED !");
+  }
+
+  @Override
+  public void returnFromWorkWithdrawalRequest(int requestId, Integer requesterAdminId) {
+    LOG.error("NOT IMPLEMENTED");
+    throw new NotImplimentedMethod("method NOT IMPLEMENTED !");
+  }
+
+  @Override
+  public void declineWithdrawalRequest(int requestId, Integer requesterAdminId) {
     LOG.error("NOT IMPLEMENTED");
     throw new NotImplimentedMethod("method NOT IMPLEMENTED !");
   }
@@ -237,4 +257,9 @@ public class OrigWithdrawServiceImpl extends BaseWithdrawServiceImpl {
     throw new NotImplimentedMethod("method NOT IMPLEMENTED !");
   }
 
+  @Override
+  public Map<String, String> createWithdrawalRequest(CreditsOperation creditsOperation, WithdrawData withdrawData, String userEmail, Locale locale) {
+    LOG.error("NOT IMPLEMENTED");
+    throw new NotImplimentedMethod("method NOT IMPLEMENTED !");
+  }
 }

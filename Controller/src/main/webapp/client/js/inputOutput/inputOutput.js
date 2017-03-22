@@ -165,7 +165,7 @@ function InputOutputClass(currentCurrencyPair) {
             $modal.find("#confirm-button").off("click").one("click", function () {
                 $modal.modal('hide');
                 $.ajax({
-                    url: '/merchants/withdrawal/request/revoke?id=' + id,
+                    url: '/withdraw/request/revoke?id=' + id,
                     headers: {
                         'X-CSRF-Token': $("input[name='_csrf']").val(),
                     },

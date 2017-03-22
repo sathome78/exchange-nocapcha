@@ -15,10 +15,7 @@ import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.WithdrawalRequestStatus;
-import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
-import me.exrates.model.enums.invoice.InvoiceStatus;
-import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
-import me.exrates.model.enums.invoice.WithdrawStatusEnum;
+import me.exrates.model.enums.invoice.*;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -341,6 +338,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
         "    left join WITHDRAW_REQUEST on TRANSACTION.source_type = 'WITHDRAW' AND TRANSACTION.source_id=WITHDRAW_REQUEST.id" +
         "    left join INVOICE_BANK on INVOICE_REQUEST.bank_id = INVOICE_BANK.id " +
         "    left join MERCHANT on TRANSACTION.merchant_id = MERCHANT.id " +
+        "    left join MERCHANT_IMAGE on WITHDRAW_REQUEST.merchant_image_id=MERCHANT_IMAGE.id " +
         "    left join OPERATION_TYPE on TRANSACTION.operation_type_id=OPERATION_TYPE.id" +
         "    left join WALLET on TRANSACTION.user_wallet_id=WALLET.id" +
         "    left join USER on WALLET.user_id=USER.id" +
@@ -484,7 +482,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
   }
 
   @Override
-  public PagingData<List<WithdrawRequestFlatDto>> getFlatByStatus(
+  public PagingData<List<WithdrawRequestFlatDto>> getPermittedFlatByStatus(
       List<Integer> statusIdList,
       Integer requesterUserId,
       DataTableParams dataTableParams,
@@ -501,7 +499,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     String orderClause = dataTableParams.getOrderByClause();
     String offsetAndLimit = " LIMIT :limit OFFSET :offset ";
     String sqlMain = new StringJoiner(" ")
-        .add("SELECT * ")
+        .add("SELECT *, IOP.invoice_operation_permission_id ")
         .add(sqlBase)
         .add(whereClauseFilter)
         .add(orderClause)
@@ -541,6 +539,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
       withdrawRequestFlatDto.setCurrencyId(rs.getInt("currency_id"));
       withdrawRequestFlatDto.setMerchantId(rs.getInt("merchant_id"));
       withdrawRequestFlatDto.setAdminHolderId(rs.getInt("admin_holder_id"));
+      withdrawRequestFlatDto.setInvoiceOperationPermission(InvoiceOperationPermission.convert(rs.getInt("invoice_operation_permission_id")));
       return withdrawRequestFlatDto;
     });
     Integer totalQuantity = jdbcTemplate.queryForObject(sqlCount, params, Integer.class);
@@ -580,6 +579,17 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
           return withdrawRequestFlatAdditionalDataDto;
         }
     );
+  }
+
+  @Override
+  public void setHolderById(Integer id, Integer holderId) {
+    final String sql = "UPDATE WITHDRAW_REQUEST " +
+        "  SET admin_holder_id = :admin_holder_id " +
+        "  WHERE id = :id";
+    Map<String, Object> params = new HashMap<>();
+    params.put("id", id);
+    params.put("admin_holder_id", holderId);
+    jdbcTemplate.update(sql, params);
   }
 
 }

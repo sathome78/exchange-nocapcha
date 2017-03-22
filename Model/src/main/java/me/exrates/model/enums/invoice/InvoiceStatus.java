@@ -1,7 +1,5 @@
 package me.exrates.model.enums.invoice;
 
-import me.exrates.model.exceptions.UnsupportedInvoiceStatusForActionException;
-
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -13,8 +11,8 @@ import java.util.stream.Collectors;
 public interface InvoiceStatus {
 
   default Set<InvoiceStatus> getAvailableNextStatesSet(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
-    Set<InvoiceStatus> availableNextStates =  schemaMap.values().stream().collect(Collectors.toSet());
-    assert(availableNextStates.size()==schemaMap.values().size());
+    Set<InvoiceStatus> availableNextStates = schemaMap.values().stream().collect(Collectors.toSet());
+    assert (availableNextStates.size() == schemaMap.values().size());
     return availableNextStates;
   }
 
@@ -24,17 +22,21 @@ public interface InvoiceStatus {
 
   InvoiceStatus nextState(InvoiceActionTypeEnum action);
 
-  default Boolean availableForAction(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap, InvoiceActionTypeEnum action){
+  default Boolean availableForAction(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap, InvoiceActionTypeEnum action) {
     return schemaMap.get(action) != null;
   }
+
+  InvoiceStatus nextState(InvoiceActionTypeEnum action, Boolean authorisedUserIsHolder, InvoiceOperationPermission permittedOperation);
 
   Boolean availableForAction(InvoiceActionTypeEnum action);
 
   Set<InvoiceActionTypeEnum> getAvailableActionList();
 
-  Set<InvoiceActionTypeEnum> getAvailableActionList(Boolean authorisedUserIsHolder);
+  Set<InvoiceActionTypeEnum> getAvailableActionList(Boolean authorisedUserIsHolder, InvoiceOperationPermission permittedOperation);
 
   void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap);
+
+  Boolean isEndStatus();
 
   Integer getCode();
 

@@ -22,7 +22,7 @@ $(function () {
         format: 'YYYY-MM-DD HH:mm',
         formatDate: 'YYYY-MM-DD',
         formatTime: 'HH:mm',
-        lang:'ru',
+        lang: 'ru',
         defaultDate: new Date(),
         defaultTime: '00:00'
     });
@@ -30,7 +30,7 @@ $(function () {
         format: 'YYYY-MM-DD HH:mm',
         formatDate: 'YYYY-MM-DD',
         formatTime: 'HH:mm',
-        lang:'ru',
+        lang: 'ru',
         defaultDate: new Date(),
         defaultTime: '00:00'
     });
@@ -68,11 +68,11 @@ $(function () {
         var newComment = document.getElementById("commentText").value;
         var email = currentEmail;
         var sendMessage = document.getElementById("sendMessageCheckbox").checked;
-        if (sendMessage == true){
+        if (sendMessage == true) {
             if (confirm($('#prompt_send_message_rqst').html() + " " + email + "?")) {
 
-            }else{
-                $("[data-dismiss=modal]").trigger({ type: "click" });
+            } else {
+                $("[data-dismiss=modal]").trigger({type: "click"});
                 return;
             }
         }
@@ -94,7 +94,7 @@ $(function () {
                 console.log(err);
             }
         });
-        $("[data-dismiss=modal]").trigger({ type: "click" });
+        $("[data-dismiss=modal]").trigger({type: "click"});
         return;
     });
 
@@ -109,8 +109,52 @@ $(function () {
         $('#withdrawal-request-search-form')[0].reset();
         filterParams = '';
         updateWithdrawalTable();
-
     });
+
+    $('#withdrawalTable').on('click', 'button[data-source=WITHDRAW].take_to_work_button', function (e) {
+        e.preventDefault();
+        var id = $(this).data("id");
+        var $modal = $("#confirm-with-info-modal");
+        $modal.find("label[for=info-field]").html($(this).html());
+        $modal.find("#info-field").val(id);
+        $modal.find("#confirm-button").off("click").one("click", function () {
+            $modal.modal('hide');
+            $.ajax({
+                url: '/2a8fy7b07dxe44/withdraw/take?id=' + id,
+                headers: {
+                    'X-CSRF-Token': $("input[name='_csrf']").val(),
+                },
+                type: 'POST',
+                complete: function () {
+                    updateWithdrawalTable();
+                }
+            });
+        });
+        $modal.modal();
+    });
+
+    $('#withdrawalTable').on('click', 'button[data-source=WITHDRAW].return_from_work_button', function (e) {
+        e.preventDefault();
+        var id = $(this).data("id");
+        var $modal = $("#confirm-with-info-modal");
+        $modal.find("label[for=info-field]").html($(this).html());
+        $modal.find("#info-field").val(id);
+        $modal.find("#confirm-button").off("click").one("click", function () {
+            $modal.modal('hide');
+            $.ajax({
+                url: '/2a8fy7b07dxe44/withdraw/return?id=' + id,
+                headers: {
+                    'X-CSRF-Token': $("input[name='_csrf']").val(),
+                },
+                type: 'POST',
+                complete: function () {
+                    updateWithdrawalTable();
+                }
+            });
+        });
+        $modal.modal();
+    });
+
 });
 
 function submitAccept($elem) {
@@ -123,7 +167,7 @@ function submitDecline($elem) {
 function promptAcceptRequest(requestId) {
     if (confirm($('#prompt_acc_rqst').html())) {
         var data = "requestId=" + requestId;
-        $.ajax('/merchants/withdrawal/request/accept',{
+        $.ajax('/merchants/withdrawal/request/accept', {
             headers: {
                 'X-CSRF-Token': $("input[name='_csrf']").val()
             },
@@ -143,7 +187,7 @@ function promptDeclineRequest(requestId) {
         var data = "requestId=" + requestId;
         document.getElementById("commentText").value = "";
         document.getElementById("user_info").textContent = "";
-        $.ajax('/merchants/withdrawal/request/decline',{
+        $.ajax('/merchants/withdrawal/request/decline', {
             headers: {
                 'X-CSRF-Token': $("input[name='_csrf']").val()
             },
@@ -156,7 +200,7 @@ function promptDeclineRequest(requestId) {
                 $("#myModal").modal();
                 document.getElementById("sendMessageCheckbox").checked = true;
                 currentEmail = result.userEmail;
-                document.getElementById("user_info").textContent = document.getElementById("language").innerText + ", " +  result.userEmail;
+                document.getElementById("user_info").textContent = document.getElementById("language").innerText + ", " + result.userEmail;
                 $('#checkMessage').show();
             }
         });
@@ -198,7 +242,6 @@ function fillModal(rowData) {
 }
 
 
-
 function updateWithdrawalTable() {
     var filter = filterParams.length > 0 ? '&' + filterParams : '';
     var url = withdrawRequestsBaseUrl + tableViewType + filter;
@@ -215,7 +258,7 @@ function updateWithdrawalTable() {
             "paging": true,
             "info": true,
             "bFilter": false,
-            "columns":[
+            "columns": [
                 {
                     "data": "id",
                     "name": "WITHDRAW_REQUEST.id",
@@ -231,10 +274,10 @@ function updateWithdrawalTable() {
                     },
                     "className": "text-center"
                 },
-               /* {
-                    "data": "status",
-                    "name": "WITHDRAW_REQUEST.status_id",
-                },*/
+                /* {
+                 "data": "status",
+                 "name": "WITHDRAW_REQUEST.status_id",
+                 },*/
                 {
                     "data": "userId",
                     "name": "WITHDRAW_REQUEST.user_id",
@@ -275,7 +318,7 @@ function updateWithdrawalTable() {
                     "data": "adminHolderEmail",
                     "name": "WITHDRAW_REQUEST.admin_holder_id",
                     "render": function (data, type, row) {
-                        if (data) {
+                        if (data && row.isEndStatus) {
                             return '<a href="/2a8fy7b07dxe44/userInfo?id=' + row.adminHolderId + '">' + data + '</a>';
                         } else {
                             return getButtonsSet(row.id, row.sourceType, row.buttons, "withdrawalTable");
@@ -284,17 +327,9 @@ function updateWithdrawalTable() {
                     "className": "text-center"
                 }
             ],
-            "order": [[ 0, 'desc' ]]
+            "createdRow": function (row, data, index) {
+            },
+            "order": [[0, 'desc']]
         });
     }
 }
-
-/*return '<div class="table-button-block" style="white-space: nowrap">' +
- '<button style="font-size: 11px;" class="table-button-block__button btn btn-success" onclick="submitAccept(this)" >' +
- acceptLocMessage +
- '</button>' +
- '&nbsp;' +
- '<button style="font-size: 11px;" class="table-button-block__button btn btn-danger" onclick="submitDecline(this)" >' +
- declineLocMessage +
- '</button>' +
- '</div>';*/

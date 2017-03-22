@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.WithdrawalRequestStatus;
+import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 
 import java.math.BigDecimal;
@@ -31,4 +32,5 @@ public class WithdrawRequestFlatDto {
   private Integer currencyId;
   private Integer merchantId;
   private Integer adminHolderId;
+  private InvoiceOperationPermission invoiceOperationPermission;
 }
