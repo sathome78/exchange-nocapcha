@@ -48,8 +48,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
@@ -259,6 +258,40 @@ public class AdminController {
     List<Integer> merchantIds = merchant == null ? null : Arrays.asList(merchant);
     return transactionService.showUserOperationHistory(id, transactionStatus, types, merchantIds, startDate, endDate,
         amountFrom, amountTo, commissionAmountFrom, commissionAmountTo, localeResolver.resolveLocale(request), params);
+  }
+
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/downloadTransactions")
+  public void getUserTransactions(final @RequestParam int id,
+                                  final @RequestParam String startDate,
+                                  final @RequestParam String endDate,
+                                  HttpServletRequest request,
+                                  HttpServletResponse response) throws IOException {
+      response.setContentType("text/csv");
+      String reportName =
+              "transactions"
+                      .concat(startDate)
+                      .concat("-")
+                      .concat(endDate)
+                      .replaceAll(" ", " _")
+                      .concat(".csv");
+      response.setHeader("Content-disposition", "attachment;filename="+reportName);
+      List<String> transactionsHistory = transactionService
+              .getCSVTransactionsHistory(id, startDate, endDate, localeResolver.resolveLocale(request));
+      OutputStreamWriter writer = new OutputStreamWriter(response.getOutputStream());
+      for(String transaction : transactionsHistory) {
+        try {
+          writer.write(transaction);
+        } catch (IOException e) {
+          LOG.error("error download transactions " + e);
+          writer.flush();
+          writer.close();
+          return;
+        }
+      }
+      writer.flush();
+      writer.close();
+
   }
 
   @ResponseBody
@@ -1145,6 +1178,7 @@ public class AdminController {
     exception.printStackTrace();
     return new ErrorInfo(req.getRequestURL(), exception);
   }
+
 
 
 }
