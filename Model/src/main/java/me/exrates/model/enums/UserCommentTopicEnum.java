@@ -13,7 +13,9 @@ import java.util.Arrays;
 @Log4j2
 public enum UserCommentTopicEnum {
   GENERAL(1),
-  INVOICE_DECLINE(2);
+  INVOICE_DECLINE(2),
+  CURRENCY_WARNING(3),
+  WITHDRAW_DECLINE(4);
 
   private Integer code;
 

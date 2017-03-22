@@ -5,32 +5,32 @@ import me.exrates.dao.MerchantDao;
 import me.exrates.dao.WithdrawRequestDao;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.PagingData;
-import me.exrates.model.User;
 import me.exrates.model.WithdrawRequest;
-import me.exrates.model.dto.MerchantCurrencyAutoParamDto;
-import me.exrates.model.dto.WithdrawRequestCreateDto;
-import me.exrates.model.dto.WithdrawRequestFlatDto;
-import me.exrates.model.dto.WithdrawRequestFlatForReportDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
-import me.exrates.model.dto.WithdrawRequestsAdminTableDto;
+import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
-import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
-import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
-import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.*;
-import me.exrates.service.exception.*;
+import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
+import me.exrates.service.exception.NotImplimentedMethod;
+import me.exrates.service.exception.WithdrawRequestCreationException;
+import me.exrates.service.exception.WithdrawRequestRevokeException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.util.Cache;
+import me.exrates.service.vo.ProfileData;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.mail.MailException;
@@ -41,15 +41,16 @@ import java.security.Principal;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static me.exrates.model.enums.UserCommentTopicEnum.INVOICE_DECLINE;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.*;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
-import static me.exrates.model.enums.invoice.InvoiceOperationPermission.ACCEPT_DECLINE;
 
 /**
  * @author ValkSam
  */
 @Log4j2
 public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements WithdrawService {
+  private static final Logger profileLog = LogManager.getLogger("profile");
 
   @Autowired
   private MerchantDao merchantDao;
@@ -284,6 +285,7 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
         .orElseThrow(() -> new InvoiceNotFoundException(String.format("withdraw request id: %s", requestId)));
     WithdrawStatusEnum newStatus = (WithdrawStatusEnum) withdrawRequest.getStatus().nextState(REVOKE);
     withdrawRequestDao.setStatusById(requestId, newStatus);
+    /**/
     Integer userWalletId = walletService.getWalletId(withdrawRequest.getUserId(), withdrawRequest.getCurrencyId());
     WalletTransferStatus result = walletService.walletInnerTransfer(
         userWalletId,
@@ -303,6 +305,7 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
     InvoiceActionTypeEnum action = TAKE_TO_WORK;
     WithdrawStatusEnum newStatus = checkPermissionOnActionAndGetNewStatus(requesterAdminId, withdrawRequest, action);
     withdrawRequestDao.setStatusById(requestId, newStatus);
+    /**/
     withdrawRequestDao.setHolderById(requestId, requesterAdminId);
   }
 
@@ -314,25 +317,46 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
     InvoiceActionTypeEnum action = DECLINE_HOLDED;
     WithdrawStatusEnum newStatus = checkPermissionOnActionAndGetNewStatus(requesterAdminId, withdrawRequest, action);
     withdrawRequestDao.setStatusById(requestId, newStatus);
+    /**/
     withdrawRequestDao.setHolderById(requestId, null);
   }
 
   @Override
   @Transactional
-  public void declineWithdrawalRequest(int requestId, Integer requesterAdminId) {
-    WithdrawRequestFlatDto withdrawRequest = withdrawRequestDao.getFlatByIdAndBlock(requestId)
-        .orElseThrow(() -> new InvoiceNotFoundException(String.format("withdraw request id: %s", requestId)));
-    InvoiceActionTypeEnum action = DECLINE_HOLDED;
-    WithdrawStatusEnum newStatus = checkPermissionOnActionAndGetNewStatus(requesterAdminId, withdrawRequest, action);
-    withdrawRequestDao.setStatusById(requestId, newStatus);
-    Integer userWalletId = walletService.getWalletId(withdrawRequest.getUserId(), withdrawRequest.getCurrencyId());
-    WalletTransferStatus result = walletService.walletInnerTransfer(
-        userWalletId,
-        withdrawRequest.getAmount(),
-        TransactionSourceType.WITHDRAW,
-        withdrawRequest.getId());
-    if (result != WalletTransferStatus.SUCCESS) {
-      throw new WithdrawRequestDeclineException(result.toString());
+  public void declineWithdrawalRequest(int requestId, Integer requesterAdminId, String comment) {
+    ProfileData profileData = new ProfileData(200);
+    try {
+      WithdrawRequestFlatDto withdrawRequest = withdrawRequestDao.getFlatByIdAndBlock(requestId)
+          .orElseThrow(() -> new InvoiceNotFoundException(String.format("withdraw request id: %s", requestId)));
+      InvoiceActionTypeEnum action = DECLINE_HOLDED;
+      WithdrawStatusEnum newStatus = checkPermissionOnActionAndGetNewStatus(requesterAdminId, withdrawRequest, action);
+      withdrawRequestDao.setStatusById(requestId, newStatus);
+      profileData.setTime1();
+      /**/
+      Integer userWalletId = walletService.getWalletId(withdrawRequest.getUserId(), withdrawRequest.getCurrencyId());
+      WalletTransferStatus result = walletService.walletInnerTransfer(
+          userWalletId,
+          withdrawRequest.getAmount(),
+          TransactionSourceType.WITHDRAW,
+          withdrawRequest.getId());
+      if (result != WalletTransferStatus.SUCCESS) {
+        throw new WithdrawRequestRevokeException(result.toString());
+      }
+      profileData.setTime2();
+      /**/
+      Locale locale = new Locale(userService.getPreferedLang(withdrawRequest.getUserId()));
+      String title = messageSource.getMessage("withdrawal.declined.title", new Integer[]{requestId}, locale);
+      if (StringUtils.isEmpty(comment)) {
+        comment = messageSource.getMessage("withdrawal.declined.message", new Integer[]{requestId}, locale);
+      }
+      String userEmail = userService.getEmailById(withdrawRequest.getUserId());
+      userService.addUserComment(INVOICE_DECLINE, comment, userEmail, false);
+      notificationService.notifyUser(withdrawRequest.getUserId(), NotificationEvent.IN_OUT, title, comment);
+      profileData.setTime3();
+    } finally {
+      if (profileData.isExceeded()) {
+        profileLog.warn("slowdecline WithdrawalRequest: " + requestId + " profile: " + profileData);
+      }
     }
   }
 

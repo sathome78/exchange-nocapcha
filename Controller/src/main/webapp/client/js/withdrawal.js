@@ -121,6 +121,7 @@ $(function () {
             $modal.modal('hide');
             $.ajax({
                 url: '/2a8fy7b07dxe44/withdraw/take?id=' + id,
+                async: false,
                 headers: {
                     'X-CSRF-Token': $("input[name='_csrf']").val(),
                 },
@@ -143,6 +144,7 @@ $(function () {
             $modal.modal('hide');
             $.ajax({
                 url: '/2a8fy7b07dxe44/withdraw/return?id=' + id,
+                async: false,
                 headers: {
                     'X-CSRF-Token': $("input[name='_csrf']").val(),
                 },
@@ -153,6 +155,49 @@ $(function () {
             });
         });
         $modal.modal();
+    });
+
+
+    $('#withdrawalTable').on('click', 'button[data-source=WITHDRAW].decline_holded_button', function (e) {
+        e.stopPropagation();
+        var id = $(this).data("id");
+        var $modal = $("#note-before-decline-modal");
+        var email = $(this).closest("tr").find("a[data-userEmail]").data("useremail");
+        $.ajax({
+            url: '/2a8fy7b07dxe44/phrases/withdraw_decline?email=' + email,
+            type: 'GET',
+            success: function (data) {
+                $modal.find("#user-language").val(data["lang"]);
+                $list = $modal.find("#phrase-template-list");
+                $list.html("<option></option>");
+                data["list"].forEach(function (e) {
+                    $list.append($("<option></option>").append(e));
+                });
+                $modal.find("#createCommentConfirm").off("click").one("click", function (event) {
+                    var $textArea = $(event.target).closest("#note-before-decline-modal").find("#commentText");
+                    var comment = $textArea.val().trim();
+                    if (!comment) {
+                        return;
+                    }
+                    $modal.modal('hide');
+                    $.ajax({
+                        url: '/2a8fy7b07dxe44/withdraw/decline?id=' + id +'&comment='+comment,
+                        async: false,
+                        headers: {
+                            'X-CSRF-Token': $("input[name='_csrf']").val()
+                        },
+                        type: 'POST',
+                        complete: function () {
+                            updateWithdrawalTable();
+                        }
+                    });
+                });
+                $modal.find("#createCommentCancel").off("click").one("click", function () {
+                    $modal.modal('hide');
+                });
+                $modal.modal();
+            }
+        });
     });
 
 });
@@ -282,7 +327,7 @@ function updateWithdrawalTable() {
                     "data": "userId",
                     "name": "WITHDRAW_REQUEST.user_id",
                     "render": function (data, type, row) {
-                        return '<a href="/2a8fy7b07dxe44/userInfo?id=' + data + '">' + row.userEmail + '</a>'
+                        return '<a data-userEmail="'+row.userEmail+'" href="/2a8fy7b07dxe44/userInfo?id=' + data + '">' + row.userEmail + '</a>'
                     }
                 },
                 {

@@ -628,4 +628,10 @@ public class UserServiceImpl implements UserService {
     return userDao.getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection(userId, currencyId, invoiceOperationDirection);
   }
 
+    @Override
+    @Transactional(readOnly = true)
+    public String getEmailById(Integer id) {
+        return userDao.getEmailById(id);
+    }
+
 }

@@ -53,5 +53,5 @@ public interface WithdrawService {
 
   void returnFromWorkWithdrawalRequest(int requestId, Integer requesterAdminId);
 
-  void declineWithdrawalRequest(int requestId, Integer requesterAdminId);
+  void declineWithdrawalRequest(int requestId, Integer requesterAdminId, String comment);
 }

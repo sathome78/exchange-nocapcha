@@ -1103,4 +1103,10 @@ public class UserDaoImpl implements UserDao {
         InvoiceOperationPermission.convert(rs.getInt("invoice_operation_permission_id")));
   }
 
+  @Override
+  public String getEmailById(Integer id) {
+    String sql = "SELECT email FROM USER WHERE id = :id";
+    return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("id", id), String.class);
+  }
+
 }

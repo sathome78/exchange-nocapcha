@@ -92,9 +92,10 @@ public class WithdrawRequestController {
   @ResponseBody
   public void decline(
       @RequestParam Integer id,
+      @RequestParam String comment,
       Principal principal) {
     Integer requesterAdminId = userService.getIdByEmail(principal.getName());
-    withdrawService.declineWithdrawalRequest(id, requesterAdminId);
+    withdrawService.declineWithdrawalRequest(id, requesterAdminId, comment);
   }
 
   @ResponseStatus(HttpStatus.NOT_FOUND)
