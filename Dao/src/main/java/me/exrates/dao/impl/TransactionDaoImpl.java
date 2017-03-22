@@ -3,6 +3,7 @@ package me.exrates.dao.impl;
 import me.exrates.dao.TransactionDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
+import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.dto.TransactionFlatForReportDto;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.enums.*;
@@ -636,6 +637,23 @@ public final class TransactionDaoImpl implements TransactionDao {
         return transactionFlatForReportDto;
       }
     });
+  }
+
+  @Override
+  public List<Transaction> getAllOperationsByUserForPeriod(List<Integer> walletIds, String startDate, String endDate, String sortColumn, String sortDirection) {
+    String sortDBColumn = TABLE_TO_DB_COLUMN_MAP.getOrDefault(sortColumn, "TRANSACTION.datetime");
+    final String whereClauseBasic = "WHERE TRANSACTION.user_wallet_id in (:ids)";
+    Map<String, Object> params = new HashMap<>();
+    params.put("date_from", startDate);
+    params.put("date_to", endDate);
+    params.put("ids", walletIds);
+    StringJoiner sqlJoiner = new StringJoiner(" ")
+            .add(SELECT_ALL)
+            .add(whereClauseBasic)
+            .add("ORDER BY").add(sortDBColumn).add(sortDirection);
+
+    final String selectLimitedAllSql = sqlJoiner.toString();
+    return jdbcTemplate.query(selectLimitedAllSql, params, transactionRowMapper);
   }
 
 }

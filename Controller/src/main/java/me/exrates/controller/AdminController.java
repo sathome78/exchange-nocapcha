@@ -48,9 +48,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -259,6 +259,39 @@ public class AdminController {
     List<Integer> merchantIds = merchant == null ? null : Arrays.asList(merchant);
     return transactionService.showUserOperationHistory(id, transactionStatus, types, merchantIds, startDate, endDate,
         amountFrom, amountTo, commissionAmountFrom, commissionAmountTo, localeResolver.resolveLocale(request), params);
+  }
+
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/downloadTransactions", produces = "text/csv;charset=UTF-8")
+  public void getUserTransactions(final @RequestParam int id,
+                                  final @RequestParam String startDate,
+                                  final @RequestParam String endDate,
+                                  HttpServletRequest request,
+                                  HttpServletResponse response) throws IOException {
+      response.setCharacterEncoding("UTF-8");
+      response.setContentType("text/csv, charset=UTF-8");
+      String reportName =
+              "transactions"
+                      .concat(startDate)
+                      .concat("-")
+                      .concat(endDate)
+                      .replaceAll(" ", " _")
+                      .concat(".csv");
+      response.setHeader("Content-disposition", "attachment;filename="+reportName);
+      List<String> transactionshistory = transactionService
+              .getCSVTransactionsHistory(id, startDate, endDate, localeResolver.resolveLocale(request));
+      OutputStreamWriter writer = new OutputStreamWriter(response.getOutputStream());
+      writer.write('\uFEFF'); /*BOM for csv UTF-8 using*/
+      transactionshistory.forEach(p -> {
+        try {
+          writer.write(p);
+        } catch (IOException e) {
+          LOG.error(e);
+        }
+      });
+      writer.flush();
+      writer.close();
+
   }
 
   @ResponseBody

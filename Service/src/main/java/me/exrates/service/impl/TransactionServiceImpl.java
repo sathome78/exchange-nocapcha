@@ -15,6 +15,7 @@ import me.exrates.service.*;
 import me.exrates.service.exception.TransactionPersistException;
 import me.exrates.service.exception.TransactionProvidingException;
 import me.exrates.service.util.Cache;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -324,5 +326,64 @@ public class TransactionServiceImpl implements TransactionService {
         List<Integer> currencyList,
         List<String> sourceTypeList) {
         return transactionDao.findAllByDateIntervalAndRoleAndOperationTypeAndCurrencyAndSourceType(startDate, endDate, operationType, roleIdList, currencyList, sourceTypeList);
+    }
+
+    @Override
+    public List<String> getCSVTransactionsHistory(int id, String startDate, String endDate, Locale locale) {
+
+        final List<Integer> wallets = walletService.getAllWallets(id).stream()
+                .mapToInt(Wallet::getId)
+                .boxed()
+                .collect(Collectors.toList());
+        if (wallets.isEmpty()) {
+            return Collections.emptyList();
+        }
+        String sortColumn = "TRANSACTION.datetime";
+        String sortDirection = "DESC";
+        List<Transaction> transactions = transactionDao.getAllOperationsByUserForPeriod(wallets, startDate, endDate, sortColumn, sortDirection);
+        return convertTrListToString(transactions, locale);
+    }
+
+    private List<String> convertTrListToString(List<Transaction> transactions, Locale locale) {
+        List<String> transactionsResult = new ArrayList<>();
+        transactionsResult.add(getCSVTransactionsHeader());
+        transactionsResult.add("\n");
+        transactions.forEach(i -> {
+            StringBuilder sb = new StringBuilder();
+            setTransactionMerchant(i);
+            sb.append(i.getDatetime())
+                    .append(";")
+                    .append(i.getOperationType())
+                    .append(";")
+                    .append(merchantService.resolveTransactionStatus(i, locale))
+                    .append(";")
+                    .append(i.getCurrency().getName())
+                    .append(";")
+                    .append(i.getAmount().setScale(9, RoundingMode.HALF_DOWN).doubleValue())
+                    .append(";")
+                    .append(i.getCommissionAmount().setScale(9, RoundingMode.HALF_DOWN).doubleValue())
+                    .append(";")
+                    .append(i.getMerchant().getName())
+                    .append(";")
+                    .append(i.getOrder().getId());
+            transactionsResult.add(sb.toString());
+            transactionsResult.add("\n");
+        });
+        return transactionsResult;
+    }
+
+    private String getCSVTransactionsHeader() {
+        return "Date;Operation Type;Status;Currency;Amount;Comission;Merchant;Source Id";
+    }
+
+    private void setTransactionMerchant(Transaction transaction) {
+        LOG.debug(transaction);
+        TransactionSourceType sourceType = transaction.getSourceType();
+        if (sourceType == TransactionSourceType.MERCHANT || sourceType == TransactionSourceType.WITHDRAW) {
+            transaction.setMerchant(transaction.getMerchant());
+        } else {
+            transaction.setMerchant(new Merchant(0, sourceType.name(), sourceType.name(), null));
+        }
+
     }
 }
