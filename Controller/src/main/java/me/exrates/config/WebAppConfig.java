@@ -346,17 +346,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new StoreSessionListenerImpl();
     }
     
-    @Bean(name = "btcdClient")
-    public BtcdClient bitcoindClient() throws BitcoindException, CommunicationException, IOException {
-        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
-        CloseableHttpClient httpProvider = HttpClients.custom().setConnectionManager(cm)
-                .build();
-        Properties nodeConfig = new Properties();
-        nodeConfig.load(getClass().getClassLoader().getResourceAsStream("node_config.properties"));
-        return new BtcdClientImpl(httpProvider, nodeConfig);
-    }
-   
-
     @Bean
     public WithdrawService withdrawService() {
         if ("WithdrawServiceImpl".equals(withdrawConcreteClassName)) {
