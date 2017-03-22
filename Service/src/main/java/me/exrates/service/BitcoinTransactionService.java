@@ -30,4 +30,6 @@ public interface BitcoinTransactionService {
   void provideBtcTransaction(Integer pendingPaymentId, String hash, BigDecimal factAmount, String acceptanceUserEmail) throws IllegalInvoiceAmountException, IllegalOperationTypeException, IllegalTransactionProvidedStatusException;
   
   List<PendingPayment> findUnconfirmedBtcPayments();
+  
+  List<PendingPayment> findUnpaidBtcPayments();
 }

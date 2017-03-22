@@ -60,62 +60,70 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
       log.debug("Starting Bitcoin Core client");
       btcdClient = initBitcoindClient();
       daemon = new BtcdDaemonImpl(btcdClient);
+      
       daemon.addBlockListener(new BlockListener() {
         @Override
         public void blockDetected(Block block) {
           log.debug(String.format("Block detected: hash %s ", block.toString()));
-          List<PendingPayment> unconfirmedPayments = bitcoinTransactionService.findUnconfirmedBtcPayments();
-          List<SimpleBtcPayment> paymentsToUpdate = new ArrayList<>();
-          final List<Output> unspentOutputs;
-          try {
-            unspentOutputs = btcdClient.listUnspent(0);
-            unconfirmedPayments.stream().filter(payment -> StringUtils.isNotEmpty(payment.getHash())).forEach(payment -> {
-              Optional<Output> outputResult = unspentOutputs.stream().filter(output -> payment.getHash().equals(output.getTxId()))
-                      .findFirst();
-              if (outputResult.isPresent()) {
-                log.debug("Get the output");
-                Output output = outputResult.get();
-                log.debug(String.format("Output: %s", output));
-                paymentsToUpdate.add(new SimpleBtcPayment(payment.getInvoiceId(), output.getTxId(), output.getAmount(), output.getConfirmations()));
-              } else {
-                String txId = payment.getHash();
-                try {
-                  log.debug("Start retrieving tx from blockchain");
-                  Transaction transaction = btcdClient.getTransaction(txId);
-                  log.debug(String.format("Transaction: %s", transaction));
-                  paymentsToUpdate.add(new SimpleBtcPayment(payment.getInvoiceId(), txId, transaction.getAmount(), transaction.getConfirmations()));
-                } catch (BitcoindException | CommunicationException e ) {
-                  log.error(e);
-                }
-              }
-            });
-          } catch (BitcoindException | CommunicationException e ) {
-            log.error(e);
-          }
-          
-          paymentsToUpdate.forEach(payment -> {
-            log.debug(String.format("Payment to update: %s", payment));
-            changeConfirmationsOrProvide(payment);
-          });
-          
-          
+          processBlock();
         }
       });
+      
       daemon.addWalletListener(new WalletListener() {
         @Override
         public void walletChanged(Transaction transaction) {
           log.debug(String.format("Wallet change: tx id %s", transaction.toString()));
-          InvoiceStatus beginStatus = PendingPaymentStatusEnum.getBeginState();
-          String address = transaction.getDetails().get(0).getAddress();
-          if (bitcoinTransactionService.existsPendingPaymentWithStatusAndAddress(beginStatus, address) && transaction.getConfirmations() == 0) {
-            bitcoinTransactionService.markStartConfirmationProcessing(address, transaction.getTxId());
-          }
+          processIncomingPayment(transaction);
         }
       });
     } catch (BitcoindException | CommunicationException | IOException e) {
       log.error(e);
     }
   
+  }
+  
+  private void processIncomingPayment(Transaction transaction) {
+    InvoiceStatus beginStatus = PendingPaymentStatusEnum.getBeginState();
+    String address = transaction.getDetails().get(0).getAddress();
+    if (bitcoinTransactionService.existsPendingPaymentWithStatusAndAddress(beginStatus, address) && transaction.getConfirmations() == 0) {
+      bitcoinTransactionService.markStartConfirmationProcessing(address, transaction.getTxId());
+    }
+  }
+  
+  private void processBlock() {
+    List<PendingPayment> unconfirmedPayments = bitcoinTransactionService.findUnconfirmedBtcPayments();
+    List<SimpleBtcPayment> paymentsToUpdate = new ArrayList<>();
+    final List<Output> unspentOutputs;
+    try {
+      unspentOutputs = btcdClient.listUnspent(0);
+      unconfirmedPayments.stream().filter(payment -> StringUtils.isNotEmpty(payment.getHash())).forEach(payment -> {
+        Optional<Output> outputResult = unspentOutputs.stream().filter(output -> payment.getHash().equals(output.getTxId()))
+                .findFirst();
+        if (outputResult.isPresent()) {
+          log.debug("Get the output");
+          Output output = outputResult.get();
+          log.debug(String.format("Output: %s", output));
+          paymentsToUpdate.add(new SimpleBtcPayment(payment.getInvoiceId(), output.getTxId(), output.getAmount(), output.getConfirmations()));
+        } else {
+          String txId = payment.getHash();
+          try {
+            log.debug("Start retrieving tx from blockchain");
+            Transaction transaction = btcdClient.getTransaction(txId);
+            log.debug(String.format("Transaction: %s", transaction));
+            paymentsToUpdate.add(new SimpleBtcPayment(payment.getInvoiceId(), txId, transaction.getAmount(), transaction.getConfirmations()));
+          } catch (BitcoindException | CommunicationException e ) {
+            log.error(e);
+          }
+        }
+      });
+    } catch (BitcoindException | CommunicationException e ) {
+      log.error(e);
+    }
+    
+    paymentsToUpdate.forEach(payment -> {
+      log.debug(String.format("Payment to update: %s", payment));
+      changeConfirmationsOrProvide(payment);
+    });
   }
   
   private void changeConfirmationsOrProvide(SimpleBtcPayment simpleBtcPayment) {
@@ -161,6 +169,13 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
     log.debug("Node config: " + nodeConfig);
     return new BtcdClientImpl(httpProvider, nodeConfig);
   }
+  
+  /*private void checkUnpaidBtcPayments() {
+    List<PendingPayment> unpaidPayments = bitcoinTransactionService.findUnpaidBtcPayments();
+    unpaidPayments.stream().filter(payment -> payment.getAddress() != null).forEach(payment -> {
+      btcdClient.
+    });
+  }*/
   
   
 }

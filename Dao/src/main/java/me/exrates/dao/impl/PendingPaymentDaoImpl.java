@@ -497,5 +497,15 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
     return jdbcTemplate.query(sql, pendingPaymentRowMapper);
     
   }
+  
+  
+  @Override
+  public List<PendingPayment> findUnpaidBtcPayments() {
+    String sql = SELECT_ALL + " WHERE PP.pending_payment_status_id = 1 AND TRANSACTION.operation_type_id = 1 " +
+            "AND TRANSACTION.source_type = 'BTC_INVOICE' " +
+            "AND TRANSACTION.confirmation = -1";
+    return jdbcTemplate.query(sql, pendingPaymentRowMapper);
+    
+  }
 
 }
