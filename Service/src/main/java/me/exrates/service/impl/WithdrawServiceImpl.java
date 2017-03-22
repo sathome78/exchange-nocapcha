@@ -127,7 +127,7 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
     request.setRecipientBankCode(withdrawData.getRecipientBankCode());
     request.setUserFullName(withdrawData.getUserFullName());
     request.setRemark(withdrawData.getRemark());
-    Integer requestId = createWithdrawRequest(request);
+    Integer requestId = createWithdraw(request);
     request.setId(requestId);
     /**/
     String notification = null;
@@ -151,7 +151,7 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
   }
 
   @Transactional(rollbackFor = {Exception.class})
-  private Integer createWithdrawRequest(WithdrawRequestCreateDto withdrawRequestCreateDto) {
+  private Integer createWithdraw(WithdrawRequestCreateDto withdrawRequestCreateDto) {
     int createdWithdrawRequestId = 0;
     if (walletService.ifEnoughMoney(
         withdrawRequestCreateDto.getUserWalletId(),
