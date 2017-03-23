@@ -279,19 +279,16 @@ public class AdminController {
       List<String> transactionsHistory = transactionService
               .getCSVTransactionsHistory(id, startDate, endDate, localeResolver.resolveLocale(request));
       OutputStreamWriter writer = new OutputStreamWriter(response.getOutputStream());
-      for(String transaction : transactionsHistory) {
-        try {
-          writer.write(transaction);
-        } catch (IOException e) {
-          LOG.error("error download transactions " + e);
-          writer.flush();
-          writer.close();
-          return;
+      try {
+        for(String transaction : transactionsHistory) {
+            writer.write(transaction);
         }
+      } catch (IOException e) {
+        LOG.error("error download transactions " + e);
+      } finally {
+        writer.flush();
+        writer.close();
       }
-      writer.flush();
-      writer.close();
-
   }
 
   @ResponseBody
@@ -677,11 +674,13 @@ public class AdminController {
     List<UserCurrencyOperationPermissionDto> permittedCurrencies = currencyService.getCurrencyOperationPermittedForWithdraw(principal.getName())
         .stream().filter(dto -> dto.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE).collect(Collectors.toList());
     params.put("currencies", permittedCurrencies);
-    List<Merchant> merchants = merchantService.findAllByCurrencies(permittedCurrencies.stream()/*todo fix NPE when permittedCurrencies.size() == 0*/
-        .map(UserCurrencyOperationPermissionDto::getCurrencyId).collect(Collectors.toList()), OperationType.OUTPUT).stream()
-        .map(item -> new Merchant(item.getMerchantId(), item.getName(), item.getDescription(), null))
-        .distinct().collect(Collectors.toList());
-    params.put("merchants", merchants);
+    if (!permittedCurrencies.isEmpty()) {
+      List<Merchant> merchants = merchantService.findAllByCurrencies(permittedCurrencies.stream()
+          .map(UserCurrencyOperationPermissionDto::getCurrencyId).collect(Collectors.toList()), OperationType.OUTPUT).stream()
+          .map(item -> new Merchant(item.getMerchantId(), item.getName(), item.getDescription(), null))
+          .distinct().collect(Collectors.toList());
+      params.put("merchants", merchants);
+    }
     return new ModelAndView("withdrawalRequests", params);
   }
 

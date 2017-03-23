@@ -353,7 +353,7 @@ public class TransactionServiceImpl implements TransactionService {
             setTransactionMerchant(i);
             String transactionStatus = "";
             try {
-                transactionStatus = merchantService.resolveTransactionStatus(i, locale);
+                transactionStatus = merchantService.resolveTransactionStatus(i, Locale.ENGLISH);
             } catch (Exception e) {
                 LOG.warn("cant get trans status " + e);
             }
