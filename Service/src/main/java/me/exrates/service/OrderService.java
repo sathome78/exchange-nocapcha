@@ -13,6 +13,7 @@ import me.exrates.model.dto.onlineTableDto.OrderAcceptedHistoryDto;
 import me.exrates.model.dto.onlineTableDto.OrderListDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderActionEnum;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
@@ -40,7 +41,7 @@ public interface OrderService {
      * @param order OrderCreateDto, that passed from frontend and that will be converted to entity ExOrder to save in DB
      * @return generated ID of the newly created order, or 0 if order was not be created
      */
-    int createOrder(OrderCreateDto order);
+    int createOrder(OrderCreateDto order, OrderActionEnum action);
 
     Optional<String> autoAccept(OrderCreateDto orderCreateDto, Locale locale);
 
@@ -145,24 +146,9 @@ public interface OrderService {
      */
     OrderInfoDto getOrderInfo(int orderId, Locale locale);
 
-    /**
-     * Deletes the order by admin.
-     * If the order has status "CLOSED" then:
-     * - deletes the order and related transactions and corrects the users' wallets and company's wallets
-     * If the order has status "OPENED" then:
-     * - deletes the order and corrects the user-creator wallet
-     * Deleting the order and transactions means setting status "DELETED"
-     *
-     * @param orderId is ID the order
-     * @return 0: no rows were obtained for the deleted_order_id: order has not status OPENED or CLOSED
-     * 1: exorder were not be accepted (status "OPENED") - there were no associated transaction
-     * n: number of processed rows (including exorders and transaction)
-     * throws OrderDeletingException with OrderDeleteStatus in message
-     */
-    Integer deleteOrderByAdmin(int orderId);
+  Object deleteOrderByAdmin(int orderId);
 
-    @Transactional(rollbackFor = {Exception.class})
-    Integer deleteOrderForPartialAccept(int orderId);
+  Object deleteOrderForPartialAccept(int orderId);
 
     /**
      * Searches order by its params:

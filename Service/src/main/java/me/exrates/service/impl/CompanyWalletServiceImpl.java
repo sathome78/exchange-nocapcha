@@ -119,4 +119,10 @@ public class CompanyWalletServiceImpl implements CompanyWalletService {
             .filter(e->permittedCurrencies.contains(e.getCurrency().getName()))
             .collect(Collectors.toList());
     }
+
+    @Override
+    @Transactional
+    public boolean increaseCommissionBalanceById(Integer id, BigDecimal amount){
+        return companyWalletDao.increaseCommissionBalanceById(id, amount);
+    }
 }

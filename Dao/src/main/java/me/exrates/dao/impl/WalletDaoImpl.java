@@ -649,6 +649,7 @@ public class WalletDaoImpl implements WalletDao {
             transaction.setCompanyCommissionBalanceBefore(companyWallet.getCommissionBalance());
             transaction.setSourceType(walletOperationData.getSourceType());
             transaction.setSourceId(walletOperationData.getSourceId());
+            transaction.setDescription(walletOperationData.getDescription());
             try {
                 transactionDao.create(transaction);
             } catch (Exception e) {

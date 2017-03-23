@@ -11,6 +11,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -97,6 +98,18 @@ public class CompanyWalletDaoImpl implements CompanyWalletDao {
                 put("id", companyWallet.getId());
             }
         };
+        return jdbcTemplate.update(sql, params) > 0;
+    }
+
+    @Override
+    public boolean increaseCommissionBalanceById(Integer id, BigDecimal amount){
+        String sql = "UPDATE COMPANY_WALLET " +
+            " SET commission_balance = commission_balance - :amount" +
+            " WHERE id = :company_wallet_id ";
+        Map<String, Object> params = new HashMap<String, Object>(){{
+            put("company_wallet_id", id);
+            put("amount", amount);
+        }};
         return jdbcTemplate.update(sql, params) > 0;
     }
  

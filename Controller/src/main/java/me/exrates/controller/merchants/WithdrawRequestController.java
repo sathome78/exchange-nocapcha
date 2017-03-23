@@ -98,6 +98,15 @@ public class WithdrawRequestController {
     withdrawService.declineWithdrawalRequest(id, requesterAdminId, comment);
   }
 
+  @RequestMapping(value = "/2a8fy7b07dxe44/withdraw/confirm", method = POST)
+  @ResponseBody
+  public void confirm(
+      @RequestParam Integer id,
+      Principal principal) {
+    Integer requesterAdminId = userService.getIdByEmail(principal.getName());
+    withdrawService.confirmWithdrawalRequest(id, requesterAdminId);
+  }
+
   @ResponseStatus(HttpStatus.NOT_FOUND)
   @ExceptionHandler(InvoiceNotFoundException.class)
   @ResponseBody

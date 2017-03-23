@@ -20,6 +20,7 @@ import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.vo.CacheData;
+import me.exrates.model.vo.TransactionDescription;
 import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.*;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
@@ -51,7 +52,6 @@ import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
  */
 @Log4j2
 public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements WithdrawService {
-  private static final Logger profileLog = LogManager.getLogger("profile");
 
   @Autowired
   private MerchantDao merchantDao;
@@ -73,6 +73,9 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
 
   @Autowired
   private NotificationService notificationService;
+
+  @Autowired
+  TransactionDescription transactionDescription;
 
   @Override
   @Transactional
@@ -155,9 +158,7 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
       profileData.setTime4();
       return result;
     } finally {
-      if (profileData.isExceeded()) {
-        profileLog.warn("slow create WithdrawalRequest: " + creditsOperation + " profile: " + profileData);
-      }
+      profileData.checkAndLog("slow create WithdrawalRequest: " + creditsOperation + " profile: " + profileData);
     }
   }
 
@@ -175,7 +176,7 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
         withdrawRequestCreateDto.getUserWalletId(),
         withdrawRequestCreateDto.getAmount())) {
       if ((createdWithdrawRequestId = withdrawRequestDao.create(withdrawRequestCreateDto)) > 0) {
-        String description = generateDescription(currentStatus, action);
+        String description = transactionDescription.get(currentStatus, action);
         WalletTransferStatus result = walletService.walletInnerTransfer(
             withdrawRequestCreateDto.getUserWalletId(),
             withdrawRequestCreateDto.getAmount().negate(),
@@ -309,7 +310,7 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
     withdrawRequestDao.setStatusById(requestId, newStatus);
     /**/
     Integer userWalletId = walletService.getWalletId(withdrawRequest.getUserId(), withdrawRequest.getCurrencyId());
-    String description = generateDescription(currentStatus, action);
+    String description = transactionDescription.get(currentStatus, action);
     WalletTransferStatus result = walletService.walletInnerTransfer(
         userWalletId,
         withdrawRequest.getAmount(),
@@ -361,7 +362,7 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
       profileData.setTime1();
       /**/
       Integer userWalletId = walletService.getWalletId(withdrawRequest.getUserId(), withdrawRequest.getCurrencyId());
-      String description = generateDescription(currentStatus, action);
+      String description = transactionDescription.get(currentStatus, action);
       WalletTransferStatus result = walletService.walletInnerTransfer(
           userWalletId,
           withdrawRequest.getAmount(),
@@ -383,10 +384,21 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
       notificationService.notifyUser(withdrawRequest.getUserId(), NotificationEvent.IN_OUT, title, comment);
       profileData.setTime3();
     } finally {
-      if (profileData.isExceeded()) {
-        profileLog.warn("slowdecline WithdrawalRequest: " + requestId + " profile: " + profileData);
-      }
+      profileData.checkAndLog("slowdecline WithdrawalRequest: " + requestId + " profile: " + profileData);
     }
+  }
+
+  @Override
+  @Transactional
+  public void confirmWithdrawalRequest(int requestId, Integer requesterAdminId) {
+    WithdrawRequestFlatDto withdrawRequest = withdrawRequestDao.getFlatByIdAndBlock(requestId)
+        .orElseThrow(() -> new InvoiceNotFoundException(String.format("withdraw request id: %s", requestId)));
+    WithdrawStatusEnum currentStatus = withdrawRequest.getStatus();
+    InvoiceActionTypeEnum action = CONFIRM_ADMIN;
+    WithdrawStatusEnum newStatus = checkPermissionOnActionAndGetNewStatus(requesterAdminId, withdrawRequest, action);
+    withdrawRequestDao.setStatusById(requestId, newStatus);
+    /**/
+    withdrawRequestDao.setHolderById(requestId, requesterAdminId);
   }
 
   private WithdrawStatusEnum checkPermissionOnActionAndGetNewStatus(Integer requesterAdminId, WithdrawRequestFlatDto withdrawRequest, InvoiceActionTypeEnum action) {
@@ -399,7 +411,5 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
     return (WithdrawStatusEnum) withdrawRequest.getStatus().nextState(action, requesterAdminIsHolder, permission);
   }
 
-  private String generateDescription(InvoiceStatus currentStatus, InvoiceActionTypeEnum action) {
-    return currentStatus.name().concat("->").concat(action.name());
-  }
+
 }

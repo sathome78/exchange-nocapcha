@@ -2,8 +2,6 @@ package me.exrates.service.impl;
 
 import me.exrates.dao.CommissionDao;
 import me.exrates.dao.OrderDao;
-import me.exrates.dao.TransactionDao;
-import me.exrates.dao.WalletDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
@@ -19,6 +17,7 @@ import me.exrates.model.enums.*;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
+import me.exrates.model.vo.TransactionDescription;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
@@ -39,11 +38,12 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static me.exrates.model.enums.OrderActionEnum.*;
+
 @Service
 public class OrderServiceImpl implements OrderService {
 
   private static final Logger logger = LogManager.getLogger(OrderServiceImpl.class);
-  private static final Logger profileLog = LogManager.getLogger("profile");
 
   private final BigDecimal MAX_ORDER_VALUE = new BigDecimal(10000);
   private final BigDecimal MIN_ORDER_VALUE = new BigDecimal(0.000000001);
@@ -52,13 +52,10 @@ public class OrderServiceImpl implements OrderService {
   private OrderDao orderDao;
 
   @Autowired
-  private WalletDao walletDao;
-
-  @Autowired
   private CommissionDao commissionDao;
 
   @Autowired
-  private TransactionDao transactionDao;
+  private TransactionService transactionService;
 
   @Autowired
   private UserService userService;
@@ -68,9 +65,6 @@ public class OrderServiceImpl implements OrderService {
 
   @Autowired
   private CompanyWalletService companyWalletService;
-
-  @Autowired
-  private CommissionService commissionService;
 
   @Autowired
   private CurrencyService currencyService;
@@ -88,6 +82,8 @@ public class OrderServiceImpl implements OrderService {
   @Autowired
   ServiceCacheableProxy serviceCacheableProxy;
 
+  @Autowired
+  TransactionDescription transactionDescription;
 
   @Transactional
   @Override
@@ -238,9 +234,10 @@ public class OrderServiceImpl implements OrderService {
 
   @Override
   @Transactional(rollbackFor = {Exception.class})
-  public int createOrder(OrderCreateDto orderCreateDto) {
+  public int createOrder(OrderCreateDto orderCreateDto, OrderActionEnum action) {
     ProfileData profileData = new ProfileData(200);
     try {
+      String description = transactionDescription.get(null, action);
       int createdOrderId = 0;
       int outWalletId;
       BigDecimal outAmount;
@@ -257,7 +254,12 @@ public class OrderServiceImpl implements OrderService {
         if ((createdOrderId = orderDao.createOrder(exOrder)) > 0) {
           profileData.setTime2();
           exOrder.setId(createdOrderId);
-          WalletTransferStatus result = walletService.walletInnerTransfer(outWalletId, outAmount.negate(), TransactionSourceType.ORDER, exOrder.getId());
+          WalletTransferStatus result = walletService.walletInnerTransfer(
+              outWalletId,
+              outAmount.negate(),
+              TransactionSourceType.ORDER,
+              exOrder.getId(),
+              description);
           profileData.setTime3();
           if (result != WalletTransferStatus.SUCCESS) {
             throw new OrderCreationException(result.toString());
@@ -271,9 +273,7 @@ public class OrderServiceImpl implements OrderService {
       }
       return createdOrderId;
     } finally {
-      if (profileData.isExceeded()){
-        profileLog.warn("slow creation order: "+orderCreateDto+" profile: "+profileData);
-      }
+      profileData.checkAndLog("slow creation order: "+orderCreateDto+" profile: "+profileData);
     }
   }
 
@@ -349,15 +349,13 @@ public class OrderServiceImpl implements OrderService {
             orderCreateDto.getAmount().subtract(cumulativeSum),
             orderCreateDto.getExchangeRate());
         profileData.setTime3();
-        Integer createdOrderId = createOrder(remainderNew);
+        Integer createdOrderId = createOrder(remainderNew, CREATE);
         profileData.setTime4();
         orderCreationResultDto.setCreatedOrderId(createdOrderId);
       }
       return Optional.of(orderCreationResultDto);
     } finally {
-      if (profileData.isExceeded()) {
-        profileLog.warn("slow creation order: " + orderCreateDto + " profile: " + profileData);
-      }
+      profileData.checkAndLog("slow creation order: " + orderCreateDto + " profile: " + profileData);
     }
   }
 
@@ -371,8 +369,8 @@ public class OrderServiceImpl implements OrderService {
     OrderCreateDto remainder = prepareNewOrder(newOrder.getCurrencyPair(), orderForPartialAccept.getOperationType(),
         userService.getUserById(orderForPartialAccept.getUserId()).getEmail(), orderForPartialAccept.getAmountBase().subtract(amountForPartialAccept),
         orderForPartialAccept.getExRate());
-    int acceptedId = createOrder(accepted);
-    createOrder(remainder);
+    int acceptedId = createOrder(accepted, CREATE);
+    createOrder(remainder, CREATE_SPLIT);
     acceptOrder(newOrder.getUserId(), acceptedId, locale, false);
     notificationService.createLocalizedNotification(orderForPartialAccept.getUserId(), NotificationEvent.ORDER,
         "orders.partialAccept.title", "orders.partialAccept.yourOrder",
@@ -432,12 +430,14 @@ public class OrderServiceImpl implements OrderService {
   private void acceptOrder(int userAcceptorId, int orderId, Locale locale, boolean sendNotification) {
     try {
       ExOrder exOrder = this.getOrderById(orderId);
-      WalletsForOrderAcceptionDto walletsForOrderAcceptionDto = walletDao.getWalletsForOrderByOrderIdAndBlock(exOrder.getId(), userAcceptorId);
-            /**/
+      WalletsForOrderAcceptionDto walletsForOrderAcceptionDto = walletService.getWalletsForOrderByOrderIdAndBlock(exOrder.getId(), userAcceptorId);
+      String descriptionForCreator = transactionDescription.get(OrderStatus.convert(walletsForOrderAcceptionDto.getOrderStatusId()), ACCEPTED);
+      String descriptionForAcceptor = transactionDescription.get(OrderStatus.convert(walletsForOrderAcceptionDto.getOrderStatusId()), ACCEPT);
+      /**/
       if (walletsForOrderAcceptionDto.getOrderStatusId() != 2) {
         throw new AlreadyAcceptedOrderException(messageSource.getMessage("order.alreadyacceptederror", null, locale));
       }
-            /**/
+      /**/
       int createdWalletId;
       if (exOrder.getOperationType() == OperationType.BUY) {
         if (walletsForOrderAcceptionDto.getUserCreatorInWalletId() == 0) {
@@ -524,8 +524,12 @@ public class OrderServiceImpl implements OrderService {
             /**/
             /*for creator OUT*/
       walletOperationData = new WalletOperationData();
-      walletDao.walletInnerTransfer(walletsForOrderAcceptionDto.getUserCreatorOutWalletId(),
-          creatorForOutAmount, TransactionSourceType.ORDER, exOrder.getId());
+      walletService.walletInnerTransfer(
+          walletsForOrderAcceptionDto.getUserCreatorOutWalletId(),
+          creatorForOutAmount,
+          TransactionSourceType.ORDER,
+          exOrder.getId(),
+          descriptionForCreator);
       walletOperationData.setOperationType(OperationType.OUTPUT);
       walletOperationData.setWalletId(walletsForOrderAcceptionDto.getUserCreatorOutWalletId());
       walletOperationData.setAmount(creatorForOutAmount);
@@ -534,7 +538,8 @@ public class OrderServiceImpl implements OrderService {
       walletOperationData.setCommissionAmount(commissionForCreatorOutWallet);
       walletOperationData.setSourceType(TransactionSourceType.ORDER);
       walletOperationData.setSourceId(exOrder.getId());
-      walletTransferStatus = walletDao.walletBalanceChange(walletOperationData);
+      walletOperationData.setDescription(descriptionForCreator);
+      walletTransferStatus = walletService.walletBalanceChange(walletOperationData);
       if (walletTransferStatus != WalletTransferStatus.SUCCESS) {
         exceptionMessage = getWalletTransferExceptionMessage(walletTransferStatus, "order.notenoughreservedmoneyforcreator", locale);
         if (walletTransferStatus == WalletTransferStatus.CAUSED_NEGATIVE_BALANCE) {
@@ -552,7 +557,8 @@ public class OrderServiceImpl implements OrderService {
       walletOperationData.setCommissionAmount(commissionForAcceptorOutWallet);
       walletOperationData.setSourceType(TransactionSourceType.ORDER);
       walletOperationData.setSourceId(exOrder.getId());
-      walletTransferStatus = walletDao.walletBalanceChange(walletOperationData);
+      walletOperationData.setDescription(descriptionForAcceptor);
+      walletTransferStatus = walletService.walletBalanceChange(walletOperationData);
       if (walletTransferStatus != WalletTransferStatus.SUCCESS) {
         exceptionMessage = getWalletTransferExceptionMessage(walletTransferStatus, "order.notenoughmoneyforacceptor", locale);
         if (walletTransferStatus == WalletTransferStatus.CAUSED_NEGATIVE_BALANCE) {
@@ -570,7 +576,8 @@ public class OrderServiceImpl implements OrderService {
       walletOperationData.setCommissionAmount(commissionForCreatorInWallet);
       walletOperationData.setSourceType(TransactionSourceType.ORDER);
       walletOperationData.setSourceId(exOrder.getId());
-      walletTransferStatus = walletDao.walletBalanceChange(walletOperationData);
+      walletOperationData.setDescription(descriptionForCreator);
+      walletTransferStatus = walletService.walletBalanceChange(walletOperationData);
       if (walletTransferStatus != WalletTransferStatus.SUCCESS) {
         exceptionMessage = getWalletTransferExceptionMessage(walletTransferStatus, "orders.acceptsaveerror", locale);
         throw new OrderAcceptionException(exceptionMessage);
@@ -586,7 +593,8 @@ public class OrderServiceImpl implements OrderService {
       walletOperationData.setCommissionAmount(commissionForAcceptorInWallet);
       walletOperationData.setSourceType(TransactionSourceType.ORDER);
       walletOperationData.setSourceId(exOrder.getId());
-      walletTransferStatus = walletDao.walletBalanceChange(walletOperationData);
+      walletOperationData.setDescription(descriptionForAcceptor);
+      walletTransferStatus = walletService.walletBalanceChange(walletOperationData);
       if (walletTransferStatus != WalletTransferStatus.SUCCESS) {
         exceptionMessage = getWalletTransferExceptionMessage(walletTransferStatus, "orders.acceptsaveerror", locale);
         throw new OrderAcceptionException(exceptionMessage);
@@ -665,17 +673,20 @@ public class OrderServiceImpl implements OrderService {
   @Override
   public boolean cancellOrder(ExOrder exOrder, Locale locale) {
     try {
-      WalletsForOrderCancelDto walletsForOrderCancelDto = walletDao.getWalletForOrderByOrderIdAndOperationTypeAndBlock(
+      WalletsForOrderCancelDto walletsForOrderCancelDto = walletService.getWalletForOrderByOrderIdAndOperationTypeAndBlock(
           exOrder.getId(),
           exOrder.getOperationType());
-      if (OrderStatus.convert(walletsForOrderCancelDto.getOrderStatusId()) != OrderStatus.OPENED) {
+      OrderStatus currentStatus = OrderStatus.convert(walletsForOrderCancelDto.getOrderStatusId());
+      if (currentStatus != OrderStatus.OPENED) {
         throw new OrderAcceptionException(messageSource.getMessage("order.cannotcancel", null, locale));
       }
-      WalletTransferStatus transferResult = walletDao.walletInnerTransfer(
+      String description = transactionDescription.get(currentStatus, CANCEL);
+      WalletTransferStatus transferResult = walletService.walletInnerTransfer(
           walletsForOrderCancelDto.getWalletId(),
           walletsForOrderCancelDto.getReservedAmount(),
           TransactionSourceType.ORDER,
-          exOrder.getId());
+          exOrder.getId(),
+          description);
       if (transferResult != WalletTransferStatus.SUCCESS) {
         throw new OrderCancellingException(transferResult.toString());
       }
@@ -737,7 +748,7 @@ public class OrderServiceImpl implements OrderService {
   @Override
   public Integer deleteOrderByAdmin(int orderId) {
     OrderCreateDto order = orderDao.getMyOrderById(orderId);
-    Object result = orderDao.deleteOrderByAdmin(orderId);
+    Object result = deleteOrder(orderId, OrderStatus.DELETED, DELETE);
     if (result instanceof OrderDeleteStatus) {
       if ((OrderDeleteStatus) result == OrderDeleteStatus.NOT_FOUND) {
         return 0;
@@ -752,7 +763,7 @@ public class OrderServiceImpl implements OrderService {
   @Override
   @Transactional(rollbackFor = {Exception.class})
   public Integer deleteOrderForPartialAccept(int orderId) {
-    Object result = orderDao.deleteOrderForPartialAccept(orderId);
+    Object result = deleteOrder(orderId, OrderStatus.SPLIT, DELETE_SPLIT);
     if (result instanceof OrderDeleteStatus) {
       if ((OrderDeleteStatus) result == OrderDeleteStatus.NOT_FOUND) {
         return 0;
@@ -948,6 +959,82 @@ public class OrderServiceImpl implements OrderService {
       e.setAmountConvert(BigDecimalProcessing.formatLocale(e.getAmountConvert(), locale, true));
     });
     return result;
+  }
+
+  @Transactional
+  private Object deleteOrder(int orderId, OrderStatus newOrderStatus, OrderActionEnum action) {
+    List<OrderDetailDto> list = walletService.getOrderRelatedDataAndBlock(orderId);
+    if (list.isEmpty()) {
+      return OrderDeleteStatus.NOT_FOUND;
+    }
+    int processedRows = 1;
+    /**/
+    OrderStatus currentOrderStatus = list.get(0).getOrderStatus();
+    String description = transactionDescription.get(currentOrderStatus, action);
+    /**/
+    if (!setStatus(orderId, newOrderStatus)){
+      return OrderDeleteStatus.ORDER_UPDATE_ERROR;
+    }
+     /**/
+    for (OrderDetailDto orderDetailDto : list) {
+      if (currentOrderStatus == OrderStatus.CLOSED) {
+        if (orderDetailDto.getCompanyCommission().compareTo(BigDecimal.ZERO) != 0) {
+          Integer companyWalletId = orderDetailDto.getCompanyWalletId();
+          if (companyWalletId != 0 && !companyWalletService.increaseCommissionBalanceById(companyWalletId, orderDetailDto.getCompanyCommission())) {
+            return OrderDeleteStatus.COMPANY_WALLET_UPDATE_ERROR;
+          }
+        }
+        /**/
+        WalletOperationData walletOperationData = new WalletOperationData();
+        OperationType operationType = null;
+        if (orderDetailDto.getTransactionType() == OperationType.OUTPUT) {
+          operationType = OperationType.INPUT;
+        } else if (orderDetailDto.getTransactionType() == OperationType.INPUT) {
+          operationType = OperationType.OUTPUT;
+        }
+        if (operationType != null) {
+          walletOperationData.setOperationType(operationType);
+          walletOperationData.setWalletId(orderDetailDto.getUserWalletId());
+          walletOperationData.setAmount(orderDetailDto.getTransactionAmount());
+          walletOperationData.setBalanceType(WalletOperationData.BalanceType.ACTIVE);
+          Commission commission = commissionDao.getDefaultCommission(OperationType.STORNO);
+          walletOperationData.setCommission(commission);
+          walletOperationData.setCommissionAmount(commission.getValue());
+          walletOperationData.setSourceType(TransactionSourceType.ORDER);
+          walletOperationData.setSourceId(orderId);
+          walletOperationData.setDescription(description);
+          WalletTransferStatus walletTransferStatus = walletService.walletBalanceChange(walletOperationData);
+          if (walletTransferStatus != WalletTransferStatus.SUCCESS) {
+            return OrderDeleteStatus.TRANSACTION_CREATE_ERROR;
+          }
+        }
+        /**/
+        if (!transactionService.setStatusById(
+            orderDetailDto.getTransactionId(),
+            TransactionStatus.DELETED.getStatus())) {
+          return OrderDeleteStatus.TRANSACTION_UPDATE_ERROR;
+        }
+        /**/
+        processedRows++;
+      } else if (currentOrderStatus == OrderStatus.OPENED) {
+        WalletTransferStatus walletTransferStatus = walletService.walletInnerTransfer(
+            orderDetailDto.getOrderCreatorReservedWalletId(),
+            orderDetailDto.getOrderCreatorReservedAmount(),
+            TransactionSourceType.ORDER,
+            orderId,
+            description);
+        if (walletTransferStatus != WalletTransferStatus.SUCCESS) {
+          return OrderDeleteStatus.TRANSACTION_CREATE_ERROR;
+        }
+        /**/
+        if (!transactionService.setStatusById(
+            orderDetailDto.getTransactionId(),
+            TransactionStatus.DELETED.getStatus())) {
+          return OrderDeleteStatus.TRANSACTION_UPDATE_ERROR;
+        }
+      }
+    }
+    return processedRows;
   }
 
 

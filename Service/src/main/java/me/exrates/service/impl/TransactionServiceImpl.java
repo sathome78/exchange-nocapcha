@@ -325,4 +325,10 @@ public class TransactionServiceImpl implements TransactionService {
         List<String> sourceTypeList) {
         return transactionDao.findAllByDateIntervalAndRoleAndOperationTypeAndCurrencyAndSourceType(startDate, endDate, operationType, roleIdList, currencyList, sourceTypeList);
     }
+
+    @Override
+    @Transactional
+    public boolean setStatusById(Integer trasactionId, Integer statusId) {
+        return transactionDao.setStatusById(trasactionId, statusId);
+    }
 }

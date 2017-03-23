@@ -60,4 +60,5 @@ public interface TransactionDao {
 
   List<TransactionFlatForReportDto> findAllByDateIntervalAndRoleAndOperationTypeAndCurrencyAndSourceType(String startDate, String endDate, Integer operationType, List<Integer> roleIdList, List<Integer> currencyList, List<String> sourceTypeList);
 
+  boolean setStatusById(Integer trasactionId, Integer statusId);
 }

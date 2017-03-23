@@ -684,7 +684,7 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/orderdelete", method = RequestMethod.POST)
   public Integer deleteOrderByAdmin(@RequestParam int id) {
     try {
-      return orderService.deleteOrderByAdmin(id);
+      return (Integer)orderService.deleteOrderByAdmin(id);
     } catch (Exception e) {
       LOG.error(e);
       throw e;

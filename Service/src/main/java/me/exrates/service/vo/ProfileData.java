@@ -1,12 +1,16 @@
 package me.exrates.service.vo;
 
 import lombok.Getter;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Created by ValkSam
  */
 @Getter
 public class ProfileData {
+  private static final Logger profileLog = LogManager.getLogger("profile");
+
   long threshold;
   long before;
   long time1;
@@ -44,6 +48,16 @@ public class ProfileData {
   public boolean isExceeded() {
     this.time = System.currentTimeMillis() - before;
     return  this.time > this.threshold;
+  }
+
+  public boolean checkAndLog(String logMessage){
+    boolean isExceeded = isExceeded();
+    if (isExceeded) {
+      profileLog.warn(profileLog);
+      return true;
+    } else {
+      return false;
+    }
   }
 
   @Override

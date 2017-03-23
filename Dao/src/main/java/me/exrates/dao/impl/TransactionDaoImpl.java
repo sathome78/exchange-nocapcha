@@ -211,7 +211,7 @@ public final class TransactionDaoImpl implements TransactionDao {
         "   :merchant, :datetime, :order_id, :confirmation, :provided," +
         "   :active_balance_before, :reserved_balance_before, :company_balance_before, :company_commission_balance_before," +
         "   :source_type, " +
-        "   :source_id, description)";
+        "   :source_id, :description)";
     final KeyHolder keyHolder = new GeneratedKeyHolder();
     final Map<String, Object> params = new HashMap<String, Object>() {
       {
@@ -637,6 +637,18 @@ public final class TransactionDaoImpl implements TransactionDao {
         return transactionFlatForReportDto;
       }
     });
+  }
+
+  @Override
+  public boolean setStatusById(Integer trasactionId, Integer statusId) {
+    String sql = "UPDATE TRANSACTION " +
+        " SET status_id = :status_id" +
+        " WHERE id = :transaction_id ";
+    Map<String, Object> params = new HashMap<String, Object>(){{
+      put("transaction_id", trasactionId);
+      put("status_id", statusId);
+    }};
+    return jdbcTemplate.update(sql, params) > 0;
   }
 
 }

@@ -63,4 +63,4 @@ SELECT *
 FROM TRANSACTION
 WHERE operation_type_id = 5 AND source_type='WITHDRAW' and active_balance_before IS NULL;
 
-для старых пендингов, которые проведены или отклонены - добавить соответсвующие транзакции добавить
+для акцептованных надо поле чщдвук заполнить акцептором (для старых)

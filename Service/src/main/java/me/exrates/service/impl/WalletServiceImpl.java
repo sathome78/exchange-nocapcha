@@ -2,8 +2,7 @@ package me.exrates.service.impl;
 
 import me.exrates.dao.WalletDao;
 import me.exrates.model.*;
-import me.exrates.model.dto.MyWalletConfirmationDetailDto;
-import me.exrates.model.dto.UserWalletSummaryDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
@@ -328,5 +327,21 @@ public final class WalletServiceImpl implements WalletService {
         .collect(Collectors.toList());
   }
 
+  @Override
+  @Transactional
+  public List<OrderDetailDto> getOrderRelatedDataAndBlock(int orderId) {
+    return walletDao.getOrderRelatedDataAndBlock(orderId);
+  }
 
+  @Override
+  @Transactional
+  public WalletsForOrderAcceptionDto getWalletsForOrderByOrderIdAndBlock(Integer orderId, Integer userAcceptorId) {
+    return walletDao.getWalletsForOrderByOrderIdAndBlock(orderId, userAcceptorId);
+  }
+
+  @Override
+  @Transactional
+  public WalletsForOrderCancelDto getWalletForOrderByOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType) {
+    return walletDao.getWalletForOrderByOrderIdAndOperationTypeAndBlock(orderId, operationType);
+  }
 }
