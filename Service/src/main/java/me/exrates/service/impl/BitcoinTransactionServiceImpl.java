@@ -151,4 +151,10 @@ public class BitcoinTransactionServiceImpl implements BitcoinTransactionService 
     return paymentDao.findAllUnconfirmedPayments();
   }
   
+  
+  @Override
+  public List<PendingPayment> findUnpaidBtcPayments() {
+    return paymentDao.findUnpaidBtcPayments();
+  }
+  
 }

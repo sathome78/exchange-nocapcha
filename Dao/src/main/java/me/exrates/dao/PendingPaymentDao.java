@@ -57,4 +57,6 @@ public interface PendingPaymentDao {
       List<String> sourceTypeList);
   
   List<PendingPayment> findAllUnconfirmedPayments();
+  
+  List<PendingPayment> findUnpaidBtcPayments();
 }

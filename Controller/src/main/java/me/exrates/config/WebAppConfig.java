@@ -1,9 +1,5 @@
 package me.exrates.config;
 
-import com.neemre.btcdcli4j.core.BitcoindException;
-import com.neemre.btcdcli4j.core.CommunicationException;
-import com.neemre.btcdcli4j.core.client.BtcdClient;
-import com.neemre.btcdcli4j.core.client.BtcdClientImpl;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import me.exrates.controller.filter.RequestFilter;
@@ -17,8 +13,8 @@ import me.exrates.security.config.SecurityConfig;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.BitcoinWalletService;
 import me.exrates.service.WithdrawService;
-import me.exrates.service.impl.BitcoinCoreWalletServiceImpl;
-import me.exrates.service.impl.BitcoinJWalletServiceImpl;
+import me.exrates.service.impl.bitcoinWallet.BitcoinCoreWalletServiceImpl;
+import me.exrates.service.impl.bitcoinWallet.BitcoinJWalletServiceImpl;
 import me.exrates.service.impl.OrigWithdrawServiceImpl;
 import me.exrates.service.impl.WithdrawServiceImpl;
 import me.exrates.service.token.TokenScheduler;
@@ -55,7 +51,6 @@ import org.springframework.web.servlet.view.JstlView;
 
 import javax.servlet.annotation.MultipartConfig;
 import javax.sql.DataSource;
-import java.io.IOException;
 import java.util.EnumMap;
 import java.util.Locale;
 import java.util.Properties;
