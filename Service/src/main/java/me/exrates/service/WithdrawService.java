@@ -28,16 +28,7 @@ public interface WithdrawService {
 
   void postWithdrawalRequest(int requestId, Integer requesterAdminId);
 
-  Map<String, String> acceptWithdrawalRequest(int requestId, Locale locale, Principal principal);
-
-  Map<String, Object> declineWithdrawalRequest(int requestId, Locale locale, String email);
-
-  List<WithdrawRequest> findAllWithdrawRequests();
-
-  DataTable<List<WithdrawRequest>> findWithdrawRequestsByStatus(Integer requestStatus, DataTableParams dataTableParams, WithdrawFilterData withdrawFilterData, String userEmail);
-
   Map<String, String> withdrawRequest(CreditsOperation creditsOperation, WithdrawData withdrawData, String userEmail, Locale locale);
-
 
   List<WithdrawRequestFlatForReportDto> findAllByDateIntervalAndRoleAndCurrency(String startDate, String endDate, List<Integer> roleIdList, List<Integer> currencyList);
 

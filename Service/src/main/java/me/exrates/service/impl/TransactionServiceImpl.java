@@ -286,13 +286,6 @@ public class TransactionServiceImpl implements TransactionService {
         return result;
     }
 
-
-
-    @Override
-    public List<Transaction> getOpenTransactionsByMerchant(Merchant merchant){
-        return transactionDao.getOpenTransactionsByMerchant(merchant);
-    }
-
     @Override
     public BigDecimal maxAmount() {
         return transactionDao.maxAmount();

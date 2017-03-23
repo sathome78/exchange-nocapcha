@@ -1,7 +1,6 @@
 package me.exrates.dao;
 
 import me.exrates.model.PagingData;
-import me.exrates.model.WithdrawRequest;
 import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.dto.WithdrawRequestFlatAdditionalDataDto;
 import me.exrates.model.dto.WithdrawRequestFlatDto;
@@ -16,23 +15,9 @@ import java.util.Locale;
 import java.util.Optional;
 
 /**
- * @author Denis Savin (pilgrimm333@gmail.com)
+ * created by ValkSam
  */
 public interface WithdrawRequestDao {
-
-    void create(WithdrawRequest withdrawRequest);
-
-    void delete(WithdrawRequest withdrawRequest);
-
-    void update(WithdrawRequest withdrawRequest);
-
-    Optional<WithdrawRequest> findByIdAndBlock(int id);
-
-    Optional<WithdrawRequest> findById(int id);
-
-    List<WithdrawRequest> findAll();
-
-    PagingData<List<WithdrawRequest>> findByStatus(Integer requestStatus, Integer currentUserId, DataTableParams dataTableParams, WithdrawFilterData withdrawFilterData);
 
   List<WithdrawRequestFlatForReportDto> findAllByDateIntervalAndRoleAndCurrency(
       String startDate,
@@ -40,9 +25,9 @@ public interface WithdrawRequestDao {
       List<Integer> roleIdList,
       List<Integer> currencyList);
 
-    Integer findStatusIdByRequestId(Integer withdrawRequestId);
+  Integer findStatusIdByRequestId(Integer withdrawRequestId);
 
-    int create(WithdrawRequestCreateDto withdrawRequest);
+  int create(WithdrawRequestCreateDto withdrawRequest);
 
   List<MyInputOutputHistoryDto> findMyInputOutputHistoryByOperationType(
       String email,

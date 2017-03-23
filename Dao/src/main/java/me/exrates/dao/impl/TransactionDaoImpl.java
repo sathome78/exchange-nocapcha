@@ -4,6 +4,7 @@ import me.exrates.dao.TransactionDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
 import me.exrates.model.dto.TransactionFlatForReportDto;
+import me.exrates.model.dto.WithdrawRequestFlatDto;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.util.BigDecimalProcessing;
@@ -57,6 +58,24 @@ public final class TransactionDaoImpl implements TransactionDao {
     }
 
     ExOrder order = null;
+    try {
+      resultSet.findColumn("EXORDERS.id");
+      order = new ExOrder();
+      order.setId(resultSet.getInt("EXORDERS.id"));
+      order.setUserId(resultSet.getInt("EXORDERS.user_id"));
+      order.setCurrencyPairId(resultSet.getInt("EXORDERS.currency_pair_id"));
+      order.setOperationType(resultSet.getInt("EXORDERS.operation_type_id") == 0 ? null : OperationType.convert(resultSet.getInt("EXORDERS.operation_type_id")));
+      order.setExRate(resultSet.getBigDecimal("EXORDERS.exrate"));
+      order.setAmountBase(resultSet.getBigDecimal("EXORDERS.amount_base"));
+      order.setAmountConvert(resultSet.getBigDecimal("EXORDERS.amount_convert"));
+      order.setCommissionFixedAmount(resultSet.getBigDecimal("EXORDERS.commission_fixed_amount"));
+      order.setDateCreation(resultSet.getTimestamp("EXORDERS.date_creation") == null ? null : resultSet.getTimestamp("EXORDERS.date_creation").toLocalDateTime());
+      order.setDateAcception(resultSet.getTimestamp("EXORDERS.date_acception") == null ? null : resultSet.getTimestamp("EXORDERS.date_acception").toLocalDateTime());
+    } catch (SQLException e) {
+      //NOP
+    }
+
+    WithdrawRequestFlatDto withdraw = null; here
     try {
       resultSet.findColumn("EXORDERS.id");
       order = new ExOrder();
@@ -546,16 +565,6 @@ public final class TransactionDaoImpl implements TransactionDao {
     return jdbcTemplate.queryForObject(sql, params, Integer.class);
   }
 
-  @Override
-  public List<Transaction> getOpenTransactionsByMerchant(Merchant merchant) {
-    String sql = SELECT_ALL + " where TRANSACTION.merchant_id = (select MERCHANT.id " +
-        "from MERCHANT where MERCHANT.name = :merchant) AND TRANSACTION.operation_type_id = 1";
-    Map<String, String> namedParameters = new HashMap<String, String>();
-    namedParameters.put("merchant", merchant.getName());
-    ArrayList<Transaction> result = (ArrayList<Transaction>) jdbcTemplate.query(sql, namedParameters,
-        transactionRowMapper);
-    return result;
-  }
 
   @Override
   public BigDecimal maxAmount() {

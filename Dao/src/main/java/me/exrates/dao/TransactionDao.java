@@ -50,8 +50,6 @@ public interface TransactionDao {
 
   Integer getStatementSize(Integer walletId);
 
-  List<Transaction> getOpenTransactionsByMerchant(Merchant merchant);
-
   BigDecimal maxAmount();
 
   BigDecimal maxCommissionAmount();

@@ -65,8 +65,6 @@ public interface TransactionService {
 
     DataTable<List<AccountStatementDto>> getAccountStatementForAdmin(Integer walletId, Integer offset, Integer limit, Locale locale);
 
-    List<Transaction> getOpenTransactionsByMerchant(Merchant merchant);
-
     BigDecimal maxAmount();
 
     BigDecimal maxCommissionAmount();

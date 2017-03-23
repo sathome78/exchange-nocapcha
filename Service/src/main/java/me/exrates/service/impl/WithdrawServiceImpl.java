@@ -13,10 +13,7 @@ import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.WalletTransferStatus;
-import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
-import me.exrates.model.enums.invoice.InvoiceOperationPermission;
-import me.exrates.model.enums.invoice.InvoiceStatus;
-import me.exrates.model.enums.invoice.WithdrawStatusEnum;
+import me.exrates.model.enums.invoice.*;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.TransactionDescription;
 import me.exrates.model.vo.WalletOperationData;
@@ -32,25 +29,29 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.mail.MailException;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.security.Principal;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.EMPTY_LIST;
 import static me.exrates.model.enums.OperationType.OUTPUT;
 import static me.exrates.model.enums.UserCommentTopicEnum.WITHDRAW_DECLINE;
 import static me.exrates.model.enums.UserCommentTopicEnum.WITHDRAW_POSTED;
 import static me.exrates.model.enums.WalletTransferStatus.SUCCESS;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.*;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
+import static me.exrates.model.enums.invoice.PendingPaymentStatusEnum.ON_BCH_EXAM;
 import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 
 /**
  * @author ValkSam
  */
-public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements WithdrawService {
+
+@Service
+public class WithdrawServiceImpl implements WithdrawService {
 
   private static final Logger log = LogManager.getLogger("withdraw");
 
@@ -83,13 +84,24 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
 
   @Override
   @Transactional
+  public void setAutoWithdrawParams(MerchantCurrencyOptionsDto merchantCurrencyOptionsDto) {
+    merchantDao.setAutoWithdrawParamsByMerchantAndCurrency(
+        merchantCurrencyOptionsDto.getMerchantId(),
+        merchantCurrencyOptionsDto.getCurrencyId(),
+        merchantCurrencyOptionsDto.getWithdrawAutoEnabled(),
+        merchantCurrencyOptionsDto.getWithdrawAutoDelaySeconds(),
+        merchantCurrencyOptionsDto.getWithdrawAutoThresholdAmount());
+  }
+
+  @Override
+  @Transactional
   public List<WithdrawRequestFlatForReportDto> findAllByDateIntervalAndRoleAndCurrency(
       String startDate,
       String endDate,
       List<Integer> roleIdList,
       List<Integer> currencyList) {
-    log.error("NOT IMPLEMENTED");
-    throw new NotImplimentedMethod("method NOT IMPLEMENTED !");
+    //TODO need to correction (from orig/old implemantation)
+    return withdrawRequestDao.findAllByDateIntervalAndRoleAndCurrency(startDate, endDate, roleIdList, currencyList);
   }
 
   @Override
@@ -216,23 +228,6 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
         .concat(messageSource.getMessage("merchant.withdrawAutoDelaySecond", null, locale));
   }
 
-  @Override
-  public Map<String, Object> declineWithdrawalRequest(int requestId, Locale locale, String email) {
-    log.error("NOT IMPLEMENTED");
-    throw new NotImplimentedMethod("method NOT IMPLEMENTED !");
-  }
-
-  @Override
-  public List<WithdrawRequest> findAllWithdrawRequests() {
-    log.error("NOT IMPLEMENTED");
-    throw new NotImplimentedMethod("method NOT IMPLEMENTED !");
-  }
-
-  @Override
-  public DataTable<List<WithdrawRequest>> findWithdrawRequestsByStatus(Integer requestStatus, DataTableParams dataTableParams, WithdrawFilterData withdrawFilterData, String userEmail) {
-    log.error("NOT IMPLEMENTED");
-    throw new NotImplimentedMethod("method NOT IMPLEMENTED !");
-  }
 
   @Override
   public Map<String, String> withdrawRequest(CreditsOperation creditsOperation, WithdrawData withdrawData, String userEmail, Locale locale) {
@@ -459,12 +454,6 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
     }
   }
 
-  @Override
-  public Map<String, String> acceptWithdrawalRequest(int requestId, Locale locale, Principal principal) {
-    log.error("NOT IMPLEMENTED");
-    throw new NotImplimentedMethod("method NOT IMPLEMENTED !");
-  }
-
   private WithdrawStatusEnum checkPermissionOnActionAndGetNewStatus(Integer requesterAdminId, WithdrawRequestFlatDto withdrawRequest, InvoiceActionTypeEnum action) {
     Boolean requesterAdminIsHolder = requesterAdminId.equals(withdrawRequest.getAdminHolderId());
     InvoiceOperationPermission permission = userService.getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection(
@@ -473,6 +462,65 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
         WITHDRAW
     );
     return (WithdrawStatusEnum) withdrawRequest.getStatus().nextState(action, requesterAdminIsHolder, permission);
+  }
+
+  private String sendWithdrawalNotification(
+      WithdrawRequest withdrawRequest,
+      String merchantDescription,
+      String withdrawDelay,
+      Locale locale) {
+    final String notification;
+    final Object[] messageParams = {
+        withdrawRequest.getId(),
+        merchantDescription,
+        withdrawDelay.isEmpty() ? "" : "within".concat(withdrawDelay)
+    };
+    String notificationMessageCode;
+    notificationMessageCode = "merchants.withdrawNotification.".concat(withdrawRequest.getWithdrawStatus().name());
+    notification = messageSource
+        .getMessage(notificationMessageCode, messageParams, locale);
+    notificationService.notifyUser(withdrawRequest.getUserEmail(), NotificationEvent.IN_OUT,
+        "merchants.withdrawNotification.header", notificationMessageCode, messageParams);
+    return notification;
+  }
+
+  private String generateAndGetSummaryStatus(MyInputOutputHistoryDto row, Locale locale) {
+    switch (row.getSourceType()) {
+      case INVOICE: {
+        InvoiceRequestStatusEnum status = (InvoiceRequestStatusEnum) row.getStatus();
+        return messageSource.getMessage("merchants.invoice.".concat(status.name()), null, locale);
+      }
+      case WITHDRAW: {
+        WithdrawStatusEnum status = (WithdrawStatusEnum) row.getStatus();
+        return messageSource.getMessage("merchants.withdraw.".concat(status.name()), null, locale);
+      }
+      case BTC_INVOICE: {
+        PendingPaymentStatusEnum status = (PendingPaymentStatusEnum) row.getStatus();
+        if (status == ON_BCH_EXAM) {
+          String confirmations = row.getConfirmation() == null ? "0" : row.getConfirmation().toString();
+          String message = confirmations.concat("/").concat(String.valueOf(BitcoinService.CONFIRMATION_NEEDED_COUNT));
+          return message;
+        } else {
+          return messageSource.getMessage("merchants.invoice.".concat(status.name()), null, locale);
+        }
+      }
+      default: {
+        return row.getTransactionProvided();
+      }
+    }
+  }
+
+  private List<Map<String, Object>> generateAndGetButtonsSet(
+      InvoiceStatus status,
+      InvoiceOperationPermission permittedOperation,
+      boolean authorisedUserIsHolder,
+      Locale locale) {
+    if (status == null) return EMPTY_LIST;
+    return status.getAvailableActionList(authorisedUserIsHolder, permittedOperation).stream()
+        .filter(e -> e.getActionTypeButton() != null)
+        .map(e -> new HashMap<String, Object>(e.getActionTypeButton().getProperty()))
+        .peek(e -> e.put("buttonTitle", messageSource.getMessage((String) e.get("buttonTitle"), null, locale)))
+        .collect(Collectors.toList());
   }
 
 
