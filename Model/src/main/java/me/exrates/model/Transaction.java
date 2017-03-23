@@ -36,6 +36,7 @@ public class Transaction {
     private BigDecimal companyCommissionBalanceBefore;
     private TransactionSourceType sourceType;
     private Integer sourceId;
+    private String description;
 
     @Override
     public boolean equals(Object o) {

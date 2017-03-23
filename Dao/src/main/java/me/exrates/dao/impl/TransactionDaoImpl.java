@@ -206,12 +206,12 @@ public final class TransactionDaoImpl implements TransactionDao {
         " commission_id, operation_type_id, currency_id, merchant_id, datetime, order_id, confirmation, provided," +
         " active_balance_before, reserved_balance_before, company_balance_before, company_commission_balance_before, " +
         " source_type, " +
-        " source_id)" +
+        " source_id, description)" +
         "   VALUES (:userWallet,:companyWallet,:amount,:commissionAmount,:commission,:operationType, :currency," +
         "   :merchant, :datetime, :order_id, :confirmation, :provided," +
         "   :active_balance_before, :reserved_balance_before, :company_balance_before, :company_commission_balance_before," +
         "   :source_type, " +
-        "   :source_id)";
+        "   :source_id, description)";
     final KeyHolder keyHolder = new GeneratedKeyHolder();
     final Map<String, Object> params = new HashMap<String, Object>() {
       {
@@ -233,6 +233,7 @@ public final class TransactionDaoImpl implements TransactionDao {
         put("company_commission_balance_before", transaction.getCompanyCommissionBalanceBefore());
         put("source_type", transaction.getSourceType() == null ? null : transaction.getSourceType().toString());
         put("source_id", transaction.getSourceId());
+        put("description", transaction.getDescription());
       }
     };
     if (jdbcTemplate.update(sql, new MapSqlParameterSource(params), keyHolder) > 0) {

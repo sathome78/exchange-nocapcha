@@ -501,7 +501,7 @@ public class WalletDaoImpl implements WalletDao {
     }
 
     @Override
-    public WalletTransferStatus walletInnerTransfer(int walletId, BigDecimal amount, TransactionSourceType sourceType, int sourceId) {
+    public WalletTransferStatus walletInnerTransfer(int walletId, BigDecimal amount, TransactionSourceType sourceType, int sourceId, String description) {
         String sql = "SELECT WALLET.id AS wallet_id, WALLET.currency_id, WALLET.active_balance, WALLET.reserved_balance" +
                 "  FROM WALLET " +
                 "  WHERE WALLET.id = :walletId " +
@@ -560,6 +560,7 @@ public class WalletDaoImpl implements WalletDao {
         transaction.setCompanyCommissionBalanceBefore(null);
         transaction.setSourceType(sourceType);
         transaction.setSourceId(sourceId);
+        transaction.setDescription(description);
         try {
             transactionDao.create(transaction);
         } catch (Exception e) {

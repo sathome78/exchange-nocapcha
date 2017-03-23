@@ -188,8 +188,15 @@ public final class WalletServiceImpl implements WalletService {
   }
 
   @Override
+  @Transactional
   public WalletTransferStatus walletInnerTransfer(int walletId, BigDecimal amount, TransactionSourceType sourceType, int sourceId) {
-    return walletDao.walletInnerTransfer(walletId, amount, sourceType, sourceId);
+    return walletInnerTransfer(walletId, amount, sourceType, sourceId, null);
+  }
+
+  @Override
+  @Transactional
+  public WalletTransferStatus walletInnerTransfer(int walletId, BigDecimal amount, TransactionSourceType sourceType, int sourceId, String description) {
+    return walletDao.walletInnerTransfer(walletId, amount, sourceType, sourceId, description);
   }
 
   @Override

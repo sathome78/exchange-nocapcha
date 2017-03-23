@@ -222,15 +222,16 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
     return code;
   }
 
-  public WithdrawStatusEnum getStartState(Boolean autoEnabled, BigDecimal withdrawAutoEnabled, BigDecimal withdrawAutoThresholdAmount) {
+  public InvoiceActionTypeEnum getStartAction(Boolean autoEnabled, BigDecimal withdrawAutoEnabled, BigDecimal withdrawAutoThresholdAmount) {
     if (autoEnabled) {
       if (withdrawAutoEnabled.compareTo(withdrawAutoThresholdAmount) <= 0) {
-        return (WithdrawStatusEnum) nextState(schemaMap, PUT_FOR_AUTO).get();
+        return PUT_FOR_AUTO;
+//        return (WithdrawStatusEnum) nextState(schemaMap, PUT_FOR_AUTO).get();
       } else {
-        return (WithdrawStatusEnum) nextState(schemaMap, PUT_FOR_CONFIRM).get();
+        return PUT_FOR_CONFIRM;
       }
     } else {
-      return (WithdrawStatusEnum) nextState(schemaMap, PUT_FOR_MANUAL).get();
+      return PUT_FOR_MANUAL;
     }
   }
 

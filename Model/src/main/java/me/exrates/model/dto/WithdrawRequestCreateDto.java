@@ -28,5 +28,6 @@ public class WithdrawRequestCreateDto {
     private String recipientBankCode;
     private String userFullName;
     private String remark;
-
+    private Boolean autoEnabled;
+    private BigDecimal autoThresholdAmount;
 }
