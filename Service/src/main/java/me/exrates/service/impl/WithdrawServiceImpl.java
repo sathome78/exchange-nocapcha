@@ -328,9 +328,10 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
     try {
       WithdrawRequestFlatDto withdrawRequest = withdrawRequestDao.getFlatByIdAndBlock(requestId)
           .orElseThrow(() -> new InvoiceNotFoundException(String.format("withdraw request id: %s", requestId)));
-      InvoiceActionTypeEnum action = DECLINE_HOLDED;
+      InvoiceActionTypeEnum action = withdrawRequest.getStatus().availableForAction(DECLINE_HOLDED) ? DECLINE_HOLDED : DECLINE;
       WithdrawStatusEnum newStatus = checkPermissionOnActionAndGetNewStatus(requesterAdminId, withdrawRequest, action);
       withdrawRequestDao.setStatusById(requestId, newStatus);
+      withdrawRequestDao.setHolderById(requestId, requesterAdminId);
       profileData.setTime1();
       /**/
       Integer userWalletId = walletService.getWalletId(withdrawRequest.getUserId(), withdrawRequest.getCurrencyId());

@@ -1,24 +1,29 @@
+.action-button {
+    height: 18px;
+    padding: 0 10px;
+}
+
 .confirm_user_button,
 .confirm_admin_button,
 .accept_button,
-.post_holded_button{
+.post_holded_button {
     background-color: #00dd1c;
     color: white;
 }
 
 .revoke_button,
 .decline_button,
-.decline_holded_button{
+.decline_holded_button {
     background-color: #c9302c;
     color: white;
 }
 
-.take_to_work_button{
+.take_to_work_button {
     background-color: #2aabd2;
     color: white;
 }
 
-.return_from_work_button{
+.return_from_work_button {
     background-color: #a98648;
     color: white;
 }

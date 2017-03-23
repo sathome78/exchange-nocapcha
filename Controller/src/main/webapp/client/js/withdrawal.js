@@ -46,6 +46,9 @@ $(function () {
     $('#withdraw-requests-new').click(function () {
         changeTableViewType(this, "FOR_WORK")
     });
+    $('#withdraw-requests-auto').click(function () {
+        changeTableViewType(this, "AUTO_PROCESSING")
+    });
     $('#withdraw-requests-accepted').click(function () {
         changeTableViewType(this, "POSTED")
     });
@@ -161,7 +164,7 @@ $(function () {
     });
 
 
-    $('#withdrawalTable').on('click', 'button[data-source=WITHDRAW].decline_holded_button', function (e) {
+    $('#withdrawalTable').on('click', 'button[data-source=WITHDRAW].decline_holded_button, button[data-source=WITHDRAW].decline_button', function (e) {
         e.stopPropagation();
         var id = $(this).data("id");
         var $modal = $("#note-before-decline-modal");
@@ -184,7 +187,7 @@ $(function () {
                     }
                     $modal.modal('hide');
                     $.ajax({
-                        url: '/2a8fy7b07dxe44/withdraw/decline?id=' + id +'&comment='+comment,
+                        url: '/2a8fy7b07dxe44/withdraw/decline?id=' + id + '&comment=' + comment,
                         async: false,
                         headers: {
                             'X-CSRF-Token': $("input[name='_csrf']").val()
@@ -306,7 +309,7 @@ function updateWithdrawalTable() {
             "paging": true,
             "info": true,
             "bFilter": true,
-            "columns":[
+            "columns": [
                 {
                     "data": "id",
                     "name": "WITHDRAW_REQUEST.id",
@@ -330,7 +333,7 @@ function updateWithdrawalTable() {
                     "data": "userId",
                     "name": "WITHDRAW_REQUEST.user_id",
                     "render": function (data, type, row) {
-                        return '<a data-userEmail="'+row.userEmail+'" href="/2a8fy7b07dxe44/userInfo?id=' + data + '">' + row.userEmail + '</a>'
+                        return '<a data-userEmail="' + row.userEmail + '" href="/2a8fy7b07dxe44/userInfo?id=' + data + '">' + row.userEmail + '</a>'
                     }
                 },
                 {
@@ -369,7 +372,7 @@ function updateWithdrawalTable() {
                         if (data && row.isEndStatus) {
                             return '<a href="/2a8fy7b07dxe44/userInfo?id=' + row.adminHolderId + '">' + data + '</a>';
                         } else {
-                            return getButtonsSet(row.id, row.sourceType, row.buttons, "withdrawalTable");
+                            return tableViewType == "ALL" ? row.status : getButtonsSet(row.id, row.sourceType, row.buttons, "withdrawalTable");
                         }
                     },
                     "className": "text-center"
