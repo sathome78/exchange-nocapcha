@@ -216,8 +216,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .anyRequest().hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.USER.name(),
         UserRole.EXCHANGE.name(), UserRole.VIP_USER.name(), UserRole.TRADER.name(), UserRole.FIN_OPERATOR.name())
         /*user withdraw action ...*/
-        .antMatchers(POST, "/withdraw/request/submit").authenticated()
-        .antMatchers(POST, "/withdraw/request/revoke").authenticated()
+        .antMatchers(POST, "/withdraw/request/**").authenticated()
         /*... user withdraw action*/
         .and()
         .exceptionHandling()

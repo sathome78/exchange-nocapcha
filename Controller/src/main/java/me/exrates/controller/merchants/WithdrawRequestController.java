@@ -1,15 +1,20 @@
 package me.exrates.controller.merchants;
 
-import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.CreditsOperation;
+import me.exrates.model.Payment;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
 import me.exrates.model.vo.WithdrawData;
+import me.exrates.service.MerchantService;
 import me.exrates.service.UserService;
 import me.exrates.service.WithdrawService;
-import me.exrates.service.exception.OrderDeletingException;
+import me.exrates.service.exception.InvalidAmountException;
+import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
@@ -30,8 +35,9 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
  * created by ValkSam
  */
 @Controller
-@Log4j2
 public class WithdrawRequestController {
+
+  private static final Logger log = LogManager.getLogger("withdraw");
 
   @Autowired
   private MessageSource messageSource;
@@ -42,7 +48,21 @@ public class WithdrawRequestController {
   @Autowired
   UserService userService;
 
-  @RequestMapping(value = "/withdraw/request/submit", method = POST)
+  @Autowired
+  MerchantService merchantService;
+
+  @RequestMapping(value = "/withdraw/request/merchant/create", method = POST)
+  @ResponseBody
+  public void createWithdrawalRequest(
+      @RequestBody final Payment payment,
+      Principal principal,
+      Locale locale) {
+    CreditsOperation creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName())
+        .orElseThrow(InvalidAmountException::new);
+    withdrawService.createWithdrawalRequest(creditsOperation, new WithdrawData(), principal.getName(), locale);
+  }
+
+  @RequestMapping(value = "/withdraw/request/invoice/create", method = POST)
   public RedirectView submitWithdraw(WithdrawData withdrawData, Principal principal, HttpServletRequest request, Locale locale) {
     RedirectView redirectView = new RedirectView("/dashboard");
     HttpSession session = request.getSession();
@@ -53,9 +73,8 @@ public class WithdrawRequestController {
         session.setAttribute("errorNoty", messageSource.getMessage("merchant.operationNotAvailable", null, locale));
       }
       return new RedirectView("/merchants/invoice/withdrawDetails");
-
     }
-    Map<String, String> result = withdrawService.withdrawRequest(creditsOperation, withdrawData, principal.getName(), locale);
+    Map<String, String> result = withdrawService.createWithdrawalRequest(creditsOperation, withdrawData, principal.getName(), locale);
     synchronized (mutex) {
       session.removeAttribute("creditsOperation");
       session.setAttribute("successNoty", result.get("success"));
@@ -107,10 +126,20 @@ public class WithdrawRequestController {
     withdrawService.confirmWithdrawalRequest(id, requesterAdminId);
   }
 
+  @RequestMapping(value = "/2a8fy7b07dxe44/withdraw/post", method = POST)
+  @ResponseBody
+  public void postHolded(
+      @RequestParam Integer id,
+      Principal principal) {
+    Integer requesterAdminId = userService.getIdByEmail(principal.getName());
+    withdrawService.postWithdrawalRequest(id, requesterAdminId);
+  }
+
   @ResponseStatus(HttpStatus.NOT_FOUND)
   @ExceptionHandler(InvoiceNotFoundException.class)
   @ResponseBody
   public ErrorInfo NotFoundExceptionHandler(HttpServletRequest req, Exception exception) {
+    log.error(exception);
     return new ErrorInfo(req.getRequestURL(), exception);
   }
 
@@ -121,6 +150,17 @@ public class WithdrawRequestController {
   })
   @ResponseBody
   public ErrorInfo ForbiddenExceptionHandler(HttpServletRequest req, Exception exception) {
+    log.error(exception);
+    return new ErrorInfo(req.getRequestURL(), exception);
+  }
+
+  @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
+  @ExceptionHandler({
+      NotEnoughUserWalletMoneyException.class,
+  })
+  @ResponseBody
+  public ErrorInfo NotAcceptableExceptionHandler(HttpServletRequest req, Exception exception) {
+    log.error(exception);
     return new ErrorInfo(req.getRequestURL(), exception);
   }
 
@@ -128,8 +168,7 @@ public class WithdrawRequestController {
   @ExceptionHandler(Exception.class)
   @ResponseBody
   public ErrorInfo OtherErrorsHandler(HttpServletRequest req, Exception exception) {
-    log.error(exception);
-    exception.printStackTrace();
+    log.error(ExceptionUtils.getStackTrace(exception));
     return new ErrorInfo(req.getRequestURL(), exception);
   }
 

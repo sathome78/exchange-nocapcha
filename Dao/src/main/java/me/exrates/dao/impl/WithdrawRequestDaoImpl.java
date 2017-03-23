@@ -18,6 +18,8 @@ import me.exrates.model.enums.WithdrawalRequestStatus;
 import me.exrates.model.enums.invoice.*;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -45,9 +47,10 @@ import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.REVOKE;
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
-@Log4j
 @Repository
 public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
+
+  private static final Logger log = LogManager.getLogger("withdraw");
 
     @Autowired
     private NamedParameterJdbcTemplate jdbcTemplate;
@@ -490,7 +493,8 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
             withdrawRequestFlatDto.setUserFullName(rs.getString("user_full_name"));
             withdrawRequestFlatDto.setRemark(rs.getString("remark"));
             withdrawRequestFlatDto.setAmount(rs.getBigDecimal("amount"));
-            withdrawRequestFlatDto.setCurrencyId(rs.getInt("commission_id"));
+            withdrawRequestFlatDto.setCommissionAmount(rs.getBigDecimal("commission"));
+            withdrawRequestFlatDto.setCommissionId(rs.getInt("commission_id"));
             withdrawRequestFlatDto.setStatus(WithdrawStatusEnum.convert(rs.getInt("status_id")));
             withdrawRequestFlatDto.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
             withdrawRequestFlatDto.setStatusModificationDate(rs.getTimestamp("status_modification_date").toLocalDateTime());
@@ -553,7 +557,8 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
       withdrawRequestFlatDto.setUserFullName(rs.getString("user_full_name"));
       withdrawRequestFlatDto.setRemark(rs.getString("remark"));
       withdrawRequestFlatDto.setAmount(rs.getBigDecimal("amount"));
-      withdrawRequestFlatDto.setCurrencyId(rs.getInt("commission_id"));
+      withdrawRequestFlatDto.setCommissionAmount(rs.getBigDecimal("commission"));
+      withdrawRequestFlatDto.setCommissionId(rs.getInt("commission_id"));
       withdrawRequestFlatDto.setStatus(WithdrawStatusEnum.convert(rs.getInt("status_id")));
       withdrawRequestFlatDto.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
       withdrawRequestFlatDto.setStatusModificationDate(rs.getTimestamp("status_modification_date").toLocalDateTime());

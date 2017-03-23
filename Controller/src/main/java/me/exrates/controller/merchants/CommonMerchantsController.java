@@ -129,22 +129,6 @@ public class CommonMerchantsController {
         return merchantService.computeCommissionAndMapAllToString(amount, type, currency, merchant);
     }
 
-    @RequestMapping(value="/payment/withdraw", method = POST)
-    public ResponseEntity<Map<String,String>> withdraw(@RequestBody final Payment payment,
-                                                       final Principal principal, final Locale locale) {
-        final ResponseEntity<Map<String, String>> error = new ResponseEntity<>(
-                singletonMap("failure",
-                        source.getMessage("merchants.withdrawRequestError", null, locale)),
-                BAD_REQUEST);
-        try {
-            return merchantService.prepareCreditsOperation(payment, principal.getName())
-                    .map(creditsOperation -> withdrawService.createWithdrawalRequest(creditsOperation, new WithdrawData(), principal.getName(), locale))
-                    .map(response -> new ResponseEntity<>(response, OK))
-                    .orElseGet(() -> error);
-        } catch (final NotEnoughUserWalletMoneyException e) {
-            return error;
-        }
-    }
 
     @RequestMapping(value = "/withdrawal/request/accept",method = POST)
     @ResponseBody

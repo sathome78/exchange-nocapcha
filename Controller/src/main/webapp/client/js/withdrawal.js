@@ -117,7 +117,7 @@ $(function () {
         updateWithdrawalTable();
     });
 
-    $('#withdrawalTable').on('click', 'button[data-source=WITHDRAW].take_to_work_button', function (e) {
+    $('#withdrawalTable').on('click', 'button[data-source=WITHDRAW].post_holded_button', function (e) {
         e.preventDefault();
         var id = $(this).data("id");
         var $modal = $("#confirm-with-info-modal");
@@ -126,7 +126,7 @@ $(function () {
         $modal.find("#confirm-button").off("click").one("click", function () {
             $modal.modal('hide');
             $.ajax({
-                url: '/2a8fy7b07dxe44/withdraw/take?id=' + id,
+                url: '/2a8fy7b07dxe44/withdraw/post?id=' + id,
                 async: false,
                 headers: {
                     'X-CSRF-Token': $("input[name='_csrf']").val(),
@@ -229,32 +229,9 @@ $(function () {
         $modal.modal();
     });
 
+
+
 });
-
-function submitAccept($elem) {
-    promptAcceptRequest(getRowId($elem))
-}
-function submitDecline($elem) {
-    promptDeclineRequest(getRowId($elem))
-}
-
-function promptAcceptRequest(requestId) {
-    if (confirm($('#prompt_acc_rqst').html())) {
-        var data = "requestId=" + requestId;
-        $.ajax('/merchants/withdrawal/request/accept', {
-            headers: {
-                'X-CSRF-Token': $("input[name='_csrf']").val()
-            },
-            type: 'POST',
-            dataType: 'json',
-            data: data,
-            success: function (result) {
-                alert(result['success']);
-                updateWithdrawalTable();
-            }
-        });
-    }
-}
 
 function promptDeclineRequest(requestId) {
     if (confirm($('#prompt_dec_rqst').html())) {

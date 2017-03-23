@@ -268,4 +268,10 @@ public class OrigWithdrawServiceImpl extends BaseWithdrawServiceImpl {
     LOG.error("NOT IMPLEMENTED");
     throw new NotImplimentedMethod("method NOT IMPLEMENTED !");
   }
+
+  @Override
+  public void postWithdrawalRequest(int requestId, Integer requesterAdminId) {
+    LOG.error("NOT IMPLEMENTED");
+    throw new NotImplimentedMethod("method NOT IMPLEMENTED !");
+  }
 }

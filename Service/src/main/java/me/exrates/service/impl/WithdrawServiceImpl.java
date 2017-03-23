@@ -1,11 +1,9 @@
 package me.exrates.service.impl;
 
-import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.MerchantDao;
 import me.exrates.dao.WithdrawRequestDao;
-import me.exrates.model.CreditsOperation;
-import me.exrates.model.PagingData;
-import me.exrates.model.WithdrawRequest;
+import me.exrates.model.*;
+import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
@@ -21,12 +19,10 @@ import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.TransactionDescription;
+import me.exrates.model.vo.WalletOperationData;
 import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.*;
-import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
-import me.exrates.service.exception.NotImplimentedMethod;
-import me.exrates.service.exception.WithdrawRequestCreationException;
-import me.exrates.service.exception.WithdrawRequestRevokeException;
+import me.exrates.service.exception.*;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.util.Cache;
 import me.exrates.service.vo.ProfileData;
@@ -43,15 +39,20 @@ import java.security.Principal;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static me.exrates.model.enums.UserCommentTopicEnum.INVOICE_DECLINE;
+import static me.exrates.model.enums.OperationType.OUTPUT;
+import static me.exrates.model.enums.UserCommentTopicEnum.WITHDRAW_DECLINE;
+import static me.exrates.model.enums.UserCommentTopicEnum.WITHDRAW_POSTED;
+import static me.exrates.model.enums.WalletTransferStatus.SUCCESS;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.*;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
+import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 
 /**
  * @author ValkSam
  */
-@Log4j2
 public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements WithdrawService {
+
+  private static final Logger log = LogManager.getLogger("withdraw");
 
   @Autowired
   private MerchantDao merchantDao;
@@ -67,6 +68,9 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
 
   @Autowired
   private WalletService walletService;
+
+  @Autowired
+  private CompanyWalletService companyWalletService;
 
   @Autowired
   private UserService userService;
@@ -149,10 +153,10 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
         log.error(e);
       }
       profileData.setTime3();
-      final BigDecimal newAmount = walletService.getWalletABalance(request.getUserWalletId());
-      final String currency = creditsOperation.getCurrency().getName();
-      final String balance = currency + " " + currencyService.amountToString(newAmount, currency);
-      final Map<String, String> result = new HashMap<>();
+      BigDecimal newAmount = walletService.getWalletABalance(request.getUserWalletId());
+      String currency = creditsOperation.getCurrency().getName();
+      String balance = currency + " " + currencyService.amountToString(newAmount, currency);
+      Map<String, String> result = new HashMap<>();
       result.put("success", notification);
       result.put("balance", balance);
       profileData.setTime4();
@@ -183,12 +187,12 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
             TransactionSourceType.WITHDRAW,
             createdWithdrawRequestId,
             description);
-        if (result != WalletTransferStatus.SUCCESS) {
+        if (result != SUCCESS) {
           throw new WithdrawRequestCreationException(result.toString());
         }
       }
     } else {
-      throw new NotEnoughUserWalletMoneyException("");
+      throw new NotEnoughUserWalletMoneyException(withdrawRequestCreateDto.toString());
     }
     return createdWithdrawRequestId;
   }
@@ -210,12 +214,6 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
     return String.valueOf(seconds)
         .concat(" ")
         .concat(messageSource.getMessage("merchant.withdrawAutoDelaySecond", null, locale));
-  }
-
-  @Override
-  public Map<String, String> acceptWithdrawalRequest(int requestId, Locale locale, Principal principal) {
-    log.error("NOT IMPLEMENTED");
-    throw new NotImplimentedMethod("method NOT IMPLEMENTED !");
   }
 
   @Override
@@ -306,7 +304,7 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
         .orElseThrow(() -> new InvoiceNotFoundException(String.format("withdraw request id: %s", requestId)));
     WithdrawStatusEnum currentStatus = withdrawRequest.getStatus();
     InvoiceActionTypeEnum action = REVOKE;
-    WithdrawStatusEnum newStatus = (WithdrawStatusEnum)currentStatus.nextState(action);
+    WithdrawStatusEnum newStatus = (WithdrawStatusEnum) currentStatus.nextState(action);
     withdrawRequestDao.setStatusById(requestId, newStatus);
     /**/
     Integer userWalletId = walletService.getWalletId(withdrawRequest.getUserId(), withdrawRequest.getCurrencyId());
@@ -317,7 +315,7 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
         TransactionSourceType.WITHDRAW,
         withdrawRequest.getId(),
         description);
-    if (result != WalletTransferStatus.SUCCESS) {
+    if (result != SUCCESS) {
       throw new WithdrawRequestRevokeException(result.toString());
     }
   }
@@ -327,9 +325,8 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
   public void takeInWorkWithdrawalRequest(int requestId, Integer requesterAdminId) {
     WithdrawRequestFlatDto withdrawRequest = withdrawRequestDao.getFlatByIdAndBlock(requestId)
         .orElseThrow(() -> new InvoiceNotFoundException(String.format("withdraw request id: %s", requestId)));
-    WithdrawStatusEnum currentStatus = withdrawRequest.getStatus();
     InvoiceActionTypeEnum action = TAKE_TO_WORK;
-    WithdrawStatusEnum newStatus = (WithdrawStatusEnum)currentStatus.nextState(action);
+    WithdrawStatusEnum newStatus = checkPermissionOnActionAndGetNewStatus(requesterAdminId, withdrawRequest, action);
     withdrawRequestDao.setStatusById(requestId, newStatus);
     /**/
     withdrawRequestDao.setHolderById(requestId, requesterAdminId);
@@ -369,7 +366,7 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
           TransactionSourceType.WITHDRAW,
           withdrawRequest.getId(),
           description);
-      if (result != WalletTransferStatus.SUCCESS) {
+      if (result != SUCCESS) {
         throw new WithdrawRequestRevokeException(result.toString());
       }
       profileData.setTime2();
@@ -377,14 +374,14 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
       Locale locale = new Locale(userService.getPreferedLang(withdrawRequest.getUserId()));
       String title = messageSource.getMessage("withdrawal.declined.title", new Integer[]{requestId}, locale);
       if (StringUtils.isEmpty(comment)) {
-        comment = messageSource.getMessage("withdrawal.declined.message", new Integer[]{requestId}, locale);
+        comment = messageSource.getMessage("merchants.withdrawNotification.".concat(newStatus.name()), new Integer[]{requestId}, locale);
       }
       String userEmail = userService.getEmailById(withdrawRequest.getUserId());
-      userService.addUserComment(INVOICE_DECLINE, comment, userEmail, false);
+      userService.addUserComment(WITHDRAW_DECLINE, comment, userEmail, false);
       notificationService.notifyUser(withdrawRequest.getUserId(), NotificationEvent.IN_OUT, title, comment);
       profileData.setTime3();
     } finally {
-      profileData.checkAndLog("slowdecline WithdrawalRequest: " + requestId + " profile: " + profileData);
+      profileData.checkAndLog("slow decline WithdrawalRequest: " + requestId + " profile: " + profileData);
     }
   }
 
@@ -399,6 +396,73 @@ public class WithdrawServiceImpl extends BaseWithdrawServiceImpl implements With
     withdrawRequestDao.setStatusById(requestId, newStatus);
     /**/
     withdrawRequestDao.setHolderById(requestId, requesterAdminId);
+  }
+
+  @Override
+  @Transactional
+  public void postWithdrawalRequest(int requestId, Integer requesterAdminId) {
+    ProfileData profileData = new ProfileData(1000);
+    try {
+      WithdrawRequestFlatDto withdrawRequest = withdrawRequestDao.getFlatByIdAndBlock(requestId)
+          .orElseThrow(() -> new InvoiceNotFoundException(String.format("withdraw request id: %s", requestId)));
+      WithdrawStatusEnum currentStatus = withdrawRequest.getStatus();
+      InvoiceActionTypeEnum action = withdrawRequest.getStatus().availableForAction(POST_HOLDED) ? POST_HOLDED : POST;
+      WithdrawStatusEnum newStatus = checkPermissionOnActionAndGetNewStatus(requesterAdminId, withdrawRequest, action);
+      withdrawRequestDao.setStatusById(requestId, newStatus);
+      withdrawRequestDao.setHolderById(requestId, requesterAdminId);
+      profileData.setTime1();
+      /**/
+      Integer userWalletId = walletService.getWalletId(withdrawRequest.getUserId(), withdrawRequest.getCurrencyId());
+      String description = transactionDescription.get(currentStatus, action);
+      WalletTransferStatus result = walletService.walletInnerTransfer(
+          userWalletId,
+          withdrawRequest.getAmount(),
+          TransactionSourceType.WITHDRAW,
+          withdrawRequest.getId(),
+          description);
+      if (result != SUCCESS) {
+        throw new WithdrawRequestPostException(result.name());
+      }
+      profileData.setTime2();
+      WalletOperationData walletOperationData = new WalletOperationData();
+      walletOperationData.setOperationType(OUTPUT);
+      walletOperationData.setWalletId(userWalletId);
+      walletOperationData.setAmount(withdrawRequest.getAmount());
+      walletOperationData.setBalanceType(ACTIVE);
+      walletOperationData.setCommission(new Commission(withdrawRequest.getCommissionId()));
+      walletOperationData.setCommissionAmount(withdrawRequest.getCommissionAmount());
+      walletOperationData.setSourceType(TransactionSourceType.WITHDRAW);
+      walletOperationData.setSourceId(withdrawRequest.getId());
+      walletOperationData.setDescription(description);
+      WalletTransferStatus walletTransferStatus = walletService.walletBalanceChange(walletOperationData);
+      if (walletTransferStatus != SUCCESS) {
+        throw new WithdrawRequestPostException(walletTransferStatus.name());
+      }
+      profileData.setTime3();
+      CompanyWallet companyWallet = companyWalletService.findByCurrency(new Currency(withdrawRequest.getCurrencyId()));
+      companyWalletService.deposit(
+          companyWallet,
+          withdrawRequest.getAmount().negate(),
+          walletOperationData.getCommissionAmount()
+      );
+      profileData.setTime4();
+      /**/
+      Locale locale = new Locale(userService.getPreferedLang(withdrawRequest.getUserId()));
+      String title = messageSource.getMessage("withdrawal.posted.title", new Integer[]{requestId}, locale);
+      String comment = messageSource.getMessage("merchants.withdrawNotification.".concat(newStatus.name()), new Integer[]{requestId}, locale);
+      String userEmail = userService.getEmailById(withdrawRequest.getUserId());
+      userService.addUserComment(WITHDRAW_POSTED, comment, userEmail, false);
+      notificationService.notifyUser(withdrawRequest.getUserId(), NotificationEvent.IN_OUT, title, comment);
+      profileData.setTime5();
+    } finally {
+      profileData.checkAndLog("slow post WithdrawalRequest: " + requestId + " profile: " + profileData);
+    }
+  }
+
+  @Override
+  public Map<String, String> acceptWithdrawalRequest(int requestId, Locale locale, Principal principal) {
+    log.error("NOT IMPLEMENTED");
+    throw new NotImplimentedMethod("method NOT IMPLEMENTED !");
   }
 
   private WithdrawStatusEnum checkPermissionOnActionAndGetNewStatus(Integer requesterAdminId, WithdrawRequestFlatDto withdrawRequest, InvoiceActionTypeEnum action) {

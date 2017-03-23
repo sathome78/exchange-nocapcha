@@ -15,7 +15,8 @@ public enum UserCommentTopicEnum {
   GENERAL(1),
   INVOICE_DECLINE(2),
   CURRENCY_WARNING(3),
-  WITHDRAW_DECLINE(4);
+  WITHDRAW_DECLINE(4),
+  WITHDRAW_POSTED(5);
 
   private Integer code;
 

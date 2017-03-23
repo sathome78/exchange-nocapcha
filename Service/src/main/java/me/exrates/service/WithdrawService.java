@@ -26,6 +26,8 @@ public interface WithdrawService {
 
   Map<String, String> createWithdrawalRequest(CreditsOperation creditsOperation, WithdrawData withdrawData, String userEmail,Locale locale);
 
+  void postWithdrawalRequest(int requestId, Integer requesterAdminId);
+
   Map<String, String> acceptWithdrawalRequest(int requestId, Locale locale, Principal principal);
 
   Map<String, Object> declineWithdrawalRequest(int requestId, Locale locale, String email);
@@ -55,6 +57,5 @@ public interface WithdrawService {
 
   void declineWithdrawalRequest(int requestId, Integer requesterAdminId, String comment);
 
-  @Transactional
   void confirmWithdrawalRequest(int requestId, Integer requesterAdminId);
 }

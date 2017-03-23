@@ -2,6 +2,7 @@ package me.exrates.model.dto;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import me.exrates.model.MerchantImage;
 import me.exrates.model.enums.WithdrawalRequestStatus;
 
@@ -11,6 +12,7 @@ import java.math.BigDecimal;
  * @author ValkSam
  */
 @Getter @Setter
+@ToString
 public class WithdrawRequestCreateDto {
     private Integer id;
     private Integer userId;

@@ -250,7 +250,7 @@ $(function(){
             if (targetMerchant === INVOICE) {
                 callback();
             } else {
-                $.ajax('/merchants/payment/withdraw', {
+                $.ajax('/withdraw/request/merchant/create', {
                     headers: {
                         'X-CSRF-Token': $("input[name='_csrf']").val()
                     },
