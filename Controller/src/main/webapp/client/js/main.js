@@ -642,7 +642,8 @@ $(function(){
 
     });
     $('#transferButton').click(function () {
-        finPassCheck('transferModal', prepareTransfer);
+        /*finPassCheck('transferModal', prepareTransfer);*/
+        prepareTransfer()
     });
 
     function prepareTransfer() {
@@ -673,7 +674,6 @@ $(function(){
         e.preventDefault();
         var nickname = $('#nicknameInput').val();
         $('#nickname').val(nickname);
-        submitTransfer();
         $('#transferProcess').prop('disabled', true);
     });
 
@@ -693,6 +693,35 @@ $(function(){
                 {
                     location.reload();
                 },5000);
+            },
+            error: function (err) {
+                console.log(err);
+                var errorText = JSON.parse(err.responseText);
+                $('.paymentInfo').html(errorText.detail);
+                $('.nickname_input').hide();
+                responseControls ()
+            }
+        })
+
+    }
+
+    function checkTransfer() {
+        var transferForm = $('#payment').serialize() + '&onlyCheck=true';
+        $.ajax('/transfer/submit', {
+            type: 'POST',
+            data: transferForm,
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            success: function (response) {
+                finPassCheck('transferModal', submitTransfer);
+                /*$('.paymentInfo').html(response.result);
+                $('.nickname_input').hide();
+                responseControls();
+                setTimeout(function()
+                {
+                    location.reload();
+                },5000);*/
             },
             error: function (err) {
                 console.log(err);

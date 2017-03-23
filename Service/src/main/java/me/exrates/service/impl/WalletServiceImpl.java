@@ -271,14 +271,14 @@ public final class WalletServiceImpl implements WalletService {
     }
   }
 
+  /**@param checkOnly = true - used to check transfer params but not perform transfer
+   * */
   @Override
   @Transactional(rollbackFor = Exception.class)
-  public String transferCostsToUser(Integer fromUserWalletId, String toUserNickname, BigDecimal amount, Locale locale) {
+  public String transferCostsToUser(Integer fromUserWalletId, String toUserNickname, BigDecimal amount, Locale locale, boolean checkOnly) {
     if (amount.signum() <= 0) {
       throw new InvalidAmountException(messageSource.getMessage("transfer.negativeAmount", null, locale));
     }
-
-
     Wallet fromUserWallet = walletDao.findById(fromUserWalletId);
     Integer currencyId = fromUserWallet.getCurrencyId();
     Commission commission = commissionService.findCommissionByTypeAndRole(OperationType.USER_TRANSFER, userService.getCurrentUserRole());
@@ -296,21 +296,25 @@ public final class WalletServiceImpl implements WalletService {
     if (toUserWallet == null) {
       throw new WalletNotFoundException(messageSource.getMessage("transfer.walletNotFound", null, locale));
     }
-    UserTransfer userTransfer = userTransferService.createUserTransfer(fromUserWallet.getUser().getId(), toUserWallet.getUser().getId(),
-            currencyId, amount, commissionAmount);
-    changeWalletActiveBalance(totalAmount, fromUserWallet, OperationType.OUTPUT,
-        TransactionSourceType.USER_TRANSFER, commissionAmount, userTransfer.getId());
-    changeWalletActiveBalance(amount, toUserWallet, OperationType.INPUT,
-        TransactionSourceType.USER_TRANSFER, BigDecimal.ZERO, userTransfer.getId());
-    String currencyName = currencyService.getCurrencyName(currencyId);
-    String result = messageSource.getMessage("transfer.successful", new Object[]{amount, currencyName, toUserNickname},
-        locale);
-    notificationService.notifyUser(fromUserWallet.getUser().getId(), NotificationEvent.IN_OUT, "wallets.transferTitle",
-        "transfer.successful", new Object[]{amount, currencyName, toUserNickname});
-    notificationService.notifyUser(toUserWallet.getUser().getId(), NotificationEvent.IN_OUT, "wallets.transferTitle",
-        "transfer.received", new Object[]{amount, currencyName});
+    String result = "";
+    if (!checkOnly) {
+      UserTransfer userTransfer = userTransferService.createUserTransfer(fromUserWallet.getUser().getId(), toUserWallet.getUser().getId(),
+              currencyId, amount, commissionAmount);
+      changeWalletActiveBalance(totalAmount, fromUserWallet, OperationType.OUTPUT,
+              TransactionSourceType.USER_TRANSFER, commissionAmount, userTransfer.getId());
+      changeWalletActiveBalance(amount, toUserWallet, OperationType.INPUT,
+              TransactionSourceType.USER_TRANSFER, BigDecimal.ZERO, userTransfer.getId());
+      String currencyName = currencyService.getCurrencyName(currencyId);
+      result = messageSource.getMessage("transfer.successful", new Object[]{amount, currencyName, toUserNickname},
+              locale);
+      notificationService.notifyUser(fromUserWallet.getUser().getId(), NotificationEvent.IN_OUT, "wallets.transferTitle",
+              "transfer.successful", new Object[]{amount, currencyName, toUserNickname});
+      notificationService.notifyUser(toUserWallet.getUser().getId(), NotificationEvent.IN_OUT, "wallets.transferTitle",
+              "transfer.received", new Object[]{amount, currencyName});
+    }
     return result;
   }
+
 
   @Override
   @Transactional(readOnly = true)

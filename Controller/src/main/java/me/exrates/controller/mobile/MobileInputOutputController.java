@@ -602,7 +602,7 @@ public class MobileInputOutputController {
             throw new InvalidNicknameException(messageSource.getMessage("transfer.selfNickname", null, userLocale));
         }
         walletService.transferCostsToUser(userTransferDto.getWalletId(), userTransferDto.getNickname(),
-                userTransferDto.getAmount(), userLocale);
+                userTransferDto.getAmount(), userLocale, false);
         return new ResponseEntity<>(OK);
 
     }
