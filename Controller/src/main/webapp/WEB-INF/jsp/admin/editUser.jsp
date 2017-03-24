@@ -808,6 +808,7 @@
   <loc:message code="admin.promptDeleteUserComment"/>
 </div>
 <%@include file='order-modals.jsp' %>
+<%@include file='../fragments/modal/withdraw_info_modal.jsp' %>
 
 <%@include file='../fragments/footer.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>

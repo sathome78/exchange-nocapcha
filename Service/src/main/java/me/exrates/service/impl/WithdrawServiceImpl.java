@@ -236,7 +236,7 @@ public class WithdrawServiceImpl implements WithdrawService {
   }
 
   @Override
-  public DataTable<List<WithdrawRequestsAdminTableDto>> findWithdrawRequestByStatusList(
+  public DataTable<List<WithdrawRequestsAdminTableDto>> getWithdrawRequestByStatusList(
       List<Integer> requestStatus,
       DataTableParams dataTableParams,
       WithdrawFilterData withdrawFilterData,
@@ -263,6 +263,18 @@ public class WithdrawServiceImpl implements WithdrawService {
     output.setRecordsTotal(result.getTotal());
     output.setRecordsFiltered(result.getFiltered());
     return output;
+  }
+
+  @Override
+  public WithdrawRequestsAdminTableDto getWithdrawRequestById(
+      Integer id,
+      String authorizedUserEmail) {
+    Integer authorizedUserId = userService.getIdByEmail(authorizedUserEmail);
+    WithdrawRequestFlatDto withdraw = withdrawRequestDao.getPermittedFlatById(
+        id,
+        authorizedUserId);
+    DataTable<List<WithdrawRequestsAdminTableDto>> output = new DataTable<>();
+    return new WithdrawRequestsAdminTableDto(withdraw, withdrawRequestDao.getAdditionalDataForId(withdraw.getId()));
   }
 
   @Override
@@ -476,7 +488,7 @@ public class WithdrawServiceImpl implements WithdrawService {
         withdrawDelay.isEmpty() ? "" : "within".concat(withdrawDelay)
     };
     String notificationMessageCode;
-    notificationMessageCode = "merchants.withdrawNotification.".concat(withdrawRequest.getWithdrawStatus().name());
+    notificationMessageCode = "merchants.withdrawNotification.".concat(withdrawRequest.getStatus().name());
     notification = messageSource
         .getMessage(notificationMessageCode, messageParams, locale);
     notificationService.notifyUser(withdrawRequest.getUserEmail(), NotificationEvent.IN_OUT,

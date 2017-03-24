@@ -3,8 +3,6 @@ package me.exrates.dao.impl;
 import me.exrates.dao.WithdrawRequestDao;
 import me.exrates.model.MerchantImage;
 import me.exrates.model.PagingData;
-import me.exrates.model.Transaction;
-import me.exrates.model.WithdrawRequest;
 import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.dto.WithdrawRequestFlatAdditionalDataDto;
 import me.exrates.model.dto.WithdrawRequestFlatDto;
@@ -348,7 +346,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     String orderClause = dataTableParams.getOrderByClause();
     String offsetAndLimit = " LIMIT :limit OFFSET :offset ";
     String sqlMain = new StringJoiner(" ")
-        .add("SELECT *, IOP.invoice_operation_permission_id ")
+        .add("SELECT WITHDRAW_REQUEST.*, IOP.invoice_operation_permission_id ")
         .add(sqlBase)
         .add(whereClauseFilter)
         .add(orderClause)
@@ -381,6 +379,29 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     result.setFiltered(totalQuantity);
     result.setTotal(totalQuantity);
     return result;
+  }
+
+  @Override
+  public WithdrawRequestFlatDto getPermittedFlatById(
+      Integer id,
+      Integer requesterUserId) {
+    String sql = "SELECT WITHDRAW_REQUEST.*, IOP.invoice_operation_permission_id "+
+        " FROM WITHDRAW_REQUEST " +
+            " JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
+            "				(IOP.currency_id=WITHDRAW_REQUEST.currency_id) " +
+            "				AND (IOP.user_id=:requester_user_id) " +
+            "				AND (IOP.operation_direction=:operation_direction) " +
+            " WHERE WITHDRAW_REQUEST.id=:id ";
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("id", id);
+      put("requester_user_id", requesterUserId);
+      put("operation_direction", "WITHDRAW");
+    }};
+    return jdbcTemplate.queryForObject(sql, params, (rs, i) -> {
+      WithdrawRequestFlatDto withdrawRequestFlatDto = withdrawRequestFlatDtoRowMapper.mapRow(rs, i);
+      withdrawRequestFlatDto.setInvoiceOperationPermission(InvoiceOperationPermission.convert(rs.getInt("invoice_operation_permission_id")));
+      return withdrawRequestFlatDto;
+    });
   }
 
   @Override

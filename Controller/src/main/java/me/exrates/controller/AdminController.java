@@ -665,7 +665,7 @@ public class AdminController {
     List<Integer> statusList = viewTypeEnum.getWithdrawStatusList().stream().map(WithdrawStatusEnum::getCode).collect(Collectors.toList());
     DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
     withdrawFilterData.initFilterItems();
-    return withdrawService.findWithdrawRequestByStatusList(statusList, dataTableParams, withdrawFilterData, principal.getName(), locale);
+    return withdrawService.getWithdrawRequestByStatusList(statusList, dataTableParams, withdrawFilterData, principal.getName(), locale);
   }
 
   @ResponseBody

@@ -3,6 +3,7 @@ package me.exrates.controller.merchants;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
+import me.exrates.model.dto.WithdrawRequestsAdminTableDto;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
 import me.exrates.model.vo.WithdrawData;
@@ -29,6 +30,7 @@ import java.security.Principal;
 import java.util.Locale;
 import java.util.Map;
 
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 /**
@@ -133,6 +135,15 @@ public class WithdrawRequestController {
       Principal principal) {
     Integer requesterAdminId = userService.getIdByEmail(principal.getName());
     withdrawService.postWithdrawalRequest(id, requesterAdminId);
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/withdraw/info", method = GET)
+  @ResponseBody
+  public WithdrawRequestsAdminTableDto getInfo(
+      @RequestParam Integer id,
+      Principal principal) {
+    String requesterAdmin = principal.getName();
+    return withdrawService.getWithdrawRequestById(id, requesterAdmin);
   }
 
   @ResponseStatus(HttpStatus.NOT_FOUND)

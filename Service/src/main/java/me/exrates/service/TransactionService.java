@@ -38,9 +38,6 @@ public interface TransactionService {
 
     void invalidateTransaction(Transaction transaction);
 
-    List<Transaction> findAllByUserWallets(List<Integer> userWalletsIds);
-
-
     DataTable<List<OperationViewDto>> showMyOperationHistory(String email, Integer status,
                                                              List<TransactionType> types, List<Integer> merchantIds,
                                                              String dateFrom, String dateTo,

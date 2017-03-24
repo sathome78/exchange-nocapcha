@@ -272,24 +272,24 @@ function retrieveRowDataForElement($elem) {
 
 function viewRequestInfo($elem) {
     var rowData = retrieveRowDataForElement($elem);
-    fillModal(rowData);
-    $('#withdraw-info-modal').modal();
-
+    var $modal = $('#withdraw-info-modal');
+    fillModal($modal, rowData);
+    $modal.modal();
 }
 
-function fillModal(rowData) {
-    $('#info-currency').text(rowData.currencyName);
-    $('#info-amount').text(rowData.amount);
-    $('#info-commissionAmount').text(rowData.commissionAmount);
+function fillModal($modal, rowData) {
+    $modal.find('#info-currency').text(rowData.currencyName);
+    $modal.find('#info-amount').text(rowData.amount);
+    $modal.find('#info-commissionAmount').text(rowData.commissionAmount);
     var recipientBank = rowData.recipientBankName ? rowData.recipientBankName : '';
     var recipientBankCode = rowData.recipientBankCode ? rowData.recipientBankCode : '';
     var userFullName = rowData.userFullName ? rowData.userFullName : '';
-    $('#info-bankRecipient').text(recipientBank + ' ' + recipientBankCode);
-    $('#info-status').text(rowData.status);
-    $('#info-status-date').text(rowData.statusModificationDate);
-    $('#info-wallet').text(rowData.wallet);
-    $('#info-userFullName').text(rowData.userFullName);
-    $('#info-remark').find('textarea').html(rowData.remark);
+    $modal.find('#info-bankRecipient').text(recipientBank + ' ' + recipientBankCode);
+    $modal.find('#info-status').text(rowData.status);
+    $modal.find('#info-status-date').text(rowData.statusModificationDate);
+    $modal.find('#info-wallet').text(rowData.wallet);
+    $modal.find('#info-userFullName').text(rowData.userFullName);
+    $modal.find('#info-remark').find('textarea').html(rowData.remark);
 }
 
 
