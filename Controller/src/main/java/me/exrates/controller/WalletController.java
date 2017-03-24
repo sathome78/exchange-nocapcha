@@ -102,22 +102,28 @@ public class WalletController {
 
     }
 
+    /**@param checkOnly - used to verify payment, without fin pass, but not perform it
+     * */
     @RequestMapping(value = "/transfer/submit", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     public ResponseEntity<Map<String, String>> submitTransfer(@RequestParam Integer walletId,
                                                               @RequestParam String nickname,
                                                               @RequestParam BigDecimal amount,
-                                                              @RequestParam(value = "onlyCheck", defaultValue = "false")
+                                                              @RequestParam String finPass,
+                                                              @RequestParam(value = "checkOnly", defaultValue = "false")
                                                                           boolean checkOnly,
                                                               Principal principal,
                                                               HttpServletRequest request) {
-
         if (!nickname.matches("^\\D+[\\w\\d\\-_]+")) {
             throw new InvalidNicknameException(messageSource.getMessage("transfer.invalidNickname", null, localeResolver.resolveLocale(request)));
         }
         String principalNickname = userService.findByEmail(principal.getName()).getNickname();
         if (nickname.equals(principalNickname)) {
             throw new InvalidNicknameException(messageSource.getMessage("transfer.selfNickname", null, localeResolver.resolveLocale(request)));
+        }
+        if (!checkOnly) {
+            User storedUser = userService.getUserById(userService.getIdByEmail(principal.getName()));
+            userService.checkFinPassword(finPass, storedUser, localeResolver.resolveLocale(request));
         }
         String result = walletService.transferCostsToUser(walletId, nickname, amount, localeResolver.resolveLocale(request), checkOnly);
         LOG.debug(result);

@@ -675,10 +675,12 @@ $(function(){
         var nickname = $('#nicknameInput').val();
         $('#nickname').val(nickname);
         $('#transferProcess').prop('disabled', true);
+        checkTransfer();
     });
 
     function submitTransfer() {
-        var transferForm = $('#payment').serialize();
+        console.log("transfer costs");
+        var transferForm = $('#payment').serialize() + '&checkOnly=true';
         $.ajax('/transfer/submit', {
             type: 'POST',
             data: transferForm,
@@ -686,6 +688,8 @@ $(function(){
                 'X-CSRF-Token': $("input[name='_csrf']").val()
             },
             success: function (response) {
+                console.log("response " + response);
+                $('#transferModal').modal();
                 $('.paymentInfo').html(response.result);
                 $('.nickname_input').hide();
                 responseControls();
@@ -702,11 +706,16 @@ $(function(){
                 responseControls ()
             }
         })
+    }
 
+    function getFinPassModal() {
+        $('#finPassModal').modal({
+            backdrop: 'static'
+        });
     }
 
     function checkTransfer() {
-        var transferForm = $('#payment').serialize() + '&onlyCheck=true';
+        var transferForm = $('#payment').serialize() + '&checkOnly=true';
         $.ajax('/transfer/submit', {
             type: 'POST',
             data: transferForm,
@@ -714,14 +723,9 @@ $(function(){
                 'X-CSRF-Token': $("input[name='_csrf']").val()
             },
             success: function (response) {
+                $('#transferModal .close').click();
                 finPassCheck('transferModal', submitTransfer);
-                /*$('.paymentInfo').html(response.result);
-                $('.nickname_input').hide();
                 responseControls();
-                setTimeout(function()
-                {
-                    location.reload();
-                },5000);*/
             },
             error: function (err) {
                 console.log(err);
