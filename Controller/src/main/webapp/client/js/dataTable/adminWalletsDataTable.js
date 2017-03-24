@@ -23,18 +23,18 @@ $(function () {
                     "data": "name"
                 },
                 {
-                    "data": "activeBalance"
+                    "data": "activeBalance",
+                    "render": function (data, type, row) {
+                        return row.activeBalanceFormatted;
+                    }
                 },
                 {
-                    "data": "reservedBalance"
+                    "data": "reservedBalance",
+                    "render": function (data, type, row) {
+                        return row.reservedBalanceFormatted;
+                    }
                 }
-            ]/*,
-            "order": [
-                [
-                    0,
-                    "asc"
-                ]
-            ]*/
+            ]
         });
     }
     $('#walletsTable').find('tbody').on('click', 'tr', function () {
