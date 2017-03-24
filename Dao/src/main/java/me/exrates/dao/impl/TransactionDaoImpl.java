@@ -4,7 +4,6 @@ import me.exrates.dao.TransactionDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
 import me.exrates.model.dto.TransactionFlatForReportDto;
-import me.exrates.model.dto.WithdrawRequestFlatDto;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
@@ -43,27 +42,27 @@ public final class TransactionDaoImpl implements TransactionDao {
       currency.setId(resultSet.getInt("CURRENCY.id"));
       currency.setName(resultSet.getString("CURRENCY.name"));
       currency.setDescription(resultSet.getString("CURRENCY.description"));
-    } catch (SQLException e){
+    } catch (SQLException e) {
       //NOP
     }
 
     Merchant merchant = null;
     try {
       resultSet.findColumn("MERCHANT.id");
-      if (resultSet.getObject("MERCHANT.id") != null ) {
+      if (resultSet.getObject("MERCHANT.id") != null) {
         merchant = new Merchant();
         merchant.setId(resultSet.getInt("MERCHANT.id"));
         merchant.setName(resultSet.getString("MERCHANT.name"));
         merchant.setDescription(resultSet.getString("MERCHANT.description"));
       }
-    } catch (SQLException e){
+    } catch (SQLException e) {
       //NOP
     }
 
     ExOrder order = null;
     try {
       resultSet.findColumn("EXORDERS.id");
-      if (resultSet.getObject("EXORDERS.id") != null ) {
+      if (resultSet.getObject("EXORDERS.id") != null) {
         order = new ExOrder();
         order.setId(resultSet.getInt("EXORDERS.id"));
         order.setUserId(resultSet.getInt("EXORDERS.user_id"));
@@ -83,7 +82,7 @@ public final class TransactionDaoImpl implements TransactionDao {
     WithdrawRequest withdraw = null;
     try {
       resultSet.findColumn("WITHDRAW_REQUEST.id");
-      if (resultSet.getObject("WITHDRAW_REQUEST.id") != null ) {
+      if (resultSet.getObject("WITHDRAW_REQUEST.id") != null) {
         withdraw = new WithdrawRequest();
         withdraw.setId(resultSet.getInt("WITHDRAW_REQUEST.id"));
         withdraw.setWallet(resultSet.getString("WITHDRAW_REQUEST.wallet"));
@@ -214,6 +213,16 @@ public final class TransactionDaoImpl implements TransactionDao {
           "               (WITHDRAW_REQUEST.merchant_id IS NOT NULL AND MERCHANT.id = WITHDRAW_REQUEST.merchant_id) " +
           "             )";
 
+  private String PERMISSION_CLAUSE = " JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
+      "  (WALLET.user_id=:requester_user_id) OR " +
+      "  (IOP.user_id=:requester_user_id) AND " +
+      "  (IOP.currency_id=TRANSACTION.currency_id) AND " +
+      "  ( " +
+      "  (TRANSACTION.operation_type_id=1 AND IOP.operation_direction='REFILL') OR " +
+      "  (TRANSACTION.operation_type_id=2 AND IOP.operation_direction='WITHDRAW') OR " +
+      "  (TRANSACTION.operation_type_id=5 AND IOP.operation_direction='WITHDRAW') " +
+      "  ) ";
+
   private static final Map<String, String> TABLE_TO_DB_COLUMN_MAP = new HashMap<String, String>() {{
 
     put("orderedDatetime", "TRANSACTION.datetime+TRANSACTION.id");
@@ -327,30 +336,29 @@ public final class TransactionDaoImpl implements TransactionDao {
   }
 
   @Override
-  public List<Transaction> findAllByUserWallets(List<Integer> walletIds) {
-    return findAllByUserWallets(walletIds, -1, -1).getData();
+  public PagingData<List<Transaction>> findAllByUserWallets(Integer requesterUserId, final List<Integer> walletIds, final int offset, final int limit) {
+    return findAllByUserWallets(requesterUserId, walletIds, offset, limit, "", "ASC", null);
   }
 
   @Override
-  public PagingData<List<Transaction>> findAllByUserWallets(final List<Integer> walletIds, final int offset, final int limit) {
-    return findAllByUserWallets(walletIds, offset, limit, "", "ASC", null);
+  public PagingData<List<Transaction>> findAllByUserWallets(
+      Integer requesterUserId,
+      final List<Integer> walletIds, final int offset,
+      final int limit, String sortColumn, String sortDirection, Locale locale) {
+
+    return findAllByUserWallets(requesterUserId, walletIds, null, null, null, null, null, null, null, null, null, offset, limit, sortColumn, sortDirection, locale);
   }
 
   @Override
-  public PagingData<List<Transaction>> findAllByUserWallets(final List<Integer> walletIds, final int offset,
-                                                            final int limit, String sortColumn, String sortDirection, Locale locale) {
-
-    return findAllByUserWallets(walletIds, null, null, null, null, null, null, null, null, null, offset, limit, sortColumn, sortDirection, locale);
-  }
-
-  @Override
-  public PagingData<List<Transaction>> findAllByUserWallets(final List<Integer> walletIds, final Integer status,
-                                                            final List<TransactionType> types, final List<Integer> merchantIds,
-                                                            final String dateFrom, final String dateTo,
-                                                            final BigDecimal fromAmount, final BigDecimal toAmount,
-                                                            final BigDecimal fromCommissionAmount, final BigDecimal toCommissionAmount,
-                                                            final int offset, final int limit,
-                                                            String sortColumn, String sortDirection, Locale locale) {
+  public PagingData<List<Transaction>> findAllByUserWallets(
+      Integer requesterUserId,
+      final List<Integer> walletIds, final Integer status,
+      final List<TransactionType> types, final List<Integer> merchantIds,
+      final String dateFrom, final String dateTo,
+      final BigDecimal fromAmount, final BigDecimal toAmount,
+      final BigDecimal fromCommissionAmount, final BigDecimal toCommissionAmount,
+      final int offset, final int limit,
+      String sortColumn, String sortDirection, Locale locale) {
     String sortDBColumn = TABLE_TO_DB_COLUMN_MAP.getOrDefault(sortColumn, "TRANSACTION.datetime");
     final String whereClauseBasic = "WHERE TRANSACTION.user_wallet_id in (:ids)";
     Map<String, Object> params = new HashMap<>();
@@ -363,12 +371,16 @@ public final class TransactionDaoImpl implements TransactionDao {
     params.put("toAmount", toAmount);
     params.put("fromCommissionAmount", fromCommissionAmount);
     params.put("toCommissionAmount", toCommissionAmount);
+    params.put("requester_user_id", requesterUserId);
     String criteria = defineFilterClause(params);
     String filterClause = criteria.isEmpty() ? "" : "AND " + criteria;
     params.put("ids", walletIds);
 
+    String permissionClause = requesterUserId == null ? "" : PERMISSION_CLAUSE;
+
     StringJoiner sqlJoiner = new StringJoiner(" ")
         .add(SELECT_ALL)
+        .add(permissionClause)
         .add(whereClauseBasic)
         .add(filterClause)
         .add("ORDER BY").add(sortDBColumn).add(sortDirection);
@@ -383,6 +395,7 @@ public final class TransactionDaoImpl implements TransactionDao {
     final String selectLimitedAllSql = sqlJoiner.toString();
     final String selectAllCountSql = new StringJoiner(" ")
         .add(SELECT_COUNT)
+        .add(permissionClause)
         .add(whereClauseBasic)
         .add(filterClause)
         .toString();
@@ -682,7 +695,7 @@ public final class TransactionDaoImpl implements TransactionDao {
     String sql = "UPDATE TRANSACTION " +
         " SET status_id = :status_id" +
         " WHERE id = :transaction_id ";
-    Map<String, Object> params = new HashMap<String, Object>(){{
+    Map<String, Object> params = new HashMap<String, Object>() {{
       put("transaction_id", trasactionId);
       put("status_id", statusId);
     }};

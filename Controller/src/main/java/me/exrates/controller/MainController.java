@@ -263,7 +263,9 @@ public class MainController {
 
     @RequestMapping(value = "/transaction")
     public ModelAndView transactions(Principal principal) {
-        List<OperationViewDto> list = transactionService.showMyOperationHistory(principal.getName(), localeResolver.resolveLocale(request)).getData();
+        final int id = userService.getIdByEmail(principal.getName());
+        Integer requesterAdminId = id;
+        List<OperationViewDto> list = transactionService.showMyOperationHistory(requesterAdminId, principal.getName(), localeResolver.resolveLocale(request)).getData();
         return new ModelAndView("transaction", "transactions", list);
     }
 

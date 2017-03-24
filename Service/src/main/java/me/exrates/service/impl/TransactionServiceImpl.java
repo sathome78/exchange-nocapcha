@@ -174,15 +174,18 @@ public class TransactionServiceImpl implements TransactionService {
   }
 
   @Override
-  public DataTable<List<OperationViewDto>> showMyOperationHistory(String email, final Integer status,
-                                                                  final List<TransactionType> types, final List<Integer> merchantIds,
-                                                                  final String dateFrom, final String dateTo,
-                                                                  final BigDecimal fromAmount, final BigDecimal toAmount,
-                                                                  final BigDecimal fromCommissionAmount, final BigDecimal toCommissionAmount,
-                                                                  int offset, int limit,
-                                                                  String sortColumn, String sortDirection, Locale locale) {
-    final int id = userService.getIdByEmail(email);
-    final List<Integer> wallets = walletService.getAllWallets(id).stream()
+  public DataTable<List<OperationViewDto>> showMyOperationHistory(
+      Integer requesterUserId,
+      String email, final Integer status,
+      final List<TransactionType> types, final List<Integer> merchantIds,
+      final String dateFrom, final String dateTo,
+      final BigDecimal fromAmount, final BigDecimal toAmount,
+      final BigDecimal fromCommissionAmount, final BigDecimal toCommissionAmount,
+      int offset, int limit,
+      String sortColumn, String sortDirection, Locale locale) {
+    final int userId = userService.getIdByEmail(email);
+    requesterUserId = requesterUserId.equals(userId) ? null : requesterUserId;
+    final List<Integer> wallets = walletService.getAllWallets(userId).stream()
         .mapToInt(Wallet::getId)
         .boxed()
         .collect(Collectors.toList());
@@ -191,7 +194,7 @@ public class TransactionServiceImpl implements TransactionService {
       result.setData(new ArrayList<>());
       return result;
     }
-    final PagingData<List<Transaction>> transactions = transactionDao.findAllByUserWallets(wallets, status, types, merchantIds,
+    final PagingData<List<Transaction>> transactions = transactionDao.findAllByUserWallets(requesterUserId, wallets, status, types, merchantIds,
         dateFrom, dateTo, fromAmount, toAmount, fromCommissionAmount, toCommissionAmount, offset, limit, sortColumn, sortDirection, locale);
     final List<OperationViewDto> operationViews = new ArrayList<>();
     for (final Transaction t : transactions.getData()) {
@@ -229,35 +232,44 @@ public class TransactionServiceImpl implements TransactionService {
   }
 
   @Override
-  public DataTable<List<OperationViewDto>> showMyOperationHistory(String email, Locale locale, int offset, int limit) {
-    return showMyOperationHistory(email, null, null, null, null, null, null, null, null, null, offset, limit, "", "ASC", locale);
+  public DataTable<List<OperationViewDto>> showMyOperationHistory(Integer requesterUserId, String email, Locale locale, int offset, int limit) {
+    return showMyOperationHistory(requesterUserId, email, null, null, null, null, null, null, null, null, null, offset, limit, "", "ASC", locale);
   }
 
   @Override
-  public DataTable<List<OperationViewDto>> showMyOperationHistory(final String email, final Locale locale) {
-    return showMyOperationHistory(email, locale, -1, -1);
+  public DataTable<List<OperationViewDto>> showMyOperationHistory(Integer requesterUserId, final String email, final Locale locale) {
+    return showMyOperationHistory(requesterUserId, email, locale, -1, -1);
   }
 
   @Override
-  public DataTable<List<OperationViewDto>> showUserOperationHistory(final int id, final Locale locale) {
-    return showMyOperationHistory(userService.getUserById(id).getEmail(), locale);
+  public DataTable<List<OperationViewDto>> showUserOperationHistory(Integer requesterUserId, final int id, final Locale locale) {
+    return showMyOperationHistory(requesterUserId, userService.getUserById(id).getEmail(), locale);
   }
 
   @Override
-  public DataTable<List<OperationViewDto>> showUserOperationHistory(final int id, final Integer status,
-                                                                    final List<TransactionType> types, final List<Integer> merchantIds,
-                                                                    final String dateFrom, final String dateTo,
-                                                                    final BigDecimal fromAmount, final BigDecimal toAmount,
-                                                                    final BigDecimal fromCommissionAmount, final BigDecimal toCommissionAmount, final Locale locale, final Map<String, String> viewParams) {
+  public DataTable<List<OperationViewDto>> showUserOperationHistory(
+      Integer requesterUserId,
+      int id,
+      Integer status,
+      List<TransactionType> types,
+      List<Integer> merchantIds,
+      String dateFrom,
+      String dateTo,
+      BigDecimal fromAmount,
+      BigDecimal toAmount,
+      BigDecimal fromCommissionAmount,
+      BigDecimal toCommissionAmount,
+      Locale locale,
+      Map<String, String> viewParams) {
     if (viewParams.containsKey("start") && viewParams.containsKey("length")) {
       String sortColumnKey = "columns[" + viewParams.getOrDefault("order[0][column]", "0") + "][data]";
       String sortColumn = viewParams.getOrDefault(sortColumnKey, "");
       String sortDirection = viewParams.getOrDefault("order[0][dir]", "asc").toUpperCase();
-      return showMyOperationHistory(userService.getUserById(id).getEmail(), status, types, merchantIds, dateFrom, dateTo, fromAmount, toAmount,
+      return showMyOperationHistory(requesterUserId, userService.getUserById(id).getEmail(), status, types, merchantIds, dateFrom, dateTo, fromAmount, toAmount,
           fromCommissionAmount, toCommissionAmount,
           valueOf(viewParams.get("start")), valueOf(viewParams.get("length")), sortColumn, sortDirection, locale);
     }
-    return showUserOperationHistory(id, locale);
+    return showUserOperationHistory(requesterUserId, id, locale);
   }
 
   @Override

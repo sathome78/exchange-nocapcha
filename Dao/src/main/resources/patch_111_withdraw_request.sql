@@ -32,3 +32,9 @@ INSERT INTO PHRASE_TEMPLATE (template, topic_id) VALUES ('withdrawal.phrases.dec
 
 ALTER TABLE TRANSACTION
 	ADD COLUMN description VARCHAR(100) NULL;
+	
+ALTER TABLE USER_CURRENCY_INVOICE_OPERATION_PERMISSION
+	DROP INDEX user_id_currency_id_operation_direction,
+	ADD UNIQUE INDEX user_id_currency_id_operation_direction (user_id, currency_id, operation_direction);
+	
+

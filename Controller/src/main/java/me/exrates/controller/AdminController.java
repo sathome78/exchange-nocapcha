@@ -10,7 +10,6 @@ import me.exrates.model.dto.filterData.AdminOrderFilterData;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
-import me.exrates.model.dto.WithdrawRequestsAdminTableDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.*;
 import me.exrates.model.form.AuthorityOptionsForm;
@@ -241,24 +240,26 @@ public class AdminController {
 
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/transactions", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
-  public DataTable<List<OperationViewDto>> getUserTransactions(final @RequestParam(required = false) int id,
-                                                               final @RequestParam(required = false) Integer status,
-                                                               final @RequestParam(required = false) String[] type,
-                                                               final @RequestParam(required = false) Integer[] merchant,
-                                                               final @RequestParam(required = false) String startDate,
-                                                               final @RequestParam(required = false) String endDate,
-                                                               final @RequestParam(required = false) BigDecimal amountFrom,
-                                                               final @RequestParam(required = false) BigDecimal amountTo,
-                                                               final @RequestParam(required = false) BigDecimal commissionAmountFrom,
-                                                               final @RequestParam(required = false) BigDecimal commissionAmountTo,
-                                                               final @RequestParam Map<String, String> params,
-                                                               final HttpServletRequest request) {
-
+  public DataTable<List<OperationViewDto>> getUserTransactions(
+      @RequestParam(required = false) int id,
+      @RequestParam(required = false) Integer status,
+      @RequestParam(required = false) String[] type,
+      @RequestParam(required = false) Integer[] merchant,
+      @RequestParam(required = false) String startDate,
+      @RequestParam(required = false) String endDate,
+      @RequestParam(required = false) BigDecimal amountFrom,
+      @RequestParam(required = false) BigDecimal amountTo,
+      @RequestParam(required = false) BigDecimal commissionAmountFrom,
+      @RequestParam(required = false) BigDecimal commissionAmountTo,
+      @RequestParam Map<String, String> params,
+      Principal principal,
+      HttpServletRequest request) {
     Integer transactionStatus = status == null || status == -1 ? null : status;
     List<TransactionType> types = type == null ? null :
         Arrays.stream(type).map(TransactionType::valueOf).collect(Collectors.toList());
     List<Integer> merchantIds = merchant == null ? null : Arrays.asList(merchant);
-    return transactionService.showUserOperationHistory(id, transactionStatus, types, merchantIds, startDate, endDate,
+    Integer requesterAdminId = userService.getIdByEmail(principal.getName());
+    return transactionService.showUserOperationHistory(requesterAdminId, id, transactionStatus, types, merchantIds, startDate, endDate,
         amountFrom, amountTo, commissionAmountFrom, commissionAmountTo, localeResolver.resolveLocale(request), params);
   }
 
@@ -684,7 +685,7 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/orderdelete", method = RequestMethod.POST)
   public Integer deleteOrderByAdmin(@RequestParam int id) {
     try {
-      return (Integer)orderService.deleteOrderByAdmin(id);
+      return (Integer) orderService.deleteOrderByAdmin(id);
     } catch (Exception e) {
       LOG.error(e);
       throw e;
