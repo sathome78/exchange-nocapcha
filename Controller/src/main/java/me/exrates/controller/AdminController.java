@@ -117,6 +117,9 @@ public class AdminController {
   UserTransferService userTransferService;
   @Autowired
   WithdrawService withdrawService;
+  
+  @Autowired
+  private BitcoinWalletService bitcoinWalletService;
 
   @Autowired
   @Qualifier("ExratesSessionRegistry")
@@ -1125,7 +1128,13 @@ public class AdminController {
   
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet", method = RequestMethod.GET)
   public ModelAndView bitcoinWallet() {
-    return new ModelAndView("/admin/btcWallet");
+    return new ModelAndView("/admin/btcWallet", "walletInfo", bitcoinWalletService.getWalletInfo());
+  }
+  
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/transactions", method = RequestMethod.GET)
+  @ResponseBody
+  public List<BtcTransactionHistoryDto> getBtcTransactions() {
+    return bitcoinWalletService.listAllTransactions();
   }
   
 

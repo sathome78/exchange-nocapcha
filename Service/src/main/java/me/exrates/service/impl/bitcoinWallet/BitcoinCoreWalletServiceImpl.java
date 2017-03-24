@@ -4,19 +4,19 @@ import com.neemre.btcdcli4j.core.BitcoindException;
 import com.neemre.btcdcli4j.core.CommunicationException;
 import com.neemre.btcdcli4j.core.client.BtcdClient;
 import com.neemre.btcdcli4j.core.client.BtcdClientImpl;
-import com.neemre.btcdcli4j.core.domain.Address;
-import com.neemre.btcdcli4j.core.domain.Block;
-import com.neemre.btcdcli4j.core.domain.PaymentOverview;
-import com.neemre.btcdcli4j.core.domain.Transaction;
+import com.neemre.btcdcli4j.core.domain.*;
 import com.neemre.btcdcli4j.daemon.BtcdDaemon;
 import com.neemre.btcdcli4j.daemon.BtcdDaemonImpl;
 import com.neemre.btcdcli4j.daemon.event.BlockListener;
 import com.neemre.btcdcli4j.daemon.event.WalletListener;
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.PendingPayment;
+import me.exrates.model.dto.BtcWalletInfoDto;
 import me.exrates.model.dto.TxReceivedByAddressFlatDto;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
+import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.SimpleBtcPayment;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.BitcoinTransactionService;
@@ -34,6 +34,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -194,8 +197,10 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
       
       unpaidPayments.stream().filter(payment -> payment.getAddress() != null).forEach(payment -> {
         Optional.ofNullable(received.get(payment.getAddress())).ifPresent(address -> {
-          if (address.getTxIds().size() > 1) {
-            address.getTxIds().stream().map(this::getTransactionByTxId).findAny().ifPresent(tx -> {
+          if (address.getTxIds().size() == 1) {
+            processUnpaidPayment(payment.getInvoiceId(), payment.getAddress(), address.getTxIds().get(0), address.getAmount(), address.getConfirmations());
+          } else {
+            address.getTxIds().stream().map(this::getTransactionByTxId).filter(Objects::nonNull).findAny().ifPresent(tx -> {
               if (tx.getDetails().size() == 1) {
                 processUnpaidPayment(payment.getInvoiceId(), payment.getAddress(), tx.getTxId(), tx.getAmount(), tx.getConfirmations());
               } else {
@@ -203,14 +208,20 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
                         paymentOverview.getAmount(), tx.getConfirmations()));
               }
             });
-          } else {
-            processUnpaidPayment(payment.getInvoiceId(), payment.getAddress(), address.getTxIds().get(0), address.getAmount(), address.getConfirmations());
           }
         });
       });
     } catch (BitcoindException | CommunicationException e) {
       log.error(e);
-      throw new BitcoinCoreException(e.getMessage());
+    }
+  }
+  
+  private Transaction getTransactionByTxId(String txId) {
+    try {
+      return btcdClient.getTransaction(txId);
+    } catch (BitcoindException | CommunicationException e) {
+      log.error(e);
+      return null;
     }
   }
   
@@ -226,24 +237,23 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
     }
   }
   
-  public BigDecimal getBalance() {
+  @Override
+  public BtcWalletInfoDto getWalletInfo() {
     try {
-      return btcdClient.getBalance();
+      BtcWalletInfoDto dto = new BtcWalletInfoDto();
+      WalletInfo walletInfo = btcdClient.getWalletInfo();
+      BigDecimal unconfirmedBalance = btcdClient.getUnconfirmedBalance();
+      dto.setBalance(BigDecimalProcessing.formatNonePoint(walletInfo.getBalance(), true));
+      dto.setUnconfirmedBalance(BigDecimalProcessing.formatNonePoint(unconfirmedBalance, true));
+      dto.setTransactionCount(walletInfo.getTxCount());
+      return dto;
     } catch (BitcoindException | CommunicationException e) {
       log.error(e);
       throw new BitcoinCoreException(e.getMessage());
     }
   }
   
-  public BigDecimal getUnconfirmedBalance() {
-    try {
-      return btcdClient.getUnconfirmedBalance();
-    } catch (BitcoindException | CommunicationException e) {
-      log.error(e);
-      throw new BitcoinCoreException(e.getMessage());
-    }
-  }
-  
+  @Override
   public List<TxReceivedByAddressFlatDto> listReceivedByAddress(Integer minConfirmations) {
     try {
       List<Address> received = btcdClient.listReceivedByAddress(minConfirmations);
@@ -262,13 +272,27 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
     }
   }
   
-  private Transaction getTransactionByTxId(String txId) {
+  @Override
+  public List<BtcTransactionHistoryDto> listAllTransactions() {
     try {
-      return btcdClient.getTransaction(txId);
+      return btcdClient.listSinceBlock().getPayments().stream()
+              .map(payment -> {
+        BtcTransactionHistoryDto dto = new BtcTransactionHistoryDto();
+        dto.setTxId(payment.getTxId());
+        dto.setAddress(payment.getAddress());
+        dto.setCategory(payment.getCategory().getName());
+        dto.setAmount(BigDecimalProcessing.formatNonePoint(payment.getAmount(), true));
+        dto.setFee(BigDecimalProcessing.formatNonePoint(payment.getFee(), true));
+        dto.setConfirmations(payment.getConfirmations());
+        dto.setTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(payment.getTime()), ZoneId.systemDefault()));
+        return dto;
+      }).collect(Collectors.toList());
     } catch (BitcoindException | CommunicationException e) {
       log.error(e);
       throw new BitcoinCoreException(e.getMessage());
     }
   }
+  
+  
   
 }
