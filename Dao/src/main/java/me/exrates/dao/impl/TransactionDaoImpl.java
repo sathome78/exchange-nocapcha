@@ -216,6 +216,7 @@ public final class TransactionDaoImpl implements TransactionDao {
 
   private static final Map<String, String> TABLE_TO_DB_COLUMN_MAP = new HashMap<String, String>() {{
 
+    put("orderedDatetime", "TRANSACTION.datetime+TRANSACTION.id");
     put("datetime", "TRANSACTION.datetime");
     put("operationType", "TRANSACTION.operation_type_id");
     put("amount", "TRANSACTION.amount");
