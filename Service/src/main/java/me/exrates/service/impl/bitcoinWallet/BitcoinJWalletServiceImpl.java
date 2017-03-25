@@ -3,13 +3,13 @@ package me.exrates.service.impl.bitcoinWallet;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.neemre.btcdcli4j.core.BitcoindException;
-import com.neemre.btcdcli4j.core.CommunicationException;
 import lombok.extern.log4j.Log4j2;
-import me.exrates.dao.PendingPaymentDao;
 import me.exrates.model.BitcoinWalletAppKit;
+import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
+import me.exrates.model.dto.BtcWalletInfoDto;
+import me.exrates.model.dto.TxReceivedByAddressFlatDto;
 import me.exrates.model.dto.onlineTableDto.PendingPaymentStatusDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.invoice.InvoiceStatus;
@@ -18,20 +18,16 @@ import me.exrates.service.BitcoinTransactionService;
 import me.exrates.service.BitcoinWalletService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
+import me.exrates.service.exception.NotImplimentedMethod;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.bitcoinj.core.TransactionConfidence;
 import org.bitcoinj.core.TransactionOutput;
 import org.bitcoinj.kits.WalletAppKit;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -151,5 +147,35 @@ public class BitcoinJWalletServiceImpl implements BitcoinWalletService {
   @Override
   public String getNewAddress() {
     return kit.wallet().freshReceiveAddress().toBase58();
+  }
+  
+  @Override
+  public BtcWalletInfoDto getWalletInfo() {
+    throw new NotImplimentedMethod("Not implemented");
+  }
+  
+  @Override
+  public List<TxReceivedByAddressFlatDto> listReceivedByAddress(Integer minConfirmations) {
+    throw new NotImplimentedMethod("Not implemented");
+  }
+  
+  @Override
+  public List<BtcTransactionHistoryDto> listAllTransactions() {
+    throw new NotImplimentedMethod("Not implemented");
+  }
+  
+  @Override
+  public BigDecimal estimateFee(int blockCount) {
+    throw new NotImplimentedMethod("Not implemented");
+  }
+  
+  @Override
+  public void submitWalletPassword(String password) {
+    throw new NotImplimentedMethod("Not implemented");
+  }
+  
+  @Override
+  public String sendToAddress(String address, BigDecimal amount) {
+    throw new NotImplimentedMethod("Not implemented");
   }
 }

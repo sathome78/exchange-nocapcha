@@ -261,7 +261,6 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         $(document).one("ajaxStop", function () {
             var currencyPairName = $('.currency-pair-selector__button').first().text().trim();
             var initialAmount = 1;
-            console.log(that.numeralFormat);
             var initialAmountString = numeral(initialAmount).format(that.numeralFormat);
             $('#amountBuy').val(initialAmountString);
             var lastBuyExrate = getLastExrate('#dashboard-orders-buy-table .dashboard-order__tr:first', currencyPairName);
@@ -288,7 +287,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
     };
 
     function getCurrentBalanceByCurrency(currencyName) {
-        return $('#mywallets_table').find('tr td:contains(' + currencyName + ')').filter(function (index) {
+        return $('#mywallets_table').find("tr td:contains('" + currencyName + "')").filter(function (index) {
             return $(this).text().trim() === currencyName;
         }).next().text().trim();
     }

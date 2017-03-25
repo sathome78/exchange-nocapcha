@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-public class SimpleBtcPayment {
+public class BtcTransactionShort {
   private Integer invoiceId;
   private String btcTransactionIdHash;
   private BigDecimal amount;
