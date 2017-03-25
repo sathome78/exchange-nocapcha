@@ -61,14 +61,9 @@ public class EDCMerchantServiceImpl implements EDCMerchantService{
     public String createAddress(CreditsOperation creditsOperation) throws Exception{
 
         try {
-            Optional<String> userAddressResult = edcMerchantDao.getAddressForUser(creditsOperation.getUser().getId());
-            if (userAddressResult.isPresent()) {
-                return userAddressResult.get();
-            } else {
-                String address = getAddress();
-                edcMerchantDao.createAddress(address, creditsOperation.getUser());
-                return address;
-            }
+            String address = getAddress();
+            edcMerchantDao.createAddress(address, creditsOperation.getUser());
+            return address;
         } catch (Exception e){
             log.error(e);
         }
