@@ -146,11 +146,11 @@ public enum InvoiceRequestStatusEnum implements InvoiceStatus {
         .filter(e -> !allNodesSet.contains(e))
         .collect(Collectors.toList());
     if (candidateList.size() == 0) {
-      System.out.println("begin state not found");
+      log.fatal("begin state not found");
       throw new AssertionError();
     }
     if (candidateList.size() > 1) {
-      System.out.println("more than single begin state found: " + candidateList);
+      log.fatal("more than single begin state found: " + candidateList);
       throw new AssertionError();
     }
     return candidateList.get(0);
@@ -166,6 +166,23 @@ public enum InvoiceRequestStatusEnum implements InvoiceStatus {
     return Arrays.stream(InvoiceRequestStatusEnum.class.getEnumConstants())
         .filter(e -> e.schemaMap.isEmpty())
         .collect(Collectors.toSet());
+  }
+
+  public static InvoiceStatus getInvoiceStatusAfterAction(InvoiceActionTypeEnum action) {
+    TreeSet<InvoiceStatus> statusSet = new TreeSet(
+        Arrays.stream(WithdrawStatusEnum.class.getEnumConstants())
+            .filter(e -> e.availableForAction(action))
+            .map(e -> e.nextState(action))
+            .collect(Collectors.toList()));
+    if (statusSet.size()==0) {
+      log.fatal("no state found !");
+      throw new AssertionError();
+    }
+    if (statusSet.size()>1) {
+      log.fatal("more then one state found !");
+      throw new AssertionError();
+    }
+    return statusSet.first();
   }
 
   @Override

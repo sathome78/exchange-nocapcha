@@ -1,10 +1,7 @@
 package me.exrates.dao;
 
 import me.exrates.model.PagingData;
-import me.exrates.model.dto.WithdrawRequestCreateDto;
-import me.exrates.model.dto.WithdrawRequestFlatAdditionalDataDto;
-import me.exrates.model.dto.WithdrawRequestFlatDto;
-import me.exrates.model.dto.WithdrawRequestFlatForReportDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
@@ -46,7 +43,11 @@ public interface WithdrawRequestDao {
 
   WithdrawRequestFlatDto getPermittedFlatById(Integer id, Integer requesterUserId);
 
+  List<WithdrawRequestPostDto> getForPostByStatusList(Integer statusId);
+
   WithdrawRequestFlatAdditionalDataDto getAdditionalDataForId(int id);
 
   void setHolderById(Integer id, Integer holderId);
+
+  void setInPostingStatusByStatus(Integer inPostingStatusId, List<Integer> statusIdList);
 }

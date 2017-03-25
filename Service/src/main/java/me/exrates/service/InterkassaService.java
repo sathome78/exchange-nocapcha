@@ -1,10 +1,11 @@
 package me.exrates.service;
 
 import me.exrates.model.CreditsOperation;
+import me.exrates.service.merchantStrategy.IMerchantService;
 
 import java.util.Map;
 
-public interface InterkassaService {
+public interface InterkassaService extends IMerchantService {
 
     /**
      * This method of prepearing parameters for the payment form

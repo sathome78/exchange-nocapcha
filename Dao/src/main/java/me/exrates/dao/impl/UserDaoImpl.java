@@ -1017,7 +1017,7 @@ public class UserDaoImpl implements UserDao {
     Map<String, Object> namedParameters = new HashMap<>();
     namedParameters.put("user_id", comment.getUser().getId());
     namedParameters.put("comment", comment.getComment());
-    namedParameters.put("user_creator_id", comment.getCreator().getId());
+    namedParameters.put("user_creator_id", comment.getCreator() == null? -1 : comment.getCreator().getId());
     namedParameters.put("message_sent", comment.isMessageSent());
     namedParameters.put("message_sent", comment.isMessageSent());
     namedParameters.put("topic_id", comment.getUserCommentTopic().getCode());

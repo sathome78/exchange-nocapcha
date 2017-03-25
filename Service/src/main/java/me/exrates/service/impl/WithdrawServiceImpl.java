@@ -9,10 +9,7 @@ import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
-import me.exrates.model.enums.NotificationEvent;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.TransactionSourceType;
-import me.exrates.model.enums.WalletTransferStatus;
+import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.*;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.TransactionDescription;
@@ -21,6 +18,8 @@ import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
+import me.exrates.service.merchantStrategy.IMerchantService;
+import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.util.Cache;
 import me.exrates.service.vo.ProfileData;
 import org.apache.commons.lang3.StringUtils;
@@ -30,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -47,7 +47,7 @@ import static me.exrates.model.enums.invoice.PendingPaymentStatusEnum.ON_BCH_EXA
 import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 
 /**
- * @author ValkSam
+ * created by ValkSam
  */
 
 @Service
@@ -81,6 +81,9 @@ public class WithdrawServiceImpl implements WithdrawService {
 
   @Autowired
   TransactionDescription transactionDescription;
+
+  @Autowired
+  MerchantServiceContext merchantServiceContext;
 
   @Override
   @Transactional
@@ -407,14 +410,28 @@ public class WithdrawServiceImpl implements WithdrawService {
 
   @Override
   @Transactional
+  public void autoPostWithdrawalRequest(WithdrawRequestPostDto withdrawRequest) {
+    postWithdrawalRequest(withdrawRequest.getId(), null);
+    IMerchantService merchantService = merchantServiceContext.getMerchantService(withdrawRequest.getMerchantServiceBeanName());
+    WithdrawMerchantOperationDto withdrawMerchantOperation = WithdrawMerchantOperationDto.builder()
+        .currency(withdrawRequest.getCurrencyName())
+        .amount(withdrawRequest.getAmount().toString())
+        .build();
+    merchantService.withdraw(withdrawMerchantOperation);
+  }
+
+  @Override
+  @Transactional
   public void postWithdrawalRequest(int requestId, Integer requesterAdminId) {
     ProfileData profileData = new ProfileData(1000);
     try {
       WithdrawRequestFlatDto withdrawRequest = withdrawRequestDao.getFlatByIdAndBlock(requestId)
           .orElseThrow(() -> new InvoiceNotFoundException(String.format("withdraw request id: %s", requestId)));
       WithdrawStatusEnum currentStatus = withdrawRequest.getStatus();
-      InvoiceActionTypeEnum action = withdrawRequest.getStatus().availableForAction(POST_HOLDED) ? POST_HOLDED : POST;
-      WithdrawStatusEnum newStatus = checkPermissionOnActionAndGetNewStatus(requesterAdminId, withdrawRequest, action);
+      InvoiceActionTypeEnum action = withdrawRequest.getStatus().availableForAction(POST_HOLDED) ? POST_HOLDED : POST_AUTO;
+      WithdrawStatusEnum newStatus = requesterAdminId == null ?
+          (WithdrawStatusEnum) currentStatus.nextState(action) :
+          checkPermissionOnActionAndGetNewStatus(requesterAdminId, withdrawRequest, action);
       withdrawRequestDao.setStatusById(requestId, newStatus);
       withdrawRequestDao.setHolderById(requestId, requesterAdminId);
       profileData.setTime1();
@@ -464,6 +481,25 @@ public class WithdrawServiceImpl implements WithdrawService {
     } finally {
       profileData.checkAndLog("slow post WithdrawalRequest: " + requestId + " profile: " + profileData);
     }
+  }
+
+  @Override
+  @Transactional
+  public void setAllAvailableInPostingStatus() throws Exception {
+    InvoiceActionTypeEnum action = HOLD_TO_POST;
+    List<Integer> invoiceRequestStatusIdList = WithdrawStatusEnum.getAvailableForActionStatusesList(action).stream()
+        .map(InvoiceStatus::getCode)
+        .collect(Collectors.toList());
+    WithdrawStatusEnum newStatus = (WithdrawStatusEnum) WithdrawStatusEnum.getInvoiceStatusAfterAction(action);
+    withdrawRequestDao.setInPostingStatusByStatus(
+        newStatus.getCode(),
+        invoiceRequestStatusIdList);
+  }
+
+  @Override
+  @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+  public List<WithdrawRequestPostDto> dirtyReadForPostByStatusList(InvoiceStatus status) {
+    return withdrawRequestDao.getForPostByStatusList(status.getCode());
   }
 
   private WithdrawStatusEnum checkPermissionOnActionAndGetNewStatus(Integer requesterAdminId, WithdrawRequestFlatDto withdrawRequest, InvoiceActionTypeEnum action) {

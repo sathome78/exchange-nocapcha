@@ -3,10 +3,7 @@ package me.exrates.dao.impl;
 import me.exrates.dao.WithdrawRequestDao;
 import me.exrates.model.MerchantImage;
 import me.exrates.model.PagingData;
-import me.exrates.model.dto.WithdrawRequestCreateDto;
-import me.exrates.model.dto.WithdrawRequestFlatAdditionalDataDto;
-import me.exrates.model.dto.WithdrawRequestFlatDto;
-import me.exrates.model.dto.WithdrawRequestFlatForReportDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
@@ -385,13 +382,13 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
   public WithdrawRequestFlatDto getPermittedFlatById(
       Integer id,
       Integer requesterUserId) {
-    String sql = "SELECT WITHDRAW_REQUEST.*, IOP.invoice_operation_permission_id "+
+    String sql = "SELECT WITHDRAW_REQUEST.*, IOP.invoice_operation_permission_id " +
         " FROM WITHDRAW_REQUEST " +
-            " JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
-            "				(IOP.currency_id=WITHDRAW_REQUEST.currency_id) " +
-            "				AND (IOP.user_id=:requester_user_id) " +
-            "				AND (IOP.operation_direction=:operation_direction) " +
-            " WHERE WITHDRAW_REQUEST.id=:id ";
+        " JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
+        "				(IOP.currency_id=WITHDRAW_REQUEST.currency_id) " +
+        "				AND (IOP.user_id=:requester_user_id) " +
+        "				AND (IOP.operation_direction=:operation_direction) " +
+        " WHERE WITHDRAW_REQUEST.id=:id ";
     Map<String, Object> params = new HashMap<String, Object>() {{
       put("id", id);
       put("requester_user_id", requesterUserId);
@@ -401,6 +398,36 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
       WithdrawRequestFlatDto withdrawRequestFlatDto = withdrawRequestFlatDtoRowMapper.mapRow(rs, i);
       withdrawRequestFlatDto.setInvoiceOperationPermission(InvoiceOperationPermission.convert(rs.getInt("invoice_operation_permission_id")));
       return withdrawRequestFlatDto;
+    });
+  }
+
+  @Override
+  public List<WithdrawRequestPostDto> getForPostByStatusList(Integer statusId) {
+    String sql = " SELECT WR.*, " +
+        " CUR.name AS currency_name, " +
+        " M.name AS merchant_name, M.service_bean_name " +
+        " FROM WITHDRAW_REQUEST WR " +
+        " JOIN CURRENCY CUR ON (CUR.id = WR.currency_id) " +
+        " JOIN MERCHANT M ON (M.id = WR.merchant_id) " +
+        " WHERE status_id = :status_id ";
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("status_id", statusId);
+    }};
+    return jdbcTemplate.query(sql, params, (rs, idx) -> {
+      WithdrawRequestPostDto result = new WithdrawRequestPostDto();
+      result.setId(rs.getInt("id"));
+      result.setWallet(rs.getString("wallet"));
+      result.setRecipientBankName(rs.getString("recipient_bank_name"));
+      result.setRecipientBankCode(rs.getString("recipient_bank_code"));
+      result.setUserFullName(rs.getString("user_full_name"));
+      result.setRemark(rs.getString("remark"));
+      result.setAmount(rs.getBigDecimal("amount"));
+      result.setCommissionAmount(rs.getBigDecimal("commission"));
+      result.setStatus(WithdrawStatusEnum.convert(rs.getInt("status_id")));
+      result.setCurrencyName(rs.getString("currency_name"));
+      result.setMerchantName(rs.getString("merchant_name"));
+      result.setMerchantServiceBeanName(rs.getString("service_bean_name"));
+      return result;
     });
   }
 
@@ -443,6 +470,23 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     Map<String, Object> params = new HashMap<>();
     params.put("id", id);
     params.put("admin_holder_id", holderId);
+    jdbcTemplate.update(sql, params);
+  }
+
+  @Override
+  public void setInPostingStatusByStatus(Integer inPostingStatusId, List<Integer> statusIdList) {
+    final String sql =
+        "  UPDATE " +
+            "    WITHDRAW_REQUEST WR " +
+            "    JOIN MERCHANT_CURRENCY MC ON (MC.merchant_id = WR.merchant_id) AND " +
+            "     (MC.currency_id = WR.currency_id) AND " +
+            "     (MC.withdraw_auto_enabled = 1) AND " +
+            "     (WR.status_modification_date <= NOW() - INTERVAL MC.withdraw_auto_delay_seconds SECOND) " +
+            "  SET status_id = :new_status_id " +
+            "  WHERE WR.status_id IN (:status_id_list)  ";
+    Map<String, Object> params = new HashMap<>();
+    params.put("status_id_list", statusIdList);
+    params.put("new_status_id", inPostingStatusId);
     jdbcTemplate.update(sql, params);
   }
 

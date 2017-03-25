@@ -36,5 +36,12 @@ ALTER TABLE TRANSACTION
 ALTER TABLE USER_CURRENCY_INVOICE_OPERATION_PERMISSION
 	DROP INDEX user_id_currency_id_operation_direction,
 	ADD UNIQUE INDEX user_id_currency_id_operation_direction (user_id, currency_id, operation_direction);
-	
+
+ALTER TABLE MERCHANT
+	ADD COLUMN service_bean_name VARCHAR(100) NULL;
+
+INSERT INTO WITHDRAW_REQUEST_STATUS (id, name) VALUES (11, 'IN_POSTING');
+
+INSERT INTO USER (id, nickname, email, password, roleid) VALUES ('-1', 'SYSTEM', 'SYSTEM', 'inapplicable', '1');
+
 

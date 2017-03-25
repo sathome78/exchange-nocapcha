@@ -14,6 +14,7 @@ public class Merchant {
     private String name;
     private String description;
     private Integer transactionSourceTypeId;
+    private  String serviceBeanName;
 
     public Merchant(int id) {
         this.id = id;
