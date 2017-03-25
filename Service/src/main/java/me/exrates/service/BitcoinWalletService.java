@@ -4,6 +4,7 @@ import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.BtcWalletInfoDto;
 import me.exrates.model.dto.TxReceivedByAddressFlatDto;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -19,4 +20,10 @@ public interface BitcoinWalletService {
   List<TxReceivedByAddressFlatDto> listReceivedByAddress(Integer minConfirmations);
   
   List<BtcTransactionHistoryDto> listAllTransactions();
+  
+  BigDecimal estimateFee(int blockCount);
+  
+  void submitWalletPassword(String password);
+  
+  String sendToAddress(String address, BigDecimal amount);
 }

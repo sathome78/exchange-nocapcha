@@ -1137,6 +1137,25 @@ public class AdminController {
     return bitcoinWalletService.listAllTransactions();
   }
   
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/estimatedFee", method = RequestMethod.GET)
+  @ResponseBody
+  public BigDecimal getEstimatedFee() {
+    return bitcoinWalletService.estimateFee(6);
+  }
+  
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/unlock", method = RequestMethod.POST)
+  @ResponseBody
+  public void submitPassword(@RequestParam String password) {
+    bitcoinWalletService.submitWalletPassword(password);
+  }
+  
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/send", method = RequestMethod.POST)
+  @ResponseBody
+  public String sendToAddress(@RequestParam String address, @RequestParam BigDecimal amount, HttpServletRequest request) {
+    String txId = bitcoinWalletService.sendToAddress(address, amount);
+    return messageSource.getMessage("btcWallet.successResult", new Object[]{txId}, localeResolver.resolveLocale(request));
+  }
+  
 
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
   @ExceptionHandler(OrderDeletingException.class)

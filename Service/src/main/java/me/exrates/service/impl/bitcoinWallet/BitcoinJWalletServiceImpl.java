@@ -163,4 +163,19 @@ public class BitcoinJWalletServiceImpl implements BitcoinWalletService {
   public List<BtcTransactionHistoryDto> listAllTransactions() {
     throw new NotImplimentedMethod("Not implemented");
   }
+  
+  @Override
+  public BigDecimal estimateFee(int blockCount) {
+    throw new NotImplimentedMethod("Not implemented");
+  }
+  
+  @Override
+  public void submitWalletPassword(String password) {
+    throw new NotImplimentedMethod("Not implemented");
+  }
+  
+  @Override
+  public String sendToAddress(String address, BigDecimal amount) {
+    throw new NotImplimentedMethod("Not implemented");
+  }
 }
