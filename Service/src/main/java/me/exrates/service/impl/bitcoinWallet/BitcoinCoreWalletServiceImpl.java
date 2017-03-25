@@ -311,7 +311,7 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
       btcdClient.walletPassphrase(password, 60);
     } catch (BitcoindException | CommunicationException e) {
       log.error(e);
-      throw new BitcoinCoreException(e.getMessage());
+      throw new BitcoinCoreException("Incorrect password!");
     }
   }
   

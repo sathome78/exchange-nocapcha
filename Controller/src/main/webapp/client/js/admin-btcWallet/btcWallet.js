@@ -24,33 +24,46 @@ $(function () {
             data: $('#password-form').serialize(),
             success: function () {
                 $($passwordModal).modal('hide');
-
+                fillConfirmModal();
                 $($paymentConfirmModal).modal();
-            },
-            error: function (err) {
-                errorNoty(err)
             }
         })
     });
 
     $('#confirm-btc-submit').click(function () {
+        var $btcFrom = $('#send-btc-form');
         $.ajax('/2a8fy7b07dxe44/bitcoinWallet/send', {
             headers: {
                 'X-CSRF-Token': $("input[name='_csrf']").val()
             },
             type: 'POST',
-            data: $('#send-btc-form').serialize(),
+            data: $($btcFrom).serialize(),
             success: function (data) {
                 $($paymentConfirmModal).modal('hide');
-                successNoty(data)
+                $($btcFrom)[0].reset();
+                $('#current-btc-balance').text(data.newBalance);
+                successNoty(data.message)
             }
         })
     });
 
-
-
-
 });
+
+function fillConfirmModal() {
+    var templateVariables = {
+        amount: '__amount__',
+        address: '__address__'
+    };
+    var promptMessage = $('#confirmBtcMessage').text();
+    var address = $('#input-address').val();
+    var amount = $('#input-amount').val();
+    promptMessage = promptMessage.replace(templateVariables.amount, amount)
+        .replace(templateVariables.address, address);
+    $('#btc-confirm-prompt').text(promptMessage);
+
+
+}
+
 
 
 

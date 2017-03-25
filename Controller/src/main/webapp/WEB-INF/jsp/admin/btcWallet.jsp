@@ -28,8 +28,10 @@
                 <h4><loc:message code="btcWallet.title"/></h4>
             </div>
             <div class="row text-center" style="font-size: 1.4rem">
-                <p class="green"><strong><loc:message code="btcWallet.balance"/> ${walletInfo.balance} BTC</strong></p>
-                <p class="lightblue"><strong><loc:message code="btcWallet.unconfirmedBalance"/> ${walletInfo.unconfirmedBalance} BTC</strong></p>
+                <p class="green"><strong><loc:message code="btcWallet.balance"/>
+                    <span id="current-btc-balance">${walletInfo.balance}</span> BTC</strong></p>
+                <p class="lightblue"><strong><loc:message code="btcWallet.unconfirmedBalance"/>
+                    <span id="current-btc-unconfirmed-balance">${walletInfo.unconfirmedBalance}</span> BTC</strong></p>
             </div>
 
             <div id="walletMenu" class="buttons">
@@ -131,7 +133,7 @@
                 <h4 class="modal-title"><loc:message code="btcWallet.payment.dialog.title"/></h4>
             </div>
             <div class="modal-body">
-                <p><loc:message code="btcWallet.payment.prompt"/></p>
+                <p id="btc-confirm-prompt"><loc:message code="btcWallet.payment.prompt"/></p>
             </div>
             <div class="modal-footer">
                 <div class="delete-order-info__button-wrapper">
@@ -153,8 +155,7 @@
 
 
 
-<span hidden id="submitLocMessage"><loc:message code="admin.submit"/></span>
-<span hidden id="cancelLocMessage"><loc:message code="admin.cancel"/></span>
+<span hidden id="confirmBtcMessage"><loc:message code="btcWallet.payment.prompt"/></span>
 
 <%@include file='../fragments/footer.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>
