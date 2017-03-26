@@ -36,8 +36,6 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
   private Integer provided;
   private String transactionProvided;
   private Integer userId;
-  private Boolean confirmationRequired;
-  private Boolean mayBeRevoked;
   private String bankAccount;
   private InvoiceStatus status;
   private LocalDateTime statusUpdateDate;
@@ -86,8 +84,6 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
       return false;
     if (id != null ? !id.equals(that.id) : that.id != null)
       return false;
-    if (confirmationRequired != null ? !confirmationRequired.equals(that.confirmationRequired) : that.confirmationRequired != null)
-      return false;
     if (status != null ? !status.equals(that.status) : that.status != null)
       return false;
     if (confirmation != null ? !confirmation.equals(that.confirmation) : that.confirmation != null)
@@ -108,7 +104,6 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
     result = 31 * result + (operationType != null ? operationType.hashCode() : 0);
     result = 31 * result + (id != null ? id.hashCode() : 0);
     result = 31 * result + (provided != null ? provided.hashCode() : 0);
-    result = 31 * result + (confirmationRequired != null ? confirmationRequired.hashCode() : 0);
     result = 31 * result + (status != null ? status.hashCode() : 0);
     result = 31 * result + (confirmation != null ? confirmation.hashCode() : 0);
     result = 31 * result + (adminHolderId != null ? adminHolderId.hashCode() : 0);

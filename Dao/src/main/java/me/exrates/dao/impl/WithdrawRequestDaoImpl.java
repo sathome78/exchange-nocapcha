@@ -269,26 +269,6 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
           .findFirst()
           .ifPresent(obj -> myInputOutputHistoryDto.setStatusUpdateDate(obj.toLocalDateTime()));
       /**/
-      Boolean confirmationRequired = false;
-      if (status != null) {
-        if (sourceType == INVOICE) {
-          confirmationRequired = ((InvoiceRequestStatusEnum) status).availableForAction(CONFIRM_USER);
-        } else if (sourceType == BTC_INVOICE) {
-          confirmationRequired = ((PendingPaymentStatusEnum) status).availableForAction(CONFIRM_USER);
-        }
-      }
-      myInputOutputHistoryDto.setConfirmationRequired(confirmationRequired);
-      /**/
-      Boolean mayBeRevoked = false;
-      if (status != null) {
-        if (sourceType == INVOICE) {
-          mayBeRevoked = ((InvoiceRequestStatusEnum) status).availableForAction(REVOKE);
-        } else if (sourceType == BTC_INVOICE) {
-          mayBeRevoked = ((PendingPaymentStatusEnum) status).availableForAction(REVOKE);
-        }
-      }
-      myInputOutputHistoryDto.setMayBeRevoked(mayBeRevoked);
-      /**/
       myInputOutputHistoryDto.setUserFullName(rs.getString("user_full_name"));
       myInputOutputHistoryDto.setRemark(rs.getString("remark"));
       myInputOutputHistoryDto.setConfirmation(rs.getInt("confirmation"));

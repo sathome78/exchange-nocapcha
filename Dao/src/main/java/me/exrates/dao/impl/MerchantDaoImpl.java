@@ -297,27 +297,6 @@ public class MerchantDaoImpl implements MerchantDao {
           .filter(Objects::nonNull)
           .findFirst()
           .ifPresent(obj -> myInputOutputHistoryDto.setStatus((Integer) obj));
-      InvoiceStatus status = myInputOutputHistoryDto.getStatus();
-      /**/
-      Boolean confirmationRequired = false;
-      if (status != null) {
-        if (sourceType == INVOICE) {
-          confirmationRequired = ((InvoiceRequestStatusEnum) status).availableForAction(CONFIRM_USER);
-        } else if (sourceType == BTC_INVOICE) {
-          confirmationRequired = ((PendingPaymentStatusEnum) status).availableForAction(CONFIRM_USER);
-        }
-      }
-      myInputOutputHistoryDto.setConfirmationRequired(confirmationRequired);
-      /**/
-      Boolean mayBeRevoked = false;
-      if (status != null) {
-        if (sourceType == INVOICE) {
-          mayBeRevoked = ((InvoiceRequestStatusEnum) status).availableForAction(REVOKE);
-        } else if (sourceType == BTC_INVOICE) {
-          mayBeRevoked = ((PendingPaymentStatusEnum) status).availableForAction(REVOKE);
-        }
-      }
-      myInputOutputHistoryDto.setMayBeRevoked(mayBeRevoked);
       /**/
       LocalDateTime statusUpdateDate;
       if (rs.getTimestamp("invoice_request_status_update_date") == null) {
