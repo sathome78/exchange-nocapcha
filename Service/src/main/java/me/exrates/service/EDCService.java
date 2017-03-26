@@ -16,4 +16,6 @@ public interface EDCService {
     String extractAccountId(final String account, final int invoiceId) throws IOException;
 
     void rescanUnusedAccounts();
+
+    void transferFromMainAccount(final String accountId, final String amount) throws IOException, InterruptedException;
 }
