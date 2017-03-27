@@ -293,8 +293,8 @@ public class AdminController {
 
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/wallets", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
-  public Collection<Wallet> getUserWallets(@RequestParam int id, HttpServletRequest request) {
-    return walletService.getAllWallets(id);
+  public Collection<WalletFormattedDto> getUserWallets(@RequestParam int id) {
+    return walletService.getAllWallets(id).stream().map(WalletFormattedDto::new).collect(Collectors.toList());
   }
 
   @ResponseBody
@@ -1154,6 +1154,12 @@ public class AdminController {
     LocalDateTime startTime = LocalDateTime.parse(startTimeString, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     return orderService.getDataForCandleChart(currencyPair, backDealInterval, startTime);
   }
+  
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet", method = RequestMethod.GET)
+  public ModelAndView bitcoinWallet() {
+    return new ModelAndView("/admin/btcWallet");
+  }
+  
 
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
   @ExceptionHandler(OrderDeletingException.class)

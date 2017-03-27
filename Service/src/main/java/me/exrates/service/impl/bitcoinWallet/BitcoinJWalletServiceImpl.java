@@ -1,4 +1,4 @@
-package me.exrates.service.impl;
+package me.exrates.service.impl.bitcoinWallet;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
