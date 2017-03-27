@@ -42,8 +42,6 @@ function getTransferDetailedInfo(orderId) {
         url: '/2a8fy7b07dxe44/transferInfo?id=' + orderId,
         type: 'GET',
         success: function (data) {
-
-
             $("#info-date").html(data.creationDate);
             $("#info-currency").html(data.currencyName);
             $("#info-amount").html(data.amount);
@@ -51,7 +49,6 @@ function getTransferDetailedInfo(orderId) {
             $("#info-userTo").html("<a href='mailto:" + data.userToEmail + "'>" + data.userToEmail + "</a>");
             $("#info-commissionAmount").html(data.comission);
             $('#user_transfer_info_modal').modal();
-
         }
     });
 }

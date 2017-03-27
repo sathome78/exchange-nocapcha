@@ -10,6 +10,7 @@ import me.exrates.model.dto.WithdrawRequestFlatForReportDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
+import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.*;
 import me.exrates.service.exception.NotImplimentedMethod;
@@ -177,7 +178,7 @@ public class OrigWithdrawServiceImpl extends BaseWithdrawServiceImpl implements 
     final String currency = transaction
         .getCurrency()
         .getName();
-    final String balance = currency + " " + currencyService.amountToString(newAmount, currency);
+    final String balance = currency + " " + BigDecimalProcessing.formatNonePoint(newAmount, false);
     final Map<String, String> result = new HashMap<>();
     result.put("success", notification);
     result.put("balance", balance);

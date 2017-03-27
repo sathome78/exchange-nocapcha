@@ -1,0 +1,18 @@
+package me.exrates.model.dto;
+
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
+import java.math.BigDecimal;
+
+/**
+ * Created by OLEG on 24.03.2017.
+ */
+@Getter @Setter
+@ToString
+public class BtcWalletInfoDto {
+  private String balance;
+  private String unconfirmedBalance;
+  private Integer transactionCount;
+}

@@ -35,6 +35,7 @@
   <script type="text/javascript" src="<c:url value='/client/js/dataTable/adminCommentsDataTable.js'/>"></script>
   <script type="text/javascript" src="<c:url value='/client/js/order/adminDeleteOrder.js'/>"></script>
   <script type="text/javascript" src="<c:url value='/client/js/userCurrencyOperationPermissions.js'/>"></script>
+  <script type="text/javascript" src="<c:url value='/client/js/downloadTransactions.js'/>"></script>
   <c:set var="admin_manualBalanceChange" value="<%=AdminAuthority.MANUAL_BALANCE_CHANGE%>"/>
 
   <sec:authorize access="hasAuthority('${admin_manualBalanceChange}')">
@@ -289,8 +290,10 @@
           <div class="col-md-12 content">
             <%--ИСТОРИЯ ОПЕРАЦИЙ--%>
             <div class="text-center"><h4><loc:message code="transactions.title"/></h4></div>
-            <button data-toggle="collapse" class="blue-box" style="margin: 10px 0;" data-target="#transaction-filter">
+            <button data-toggle="collapse" class="blue-box" data-target="#transaction-filter">
               <loc:message code="admin.user.transactions.extendedFilter"/></button>
+              <button data-toggle="collapse" class="blue-box" id="download_trans_history" style="margin: 10px 0;">
+                <loc:message code="admin.user.transactions.downloadHistory"/></button>
             <div id="transaction-filter" class="collapse">
               <form id="transaction-search-form" class="form_auto_height" method="get">
                 <%--STATUS--%>
@@ -808,7 +811,6 @@
   <loc:message code="admin.promptDeleteUserComment"/>
 </div>
 <%@include file='order-modals.jsp' %>
-
 <%@include file='../fragments/footer.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>
