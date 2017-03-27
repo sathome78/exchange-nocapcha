@@ -356,9 +356,9 @@
 			<url>http://mvn.neemre.com/</url>
 		</repository>
 		<repository>
-			<id>in-project</id>
-			<name>In Project Repo</name>
-			<url>file://${project.basedir}/Service/src/main/resources</url>
+			<id>btcd-cli4j-inner</id>
+			<name>btcd-cli4j Inner Repo</name>
+			<url>file://${project.basedir}/Service/src/main/resources/btcd-cli4j</url>
 		</repository>
 	</repositories>
 </project>
