@@ -2,6 +2,7 @@ package me.exrates.service.impl;
 
 import me.exrates.dao.TransactionDao;
 import me.exrates.model.*;
+import me.exrates.model.Currency;
 import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.dto.TransactionFlatForReportDto;
 import me.exrates.model.dto.dataTable.DataTable;
@@ -25,10 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.Integer.valueOf;
@@ -335,17 +333,6 @@ public class TransactionServiceImpl implements TransactionService {
   public boolean setStatusById(Integer trasactionId, Integer statusId) {
     return transactionDao.setStatusById(trasactionId, statusId);
   }
-    @Override
-    @Transactional(readOnly = true)
-    public List<TransactionFlatForReportDto> getAllByDateIntervalAndRoleAndOperationTypeAndCurrencyAndSourceType(
-        String startDate,
-        String endDate,
-        Integer operationType,
-        List<Integer> roleIdList,
-        List<Integer> currencyList,
-        List<String> sourceTypeList) {
-        return transactionDao.findAllByDateIntervalAndRoleAndOperationTypeAndCurrencyAndSourceType(startDate, endDate, operationType, roleIdList, currencyList, sourceTypeList);
-    }
 
     @Override
     public List<String> getCSVTransactionsHistory(int id, String startDate, String endDate, Locale locale) {
