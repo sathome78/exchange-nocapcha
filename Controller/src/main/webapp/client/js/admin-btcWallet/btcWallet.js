@@ -59,9 +59,9 @@ function checkSendBtcFormFields() {
     var amount = $('#input-amount').val();
     var address = $('#input-address').val();
     if (amount.length === 0 || address.length === 0) {
-        $('#submit-wallet-pass').prop('disabled', true);
+        $('#submit-btc').prop('disabled', true);
     } else {
-        $('#submit-wallet-pass').prop('disabled', false);
+        $('#submit-btc').prop('disabled', false);
     }
 
 
