@@ -6,6 +6,7 @@ import me.exrates.model.Payment;
 import me.exrates.model.Wallet;
 import me.exrates.model.enums.CurrencyWarningType;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.*;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
@@ -98,6 +99,7 @@ public class CommonMerchantsController {
         modelAndView.addObject("currency",currency);
 
         modelAndView.addObject("wallet",wallet);
+        modelAndView.addObject("balance", BigDecimalProcessing.formatNonePoint(wallet.getActiveBalance(), false));
         modelAndView.addObject("payment", payment);
         modelAndView.addObject("minWithdrawSum", minWithdrawSum);
         final List<Integer> currenciesId = new ArrayList<>();

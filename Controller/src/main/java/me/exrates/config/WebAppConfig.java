@@ -11,6 +11,11 @@ import me.exrates.model.converter.CurrencyPairConverter;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.security.config.SecurityConfig;
 import me.exrates.security.filter.VerifyReCaptchaSec;
+import me.exrates.service.BitcoinWalletService;
+import me.exrates.service.WithdrawService;
+import me.exrates.service.impl.bitcoinWallet.BitcoinCoreWalletServiceImpl;
+import me.exrates.service.impl.bitcoinWallet.BitcoinJWalletServiceImpl;
+import me.exrates.service.impl.WithdrawServiceImpl;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
@@ -62,10 +67,11 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
         }
 )
 @PropertySource(value = {
-    "classpath:/db.properties",
+  "classpath:/db.properties",
     "classpath:/uploadfiles.properties",
     "classpath:/news.properties",
-    "classpath:/mail.properties"})
+        "classpath:/mail.properties",
+    "classpath:/merchants/btc_wallet.properties"})
 @MultipartConfig(location = "/tmp")
 public class WebAppConfig extends WebMvcConfigurerAdapter {
 
@@ -129,6 +135,10 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     String mailInfoUser;
     @Value("${mail_info.password}")
     String mailInfoPassword;
+
+    @Value("${bitcoin.service.class}")
+    String bitcoinConcreteClassName;
+
 
     @Bean
     public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
@@ -331,5 +341,16 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new StoreSessionListenerImpl();
     }
 
+
+    @Bean
+    public BitcoinWalletService bitcoinWalletService() {
+        if ("BitcoinCoreWalletServiceImpl".equals(bitcoinConcreteClassName)) {
+            return new BitcoinCoreWalletServiceImpl();
+        } else if ("BitcoinJWalletServiceImpl".equals(bitcoinConcreteClassName)) {
+            return new BitcoinJWalletServiceImpl();
+        } else {
+            throw new AssertionError(bitcoinConcreteClassName);
+        }
+    }
 
 }
