@@ -13,6 +13,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <quartz.version>2.2.2</quartz.version>
+    <btcd-cli4j.version>0.5.8</btcd-cli4j.version>
   </properties>
   <dependencies>
     <dependency>
@@ -104,8 +105,24 @@
       <artifactId>httpclient</artifactId>
       <version>4.3.6</version>
     </dependency>
-
+    <dependency>
+      <groupId>com.neemre.btcd-cli4j</groupId>
+      <artifactId>btcd-cli4j-core</artifactId>
+      <version>${btcd-cli4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.neemre.btcd-cli4j</groupId>
+      <artifactId>btcd-cli4j-daemon</artifactId>
+      <version>${btcd-cli4j.version}</version>
+    </dependency>
 
   </dependencies>
+  <repositories>
+    <repository>
+      <id>btcd-cli4j-inner</id>
+      <name>btcd-cli4j Inner Repo</name>
+      <url>file://${project.basedir}/libs</url>
+    </repository>
+  </repositories>
 
 </project>
