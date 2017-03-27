@@ -121,7 +121,7 @@
     <repository>
       <id>btcd-cli4j-inner</id>
       <name>btcd-cli4j Inner Repo</name>
-      <url>file://${project.basedir}/Service/src/main/resources/btcd-cli4j</url>
+      <url>file://${project.basedir}/src/main/resources</url>
     </repository>
   </repositories>
 
