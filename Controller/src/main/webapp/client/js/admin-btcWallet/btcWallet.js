@@ -10,6 +10,11 @@ $(function () {
 
     updateTxHistoryTable();
     retrieveFee();
+    checkSendBtcFormFields();
+
+    $('#input-amount, #input-address').on('input', function () {
+        checkSendBtcFormFields();
+    });
 
     $('#submit-btc').click(function () {
         $($passwordModal).modal();
@@ -41,6 +46,7 @@ $(function () {
             success: function (data) {
                 $($paymentConfirmModal).modal('hide');
                 $($btcFrom)[0].reset();
+                retrieveFee();
                 $('#current-btc-balance').text(data.newBalance);
                 successNoty(data.message)
             }
@@ -48,6 +54,18 @@ $(function () {
     });
 
 });
+
+function checkSendBtcFormFields() {
+    var amount = $('#input-amount').val();
+    var address = $('#input-address').val();
+    if (amount.length === 0 || address.length === 0) {
+        $('#submit-wallet-pass').prop('disabled', true);
+    } else {
+        $('#submit-wallet-pass').prop('disabled', false);
+    }
+
+
+}
 
 function fillConfirmModal() {
     var templateVariables = {
@@ -60,7 +78,6 @@ function fillConfirmModal() {
     promptMessage = promptMessage.replace(templateVariables.amount, amount)
         .replace(templateVariables.address, address);
     $('#btc-confirm-prompt').text(promptMessage);
-
 
 }
 
