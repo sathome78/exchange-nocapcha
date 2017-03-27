@@ -215,11 +215,13 @@ public class MobileOrderController {
 
     @RequestMapping(value = "/submitOrderForCreation", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public OrderSummaryDto submitOrderForCreation(@Valid @RequestBody OrderCreationParamsDto orderCreationParamsDto, HttpServletRequest request) {
+        LOGGER.debug("Order creation params" + orderCreationParamsDto);
         CurrencyPair activeCurrencyPair = currencyService.findCurrencyPairById(orderCreationParamsDto.getCurrencyPairId());
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
         OrderCreateDto orderCreateDto = orderService.prepareNewOrder(activeCurrencyPair, orderCreationParamsDto.getOrderType(),
                 userEmail, orderCreationParamsDto.getAmount(), orderCreationParamsDto.getRate());
+        LOGGER.debug("Order prepared" + orderCreateDto);
         Map<String, Object> errors = orderService.validateOrder(orderCreateDto);
         if (!errors.isEmpty()) {
             errors.replaceAll((key, value) -> messageSource.getMessage(value.toString(), null, userLocale));
