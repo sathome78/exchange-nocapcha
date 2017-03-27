@@ -1,5 +1,6 @@
 package me.exrates.controller;
 
+import me.exrates.controller.annotation.FinPassCheck;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.InvalidNicknameException;
 import me.exrates.model.CompanyWallet;
@@ -104,12 +105,12 @@ public class WalletController {
 
     /**@param checkOnly - used to verify payment, without fin pass, but not perform it
      * */
+    @FinPassCheck(notCheckPassIfCheckOnlyParamTrue = true)
     @RequestMapping(value = "/transfer/submit", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ResponseBody
     public ResponseEntity<Map<String, String>> submitTransfer(@RequestParam Integer walletId,
                                                               @RequestParam String nickname,
                                                               @RequestParam BigDecimal amount,
-                                                              @RequestParam String finPass,
                                                               @RequestParam(value = "checkOnly", defaultValue = "false")
                                                                           boolean checkOnly,
                                                               Principal principal,
@@ -121,13 +122,8 @@ public class WalletController {
         if (nickname.equals(principalNickname)) {
             throw new InvalidNicknameException(messageSource.getMessage("transfer.selfNickname", null, localeResolver.resolveLocale(request)));
         }
-        if (!checkOnly) {
-            User storedUser = userService.getUserById(userService.getIdByEmail(principal.getName()));
-            userService.checkFinPassword(finPass, storedUser, localeResolver.resolveLocale(request));
-        }
         String result = walletService.transferCostsToUser(walletId, nickname, amount, localeResolver.resolveLocale(request), checkOnly);
         LOG.debug(result);
-
         return new ResponseEntity<>(Collections.singletonMap("result", result), HttpStatus.OK);
     }
 

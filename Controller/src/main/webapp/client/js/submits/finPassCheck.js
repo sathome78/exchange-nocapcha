@@ -7,7 +7,7 @@ var form;
 var operationFunc;
 var orderType;
 
-function finPassCheck(id, opFunc, oType, event) {
+function finPassCheck_old(id, opFunc, oType, event) {
     if (id || (id === 0)) {
         //id:
         // - id order to accept

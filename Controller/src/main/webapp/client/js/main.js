@@ -678,9 +678,17 @@ $(function(){
         checkTransfer();
     });
 
+
+
+    $('#submitTransferModalButton').click(function () {
+        submitTransfer()
+    });
+
+
     function submitTransfer() {
         console.log("transfer costs");
-        var transferForm = $('#payment').serialize() + '&checkOnly=true';
+        var finpass = $('#finpassword').val();
+        var transferForm = $('#payment').serialize() + '&finpassword=' + finpass;
         $.ajax('/transfer/submit', {
             type: 'POST',
             data: transferForm,
@@ -724,7 +732,7 @@ $(function(){
             },
             success: function (response) {
                 $('#transferModal .close').click();
-                finPassCheck('transferModal', submitTransfer);
+                getFinPassModal();
                 responseControls();
             },
             error: function (err) {
@@ -737,6 +745,7 @@ $(function(){
         })
 
     }
+
 
 
 });
@@ -763,3 +772,4 @@ function parseNumber(numberStr) {
     numberStr = numberStr.replace(/\s/g, '').replace(/\,/g, '.');
     return parseFloat(numberStr);
 }
+

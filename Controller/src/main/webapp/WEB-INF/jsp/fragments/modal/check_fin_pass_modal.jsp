@@ -24,12 +24,12 @@
                         <%--пароль--%>
                         <loc:message
                                 code="admin.finPassword" var="finpassPlaceholder"/>
-                        <input type="password" name="finpassword" placeholder="${finpassPlaceholder}"/>
+                        <input id="finpassword" type="password" name="finpassword" placeholder="${finpassPlaceholder}"/>
                         <%--csrf--%>
                         <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                         <br/>
                         <%--отправить--%>
-                        <button onclick="finPassCheck()" type="button" data-dismiss="modal" class="button_enter">
+                        <button id="submitTransferModalButton" type="button" data-dismiss="modal" class="button_enter">
                             <loc:message code="admin.submitfinpassword"/></button>
                         <%--Забыли пароль?--%>
                         <a style="display:none" class="button_forgot" href="/forgotPassword"><loc:message

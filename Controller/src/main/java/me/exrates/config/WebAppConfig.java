@@ -4,6 +4,7 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import me.exrates.controller.filter.RequestFilter;
 import me.exrates.controller.handler.ChatWebSocketHandler;
+import me.exrates.controller.interceptor.FinPassCheckInterceptor;
 import me.exrates.controller.listener.StoreSessionListener;
 import me.exrates.controller.listener.StoreSessionListenerImpl;
 import me.exrates.controller.postprocessor.OnlineMethodPostProcessor;
@@ -246,6 +247,7 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         LocaleChangeInterceptor interceptor = new LocaleChangeInterceptor();
         interceptor.setParamName("locale");
         registry.addInterceptor(interceptor);
+        registry.addInterceptor(new FinPassCheckInterceptor());
     }
 
     @Bean
