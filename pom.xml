@@ -35,7 +35,6 @@
 		<spring-websocket.version>4.3.2.RELEASE</spring-websocket.version>
 		<spring-messaging.version>4.3.0.RELEASE</spring-messaging.version>
 		<bitcoinj.version>0.14.3</bitcoinj.version>
-		<btcd-cli4j.version>0.5.1</btcd-cli4j.version>
 	</properties>
 
 	<dependencies>
@@ -301,17 +300,6 @@
 			<artifactId>ehcache</artifactId>
 			<version>2.9.0</version>
 		</dependency>
-		<dependency>
-			<groupId>com.neemre.btcd-cli4j</groupId>
-			<artifactId>btcd-cli4j-core</artifactId>
-			<version>${btcd-cli4j.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.neemre.btcd-cli4j</groupId>
-			<artifactId>btcd-cli4j-daemon</artifactId>
-			<version>${btcd-cli4j.version}</version>
-		</dependency>
-
 
 	</dependencies>
 
@@ -349,11 +337,6 @@
 				<enabled>true</enabled>
 				<updatePolicy>always</updatePolicy>
 			</snapshots>
-		</repository>
-		<repository>
-			<id>mvn-nemp-ftp</id>
-			<name>Nemp's Maven Repository</name>
-			<url>http://mvn.neemre.com/</url>
 		</repository>
 	</repositories>
 </project>

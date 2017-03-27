@@ -811,8 +811,6 @@
   <loc:message code="admin.promptDeleteUserComment"/>
 </div>
 <%@include file='order-modals.jsp' %>
-<%@include file='transactionsDownload-modal.jsp' %>
-
 <%@include file='../fragments/footer.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>

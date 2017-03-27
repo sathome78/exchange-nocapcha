@@ -34,6 +34,7 @@ import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -116,6 +117,9 @@ public class AdminController {
   UserTransferService userTransferService;
   @Autowired
   WithdrawService withdrawService;
+  
+  @Autowired
+  private BitcoinWalletService bitcoinWalletService;
 
   @Autowired
   @Qualifier("ExratesSessionRegistry")
@@ -258,6 +262,12 @@ public class AdminController {
     List<Integer> merchantIds = merchant == null ? null : Arrays.asList(merchant);
     return transactionService.showUserOperationHistory(id, transactionStatus, types, merchantIds, startDate, endDate,
         amountFrom, amountTo, commissionAmountFrom, commissionAmountTo, localeResolver.resolveLocale(request), params);
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/downloadTransactionsPage")
+  public String downloadTransactionsPage(@RequestParam("id") int id, Model model) {
+    model.addAttribute("user", userService.getUserById(id));
+    return "admin/transactionsDownload";
   }
 
 
@@ -1157,7 +1167,35 @@ public class AdminController {
   
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet", method = RequestMethod.GET)
   public ModelAndView bitcoinWallet() {
-    return new ModelAndView("/admin/btcWallet");
+    return new ModelAndView("/admin/btcWallet", "walletInfo", bitcoinWalletService.getWalletInfo());
+  }
+  
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/transactions", method = RequestMethod.GET)
+  @ResponseBody
+  public List<BtcTransactionHistoryDto> getBtcTransactions() {
+    return bitcoinWalletService.listAllTransactions();
+  }
+  
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/estimatedFee", method = RequestMethod.GET)
+  @ResponseBody
+  public BigDecimal getEstimatedFee() {
+    return bitcoinWalletService.estimateFee(6);
+  }
+  
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/unlock", method = RequestMethod.POST)
+  @ResponseBody
+  public void submitPassword(@RequestParam String password) {
+    bitcoinWalletService.submitWalletPassword(password);
+  }
+  
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/send", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  @ResponseBody
+  public Map<String, String> sendToAddress(@RequestParam String address, @RequestParam BigDecimal amount, HttpServletRequest request) {
+    String txId = bitcoinWalletService.sendToAddress(address, amount);
+    Map<String, String> result = new HashMap<>();
+    result.put("message", messageSource.getMessage("btcWallet.successResult", new Object[]{txId}, localeResolver.resolveLocale(request)));
+    result.put("newBalance", bitcoinWalletService.getWalletInfo().getBalance());
+    return result;
   }
   
 
