@@ -1,5 +1,6 @@
 package me.exrates.controller.merchants;
 
+import me.exrates.controller.annotation.FinPassCheck;
 import me.exrates.model.Currency;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.Payment;
@@ -132,6 +133,7 @@ public class CommonMerchantsController {
         return merchantService.computeCommissionAndMapAllToString(amount, type, currency, merchant);
     }
 
+    @FinPassCheck
     @RequestMapping(value="/payment/withdraw", method = POST)
     public ResponseEntity<Map<String,String>> withdraw(@RequestBody final Payment payment,
                                                        final Principal principal, final Locale locale) {

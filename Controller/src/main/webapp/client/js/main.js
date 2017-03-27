@@ -245,12 +245,18 @@ $(function(){
         $('.response_money_operation_btn').hide();
     }
 
+    function finPassCheck(id, opFunc, oType, event) {
+        submitMerchantsOutput(id)
+
+    }
+
     function resetPaymentFormData(targetMerchant,form,callback) {
         if (operationType.val() === 'OUTPUT') {
             if (targetMerchant === INVOICE) {
                 callback();
             } else {
-                $.ajax('/merchants/payment/withdraw', {
+                var finpass = $('#finpassword').val();
+                $.ajax('/merchants/payment/withdraw?finpassword=' + finpass, {
                     headers: {
                         'X-CSRF-Token': $("input[name='_csrf']").val()
                     },
@@ -680,7 +686,9 @@ $(function(){
 
 
 
-    $('#submitTransferModalButton').click(function () {
+    $('#submitTransferModalButton').click(function (e) {
+        e.preventDefault();
+        $('#submitTransferModalButton').prop('disabled', true);
         submitTransfer()
     });
 
@@ -697,6 +705,7 @@ $(function(){
             },
             success: function (response) {
                 console.log("response " + response);
+                $('#finPassModal .close').click();
                 $('#transferModal').modal();
                 $('.paymentInfo').html(response.result);
                 $('.nickname_input').hide();
@@ -707,16 +716,27 @@ $(function(){
                 },5000);
             },
             error: function (err) {
+                $('#finPassModal .close').click();
                 console.log(err);
-                var errorText = JSON.parse(err.responseText);
-                $('.paymentInfo').html(errorText.detail);
-                $('.nickname_input').hide();
-                responseControls ()
+                var errorType = $.parseJSON(err.responseText).cause;
+                var errorMsg = $.parseJSON(err.responseText).detail;
+                switch (errorType) {
+                    case 'AbsentFinPasswordException':
+                    {
+                        console.log('AbsentFinPasswordException');
+                        window.location.href = '/settings?tabIdx=2&msg=' + errorMsg;
+                        break;
+                    }
+                    default: {
+                        responseControls ()
+                    }
+                }
             }
-        })
+        });
     }
 
     function getFinPassModal() {
+        $('#submitTransferModalButton').prop('disabled', false);
         $('#finPassModal').modal({
             backdrop: 'static'
         });

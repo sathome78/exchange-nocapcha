@@ -15,8 +15,7 @@
             </div>
             <div class="modal-body modal-content__input-block-wrapper">
                 <div class="content modal-content__content-wrapper">
-                    <c:url value="/checkfinpass" var="loginUrl"/>
-                    <form id="submitFinPassForm" action="${loginUrl}" method="post" modelAttribute="user">
+                    <form id="submitFinPassForm">
                         <%--логин--%>
                         <sec:authentication
                                 property="principal.username" var="username"/>
@@ -28,13 +27,14 @@
                         <%--csrf--%>
                         <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                         <br/>
-                        <%--отправить--%>
-                        <button id="submitTransferModalButton" type="button" data-dismiss="modal" class="button_enter">
-                            <loc:message code="admin.submitfinpassword"/></button>
+                            <%--отправить--%>
+                            <button id="submitTransferModalButton" type="button" class="button_enter">
+                                <loc:message code="admin.submitfinpassword"/></button>
                         <%--Забыли пароль?--%>
                         <a style="display:none" class="button_forgot" href="/forgotPassword"><loc:message
                                 code="dashboard.forgotPassword"/></a>
                     </form>
+
                 </div>
             </div>
         </div>

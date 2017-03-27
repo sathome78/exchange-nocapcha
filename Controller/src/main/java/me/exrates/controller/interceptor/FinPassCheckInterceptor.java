@@ -7,6 +7,8 @@ import me.exrates.controller.annotation.FinPassCheck;
 import me.exrates.controller.annotation.OnlineMethod;
 import me.exrates.model.User;
 import me.exrates.service.UserService;
+import me.exrates.service.exception.AbsentFinPasswordException;
+import me.exrates.service.exception.WrongFinPasswordException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,9 +59,11 @@ public class FinPassCheckInterceptor extends HandlerInterceptorAdapter {
                     User storedUser = userService.getUserById(userService.getIdByEmail(request.getUserPrincipal().getName()));
                     userService.checkFinPassword(finPass, storedUser, localeResolver.resolveLocale(request));
                 }
+            } catch (AbsentFinPasswordException | WrongFinPasswordException e) {
+                throw e;
             } catch (Exception e) {
-                log.debug(e);
-                throw new RuntimeException("processing error");
+                log.error(e);
+                throw new RuntimeException(e);
             }
         }
         return true;

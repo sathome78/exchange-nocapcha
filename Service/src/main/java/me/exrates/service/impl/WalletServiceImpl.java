@@ -275,7 +275,8 @@ public final class WalletServiceImpl implements WalletService {
    * */
   @Override
   @Transactional(rollbackFor = Exception.class)
-  public String transferCostsToUser(Integer fromUserWalletId, String toUserNickname, BigDecimal amount, Locale locale, boolean checkOnly) {
+  public String transferCostsToUser(Integer fromUserWalletId, String toUserNickname, BigDecimal amount,
+                                    Locale locale, boolean checkOnly) {
     if (amount.signum() <= 0) {
       throw new InvalidAmountException(messageSource.getMessage("transfer.negativeAmount", null, locale));
     }

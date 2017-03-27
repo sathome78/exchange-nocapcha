@@ -103,7 +103,7 @@ public class WalletController {
 
     }
 
-    /**@param checkOnly - used to verify payment, without fin pass, but not perform it
+    /**@param checkOnly - used to verify payment, without fin pass, but not perform transfer
      * */
     @FinPassCheck(notCheckPassIfCheckOnlyParamTrue = true)
     @RequestMapping(value = "/transfer/submit", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
