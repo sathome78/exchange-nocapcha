@@ -34,6 +34,7 @@ import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -258,6 +259,12 @@ public class AdminController {
     List<Integer> merchantIds = merchant == null ? null : Arrays.asList(merchant);
     return transactionService.showUserOperationHistory(id, transactionStatus, types, merchantIds, startDate, endDate,
         amountFrom, amountTo, commissionAmountFrom, commissionAmountTo, localeResolver.resolveLocale(request), params);
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/downloadTransactionsPage")
+  public String downloadTransactionsPage(@RequestParam("id") int id, Model model) {
+    model.addAttribute("user", userService.getUserById(id));
+    return "admin/transactionsDownload";
   }
 
 
