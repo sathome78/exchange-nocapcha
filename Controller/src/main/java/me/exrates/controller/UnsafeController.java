@@ -2,6 +2,7 @@ package me.exrates.controller;
 
 import me.exrates.controller.handler.EDCClientWebSocketHandler;
 import me.exrates.service.EDCService;
+import me.exrates.service.impl.bitcoinWallet.TempBtcCoreService;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -19,6 +21,7 @@ public class UnsafeController {
 
     private final EDCClientWebSocketHandler blockchainEDC;
     private final EDCService edcService;
+    private final TempBtcCoreService tempBtcCoreService;
 
     private static final Logger LOGGER = LogManager.getLogger(UnsafeController.class);
 
@@ -26,6 +29,7 @@ public class UnsafeController {
     public UnsafeController(final EDCClientWebSocketHandler blockchainEDC, final EDCService edcService) {
         this.blockchainEDC = blockchainEDC;
         this.edcService = edcService;
+        this.tempBtcCoreService = new TempBtcCoreService();
     }
 
     @RequestMapping(value = "unsafe/rescanEDCBlockchain")
@@ -47,6 +51,22 @@ public class UnsafeController {
             LOGGER.error(e);
             return new ResponseEntity<>("Error EDC rescan unused accouts. Checkout merchant.log", HttpStatus.BAD_REQUEST);
         }
+    }
+    
+    // Both methods below are designed to check btc core node accessibility via Exrates app on lk.exrates.me.
+    //TODO remove after BtcCore update is ready
+    
+    
+    @RequestMapping(value = "unsafe/initBtcCore")
+    @ResponseBody
+    public void initBtcCore() {
+        tempBtcCoreService.initClientAndDaemon();
+    }
+    
+    @RequestMapping(value = "unsafe/btcGetInfo")
+    @ResponseBody
+    public void btcGetInfo() {
+        tempBtcCoreService.getInfo();
     }
 
 }

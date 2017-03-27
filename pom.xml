@@ -35,7 +35,7 @@
 		<spring-websocket.version>4.3.2.RELEASE</spring-websocket.version>
 		<spring-messaging.version>4.3.0.RELEASE</spring-messaging.version>
 		<bitcoinj.version>0.14.3</bitcoinj.version>
-		<btcd-cli4j.version>0.5.1</btcd-cli4j.version>
+		<btcd-cli4j.version>0.5.8</btcd-cli4j.version>
 	</properties>
 
 	<dependencies>
@@ -354,6 +354,11 @@
 			<id>mvn-nemp-ftp</id>
 			<name>Nemp's Maven Repository</name>
 			<url>http://mvn.neemre.com/</url>
+		</repository>
+		<repository>
+			<id>btcd-cli4j-inner</id>
+			<name>btcd-cli4j Inner Repo</name>
+			<url>file://${project.basedir}/Service/src/main/resources/btcd-cli4j</url>
 		</repository>
 	</repositories>
 </project>
