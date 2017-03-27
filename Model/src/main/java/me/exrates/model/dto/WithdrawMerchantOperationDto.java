@@ -15,15 +15,4 @@ public class WithdrawMerchantOperationDto {
   private String currency;
   private String amount;
   private String otherNeededParamsAddHere;
-
-  /*public static class Builder{
-    private String currency;
-    private String amount;
-    private String otherNeededParamsAddHere;
-
-    public Builder user(String currency) {
-      this.currency = currency;
-      return this;
-    }
-  }*/
 }

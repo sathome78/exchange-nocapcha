@@ -6,6 +6,7 @@ import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.service.WithdrawService;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -18,7 +19,7 @@ import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.POST_AUTO;
  * Created by ValkSam
  */
 @Service
-@Log4j2
+@Log4j2(topic = "job")
 public class withdrawRequestJob {
 
   @Autowired
@@ -30,16 +31,24 @@ public class withdrawRequestJob {
   }
 
   @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 1)
-  private void postWithdraw() throws Exception {
-    InvoiceActionTypeEnum action = POST_AUTO;
-    List<InvoiceStatus> candidate = WithdrawStatusEnum.getAvailableForActionStatusesList(action);
-    if (candidate.size() != 1) {
-      log.fatal("no one or more then one base status for action " + action);
-      throw new AssertionError();
-    }
-    List<WithdrawRequestPostDto> withdrawForPostingList = withdrawService.dirtyReadForPostByStatusList(candidate.get(0));
-    for (WithdrawRequestPostDto withdrawRequest : withdrawForPostingList) {
-      withdrawService.autoPostWithdrawalRequest(withdrawRequest);
+  private void postWithdraw() {
+    try {
+      InvoiceActionTypeEnum action = POST_AUTO;
+      List<InvoiceStatus> candidate = WithdrawStatusEnum.getAvailableForActionStatusesList(action);
+      if (candidate.size() != 1) {
+        log.fatal("no one or more then one base status for action " + action);
+        throw new AssertionError();
+      }
+      List<WithdrawRequestPostDto> withdrawForPostingList = withdrawService.dirtyReadForPostByStatusList(candidate.get(0));
+      for (WithdrawRequestPostDto withdrawRequest : withdrawForPostingList) {
+        try {
+          withdrawService.autoPostWithdrawalRequest(withdrawRequest);
+        } catch (Exception e) {
+          log.error(ExceptionUtils.getStackTrace(e));
+        }
+      }
+    } catch (Exception e) {
+      log.error(ExceptionUtils.getStackTrace(e));
     }
   }
 

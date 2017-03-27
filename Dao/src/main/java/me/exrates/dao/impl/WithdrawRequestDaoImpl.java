@@ -179,7 +179,8 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
       List<Integer> operationTypeIdList,
       Locale locale) {
     String sql = " SELECT " +
-        "    TRANSACTION.datetime, CURRENCY.name as currency, TRANSACTION.amount, TRANSACTION.commission_amount, " +
+        "    IF (WITHDRAW_REQUEST.date_creation IS NOT NULL, WITHDRAW_REQUEST.date_creation, TRANSACTION.datetime) AS datetime, " +
+        "    CURRENCY.name as currency, TRANSACTION.amount, TRANSACTION.commission_amount, " +
         "    TRANSACTION.source_type, TRANSACTION.confirmation, " +
         "    case when OPERATION_TYPE.name = 'input' or WITHDRAW_REQUEST.merchant_image_id is null  \n" +
         "              then MERCHANT.name  \n" +
@@ -211,7 +212,8 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
         "    USER.email=:email " +
         "  UNION " +
         "  (SELECT " +
-        "     WR.date_creation, CUR.name, WR.amount, WR.commission, " +
+        "     WR.date_creation, " +
+        "     CUR.name, WR.amount, WR.commission, " +
         "     'WITHDRAW', -1," +
         "     IF(WR.merchant_image_id IS NULL, M.name, MI.image_name), " +
         "     'OUTPUT', WR.id, 1, " +

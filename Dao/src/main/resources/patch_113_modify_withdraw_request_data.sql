@@ -1,6 +1,7 @@
 /*NEW -> WAITING_MANUAL_POSTING*/
 UPDATE WITHDRAW_REQUEST
-SET status_id = 2
+SET status_id = 2,
+admin_holder_id = processed_by
 WHERE status=1; 
 
 /*ACCEPTED -> POSTED_MANUAL*/
@@ -45,11 +46,11 @@ INSERT INTO TRANSACTION
 (user_wallet_id, company_wallet_id, amount, commission_amount, commission_id, operation_type_id, currency_id, merchant_id,
   datetime, provided, confirmation, order_id, status_id, status_modification_date,
   active_balance_before, reserved_balance_before, company_balance_before, company_commission_balance_before,
-  source_type, source_id, provided_modification_date)
+  source_type, source_id, provided_modification_date, description)
 (SELECT W.id, CW.id, -WR.amount, 0, COM.id, 5, WR.currency_id, WR.merchant_id,
   WR.date_creation, 1, -1, NULL, 1, NULL,
   NULL, NULL, NULL, NULL,
-  'WITHDRAW', WR.id, NULL
+  'WITHDRAW', WR.id, NULL, 'AUTO ADDED FOR WITHDRAW create'
 FROM WITHDRAW_REQUEST WR
 JOIN WALLET W ON (W.user_id=WR.user_id AND W.currency_id=WR.currency_id)
 JOIN USER ON USER.id = W.user_id
@@ -63,4 +64,42 @@ SELECT *
 FROM TRANSACTION
 WHERE operation_type_id = 5 AND source_type='WITHDRAW' and active_balance_before IS NULL;
 
-для акцептованных надо поле чщдвук заполнить акцептором (для старых)
+
+/*create transactions corresponding to moving from reserve for withdraw_payment posting*/
+INSERT INTO TRANSACTION
+(user_wallet_id, company_wallet_id, amount, commission_amount, commission_id, operation_type_id, currency_id, merchant_id,
+  datetime, provided, confirmation, order_id, status_id, status_modification_date,
+  active_balance_before, reserved_balance_before, company_balance_before, company_commission_balance_before,
+  source_type, source_id, provided_modification_date, description)
+(SELECT W.id, CW.id, WR.amount, 0, COM.id, 5, WR.currency_id, WR.merchant_id,
+  WR.date_creation, 1, -1, NULL, 1, NULL,
+  NULL, NULL, NULL, NULL,
+  'WITHDRAW', WR.id, NULL, 'AUTO ADDED FOR WITHDRAW post'
+FROM WITHDRAW_REQUEST WR
+JOIN WALLET W ON (W.user_id=WR.user_id AND W.currency_id=WR.currency_id)
+JOIN USER ON USER.id = W.user_id
+JOIN COMPANY_WALLET CW ON (CW.currency_id=WR.currency_id)
+JOIN COMMISSION COM ON (COM.operation_type = 5 AND user_role = USER.roleid)
+WHERE WR.status = 2 AND WR.transaction_id IS NOT NULL
+);
+
+/*create transactions corresponding to debit money from reserve for withdraw_payment posting*/
+INSERT INTO TRANSACTION
+(user_wallet_id, company_wallet_id, amount, commission_amount, commission_id, operation_type_id, currency_id, merchant_id,
+  datetime, provided, confirmation, order_id, status_id, status_modification_date,
+  active_balance_before, reserved_balance_before, company_balance_before, company_commission_balance_before,
+  source_type, source_id, provided_modification_date, description)
+(SELECT W.id, CW.id, WR.amount, WR.commission, COM.id, 2, WR.currency_id, WR.merchant_id,
+  WR.date_creation, 1, -1, NULL, 1, NULL,
+  NULL, NULL, NULL, NULL,
+  'WITHDRAW', WR.id, NULL, 'AUTO ADDED FOR WITHDRAW post'
+FROM WITHDRAW_REQUEST WR
+JOIN WALLET W ON (W.user_id=WR.user_id AND W.currency_id=WR.currency_id)
+JOIN USER ON USER.id = W.user_id
+JOIN COMPANY_WALLET CW ON (CW.currency_id=WR.currency_id)
+JOIN COMMISSION COM ON (COM.operation_type = 2 AND user_role = USER.roleid)
+WHERE WR.status = 2 AND WR.transaction_id IS NOT NULL
+);
+
+SELECT MAX(id) FROM TRANSACTION -> ...;
+

@@ -140,6 +140,29 @@ $(function () {
         $modal.modal();
     });
 
+    $('#withdrawalTable').on('click', 'button[data-source=WITHDRAW].take_to_work_button', function (e) {
+        e.preventDefault();
+        var id = $(this).data("id");
+        var $modal = $("#confirm-with-info-modal");
+        $modal.find("label[for=info-field]").html($(this).html());
+        $modal.find("#info-field").val(id);
+        $modal.find("#confirm-button").off("click").one("click", function () {
+            $modal.modal('hide');
+            $.ajax({
+                url: '/2a8fy7b07dxe44/withdraw/take?id=' + id,
+                async: false,
+                headers: {
+                    'X-CSRF-Token': $("input[name='_csrf']").val(),
+                },
+                type: 'POST',
+                complete: function () {
+                    updateWithdrawalTable();
+                }
+            });
+        });
+        $modal.modal();
+    });
+
     $('#withdrawalTable').on('click', 'button[data-source=WITHDRAW].return_from_work_button', function (e) {
         e.preventDefault();
         var id = $(this).data("id");
@@ -228,9 +251,6 @@ $(function () {
         });
         $modal.modal();
     });
-
-
-
 });
 
 function promptDeclineRequest(requestId) {

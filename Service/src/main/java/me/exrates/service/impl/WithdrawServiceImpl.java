@@ -11,6 +11,7 @@ import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.*;
+import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.TransactionDescription;
 import me.exrates.model.vo.WalletOperationData;
@@ -347,7 +348,7 @@ public class WithdrawServiceImpl implements WithdrawService {
   public void returnFromWorkWithdrawalRequest(int requestId, Integer requesterAdminId) {
     WithdrawRequestFlatDto withdrawRequest = withdrawRequestDao.getFlatByIdAndBlock(requestId)
         .orElseThrow(() -> new InvoiceNotFoundException(String.format("withdraw request id: %s", requestId)));
-    InvoiceActionTypeEnum action = DECLINE_HOLDED;
+    InvoiceActionTypeEnum action = RETURN_FROM_WORK;
     WithdrawStatusEnum newStatus = checkPermissionOnActionAndGetNewStatus(requesterAdminId, withdrawRequest, action);
     withdrawRequestDao.setStatusById(requestId, newStatus);
     /**/
@@ -415,7 +416,7 @@ public class WithdrawServiceImpl implements WithdrawService {
     IMerchantService merchantService = merchantServiceContext.getMerchantService(withdrawRequest.getMerchantServiceBeanName());
     WithdrawMerchantOperationDto withdrawMerchantOperation = WithdrawMerchantOperationDto.builder()
         .currency(withdrawRequest.getCurrencyName())
-        .amount(withdrawRequest.getAmount().toString())
+        .amount(BigDecimalProcessing.doAction(withdrawRequest.getAmount(), withdrawRequest.getCommissionAmount(), ActionType.SUBTRACT).toString())
         .build();
     merchantService.withdraw(withdrawMerchantOperation);
   }
