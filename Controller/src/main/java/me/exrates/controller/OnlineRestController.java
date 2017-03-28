@@ -105,6 +105,9 @@ public class OnlineRestController {
   @Autowired
   LocaleResolver localeResolver;
 
+  @Autowired
+  WithdrawService withdrawService;
+
   @RequestMapping(value = "/dashboard/commission/{type}", method = RequestMethod.GET)
   public BigDecimal getCommissions(@PathVariable("type") String type) {
     long before = System.currentTimeMillis();
@@ -824,43 +827,14 @@ public class OnlineRestController {
     String cacheKey = "myInputoutputData" + tableId + request.getHeader("windowid");
     refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
     CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
-    List<MyInputOutputHistoryDto> result = merchantService.getMyInputOutputHistory(cacheData, email, tableParams.getOffset(), tableParams.getLimit(), localeResolver.resolveLocale(request));
+    List<MyInputOutputHistoryDto> result = withdrawService.getMyInputOutputHistory(cacheData, email, tableParams.getOffset(), tableParams.getLimit(), localeResolver.resolveLocale(request));
     if (!result.isEmpty()) {
       result.get(0).setPage(tableParams.getPageNumber());
-      if (result.get(0).isNeedRefresh()) {
-        result.forEach(e -> e.setSummaryStatus(
-            generateAndGetSummaryStatus(e, localeResolver.resolveLocale(request))
-        ));
-      }
     }
     tableParams.updateEofState(result);
     long after = System.currentTimeMillis();
     LOGGER.debug("completed... ms: " + (after - before));
     return result;
-  }
-
-  private String generateAndGetSummaryStatus(MyInputOutputHistoryDto row, Locale locale) {
-    switch (TransactionSourceType.convert(row.getSourceType())) {
-      case INVOICE: {
-        return messageSource.getMessage("merchants.invoice.".concat(InvoiceRequestStatusEnum.convert(row.getInvoiceRequestStatusId()).name()), null, locale);
-      }
-      case WITHDRAW: {
-        return messageSource.getMessage("merchants.withdraw.".concat(WithdrawalRequestStatus.convert(row.getInvoiceRequestStatusId()).name().toLowerCase()), null, locale);
-      }
-      case BTC_INVOICE: {
-        PendingPaymentStatusEnum status = PendingPaymentStatusEnum.convert(row.getInvoiceRequestStatusId());
-        if (status == ON_BCH_EXAM) {
-          String confirmations = row.getConfirmation() == null ? "0" : row.getConfirmation().toString();
-          String message = confirmations.concat("/").concat(String.valueOf(BitcoinService.CONFIRMATION_NEEDED_COUNT));
-          return message;
-        } else {
-          return messageSource.getMessage("merchants.invoice.".concat(PendingPaymentStatusEnum.convert(row.getInvoiceRequestStatusId()).name()), null, locale);
-        }
-      }
-      default: {
-        return row.getTransactionProvided();
-      }
-    }
   }
 
   /**

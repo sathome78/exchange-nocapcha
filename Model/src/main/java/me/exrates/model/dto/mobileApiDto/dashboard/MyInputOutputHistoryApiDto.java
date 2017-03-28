@@ -44,10 +44,10 @@ public class MyInputOutputHistoryApiDto {
         this.commissionAmount = BigDecimalProcessing.parseLocale(dto.getCommissionAmount(), locale, 2).doubleValue();;
         this.merchantName = dto.getMerchantName();
         this.operationType = dto.getOperationType();
-        this.transactionId = dto.getTransactionId();
+        this.transactionId = dto.getId();
         this.transactionProvided = dto.getTransactionProvided();
         this.userId = dto.getUserId();
-        this.invoiceStatus = dto.getInvoiceRequestStatusId() == null ? null : InvoiceRequestStatusEnum.convert(dto.getInvoiceRequestStatusId()).name();
+        this.invoiceStatus = dto.getStatus() == null ? null : dto.getStatus().name();
         this.bankAccount = dto.getBankAccount();
     }
 

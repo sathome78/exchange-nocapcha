@@ -3,55 +3,94 @@ package me.exrates.model.enums;
 /**
  * Created by OLEG on 20.09.2016.
  */
+
+import me.exrates.model.exceptions.TransactionLabelTypeAmountParamNeededException;
+import me.exrates.model.exceptions.TransactionLabelTypeMoreThenOneResultException;
+import me.exrates.model.exceptions.TransactionLabelTypeNotResolvedException;
+
+import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
 import static me.exrates.model.enums.TransactionSourceType.*;
+
 public enum TransactionType {
-    INPUT_MERCHANT(MERCHANT, OperationType.INPUT),
-    INPUT_INVOICE(INVOICE, OperationType.INPUT),
-    INPUT_BTC(BTC_INVOICE, OperationType.INPUT),
-    OUTPUT(WITHDRAW, null),
-    ORDER_IN(ORDER, OperationType.INPUT),
-    ORDER_OUT(ORDER, OperationType.OUTPUT),
-    WALLET_INNER_TRANSFER(null, OperationType.WALLET_INNER_TRANSFER),
-    REFERRAL(TransactionSourceType.REFERRAL, null),
-    MANUAL(TransactionSourceType.MANUAL, null),
-    USER_TRANSFER_IN(USER_TRANSFER, OperationType.INPUT),
-    USER_TRANSFER_OUT(USER_TRANSFER, OperationType.OUTPUT);
+  MERCHANT_IN(MERCHANT, OperationType.INPUT),
+  INVOICE_IN(INVOICE, OperationType.INPUT),
+  BTC_IN(BTC_INVOICE, OperationType.INPUT),
+  WITHDRAW_OUT(WITHDRAW, null),
+  ORDER_IN(ORDER, OperationType.INPUT),
+  ORDER_OUT(ORDER, OperationType.OUTPUT),
+  RESERVE_TO(null, OperationType.WALLET_INNER_TRANSFER, (v) -> v.compareTo(BigDecimal.ZERO) < 0),
+  RESERVE_FROM(null, OperationType.WALLET_INNER_TRANSFER, (v) -> v.compareTo(BigDecimal.ZERO) >= 0),
+  REFERRAL(TransactionSourceType.REFERRAL, null),
+  MANUAL(TransactionSourceType.MANUAL, null),
+  USER_TRANSFER_IN(USER_TRANSFER, OperationType.INPUT),
+  USER_TRANSFER_OUT(USER_TRANSFER, OperationType.OUTPUT);
 
-    private TransactionSourceType sourceType;
-    private OperationType operationType;
+  private TransactionSourceType sourceType;
+  private OperationType operationType;
+  private Predicate<BigDecimal> amountPredicate = null;
 
-    TransactionType(TransactionSourceType sourceType, OperationType operationType) {
-        this.sourceType = sourceType;
-        this.operationType = operationType;
+  TransactionType(TransactionSourceType sourceType, OperationType operationType) {
+    this.sourceType = sourceType;
+    this.operationType = operationType;
+  }
+
+  TransactionType(TransactionSourceType sourceType, OperationType operationType, Predicate<BigDecimal> amountPredicate) {
+    this.sourceType = sourceType;
+    this.operationType = operationType;
+    this.amountPredicate = amountPredicate;
+  }
+
+  public TransactionSourceType getSourceType() {
+    return sourceType;
+  }
+
+  public void setSourceType(TransactionSourceType sourceType) {
+    this.sourceType = sourceType;
+  }
+
+  public OperationType getOperationType() {
+    return operationType;
+  }
+
+  public void setOperationType(OperationType operationType) {
+    this.operationType = operationType;
+  }
+
+  public static TransactionType resolveFromOperationTypeAndSource(TransactionSourceType sourceType, OperationType operationType) {
+    List<TransactionType> candidates = Arrays.stream(TransactionType.class.getEnumConstants())
+        .filter(e -> (e.sourceType == null || e.sourceType == sourceType) && ((e.operationType == null) || (e.operationType == operationType)))
+        .collect(Collectors.toList());
+    if (candidates.isEmpty()) {
+      throw new TransactionLabelTypeNotResolvedException(String.format("sourceType: %s operationType: %s", sourceType, operationType));
     }
-
-    public TransactionSourceType getSourceType() {
-        return sourceType;
+    if (candidates.size() > 1) {
+      throw new TransactionLabelTypeAmountParamNeededException(String.format("sourceType: %s operationType: %s", sourceType, operationType));
     }
+    return candidates.get(0);
+  }
 
-    public void setSourceType(TransactionSourceType sourceType) {
-        this.sourceType = sourceType;
+  public static TransactionType resolveFromOperationTypeAndSource(TransactionSourceType sourceType, OperationType operationType, BigDecimal amount) {
+    List<TransactionType> candidates = Arrays.stream(TransactionType.class.getEnumConstants())
+        .filter(e -> (e.sourceType == null || e.sourceType == sourceType) && ((e.operationType == null) || (e.operationType == operationType)))
+        .filter(e -> e.amountPredicate == null || e.amountPredicate.test(amount))
+        .collect(Collectors.toList());
+    if (candidates.isEmpty()) {
+      throw new TransactionLabelTypeNotResolvedException(String.format("sourceType: %s operationType: %s", sourceType, operationType));
     }
-
-    public OperationType getOperationType() {
-        return operationType;
+    if (candidates.size() > 1) {
+      candidates = candidates.stream()
+          .filter(e->e.amountPredicate != null && e.amountPredicate.test(amount))
+          .collect(Collectors.toList());
+      if (candidates.size() > 1) {
+        throw new TransactionLabelTypeMoreThenOneResultException(String.format("sourceType: %s operationType: %s amount: %s", sourceType, operationType, amount));
+      }
     }
+    return candidates.get(0);
+  }
 
-    public void setOperationType(OperationType operationType) {
-        this.operationType = operationType;
-    }
-
-    public static TransactionType resolveFromOperationTypeAndSource(TransactionSourceType sourceType, OperationType operationType) {
-        if (sourceType == MERCHANT && operationType == OperationType.INPUT) return INPUT_MERCHANT;
-        if (sourceType == INVOICE && operationType == OperationType.INPUT) return INPUT_INVOICE;
-        if (sourceType == BTC_INVOICE && operationType == OperationType.INPUT) return INPUT_BTC;
-        if (sourceType == WITHDRAW) return OUTPUT;
-        if (sourceType == ORDER && operationType == OperationType.INPUT) return ORDER_IN;
-        if (sourceType == ORDER && operationType == OperationType.OUTPUT) return ORDER_OUT;
-        if (sourceType == USER_TRANSFER && operationType == OperationType.INPUT) return USER_TRANSFER_IN;
-        if (sourceType == USER_TRANSFER && operationType == OperationType.OUTPUT) return USER_TRANSFER_OUT;
-        if (operationType == OperationType.WALLET_INNER_TRANSFER) return WALLET_INNER_TRANSFER;
-        return TransactionType.valueOf(sourceType.name());
-
-    }
 }

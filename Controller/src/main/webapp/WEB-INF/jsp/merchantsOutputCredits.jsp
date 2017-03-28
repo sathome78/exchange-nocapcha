@@ -59,7 +59,7 @@
                     <div class="row">
                         <div class="col-sm-9">
                             <paymentForm:form id="payment" class="form-horizontal withdraw__money" name="payment" method="post"
-                                              modelAttribute="payment" action="/merchants/payment/withdraw">
+                                              modelAttribute="payment">
                                 <div>
                                         <%--Currency to withdraw--%>
                                     <label>

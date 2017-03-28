@@ -243,24 +243,26 @@ public class AdminController {
 
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/transactions", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
-  public DataTable<List<OperationViewDto>> getUserTransactions(final @RequestParam(required = false) int id,
-                                                               final @RequestParam(required = false) Integer status,
-                                                               final @RequestParam(required = false) String[] type,
-                                                               final @RequestParam(required = false) Integer[] merchant,
-                                                               final @RequestParam(required = false) String startDate,
-                                                               final @RequestParam(required = false) String endDate,
-                                                               final @RequestParam(required = false) BigDecimal amountFrom,
-                                                               final @RequestParam(required = false) BigDecimal amountTo,
-                                                               final @RequestParam(required = false) BigDecimal commissionAmountFrom,
-                                                               final @RequestParam(required = false) BigDecimal commissionAmountTo,
-                                                               final @RequestParam Map<String, String> params,
-                                                               final HttpServletRequest request) {
-
+  public DataTable<List<OperationViewDto>> getUserTransactions(
+      @RequestParam(required = false) int id,
+      @RequestParam(required = false) Integer status,
+      @RequestParam(required = false) String[] type,
+      @RequestParam(required = false) Integer[] merchant,
+      @RequestParam(required = false) String startDate,
+      @RequestParam(required = false) String endDate,
+      @RequestParam(required = false) BigDecimal amountFrom,
+      @RequestParam(required = false) BigDecimal amountTo,
+      @RequestParam(required = false) BigDecimal commissionAmountFrom,
+      @RequestParam(required = false) BigDecimal commissionAmountTo,
+      @RequestParam Map<String, String> params,
+      Principal principal,
+      HttpServletRequest request) {
     Integer transactionStatus = status == null || status == -1 ? null : status;
     List<TransactionType> types = type == null ? null :
         Arrays.stream(type).map(TransactionType::valueOf).collect(Collectors.toList());
     List<Integer> merchantIds = merchant == null ? null : Arrays.asList(merchant);
-    return transactionService.showUserOperationHistory(id, transactionStatus, types, merchantIds, startDate, endDate,
+    Integer requesterAdminId = userService.getIdByEmail(principal.getName());
+    return transactionService.showUserOperationHistory(requesterAdminId, id, transactionStatus, types, merchantIds, startDate, endDate,
         amountFrom, amountTo, commissionAmountFrom, commissionAmountTo, localeResolver.resolveLocale(request), params);
   }
 
@@ -696,11 +698,17 @@ public class AdminController {
 
   @RequestMapping(value = "/2a8fy7b07dxe44/withdrawRequests", method = GET)
   @ResponseBody
-  public DataTable<List<WithdrawRequest>> findRequestByStatus(@RequestParam(value = "status", required = false) Integer requestStatus, WithdrawFilterData withdrawFilterData,
-                                                              @RequestParam Map<String, String> params, Principal principal) {
+  public DataTable<List<WithdrawRequestsAdminTableDto>> findRequestByStatus(
+      @RequestParam("viewType") String viewTypeName,
+      WithdrawFilterData withdrawFilterData,
+      @RequestParam Map<String, String> params,
+      Principal principal,
+      Locale locale) {
+    WithdrawRequestTableViewTypeEnum viewTypeEnum = WithdrawRequestTableViewTypeEnum.convert(viewTypeName);
+    List<Integer> statusList = viewTypeEnum.getWithdrawStatusList().stream().map(WithdrawStatusEnum::getCode).collect(Collectors.toList());
     DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
     withdrawFilterData.initFilterItems();
-    return withdrawService.findWithdrawRequestsByStatus(requestStatus, dataTableParams, withdrawFilterData, principal.getName());
+    return withdrawService.getWithdrawRequestByStatusList(statusList, dataTableParams, withdrawFilterData, principal.getName(), locale);
   }
 
   @ResponseBody
@@ -719,7 +727,7 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/orderdelete", method = RequestMethod.POST)
   public Integer deleteOrderByAdmin(@RequestParam int id) {
     try {
-      return orderService.deleteOrderByAdmin(id);
+      return (Integer) orderService.deleteOrderByAdmin(id);
     } catch (Exception e) {
       LOG.error(e);
       throw e;
@@ -1124,10 +1132,6 @@ public class AdminController {
       @RequestBody List<UserCurrencyOperationPermissionDto> userCurrencyOperationPermissionDtoList,
       HttpSession httpSession,
       Principal principal) {
-    String currentRole = (String) httpSession.getAttribute("currentRole");
-    if (!currentRole.equals(UserRole.ADMINISTRATOR.name())) {
-      throw new NoPermissionForOperationException();
-    }
     userService.setCurrencyPermissionsByUserId(userCurrencyOperationPermissionDtoList);
   }
 

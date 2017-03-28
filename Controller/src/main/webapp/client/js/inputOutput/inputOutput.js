@@ -119,7 +119,7 @@ function InputOutputClass(currentCurrencyPair) {
                     $modal.find("#invoiceId").val(invoiceId);
                     $modal.find("#address-to-pay").val(data.address);
 
-                    $modal.find("#btcInvoiceRevokeConfirm").one("click", function () {
+                    $modal.find("#btcInvoiceRevokeConfirm").off("click").one("click", function () {
                         var invoiceId = $('#invoiceId').val().trim();
                         $modal.modal('hide');
                         $.ajax({
@@ -155,5 +155,28 @@ function InputOutputClass(currentCurrencyPair) {
                 }
             });
         });
+
+        $('#inputoutput-table').on('click', 'button[data-source=WITHDRAW].revoke_button', function (e) {
+            e.preventDefault();
+            var id = $(this).data("id");
+            var $modal = $("#confirm-with-info-modal");
+            $modal.find("label[for=info-field]").html($(this).html());
+            $modal.find("#info-field").val(id);
+            $modal.find("#confirm-button").off("click").one("click", function () {
+                $modal.modal('hide');
+                $.ajax({
+                    url: '/withdraw/request/revoke?id=' + id,
+                    headers: {
+                        'X-CSRF-Token': $("input[name='_csrf']").val(),
+                    },
+                    type: 'POST',
+                    success: function () {
+                        that.updateAndShowAll(false);
+                    }
+                });
+            });
+            $modal.modal();
+        });
+
     })(currentCurrencyPair);
 }

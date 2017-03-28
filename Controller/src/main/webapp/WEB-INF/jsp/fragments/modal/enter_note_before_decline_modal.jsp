@@ -1,13 +1,16 @@
 <script>
   function onSelectNewValue(select) {
-    $('#commentText').val(select.value);
-    $('#commentText').change();
+    var $textArea = $(select).closest("#note-before-decline-modal").find("#commentText");
+    $textArea.val(select.value);
+    $textArea.change();
   }
-  function onChangeText() {
-    if (!$('#commentText').val().trim()) {
-      $("#createCommentConfirm").attr("disabled", true);
+  function onChangeText(elem) {
+    var $textArea = $(elem).closest("#note-before-decline-modal").find("#commentText");
+    var $button = $(elem).closest("#note-before-decline-modal").find("#createCommentConfirm");
+    if (!$textArea.val().trim()) {
+      $button.attr("disabled", true);
     } else {
-      $("#createCommentConfirm").removeAttr("disabled");
+      $button.removeAttr("disabled");
     }
   }
 </script>
@@ -32,8 +35,8 @@
         </label>
         <textarea class="form-control" cols="40" rows="3"
                   id="commentText"
-                  onkeyup="onChangeText()"
-                  onchange="onChangeText()">
+                  onkeyup="onChangeText(this)"
+                  onchange="onChangeText(this)">
         </textarea>
         <%----%>
         <label for="phrase-template-list">
@@ -47,7 +50,7 @@
       <div class="modal-footer">
         <div>
           <button class="btn btn-success" type="button" id="createCommentConfirm"
-                  onmouseover="onChangeText()">
+                  onmouseover="onChangeText(this)">
             <loc:message code="merchants.continue"/>
           </button>
 

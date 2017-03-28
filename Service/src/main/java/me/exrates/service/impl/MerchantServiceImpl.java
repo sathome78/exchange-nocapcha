@@ -11,16 +11,14 @@ import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
-import me.exrates.model.enums.WithdrawalRequestStatus;
 import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
 import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
+import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
-import me.exrates.model.vo.CacheData;
 import me.exrates.service.*;
 import me.exrates.service.exception.MerchantCurrencyBlockedException;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.UnsupportedMerchantException;
-import me.exrates.service.util.Cache;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,9 +97,12 @@ public class MerchantServiceImpl implements MerchantService {
       return messageSource.getMessage("merchants.invoice.".concat(invoiceRequestStatus.name()), null, locale);
     }
     if (transaction.getSourceType() == TransactionSourceType.WITHDRAW) {
-      Integer statusId = withdrawRequestDao.findStatusIdByRequestId(transaction.getId());
-      WithdrawalRequestStatus status = WithdrawalRequestStatus.convert(statusId);
-      return messageSource.getMessage("merchants.withdraw.".concat(status.name().toLowerCase()), null, locale);
+      if (transaction.getOperationType() != OUTPUT) {
+        return "";
+      } else {
+        WithdrawStatusEnum status = transaction.getWithdrawRequest().getStatus();
+        return messageSource.getMessage("merchants.withdraw.".concat(status.name()), null, locale);
+      }
     }
     if (transaction.getSourceType() == TransactionSourceType.BTC_INVOICE) {
       Integer statusId = bitcoinService.getPendingPaymentStatusByInvoiceId(transaction.getSourceId());
@@ -383,27 +384,12 @@ public class MerchantServiceImpl implements MerchantService {
   }
 
   @Override
-  public List<MyInputOutputHistoryDto> getMyInputOutputHistory(CacheData cacheData, String email, Integer offset, Integer limit, Locale locale) {
-    List<Integer> operationTypeList = OperationType.getInputOutputOperationsList()
-        .stream()
-        .map(e -> e.getType())
-        .collect(Collectors.toList());
-    List<MyInputOutputHistoryDto> result = merchantDao.findMyInputOutputHistoryByOperationType(email, offset, limit, operationTypeList, locale);
-    if (Cache.checkCache(cacheData, result)) {
-      result = new ArrayList<MyInputOutputHistoryDto>() {{
-        add(new MyInputOutputHistoryDto(false));
-      }};
-    }
-    return result;
-  }
-
-  @Override
   public List<MyInputOutputHistoryDto> getMyInputOutputHistory(String email, Integer offset, Integer limit, Locale locale) {
     List<Integer> operationTypeList = OperationType.getInputOutputOperationsList()
         .stream()
         .map(e -> e.getType())
         .collect(Collectors.toList());
-    return merchantDao.findMyInputOutputHistoryByOperationType(email, offset, limit, operationTypeList, locale);
+    return withdrawRequestDao.findMyInputOutputHistoryByOperationType(email, offset, limit, operationTypeList, locale);
   }
 
   @Override

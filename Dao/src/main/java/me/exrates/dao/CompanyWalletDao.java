@@ -1,5 +1,6 @@
 package me.exrates.dao;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import me.exrates.model.CompanyWallet;
@@ -17,4 +18,6 @@ public interface CompanyWalletDao {
     boolean update(CompanyWallet companyWallet);
 
     CompanyWallet findByWalletId(int walletId);
+
+    boolean increaseCommissionBalanceById(Integer id, BigDecimal amount);
 }

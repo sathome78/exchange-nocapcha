@@ -130,6 +130,24 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="withdraw_log" fileName="${sys:catalina.home}/logs/withdraw_log.log"
+                     filePattern="${sys:catalina.home}/logs/withdraw_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="job_log" fileName="${sys:catalina.home}/logs/job_log.log"
+                     filePattern="${sys:catalina.home}/logs/job_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
     </Appenders>
     <Loggers>
         <Logger name="merchant" level="TRACE" additivity="false">
@@ -178,7 +196,7 @@
             <AppenderRef ref="Console"/>
             <AppenderRef ref="OnlineServices"/>
         </Logger>
-        <Logger name="me.exrates.controller.OrderControllerRest" level="ERROR" additivity="false">
+        <Logger name="me.exrates.controller.OrderControllerRest" level="DEBUG" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="RestServices"/>
         </Logger>
@@ -235,6 +253,17 @@
         <Logger name="profile" level="ALL" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="profile_log"/>
+        </Logger>
+
+        <!--job-->
+        <Logger name="job" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="job_log"/>
+        </Logger>
+
+        <Logger name="withdraw" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="withdraw_log"/>
         </Logger>
 
 

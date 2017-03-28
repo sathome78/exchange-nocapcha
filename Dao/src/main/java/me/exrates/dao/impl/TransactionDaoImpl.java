@@ -8,6 +8,7 @@ import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.dto.TransactionFlatForReportDto;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.enums.*;
+import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -47,35 +48,66 @@ public final class TransactionDaoImpl implements TransactionDao {
       currency.setId(resultSet.getInt("CURRENCY.id"));
       currency.setName(resultSet.getString("CURRENCY.name"));
       currency.setDescription(resultSet.getString("CURRENCY.description"));
-    } catch (SQLException e){
+    } catch (SQLException e) {
       //NOP
     }
 
     Merchant merchant = null;
     try {
       resultSet.findColumn("MERCHANT.id");
-      merchant = new Merchant();
-      merchant.setId(resultSet.getInt("MERCHANT.id"));
-      merchant.setName(resultSet.getString("MERCHANT.name"));
-      merchant.setDescription(resultSet.getString("MERCHANT.description"));
-    } catch (SQLException e){
+      if (resultSet.getObject("MERCHANT.id") != null) {
+        merchant = new Merchant();
+        merchant.setId(resultSet.getInt("MERCHANT.id"));
+        merchant.setName(resultSet.getString("MERCHANT.name"));
+        merchant.setDescription(resultSet.getString("MERCHANT.description"));
+      }
+    } catch (SQLException e) {
       //NOP
     }
 
     ExOrder order = null;
     try {
       resultSet.findColumn("EXORDERS.id");
-      order = new ExOrder();
-      order.setId(resultSet.getInt("EXORDERS.id"));
-      order.setUserId(resultSet.getInt("EXORDERS.user_id"));
-      order.setCurrencyPairId(resultSet.getInt("EXORDERS.currency_pair_id"));
-      order.setOperationType(resultSet.getInt("EXORDERS.operation_type_id") == 0 ? null : OperationType.convert(resultSet.getInt("EXORDERS.operation_type_id")));
-      order.setExRate(resultSet.getBigDecimal("EXORDERS.exrate"));
-      order.setAmountBase(resultSet.getBigDecimal("EXORDERS.amount_base"));
-      order.setAmountConvert(resultSet.getBigDecimal("EXORDERS.amount_convert"));
-      order.setCommissionFixedAmount(resultSet.getBigDecimal("EXORDERS.commission_fixed_amount"));
-      order.setDateCreation(resultSet.getTimestamp("EXORDERS.date_creation") == null ? null : resultSet.getTimestamp("EXORDERS.date_creation").toLocalDateTime());
-      order.setDateAcception(resultSet.getTimestamp("EXORDERS.date_acception") == null ? null : resultSet.getTimestamp("EXORDERS.date_acception").toLocalDateTime());
+      if (resultSet.getObject("EXORDERS.id") != null) {
+        order = new ExOrder();
+        order.setId(resultSet.getInt("EXORDERS.id"));
+        order.setUserId(resultSet.getInt("EXORDERS.user_id"));
+        order.setCurrencyPairId(resultSet.getInt("EXORDERS.currency_pair_id"));
+        order.setOperationType(resultSet.getInt("EXORDERS.operation_type_id") == 0 ? null : OperationType.convert(resultSet.getInt("EXORDERS.operation_type_id")));
+        order.setExRate(resultSet.getBigDecimal("EXORDERS.exrate"));
+        order.setAmountBase(resultSet.getBigDecimal("EXORDERS.amount_base"));
+        order.setAmountConvert(resultSet.getBigDecimal("EXORDERS.amount_convert"));
+        order.setCommissionFixedAmount(resultSet.getBigDecimal("EXORDERS.commission_fixed_amount"));
+        order.setDateCreation(resultSet.getTimestamp("EXORDERS.date_creation") == null ? null : resultSet.getTimestamp("EXORDERS.date_creation").toLocalDateTime());
+        order.setDateAcception(resultSet.getTimestamp("EXORDERS.date_acception") == null ? null : resultSet.getTimestamp("EXORDERS.date_acception").toLocalDateTime());
+      }
+    } catch (SQLException e) {
+      //NOP
+    }
+
+    WithdrawRequest withdraw = null;
+    try {
+      resultSet.findColumn("WITHDRAW_REQUEST.id");
+      if (resultSet.getObject("WITHDRAW_REQUEST.id") != null) {
+        withdraw = new WithdrawRequest();
+        withdraw.setId(resultSet.getInt("WITHDRAW_REQUEST.id"));
+        withdraw.setWallet(resultSet.getString("WITHDRAW_REQUEST.wallet"));
+        withdraw.setUserId(resultSet.getInt("WITHDRAW_REQUEST.user_id"));
+        withdraw.setMerchantImage(new MerchantImage(resultSet.getInt("WITHDRAW_REQUEST.merchant_image_id")));
+        withdraw.setRecipientBankName(resultSet.getString("WITHDRAW_REQUEST.recipient_bank_name"));
+        withdraw.setRecipientBankCode(resultSet.getString("WITHDRAW_REQUEST.recipient_bank_code"));
+        withdraw.setUserFullName(resultSet.getString("WITHDRAW_REQUEST.user_full_name"));
+        withdraw.setRemark(resultSet.getString("WITHDRAW_REQUEST.remark"));
+        withdraw.setAmount(resultSet.getBigDecimal("WITHDRAW_REQUEST.amount"));
+        withdraw.setCommissionAmount(resultSet.getBigDecimal("WITHDRAW_REQUEST.commission"));
+        withdraw.setCommissionId(resultSet.getInt("WITHDRAW_REQUEST.commission_id"));
+        withdraw.setStatus(WithdrawStatusEnum.convert(resultSet.getInt("WITHDRAW_REQUEST.status_id")));
+        withdraw.setDateCreation(resultSet.getTimestamp("WITHDRAW_REQUEST.date_creation").toLocalDateTime());
+        withdraw.setStatusModificationDate(resultSet.getTimestamp("WITHDRAW_REQUEST.status_modification_date").toLocalDateTime());
+        withdraw.setCurrency(currency);
+        withdraw.setMerchant(merchant);
+        withdraw.setAdminHolderId(resultSet.getInt("WITHDRAW_REQUEST.admin_holder_id"));
+      }
     } catch (SQLException e) {
       //NOP
     }
@@ -132,6 +164,7 @@ public final class TransactionDaoImpl implements TransactionDao {
     transaction.setMerchant(merchant);
     transaction.setOrder(order);
     transaction.setCurrency(currency);
+    transaction.setWithdrawRequest(withdraw);
     transaction.setProvided(resultSet.getBoolean("provided"));
     Integer confirmations = (Integer) resultSet.getObject("confirmation");
     transaction.setConfirmation(confirmations);
@@ -145,36 +178,60 @@ public final class TransactionDaoImpl implements TransactionDao {
   private final String SELECT_COUNT =
       " SELECT COUNT(*)" +
           " FROM TRANSACTION " +
-          " INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id" +
-          " INNER JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id" +
-          " INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
-          " INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id" +
-          " LEFT JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id " +
-          " LEFT JOIN EXORDERS ON TRANSACTION.source_id = EXORDERS.id ";
+          "   JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id" +
+          "   JOIN USER ON WALLET.user_id = USER.id" +
+          "   JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id" +
+          "   JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
+          "   JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id" +
+          "   LEFT JOIN WITHDRAW_REQUEST ON (TRANSACTION.source_type='WITHDRAW') AND (WITHDRAW_REQUEST.id=TRANSACTION.source_id) " +
+          "   LEFT JOIN EXORDERS ON (TRANSACTION.source_type='ORDER') AND (TRANSACTION.source_id = EXORDERS.id)" +
+          "   LEFT JOIN MERCHANT ON " +
+          "             (" +
+          "               (TRANSACTION.merchant_id IS NOT NULL AND MERCHANT.id = TRANSACTION.merchant_id) OR " +
+          "               (WITHDRAW_REQUEST.merchant_id IS NOT NULL AND MERCHANT.id = WITHDRAW_REQUEST.merchant_id) " +
+          "             )";
   private final String SELECT_ALL =
-      " SELECT TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime, " +
-          " TRANSACTION.operation_type_id,TRANSACTION.provided, TRANSACTION.confirmation, TRANSACTION.order_id, " +
-          " TRANSACTION.source_type, TRANSACTION.source_id, " +
-          " WALLET.id, WALLET.active_balance, WALLET.reserved_balance, WALLET.currency_id," +
-          " USER.id as user_id, USER.email as user_email," +
-          " COMPANY_WALLET.id,COMPANY_WALLET.balance,COMPANY_WALLET.commission_balance," +
-          " COMMISSION.id,COMMISSION.date,COMMISSION.value," +
-          " CURRENCY.id,CURRENCY.description,CURRENCY.name," +
-          " MERCHANT.id,MERCHANT.name,MERCHANT.description, " +
-          " EXORDERS.id, EXORDERS.user_id, EXORDERS.currency_pair_id, EXORDERS.operation_type_id, EXORDERS.exrate, " +
-          " EXORDERS.amount_base, EXORDERS.amount_convert, EXORDERS.commission_fixed_amount, EXORDERS.date_creation, " +
-          " EXORDERS.date_acception " +
+      " SELECT " +
+          "   TRANSACTION.id,TRANSACTION.amount,TRANSACTION.commission_amount,TRANSACTION.datetime, " +
+          "   TRANSACTION.operation_type_id,TRANSACTION.provided, TRANSACTION.confirmation, TRANSACTION.order_id, " +
+          "   TRANSACTION.source_type, TRANSACTION.source_id, " +
+          "   WALLET.id, WALLET.active_balance, WALLET.reserved_balance, WALLET.currency_id," +
+          "   USER.id as user_id, USER.email as user_email," +
+          "   COMPANY_WALLET.id,COMPANY_WALLET.balance,COMPANY_WALLET.commission_balance," +
+          "   COMMISSION.id,COMMISSION.date,COMMISSION.value," +
+          "   CURRENCY.id,CURRENCY.description,CURRENCY.name," +
+          "   MERCHANT.id,MERCHANT.name,MERCHANT.description, " +
+          "   EXORDERS.id, EXORDERS.user_id, EXORDERS.currency_pair_id, EXORDERS.operation_type_id, EXORDERS.exrate, " +
+          "   EXORDERS.amount_base, EXORDERS.amount_convert, EXORDERS.commission_fixed_amount, EXORDERS.date_creation, " +
+          "   EXORDERS.date_acception," +
+          "   WITHDRAW_REQUEST.* " +
           " FROM TRANSACTION " +
-          " INNER JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id" +
-          " INNER JOIN USER ON WALLET.user_id = USER.id" +
-          " INNER JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id" +
-          " INNER JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
-          " INNER JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id" +
-          " LEFT JOIN MERCHANT ON TRANSACTION.merchant_id = MERCHANT.id " +
-          " LEFT JOIN EXORDERS ON TRANSACTION.source_id = EXORDERS.id";
+          "   JOIN WALLET ON TRANSACTION.user_wallet_id = WALLET.id" +
+          "   JOIN USER ON WALLET.user_id = USER.id" +
+          "   JOIN CURRENCY ON TRANSACTION.currency_id = CURRENCY.id" +
+          "   LEFT JOIN COMMISSION ON TRANSACTION.commission_id = COMMISSION.id" +
+          "   LEFT JOIN COMPANY_WALLET ON TRANSACTION.company_wallet_id = COMPANY_WALLET.id" +
+          "   LEFT JOIN WITHDRAW_REQUEST ON (TRANSACTION.source_type='WITHDRAW') AND (WITHDRAW_REQUEST.id=TRANSACTION.source_id) " +
+          "   LEFT JOIN EXORDERS ON (TRANSACTION.source_type='ORDER') AND (TRANSACTION.source_id = EXORDERS.id)" +
+          "   LEFT JOIN MERCHANT ON " +
+          "             (" +
+          "               (TRANSACTION.merchant_id IS NOT NULL AND MERCHANT.id = TRANSACTION.merchant_id) OR " +
+          "               (WITHDRAW_REQUEST.merchant_id IS NOT NULL AND MERCHANT.id = WITHDRAW_REQUEST.merchant_id) " +
+          "             )";
+
+  private String PERMISSION_CLAUSE = " JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
+      "  (WALLET.user_id=:requester_user_id) OR " +
+      "  (IOP.user_id=:requester_user_id) AND " +
+      "  (IOP.currency_id=TRANSACTION.currency_id) AND " +
+      "  ( " +
+      "  (TRANSACTION.operation_type_id=1 AND IOP.operation_direction='REFILL') OR " +
+      "  (TRANSACTION.operation_type_id=2 AND IOP.operation_direction='WITHDRAW') OR " +
+      "  (TRANSACTION.operation_type_id=5 AND IOP.operation_direction='WITHDRAW') " +
+      "  ) ";
 
   private static final Map<String, String> TABLE_TO_DB_COLUMN_MAP = new HashMap<String, String>() {{
 
+    put("orderedDatetime", "TRANSACTION.datetime+TRANSACTION.id");
     put("datetime", "TRANSACTION.datetime");
     put("operationType", "TRANSACTION.operation_type_id");
     put("amount", "TRANSACTION.amount");
@@ -212,12 +269,12 @@ public final class TransactionDaoImpl implements TransactionDao {
         " commission_id, operation_type_id, currency_id, merchant_id, datetime, order_id, confirmation, provided," +
         " active_balance_before, reserved_balance_before, company_balance_before, company_commission_balance_before, " +
         " source_type, " +
-        " source_id)" +
+        " source_id, description)" +
         "   VALUES (:userWallet,:companyWallet,:amount,:commissionAmount,:commission,:operationType, :currency," +
         "   :merchant, :datetime, :order_id, :confirmation, :provided," +
         "   :active_balance_before, :reserved_balance_before, :company_balance_before, :company_commission_balance_before," +
         "   :source_type, " +
-        "   :source_id)";
+        "   :source_id, :description)";
     final KeyHolder keyHolder = new GeneratedKeyHolder();
     final Map<String, Object> params = new HashMap<String, Object>() {
       {
@@ -239,6 +296,7 @@ public final class TransactionDaoImpl implements TransactionDao {
         put("company_commission_balance_before", transaction.getCompanyCommissionBalanceBefore());
         put("source_type", transaction.getSourceType() == null ? null : transaction.getSourceType().toString());
         put("source_id", transaction.getSourceId());
+        put("description", transaction.getDescription());
       }
     };
     if (jdbcTemplate.update(sql, new MapSqlParameterSource(params), keyHolder) > 0) {
@@ -284,30 +342,29 @@ public final class TransactionDaoImpl implements TransactionDao {
   }
 
   @Override
-  public List<Transaction> findAllByUserWallets(List<Integer> walletIds) {
-    return findAllByUserWallets(walletIds, -1, -1).getData();
+  public PagingData<List<Transaction>> findAllByUserWallets(Integer requesterUserId, final List<Integer> walletIds, final int offset, final int limit) {
+    return findAllByUserWallets(requesterUserId, walletIds, offset, limit, "", "ASC", null);
   }
 
   @Override
-  public PagingData<List<Transaction>> findAllByUserWallets(final List<Integer> walletIds, final int offset, final int limit) {
-    return findAllByUserWallets(walletIds, offset, limit, "", "ASC", null);
+  public PagingData<List<Transaction>> findAllByUserWallets(
+      Integer requesterUserId,
+      final List<Integer> walletIds, final int offset,
+      final int limit, String sortColumn, String sortDirection, Locale locale) {
+
+    return findAllByUserWallets(requesterUserId, walletIds, null, null, null, null, null, null, null, null, null, offset, limit, sortColumn, sortDirection, locale);
   }
 
   @Override
-  public PagingData<List<Transaction>> findAllByUserWallets(final List<Integer> walletIds, final int offset,
-                                                            final int limit, String sortColumn, String sortDirection, Locale locale) {
-
-    return findAllByUserWallets(walletIds, null, null, null, null, null, null, null, null, null, offset, limit, sortColumn, sortDirection, locale);
-  }
-
-  @Override
-  public PagingData<List<Transaction>> findAllByUserWallets(final List<Integer> walletIds, final Integer status,
-                                                            final List<TransactionType> types, final List<Integer> merchantIds,
-                                                            final String dateFrom, final String dateTo,
-                                                            final BigDecimal fromAmount, final BigDecimal toAmount,
-                                                            final BigDecimal fromCommissionAmount, final BigDecimal toCommissionAmount,
-                                                            final int offset, final int limit,
-                                                            String sortColumn, String sortDirection, Locale locale) {
+  public PagingData<List<Transaction>> findAllByUserWallets(
+      Integer requesterUserId,
+      final List<Integer> walletIds, final Integer status,
+      final List<TransactionType> types, final List<Integer> merchantIds,
+      final String dateFrom, final String dateTo,
+      final BigDecimal fromAmount, final BigDecimal toAmount,
+      final BigDecimal fromCommissionAmount, final BigDecimal toCommissionAmount,
+      final int offset, final int limit,
+      String sortColumn, String sortDirection, Locale locale) {
     String sortDBColumn = TABLE_TO_DB_COLUMN_MAP.getOrDefault(sortColumn, "TRANSACTION.datetime");
     final String whereClauseBasic = "WHERE TRANSACTION.user_wallet_id in (:ids)";
     Map<String, Object> params = new HashMap<>();
@@ -320,12 +377,16 @@ public final class TransactionDaoImpl implements TransactionDao {
     params.put("toAmount", toAmount);
     params.put("fromCommissionAmount", fromCommissionAmount);
     params.put("toCommissionAmount", toCommissionAmount);
+    params.put("requester_user_id", requesterUserId);
     String criteria = defineFilterClause(params);
     String filterClause = criteria.isEmpty() ? "" : "AND " + criteria;
     params.put("ids", walletIds);
 
+    String permissionClause = requesterUserId == null ? "" : PERMISSION_CLAUSE;
+
     StringJoiner sqlJoiner = new StringJoiner(" ")
         .add(SELECT_ALL)
+        .add(permissionClause)
         .add(whereClauseBasic)
         .add(filterClause)
         .add("ORDER BY").add(sortDBColumn).add(sortDirection);
@@ -340,6 +401,7 @@ public final class TransactionDaoImpl implements TransactionDao {
     final String selectLimitedAllSql = sqlJoiner.toString();
     final String selectAllCountSql = new StringJoiner(" ")
         .add(SELECT_COUNT)
+        .add(permissionClause)
         .add(whereClauseBasic)
         .add(filterClause)
         .toString();
@@ -552,16 +614,6 @@ public final class TransactionDaoImpl implements TransactionDao {
     return jdbcTemplate.queryForObject(sql, params, Integer.class);
   }
 
-  @Override
-  public List<Transaction> getOpenTransactionsByMerchant(Merchant merchant) {
-    String sql = SELECT_ALL + " where TRANSACTION.merchant_id = (select MERCHANT.id " +
-        "from MERCHANT where MERCHANT.name = :merchant) AND TRANSACTION.operation_type_id = 1";
-    Map<String, String> namedParameters = new HashMap<String, String>();
-    namedParameters.put("merchant", merchant.getName());
-    ArrayList<Transaction> result = (ArrayList<Transaction>) jdbcTemplate.query(sql, namedParameters,
-        transactionRowMapper);
-    return result;
-  }
 
   @Override
   public BigDecimal maxAmount() {
@@ -643,6 +695,18 @@ public final class TransactionDaoImpl implements TransactionDao {
         return transactionFlatForReportDto;
       }
     });
+  }
+
+  @Override
+  public boolean setStatusById(Integer trasactionId, Integer statusId) {
+    String sql = "UPDATE TRANSACTION " +
+        " SET status_id = :status_id" +
+        " WHERE id = :transaction_id ";
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("transaction_id", trasactionId);
+      put("status_id", statusId);
+    }};
+    return jdbcTemplate.update(sql, params) > 0;
   }
 
   @Override

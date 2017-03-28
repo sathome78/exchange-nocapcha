@@ -6,6 +6,7 @@ import com.squareup.okhttp.Request;
 import me.exrates.dao.PendingPaymentDao;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Transaction;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.OkPayService;
 import me.exrates.service.TransactionService;
@@ -135,5 +136,10 @@ public class OkPayServiceImpl implements OkPayService {
         }
 
         return returnResponse.equals("VERIFIED");
+    }
+
+    @Override
+    public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+        logger.debug("\n======> request for withdraw sent "+ withdrawMerchantOperationDto);
     }
 }

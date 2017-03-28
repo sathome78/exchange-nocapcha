@@ -24,6 +24,7 @@ public class WalletOperationData {
     private TransactionSourceType sourceType;
     private Integer sourceId;
     private Transaction transaction;
+    private String description;
 
     /**/
     public enum BalanceType {

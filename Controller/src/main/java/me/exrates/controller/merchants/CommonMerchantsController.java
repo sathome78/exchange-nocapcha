@@ -12,7 +12,6 @@ import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.*;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -133,45 +132,6 @@ public class CommonMerchantsController {
         return merchantService.computeCommissionAndMapAllToString(amount, type, currency, merchant);
     }
 
-    @FinPassCheck
-    @RequestMapping(value="/payment/withdraw", method = POST)
-    public ResponseEntity<Map<String,String>> withdraw(@RequestBody final Payment payment,
-                                                       final Principal principal, final Locale locale) {
-        final ResponseEntity<Map<String, String>> error = new ResponseEntity<>(
-                singletonMap("failure",
-                        source.getMessage("merchants.withdrawRequestError", null, locale)),
-                BAD_REQUEST);
-        try {
-            return merchantService.prepareCreditsOperation(payment, principal.getName())
-                    .map(creditsOperation -> withdrawService.withdrawRequest(creditsOperation, new WithdrawData(), principal.getName(), locale))
-                    .map(response -> new ResponseEntity<>(response, OK))
-                    .orElseGet(() -> error);
-        } catch (final NotEnoughUserWalletMoneyException e) {
-            return error;
-        }
-    }
-
-    @RequestMapping(value = "/withdrawal/request/accept",method = POST)
-    @ResponseBody
-    public ResponseEntity<Map<String,String>> acceptWithdrawRequest(final @RequestParam("requestId") int request,
-                                                                    final Locale locale, final Principal principal) {
-        final Map<String, String> result = withdrawService.acceptWithdrawalRequest(request, locale, principal);
-        if (result.containsKey("error")) {
-            return new ResponseEntity<>(result, BAD_REQUEST);
-        }
-        return new ResponseEntity<>(result, OK);
-    }
-
-    @RequestMapping(value = "/withdrawal/request/decline")
-    @ResponseBody
-    public ResponseEntity<Map<String,Object>> declineWithdrawRequest(final @RequestParam("requestId") int request,
-                                                                    final Locale locale, Principal principal) {
-        final Map<String, Object> result = withdrawService.declineWithdrawalRequest(request, locale, principal.getName());
-        if (result.containsKey("error")) {
-            return new ResponseEntity<>(result, BAD_REQUEST);
-        }
-        return new ResponseEntity<>(result, OK);
-    }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(RuntimeException.class)

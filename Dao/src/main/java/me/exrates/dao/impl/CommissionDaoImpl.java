@@ -46,6 +46,18 @@ public class CommissionDaoImpl implements CommissionDao {
 	}
 
 	@Override
+	public Commission getCommission(OperationType operationType, Integer userId) {
+		final String sql = "SELECT COMMISSION.id, COMMISSION.operation_type, COMMISSION.date, COMMISSION.value " +
+				"FROM COMMISSION " +
+				"JOIN USER ON USER.id = :user_id " +
+				"WHERE operation_type = :operation_type AND user_role = USER.roleid";
+		final HashMap<String,Integer> params = new HashMap<>();
+		params.put("operation_type",operationType.type);
+		params.put("user_id", userId);
+		return jdbcTemplate.queryForObject(sql,params, commissionRowMapper);
+	}
+
+	@Override
 	public Commission getDefaultCommission(OperationType operationType) {
 		final String sql = "SELECT id, operation_type, date, value " +
 				"FROM COMMISSION " +

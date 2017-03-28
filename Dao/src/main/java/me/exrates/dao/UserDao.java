@@ -5,6 +5,8 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.invoice.InvoiceOperationDirection;
+import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 
 import java.nio.file.Path;
 import java.util.Collection;
@@ -147,4 +149,8 @@ public interface UserDao {
     List<String> findNicknamesByPart(String part, Integer limit);
 
     void setCurrencyPermissionsByUserId(Integer userId, List<UserCurrencyOperationPermissionDto> userCurrencyOperationPermissionDtoList);
+
+  InvoiceOperationPermission getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection(Integer userId, Integer currencyId, InvoiceOperationDirection invoiceOperationDirection);
+
+    String getEmailById(Integer id);
 }

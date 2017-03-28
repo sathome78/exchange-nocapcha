@@ -245,15 +245,13 @@ $(function(){
         $('.response_money_operation_btn').hide();
     }
 
-
-
     function resetPaymentFormData(targetMerchant,form,callback) {
         if (operationType.val() === 'OUTPUT') {
             if (targetMerchant === INVOICE) {
                 callback();
             } else {
                 var finpass = $('#finpassword').val();
-                $.ajax('/merchants/payment/withdraw?finpassword=' + finpass, {
+                $.ajax('/withdraw/request/merchant/create?finpassword=' + finpass, {
                     headers: {
                         'X-CSRF-Token': $("input[name='_csrf']").val()
                     },
@@ -632,7 +630,6 @@ $(function(){
         submitProcess();
     });
 
-
     $("#outputPaymentProcess").on('click', function () {
         if (merchantName === INVOICE) {
             submitProcess();
@@ -810,4 +807,3 @@ function parseNumber(numberStr) {
     numberStr = numberStr.replace(/\s/g, '').replace(/\,/g, '.');
     return parseFloat(numberStr);
 }
-

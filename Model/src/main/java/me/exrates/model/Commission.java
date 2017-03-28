@@ -1,67 +1,26 @@
 package me.exrates.model;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 
 import java.math.BigDecimal;
 import java.util.Date;
 
+@Getter @Setter
+@ToString
+@NoArgsConstructor
 public class Commission {
-
     private int id;
     private OperationType operationType;
     private BigDecimal value;
     private Date dateOfChange;
     private UserRole userRole;
 
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
+    public Commission(int id) {
         this.id = id;
-    }
-
-    public OperationType getOperationType() {
-        return operationType;
-    }
-
-    public void setOperationType(OperationType operationType) {
-        this.operationType = operationType;
-    }
-
-    public BigDecimal getValue() {
-        return value;
-    }
-
-    public void setValue(BigDecimal value) {
-        this.value = value;
-    }
-
-    public Date getDateOfChange() {
-        return dateOfChange;
-    }
-
-    public void setDateOfChange(Date dateOfChange) {
-        this.dateOfChange = dateOfChange;
-    }
-
-    public UserRole getUserRole() {
-        return userRole;
-    }
-
-    public void setUserRole(UserRole userRole) {
-        this.userRole = userRole;
-    }
-
-    @Override
-    public String toString() {
-        return "Commission{" +
-                "id=" + id +
-                ", operationType=" + operationType +
-                ", value=" + value +
-                ", dateOfChange=" + dateOfChange +
-                ", userRole=" + userRole +
-                '}';
     }
 }

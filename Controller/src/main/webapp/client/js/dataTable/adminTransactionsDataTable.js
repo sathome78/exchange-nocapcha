@@ -18,7 +18,7 @@ $(function () {
         format: 'YYYY-MM-DD HH:mm',
         formatDate: 'YYYY-MM-DD',
         formatTime: 'HH:mm',
-        lang:'ru',
+        lang: 'ru',
         defaultDate: new Date(),
         defaultTime: '00:00'
     });
@@ -26,13 +26,10 @@ $(function () {
         format: 'YYYY-MM-DD HH:mm',
         formatDate: 'YYYY-MM-DD',
         formatTime: 'HH:mm',
-        lang:'ru',
+        lang: 'ru',
         defaultDate: new Date(),
         defaultTime: '00:00'
     });
-
-
-
 
 
     if ($.fn.dataTable.isDataTable('#transactionsTable')) {
@@ -48,12 +45,13 @@ $(function () {
             "paging": true,
             "info": true,
             "bFilter": false,
+            "order": [[0, "desc"]],
             "columns": [
                 {
-                    "data": "datetime",
+                    "data": "orderedDatetime",
                     "render": function (data, type, row) {
                         if (type == 'display') {
-                            return data.split(' ')[0];
+                            return row.datetime.split(' ')[0];
                         }
                         return data;
                     }
@@ -86,32 +84,76 @@ $(function () {
                     "data": "merchant.description"
                 },
                 {
-                    "data": "order",
+                    "data": "sourceId",
                     "render": function (data, type, row) {
-                        if (data && data.id > 0) {
-                            return '<button class="transactionlist-order-detail-button">' + data.id + '</button>';
+                        if (data) {
+                            return '<button class="transactionlist-order-detail-button"' +
+                                ' data-sourceType=' + row.sourceType +
+                                ' data-sourceId=' + data + '>' +
+                                data +
+                                '</button>';
                         } else {
                             return '';
                         }
                     }
                 }
             ],
-            "order": [
-                [
-                    0,
-                    "asc"
-                ]
-            ],
             "searchDelay": 1000
         });
         $('#transactionsTable tbody').on('click', '.transactionlist-order-detail-button', function () {
-            var currentRow = transactionsDataTable.row($(this).parents('tr'));
-            if (currentRow.data().merchant.description == 'USER_TRANSFER') {
-                getTransferDetailedInfo(currentRow.data().order.id);
-            } else {
-                getOrderDetailedInfo(currentRow, currentRow.data().order.id, false);
-            }
+            var row = transactionsDataTable.row($(this).parents('tr'));
+            getSourceTypeDetailedInfo($(this).data("sourcetype"), $(this).data("sourceid"));
         });
+
+        function getSourceTypeDetailedInfo(sourceType, sourceId) {
+            if (sourceType === "USER_TRANSFER") {
+                getTransferDetailedInfo(sourceId);
+            } else if (sourceType === "ORDER") {
+                getOrderDetailedInfo(null, sourceId, false);
+            } else if (sourceType === "WITHDRAW") {
+                getWithdrawDetailedInfo(sourceId);
+            }
+        }
+
+        function getTransferDetailedInfo(orderId) {
+            $.ajax({
+                url: '/2a8fy7b07dxe44/transferInfo?id=' + orderId,
+                type: 'GET',
+                success: function (data) {
+                    $("#info-date").html(data.creationDate);
+                    $("#info-currency").html(data.currencyName);
+                    $("#info-amount").html(data.amount);
+                    $("#info-userFrom").html("<a href='mailto:" +  data.userFromEmail + "'>" + data.userFromEmail + "</a>");
+                    $("#info-userTo").html("<a href='mailto:" + data.userToEmail + "'>" + data.userToEmail + "</a>");
+                    $("#info-commissionAmount").html(data.comission);
+                    $('#user_transfer_info_modal').modal();
+                }
+            });
+        }
+
+        function getWithdrawDetailedInfo(id) {
+            $.ajax({
+                url: '/2a8fy7b07dxe44/withdraw/info?id=' + id,
+                type: 'GET',
+                success: function (data) {
+                    var $modal = $('#withdraw-info-modal');
+                    $modal.find('#info-currency').text(data.currencyName);
+                    $modal.find('#info-amount').text(data.amount);
+                    $modal.find('#info-commissionAmount').text(data.commissionAmount);
+                    var recipientBank = data.recipientBankName ? data.recipientBankName : '';
+                    var recipientBankCode = data.recipientBankCode ? data.recipientBankCode : '';
+                    var userFullName = data.userFullName ? data.userFullName : '';
+                    $modal.find('#info-bankRecipient').text(recipientBank + ' ' + recipientBankCode);
+                    $modal.find('#info-status').text(data.status);
+                    $modal.find('#info-status-date').text(data.statusModificationDate);
+                    $modal.find('#info-wallet').text(data.wallet);
+                    $modal.find('#info-userFullName').text(data.userFullName);
+                    $modal.find('#info-remark').find('textarea').html(data.remark);
+                    $modal.modal();
+                }
+            });
+        }
+
     }
 
     $('#filter-apply').on('click', function (e) {
@@ -128,11 +170,9 @@ $(function () {
 
     function reloadTable() {
         var formParams = $('#transaction-search-form').serialize();
-        var url = '/2a8fy7b07dxe44/transactions?id=' + $("#user-id").val() +'&' + formParams;
+        var url = '/2a8fy7b07dxe44/transactions?id=' + $("#user-id").val() + '&' + formParams;
         transactionsDataTable.ajax.url(url).load();
     }
-
-
 
 
 });

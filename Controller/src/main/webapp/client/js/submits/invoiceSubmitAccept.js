@@ -32,7 +32,7 @@ function declineInvoice(e, id, email, callback) {
             data["list"].forEach(function (e) {
                 $list.append($("<option></option>").append(e));
             });
-            $modal.find("#createCommentConfirm").one("click", function () {
+            $modal.find("#createCommentConfirm").off("click").one("click", function () {
                 var comment = $('#commentText').val().trim();
                 if (!comment) {
                     return;
@@ -49,7 +49,7 @@ function declineInvoice(e, id, email, callback) {
                     }
                 });
             });
-            $modal.find("#createCommentCancel").one("click", function () {
+            $modal.find("#createCommentCancel").off("click").one("click", function () {
                 $modal.modal('hide');
             });
             $modal.modal();

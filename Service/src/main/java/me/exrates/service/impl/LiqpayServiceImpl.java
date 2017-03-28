@@ -7,6 +7,7 @@ import me.exrates.dao.PendingPaymentDao;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.PendingPayment;
 import me.exrates.model.Transaction;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.LiqpayService;
@@ -142,6 +143,11 @@ public class LiqpayServiceImpl implements LiqpayService {
         }else {
             return false;
         }
+    }
+
+    @Override
+    public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+        logger.debug("\n======> request for withdraw sent "+ withdrawMerchantOperationDto);
     }
 
 }

@@ -8,6 +8,7 @@ import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderCreateSummaryDto;
 import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderActionEnum;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -29,11 +30,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static me.exrates.model.enums.OrderActionEnum.CREATE;
+
 @RestController
 public class OrderControllerRest {
     private static final Logger LOGGER = LogManager.getLogger(OrderControllerRest.class);
-    private static final Logger profileLog = LogManager.getLogger("profile");
-
 
     @Autowired
     OrderService orderService;
@@ -117,7 +118,7 @@ public class OrderControllerRest {
                     LOGGER.debug(autoAcceptResult.get());
                     return autoAcceptResult.get();
                 }
-                Integer orderId = orderService.createOrder(orderCreateDto);
+                Integer orderId = orderService.createOrder(orderCreateDto, CREATE);
                 profileData.setTime2();
                 if (orderId <= 0) {
                     throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, localeResolver.resolveLocale(request)));
@@ -135,9 +136,7 @@ public class OrderControllerRest {
             LOGGER.error("error... ms: " + (after - before) + " :\n\t " + ExceptionUtils.getStackTrace(e));
             throw e;
         } finally {
-            if (profileData.isExceeded()) {
-                profileLog.warn("slow creation order: " + orderCreateDto + " profile: " + profileData);
-            }
+            profileData.checkAndLog("slow creation order: " + orderCreateDto + " profile: " + profileData);
             long after = System.currentTimeMillis();
             /*clear orderCreateDto: it's necessary to prevent re-creating order from the current submit form */
             request.getSession().removeAttribute("/order/submitnew/orderCreateDto");

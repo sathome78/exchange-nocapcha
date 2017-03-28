@@ -1,6 +1,5 @@
 package me.exrates.dao;
 
-import me.exrates.model.Merchant;
 import me.exrates.model.PagingData;
 import me.exrates.model.Transaction;
 import me.exrates.model.dto.OperationViewDto;
@@ -23,13 +22,15 @@ public interface TransactionDao {
 
   Transaction findById(int id);
 
-  PagingData<List<Transaction>> findAllByUserWallets(List<Integer> walletIds, Integer status,
-                                                     List<TransactionType> types, List<Integer> merchantIds,
-                                                     String dateFrom, String dateTo,
-                                                     BigDecimal fromAmount, BigDecimal toAmount,
-                                                     BigDecimal fromCommissionAmount, BigDecimal toCommissionAmount,
-                                                     int offset, int limit,
-                                                     String sortColumn, String sortDirection, Locale locale);
+  PagingData<List<Transaction>> findAllByUserWallets(
+      Integer requesterUserId,
+      List<Integer> walletIds, Integer status,
+      List<TransactionType> types, List<Integer> merchantIds,
+      String dateFrom, String dateTo,
+      BigDecimal fromAmount, BigDecimal toAmount,
+      BigDecimal fromCommissionAmount, BigDecimal toCommissionAmount,
+      int offset, int limit,
+      String sortColumn, String sortDirection, Locale locale);
 
   boolean provide(int id);
 
@@ -39,19 +40,17 @@ public interface TransactionDao {
 
   void updateTransactionConfirmations(int transactionId, int confirmations);
 
-  List<Transaction> findAllByUserWallets(List<Integer> walletIds);
+  PagingData<List<Transaction>> findAllByUserWallets(Integer requesterUserId, List<Integer> walletIds, int offset, int limit);
 
-  PagingData<List<Transaction>> findAllByUserWallets(List<Integer> walletIds, int offset, int limit);
-
-  PagingData<List<Transaction>> findAllByUserWallets(final List<Integer> walletIds, final int offset,
-                                                     final int limit, final String sortColumn,
-                                                     String sortDirection, Locale locale);
+  PagingData<List<Transaction>> findAllByUserWallets(
+      Integer requesterUserId,
+      final List<Integer> walletIds, final int offset,
+      final int limit, final String sortColumn,
+      String sortDirection, Locale locale);
 
   List<AccountStatementDto> getAccountStatement(Integer walletId, Integer offset, Integer limit, Locale locale);
 
   Integer getStatementSize(Integer walletId);
-
-  List<Transaction> getOpenTransactionsByMerchant(Merchant merchant);
 
   BigDecimal maxAmount();
 
@@ -61,5 +60,6 @@ public interface TransactionDao {
 
   List<TransactionFlatForReportDto> findAllByDateIntervalAndRoleAndOperationTypeAndCurrencyAndSourceType(String startDate, String endDate, Integer operationType, List<Integer> roleIdList, List<Integer> currencyList, List<String> sourceTypeList);
 
+  boolean setStatusById(Integer trasactionId, Integer statusId);
   List<Transaction> getAllOperationsByUserForPeriod(List<Integer> walletIds, String startDate, String endDate, String sortColumn, String sortDirection);
 }

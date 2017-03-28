@@ -26,7 +26,6 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
   WAITING_MANUAL_POSTING(2) {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
-      schemaMap.put(InvoiceActionTypeEnum.DECLINE, DECLINED_ADMIN);
       schemaMap.put(InvoiceActionTypeEnum.TAKE_TO_WORK, IN_WORK_OF_ADMIN);
       schemaMap.put(InvoiceActionTypeEnum.REVOKE, REVOKED_USER);
     }
@@ -35,7 +34,7 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
       schemaMap.put(InvoiceActionTypeEnum.DECLINE, DECLINED_ADMIN);
-      schemaMap.put(InvoiceActionTypeEnum.POST, POSTED_AUTO);
+      schemaMap.put(InvoiceActionTypeEnum.HOLD_TO_POST, IN_POSTING);
       schemaMap.put(InvoiceActionTypeEnum.REVOKE, REVOKED_USER);
     }
   },
@@ -43,21 +42,23 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
       schemaMap.put(InvoiceActionTypeEnum.DECLINE, DECLINED_ADMIN);
-      schemaMap.put(InvoiceActionTypeEnum.CONFIRM, WAITING_CONFIRMED_POSTING);
+      schemaMap.put(InvoiceActionTypeEnum.CONFIRM_ADMIN, WAITING_CONFIRMED_POSTING);
       schemaMap.put(InvoiceActionTypeEnum.REVOKE, REVOKED_USER);
     }
   },
   IN_WORK_OF_ADMIN(5) {
+    @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
-      schemaMap.put(InvoiceActionTypeEnum.DECLINE, DECLINED_ADMIN);
-      schemaMap.put(InvoiceActionTypeEnum.POST, POSTED_MANUAL);
+      schemaMap.put(InvoiceActionTypeEnum.DECLINE_HOLDED, DECLINED_ADMIN);
+      schemaMap.put(InvoiceActionTypeEnum.POST_HOLDED, POSTED_MANUAL);
       schemaMap.put(InvoiceActionTypeEnum.RETURN_FROM_WORK, WAITING_MANUAL_POSTING);
     }
   },
   WAITING_CONFIRMED_POSTING(6) {
+    @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
       schemaMap.put(InvoiceActionTypeEnum.DECLINE, DECLINED_ADMIN);
-      schemaMap.put(InvoiceActionTypeEnum.POST, POSTED_AUTO);
+      schemaMap.put(InvoiceActionTypeEnum.HOLD_TO_POST, IN_POSTING);
       schemaMap.put(InvoiceActionTypeEnum.REVOKE, REVOKED_USER);
     }
   },
@@ -80,12 +81,36 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
     }
+  },
+  IN_POSTING(11) {
+    @Override
+    public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
+      schemaMap.put(InvoiceActionTypeEnum.POST_AUTO, POSTED_AUTO);
+    }
   };
 
   final private Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap = new HashMap<>();
 
   @Override
   public InvoiceStatus nextState(InvoiceActionTypeEnum action) {
+    if (action.isAvailableForHolderOnly()) {
+      throw new AuthorisedUserIsHolderParamNeededForThisStatusException(action.name());
+    }
+    if (action.getOperationPermissionOnlyList() != null) {
+      throw new PermittedOperationParamNeededForThisStatusException(action.name());
+    }
+    return nextState(schemaMap, action)
+        .orElseThrow(() -> new UnsupportedInvoiceStatusForActionException(String.format("current state: %s action: %s", this.name(), action.name())));
+  }
+
+  @Override
+  public InvoiceStatus nextState(InvoiceActionTypeEnum action, Boolean authorisedUserIsHolder, InvoiceOperationPermission permittedOperation) {
+    if (action.isAvailableForHolderOnly() && !authorisedUserIsHolder) {
+      throw new InvoiceActionIsProhibitedForNotHolderException(String.format("current status: %s action: %s", this.name(), action.name()));
+    }
+    if (action.getOperationPermissionOnlyList() != null && !action.getOperationPermissionOnlyList().contains(permittedOperation)) {
+      throw new InvoiceActionIsProhibitedForCurrencyPermissionOperationException(String.format("current status: %s action: %s permittedOperation: %s", this.name(), action.name(), permittedOperation.name()));
+    }
     return nextState(schemaMap, action)
         .orElseThrow(() -> new UnsupportedInvoiceStatusForActionException(String.format("current state: %s action: %s", this.name(), action.name())));
   }
@@ -115,6 +140,29 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
         .collect(Collectors.toList());
   }
 
+  public Set<InvoiceActionTypeEnum> getAvailableActionList() {
+    schemaMap.keySet().stream()
+        .filter(InvoiceActionTypeEnum::isAvailableForHolderOnly)
+        .findAny()
+        .ifPresent(action -> {
+          throw new AuthorisedUserIsHolderParamNeededForThisStatusException(action.name());
+        });
+    schemaMap.keySet().stream()
+        .filter(e -> e.getOperationPermissionOnlyList() != null)
+        .findAny()
+        .ifPresent(action -> {
+          throw new PermittedOperationParamNeededForThisStatusException(action.name());
+        });
+    return schemaMap.keySet();
+  }
+
+  public Set<InvoiceActionTypeEnum> getAvailableActionList(Boolean authorisedUserIsHolder, InvoiceOperationPermission permittedOperation) {
+    return schemaMap.keySet().stream()
+        .filter(e -> (!e.isAvailableForHolderOnly() || authorisedUserIsHolder) &&
+            (e.getOperationPermissionOnlyList() == null || e.getOperationPermissionOnlyList().contains(permittedOperation)))
+        .collect(Collectors.toSet());
+  }
+
   /**/
 
   public static WithdrawStatusEnum convert(int id) {
@@ -137,11 +185,11 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
         .filter(e -> !allNodesSet.contains(e))
         .collect(Collectors.toList());
     if (candidateList.size() == 0) {
-      System.out.println("begin state not found");
+      log.fatal("begin state not found");
       throw new AssertionError();
     }
     if (candidateList.size() > 1) {
-      System.out.println("more than single begin state found: " + candidateList);
+      log.fatal("more than single begin state found: " + candidateList);
       throw new AssertionError();
     }
     return candidateList.get(0);
@@ -157,6 +205,28 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
     return Arrays.stream(WithdrawStatusEnum.class.getEnumConstants())
         .filter(e -> e.schemaMap.isEmpty())
         .collect(Collectors.toSet());
+  }
+
+  public static InvoiceStatus getInvoiceStatusAfterAction(InvoiceActionTypeEnum action) {
+    TreeSet<InvoiceStatus> statusSet = new TreeSet(
+        Arrays.stream(WithdrawStatusEnum.class.getEnumConstants())
+        .filter(e -> e.availableForAction(action))
+        .map(e -> e.nextState(action))
+        .collect(Collectors.toList()));
+    if (statusSet.size()==0) {
+      log.fatal("no state found !");
+      throw new AssertionError();
+    }
+    if (statusSet.size()>1) {
+      log.fatal("more then one state found !");
+      throw new AssertionError();
+    }
+    return statusSet.first();
+  }
+
+  @Override
+  public Boolean isEndStatus() {
+    return schemaMap.isEmpty();
   }
 
   private static Set<InvoiceStatus> collectAllSchemaMapNodesSet() {
@@ -177,15 +247,15 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
     return code;
   }
 
-  public WithdrawStatusEnum getStartState(Boolean autoEnabled, BigDecimal withdrawAutoEnabled, BigDecimal withdrawAutoThresholdAmount) {
+  public InvoiceActionTypeEnum getStartAction(Boolean autoEnabled, BigDecimal withdrawAutoEnabled, BigDecimal withdrawAutoThresholdAmount) {
     if (autoEnabled) {
       if (withdrawAutoEnabled.compareTo(withdrawAutoThresholdAmount) <= 0) {
-        return (WithdrawStatusEnum) nextState(schemaMap, PUT_FOR_AUTO).get();
+        return PUT_FOR_AUTO;
       } else {
-        return (WithdrawStatusEnum) nextState(schemaMap, PUT_FOR_CONFIRM).get();
+        return PUT_FOR_CONFIRM;
       }
     } else {
-      return (WithdrawStatusEnum) nextState(schemaMap, PUT_FOR_MANUAL).get();
+      return PUT_FOR_MANUAL;
     }
   }
 

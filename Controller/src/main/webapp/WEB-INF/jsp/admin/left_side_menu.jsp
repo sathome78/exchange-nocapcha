@@ -74,7 +74,7 @@
 
         <li>
             <%--withdraw--%>
-            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}', '${admin_finOperatorEnum}')">
+            <sec:authorize access="hasAnyAuthority('${admin_processWithdraw}')">
                 <a href="<c:url value='/2a8fy7b07dxe44/withdrawal'/>"><loc:message code="admin.withdrawRequests"/></a>
             </sec:authorize>
         </li>

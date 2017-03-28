@@ -63,7 +63,7 @@ public interface WalletDao {
 
     List<UserWalletSummaryDto> getUsersWalletsSummary(List<Integer> roles);
 
-    WalletTransferStatus walletInnerTransfer(int walletId, BigDecimal amount, TransactionSourceType sourceType, int sourceId);
+    WalletTransferStatus walletInnerTransfer(int walletId, BigDecimal amount, TransactionSourceType sourceType, int sourceId, String description);
 
     WalletTransferStatus walletBalanceChange(WalletOperationData walletOperationData);
 

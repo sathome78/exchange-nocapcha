@@ -6,6 +6,7 @@ import me.exrates.model.*;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.*;
+import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.service.NotificationService;
 import me.exrates.service.ReferralService;
@@ -35,8 +36,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.apache.axis.i18n.MessagesConstants.locale;
-
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -57,7 +56,7 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private TokenScheduler tokenScheduler;
-    
+
     @Autowired
     private ReferralService referralService;
 
@@ -172,7 +171,7 @@ public class UserServiceImpl implements UserService {
         }
         return result;
     }
-        
+
     public int getIdByEmail(String email) {
         return userDao.getIdByEmail(email) ;
     }
@@ -620,5 +619,19 @@ public class UserServiceImpl implements UserService {
             .collect(Collectors.toList()));
   }
 
+  @Override
+  @Transactional(readOnly = true)
+  public InvoiceOperationPermission getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection(
+      Integer userId,
+      Integer currencyId,
+      InvoiceOperationDirection invoiceOperationDirection) {
+    return userDao.getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection(userId, currencyId, invoiceOperationDirection);
+  }
+
+    @Override
+    @Transactional(readOnly = true)
+    public String getEmailById(Integer id) {
+        return userDao.getEmailById(id);
+    }
 
 }

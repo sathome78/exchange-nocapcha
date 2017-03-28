@@ -47,7 +47,7 @@
                 </div>
 
 
-                <form id="confirmationForm" action="<c:url value="/merchants/invoice/withdraw/submit"/>" method="post">
+                <form id="confirmationForm" action="<c:url value="/withdraw/request/invoice/create"/>" method="post">
                     <input type="hidden" name="recipientBankName" id="payerBankName">
                     <div class="input-block-wrapper clearfix">
                         <div class="col-md-3 input-block-wrapper__label-wrapper" >

@@ -109,7 +109,7 @@ function showAutoWithdrawParamsDialog(rowData) {
     $form.find('input[name="currencyId"]').val(rowData.currencyId);
     $form.find('input[name="withdrawAutoEnabled"]').prop("checked", rowData.withdrawAutoEnabled);
     $form.find('input[name="withdrawAutoThresholdAmount"]').val(rowData.withdrawAutoThresholdAmount);
-    $form.find("#submitAutoWithdrawParams").one("click", submitAutoWithdrawParams);
+    $form.find("#submitAutoWithdrawParams").off("click").one("click", submitAutoWithdrawParams);
     var $timeUnitSelect = $form.find("#timeUnit");
     $timeUnitSelect.find("option").remove();
     $timeUnitSelect.append("<option value=" + TIME_UNIT_SECS + ">" + TIME_UNIT_SECS + "</option>");

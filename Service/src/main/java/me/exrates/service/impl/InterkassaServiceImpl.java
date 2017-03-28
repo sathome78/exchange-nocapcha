@@ -2,6 +2,7 @@ package me.exrates.service.impl;
 
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Transaction;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.InterkassaService;
 import me.exrates.service.TransactionService;
@@ -108,4 +109,8 @@ public class InterkassaServiceImpl implements InterkassaService {
         return Base64.getEncoder().encodeToString(signMD5);
     }
 
+    @Override
+    public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+        LOG.debug("\n======> request for withdraw sent "+ withdrawMerchantOperationDto);
+    }
 }

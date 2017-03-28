@@ -276,7 +276,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     invoiceRequest.setInvoiceRequestStatus(newStatus);
     if (userActionOnInvoiceEnum == REVOKE) {
       updateInvoiceRequestStatus(invoiceRequest.getTransaction().getId(), newStatus);
-    } else if (userActionOnInvoiceEnum == CONFIRM) {
+    } else if (userActionOnInvoiceEnum == CONFIRM_USER) {
       invoiceRequest.setPayerBankName(invoiceConfirmData.getPayerBankName());
       invoiceRequest.setPayerAccount(invoiceConfirmData.getUserAccount());
       invoiceRequest.setUserFullName(invoiceConfirmData.getUserFullName());
