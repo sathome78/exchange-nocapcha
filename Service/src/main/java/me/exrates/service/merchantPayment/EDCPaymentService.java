@@ -4,6 +4,7 @@ import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.model.dto.mobileApiDto.MerchantInputResponseDto;
 import me.exrates.model.enums.MerchantApiResponseType;
+import me.exrates.service.EDCMerchantService;
 import me.exrates.service.EDCService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.exception.InvalidAmountException;
@@ -31,6 +32,9 @@ public class EDCPaymentService implements MerchantPaymentService {
 
     @Autowired
     private EDCService edcService;
+    
+    @Autowired
+    private EDCMerchantService edcMerchantService;
 
     @Autowired
     private MerchantService merchantService;
@@ -48,7 +52,8 @@ public class EDCPaymentService implements MerchantPaymentService {
         dto.setType(MerchantApiResponseType.NOTIFY);
         final String account;
         try {
-            account = edcService.createInvoice(creditsOperation);
+  //          account = edcService.createInvoice(creditsOperation);
+            account = edcMerchantService.createAddress(creditsOperation);
             LOGGER.debug(account);
 
             final String notification = merchantService

@@ -449,10 +449,10 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         that.ordersListForAccept.push(data);
         orderAmountSumm += parseNumber(orderAmount);
         /**/
-        $('#amountBuy').val(orderAmountSumm.toFixed(that.ROUND_SCALE));
-        $('#exchangeRateBuy').val(orderExRate);
-        $('#amountSell').val(orderAmountSumm.toFixed(that.ROUND_SCALE));
-        $('#exchangeRateSell').val(orderExRate);
+        $('#amountBuy').val(numeral(orderAmountSumm).format(that.numeralFormat));
+        $('#exchangeRateBuy').val(numeral(orderExRate).format(that.numeralFormat));
+        $('#amountSell').val(numeral(orderAmountSumm).format(that.numeralFormat));
+        $('#exchangeRateSell').val(numeral(orderExRate).format(that.numeralFormat));
         /**/
         calculateFieldsForSell();
         calculateFieldsForBuy();
