@@ -9,6 +9,7 @@ import me.exrates.model.CreditsOperation;
 import me.exrates.model.PendingPayment;
 import me.exrates.model.Transaction;
 import me.exrates.model.dto.PendingPaymentSimpleDto;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.EDRCService;
 import me.exrates.service.TransactionService;
@@ -269,5 +270,10 @@ public class EDRCServiceImpl implements EDRCService {
             .add(key)
             .toString();
         return algorithmService.sha256(target);
+    }
+
+    @Override
+    public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+        LOG.debug("\n======> request for withdraw sent "+ withdrawMerchantOperationDto);
     }
 }

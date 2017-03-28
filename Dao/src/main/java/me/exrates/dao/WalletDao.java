@@ -31,9 +31,9 @@ public interface WalletDao {
 
     MyWalletsStatisticsApiDto getWalletShortStatistics(int walletId);
 
-    List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> currencyIds, Locale locale);
+    List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> currencyIds, List<Integer> withdrawStatusIds, Locale locale);
 
-    List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, Locale locale);
+    List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> withdrawStatusIds, Locale locale);
 
     List<MyWalletConfirmationDetailDto> getWalletConfirmationDetail(Integer walletId, Locale locale);
 

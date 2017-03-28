@@ -8,6 +8,7 @@ import me.exrates.model.BTCTransaction;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.PendingPayment;
 import me.exrates.model.Transaction;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.BlockchainSDKWrapper;
 import me.exrates.service.BlockchainService;
@@ -167,5 +168,10 @@ public class BlockchainServiceImpl implements BlockchainService {
             .add(secret)
             .toString();
         return algorithmService.sha256(target);
+    }
+
+    @Override
+    public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+        LOG.debug("\n======> request for withdraw sent "+ withdrawMerchantOperationDto);
     }
 }

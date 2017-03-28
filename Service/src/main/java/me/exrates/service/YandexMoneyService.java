@@ -3,6 +3,7 @@ package me.exrates.service;
 import com.yandex.money.api.methods.RequestPayment;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
+import me.exrates.service.merchantStrategy.IMerchantService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,7 +13,7 @@ import java.util.Optional;
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 @Service
-public interface YandexMoneyService {
+public interface YandexMoneyService extends IMerchantService {
 
     List<String> getAllTokens();
 

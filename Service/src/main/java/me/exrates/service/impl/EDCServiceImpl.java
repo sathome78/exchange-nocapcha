@@ -16,6 +16,7 @@ import me.exrates.model.EDCAccount;
 import me.exrates.model.PendingPayment;
 import me.exrates.model.Transaction;
 import me.exrates.model.dto.PendingPaymentSimpleDto;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
 import me.exrates.service.EDCService;
 import me.exrates.service.TransactionService;
@@ -382,5 +383,10 @@ public class EDCServiceImpl implements EDCService {
         KEY_TYPE(final String type) {
             this.type = type;
         }
+    }
+
+    @Override
+    public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+        LOG.debug("\n======> request for withdraw sent "+ withdrawMerchantOperationDto);
     }
 }

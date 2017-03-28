@@ -26,6 +26,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
 import static me.exrates.model.enums.AdminAuthority.MANAGE_ACCESS;
+import static me.exrates.model.enums.AdminAuthority.PROCESS_INVOICE;
 import static me.exrates.model.enums.AdminAuthority.PROCESS_WITHDRAW;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
@@ -146,6 +147,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers("/2a8fy7b07dxe44/withdrawal").hasAuthority(PROCESS_WITHDRAW.name())
         .antMatchers(POST, "/2a8fy7b07dxe44/withdraw/**").hasAuthority(PROCESS_WITHDRAW.name())
             /*... admin withdraw action*/
+            /*admin report ... */
+        .antMatchers(POST, "/2a8fy7b07dxe44/report/**").hasAnyAuthority(PROCESS_INVOICE.name(), PROCESS_WITHDRAW.name())
+            /*... admin report */
         .antMatchers(POST, "/2a8fy7b07dxe44/chat/deleteMessage").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name())
         .antMatchers("/2a8fy7b07dxe44/**",
             "/2a8fy7b07dxe44").hasAnyAuthority(UserRole.ADMINISTRATOR.name(), UserRole.ACCOUNTANT.name(), UserRole.ADMIN_USER.name(), UserRole.FIN_OPERATOR.name())

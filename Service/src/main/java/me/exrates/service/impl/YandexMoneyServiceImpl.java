@@ -20,6 +20,7 @@ import me.exrates.dao.YandexMoneyMerchantDao;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.model.Transaction;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.TransactionService;
 import me.exrates.service.UserService;
 import me.exrates.service.YandexMoneyService;
@@ -219,5 +220,10 @@ public class YandexMoneyServiceImpl implements YandexMoneyService {
     @Override
     public void deletePayment(Integer id) {
         yandexMoneyMerchantDao.deletePayment(id);
+    }
+
+    @Override
+    public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+        logger.debug("\n======> request for withdraw sent "+ withdrawMerchantOperationDto);
     }
 }

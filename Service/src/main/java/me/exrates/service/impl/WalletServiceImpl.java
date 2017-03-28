@@ -7,6 +7,8 @@ import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
 import me.exrates.model.enums.*;
+import me.exrates.model.enums.invoice.InvoiceStatus;
+import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WalletOperationData;
@@ -74,7 +76,8 @@ public final class WalletServiceImpl implements WalletService {
   @Override
   public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(CacheData cacheData,
                                                                  String email, Locale locale) {
-    List<MyWalletsDetailedDto> result = walletDao.getAllWalletsForUserDetailed(email, locale);
+    List<Integer> withdrawStatusIdForWhichMoneyIsReserved = WithdrawStatusEnum.getEndStatesSet().stream().map(InvoiceStatus::getCode).collect(Collectors.toList());
+    List<MyWalletsDetailedDto> result = walletDao.getAllWalletsForUserDetailed(email, withdrawStatusIdForWhichMoneyIsReserved, locale);
     if (Cache.checkCache(cacheData, result)) {
       result = new ArrayList<MyWalletsDetailedDto>() {{
         add(new MyWalletsDetailedDto(false));
@@ -223,7 +226,8 @@ public final class WalletServiceImpl implements WalletService {
   @Transactional(readOnly = true)
   @Override
   public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> currencyIds, Locale locale) {
-    return walletDao.getAllWalletsForUserDetailed(email, currencyIds, locale);
+    List<Integer> withdrawStatusIdForWhichMoneyIsReserved = WithdrawStatusEnum.getEndStatesSet().stream().map(InvoiceStatus::getCode).collect(Collectors.toList());
+    return walletDao.getAllWalletsForUserDetailed(email, currencyIds, withdrawStatusIdForWhichMoneyIsReserved, locale);
   }
 
   @Transactional(readOnly = true)

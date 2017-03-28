@@ -162,7 +162,7 @@ function makeReport() {
             "&role="+currentRole;
         if (currentId == 'downloadInputOutputSummaryReport') {
             $.ajax({
-                    url: '/2a8fy7b07dxe44/downloadInputOutputSummaryReport',
+                    url: '/2a8fy7b07dxe44/report/downloadInputOutputSummaryReport',
                     type: 'GET',
                     data: data,
                     success: function (data) {
