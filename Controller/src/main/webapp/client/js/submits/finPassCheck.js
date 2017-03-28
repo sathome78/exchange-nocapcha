@@ -8,9 +8,7 @@ var operationFunc;
 var orderType;
 
 
-
-
-/*function finPassCheck(id, opFunc, oType, event) {
+function finPassCheck(id, opFunc, oType, event) {
     if (id || (id === 0)) {
         //id:
         // - id order to accept
@@ -57,7 +55,7 @@ var orderType;
     if (event) {
         event.preventDefault();
     }
-}*/
+}
 /*
  * ORDERS
  *   |_ entering params for create order form: check params and check for enough money

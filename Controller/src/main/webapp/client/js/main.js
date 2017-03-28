@@ -245,10 +245,7 @@ $(function(){
         $('.response_money_operation_btn').hide();
     }
 
-    function finPassCheck(id, opFunc, oType, event) {
-        submitMerchantsOutput(id)
 
-    }
 
     function resetPaymentFormData(targetMerchant,form,callback) {
         if (operationType.val() === 'OUTPUT') {
@@ -265,6 +262,8 @@ $(function(){
                     dataType: 'json',
                     data: JSON.stringify($(form).serializeObject())
                 }).done(function (response) {
+                    $('#finPassModal .close').click();
+                    $('#myModal').modal();
                     $('#currencyFull').val(response['balance']);
                     responseControls();
                     $('.paymentInfo').html(response['success']);
@@ -275,6 +274,8 @@ $(function(){
                     $('#outputPaymentProcess')
                         .prop('disabled', false);
                 }).fail(function (error, jqXHR, textStatus) {
+                    $('#finPassModal .close').click();
+                    $('#myModal').modal();
                     console.log(textStatus);
                     console.log(jqXHR);
                     responseControls();
@@ -631,6 +632,7 @@ $(function(){
         submitProcess();
     });
 
+
     $("#outputPaymentProcess").on('click', function () {
         if (merchantName === INVOICE) {
             submitProcess();
@@ -638,17 +640,41 @@ $(function(){
                 .prop('disabled', true);
         } else {
             var uid = $("input[name='walletUid']").val();
-            if (uid.length>3){
-                $("#destination").val(uid);
-                submitProcess();
-                $('#outputPaymentProcess')
-                    .prop('disabled', true);
+            if (uid.length>3) {
+                $('#destination').val(uid);
+                $('#myModal .close').click();
+                getFinPassModal();
             }
+        }
+    });
+
+    function performWithdraw() {
+        submitProcess();
+        $('#outputPaymentProcess')
+            .prop('disabled', true);
+    }
+
+
+    function getFinPassModal() {
+        $('#submitTransferModalButton').prop('disabled', false);
+        $('#finPassModal').modal({
+            backdrop: 'static'
+        });
+    }
+
+    $('#submitTransferModalButton').click(function (e) {
+        e.preventDefault();
+        $('#submitTransferModalButton').prop('disabled', true);
+        if (operationType.val() === 'OUTPUT') {
+            performWithdraw()
+        }
+        else {
+            submitTransfer()
         }
 
     });
+
     $('#transferButton').click(function () {
-        /*finPassCheck('transferModal', prepareTransfer);*/
         prepareTransfer()
     });
 
@@ -666,15 +692,6 @@ $(function(){
          });
     }
     $('#nicknameInput').on('keyup', validateNickname);
-
-    function validateNickname() {
-        var value = $('#nicknameInput').val();
-        if (NICKNAME_REGEX.test(value) ) {
-            $('#transferProcess').prop('disabled', false);
-        } else {
-            $('#transferProcess').prop('disabled', true);
-        }
-    }
     
     $('#transferProcess').click(function (e) {
         e.preventDefault();
@@ -682,14 +699,6 @@ $(function(){
         $('#nickname').val(nickname);
         $('#transferProcess').prop('disabled', true);
         checkTransfer();
-    });
-
-
-
-    $('#submitTransferModalButton').click(function (e) {
-        e.preventDefault();
-        $('#submitTransferModalButton').prop('disabled', true);
-        submitTransfer()
     });
 
 
@@ -735,12 +744,6 @@ $(function(){
         });
     }
 
-    function getFinPassModal() {
-        $('#submitTransferModalButton').prop('disabled', false);
-        $('#finPassModal').modal({
-            backdrop: 'static'
-        });
-    }
 
     function checkTransfer() {
         var transferForm = $('#payment').serialize() + '&checkOnly=true';
@@ -766,9 +769,24 @@ $(function(){
 
     }
 
-
+    function validateNickname() {
+        var value = $('#nicknameInput').val();
+        if (NICKNAME_REGEX.test(value) ) {
+            $('#transferProcess').prop('disabled', false);
+        } else {
+            $('#transferProcess').prop('disabled', true);
+        }
+    }
 
 });
+
+function processWithdraw() {
+    form = $('#myModal');
+    form.modal({
+        backdrop: 'static'
+    });
+
+}
 
 
 function parseNumber(numberStr) {
