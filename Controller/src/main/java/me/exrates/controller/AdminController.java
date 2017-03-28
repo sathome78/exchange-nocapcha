@@ -1165,6 +1165,18 @@ public class AdminController {
     return result;
   }
   
+  
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/sendToMany", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
+          produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  @ResponseBody
+  public Map<String, String> sendToMany(@RequestBody Map<String, BigDecimal> addresses, HttpServletRequest request) {
+    LOG.debug(addresses);
+    String txId = bitcoinWalletService.sendToMany(addresses);
+    Map<String, String> result = new HashMap<>();
+    result.put("message", messageSource.getMessage("btcWallet.successResult", new Object[]{txId}, localeResolver.resolveLocale(request)));
+    result.put("newBalance", bitcoinWalletService.getWalletInfo().getBalance());
+    return result;
+  }
 
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
   @ExceptionHandler(OrderDeletingException.class)
