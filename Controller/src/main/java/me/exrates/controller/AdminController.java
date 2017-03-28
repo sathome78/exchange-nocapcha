@@ -18,6 +18,7 @@ import me.exrates.security.service.UserSecureServiceImpl;
 import me.exrates.service.*;
 import me.exrates.service.exception.NoPermissionForOperationException;
 import me.exrates.service.exception.OrderDeletingException;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,8 +110,6 @@ public class AdminController {
   private PhraseTemplateService phraseTemplateService;
   @Autowired
   private CommissionService commissionService;
-  @Autowired
-  ReportService reportService;
   @Autowired
   UserRoleService userRoleService;
   @Autowired
@@ -229,7 +228,6 @@ public class AdminController {
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/usersList", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
   public DataTable<List<User>> getAllUsers(@RequestParam Map<String, String> params) {
-    params.forEach((key, value) -> LOG.debug(key + " :: " + value));
     List<UserRole> userRoles = userRoleService.getRealUserRoleByGroupRoleList(USERS);
     return userSecureService.getUsersByRolesPaginated(userRoles, params);
   }
@@ -490,7 +488,6 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/edituser/submit", method = RequestMethod.POST)
   public ModelAndView submitedit(@Valid @ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request, HttpServletResponse response,
                                  HttpSession httpSession) {
-    LOG.debug(user.getRole());
     final Object mutex = WebUtils.getSessionMutex(httpSession);
     String currentRole = "";
     synchronized (mutex) {
@@ -536,7 +533,6 @@ public class AdminController {
   }
 
   private void invalidateUserSession(String userEmail) {
-    LOG.debug(sessionRegistry.getAllPrincipals().size());
     Optional<Object> updatedUser = sessionRegistry.getAllPrincipals().stream()
         .filter(principalObj -> {
           UserDetails principal = (UserDetails) principalObj;
@@ -1003,8 +999,6 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/editAuthorities/submit", method = RequestMethod.POST)
   public RedirectView editAuthorities(@ModelAttribute AuthorityOptionsForm authorityOptionsForm, Principal principal,
                                       RedirectAttributes redirectAttributes) {
-    LOG.debug(authorityOptionsForm.getOptions());
-    LOG.debug(authorityOptionsForm.getUserId());
     RedirectView redirectView = new RedirectView("/2a8fy7b07dxe44/userInfo?id=" + authorityOptionsForm.getUserId());
     try {
       userService.updateAdminAuthorities(authorityOptionsForm.getOptions(), authorityOptionsForm.getUserId(), principal.getName());
@@ -1135,24 +1129,6 @@ public class AdminController {
     userService.setCurrencyPermissionsByUserId(userCurrencyOperationPermissionDtoList);
   }
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/downloadInputOutputSummaryReport", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
-  @ResponseBody
-  public String getUsersWalletsSummeryTotalInOut(
-      @RequestParam String startDate,
-      @RequestParam String endDate,
-      @RequestParam String role,
-      @RequestParam String direction,
-      @RequestParam List<String> currencyList,
-      Principal principal) {
-    String value = InvoiceReportDto.getTitle() +
-        reportService.getInvoiceReport(principal.getName(), startDate, endDate, role, direction, currencyList)
-            .stream()
-            .map(e -> e.toString())
-            .collect(Collectors.joining());
-
-    return value;
-  }
-
   @RequestMapping(value = "/2a8fy7b07dxe44/candleTable", method = RequestMethod.GET)
   public ModelAndView candleChartTable() {
     return new ModelAndView("/admin/candleTable", "currencyPairs", currencyService.getAllCurrencyPairs());
@@ -1195,6 +1171,11 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/send", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
   public Map<String, String> sendToAddress(@RequestParam String address, @RequestParam BigDecimal amount, HttpServletRequest request) {
+    LOG.debug(String.format("Params: address %s, amount %s", address, amount));
+    if (StringUtils.isEmpty(address) || amount == null) {
+      throw new IllegalArgumentException("Empty values not allowed!");
+    }
+    
     String txId = bitcoinWalletService.sendToAddress(address, amount);
     Map<String, String> result = new HashMap<>();
     result.put("message", messageSource.getMessage("btcWallet.successResult", new Object[]{txId}, localeResolver.resolveLocale(request)));
@@ -1202,6 +1183,18 @@ public class AdminController {
     return result;
   }
   
+  
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/sendToMany", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
+          produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  @ResponseBody
+  public Map<String, String> sendToMany(@RequestBody Map<String, BigDecimal> addresses, HttpServletRequest request) {
+    LOG.debug(addresses);
+    String txId = bitcoinWalletService.sendToMany(addresses);
+    Map<String, String> result = new HashMap<>();
+    result.put("message", messageSource.getMessage("btcWallet.successResult", new Object[]{txId}, localeResolver.resolveLocale(request)));
+    result.put("newBalance", bitcoinWalletService.getWalletInfo().getBalance());
+    return result;
+  }
 
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
   @ExceptionHandler(OrderDeletingException.class)

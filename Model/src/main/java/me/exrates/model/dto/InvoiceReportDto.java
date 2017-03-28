@@ -3,10 +3,10 @@ package me.exrates.model.dto;
 import lombok.Getter;
 import lombok.Setter;
 import me.exrates.model.InvoiceRequest;
-import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
+import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
@@ -46,7 +46,7 @@ public class InvoiceReportDto {
     this.payerBankCode = invoiceRequest.getPayerBankCode();
     this.status = ((InvoiceRequestStatusEnum) invoiceRequest.getInvoiceRequestStatus()).name();
     this.acceptorUserEmail = invoiceRequest.getAcceptanceUserEmail();
-    this.acceptanceDate = invoiceRequest.getAcceptanceTime()==null?"":invoiceRequest.getAcceptanceTime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
+    this.acceptanceDate = invoiceRequest.getAcceptanceTime() == null ? "" : invoiceRequest.getAcceptanceTime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
     this.operation = INPUT.name();
     this.system = TransactionSourceType.INVOICE.name();
   }
@@ -62,7 +62,7 @@ public class InvoiceReportDto {
     this.payerBankCode = invoiceRequestFlatForReportDto.getPayerBankCode();
     this.status = invoiceRequestFlatForReportDto.getStatus().name();
     this.acceptorUserEmail = invoiceRequestFlatForReportDto.getAcceptanceUserEmail();
-    this.acceptanceDate = invoiceRequestFlatForReportDto.getAcceptanceTime()==null?"":invoiceRequestFlatForReportDto.getAcceptanceTime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
+    this.acceptanceDate = invoiceRequestFlatForReportDto.getAcceptanceTime() == null ? "" : invoiceRequestFlatForReportDto.getAcceptanceTime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
     this.operation = INPUT.name();
     this.system = TransactionSourceType.INVOICE.name();
   }
@@ -104,12 +104,16 @@ public class InvoiceReportDto {
     this.currency = withdrawRequestFlatForReportDto.getCurrency();
     this.creationDate = withdrawRequestFlatForReportDto.getDatetime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
     this.userEmail = withdrawRequestFlatForReportDto.getUserEmail();
-    this.recipientBank = withdrawRequestFlatForReportDto.getRecipientBank();
+    this.recipientBank = !StringUtils.isEmpty(withdrawRequestFlatForReportDto.getRecipientBank()) ?
+        withdrawRequestFlatForReportDto.getRecipientBank() :
+        StringUtils.isEmpty(withdrawRequestFlatForReportDto.getWallet()) ?
+            "" :
+            withdrawRequestFlatForReportDto.getWallet();
     this.amount = withdrawRequestFlatForReportDto.getAmount();
     this.payerName = withdrawRequestFlatForReportDto.getMerchant();
     this.payerBankCode = withdrawRequestFlatForReportDto.getMerchant();
     this.status = withdrawRequestFlatForReportDto.getStatus().name();
-    this.acceptorUserEmail = withdrawRequestFlatForReportDto.getAcceptanceUserEmail();
+    this.acceptorUserEmail = withdrawRequestFlatForReportDto.getAdminEmail();
     this.acceptanceDate = withdrawRequestFlatForReportDto.getAcceptanceTime() == null ? "" : withdrawRequestFlatForReportDto.getAcceptanceTime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
     this.operation = OUTPUT.name();
     this.system = withdrawRequestFlatForReportDto.getSourceType().name();
@@ -126,7 +130,7 @@ public class InvoiceReportDto {
         "Payer bank" + ";" +
         "status" + ";" +
         "Acceptor's Email" + ";" +
-        "Acceptance date" + ";" +
+        "Acceptance/Change status date" + ";" +
         "Operation" + ";" +
         "System" +
         "\r\n";

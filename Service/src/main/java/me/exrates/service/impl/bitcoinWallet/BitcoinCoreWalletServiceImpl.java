@@ -31,6 +31,9 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import javax.annotation.PreDestroy;
 import java.io.IOException;
@@ -38,6 +41,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -45,7 +49,16 @@ import java.util.stream.Collectors;
  * Created by OLEG on 14.03.2017.
  */
 @Log4j2(topic = "bitcoin_core")
+@PropertySource("classpath:/merchants/btc_wallet.properties")
 public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
+  
+  private static final int KEY_POOL_LOW_THRESHOLD = 10;
+  
+  @Value("${btc.wallet.password}")
+  private String walletPassword;
+  
+  @Value("${btc.backup.folder}")
+  private String btcBackupFolder;
     
  
   @Autowired
@@ -75,7 +88,26 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
   @Override
   public String getNewAddress() {
     try {
+      WalletInfo walletInfo = btcdClient.getWalletInfo();
+      Integer keyPoolSize = walletInfo.getKeypoolSize();
+      if (keyPoolSize < KEY_POOL_LOW_THRESHOLD) {
+        btcdClient.walletPassphrase(walletPassword, 1);
+        backupWallet();
+      }
       return btcdClient.getNewAddress();
+    } catch (BitcoindException | CommunicationException e) {
+      log.error(e);
+      throw new BitcoinCoreException("Cannot generate new address!");
+    }
+  }
+  
+  
+  private void backupWallet() {
+    try {
+      String filename = new StringJoiner("").add(btcBackupFolder).add("backup_")
+              .add((LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))))
+              .add(".dat").toString();
+      btcdClient.backupWallet(filename);
     } catch (BitcoindException | CommunicationException e) {
       log.error(e);
       throw new BitcoinCoreException("Cannot generate new address!");
@@ -308,7 +340,10 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
   @Override
   public void submitWalletPassword(String password) {
     try {
-      btcdClient.walletPassphrase(password, 60);
+      Long unlockedUntil = btcdClient.getWalletInfo().getUnlockedUntil();
+      if (unlockedUntil != null && unlockedUntil == 0) {
+        btcdClient.walletPassphrase(password, 60);
+      }
     } catch (BitcoindException | CommunicationException e) {
       log.error(e);
       throw new BitcoinCoreException(e.getMessage());
@@ -321,6 +356,16 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
       String result = btcdClient.sendToAddress(address, amount);
       btcdClient.walletLock();
       return result;
+    } catch (BitcoindException | CommunicationException e) {
+      log.error(e);
+      throw new BitcoinCoreException(e.getMessage());
+    }
+  }
+  
+  @Override
+  public String sendToMany(Map<String, BigDecimal> payments) {
+    try {
+      return btcdClient.sendMany("", payments);
     } catch (BitcoindException | CommunicationException e) {
       log.error(e);
       throw new BitcoinCoreException(e.getMessage());

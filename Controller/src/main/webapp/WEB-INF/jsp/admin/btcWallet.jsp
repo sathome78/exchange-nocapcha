@@ -14,7 +14,7 @@
 <%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
 <html>
 <head>
-    <title><loc:message code="admin.currencyLimits.title"/></title>
+    <title><loc:message code="btcWallet.title"/></title>
     <%@include file='links_scripts.jsp' %>
     <script type="text/javascript" src="<c:url value='/client/js/admin-btcWallet/btcWallet.js'/>"></script>
 </head>
@@ -65,31 +65,49 @@
                     <div class="text-center"><h4><loc:message code="btcWallet.send.title"/></h4></div>
                     <div class="col-md-8 col-md-offset-2">
                         <form id="send-btc-form" class="form_full_width">
-                            <div class="input-block-wrapper">
-                                <div class="col-md-3 input-block-wrapper__label-wrapper">
-                                    <label for="input-address" class="input-block-wrapper__label"><loc:message code="btcWallet.address"/></label>
+
+                            <div>
+                                <div style="float: right"><button id="addPayment" class="text-center btn btn-default">
+                                    <span style="font-size: 2.5rem; margin: 0" class="fa fa-plus"></span></button></div>
+                                <div class="col-md-11">
+                                    <div id="payments">
+                                        <div id="payment_0" class="btcWalletPayment">
+                                            <div class="input-block-wrapper">
+                                                <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                                    <label class=" input-block-wrapper__label"><loc:message code="btcWallet.address"/></label>
+                                                </div>
+                                                <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                                    <input id="address_0" name="address" class="input-address input-block-wrapper__input admin-form-input"/>
+                                                </div>
+                                            </div>
+                                            <div class="input-block-wrapper">
+                                                <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                                    <label class="input-block-wrapper__label"><loc:message code="btcWallet.amount"/></label>
+                                                </div>
+                                                <div class="col-md-5 input-block-wrapper__input-wrapper">
+                                                    <input id="amount_0" name="amount" type="number" class="input-amount input-block-wrapper__input admin-form-input"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="fee-div" class="input-block-wrapper">
+                                        <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                            <label for="input-fee" class="input-block-wrapper__label pull-right"><loc:message code="btcWallet.fee"/></label>
+                                        </div>
+                                        <div class="col-md-3 input-block-wrapper__input-wrapper">
+                                            <input id="input-fee" readonly disabled type="number" class="input-block-wrapper__input admin-form-input"/>
+                                        </div>
+                                    </div>
+
                                 </div>
-                                <div class="col-md-9 input-block-wrapper__input-wrapper">
-                                    <input id="input-address" name="address" class="input-block-wrapper__input admin-form-input"/>
-                                </div>
-                            </div>
-                            <div class="input-block-wrapper">
-                                <div class="col-md-3 input-block-wrapper__label-wrapper">
-                                    <label for="input-amount" class="input-block-wrapper__label"><loc:message code="btcWallet.amount"/></label>
-                                </div>
-                                <div class="col-md-3 input-block-wrapper__input-wrapper">
-                                    <input id="input-amount" name="amount" type="number" class="input-block-wrapper__input admin-form-input"/>
-                                </div>
-                                <div class="col-md-3 input-block-wrapper__label-wrapper">
-                                    <label for="input-fee" class="input-block-wrapper__label pull-right"><loc:message code="btcWallet.fee"/></label>
-                                </div>
-                                <div class="col-md-3 input-block-wrapper__input-wrapper">
-                                    <input id="input-fee" readonly disabled type="number" class="input-block-wrapper__input admin-form-input"/>
-                                </div>
+
+
                             </div>
                             <div class="input-block-wrapper">
                                 <button id="submit-btc" class="delete-order-info__button blue-box"
                                         type="button"><loc:message code="admin.submit"/></button>
+                                <button id="reset-btc" class="delete-order-info__button blue-box"
+                                        type="button"><loc:message code="admin.reset"/></button>
                             </div>
                         </form>
                     </div>

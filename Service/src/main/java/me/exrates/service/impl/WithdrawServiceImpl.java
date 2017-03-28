@@ -104,7 +104,6 @@ public class WithdrawServiceImpl implements WithdrawService {
       String endDate,
       List<Integer> roleIdList,
       List<Integer> currencyList) {
-    //TODO need to correction (from orig/old implemantation)
     return withdrawRequestDao.findAllByDateIntervalAndRoleAndCurrency(startDate, endDate, roleIdList, currencyList);
   }
 
