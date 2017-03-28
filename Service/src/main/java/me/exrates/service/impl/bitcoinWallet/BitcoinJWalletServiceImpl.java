@@ -178,4 +178,9 @@ public class BitcoinJWalletServiceImpl implements BitcoinWalletService {
   public String sendToAddress(String address, BigDecimal amount) {
     throw new NotImplimentedMethod("Not implemented");
   }
+  
+  @Override
+  public String sendToMany(Map<String, BigDecimal> payments) {
+    throw new NotImplimentedMethod("Not implemented");
+  }
 }
