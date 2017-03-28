@@ -132,14 +132,4 @@ public class CommonMerchantsController {
         return merchantService.computeCommissionAndMapAllToString(amount, type, currency, merchant);
     }
 
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(RuntimeException.class)
-    @ResponseBody
-    public ResponseEntity<Map<String, String>> commonErrorsHandler(HttpServletRequest req, Exception exception) {
-        return new ResponseEntity<>(
-                singletonMap("failure", exception.getMessage()),
-                BAD_REQUEST);
-    }
-
 }

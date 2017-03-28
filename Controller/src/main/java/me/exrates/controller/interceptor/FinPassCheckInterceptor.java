@@ -5,6 +5,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.EntryController;
 import me.exrates.controller.annotation.FinPassCheck;
 import me.exrates.controller.annotation.OnlineMethod;
+import me.exrates.controller.exception.CheckFinPassException;
 import me.exrates.model.User;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.AbsentFinPasswordException;
@@ -42,11 +43,11 @@ public class FinPassCheckInterceptor extends HandlerInterceptorAdapter {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
         if (handler instanceof HandlerMethod) {
-            try {
-                HandlerMethod handlerMethod = (HandlerMethod) handler;
-                if (handlerMethod.hasMethodAnnotation(FinPassCheck.class)) {
-                    Map<String, Object> annotationAttributes =
-                            AnnotationUtils.getAnnotationAttributes(handlerMethod.getMethodAnnotation(FinPassCheck.class));
+            HandlerMethod handlerMethod = (HandlerMethod) handler;
+            if (handlerMethod.hasMethodAnnotation(FinPassCheck.class)) {
+                Map<String, Object> annotationAttributes =
+                        AnnotationUtils.getAnnotationAttributes(handlerMethod.getMethodAnnotation(FinPassCheck.class));
+                try {
                     boolean onlyCheckAttribute = (boolean)annotationAttributes.get("notCheckPassIfCheckOnlyParamTrue");
                     if (onlyCheckAttribute) {
                         boolean onlyCheckParam = Boolean.valueOf(request.getParameter("checkOnly"));
@@ -58,12 +59,16 @@ public class FinPassCheckInterceptor extends HandlerInterceptorAdapter {
                     String finPass = String.valueOf(request.getParameter(financePassFieldName));
                     User storedUser = userService.getUserById(userService.getIdByEmail(request.getUserPrincipal().getName()));
                     userService.checkFinPassword(finPass, storedUser, localeResolver.resolveLocale(request));
+                } catch (AbsentFinPasswordException | WrongFinPasswordException e) {
+                    boolean throwCheckPassExceptionAttribute = (boolean)annotationAttributes.get("throwCheckPassException");
+                    if (throwCheckPassExceptionAttribute) {
+                        throw new CheckFinPassException();
+                    }
+                    throw e;
+                } catch (Exception e) {
+                    log.error(e);
+                    throw new RuntimeException(e);
                 }
-            } catch (AbsentFinPasswordException | WrongFinPasswordException e) {
-                throw e;
-            } catch (Exception e) {
-                log.error(e);
-                throw new RuntimeException(e);
             }
         }
         return true;

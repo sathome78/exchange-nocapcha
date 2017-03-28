@@ -1,5 +1,7 @@
 package me.exrates.controller.merchants;
 
+import me.exrates.controller.annotation.FinPassCheck;
+import me.exrates.controller.exception.CheckFinPassException;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
@@ -53,6 +55,7 @@ public class WithdrawRequestController {
   @Autowired
   MerchantService merchantService;
 
+  @FinPassCheck
   @RequestMapping(value = "/withdraw/request/merchant/create", method = POST)
   @ResponseBody
   public void createWithdrawalRequest(

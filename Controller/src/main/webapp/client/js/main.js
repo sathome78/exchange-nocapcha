@@ -231,7 +231,8 @@ $(function(){
                     form.attr('action', NO_ACTION);
             }
         } else if (operationType === 'OUTPUT' && merchant === INVOICE) {
-            form.attr('action', '/merchants/invoice/withdraw/prepare');
+            var finpass = $('#finpassword').val();
+            form.attr('action', '/merchants/invoice/withdraw/prepare?finpassword=' + finpass);
         }
     }
 
@@ -257,15 +258,11 @@ $(function(){
                     },
                     type: 'POST',
                     contentType: 'application/json',
-                    dataType: 'json',
                     data: JSON.stringify($(form).serializeObject())
                 }).done(function (response) {
                     $('#finPassModal .close').click();
                     $('#myModal').modal();
-                    $('#currencyFull').val(response['balance']);
                     responseControls();
-                    $('.paymentInfo').html(response['success']);
-
                     $('.wallet_input').hide();
                     $(sum).val('0.0');
                     button.prop('disabled',true);
@@ -273,11 +270,9 @@ $(function(){
                         .prop('disabled', false);
                 }).fail(function (error, jqXHR, textStatus) {
                     $('#finPassModal .close').click();
-                    $('#myModal').modal();
-                    console.log(textStatus);
-                    console.log(jqXHR);
                     responseControls();
-                    $('.paymentInfo').html(error['responseJSON']['failure']);
+                    $('#outputPaymentProcess')
+                        .prop('disabled', false);
                     $('.wallet_input').hide();
                 });
             }
@@ -632,7 +627,8 @@ $(function(){
 
     $("#outputPaymentProcess").on('click', function () {
         if (merchantName === INVOICE) {
-            submitProcess();
+            getFinPassModal();
+            $('#myModal .close').click();
             $('#outputPaymentProcess')
                 .prop('disabled', true);
         } else {
@@ -660,9 +656,11 @@ $(function(){
     }
 
     $('#submitTransferModalButton').click(function (e) {
+        console.log('merchant ' + merchant);
         e.preventDefault();
         $('#submitTransferModalButton').prop('disabled', true);
         if (operationType.val() === 'OUTPUT') {
+
             performWithdraw()
         }
         else {
