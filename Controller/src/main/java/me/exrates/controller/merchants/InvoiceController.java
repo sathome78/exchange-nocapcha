@@ -329,7 +329,7 @@ public class InvoiceController {
     log.error(ExceptionUtils.getStackTrace(exception));
     FlashMap outputFlashMap = RequestContextUtils.getOutputFlashMap(req);
     if (outputFlashMap != null){
-      outputFlashMap.put("errorNoty", "invalid password");
+      outputFlashMap.put("errorNoty", messageSource.getMessage("admin.wrongfinpassword", null, localeResolver.resolveLocale(req)));
     }
     RedirectView redirectView = new RedirectView("/merchants/output?currency=IDR");
     return redirectView;
