@@ -174,12 +174,12 @@ public class WalletDaoImpl implements WalletDao {
 
     }
 
-    public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> currencyIds, Locale locale) {
+    public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> currencyIds, List<Integer> withdrawStatusIds, Locale locale) {
         String currencyFilterClause = currencyIds.isEmpty() ? "" : " AND WALLET.currency_id IN(:currencyIds)";
         final String sql =
                 " SELECT wallet_id, user_id, currency_id, currency_name, active_balance, reserved_balance, " +
                         "   SUM(amount_base+amount_convert+commission_fixed_amount) AS reserved_balance_by_orders, " +
-                        "   SUM(withdraw_amount+withdraw_commission) AS reserved_balance_by_withdraw, " +
+                        "   SUM(withdraw_amount) AS reserved_balance_by_withdraw, " +
                         "   SUM(input_confirmation_amount+input_confirmation_commission) AS on_input_cofirmation, " +
                         "   SUM(input_confirmation_stage) AS input_confirmation_stage, SUM(input_count) AS input_count" +
                         " FROM " +
@@ -213,13 +213,12 @@ public class WalletDaoImpl implements WalletDao {
                         "  " +
                         " SELECT WALLET.id, WALLET.user_id, CURRENCY.id, CURRENCY.name, WALLET.active_balance, WALLET.reserved_balance,   " +
                         " 0, 0, 0, " +
-                        " IFNULL(TRANSACTION.amount, 0), IFNULL(TRANSACTION.commission_amount, 0), " +
+                        " IFNULL(WITHDRAW_REQUEST.amount, 0), IFNULL(WITHDRAW_REQUEST.commission, 0), " +
                         " 0, 0, 0, 0 " +
                         " FROM USER " +
                         " JOIN WALLET ON (WALLET.user_id = USER.id)  " +
                         " LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
-                        " JOIN TRANSACTION ON (TRANSACTION.operation_type_id=2) AND (TRANSACTION.user_wallet_id = WALLET.id) AND (TRANSACTION.provided = 0) " +
-                        " JOIN WITHDRAW_REQUEST ON WITHDRAW_REQUEST.transaction_id = TRANSACTION.id AND WITHDRAW_REQUEST.status = 1 " +
+                        " JOIN WITHDRAW_REQUEST ON WITHDRAW_REQUEST.user_id = USER.id AND WITHDRAW_REQUEST.currency_id = WALLET.currency_id AND WITHDRAW_REQUEST.status_id NOT IN (:status_id_list) " +
                         " WHERE USER.email =  :email AND CURRENCY.hidden != 1 " + currencyFilterClause +
                         "  " +
                         " UNION ALL " +
@@ -241,6 +240,7 @@ public class WalletDaoImpl implements WalletDao {
         final Map<String, Object> params = new HashMap<String, Object>() {{
             put("email", email);
             put("currencyIds", currencyIds);
+            put("status_id_list", withdrawStatusIds);
         }};
         return jdbcTemplate.query(sql, params, new RowMapper<MyWalletsDetailedDto>() {
             @Override
@@ -263,8 +263,8 @@ public class WalletDaoImpl implements WalletDao {
     }
 
     @Override
-    public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, Locale locale) {
-        return getAllWalletsForUserDetailed(email, Collections.EMPTY_LIST, locale);
+    public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> withdrawStatusIds, Locale locale) {
+        return getAllWalletsForUserDetailed(email, Collections.EMPTY_LIST, withdrawStatusIds, locale);
     }
 
     @Override

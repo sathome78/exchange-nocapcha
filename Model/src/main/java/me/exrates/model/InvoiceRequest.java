@@ -92,7 +92,7 @@ public class InvoiceRequest {
                 ", userId=" + userId +
                 ", userEmail='" + userEmail + '\'' +
                 ", acceptanceUserId=" + acceptanceUserId +
-                ", acceptanceUserEmail='" + acceptanceUserEmail + '\'' +
+                ", adminEmail='" + acceptanceUserEmail + '\'' +
                 ", acceptanceTime=" + acceptanceTime +
                 ", invoiceBank=" + invoiceBank +
                 ", userFullName='" + userFullName + '\'' +

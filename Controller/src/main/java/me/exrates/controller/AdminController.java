@@ -110,8 +110,6 @@ public class AdminController {
   @Autowired
   private CommissionService commissionService;
   @Autowired
-  ReportService reportService;
-  @Autowired
   UserRoleService userRoleService;
   @Autowired
   UserTransferService userTransferService;
@@ -229,7 +227,6 @@ public class AdminController {
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/usersList", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
   public DataTable<List<User>> getAllUsers(@RequestParam Map<String, String> params) {
-    params.forEach((key, value) -> LOG.debug(key + " :: " + value));
     List<UserRole> userRoles = userRoleService.getRealUserRoleByGroupRoleList(USERS);
     return userSecureService.getUsersByRolesPaginated(userRoles, params);
   }
@@ -490,7 +487,6 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/edituser/submit", method = RequestMethod.POST)
   public ModelAndView submitedit(@Valid @ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request, HttpServletResponse response,
                                  HttpSession httpSession) {
-    LOG.debug(user.getRole());
     final Object mutex = WebUtils.getSessionMutex(httpSession);
     String currentRole = "";
     synchronized (mutex) {
@@ -536,7 +532,6 @@ public class AdminController {
   }
 
   private void invalidateUserSession(String userEmail) {
-    LOG.debug(sessionRegistry.getAllPrincipals().size());
     Optional<Object> updatedUser = sessionRegistry.getAllPrincipals().stream()
         .filter(principalObj -> {
           UserDetails principal = (UserDetails) principalObj;
@@ -1003,8 +998,6 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/editAuthorities/submit", method = RequestMethod.POST)
   public RedirectView editAuthorities(@ModelAttribute AuthorityOptionsForm authorityOptionsForm, Principal principal,
                                       RedirectAttributes redirectAttributes) {
-    LOG.debug(authorityOptionsForm.getOptions());
-    LOG.debug(authorityOptionsForm.getUserId());
     RedirectView redirectView = new RedirectView("/2a8fy7b07dxe44/userInfo?id=" + authorityOptionsForm.getUserId());
     try {
       userService.updateAdminAuthorities(authorityOptionsForm.getOptions(), authorityOptionsForm.getUserId(), principal.getName());
@@ -1133,24 +1126,6 @@ public class AdminController {
       HttpSession httpSession,
       Principal principal) {
     userService.setCurrencyPermissionsByUserId(userCurrencyOperationPermissionDtoList);
-  }
-
-  @RequestMapping(value = "/2a8fy7b07dxe44/downloadInputOutputSummaryReport", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
-  @ResponseBody
-  public String getUsersWalletsSummeryTotalInOut(
-      @RequestParam String startDate,
-      @RequestParam String endDate,
-      @RequestParam String role,
-      @RequestParam String direction,
-      @RequestParam List<String> currencyList,
-      Principal principal) {
-    String value = InvoiceReportDto.getTitle() +
-        reportService.getInvoiceReport(principal.getName(), startDate, endDate, role, direction, currencyList)
-            .stream()
-            .map(e -> e.toString())
-            .collect(Collectors.joining());
-
-    return value;
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/candleTable", method = RequestMethod.GET)

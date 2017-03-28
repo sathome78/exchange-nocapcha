@@ -8,8 +8,9 @@ import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.TransactionSourceType;
-import me.exrates.model.enums.WithdrawalRequestStatus;
-import me.exrates.model.enums.invoice.*;
+import me.exrates.model.enums.invoice.InvoiceOperationPermission;
+import me.exrates.model.enums.invoice.InvoiceStatus;
+import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -30,10 +31,7 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.singletonMap;
 import static java.util.Optional.of;
-import static me.exrates.model.enums.TransactionSourceType.BTC_INVOICE;
-import static me.exrates.model.enums.TransactionSourceType.INVOICE;
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CONFIRM_USER;
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.REVOKE;
+import static me.exrates.model.enums.TransactionSourceType.WITHDRAW;
 
 
 /**
@@ -87,26 +85,20 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
       String endDate,
       List<Integer> roleIdList,
       List<Integer> currencyList) {
-    // TODO изменить
-    String sql = "SELECT  WR.*, " +
+    String sql = "SELECT WR.*, " +
         "         USER.email AS user_email, " +
-        "         ADM.email AS acceptance_user_email, " +
-        "         TX.id, TX.amount, TX.commission_amount, TX.datetime, " +
-        "         TX.operation_type_id,TX.provided,TX.confirmation, " +
-        "         TX.source_type, " +
+        "         ADM.email AS admin_email, " +
         "         MERCHANT.name AS merchant_name, " +
         "         CURRENCY.name AS currency_name" +
         " FROM WITHDRAW_REQUEST WR " +
-        " JOIN TRANSACTION TX ON (TX.id = WR.transaction_id) AND (TX.currency_id IN (:currency_list)) " +
-        " JOIN CURRENCY ON CURRENCY.id = TX.currency_id " +
-        " JOIN WALLET ON WALLET.id = TX.user_wallet_id " +
-        " JOIN MERCHANT ON MERCHANT.id = TX.merchant_id " +
-        " JOIN USER AS USER ON USER.id = WALLET.user_id " +
-        " LEFT JOIN USER AS ADM ON ADM.id = WR.processed_by " +
+        " JOIN CURRENCY ON CURRENCY.id = WR.currency_id " +
+        " JOIN MERCHANT ON MERCHANT.id = WR.merchant_id " +
+        " JOIN USER AS USER ON USER.id = WR.user_id " +
+        " LEFT JOIN USER AS ADM ON ADM.id = WR.admin_holder_id " +
         " WHERE " +
-        "    TX.datetime BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s') " +
-        (roleIdList.isEmpty() ? "" :
-            " AND USER.roleid IN (:role_id_list)");
+        "    WR.date_creation BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s') " +
+        "    AND (WR.currency_id IN (:currency_list)) " +
+        (roleIdList.isEmpty() ? "" : " AND USER.roleid IN (:role_id_list)");
     Map<String, Object> params = new HashMap<String, Object>() {{
       put("start_date", startDate);
       put("end_date", endDate);
@@ -119,20 +111,19 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
       @Override
       public WithdrawRequestFlatForReportDto mapRow(ResultSet rs, int i) throws SQLException {
         WithdrawRequestFlatForReportDto withdrawRequestFlatForReportDto = new WithdrawRequestFlatForReportDto();
-        withdrawRequestFlatForReportDto.setInvoiceId(rs.getInt("transaction_id"));
+        withdrawRequestFlatForReportDto.setInvoiceId(rs.getInt("WR.id"));
         withdrawRequestFlatForReportDto.setWallet(rs.getString("wallet"));
         withdrawRequestFlatForReportDto.setRecipientBank(rs.getString("recipient_bank_name"));
-        withdrawRequestFlatForReportDto.setAcceptanceUserEmail(rs.getString("acceptance_user_email"));
-        withdrawRequestFlatForReportDto.setAcceptanceTime(rs.getTimestamp("acceptance") == null ? null : rs.getTimestamp("acceptance").toLocalDateTime());
-        withdrawRequestFlatForReportDto.setStatus(rs.getObject("status") == null ? null : WithdrawalRequestStatus.convert(rs.getInt("status")));
-        withdrawRequestFlatForReportDto.setWithdrawStatus(rs.getObject("status_id") == null ? null : WithdrawStatusEnum.convert(rs.getInt("status_id")));
+        withdrawRequestFlatForReportDto.setAdminEmail(rs.getString("admin_email"));
+        withdrawRequestFlatForReportDto.setAcceptanceTime(rs.getTimestamp("status_modification_date") == null ? null : rs.getTimestamp("status_modification_date").toLocalDateTime());
+        withdrawRequestFlatForReportDto.setStatus(WithdrawStatusEnum.convert(rs.getInt("status_id")));
         withdrawRequestFlatForReportDto.setUserFullName(rs.getString("user_full_name"));
         withdrawRequestFlatForReportDto.setUserEmail(rs.getString("user_email"));
         withdrawRequestFlatForReportDto.setAmount(rs.getBigDecimal("amount"));
-        withdrawRequestFlatForReportDto.setCommissionAmount(rs.getBigDecimal("commission_amount"));
-        withdrawRequestFlatForReportDto.setDatetime(rs.getTimestamp("datetime") == null ? null : rs.getTimestamp("datetime").toLocalDateTime());
+        withdrawRequestFlatForReportDto.setCommissionAmount(rs.getBigDecimal("commission"));
+        withdrawRequestFlatForReportDto.setDatetime(rs.getTimestamp("date_creation") == null ? null : rs.getTimestamp("date_creation").toLocalDateTime());
         withdrawRequestFlatForReportDto.setCurrency(rs.getString("currency_name"));
-        withdrawRequestFlatForReportDto.setSourceType(TransactionSourceType.valueOf(rs.getString("source_type")));
+        withdrawRequestFlatForReportDto.setSourceType(WITHDRAW);
         withdrawRequestFlatForReportDto.setMerchant(rs.getString("merchant_name"));
         return withdrawRequestFlatForReportDto;
       }
