@@ -4,6 +4,7 @@ import com.squareup.okhttp.*;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.model.Transaction;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.PerfectMoneyService;
 import me.exrates.service.TransactionService;
@@ -178,5 +179,10 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
                 ":"+passpphraseHash +
                 ":"+params.get("TIMESTAMPGMT");
         return algorithmService.computeMD5Hash(hashParams).toUpperCase();
+    }
+
+    @Override
+    public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+        logger.debug("\n======> request for withdraw sent "+ withdrawMerchantOperationDto);
     }
 }

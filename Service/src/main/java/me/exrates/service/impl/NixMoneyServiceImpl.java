@@ -2,6 +2,7 @@ package me.exrates.service.impl;
 
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Transaction;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.NixMoneyService;
 import me.exrates.service.TransactionService;
@@ -109,6 +110,11 @@ public class NixMoneyServiceImpl implements NixMoneyService {
     @Transactional
     public void invalidateTransaction(Transaction transaction) {
         transactionService.invalidateTransaction(transaction);
+    }
+
+    @Override
+    public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+        logger.debug("\n======> request for withdraw sent "+ withdrawMerchantOperationDto);
     }
 
 }

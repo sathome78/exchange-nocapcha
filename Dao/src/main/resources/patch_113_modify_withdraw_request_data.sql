@@ -103,3 +103,18 @@ WHERE WR.status = 2 AND WR.transaction_id IS NOT NULL
 
 SELECT MAX(id) FROM TRANSACTION -> ...;
 
+
+
+UPDATE MERCHANT SET service_bean_name='yandexKassaServiceImpl' WHERE  id=1;
+UPDATE MERCHANT SET service_bean_name='perfectMoneyServiceImpl' WHERE  id=2;
+UPDATE MERCHANT SET service_bean_name='blockchainServiceImpl' WHERE  id=3;
+UPDATE MERCHANT SET service_bean_name='edrcServiceImpl' WHERE  id=4;
+UPDATE MERCHANT SET service_bean_name='advcashServiceImpl' WHERE  id=5;
+UPDATE MERCHANT SET service_bean_name='yandexMoneyServiceImpl' WHERE  id=6;
+UPDATE MERCHANT SET service_bean_name='liqpayServiceImpl' WHERE  id=7;
+UPDATE MERCHANT SET service_bean_name='nixMoneyServiceImpl' WHERE  id=8;
+UPDATE MERCHANT SET service_bean_name='privat24ServiceImpl' WHERE  id=9;
+UPDATE MERCHANT SET service_bean_name='interkassaServiceImpl' WHERE  id=10;
+UPDATE MERCHANT SET service_bean_name='edcServiceImpl' WHERE  id=13;
+UPDATE MERCHANT SET service_bean_name='okPayServiceImpl' WHERE  id=14;
+UPDATE MERCHANT SET service_bean_name='payeerServiceImpl' WHERE  id=15;
