@@ -26,8 +26,12 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.WebUtils;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.security.Principal;
 import java.util.Locale;
 import java.util.Map;
@@ -61,10 +65,14 @@ public class WithdrawRequestController {
   public void createWithdrawalRequest(
       @RequestBody final Payment payment,
       Principal principal,
-      Locale locale) {
+      Locale locale,
+      HttpServletResponse response) throws UnsupportedEncodingException {
     CreditsOperation creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName())
         .orElseThrow(InvalidAmountException::new);
-    withdrawService.createWithdrawalRequest(creditsOperation, new WithdrawData(), principal.getName(), locale);
+    Map<String, String> result = withdrawService.createWithdrawalRequest(creditsOperation, new WithdrawData(), principal.getName(), locale);
+    Cookie cookie = new Cookie("successNoty", URLEncoder.encode(result.get("success"), "UTF-8"));
+    cookie.setPath("/");
+    response.addCookie(cookie);
   }
 
   @RequestMapping(value = "/withdraw/request/invoice/create", method = POST)

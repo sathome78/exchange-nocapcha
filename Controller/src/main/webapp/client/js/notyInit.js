@@ -2,6 +2,9 @@
  * Created by Valk on 04.04.16.
  */
 
+const SUCCESS_NOTY_NAME = "successNoty";
+const ERROR_NOTY_NAME = "errorNoty";
+
 $(function () {
         $(document).ajaxError(function (event, jqXHR, options, jsExc) {
             failNoty(jqXHR);
@@ -15,7 +18,7 @@ $(function () {
             }
             if (!msg){
                 msg = errorFromCookie();
-                deleteCookie("errorNoty");
+                deleteCookie(ERROR_NOTY_NAME);
             }
             if (msg) {
                 failedNote = noty({
@@ -34,11 +37,11 @@ $(function () {
         +function showSuccessNotyOnEntry() {
             var msg = $('#successNoty').html();
             if (!msg) {
-                msg = getParameterByName('successNoty');
+                msg = getParameterByName(SUCCESS_NOTY_NAME);
             }
             if (!msg){
                 msg = successFromCookie();
-                deleteCookie("successNoty");
+                deleteCookie(SUCCESS_NOTY_NAME);
             }
             if (msg) {
                 successNoty(msg);
@@ -73,6 +76,11 @@ function closeNote() {
 }
 
 function successNoty(text) {
+    if (!text) {
+        var msgFromCookie = successFromCookie();
+        deleteCookie(SUCCESS_NOTY_NAME);
+        text = msgFromCookie;
+    }
     successNote = noty({
         text: text,
         template: '<div class="noty_message"><div class="noty_header"><button type="button" class="close" aria-label="Close">' +
@@ -112,19 +120,19 @@ function errorNoty(text) {
 }
 
 function errorInCookie(message){
-    $.cookie("errorNoty", message, { path: '/' });
+    $.cookie(ERROR_NOTY_NAME, message, { path: '/' });
 }
 
 function successInCookie(message){
-    $.cookie("successNoty", message, { path: '/' });
+    $.cookie(SUCCESS_NOTY_NAME, message, { path: '/' });
 }
 
 function errorFromCookie(){
-    return $.cookie("errorNoty");
+    return $.cookie(ERROR_NOTY_NAME);
 }
 
 function successFromCookie(){
-    return $.cookie("successNoty");
+    return $.cookie(SUCCESS_NOTY_NAME);
 }
 
 function deleteCookie(name) {

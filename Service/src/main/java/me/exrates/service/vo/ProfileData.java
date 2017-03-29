@@ -53,7 +53,7 @@ public class ProfileData {
   public boolean checkAndLog(String logMessage){
     boolean isExceeded = isExceeded();
     if (isExceeded) {
-      profileLog.warn(profileLog);
+      profileLog.warn(logMessage);
       return true;
     } else {
       return false;

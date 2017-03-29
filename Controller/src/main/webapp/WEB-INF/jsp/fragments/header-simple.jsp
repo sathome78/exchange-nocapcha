@@ -11,6 +11,7 @@
 <script type="text/javascript" src="/client/js/jquery.cookie.js"></script>
 <script src="<c:url value="/client/js/jquery.noty.packaged.min.js"/>"></script>
 <script type="text/javascript" src="<c:url value='/client/js/app.js'/>"></script>
+<script src="<c:url value="/client/js/notifications/notifications.js"/>"></script>
 
 <link href="<c:url value='/client/css/action-buttons.css'/>" rel="stylesheet">
 
@@ -147,6 +148,9 @@
                         <a href="<c:url value="/settings"/>">
                             <span class="glyphicon glyphicon-cog nav__link"></span>
                         </a>
+                    </li>
+                    <li>
+                        <%@include file="../fragments/notification-header.jsp" %>
                     </li>
                 </sec:authorize>
                 <li class="home-menu-item">

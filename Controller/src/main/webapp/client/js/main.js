@@ -48,7 +48,10 @@ Number.prototype.noExponents= function(){
     return str + z;
 }
 
+var notifications;
+
 $(function(){
+    notifications = new NotificationsClass();
 
     const YANDEX = 'Yandex.Money';
     const PERFECT = 'Perfect Money';
@@ -259,7 +262,7 @@ $(function(){
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify($(form).serializeObject())
-                }).done(function (response) {
+                }).success(function (response) {
                     $('#finPassModal .close').click();
                     $('#myModal').modal();
                     responseControls();
@@ -268,12 +271,15 @@ $(function(){
                     button.prop('disabled',true);
                     $('#outputPaymentProcess')
                         .prop('disabled', false);
+                    successNoty();
+                    notifications.getNotifications();
                 }).fail(function (error, jqXHR, textStatus) {
                     $('#finPassModal .close').click();
                     responseControls();
                     $('#outputPaymentProcess')
                         .prop('disabled', false);
                     $('.wallet_input').hide();
+                    errorFromCookie();
                 });
             }
 
