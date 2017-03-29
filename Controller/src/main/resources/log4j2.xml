@@ -174,7 +174,7 @@
         <logger name="org.springframework.jdbc.core.StatementCreatorUtils" level="ERROR" additivity="false">
             <appender-ref ref="Console" />
         </logger>
-        <Logger name="me.exrates.controller.OnlineRestController" level="DEBUG" additivity="false">
+        <Logger name="me.exrates.controller.OnlineRestController" level="INFO" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="OnlineServices"/>
         </Logger>

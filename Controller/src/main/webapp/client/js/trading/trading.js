@@ -76,6 +76,9 @@ function TradingClass(period, chartType, currentCurrencyPair) {
             url: url,
             type: 'GET',
             success: function (data) {
+                if (!data){
+                    return;
+                }
                 $('#lastOrderAmountBase').find('span').text(data.lastOrderAmountBase + ' ' + data.currencyPair.currency1.name);
                 $('#firstOrderRate').find('span').text(data.firstOrderRate + ' ' + data.currencyPair.currency2.name);
                 $('#lastOrderRate').find('span').text(data.lastOrderRate + ' ' + data.currencyPair.currency2.name);
