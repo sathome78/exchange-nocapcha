@@ -704,7 +704,6 @@ $(function(){
 
 
     function submitTransfer() {
-        console.log("transfer costs");
         var finpass = $('#finpassword').val();
         var transferForm = $('#payment').serialize() + '&finpassword=' + finpass;
         $.ajax('/transfer/submit', {
@@ -714,7 +713,6 @@ $(function(){
                 'X-CSRF-Token': $("input[name='_csrf']").val()
             },
             success: function (response) {
-                console.log("response " + response);
                 $('#finPassModal .close').click();
                 $('#transferModal').modal();
                 $('.paymentInfo').html(response.result);
@@ -727,13 +725,11 @@ $(function(){
             },
             error: function (err) {
                 $('#finPassModal .close').click();
-                console.log(err);
                 var errorType = $.parseJSON(err.responseText).cause;
                 var errorMsg = $.parseJSON(err.responseText).detail;
                 switch (errorType) {
                     case 'AbsentFinPasswordException':
                     {
-                        console.log('AbsentFinPasswordException');
                         window.location.href = '/settings?tabIdx=2&msg=' + errorMsg;
                         break;
                     }

@@ -1,5 +1,6 @@
 package me.exrates.controller;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.annotation.FinPassCheck;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.InvalidNicknameException;
@@ -34,10 +35,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Log4j2
 @Controller
 public class WalletController {
-
-    private static final Logger LOG = LogManager.getLogger(WalletController.class);
 
 
     @Autowired
@@ -123,7 +123,6 @@ public class WalletController {
             throw new InvalidNicknameException(messageSource.getMessage("transfer.selfNickname", null, localeResolver.resolveLocale(request)));
         }
         String result = walletService.transferCostsToUser(walletId, nickname, amount, localeResolver.resolveLocale(request), checkOnly);
-        LOG.debug(result);
         return new ResponseEntity<>(Collections.singletonMap("result", result), HttpStatus.OK);
     }
 
