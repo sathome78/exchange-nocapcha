@@ -29,6 +29,9 @@ function StockChartAmchartsClass($loadingImg) {
             url: candleDataSourceUrl,
             type: 'GET',
             success: function (queryResultArray) {
+                if (!queryResultArray || !queryResultArray.length) {
+                    return;
+                }
                 backDealInterval = queryResultArray[0][0]; //BackDealInterval is here
                 queryResultArray.splice(0, 1);
                 chartData.length = 0;
