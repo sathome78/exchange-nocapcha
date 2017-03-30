@@ -52,6 +52,7 @@ public class EDCServiceImpl implements EDCService {
     private @Value("${edc.account.registrar}") String REGISTRAR_ACCOUNT;
     private @Value("${edc.account.referrer}") String REFERRER_ACCOUNT;
     private @Value("${edc.account.main}") String MAIN_ACCOUNT;
+    private @Value("${edc.account.main.private.key}") String MAIN_ACCOUNT_PRIVATE_KEY;
     private final String PENDING_PAYMENT_HASH = "1fc3403096856798ab8992f73f241334a4fe98ce";
 
     private final PendingPaymentDao paymentDao;
@@ -345,6 +346,17 @@ public class EDCServiceImpl implements EDCService {
                 if (responseTransfer.contains("error")) {
                     throw new InterruptedException("Could not transfer money to main account!\n" + responseTransfer);
                 }
+        }
+    }
+
+    @Override
+    public void transferFromMainAccount(final String accountName, final String amount) throws IOException, InterruptedException {
+        final String responseImportKey = makeRpcCallFast(IMPORT_KEY, MAIN_ACCOUNT, MAIN_ACCOUNT_PRIVATE_KEY, 1);
+        if (responseImportKey.contains("true")) {
+            final String responseTransfer = makeRpcCallFast(TRANSFER_EDC,MAIN_ACCOUNT, accountName, amount, "EDC", "Output transfer", 1);
+            if (responseTransfer.contains("error")) {
+                throw new InterruptedException("Could not transfer money from main account!\n" + responseTransfer);
+            }
         }
     }
 

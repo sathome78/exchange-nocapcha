@@ -76,4 +76,6 @@ public interface TransactionService {
     void setSourceId(Integer trasactionId, Integer sourceId);
 
     List<TransactionFlatForReportDto> getAllByDateIntervalAndRoleAndOperationTypeAndCurrencyAndSourceType(String startDate, String endDate, Integer operationType, List<Integer> roleIdList, List<Integer> currencyList, List<String> sourceTypeList);
+
+    List<String> getCSVTransactionsHistory(int id, String startDate, String endDate, Locale locale);
 }
