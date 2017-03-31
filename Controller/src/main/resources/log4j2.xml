@@ -104,7 +104,7 @@
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
         <RollingFile name="bitcoinj_log" fileName="${sys:catalina.home}/logs/bitcoinj_log.log"
-                     filePattern="${sys:catalina.home}/logs/proxy_log_%d_%i.log" append="true">
+                     filePattern="${sys:catalina.home}/logs/bitcoinj_log_%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -122,7 +122,7 @@
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
         <RollingFile name="bitcoin_core_log" fileName="${sys:catalina.home}/logs/bitcoin_core_log.log"
-                     filePattern="${sys:catalina.home}/logs/proxy_log_%d_%i.log" append="true">
+                     filePattern="${sys:catalina.home}/logs/bitcoin_core_log_%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
