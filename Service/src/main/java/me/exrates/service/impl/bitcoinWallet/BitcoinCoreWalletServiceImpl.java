@@ -90,9 +90,13 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
     try {
       WalletInfo walletInfo = btcdClient.getWalletInfo();
       Integer keyPoolSize = walletInfo.getKeypoolSize();
+      
+      /*
+      * If wallet is encrypted and locked, pool of private keys is not refilled
+      * Keys are automatically refilled on unlocking
+      * */
       if (keyPoolSize < KEY_POOL_LOW_THRESHOLD) {
         btcdClient.walletPassphrase(walletPassword, 1);
-        backupWallet();
       }
       return btcdClient.getNewAddress();
     } catch (BitcoindException | CommunicationException e) {
@@ -101,12 +105,13 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
     }
   }
   
-  
-  private void backupWallet() {
+  @Scheduled(initialDelay = 5 * 60000, fixedDelay = 12 * 60 * 60000)
+  public void backupWallet() {
     try {
       String filename = new StringJoiner("").add(btcBackupFolder).add("backup_")
               .add((LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))))
               .add(".dat").toString();
+      log.debug("Backing up wallet to file: " + filename);
       btcdClient.backupWallet(filename);
     } catch (BitcoindException | CommunicationException e) {
       log.error(e);
@@ -138,14 +143,14 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
     daemon.addBlockListener(new BlockListener() {
       @Override
       public void blockDetected(Block block) {
-        log.debug(String.format("Block detected: hash %s ", block.toString()));
+        log.debug(String.format("Block detected: hash %s, height %s ", block.getHash(), block.getHeight()));
         processBlock();
       }
     });
     daemon.addWalletListener(new WalletListener() {
       @Override
       public void walletChanged(Transaction transaction) {
-        log.debug(String.format("Wallet change: tx id %s", transaction.toString()));
+        log.debug(String.format("Wallet change: tx %s", transaction.toString()));
         processIncomingPayment(transaction);
       }
     });

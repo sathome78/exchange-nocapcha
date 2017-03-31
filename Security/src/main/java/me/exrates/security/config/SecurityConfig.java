@@ -158,7 +158,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers("/merchants/bitcoin/payment/accept", "/merchants/invoice/payment/accept").hasAuthority(AdminAuthority.PROCESS_INVOICE.name())
         .antMatchers("/unsafe/**").hasAnyAuthority(UserRole.ADMINISTRATOR.name())
         .antMatchers("/withdrawal/request/accept", "/withdrawal/request/decline").hasAuthority(PROCESS_WITHDRAW.name())
-        .antMatchers("/", "/index.jsp", "/client/**", "/dashboard/**", "/registrationConfirm/**",
+        .antMatchers(POST, "/2a8fy7b07dxe44/bitcoinWallet/**").hasAuthority(AdminAuthority.MANAGE_BTC_CORE_WALLET.name())
+                .antMatchers("/", "/index.jsp", "/client/**", "/dashboard/**", "/registrationConfirm/**",
             "/changePasswordConfirm/**", "/changePasswordConfirm/**", "/aboutUs", "/57163a9b3d1eafe27b8b456a.txt", "/newIpConfirm/**").permitAll()
         .antMatchers(POST, "/merchants/withdrawal/request/accept",
             "/merchants/withdrawal/request/decline").hasAuthority(PROCESS_WITHDRAW.name())
