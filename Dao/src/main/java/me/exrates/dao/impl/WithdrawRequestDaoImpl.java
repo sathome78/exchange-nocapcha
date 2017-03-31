@@ -172,7 +172,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     String sql = " SELECT " +
         "    IF (WITHDRAW_REQUEST.date_creation IS NOT NULL, WITHDRAW_REQUEST.date_creation, TRANSACTION.datetime) AS datetime, " +
         "    CURRENCY.name as currency, TRANSACTION.amount, TRANSACTION.commission_amount, " +
-        "    TRANSACTION.source_type, TRANSACTION.confirmation, " +
+        "    TRANSACTION.source_type, TRANSACTION.source_id AS source_id, TRANSACTION.confirmation, " +
         "    case when OPERATION_TYPE.name = 'input' or WITHDRAW_REQUEST.merchant_image_id is null  \n" +
         "              then MERCHANT.name  \n" +
         "              else MERCHANT_IMAGE.image_name end as merchant,  " +
@@ -205,7 +205,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
         "  (SELECT " +
         "     WR.date_creation, " +
         "     CUR.name, WR.amount, WR.commission, " +
-        "     'WITHDRAW', -1," +
+        "     'WITHDRAW', WR.id, -1," +
         "     IF(WR.merchant_image_id IS NULL, M.name, MI.image_name), " +
         "     'OUTPUT', WR.id, 1, " +
         "     null, " +
@@ -266,6 +266,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
       myInputOutputHistoryDto.setRemark(rs.getString("remark"));
       myInputOutputHistoryDto.setConfirmation(rs.getInt("confirmation"));
       myInputOutputHistoryDto.setAdminHolderId(rs.getInt("admin_holder_id"));
+      myInputOutputHistoryDto.setSourceId(rs.getInt("source_id"));
       log.debug(String.format("id: %s, status: %s, source: %s, optype: %s", myInputOutputHistoryDto.getId(), myInputOutputHistoryDto.getStatus(),
           myInputOutputHistoryDto.getSourceType(), myInputOutputHistoryDto.getOperationType()));
       return myInputOutputHistoryDto;
