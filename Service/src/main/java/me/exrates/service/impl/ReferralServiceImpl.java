@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 
 import static java.math.BigDecimal.ZERO;
@@ -40,6 +41,8 @@ import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 @PropertySource("classpath:/referral.properties")
 public class ReferralServiceImpl implements ReferralService {
 
+
+    private static final int decimalPlaces = 9;
     private final ReferralLevelDao referralLevelDao;
     private final ReferralUserGraphDao referralUserGraphDao;
     private final ReferralTransactionDao referralTransactionDao;
@@ -149,8 +152,9 @@ public class ReferralServiceImpl implements ReferralService {
                 wod.setSourceId(createdRefTransaction.getId());
                 walletService.walletBalanceChange(wod);
                 companyWalletService.withdrawReservedBalance(cWallet, amount);
-                notificationService.createLocalizedNotification(parent, NotificationEvent.IN_OUT, "referral.title",
-                        "referral.message", new Object[]{amount, currency.getName()});
+                notificationService.createLocalizedNotification(parent, NotificationEvent.IN_OUT,
+                        "referral.title", "referral.message",
+                        new Object[]{amount.setScale(decimalPlaces, RoundingMode.HALF_UP).stripTrailingZeros().toPlainString(), currency.getName()});
             } else {
                 break;
             }

@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -303,12 +304,13 @@ public final class WalletServiceImpl implements WalletService {
     changeWalletActiveBalance(amount, toUserWallet, OperationType.INPUT,
         TransactionSourceType.USER_TRANSFER, BigDecimal.ZERO, userTransfer.getId());
     String currencyName = currencyService.getCurrencyName(currencyId);
-    String result = messageSource.getMessage("transfer.successful", new Object[]{amount, currencyName, toUserNickname},
+    String notyAmount = amount.setScale(decimalPlaces, RoundingMode.HALF_UP).stripTrailingZeros().toPlainString();
+    String result = messageSource.getMessage("transfer.successful", new Object[]{notyAmount, currencyName, toUserNickname},
         locale);
     notificationService.notifyUser(fromUserWallet.getUser().getId(), NotificationEvent.IN_OUT, "wallets.transferTitle",
-        "transfer.successful", new Object[]{amount, currencyName, toUserNickname});
+        "transfer.successful", new Object[]{notyAmount, currencyName, toUserNickname});
     notificationService.notifyUser(toUserWallet.getUser().getId(), NotificationEvent.IN_OUT, "wallets.transferTitle",
-        "transfer.received", new Object[]{amount, currencyName});
+        "transfer.received", new Object[]{notyAmount, currencyName});
     return result;
   }
 
