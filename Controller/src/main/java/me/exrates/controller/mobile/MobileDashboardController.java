@@ -20,6 +20,7 @@ import me.exrates.service.exception.api.ErrorCode;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -74,6 +75,9 @@ public class MobileDashboardController {
 
     @Autowired
     private LocaleResolver localeResolver;
+    
+    @Autowired
+    private MessageSource messageSource;
 
 
 
@@ -932,7 +936,7 @@ public class MobileDashboardController {
         int limitValue = limit == null ? -1 : limit;
         List<MyInputOutputHistoryApiDto> data = merchantService.getMyInputOutputHistory(getAuthenticatedUserEmail(),
                 offsetValue, limitValue, localeResolver.resolveLocale(request)).stream()
-                .map(dto -> new MyInputOutputHistoryApiDto(dto, localeResolver.resolveLocale(request))).collect(Collectors.toList());
+                .map(dto -> new MyInputOutputHistoryApiDto(dto, messageSource, localeResolver.resolveLocale(request))).collect(Collectors.toList());
         logger.debug(data);
         return data;
 

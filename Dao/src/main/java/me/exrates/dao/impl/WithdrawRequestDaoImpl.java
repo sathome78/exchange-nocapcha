@@ -207,7 +207,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
         "     CUR.name, WR.amount, WR.commission, " +
         "     'WITHDRAW', WR.id, -1," +
         "     IF(WR.merchant_image_id IS NULL, M.name, MI.image_name), " +
-        "     'OUTPUT', WR.id, 1, " +
+        "     'Output', WR.id, 1, " +
         "     null, " +
         "     USER.id, " +
         "     null, " +
