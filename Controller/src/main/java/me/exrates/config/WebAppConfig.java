@@ -7,16 +7,14 @@ import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.controller.interceptor.FinPassCheckInterceptor;
 import me.exrates.controller.listener.StoreSessionListener;
 import me.exrates.controller.listener.StoreSessionListenerImpl;
-import me.exrates.controller.postprocessor.OnlineMethodPostProcessor;
+import me.exrates.security.postprocessor.OnlineMethodPostProcessor;
 import me.exrates.model.converter.CurrencyPairConverter;
 import me.exrates.model.enums.ChatLang;
 import me.exrates.security.config.SecurityConfig;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.BitcoinWalletService;
-import me.exrates.service.WithdrawService;
 import me.exrates.service.impl.bitcoinWallet.BitcoinCoreWalletServiceImpl;
 import me.exrates.service.impl.bitcoinWallet.BitcoinJWalletServiceImpl;
-import me.exrates.service.impl.WithdrawServiceImpl;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
@@ -325,11 +323,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean(name = "multipartResolver")
     public StandardServletMultipartResolver resolver() {
         return new StandardServletMultipartResolver();
-    }
-
-    @Bean
-    public OnlineMethodPostProcessor onlineMethodPostProcessor() {
-        return new OnlineMethodPostProcessor();
     }
 
 

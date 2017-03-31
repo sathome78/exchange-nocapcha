@@ -3,6 +3,7 @@ package me.exrates.security.config;
 import me.exrates.model.enums.AdminAuthority;
 import me.exrates.model.enums.UserRole;
 import me.exrates.security.filter.*;
+import me.exrates.security.postprocessor.OnlineMethodPostProcessor;
 import me.exrates.security.service.UserDetailsServiceImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -22,6 +23,7 @@ import org.springframework.security.web.access.channel.ChannelProcessingFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
+import org.springframework.security.web.session.ConcurrentSessionFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
@@ -51,6 +53,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   @Bean
   public LoginSuccessHandler loginSuccessHandler() {
     return new LoginSuccessHandler("/dashboard");
+  }
+
+  @Bean
+  public OnlineMethodPostProcessor onlineMethodPostProcessor() {
+    return new OnlineMethodPostProcessor();
   }
 
   @Bean
@@ -102,6 +109,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     return new CharacterEncodingFilter("UTF-8", true);
   }
 
+  @Bean
+  public CustomConcurrentSessionFilter customConcurrentSessionFilter() {
+    return new CustomConcurrentSessionFilter(sessionRegistry());
+  }
+
 
   @Autowired
   public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
@@ -115,6 +127,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     http.addFilterBefore(customUsernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
     http.addFilterBefore(customQRAuthorizationFilter(), CapchaAuthorizationFilter.class);
     http.addFilterBefore(characterEncodingFilter(), ChannelProcessingFilter.class);
+    http.addFilterAt(customConcurrentSessionFilter(), ConcurrentSessionFilter.class);
     http
         .authorizeRequests()
         /*ADMIN ...*/

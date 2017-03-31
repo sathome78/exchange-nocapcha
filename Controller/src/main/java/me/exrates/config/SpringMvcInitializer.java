@@ -61,7 +61,7 @@ public class SpringMvcInitializer extends AbstractAnnotationConfigDispatcherServ
 
     @Override
     public Filter[] getServletFilters() {
-        return new Filter[]{new CharacterEncodingFilter("UTF-8", true), RequestFilter.getInstance()};
+        return new Filter[]{new CharacterEncodingFilter("UTF-8", true)};
     }
 
     @Override
