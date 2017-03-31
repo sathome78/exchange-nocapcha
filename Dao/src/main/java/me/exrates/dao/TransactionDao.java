@@ -2,7 +2,6 @@ package me.exrates.dao;
 
 import me.exrates.model.PagingData;
 import me.exrates.model.Transaction;
-import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.dto.TransactionFlatForReportDto;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.enums.TransactionType;
@@ -61,5 +60,7 @@ public interface TransactionDao {
   List<TransactionFlatForReportDto> findAllByDateIntervalAndRoleAndOperationTypeAndCurrencyAndSourceType(String startDate, String endDate, Integer operationType, List<Integer> roleIdList, List<Integer> currencyList, List<String> sourceTypeList);
 
   boolean setStatusById(Integer trasactionId, Integer statusId);
+
   List<Transaction> getAllOperationsByUserForPeriod(List<Integer> walletIds, String startDate, String endDate, String sortColumn, String sortDirection);
+
 }

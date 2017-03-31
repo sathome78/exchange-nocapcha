@@ -1,11 +1,12 @@
 package me.exrates.model.enums.invoice;
 
 import lombok.NoArgsConstructor;
-import me.exrates.model.exceptions.NoButtonPropertyForActionTypeException;
 import me.exrates.model.exceptions.UnsupportedInvoiceActionTypeNameException;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static me.exrates.model.enums.invoice.InvoiceActionTypeButtonEnum.*;
@@ -16,48 +17,83 @@ import static me.exrates.model.enums.invoice.InvoiceOperationPermission.ACCEPT_D
  */
 @NoArgsConstructor
 public enum InvoiceActionTypeEnum {
-  CONFIRM_USER(CONFIRM_USER_BUTTON),
-  CONFIRM_ADMIN(CONFIRM_ADMIN_BUTTON, false, ACCEPT_DECLINE),
-  REVOKE(REVOKE_BUTTON),
+  CONFIRM_USER {{
+    getProperty().put("actionTypeButton", CONFIRM_USER_BUTTON);
+  }},
+  CONFIRM_ADMIN {{
+    getProperty().put("actionTypeButton", CONFIRM_ADMIN_BUTTON);
+    getProperty().put("operationPermissionOnlyList", Arrays.asList(ACCEPT_DECLINE));
+  }},
+  REVOKE {{
+    getProperty().put("actionTypeButton", REVOKE_BUTTON);
+  }},
   EXPIRE,
   BCH_EXAMINE,
-  ACCEPT_MANUAL(ACCEPT_BUTTON, false, ACCEPT_DECLINE),
-  ACCEPT_AUTO,
-  DECLINE(DECLINE_BUTTON, false, ACCEPT_DECLINE),
-  DECLINE_HOLDED(DECLINE_HOLDED_BUTTON, true, ACCEPT_DECLINE),
+  ACCEPT_MANUAL {{
+    getProperty().put("actionTypeButton", ACCEPT_BUTTON);
+    getProperty().put("operationPermissionOnlyList", Arrays.asList(ACCEPT_DECLINE));
+    getProperty().put("leadsToSuccessFinalState", true);
+  }},
+  ACCEPT_AUTO{{
+    getProperty().put("leadsToSuccessFinalState", true);
+  }},
+  DECLINE {{
+    getProperty().put("actionTypeButton", DECLINE_BUTTON);
+    getProperty().put("operationPermissionOnlyList", Arrays.asList(ACCEPT_DECLINE));
+  }},
+  DECLINE_HOLDED {{
+    getProperty().put("actionTypeButton", DECLINE_HOLDED_BUTTON);
+    getProperty().put("availableForHolderOnly", true);
+    getProperty().put("operationPermissionOnlyList", Arrays.asList(ACCEPT_DECLINE));
+  }},
   PUT_FOR_MANUAL,
   PUT_FOR_AUTO,
   PUT_FOR_CONFIRM,
   HOLD_TO_POST,
-  POST_AUTO,
-  POST_HOLDED(POST_HOLDED_BUTTON, true, ACCEPT_DECLINE),
-  TAKE_TO_WORK(TAKE_TO_WORK_BUTTON, false, ACCEPT_DECLINE),
-  RETURN_FROM_WORK(RETURN_FROM_WORK_BUTTON, true, ACCEPT_DECLINE);
+  POST_AUTO {{
+    getProperty().put("leadsToSuccessFinalState", true);
+  }},
+  POST_HOLDED {{
+    getProperty().put("actionTypeButton", POST_HOLDED_BUTTON);
+    getProperty().put("availableForHolderOnly", true);
+    getProperty().put("operationPermissionOnlyList", Arrays.asList(ACCEPT_DECLINE));
+    getProperty().put("leadsToSuccessFinalState", true);
+  }},
+  TAKE_TO_WORK {{
+    getProperty().put("actionTypeButton", TAKE_TO_WORK_BUTTON);
+    getProperty().put("operationPermissionOnlyList", Arrays.asList(ACCEPT_DECLINE));
+  }},
+  RETURN_FROM_WORK {{
+    getProperty().put("actionTypeButton", RETURN_FROM_WORK_BUTTON);
+    getProperty().put("availableForHolderOnly", true);
+    getProperty().put("operationPermissionOnlyList", Arrays.asList(ACCEPT_DECLINE));
+  }};
 
-  private InvoiceActionTypeButtonEnum actionTypeButton = null;
-  private Boolean availableForHolderOnly = false;
-  private List<InvoiceOperationPermission> operationPermissionOnlyList = null;
+  private Map<String, Object> property = new HashMap<String, Object>() {{
+    put("actionTypeButton", null);
+    put("availableForHolderOnly", false);
+    put("operationPermissionOnlyList", null);
+    put("leadsToSuccessFinalState", false);
+  }};
 
-  InvoiceActionTypeEnum(InvoiceActionTypeButtonEnum actionTypeButton) {
-    this.actionTypeButton = actionTypeButton;
-  }
-
-  InvoiceActionTypeEnum(InvoiceActionTypeButtonEnum actionTypeButton, Boolean availableForHolderOnly, InvoiceOperationPermission ... operationPermissions) {
-    this(actionTypeButton);
-    this.availableForHolderOnly = availableForHolderOnly;
-    this.operationPermissionOnlyList = Arrays.asList(operationPermissions);
+  public Map<String, Object> getProperty() {
+    return property;
   }
 
   public InvoiceActionTypeButtonEnum getActionTypeButton() {
-    return actionTypeButton;
+    return (InvoiceActionTypeButtonEnum) property.get("actionTypeButton");
   }
 
   public Boolean isAvailableForHolderOnly() {
-    return availableForHolderOnly;
+    return (Boolean) property.get("availableForHolderOnly");
   }
 
   public List<InvoiceOperationPermission> getOperationPermissionOnlyList() {
-    return operationPermissionOnlyList;
+    return (List<InvoiceOperationPermission>) property.get("operationPermissionOnlyList");
+  }
+
+  public Boolean isLeadsToSuccessFinalState() {
+    return (Boolean) property.get("leadsToSuccessFinalState");
   }
 
   public static InvoiceActionTypeEnum convert(String name) {

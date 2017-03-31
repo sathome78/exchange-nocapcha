@@ -77,5 +77,6 @@ public interface TransactionService {
 
   boolean setStatusById(Integer trasactionId, Integer statusId);
 
-    List<String> getCSVTransactionsHistory(int id, String startDate, String endDate, Locale locale);
+  List<String> getCSVTransactionsHistory(int id, String startDate, String endDate, Locale locale);
+
 }

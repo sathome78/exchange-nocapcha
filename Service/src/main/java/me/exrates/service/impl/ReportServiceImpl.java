@@ -1,7 +1,6 @@
 package me.exrates.service.impl;
 
 import me.exrates.model.dto.*;
-import me.exrates.model.enums.BusinessUserRoleEnum;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.service.*;
@@ -122,6 +121,30 @@ public class ReportServiceImpl implements ReportService {
     }
     return result.stream()
         .sorted((a, b) -> a.getCreationDate().compareTo(b.getCreationDate()))
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<SummaryInOutReportDto> getUsersSummaryInOutList(
+      String requesterUserEmail,
+      String startDate,
+      String endDate,
+      String businessRole,
+      List<String> currencyList) {
+    List<InvoiceReportDto> result = getInvoiceReport(
+        requesterUserEmail,
+        startDate,
+        endDate,
+        businessRole,
+        "ANY",
+        currencyList
+    )
+        .stream()
+        .filter(e -> e.getStatusEnum() == null ? "PROVIDED".equals(e.getStatus()) : e.getStatusEnum().isSuccessEndStatus())
+        .collect(Collectors.toList());
+    return result.stream()
+        .map(SummaryInOutReportDto::new)
         .collect(Collectors.toList());
   }
 }

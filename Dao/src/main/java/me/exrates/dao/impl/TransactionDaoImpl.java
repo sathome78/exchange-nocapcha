@@ -1,10 +1,8 @@
 package me.exrates.dao.impl;
 
-import lombok.extern.log4j.Log4j;
 import me.exrates.dao.TransactionDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
-import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.dto.TransactionFlatForReportDto;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.enums.*;
@@ -29,9 +27,6 @@ import java.util.*;
 
 import static java.util.Collections.singletonMap;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Repository
 public final class TransactionDaoImpl implements TransactionDao {
 
@@ -648,7 +643,7 @@ public final class TransactionDaoImpl implements TransactionDao {
       List<Integer> currencyList,
       List<String> sourceTypeList) {
     String sql = "SELECT  " +
-        "         USER.email AS user_email, " +
+        "         USER.email AS user_email, USER.nickname AS nickname, " +
         "         TX.id AS transaction_id, TX.amount, TX.commission_amount, TX.datetime, " +
         "         TX.operation_type_id, TX.provided, TX.confirmation, TX.operation_type_id, " +
         "         TX.source_type, " +
@@ -682,6 +677,7 @@ public final class TransactionDaoImpl implements TransactionDao {
         TransactionFlatForReportDto transactionFlatForReportDto = new TransactionFlatForReportDto();
         transactionFlatForReportDto.setTransactionId(rs.getInt("transaction_id"));
         transactionFlatForReportDto.setMerchant(rs.getString("merchant_name"));
+        transactionFlatForReportDto.setUserNickname(rs.getString("nickname"));
         transactionFlatForReportDto.setUserEmail(rs.getString("user_email"));
         transactionFlatForReportDto.setAmount(rs.getBigDecimal("amount"));
         transactionFlatForReportDto.setCommissionAmount(rs.getBigDecimal("commission_amount"));
@@ -727,5 +723,6 @@ public final class TransactionDaoImpl implements TransactionDao {
     LOGGER.debug(selectLimitedAllSql);
     return jdbcTemplate.query(selectLimitedAllSql, params, transactionRowMapper);
   }
+
 
 }
