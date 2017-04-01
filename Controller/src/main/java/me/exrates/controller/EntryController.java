@@ -2,14 +2,13 @@ package me.exrates.controller;
 
 import me.exrates.controller.exception.*;
 import me.exrates.controller.listener.StoreSessionListener;
-import me.exrates.model.News;
-import me.exrates.model.NotificationOption;
-import me.exrates.model.User;
-import me.exrates.model.UserFile;
+import me.exrates.model.*;
 import me.exrates.model.dto.OrderCreateDto;
+import me.exrates.model.enums.SessionLifeTypeEnum;
 import me.exrates.model.form.NotificationOptionsForm;
 import me.exrates.service.NewsService;
 import me.exrates.service.NotificationService;
+import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -61,6 +60,8 @@ public class EntryController {
     private NewsService newsService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private SessionParamsService sessionService;
 
     @Autowired
     private NotificationService notificationService;
@@ -127,7 +128,8 @@ public class EntryController {
         mav.addObject("errorNoty", map != null ? map.get("msg") : msg);
         mav.addObject("userFiles", userFile);
         mav.addObject("notificationOptionsForm", notificationOptionsForm);
-
+        mav.addObject("sessionSettings", sessionService.getByEmailOrDefault(user.getEmail()));
+        mav.addObject("sessionLifeTimeTypes", sessionService.getAllByActive(true));
         return mav;
     }
 
@@ -145,6 +147,30 @@ public class EntryController {
         }
 
         notificationService.updateUserNotifications(notificationOptions);
+        return redirectView;
+    }
+
+    @RequestMapping("/settings/sessionOptions/submit")
+    public RedirectView submitNotificationOptions(@ModelAttribute SessionParams sessionParams, RedirectAttributes redirectAttributes,
+                                                  HttpServletRequest request, Principal principal) {
+        RedirectView redirectView = new RedirectView("/settings");
+        LOGGER.error("sessionParams " + sessionParams.toString());
+        if (!sessionService.isSessionLifeTypeIdValid(sessionParams.getSessionLifeTypeId())) {
+            sessionParams.setSessionLifeTypeId(SessionLifeTypeEnum.INACTIVE_COUNT_LIFETIME.getTypeId());
+        }
+        if (sessionService.isSessionTimeValid(sessionParams.getSessionTimeMinutes())) {
+            try {
+                sessionService.saveOrUpdate(sessionParams, principal.getName());
+                redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("session.settings.success.relogin", null,
+                        localeResolver.resolveLocale(request)));
+            } catch (Exception e) {
+                redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("session.settings.invalid", null,
+                        localeResolver.resolveLocale(request)));
+            }
+        } else {
+            redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("session.settings.time.invalid", null,
+                    localeResolver.resolveLocale(request)));
+        }
         return redirectView;
     }
 

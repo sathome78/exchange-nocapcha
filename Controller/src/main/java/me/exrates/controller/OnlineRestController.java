@@ -186,7 +186,7 @@ public class OnlineRestController {
     long before = System.currentTimeMillis();
     long beforeService = 0;
     try {
-      HttpSession session = request.getSession(true);
+      HttpSession session = request.getSession();
      /* if (session.getAttribute("sessionEndTime") == null) {
         session.setAttribute("sessionEndTime", new Date().getTime() + SESSION_LIFETIME_HARD * 1000);
       }

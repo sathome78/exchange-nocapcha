@@ -9,16 +9,16 @@ import lombok.Data;
 @Data
 public class SessionParams {
 
-    private int id;
-    private int userId;
-    private int sessionTimeSeconds;
+    private Integer id;
+    private Integer userId;
+    private int sessionTimeMinutes;
     private int sessionLifeTypeId;
 
     public SessionParams() {
     }
 
-    public SessionParams(int sessionTimeSeconds, int sessionLifeType) {
-        this.sessionTimeSeconds = sessionTimeSeconds;
+    public SessionParams(int sessionTimeMinutes, int sessionLifeType) {
+        this.sessionTimeMinutes = sessionTimeMinutes;
         this.sessionLifeTypeId = sessionLifeType;
     }
 }

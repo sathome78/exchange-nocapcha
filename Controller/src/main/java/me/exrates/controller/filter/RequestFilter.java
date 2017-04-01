@@ -15,7 +15,6 @@ import java.util.Set;
  * Created by Valk on 18.07.2016.
  */
 
-@Deprecated
 public class RequestFilter implements Filter {
     private static final Logger LOGGER = LogManager.getLogger(RequestFilter.class);
 

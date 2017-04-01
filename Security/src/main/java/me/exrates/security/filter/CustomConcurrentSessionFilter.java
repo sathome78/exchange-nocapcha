@@ -2,6 +2,7 @@ package me.exrates.security.filter;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.enums.SessionLifeTypeEnum;
+import me.exrates.security.redirectStrategy.SessionExpiredRedirectStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
@@ -36,13 +37,11 @@ import java.util.Set;
 @PropertySource("classpath:session.properties")
 public class CustomConcurrentSessionFilter extends GenericFilterBean {
 
-    @Autowired
-    private MessageSource messageSource;
 
     private SessionRegistry sessionRegistry;
     private String expiredUrl;
     private LogoutHandler[] handlers = new LogoutHandler[] { new SecurityContextLogoutHandler() };
-    private RedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
+    private RedirectStrategy redirectStrategy = new SessionExpiredRedirectStrategy();
 
     private Set<String> onlineMethods = new HashSet<>();
     private /* @Value("${session.lifeTypeParamName}")*/ String sessionLifeTimeParamName = "sessionLifeTypeId";
@@ -53,7 +52,7 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
 
     public CustomConcurrentSessionFilter(SessionRegistry sessionRegistry) {
         Assert.notNull(sessionRegistry, "SessionRegistry required");
-        this.expiredUrl = "/dashboard";/*todo: need to specify message*/
+        this.expiredUrl = "/helodashboard?errorNoty=seessionEnd";/*todo: need to specify message*/
         this.sessionRegistry = sessionRegistry;
     }
 
@@ -70,11 +69,9 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
         HttpServletResponse response = (HttpServletResponse) res;
         HttpSession session = request.getSession(false);
         if (session != null) {
-            logger.error("session interval " + session.getMaxInactiveInterval());
             SessionInformation info = sessionRegistry.getSessionInformation(session
                     .getId());
             if (info != null) {
-                logger.error("session info " + info.getLastRequest() + " " + info.isExpired());
                 if (info.isExpired()) {
                     // Expired - abort processing
                     doLogout(request, response);
