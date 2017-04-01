@@ -74,7 +74,15 @@ public class UnsafeController {
 
     @RequestMapping(value = "unsafe/EthereumStart")
     @ResponseBody
-    public void ethereumStart() {
-        ethereumService.start();
+    public ResponseEntity<String> ethereumStart() {
+        try {
+            LOGGER.info("STARTING ETHEREUM TEST");
+            ethereumService.start();
+            return new ResponseEntity<>("TEST OK", HttpStatus.OK);
+        }catch (Exception e){
+            LOGGER.error(e);
+            return new ResponseEntity<>(e.toString(), HttpStatus.BAD_REQUEST);
+        }
+
     }
 }

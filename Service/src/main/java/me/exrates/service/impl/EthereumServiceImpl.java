@@ -2,18 +2,12 @@ package me.exrates.service.impl;
 
 import me.exrates.service.EthereumService;
 import org.springframework.stereotype.Service;
-import org.web3j.crypto.CipherException;
-import org.web3j.crypto.WalletUtils;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.methods.response.Web3ClientVersion;
 import org.web3j.protocol.http.HttpService;
+import rx.Subscription;
 
-import java.io.File;
-import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by ajet on 28.03.2017.
@@ -23,42 +17,29 @@ import java.util.concurrent.ExecutionException;
 public class EthereumServiceImpl implements EthereumService{
 
     @Override
-    public void start() {
+    public void start() throws Exception {
 
         Web3j web3 = Web3j.build(new HttpService());  // defaults to http://localhost:8545/
         Web3ClientVersion web3ClientVersion = null;
-        try {
-            web3ClientVersion = web3.web3ClientVersion().sendAsync().get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
+        web3ClientVersion = web3.web3ClientVersion().sendAsync().get();
         String clientVersion = web3ClientVersion.getWeb3ClientVersion();
 
+        Subscription subscription = web3.blockObservable(false).subscribe(block -> {
+            System.out.println("Sweet, block number " + block.getBlock().getNumber() + " has just been created");
+        }, Throwable::printStackTrace);
 
-        String password = "12345";
+        TimeUnit.MINUTES.sleep(2);
+        subscription.unsubscribe();
+
+
+
+//        String password = "12345";
 //        String destinationDir = "C:\\Etherum1\\keystore";
-        String destinationDir = "//data//Etherum//keystore";
-        File destination = new File(destinationDir);
-
-        String fileName = "";
-        try {
-            fileName = WalletUtils.generateLightNewWalletFile(password, destination);
-
-        } catch (CipherException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InvalidAlgorithmParameterException e) {
-            e.printStackTrace();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (NoSuchProviderException e) {
-            e.printStackTrace();
-        }
-
-        System.out.println(fileName);
+////        String destinationDir = "//data//ethereum//keystore";
+//        File destination = new File(destinationDir);
+//
+//        String fileName = "";
+//        fileName = WalletUtils.generateLightNewWalletFile(password, destination);
 
     }
 }
