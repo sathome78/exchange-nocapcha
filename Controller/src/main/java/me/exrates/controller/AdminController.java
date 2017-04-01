@@ -789,18 +789,6 @@ public class AdminController {
                 .collect(Collectors.joining());
   }
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/downloadUsersWalletsSummaryInOut", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
-  @ResponseBody
-  public String getUsersWalletsSummeryInOut(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
-    String value = UserSummaryInOutDto.getTitle() +
-        userService.getUsersSummaryInOutList(startDate, endDate, userRoleService.getRealUserRoleIdByBusinessRoleList(role))
-            .stream()
-            .map(e -> e.toString())
-            .collect(Collectors.joining());
-
-    return value;
-  }
-
   @RequestMapping(value = "/2a8fy7b07dxe44/downloadUserSummaryOrders", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
   @ResponseBody
   public String getUserSummaryOrders(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
@@ -844,18 +832,6 @@ public class AdminController {
 
     String value = "Orders by currency pairs from" + startDate.substring(0, 10) + " till " + endDate.substring(0, 10) + ": \n \n" + UserSummaryOrdersByCurrencyPairsDto.getTitle() +
         list.stream()
-            .map(e -> e.toString())
-            .collect(Collectors.joining());
-
-    return value;
-  }
-
-  @RequestMapping(value = "/2a8fy7b07dxe44/downloadUsersWalletsSummaryTotalInOut", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
-  @ResponseBody
-  public String getUsersWalletsSummeryTotalInOut(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
-    String value = UserSummaryTotalInOutDto.getTitle() +
-        userService.getUsersSummaryTotalInOutList(startDate, endDate, userRoleService.getRealUserRoleIdByBusinessRoleList(role))
-            .stream()
             .map(e -> e.toString())
             .collect(Collectors.joining());
 

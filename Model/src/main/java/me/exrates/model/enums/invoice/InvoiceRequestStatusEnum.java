@@ -190,6 +190,18 @@ public enum InvoiceRequestStatusEnum implements InvoiceStatus {
     return schemaMap.isEmpty();
   }
 
+  @Override
+  public Boolean isSuccessEndStatus() {
+    Map<InvoiceActionTypeEnum, InvoiceStatus> schema = new HashMap<>();
+    Arrays.stream(InvoiceRequestStatusEnum.class.getEnumConstants())
+        .forEach(e -> schema.putAll(e.schemaMap));
+    return schema.entrySet().stream()
+        .filter(e -> e.getValue() == this)
+        .filter(e -> e.getKey().isLeadsToSuccessFinalState())
+        .findAny()
+        .isPresent();
+  }
+
   private static Set<InvoiceStatus> collectAllSchemaMapNodesSet() {
     Set<InvoiceStatus> result = new HashSet<>();
     Arrays.stream(InvoiceRequestStatusEnum.class.getEnumConstants())

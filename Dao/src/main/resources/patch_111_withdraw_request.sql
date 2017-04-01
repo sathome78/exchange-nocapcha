@@ -27,8 +27,6 @@ INSERT INTO USER_COMMENT_TOPIC (topic) VALUES ('WITHDRAW_DECLINE');
 INSERT INTO USER_COMMENT_TOPIC (topic) VALUES ('WITHDRAW_POSTED');
 
 INSERT INTO PHRASE_TEMPLATE (template, topic_id) VALUES ('withdrawal.phrases.decline.1', 4);
-INSERT INTO PHRASE_TEMPLATE (template, topic_id) VALUES ('withdrawal.phrases.decline.2', 4);
-INSERT INTO PHRASE_TEMPLATE (template, topic_id) VALUES ('withdrawal.phrases.decline.3', 4);
 
 ALTER TABLE TRANSACTION
 	ADD COLUMN description VARCHAR(100) NULL;

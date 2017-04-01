@@ -108,7 +108,7 @@ public enum PendingPaymentStatusEnum implements InvoiceStatus {
           throw new AuthorisedUserIsHolderParamNeededForThisStatusException(action.name());
         });
     schemaMap.keySet().stream()
-        .filter(e->e.getOperationPermissionOnlyList() != null)
+        .filter(e -> e.getOperationPermissionOnlyList() != null)
         .findAny()
         .ifPresent(action -> {
           throw new PermittedOperationParamNeededForThisStatusException(action.name());
@@ -119,7 +119,7 @@ public enum PendingPaymentStatusEnum implements InvoiceStatus {
   public Set<InvoiceActionTypeEnum> getAvailableActionList(Boolean authorisedUserIsHolder, InvoiceOperationPermission permittedOperation) {
     return schemaMap.keySet().stream()
         .filter(e -> (!e.isAvailableForHolderOnly() || authorisedUserIsHolder) &&
-            (e.getOperationPermissionOnlyList()==null || e.getOperationPermissionOnlyList().contains(permittedOperation)))
+            (e.getOperationPermissionOnlyList() == null || e.getOperationPermissionOnlyList().contains(permittedOperation)))
         .collect(Collectors.toSet());
   }
 
@@ -173,11 +173,11 @@ public enum PendingPaymentStatusEnum implements InvoiceStatus {
             .filter(e -> e.availableForAction(action))
             .map(e -> e.nextState(action))
             .collect(Collectors.toList()));
-    if (statusSet.size()==0) {
+    if (statusSet.size() == 0) {
       log.fatal("no state found !");
       throw new AssertionError();
     }
-    if (statusSet.size()>1) {
+    if (statusSet.size() > 1) {
       log.fatal("more then one state found !");
       throw new AssertionError();
     }
@@ -187,6 +187,18 @@ public enum PendingPaymentStatusEnum implements InvoiceStatus {
   @Override
   public Boolean isEndStatus() {
     return schemaMap.isEmpty();
+  }
+
+  @Override
+  public Boolean isSuccessEndStatus() {
+    Map<InvoiceActionTypeEnum, InvoiceStatus> schema = new HashMap<>();
+    Arrays.stream(PendingPaymentStatusEnum.class.getEnumConstants())
+        .forEach(e -> schema.putAll(e.schemaMap));
+    return schema.entrySet().stream()
+        .filter(e -> e.getValue() == this)
+        .filter(e -> e.getKey().isLeadsToSuccessFinalState())
+        .findAny()
+        .isPresent();
   }
 
   private static Set<InvoiceStatus> collectAllSchemaMapNodesSet() {
@@ -206,7 +218,7 @@ public enum PendingPaymentStatusEnum implements InvoiceStatus {
   public Integer getCode() {
     return code;
   }
-  
+
   public static Set<InvoiceStatus> getAcceptedStatesSet() {
     return Stream.of(ACCEPTED_AUTO, ACCEPTED_ADMIN).collect(Collectors.toSet());
   }

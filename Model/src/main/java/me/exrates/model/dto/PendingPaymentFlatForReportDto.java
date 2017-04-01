@@ -20,7 +20,9 @@ public class PendingPaymentFlatForReportDto {
   private LocalDateTime statusUpdateDate;
   private LocalDateTime acceptanceTime;
   private String hash;
+  private String merchant;
 
+  private String userNickname;
   private String userEmail;
   private String acceptanceUserEmail;
 

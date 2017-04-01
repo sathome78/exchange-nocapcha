@@ -38,6 +38,8 @@ public interface InvoiceStatus {
 
   Boolean isEndStatus();
 
+  Boolean isSuccessEndStatus();
+
   Integer getCode();
 
   String name();
