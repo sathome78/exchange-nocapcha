@@ -115,7 +115,11 @@
       <artifactId>btcd-cli4j-daemon</artifactId>
       <version>${btcd-cli4j.version}</version>
     </dependency>
-
+    <dependency>
+      <groupId>org.web3j</groupId>
+      <artifactId>core</artifactId>
+      <version>2.1.0</version>
+    </dependency>
   </dependencies>
   <repositories>
     <repository>

@@ -2,6 +2,7 @@ package me.exrates.controller;
 
 import me.exrates.controller.handler.EDCClientWebSocketHandler;
 import me.exrates.service.EDCService;
+import me.exrates.service.EthereumService;
 import me.exrates.service.impl.bitcoinWallet.TempBtcCoreService;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -22,13 +23,15 @@ public class UnsafeController {
     private final EDCClientWebSocketHandler blockchainEDC;
     private final EDCService edcService;
     private final TempBtcCoreService tempBtcCoreService;
+    private final EthereumService ethereumService;
 
     private static final Logger LOGGER = LogManager.getLogger(UnsafeController.class);
 
     @Autowired
-    public UnsafeController(final EDCClientWebSocketHandler blockchainEDC, final EDCService edcService) {
+    public UnsafeController(final EDCClientWebSocketHandler blockchainEDC, final EDCService edcService, EthereumService ethereumService) {
         this.blockchainEDC = blockchainEDC;
         this.edcService = edcService;
+        this.ethereumService = ethereumService;
         this.tempBtcCoreService = new TempBtcCoreService();
     }
 
@@ -69,4 +72,9 @@ public class UnsafeController {
         tempBtcCoreService.getInfo();
     }
 
+    @RequestMapping(value = "unsafe/EthereumStart")
+    @ResponseBody
+    public void ethereumStart() {
+        ethereumService.start();
+    }
 }
