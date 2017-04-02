@@ -98,15 +98,6 @@ function InputOutputClass(currentCurrencyPair) {
             e.preventDefault();
             that.getAndShowInputOutputData(true, null, 'FORWARD');
         });
-        /*$('#inputoutput-table').on('click', '#revokeInvoiceButton', function (e) {
-            e.preventDefault();
-            var $form = $(this).parents('#inputoutput-center-tableBody__form');
-            var $action = $form.find('input[name=action]');
-            $action.attr("value", "revoke");
-            var $sourceType = $form.find('input[name=sourceType]');
-            $sourceType.attr("value", "INVOICE");
-            $form[0].submit();
-        });*/
         $('#inputoutput-table').on('click', '#revokeBtcInvoiceButton', function (e) {
             e.preventDefault();
             var $form = $(this).parents('#inputoutput-center-tableBody__form');
