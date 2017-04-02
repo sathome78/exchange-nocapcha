@@ -98,7 +98,7 @@ function InputOutputClass(currentCurrencyPair) {
             e.preventDefault();
             that.getAndShowInputOutputData(true, null, 'FORWARD');
         });
-        $('#inputoutput-table').on('click', '#revokeInvoiceButton', function (e) {
+        /*$('#inputoutput-table').on('click', '#revokeInvoiceButton', function (e) {
             e.preventDefault();
             var $form = $(this).parents('#inputoutput-center-tableBody__form');
             var $action = $form.find('input[name=action]');
@@ -106,7 +106,7 @@ function InputOutputClass(currentCurrencyPair) {
             var $sourceType = $form.find('input[name=sourceType]');
             $sourceType.attr("value", "INVOICE");
             $form[0].submit();
-        });
+        });*/
         $('#inputoutput-table').on('click', '#revokeBtcInvoiceButton', function (e) {
             e.preventDefault();
             var $form = $(this).parents('#inputoutput-center-tableBody__form');
@@ -176,6 +176,34 @@ function InputOutputClass(currentCurrencyPair) {
                 });
             });
             $modal.modal();
+        });
+
+        $('#inputoutput-table').on('click', 'button[data-source=INVOICE].revoke_button', function (e) {
+            e.preventDefault();
+            var $form = $(this).parents('#inputoutput-center-tableBody__form');
+            $form.attr("action", "/merchants/invoice/payment/confirmation");
+            var $action = $form.find('input[name=action]');
+            $action.attr("value", "revoke");
+            var $id = $form.find('input[name=transactionId]');
+            var id = $(this).data("id");
+            $id.attr("value", id);
+            var $sourceType = $form.find('input[name=sourceType]');
+            $sourceType.attr("value", "INVOICE");
+            $form[0].submit();
+        });
+
+        $('#inputoutput-table').on('click', 'button[data-source=INVOICE].confirm_user_button', function (e) {
+            e.preventDefault();
+            var $form = $(this).parents('#inputoutput-center-tableBody__form');
+            $form.attr("action", "/merchants/invoice/payment/confirmation");
+            var $action = $form.find('input[name=action]');
+            $action.attr("value", "confirm");
+            var $id = $form.find('input[name=transactionId]');
+            var id = $(this).data("id");
+            $id.attr("value", id);
+            var $sourceType = $form.find('input[name=sourceType]');
+            $sourceType.attr("value", "INVOICE");
+            $form[0].submit();
         });
 
     })(currentCurrencyPair);

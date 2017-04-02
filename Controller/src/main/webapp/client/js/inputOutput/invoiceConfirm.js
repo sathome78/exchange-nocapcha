@@ -53,7 +53,7 @@ $(function () {
         $(this).prop('disabled', true);
         var $form = $(this).parents('#confirmationForm');
         var $action = $form.find('input[name=action]');
-        $action.attr("value", "CONFIRM");
+        $action.attr("value", "CONFIRM_USER");
         $form[0].submit();
     });
 
