@@ -12,7 +12,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.util.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
@@ -43,7 +45,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
  *
  * @author ValkSam
  */
-
+@PropertySource("classpath:session.properties")
 @RestController
 public class OnlineRestController {
   private static final Logger LOGGER = LogManager.getLogger(OnlineRestController.class);
@@ -66,6 +68,11 @@ public class OnlineRestController {
   /*default type of the chart*/
   final public static ChartType CHART_TYPE_DEFAULT = ChartType.STOCK;
   /*it's need to install only one: SESSION_LIFETIME_HARD or SESSION_LIFETIME_INACTIVE*/
+
+  private @Value("${session.timeParamName}") String sessionTimeMinutes;
+  private static final int SECONDS_IN_MINUTE = 60;
+  private static final int MILLIS_IN_SECOND = 1000;
+
   @Autowired
   CommissionService commissionService;
 
@@ -210,11 +217,11 @@ public class OnlineRestController {
         LOGGER.debug(" SESSION_LIFETIME_HARD. NEW SESSION STARTED: " + session.getId() + " by time: " + st + " new time: " + session.getAttribute("sessionEndTime"));
       }*/
      /* if (session.isNew() || session.getAttribute("firstEntry") == null) {
-            *//*
+
             "session.isNew() == true" indicates that "/dashboard/currencyPairStatistic" is called first after previous
             session has expired, and opened new session (by calling request.getSession(true))
             "firstEntry" == null indicates that new session was started by other online method
-            * and "/dashboard/currencyPairStatistic" ought to start new session and redirect to "/dashboard"*//*
+            * and "/dashboard/currencyPairStatistic" ought to start new session and redirect to "/dashboard"
         session.setAttribute("sessionEndTime", new Date().getTime() + SESSION_LIFETIME_HARD * 1000);
         LOGGER.debug(" REDIRECT to /dashboard. SESSION: " + session.getId() + " is new: " + session.isNew() + " firstEntry: " + session.getAttribute("firstEntry"));
         return new HashMap<String, HashMap<String, String>>() {{
@@ -224,7 +231,19 @@ public class OnlineRestController {
           }});
         }};
       }*/
-
+     if (isSessionTimeOut(session)) {
+       try {
+         request.logout();
+       } catch (ServletException e) {
+         e.printStackTrace();
+       }
+       return new HashMap<String, HashMap<String, String>>() {{
+         put("redirect", new HashMap<String, String>() {{
+           put("url", "/dashboard");
+           put("urlParam1", messageSource.getMessage("session.expire", null, localeResolver.resolveLocale(request)));
+         }});
+       }};
+     }
       if (session.getAttribute("QR_LOGGED_IN") != null) {
             /*after authentication via QR main page must be reloaded*/
         session.removeAttribute("QR_LOGGED_IN");
@@ -251,6 +270,15 @@ public class OnlineRestController {
       long after = System.currentTimeMillis();
       LOGGER.debug("completed... ms: general: " + (after - before) + " service only: " + (after - beforeService));
     }
+  }
+
+  private boolean isSessionTimeOut(HttpSession session) {
+    Integer sessionLifeTime = (int)session.getAttribute(sessionTimeMinutes);
+    LOGGER.error("last accTime " + session.getLastAccessedTime() +
+            " lifetime " + sessionLifeTime +
+            " system " + System.currentTimeMillis());
+    return session.getLastAccessedTime() + sessionLifeTime * SECONDS_IN_MINUTE  *
+            MILLIS_IN_SECOND <= System.currentTimeMillis();
   }
 
   /**

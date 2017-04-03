@@ -24,6 +24,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.session.ConcurrentSessionFilter;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.security.web.session.SimpleRedirectInvalidSessionStrategy;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
@@ -113,7 +115,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   public CustomConcurrentSessionFilter customConcurrentSessionFilter() {
     return new CustomConcurrentSessionFilter(sessionRegistry());
   }
-
 
   @Autowired
   public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
@@ -243,7 +244,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .sessionAuthenticationStrategy(new NullAuthenticatedSessionStrategy())
         .maximumSessions(MAXIMUM_SESSIONS)
         .sessionRegistry(sessionRegistry())
-        .expiredUrl("/dashboard")
         .maxSessionsPreventsLogin(false);
 
     //init and configure methods are required to instantiate the composite SessionAuthenticationStrategy, which is later passed to custom auth filter

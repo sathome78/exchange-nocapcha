@@ -8,6 +8,7 @@ import me.exrates.model.enums.SessionLifeTypeEnum;
 import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.core.Authentication;
@@ -30,8 +31,7 @@ import java.util.stream.Collectors;
 @PropertySource("classpath:session.properties")
 public class SessionParamsServiceImpl implements SessionParamsService {
 
-    private  /*@Value("${session.default_session_lifetime_minutes}") */int defaultSessionLifetimeMinutes = 20;
-    private /* @Value("${session.lifeTypeParamName}")*/ String sessionLifeTimeParamName = "sessionLifeTypeId";
+    private  @Value("${session.default_session_lifetime_minutes}") int defaultSessionLifetimeMinutes;
     private static final int MIN_SESSION_TIME_MINUTES = 5;
     private static final int MAX_SESSION_TIME_MINUTES = 1440;
 
@@ -53,7 +53,7 @@ public class SessionParamsServiceImpl implements SessionParamsService {
     @Override
     public SessionParams getByEmailOrDefault(String email) {
         SessionParams params = this.getByUserEmail(email);
-        log.error("params {}", params);
+        log.error("params in service {}", params);
         return params == null ? getDefaultSessionPararms() : params;
     }
 
@@ -74,9 +74,11 @@ public class SessionParamsServiceImpl implements SessionParamsService {
 
     @Override
     public SessionParams determineSessionParams() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null) {
-            return this.getByEmailOrDefault(authentication.getName());
+        log.warn("trying to detrmine params");
+        Principal principal = SecurityContextHolder.getContext().getAuthentication();
+        log.warn("authentication ", principal);
+        if (principal != null) {
+            return this.getByEmailOrDefault(principal.getName());
         } else {
             return this.getDefaultSessionPararms();
         }

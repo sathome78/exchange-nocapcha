@@ -1,10 +1,7 @@
 package me.exrates.security.filter;
 
-import lombok.extern.log4j.Log4j2;
 import me.exrates.model.enums.SessionLifeTypeEnum;
-import me.exrates.security.redirectStrategy.SessionExpiredRedirectStrategy;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,7 +12,6 @@ import org.springframework.security.web.RedirectStrategy;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.util.UrlUtils;
-import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.web.filter.GenericFilterBean;
 
@@ -33,7 +29,7 @@ import java.util.Set;
 /**
  * Created from ConcurrentSessionFilter by maks on 31.03.2017.
  */
-@Component
+
 @PropertySource("classpath:session.properties")
 public class CustomConcurrentSessionFilter extends GenericFilterBean {
 
@@ -41,10 +37,11 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
     private SessionRegistry sessionRegistry;
     private String expiredUrl;
     private LogoutHandler[] handlers = new LogoutHandler[] { new SecurityContextLogoutHandler() };
-    private RedirectStrategy redirectStrategy = new SessionExpiredRedirectStrategy();
+    private RedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
 
     private Set<String> onlineMethods = new HashSet<>();
-    private /* @Value("${session.lifeTypeParamName}")*/ String sessionLifeTimeParamName = "sessionLifeTypeId";
+    private  @Value("${session.lifeTypeParamName}") String sessionLifeTypeParamName;
+
 
 
     // ~ Methods
@@ -52,7 +49,7 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
 
     public CustomConcurrentSessionFilter(SessionRegistry sessionRegistry) {
         Assert.notNull(sessionRegistry, "SessionRegistry required");
-        this.expiredUrl = "/helodashboard?errorNoty=seessionEnd";/*todo: need to specify message*/
+        this.expiredUrl = "/dashboard";
         this.sessionRegistry = sessionRegistry;
     }
 
@@ -74,13 +71,16 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
             if (info != null) {
                 if (info.isExpired()) {
                     // Expired - abort processing
+                    logger.error("do logout");
                     doLogout(request, response);
                     String targetUrl = determineExpiredUrl(request, info);
                     if (targetUrl != null) {
+                        logger.error("do logout, sending redirect");
                         redirectStrategy.sendRedirect(request, response, targetUrl);
                         return;
                     }
                     else {
+                        logger.error("do logout, no redirect");
                         response.getWriter().print(
                                 "This session has been expired (possibly due to multiple concurrent "
                                         + "logins being attempted as the same user).");
@@ -102,7 +102,7 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
     private boolean isRefreshNeeded(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         SessionLifeTypeEnum sessionLifeTypeEnum = SessionLifeTypeEnum
-                .convert((int)session.getAttribute(sessionLifeTimeParamName));
+                .convert((int)session.getAttribute(sessionLifeTypeParamName));
         if (sessionLifeTypeEnum.isRefreshOnUserRequests() && isPathForSessionRefresh(request)) {
             logger.error("refresh session " + request.getServletPath() + " " + session.getLastAccessedTime());
             return true;
@@ -154,4 +154,5 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
     public void setRedirectStrategy(RedirectStrategy redirectStrategy) {
         this.redirectStrategy = redirectStrategy;
     }
+
 }
