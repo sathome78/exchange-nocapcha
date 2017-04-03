@@ -776,4 +776,74 @@ public class WalletDaoImpl implements WalletDao {
         jdbcTemplate.update(sql, params);
     }
 
+    @Override
+    public List<UserWalletSummaryDto> getUsersWalletsSummaryNew(Integer requesterUserId) {
+        String sql = "SELECT " +
+            "   role_id, currency_id, currency_name, " +
+            "   sum(wallet_count) AS wallet_count, sum(active_balance) AS active_balance, sum(reserved_balance) AS reserved_balance, " +
+            "   sum(merchant_amount_input) AS merchant_amount_input, sum(merchant_amount_output) AS merchant_amount_output" +
+            "  FROM " +
+            "  ( " +
+            "      ( " +
+            "      SELECT USER.roleid AS role_id, CURRENCY.id AS currency_id, CURRENCY.name AS currency_name, 0 AS wallet_count, 0 AS active_balance, 0 AS reserved_balance, SUM(TX.amount) AS merchant_amount_input, 0 AS merchant_amount_output " +
+            "      FROM TRANSACTION TX " +
+            "      JOIN WALLET ON (WALLET.id = TX.user_wallet_id) " +
+            "      JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) AND (CURRENCY.HIDDEN != 1) " +
+            "      JOIN USER ON (USER.ID = WALLET.USER_ID) " +
+            "      WHERE  TX.PROVIDED = 1 " +
+            "      AND TX.status_id=1         " +
+            "      AND TX.source_type IN ('INVOICE', 'BTC_INVOICE', 'MERCHANT')        " +
+            "      AND TX.OPERATION_TYPE_ID = 1 " +
+            "      GROUP BY USER.roleid, CURRENCY.id, CURRENCY.name " +
+            "      ) " +
+            "    UNION " +
+            "      ( " +
+            "      SELECT USER.roleid, CURRENCY.id, CURRENCY.name, 0, 0, 0, 0, SUM(TX.amount) " +
+            "      FROM TRANSACTION TX " +
+            "      JOIN WALLET ON (WALLET.id = TX.user_wallet_id) " +
+            "      JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) AND (CURRENCY.HIDDEN != 1) " +
+            "      JOIN USER ON (USER.ID = WALLET.USER_ID) " +
+            "      WHERE  TX.PROVIDED = 1 " +
+            "      AND TX.status_id=1         " +
+            "      AND TX.source_type IN ('WITHDRAW', 'MERCHANT')        " +
+            "      AND TX.OPERATION_TYPE_ID = 2 " +
+            "      GROUP BY USER.roleid, CURRENCY.id, CURRENCY.name " +
+            "      ) " +
+            "    UNION " +
+            "      ( " +
+            "      SELECT USER.roleid, CURRENCY.id, CURRENCY.name, COUNT(*), SUM(active_balance), SUM(reserved_balance), 0, 0 " +
+            "      FROM WALLET " +
+            "      JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) AND (CURRENCY.hidden != 1) " +
+            "      JOIN USER ON (USER.id = WALLET.user_id) " +
+            "      GROUP BY USER.roleid, CURRENCY.id, CURRENCY.name " +
+            "      ) " +
+            "  ) AGRIGATE " +
+            "  WHERE EXISTS (" +
+            "                   SELECT * " +
+            "                       FROM USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP " +
+            "                       WHERE (IOP.currency_id=AGRIGATE.currency_id " +
+            "                             AND (IOP.user_id = :requester_user_id)) ) " +
+            "  GROUP BY ROLE_ID, CURRENCY_ID, CURRENCY_NAME";
+
+        Map<String, Object> namedParameters = new HashMap<String, Object>(){{
+               put("requester_user_id", requesterUserId);
+            }};
+
+        ArrayList<UserWalletSummaryDto> result = (ArrayList<UserWalletSummaryDto>) jdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<UserWalletSummaryDto>() {
+            @Override
+            public UserWalletSummaryDto mapRow(ResultSet rs, int rowNumber) throws SQLException {
+                UserWalletSummaryDto userWalletSummaryDto = new UserWalletSummaryDto();
+                userWalletSummaryDto.setUserRoleId(rs.getInt("role_id"));
+                userWalletSummaryDto.setCurrencyName(rs.getString("currency_name"));
+                userWalletSummaryDto.setWalletsAmount(rs.getInt("wallet_count"));
+                userWalletSummaryDto.setActiveBalance(rs.getBigDecimal("active_balance"));
+                userWalletSummaryDto.setReservedBalance(rs.getBigDecimal("reserved_balance"));
+                userWalletSummaryDto.setMerchantAmountInput(rs.getBigDecimal("merchant_amount_input"));
+                userWalletSummaryDto.setMerchantAmountOutput(rs.getBigDecimal("merchant_amount_output"));
+                return userWalletSummaryDto;
+            }
+        });
+        return result;
+    }
+
 }
