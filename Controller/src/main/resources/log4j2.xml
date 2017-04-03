@@ -149,7 +149,7 @@
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
         <RollingFile name="exceptions_log" fileName="${sys:catalina.home}/logs/exceptions_log.log"
-                     filePattern="${sys:catalina.home}/logs/job_log%d_%i.log" append="true">
+                     filePattern="${sys:catalina.home}/logs/exceptions_log_%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -274,6 +274,10 @@
             <AppenderRef ref="Console"/>
             <AppenderRef ref="withdraw_log"/>
         </Logger>
+        <logger name="me.exrates.aspect.LoggingAspect" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="exceptions_log"/>
+        </logger>
 
 
         <Root level="DEBUG">
