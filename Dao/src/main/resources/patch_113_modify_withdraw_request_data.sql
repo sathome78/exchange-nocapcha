@@ -133,3 +133,10 @@ UPDATE MERCHANT SET service_bean_name='interkassaServiceImpl' WHERE  id=10;
 UPDATE MERCHANT SET service_bean_name='edcServiceImpl' WHERE  id=13;
 UPDATE MERCHANT SET service_bean_name='okPayServiceImpl' WHERE  id=14;
 UPDATE MERCHANT SET service_bean_name='payeerServiceImpl' WHERE  id=15;
+
+
+ALTER TABLE TRANSACTION
+	 ADD INDEX user_wallet_id_operation_type_id_status_id_provided_datetime (user_wallet_id, operation_type_id, status_id, provided, datetime);
+
+ALTER TABLE USER
+	ADD INDEX id_roleid (id, roleid);

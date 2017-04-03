@@ -58,14 +58,6 @@ public interface WalletService {
     void withdrawReservedBalance(Wallet wallet, BigDecimal sum);
 
     /**
-     * Returns user's wallets info
-     *
-     * @return list the UserWalletSummaryDto
-     * @author ValkSam
-     */
-    List<UserWalletSummaryDto> getUsersWalletsSummary(List<Integer> roles);
-
-    /**
      * Transfers money between active balance the wallet and reserved balance the wallet
      * and creates corresponding transaction
      *

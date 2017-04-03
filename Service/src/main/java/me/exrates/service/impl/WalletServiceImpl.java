@@ -184,12 +184,6 @@ public final class WalletServiceImpl implements WalletService {
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public List<UserWalletSummaryDto> getUsersWalletsSummary(List<Integer> roles) {
-    return walletDao.getUsersWalletsSummary(roles);
-  }
-
-  @Override
   @Transactional
   public WalletTransferStatus walletInnerTransfer(int walletId, BigDecimal amount, TransactionSourceType sourceType, int sourceId) {
     return walletInnerTransfer(walletId, amount, sourceType, sourceId, null);

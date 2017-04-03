@@ -777,18 +777,6 @@ public class AdminController {
     return model;
   }
 
-
-  @RequestMapping(value = "/2a8fy7b07dxe44/downloadUsersWalletsSummary", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
-  @ResponseBody
-  public String getUsersWalletsSummeryTxt(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
-    return
-        UserSummaryDto.getTitle() +
-            userService.getUsersSummaryList(startDate, endDate, userRoleService.getRealUserRoleIdByBusinessRoleList(role))
-                .stream()
-                .map(e -> e.toString())
-                .collect(Collectors.joining());
-  }
-
   @RequestMapping(value = "/2a8fy7b07dxe44/downloadUserSummaryOrders", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
   @ResponseBody
   public String getUserSummaryOrders(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {

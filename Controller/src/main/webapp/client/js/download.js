@@ -8,7 +8,11 @@ var currentRole;
 function uploadUserWallets(role) {
     currentRole = role;
     currentId = 'upload-users-wallets';
-    downloadUsersWalletsSummaryDatepiker();
+    showDialog({
+        currencyPicker: false,
+        currencyPairPicker: false,
+        directionPicker: false,
+    });
 }
 
 function uploadUserWalletsInOut(role) {
@@ -41,9 +45,6 @@ function uploadInputOutputSummaryReport(role) {
     });
 }
 
-function downloadUsersWalletsSummaryDatepiker() {
-    $('#order-delete-modal--date-picker').modal();
-}
 
 function downloadUsersWalletsSummary() {
     var isError = false;
@@ -63,24 +64,6 @@ function downloadUsersWalletsSummary() {
     $('#order-delete-modal--date-picker').one('hidden.bs.modal', function (e) {
         var objArr = $('#datepicker__form').serializeArray();
         var data = "startDate=" + objArr[0].value + ' 00:00:00' + '&' + "endDate=" + objArr[1].value + ' 23:59:59' + "&role=" + currentRole;
-        if (currentId == 'upload-users-wallets') {
-            $.ajax({
-                    url: '/2a8fy7b07dxe44/downloadUsersWalletsSummary',
-                    type: 'GET',
-                    data: data,
-                    success: function (data) {
-                        /* not works in FF
-                         $('<a href="data:text/plain,%EF%BB%BF' + encodeURIComponent(data) + '" download="downloadUsersWalletsSummary.csv"/a>')[0].click();*/
-                        var link = document.createElement('a');
-                        link.href = "data:text/plain;charset=utf-8,%EF%BB%BF" + encodeURIComponent(data);
-                        link.download = "downloadUsersWalletsSummary_" + currentRole + ".csv";
-                        var e = document.createEvent('MouseEvents');
-                        e.initEvent('click', true, true);
-                        link.dispatchEvent(e);
-                    }
-                }
-            );
-        }
         if (currentId == 'upload-users-wallets-orders') {
             $.ajax({
                     url: '/2a8fy7b07dxe44/downloadUserSummaryOrders',
@@ -153,8 +136,7 @@ function makeReport() {
                     }
                 }
             );
-        }
-        if (currentId == 'upload-users-wallets-inout') {
+        } else if (currentId == 'upload-users-wallets-inout') {
             $.ajax({
                     url: '/2a8fy7b07dxe44/report/UsersWalletsSummaryInOut',
                     type: 'GET',
@@ -162,6 +144,16 @@ function makeReport() {
                     success: function (data) {
                         saveToDisk(data.list);
                         saveToDisk(data.summary);
+                    }
+                }
+            );
+        } else if (currentId == 'upload-users-wallets') {
+            $.ajax({
+                    url: '/2a8fy7b07dxe44/report/downloadUsersWalletsSummary',
+                    type: 'GET',
+                    data: data,
+                    success: function (data) {
+                        saveToDisk(data);
                     }
                 }
             );
