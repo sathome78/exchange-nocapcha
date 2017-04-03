@@ -4,8 +4,8 @@
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
         </Console>
-        <RollingFile name="Merchants" fileName="${sys:catalina.home}/logs/merchants.log"
-                     filePattern="${sys:catalina.home}/logs/merchants_%d_%i.log" append="true">
+        <RollingFile name="Merchants" fileName="${sys:catalina.home}/logs/merchants/merchants.log"
+                     filePattern="${sys:catalina.home}/logs/merchants/merchants_%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -13,8 +13,8 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-        <RollingFile name="Merchants_edr" fileName="${sys:catalina.home}/logs/merchants_edr.log"
-                     filePattern="${sys:catalina.home}/logs/merchants_edr_%d_%i.log" append="true">
+        <RollingFile name="Merchants_edr" fileName="${sys:catalina.home}/logs/merchants/merchants_edr.log"
+                     filePattern="${sys:catalina.home}/logs/merchants/merchants_edr_%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -22,8 +22,8 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-        <RollingFile name="Logs" fileName="${sys:catalina.home}/logs/log.log"
-            filePattern="${sys:catalina.home}/logs/log_%d_%i.log" append="true">
+        <RollingFile name="Logs" fileName="${sys:catalina.home}/logs/general/log.log"
+            filePattern="${sys:catalina.home}/logs/general/log_%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
@@ -31,8 +31,8 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-        <RollingFile name="OnlineServices" fileName="${sys:catalina.home}/logs/online.log"
-                     filePattern="${sys:catalina.home}/logs/online_%d_%i.log" append="true">
+        <RollingFile name="OnlineServices" fileName="${sys:catalina.home}/logs/online/online.log"
+                     filePattern="${sys:catalina.home}/logs/online/online_%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -40,8 +40,8 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-        <RollingFile name="RestServices" fileName="${sys:catalina.home}/logs/rest.log"
-                     filePattern="${sys:catalina.home}/logs/rest_%d_%i.log" append="true">
+        <RollingFile name="RestServices" fileName="${sys:catalina.home}/logs/rest/rest.log"
+                     filePattern="${sys:catalina.home}/logs/rest/rest_%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -49,8 +49,8 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-        <RollingFile name="PublicServices" fileName="${sys:catalina.home}/logs/public.log"
-                     filePattern="${sys:catalina.home}/logs/public_%d_%i.log" append="true">
+        <RollingFile name="PublicServices" fileName="${sys:catalina.home}/logs/public/public.log"
+                     filePattern="${sys:catalina.home}/logs/public/public_%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -58,8 +58,8 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-        <RollingFile name="SessionLog" fileName="${sys:catalina.home}/logs/session.log"
-                     filePattern="${sys:catalina.home}/logs/session_%d_%i.log" append="true">
+        <RollingFile name="SessionLog" fileName="${sys:catalina.home}/logs/session/session.log"
+                     filePattern="${sys:catalina.home}/logs/session/session_%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -67,8 +67,8 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-        <RollingFile name="MobileAPILog" fileName="${sys:catalina.home}/logs/mobile_api.log"
-                     filePattern="${sys:catalina.home}/logs/mobile_api_%d_%i.log" append="true">
+        <RollingFile name="MobileAPILog" fileName="${sys:catalina.home}/logs/mobile/mobile_api.log"
+                     filePattern="${sys:catalina.home}/logs/mobile/mobile_api_%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -76,8 +76,8 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-        <RollingFile name="invoice_log" fileName="${sys:catalina.home}/logs/invoice_log.log"
-                     filePattern="${sys:catalina.home}/logs/invoice_log_%d_%i.log" append="true">
+        <RollingFile name="invoice_log" fileName="${sys:catalina.home}/logs/invoice/invoice_log.log"
+                     filePattern="${sys:catalina.home}/logs/invoice/invoice_log_%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -85,8 +85,8 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-        <RollingFile name="wallet_log" fileName="${sys:catalina.home}/logs/wallet_log.log"
-                     filePattern="${sys:catalina.home}/logs/wallet_log_%d_%i.log" append="true">
+        <RollingFile name="wallet_log" fileName="${sys:catalina.home}/logs/wallet/wallet_log.log"
+                     filePattern="${sys:catalina.home}/logs/wallet/wallet_log_%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -94,8 +94,8 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-        <RollingFile name="proxy_log" fileName="${sys:catalina.home}/logs/proxy_log.log"
-                     filePattern="${sys:catalina.home}/logs/proxy_log_%d_%i.log" append="true">
+        <RollingFile name="proxy_log" fileName="${sys:catalina.home}/logs/proxy/proxy_log.log"
+                     filePattern="${sys:catalina.home}/logs/proxy/proxy_log_%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -103,8 +103,8 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-        <RollingFile name="bitcoinj_log" fileName="${sys:catalina.home}/logs/bitcoinj_log.log"
-                     filePattern="${sys:catalina.home}/logs/bitcoinj_log_%d_%i.log" append="true">
+        <RollingFile name="bitcoinj_log" fileName="${sys:catalina.home}/logs/bitcoin/bitcoinj_log.log"
+                     filePattern="${sys:catalina.home}/logs/bitcoin/bitcoinj_log_%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -112,8 +112,8 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-        <RollingFile name="profile_log" fileName="${sys:catalina.home}/logs/profile_log.log"
-                     filePattern="${sys:catalina.home}/logs/profile_log%d_%i.log" append="true">
+        <RollingFile name="profile_log" fileName="${sys:catalina.home}/logs/profile/profile_log.log"
+                     filePattern="${sys:catalina.home}/logs/profile/profile_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -121,8 +121,8 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-        <RollingFile name="bitcoin_core_log" fileName="${sys:catalina.home}/logs/bitcoin_core_log.log"
-                     filePattern="${sys:catalina.home}/logs/bitcoin_core_log_%d_%i.log" append="true">
+        <RollingFile name="bitcoin_core_log" fileName="${sys:catalina.home}/logs/bitcoin/bitcoin_core_log.log"
+                     filePattern="${sys:catalina.home}/logs/bitcoin/bitcoin_core_log_%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
