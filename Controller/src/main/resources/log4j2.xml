@@ -157,6 +157,16 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+
+        <RollingFile name="exceptions_ext_log" fileName="${sys:catalina.home}/logs/exceptions_ext/exceptions_ext_log.log"
+                     filePattern="${sys:catalina.home}/logs/exceptions_ext_log_%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="20"/>
+        </RollingFile>
     </Appenders>
     <Loggers>
         <Logger name="merchant" level="TRACE" additivity="false">
@@ -274,8 +284,11 @@
             <AppenderRef ref="Console"/>
             <AppenderRef ref="withdraw_log"/>
         </Logger>
-        <logger name="me.exrates.aspect.LoggingAspect" level="ALL" additivity="false">
+        <logger name="aop_error_log" level="ALL" additivity="false">
             <AppenderRef ref="Console"/>
+            <AppenderRef ref="exceptions_log"/>
+        </logger>
+        <logger name="aop_error_log_extended" level="ALL" additivity="false">
             <AppenderRef ref="exceptions_log"/>
         </logger>
 

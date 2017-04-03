@@ -14,6 +14,7 @@ import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.*;
 import me.exrates.model.form.AuthorityOptionsForm;
 import me.exrates.model.vo.BackDealInterval;
+import me.exrates.security.service.UserSecureService;
 import me.exrates.security.service.UserSecureServiceImpl;
 import me.exrates.service.*;
 import me.exrates.service.exception.NoPermissionForOperationException;
@@ -79,7 +80,7 @@ public class AdminController {
   @Autowired
   private MessageSource messageSource;
   @Autowired
-  private UserSecureServiceImpl userSecureService;
+  private UserSecureService userSecureService;
   @Autowired
   private UserService userService;
   @Autowired

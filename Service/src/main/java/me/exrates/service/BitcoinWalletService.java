@@ -3,6 +3,7 @@ package me.exrates.service;
 import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.BtcWalletInfoDto;
 import me.exrates.model.dto.TxReceivedByAddressFlatDto;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -15,6 +16,9 @@ public interface BitcoinWalletService {
   void initBitcoin();
   
   String getNewAddress();
+  
+  @Scheduled(initialDelay = 5 * 60000, fixedDelay = 12 * 60 * 60000)
+  void backupWallet();
   
   BtcWalletInfoDto getWalletInfo();
   
