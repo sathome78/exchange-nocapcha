@@ -105,6 +105,7 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
     }
   }
   
+  @Override
   @Scheduled(initialDelay = 5 * 60000, fixedDelay = 12 * 60 * 60000)
   public void backupWallet() {
     try {

@@ -150,6 +150,11 @@ public class BitcoinJWalletServiceImpl implements BitcoinWalletService {
   }
   
   @Override
+  public void backupWallet() {
+    throw new NotImplimentedMethod("Not implemented");
+  }
+  
+  @Override
   public BtcWalletInfoDto getWalletInfo() {
     throw new NotImplimentedMethod("Not implemented");
   }
