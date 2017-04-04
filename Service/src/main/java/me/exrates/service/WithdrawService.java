@@ -42,7 +42,12 @@ public interface WithdrawService {
   WithdrawRequestsAdminTableDto getWithdrawRequestById(Integer id, String authorizedUserEmail);
 
   List<MyInputOutputHistoryDto> getMyInputOutputHistory(CacheData cacheData, String email, Integer offset, Integer limit, Locale locale);
-
+  
+  List<MyInputOutputHistoryDto> getMyInputOutputHistory(
+          String email,
+          Integer offset, Integer limit,
+          Locale locale);
+  
   void revokeWithdrawalRequest(int requestId);
 
   void takeInWorkWithdrawalRequest(int requestId, Integer requesterAdminId);
