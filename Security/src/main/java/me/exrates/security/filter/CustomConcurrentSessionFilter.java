@@ -40,7 +40,9 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
     private RedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
 
     private Set<String> onlineMethods = new HashSet<>();
-    private  @Value("${session.lifeTypeParamName}") String sessionLifeTypeParamName;
+    private @Value("${session.lifeTypeParamName}") String sessionLifeTypeParamName;
+    private @Value("${session.timeParamName}") String sessionTimeMinutesParamName;
+    private @Value("${session.lastRequestParamName}") String sessionLastRequestParamName;
 
 
 
@@ -89,9 +91,10 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
                     return;
                 }
                 else {
+                    // Non-expired - update last request date/time
+                    sessionRegistry.refreshLastRequest(info.getSessionId());
                     if (isRefreshNeeded(request)) {
-                        // Non-expired - update last request date/time
-                        sessionRegistry.refreshLastRequest(info.getSessionId());
+                        session.setAttribute(sessionLastRequestParamName, System.currentTimeMillis());
                     }
                 }
             }
@@ -100,14 +103,14 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
     }
 
     private boolean isRefreshNeeded(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
+        HttpSession session = request.getSession();
         SessionLifeTypeEnum sessionLifeTypeEnum = SessionLifeTypeEnum
                 .convert((int)session.getAttribute(sessionLifeTypeParamName));
         if (sessionLifeTypeEnum.isRefreshOnUserRequests() && isPathForSessionRefresh(request)) {
-            logger.error("refresh session " + request.getServletPath() + " " + session.getLastAccessedTime());
+            logger.error("refresh session " + request.getServletPath());
             return true;
         }
-        logger.error("not refresh session " + request.getRequestURI()  + " " + session.getLastAccessedTime());
+        logger.error("not refresh session " + request.getRequestURI());
         return false;
     }
 

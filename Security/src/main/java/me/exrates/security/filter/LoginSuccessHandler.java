@@ -1,14 +1,19 @@
 package me.exrates.security.filter;
 
+import lombok.extern.log4j.Log4j2;
+import me.exrates.model.SessionParams;
 import me.exrates.model.dto.UserIpDto;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserIpState;
+import me.exrates.service.SessionParamsService;
 import me.exrates.service.UserService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.User;
@@ -26,10 +31,16 @@ import java.util.Locale;
 /**
  * Created by Valk on 28.04.2016.
  */
+@Log4j2
+@PropertySource("classpath:session.properties")
 public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
-    private static final Logger LOGGER = LogManager.getLogger(LoginSuccessHandler.class);
+    private @Value("${session.lifeTypeParamName}") String sessionLifeTimeParamName;
+    private @Value("${session.timeParamName}") String sessionTimeMinutesParamName;
+    private @Value("${session.lastRequestParamName}") String sessionLastRequestParamName;
 
+    @Autowired
+    private SessionParamsService sessionParamsService;
     @Autowired
     MessageSource messageSource;
     @Autowired
@@ -38,9 +49,6 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
     @Autowired
     private UserService userService;
 
-    @Autowired
-    private SessionRegistry sessionRegistry;
-
 
     public LoginSuccessHandler(String successUrl) {
         this.successUrl = successUrl;
@@ -48,9 +56,10 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+        setSessionLifeParams(request);
         try {
             User principal = (User) authentication.getPrincipal();
-            LOGGER.info("Authentication succeeded for user: " + principal.getUsername());
+            log.info("Authentication succeeded for user: " + principal.getUsername());
 
             Locale locale = new Locale(userService.getPreferedLang(userService.getIdByEmail(principal.getUsername())));
             localeResolver.setLocale(request, response, locale);
@@ -79,8 +88,16 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
 
         } catch (Exception e) {
-            LOGGER.error(e);
+            log.error(e);
             authentication.setAuthenticated(false);
         }
+    }
+
+    private void setSessionLifeParams(HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        SessionParams params = sessionParamsService.determineSessionParams();
+        session.setAttribute(sessionTimeMinutesParamName, params.getSessionTimeMinutes());
+        session.setAttribute(sessionLifeTimeParamName, params.getSessionLifeTypeId());
+        session.setAttribute(sessionLastRequestParamName, System.currentTimeMillis());
     }
 }

@@ -18,37 +18,21 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by OLEG on 11.10.2016.
  */
 @Log4j2
-@PropertySource("classpath:session.properties")
 public class StoreSessionListenerImpl implements StoreSessionListener {
 
-    @Autowired
-    private SessionParamsService sessionParamsService;
-    @Autowired
-    private
-
-    private @Value("${session.lifeTypeParamName}") String sessionLifeTimeParamName = "sessionLifeTypeId";
-    private @Value("${session.timeParamName}") String sessionTimeMinutesParamName = "sessionTimeMinutesParamName";
-
     private static Map<String, HttpSession> sessionStorage = new ConcurrentHashMap<>();
-
 
 
     @Override
     public void sessionCreated(HttpSessionEvent se) {
         HttpSession session = se.getSession();
-        SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
-        SessionParams params = sessionParamsService.determineSessionParams();
-        log.error("params in listener{}, is new {}", params.toString(), session.isNew());
         session.setMaxInactiveInterval(0);
-        session.setAttribute(sessionTimeMinutesParamName, params.getSessionTimeMinutes());
-        session.setAttribute(sessionLifeTimeParamName, params.getSessionLifeTypeId());
         sessionStorage.put(session.getId(), session);
         log.debug(String.format("created session: %s, total registered: %s", se.getSession().getId(), sessionStorage.size()));
     }
 
     @Override
     public void sessionDestroyed(HttpSessionEvent se) {
-
         sessionStorage.remove(se.getSession().getId());
         log.debug(String.format("destroyed session: %s, total registered: %s", se.getSession().getId(), sessionStorage.size()));
     }
@@ -60,13 +44,9 @@ public class StoreSessionListenerImpl implements StoreSessionListener {
 
     @Override
     public void sessionIdChanged(HttpSessionEvent event, String oldSessionId) {
-        SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
         sessionStorage.remove(oldSessionId);
         HttpSession session = event.getSession();
-        SessionParams params = sessionParamsService.determineSessionParams();
         session.setMaxInactiveInterval(0);
-        session.setAttribute(sessionTimeMinutesParamName, params.getSessionTimeMinutes());
-        session.setAttribute(sessionLifeTimeParamName, params.getSessionLifeTypeId());
         sessionStorage.put(session.getId(), session);
     }
 

@@ -16,6 +16,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.session.SessionInformation;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
 
@@ -70,6 +72,7 @@ public class OnlineRestController {
   /*it's need to install only one: SESSION_LIFETIME_HARD or SESSION_LIFETIME_INACTIVE*/
 
   private @Value("${session.timeParamName}") String sessionTimeMinutes;
+  private @Value("${session.lastRequestParamName}") String sessionLastRequestParamName;
   private static final int SECONDS_IN_MINUTE = 60;
   private static final int MILLIS_IN_SECOND = 1000;
 
@@ -111,6 +114,8 @@ public class OnlineRestController {
 
   @Autowired
   WithdrawService withdrawService;
+  @Autowired
+  private SessionRegistry sessionRegistry;
 
   @RequestMapping(value = "/dashboard/commission/{type}", method = RequestMethod.GET)
   public BigDecimal getCommissions(@PathVariable("type") String type) {
@@ -189,7 +194,7 @@ public class OnlineRestController {
   @RequestMapping(value = "/dashboard/currencyPairStatistic", method = RequestMethod.GET)
   public Map<String, ?> getCurrencyPairStatisticsForAllCurrencies(
       @RequestParam(required = false) Boolean refreshIfNeeded,
-      HttpServletRequest request) throws IOException {
+      HttpServletRequest request, Principal principal) throws IOException {
     long before = System.currentTimeMillis();
     long beforeService = 0;
     try {
@@ -231,7 +236,7 @@ public class OnlineRestController {
           }});
         }};
       }*/
-     if (isSessionTimeOut(session)) {
+     if (principal != null && isSessionTimeOut(session)) {
        try {
          request.logout();
        } catch (ServletException e) {
@@ -274,11 +279,11 @@ public class OnlineRestController {
 
   private boolean isSessionTimeOut(HttpSession session) {
     Integer sessionLifeTime = (int)session.getAttribute(sessionTimeMinutes);
-    LOGGER.error("last accTime " + session.getLastAccessedTime() +
+    long lastReq = (long)session.getAttribute(sessionLastRequestParamName);
+    LOGGER.debug("last accTime " + lastReq +
             " lifetime " + sessionLifeTime +
             " system " + System.currentTimeMillis());
-    return session.getLastAccessedTime() + sessionLifeTime * SECONDS_IN_MINUTE  *
-            MILLIS_IN_SECOND <= System.currentTimeMillis();
+    return lastReq + sessionLifeTime * SECONDS_IN_MINUTE * MILLIS_IN_SECOND <= System.currentTimeMillis();
   }
 
   /**
@@ -297,15 +302,15 @@ public class OnlineRestController {
    */
   @RequestMapping(value = {"/dashboard/firstentry"})
   public void setFirstEntryFlag(HttpServletRequest request) {
-    long before = System.currentTimeMillis();
+   /* long before = System.currentTimeMillis();
     HttpSession session = request.getSession();
     session.setAttribute("firstEntry", true);
     LOGGER.debug(" SESSION: " + session.getId() + " firstEntry: " + session.getAttribute("firstEntry"));
-   /* if (SESSION_LIFETIME_INACTIVE != 0) {
+   *//* if (SESSION_LIFETIME_INACTIVE != 0) {
       session.setMaxInactiveInterval(SESSION_LIFETIME_INACTIVE);
-    }*/
+    }*//*
     long after = System.currentTimeMillis();
-    LOGGER.debug("completed... ms: " + (after - before));
+    LOGGER.debug("completed... ms: " + (after - before));*/
   }
 
   /**
