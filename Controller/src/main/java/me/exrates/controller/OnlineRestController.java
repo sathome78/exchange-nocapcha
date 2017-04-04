@@ -32,6 +32,7 @@ import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.apache.commons.lang3.time.DateUtils.MILLIS_PER_MINUTE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 /**
@@ -74,8 +75,6 @@ public class OnlineRestController {
 
   private @Value("${session.timeParamName}") String sessionTimeMinutes;
   private @Value("${session.lastRequestParamName}") String sessionLastRequestParamName;
-  private static final int SECONDS_IN_MINUTE = 60;
-  private static final int MILLIS_IN_SECOND = 1000;
 
   @Autowired
   CommissionService commissionService;
@@ -270,7 +269,7 @@ public class OnlineRestController {
     LOGGER.error("last accTime " + lastReq +
             " lifetime " + sessionLifeTime +
             " system " + System.currentTimeMillis());
-    return lastReq + sessionLifeTime * SECONDS_IN_MINUTE * MILLIS_IN_SECOND <= System.currentTimeMillis();
+    return lastReq + sessionLifeTime * MILLIS_PER_MINUTE <= System.currentTimeMillis();
   }
 
   /**
