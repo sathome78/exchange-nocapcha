@@ -1,7 +1,8 @@
-package me.exrates.controller.postprocessor;
+package me.exrates.security.postprocessor;
 
-import me.exrates.controller.annotation.OnlineMethod;
-import me.exrates.controller.filter.RequestFilter;
+
+import me.exrates.security.annotation.OnlineMethod;
+import me.exrates.security.filter.CustomConcurrentSessionFilter;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -15,11 +16,9 @@ import java.lang.reflect.Method;
  */
 
 public class OnlineMethodPostProcessor implements BeanPostProcessor {
-    @Autowired
-    RequestFilter requestFilter;
 
     @Autowired
-    ApplicationContext applicationContext;
+    private CustomConcurrentSessionFilter sessionFilter;
 
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
@@ -29,7 +28,7 @@ public class OnlineMethodPostProcessor implements BeanPostProcessor {
                 RequestMapping mapping = (RequestMapping) method.getAnnotation(RequestMapping.class);
                 for (String url : mapping.value()) {
                     url = url.split("\\{")[0];
-                    requestFilter.getOnlineMethods().add(url);
+                    sessionFilter.getOnlineMethods().add(url);
                 }
             }
         }

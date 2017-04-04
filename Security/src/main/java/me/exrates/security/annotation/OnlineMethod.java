@@ -1,4 +1,4 @@
-package me.exrates.controller.annotation;
+package me.exrates.security.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

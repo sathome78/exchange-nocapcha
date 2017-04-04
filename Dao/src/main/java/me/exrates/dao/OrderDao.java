@@ -76,6 +76,7 @@ public interface OrderDao {
 
     PagingData<List<OrderBasicInfoDto>> searchOrders(AdminOrderFilterData adminOrderFilterData, DataTableParams dataTableParams, Locale locale);
 
-    List<ExOrder> selectTopOrders(Integer currencyPairId, BigDecimal exrate,
-                                  OperationType orderType);
+    List<ExOrder> selectTopOrders(Integer currencyPairId, BigDecimal exrate, OperationType orderType);
+
+    List<UserSummaryOrdersByCurrencyPairsDto> getUserSummaryOrdersByCurrencyPairList(Integer requesterUserId, String startDate, String endDate, List<Integer> roles);
 }

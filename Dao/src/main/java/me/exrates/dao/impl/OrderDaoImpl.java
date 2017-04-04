@@ -28,6 +28,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -839,6 +840,61 @@ public class OrderDaoImpl implements OrderDao {
             exOrder.setStatus(OrderStatus.convert(rs.getInt("status_id")));
             return exOrder;
         });
+    }
+
+    @Override
+    public List<UserSummaryOrdersByCurrencyPairsDto> getUserSummaryOrdersByCurrencyPairList(
+        Integer requesterUserId,
+        String startDate,
+        String endDate,
+        List<Integer> roles) {
+        String condition = "";
+        if (!roles.isEmpty()) {
+            condition = " AND USER_ROLE.id IN (:roles) ";
+        }
+
+        String sql = "SELECT (select name from OPERATION_TYPE where id = EXORDERS.operation_type_id) as operation, date_acception, " +
+            "  (select email from USER where id = EXORDERS.user_id) as user_owner, \n" +
+            "  (select nickname from USER where id = EXORDERS.user_id) as user_owner_nickname, \n" +
+            "  (select email from USER where id = EXORDERS.user_acceptor_id) as user_acceptor, \n" +
+            "  (select nickname from USER where id = EXORDERS.user_acceptor_id) as user_acceptor_nickname, \n" +
+            "  (select name from CURRENCY_PAIR where id = EXORDERS.currency_pair_id) as currency_pair, amount_base, amount_convert, exrate \n" +
+            "  from EXORDERS join USER on(USER.id=EXORDERS.user_id) join USER_ROLE on(USER_ROLE.id = USER.roleid) \n" +
+            "    WHERE status_id = 3    \n" +
+            condition +
+            "  AND (operation_type_id IN (3,4))  \n" +
+            "  AND  (EXORDERS.date_acception BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') \n" +
+            "  AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))\n" +
+            "  AND EXISTS (SELECT * " +
+            "                  FROM CURRENCY_PAIR CP\n" +
+            "                  JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP1  ON (IOP1.user_id = :requester_user_id) AND (IOP1.currency_id = CP.currency1_id) " +
+            "                  JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP2  ON (IOP2.user_id = :requester_user_id) AND (IOP2.currency_id = CP.currency2_id) " +
+            "                  WHERE (CP.id=EXORDERS.currency_pair_id))" +
+            "  ORDER BY date_acception, date_creation";
+        Map<String, Object> namedParameters = new HashMap<>();
+        namedParameters.put("start_date", startDate);
+        namedParameters.put("end_date", endDate);
+        namedParameters.put("roles", roles);
+        namedParameters.put("requester_user_id", requesterUserId);
+
+        ArrayList<UserSummaryOrdersByCurrencyPairsDto> result = (ArrayList<UserSummaryOrdersByCurrencyPairsDto>) namedParameterJdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<UserSummaryOrdersByCurrencyPairsDto>() {
+            @Override
+            public UserSummaryOrdersByCurrencyPairsDto mapRow(ResultSet rs, int rowNumber) throws SQLException {
+                UserSummaryOrdersByCurrencyPairsDto userSummaryOrdersByCurrencyPairsDto = new UserSummaryOrdersByCurrencyPairsDto();
+                userSummaryOrdersByCurrencyPairsDto.setOperationType(rs.getString("operation"));
+                userSummaryOrdersByCurrencyPairsDto.setDate(rs.getTimestamp("date_acception").toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                userSummaryOrdersByCurrencyPairsDto.setOwnerEmail(rs.getString("user_owner"));
+                userSummaryOrdersByCurrencyPairsDto.setOwnerNickname(rs.getString("user_owner_nickname"));
+                userSummaryOrdersByCurrencyPairsDto.setAcceptorEmail(rs.getString("user_acceptor"));
+                userSummaryOrdersByCurrencyPairsDto.setAcceptorNickname(rs.getString("user_acceptor_nickname"));
+                userSummaryOrdersByCurrencyPairsDto.setCurrencyPair(rs.getString("currency_pair"));
+                userSummaryOrdersByCurrencyPairsDto.setAmountBase(rs.getBigDecimal("amount_base"));
+                userSummaryOrdersByCurrencyPairsDto.setAmountConvert(rs.getBigDecimal("amount_convert"));
+                userSummaryOrdersByCurrencyPairsDto.setExrate(rs.getBigDecimal("exrate"));
+                return userSummaryOrdersByCurrencyPairsDto;
+            }
+        });
+        return result;
     }
 
 }

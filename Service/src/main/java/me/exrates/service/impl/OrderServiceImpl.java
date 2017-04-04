@@ -1037,6 +1037,12 @@ public class OrderServiceImpl implements OrderService {
     return processedRows;
   }
 
+  @Override
+  @Transactional(readOnly = true)
+  public List<UserSummaryOrdersByCurrencyPairsDto> getUserSummaryOrdersByCurrencyPairList(Integer requesterUserId, String startDate, String endDate, List<Integer> roles) {
+    return orderDao.getUserSummaryOrdersByCurrencyPairList(requesterUserId, startDate, endDate, roles);
+  }
+
 
 }
 

@@ -1,7 +1,12 @@
 package me.exrates.controller.listener;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
+import me.exrates.model.SessionParams;
+import me.exrates.service.SessionParamsService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionEvent;
@@ -12,22 +17,24 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Created by OLEG on 11.10.2016.
  */
+@Log4j2
 public class StoreSessionListenerImpl implements StoreSessionListener {
-
-    private static final Logger LOGGER = LogManager.getLogger(StoreSessionListenerImpl.class);
 
     private static Map<String, HttpSession> sessionStorage = new ConcurrentHashMap<>();
 
+
     @Override
     public void sessionCreated(HttpSessionEvent se) {
-        sessionStorage.put(se.getSession().getId(), se.getSession());
-        LOGGER.debug(String.format("created session: %s, total registered: %s", se.getSession().getId(), sessionStorage.size()));
+        HttpSession session = se.getSession();
+        session.setMaxInactiveInterval(0);
+        sessionStorage.put(session.getId(), session);
+        log.debug(String.format("created session: %s, total registered: %s", se.getSession().getId(), sessionStorage.size()));
     }
 
     @Override
     public void sessionDestroyed(HttpSessionEvent se) {
         sessionStorage.remove(se.getSession().getId());
-        LOGGER.debug(String.format("destroyed session: %s, total registered: %s", se.getSession().getId(), sessionStorage.size()));
+        log.debug(String.format("destroyed session: %s, total registered: %s", se.getSession().getId(), sessionStorage.size()));
     }
 
     @Override
@@ -38,6 +45,9 @@ public class StoreSessionListenerImpl implements StoreSessionListener {
     @Override
     public void sessionIdChanged(HttpSessionEvent event, String oldSessionId) {
         sessionStorage.remove(oldSessionId);
-        sessionStorage.put(event.getSession().getId(), event.getSession());
+        HttpSession session = event.getSession();
+        session.setMaxInactiveInterval(0);
+        sessionStorage.put(session.getId(), session);
     }
+
 }

@@ -50,6 +50,9 @@ public class ReportServiceImpl implements ReportService {
   @Autowired
   WithdrawService withdrawService;
 
+  @Autowired
+  OrderService orderService;
+
   @Override
   @Transactional
   public List<InvoiceReportDto> getInvoiceReport(
@@ -172,6 +175,32 @@ public class ReportServiceImpl implements ReportService {
     Integer requesterUserId = userService.getIdByEmail(requesterUserEmail);
     List<Integer> realRoleIdList = userRoleService.getRealUserRoleIdByBusinessRoleList(businessRole);
     return transactionService.getTurnoverInfoByUserAndCurrencyForPeriodAndRoleList(requesterUserId, startDate, endDate, realRoleIdList);
+  }
+
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<UserSummaryOrdersDto> getUserSummaryOrdersList(
+      String requesterUserEmail,
+      String startDate,
+      String endDate,
+      String businessRole,
+      List<String> currencyList) {
+    Integer requesterUserId = userService.getIdByEmail(requesterUserEmail);
+    List<Integer> realRoleIdList = userRoleService.getRealUserRoleIdByBusinessRoleList(businessRole);
+    return transactionService.getUserSummaryOrdersList(requesterUserId, startDate, endDate, realRoleIdList);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<UserSummaryOrdersByCurrencyPairsDto> getUserSummaryOrdersByCurrencyPairList(
+      String requesterUserEmail,
+      String startDate,
+      String endDate,
+      String businessRole) {
+    Integer requesterUserId = userService.getIdByEmail(requesterUserEmail);
+    List<Integer> realRoleIdList = userRoleService.getRealUserRoleIdByBusinessRoleList(businessRole);
+    return orderService.getUserSummaryOrdersByCurrencyPairList(requesterUserId, startDate, endDate, realRoleIdList);
   }
 
   @Getter
