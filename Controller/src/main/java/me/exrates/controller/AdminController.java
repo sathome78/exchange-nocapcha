@@ -805,20 +805,6 @@ public class AdminController {
     return result;
   }
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/downloadUserSummaryOrdersByCurrencyPairs", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
-  @ResponseBody
-  public String getUserSummaryOrdersByCurrencyPairs(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
-
-    List<UserSummaryOrdersByCurrencyPairsDto> list = userService.getUserSummaryOrdersByCurrencyPairList(startDate, endDate, userRoleService.getRealUserRoleIdByBusinessRoleList(role));
-
-    String value = "Orders by currency pairs from" + startDate.substring(0, 10) + " till " + endDate.substring(0, 10) + ": \n \n" + UserSummaryOrdersByCurrencyPairsDto.getTitle() +
-        list.stream()
-            .map(e -> e.toString())
-            .collect(Collectors.joining());
-
-    return value;
-  }
-
   @RequestMapping(value = "/2a8fy7b07dxe44/userStatements/{walletId}")
   public ModelAndView accountStatementPage(@PathVariable("walletId") Integer walletId) {
     return new ModelAndView("/admin/user_statement", "walletId", walletId);

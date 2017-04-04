@@ -126,4 +126,20 @@ public class ReportController {
     return value;
   }
 
+  @RequestMapping(value = "/2a8fy7b07dxe44/report/userSummaryOrdersByCurrencyPairs", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
+  @ResponseBody
+  public String getUserSummaryOrdersByCurrencyPairs(
+      @RequestParam String startDate,
+      @RequestParam String endDate,
+      @RequestParam String role,
+      Principal principal) {
+    List<UserSummaryOrdersByCurrencyPairsDto> list = reportService.getUserSummaryOrdersByCurrencyPairList(principal.getName(), startDate, endDate, role);
+    String value = "Orders by currency pairs from" + startDate.substring(0, 10) + " till " + endDate.substring(0, 10) + ": \n \n" + UserSummaryOrdersByCurrencyPairsDto.getTitle() +
+        list.stream()
+            .map(e -> e.toString())
+            .collect(Collectors.joining());
+
+    return value;
+  }
+
 }
