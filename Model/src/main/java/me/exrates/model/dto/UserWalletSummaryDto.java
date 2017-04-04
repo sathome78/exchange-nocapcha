@@ -1,5 +1,10 @@
 package me.exrates.model.dto;
 
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import me.exrates.model.enums.ActionType;
 import me.exrates.model.util.BigDecimalProcessing;
 
 import java.math.BigDecimal;
@@ -7,7 +12,10 @@ import java.math.BigDecimal;
 /**
  * Created by Valk on 04.05.2016.
  */
+@Getter @Setter
+@NoArgsConstructor
 public class UserWalletSummaryDto {
+    private Integer userRoleId;
     private String currencyName;
     private int walletsAmount;
     private BigDecimal balance;
@@ -19,85 +27,48 @@ public class UserWalletSummaryDto {
     private BigDecimal merchantAmountInput;
     private BigDecimal merchantAmountOutput;
 
-    /*getters setters*/
-
-    public String getCurrencyName() {
-        return currencyName;
+    public UserWalletSummaryDto(UserWalletSummaryDto userWalletSummaryDto) {
+        this.userRoleId = userWalletSummaryDto.userRoleId;
+        this.currencyName = userWalletSummaryDto.currencyName;
+        this.walletsAmount = userWalletSummaryDto.walletsAmount;
+        this.balance = userWalletSummaryDto.balance;
+        this.activeBalance = userWalletSummaryDto.activeBalance;
+        this.reservedBalance = userWalletSummaryDto.reservedBalance;
+        this.balancePerWallet = userWalletSummaryDto.balancePerWallet;
+        this.activeBalancePerWallet = userWalletSummaryDto.activeBalancePerWallet;
+        this.reservedBalancePerWallet = userWalletSummaryDto.reservedBalancePerWallet;
+        this.merchantAmountInput = userWalletSummaryDto.merchantAmountInput;
+        this.merchantAmountOutput = userWalletSummaryDto.merchantAmountOutput;
     }
 
-    public void setCurrencyName(String currencyName) {
-        this.currencyName = currencyName;
+    public void calculate(){
+        balance = BigDecimalProcessing.doAction(activeBalance, reservedBalance, ActionType.ADD);
+        activeBalancePerWallet = BigDecimalProcessing.doAction(activeBalance, BigDecimal.valueOf(walletsAmount), ActionType.DEVIDE);
+        reservedBalancePerWallet = BigDecimalProcessing.doAction(reservedBalance, BigDecimal.valueOf(walletsAmount), ActionType.DEVIDE);
+        balancePerWallet = BigDecimalProcessing.doAction(balance, BigDecimal.valueOf(walletsAmount), ActionType.DEVIDE);
     }
 
-    public int getWalletsAmount() {
-        return walletsAmount;
+    public void increment(UserWalletSummaryDto item){
+        walletsAmount = walletsAmount + item.getWalletsAmount();
+        activeBalance = activeBalance.add(item.getActiveBalance());
+        reservedBalance = reservedBalance.add(item.getReservedBalance());
+        merchantAmountInput = merchantAmountInput.add(item.getMerchantAmountInput());
+        merchantAmountOutput = merchantAmountOutput.add(item.getMerchantAmountOutput());
     }
 
-    public void setWalletsAmount(int walletsAmount) {
-        this.walletsAmount = walletsAmount;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        UserWalletSummaryDto that = (UserWalletSummaryDto) o;
+
+        return currencyName != null ? currencyName.equals(that.currencyName) : that.currencyName == null;
+
     }
 
-    public BigDecimal getBalance() {
-        return BigDecimalProcessing.normalize(balance);
-    }
-
-    public void setBalance(BigDecimal balance) {
-        this.balance = balance;
-    }
-
-    public BigDecimal getActiveBalance() {
-        return BigDecimalProcessing.normalize(activeBalance);
-    }
-
-    public void setActiveBalance(BigDecimal activeBalance) {
-        this.activeBalance = activeBalance;
-    }
-
-    public BigDecimal getReservedBalance() {
-        return BigDecimalProcessing.normalize(reservedBalance);
-    }
-
-    public void setReservedBalance(BigDecimal reservedBalance) {
-        this.reservedBalance = reservedBalance;
-    }
-
-    public BigDecimal getBalancePerWallet() {
-        return balancePerWallet;
-    }
-
-    public void setBalancePerWallet(BigDecimal balancePerWallet) {
-        this.balancePerWallet = balancePerWallet;
-    }
-
-    public BigDecimal getActiveBalancePerWallet() {
-        return activeBalancePerWallet;
-    }
-
-    public void setActiveBalancePerWallet(BigDecimal activeBalancePerWallet) {
-        this.activeBalancePerWallet = activeBalancePerWallet;
-    }
-
-    public BigDecimal getReservedBalancePerWallet() {
-        return reservedBalancePerWallet;
-    }
-
-    public void setReservedBalancePerWallet(BigDecimal reservedBalancePerWallet) {
-        this.reservedBalancePerWallet = reservedBalancePerWallet;
-    }
-
-    public BigDecimal getMerchantAmountInput() {
-        return merchantAmountInput;
-    }
-
-    public void setMerchantAmountInput(BigDecimal merchantAmountInput) {
-        this.merchantAmountInput = merchantAmountInput;
-    }
-
-    public BigDecimal getMerchantAmountOutput() {
-        return merchantAmountOutput;
-    }
-
-    public void setMerchantAmountOutput(BigDecimal merchantAmountOutput) {
-        this.merchantAmountOutput = merchantAmountOutput;
+    @Override
+    public int hashCode() {
+        return currencyName != null ? currencyName.hashCode() : 0;
     }
 }

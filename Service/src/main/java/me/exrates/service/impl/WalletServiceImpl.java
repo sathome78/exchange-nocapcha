@@ -301,34 +301,37 @@ public final class WalletServiceImpl implements WalletService {
     if (toUserWallet == null) {
       throw new WalletNotFoundException(messageSource.getMessage("transfer.walletNotFound", null, locale));
     }
-    String result = "";
-    if (!checkOnly) {
-      UserTransfer userTransfer = userTransferService.createUserTransfer(fromUserWallet.getUser().getId(), toUserWallet.getUser().getId(),
-              currencyId, amount, commissionAmount);
-      changeWalletActiveBalance(totalAmount, fromUserWallet, OperationType.OUTPUT,
-              TransactionSourceType.USER_TRANSFER, commissionAmount, userTransfer.getId());
-      changeWalletActiveBalance(amount, toUserWallet, OperationType.INPUT,
-              TransactionSourceType.USER_TRANSFER, BigDecimal.ZERO, userTransfer.getId());
-      String currencyName = currencyService.getCurrencyName(currencyId);
-      String notyAmount = amount.setScale(decimalPlaces, RoundingMode.HALF_UP).stripTrailingZeros().toPlainString();
-      result = messageSource.getMessage("transfer.successful", new Object[]{
-              notyAmount, currencyName, toUserNickname}, locale);
-      notificationService.notifyUser(fromUserWallet.getUser().getId(), NotificationEvent.IN_OUT, "wallets.transferTitle",
-              "transfer.successful", new Object[]{notyAmount, currencyName, toUserNickname});
-      notificationService.notifyUser(toUserWallet.getUser().getId(), NotificationEvent.IN_OUT, "wallets.transferTitle",
-              "transfer.received", new Object[]{notyAmount, currencyName});
-    }
+    UserTransfer userTransfer = userTransferService.createUserTransfer(fromUserWallet.getUser().getId(), toUserWallet.getUser().getId(),
+            currencyId, amount, commissionAmount);
+    changeWalletActiveBalance(totalAmount, fromUserWallet, OperationType.OUTPUT,
+        TransactionSourceType.USER_TRANSFER, commissionAmount, userTransfer.getId());
+    changeWalletActiveBalance(amount, toUserWallet, OperationType.INPUT,
+        TransactionSourceType.USER_TRANSFER, BigDecimal.ZERO, userTransfer.getId());
+    String currencyName = currencyService.getCurrencyName(currencyId);
+    String notyAmount = amount.setScale(decimalPlaces, RoundingMode.HALF_UP).stripTrailingZeros().toPlainString();
+    String result = messageSource.getMessage("transfer.successful", new Object[]{notyAmount, currencyName, toUserNickname},
+        locale);
+    notificationService.notifyUser(fromUserWallet.getUser().getId(), NotificationEvent.IN_OUT, "wallets.transferTitle",
+        "transfer.successful", new Object[]{notyAmount, currencyName, toUserNickname});
+    notificationService.notifyUser(toUserWallet.getUser().getId(), NotificationEvent.IN_OUT, "wallets.transferTitle",
+        "transfer.received", new Object[]{notyAmount, currencyName});
     return result;
   }
 
 
   @Override
   @Transactional(readOnly = true)
-  public List<UserWalletSummaryDto> getUsersWalletsSummaryForPermittedCurrencyList(List<Integer> roles, Integer requesterUserId) {
+  public List<UserWalletSummaryDto> getUsersWalletsSummaryForPermittedCurrencyListOld(List<Integer> roles, Integer requesterUserId) {
     Set<String> permittedCurrencies = currencyService.getCurrencyPermittedNameList(requesterUserId);
     return walletDao.getUsersWalletsSummary(roles).stream()
         .filter(e -> permittedCurrencies.contains(e.getCurrencyName()))
         .collect(Collectors.toList());
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<UserWalletSummaryDto> getUsersWalletsSummaryForPermittedCurrencyList(Integer requesterUserId) {
+    return walletDao.getUsersWalletsSummaryNew(requesterUserId);
   }
 
   @Override
