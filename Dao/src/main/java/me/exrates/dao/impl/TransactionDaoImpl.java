@@ -768,7 +768,7 @@ public final class TransactionDaoImpl implements TransactionDao {
             "   AS output_amount," +
             "   (SELECT IF (COUNT(*) = 2, 1, 0) " +
             "        FROM USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP " +
-            "        WHERE (IOP.currency_id=currency.id) " +
+            "        WHERE (IOP.currency_id=CURRENCY.id) " +
             "        AND (IOP.user_id = :requester_user_id) ) AS both_permissions_present     " +
             " FROM USER  " +
             "   LEFT JOIN WALLET ON (WALLET.user_id = USER.id) " +
