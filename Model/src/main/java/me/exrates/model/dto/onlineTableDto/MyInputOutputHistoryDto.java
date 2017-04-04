@@ -43,6 +43,7 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
   private String userFullName;
   private String remark;
   private TransactionSourceType sourceType;
+  private Integer sourceId;
   private Integer confirmation;
   private Integer adminHolderId;
   private Integer authorisedUserId;

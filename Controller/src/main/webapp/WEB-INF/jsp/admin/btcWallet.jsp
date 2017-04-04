@@ -20,6 +20,7 @@
 </head>
 <body>
 <%@include file='../fragments/header-simple.jsp' %>
+<c:set var="admin_manageBtcWallet" value="<%=AdminAuthority.MANAGE_BTC_CORE_WALLET%>"/>
 <main class="container">
     <div class="row">
         <%@include file='left_side_menu.jsp' %>
@@ -33,15 +34,18 @@
                 <p class="lightblue"><strong><loc:message code="btcWallet.unconfirmedBalance"/>
                     <span id="current-btc-unconfirmed-balance">${walletInfo.unconfirmedBalance}</span> BTC</strong></p>
             </div>
-
+            <sec:authorize access="hasAuthority('${admin_manageBtcWallet}')">
             <div id="walletMenu" class="buttons">
                 <button class="active adminForm-toggler blue-box">
                     <loc:message code="btcWallet.history.title"/>
                 </button>
-                <button class="adminForm-toggler blue-box">
-                    <loc:message code="btcWallet.send.title"/>
-                </button>
+
+                    <button class="adminForm-toggler blue-box">
+                        <loc:message code="btcWallet.send.title"/>
+                    </button>
             </div>
+            </sec:authorize>
+
             <div class="tab-content">
                 <div id="panel1" class="tab-pane active">
                     <div class="text-center"><h4><loc:message code="btcWallet.history.title"/></h4></div>
@@ -61,6 +65,7 @@
                         </thead>
                     </table>
                 </div>
+                <sec:authorize access="hasAuthority('${admin_manageBtcWallet}')">
                 <div id="panel2" class="tab-pane">
                     <div class="text-center"><h4><loc:message code="btcWallet.send.title"/></h4></div>
                     <div class="col-md-8 col-md-offset-2">
@@ -112,11 +117,12 @@
                         </form>
                     </div>
                 </div>
+                </sec:authorize>
             </div>
         </div>
 </main>
 
-
+<sec:authorize access="hasAuthority('${admin_manageBtcWallet}')">
 <div id="password-modal" class="modal fade">
     <div class="modal-dialog modal-md">
         <div class="modal-content">
@@ -165,7 +171,7 @@
     </div>
 </div>
 
-
+</sec:authorize>
 
 
 

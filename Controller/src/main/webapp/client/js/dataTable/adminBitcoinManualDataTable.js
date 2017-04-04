@@ -101,7 +101,7 @@ $(document).ready(function () {
                         "render": function (data, type, row) {
                             var readonly = data == null ? '' : 'readonly';
                             var totalAmount = row.amount + row.commissionAmount;
-                            return '<input id="manual_amount'+ row.invoiceId +'" ' + readonly + ' value="' + numeral(totalAmount).format('0.00000000') + '" style="width: 130px"  maxlength="9" ' +
+                            return '<input id="manual_amount'+ row.invoiceId +'" ' + readonly + ' value="' + numeral(totalAmount).format('0.00000000') + '" style="width: 130px"  maxlength="15" ' +
                                 'class="form-control input-block-wrapper__input numericInputField">';
                         }
                     },

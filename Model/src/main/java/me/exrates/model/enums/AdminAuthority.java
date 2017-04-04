@@ -3,6 +3,7 @@ package me.exrates.model.enums;
 import me.exrates.model.exceptions.UnsupportedAuthorityException;
 import org.springframework.context.MessageSource;
 
+import java.util.Arrays;
 import java.util.Locale;
 
 /**
@@ -17,7 +18,8 @@ public enum AdminAuthority {
     SET_CURRENCY_LIMIT(6),
     MANAGE_ACCESS(7),
     MANUAL_BALANCE_CHANGE(8),
-    EDIT_USER(9);
+    EDIT_USER(9),
+    MANAGE_BTC_CORE_WALLET(10);
 
     private final int authority;
 
@@ -30,18 +32,9 @@ public enum AdminAuthority {
     }
 
     public static AdminAuthority convert(int authority) {
-        switch (authority) {
-            case 1: return PROCESS_WITHDRAW;
-            case 2: return PROCESS_INVOICE;
-            case 3: return DELETE_ORDER;
-            case 4: return COMMENT_USER;
-            case 5: return MANAGE_SESSIONS;
-            case 6: return SET_CURRENCY_LIMIT;
-            case 7: return MANAGE_ACCESS;
-            case 8: return MANUAL_BALANCE_CHANGE;
-            case 9: return EDIT_USER;
-            default: throw new UnsupportedAuthorityException("Unsupported type of authority");
-        }
+        return Arrays.stream(AdminAuthority.values())
+                .filter(auth -> auth.getAuthority() == authority)
+                .findAny().orElseThrow(() -> new UnsupportedAuthorityException("Unsupported type of authority"));
     }
 
     public String toLocalizedString(MessageSource messageSource, Locale locale) {

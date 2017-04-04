@@ -104,7 +104,7 @@
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
         <RollingFile name="bitcoinj_log" fileName="${sys:catalina.home}/logs/bitcoinj_log.log"
-                     filePattern="${sys:catalina.home}/logs/proxy_log_%d_%i.log" append="true">
+                     filePattern="${sys:catalina.home}/logs/bitcoinj_log_%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -122,7 +122,7 @@
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
         <RollingFile name="bitcoin_core_log" fileName="${sys:catalina.home}/logs/bitcoin_core_log.log"
-                     filePattern="${sys:catalina.home}/logs/proxy_log_%d_%i.log" append="true">
+                     filePattern="${sys:catalina.home}/logs/bitcoin_core_log_%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -147,6 +147,25 @@
                 <SizeBasedTriggeringPolicy size="20 MB"/>
             </Policies>
             <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="exceptions_log" fileName="${sys:catalina.home}/logs/exceptions_log.log"
+                     filePattern="${sys:catalina.home}/logs/exceptions_log_%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+
+        <RollingFile name="exceptions_ext_log" fileName="${sys:catalina.home}/logs/exceptions_ext/exceptions_ext_log.log"
+                     filePattern="${sys:catalina.home}/logs/exceptions_ext_log_%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="20"/>
         </RollingFile>
     </Appenders>
     <Loggers>
@@ -192,7 +211,7 @@
         <logger name="org.springframework.jdbc.core.StatementCreatorUtils" level="ERROR" additivity="false">
             <appender-ref ref="Console" />
         </logger>
-        <Logger name="me.exrates.controller.OnlineRestController" level="DEBUG" additivity="false">
+        <Logger name="me.exrates.controller.OnlineRestController" level="INFO" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="OnlineServices"/>
         </Logger>
@@ -265,6 +284,13 @@
             <AppenderRef ref="Console"/>
             <AppenderRef ref="withdraw_log"/>
         </Logger>
+        <logger name="aop_error_log" level="ALL" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="exceptions_log"/>
+        </logger>
+        <logger name="aop_error_log_extended" level="ALL" additivity="false">
+            <AppenderRef ref="exceptions_log"/>
+        </logger>
 
 
         <Root level="DEBUG">

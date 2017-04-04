@@ -7,14 +7,18 @@ import java.util.Map;
  * Created by ValkSam
  */
 public enum InvoiceActionTypeButtonEnum {
-  CONFIRM_USER_BUTTON,
+  CONFIRM_USER_BUTTON {{
+    getProperty().put("tableIdListOnly", new String[]{"inputoutput-table"});
+  }},
   CONFIRM_ADMIN_BUTTON {{
     getProperty().put("tableIdListOnly", new String[]{"withdrawalTable"});
   }},
   REVOKE_BUTTON {{
     getProperty().put("tableIdListOnly", new String[]{"inputoutput-table"});
   }},
-  ACCEPT_BUTTON,
+  ACCEPT_BUTTON {{
+    getProperty().put("tableIdListOnly", new String[]{"withdrawalTable"});
+  }},
   DECLINE_BUTTON {{
     getProperty().put("tableIdListOnly", new String[]{"withdrawalTable"});
   }},

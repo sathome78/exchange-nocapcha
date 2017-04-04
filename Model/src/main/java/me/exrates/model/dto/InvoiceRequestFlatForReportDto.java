@@ -18,7 +18,9 @@ public class InvoiceRequestFlatForReportDto {
   private String payerBankCode;
   private InvoiceRequestStatusEnum status;
   private LocalDateTime acceptanceTime;
+  private String merchant;
 
+  private String userNickname;
   private String userEmail;
   private String acceptanceUserEmail;
 

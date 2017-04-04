@@ -210,14 +210,14 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
   public static InvoiceStatus getInvoiceStatusAfterAction(InvoiceActionTypeEnum action) {
     TreeSet<InvoiceStatus> statusSet = new TreeSet(
         Arrays.stream(WithdrawStatusEnum.class.getEnumConstants())
-        .filter(e -> e.availableForAction(action))
-        .map(e -> e.nextState(action))
-        .collect(Collectors.toList()));
-    if (statusSet.size()==0) {
+            .filter(e -> e.availableForAction(action))
+            .map(e -> e.nextState(action))
+            .collect(Collectors.toList()));
+    if (statusSet.size() == 0) {
       log.fatal("no state found !");
       throw new AssertionError();
     }
-    if (statusSet.size()>1) {
+    if (statusSet.size() > 1) {
       log.fatal("more then one state found !");
       throw new AssertionError();
     }
@@ -227,6 +227,18 @@ public enum WithdrawStatusEnum implements InvoiceStatus {
   @Override
   public Boolean isEndStatus() {
     return schemaMap.isEmpty();
+  }
+
+  @Override
+  public Boolean isSuccessEndStatus() {
+    Map<InvoiceActionTypeEnum, InvoiceStatus> schema = new HashMap<>();
+    Arrays.stream(WithdrawStatusEnum.class.getEnumConstants())
+        .forEach(e -> schema.putAll(e.schemaMap));
+    return schema.entrySet().stream()
+        .filter(e -> e.getValue() == this)
+        .filter(e -> e.getKey().isLeadsToSuccessFinalState())
+        .findAny()
+        .isPresent();
   }
 
   private static Set<InvoiceStatus> collectAllSchemaMapNodesSet() {

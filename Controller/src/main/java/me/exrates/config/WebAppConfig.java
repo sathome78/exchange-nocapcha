@@ -2,6 +2,7 @@ package me.exrates.config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import me.exrates.aspect.LoggingAspect;
 import me.exrates.controller.filter.RequestFilter;
 import me.exrates.controller.handler.ChatWebSocketHandler;
 import me.exrates.controller.interceptor.FinPassCheckInterceptor;
@@ -59,6 +60,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 @EnableWebMvc
 @EnableTransactionManagement
 @EnableScheduling
+@EnableAspectJAutoProxy
 @ComponentScan({"me.exrates"})
 @Import(
         {
@@ -346,6 +348,11 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         } else {
             throw new AssertionError(bitcoinConcreteClassName);
         }
+    }
+    
+    @Bean
+    public LoggingAspect loggingAspect() {
+        return new LoggingAspect();
     }
 
 }

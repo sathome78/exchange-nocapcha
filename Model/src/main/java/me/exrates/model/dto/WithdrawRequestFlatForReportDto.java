@@ -22,6 +22,7 @@ public class WithdrawRequestFlatForReportDto {
   private WithdrawStatusEnum status;
   private LocalDateTime acceptanceTime;
 
+  private String userNickname;
   private String userEmail;
   private String adminEmail;
 
