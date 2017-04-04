@@ -30,7 +30,12 @@ function uploadUserWalletsInOut(role) {
 function uploadUserWalletsOrders(role) {
     currentRole = role;
     currentId = 'upload-users-wallets-orders';
-    downloadUsersWalletsSummaryDatepiker();
+    showDialog({
+        currencyPicker: false,
+        currencyPairPicker: false,
+        directionPicker: false,
+        includeEmptyChecker: false,
+    });
 }
 
 function uploadUserWalletsOrdersByCurrencyPairs(role) {
@@ -67,22 +72,7 @@ function downloadUsersWalletsSummary() {
     $('#order-delete-modal--date-picker').one('hidden.bs.modal', function (e) {
         var objArr = $('#datepicker__form').serializeArray();
         var data = "startDate=" + objArr[0].value + ' 00:00:00' + '&' + "endDate=" + objArr[1].value + ' 23:59:59' + "&role=" + currentRole;
-        if (currentId == 'upload-users-wallets-orders') {
-            $.ajax({
-                    url: '/2a8fy7b07dxe44/downloadUserSummaryOrders',
-                    type: 'GET',
-                    data: data,
-                    success: function (data) {
-                        var link = document.createElement('a');
-                        link.href = "data:text/plain;charset=utf-8,%EF%BB%BF" + encodeURIComponent(data);
-                        link.download = "downloadUsersSummaryOrders_" + currentRole + ".csv";
-                        var e = document.createEvent('MouseEvents');
-                        e.initEvent('click', true, true);
-                        link.dispatchEvent(e);
-                    }
-                }
-            );
-        }
+
         if (currentId == 'upload-users-wallets-orders-by-currency-pairs') {
             $.ajax({
                     url: '/2a8fy7b07dxe44/downloadUserSummaryOrdersByCurrencyPairs',
@@ -156,6 +146,16 @@ function makeReport() {
         } else if (currentId == 'upload-users-wallets') {
             $.ajax({
                     url: '/2a8fy7b07dxe44/report/usersWalletsSummary',
+                    type: 'GET',
+                    data: data,
+                    success: function (data) {
+                        saveToDisk(data);
+                    }
+                }
+            );
+        } else if (currentId == 'upload-users-wallets-orders') {
+            $.ajax({
+                    url: '/2a8fy7b07dxe44/report/userSummaryOrders',
                     type: 'GET',
                     data: data,
                     success: function (data) {

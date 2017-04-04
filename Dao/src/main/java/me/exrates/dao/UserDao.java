@@ -126,8 +126,6 @@ public interface UserDao {
 
   List<UserSessionInfoDto> getUserSessionInfo(Set<String> emails);
 
-  List<UserSummaryOrdersDto> getUserSummaryOrdersList(String startDate, String endDate, List<Integer> roles);
-
   List<UserSummaryOrdersByCurrencyPairsDto> getUserSummaryOrdersByCurrencyPairList(String startDate, String endDate, List<Integer> roles);
 
   String getAvatarPath(Integer userId);

@@ -1,10 +1,7 @@
 package me.exrates.controller;
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.model.dto.InvoiceReportDto;
-import me.exrates.model.dto.SummaryInOutReportDto;
-import me.exrates.model.dto.UserSummaryDto;
-import me.exrates.model.dto.UserSummaryTotalInOutDto;
+import me.exrates.model.dto.*;
 import me.exrates.service.ReportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -14,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
@@ -88,5 +86,44 @@ public class ReportController {
                 .collect(Collectors.joining());
   }
 
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/report/userSummaryOrders", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
+  @ResponseBody
+  public String getUserSummaryOrders(
+      @RequestParam String startDate,
+      @RequestParam String endDate,
+      @RequestParam String role,
+      @RequestParam(required = false) List<String> currencyList,
+      Principal principal) {
+    List<UserSummaryOrdersDto> list = reportService.getUserSummaryOrdersList(principal.getName(), startDate, endDate, role, currencyList);
+    BigDecimal sumAmountBuy = new BigDecimal(0.00);
+    BigDecimal sumAmountBuyFee = new BigDecimal(0.00);
+    BigDecimal sumAmountSell = new BigDecimal(0.00);
+    BigDecimal sumAmountSellFee = new BigDecimal(0.00);
+
+    String value = "Orders from " + startDate.substring(0, 10) + " till " + endDate.substring(0, 10) + ": \n \n" + UserSummaryOrdersDto.getTitle() +
+        list.stream()
+            .map(e -> e.toString())
+            .collect(Collectors.joining());
+
+    for (UserSummaryOrdersDto userSummaryOrdersDto : list) {
+      if (userSummaryOrdersDto.getAmountBuy() != null) {
+        sumAmountBuy = sumAmountBuy.add(userSummaryOrdersDto.getAmountBuy());
+      }
+      if (userSummaryOrdersDto.getAmountBuyFee() != null) {
+        sumAmountBuyFee = sumAmountBuyFee.add(userSummaryOrdersDto.getAmountBuyFee());
+      }
+      if (userSummaryOrdersDto.getAmountSell() != null) {
+        sumAmountSell = sumAmountSell.add(userSummaryOrdersDto.getAmountSell());
+      }
+      if (userSummaryOrdersDto.getAmountSellFee() != null) {
+        sumAmountSellFee = sumAmountSellFee.add(userSummaryOrdersDto.getAmountSellFee());
+      }
+    }
+    value += "\n sumBuy: " + sumAmountBuy.toString() + "\n sumBuyFee: " + sumAmountBuyFee.toString();
+    value += "\n sumSell: " + sumAmountSell.toString() + "\n sumSellFee: " + sumAmountSellFee.toString();
+
+    return value;
+  }
 
 }

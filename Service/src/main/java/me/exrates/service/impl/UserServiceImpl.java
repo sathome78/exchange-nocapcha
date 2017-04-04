@@ -469,11 +469,6 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public List<UserSummaryOrdersDto> getUserSummaryOrdersList(String startDate, String endDate, List<Integer> roles) {
-    return userDao.getUserSummaryOrdersList(startDate, endDate, roles);
-  }
-
-  @Override
   public List<UserSummaryOrdersByCurrencyPairsDto> getUserSummaryOrdersByCurrencyPairList(String startDate, String endDate, List<Integer> roles) {
     return userDao.getUserSummaryOrdersByCurrencyPairList(startDate, endDate, roles);
   }

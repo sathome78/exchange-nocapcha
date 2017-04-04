@@ -174,6 +174,20 @@ public class ReportServiceImpl implements ReportService {
     return transactionService.getTurnoverInfoByUserAndCurrencyForPeriodAndRoleList(requesterUserId, startDate, endDate, realRoleIdList);
   }
 
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<UserSummaryOrdersDto> getUserSummaryOrdersList(
+      String requesterUserEmail,
+      String startDate,
+      String endDate,
+      String businessRole,
+      List<String> currencyList) {
+    Integer requesterUserId = userService.getIdByEmail(requesterUserEmail);
+    List<Integer> realRoleIdList = userRoleService.getRealUserRoleIdByBusinessRoleList(businessRole);
+    return transactionService.getUserSummaryOrdersList(requesterUserId, startDate, endDate, realRoleIdList);
+  }
+
   @Getter
   private class AvailableCurrencies {
     private String requesterUserEmail;

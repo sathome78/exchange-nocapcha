@@ -6,6 +6,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.dto.TransactionFlatForReportDto;
 import me.exrates.model.dto.UserSummaryDto;
+import me.exrates.model.dto.UserSummaryOrdersDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.enums.OperationType;
@@ -354,6 +355,11 @@ public class TransactionServiceImpl implements TransactionService {
       String endDate,
       List<Integer> roleIdList) {
     return transactionDao.getTurnoverInfoByUserAndCurrencyForPeriodAndRoleList(requesterUserId, startDate, endDate, roleIdList);
+  }
+
+  @Override
+  public List<UserSummaryOrdersDto> getUserSummaryOrdersList(Integer requesterUserId, String startDate, String endDate, List<Integer> roles) {
+    return transactionDao.getUserSummaryOrdersList(requesterUserId, startDate, endDate, roles);
   }
 
   private List<String> convertTrListToString(List<Transaction> transactions, Locale locale) {
