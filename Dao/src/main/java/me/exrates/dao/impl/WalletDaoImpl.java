@@ -448,64 +448,6 @@ public class WalletDaoImpl implements WalletDao {
   }
 
   @Override
-  public List<UserWalletSummaryDto> getUsersWalletsSummary(List<Integer> roles) {
-
-    String condition = "";
-    if (!roles.isEmpty()) {
-      condition = " AND USER.roleid IN (:roles) ";
-    }
-
-    String sql = "SELECT CURRENCY.name as currency_name, COUNT(*) as wallets_amount, SUM(WALLET.active_balance) as active_balance, SUM(WALLET.reserved_balance) as reserved_balance, " +
-        "(SELECT SUM(amount) FROM TRANSACTION " +
-        " JOIN WALLET ON (WALLET.id = TRANSACTION.user_wallet_id) " +
-        " JOIN USER ON (USER.id = WALLET.user_id) " +
-        condition +
-        " WHERE provided=1 " +
-        "   AND TRANSACTION.source_type IN ('INVOICE', 'BTC_INVOICE', 'MERCHANT') " +
-        "   AND operation_type_id=1 " +
-        "   AND TRANSACTION.currency_id=CURRENCY.id) as merchant_amount_input, " +
-
-        "(SELECT SUM(amount) FROM TRANSACTION " +
-        " JOIN WALLET ON (WALLET.id = TRANSACTION.user_wallet_id) " +
-        " JOIN USER ON (USER.id = WALLET.user_id) " +
-        condition +
-        " WHERE provided=1 " +
-        "   AND TRANSACTION.source_type IN ('WITHDRAW') " +
-        "   AND operation_type_id=2 " +
-        "   AND TRANSACTION.currency_id=CURRENCY.id) as merchant_amount_output " +
-
-        " FROM WALLET " +
-        " JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
-        " JOIN USER ON (USER.id = WALLET.user_id) " +
-        " JOIN USER_ROLE ON (USER_ROLE.id = USER.roleid) " +
-        " WHERE CURRENCY.hidden != 1 " +
-        condition +
-        " GROUP BY CURRENCY.name, CURRENCY.id";
-
-    Map<String, List<Integer>> namedParameters = new HashMap<>();
-    namedParameters.put("roles", roles);
-
-    ArrayList<UserWalletSummaryDto> result = (ArrayList<UserWalletSummaryDto>) jdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<UserWalletSummaryDto>() {
-      @Override
-      public UserWalletSummaryDto mapRow(ResultSet rs, int rowNumber) throws SQLException {
-        UserWalletSummaryDto userWalletSummaryDto = new UserWalletSummaryDto();
-        userWalletSummaryDto.setCurrencyName(rs.getString("currency_name"));
-        userWalletSummaryDto.setWalletsAmount(rs.getInt("wallets_amount"));
-        userWalletSummaryDto.setActiveBalance(rs.getBigDecimal("active_balance"));
-        userWalletSummaryDto.setReservedBalance(rs.getBigDecimal("reserved_balance"));
-        userWalletSummaryDto.setBalance(BigDecimalProcessing.doAction(userWalletSummaryDto.getActiveBalance(), userWalletSummaryDto.getReservedBalance(), ActionType.ADD));
-        userWalletSummaryDto.setActiveBalancePerWallet(BigDecimalProcessing.doAction(userWalletSummaryDto.getActiveBalance(), BigDecimal.valueOf(userWalletSummaryDto.getWalletsAmount()), ActionType.DEVIDE));
-        userWalletSummaryDto.setReservedBalancePerWallet(BigDecimalProcessing.doAction(userWalletSummaryDto.getReservedBalance(), BigDecimal.valueOf(userWalletSummaryDto.getWalletsAmount()), ActionType.DEVIDE));
-        userWalletSummaryDto.setBalancePerWallet(BigDecimalProcessing.doAction(userWalletSummaryDto.getBalance(), BigDecimal.valueOf(userWalletSummaryDto.getWalletsAmount()), ActionType.DEVIDE));
-        userWalletSummaryDto.setMerchantAmountInput(rs.getBigDecimal("merchant_amount_input"));
-        userWalletSummaryDto.setMerchantAmountOutput(rs.getBigDecimal("merchant_amount_output"));
-        return userWalletSummaryDto;
-      }
-    });
-    return result;
-  }
-
-  @Override
   public WalletTransferStatus walletInnerTransfer(int walletId, BigDecimal amount, TransactionSourceType sourceType, int sourceId, String description) {
     String sql = "SELECT WALLET.id AS wallet_id, WALLET.currency_id, WALLET.active_balance, WALLET.reserved_balance" +
         "  FROM WALLET " +

@@ -752,31 +752,6 @@ public class AdminController {
 
   }
 
-  @RequestMapping("/2a8fy7b07dxe44/userswallets_old")
-  public ModelAndView showUsersWalletsSummaryOld(Principal principal) {
-    Integer requesterUserId = userService.getIdByEmail(principal.getName());
-    Map<String, List<UserWalletSummaryDto>> mapUsersWalletsSummaryList = new LinkedHashMap<>();
-    mapUsersWalletsSummaryList.put("ALL", walletService.getUsersWalletsSummaryForPermittedCurrencyListOld(userRoleService.getRealUserRoleIdByBusinessRoleList("ALL"), requesterUserId));
-    mapUsersWalletsSummaryList.put("ADMIN", walletService.getUsersWalletsSummaryForPermittedCurrencyListOld(userRoleService.getRealUserRoleIdByBusinessRoleList("ADMIN"), requesterUserId));
-    mapUsersWalletsSummaryList.put("USER", walletService.getUsersWalletsSummaryForPermittedCurrencyListOld(userRoleService.getRealUserRoleIdByBusinessRoleList("USER"), requesterUserId));
-    mapUsersWalletsSummaryList.put("EXCHANGE", walletService.getUsersWalletsSummaryForPermittedCurrencyListOld(userRoleService.getRealUserRoleIdByBusinessRoleList("EXCHANGE"), requesterUserId));
-    mapUsersWalletsSummaryList.put("VIP_USER", walletService.getUsersWalletsSummaryForPermittedCurrencyListOld(userRoleService.getRealUserRoleIdByBusinessRoleList("VIP_USER"), requesterUserId));
-    mapUsersWalletsSummaryList.put("TRADER", walletService.getUsersWalletsSummaryForPermittedCurrencyListOld(userRoleService.getRealUserRoleIdByBusinessRoleList("TRADER"), requesterUserId));
-
-    ModelAndView model = new ModelAndView();
-    model.setViewName("UsersWallets");
-    model.addObject("mapUsersWalletsSummaryList", mapUsersWalletsSummaryList);
-    Set<String> usersCurrencyPermittedList = new LinkedHashSet<String>() {{
-      add("ALL");
-    }};
-    usersCurrencyPermittedList.addAll(currencyService.getCurrencyPermittedNameList(requesterUserId));
-    model.addObject("usersCurrencyPermittedList", usersCurrencyPermittedList);
-    List<String> operationDirectionList = Arrays.asList("ANY", InvoiceOperationDirection.REFILL.name(), InvoiceOperationDirection.WITHDRAW.name());
-    model.addObject("operationDirectionList", operationDirectionList);
-
-    return model;
-  }
-
   @RequestMapping("/2a8fy7b07dxe44/userswallets")
   public ModelAndView showUsersWalletsSummary(Principal principal) {
     Integer requesterUserId = userService.getIdByEmail(principal.getName());
@@ -827,30 +802,6 @@ public class AdminController {
     }
     result.forEach(UserWalletSummaryDto::calculate);
     return result;
-  }
-
-
-  @RequestMapping(value = "/2a8fy7b07dxe44/downloadUsersWalletsSummary", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
-  @ResponseBody
-  public String getUsersWalletsSummeryTxt(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
-    return
-        UserSummaryDto.getTitle() +
-            userService.getUsersSummaryList(startDate, endDate, userRoleService.getRealUserRoleIdByBusinessRoleList(role))
-                .stream()
-                .map(e -> e.toString())
-                .collect(Collectors.joining());
-  }
-
-  @RequestMapping(value = "/2a8fy7b07dxe44/downloadUsersWalletsSummaryInOut", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
-  @ResponseBody
-  public String getUsersWalletsSummeryInOut(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
-    String value = UserSummaryInOutDto.getTitle() +
-        userService.getUsersSummaryInOutList(startDate, endDate, userRoleService.getRealUserRoleIdByBusinessRoleList(role))
-            .stream()
-            .map(e -> e.toString())
-            .collect(Collectors.joining());
-
-    return value;
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/downloadUserSummaryOrders", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")

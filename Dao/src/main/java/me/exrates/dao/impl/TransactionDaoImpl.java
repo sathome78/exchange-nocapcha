@@ -772,15 +772,22 @@ public final class TransactionDaoImpl implements TransactionDao {
             "        AND (IOP.user_id = :requester_user_id) ) AS both_permissions_present     " +
             " FROM USER  " +
             "   LEFT JOIN WALLET ON (WALLET.user_id = USER.id) " +
-            "   LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id)" +
+            "   JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) and (CURRENCY.hidden <> 1)" +
             "   JOIN USER_ROLE ON (USER_ROLE.id = USER.roleid) " +
             (roleIdList.isEmpty() ? "" :
-                " AND USER.roleid IN (:role_id_list)");
+                " AND USER.roleid IN (:role_id_list)") +
+            " WHERE " +
+            "   USER.status = " +UserStatus.ACTIVE.getStatus()+
+            "   AND EXISTS (" +
+            "       SELECT * " +
+            "           FROM USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP " +
+            "           WHERE (IOP.currency_id=CURRENCY.id " +
+            "                 AND (IOP.user_id = :requester_user_id)) ) ";
 
     Map<String, Object> namedParameters = new HashMap<>();
     namedParameters.put("start_date", startDate);
     namedParameters.put("end_date", endDate);
-    namedParameters.put("roles", roleIdList);
+    namedParameters.put("role_id_list", roleIdList);
     namedParameters.put("requester_user_id", requesterUserId);
     return jdbcTemplate.query(sql, namedParameters, (rs, idx) -> {
       UserSummaryDto userSummaryDto = new UserSummaryDto();
@@ -794,6 +801,7 @@ public final class TransactionDaoImpl implements TransactionDao {
       userSummaryDto.setReservedBalance(rs.getBigDecimal("reserved_balance"));
       userSummaryDto.setInputSummary(rs.getBigDecimal("input_amount"));
       userSummaryDto.setOutputSummary(rs.getBigDecimal("output_amount"));
+      userSummaryDto.setBothCurrencyPermissionsPresent(rs.getBoolean("both_permissions_present"));
       return userSummaryDto;
     });
   }
