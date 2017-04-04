@@ -26,6 +26,10 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
+import static org.apache.commons.lang.time.DateUtils.MILLIS_IN_SECOND;
+import static org.apache.commons.lang.time.DateUtils.MILLIS_PER_MINUTE;
+import static org.apache.commons.lang.time.DateUtils.MILLIS_PER_SECOND;
+
 /**
  * Created from ConcurrentSessionFilter by maks on 31.03.2017.
  */
@@ -93,7 +97,7 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
                 else {
                     // Non-expired - update last request date/time
                     sessionRegistry.refreshLastRequest(info.getSessionId());
-                    if (isRefreshNeeded(request)) {
+                    if (isRefreshNeeded(request) && !isSessionExpired(session)) {
                         session.setAttribute(sessionLastRequestParamName, System.currentTimeMillis());
                     }
                 }
@@ -112,6 +116,12 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
         }
         logger.debug("not refresh session " + request.getRequestURI());
         return false;
+    }
+
+    private boolean isSessionExpired(HttpSession session) {
+        Integer sessionLifeTime = (int)session.getAttribute(sessionTimeMinutesParamName);
+        long lastReq = (long)session.getAttribute(sessionLastRequestParamName);
+        return lastReq + sessionLifeTime * MILLIS_PER_MINUTE <= System.currentTimeMillis();
     }
 
     private boolean isPathForSessionRefresh(HttpServletRequest request) {
