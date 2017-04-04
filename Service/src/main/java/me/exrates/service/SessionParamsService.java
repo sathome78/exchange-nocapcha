@@ -3,6 +3,7 @@ package me.exrates.service;
 import me.exrates.model.SessionLifeTimeType;
 import me.exrates.model.SessionParams;
 
+import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;

@@ -227,19 +227,6 @@ public class OnlineRestController {
           }});
         }};
       }*/
-     if (principal != null && isSessionTimeOut(session)) {
-       try {
-         request.logout();
-       } catch (ServletException e) {
-         e.printStackTrace();
-       }
-       return new HashMap<String, HashMap<String, String>>() {{
-         put("redirect", new HashMap<String, String>() {{
-           put("url", "/dashboard");
-           put("urlParam1", messageSource.getMessage("session.expire", null, localeResolver.resolveLocale(request)));
-         }});
-       }};
-     }
       if (session.getAttribute("QR_LOGGED_IN") != null) {
             /*after authentication via QR main page must be reloaded*/
         session.removeAttribute("QR_LOGGED_IN");
@@ -248,6 +235,19 @@ public class OnlineRestController {
           put("redirect", new HashMap<String, String>() {{
             put("url", "/dashboard");
             put("successQR", messageSource.getMessage("dashboard.qrLogin.successful", null, localeResolver.resolveLocale(request)));
+          }});
+        }};
+      }
+      if (principal != null && isSessionTimeOut(session)) {
+        try {
+          request.logout();
+        } catch (ServletException e) {
+          e.printStackTrace();
+        }
+        return new HashMap<String, HashMap<String, String>>() {{
+          put("redirect", new HashMap<String, String>() {{
+            put("url", "/dashboard");
+            put("urlParam1", messageSource.getMessage("session.expire", null, localeResolver.resolveLocale(request)));
           }});
         }};
       }
@@ -267,7 +267,7 @@ public class OnlineRestController {
   private boolean isSessionTimeOut(HttpSession session) {
     Integer sessionLifeTime = (int)session.getAttribute(sessionTimeMinutes);
     long lastReq = (long)session.getAttribute(sessionLastRequestParamName);
-    LOGGER.debug("last accTime " + lastReq +
+    LOGGER.error("last accTime " + lastReq +
             " lifetime " + sessionLifeTime +
             " system " + System.currentTimeMillis());
     return lastReq + sessionLifeTime * SECONDS_IN_MINUTE * MILLIS_IN_SECOND <= System.currentTimeMillis();

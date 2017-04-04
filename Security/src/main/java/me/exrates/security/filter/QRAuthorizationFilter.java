@@ -1,5 +1,7 @@
 package me.exrates.security.filter;
 
+import me.exrates.service.SessionParamsService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -8,6 +10,7 @@ import org.springframework.security.web.authentication.AbstractAuthenticationPro
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
+import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 import org.springframework.web.filter.GenericFilterBean;
 import org.springframework.web.util.WebUtils;
 
@@ -24,6 +27,9 @@ import java.io.IOException;
  * Created by OLEG on 11.10.2016.
  */
 public class QRAuthorizationFilter extends GenericFilterBean {
+
+    @Autowired
+    private SessionParamsService sessionParamsService;
 
     private SessionAuthenticationStrategy authenticationStrategy = new NullAuthenticatedSessionStrategy();
 
@@ -43,6 +49,8 @@ public class QRAuthorizationFilter extends GenericFilterBean {
                 Authentication auth = new UsernamePasswordAuthenticationToken(userDetails,
                         null, userDetails.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(auth);
+                SpringBeanAutowiringSupport.processInjectionBasedOnCurrentContext(this);
+                sessionParamsService.setSessionLifeParams((HttpServletRequest) request);
                 authenticationStrategy.onAuthentication(auth, httpServletRequest, ((HttpServletResponse)response));
             }
 
