@@ -757,13 +757,22 @@ public class AdminController {
   public ModelAndView showUsersWalletsSummary(Principal principal) {
     Integer requesterUserId = userService.getIdByEmail(principal.getName());
     Map<String, List<UserWalletSummaryDto>> mapUsersWalletsSummaryList = new LinkedHashMap<>();
-    mapUsersWalletsSummaryList.put("ALL", walletService.getUsersWalletsSummaryForPermittedCurrencyList(userRoleService.getRealUserRoleIdByBusinessRoleList("ALL"), requesterUserId));
-    mapUsersWalletsSummaryList.put("ADMIN", walletService.getUsersWalletsSummaryForPermittedCurrencyList(userRoleService.getRealUserRoleIdByBusinessRoleList("ADMIN"), requesterUserId));
-    mapUsersWalletsSummaryList.put("USER", walletService.getUsersWalletsSummaryForPermittedCurrencyList(userRoleService.getRealUserRoleIdByBusinessRoleList("USER"), requesterUserId));
-    mapUsersWalletsSummaryList.put("EXCHANGE", walletService.getUsersWalletsSummaryForPermittedCurrencyList(userRoleService.getRealUserRoleIdByBusinessRoleList("EXCHANGE"), requesterUserId));
-    mapUsersWalletsSummaryList.put("VIP_USER", walletService.getUsersWalletsSummaryForPermittedCurrencyList(userRoleService.getRealUserRoleIdByBusinessRoleList("VIP_USER"), requesterUserId));
-    mapUsersWalletsSummaryList.put("TRADER", walletService.getUsersWalletsSummaryForPermittedCurrencyList(userRoleService.getRealUserRoleIdByBusinessRoleList("TRADER"), requesterUserId));
-
+    List<UserWalletSummaryDto> fullResult = walletService.getUsersWalletsSummaryForPermittedCurrencyList(requesterUserId);
+    /**/
+    List<UserWalletSummaryDto> allFiltered = getSublistForRole(fullResult, "ALL");
+    List<UserWalletSummaryDto> adminFiltered = getSublistForRole(fullResult, "ADMIN");
+    List<UserWalletSummaryDto> userFiltered = getSublistForRole(fullResult, "USER");
+    List<UserWalletSummaryDto> exchangeFiltered = getSublistForRole(fullResult, "EXCHANGE");
+    List<UserWalletSummaryDto> vipUserFiltered = getSublistForRole(fullResult, "VIP_USER");
+    List<UserWalletSummaryDto> traderFiltered = getSublistForRole(fullResult, "TRADER");
+    /**/
+    mapUsersWalletsSummaryList.put("ALL", allFiltered);
+    mapUsersWalletsSummaryList.put("ADMIN", adminFiltered);
+    mapUsersWalletsSummaryList.put("USER", userFiltered);
+    mapUsersWalletsSummaryList.put("EXCHANGE", exchangeFiltered);
+    mapUsersWalletsSummaryList.put("VIP_USER", vipUserFiltered);
+    mapUsersWalletsSummaryList.put("TRADER", traderFiltered);
+    /**/
     ModelAndView model = new ModelAndView();
     model.setViewName("UsersWallets");
     model.addObject("mapUsersWalletsSummaryList", mapUsersWalletsSummaryList);
@@ -778,16 +787,22 @@ public class AdminController {
     return model;
   }
 
-
-  @RequestMapping(value = "/2a8fy7b07dxe44/downloadUsersWalletsSummary", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
-  @ResponseBody
-  public String getUsersWalletsSummeryTxt(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
-    return
-        UserSummaryDto.getTitle() +
-            userService.getUsersSummaryList(startDate, endDate, userRoleService.getRealUserRoleIdByBusinessRoleList(role))
-                .stream()
-                .map(e -> e.toString())
-                .collect(Collectors.joining());
+  private List<UserWalletSummaryDto> getSublistForRole( List<UserWalletSummaryDto> fullResult, String role){
+    List<Integer> realRoleList = userRoleService.getRealUserRoleIdByBusinessRoleList(role);
+    List<UserWalletSummaryDto> roleFiltered = fullResult.stream()
+        .filter(e->realRoleList.isEmpty() || realRoleList.contains(e.getUserRoleId()))
+        .collect(Collectors.toList());
+    List<UserWalletSummaryDto> result = new ArrayList<>();
+    for (UserWalletSummaryDto item: roleFiltered){
+      if (!result.contains(item)){
+        result.add(new UserWalletSummaryDto(item));
+      } else {
+        UserWalletSummaryDto storedItem = result.stream().filter(e->e.equals(item)).findAny().get();
+        storedItem.increment(item);
+      }
+    }
+    result.forEach(UserWalletSummaryDto::calculate);
+    return result;
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/downloadUserSummaryOrders", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
@@ -1152,7 +1167,7 @@ public class AdminController {
     if (StringUtils.isEmpty(address) || amount == null) {
       throw new IllegalArgumentException("Empty values not allowed!");
     }
-    
+
     String txId = bitcoinWalletService.sendToAddress(address, amount);
     Map<String, String> result = new HashMap<>();
     result.put("message", messageSource.getMessage("btcWallet.successResult", new Object[]{txId}, localeResolver.resolveLocale(request)));
@@ -1160,7 +1175,7 @@ public class AdminController {
     return result;
   }
   
-  
+
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/sendToMany", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
           produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody

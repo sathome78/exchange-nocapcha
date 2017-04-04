@@ -385,26 +385,23 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
       }
       put("currency_list", currencyList);
     }};
-    return parameterJdbcTemplate.query(sql, params, new RowMapper<InvoiceRequestFlatForReportDto>() {
-      @Override
-      public InvoiceRequestFlatForReportDto mapRow(ResultSet rs, int i) throws SQLException {
-        InvoiceRequestFlatForReportDto invoiceRequestFlatForReportDto = new InvoiceRequestFlatForReportDto();
-        invoiceRequestFlatForReportDto.setInvoiceId(rs.getInt("transaction_id"));
-        invoiceRequestFlatForReportDto.setDatetime(rs.getTimestamp("datetime") == null ? null : rs.getTimestamp("datetime").toLocalDateTime());
-        invoiceRequestFlatForReportDto.setUserNickname(rs.getString("nickname"));
-        invoiceRequestFlatForReportDto.setUserEmail(rs.getString("user_email"));
-        invoiceRequestFlatForReportDto.setRecipientBank(rs.getString("bank_name"));
-        invoiceRequestFlatForReportDto.setAmount(rs.getBigDecimal("amount"));
-        invoiceRequestFlatForReportDto.setCommissionAmount(rs.getBigDecimal("commission_amount"));
-        invoiceRequestFlatForReportDto.setCurrency(rs.getString("currency_name"));
-        invoiceRequestFlatForReportDto.setUserFullName(rs.getString("user_full_name"));
-        invoiceRequestFlatForReportDto.setPayerBankCode(rs.getString("payer_bank_code"));
-        invoiceRequestFlatForReportDto.setStatus(InvoiceRequestStatusEnum.convert(rs.getInt("invoice_request_status_id")));
-        invoiceRequestFlatForReportDto.setAcceptanceUserEmail(rs.getString("acceptance_user_email"));
-        invoiceRequestFlatForReportDto.setAcceptanceTime(rs.getTimestamp("acceptance_time") == null ? null : rs.getTimestamp("acceptance_time").toLocalDateTime());
-        invoiceRequestFlatForReportDto.setMerchant(rs.getString("merchant_name"));
-        return invoiceRequestFlatForReportDto;
-      }
+    return parameterJdbcTemplate.query(sql, params, (rs, i) -> {
+      InvoiceRequestFlatForReportDto invoiceRequestFlatForReportDto = new InvoiceRequestFlatForReportDto();
+      invoiceRequestFlatForReportDto.setInvoiceId(rs.getInt("transaction_id"));
+      invoiceRequestFlatForReportDto.setDatetime(rs.getTimestamp("datetime") == null ? null : rs.getTimestamp("datetime").toLocalDateTime());
+      invoiceRequestFlatForReportDto.setUserNickname(rs.getString("nickname"));
+      invoiceRequestFlatForReportDto.setUserEmail(rs.getString("user_email"));
+      invoiceRequestFlatForReportDto.setRecipientBank(rs.getString("bank_name"));
+      invoiceRequestFlatForReportDto.setAmount(rs.getBigDecimal("amount"));
+      invoiceRequestFlatForReportDto.setCommissionAmount(rs.getBigDecimal("commission_amount"));
+      invoiceRequestFlatForReportDto.setCurrency(rs.getString("currency_name"));
+      invoiceRequestFlatForReportDto.setUserFullName(rs.getString("user_full_name"));
+      invoiceRequestFlatForReportDto.setPayerBankCode(rs.getString("payer_bank_code"));
+      invoiceRequestFlatForReportDto.setStatus(InvoiceRequestStatusEnum.convert(rs.getInt("invoice_request_status_id")));
+      invoiceRequestFlatForReportDto.setAcceptanceUserEmail(rs.getString("acceptance_user_email"));
+      invoiceRequestFlatForReportDto.setAcceptanceTime(rs.getTimestamp("acceptance_time") == null ? null : rs.getTimestamp("acceptance_time").toLocalDateTime());
+      invoiceRequestFlatForReportDto.setMerchant(rs.getString("merchant_name"));
+      return invoiceRequestFlatForReportDto;
     });
   }
 

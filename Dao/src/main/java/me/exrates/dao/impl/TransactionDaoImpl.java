@@ -4,6 +4,7 @@ import me.exrates.dao.TransactionDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
 import me.exrates.model.dto.TransactionFlatForReportDto;
+import me.exrates.model.dto.UserSummaryDto;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
@@ -23,6 +24,7 @@ import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static java.util.Collections.singletonMap;
@@ -722,6 +724,86 @@ public final class TransactionDaoImpl implements TransactionDao {
     final String selectLimitedAllSql = sqlJoiner.toString();
     LOGGER.debug(selectLimitedAllSql);
     return jdbcTemplate.query(selectLimitedAllSql, params, transactionRowMapper);
+  }
+
+  @Override
+  public List<UserSummaryDto> getTurnoverInfoByUserAndCurrencyForPeriodAndRoleList(
+      Integer requesterUserId,
+      String startDate,
+      String endDate,
+      List<Integer> roleIdList) {
+    String sql =
+        " SELECT  " +
+            "   USER.nickname as user_nickname,  " +
+            "   USER.email as user_email,  " +
+            "   USER.regdate as user_register_date,  " +
+            "   (SELECT ip FROM USER_IP WHERE USER_IP.user_id = USER.id ORDER BY -registration_date DESC LIMIT 1) as user_register_ip, " +
+            "   (SELECT ip FROM USER_IP WHERE USER_IP.user_id = USER.id ORDER BY last_registration_date DESC LIMIT 1) as user_last_entry_ip, " +
+            "   CURRENCY.name as currency_name,  " +
+            "   WALLET.active_balance as active_balance,  " +
+            "   WALLET.reserved_balance as reserved_balance, " +
+            "   (SELECT SUM(INPUT.amount) " +
+            "         FROM TRANSACTION INPUT " +
+            "         JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
+            "             (IOP.currency_id=INPUT.currency_id) " +
+            "             AND (IOP.user_id = :requester_user_id) " +
+            "             AND (IOP.operation_direction='REFILL') " +
+            "         WHERE (INPUT.user_wallet_id = WALLET.id)  " +
+            "           AND (INPUT.operation_type_id=1)  " +
+            "           AND (INPUT.status_id=1)  " +
+            "           AND (INPUT.provided=1) " +
+            "           AND (INPUT.datetime BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))) " +
+            "   AS input_amount,  " +
+            "   (SELECT SUM(OUTPUT.amount) " +
+            "         FROM TRANSACTION OUTPUT " +
+            "         JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
+            "             (IOP.currency_id=OUTPUT.currency_id) " +
+            "             AND (IOP.user_id = :requester_user_id) " +
+            "             AND (IOP.operation_direction='WITHDRAW') " +
+            "         WHERE (OUTPUT.user_wallet_id = WALLET.id)  " +
+            "           AND (OUTPUT.operation_type_id=2)  " +
+            "           AND (OUTPUT.status_id=1)  " +
+            "           AND (OUTPUT.provided=1) " +
+            "           AND (OUTPUT.datetime BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))) " +
+            "   AS output_amount," +
+            "   (SELECT IF (COUNT(*) = 2, 1, 0) " +
+            "        FROM USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP " +
+            "        WHERE (IOP.currency_id=CURRENCY.id) " +
+            "        AND (IOP.user_id = :requester_user_id) ) AS both_permissions_present     " +
+            " FROM USER  " +
+            "   LEFT JOIN WALLET ON (WALLET.user_id = USER.id) " +
+            "   JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) and (CURRENCY.hidden <> 1)" +
+            "   JOIN USER_ROLE ON (USER_ROLE.id = USER.roleid) " +
+            (roleIdList.isEmpty() ? "" :
+                " AND USER.roleid IN (:role_id_list)") +
+            " WHERE " +
+            "   USER.status = " +UserStatus.ACTIVE.getStatus()+
+            "   AND EXISTS (" +
+            "       SELECT * " +
+            "           FROM USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP " +
+            "           WHERE (IOP.currency_id=CURRENCY.id " +
+            "                 AND (IOP.user_id = :requester_user_id)) ) ";
+
+    Map<String, Object> namedParameters = new HashMap<>();
+    namedParameters.put("start_date", startDate);
+    namedParameters.put("end_date", endDate);
+    namedParameters.put("role_id_list", roleIdList);
+    namedParameters.put("requester_user_id", requesterUserId);
+    return jdbcTemplate.query(sql, namedParameters, (rs, idx) -> {
+      UserSummaryDto userSummaryDto = new UserSummaryDto();
+      userSummaryDto.setUserNickname(rs.getString("user_nickname"));
+      userSummaryDto.setUserEmail(rs.getString("user_email"));
+      userSummaryDto.setCreationDate(rs.getTimestamp("user_register_date") == null ? "" : rs.getTimestamp("user_register_date").toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+      userSummaryDto.setRegisteredIp(rs.getString("user_register_ip"));
+      userSummaryDto.setLastIp(rs.getString("user_last_entry_ip"));
+      userSummaryDto.setCurrencyName(rs.getString("currency_name"));
+      userSummaryDto.setActiveBalance(rs.getBigDecimal("active_balance"));
+      userSummaryDto.setReservedBalance(rs.getBigDecimal("reserved_balance"));
+      userSummaryDto.setInputSummary(rs.getBigDecimal("input_amount"));
+      userSummaryDto.setOutputSummary(rs.getBigDecimal("output_amount"));
+      userSummaryDto.setBothCurrencyPermissionsPresent(rs.getBoolean("both_permissions_present"));
+      return userSummaryDto;
+    });
   }
 
 

@@ -61,8 +61,6 @@ public interface WalletDao {
      */
     WalletsForOrderAcceptionDto getWalletsForOrderByOrderIdAndBlock(Integer orderId, Integer userAcceptorId);
 
-    List<UserWalletSummaryDto> getUsersWalletsSummary(List<Integer> roles);
-
     WalletTransferStatus walletInnerTransfer(int walletId, BigDecimal amount, TransactionSourceType sourceType, int sourceId, String description);
 
     WalletTransferStatus walletBalanceChange(WalletOperationData walletOperationData);
@@ -72,4 +70,6 @@ public interface WalletDao {
     List<OrderDetailDto> getOrderRelatedDataAndBlock(int orderId);
   
   void addToWalletBalance(Integer walletId, BigDecimal addedAmountActive, BigDecimal addedAmountReserved);
+
+    List<UserWalletSummaryDto> getUsersWalletsSummaryNew(Integer requesterUserId);
 }

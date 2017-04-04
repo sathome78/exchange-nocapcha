@@ -1,5 +1,6 @@
 package me.exrates.service.impl;
 
+import lombok.Getter;
 import me.exrates.model.dto.*;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
@@ -9,8 +10,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static me.exrates.model.enums.OperationType.INPUT;
@@ -55,23 +59,9 @@ public class ReportServiceImpl implements ReportService {
       String businessRole,
       String direction,
       List<String> currencyList) {
-    Integer requesterUserId = userService.getIdByEmail(requesterUserEmail);
-    /**/
-    List<UserCurrencyOperationPermissionDto> userCurrencyOperationPermissionDtoList = currencyService.getCurrencyPermittedOperationList(requesterUserId);
-    if (currencyList.contains("ALL")) {
-      currencyList.clear();
-      currencyList.add("ALL");
-    }
-    List<Integer> currencyListForRefillOperation = userCurrencyOperationPermissionDtoList.stream()
-        .filter(e -> e.getInvoiceOperationDirection() == REFILL
-            && (currencyList.contains("ALL") || currencyList.contains(e.getCurrencyName())))
-        .map(UserCurrencyOperationPermissionDto::getCurrencyId)
-        .collect(Collectors.toList());
-    List<Integer> currencyListForWithdrawOperation = userCurrencyOperationPermissionDtoList.stream()
-        .filter(e -> e.getInvoiceOperationDirection() == WITHDRAW
-            && (currencyList.contains("ALL") || currencyList.contains(e.getCurrencyName())))
-        .map(UserCurrencyOperationPermissionDto::getCurrencyId)
-        .collect(Collectors.toList());
+    AvailableCurrencies availableCurrencies = new AvailableCurrencies(requesterUserEmail, currencyList);
+    List<Integer> currencyListForRefillOperation = availableCurrencies.getCurrencyListForRefillOperation();
+    List<Integer> currencyListForWithdrawOperation = availableCurrencies.getCurrencyListForWithdrawOperation();
     /**/
     direction = "ANY".equals(direction) ? "" : InvoiceOperationDirection.valueOf(direction).name();
     List<Integer> realRoleIdList = userRoleService.getRealUserRoleIdByBusinessRoleList(businessRole);
@@ -146,5 +136,75 @@ public class ReportServiceImpl implements ReportService {
     return result.stream()
         .map(SummaryInOutReportDto::new)
         .collect(Collectors.toList());
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Map<String, UserSummaryTotalInOutDto> getUsersSummaryInOutMap(List<SummaryInOutReportDto> resultList) {
+    Map<String, UserSummaryTotalInOutDto> resultMap = new HashMap<String, UserSummaryTotalInOutDto>() {
+      @Override
+      public UserSummaryTotalInOutDto put(String key, UserSummaryTotalInOutDto value) {
+        if (this.get(key) == null) {
+          return super.put(key, value);
+        } else {
+          UserSummaryTotalInOutDto storedValue = this.get(key);
+          storedValue.setTotalIn(storedValue.getTotalIn().add(value.getTotalIn()));
+          storedValue.setTotalOut(storedValue.getTotalOut().add(value.getTotalOut()));
+          return super.put(key, storedValue);
+        }
+      }
+    };
+    resultList.forEach(e -> resultMap.put(
+        e.getCurrency(),
+        new UserSummaryTotalInOutDto(e.getCurrency(), StringUtils.isEmpty(e.getCreationDateIn()) ? BigDecimal.ZERO : e.getAmount(), StringUtils.isEmpty(e.getCreationDateOut()) ? BigDecimal.ZERO : e.getAmount())
+    ));
+    return resultMap;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<UserSummaryDto> getTurnoverInfoByUserAndCurrencyForPeriodAndRoleList(
+      String requesterUserEmail,
+      String startDate,
+      String endDate,
+      String businessRole,
+      List<String> currencyList) {
+    Integer requesterUserId = userService.getIdByEmail(requesterUserEmail);
+    List<Integer> realRoleIdList = userRoleService.getRealUserRoleIdByBusinessRoleList(businessRole);
+    return transactionService.getTurnoverInfoByUserAndCurrencyForPeriodAndRoleList(requesterUserId, startDate, endDate, realRoleIdList);
+  }
+
+  @Getter
+  private class AvailableCurrencies {
+    private String requesterUserEmail;
+    private List<String> currencyList;
+    private List<Integer> currencyListForRefillOperation;
+    private List<Integer> currencyListForWithdrawOperation;
+
+    AvailableCurrencies(String requesterUserEmail, List<String> currencyList) {
+      this.requesterUserEmail = requesterUserEmail;
+      this.currencyList = currencyList;
+      init();
+    }
+
+    private void init() {
+      Integer requesterUserId = userService.getIdByEmail(requesterUserEmail);
+    /**/
+      List<UserCurrencyOperationPermissionDto> userCurrencyOperationPermissionDtoList = currencyService.getCurrencyPermittedOperationList(requesterUserId);
+      if (currencyList.contains("ALL")) {
+        currencyList.clear();
+        currencyList.add("ALL");
+      }
+      currencyListForRefillOperation = userCurrencyOperationPermissionDtoList.stream()
+          .filter(e -> e.getInvoiceOperationDirection() == REFILL
+              && (currencyList.contains("ALL") || currencyList.contains(e.getCurrencyName())))
+          .map(UserCurrencyOperationPermissionDto::getCurrencyId)
+          .collect(Collectors.toList());
+      currencyListForWithdrawOperation = userCurrencyOperationPermissionDtoList.stream()
+          .filter(e -> e.getInvoiceOperationDirection() == WITHDRAW
+              && (currencyList.contains("ALL") || currencyList.contains(e.getCurrencyName())))
+          .map(UserCurrencyOperationPermissionDto::getCurrencyId)
+          .collect(Collectors.toList());
+    }
   }
 }

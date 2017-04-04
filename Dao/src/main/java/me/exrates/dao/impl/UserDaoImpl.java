@@ -7,7 +7,6 @@ import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
-import me.exrates.model.util.BigDecimalProcessing;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -673,64 +672,6 @@ public class UserDaoImpl implements UserDao {
   }
 
   @Override
-  public List<UserSummaryDto> getUsersSummaryList(String startDate, String endDate, List<Integer> roles) {
-    String condition = "";
-    if (!roles.isEmpty()) {
-      condition = " WHERE USER_ROLE.id IN (:roles) ";
-    }
-
-    String sql =
-        " SELECT  " +
-            "   USER.nickname as user_nickname,  " +
-            "   USER.email as user_email,  " +
-            "   USER.regdate as user_register_date,  " +
-            "   (SELECT ip FROM USER_IP WHERE USER_IP.user_id = USER.id ORDER BY -registration_date DESC LIMIT 1) as user_register_ip, " +
-            "   (SELECT ip FROM USER_IP WHERE USER_IP.user_id = USER.id ORDER BY last_registration_date DESC LIMIT 1) as user_last_entry_ip, " +
-            "   CURRENCY.name as currency_name,  " +
-            "   WALLET.active_balance as active_balance,  " +
-            "   WALLET.reserved_balance as reserved_balance, " +
-            "   (SELECT SUM(INPUT.amount) FROM TRANSACTION INPUT WHERE (INPUT.user_wallet_id = WALLET.id)  " +
-            "         AND (INPUT.operation_type_id=1)  " +
-            "         AND (INPUT.status_id=1)  " +
-            "         AND (INPUT.provided=1) " +
-            "         AND (DATE_FORMAT(INPUT.datetime, '%Y-%m-%d %H:%i:%s') BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))) " +
-            "   AS input_amount,  " +
-            "   (SELECT SUM(OUTPUT.amount) FROM TRANSACTION OUTPUT WHERE (OUTPUT.user_wallet_id = WALLET.id)  " +
-            "         AND (OUTPUT.operation_type_id=2)  " +
-            "         AND (OUTPUT.status_id=1)  " +
-            "         AND (OUTPUT.provided=1) " +
-            "         AND (DATE_FORMAT(OUTPUT.datetime, '%Y-%m-%d %H:%i:%s') BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))) " +
-            "   AS output_amount     " +
-            " FROM USER  " +
-            "   LEFT JOIN WALLET ON (WALLET.user_id = USER.id) " +
-            "   LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id)" +
-            "   JOIN USER_ROLE ON (USER_ROLE.id = USER.roleid) " +
-            condition;
-
-    Map<String, Object> namedParameters = new HashMap<>();
-    namedParameters.put("start_date", startDate);
-    namedParameters.put("end_date", endDate);
-    namedParameters.put("roles", roles);
-    ArrayList<UserSummaryDto> result = (ArrayList<UserSummaryDto>) namedParameterJdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<UserSummaryDto>() {
-      @Override
-      public UserSummaryDto mapRow(ResultSet rs, int rowNumber) throws SQLException {
-        UserSummaryDto userSummaryDto = new UserSummaryDto();
-        userSummaryDto.setUserNickname(rs.getString("user_nickname"));
-        userSummaryDto.setUserEmail(rs.getString("user_email"));
-        userSummaryDto.setCreationDate(rs.getTimestamp("user_register_date") == null ? "" : rs.getTimestamp("user_register_date").toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        userSummaryDto.setRegisteredIp(rs.getString("user_register_ip"));
-        userSummaryDto.setLastIp(rs.getString("user_last_entry_ip"));
-        userSummaryDto.setCurrencyName(rs.getString("currency_name"));
-        userSummaryDto.setActiveBalance(rs.getBigDecimal("active_balance"));
-        userSummaryDto.setReservedBalance(rs.getBigDecimal("reserved_balance"));
-        userSummaryDto.setWalletTurnover(BigDecimalProcessing.doActionLax(rs.getBigDecimal("input_amount"), rs.getBigDecimal("output_amount"), ActionType.SUBTRACT));
-        return userSummaryDto;
-      }
-    });
-    return result;
-  }
-
-  @Override
   public List<UserSummaryOrdersDto> getUserSummaryOrdersList(String startDate, String endDate, List<Integer> roles) {
     String condition = "";
     if (!roles.isEmpty()) {
@@ -932,7 +873,7 @@ public class UserDaoImpl implements UserDao {
     Map<String, Object> namedParameters = new HashMap<>();
     namedParameters.put("user_id", comment.getUser().getId());
     namedParameters.put("comment", comment.getComment());
-    namedParameters.put("user_creator_id", comment.getCreator() == null? -1 : comment.getCreator().getId());
+    namedParameters.put("user_creator_id", comment.getCreator() == null ? -1 : comment.getCreator().getId());
     namedParameters.put("message_sent", comment.isMessageSent());
     namedParameters.put("message_sent", comment.isMessageSent());
     namedParameters.put("topic_id", comment.getUserCommentTopic().getCode());

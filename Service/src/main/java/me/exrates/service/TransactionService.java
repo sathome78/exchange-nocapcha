@@ -4,6 +4,7 @@ import me.exrates.model.CreditsOperation;
 import me.exrates.model.Transaction;
 import me.exrates.model.dto.OperationViewDto;
 import me.exrates.model.dto.TransactionFlatForReportDto;
+import me.exrates.model.dto.UserSummaryDto;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.enums.TransactionType;
@@ -78,5 +79,7 @@ public interface TransactionService {
   boolean setStatusById(Integer trasactionId, Integer statusId);
 
   List<String> getCSVTransactionsHistory(int id, String startDate, String endDate, Locale locale);
+
+  List<UserSummaryDto> getTurnoverInfoByUserAndCurrencyForPeriodAndRoleList(Integer requesterUserId, String startDate, String endDate, List<Integer> roleIdList);
 
 }
