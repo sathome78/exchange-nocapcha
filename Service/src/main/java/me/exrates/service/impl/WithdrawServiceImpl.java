@@ -306,6 +306,26 @@ public class WithdrawServiceImpl implements WithdrawService {
     }
     return result;
   }
+  
+  @Override
+  @Transactional(readOnly = true)
+  public List<MyInputOutputHistoryDto> getMyInputOutputHistory(
+          String email,
+          Integer offset, Integer limit,
+          Locale locale) {
+    List<Integer> operationTypeList = OperationType.getInputOutputOperationsList()
+            .stream()
+            .map(OperationType::getType)
+            .collect(Collectors.toList());
+    List<MyInputOutputHistoryDto> result = withdrawRequestDao.findMyInputOutputHistoryByOperationType(email, offset, limit, operationTypeList, locale);
+    result.forEach(e ->
+    {
+      e.setSummaryStatus(generateAndGetSummaryStatus(e, locale));
+      e.setButtons(generateAndGetButtonsSet(e.getStatus(), null, false, locale));
+      e.setAuthorisedUserId(e.getUserId());
+    });
+    return result;
+  }
 
   @Override
   @Transactional

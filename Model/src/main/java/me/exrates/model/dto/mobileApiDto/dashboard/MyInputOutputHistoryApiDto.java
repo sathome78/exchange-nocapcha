@@ -15,7 +15,9 @@ import me.exrates.model.util.BigDecimalProcessing;
 import org.springframework.context.MessageSource;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -44,6 +46,8 @@ public class MyInputOutputHistoryApiDto {
     private String bankAccount;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String invoiceStatus;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private List<Map<String, Object>> buttons;
     
     @Getter(onMethod = @__({@JsonIgnore}))
     private final Set<WithdrawStatusEnum> FINAL_STATUSES = Stream.of(POSTED_AUTO, POSTED_MANUAL).collect(Collectors.toSet());
@@ -66,6 +70,10 @@ public class MyInputOutputHistoryApiDto {
         this.userId = dto.getUserId();
         this.invoiceStatus = dto.getStatus() == null ? null : dto.getStatus().name();
         this.bankAccount = dto.getBankAccount();
+        this.buttons = dto.getButtons();
+        if (buttons != null) {
+            buttons.forEach(btn -> btn.remove("tableIdListOnly"));
+        }
     }
 
 
