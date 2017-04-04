@@ -5,6 +5,7 @@ import me.exrates.model.*;
 import me.exrates.model.Currency;
 import me.exrates.model.dto.TransactionFlatForReportDto;
 import me.exrates.model.dto.UserSummaryDto;
+import me.exrates.model.dto.UserSummaryOrdersDto;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
@@ -717,10 +718,10 @@ public final class TransactionDaoImpl implements TransactionDao {
     String filterClause = criteria.isEmpty() ? "" : "AND " + criteria;
     params.put("ids", walletIds);
     StringJoiner sqlJoiner = new StringJoiner(" ")
-            .add(SELECT_ALL)
-            .add(whereClauseBasic)
-            .add(filterClause)
-            .add("ORDER BY").add(sortColumn).add(sortDirection);
+        .add(SELECT_ALL)
+        .add(whereClauseBasic)
+        .add(filterClause)
+        .add("ORDER BY").add(sortColumn).add(sortDirection);
     final String selectLimitedAllSql = sqlJoiner.toString();
     LOGGER.debug(selectLimitedAllSql);
     return jdbcTemplate.query(selectLimitedAllSql, params, transactionRowMapper);
@@ -773,11 +774,10 @@ public final class TransactionDaoImpl implements TransactionDao {
             " FROM USER  " +
             "   LEFT JOIN WALLET ON (WALLET.user_id = USER.id) " +
             "   JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) and (CURRENCY.hidden <> 1)" +
-            "   JOIN USER_ROLE ON (USER_ROLE.id = USER.roleid) " +
             (roleIdList.isEmpty() ? "" :
                 " AND USER.roleid IN (:role_id_list)") +
             " WHERE " +
-            "   USER.status = " +UserStatus.ACTIVE.getStatus()+
+            "   USER.status = " + UserStatus.ACTIVE.getStatus() +
             "   AND EXISTS (" +
             "       SELECT * " +
             "           FROM USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP " +
@@ -806,5 +806,47 @@ public final class TransactionDaoImpl implements TransactionDao {
     });
   }
 
+  @Override
+  public List<UserSummaryOrdersDto> getUserSummaryOrdersList(Integer requesterUserId, String startDate, String endDate, List<Integer> roleIdList) {
+    String sql = " SELECT USER.email AS email, CURRENCY.name AS currency_name, USER_ROLE.name AS role, " +
+        "     SUM(IF(TX.operation_type_id = 1, TX.amount, 0)) AS amount_buy, " +
+        "     SUM(IF(TX.operation_type_id = 1, TX.commission_amount, 0)) AS amount_buy_fee, " +
+        "     SUM(IF(TX.operation_type_id = 2, TX.amount, 0)) AS amount_sell, " +
+        "     SUM(IF(TX.operation_type_id = 2, TX.commission_amount, 0)) AS amount_sell_fee" +
+        "   FROM WALLET " +
+        "     JOIN USER ON (USER.id=WALLET.user_id) " +
+        (roleIdList.isEmpty() ? "" :
+            "     AND USER.roleid IN (:role_id_list)") +
+        "     JOIN USER_ROLE ON (USER_ROLE.id = USER.roleid) " +
+        "     JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
+        "     JOIN TRANSACTION TX ON TX.operation_type_id IN (1,2) " +
+        "             and TX.source_type='ORDER' " +
+        "             and TX.user_wallet_id=WALLET.id " +
+        "             and (TX.datetime BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') " +
+        "                                              AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))" +
+        " WHERE EXISTS (" +
+        "       SELECT * " +
+        "           FROM USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP " +
+        "           WHERE (IOP.currency_id=CURRENCY.id " +
+        "                 AND (IOP.user_id = :requester_user_id)) ) " +
+        " GROUP BY email, currency_name, role  ";
+    Map<String, Object> namedParameters = new HashMap<String, Object>() {{
+      put("start_date", startDate);
+      put("end_date", endDate);
+      put("roles", roleIdList);
+      put("requester_user_id", requesterUserId);
+    }};
+    return jdbcTemplate.query(sql, namedParameters, (rs, idx) -> {
+      UserSummaryOrdersDto userSummaryOrdersDto = new UserSummaryOrdersDto();
+      userSummaryOrdersDto.setUserEmail(rs.getString("email"));
+      userSummaryOrdersDto.setWallet(rs.getString("currency_name"));
+      userSummaryOrdersDto.setRole(rs.getString("role"));
+      userSummaryOrdersDto.setAmountBuy(rs.getBigDecimal("amount_buy"));
+      userSummaryOrdersDto.setAmountBuyFee(rs.getBigDecimal("amount_buy_fee"));
+      userSummaryOrdersDto.setAmountSell(rs.getBigDecimal("amount_sell"));
+      userSummaryOrdersDto.setAmountSellFee(rs.getBigDecimal("amount_sell_fee"));
+      return userSummaryOrdersDto;
+    });
+  }
 
 }

@@ -805,55 +805,6 @@ public class AdminController {
     return result;
   }
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/downloadUserSummaryOrders", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
-  @ResponseBody
-  public String getUserSummaryOrders(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
-
-    List<UserSummaryOrdersDto> list = userService.getUserSummaryOrdersList(startDate, endDate, userRoleService.getRealUserRoleIdByBusinessRoleList(role));
-    BigDecimal sumAmountBuy = new BigDecimal(0.00);
-    BigDecimal sumAmountBuyFee = new BigDecimal(0.00);
-    BigDecimal sumAmountSell = new BigDecimal(0.00);
-    BigDecimal sumAmountSellFee = new BigDecimal(0.00);
-
-    String value = "Orders from " + startDate.substring(0, 10) + " till " + endDate.substring(0, 10) + ": \n \n" + UserSummaryOrdersDto.getTitle() +
-        list.stream()
-            .map(e -> e.toString())
-            .collect(Collectors.joining());
-
-    for (UserSummaryOrdersDto userSummaryOrdersDto : list) {
-      if (userSummaryOrdersDto.getAmountBuy() != null) {
-        sumAmountBuy = sumAmountBuy.add(userSummaryOrdersDto.getAmountBuy());
-      }
-      if (userSummaryOrdersDto.getAmountBuyFee() != null) {
-        sumAmountBuyFee = sumAmountBuyFee.add(userSummaryOrdersDto.getAmountBuyFee());
-      }
-      if (userSummaryOrdersDto.getAmountSell() != null) {
-        sumAmountSell = sumAmountSell.add(userSummaryOrdersDto.getAmountSell());
-      }
-      if (userSummaryOrdersDto.getAmountSellFee() != null) {
-        sumAmountSellFee = sumAmountSellFee.add(userSummaryOrdersDto.getAmountSellFee());
-      }
-    }
-    value += "\n sumBuy: " + sumAmountBuy.toString() + "\n sumBuyFee: " + sumAmountBuyFee.toString();
-    value += "\n sumSell: " + sumAmountSell.toString() + "\n sumSellFee: " + sumAmountSellFee.toString();
-
-    return value;
-  }
-
-  @RequestMapping(value = "/2a8fy7b07dxe44/downloadUserSummaryOrdersByCurrencyPairs", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
-  @ResponseBody
-  public String getUserSummaryOrdersByCurrencyPairs(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
-
-    List<UserSummaryOrdersByCurrencyPairsDto> list = userService.getUserSummaryOrdersByCurrencyPairList(startDate, endDate, userRoleService.getRealUserRoleIdByBusinessRoleList(role));
-
-    String value = "Orders by currency pairs from" + startDate.substring(0, 10) + " till " + endDate.substring(0, 10) + ": \n \n" + UserSummaryOrdersByCurrencyPairsDto.getTitle() +
-        list.stream()
-            .map(e -> e.toString())
-            .collect(Collectors.joining());
-
-    return value;
-  }
-
   @RequestMapping(value = "/2a8fy7b07dxe44/userStatements/{walletId}")
   public ModelAndView accountStatementPage(@PathVariable("walletId") Integer walletId) {
     return new ModelAndView("/admin/user_statement", "walletId", walletId);
