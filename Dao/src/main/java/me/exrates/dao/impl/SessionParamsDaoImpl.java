@@ -47,6 +47,7 @@ public class SessionParamsDaoImpl implements SessionParamsDao {
             final SessionLifeTimeType sessionLifeTimeType = new SessionLifeTimeType();
             sessionLifeTimeType.setId(resultSet.getInt("id"));
             sessionLifeTimeType.setName(resultSet.getString("name"));
+            sessionLifeTimeType.setAvailable(resultSet.getBoolean("active"));
             return sessionLifeTimeType;
         };
     }

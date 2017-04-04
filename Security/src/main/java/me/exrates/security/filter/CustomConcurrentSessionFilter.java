@@ -107,10 +107,10 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
         SessionLifeTypeEnum sessionLifeTypeEnum = SessionLifeTypeEnum
                 .convert((int)session.getAttribute(sessionLifeTypeParamName));
         if (sessionLifeTypeEnum.isRefreshOnUserRequests() && isPathForSessionRefresh(request)) {
-            logger.error("refresh session " + request.getServletPath());
+            logger.debug("refresh session " + request.getServletPath());
             return true;
         }
-        logger.error("not refresh session " + request.getRequestURI());
+        logger.debug("not refresh session " + request.getRequestURI());
         return false;
     }
 
@@ -135,7 +135,6 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
 
     private void doLogout(HttpServletRequest request, HttpServletResponse response) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
         for (LogoutHandler handler : handlers) {
             handler.logout(request, response, auth);
         }

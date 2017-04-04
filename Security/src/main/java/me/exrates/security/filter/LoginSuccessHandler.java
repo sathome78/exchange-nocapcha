@@ -1,8 +1,10 @@
 package me.exrates.security.filter;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.SessionLifeTimeType;
 import me.exrates.model.SessionParams;
 import me.exrates.model.dto.UserIpDto;
+import me.exrates.model.enums.SessionLifeTypeEnum;
 import me.exrates.model.enums.TokenType;
 import me.exrates.model.enums.UserIpState;
 import me.exrates.service.SessionParamsService;
@@ -26,6 +28,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -35,9 +38,6 @@ import java.util.Locale;
 @PropertySource("classpath:session.properties")
 public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
-    private @Value("${session.lifeTypeParamName}") String sessionLifeTimeParamName;
-    private @Value("${session.timeParamName}") String sessionTimeMinutesParamName;
-    private @Value("${session.lastRequestParamName}") String sessionLastRequestParamName;
 
     @Autowired
     private SessionParamsService sessionParamsService;
@@ -56,7 +56,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-        setSessionLifeParams(request);
+        sessionParamsService.setSessionLifeParams(request);
         try {
             User principal = (User) authentication.getPrincipal();
             log.info("Authentication succeeded for user: " + principal.getUsername());
@@ -93,11 +93,5 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         }
     }
 
-    private void setSessionLifeParams(HttpServletRequest request) {
-        HttpSession session = request.getSession();
-        SessionParams params = sessionParamsService.determineSessionParams();
-        session.setAttribute(sessionTimeMinutesParamName, params.getSessionTimeMinutes());
-        session.setAttribute(sessionLifeTimeParamName, params.getSessionLifeTypeId());
-        session.setAttribute(sessionLastRequestParamName, System.currentTimeMillis());
-    }
+
 }

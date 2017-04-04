@@ -187,7 +187,7 @@ public class OnlineRestController {
   @RequestMapping(value = "/dashboard/currencyPairStatistic", method = RequestMethod.GET)
   public Map<String, ?> getCurrencyPairStatisticsForAllCurrencies(
       @RequestParam(required = false) Boolean refreshIfNeeded,
-      HttpServletRequest request) throws IOException {
+      HttpServletRequest request, Principal principal) throws IOException {
     try {
       HttpSession session = request.getSession();
      /* if (session.getAttribute("sessionEndTime") == null) {

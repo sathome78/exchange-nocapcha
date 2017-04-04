@@ -1,5 +1,6 @@
 package me.exrates.controller;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.exception.*;
 import me.exrates.controller.listener.StoreSessionListener;
 import me.exrates.model.*;
@@ -42,6 +43,7 @@ import java.util.Map;
  * - news
  * First entry to this pages starts new session
  */
+@Log4j2
 @Controller
 @PropertySource(value = {"classpath:/news.properties", "classpath:/captcha.properties"})
 public class EntryController {
@@ -161,9 +163,11 @@ public class EntryController {
         if (sessionService.isSessionTimeValid(sessionParams.getSessionTimeMinutes())) {
             try {
                 sessionService.saveOrUpdate(sessionParams, principal.getName());
-                redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("session.settings.success.relogin", null,
+                sessionService.setSessionLifeParams(request);
+                redirectAttributes.addFlashAttribute("successNoty", messageSource.getMessage("session.settings.success", null,
                         localeResolver.resolveLocale(request)));
             } catch (Exception e) {
+                log.error("error", e);
                 redirectAttributes.addFlashAttribute("msg", messageSource.getMessage("session.settings.invalid", null,
                         localeResolver.resolveLocale(request)));
             }

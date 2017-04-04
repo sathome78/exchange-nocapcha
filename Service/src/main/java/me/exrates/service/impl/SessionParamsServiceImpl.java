@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.LocaleResolver;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +32,10 @@ import java.util.stream.Collectors;
 @PropertySource("classpath:session.properties")
 public class SessionParamsServiceImpl implements SessionParamsService {
 
-    private  @Value("${session.default_session_lifetime_minutes}") int defaultSessionLifetimeMinutes;
+    private @Value("${session.default_session_lifetime_minutes}") int defaultSessionLifetimeMinutes;
+    private @Value("${session.lifeTypeParamName}") String sessionLifeTimeParamName;
+    private @Value("${session.timeParamName}") String sessionTimeMinutesParamName;
+    private @Value("${session.lastRequestParamName}") String sessionLastRequestParamName;
     private static final int MIN_SESSION_TIME_MINUTES = 5;
     private static final int MAX_SESSION_TIME_MINUTES = 1440;
 
@@ -74,7 +78,6 @@ public class SessionParamsServiceImpl implements SessionParamsService {
 
     @Override
     public SessionParams determineSessionParams() {
-        log.warn("trying to detrmine params");
         Principal principal = SecurityContextHolder.getContext().getAuthentication();
         log.warn("authentication ", principal);
         if (principal != null) {
@@ -101,6 +104,24 @@ public class SessionParamsServiceImpl implements SessionParamsService {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public boolean islifeTypeActive(int sessionLifeTypeId) {
+        List<SessionLifeTimeType> typeList = this.getAllByActive(true);
+        return typeList.stream().anyMatch(p -> p.getId() == sessionLifeTypeId && p.isAvailable());
+    }
+
+    @Override
+    public void setSessionLifeParams(HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        SessionParams params = this.determineSessionParams();
+        if (!this.islifeTypeActive(params.getSessionLifeTypeId())) {
+            params.setSessionLifeTypeId(SessionLifeTypeEnum.INACTIVE_COUNT_LIFETIME.getTypeId());
+        }
+        session.setAttribute(sessionTimeMinutesParamName, params.getSessionTimeMinutes());
+        session.setAttribute(sessionLifeTimeParamName, params.getSessionLifeTypeId());
+        session.setAttribute(sessionLastRequestParamName, System.currentTimeMillis());
     }
 
 }
