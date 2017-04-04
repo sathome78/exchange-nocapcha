@@ -58,14 +58,6 @@ public interface WalletService {
     void withdrawReservedBalance(Wallet wallet, BigDecimal sum);
 
     /**
-     * Returns user's wallets info
-     *
-     * @return list the UserWalletSummaryDto
-     * @author ValkSam
-     */
-    List<UserWalletSummaryDto> getUsersWalletsSummary(List<Integer> roles);
-
-    /**
      * Transfers money between active balance the wallet and reserved balance the wallet
      * and creates corresponding transaction
      *
@@ -98,11 +90,11 @@ public interface WalletService {
 
     String transferCostsToUser(Integer fromUserWalletId, String toUserNickname, BigDecimal amount, Locale locale, boolean checkOnly);
 
-    List<UserWalletSummaryDto> getUsersWalletsSummaryForPermittedCurrencyList(List<Integer> roles, Integer requesterUserId);
-
     List<OrderDetailDto> getOrderRelatedDataAndBlock(int orderId);
 
     WalletsForOrderAcceptionDto getWalletsForOrderByOrderIdAndBlock(Integer orderId, Integer userAcceptorId);
 
     WalletsForOrderCancelDto getWalletForOrderByOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType);
+
+    List<UserWalletSummaryDto> getUsersWalletsSummaryForPermittedCurrencyList(Integer requesterUserId);
 }

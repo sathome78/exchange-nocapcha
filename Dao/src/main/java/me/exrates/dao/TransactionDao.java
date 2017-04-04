@@ -3,6 +3,7 @@ package me.exrates.dao;
 import me.exrates.model.PagingData;
 import me.exrates.model.Transaction;
 import me.exrates.model.dto.TransactionFlatForReportDto;
+import me.exrates.model.dto.UserSummaryDto;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.enums.TransactionType;
 
@@ -62,5 +63,7 @@ public interface TransactionDao {
   boolean setStatusById(Integer trasactionId, Integer statusId);
 
   List<Transaction> getAllOperationsByUserForPeriod(List<Integer> walletIds, String startDate, String endDate, String sortColumn, String sortDirection);
+
+  List<UserSummaryDto> getTurnoverInfoByUserAndCurrencyForPeriodAndRoleList(Integer requesterUserId, String startDate, String endDate, List<Integer> roleIdList);
 
 }

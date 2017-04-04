@@ -238,10 +238,9 @@ public class MobileInputOutputController {
 
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-            return merchantService.prepareCreditsOperation(payment, userEmail)
-                    .map(creditsOperation -> withdrawService.withdrawRequest(creditsOperation, new WithdrawData(), userEmail, userLocale))
-                    .map(response -> new ResponseEntity<>(response, OK))
-                    .orElseThrow(InvalidAmountException::new);
+        CreditsOperation creditsOperation = merchantService.prepareCreditsOperation(payment, userEmail).orElseThrow(InvalidAmountException::new);
+        Map<String, String> response = withdrawService.createWithdrawalRequest(creditsOperation, new WithdrawData(), userEmail, userLocale);
+        return new ResponseEntity<>(response, OK);
 
     }
 
@@ -517,10 +516,10 @@ public class MobileInputOutputController {
 
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-        return merchantService.prepareCreditsOperation(payment, userEmail)
-                .map(creditsOperation -> withdrawService.withdrawRequest(creditsOperation, withdrawData, userEmail, userLocale))
-                .map(response -> new ResponseEntity<>(response, OK))
-                .orElseThrow(InvalidAmountException::new);
+        CreditsOperation creditsOperation = merchantService.prepareCreditsOperation(payment, userEmail).orElseThrow(InvalidAmountException::new);
+        Map<String, String> response = withdrawService.createWithdrawalRequest(creditsOperation, withdrawData, userEmail, userLocale);
+        
+        return new ResponseEntity<>(response, OK);
     }
 
 
