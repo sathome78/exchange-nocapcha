@@ -12,6 +12,7 @@ function uploadUserWallets(role) {
         currencyPicker: false,
         currencyPairPicker: false,
         directionPicker: false,
+        includeEmptyChecker: true,
     });
 }
 
@@ -22,6 +23,7 @@ function uploadUserWalletsInOut(role) {
         currencyPicker: false,
         currencyPairPicker: false,
         directionPicker: false,
+        includeEmptyChecker: false,
     });
 }
 
@@ -42,6 +44,7 @@ function uploadInputOutputSummaryReport(role) {
     currentId = 'downloadInputOutputSummaryReport';
     showDialog({
         currencyPairPicker: false,
+        includeEmptyChecker: false,
     });
 }
 
@@ -105,10 +108,12 @@ function showDialog(params) {
     params.currencyPicker = (params.currencyPicker || params.currencyPicker == undefined) ? "block" : "none";
     params.currencyPairPicker = (params.currencyPairPicker || params.currencyPairPicker == undefined) ? "block" : "none";
     params.directionPicker = (params.directionPicker || params.directionPicker == undefined) ? "block" : "none";
+    params.includeEmptyChecker = (params.includeEmptyChecker || params.includeEmptyChecker == undefined) ? "block" : "none";
     var $dialog = $('#report-dialog-currency-date-direction-dialog');
     $dialog.find("#currencyPicker").css("display", params.currencyPicker);
     $dialog.find("#currencyPairPicker").css("display", params.currencyPairPicker);
     $dialog.find("#directionPicker").css("display", params.directionPicker);
+    $dialog.find("#includeEmptyChecker").css("display", params.includeEmptyChecker);
     $dialog.modal();
 }
 
@@ -125,6 +130,7 @@ function makeReport() {
             '&' + "currencyList=" + objArr[2].value +
             '&' + "currencyPairList=" + objArr[3].value +
             '&' + "direction=" + objArr[4].value +
+            '&' + "includeEmpty=" + (objArr[5] ? objArr[5].value : false) +
             "&role=" + currentRole;
         if (currentId == 'downloadInputOutputSummaryReport') {
             $.ajax({
@@ -149,7 +155,7 @@ function makeReport() {
             );
         } else if (currentId == 'upload-users-wallets') {
             $.ajax({
-                    url: '/2a8fy7b07dxe44/report/downloadUsersWalletsSummary',
+                    url: '/2a8fy7b07dxe44/report/usersWalletsSummary',
                     type: 'GET',
                     data: data,
                     success: function (data) {
@@ -164,7 +170,7 @@ function makeReport() {
     $dialog.modal('hide');
 }
 
-function saveToDisk(data){
+function saveToDisk(data) {
     var link = document.createElement('a');
     link.href = "data:text/plain;charset=utf-8,%EF%BB%BF" + encodeURIComponent(data);
     link.download = "downloadUsersWalletsSummaryInOut_" + currentRole + ".csv";
