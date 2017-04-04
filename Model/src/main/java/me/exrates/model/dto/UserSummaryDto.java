@@ -27,6 +27,13 @@ public class UserSummaryDto {
   private BigDecimal outputSummary;
   private Boolean bothCurrencyPermissionsPresent;
 
+  public Boolean isEmpty() {
+    return (activeBalance == null || activeBalance.compareTo(BigDecimal.ZERO) == 0) &&
+        (reservedBalance == null || reservedBalance.compareTo(BigDecimal.ZERO) == 0) &&
+        (inputSummary == null || inputSummary.compareTo(BigDecimal.ZERO) == 0) &&
+        (outputSummary == null || outputSummary.compareTo(BigDecimal.ZERO) == 0);
+  }
+
   public static String getTitle() {
     return "Name" + ";" +
         "Email" + ";" +

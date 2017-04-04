@@ -83,6 +83,14 @@
                             </select>
                         </div>
                     </div>
+                    <div id="includeEmptyChecker" class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="userwallets.includeEmpty"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input type="checkbox" id="includeEmpty" name="includeEmpty" value="false"/>
+                        </div>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">

@@ -70,18 +70,20 @@ public class ReportController {
     }};
   }
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/report/downloadUsersWalletsSummary", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
+  @RequestMapping(value = "/2a8fy7b07dxe44/report/usersWalletsSummary", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
   @ResponseBody
   public String getUsersWalletsSummeryTxt(
       @RequestParam String startDate,
       @RequestParam String endDate,
       @RequestParam String role,
       @RequestParam(required = false) List<String> currencyList,
+      @RequestParam Boolean includeEmpty,
       Principal principal) {
     return
         UserSummaryDto.getTitle() +
             reportService.getTurnoverInfoByUserAndCurrencyForPeriodAndRoleList(principal.getName(), startDate, endDate, role, currencyList)
                 .stream()
+                .filter(e -> includeEmpty || !e.isEmpty())
                 .map(e -> e.toString())
                 .collect(Collectors.joining());
   }
