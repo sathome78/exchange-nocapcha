@@ -44,4 +44,14 @@ function SettingsClass() {
         blink($('#passwords-changing').find('[for="userFin-password"]'));
     }
 
+   $('#sessionTime').on('change keyup', function() {
+       console.log('change');
+        var value = $(this).val(); // get the current value of the input field.
+        var sendButton = $('#submitSessionOptionsButton');
+        if (!value || isNaN(value)) {
+            sendButton.prop('disabled', true);
+        } else {
+            sendButton.prop('disabled', false);
+        }
+    });
 }
