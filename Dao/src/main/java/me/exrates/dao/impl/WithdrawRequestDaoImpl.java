@@ -187,7 +187,8 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
         "    PENDING_PAYMENT.status_update_date AS pending_payment_status_update_date," +
         "    WITHDRAW_REQUEST.status_id AS withdraw_request_status_id, " +
         "    WITHDRAW_REQUEST.status_modification_date AS withdraw_request_status_update_date, " +
-        "    WITHDRAW_REQUEST.admin_holder_id AS admin_holder_id" +
+        "    WITHDRAW_REQUEST.admin_holder_id AS admin_holder_id," +
+            "WITHDRAW_REQUEST.wallet AS withdraw_recipient_account" +
         "  FROM TRANSACTION " +
         "    left join CURRENCY on TRANSACTION.currency_id=CURRENCY.id" +
         "    left join INVOICE_REQUEST on TRANSACTION.id=INVOICE_REQUEST.transaction_id" +
@@ -218,7 +219,8 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
         "     null, " +
         "     WR.status_id, " +
         "     WR.status_modification_date, " +
-        "     WR.admin_holder_id " +
+        "     WR.admin_holder_id," +
+        "     WR.wallet " +
         "   FROM WITHDRAW_REQUEST WR " +
         "     JOIN CURRENCY CUR ON CUR.id=WR.currency_id " +
         "     JOIN USER USER ON USER.id=WR.user_id " +
@@ -246,7 +248,9 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
           messageSource.getMessage("inputoutput.statusFalse", null, locale) :
           messageSource.getMessage("inputoutput.statusTrue", null, locale));
       myInputOutputHistoryDto.setUserId(rs.getInt("user_id"));
-      myInputOutputHistoryDto.setBankAccount(rs.getString("bank_account"));
+      String bankAccount = rs.getString("bank_account") == null ? rs.getString("withdraw_recipient_account") :
+              rs.getString("bank_account");
+      myInputOutputHistoryDto.setBankAccount(bankAccount);
       TransactionSourceType sourceType = TransactionSourceType.convert(rs.getString("source_type"));
       myInputOutputHistoryDto.setSourceType(sourceType);
       Stream.of(rs.getObject("invoice_request_status_id"),
