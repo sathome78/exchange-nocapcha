@@ -14,5 +14,5 @@ import lombok.ToString;
 public class WithdrawMerchantOperationDto {
   private String currency;
   private String amount;
-  private String otherNeededParamsAddHere;
+  private String accountTo;
 }

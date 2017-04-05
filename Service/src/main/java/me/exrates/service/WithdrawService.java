@@ -25,7 +25,7 @@ public interface WithdrawService {
 
   Map<String, String> createWithdrawalRequest(CreditsOperation creditsOperation, WithdrawData withdrawData, String userEmail,Locale locale);
 
-  void autoPostWithdrawalRequest(WithdrawRequestPostDto withdrawRequest);
+  void autoPostWithdrawalRequest(WithdrawRequestPostDto withdrawRequest) throws Exception;
 
   void postWithdrawalRequest(int requestId, Integer requesterAdminId);
 
