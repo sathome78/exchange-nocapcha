@@ -9,6 +9,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -35,7 +36,8 @@ public class LoggingAspect {
   public void logException(JoinPoint joinPoint, Exception ex) {
     log.debug(String.format("error in method %s with args: \n%s",
             String.join(".", joinPoint.getSignature().getDeclaringTypeName(), joinPoint.getSignature().getName()) ,
-            String.join("\n", Arrays.stream(joinPoint.getArgs()).map(Object::toString).collect(Collectors.toList()))) );
+            String.join("\n", Arrays.stream(joinPoint.getArgs()).filter(Objects::nonNull)
+                    .map(Object::toString).collect(Collectors.toList()))) );
     log.debug(String.format("exception: %s : %s ", ex.getClass().getSimpleName(), ex.getMessage()));
     log.debug("Root cause: " + ExceptionUtils.getRootCauseMessage(ex));
     logExtended.debug(ExceptionUtils.getStackTrace(ex));
