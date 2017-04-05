@@ -430,12 +430,13 @@ public class WithdrawServiceImpl implements WithdrawService {
 
   @Override
   @Transactional
-  public void autoPostWithdrawalRequest(WithdrawRequestPostDto withdrawRequest) {
+  public void autoPostWithdrawalRequest(WithdrawRequestPostDto withdrawRequest) throws Exception {
     postWithdrawalRequest(withdrawRequest.getId(), null);
     IMerchantService merchantService = merchantServiceContext.getMerchantService(withdrawRequest.getMerchantServiceBeanName());
     WithdrawMerchantOperationDto withdrawMerchantOperation = WithdrawMerchantOperationDto.builder()
         .currency(withdrawRequest.getCurrencyName())
         .amount(BigDecimalProcessing.doAction(withdrawRequest.getAmount(), withdrawRequest.getCommissionAmount(), ActionType.SUBTRACT).toString())
+        .accountTo(withdrawRequest.getWallet())
         .build();
     merchantService.withdraw(withdrawMerchantOperation);
   }
