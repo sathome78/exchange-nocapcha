@@ -36,6 +36,8 @@
   <script type="text/javascript" src="<c:url value='/client/js/order/adminDeleteOrder.js'/>"></script>
   <script type="text/javascript" src="<c:url value='/client/js/userCurrencyOperationPermissions.js'/>"></script>
   <script type="text/javascript" src="<c:url value='/client/js/downloadTransactions.js'/>"></script>
+  <script type="text/javascript" src="<c:url value='/client/js/referrals.js'/>"></script>
+  <script type="text/javascript" src="<c:url value='/client/js/jquery.tmpl.js'/>"></script>
   <c:set var="admin_manualBalanceChange" value="<%=AdminAuthority.MANUAL_BALANCE_CHANGE%>"/>
 
   <sec:authorize access="hasAuthority('${admin_manualBalanceChange}')">
@@ -86,6 +88,12 @@
           <sec:authorize access="<%=AdminController.adminAnyAuthority%>">
             <button class="adminForm-toggler blue-box">
               <loc:message code="admin.comments"/>
+            </button>
+          </sec:authorize>
+          <%--Comments--%>
+          <sec:authorize access="<%=AdminController.adminAnyAuthority%>">
+            <button class="adminForm-toggler blue-box">
+              <loc:message code="admin.referral"/>
             </button>
           </sec:authorize>
 
@@ -632,6 +640,10 @@
 
           </div>
         </div>
+          <%--User referrals--%>
+          <div id="panel7" class="tab-pane">
+            <%@include file='../fragments/referralStructure.jsp' %>
+          </div>
         <%--Access management--%>
 
         <sec:authorize access="hasAuthority('${admin_manageAccess}')">
@@ -800,6 +812,7 @@
 
   </div>
   <hr>
+  <div hidden id="user-id">${user.id}</div>
 </main>
 <div hidden id="prompt_delete_rqst">
   <loc:message code="admin.promptDeleteUserFiles"/>

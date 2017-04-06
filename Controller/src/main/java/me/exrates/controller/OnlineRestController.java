@@ -188,7 +188,7 @@ public class OnlineRestController {
       @RequestParam(required = false) Boolean refreshIfNeeded,
       HttpServletRequest request, Principal principal) throws IOException {
     try {
-      HttpSession session = request.getSession();
+      HttpSession session = request.getSession(true);
      /* if (session.getAttribute("sessionEndTime") == null) {
         session.setAttribute("sessionEndTime", new Date().getTime() + SESSION_LIFETIME_HARD * 1000);
       }
@@ -288,10 +288,10 @@ public class OnlineRestController {
    */
   @RequestMapping(value = {"/dashboard/firstentry"})
   public void setFirstEntryFlag(HttpServletRequest request) {
-    /*HttpSession session = request.getSession();
+    HttpSession session = request.getSession();
     session.setAttribute("firstEntry", true);
     LOGGER.debug(" SESSION: " + session.getId() + " firstEntry: " + session.getAttribute("firstEntry"));
-    if (SESSION_LIFETIME_INACTIVE != 0) {
+    /*if (SESSION_LIFETIME_INACTIVE != 0) {
       session.setMaxInactiveInterval(SESSION_LIFETIME_INACTIVE);
     }*/
   }

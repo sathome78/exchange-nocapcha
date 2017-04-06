@@ -6,6 +6,7 @@ import me.exrates.dao.ReferralTransactionDao;
 import me.exrates.dao.ReferralUserGraphDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
+import me.exrates.model.dto.ReferralInfoDto;
 import me.exrates.model.dto.onlineTableDto.MyReferralDetailedDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.NotificationEvent;
@@ -253,5 +254,10 @@ public class ReferralServiceImpl implements ReferralService {
         }
         log.debug(String.format("Changing ref parent from %s to %s", user.getId(), userReferralParentId));
         referralUserGraphDao.changeReferralParent(user.getId(), userReferralParentId);
+    }
+
+    @Override
+    public List<ReferralInfoDto> getUsersFirstLevelAndCountProfitForUser(int refsForEmail, int profitForEmail) {
+        return referralUserGraphDao.getInfoAboutFirstLevRefs(refsForEmail, profitForEmail);
     }
 }

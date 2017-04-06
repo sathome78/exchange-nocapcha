@@ -1,5 +1,7 @@
 package me.exrates.dao;
 
+import me.exrates.model.dto.ReferralInfoDto;
+
 import java.util.List;
 
 /**
@@ -14,4 +16,6 @@ public interface ReferralUserGraphDao {
     List<Integer> getChildrenForParentAndBlock(Integer parent);
     
     void changeReferralParent(Integer formerParent, Integer newParent);
+
+    List<ReferralInfoDto> getInfoAboutFirstLevRefs(int userId, int profitUser);
 }

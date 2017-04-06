@@ -1139,6 +1139,12 @@ public class AdminController {
     return result;
   }
 
+  @RequestMapping(value = "/2a8fy7b07dxe44/referralInfo")
+  @ResponseBody List<ReferralInfoDto> getUserReferals(@RequestParam("userId") int email,
+                                                      @RequestParam("profitUser") int profitUser) {
+    return referralService.getUsersFirstLevelAndCountProfitForUser(email, profitUser);
+  }
+
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
   @ExceptionHandler(OrderDeletingException.class)
   @ResponseBody

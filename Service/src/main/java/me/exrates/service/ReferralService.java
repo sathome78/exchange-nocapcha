@@ -1,6 +1,7 @@
 package me.exrates.service;
 
 import me.exrates.model.*;
+import me.exrates.model.dto.ReferralInfoDto;
 import me.exrates.model.dto.onlineTableDto.MyReferralDetailedDto;
 import me.exrates.model.vo.CacheData;
 
@@ -49,4 +50,6 @@ public interface ReferralService {
   List<Integer> getChildrenForParentAndBlock(Integer parentId);
   
   void updateReferralParentForChildren(User user);
+
+    List<ReferralInfoDto> getUsersFirstLevelAndCountProfitForUser(int refsForEmail, int profitForEmail);
 }
