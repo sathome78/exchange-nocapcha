@@ -522,7 +522,7 @@ public class MobileInputOutputController {
     @RequestMapping(value = "/withdraw/revoke", method = POST)
     @ResponseBody
     public ResponseEntity<Void> revokeWithdrawRequest(@RequestBody Map<String, String> params) {
-        Integer id = Integer.parseInt(RestApiUtils.retrieveParamFormBody(params, "id", true));
+        Integer id = Integer.parseInt(RestApiUtils.retrieveParamFormBody(params, "invoiceId", true));
         withdrawService.revokeWithdrawalRequest(id);
         return new ResponseEntity<>(OK);
     }
