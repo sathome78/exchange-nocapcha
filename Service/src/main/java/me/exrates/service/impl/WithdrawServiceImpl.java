@@ -27,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
@@ -55,6 +56,9 @@ import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 public class WithdrawServiceImpl implements WithdrawService {
 
   private static final Logger log = LogManager.getLogger("withdraw");
+
+  @Value("${invoice.blockNotifyUsers}")
+  private Boolean BLOCK_NOTIFYING;
 
   @Autowired
   private MerchantDao merchantDao;
@@ -306,17 +310,17 @@ public class WithdrawServiceImpl implements WithdrawService {
     }
     return result;
   }
-  
+
   @Override
   @Transactional(readOnly = true)
   public List<MyInputOutputHistoryDto> getMyInputOutputHistory(
-          String email,
-          Integer offset, Integer limit,
-          Locale locale) {
+      String email,
+      Integer offset, Integer limit,
+      Locale locale) {
     List<Integer> operationTypeList = OperationType.getInputOutputOperationsList()
-            .stream()
-            .map(OperationType::getType)
-            .collect(Collectors.toList());
+        .stream()
+        .map(OperationType::getType)
+        .collect(Collectors.toList());
     List<MyInputOutputHistoryDto> result = withdrawRequestDao.findMyInputOutputHistoryByOperationType(email, offset, limit, operationTypeList, locale);
     result.forEach(e ->
     {
@@ -408,7 +412,9 @@ public class WithdrawServiceImpl implements WithdrawService {
       }
       String userEmail = userService.getEmailById(withdrawRequest.getUserId());
       userService.addUserComment(WITHDRAW_DECLINE, comment, userEmail, false);
-      notificationService.notifyUser(withdrawRequest.getUserId(), NotificationEvent.IN_OUT, title, comment);
+      if (!BLOCK_NOTIFYING) {
+        notificationService.notifyUser(withdrawRequest.getUserId(), NotificationEvent.IN_OUT, title, comment);
+      }
       profileData.setTime3();
     } finally {
       profileData.checkAndLog("slow decline WithdrawalRequest: " + requestId + " profile: " + profileData);
@@ -441,7 +447,7 @@ public class WithdrawServiceImpl implements WithdrawService {
     try {
       merchantService.withdraw(withdrawMerchantOperation);
     } catch (Exception e) {
-      throw new WithdrawRequestPostException(String.format("withdraw data: %s via merchant: %s",withdrawMerchantOperation.toString(), merchantService.toString()));
+      throw new WithdrawRequestPostException(String.format("withdraw data: %s via merchant: %s", withdrawMerchantOperation.toString(), merchantService.toString()));
     }
   }
 
@@ -501,7 +507,9 @@ public class WithdrawServiceImpl implements WithdrawService {
       String comment = messageSource.getMessage("merchants.withdrawNotification.".concat(newStatus.name()), new Integer[]{requestId}, locale);
       String userEmail = userService.getEmailById(withdrawRequest.getUserId());
       userService.addUserComment(WITHDRAW_POSTED, comment, userEmail, false);
-      notificationService.notifyUser(withdrawRequest.getUserId(), NotificationEvent.IN_OUT, title, comment);
+      if (!BLOCK_NOTIFYING) {
+        notificationService.notifyUser(withdrawRequest.getUserId(), NotificationEvent.IN_OUT, title, comment);
+      }
       profileData.setTime5();
     } finally {
       profileData.checkAndLog("slow post WithdrawalRequest: " + requestId + " profile: " + profileData);
@@ -552,8 +560,10 @@ public class WithdrawServiceImpl implements WithdrawService {
     notificationMessageCode = "merchants.withdrawNotification.".concat(withdrawRequest.getStatus().name());
     notification = messageSource
         .getMessage(notificationMessageCode, messageParams, locale);
-    notificationService.notifyUser(withdrawRequest.getUserEmail(), NotificationEvent.IN_OUT,
-        "merchants.withdrawNotification.header", notificationMessageCode, messageParams);
+    if (!BLOCK_NOTIFYING) {
+      notificationService.notifyUser(withdrawRequest.getUserEmail(), NotificationEvent.IN_OUT,
+          "merchants.withdrawNotification.header", notificationMessageCode, messageParams);
+    }
     return notification;
   }
 
