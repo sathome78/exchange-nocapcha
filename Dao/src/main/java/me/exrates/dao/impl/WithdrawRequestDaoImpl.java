@@ -310,14 +310,18 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
       Integer requesterUserId,
       DataTableParams dataTableParams,
       WithdrawFilterData withdrawFilterData) {
+    final String JOINS_FOR_FILTER =
+        " JOIN USER ON USER.id = WITHDRAW_REQUEST.user_id ";
+    String filter = withdrawFilterData.getSQLFilterClause();
     String sqlBase =
         " FROM WITHDRAW_REQUEST " +
             " JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
             "				(IOP.currency_id=WITHDRAW_REQUEST.currency_id) " +
             "				AND (IOP.user_id=:requester_user_id) " +
             "				AND (IOP.operation_direction=:operation_direction) " +
+            (filter.isEmpty() ? "": JOINS_FOR_FILTER)+
             (statusIdList.isEmpty() ? "" : " WHERE status_id IN (:status_id_list) ");
-    String filter = withdrawFilterData.getSQLFilterClause();
+
     String whereClauseFilter = StringUtils.isEmpty(filter) ? "" : " AND ".concat(filter);
     String orderClause = dataTableParams.getOrderByClause();
     String offsetAndLimit = " LIMIT :limit OFFSET :offset ";
