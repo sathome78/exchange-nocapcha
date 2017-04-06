@@ -610,7 +610,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         that.getAndShowBuyOrders();
         leftSider.getStatisticsForMyWallets();
         leftSider.getStatisticsForAllCurrencies();
-        successNoty(data.result);
+        successNoty(data.result, 'successOrder');
     }
 
     function onCreateOrderError(jqXHR, textStatus, errorThrown) {
@@ -647,7 +647,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         that.updateAndShowAll();
         leftSider.getStatisticsForMyWallets();
         leftSider.getStatisticsForAllCurrencies();
-        successNoty(data.result);
+        successNoty(data.result, 'successOrder');
     }
 
     function onAcceptOrderError(jqXHR, textStatus, errorThrown) {
