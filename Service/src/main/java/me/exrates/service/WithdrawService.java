@@ -25,7 +25,7 @@ public interface WithdrawService {
 
   Map<String, String> createWithdrawalRequest(CreditsOperation creditsOperation, WithdrawData withdrawData, String userEmail,Locale locale);
 
-  void autoPostWithdrawalRequest(WithdrawRequestPostDto withdrawRequest) throws Exception;
+  void autoPostWithdrawalRequest(WithdrawRequestPostDto withdrawRequest);
 
   void postWithdrawalRequest(int requestId, Integer requesterAdminId);
 
@@ -58,7 +58,7 @@ public interface WithdrawService {
 
   void confirmWithdrawalRequest(int requestId, Integer requesterAdminId);
 
-  void setAllAvailableInPostingStatus() throws Exception;
+  void setAllAvailableInPostingStatus();
 
   List<WithdrawRequestPostDto> dirtyReadForPostByStatusList(InvoiceStatus status);
 }

@@ -430,7 +430,7 @@ public class WithdrawServiceImpl implements WithdrawService {
 
   @Override
   @Transactional
-  public void autoPostWithdrawalRequest(WithdrawRequestPostDto withdrawRequest) throws Exception {
+  public void autoPostWithdrawalRequest(WithdrawRequestPostDto withdrawRequest) {
     postWithdrawalRequest(withdrawRequest.getId(), null);
     IMerchantService merchantService = merchantServiceContext.getMerchantService(withdrawRequest.getMerchantServiceBeanName());
     WithdrawMerchantOperationDto withdrawMerchantOperation = WithdrawMerchantOperationDto.builder()
@@ -438,7 +438,11 @@ public class WithdrawServiceImpl implements WithdrawService {
         .amount(BigDecimalProcessing.doAction(withdrawRequest.getAmount(), withdrawRequest.getCommissionAmount(), ActionType.SUBTRACT).toString())
         .accountTo(withdrawRequest.getWallet())
         .build();
-    merchantService.withdraw(withdrawMerchantOperation);
+    try {
+      merchantService.withdraw(withdrawMerchantOperation);
+    } catch (Exception e) {
+      throw new WithdrawRequestPostException(String.format("withdraw data: %s via merchant: %s",withdrawMerchantOperation.toString(), merchantService.toString()));
+    }
   }
 
   @Override
@@ -506,7 +510,7 @@ public class WithdrawServiceImpl implements WithdrawService {
 
   @Override
   @Transactional
-  public void setAllAvailableInPostingStatus() throws Exception {
+  public void setAllAvailableInPostingStatus() {
     InvoiceActionTypeEnum action = HOLD_TO_POST;
     List<Integer> invoiceRequestStatusIdList = WithdrawStatusEnum.getAvailableForActionStatusesList(action).stream()
         .map(InvoiceStatus::getCode)

@@ -25,12 +25,12 @@ public class withdrawRequestJob {
   @Autowired
   WithdrawService withdrawService;
 
-  @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 1)
+  @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 10 * 1)
   private void setInPostingStatus() throws Exception {
     withdrawService.setAllAvailableInPostingStatus();
   }
 
-  @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 1)
+  @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 10 * 1)
   private void postWithdraw() {
     try {
       InvoiceActionTypeEnum action = POST_AUTO;

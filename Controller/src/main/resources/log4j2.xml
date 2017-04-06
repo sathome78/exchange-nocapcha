@@ -139,6 +139,24 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="withdraw_asp_log" fileName="${sys:catalina.home}/logs/withdraw/withdraw_asp_log.log"
+                     filePattern="${sys:catalina.home}/logs/withdraw/withdraw_asp_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="withdraw_ext_asp_log" fileName="${sys:catalina.home}/logs/withdraw/withdraw_ext_asp_log.log"
+                     filePattern="${sys:catalina.home}/logs/withdraw/withdraw_ext_asp_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
         <RollingFile name="job_log" fileName="${sys:catalina.home}/logs/job_log.log"
                      filePattern="${sys:catalina.home}/logs/job_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
@@ -290,6 +308,14 @@
         </logger>
         <logger name="aop_error_log_extended" level="ALL" additivity="false">
             <AppenderRef ref="exceptions_log"/>
+        </logger>
+
+        <logger name="withdraw_log" level="ALL" additivity="false">
+            <AppenderRef ref="withdraw_asp_log"/>
+        </logger>
+
+        <logger name="withdraw_ext_log" level="ALL" additivity="false">
+            <AppenderRef ref="withdraw_ext_asp_log"/>
         </logger>
 
 
