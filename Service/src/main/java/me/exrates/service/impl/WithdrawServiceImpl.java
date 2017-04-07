@@ -412,9 +412,7 @@ public class WithdrawServiceImpl implements WithdrawService {
       }
       String userEmail = userService.getEmailById(withdrawRequest.getUserId());
       userService.addUserComment(WITHDRAW_DECLINE, comment, userEmail, false);
-      if (!BLOCK_NOTIFYING) {
-        notificationService.notifyUser(withdrawRequest.getUserId(), NotificationEvent.IN_OUT, title, comment);
-      }
+      notificationService.notifyUser(withdrawRequest.getUserId(), NotificationEvent.IN_OUT, title, comment);
       profileData.setTime3();
     } finally {
       profileData.checkAndLog("slow decline WithdrawalRequest: " + requestId + " profile: " + profileData);
@@ -437,7 +435,6 @@ public class WithdrawServiceImpl implements WithdrawService {
   @Override
   @Transactional
   public void autoPostWithdrawalRequest(WithdrawRequestPostDto withdrawRequest) {
-    postWithdrawalRequest(withdrawRequest.getId(), null);
     IMerchantService merchantService = merchantServiceContext.getMerchantService(withdrawRequest.getMerchantServiceBeanName());
     WithdrawMerchantOperationDto withdrawMerchantOperation = WithdrawMerchantOperationDto.builder()
         .currency(withdrawRequest.getCurrencyName())
@@ -445,7 +442,15 @@ public class WithdrawServiceImpl implements WithdrawService {
         .accountTo(withdrawRequest.getWallet())
         .build();
     try {
+      WithdrawRequestFlatDto withdrawRequestResult = postWithdrawal(withdrawRequest.getId(), null);
       merchantService.withdraw(withdrawMerchantOperation);
+      /**/
+      Locale locale = new Locale(userService.getPreferedLang(withdrawRequestResult.getUserId()));
+      String title = messageSource.getMessage("withdrawal.posted.title", new Integer[]{withdrawRequest.getId()}, locale);
+      String comment = messageSource.getMessage("merchants.withdrawNotification.".concat(withdrawRequestResult.getStatus().name()), new Integer[]{withdrawRequest.getId()}, locale);
+      String userEmail = userService.getEmailById(withdrawRequestResult.getUserId());
+      userService.addUserComment(WITHDRAW_POSTED, comment, userEmail, false);
+      notificationService.notifyUser(withdrawRequestResult.getUserId(), NotificationEvent.IN_OUT, title, comment);
     } catch (Exception e) {
       throw new WithdrawRequestPostException(String.format("withdraw data: %s via merchant: %s", withdrawMerchantOperation.toString(), merchantService.toString()));
     }
@@ -454,6 +459,17 @@ public class WithdrawServiceImpl implements WithdrawService {
   @Override
   @Transactional
   public void postWithdrawalRequest(int requestId, Integer requesterAdminId) {
+    WithdrawRequestFlatDto withdrawRequestResult = postWithdrawal(requestId, requesterAdminId);
+    /**/
+    Locale locale = new Locale(userService.getPreferedLang(withdrawRequestResult.getUserId()));
+    String title = messageSource.getMessage("withdrawal.posted.title", new Integer[]{requestId}, locale);
+    String comment = messageSource.getMessage("merchants.withdrawNotification.".concat(withdrawRequestResult.getStatus().name()), new Integer[]{requestId}, locale);
+    String userEmail = userService.getEmailById(withdrawRequestResult.getUserId());
+    userService.addUserComment(WITHDRAW_POSTED, comment, userEmail, false);
+    notificationService.notifyUser(withdrawRequestResult.getUserId(), NotificationEvent.IN_OUT, title, comment);
+  }
+
+  private WithdrawRequestFlatDto postWithdrawal(int requestId, Integer requesterAdminId) {
     ProfileData profileData = new ProfileData(1000);
     try {
       WithdrawRequestFlatDto withdrawRequest = withdrawRequestDao.getFlatByIdAndBlock(requestId)
@@ -465,6 +481,8 @@ public class WithdrawServiceImpl implements WithdrawService {
           checkPermissionOnActionAndGetNewStatus(requesterAdminId, withdrawRequest, action);
       withdrawRequestDao.setStatusById(requestId, newStatus);
       withdrawRequestDao.setHolderById(requestId, requesterAdminId);
+      withdrawRequest.setStatus(newStatus);
+      withdrawRequest.setAdminHolderId(requesterAdminId);
       profileData.setTime1();
       /**/
       Integer userWalletId = walletService.getWalletId(withdrawRequest.getUserId(), withdrawRequest.getCurrencyId());
@@ -501,16 +519,7 @@ public class WithdrawServiceImpl implements WithdrawService {
           walletOperationData.getCommissionAmount()
       );
       profileData.setTime4();
-      /**/
-      Locale locale = new Locale(userService.getPreferedLang(withdrawRequest.getUserId()));
-      String title = messageSource.getMessage("withdrawal.posted.title", new Integer[]{requestId}, locale);
-      String comment = messageSource.getMessage("merchants.withdrawNotification.".concat(newStatus.name()), new Integer[]{requestId}, locale);
-      String userEmail = userService.getEmailById(withdrawRequest.getUserId());
-      userService.addUserComment(WITHDRAW_POSTED, comment, userEmail, false);
-      if (!BLOCK_NOTIFYING) {
-        notificationService.notifyUser(withdrawRequest.getUserId(), NotificationEvent.IN_OUT, title, comment);
-      }
-      profileData.setTime5();
+      return withdrawRequest;
     } finally {
       profileData.checkAndLog("slow post WithdrawalRequest: " + requestId + " profile: " + profileData);
     }
@@ -560,10 +569,8 @@ public class WithdrawServiceImpl implements WithdrawService {
     notificationMessageCode = "merchants.withdrawNotification.".concat(withdrawRequest.getStatus().name());
     notification = messageSource
         .getMessage(notificationMessageCode, messageParams, locale);
-    if (!BLOCK_NOTIFYING) {
-      notificationService.notifyUser(withdrawRequest.getUserEmail(), NotificationEvent.IN_OUT,
-          "merchants.withdrawNotification.header", notificationMessageCode, messageParams);
-    }
+    notificationService.notifyUser(withdrawRequest.getUserEmail(), NotificationEvent.IN_OUT,
+        "merchants.withdrawNotification.header", notificationMessageCode, messageParams);
     return notification;
   }
 
