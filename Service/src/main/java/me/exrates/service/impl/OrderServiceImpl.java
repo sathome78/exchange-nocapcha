@@ -219,6 +219,8 @@ public class OrderServiceImpl implements OrderService {
       }
     }
     if (orderCreateDto.getExchangeRate() != null) {
+      CurrencyPairLimitDto currencyPairLimit = currencyService.findLimitForRoleByCurrencyPairAndType(orderCreateDto.getCurrencyPair().getId(),
+              orderCreateDto.getOperationType());
       if (orderCreateDto.getExchangeRate().compareTo(new BigDecimal(0)) < 1) {
         errors.put("exrate_" + errors.size(), "order.minrate");
       }
@@ -231,7 +233,8 @@ public class OrderServiceImpl implements OrderService {
     }
     return errors;
   }
-
+  
+  
   @Override
   @Transactional(rollbackFor = {Exception.class})
   public int createOrder(OrderCreateDto orderCreateDto, OrderActionEnum action) {

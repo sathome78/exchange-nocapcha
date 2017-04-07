@@ -24,4 +24,9 @@ public enum OrderType {
     return Arrays.stream(OrderType.values()).filter(ot -> ot.type == type).findAny()
             .orElseThrow(UnsupportedOrderTypeException::new);
   }
+  
+  public static OrderType convert(String name) {
+    return Arrays.stream(OrderType.values()).filter(ot -> ot.name().equals(name)).findAny()
+            .orElseThrow(UnsupportedOrderTypeException::new);
+  }
 }

@@ -302,7 +302,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 	}
 	
 	@Override
-	public CurrencyPairLimitDto findLimitForRoleByCurrencyPairAndType(Integer currencyPairId, Integer roleId, Integer orderTypeId) {
+	public CurrencyPairLimitDto findCurrencyPairLimitForRoleByPairAndType(Integer currencyPairId, Integer roleId, Integer orderTypeId) {
 		String sql = "SELECT CURRENCY_PAIR.id AS currency_pair_id, CURRENCY_PAIR.name AS currency_pair_name, lim.min_rate, lim.max_rate " +
 						" FROM CURRENCY_PAIR_LIMIT lim " +
 						" JOIN CURRENCY_PAIR ON lim.currency_pair_id = CURRENCY_PAIR.id " +

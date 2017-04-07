@@ -52,7 +52,7 @@ public interface CurrencyDao {
 
   CurrencyPair findCurrencyPairByOrderId(int orderId);
   
-  CurrencyPairLimitDto findLimitForRoleByCurrencyPairAndType(Integer currencyPairId, Integer roleId, Integer orderTypeId);
+  CurrencyPairLimitDto findCurrencyPairLimitForRoleByPairAndType(Integer currencyPairId, Integer roleId, Integer orderTypeId);
   
   List<CurrencyPairLimitDto> findLimitsForRolesByType(List<Integer> roleIds, Integer orderTypeId);
   

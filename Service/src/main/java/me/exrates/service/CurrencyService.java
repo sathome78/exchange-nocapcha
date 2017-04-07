@@ -3,6 +3,7 @@ package me.exrates.service;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.enums.CurrencyWarningType;
@@ -63,4 +64,6 @@ public interface CurrencyService {
   Optional<String> getWarningForCurrency(Integer currencyId, CurrencyWarningType currencyWarningType);
 
   Currency getById(int id);
+  
+  CurrencyPairLimitDto findLimitForRoleByCurrencyPairAndType(Integer currencyPairId, OperationType operationType);
 }
