@@ -367,7 +367,7 @@ function updateWithdrawalTable() {
 
                 {
                     "data": "commissionAmount",
-                    "name": "WITHDRAW_REQUEST.commission_amount",
+                    "name": "WITHDRAW_REQUEST.commission",
                 },
                 {
                     "data": "merchantName",
