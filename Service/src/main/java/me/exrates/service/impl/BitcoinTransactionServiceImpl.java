@@ -157,4 +157,9 @@ public class BitcoinTransactionServiceImpl implements BitcoinTransactionService 
     return paymentDao.findUnpaidBtcPayments();
   }
   
+  @Override
+  public void updatePendingPaymentHash(Integer txId, String hash) {
+    paymentDao.updateBtcHash(txId, hash);
+  }
+  
 }

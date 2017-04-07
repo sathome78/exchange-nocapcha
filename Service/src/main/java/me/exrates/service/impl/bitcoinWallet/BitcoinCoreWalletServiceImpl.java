@@ -158,13 +158,38 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
   }
   
   private void processIncomingPayment(Transaction transaction) {
-    InvoiceStatus beginStatus = PendingPaymentStatusEnum.getBeginState();
-    transaction.getDetails().stream().filter(payment -> payment.getCategory() == PaymentCategories.RECEIVE)
-            .map(PaymentOverview::getAddress).forEach(address -> {
-      if (bitcoinTransactionService.existsPendingPaymentWithStatusAndAddress(beginStatus, address) && transaction.getConfirmations() == 0) {
-        bitcoinTransactionService.markStartConfirmationProcessing(address, transaction.getTxId());
+    Optional<Transaction> targetTxResult = handleConflicts(transaction);
+    if (targetTxResult.isPresent()) {
+      Transaction targetTx = targetTxResult.get();
+      InvoiceStatus beginStatus = PendingPaymentStatusEnum.getBeginState();
+      targetTx.getDetails().stream().filter(payment -> payment.getCategory() == PaymentCategories.RECEIVE)
+              .map(PaymentOverview::getAddress).forEach(address -> {
+        if (bitcoinTransactionService.existsPendingPaymentWithStatusAndAddress(beginStatus, address) && targetTx.getConfirmations() == 0) {
+          bitcoinTransactionService.markStartConfirmationProcessing(address, targetTx.getTxId());
+        }
+      });
+    } else {
+      log.error("Invalid transaction");
+    }
+  }
+  
+  private Optional<Transaction> handleConflicts(Transaction transaction) {
+    if (transaction.getConfirmations() < 0 && !transaction.getWalletConflicts().isEmpty()) {
+      log.warn("Wallet conflicts present");
+      for (String txId : transaction.getWalletConflicts()) {
+        try {
+          Transaction conflicted = btcdClient.getTransaction(txId);
+          if (conflicted.getConfirmations() >= 0) {
+            return Optional.of(conflicted);
+          }
+        } catch (BitcoindException | CommunicationException e) {
+          log.error(e);
+        }
       }
-    });
+      return Optional.empty();
+    } else {
+      return Optional.of(transaction);
+    }
   }
   
   private void processBlock() {
@@ -175,13 +200,21 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
     unconfirmedPayments.stream().filter(payment -> StringUtils.isNotEmpty(payment.getHash())).forEach(payment -> {
       log.debug("Retrieving tx from blockchain!");
       try {
-        Transaction tx = btcdClient.getTransaction(payment.getHash());
-        if (tx.getDetails().size() == 1) {
-          paymentsToUpdate.add(new BtcTransactionShort(payment.getInvoiceId(), tx.getTxId(), tx.getAmount(), tx.getConfirmations()));
+        Optional<Transaction> txResult = handleConflicts(btcdClient.getTransaction(payment.getHash()));
+        if (txResult.isPresent()) {
+          Transaction tx = txResult.get();
+          if (!payment.getHash().equals(tx.getTxId())) {
+            bitcoinTransactionService.updatePendingPaymentHash(payment.getInvoiceId(), tx.getTxId());
+          }
+          if (tx.getDetails().size() == 1) {
+            paymentsToUpdate.add(new BtcTransactionShort(payment.getInvoiceId(), tx.getTxId(), tx.getAmount(), tx.getConfirmations()));
+          } else {
+            tx.getDetails().stream().filter(paymentOverview -> payment.getAddress().equals(paymentOverview.getAddress()))
+                    .findFirst().ifPresent(paymentOverview ->
+                    paymentsToUpdate.add(new BtcTransactionShort(payment.getInvoiceId(), tx.getTxId(), paymentOverview.getAmount(), tx.getConfirmations())));
+          }
         } else {
-          tx.getDetails().stream().filter(paymentOverview -> payment.getAddress().equals(paymentOverview.getAddress()))
-                  .findFirst().ifPresent(paymentOverview ->
-                  paymentsToUpdate.add(new BtcTransactionShort(payment.getInvoiceId(), tx.getTxId(), paymentOverview.getAmount(), tx.getConfirmations())));
+          log.error("No valid transactions available!");
         }
       } catch (BitcoindException | CommunicationException e) {
         log.error(e);
