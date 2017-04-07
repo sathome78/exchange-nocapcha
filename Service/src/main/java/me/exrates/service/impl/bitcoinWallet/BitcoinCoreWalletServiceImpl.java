@@ -171,37 +171,24 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
     List<PendingPayment> unconfirmedPayments = bitcoinTransactionService.findUnconfirmedBtcPayments();
     unconfirmedPayments.forEach(log::debug);
     List<BtcTransactionShort> paymentsToUpdate = new ArrayList<>();
-    try {
-      final Map<String, Address> receivedByAddress = listReceivedByAddressMapped(1);
-      receivedByAddress.forEach(log::debug);
-      unconfirmedPayments.stream().filter(payment -> StringUtils.isNotEmpty(payment.getHash())).forEach(payment -> {
-        Address address = receivedByAddress.get(payment.getAddress());
-        log.debug("address " + address);
-        if (address != null && address.getTxIds().contains(payment.getHash()) && address.getTxIds().size() == 1) {
-          log.debug("Getting info from address!");
-          paymentsToUpdate.add(new BtcTransactionShort(payment.getInvoiceId(), address.getTxIds().get(0),
-                  address.getAmount(), address.getConfirmations()));
-          
+    log.debug("Start retrieving TXs");
+    unconfirmedPayments.stream().filter(payment -> StringUtils.isNotEmpty(payment.getHash())).forEach(payment -> {
+      log.debug("Retrieving tx from blockchain!");
+      try {
+        Transaction tx = btcdClient.getTransaction(payment.getHash());
+        if (tx.getDetails().size() == 1) {
+          paymentsToUpdate.add(new BtcTransactionShort(payment.getInvoiceId(), tx.getTxId(), tx.getAmount(), tx.getConfirmations()));
         } else {
-          log.debug("Retrieving tx from blockchain!");
-          try {
-            Transaction tx = btcdClient.getTransaction(payment.getHash());
-            if (tx.getDetails().size() == 1) {
-              paymentsToUpdate.add(new BtcTransactionShort(payment.getInvoiceId(), tx.getTxId(), tx.getAmount(), tx.getConfirmations()));
-            } else {
-              tx.getDetails().stream().filter(paymentOverview -> payment.getAddress().equals(paymentOverview.getAddress()))
-                      .findFirst().ifPresent(paymentOverview ->
-                      paymentsToUpdate.add(new BtcTransactionShort(payment.getInvoiceId(), tx.getTxId(), paymentOverview.getAmount(), tx.getConfirmations())));
-            }
-          } catch (BitcoindException | CommunicationException e) {
-            log.error(e);
-          }
+          tx.getDetails().stream().filter(paymentOverview -> payment.getAddress().equals(paymentOverview.getAddress()))
+                  .findFirst().ifPresent(paymentOverview ->
+                  paymentsToUpdate.add(new BtcTransactionShort(payment.getInvoiceId(), tx.getTxId(), paymentOverview.getAmount(), tx.getConfirmations())));
         }
-      });
-    } catch (BitcoindException | CommunicationException e ) {
-      log.error(e);
-    }
+      } catch (BitcoindException | CommunicationException e) {
+        log.error(e);
+      }
+    });
     
+    log.debug("Start updating payments in DB");
     paymentsToUpdate.forEach(payment -> {
       log.debug(String.format("Payment to update: %s", payment));
       changeConfirmationsOrProvide(payment);
