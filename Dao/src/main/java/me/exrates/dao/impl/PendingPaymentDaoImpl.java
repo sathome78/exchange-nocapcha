@@ -514,11 +514,11 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
   
   @Override
   public void updateBtcHash(Integer invoiceId, String hash) {
-    String sql = "UPDATE PENDING_PAYMENT SET hash = :hash WHERE invoice_id = :invoice_id";
+    String sql = "UPDATE PENDING_PAYMENT SET hash = :btc_hash WHERE invoice_id = :invoice_id";
     Map<String, Object> params = new HashMap<>();
     params.put("invoice_id", invoiceId);
-    params.put("hash", hash);
-    jdbcTemplate.update(sql, params);
+    params.put("btc_hash", hash);
+    parameterJdbcTemplate.update(sql, params);
   }
 
 }
