@@ -350,7 +350,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         var commission = that.commissionBuy;
         var calculatedCommissionForBuy = +(totalForBuy * commission / 100).toFixed(that.ROUND_SCALE);
         var totalWithCommissionForBuy = +(totalForBuy + calculatedCommissionForBuy).toFixed(that.ROUND_SCALE);
-        $('#totalForBuy>span:first').text(totalForBuy.toFixed(that.ROUND_SCALE));
+        $('#totalForBuy').val(totalForBuy.toFixed(that.ROUND_SCALE));
         $('#calculatedCommissionForBuy>span:first').text(calculatedCommissionForBuy.toFixed(that.ROUND_SCALE));
         $('#totalWithCommissionForBuy>span:first').text(totalWithCommissionForBuy.toFixed(that.ROUND_SCALE));
     }
@@ -362,10 +362,15 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         var commission = that.commissionSell;
         var calculatedCommissionForSell = +(totalForSell * commission / 100).toFixed(that.ROUND_SCALE);
         var totalWithCommissionForSell = +(totalForSell - calculatedCommissionForSell).toFixed(that.ROUND_SCALE);
-        $('#totalForSell>span:first').text(totalForSell.toFixed(that.ROUND_SCALE));
+        $('#totalForSell').val(totalForSell.toFixed(that.ROUND_SCALE));
         $('#calculatedCommissionForSell>span:first').text(calculatedCommissionForSell.toFixed(that.ROUND_SCALE));
         $('#totalWithCommissionForSell>span:first').text(totalWithCommissionForSell.toFixed(that.ROUND_SCALE));
     }
+
+    function deduceOrderParams(amount, rate, total) {
+
+    }
+
 
     /*=========================================================*/
     (function init(period, chartType, currentCurrencyPair) {
@@ -394,6 +399,8 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         $('#exchangeRateBuy').on('keyup', calculateFieldsForBuy).on('keydown', that.resetOrdersListForAccept);
         $('#amountSell').on('keyup', calculateFieldsForSell).on('keydown', that.resetOrdersListForAccept);
         $('#exchangeRateSell').on('keyup', calculateFieldsForSell).on('keydown', that.resetOrdersListForAccept);
+        $('#totalForBuy').on('keyup', calculateFieldsForSell).on('keydown', that.resetOrdersListForAccept);
+        $('#totalForSell').on('keyup', calculateFieldsForSell).on('keydown', that.resetOrdersListForAccept);
         /**/
         $('.dashboard-order__table').on('click', '.dashboard-order__tr', fillOrdersFormFromCurrentOrder);
         /**/
