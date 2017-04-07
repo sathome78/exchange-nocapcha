@@ -67,7 +67,17 @@ public enum InvoiceActionTypeEnum {
     getProperty().put("actionTypeButton", RETURN_FROM_WORK_BUTTON);
     getProperty().put("availableForHolderOnly", true);
     getProperty().put("operationPermissionOnlyList", Arrays.asList(ACCEPT_DECLINE));
-  }};
+  }},
+  CREATE_BY_USER,
+  CREATE_BY_FACT,
+  PUT_FOR_CONFIRM_USER,
+  PUT_FOR_PENDING,
+  ACCEPT_HOLDED {{
+    getProperty().put("actionTypeButton", ACCEPT_HOLDED_BUTTON);
+    getProperty().put("availableForHolderOnly", true);
+    getProperty().put("operationPermissionOnlyList", Arrays.asList(ACCEPT_DECLINE));
+  }},
+  START_BCH_EXAMINE;
 
   private Map<String, Object> property = new HashMap<String, Object>() {{
     put("actionTypeButton", null);
