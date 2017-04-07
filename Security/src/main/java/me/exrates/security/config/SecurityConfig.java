@@ -237,6 +237,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         /*user withdraw action ...*/
         .antMatchers(POST, "/withdraw/request/**").authenticated()
         /*... user withdraw action*/
+        /*user refill action ...*/
+        .antMatchers(POST, "/refill/request/**").authenticated()
+        /*... user refill action*/
         .and()
         .exceptionHandling()
         .accessDeniedHandler(accessDeniedHandler());

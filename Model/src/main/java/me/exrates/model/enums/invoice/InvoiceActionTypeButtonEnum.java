@@ -31,6 +31,9 @@ public enum InvoiceActionTypeButtonEnum {
   POST_HOLDED_BUTTON {{
     getProperty().put("tableIdListOnly", new String[]{"withdrawalTable"});
   }},
+  ACCEPT_HOLDED_BUTTON {{
+    getProperty().put("tableIdListOnly", new String[]{"refillTable"});
+  }},
   TAKE_TO_WORK_BUTTON {{
     getProperty().put("tableIdListOnly", new String[]{"withdrawalTable"});
   }},

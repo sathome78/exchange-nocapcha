@@ -7,6 +7,7 @@ import me.exrates.dao.PendingPaymentDao;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.PendingPayment;
 import me.exrates.model.Transaction;
+import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.service.AlgorithmService;
@@ -150,4 +151,46 @@ public class LiqpayServiceImpl implements LiqpayService {
         logger.debug("\n======> request for withdraw sent "+ withdrawMerchantOperationDto);
     }
 
+    @Override
+    public RedirectView getMerchantRefillPage(RefillRequestCreateDto request) {
+        BigDecimal sum = transaction.getAmount().add(transaction.getCommissionAmount());
+        final String currency = transaction.getCurrency().getName();
+        final Number amountToPay = sum.setScale(2, BigDecimal.ROUND_HALF_UP);
+
+        Map params = new HashMap();
+        params.put("version", Integer.parseInt(apiVersion));
+        params.put("public_key", public_key);
+        params.put("action", action);
+        params.put("amount", amountToPay);
+        params.put("currency", creditsOperation.getCurrency().getName());
+        params.put("description", "Order: " + transaction.getId());
+        params.put("order_id", transaction.getId());
+        byte[] hashSha1 = sha1(transaction.getId() + private_key);
+        String hash = base64_encode(hashSha1);
+        params.put("info", hash);
+
+
+        Gson gson = new Gson();
+        String jsonData = gson.toJson(params);
+        String data = algorithmService.base64Encode(jsonData);
+        byte[] signatureSha1 = sha1((private_key+data+private_key));
+        String signature = base64_encode(signatureSha1);
+
+        final PendingPayment payment = new PendingPayment();
+        payment.setTransactionHash(hash);
+        payment.setInvoiceId(transaction.getId());
+        pendingPaymentDao.create(payment);
+
+
+
+        Properties properties = new Properties();
+        properties.put("data", data);
+        properties.put("signature", signature);
+
+        RedirectView redirectView = new RedirectView(url);
+        redirectView.setAttributes(properties);
+
+
+        return redirectView;
+    }
 }

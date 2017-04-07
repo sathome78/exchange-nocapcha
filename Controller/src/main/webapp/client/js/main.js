@@ -178,7 +178,7 @@ $(function(){
     }
 
     function resetFormAction(operationType,merchant,form) {
-        var formAction = {
+        /*var formAction = {
             yandex:'/merchants/yandexmoney/payment/prepare',
             blockchainDeposit:'/merchants/bitcoin/payment/provide',
             perfectDeposit:'https://perfectmoney.is/api/step1.asp',
@@ -190,6 +190,20 @@ $(function(){
             interkassa:'https://sci.interkassa.com/',
             okpay:'/merchants/okpay/payment/prepare/',
             payeer:'/merchants/payeer/payment/prepare/',
+            invoice: '/merchants/invoice/preSubmit'
+        };*/
+        var formAction = {
+            yandex:'/merchants/yandexmoney/payment/prepare',
+            blockchainDeposit:'/merchants/bitcoin/payment/provide',
+            perfectDeposit:'https://perfectmoney.is/api/step1.asp',
+            advcash:'/merchants/advcash/payment/prepare',
+            liqpay:'/merchants/liqpay/payment/prepare',
+            nixmoney:'/merchants/nixmoney/payment/prepare',
+            yandex_kassa:'http://din24.net/index.php?route=acc/success/order',
+            privat24:'https://api.privatbank.ua/p24api/ishop',
+            interkassa:'https://sci.interkassa.com/',
+            okpay:'/merchants/okpay/payment/prepare/',
+            payeer:'/refill/request/create',
             invoice: '/merchants/invoice/preSubmit'
 
         };

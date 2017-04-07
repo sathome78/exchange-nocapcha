@@ -1,12 +1,16 @@
 package me.exrates.service.merchantStrategy;
 
+import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
-
-import java.io.IOException;
+import org.springframework.web.servlet.view.RedirectView;
 
 /**
  * Created by ValkSam on 24.03.2017.
  */
 public interface IMerchantService {
-  void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception;
+  default void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception{
+
+  };
+
+  RedirectView getMerchantRefillPage(RefillRequestCreateDto request);
 }

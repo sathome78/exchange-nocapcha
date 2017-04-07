@@ -130,8 +130,17 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-        <RollingFile name="withdraw_log" fileName="${sys:catalina.home}/logs/withdraw_log.log"
-                     filePattern="${sys:catalina.home}/logs/withdraw_log%d_%i.log" append="true">
+        <RollingFile name="withdraw_log" fileName="${sys:catalina.home}/logs/withdraw/withdraw_log.log"
+                     filePattern="${sys:catalina.home}/logs/withdraw/withdraw_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="refill_log" fileName="${sys:catalina.home}/logs/refill/refill_log.log"
+                     filePattern="${sys:catalina.home}/logs/refill/refill_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -148,8 +157,26 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="refill_asp_log" fileName="${sys:catalina.home}/logs/refill/refill_asp_log.log"
+                     filePattern="${sys:catalina.home}/logs/refill/refill_asp_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
         <RollingFile name="withdraw_ext_asp_log" fileName="${sys:catalina.home}/logs/withdraw/withdraw_ext_asp_log.log"
                      filePattern="${sys:catalina.home}/logs/withdraw/withdraw_ext_asp_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="refill_ext_asp_log" fileName="${sys:catalina.home}/logs/refill/refill_ext_asp_log.log"
+                     filePattern="${sys:catalina.home}/logs/refill/refill_ext_asp_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -302,6 +329,10 @@
             <AppenderRef ref="Console"/>
             <AppenderRef ref="withdraw_log"/>
         </Logger>
+        <Logger name="refill" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="refill_log"/>
+        </Logger>
         <logger name="exceptions_log" level="ALL" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="exceptions_log"/>
@@ -316,6 +347,14 @@
 
         <logger name="withdraw_ext_log" level="ALL" additivity="false">
             <AppenderRef ref="withdraw_ext_asp_log"/>
+        </logger>
+
+        <logger name="refill_asp_log" level="ALL" additivity="false">
+            <AppenderRef ref="refill_asp_log"/>
+        </logger>
+
+        <logger name="refill_asp_ext_log" level="ALL" additivity="false">
+            <AppenderRef ref="refill_ext_asp_log"/>
         </logger>
 
 

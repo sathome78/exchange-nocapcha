@@ -57,9 +57,6 @@ public class WithdrawServiceImpl implements WithdrawService {
 
   private static final Logger log = LogManager.getLogger("withdraw");
 
-  @Value("${invoice.blockNotifyUsers}")
-  private Boolean BLOCK_NOTIFYING;
-
   @Autowired
   private MerchantDao merchantDao;
 

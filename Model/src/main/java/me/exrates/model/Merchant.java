@@ -15,6 +15,8 @@ public class Merchant {
     private String description;
     private Integer transactionSourceTypeId;
     private  String serviceBeanName;
+    private Boolean simpleInvoice;
+    private Integer refillOperationCountLimitForUserPerDay;
 
     public Merchant(int id) {
         this.id = id;
