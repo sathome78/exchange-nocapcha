@@ -14,6 +14,7 @@ import me.exrates.service.AlgorithmService;
 import me.exrates.service.EDRCService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.exception.MerchantInternalException;
+import me.exrates.service.exception.NotImplimentedMethod;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -274,6 +275,6 @@ public class EDRCServiceImpl implements EDRCService {
 
     @Override
     public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
-        LOG.debug("\n======> request for withdraw sent "+ withdrawMerchantOperationDto);
+        throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
     }
 }
