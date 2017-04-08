@@ -1,6 +1,6 @@
 ALTER TABLE MERCHANT
 	ADD COLUMN simple_invoice TINYINT NOT NULL DEFAULT '0';
-	
+
 ALTER TABLE MERCHANT
 	ADD COLUMN refill_operation_count_limit_for_user_per_day INT NOT NULL DEFAULT '10';
 	
