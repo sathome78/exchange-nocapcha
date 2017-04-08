@@ -11,14 +11,12 @@ import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
+import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.WalletOperationData;
-import me.exrates.service.BitcoinTransactionService;
-import me.exrates.service.CompanyWalletService;
-import me.exrates.service.NotificationService;
-import me.exrates.service.TransactionService;
+import me.exrates.service.*;
 import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.IllegalTransactionProvidedStatusException;
 import me.exrates.service.exception.invoice.IllegalInvoiceAmountException;
@@ -58,6 +56,9 @@ public class BitcoinTransactionServiceImpl implements BitcoinTransactionService 
   
   @Autowired
   private NotificationService notificationService;
+  
+  @Autowired
+  private UserService userService;
   
   
   
@@ -103,7 +104,10 @@ public class BitcoinTransactionServiceImpl implements BitcoinTransactionService 
     if (action == ACCEPT_AUTO && !hash.equals(pendingPayment.getHash())) {
       throw new InvoiceUnexpectedHashException(String.format("hash stored in invoice: %s actual get from BCH: %s", pendingPayment.getHash(), hash));
     }
-    InvoiceStatus newStatus = pendingPayment.getPendingPaymentStatus().nextState(action);
+    InvoiceStatus newStatus = action == ACCEPT_AUTO ? pendingPayment.getPendingPaymentStatus().nextState(action) :
+            pendingPayment.getPendingPaymentStatus().nextState(action, true,
+                    userService.getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection(pendingPayment.getUserId(),
+                            pendingPayment.getTransaction().getCurrency().getId(), InvoiceOperationDirection.REFILL));
     pendingPayment.setPendingPaymentStatus(newStatus);
     Transaction transaction = pendingPayment.getTransaction();
     if (transaction.getOperationType() != OperationType.INPUT) {
@@ -155,6 +159,11 @@ public class BitcoinTransactionServiceImpl implements BitcoinTransactionService 
   @Override
   public List<PendingPayment> findUnpaidBtcPayments() {
     return paymentDao.findUnpaidBtcPayments();
+  }
+  
+  @Override
+  public void updatePendingPaymentHash(Integer txId, String hash) {
+    paymentDao.updateBtcHash(txId, hash);
   }
   
 }
