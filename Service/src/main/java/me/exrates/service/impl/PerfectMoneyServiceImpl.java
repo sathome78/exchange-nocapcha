@@ -4,6 +4,7 @@ import com.squareup.okhttp.*;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.model.Transaction;
+import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.PerfectMoneyService;
@@ -19,11 +20,13 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.servlet.view.RedirectView;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -32,15 +35,16 @@ import java.util.Map;
 @PropertySource("classpath:/merchants/perfectmoney.properties")
 public class PerfectMoneyServiceImpl implements PerfectMoneyService {
 
-    private @Value("${accountId}") String accountId;
-    private @Value("${accountPass}") String accountPass;
-    private @Value("${payeeName}") String payeeName;
-    private @Value("${paymentSuccess}") String paymentSuccess;
-    private @Value("${paymentFailure}") String paymentFailure;
-    private @Value("${paymentStatus}") String paymentStatus;
-    private @Value("${USDAccount}") String usdCompanyAccount;
-    private @Value("${EURAccount}") String eurCompanyAccount;
-    private @Value("${alternatePassphrase}") String alternatePassphrase;
+    private @Value("${perfectmoney.url}") String url;
+    private @Value("${perfectmoney.accountId}") String accountId;
+    private @Value("${perfectmoney.accountPass}") String accountPass;
+    private @Value("${perfectmoney.payeeName}") String payeeName;
+    private @Value("${perfectmoney.paymentSuccess}") String paymentSuccess;
+    private @Value("${perfectmoney.paymentFailure}") String paymentFailure;
+    private @Value("${perfectmoney.paymentStatus}") String paymentStatus;
+    private @Value("${perfectmoney.USDAccount}") String usdCompanyAccount;
+    private @Value("${perfectmoney.EURAccount}") String eurCompanyAccount;
+    private @Value("${perfectmoney.alternatePassphrase}") String alternatePassphrase;
 
     private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger(PerfectMoneyServiceImpl.class);
 
@@ -185,5 +189,30 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
     @Override
     public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
         throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
+    }
+
+    @Override
+    public RedirectView getMerchantRefillPage(RefillRequestCreateDto request){
+        Integer orderId = request.getId();
+        BigDecimal sum = request.getAmountWithCommission();
+        String currency = request.getCurrencyName();
+        Number amountToPay = "GOLD".equals(currency) ? sum.toBigInteger() : sum.setScale(2, BigDecimal.ROUND_HALF_UP);
+        /**/
+        Properties properties = new Properties() {{
+                put("PAYEE_ACCOUNT", currency.equals("USD") ? usdCompanyAccount : eurCompanyAccount);
+                put("PAYEE_NAME", payeeName);
+                put("PAYMENT_AMOUNT", amountToPay);
+                put("PAYMENT_UNITS", currency);
+                put("PAYMENT_ID", orderId);
+                put("PAYMENT_URL", paymentSuccess);
+                put("NOPAYMENT_URL", paymentFailure);
+                put("STATUS_URL", paymentStatus);
+                put("FORCED_PAYMENT_METHOD", "account");
+            }
+        };
+        /**/
+        RedirectView redirectView = new RedirectView(url);
+        redirectView.setAttributes(properties);
+        return redirectView;
     }
 }

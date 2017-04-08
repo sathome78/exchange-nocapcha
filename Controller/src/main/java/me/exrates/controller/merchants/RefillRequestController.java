@@ -74,8 +74,7 @@ public class RefillRequestController {
         .orElseThrow(InvalidAmountException::new);
     try {
       RefillRequestCreateDto request = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus);
-      refillService.createRefillRequest(request);
-      return liqpayService.preparePayment(creditsOperation.get(), principal.getName());
+      return refillService.createRefillRequestAndGetPageOfMerchant(request);
     } catch (RefillRequestLimitForMerchantExceededException e) {
       log.error(requestParamsDto);
       redirectAttributes.addAttribute("errorNoty", messageSource.getMessage("merchants.InputRequestsLimit", null, locale));

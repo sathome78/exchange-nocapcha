@@ -6,6 +6,7 @@ import me.exrates.dao.PendingPaymentDao;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.PendingPayment;
 import me.exrates.model.Transaction;
+import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
@@ -160,5 +161,10 @@ public class AdvcashServiceImpl implements AdvcashService{
     @Override
     public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
         throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
+    }
+
+    @Override
+    public RedirectView getMerchantRefillPage(RefillRequestCreateDto request){
+        throw new NotImplimentedMethod("for "+request);
     }
 }

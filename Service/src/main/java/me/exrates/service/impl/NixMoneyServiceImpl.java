@@ -2,6 +2,7 @@ package me.exrates.service.impl;
 
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Transaction;
+import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.NixMoneyService;
@@ -116,6 +117,11 @@ public class NixMoneyServiceImpl implements NixMoneyService {
     @Override
     public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
         throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
+    }
+
+    @Override
+    public RedirectView getMerchantRefillPage(RefillRequestCreateDto request){
+        throw new NotImplimentedMethod("for "+request);
     }
 
 }

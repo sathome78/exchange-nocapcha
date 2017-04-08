@@ -9,6 +9,7 @@ import me.exrates.model.CreditsOperation;
 import me.exrates.model.PendingPayment;
 import me.exrates.model.Transaction;
 import me.exrates.model.dto.PendingPaymentSimpleDto;
+import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.EDRCService;
@@ -23,6 +24,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.servlet.view.RedirectView;
 import org.w3c.dom.Document;
 import org.xembly.Directives;
 import org.xembly.ImpossibleModificationException;
@@ -276,5 +278,10 @@ public class EDRCServiceImpl implements EDRCService {
     @Override
     public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
         throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
+    }
+
+    @Override
+    public RedirectView getMerchantRefillPage(RefillRequestCreateDto request){
+        throw new NotImplimentedMethod("for "+request);
     }
 }

@@ -14,7 +14,7 @@ import java.util.Optional;
 public class CreditsOperation {
 
   private final User user;
-  private final BigDecimal fullAmount;
+  private final BigDecimal origAmountAtCreationRequest;
   private final BigDecimal amount;
   private final BigDecimal commissionAmount;
   private final OperationType operationType;
@@ -28,7 +28,7 @@ public class CreditsOperation {
 
   private CreditsOperation(Builder builder) {
     this.user = builder.user;
-    this.fullAmount = builder.fullAmount;
+    this.origAmountAtCreationRequest = builder.origAmountAtCreationRequest;
     this.amount = builder.amount;
     this.wallet = builder.wallet;
     this.commissionAmount = builder.commissionAmount;
@@ -47,7 +47,7 @@ public class CreditsOperation {
   public static class Builder {
 
     private User user;
-    private BigDecimal fullAmount;
+    private BigDecimal origAmountAtCreationRequest;
     private BigDecimal amount;
     private BigDecimal commissionAmount;
     private OperationType operationType;
@@ -65,7 +65,7 @@ public class CreditsOperation {
     }
 
     public Builder fullAmount(BigDecimal fullAmount) {
-      this.fullAmount = fullAmount;
+      this.origAmountAtCreationRequest = fullAmount;
       return this;
     }
 
@@ -132,7 +132,7 @@ public class CreditsOperation {
     CreditsOperation that = (CreditsOperation) o;
 
     if (user != null ? !user.equals(that.user) : that.user != null) return false;
-    if (fullAmount != null ? !fullAmount.equals(that.fullAmount) : that.fullAmount != null) return false;
+    if (origAmountAtCreationRequest != null ? !origAmountAtCreationRequest.equals(that.origAmountAtCreationRequest) : that.origAmountAtCreationRequest != null) return false;
     if (amount != null ? !amount.equals(that.amount) : that.amount != null) return false;
     if (commissionAmount != null ? !commissionAmount.equals(that.commissionAmount) : that.commissionAmount != null)
       return false;
@@ -149,7 +149,7 @@ public class CreditsOperation {
   @Override
   public int hashCode() {
     int result = user != null ? user.hashCode() : 0;
-    result = 31 * result + (fullAmount != null ? fullAmount.hashCode() : 0);
+    result = 31 * result + (origAmountAtCreationRequest != null ? origAmountAtCreationRequest.hashCode() : 0);
     result = 31 * result + (amount != null ? amount.hashCode() : 0);
     result = 31 * result + (commissionAmount != null ? commissionAmount.hashCode() : 0);
     result = 31 * result + (operationType != null ? operationType.hashCode() : 0);
@@ -166,7 +166,7 @@ public class CreditsOperation {
   public String toString() {
     return "CreditsOperation{" +
         "user=" + user +
-        ", fullAmount=" + fullAmount +
+        ", origAmountAtCreationRequest=" + origAmountAtCreationRequest +
         ", amount=" + amount +
         ", commissionAmount=" + commissionAmount +
         ", operationType=" + operationType +

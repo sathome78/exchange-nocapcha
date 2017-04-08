@@ -12,6 +12,7 @@ import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.vo.TransactionDescription;
 import me.exrates.service.*;
 import me.exrates.service.exception.RefillRequestLimitForMerchantExceededException;
+import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.vo.ProfileData;
 import org.apache.logging.log4j.LogManager;
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.servlet.view.RedirectView;
 
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
 
@@ -67,14 +69,16 @@ public class RefillServiceImpl implements RefillService {
 
   @Override
   @Transactional
-  public void createRefillRequest(
+  public RedirectView createRefillRequestAndGetPageOfMerchant(
       RefillRequestCreateDto request) {
     ProfileData profileData = new ProfileData(1000);
     try {
       checkIfOperationLimitExceededForMerchantByUser(request);
       Integer requestId = createRefill(request);
-      request.setId(requestId);
       profileData.setTime1();
+      request.setId(requestId);
+      IMerchantService merchantService = merchantServiceContext.getMerchantService(request.getServiceBeanName());
+      return merchantService.getMerchantRefillPage(request);
     } finally {
       profileData.checkAndLog("slow create RefillRequest: " + request + " profile: " + profileData);
     }

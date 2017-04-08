@@ -14,17 +14,19 @@ import java.math.BigDecimal;
  */
 @Getter @Setter
 @ToString
-@NoArgsConstructor
 public class RefillRequestCreateDto {
   private Integer id;
   private Integer userId;
   private String userEmail;
   private Integer userWalletId;
   private Integer currencyId;
+  private String currencyName;
   private BigDecimal amount;
   private BigDecimal commission;
+  private BigDecimal amountWithCommission;
   private Integer commissionId;
   private Integer merchantId;
+  private String serviceBeanName;
   private Integer refillOperationCountLimitForUserPerDay;
   private RefillStatusEnum status;
   private String recipientBankCode;
@@ -46,10 +48,13 @@ public class RefillRequestCreateDto {
     this.userId = creditsOperation.getUser().getId();
     this.userEmail = creditsOperation.getUser().getEmail();
     this.userWalletId = creditsOperation.getWallet().getId();
+    this.currencyName = creditsOperation.getCurrency().getName();
     this.commission = creditsOperation.getCommissionAmount();
     this.commissionId = creditsOperation.getCommission().getId();
     this.refillOperationCountLimitForUserPerDay = creditsOperation.getMerchant().getRefillOperationCountLimitForUserPerDay();
+    this.serviceBeanName = creditsOperation.getMerchant().getServiceBeanName();
     /**/
+    this.amountWithCommission = this.amount.add(this.commission);
     this.status = status;
   }
 }

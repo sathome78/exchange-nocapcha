@@ -27,7 +27,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
@@ -135,7 +134,7 @@ public class WithdrawServiceImpl implements WithdrawService {
       request.setUserEmail(creditsOperation.getUser().getEmail());
       request.setUserWalletId(creditsOperation.getWallet().getId());
       request.setCurrencyId(creditsOperation.getCurrency().getId());
-      request.setAmount(creditsOperation.getFullAmount());
+      request.setAmount(creditsOperation.getOrigAmountAtCreationRequest());
       request.setUserId(creditsOperation.getWallet().getUser().getId());
       request.setCommission(creditsOperation.getCommissionAmount());
       request.setCommissionId(creditsOperation.getCommission().getId());
@@ -230,13 +229,6 @@ public class WithdrawServiceImpl implements WithdrawService {
     return String.valueOf(seconds)
         .concat(" ")
         .concat(messageSource.getMessage("merchant.withdrawAutoDelaySecond", null, locale));
-  }
-
-
-  @Override
-  public Map<String, String> withdrawRequest(CreditsOperation creditsOperation, WithdrawData withdrawData, String userEmail, Locale locale) {
-    log.error("NOT IMPLEMENTED");
-    throw new NotImplimentedMethod("method NOT IMPLEMENTED !");
   }
 
   @Override

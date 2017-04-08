@@ -29,8 +29,6 @@ public interface WithdrawService {
 
   void postWithdrawalRequest(int requestId, Integer requesterAdminId);
 
-  Map<String, String> withdrawRequest(CreditsOperation creditsOperation, WithdrawData withdrawData, String userEmail, Locale locale);
-
   List<WithdrawRequestFlatForReportDto> findAllByDateIntervalAndRoleAndCurrency(String startDate, String endDate, List<Integer> roleIdList, List<Integer> currencyList);
 
   void setAutoWithdrawParams(MerchantCurrencyOptionsDto merchantCurrencyOptionsDto);

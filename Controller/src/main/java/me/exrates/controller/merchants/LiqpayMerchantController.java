@@ -50,38 +50,6 @@ public class LiqpayMerchantController {
 
     private static final String merchantInputErrorPage = "redirect:/merchants/input";
 
-    @RequestMapping(value = "/payment/prepare", method = RequestMethod.POST)
-    public RedirectView preparePayment(@Valid @ModelAttribute("payment") Payment payment, BindingResult result,
-                                       Principal principal, RedirectAttributes redir, final HttpServletRequest request) {
-
-        final String errorRedirectView = "/merchants/".concat(payment.getOperationType() == OperationType.INPUT ?
-                "/input" : "/output");
-
-        if (!merchantService.checkInputRequestsLimit(payment.getMerchant(), principal.getName())){
-            redir.addAttribute("errorNoty", messageSource.getMessage("merchants.InputRequestsLimit", null, localeResolver.resolveLocale(request)));
-            return new RedirectView("/dashboard");
-        }
-
-        final Optional<CreditsOperation> creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName());
-        if (!creditsOperation.isPresent()) {
-            redir.addAttribute("errorNoty", messageSource.getMessage("merchants.incorrectPaymentDetails", null, localeResolver.resolveLocale(request)));
-
-            return new RedirectView(errorRedirectView);
-        }
-
-        final OperationType operationType = creditsOperation.get().getOperationType();
-
-        if (operationType == OperationType.INPUT) {
-            return liqpayService.preparePayment(creditsOperation.get(), principal.getName());
-        } else {
-            // TODO questions about output
-//            url = "/advcash/output";
-            return new RedirectView("/dashboard");
-        }
-
-
-    }
-
     @RequestMapping(value = "payment/success",method = RequestMethod.POST)
     public RedirectView successPayment(@RequestParam Map<String,String> response, RedirectAttributes redir, final HttpServletRequest request) {
 
