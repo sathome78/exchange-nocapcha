@@ -32,4 +32,6 @@ public interface BitcoinTransactionService {
   List<PendingPayment> findUnconfirmedBtcPayments();
   
   List<PendingPayment> findUnpaidBtcPayments();
+  
+  void updatePendingPaymentHash(Integer txId, String hash);
 }
