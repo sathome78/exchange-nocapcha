@@ -1,7 +1,6 @@
 package me.exrates.controller.merchants;
 
 import me.exrates.controller.annotation.FinPassCheck;
-import me.exrates.controller.exception.CheckFinPassException;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
@@ -23,6 +22,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.WebUtils;
 
@@ -35,6 +35,7 @@ import java.net.URLEncoder;
 import java.security.Principal;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -73,6 +74,24 @@ public class WithdrawRequestController {
     Cookie cookie = new Cookie("successNoty", URLEncoder.encode(result.get("success"), "UTF-8"));
     cookie.setPath("/");
     response.addCookie(cookie);
+  }
+
+  @FinPassCheck(throwCheckPassException = true)
+  @RequestMapping(value = "/withdraw/request/invoice/prepare", method = POST)
+  @ResponseBody
+  public String prepareWithdraw(Payment payment, Principal principal, RedirectAttributes redirectAttributes, HttpServletRequest request) {
+    Optional<CreditsOperation> creditsOperationResult = merchantService.prepareCreditsOperation(payment, principal.getName());
+    if (!creditsOperationResult.isPresent()) {
+      redirectAttributes.addFlashAttribute("error", "merchants.incorrectPaymentDetails");
+    } else {
+      CreditsOperation creditsOperation = creditsOperationResult.get();
+      HttpSession session = request.getSession();
+      Object mutex = WebUtils.getSessionMutex(session);
+      synchronized (mutex) {
+        session.setAttribute("creditsOperation", creditsOperation);
+      }
+    }
+    return "/merchants/invoice/withdrawDetails";
   }
 
   @RequestMapping(value = "/withdraw/request/invoice/create", method = POST)

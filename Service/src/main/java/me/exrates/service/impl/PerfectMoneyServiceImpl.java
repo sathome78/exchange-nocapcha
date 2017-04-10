@@ -192,7 +192,7 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
     }
 
     @Override
-    public RedirectView getMerchantRefillPage(RefillRequestCreateDto request){
+    public RedirectView getMerchantRefillRedirectPage(RefillRequestCreateDto request){
         Integer orderId = request.getId();
         BigDecimal sum = request.getAmountWithCommission();
         String currency = request.getCurrencyName();

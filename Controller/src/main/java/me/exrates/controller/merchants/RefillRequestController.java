@@ -27,10 +27,16 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CREATE_BY_USER;
@@ -56,12 +62,12 @@ public class RefillRequestController {
   @Autowired
   MerchantService merchantService;
 
-  @RequestMapping(value = "/refill/request/create", method = POST)
-  public RedirectView createWithdrawalRequest(
+  /*@RequestMapping(value = "/refill/request/create", method = POST)
+  @ResponseBody
+  public String createWithdrawalRequest(
       @ModelAttribute("payment") RefillRequestParamsDto requestParamsDto,
       Principal principal,
-      Locale locale,
-      RedirectAttributes redirectAttributes) throws UnsupportedEncodingException {
+      Locale locale) throws UnsupportedEncodingException {
     if (requestParamsDto.getOperationType() != INPUT) {
       throw new IllegalOperationTypeException(requestParamsDto.getOperationType().name());
     }
@@ -74,17 +80,22 @@ public class RefillRequestController {
         .orElseThrow(InvalidAmountException::new);
     try {
       RefillRequestCreateDto request = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus);
-      return refillService.createRefillRequestAndGetPageOfMerchant(request);
+      RedirectView rw = refillService.createRefillRequestAndGetPageOfMerchant(request);
+      rw.getUrl().concat("?").concat(
+          rw.getAttributesMap().entrySet().stream()
+          .map(e->e.getKey()+"="+e.getValue())
+          .collect(Collectors.joining("&"))
+      );
     } catch (RefillRequestLimitForMerchantExceededException e) {
-      log.error(requestParamsDto);
-      redirectAttributes.addAttribute("errorNoty", messageSource.getMessage("merchants.InputRequestsLimit", null, locale));
-      return new RedirectView("/dashboard");
+      Cookie cookie = new Cookie("errorNoty", URLEncoder.encode(messageSource.getMessage("merchants.InputRequestsLimit", null, locale),"UTF-8"));
+      cookie.setPath("/");
+      return "/dashboard";
     } catch (Exception e) {
-      log.error(ExceptionUtils.getStackTrace(e));
-      redirectAttributes.addAttribute("errorNoty", messageSource.getMessage("refill.createError", null, locale));
-      return new RedirectView("/dashboard");
+      Cookie cookie = new Cookie("errorNoty", URLEncoder.encode(messageSource.getMessage("refill.createError", null, locale),"UTF-8"));
+      cookie.setPath("/");
+      return "/dashboard";
     }
-  }
+  }*/
 
   @ResponseStatus(HttpStatus.NOT_FOUND)
   @ExceptionHandler(InvoiceNotFoundException.class)

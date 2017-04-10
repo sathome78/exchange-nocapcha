@@ -29,7 +29,8 @@
     <script type="text/javascript" src="<c:url value='/client/js/menuSwitcher.js'/>"></script>
 
 
-    <script type="text/javascript" src="<c:url value="/client/js/main.js"/>"></script>
+    <script type="text/javascript" src="<c:url value="/client/js/valueInputControl.js"/>"></script>
+    <script type="text/javascript" src="<c:url value="/client/js/withdrawCreation.js"/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/tmpl.js'/>"></script>
     <%----%>
     <script type="text/javascript" src="<c:url value='/client/js/sockjs.min.js'/>"></script>

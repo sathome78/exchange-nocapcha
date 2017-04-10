@@ -1163,12 +1163,12 @@ body#output {
     display: inline-block;
 }
 
-#myModal.merchant-input {
+#dialog-refill_creation {
     max-width: 520px;
     max-height: 340px;
 }
 
-#myModal.merchant-output {
+#dialog-withdraw-creation {
     max-width: 420px;
     max-height: 380px;
 }

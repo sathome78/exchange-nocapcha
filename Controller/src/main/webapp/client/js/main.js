@@ -51,7 +51,7 @@ var notifications;
 $(function () {
     notifications = new NotificationsClass();
 
-    const YANDEX = 'Yandex.Money';
+    /*const YANDEX = 'Yandex.Money';
     const PERFECT = 'Perfect Money';
     const BLOCKCHAIN = 'Blockchain';
     const ADVCASH = 'Advcash Money';
@@ -64,9 +64,9 @@ $(function () {
     const INVOICE = 'Invoice';
     const EDC = 'EDC';
     const OKPAY = 'OkPay';
-    const PAYEER = 'Payeer';
+    const PAYEER = 'Payeer';*/
 
-    const NO_ACTION = 'javascript:void(0);';
+    // const NO_ACTION = 'javascript:void(0);';
 
     var currency = $('#currency');
     var merchant = $('#merchant');
@@ -83,74 +83,10 @@ $(function () {
     var usernameToTransfer = $('#nickname');
     var $timeoutWarning = $('.timeoutWarning');
 
-    $(".input-block-wrapper__input").prop("autocomplete", "off");
-    $(".numericInputField").prop("autocomplete", "off");
-    $(".numericInputField")
-        .keypress(
-            function (e) {
-                var decimal = $(this).val().split('.')[1];
-                if (decimal && decimal.length >= fractionalAmount + 1) {
-                    return false;
-                }
-                if (e.charCode >= 48 && e.charCode <= 57 || e.charCode == 46 || e.charCode == 0) {
-                    if (e.key == '.' && $(this).val().indexOf('.') >= 0) {
-                        return false;
-                    }
-                    var str = $(this).val() + e.key;
-                    if (str.length > 1 && str.indexOf('0') == 0 && str.indexOf('.') != 1) {
-                        $(this).val("");
-                        return false
-                    }
-                } else {
-                    return false;
-                }
-                return true;
-            }
-        )
-        .on('input', function (e) {
-            var val = $(this).val();
-            var regx = /^(^[1-9]+\d*((\.{1}\d*)|(\d*)))|(^0{1}\.{1}\d*)|(^0{1})$/;
-            var result = val.match(regx);
-            var maxSum = $('#currencyName').val().trim() === 'IDR' ? 999999999999.99 : 999999.99;
-            if (!result || result[0] != val) {
-                $(this).val('');
-            }
-            if (val >= maxSum) {
-                $(this).val(maxSum);
-            }
-            var minLimit = 0;
-            if (operationType.val() === 'OUTPUT' || operationType.val() === 'USER_TRANSFER') {
-                var maxWalletSum;
-                if (operationType.val() === 'USER_TRANSFER') maxWalletSum = parseFloat($('#maxForTransfer').text());
-                if (operationType.val() === 'OUTPUT') maxWalletSum = parseFloat($("#currencyFull").val().split(' ')[1]);
-                if (val >= maxWalletSum) {
-                    $(this).val(maxWalletSum);
-                }
-            }
-
-            minLimit = parseFloat($('#minAmount').text());
-
-            if (val >= minLimit) {
-                $('#min-sum-notification').hide();
-            } else {
-                $('#min-sum-notification').show();
-            }
-
-            var decimal = $(this).val().split('.')[1];
-            if (decimal && decimal.length > fractionalAmount) {
-                $(this).val($(this).val().slice(0, -1));
-
-            }
-            if (parseFloat(sum.val()) > 0 && parseFloat(sum.val()) >= minLimit) {
-                button.prop('disabled', false);
-            } else {
-                button.prop('disabled', true);
-            }
-
-        });
 
 
-    function resetMerchantsList(currency) {
+
+    /*function resetMerchantsList(currency) {
         var optionsHTML = '';
         $.each(merchantsData, function (index) {
             if (merchantsData[index].currencyId == currency) {
@@ -173,7 +109,7 @@ $(function () {
         } else {
             button.prop('disabled', true);
         }
-    }
+    }*/
 
     function resetFormAction(operationType, merchant, form) {
         /*var formAction = {
@@ -192,10 +128,10 @@ $(function () {
          };*/
         if (operationType === 'INPUT') {
             form.attr('action', "/refill/request/create");
-        } else if (operationType === 'OUTPUT' && merchant === INVOICE) {
+        } /*else if (operationType === 'OUTPUT' && merchant === INVOICE) {
             var finpass = $('#finpassword').val();
             form.attr('action', '/merchants/invoice/withdraw/prepare?finpassword=' + finpass);
-        }
+        }*/
     }
 
     function responseControls() {
@@ -203,10 +139,10 @@ $(function () {
         $('.response_money_operation_btn').show();
     }
 
-    function requestControls() {
+/*    function requestControls() {
         $('.request_money_operation_btn').show();
         $('.response_money_operation_btn').hide();
-    }
+    }*/
 
     function resetPaymentFormData(targetMerchant, form, callback) {
         if (operationType.val() === 'OUTPUT') {
@@ -457,7 +393,7 @@ $(function () {
         }
     }
 
-    function isCorrectSum() {
+    /*function isCorrectSum() {
         var result = false;
         if (merchantName !== 'Blockchain') {
             var targetSum = parseFloat(sum.val());
@@ -466,48 +402,9 @@ $(function () {
             }
         }
         return true;
-    }
+    }*/
 
-    function fillModalWindow(type, amount, currency) {
-        $.ajax({
-            url: '/merchants/commission',
-            type: "get",
-            contentType: "application/json",
-            data: {"type": type, "amount": amount, "currency": currency, "merchant": merchantName}
-        }).done(function (response) {
-            var templateVariables = {
-                amount: '__amount',
-                currency: '__currency',
-                merchant: '__merchant',
-                percent: '__percent'
-            };
-            var newHTMLElements = [];
-            modalTemplate.slice().each(function (index, val) {
-                newHTMLElements[index] = '<p>' + $(val).html() + '</p>';
-            });
-            newHTMLElements[0] = newHTMLElements[0]
-                .replace(templateVariables.amount, "<span class='modal-amount'>" + amount + "</span>")
-                .replace(templateVariables.currency, "<span class='modal-amount'>" + getCurrentCurrency() + "</span>")
-                .replace(templateVariables.merchant, "<span class='modal-merchant'>" + merchantName + "</span>");
-            newHTMLElements[1] = newHTMLElements[1]
-                .replace(templateVariables.amount, "<span class='modal-amount'>" + response['commissionAmount'] + "</span>")
-                .replace(templateVariables.currency, "<span class='modal-amount'>" + getCurrentCurrency() + "</span>")
-                .replace(templateVariables.percent, "<span class='modal-amount'>" + response['commission'] + "</span>");
-            newHTMLElements[2] = newHTMLElements[2]
-                .replace(templateVariables.amount, "<span class='modal-amount'>" + response['amount'] + "</span>")
-                .replace(templateVariables.currency, "<span class='modal-amount'>" + getCurrentCurrency() + "</span>");
-            var newHTML = '';
-            $.each(newHTMLElements, function (index) {
-                newHTML += newHTMLElements[index];
-            });
-            $('.paymentInfo').html(newHTML);
-            $('.merchantError').hide();
 
-        }).fail(function () {
-            $('.paymentInfo').hide();
-            $('.merchantError').show();
-        });
-    }
 
     currency.on('change', function () {
         resetMerchantsList(this.value);
@@ -568,7 +465,7 @@ $(function () {
         }
     });
 
-    $('button[name=assertOutputPay]').click(function () {
+    /*$('button[name=assertOutputPay]').click(function () {
         var arr = this.value.split(':');
         merchant = arr[0];
         merchantName = arr[1];
@@ -584,13 +481,13 @@ $(function () {
         }
         requestControls();
         fillModalWindow('OUTPUT', sum.val(), getCurrentCurrency());
-    });
+    });*/
 
     $('#inputPaymentProcess').on('click', function () {
         submitProcess();
     });
 
-    $("#outputPaymentProcess").on('click', function () {
+    /*$("#outputPaymentProcess").on('click', function () { TODO
         if (merchantName === INVOICE) {
             getFinPassModal();
             $('#myModal .close').click();
@@ -604,23 +501,23 @@ $(function () {
                 getFinPassModal();
             }
         }
-    });
+    });*/
 
-    function performWithdraw() {
+    /*function performWithdraw() {
         submitProcess();
         $('#outputPaymentProcess')
             .prop('disabled', true);
-    }
+    }*/
 
 
-    function getFinPassModal() {
+    /*function getFinPassModal() {
         $('#submitTransferModalButton').prop('disabled', false);
         $('#finPassModal').modal({
             backdrop: 'static'
         });
-    }
+    }*/
 
-    $('#submitTransferModalButton').click(function (e) {
+    /*$('#submitTransferModalButton').click(function (e) {
         console.log('merchant ' + merchant);
         e.preventDefault();
         $('#submitTransferModalButton').prop('disabled', true);
@@ -632,7 +529,7 @@ $(function () {
             submitTransfer()
         }
 
-    });
+    });*/
 
     $('#transferButton').click(function () {
         prepareTransfer()
