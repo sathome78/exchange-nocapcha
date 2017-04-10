@@ -19,7 +19,7 @@ public interface BitcoinTransactionService {
   boolean existsPendingPaymentWithStatusAndAddress(InvoiceStatus beginStatus, String address);
   
   @Transactional
-  PendingPaymentStatusDto markStartConfirmationProcessing(String address, String txHash);
+  PendingPaymentStatusDto markStartConfirmationProcessing(String address, String txHash, BigDecimal factAmount) throws IllegalInvoiceAmountException;
   
   @Transactional
   void changeTransactionConfidenceForPendingPayment(

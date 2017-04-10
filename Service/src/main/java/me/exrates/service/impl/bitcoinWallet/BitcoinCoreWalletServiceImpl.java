@@ -27,6 +27,7 @@ import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.IllegalTransactionProvidedStatusException;
 import me.exrates.service.exception.invoice.IllegalInvoiceAmountException;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -163,9 +164,14 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
       Transaction targetTx = targetTxResult.get();
       InvoiceStatus beginStatus = PendingPaymentStatusEnum.getBeginState();
       targetTx.getDetails().stream().filter(payment -> payment.getCategory() == PaymentCategories.RECEIVE)
-              .map(PaymentOverview::getAddress).forEach(address -> {
+              .forEach(payment -> {
+        String address = payment.getAddress();
         if (bitcoinTransactionService.existsPendingPaymentWithStatusAndAddress(beginStatus, address) && targetTx.getConfirmations() == 0) {
-          bitcoinTransactionService.markStartConfirmationProcessing(address, targetTx.getTxId());
+          try {
+            bitcoinTransactionService.markStartConfirmationProcessing(address, targetTx.getTxId(), payment.getAmount());
+          } catch (IllegalInvoiceAmountException e) {
+            log.error(ExceptionUtils.getStackTrace(e));
+          }
         }
       });
     } else {
@@ -291,9 +297,13 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
   }
   
   private void processUnpaidPayment(Integer paymentId, String address, String txId, BigDecimal amount, Integer confirmations) {
-    bitcoinTransactionService.markStartConfirmationProcessing(address, txId);
-    if (confirmations > 0) {
-      changeConfirmationsOrProvide(paymentId, txId, amount, confirmations);
+    try {
+      bitcoinTransactionService.markStartConfirmationProcessing(address, txId, amount);
+      if (confirmations > 0) {
+        changeConfirmationsOrProvide(paymentId, txId, amount, confirmations);
+      }
+    } catch (IllegalInvoiceAmountException e) {
+      log.error(ExceptionUtils.getStackTrace(e));
     }
   }
   
@@ -344,7 +354,7 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
         dto.setAmount(BigDecimalProcessing.formatNonePoint(payment.getAmount(), true));
         dto.setFee(BigDecimalProcessing.formatNonePoint(payment.getFee(), true));
         dto.setConfirmations(payment.getConfirmations());
-        dto.setTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(payment.getTime()), ZoneId.systemDefault()));
+        dto.setTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(payment.getTime() * 1000L), ZoneId.systemDefault()));
         return dto;
       }).collect(Collectors.toList());
     } catch (BitcoindException | CommunicationException e) {
