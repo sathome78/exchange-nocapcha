@@ -1,17 +1,15 @@
 package me.exrates.controller.merchants;
 
 import me.exrates.controller.annotation.FinPassCheck;
-import me.exrates.controller.exception.CheckFinPassException;
 import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.model.ClientBank;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.model.dto.WithdrawRequestsAdminTableDto;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
 import me.exrates.model.vo.WithdrawData;
-import me.exrates.service.MerchantService;
-import me.exrates.service.UserService;
-import me.exrates.service.WithdrawService;
+import me.exrates.service.*;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
@@ -23,6 +21,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.WebUtils;
 
@@ -33,6 +32,7 @@ import javax.servlet.http.HttpSession;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.security.Principal;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -59,6 +59,12 @@ public class WithdrawRequestController {
   @Autowired
   MerchantService merchantService;
 
+  @Autowired
+  private InvoiceService invoiceService;
+
+  @Autowired
+  private CommissionService commissionService;
+
   @FinPassCheck
   @RequestMapping(value = "/withdraw/request/merchant/create", method = POST)
   @ResponseBody
@@ -73,6 +79,40 @@ public class WithdrawRequestController {
     Cookie cookie = new Cookie("successNoty", URLEncoder.encode(result.get("success"), "UTF-8"));
     cookie.setPath("/");
     response.addCookie(cookie);
+  }
+
+  @FinPassCheck(throwCheckPassException = true)
+  @RequestMapping(value = "/withdraw/request/invoice/detail/prepare_to_entry", method = POST)
+  @ResponseBody
+  public String prepareWithdraw(
+      @RequestBody Payment payment,
+      Principal principal,
+      HttpServletRequest request) {
+    CreditsOperation creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName())
+        .orElseThrow(InvalidAmountException::new);
+    HttpSession session = request.getSession();
+    Object mutex = WebUtils.getSessionMutex(session);
+    synchronized (mutex) {
+      session.setAttribute("creditsOperation", creditsOperation);
+    }
+    return "/withdraw/request/invoice/detail/entry";
+  }
+
+  @RequestMapping(value = "/withdraw/request/invoice/detail/entry", method = GET)
+  public ModelAndView withdrawDetailsEntry(HttpServletRequest request) {
+    ModelAndView modelAndView = new ModelAndView("/globalPages/withdrawInvoice");
+    HttpSession session = request.getSession();
+    CreditsOperation creditsOperation = (CreditsOperation) session.getAttribute("creditsOperation");
+    if (creditsOperation == null) {
+      modelAndView.addObject("error", "merchant.operationNotAvailable");
+    } else {
+      modelAndView.addObject("payment", creditsOperation);
+      modelAndView.addObject("merchantCommission", commissionService.getCommissionMerchant(creditsOperation.getMerchant().getName(),
+          creditsOperation.getCurrency().getName(), creditsOperation.getOperationType()));
+      List<ClientBank> banks = invoiceService.findClientBanksForCurrency(creditsOperation.getCurrency().getId());
+      modelAndView.addObject("banks", banks);
+    }
+    return modelAndView;
   }
 
   @RequestMapping(value = "/withdraw/request/invoice/create", method = POST)

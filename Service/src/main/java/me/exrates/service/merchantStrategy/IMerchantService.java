@@ -10,5 +10,5 @@ import org.springframework.web.servlet.view.RedirectView;
 public interface IMerchantService {
   void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception;
 
-  RedirectView getMerchantRefillPage(RefillRequestCreateDto request);
+  RedirectView getMerchantRefillRedirectPage(RefillRequestCreateDto request);
 }

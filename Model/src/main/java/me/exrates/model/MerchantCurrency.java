@@ -25,6 +25,7 @@ public class MerchantCurrency {
     private BigDecimal outputCommission;
     private BigDecimal fixedMinCommission;
     private List<MerchantImage> listMerchantImage;
+    private Boolean simpleInvoice;
 
 
 }

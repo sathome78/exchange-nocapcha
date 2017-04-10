@@ -152,7 +152,7 @@ public class LiqpayServiceImpl implements LiqpayService {
   }
 
   @Override
-  public RedirectView getMerchantRefillPage(RefillRequestCreateDto request) {
+  public RedirectView getMerchantRefillRedirectPage(RefillRequestCreateDto request) {
     Integer orderId = request.getId();
     BigDecimal sum = request.getAmountWithCommission();
     String currency = request.getCurrencyName();

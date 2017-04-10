@@ -78,7 +78,7 @@ public class RefillServiceImpl implements RefillService {
       profileData.setTime1();
       request.setId(requestId);
       IMerchantService merchantService = merchantServiceContext.getMerchantService(request.getServiceBeanName());
-      return merchantService.getMerchantRefillPage(request);
+      return merchantService.getMerchantRefillRedirectPage(request);
     } finally {
       profileData.checkAndLog("slow create RefillRequest: " + request + " profile: " + profileData);
     }

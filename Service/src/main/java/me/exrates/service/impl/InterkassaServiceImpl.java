@@ -118,7 +118,7 @@ public class InterkassaServiceImpl implements InterkassaService {
     }
 
     @Override
-    public RedirectView getMerchantRefillPage(RefillRequestCreateDto request){
+    public RedirectView getMerchantRefillRedirectPage(RefillRequestCreateDto request){
         throw new NotImplimentedMethod("for "+request);
     }
 }

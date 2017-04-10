@@ -280,43 +280,6 @@ public class InvoiceController {
     invoiceService.declineInvoice(id, id, principal.getName(), comment);
   }
 
-  @FinPassCheck(throwCheckPassException = true)
-  @RequestMapping(value = "/withdraw/prepare", method = POST)
-  public RedirectView prepareWithdraw(Payment payment, Principal principal, RedirectAttributes redirectAttributes, HttpServletRequest request) {
-    RedirectView redirectView = new RedirectView("/merchants/invoice/withdrawDetails");
-    Optional<CreditsOperation> creditsOperationResult = merchantService.prepareCreditsOperation(payment, principal.getName());
-    if (!creditsOperationResult.isPresent()) {
-      redirectAttributes.addFlashAttribute("error", "merchants.incorrectPaymentDetails");
-    } else {
-      CreditsOperation creditsOperation = creditsOperationResult.get();
-      HttpSession session = request.getSession();
-      Object mutex = WebUtils.getSessionMutex(session);
-      synchronized (mutex) {
-        session.setAttribute("creditsOperation", creditsOperation);
-      }
-    }
-    return redirectView;
-  }
-
-
-  @RequestMapping(value = "/withdrawDetails", method = GET)
-  public ModelAndView withdrawDetails(HttpServletRequest request) {
-    ModelAndView modelAndView = new ModelAndView("/globalPages/withdrawInvoice");
-    HttpSession session = request.getSession();
-    CreditsOperation creditsOperation = (CreditsOperation) session.getAttribute("creditsOperation");
-    if (creditsOperation == null) {
-      modelAndView.addObject("error", "merchant.operationNotAvailable");
-    } else {
-      modelAndView.addObject("payment", creditsOperation);
-      modelAndView.addObject("merchantCommission", commissionService.getCommissionMerchant(creditsOperation.getMerchant().getName(),
-              creditsOperation.getCurrency().getName(), creditsOperation.getOperationType()));
-      List<ClientBank> banks = invoiceService.findClientBanksForCurrency(creditsOperation.getCurrency().getId());
-      modelAndView.addObject("banks", banks);
-    }
-
-    return modelAndView;
-  }
-
   @RequestMapping(value = "/payment/newCommission", method = GET)
   @ResponseBody
   public BigDecimal calculateNewCommission(@RequestParam(name = "id") Integer invoiceId,

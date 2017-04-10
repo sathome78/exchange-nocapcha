@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="<c:url value="/client/css/jquery.datetimepicker.css"/>">
     <script type="text/javascript" src="<c:url value='/client/js/jquery.datetimepicker.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/moment-with-locales.min.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/withdrawal.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/inputOutput/withdrawal.js'/>"></script>
 
 </head>
 
