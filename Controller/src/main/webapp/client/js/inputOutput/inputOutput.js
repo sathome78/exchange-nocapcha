@@ -100,34 +100,7 @@ function InputOutputClass(currentCurrencyPair) {
         });
         $('#inputoutput-table').on('click', '#revokeBtcInvoiceButton', function (e) {
             e.preventDefault();
-            var $form = $(this).parents('#inputoutput-center-tableBody__form');
-            var invoiceId = $form.find('input[name=transactionId]').val();
-            $.ajax({
-                url: '/merchants/bitcoin/payment/address?id=' + invoiceId,
-                type: 'GET',
-                success: function (data) {
-                    var $modal = $("#btc-invoice-revoke-modal");
-                    $modal.find("#invoiceId").val(invoiceId);
-                    $modal.find("#address-to-pay").val(data.address);
 
-                    $modal.find("#btcInvoiceRevokeConfirm").off("click").one("click", function () {
-                        var invoiceId = $('#invoiceId').val().trim();
-                        $modal.modal('hide');
-                        $.ajax({
-                            url: '/merchants/bitcoin/payment/revoke?id=' + invoiceId,
-                            headers: {
-                                'X-CSRF-Token': $("input[name='_csrf']").val(),
-                            },
-                            type: 'POST',
-                            success: function () {
-                                that.updateAndShowAll(false);
-                            }
-                        });
-                    });
-
-                    $modal.modal();
-                }
-            });
         });
 
         $('#inputoutput-table').on('click', '#viewBtcInvoiceButton', function (e) {
@@ -181,6 +154,35 @@ function InputOutputClass(currentCurrencyPair) {
             var $sourceType = $form.find('input[name=sourceType]');
             $sourceType.attr("value", "INVOICE");
             $form[0].submit();
+        });
+
+        $('#inputoutput-table').on('click', 'button[data-source=BTC_INVOICE].revoke_button', function (e) {
+            e.preventDefault();
+            var invoiceId = $(this).data("id");
+            $.ajax({
+                url: '/merchants/bitcoin/payment/address?id=' + invoiceId,
+                type: 'GET',
+                success: function (data) {
+                    var $modal = $("#btc-invoice-revoke-modal");
+                    $modal.find("#invoiceId").val(invoiceId);
+                    $modal.find("#address-to-pay").val(data.address);
+                    $modal.find("#btcInvoiceRevokeConfirm").off("click").one("click", function () {
+                        var invoiceId = $('#invoiceId').val().trim();
+                        $modal.modal('hide');
+                        $.ajax({
+                            url: '/merchants/bitcoin/payment/revoke?id=' + invoiceId,
+                            headers: {
+                                'X-CSRF-Token': $("input[name='_csrf']").val(),
+                            },
+                            type: 'POST',
+                            success: function () {
+                                that.updateAndShowAll(false);
+                            }
+                        });
+                    });
+                    $modal.modal();
+                }
+            });
         });
 
         $('#inputoutput-table').on('click', 'button[data-source=INVOICE].confirm_user_button', function (e) {
