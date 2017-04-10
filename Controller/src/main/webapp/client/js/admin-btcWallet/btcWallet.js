@@ -28,6 +28,10 @@ $(function () {
         checkSendBtcFormFields();
     });
 
+    $('#input-fee-actual').on('input', function () {
+        $('#tx-fee-form').find('input[name="fee"]').val($(this).val())
+    });
+
     $('#submit-btc').click(function () {
         $($passwordModal).modal();
     });
@@ -73,6 +77,10 @@ $(function () {
                 successNoty(data.message)
             }
         })
+    });
+    $('#submitChangeFee').click(function (e) {
+        e.preventDefault();
+        updateTxFee();
     });
 
 });
@@ -208,9 +216,26 @@ function updateTxHistoryTable() {
 function retrieveFee() {
     $.get('/2a8fy7b07dxe44/bitcoinWallet/estimatedFee', function (data) {
         $('#input-fee').val(data);
+    });
+    $.get('/2a8fy7b07dxe44/bitcoinWallet/actualFee', function (data) {
+        $('#input-fee-actual').val(data);
     })
 }
 
+function updateTxFee() {
+    var data = $('#tx-fee-form').serialize();
+    $.ajax('/2a8fy7b07dxe44/bitcoinWallet/setFee', {
+        headers: {
+            'X-CSRF-Token': $("input[name='_csrf']").val()
+        },
+        type: 'POST',
+        data: data,
+        success: function () {
+            retrieveFee();
+        }
+    });
+
+}
 
 
 
