@@ -7,6 +7,7 @@ import me.exrates.model.ExOrder;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderCreateSummaryDto;
 import me.exrates.model.dto.OrderInfoDto;
+import me.exrates.model.dto.OrderValidationDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderActionEnum;
 import me.exrates.service.*;
@@ -71,14 +72,16 @@ public class OrderControllerRest {
             CurrencyPair activeCurrencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
             OrderCreateDto orderCreateDto = orderService.prepareNewOrder(activeCurrencyPair, orderType, principal.getName(), amount, rate);
         /**/
-            Map<String, Object> result = orderService.validateOrder(orderCreateDto);
+            OrderValidationDto orderValidationDto = orderService.validateOrder(orderCreateDto);
+            Map<String, Object> errorMap = orderValidationDto.getErrors();
             orderCreateSummaryDto = new OrderCreateSummaryDto(orderCreateDto, localeResolver.resolveLocale(request));
-            if (!result.isEmpty()) {
-                for (Map.Entry<String, Object> pair : result.entrySet()) {
-                    pair.setValue(messageSource.getMessage((String) pair.getValue(), null, localeResolver.resolveLocale(request)));
+            if (!errorMap.isEmpty()) {
+                for (Map.Entry<String, Object> pair : errorMap.entrySet()) {
+                    Object[] messageParams = orderValidationDto.getErrorParams().get(pair.getKey());
+                    pair.setValue(messageSource.getMessage((String) pair.getValue(), messageParams, localeResolver.resolveLocale(request)));
                 }
-                result.put("order", orderCreateSummaryDto);
-                request.getSession().setAttribute("orderCreationError", result);
+                errorMap.put("order", orderCreateSummaryDto);
+                request.getSession().setAttribute("orderCreationError", errorMap);
                 throw new OrderParamsWrongException();
             } else {
             /*protect orderCreateDto*/

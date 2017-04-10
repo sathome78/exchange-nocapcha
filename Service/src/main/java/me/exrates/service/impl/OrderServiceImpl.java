@@ -200,8 +200,10 @@ public class OrderServiceImpl implements OrderService {
   }
 
   @Override
-  public Map<String, Object> validateOrder(OrderCreateDto orderCreateDto) {
-    Map<String, Object> errors = new HashMap<>();
+  public OrderValidationDto validateOrder(OrderCreateDto orderCreateDto) {
+    OrderValidationDto orderValidationDto = new OrderValidationDto();
+    Map<String, Object> errors = orderValidationDto.getErrors();
+    Map<String, Object[]> errorParams = orderValidationDto.getErrorParams();
     if (orderCreateDto.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
       errors.put("amount_" + errors.size(), "order.fillfield");
     }
@@ -221,9 +223,20 @@ public class OrderServiceImpl implements OrderService {
     if (orderCreateDto.getExchangeRate() != null) {
       CurrencyPairLimitDto currencyPairLimit = currencyService.findLimitForRoleByCurrencyPairAndType(orderCreateDto.getCurrencyPair().getId(),
               orderCreateDto.getOperationType());
-      if (orderCreateDto.getExchangeRate().compareTo(new BigDecimal(0)) < 1) {
-        errors.put("exrate_" + errors.size(), "order.minrate");
+      if (orderCreateDto.getExchangeRate().compareTo(BigDecimal.ZERO) < 1) {
+        errors.put("exrate_" + errors.size(), "order.zerorate");
       }
+      if (orderCreateDto.getExchangeRate().compareTo(currencyPairLimit.getMinRate()) < 0) {
+        String key = "exrate_" + errors.size();
+        errors.put(key, "order.minrate");
+        errorParams.put(key, new Object[]{currencyPairLimit.getMinRate()});
+      }
+      if (orderCreateDto.getExchangeRate().compareTo(currencyPairLimit.getMaxRate()) > 0) {
+        String key = "exrate_" + errors.size();
+        errors.put(key, "order.maxrate");
+        errorParams.put(key, new Object[]{currencyPairLimit.getMaxRate()});
+      }
+      
     }
     if ((orderCreateDto.getAmount() != null) && (orderCreateDto.getExchangeRate() != null)) {
       boolean ifEnoughMoney = orderCreateDto.getSpentWalletBalance().compareTo(BigDecimal.ZERO) > 0 && orderCreateDto.getSpentAmount().compareTo(orderCreateDto.getSpentWalletBalance()) <= 0;
@@ -231,7 +244,7 @@ public class OrderServiceImpl implements OrderService {
         errors.put("balance_" + errors.size(), "validation.orderNotEnoughMoney");
       }
     }
-    return errors;
+    return orderValidationDto;
   }
   
   

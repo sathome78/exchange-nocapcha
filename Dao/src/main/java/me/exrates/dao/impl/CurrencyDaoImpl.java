@@ -7,6 +7,7 @@ import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
+import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.enums.CurrencyWarningType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderType;
@@ -305,7 +306,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
 	public CurrencyPairLimitDto findCurrencyPairLimitForRoleByPairAndType(Integer currencyPairId, Integer roleId, Integer orderTypeId) {
 		String sql = "SELECT CURRENCY_PAIR.id AS currency_pair_id, CURRENCY_PAIR.name AS currency_pair_name, lim.min_rate, lim.max_rate " +
 						" FROM CURRENCY_PAIR_LIMIT lim " +
-						" JOIN CURRENCY_PAIR ON lim.currency_pair_id = CURRENCY_PAIR.id " +
+						" JOIN CURRENCY_PAIR ON lim.currency_pair_id = CURRENCY_PAIR.id AND CURRENCY_PAIR.hidden != 1 " +
 						" WHERE lim.currency_pair_id = :currency_pair_id AND lim.user_role_id = :user_role_id AND lim.order_type_id = :order_type_id";
 		Map<String, Integer> namedParameters = new HashMap<>();
 		namedParameters.put("currency_pair_id", currencyPairId);
@@ -358,5 +359,19 @@ public class CurrencyDaoImpl implements CurrencyDao {
 		namedParameters.put("max_rate", maxRate);
 		jdbcTemplate.update(sql, namedParameters);
 	}
+	
+	/*public List<CurrencyPairWithLimitsDto> findAllCurrencyPairsWithLimits(Integer roleId) {
+		String sql = "SELECT CP.id, CP.currency1_id, CP.currency2_id, CP.name, \n" +
+						"(select name from CURRENCY where id = currency1_id) as currency1_name,\n" +
+						"(select name from CURRENCY where id = currency2_id) as currency2_name\n" +
+						" FROM CURRENCY_PAIR CP " +
+						" JOIN CURRENCY_PAIR_LIMIT lim ON CP.id = lim.currency_pair_id AND lim.user_role_id = :role_id" +
+						" WHERE CP.hidden != 1 ";
+		return jdbcTemplate.query(sql, Collections.singletonMap("role_id", roleId), (rs, row) -> {
+			CurrencyPairWithLimitsDto dto = new CurrencyPairWithLimitsDto();
+			return dto;
+		});
+		
+	}*/
 	
 }
