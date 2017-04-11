@@ -6,8 +6,10 @@ import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
+import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.enums.CurrencyWarningType;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 
@@ -66,4 +68,10 @@ public interface CurrencyService {
   Currency getById(int id);
   
   CurrencyPairLimitDto findLimitForRoleByCurrencyPairAndType(Integer currencyPairId, OperationType operationType);
+  
+  List<CurrencyPairLimitDto> findAllCurrencyLimitsForRoleAndType(String roleName, OrderType orderType);
+  
+  void updateCurrencyPairLimit(Integer currencyPairId, OrderType orderType, String roleName, BigDecimal minRate, BigDecimal maxRate);
+  
+  List<CurrencyPairWithLimitsDto> findCurrencyPairsWithLimitsForUser();
 }

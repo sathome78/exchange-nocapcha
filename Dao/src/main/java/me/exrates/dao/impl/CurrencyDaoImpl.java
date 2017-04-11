@@ -316,8 +316,6 @@ public class CurrencyDaoImpl implements CurrencyDao {
 			CurrencyPairLimitDto dto = new CurrencyPairLimitDto();
 			dto.setCurrencyPairId(rs.getInt("currency_pair_id"));
 			dto.setCurrencyPairName(rs.getString("currency_pair_name"));
-			dto.setUserRole(UserRole.convert(roleId));
-			dto.setOrderType(OrderType.convert(orderTypeId));
 			dto.setMinRate(rs.getBigDecimal("min_rate"));
 			dto.setMaxRate(rs.getBigDecimal("max_rate"));
 			return dto;
@@ -326,11 +324,11 @@ public class CurrencyDaoImpl implements CurrencyDao {
 	
 	@Override
 	public List<CurrencyPairLimitDto> findLimitsForRolesByType(List<Integer> roleIds, Integer orderTypeId) {
-		String sql = "SELECT CURRENCY_PAIR.id AS currency_pair_id, CURRENCY_PAIR.name AS currency_pair_name, " +
-						" lim.user_role_id, lim.min_rate, lim.max_rate " +
+		String sql = "SELECT DISTINCT CURRENCY_PAIR.id AS currency_pair_id, CURRENCY_PAIR.name AS currency_pair_name, " +
+						" lim.min_rate, lim.max_rate " +
 						" FROM CURRENCY_PAIR_LIMIT lim " +
 						" JOIN CURRENCY_PAIR ON lim.currency_pair_id = CURRENCY_PAIR.id " +
-						" WHERE lim.user_role_id IN(:user_role_ids) AND lim.order_type_id = :order_type_id";
+						" WHERE lim.user_role_id IN(:user_role_ids) AND lim.order_type_id = :order_type_id AND CURRENCY_PAIR.hidden != 1";
 		Map<String, Object> namedParameters = new HashMap<>();
 		namedParameters.put("user_role_ids", roleIds);
 		namedParameters.put("order_type_id", orderTypeId);
@@ -338,8 +336,6 @@ public class CurrencyDaoImpl implements CurrencyDao {
 			CurrencyPairLimitDto dto = new CurrencyPairLimitDto();
 			dto.setCurrencyPairId(rs.getInt("currency_pair_id"));
 			dto.setCurrencyPairName(rs.getString("currency_pair_name"));
-			dto.setUserRole(UserRole.convert(rs.getInt("user_role_id")));
-			dto.setOrderType(OrderType.convert(orderTypeId));
 			dto.setMinRate(rs.getBigDecimal("min_rate"));
 			dto.setMaxRate(rs.getBigDecimal("max_rate"));
 			return dto;
@@ -360,18 +356,30 @@ public class CurrencyDaoImpl implements CurrencyDao {
 		jdbcTemplate.update(sql, namedParameters);
 	}
 	
-	/*public List<CurrencyPairWithLimitsDto> findAllCurrencyPairsWithLimits(Integer roleId) {
-		String sql = "SELECT CP.id, CP.currency1_id, CP.currency2_id, CP.name, \n" +
-						"(select name from CURRENCY where id = currency1_id) as currency1_name,\n" +
-						"(select name from CURRENCY where id = currency2_id) as currency2_name\n" +
-						" FROM CURRENCY_PAIR CP " +
-						" JOIN CURRENCY_PAIR_LIMIT lim ON CP.id = lim.currency_pair_id AND lim.user_role_id = :role_id" +
-						" WHERE CP.hidden != 1 ";
+	@Override
+	public List<CurrencyPairWithLimitsDto> findAllCurrencyPairsWithLimits(Integer roleId) {
+		String sql = "SELECT CP.id, CP.currency1_id, CP.currency2_id, CP.name, " +
+						"     (select name from CURRENCY where id = currency1_id) as currency1_name, " +
+						"			(select name from CURRENCY where id = currency2_id) as currency2_name, " +
+						"			(SELECT min_rate FROM CURRENCY_PAIR_LIMIT lim " +
+						"					WHERE lim.currency_pair_id = CP.id AND lim.user_role_id = :role_id AND lim.order_type_id = 1) AS min_rate_sell, " +
+						"			(SELECT min_rate FROM CURRENCY_PAIR_LIMIT lim " +
+						"					WHERE lim.currency_pair_id = CP.id AND lim.user_role_id = :role_id AND lim.order_type_id = 2) AS min_rate_buy, " +
+						"			(SELECT max_rate FROM CURRENCY_PAIR_LIMIT lim " +
+						"					WHERE lim.currency_pair_id = CP.id AND lim.user_role_id = :role_id AND lim.order_type_id = 1) AS max_rate_sell, " +
+						"			(SELECT max_rate FROM CURRENCY_PAIR_LIMIT lim " +
+						"					WHERE lim.currency_pair_id = CP.id AND lim.user_role_id = :role_id AND lim.order_type_id = 2) AS max_rate_buy " +
+						"			FROM CURRENCY_PAIR CP " +
+						"			WHERE CP.hidden != 1 ";
 		return jdbcTemplate.query(sql, Collections.singletonMap("role_id", roleId), (rs, row) -> {
-			CurrencyPairWithLimitsDto dto = new CurrencyPairWithLimitsDto();
-			return dto;
+			CurrencyPair currencyPair = currencyPairRowMapper.mapRow(rs, row);
+			return new CurrencyPairWithLimitsDto(currencyPair,
+							rs.getBigDecimal("min_rate_sell"),
+							rs.getBigDecimal("max_rate_sell"),
+							rs.getBigDecimal("min_rate_buy"),
+							rs.getBigDecimal("max_rate_buy"));
 		});
 		
-	}*/
+	}
 	
 }

@@ -16,8 +16,6 @@ import java.math.BigDecimal;
 public class CurrencyPairLimitDto {
   private Integer currencyPairId;
   private String currencyPairName;
-  private UserRole userRole;
-  private OrderType orderType;
   private BigDecimal minRate;
   private BigDecimal maxRate;
 }
