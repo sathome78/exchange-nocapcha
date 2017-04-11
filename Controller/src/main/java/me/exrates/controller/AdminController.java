@@ -483,7 +483,7 @@ public class AdminController {
     model.addObject("userLang", userService.getPreferedLang(id).toUpperCase());
     model.addObject("usersInvoiceRefillCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), REFILL));
     model.addObject("usersInvoiceWithdrawCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), WITHDRAW));
-
+    model.addObject("userRefBonuses", referralService.getAllUserRefProfit(user.getId()));
     return model;
   }
 
@@ -1153,12 +1153,15 @@ public class AdminController {
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/referralInfo")
-  @ResponseBody RefsListContainer getUserReferrals(@RequestParam("userId") int userId,
+  @ResponseBody
+  public RefsListContainer getUserReferrals(@RequestParam("userId") int userId,
                                                    @RequestParam("profitUser") int profitUser,
                                                     @RequestParam(value = "onPage", defaultValue = "20") int onPage,
-                                                    @RequestParam(value = "page", defaultValue = "1") int page,
-                                                    @RequestParam(value = "level", defaultValue = "1") int level) {
-
+                                                    @RequestParam(value = "page", defaultValue = "1") int page) {
+    int level = referralService.getUserReferralLevelForChild(userId, profitUser);
+    if (level >= 7 || level < 0) {
+      return new RefsListContainer(Collections.emptyList());
+    }
     RefsListContainer container = referralService
             .getUsersFirstLevelAndCountProfitForUser(userId, profitUser, onPage, page);
     container.setCurrentLevel(level);
@@ -1166,7 +1169,8 @@ public class AdminController {
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/findReferral")
-  @ResponseBody RefsListContainer findUserReferral(@RequestParam("email") String email,
+  @ResponseBody
+  public RefsListContainer findUserReferral(@RequestParam("email") String email,
                                                    @RequestParam("profitUser") int profitUser) {
     Integer userId = userService.getIdByEmail(email);
     int refLevel = referralService.getUserReferralLevelForChild(userId, profitUser);

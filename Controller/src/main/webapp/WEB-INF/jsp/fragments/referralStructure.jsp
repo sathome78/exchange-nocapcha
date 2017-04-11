@@ -1,5 +1,12 @@
 
 
+
+<div class="form-group" style="text-align: left">
+    <H6><loc:message code="admin.referralAccruals"/></H6>
+    <c:forEach var="item" items="${userRefBonuses}">
+        <span>${item.amount} ${item.currencyName} </span><br>
+    </c:forEach>
+</div>
 <div class="form-group" style="text-align: right">
     <input id="refSearch" type="search" name="email" placeholder='E-mail'>
     <button id="refSearchButton" disabled class="blue-box"><loc:message code="currency.search"/></button>

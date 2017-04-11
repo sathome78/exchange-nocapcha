@@ -35,6 +35,9 @@ function loadInfo(userId, page, port) {
             if (page > 0 && data.totalPages > 0) {
                 refreshPagination(data.totalPages)
             }
+            if (data.referralInfoDtos.length <= 0){
+                $pagination.twbsPagination('destroy');
+            }
         }
     });
 }

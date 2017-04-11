@@ -128,12 +128,15 @@ public class ReferralUserGraphDaoImpl implements ReferralUserGraphDao {
     }
 
     @Override
-    public List<ReferralProfitDto> detailedCountRefsTransactions(int userId, int profitUser) {
+    public List<ReferralProfitDto> detailedCountRefsTransactions(Integer userId, int profitUser) {
         String sql = "SELECT sum(TR.amount) AS ref_profit, CU.name AS currency_name FROM USER US " +
                 "LEFT JOIN REFERRAL_TRANSACTION RT ON RT.initiator_id = US.id AND RT.user_id = :profit_user " +
                 "LEFT JOIN TRANSACTION TR ON TR.source_type = 'REFERRAL' AND TR.source_id = RT.id  " +
-                "INNER JOIN currency CU ON CU.id = TR.currency_id " +
-                "WHERE US.id = :userId GROUP BY CU.id";
+                "INNER JOIN currency CU ON CU.id = TR.currency_id ";
+        if (userId != null) {
+            sql = sql.concat(" WHERE US.id = :userId ");
+        }
+        sql = sql.concat(" GROUP BY CU.id ");
         Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("userId", userId);
         namedParameters.put("profit_user", profitUser);

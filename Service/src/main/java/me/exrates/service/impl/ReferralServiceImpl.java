@@ -7,6 +7,7 @@ import me.exrates.dao.ReferralUserGraphDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
 import me.exrates.model.dto.ReferralInfoDto;
+import me.exrates.model.dto.ReferralProfitDto;
 import me.exrates.model.dto.RefsListContainer;
 import me.exrates.model.dto.onlineTableDto.MyReferralDetailedDto;
 import me.exrates.model.enums.ActionType;
@@ -284,8 +285,11 @@ public class ReferralServiceImpl implements ReferralService {
         log.error("id- {}", childUserId);
         int i = 1;
         int level = -1;
-        if (childUserId == null || childUserId.equals(0) || parentUserId == null || childUserId.equals(parentUserId)){
+        if (childUserId == null || childUserId.equals(0) || parentUserId == null){
             return level;
+        }
+        if (childUserId.equals(parentUserId)) {
+            return 0;
         }
         Integer parentId = referralUserGraphDao.getParent(childUserId);
         while (parentId != null && i <= 7) {
@@ -298,5 +302,10 @@ public class ReferralServiceImpl implements ReferralService {
             i++;
         }
         return level;
+    }
+
+    @Override
+    public List<ReferralProfitDto> getAllUserRefProfit(int userId) {
+        return referralUserGraphDao.detailedCountRefsTransactions(null, userId);
     }
 }

@@ -22,7 +22,7 @@ public interface ReferralUserGraphDao {
 
     ReferralInfoDto getInfoAboutUserRef(int userId, int profitUser);
 
-    List<ReferralProfitDto> detailedCountRefsTransactions(int userId, int profitUser);
+    List<ReferralProfitDto> detailedCountRefsTransactions(Integer userId, int profitUser);
 
     int getInfoAboutFirstLevRefsTotalSize(int parentId);
 }
