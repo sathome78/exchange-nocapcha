@@ -143,4 +143,6 @@ public interface UserDao {
   InvoiceOperationPermission getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection(Integer userId, Integer currencyId, InvoiceOperationDirection invoiceOperationDirection);
 
   String getEmailById(Integer id);
+  
+  UserRole getUserRoleByEmail(String email);
 }
