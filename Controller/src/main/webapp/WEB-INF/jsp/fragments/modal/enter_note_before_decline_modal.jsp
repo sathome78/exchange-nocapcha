@@ -1,4 +1,10 @@
 <script>
+  $(function () {
+    $('#note-before-decline-modal').on('shown.bs.modal', function (e) {
+      var $textArea = $(e.currentTarget).closest("#note-before-decline-modal").find("#commentText");
+      $textArea.val($textArea.val().trim());
+    })
+  });
   function onSelectNewValue(select) {
     var $textArea = $(select).closest("#note-before-decline-modal").find("#commentText");
     $textArea.val(select.value);
@@ -25,8 +31,8 @@
           <loc:message code="admin.userLanguage"/>:
         </label>
         <input class="form-control"
-                  id="user-language"
-                  readonly>
+               id="user-language"
+               readonly>
         </input>
         <br>
         <%----%>

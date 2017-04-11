@@ -552,7 +552,7 @@ public class WithdrawServiceImpl implements WithdrawService {
     final Object[] messageParams = {
         withdrawRequest.getId(),
         merchantDescription,
-        withdrawDelay.isEmpty() ? "" : "within".concat(withdrawDelay)
+        withdrawDelay.isEmpty() ? "" : withdrawDelay
     };
     String notificationMessageCode;
     notificationMessageCode = "merchants.withdrawNotification.".concat(withdrawRequest.getStatus().name());
