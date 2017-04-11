@@ -322,7 +322,8 @@ public class MerchantServiceImpl implements MerchantService {
           "Input" : "Output");
       throw new UnsupportedMerchantException(exceptionMessage);
     }
-    final Commission commissionByType = commissionService.findCommissionByTypeAndRole(operationType, userService.getUserRoleFromSecurityContext());
+    final User user = userService.findByEmail(userEmail);
+    final Commission commissionByType = commissionService.findCommissionByTypeAndRole(operationType, user.getRole());
     final BigDecimal commissionMerchant = commissionService.getCommissionMerchant(merchant.getName(), currency.getName(), operationType);
     final BigDecimal commissionTotal = commissionByType.getValue().add(commissionMerchant)
         .setScale(currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP);
@@ -331,7 +332,6 @@ public class MerchantServiceImpl implements MerchantService {
             .multiply(amount)
             .divide(valueOf(100), currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP);
     commissionAmount = correctForMerchantFixedCommission(merchant.getName(), currency.getName(), operationType, commissionAmount);
-    final User user = userService.findByEmail(userEmail);
     final Wallet wallet = walletService.findByUserAndCurrency(user, currency);
     final BigDecimal newAmount = payment.getOperationType() == INPUT ?
         amount :
