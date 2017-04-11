@@ -23,15 +23,13 @@
                             <strong><loc:message code="${warningCodeTimeout}"/></strong>
                     </c:if>
                 </div>
-
                 <div class="paymentQR">
-
                 </div>
             </div>
             <div class="modal-footer">
                 <div class="add__money__btns request_money_operation_btn">
-                    <button class="modal-button" type="button" id="inputPaymentProcess" ><loc:message code="merchants.continue"/></button>
                     <button class="modal-button" type="button" data-dismiss="modal"><loc:message code="merchants.dismiss"/></button>
+                    <button class="modal-button" type="button" id="inputPaymentProcess" ><loc:message code="merchants.continue"/></button>
                 </div>
                 <div class="response_money_operation_btn">
                     <button class="modal-button" type="button" data-dismiss="modal"><loc:message code="merchants.close"/></button>

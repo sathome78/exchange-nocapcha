@@ -5,16 +5,15 @@
  * Created by ValkSam on 10.04.2017.
  */
 
-$(function withdrawCreation() {
-    const $container = $("#merchants-output-center");
+$(function refillCreation() {
+    const $container = $("#merchants-input-center");
     const operationType = $container.find("#operationType").html();
-    const $withdrawParamsDialog = $container.find('#dialog-withdraw-creation');
+    const $refillParamsDialog = $container.find('#dialog-refill-creation');
     const $finPasswordDialog = $container.find('#finPassModal');
     const $amountHolder = $container.find("#sum");
-    const $destinationHolder = $withdrawParamsDialog.find("#walletUid");
     const notifications = new NotificationsClass();
-    const urlForWithdrawWithMerchant = "/withdraw/request/merchant/create";
-    const urlForWithdrawWithInvoice = "/withdraw/request/invoice/detail/prepare_to_entry";
+    const urlForRefillWithMerchant = "/refill/request/merchant/create";
+    const urlForRefillWithInvoice = "/refill/request/invoice/detail/prepare_to_entry";
     const modalTemplate = $container.find('.paymentInfo p');
 
     var currency;
@@ -23,17 +22,15 @@ $(function withdrawCreation() {
     var merchantName;
     var merchantMinSum;
     var merchantImageId;
-    var destination;
     var merchantIsSimpleInvoice;
     var amount;
 
-    $container.find(".start-withdraw").on('click', function () {
-        startWithdraw(this);
+    $container.find(".start-refill").on('click', function () {
+        startRefill(this);
     });
 
-    $withdrawParamsDialog.find("#outputPaymentProcess").on('click', function () {
-        destination = $destinationHolder.val();
-        if (!checkWithdrawParamsEntry()) {
+    $refillParamsDialog.find("#inputPaymentProcess").on('click', function () {
+        if (!checkRefillParamsEntry()) {
             return;
         }
         $withdrawParamsDialog.on('hidden.bs.modal', function () {
@@ -42,7 +39,7 @@ $(function withdrawCreation() {
         $withdrawParamsDialog.modal("hide");
     });
 
-    function startWithdraw(button) {
+    function startRefill(button) {
         currency = $(button).data("currency-id");
         currencyName = $(button).data("currency-name");
         merchant = $(button).data("merchant-id");
@@ -53,7 +50,7 @@ $(function withdrawCreation() {
         amount = parseFloat($amountHolder.val());
         if (checkAmount()) {
             fillModalWindow();
-            showWithdrawDialog();
+            showRefillDialog();
         }
     }
 
@@ -61,23 +58,23 @@ $(function withdrawCreation() {
         return !merchantMinSum || (amount >= merchantMinSum);
     }
 
-    function showWithdrawDialog() {
-        $withdrawParamsDialog.one('shown.bs.modal', function () {
+    function showRefillDialog() {
+        $refillParamsDialog.one('shown.bs.modal', function () {
             $('.request_money_operation_btn').show();
             $('.response_money_operation_btn').hide();
         });
-        $withdrawParamsDialog.modal();
+        $refillParamsDialog.modal();
     }
 
-    function checkWithdrawParamsEntry() {
-        return destination.length > 3;
+    function checkRefillParamsEntry() {
+        return true;
     }
 
     function showFinPassModal() {
         $finPasswordDialog.find('#check-fin-password-button').off('click').one('click', function (e) {
             e.preventDefault();
             var finPassword = $finPasswordDialog.find("#finpassword").val();
-            performWithdraw(finPassword);
+            performRefill(finPassword);
         });
         $finPasswordDialog.modal({
             backdrop: 'static'
@@ -125,7 +122,7 @@ $(function withdrawCreation() {
         });
     }
 
-    function performWithdraw(finPassword) {
+    function performRefill(finPassword) {
         var url = merchantIsSimpleInvoice ? urlForWithdrawWithInvoice : urlForWithdrawWithMerchant;
         var data = {
             currency: currency,
@@ -146,6 +143,7 @@ $(function withdrawCreation() {
             contentType: 'application/json',
             data: JSON.stringify(data),
         }).success(function (redirectionUrl) {
+            все же надо показать окно. Для QR
             if (!redirectionUrl) {
                 successNoty();
                 notifications.getNotifications();

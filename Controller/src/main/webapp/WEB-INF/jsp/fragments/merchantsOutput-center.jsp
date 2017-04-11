@@ -14,12 +14,10 @@
         <div hidden id="operationType">${payment.operationType}</div>
         <div class="form-horizontal withdraw__money">
           <div class="input-block-wrapper clearfix">
-              <%--Currency to withdraw--%>
             <div class="col-md-4 input-block-wrapper__label-wrapper" style="width:225px">
               <label style="font-size: 15px" for="currencyFull" class="input-block-wrapper__label"><loc:message
                       code="merchants.currencyforoutput"/></label>
             </div>
-
             <div class="col-md-8 input-block-wrapper__input-wrapper">
               <input id="currencyFull"
                      style="float: left; width: auto"
@@ -49,7 +47,6 @@
               </div>
             </div>
           </div>
-
           <b hidden id="buttonMessage"><loc:message code="merchants.withdraw"/></b>
           <div id="merchantList">
             <br>
@@ -60,7 +57,7 @@
                     <img class="img-thumbnail" src="${merchantImage.image_path}" style="width: 168px; height: 52px"/>
 
                   </div>
-                  <button tyle="position: relative; top: 50%; -webkit-transform: translateY(-50%); -ms-transform: translateY(-50%); transform: translateY(-50%);"
+                  <button style="position: relative; top: 50%; -webkit-transform: translateY(-50%); -ms-transform: translateY(-50%); transform: translateY(-50%);"
                           class="start-withdraw btn btn-primary btn-lg"
                           type="button"
                           data-currency-id="${currency.getId()}"
@@ -86,45 +83,3 @@
 
 </div>
 
-
-<%--MODAL ... --%>
-<%--<div class="modal fade merchant-output" id="myModal">
-    <div class="modal-dialog modal-sm">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title"><loc:message code="merchants.outputTitle"/></h4>
-            </div>
-            <div class="modal-body">
-                <label class="alert-danger merchantError"><loc:message code="merchants.notAvaliablePayment"/></label>
-                <div class="paymentInfo">
-                    <p><loc:message code="merchants.modalOutputHeader"/></p>
-                    <p><loc:message code="merchants.modalOutputCommission"/></p>
-                    <p><loc:message code="merchants.modalOutputFinalSum"/></p>
-                </div>
-                <div class="wallet_input">
-                    <label class="control-label" for="walletUid">
-                        <loc:message code="merchants.modalOutputWallet"/>
-                    </label>
-                    <input class="form-control" autofocus="autofocus" name="walletUid" type="text" id="walletUid">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <div class="add__money__btns request_money_operation_btn">
-                    <button class="modal-button" type="button" data-dismiss="modal">
-                        <loc:message code="merchants.dismiss"/>
-                    </button>
-                    <button class="modal-button" type="button" id="outputPaymentProcess" name="paymentOutput">
-                        <loc:message code="merchants.continue"/>
-                    </button>
-                </div>
-                <div class="response_money_operation_btn">
-                    <button class="modal-button" type="button" data-dismiss="modal"><loc:message code="merchants.close"/></button>
-                </div>
-            </div>
-        </div>
-        <!-- /.modal-content -->
-    </div>
-    <!-- /.modal-dialog -->
-</div>--%>
-<%--... MODAL--%>
