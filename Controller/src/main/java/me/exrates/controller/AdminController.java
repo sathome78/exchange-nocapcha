@@ -15,7 +15,6 @@ import me.exrates.model.enums.invoice.*;
 import me.exrates.model.form.AuthorityOptionsForm;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.security.service.UserSecureService;
-import me.exrates.security.service.UserSecureServiceImpl;
 import me.exrates.service.*;
 import me.exrates.service.exception.NoPermissionForOperationException;
 import me.exrates.service.exception.OrderDeletingException;
@@ -51,12 +50,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
+import java.awt.*;
 import java.io.*;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
@@ -1140,9 +1141,29 @@ public class AdminController {
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/referralInfo")
-  @ResponseBody List<ReferralInfoDto> getUserReferals(@RequestParam("userId") int email,
-                                                      @RequestParam("profitUser") int profitUser) {
-    return referralService.getUsersFirstLevelAndCountProfitForUser(email, profitUser);
+  @ResponseBody RefsListContainer getUserReferrals(@RequestParam("userId") int userId,
+                                                   @RequestParam("profitUser") int profitUser,
+                                                    @RequestParam(value = "onPage", defaultValue = "20") int onPage,
+                                                    @RequestParam(value = "page", defaultValue = "1") int page,
+                                                    @RequestParam(value = "level", defaultValue = "1") int level) {
+
+    RefsListContainer container = referralService
+            .getUsersFirstLevelAndCountProfitForUser(userId, profitUser, onPage, page);
+    container.setCurrentLevel(level);
+    return container;
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/findReferral")
+  @ResponseBody RefsListContainer findUserReferral(@RequestParam("email") String email,
+                                                   @RequestParam("profitUser") int profitUser) {
+    Integer userId = userService.getIdByEmail(email);
+    int refLevel = referralService.getUserReferralLevelForChild(userId, profitUser);
+    if (refLevel == -1) {
+      return null;
+    }
+    RefsListContainer container = referralService.getUsersRefToAnotherUser(userId, profitUser, refLevel);
+    container.setCurrentLevel(refLevel);
+    return container;
   }
 
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)

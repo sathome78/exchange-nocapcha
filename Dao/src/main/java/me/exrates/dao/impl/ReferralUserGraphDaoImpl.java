@@ -1,8 +1,10 @@
 package me.exrates.dao.impl;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.ReferralUserGraphDao;
 import me.exrates.model.dto.ReferralInfoDto;
 import me.exrates.model.dto.onlineTableDto.NewsDto;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
@@ -20,6 +22,7 @@ import static java.util.Collections.singletonMap;
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
+@Log4j2
 @Repository
 public class ReferralUserGraphDaoImpl implements ReferralUserGraphDao {
 
@@ -66,19 +69,25 @@ public class ReferralUserGraphDaoImpl implements ReferralUserGraphDao {
     }
 
     @Override
-    public List<ReferralInfoDto> getInfoAboutFirstLevRefs(int userId, int profitUser) {
+    public List<ReferralInfoDto> getInfoAboutFirstLevRefs(int userId, int profitUser, int limit, int offset) {
         String sql = "SELECT US.email AS email, US.id AS ref_id, " +
                 "(SELECT COUNT(child) FROM REFERRAL_USER_GRAPH WHERE parent = RUG.child) AS childs_count, " +
                 "sum(TR.amount) AS ref_profit " +
                 "FROM REFERRAL_USER_GRAPH RUG " +
                 "INNER JOIN USER US ON US.id = RUG.child " +
-                "INNER JOIN REFERRAL_TRANSACTION RT ON RT.initiator_id = US.id AND RT.user_id = RUG.parent " +
-                "INNER JOIN TRANSACTION TR ON TR.source_type = 'REFERRAL' AND TR.source_id = RT.id " +
+                "LEFT JOIN REFERRAL_TRANSACTION RT ON RT.initiator_id = US.id AND RT.user_id = RUG.parent " +
+                "LEFT JOIN TRANSACTION TR ON TR.source_type = 'REFERRAL' AND TR.source_id = RT.id " +
                 "WHERE RUG.parent = :parent GROUP BY email ";
         Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("parent", userId);
         namedParameters.put("profit_user", profitUser);
+        namedParameters.put("limit", limit);
+        namedParameters.put("offset", offset);
+        if (offset >= 0 && limit > 0) {
+            sql = sql.concat(" LIMIT :limit OFFSET :offset ");
+        }
         try {
+            log.error("sql {}, userid {}, profit {}", sql, userId, profitUser);
             return jdbcTemplate.query(sql, namedParameters, new RowMapper<ReferralInfoDto>() {
                 @Override
                 public ReferralInfoDto mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -87,12 +96,59 @@ public class ReferralUserGraphDaoImpl implements ReferralUserGraphDao {
                     infoDto.setEmail(rs.getString("email"));
                     infoDto.setFirstRefLevelCount(rs.getInt("childs_count"));
                     infoDto.setRefProfitFromUser(rs.getDouble("ref_profit"));
+                    log.error("infoDto {}", infoDto);
                     return infoDto;
                 }
             });
         } catch (EmptyResultDataAccessException e) {
+            log.error("empty result {}", e);
             return null;
         }
     }
-    
+
+    @Override
+    public ReferralInfoDto getInfoAboutUserRef(int userId, int profitUser) {
+        String sql = "SELECT US.email AS email, US.id AS ref_id, " +
+                "(SELECT COUNT(child) FROM REFERRAL_USER_GRAPH WHERE parent = :parent) AS childs_count, " +
+                "sum(TR.amount) AS ref_profit " +
+                "FROM USER US " +
+                "LEFT JOIN REFERRAL_TRANSACTION RT ON RT.initiator_id = US.id AND RT.user_id = :profit_user " +
+                "LEFT JOIN TRANSACTION TR ON TR.source_type = 'REFERRAL' AND TR.source_id = RT.id " +
+                "WHERE US.id = :parent ";
+        Map<String, Object> namedParameters = new HashMap<>();
+        namedParameters.put("parent", userId);
+        namedParameters.put("profit_user", profitUser);
+        try {
+            log.error("sql {}, userid {}, id {}, profit {}", sql, userId, profitUser);
+            return jdbcTemplate.queryForObject(sql, namedParameters, new RowMapper<ReferralInfoDto>() {
+                @Override
+                public ReferralInfoDto mapRow(ResultSet rs, int rowNum) throws SQLException {
+                    ReferralInfoDto infoDto = new ReferralInfoDto();
+                    infoDto.setRefId(rs.getInt("ref_id"));
+                    infoDto.setEmail(rs.getString("email"));
+                    infoDto.setFirstRefLevelCount(rs.getInt("childs_count"));
+                    infoDto.setRefProfitFromUser(rs.getDouble("ref_profit"));
+                    log.error("infoDto {}", infoDto);
+                    return infoDto;
+                }
+            });
+        } catch (EmptyResultDataAccessException e) {
+            log.error("empty result {}", e);
+            return null;
+        }
+    }
+
+    @Override
+    public int getInfoAboutFirstLevRefsTotalSize(int parentId) {
+        String sql = "SELECT COUNT(child) FROM REFERRAL_USER_GRAPH " +
+                "WHERE parent = :parent";
+        Map<String, Object> namedParameters = new HashMap<>();
+        namedParameters.put("parent", parentId);
+        try {
+            return jdbcTemplate.queryForObject(sql, namedParameters, Integer.class);
+        } catch (EmptyResultDataAccessException e) {
+            return 0;
+        }
+    }
+
 }

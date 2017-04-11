@@ -7,6 +7,7 @@ import me.exrates.dao.ReferralUserGraphDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
 import me.exrates.model.dto.ReferralInfoDto;
+import me.exrates.model.dto.RefsListContainer;
 import me.exrates.model.dto.onlineTableDto.MyReferralDetailedDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.NotificationEvent;
@@ -257,7 +258,37 @@ public class ReferralServiceImpl implements ReferralService {
     }
 
     @Override
-    public List<ReferralInfoDto> getUsersFirstLevelAndCountProfitForUser(int refsForEmail, int profitForEmail) {
-        return referralUserGraphDao.getInfoAboutFirstLevRefs(refsForEmail, profitForEmail);
+    public RefsListContainer getUsersFirstLevelAndCountProfitForUser(int userId, int profitForId, int onPage, int pageNumber) {
+        int offset = (pageNumber - 1) * onPage;
+        List<ReferralInfoDto> dtoList = referralUserGraphDao.getInfoAboutFirstLevRefs(userId, profitForId, onPage, offset);
+        int totalSize = referralUserGraphDao.getInfoAboutFirstLevRefsTotalSize(userId);
+        log.warn("list size {}", dtoList.size());
+        return new RefsListContainer(dtoList, onPage, pageNumber, totalSize);
+    }
+
+    @Override
+    public RefsListContainer getUsersRefToAnotherUser(int userId, int profitUser, int level) {
+        return new RefsListContainer(referralUserGraphDao.getInfoAboutUserRef(userId, profitUser), level);
+    }
+
+    @Override
+    public int getUserReferralLevelForChild(Integer childUserId, Integer parentUserId) {
+        log.error("id- {}", childUserId);
+        int i = 1;
+        int level = -1;
+        if (childUserId == null || childUserId.equals(0) || parentUserId == null || childUserId.equals(parentUserId)){
+            return level;
+        }
+        Integer parentId = referralUserGraphDao.getParent(childUserId);
+        while (parentId != null && i <= 7) {
+            log.error("parent id- {}", parentId);
+            if (parentId.equals(parentUserId)) {
+                level = i;
+                break;
+            }
+            parentId = referralUserGraphDao.getParent(parentId);
+            i++;
+        }
+        return level;
     }
 }

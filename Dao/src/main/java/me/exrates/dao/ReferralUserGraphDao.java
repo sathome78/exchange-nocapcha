@@ -17,5 +17,9 @@ public interface ReferralUserGraphDao {
     
     void changeReferralParent(Integer formerParent, Integer newParent);
 
-    List<ReferralInfoDto> getInfoAboutFirstLevRefs(int userId, int profitUser);
+    List<ReferralInfoDto> getInfoAboutFirstLevRefs(int userId, int profitUser, int limit, int offset);
+
+    ReferralInfoDto getInfoAboutUserRef(int userId, int profitUser);
+
+    int getInfoAboutFirstLevRefsTotalSize(int parentId);
 }
