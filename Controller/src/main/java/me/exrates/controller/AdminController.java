@@ -1159,7 +1159,7 @@ public class AdminController {
     Integer userId = userService.getIdByEmail(email);
     int refLevel = referralService.getUserReferralLevelForChild(userId, profitUser);
     if (refLevel == -1) {
-      return null;
+      return new RefsListContainer(Collections.emptyList());
     }
     RefsListContainer container = referralService.getUsersRefToAnotherUser(userId, profitUser, refLevel);
     container.setCurrentLevel(refLevel);

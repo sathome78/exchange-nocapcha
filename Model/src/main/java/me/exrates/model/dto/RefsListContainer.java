@@ -28,9 +28,13 @@ public class RefsListContainer {
         this.totalPages = countTotalPages();
     }
 
-    public RefsListContainer(ReferralInfoDto referralInfoDto, int level) {
-        this.referralInfoDtos = Arrays.asList(referralInfoDto);
+    public RefsListContainer(List<ReferralInfoDto> referralInfoDtos, int level) {
+        this.referralInfoDtos = referralInfoDtos;
         this.currentLevel = level;
+    }
+
+    public RefsListContainer(List<ReferralInfoDto> referralInfoDtos) {
+        this.referralInfoDtos = referralInfoDtos;
     }
 
     private int countTotalPages() {

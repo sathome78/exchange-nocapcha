@@ -261,6 +261,7 @@ public class ReferralServiceImpl implements ReferralService {
     public RefsListContainer getUsersFirstLevelAndCountProfitForUser(int userId, int profitForId, int onPage, int pageNumber) {
         int offset = (pageNumber - 1) * onPage;
         List<ReferralInfoDto> dtoList = referralUserGraphDao.getInfoAboutFirstLevRefs(userId, profitForId, onPage, offset);
+        setDetailedAmountToDtos(dtoList, profitForId);
         int totalSize = referralUserGraphDao.getInfoAboutFirstLevRefsTotalSize(userId);
         log.warn("list size {}", dtoList.size());
         return new RefsListContainer(dtoList, onPage, pageNumber, totalSize);
@@ -268,7 +269,14 @@ public class ReferralServiceImpl implements ReferralService {
 
     @Override
     public RefsListContainer getUsersRefToAnotherUser(int userId, int profitUser, int level) {
-        return new RefsListContainer(referralUserGraphDao.getInfoAboutUserRef(userId, profitUser), level);
+        List<ReferralInfoDto> dtoList = Arrays.asList(referralUserGraphDao.getInfoAboutUserRef(userId, profitUser));
+        setDetailedAmountToDtos(dtoList, profitUser);
+        return new RefsListContainer(dtoList, level);
+    }
+
+    private void setDetailedAmountToDtos(List<ReferralInfoDto> list, int profitUser) {
+        list.stream().filter(p -> p.getRefProfitFromUser() > 0)
+                .forEach(l -> l.setReferralProfitDtoList(referralUserGraphDao.detailedCountRefsTransactions(l.getRefId(), profitUser)));
     }
 
     @Override

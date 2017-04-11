@@ -2,7 +2,9 @@ package me.exrates.dao.impl;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.ReferralUserGraphDao;
+import me.exrates.model.SessionParams;
 import me.exrates.model.dto.ReferralInfoDto;
+import me.exrates.model.dto.ReferralProfitDto;
 import me.exrates.model.dto.onlineTableDto.NewsDto;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,6 +70,19 @@ public class ReferralUserGraphDaoImpl implements ReferralUserGraphDao {
         jdbcTemplate.update(sql, params);
     }
 
+    private RowMapper<ReferralInfoDto> getReferralInfoDtoRwoMapper() {
+        return (rs, i) -> {
+            ReferralInfoDto infoDto = new ReferralInfoDto();
+            infoDto.setRefId(rs.getInt("ref_id"));
+            infoDto.setEmail(rs.getString("email"));
+            infoDto.setFirstRefLevelCount(rs.getInt("childs_count"));
+            infoDto.setRefProfitFromUser(rs.getDouble("ref_profit"));
+            log.error("infoDto {}", infoDto);
+            return infoDto;
+        };
+    }
+
+
     @Override
     public List<ReferralInfoDto> getInfoAboutFirstLevRefs(int userId, int profitUser, int limit, int offset) {
         String sql = "SELECT US.email AS email, US.id AS ref_id, " +
@@ -87,21 +102,8 @@ public class ReferralUserGraphDaoImpl implements ReferralUserGraphDao {
             sql = sql.concat(" LIMIT :limit OFFSET :offset ");
         }
         try {
-            log.error("sql {}, userid {}, profit {}", sql, userId, profitUser);
-            return jdbcTemplate.query(sql, namedParameters, new RowMapper<ReferralInfoDto>() {
-                @Override
-                public ReferralInfoDto mapRow(ResultSet rs, int rowNum) throws SQLException {
-                    ReferralInfoDto infoDto = new ReferralInfoDto();
-                    infoDto.setRefId(rs.getInt("ref_id"));
-                    infoDto.setEmail(rs.getString("email"));
-                    infoDto.setFirstRefLevelCount(rs.getInt("childs_count"));
-                    infoDto.setRefProfitFromUser(rs.getDouble("ref_profit"));
-                    log.error("infoDto {}", infoDto);
-                    return infoDto;
-                }
-            });
+            return jdbcTemplate.query(sql, namedParameters, getReferralInfoDtoRwoMapper());
         } catch (EmptyResultDataAccessException e) {
-            log.error("empty result {}", e);
             return null;
         }
     }
@@ -119,21 +121,33 @@ public class ReferralUserGraphDaoImpl implements ReferralUserGraphDao {
         namedParameters.put("parent", userId);
         namedParameters.put("profit_user", profitUser);
         try {
-            log.error("sql {}, userid {}, id {}, profit {}", sql, userId, profitUser);
-            return jdbcTemplate.queryForObject(sql, namedParameters, new RowMapper<ReferralInfoDto>() {
+            return jdbcTemplate.queryForObject(sql, namedParameters, getReferralInfoDtoRwoMapper());
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
+    }
+
+    @Override
+    public List<ReferralProfitDto> detailedCountRefsTransactions(int userId, int profitUser) {
+        String sql = "SELECT sum(TR.amount) AS ref_profit, CU.name AS currency_name FROM USER US " +
+                "LEFT JOIN REFERRAL_TRANSACTION RT ON RT.initiator_id = US.id AND RT.user_id = :profit_user " +
+                "LEFT JOIN TRANSACTION TR ON TR.source_type = 'REFERRAL' AND TR.source_id = RT.id  " +
+                "INNER JOIN currency CU ON CU.id = TR.currency_id " +
+                "WHERE US.id = :userId GROUP BY CU.id";
+        Map<String, Object> namedParameters = new HashMap<>();
+        namedParameters.put("userId", userId);
+        namedParameters.put("profit_user", profitUser);
+        try {
+             return jdbcTemplate.query(sql, namedParameters, new RowMapper<ReferralProfitDto>() {
                 @Override
-                public ReferralInfoDto mapRow(ResultSet rs, int rowNum) throws SQLException {
-                    ReferralInfoDto infoDto = new ReferralInfoDto();
-                    infoDto.setRefId(rs.getInt("ref_id"));
-                    infoDto.setEmail(rs.getString("email"));
-                    infoDto.setFirstRefLevelCount(rs.getInt("childs_count"));
-                    infoDto.setRefProfitFromUser(rs.getDouble("ref_profit"));
-                    log.error("infoDto {}", infoDto);
-                    return infoDto;
+                public ReferralProfitDto mapRow(ResultSet rs, int rowNum) throws SQLException {
+                    ReferralProfitDto profitDto = new ReferralProfitDto();
+                    profitDto.setAmount(rs.getDouble("ref_profit"));
+                    profitDto.setCurrencyName(rs.getString("currency_name"));
+                    return profitDto;
                 }
             });
         } catch (EmptyResultDataAccessException e) {
-            log.error("empty result {}", e);
             return null;
         }
     }

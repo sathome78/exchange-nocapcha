@@ -83,14 +83,27 @@ function searchRef(value, page) {
         success: function (data) {
             console.log('resp ' + JSON.stringify(data));
             append(data.referralInfoDtos, mainUser, $('.reffil_' + mainUser));
+            if(data.referralInfoDtos.length > 0) {
+                $('#level-outer').show();
+                $('#level').text(data.currentLevel);
+            }
+
         }
     });
 }
 
 
+$( document ).ready(function(){
 
-
-$( document ).ready(function() {
+    $('#refSearch').on('change keyup', function() {
+        var value = $(this).val(); // get the current value of the input field.
+        var sendButton = $('#refSearchButton');
+        if (!value) {
+            sendButton.prop('disabled', true);
+        } else {
+            sendButton.prop('disabled', false);
+        }
+    });
 
     $('#refSearchButton').on("click", function () {
         searchId = $('#refSearch').val();
@@ -99,7 +112,9 @@ $( document ).ready(function() {
     });
 
     $('#refSearchClearButton').on("click", function () {
+        $pagination.twbsPagination('destroy');
        loadInfo(mainUser, 1);
+        $('#level-outer').hide();
         $('#refSearch').val("");
     });
 
