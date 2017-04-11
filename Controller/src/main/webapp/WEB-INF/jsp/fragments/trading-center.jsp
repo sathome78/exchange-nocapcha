@@ -134,7 +134,7 @@
                     <span class="item__span"><loc:message code="dashboard.price"/>
                         <span class="currencyBaseName"></span>
                     </span>
-                        <div class="dark_blue_area"><span class="currencyBaseName"></span></div>
+                        <div class="dark_blue_area"><span class="currencyConvertName"></span></div>
                         <form:input id="exchangeRateBuy" path="exchangeRate" type="text"
                                     class="buyBTC__input usd_green numericInputField"/>
                     </div>
@@ -142,9 +142,10 @@
                     <div class="buyBTC__item item">
                         <span class="item__span"><loc:message code="dashboard.total"/></span>
                         <div class="dark_blue_area"><span class="currencyConvertName"></span></div>
-                        <div id="totalForBuy" class="blue_area">
+                        <input id="totalForBuy" class="item__input numericInputField"/>
+                            <%--<div id="totalForBuy" class="blue_area">
                             <span></span>
-                        </div>
+                        </div>--%>
                     </div>
 
                     <div class="buyBTC__item item">
@@ -245,7 +246,7 @@
                     <span class="item__span"><loc:message code="dashboard.price"/>
                         <span class="currencyBaseName"></span>
                     </span>
-                        <div class="dark_blue_area"><span class="currencyBaseName"></span></div>
+                        <div class="dark_blue_area"><span class="currencyConvertName"></span></div>
                         <form:input id="exchangeRateSell" path="exchangeRate" type="text"
                                     class="buyBTC__input usd_green numericInputField"/>
                     </div>

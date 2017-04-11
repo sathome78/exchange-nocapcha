@@ -20,6 +20,13 @@ function TradingClass(period, chartType, currentCurrencyPair) {
     var timeOutIdForStatistics;
     var statisticsRefreshInterval = 10000 * REFRESH_INTERVAL_MULTIPLIER;
     var $graphicsLoadingImg = $('#graphics-container').find('.loading');
+    var $totalForBuyInput = $('#totalForBuy');
+    var $exchangeRateBuyInput = $('#exchangeRateBuy');
+    var $amountBuyInput = $('#amountBuy');
+
+    var $totalForSellInput = $('#totalForSell');
+    var $exchangeRateSellInput = $('#exchangeRateSell');
+    var $amountSellInput = $('#amountSell');
     /**/
     var showLog = false;
     /**/
@@ -343,33 +350,63 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         });
     }
 
-    function calculateFieldsForBuy(e) {
-        var amount = +$('#amountBuy').val();
-        var exchangeRate = +$('#exchangeRateBuy').val();
-        var totalForBuy = +$('#totalForBuy').val(amount * exchangeRate).val();
-        var commission = that.commissionBuy;
-        var calculatedCommissionForBuy = +(totalForBuy * commission / 100).toFixed(that.ROUND_SCALE);
-        var totalWithCommissionForBuy = +(totalForBuy + calculatedCommissionForBuy).toFixed(that.ROUND_SCALE);
-        $('#totalForBuy').val(totalForBuy.toFixed(that.ROUND_SCALE));
-        $('#calculatedCommissionForBuy>span:first').text(calculatedCommissionForBuy.toFixed(that.ROUND_SCALE));
-        $('#totalWithCommissionForBuy>span:first').text(totalWithCommissionForBuy.toFixed(that.ROUND_SCALE));
+    function calculateFieldsForBuy() {
+        var amount = +$($amountBuyInput).val();
+        var exchangeRate = +$($exchangeRateBuyInput).val();
+        var totalForBuy = +$($totalForBuyInput).val(amount * exchangeRate).val();
+        fillCommissionFieldsBuy(totalForBuy);
+    }
+    function calculateFieldsForBuyBackward() {
+        var totalForBuy = +$($totalForBuyInput).val();
+        var exchangeRate = +$($exchangeRateBuyInput).val();
+        if (!totalForBuy) {
+            $($amountBuyInput).val(0);
+        } else if (!exchangeRate) {
+            $($amountBuyInput).val(0);
+            $($exchangeRateBuyInput).val(0);
+        } else {
+            $($amountBuyInput).val(numeral(totalForBuy / exchangeRate).format(that.numeralFormat));
+        }
+        fillCommissionFieldsBuy(totalForBuy);
     }
 
     function calculateFieldsForSell() {
-        var amount = +$('#amountSell').val();
-        var exchangeRate = +$('#exchangeRateSell').val();
-        var totalForSell = +$('#totalForSell').val(amount * exchangeRate).val();
+        var amount = +$($amountSellInput).val();
+        var exchangeRate = +$($exchangeRateSellInput).val();
+        var totalForSell = +$($totalForSellInput).val(amount * exchangeRate).val();
+        fillCommissionFieldsSell(totalForSell);
+    }
+
+    function calculateFieldsForSellBackward() {
+        var totalForSell = +$($totalForSellInput).val();
+        var exchangeRate = +$($exchangeRateSellInput).val();
+        if (!totalForSell) {
+            $($amountSellInput).val(0);
+        } else if (!exchangeRate) {
+            $($amountSellInput).val(0);
+            $($exchangeRateSellInput).val(0);
+        } else {
+            $($amountSellInput).val(numeral(totalForSell / exchangeRate).format(that.numeralFormat));
+        }
+        fillCommissionFieldsSell(totalForSell);
+    }
+
+
+    function fillCommissionFieldsBuy(totalForBuy) {
+        var commission = that.commissionBuy;
+        var calculatedCommissionForBuy = +(totalForBuy * commission / 100).toFixed(that.ROUND_SCALE);
+        var totalWithCommissionForBuy = +(totalForBuy + calculatedCommissionForBuy).toFixed(that.ROUND_SCALE);
+        $('#calculatedCommissionForBuy').find('span:first').text(calculatedCommissionForBuy.toFixed(that.ROUND_SCALE));
+        $('#totalWithCommissionForBuy').find('span:first').text(totalWithCommissionForBuy.toFixed(that.ROUND_SCALE));
+    }
+    function fillCommissionFieldsSell(totalForSell) {
         var commission = that.commissionSell;
         var calculatedCommissionForSell = +(totalForSell * commission / 100).toFixed(that.ROUND_SCALE);
         var totalWithCommissionForSell = +(totalForSell - calculatedCommissionForSell).toFixed(that.ROUND_SCALE);
-        $('#totalForSell').val(totalForSell.toFixed(that.ROUND_SCALE));
-        $('#calculatedCommissionForSell>span:first').text(calculatedCommissionForSell.toFixed(that.ROUND_SCALE));
-        $('#totalWithCommissionForSell>span:first').text(totalWithCommissionForSell.toFixed(that.ROUND_SCALE));
+        $('#calculatedCommissionForSell').find('span:first').text(calculatedCommissionForSell.toFixed(that.ROUND_SCALE));
+        $('#totalWithCommissionForSell').find('span:first').text(totalWithCommissionForSell.toFixed(that.ROUND_SCALE));
     }
 
-    function deduceOrderParams(amount, rate, total) {
-
-    }
 
 
     /*=========================================================*/
@@ -399,8 +436,8 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         $('#exchangeRateBuy').on('keyup', calculateFieldsForBuy).on('keydown', that.resetOrdersListForAccept);
         $('#amountSell').on('keyup', calculateFieldsForSell).on('keydown', that.resetOrdersListForAccept);
         $('#exchangeRateSell').on('keyup', calculateFieldsForSell).on('keydown', that.resetOrdersListForAccept);
-        $('#totalForBuy').on('keyup', calculateFieldsForSell).on('keydown', that.resetOrdersListForAccept);
-        $('#totalForSell').on('keyup', calculateFieldsForSell).on('keydown', that.resetOrdersListForAccept);
+        $('#totalForBuy').on('keyup', calculateFieldsForBuyBackward).on('keydown', that.resetOrdersListForAccept);
+        $('#totalForSell').on('keyup', calculateFieldsForSellBackward).on('keydown', that.resetOrdersListForAccept);
         /**/
         $('.dashboard-order__table').on('click', '.dashboard-order__tr', fillOrdersFormFromCurrentOrder);
         /**/
