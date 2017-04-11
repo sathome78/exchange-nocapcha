@@ -13,8 +13,6 @@ import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.*;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
@@ -31,9 +29,6 @@ import java.security.Principal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Log4j2
 @Controller
@@ -94,7 +89,7 @@ public class WalletController {
     }
 
     private BigDecimal resolveMaxTransferAmount(Wallet wallet, String currencyName) {
-        BigDecimal commissionRate = commissionService.findCommissionByTypeAndRole(OperationType.USER_TRANSFER, userService.getCurrentUserRole()).getValue();
+        BigDecimal commissionRate = commissionService.findCommissionByTypeAndRole(OperationType.USER_TRANSFER, userService.getUserRoleFromSecurityContext()).getValue();
         BigDecimal commissionDecimal = BigDecimalProcessing.doAction(commissionRate, BigDecimal.valueOf(100), ActionType.DEVIDE);
         BigDecimal commissionMultiplier = BigDecimalProcessing.doAction(commissionDecimal, BigDecimal.ONE, ActionType.ADD);
         BigDecimal maxForTransfer = BigDecimalProcessing.doAction(wallet.getActiveBalance(), commissionMultiplier, ActionType.DEVIDE)

@@ -203,7 +203,7 @@ public class MerchantServiceImpl implements MerchantService {
 
   @Override
   public List<MerchantCurrencyApiDto> findAllMerchantCurrencies(Integer currencyId) {
-    return merchantDao.findAllMerchantCurrencies(currencyId, userService.getCurrentUserRole());
+    return merchantDao.findAllMerchantCurrencies(currencyId, userService.getUserRoleFromSecurityContext());
   }
 
   @Override
@@ -280,7 +280,7 @@ public class MerchantServiceImpl implements MerchantService {
                                                                 final String currency,
                                                                 final String merchant) {
     final Map<String, String> result = new HashMap<>();
-    final BigDecimal commission = commissionService.findCommissionByTypeAndRole(type, userService.getCurrentUserRole()).getValue();
+    final BigDecimal commission = commissionService.findCommissionByTypeAndRole(type, userService.getUserRoleFromSecurityContext()).getValue();
     final BigDecimal commissionMerchant = type == USER_TRANSFER ? BigDecimal.ZERO : commissionService.getCommissionMerchant(merchant, currency, type);
     final BigDecimal commissionTotal = commission.add(commissionMerchant).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP);
     BigDecimal commissionAmount = amount.multiply(commissionTotal).divide(HUNDREDTH).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP);
@@ -322,7 +322,7 @@ public class MerchantServiceImpl implements MerchantService {
           "Input" : "Output");
       throw new UnsupportedMerchantException(exceptionMessage);
     }
-    final Commission commissionByType = commissionService.findCommissionByTypeAndRole(operationType, userService.getCurrentUserRole());
+    final Commission commissionByType = commissionService.findCommissionByTypeAndRole(operationType, userService.getUserRoleFromSecurityContext());
     final BigDecimal commissionMerchant = commissionService.getCommissionMerchant(merchant.getName(), currency.getName(), operationType);
     final BigDecimal commissionTotal = commissionByType.getValue().add(commissionMerchant)
         .setScale(currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP);
