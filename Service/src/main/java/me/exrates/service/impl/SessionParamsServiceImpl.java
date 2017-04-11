@@ -94,7 +94,7 @@ public class SessionParamsServiceImpl implements SessionParamsService {
 
     @Override
     public boolean isSessionTimeValid(int sessionTime) {
-        return sessionTime >= MIN_SESSION_TIME_MINUTES && sessionTime < MAX_SESSION_TIME_MINUTES;
+        return sessionTime >= MIN_SESSION_TIME_MINUTES && sessionTime <= MAX_SESSION_TIME_MINUTES;
     }
 
     @Override

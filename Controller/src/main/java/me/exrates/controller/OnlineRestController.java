@@ -291,7 +291,7 @@ public class OnlineRestController {
     HttpSession session = request.getSession();
     session.setAttribute("firstEntry", true);
     LOGGER.debug(" SESSION: " + session.getId() + " firstEntry: " + session.getAttribute("firstEntry"));
-    /*if (SESSION_LIFETIME_INACTIVE != 0) {
+   /* if (SESSION_LIFETIME_INACTIVE != 0) {
       session.setMaxInactiveInterval(SESSION_LIFETIME_INACTIVE);
     }*/
   }

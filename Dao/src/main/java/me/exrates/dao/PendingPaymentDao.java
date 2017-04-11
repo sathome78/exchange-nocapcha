@@ -59,4 +59,6 @@ public interface PendingPaymentDao {
   List<PendingPayment> findAllUnconfirmedPayments();
   
   List<PendingPayment> findUnpaidBtcPayments();
+  
+  void updateBtcHash(Integer invoiceId, String hash);
 }

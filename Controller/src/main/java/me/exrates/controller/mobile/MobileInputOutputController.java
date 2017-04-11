@@ -54,8 +54,6 @@ public class MobileInputOutputController {
 
     private static final Logger LOGGER = LogManager.getLogger("mobileAPI");
 
-    private static int INVOICE_MERCHANT_ID = 12;
-    private static int INVOICE_MERCHANT_IMAGE_ID = 16;
 
 
     @Autowired
@@ -502,8 +500,7 @@ public class MobileInputOutputController {
         Payment payment = new Payment();
         payment.setSum(withdrawInvoiceDto.getSum());
         payment.setCurrency(withdrawInvoiceDto.getCurrency());
-        payment.setMerchant(INVOICE_MERCHANT_ID);
-        payment.setMerchantImage(INVOICE_MERCHANT_IMAGE_ID);
+        payment.setMerchant(merchantService.findByNName("Invoice").getId());
         payment.setOperationType(OperationType.OUTPUT);
         payment.setDestination(withdrawInvoiceDto.getWalletNumber());
 
@@ -520,6 +517,14 @@ public class MobileInputOutputController {
         Map<String, String> response = withdrawService.createWithdrawalRequest(creditsOperation, withdrawData, userEmail, userLocale);
         
         return new ResponseEntity<>(response, OK);
+    }
+    
+    @RequestMapping(value = "/withdraw/revoke", method = POST)
+    @ResponseBody
+    public ResponseEntity<Void> revokeWithdrawRequest(@RequestBody Map<String, String> params) {
+        Integer id = Integer.parseInt(RestApiUtils.retrieveParamFormBody(params, "invoiceId", true));
+        withdrawService.revokeWithdrawalRequest(id);
+        return new ResponseEntity<>(OK);
     }
 
 

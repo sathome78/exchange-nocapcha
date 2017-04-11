@@ -46,8 +46,7 @@ public class MyInputOutputHistoryApiDto {
     private String bankAccount;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String invoiceStatus;
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private List<Map<String, Object>> buttons;
+    
     
     @Getter(onMethod = @__({@JsonIgnore}))
     private final Set<WithdrawStatusEnum> FINAL_STATUSES = Stream.of(POSTED_AUTO, POSTED_MANUAL).collect(Collectors.toSet());
@@ -70,10 +69,6 @@ public class MyInputOutputHistoryApiDto {
         this.userId = dto.getUserId();
         this.invoiceStatus = dto.getStatus() == null ? null : dto.getStatus().name();
         this.bankAccount = dto.getBankAccount();
-        this.buttons = dto.getButtons();
-        if (buttons != null) {
-            buttons.forEach(btn -> btn.remove("tableIdListOnly"));
-        }
     }
 
 

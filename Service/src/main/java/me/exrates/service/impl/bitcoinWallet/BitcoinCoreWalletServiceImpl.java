@@ -27,6 +27,7 @@ import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.IllegalTransactionProvidedStatusException;
 import me.exrates.service.exception.invoice.IllegalInvoiceAmountException;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -158,50 +159,75 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
   }
   
   private void processIncomingPayment(Transaction transaction) {
-    InvoiceStatus beginStatus = PendingPaymentStatusEnum.getBeginState();
-    transaction.getDetails().stream().filter(payment -> payment.getCategory() == PaymentCategories.RECEIVE)
-            .map(PaymentOverview::getAddress).forEach(address -> {
-      if (bitcoinTransactionService.existsPendingPaymentWithStatusAndAddress(beginStatus, address) && transaction.getConfirmations() == 0) {
-        bitcoinTransactionService.markStartConfirmationProcessing(address, transaction.getTxId());
+    Optional<Transaction> targetTxResult = handleConflicts(transaction);
+    if (targetTxResult.isPresent()) {
+      Transaction targetTx = targetTxResult.get();
+      InvoiceStatus beginStatus = PendingPaymentStatusEnum.getBeginState();
+      targetTx.getDetails().stream().filter(payment -> payment.getCategory() == PaymentCategories.RECEIVE)
+              .forEach(payment -> {
+        String address = payment.getAddress();
+        if (bitcoinTransactionService.existsPendingPaymentWithStatusAndAddress(beginStatus, address) && targetTx.getConfirmations() == 0) {
+          try {
+            bitcoinTransactionService.markStartConfirmationProcessing(address, targetTx.getTxId(), payment.getAmount());
+          } catch (IllegalInvoiceAmountException e) {
+            log.error(ExceptionUtils.getStackTrace(e));
+          }
+        }
+      });
+    } else {
+      log.error("Invalid transaction");
+    }
+  }
+  
+  private Optional<Transaction> handleConflicts(Transaction transaction) {
+    if (transaction.getConfirmations() < 0 && !transaction.getWalletConflicts().isEmpty()) {
+      log.warn("Wallet conflicts present");
+      for (String txId : transaction.getWalletConflicts()) {
+        try {
+          Transaction conflicted = btcdClient.getTransaction(txId);
+          if (conflicted.getConfirmations() >= 0) {
+            return Optional.of(conflicted);
+          }
+        } catch (BitcoindException | CommunicationException e) {
+          log.error(e);
+        }
       }
-    });
+      return Optional.empty();
+    } else {
+      return Optional.of(transaction);
+    }
   }
   
   private void processBlock() {
     List<PendingPayment> unconfirmedPayments = bitcoinTransactionService.findUnconfirmedBtcPayments();
     unconfirmedPayments.forEach(log::debug);
     List<BtcTransactionShort> paymentsToUpdate = new ArrayList<>();
-    try {
-      final Map<String, Address> receivedByAddress = listReceivedByAddressMapped(1);
-      receivedByAddress.forEach(log::debug);
-      unconfirmedPayments.stream().filter(payment -> StringUtils.isNotEmpty(payment.getHash())).forEach(payment -> {
-        Address address = receivedByAddress.get(payment.getAddress());
-        log.debug("address " + address);
-        if (address != null && address.getTxIds().contains(payment.getHash()) && address.getTxIds().size() == 1) {
-          log.debug("Getting info from address!");
-          paymentsToUpdate.add(new BtcTransactionShort(payment.getInvoiceId(), address.getTxIds().get(0),
-                  address.getAmount(), address.getConfirmations()));
-          
-        } else {
-          log.debug("Retrieving tx from blockchain!");
-          try {
-            Transaction tx = btcdClient.getTransaction(payment.getHash());
-            if (tx.getDetails().size() == 1) {
-              paymentsToUpdate.add(new BtcTransactionShort(payment.getInvoiceId(), tx.getTxId(), tx.getAmount(), tx.getConfirmations()));
-            } else {
-              tx.getDetails().stream().filter(paymentOverview -> payment.getAddress().equals(paymentOverview.getAddress()))
-                      .findFirst().ifPresent(paymentOverview ->
-                      paymentsToUpdate.add(new BtcTransactionShort(payment.getInvoiceId(), tx.getTxId(), paymentOverview.getAmount(), tx.getConfirmations())));
-            }
-          } catch (BitcoindException | CommunicationException e) {
-            log.error(e);
+    log.debug("Start retrieving TXs");
+    unconfirmedPayments.stream().filter(payment -> StringUtils.isNotEmpty(payment.getHash())).forEach(payment -> {
+      log.debug("Retrieving tx from blockchain!");
+      try {
+        Optional<Transaction> txResult = handleConflicts(btcdClient.getTransaction(payment.getHash()));
+        if (txResult.isPresent()) {
+          Transaction tx = txResult.get();
+          if (!payment.getHash().equals(tx.getTxId())) {
+            bitcoinTransactionService.updatePendingPaymentHash(payment.getInvoiceId(), tx.getTxId());
           }
+          if (tx.getDetails().size() == 1) {
+            paymentsToUpdate.add(new BtcTransactionShort(payment.getInvoiceId(), tx.getTxId(), tx.getAmount(), tx.getConfirmations()));
+          } else {
+            tx.getDetails().stream().filter(paymentOverview -> payment.getAddress().equals(paymentOverview.getAddress()))
+                    .findFirst().ifPresent(paymentOverview ->
+                    paymentsToUpdate.add(new BtcTransactionShort(payment.getInvoiceId(), tx.getTxId(), paymentOverview.getAmount(), tx.getConfirmations())));
+          }
+        } else {
+          log.error("No valid transactions available!");
         }
-      });
-    } catch (BitcoindException | CommunicationException e ) {
-      log.error(e);
-    }
+      } catch (BitcoindException | CommunicationException e) {
+        log.error(e);
+      }
+    });
     
+    log.debug("Start updating payments in DB");
     paymentsToUpdate.forEach(payment -> {
       log.debug(String.format("Payment to update: %s", payment));
       changeConfirmationsOrProvide(payment);
@@ -271,9 +297,13 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
   }
   
   private void processUnpaidPayment(Integer paymentId, String address, String txId, BigDecimal amount, Integer confirmations) {
-    bitcoinTransactionService.markStartConfirmationProcessing(address, txId);
-    if (confirmations > 0) {
-      changeConfirmationsOrProvide(paymentId, txId, amount, confirmations);
+    try {
+      bitcoinTransactionService.markStartConfirmationProcessing(address, txId, amount);
+      if (confirmations > 0) {
+        changeConfirmationsOrProvide(paymentId, txId, amount, confirmations);
+      }
+    } catch (IllegalInvoiceAmountException e) {
+      log.error(ExceptionUtils.getStackTrace(e));
     }
   }
   
@@ -324,7 +354,7 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
         dto.setAmount(BigDecimalProcessing.formatNonePoint(payment.getAmount(), true));
         dto.setFee(BigDecimalProcessing.formatNonePoint(payment.getFee(), true));
         dto.setConfirmations(payment.getConfirmations());
-        dto.setTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(payment.getTime()), ZoneId.systemDefault()));
+        dto.setTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(payment.getTime() * 1000L), ZoneId.systemDefault()));
         return dto;
       }).collect(Collectors.toList());
     } catch (BitcoindException | CommunicationException e) {
@@ -337,6 +367,26 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
   public BigDecimal estimateFee(int blockCount) {
     try {
       return btcdClient.estimateFee(blockCount);
+    } catch (BitcoindException | CommunicationException e) {
+      log.error(e);
+      throw new BitcoinCoreException(e.getMessage());
+    }
+  }
+  
+  @Override
+  public BigDecimal getActualFee() {
+    try {
+      return btcdClient.getInfo().getPayTxFee();
+    } catch (BitcoindException | CommunicationException e) {
+      log.error(e);
+      throw new BitcoinCoreException(e.getMessage());
+    }
+  }
+  
+  @Override
+  public void setTxFee(BigDecimal fee) {
+    try {
+      btcdClient.setTxFee(fee);
     } catch (BitcoindException | CommunicationException e) {
       log.error(e);
       throw new BitcoinCoreException(e.getMessage());

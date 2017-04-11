@@ -6,6 +6,7 @@ import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.PayeerService;
 import me.exrates.service.TransactionService;
+import me.exrates.service.exception.NotImplimentedMethod;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -107,7 +108,7 @@ public class PayeerServiceImpl implements PayeerService {
 
     @Override
     public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
-        logger.debug("\n======> request for withdraw sent "+ withdrawMerchantOperationDto);
+        throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
     }
 
 }

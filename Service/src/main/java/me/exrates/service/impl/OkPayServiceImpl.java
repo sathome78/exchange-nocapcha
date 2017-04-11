@@ -11,6 +11,7 @@ import me.exrates.service.AlgorithmService;
 import me.exrates.service.OkPayService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.exception.MerchantInternalException;
+import me.exrates.service.exception.NotImplimentedMethod;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -140,6 +141,6 @@ public class OkPayServiceImpl implements OkPayService {
 
     @Override
     public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
-        logger.debug("\n======> request for withdraw sent "+ withdrawMerchantOperationDto);
+        throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
     }
 }

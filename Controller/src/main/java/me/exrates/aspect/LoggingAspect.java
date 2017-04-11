@@ -8,8 +8,10 @@ import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Timer;
 import java.util.stream.Collectors;
 
 /**
@@ -20,6 +22,8 @@ import java.util.stream.Collectors;
 public class LoggingAspect {
   private static final Logger log = LogManager.getLogger("exceptions_log");
   private static final Logger logExtended = LogManager.getLogger("exceptions_ext_log");
+  private static final Logger withdrawLog = LogManager.getLogger("withdraw_log");
+  private static final Logger withdrawExtLog = LogManager.getLogger("withdraw_ext_log");
 
   
   
@@ -41,6 +45,20 @@ public class LoggingAspect {
     log.debug(String.format("exception: %s : %s ", ex.getClass().getSimpleName(), ex.getMessage()));
     log.debug("Root cause: " + ExceptionUtils.getRootCauseMessage(ex));
     logExtended.debug(ExceptionUtils.getStackTrace(ex));
+  }
+
+  @AfterThrowing(pointcut = "(execution(* me.exrates.controller.merchants.WithdrawRequestController..*(..)) " +
+      "|| execution(* me.exrates.service.impl.WithdrawServiceImpl..*(..)) " +
+      "|| execution(* me.exrates.service.merchantStrategy.IMerchantService.withdraw(*))) ", throwing = "ex")
+  public void withdrawLogException(JoinPoint joinPoint, Exception ex) {
+    int id = LocalDateTime.now().getNano();
+    withdrawLog.error(String.format("id=(%s) error in method %s with args: \n%s",
+        id,
+        String.join(".", joinPoint.getSignature().getDeclaringTypeName(), joinPoint.getSignature().getName()) ,
+        String.join("\n", Arrays.stream(joinPoint.getArgs()).filter(Objects::nonNull)
+            .map(Object::toString).collect(Collectors.toList()))) );
+    withdrawLog.error(String.format("id=(%s) exception: %s : %s ", id, ex.getClass().getSimpleName(), ex.getMessage()));
+    withdrawExtLog.error(String.format("id=(%s) stackTrace: ", id)+ExceptionUtils.getStackTrace(ex));
   }
 
 }

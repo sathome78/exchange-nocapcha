@@ -11,14 +11,12 @@ import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
+import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.WalletOperationData;
-import me.exrates.service.BitcoinTransactionService;
-import me.exrates.service.CompanyWalletService;
-import me.exrates.service.NotificationService;
-import me.exrates.service.TransactionService;
+import me.exrates.service.*;
 import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.IllegalTransactionProvidedStatusException;
 import me.exrates.service.exception.invoice.IllegalInvoiceAmountException;
@@ -59,6 +57,9 @@ public class BitcoinTransactionServiceImpl implements BitcoinTransactionService 
   @Autowired
   private NotificationService notificationService;
   
+  @Autowired
+  private UserService userService;
+  
   
   
   @Override
@@ -70,17 +71,23 @@ public class BitcoinTransactionServiceImpl implements BitcoinTransactionService 
   
   @Override
   @Transactional
-  public PendingPaymentStatusDto markStartConfirmationProcessing(String address, String txHash){
+  public PendingPaymentStatusDto markStartConfirmationProcessing(String address, String txHash, BigDecimal factAmount) throws IllegalInvoiceAmountException {
+    if (factAmount.compareTo(BigDecimal.ZERO) <= 0) {
+      throw new IllegalInvoiceAmountException(factAmount.toString());
+    }
     InvoiceStatus beginStatus = PendingPaymentStatusEnum.getBeginState();
-    PendingPaymentStatusDto pendingPayment = paymentDao.setStatusAndHashByAddressAndStatus(
+    PendingPaymentStatusDto pendingPaymentStatusDto = paymentDao.setStatusAndHashByAddressAndStatus(
             address,
             beginStatus.getCode(),
             beginStatus.nextState(BCH_EXAMINE).getCode(),
             txHash)
             .orElseThrow(() -> new InvoiceNotFoundException(address));
-    Integer invoiceId = pendingPayment.getInvoiceId();
+    Integer invoiceId = pendingPaymentStatusDto.getInvoiceId();
+    PendingPayment pendingPayment = paymentDao.findByInvoiceId(invoiceId).orElseThrow(() -> new InvoiceNotFoundException(address));
+    Transaction transaction = pendingPayment.getTransaction();
+    updateFactAmountForPendingPayment(transaction, factAmount);
     changeTransactionConfidenceForPendingPayment(invoiceId, 0);
-    return pendingPayment;
+    return pendingPaymentStatusDto;
   }
   
   @Override
@@ -103,7 +110,10 @@ public class BitcoinTransactionServiceImpl implements BitcoinTransactionService 
     if (action == ACCEPT_AUTO && !hash.equals(pendingPayment.getHash())) {
       throw new InvoiceUnexpectedHashException(String.format("hash stored in invoice: %s actual get from BCH: %s", pendingPayment.getHash(), hash));
     }
-    InvoiceStatus newStatus = pendingPayment.getPendingPaymentStatus().nextState(action);
+    InvoiceStatus newStatus = action == ACCEPT_AUTO ? pendingPayment.getPendingPaymentStatus().nextState(action) :
+            pendingPayment.getPendingPaymentStatus().nextState(action, true,
+                    userService.getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection(pendingPayment.getUserId(),
+                            pendingPayment.getTransaction().getCurrency().getId(), InvoiceOperationDirection.REFILL));
     pendingPayment.setPendingPaymentStatus(newStatus);
     Transaction transaction = pendingPayment.getTransaction();
     if (transaction.getOperationType() != OperationType.INPUT) {
@@ -112,11 +122,7 @@ public class BitcoinTransactionServiceImpl implements BitcoinTransactionService 
     if (transaction.isProvided()) {
       throw new IllegalTransactionProvidedStatusException("for transaction id = " + transaction.getId());
     }
-    BigDecimal amountByInvoice = BigDecimalProcessing.doAction(transaction.getAmount(), transaction.getCommissionAmount(), ActionType.ADD);
-    if (amountByInvoice.compareTo(factAmount) != 0) {
-      transaction.setAmount(factAmount);
-      transactionService.updateTransactionAmount(transaction);
-    }
+    updateFactAmountForPendingPayment(transaction, factAmount);
     WalletOperationData walletOperationData = new WalletOperationData();
     walletOperationData.setOperationType(transaction.getOperationType());
     walletOperationData.setWalletId(transaction.getUserWallet().getId());
@@ -146,6 +152,14 @@ public class BitcoinTransactionServiceImpl implements BitcoinTransactionService 
             "paymentRequest.accepted.message", new Integer[]{pendingPaymentId});
   }
   
+  private void updateFactAmountForPendingPayment(Transaction transaction, BigDecimal factAmount) {
+    BigDecimal amountByInvoice = BigDecimalProcessing.doAction(transaction.getAmount(), transaction.getCommissionAmount(), ActionType.ADD);
+    if (amountByInvoice.compareTo(factAmount) != 0) {
+      transaction.setAmount(factAmount);
+      transactionService.updateTransactionAmount(transaction);
+    }
+  }
+  
   @Override
   public List<PendingPayment> findUnconfirmedBtcPayments() {
     return paymentDao.findAllUnconfirmedPayments();
@@ -155,6 +169,11 @@ public class BitcoinTransactionServiceImpl implements BitcoinTransactionService 
   @Override
   public List<PendingPayment> findUnpaidBtcPayments() {
     return paymentDao.findUnpaidBtcPayments();
+  }
+  
+  @Override
+  public void updatePendingPaymentHash(Integer txId, String hash) {
+    paymentDao.updateBtcHash(txId, hash);
   }
   
 }

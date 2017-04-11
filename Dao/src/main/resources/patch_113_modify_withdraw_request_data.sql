@@ -130,7 +130,7 @@ UPDATE MERCHANT SET service_bean_name='liqpayServiceImpl' WHERE  id=7;
 UPDATE MERCHANT SET service_bean_name='nixMoneyServiceImpl' WHERE  id=8;
 UPDATE MERCHANT SET service_bean_name='privat24ServiceImpl' WHERE  id=9;
 UPDATE MERCHANT SET service_bean_name='interkassaServiceImpl' WHERE  id=10;
-UPDATE MERCHANT SET service_bean_name='edcServiceImpl' WHERE  id=13;
+UPDATE MERCHANT SET service_bean_name='EDCServiceImpl' WHERE  id=13;
 UPDATE MERCHANT SET service_bean_name='okPayServiceImpl' WHERE  id=14;
 UPDATE MERCHANT SET service_bean_name='payeerServiceImpl' WHERE  id=15;
 

@@ -229,7 +229,8 @@ public class WalletDaoImpl implements WalletDao {
             " FROM USER " +
             " JOIN WALLET ON (WALLET.user_id = USER.id)  " +
             " JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
-            " JOIN TRANSACTION ON (TRANSACTION.operation_type_id=1) AND (TRANSACTION.user_wallet_id = WALLET.id) AND (TRANSACTION.confirmation BETWEEN 0 AND 3)  " +
+            " JOIN TRANSACTION ON (TRANSACTION.operation_type_id=1) AND (TRANSACTION.user_wallet_id = WALLET.id) AND (TRANSACTION.confirmation BETWEEN 0 AND 3) " +
+            " JOIN PENDING_PAYMENT ON PENDING_PAYMENT.invoice_id = TRANSACTION.id AND PENDING_PAYMENT.pending_payment_status_id = 6 " +
             " WHERE USER.email =  :email  AND CURRENCY.hidden != 1" + currencyFilterClause +
             " GROUP BY wallet_id, user_id, currency_id, currency_name,  active_balance, reserved_balance, " +
             "          amount_base, amount_convert, commission_fixed_amount, " +
@@ -272,6 +273,7 @@ public class WalletDaoImpl implements WalletDao {
         " SELECT TRANSACTION.amount, TRANSACTION.commission_amount, TRANSACTION.amount+TRANSACTION.commission_amount AS total, TRANSACTION.confirmation " +
             "  FROM WALLET  " +
             "  JOIN TRANSACTION ON (TRANSACTION.operation_type_id=1) AND (TRANSACTION.user_wallet_id = WALLET.id) AND (TRANSACTION.confirmation BETWEEN 0 AND 3) " +
+            "  JOIN PENDING_PAYMENT ON TRANSACTION.id = PENDING_PAYMENT.invoice_id AND PENDING_PAYMENT.pending_payment_status_id = 6" +
             "  WHERE WALLET.id = :wallet_id";
     final Map<String, Object> params = new HashMap<String, Object>() {{
       put("wallet_id", walletId);
@@ -634,7 +636,8 @@ public class WalletDaoImpl implements WalletDao {
         " EXORDERS.id AS order_id, " +
         " EXORDERS.status_id AS order_status_id, " +
         " EXORDERS.amount_base AS amount_base, " +
-        " EXORDERS.amount_convert + commission_fixed_amount AS amount_convert_with_commission, " +
+        " EXORDERS.amount_convert AS amount_convert, " +
+        " EXORDERS.commission_fixed_amount AS commission_fixed_amount, " +
         " WALLET.id AS wallet_id, " +
         " WALLET.active_balance AS active_balance, " +
         " WALLET.reserved_balance AS reserved_balance " +
@@ -651,7 +654,11 @@ public class WalletDaoImpl implements WalletDao {
         WalletsForOrderCancelDto result = new WalletsForOrderCancelDto();
         result.setOrderId(rs.getInt("order_id"));
         result.setOrderStatusId(rs.getInt("order_status_id"));
-        result.setReservedAmount(rs.getBigDecimal(operationType == SELL ? "amount_base" : "amount_convert_with_commission"));
+        BigDecimal reservedAmount = operationType == SELL ? rs.getBigDecimal("amount_base") :
+                BigDecimalProcessing.doAction(rs.getBigDecimal("amount_convert"), rs.getBigDecimal("commission_fixed_amount"),
+                        ActionType.ADD);
+        
+        result.setReservedAmount(reservedAmount);
         result.setWalletId(rs.getInt("wallet_id"));
         result.setActiveBalance(rs.getBigDecimal("active_balance"));
         result.setActiveBalance(rs.getBigDecimal("reserved_balance"));
@@ -669,7 +676,7 @@ public class WalletDaoImpl implements WalletDao {
         "  SELECT  " +
             "    EXORDERS.id AS order_id, " +
             "    EXORDERS.status_id AS order_status_id, " +
-            "    IF (EXORDERS.operation_type_id=3, EXORDERS.amount_base, EXORDERS.amount_convert+EXORDERS.commission_fixed_amount) AS order_creator_reserved_amount, " +
+            "    EXORDERS.operation_type_id, EXORDERS.amount_base, EXORDERS.amount_convert, EXORDERS.commission_fixed_amount," +
             "    ORDER_CREATOR_RESERVED_WALLET.id AS order_creator_reserved_wallet_id,  " +
             "    TRANSACTION.id AS transaction_id,  " +
             "    TRANSACTION.operation_type_id as transaction_type_id,  " +
@@ -698,10 +705,14 @@ public class WalletDaoImpl implements WalletDao {
     return jdbcTemplate.query(sql, namedParameters, new RowMapper<OrderDetailDto>() {
       @Override
       public OrderDetailDto mapRow(ResultSet rs, int rowNum) throws SQLException {
+        Integer operationTypeId = rs.getInt("operation_type_id");
+        BigDecimal orderCreatorReservedAmount = operationTypeId == 3 ? rs.getBigDecimal("amount_base") :
+                BigDecimalProcessing.doAction(rs.getBigDecimal("amount_convert"), rs.getBigDecimal("commission_fixed_amount"),
+                        ActionType.ADD);
         return new OrderDetailDto(
             rs.getInt("order_id"),
             rs.getInt("order_status_id"),
-            rs.getBigDecimal("order_creator_reserved_amount"),
+            orderCreatorReservedAmount,
             rs.getInt("order_creator_reserved_wallet_id"),
             rs.getInt("transaction_id"),
             rs.getInt("transaction_type_id"),

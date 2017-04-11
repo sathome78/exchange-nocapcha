@@ -58,7 +58,7 @@ public interface WithdrawService {
 
   void confirmWithdrawalRequest(int requestId, Integer requesterAdminId);
 
-  void setAllAvailableInPostingStatus() throws Exception;
+  void setAllAvailableInPostingStatus();
 
   List<WithdrawRequestPostDto> dirtyReadForPostByStatusList(InvoiceStatus status);
 }

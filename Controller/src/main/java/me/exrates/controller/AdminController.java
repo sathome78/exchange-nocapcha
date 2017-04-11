@@ -1106,6 +1106,18 @@ public class AdminController {
     return bitcoinWalletService.estimateFee(6);
   }
   
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/actualFee", method = RequestMethod.GET)
+  @ResponseBody
+  public BigDecimal getActualFee() {
+    return bitcoinWalletService.getActualFee();
+  }
+  
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/setFee", method = RequestMethod.POST)
+  @ResponseBody
+  public void setFee(@RequestParam BigDecimal fee) {
+    bitcoinWalletService.setTxFee(fee);
+  }
+  
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/unlock", method = RequestMethod.POST)
   @ResponseBody
   public void submitPassword(@RequestParam String password) {

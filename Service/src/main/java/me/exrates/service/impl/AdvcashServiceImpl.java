@@ -12,6 +12,7 @@ import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
 import me.exrates.service.AdvcashService;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.TransactionService;
+import me.exrates.service.exception.NotImplimentedMethod;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -158,6 +159,6 @@ public class AdvcashServiceImpl implements AdvcashService{
 
     @Override
     public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
-        log.debug("\n======> request for withdraw sent "+ withdrawMerchantOperationDto);
+        throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
     }
 }

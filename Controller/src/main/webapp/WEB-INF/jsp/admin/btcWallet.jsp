@@ -78,15 +78,15 @@
                                     <div id="payments">
                                         <div id="payment_0" class="btcWalletPayment">
                                             <div class="input-block-wrapper">
-                                                <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                                <div class="col-md-4 input-block-wrapper__label-wrapper">
                                                     <label class=" input-block-wrapper__label"><loc:message code="btcWallet.address"/></label>
                                                 </div>
-                                                <div class="col-md-9 input-block-wrapper__input-wrapper">
+                                                <div class="col-md-8 input-block-wrapper__input-wrapper">
                                                     <input id="address_0" name="address" class="input-address input-block-wrapper__input admin-form-input"/>
                                                 </div>
                                             </div>
                                             <div class="input-block-wrapper">
-                                                <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                                <div class="col-md-4 input-block-wrapper__label-wrapper">
                                                     <label class="input-block-wrapper__label"><loc:message code="btcWallet.amount"/></label>
                                                 </div>
                                                 <div class="col-md-5 input-block-wrapper__input-wrapper">
@@ -96,11 +96,22 @@
                                         </div>
                                     </div>
                                     <div id="fee-div" class="input-block-wrapper">
-                                        <div class="col-md-3 input-block-wrapper__label-wrapper">
+                                        <div class="col-md-4 input-block-wrapper__label-wrapper">
                                             <label for="input-fee" class="input-block-wrapper__label pull-right"><loc:message code="btcWallet.fee"/></label>
                                         </div>
-                                        <div class="col-md-3 input-block-wrapper__input-wrapper">
+                                        <div class="col-md-4 input-block-wrapper__input-wrapper">
                                             <input id="input-fee" readonly disabled type="number" class="input-block-wrapper__input admin-form-input"/>
+                                        </div>
+                                    </div>
+                                    <div class="input-block-wrapper">
+                                        <div class="col-md-4 input-block-wrapper__label-wrapper">
+                                            <label for="input-fee-actual" class="input-block-wrapper__label"><loc:message code="btcWallet.actualFee"/></label>
+                                        </div>
+                                        <div class="col-md-4 input-block-wrapper__input-wrapper">
+                                                <input id="input-fee-actual" type="number" step="any" class="input-block-wrapper__input admin-form-input"/>
+                                        </div>
+                                        <div class="col-md-4 input-block-wrapper__input-wrapper">
+                                            <button id="submitChangeFee" class="btn btn-sm btn-primary"><loc:message code="btcWallet.changeFee"/></button>
                                         </div>
                                     </div>
 
@@ -108,7 +119,8 @@
 
 
                             </div>
-                            <div class="input-block-wrapper">
+
+                            <div id="btc-wallet-buttons">
                                 <button id="submit-btc" class="delete-order-info__button blue-box"
                                         type="button"><loc:message code="admin.submit"/></button>
                                 <button id="reset-btc" class="delete-order-info__button blue-box"
@@ -117,6 +129,11 @@
                         </form>
                     </div>
                 </div>
+                    <div hidden>
+                        <form id="tx-fee-form">
+                            <input name="fee" type="number" step="any" class="input-block-wrapper__input admin-form-input"/>
+                        </form>
+                    </div>
                 </sec:authorize>
             </div>
         </div>
