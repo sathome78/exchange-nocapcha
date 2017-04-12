@@ -103,8 +103,8 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-        <RollingFile name="bitcoinj_log" fileName="${sys:catalina.home}/logs/bitcoinj_log.log"
-                     filePattern="${sys:catalina.home}/logs/bitcoinj_log_%d_%i.log" append="true">
+        <RollingFile name="bitcoinj_log" fileName="${sys:catalina.home}/logs/bitcoin/bitcoinj_log.log"
+                     filePattern="${sys:catalina.home}/logs/bitcoin/bitcoinj_log_%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -121,8 +121,8 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-        <RollingFile name="bitcoin_core_log" fileName="${sys:catalina.home}/logs/bitcoin_core_log.log"
-                     filePattern="${sys:catalina.home}/logs/bitcoin_core_log_%d_%i.log" append="true">
+        <RollingFile name="bitcoin_core_log" fileName="${sys:catalina.home}/logs/bitcoin/bitcoin_core_log.log"
+                     filePattern="${sys:catalina.home}/logs/bitcoin/bitcoin_core_log_%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
@@ -130,9 +130,27 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
-        <RollingFile name="withdraw_log" fileName="${sys:catalina.home}/logs/withdraw_log.log"
-                     filePattern="${sys:catalina.home}/logs/withdraw_log%d_%i.log" append="true">
+        <RollingFile name="withdraw_log" fileName="${sys:catalina.home}/logs/withdraw/withdraw_log.log"
+                     filePattern="${sys:catalina.home}/logs/withdraw/withdraw_log%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="withdraw_asp_log" fileName="${sys:catalina.home}/logs/withdraw/withdraw_asp_log.log"
+                     filePattern="${sys:catalina.home}/logs/withdraw/withdraw_asp_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <RollingFile name="withdraw_ext_asp_log" fileName="${sys:catalina.home}/logs/withdraw/withdraw_ext_asp_log.log"
+                     filePattern="${sys:catalina.home}/logs/withdraw/withdraw_ext_asp_log%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
                 <SizeBasedTriggeringPolicy size="20 MB"/>
@@ -150,7 +168,7 @@
         </RollingFile>
         <RollingFile name="exceptions_log" fileName="${sys:catalina.home}/logs/exceptions_log.log"
                      filePattern="${sys:catalina.home}/logs/exceptions_log_%d_%i.log" append="true">
-            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
                 <SizeBasedTriggeringPolicy size="20 MB"/>
@@ -160,7 +178,7 @@
 
         <RollingFile name="exceptions_ext_log" fileName="${sys:catalina.home}/logs/exceptions_ext/exceptions_ext_log.log"
                      filePattern="${sys:catalina.home}/logs/exceptions_ext_log_%d_%i.log" append="true">
-            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level - %message%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy interval="1" modulate="true" />
                 <SizeBasedTriggeringPolicy size="20 MB"/>
@@ -182,7 +200,6 @@
             <AppenderRef ref="Logs"/>
         </logger>
         <logger name="bitcoin_core" level="DEBUG" additivity="false">
-            <AppenderRef ref="Console"/>
             <AppenderRef ref="bitcoin_core_log"/>
         </logger>
         <logger name="org.bitcoinj" level="INFO" additivity="false">
@@ -190,11 +207,9 @@
             <AppenderRef ref="bitcoinj_log"/>
         </logger>
         <logger name="com.neemre.btcdcli4j" level="INFO" additivity="false">
-            <AppenderRef ref="Console"/>
             <AppenderRef ref="bitcoin_core_log"/>
         </logger>
         <logger name="org.apache.http" level="ERROR" additivity="false">
-            <AppenderRef ref="Console"/>
             <AppenderRef ref="bitcoin_core_log"/>
         </logger>
         <logger name="org.springframework" level="ERROR" additivity="false">
@@ -284,12 +299,20 @@
             <AppenderRef ref="Console"/>
             <AppenderRef ref="withdraw_log"/>
         </Logger>
-        <logger name="aop_error_log" level="ALL" additivity="false">
+        <logger name="exceptions_log" level="ALL" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="exceptions_log"/>
         </logger>
-        <logger name="aop_error_log_extended" level="ALL" additivity="false">
+        <logger name="exceptions_ext_log" level="ALL" additivity="false">
             <AppenderRef ref="exceptions_log"/>
+        </logger>
+
+        <logger name="withdraw_log" level="ALL" additivity="false">
+            <AppenderRef ref="withdraw_asp_log"/>
+        </logger>
+
+        <logger name="withdraw_ext_log" level="ALL" additivity="false">
+            <AppenderRef ref="withdraw_ext_asp_log"/>
         </logger>
 
 

@@ -115,7 +115,7 @@ $(function dashdoardInit() {
             syncCurrentParams(newCurrentCurrencyPairName, null, null, null, function (data) {
                 if ($currentPageMenuItem.length) {
                     $currentPageMenuItem.click();
-                    if ($currentSubMenuItem.length) {
+                    if ($currentSubMenuItem && $currentSubMenuItem.length) {
                         $currentSubMenuItem.click();
                     }
                 } else {

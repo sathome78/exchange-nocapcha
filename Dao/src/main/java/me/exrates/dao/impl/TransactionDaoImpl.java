@@ -219,13 +219,13 @@ public final class TransactionDaoImpl implements TransactionDao {
 
   private String PERMISSION_CLAUSE = " JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
       "  (WALLET.user_id=:requester_user_id) OR " +
-      "  (IOP.user_id=:requester_user_id) AND " +
+      "  ((IOP.user_id=:requester_user_id) AND " +
       "  (IOP.currency_id=TRANSACTION.currency_id) AND " +
       "  ( " +
       "  (TRANSACTION.operation_type_id=1 AND IOP.operation_direction='REFILL') OR " +
       "  (TRANSACTION.operation_type_id=2 AND IOP.operation_direction='WITHDRAW') OR " +
       "  (TRANSACTION.operation_type_id=5 AND IOP.operation_direction='WITHDRAW') " +
-      "  ) ";
+      "  )) ";
 
   private static final Map<String, String> TABLE_TO_DB_COLUMN_MAP = new HashMap<String, String>() {{
 
@@ -443,7 +443,8 @@ public final class TransactionDaoImpl implements TransactionDao {
     namedParameters.forEach((name, value) -> {
       LOGGER.debug("params " + name + " " + value);
       if (checkPresent(value)) {
-        stringJoiner.add(SEARCH_CRITERIA.get(name));
+        Optional.ofNullable(SEARCH_CRITERIA.get(name))
+            .ifPresent(expressionForParam->stringJoiner.add(expressionForParam));
       }
     });
     return stringJoiner.toString();

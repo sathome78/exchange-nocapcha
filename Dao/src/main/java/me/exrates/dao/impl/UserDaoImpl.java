@@ -871,5 +871,14 @@ public class UserDaoImpl implements UserDao {
     String sql = "SELECT email FROM USER WHERE id = :id";
     return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("id", id), String.class);
   }
+  
+  @Override
+  public UserRole getUserRoleByEmail(String email) {
+    String sql = "select USER_ROLE.name as role_name from USER " +
+            "inner join USER_ROLE on USER.roleid = USER_ROLE.id where USER.email = :email ";
+    Map<String, String> namedParameters = Collections.singletonMap("email", email);
+    return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, (rs, row) ->
+            UserRole.valueOf(rs.getString("role_name")));
+  }
 
 }

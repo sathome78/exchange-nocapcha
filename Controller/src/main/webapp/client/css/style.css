@@ -2189,3 +2189,9 @@ textarea#remark {
     float: right;
     text-align: center;
 }
+
+#btc-wallet-buttons {
+    display: inline-block;
+    margin-top: 20px;
+    text-align: center;
+}

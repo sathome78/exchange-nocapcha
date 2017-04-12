@@ -1,7 +1,5 @@
 package me.exrates.controller.merchants;
 
-import me.exrates.controller.annotation.FinPassCheck;
-import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.Currency;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.Payment;
@@ -9,32 +7,23 @@ import me.exrates.model.Wallet;
 import me.exrates.model.enums.CurrencyWarningType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.util.BigDecimalProcessing;
-import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.*;
-import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.util.Collections.singletonMap;
 import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.OperationType.OUTPUT;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -56,7 +45,7 @@ public class CommonMerchantsController {
     private UserService userService;
 
     @Autowired
-    private MessageSource source;
+    private MessageSource messageSource;
 
     @Autowired
     WithdrawService withdrawService;
@@ -77,7 +66,7 @@ public class CommonMerchantsController {
 
         final List<Integer> currenciesId = Collections.singletonList(currencyId);
         modelAndView.addObject("merchantCurrencyData",merchantService.findAllByCurrencies(currenciesId, OperationType.INPUT));
-        modelAndView.addObject("minAmount", currencyService.retrieveMinLimitForRoleAndCurrency(userService.getCurrentUserRole(), INPUT, currencyId));
+        modelAndView.addObject("minAmount", currencyService.retrieveMinLimitForRoleAndCurrency(userService.getUserRoleFromSecurityContext(), INPUT, currencyId));
         
         //TODO refactor for a single method call
         Optional<String> warningCodeSingleAddress = currencyService.getWarningForCurrency(currencyId, CurrencyWarningType.SINGLE_ADDRESS);
@@ -95,7 +84,7 @@ public class CommonMerchantsController {
         final Wallet wallet = walletService.findByUserAndCurrency(userService.findByEmail(principal.getName()), currency);
         final Payment payment = new Payment();
         payment.setOperationType(OUTPUT);
-        final BigDecimal minWithdrawSum = currencyService.retrieveMinLimitForRoleAndCurrency(userService.getCurrentUserRole(), OUTPUT, currency.getId());
+        final BigDecimal minWithdrawSum = currencyService.retrieveMinLimitForRoleAndCurrency(userService.getUserRoleFromSecurityContext(), OUTPUT, currency.getId());
 
         modelAndView.addObject("currency",currency);
 

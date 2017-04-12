@@ -28,6 +28,10 @@ public interface BitcoinWalletService {
   
   BigDecimal estimateFee(int blockCount);
   
+  BigDecimal getActualFee();
+  
+  void setTxFee(BigDecimal fee);
+  
   void submitWalletPassword(String password);
   
   String sendToAddress(String address, BigDecimal amount);

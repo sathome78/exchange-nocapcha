@@ -27,7 +27,6 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.math.BigDecimal.ROUND_HALF_UP;
@@ -258,7 +257,7 @@ public final class WalletServiceImpl implements WalletService {
     walletOperationData.setBalanceType(WalletOperationData.BalanceType.ACTIVE);
     walletOperationData.setOperationType(operationType);
     walletOperationData.setSourceId(sourceId);
-    Commission commission = commissionService.findCommissionByTypeAndRole(operationType, userService.getCurrentUserRole());
+    Commission commission = commissionService.findCommissionByTypeAndRole(operationType, userService.getUserRoleFromSecurityContext());
     walletOperationData.setCommission(commission);
     BigDecimal commissionAmount = specialCommissionAmount == null ?
         BigDecimalProcessing.doAction(amount, commission.getValue(), ActionType.MULTIPLY_PERCENT) : specialCommissionAmount;
@@ -286,7 +285,7 @@ public final class WalletServiceImpl implements WalletService {
     }
     Wallet fromUserWallet = walletDao.findById(fromUserWalletId);
     Integer currencyId = fromUserWallet.getCurrencyId();
-    Commission commission = commissionService.findCommissionByTypeAndRole(OperationType.USER_TRANSFER, userService.getCurrentUserRole());
+    Commission commission = commissionService.findCommissionByTypeAndRole(OperationType.USER_TRANSFER, userService.getUserRoleFromSecurityContext());
     BigDecimal commissionAmount = BigDecimalProcessing.doAction(amount, commission.getValue(), ActionType.MULTIPLY_PERCENT);
     BigDecimal totalAmount = amount.add(commissionAmount);
     if (totalAmount.compareTo(fromUserWallet.getActiveBalance()) > 0) {

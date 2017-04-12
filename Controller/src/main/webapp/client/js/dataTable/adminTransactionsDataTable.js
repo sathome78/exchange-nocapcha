@@ -75,10 +75,22 @@ $(function () {
                     "data": "currency"
                 },
                 {
-                    "data": "amount"
+                    "data": "amount",
+                    "render": function (data, type, row) {
+                        if (type == 'display') {
+                            return numeral(data).format('0.00[000000]');
+                        }
+                        return data;
+                    }
                 },
                 {
-                    "data": "commissionAmount"
+                    "data": "commissionAmount",
+                    "render": function (data, type, row) {
+                        if (type == 'display') {
+                            return numeral(data).format('0.00[000000]');
+                        }
+                        return data;
+                    }
                 },
                 {
                     "data": "merchant.description"

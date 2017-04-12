@@ -229,7 +229,8 @@ public class WalletDaoImpl implements WalletDao {
             " FROM USER " +
             " JOIN WALLET ON (WALLET.user_id = USER.id)  " +
             " JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id) " +
-            " JOIN TRANSACTION ON (TRANSACTION.operation_type_id=1) AND (TRANSACTION.user_wallet_id = WALLET.id) AND (TRANSACTION.confirmation BETWEEN 0 AND 3)  " +
+            " JOIN TRANSACTION ON (TRANSACTION.operation_type_id=1) AND (TRANSACTION.user_wallet_id = WALLET.id) AND (TRANSACTION.confirmation BETWEEN 0 AND 3) " +
+            " JOIN PENDING_PAYMENT ON PENDING_PAYMENT.invoice_id = TRANSACTION.id AND PENDING_PAYMENT.pending_payment_status_id = 6 " +
             " WHERE USER.email =  :email  AND CURRENCY.hidden != 1" + currencyFilterClause +
             " GROUP BY wallet_id, user_id, currency_id, currency_name,  active_balance, reserved_balance, " +
             "          amount_base, amount_convert, commission_fixed_amount, " +
@@ -272,6 +273,7 @@ public class WalletDaoImpl implements WalletDao {
         " SELECT TRANSACTION.amount, TRANSACTION.commission_amount, TRANSACTION.amount+TRANSACTION.commission_amount AS total, TRANSACTION.confirmation " +
             "  FROM WALLET  " +
             "  JOIN TRANSACTION ON (TRANSACTION.operation_type_id=1) AND (TRANSACTION.user_wallet_id = WALLET.id) AND (TRANSACTION.confirmation BETWEEN 0 AND 3) " +
+            "  JOIN PENDING_PAYMENT ON TRANSACTION.id = PENDING_PAYMENT.invoice_id AND PENDING_PAYMENT.pending_payment_status_id = 6" +
             "  WHERE WALLET.id = :wallet_id";
     final Map<String, Object> params = new HashMap<String, Object>() {{
       put("wallet_id", walletId);

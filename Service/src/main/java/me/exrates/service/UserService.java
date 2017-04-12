@@ -156,12 +156,13 @@ public interface UserService {
 
   List<String> findNicknamesByPart(String part);
 
-  UserRole getCurrentUserRole();
+  UserRole getUserRoleFromSecurityContext();
 
   void setCurrencyPermissionsByUserId(List<UserCurrencyOperationPermissionDto> userCurrencyOperationPermissionDtoList);
 
   InvoiceOperationPermission getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection(Integer userId, Integer currencyId, InvoiceOperationDirection invoiceOperationDirection);
 
   String getEmailById(Integer id);
-
+  
+  UserRole getUserRoleFromDB(String email);
 }

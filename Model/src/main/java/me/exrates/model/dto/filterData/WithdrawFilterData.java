@@ -31,9 +31,6 @@ public class WithdrawFilterData extends TableFilterData {
     private String fullName;
     private String email;
 
-
-
-
     @Override
     public void initFilterItems() {
         FilterDataItem[] items = new FilterDataItem[] {
@@ -44,8 +41,8 @@ public class WithdrawFilterData extends TableFilterData {
                 new FilterDataItem("end_date", "WITHDRAW_REQUEST.date_creation <=", endDate, DATE_FORMAT),
                 new FilterDataItem("amount_from", "WITHDRAW_REQUEST.amount >=", amountFrom),
                 new FilterDataItem("amount_to", "WITHDRAW_REQUEST.amount <=", amountTo),
-                new FilterDataItem("commission_amount_from", "WITHDRAW_REQUEST.commission_amount >=", commissionAmountFrom),
-                new FilterDataItem("commission_amount_to", "WITHDRAW_REQUEST.commission_amount <=", commissionAmountTo),
+                new FilterDataItem("commission_amount_from", "WITHDRAW_REQUEST.commission >=", commissionAmountFrom),
+                new FilterDataItem("commission_amount_to", "WITHDRAW_REQUEST.commission <=", commissionAmountTo),
                 new FilterDataItem("wallet", "WITHDRAW_REQUEST.wallet LIKE", wallet, LIKE_FORMAT_MIDDLE),
                 new FilterDataItem("recipient_bank", "WITHDRAW_REQUEST.recipient_bank_name LIKE", recipientBank, LIKE_FORMAT_MIDDLE),
                 new FilterDataItem("full_name", "WITHDRAW_REQUEST.user_full_name LIKE", fullName, LIKE_FORMAT_MIDDLE),

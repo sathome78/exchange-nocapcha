@@ -6,6 +6,7 @@ import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.InterkassaService;
 import me.exrates.service.TransactionService;
+import me.exrates.service.exception.NotImplimentedMethod;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -111,6 +112,6 @@ public class InterkassaServiceImpl implements InterkassaService {
 
     @Override
     public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
-        LOG.debug("\n======> request for withdraw sent "+ withdrawMerchantOperationDto);
+        throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
     }
 }

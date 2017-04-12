@@ -26,7 +26,7 @@
                     <input id="currencyId" name="currencyId" hidden="true" value="${currency.id}" />
                     <input id="currencyName" name="currencyName" hidden="true" value="${currency.name}" />
                     <input style="float: left; width: auto"  class="form-control input-block-wrapper__input"
-                           id="currencyFull" readonly="true" value="${currency.name} ${wallet.activeBalance}" />
+                           id="currencyFull" readonly="true" value="${currency.name} ${balance}" />
                 </div>
 
             </div>
