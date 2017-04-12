@@ -45,3 +45,20 @@ function blink_green($element) {
         $element.removeClass('blink_green');
     }, 250);
 }
+
+function getButtonsSet(id, sourceType, buttonDataList, tableIdFor) {
+    var buttonsSet = '';
+    buttonDataList.forEach(function (e) {
+        if (e.tableIdListOnly.indexOf(tableIdFor) > -1
+        ) {
+            buttonsSet = buttonsSet +
+                '<button data-id = ' + id +
+                '        data-source = ' + sourceType +
+                '        style="font-size: 1.1rem;" ' +
+                '        class="action-button table-button-block__button btn ' + e.buttonId + '">' +
+                e.buttonTitle +
+                '</button>&nbsp;';
+        }
+    });
+    return buttonsSet;
+}

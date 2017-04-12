@@ -1,21 +1,21 @@
 package me.exrates.service.impl;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.WalletDao;
 import me.exrates.model.*;
-import me.exrates.model.dto.MyWalletConfirmationDetailDto;
-import me.exrates.model.dto.UserWalletSummaryDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
 import me.exrates.model.enums.*;
+import me.exrates.model.enums.invoice.InvoiceStatus;
+import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.util.Cache;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
@@ -27,18 +27,17 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.math.BigDecimal.ROUND_HALF_UP;
 import static java.math.BigDecimal.ZERO;
 
+@Log4j2
 @Service
 @Transactional
 public final class WalletServiceImpl implements WalletService {
 
   private static final int decimalPlaces = 9;
-  private static final Logger LOGGER = LogManager.getLogger(WalletServiceImpl.class);
 
   @Autowired
   private WalletDao walletDao;
@@ -76,7 +75,8 @@ public final class WalletServiceImpl implements WalletService {
   @Override
   public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(CacheData cacheData,
                                                                  String email, Locale locale) {
-    List<MyWalletsDetailedDto> result = walletDao.getAllWalletsForUserDetailed(email, locale);
+    List<Integer> withdrawStatusIdForWhichMoneyIsReserved = WithdrawStatusEnum.getEndStatesSet().stream().map(InvoiceStatus::getCode).collect(Collectors.toList());
+    List<MyWalletsDetailedDto> result = walletDao.getAllWalletsForUserDetailed(email, withdrawStatusIdForWhichMoneyIsReserved, locale);
     if (Cache.checkCache(cacheData, result)) {
       result = new ArrayList<MyWalletsDetailedDto>() {{
         add(new MyWalletsDetailedDto(false));
@@ -183,14 +183,15 @@ public final class WalletServiceImpl implements WalletService {
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public List<UserWalletSummaryDto> getUsersWalletsSummary(List<Integer> roles) {
-    return walletDao.getUsersWalletsSummary(roles);
+  @Transactional
+  public WalletTransferStatus walletInnerTransfer(int walletId, BigDecimal amount, TransactionSourceType sourceType, int sourceId) {
+    return walletInnerTransfer(walletId, amount, sourceType, sourceId, null);
   }
 
   @Override
-  public WalletTransferStatus walletInnerTransfer(int walletId, BigDecimal amount, TransactionSourceType sourceType, int sourceId) {
-    return walletDao.walletInnerTransfer(walletId, amount, sourceType, sourceId);
+  @Transactional
+  public WalletTransferStatus walletInnerTransfer(int walletId, BigDecimal amount, TransactionSourceType sourceType, int sourceId, String description) {
+    return walletDao.walletInnerTransfer(walletId, amount, sourceType, sourceId, description);
   }
 
   @Override
@@ -218,7 +219,8 @@ public final class WalletServiceImpl implements WalletService {
   @Transactional(readOnly = true)
   @Override
   public List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> currencyIds, Locale locale) {
-    return walletDao.getAllWalletsForUserDetailed(email, currencyIds, locale);
+    List<Integer> withdrawStatusIdForWhichMoneyIsReserved = WithdrawStatusEnum.getEndStatesSet().stream().map(InvoiceStatus::getCode).collect(Collectors.toList());
+    return walletDao.getAllWalletsForUserDetailed(email, currencyIds, withdrawStatusIdForWhichMoneyIsReserved, locale);
   }
 
   @Transactional(readOnly = true)
@@ -255,7 +257,7 @@ public final class WalletServiceImpl implements WalletService {
     walletOperationData.setBalanceType(WalletOperationData.BalanceType.ACTIVE);
     walletOperationData.setOperationType(operationType);
     walletOperationData.setSourceId(sourceId);
-    Commission commission = commissionService.findCommissionByTypeAndRole(operationType, userService.getCurrentUserRole());
+    Commission commission = commissionService.findCommissionByTypeAndRole(operationType, userService.getUserRoleFromSecurityContext());
     walletOperationData.setCommission(commission);
     BigDecimal commissionAmount = specialCommissionAmount == null ?
         BigDecimalProcessing.doAction(amount, commission.getValue(), ActionType.MULTIPLY_PERCENT) : specialCommissionAmount;
@@ -272,17 +274,18 @@ public final class WalletServiceImpl implements WalletService {
     }
   }
 
+  /**@param checkOnly = true - used to check transfer params but not perform transfer
+   * */
   @Override
   @Transactional(rollbackFor = Exception.class)
-  public String transferCostsToUser(Integer fromUserWalletId, String toUserNickname, BigDecimal amount, Locale locale) {
+  public String transferCostsToUser(Integer fromUserWalletId, String toUserNickname, BigDecimal amount,
+                                    Locale locale, boolean checkOnly) {
     if (amount.signum() <= 0) {
       throw new InvalidAmountException(messageSource.getMessage("transfer.negativeAmount", null, locale));
     }
-
-
     Wallet fromUserWallet = walletDao.findById(fromUserWalletId);
     Integer currencyId = fromUserWallet.getCurrencyId();
-    Commission commission = commissionService.findCommissionByTypeAndRole(OperationType.USER_TRANSFER, userService.getCurrentUserRole());
+    Commission commission = commissionService.findCommissionByTypeAndRole(OperationType.USER_TRANSFER, userService.getUserRoleFromSecurityContext());
     BigDecimal commissionAmount = BigDecimalProcessing.doAction(amount, commission.getValue(), ActionType.MULTIPLY_PERCENT);
     BigDecimal totalAmount = amount.add(commissionAmount);
     if (totalAmount.compareTo(fromUserWallet.getActiveBalance()) > 0) {
@@ -297,30 +300,24 @@ public final class WalletServiceImpl implements WalletService {
     if (toUserWallet == null) {
       throw new WalletNotFoundException(messageSource.getMessage("transfer.walletNotFound", null, locale));
     }
-    UserTransfer userTransfer = userTransferService.createUserTransfer(fromUserWallet.getUser().getId(), toUserWallet.getUser().getId(),
-            currencyId, amount, commissionAmount);
-    changeWalletActiveBalance(totalAmount, fromUserWallet, OperationType.OUTPUT,
-        TransactionSourceType.USER_TRANSFER, commissionAmount, userTransfer.getId());
-    changeWalletActiveBalance(amount, toUserWallet, OperationType.INPUT,
-        TransactionSourceType.USER_TRANSFER, BigDecimal.ZERO, userTransfer.getId());
-    String currencyName = currencyService.getCurrencyName(currencyId);
-    String notyAmount = amount.setScale(decimalPlaces, RoundingMode.HALF_UP).stripTrailingZeros().toPlainString();
-    String result = messageSource.getMessage("transfer.successful", new Object[]{notyAmount, currencyName, toUserNickname},
-        locale);
-    notificationService.notifyUser(fromUserWallet.getUser().getId(), NotificationEvent.IN_OUT, "wallets.transferTitle",
-        "transfer.successful", new Object[]{notyAmount, currencyName, toUserNickname});
-    notificationService.notifyUser(toUserWallet.getUser().getId(), NotificationEvent.IN_OUT, "wallets.transferTitle",
-        "transfer.received", new Object[]{notyAmount, currencyName});
+    String result = "";
+    if (!checkOnly) {/*Don't remove it !!!! This is need for only check transfer data without payment proceed*/
+      UserTransfer userTransfer = userTransferService.createUserTransfer(fromUserWallet.getUser().getId(), toUserWallet.getUser().getId(),
+              currencyId, amount, commissionAmount);
+      changeWalletActiveBalance(totalAmount, fromUserWallet, OperationType.OUTPUT,
+              TransactionSourceType.USER_TRANSFER, commissionAmount, userTransfer.getId());
+      changeWalletActiveBalance(amount, toUserWallet, OperationType.INPUT,
+              TransactionSourceType.USER_TRANSFER, BigDecimal.ZERO, userTransfer.getId());
+      String currencyName = currencyService.getCurrencyName(currencyId);
+      String notyAmount = amount.setScale(decimalPlaces, RoundingMode.HALF_UP).stripTrailingZeros().toPlainString();
+      result = messageSource.getMessage("transfer.successful", new Object[]{notyAmount, currencyName, toUserNickname},
+              locale);
+      notificationService.notifyUser(fromUserWallet.getUser().getId(), NotificationEvent.IN_OUT, "wallets.transferTitle",
+              "transfer.successful", new Object[]{notyAmount, currencyName, toUserNickname});
+      notificationService.notifyUser(toUserWallet.getUser().getId(), NotificationEvent.IN_OUT, "wallets.transferTitle",
+              "transfer.received", new Object[]{notyAmount, currencyName});
+    }
     return result;
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<UserWalletSummaryDto> getUsersWalletsSummaryForPermittedCurrencyListOld(List<Integer> roles, Integer requesterUserId) {
-    Set<String> permittedCurrencies = currencyService.getCurrencyPermittedNameList(requesterUserId);
-    return walletDao.getUsersWalletsSummary(roles).stream()
-        .filter(e -> permittedCurrencies.contains(e.getCurrencyName()))
-        .collect(Collectors.toList());
   }
 
   @Override
@@ -329,5 +326,21 @@ public final class WalletServiceImpl implements WalletService {
     return walletDao.getUsersWalletsSummaryNew(requesterUserId);
   }
 
+  @Override
+  @Transactional
+  public List<OrderDetailDto> getOrderRelatedDataAndBlock(int orderId) {
+    return walletDao.getOrderRelatedDataAndBlock(orderId);
+  }
 
+  @Override
+  @Transactional
+  public WalletsForOrderAcceptionDto getWalletsForOrderByOrderIdAndBlock(Integer orderId, Integer userAcceptorId) {
+    return walletDao.getWalletsForOrderByOrderIdAndBlock(orderId, userAcceptorId);
+  }
+
+  @Override
+  @Transactional
+  public WalletsForOrderCancelDto getWalletForOrderByOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType) {
+    return walletDao.getWalletForOrderByOrderIdAndOperationTypeAndBlock(orderId, operationType);
+  }
 }

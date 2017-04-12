@@ -1,12 +1,10 @@
 package me.exrates.controller;
 
-import me.exrates.controller.annotation.OnlineMethod;
+import me.exrates.security.annotation.OnlineMethod;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.onlineTableDto.*;
 import me.exrates.model.enums.*;
-import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
-import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
 import me.exrates.service.*;
@@ -15,7 +13,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.util.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
@@ -30,7 +30,7 @@ import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static me.exrates.model.enums.invoice.PendingPaymentStatusEnum.ON_BCH_EXAM;
+import static org.apache.commons.lang3.time.DateUtils.MILLIS_PER_MINUTE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 /**
@@ -47,18 +47,18 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
  *
  * @author ValkSam
  */
-
+@PropertySource("classpath:session.properties")
 @RestController
 public class OnlineRestController {
   private static final Logger LOGGER = LogManager.getLogger(OnlineRestController.class);
   /* if SESSION_LIFETIME_HARD set, session will be killed after time expired, regardless of activity the session
   set SESSION_LIFETIME_HARD = 0 to ignore it*/
-  public static final long SESSION_LIFETIME_HARD = Math.round(90 * 60); //SECONDS
+ /* public static final long SESSION_LIFETIME_HARD = Math.round(90 * 60); //SECONDS*/
   /* if SESSION_LIFETIME_INACTIVE set, session will be killed if it is inactive during the time
   * set SESSION_LIFETIME_INACTIVE = 0 to ignore it and session lifetime will be set to default value (30 mins)
   * The time of end the current session is stored in session param "sessionEndTime", which calculated in millisec as
   * new Date().getTime() + SESSION_LIFETIME_HARD * 1000*/
-  public static final int SESSION_LIFETIME_INACTIVE = 0; //SECONDS
+  /*public static final int SESSION_LIFETIME_INACTIVE = 0; //SECONDS*/
   /*default depth the interval for chart*/
   final public static BackDealInterval BACK_DEAL_INTERVAL_DEFAULT = new BackDealInterval("24 HOUR");
   /*depth the accepted order history*/
@@ -70,6 +70,10 @@ public class OnlineRestController {
   /*default type of the chart*/
   final public static ChartType CHART_TYPE_DEFAULT = ChartType.STOCK;
   /*it's need to install only one: SESSION_LIFETIME_HARD or SESSION_LIFETIME_INACTIVE*/
+
+  private @Value("${session.timeParamName}") String sessionTimeMinutes;
+  private @Value("${session.lastRequestParamName}") String sessionLastRequestParamName;
+
   @Autowired
   CommissionService commissionService;
 
@@ -106,9 +110,12 @@ public class OnlineRestController {
   @Autowired
   LocaleResolver localeResolver;
 
+  @Autowired
+  WithdrawService withdrawService;
+
   @RequestMapping(value = "/dashboard/commission/{type}", method = RequestMethod.GET)
   public BigDecimal getCommissions(@PathVariable("type") String type) {
-    UserRole userRole = userService.getCurrentUserRole();
+    UserRole userRole = userService.getUserRoleFromSecurityContext();
     try {
       switch (type) {
         case "sell":
@@ -177,10 +184,10 @@ public class OnlineRestController {
   @RequestMapping(value = "/dashboard/currencyPairStatistic", method = RequestMethod.GET)
   public Map<String, ?> getCurrencyPairStatisticsForAllCurrencies(
       @RequestParam(required = false) Boolean refreshIfNeeded,
-      HttpServletRequest request) throws IOException {
+      HttpServletRequest request, Principal principal) throws IOException {
     try {
       HttpSession session = request.getSession(true);
-      if (session.getAttribute("sessionEndTime") == null) {
+     /* if (session.getAttribute("sessionEndTime") == null) {
         session.setAttribute("sessionEndTime", new Date().getTime() + SESSION_LIFETIME_HARD * 1000);
       }
       String s = "";
@@ -201,13 +208,13 @@ public class OnlineRestController {
         }
         session = request.getSession(true);
         LOGGER.debug(" SESSION_LIFETIME_HARD. NEW SESSION STARTED: " + session.getId() + " by time: " + st + " new time: " + session.getAttribute("sessionEndTime"));
-      }
-      if (session.isNew() || session.getAttribute("firstEntry") == null) {
-            /*
+      }*/
+     /* if (session.isNew() || session.getAttribute("firstEntry") == null) {
+
             "session.isNew() == true" indicates that "/dashboard/currencyPairStatistic" is called first after previous
             session has expired, and opened new session (by calling request.getSession(true))
             "firstEntry" == null indicates that new session was started by other online method
-            * and "/dashboard/currencyPairStatistic" ought to start new session and redirect to "/dashboard"*/
+            * and "/dashboard/currencyPairStatistic" ought to start new session and redirect to "/dashboard"
         session.setAttribute("sessionEndTime", new Date().getTime() + SESSION_LIFETIME_HARD * 1000);
         LOGGER.debug(" REDIRECT to /dashboard. SESSION: " + session.getId() + " is new: " + session.isNew() + " firstEntry: " + session.getAttribute("firstEntry"));
         return new HashMap<String, HashMap<String, String>>() {{
@@ -216,12 +223,10 @@ public class OnlineRestController {
             put("urlParam1", messageSource.getMessage("session.expire", null, localeResolver.resolveLocale(request)));
           }});
         }};
-      }
+      }*/
       if (session.getAttribute("QR_LOGGED_IN") != null) {
-            /*
-            after authentication via QR main page must be reloaded*/
+            /*after authentication via QR main page must be reloaded*/
         session.removeAttribute("QR_LOGGED_IN");
-        session.setAttribute("sessionEndTime", new Date().getTime() + SESSION_LIFETIME_HARD * 1000);
         LOGGER.debug(" REDIRECT to /dashboard. SESSION: " + session.getId() + " is new: " + session.isNew() + " firstEntry: " + session.getAttribute("firstEntry"));
         return new HashMap<String, HashMap<String, String>>() {{
           put("redirect", new HashMap<String, String>() {{
@@ -230,7 +235,19 @@ public class OnlineRestController {
           }});
         }};
       }
-        /**/
+      if (principal != null && isSessionTimeOut(session)) {
+        try {
+          request.logout();
+        } catch (ServletException e) {
+          e.printStackTrace();
+        }
+        return new HashMap<String, HashMap<String, String>>() {{
+          put("redirect", new HashMap<String, String>() {{
+            put("url", "/dashboard");
+            put("urlParam1", messageSource.getMessage("session.expire", null, localeResolver.resolveLocale(request)));
+          }});
+        }};
+      }
       String cacheKey = "currencyPairStatistic" + request.getHeader("windowid");
       refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
       CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
@@ -242,6 +259,15 @@ public class OnlineRestController {
       throw e;
     } finally {
     }
+  }
+
+  private boolean isSessionTimeOut(HttpSession session) {
+    Integer sessionLifeTime = (int)session.getAttribute(sessionTimeMinutes);
+    long lastReq = (long)session.getAttribute(sessionLastRequestParamName);
+    LOGGER.error("last accTime " + lastReq +
+            " lifetime " + sessionLifeTime +
+            " system " + System.currentTimeMillis());
+    return lastReq + sessionLifeTime * MILLIS_PER_MINUTE <= System.currentTimeMillis();
   }
 
   /**
@@ -263,9 +289,9 @@ public class OnlineRestController {
     HttpSession session = request.getSession();
     session.setAttribute("firstEntry", true);
     LOGGER.debug(" SESSION: " + session.getId() + " firstEntry: " + session.getAttribute("firstEntry"));
-    if (SESSION_LIFETIME_INACTIVE != 0) {
+   /* if (SESSION_LIFETIME_INACTIVE != 0) {
       session.setMaxInactiveInterval(SESSION_LIFETIME_INACTIVE);
-    }
+    }*/
   }
 
   /**
@@ -788,41 +814,12 @@ public class OnlineRestController {
     String cacheKey = "myInputoutputData" + tableId + request.getHeader("windowid");
     refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
     CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
-    List<MyInputOutputHistoryDto> result = merchantService.getMyInputOutputHistory(cacheData, email, tableParams.getOffset(), tableParams.getLimit(), localeResolver.resolveLocale(request));
+    List<MyInputOutputHistoryDto> result = withdrawService.getMyInputOutputHistory(cacheData, email, tableParams.getOffset(), tableParams.getLimit(), localeResolver.resolveLocale(request));
     if (!result.isEmpty()) {
       result.get(0).setPage(tableParams.getPageNumber());
-      if (result.get(0).isNeedRefresh()) {
-        result.forEach(e -> e.setSummaryStatus(
-            generateAndGetSummaryStatus(e, localeResolver.resolveLocale(request))
-        ));
-      }
     }
     tableParams.updateEofState(result);
     return result;
-  }
-
-  private String generateAndGetSummaryStatus(MyInputOutputHistoryDto row, Locale locale) {
-    switch (TransactionSourceType.convert(row.getSourceType())) {
-      case INVOICE: {
-        return messageSource.getMessage("merchants.invoice.".concat(InvoiceRequestStatusEnum.convert(row.getInvoiceRequestStatusId()).name()), null, locale);
-      }
-      case WITHDRAW: {
-        return messageSource.getMessage("merchants.withdraw.".concat(WithdrawalRequestStatus.convert(row.getInvoiceRequestStatusId()).name().toLowerCase()), null, locale);
-      }
-      case BTC_INVOICE: {
-        PendingPaymentStatusEnum status = PendingPaymentStatusEnum.convert(row.getInvoiceRequestStatusId());
-        if (status == ON_BCH_EXAM) {
-          String confirmations = row.getConfirmation() == null ? "0" : row.getConfirmation().toString();
-          String message = confirmations.concat("/").concat(String.valueOf(BitcoinService.CONFIRMATION_NEEDED_COUNT));
-          return message;
-        } else {
-          return messageSource.getMessage("merchants.invoice.".concat(PendingPaymentStatusEnum.convert(row.getInvoiceRequestStatusId()).name()), null, locale);
-        }
-      }
-      default: {
-        return row.getTransactionProvided();
-      }
-    }
   }
 
   /**

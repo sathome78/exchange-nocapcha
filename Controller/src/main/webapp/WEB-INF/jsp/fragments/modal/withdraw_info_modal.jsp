@@ -34,8 +34,12 @@
                             <td id="info-bankRecipient"></td>
                         </tr>
                         <tr>
-                            <td><loc:message code="withdrawal.acceptanceDatetime"/></td>
-                            <td id="info-acceptance"></td>
+                            <td><loc:message code="withdrawal.status"/></td>
+                            <td id="info-status"></td>
+                        </tr>
+                        <tr>
+                            <td><loc:message code="withdrawal.statusModificationDate"/></td>
+                            <td id="info-status-date"></td>
                         </tr>
                         <tr>
                             <td><loc:message code="merchants.withdrawDetails.recipientAccount"/></td>

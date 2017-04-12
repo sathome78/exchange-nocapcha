@@ -22,6 +22,7 @@
 
         <%@include file="../fragments/modal/btc_invoice_revoke_modal.jsp" %>
         <%@include file="../fragments/modal/btc_invoice_info_modal.jsp" %>
+        <%@include file="../fragments/modal/confirm_with_info_modal.jsp" %>
 </div>
 
 

@@ -11,5 +11,9 @@
         <%@include file="settings-center-notifications.jsp" %>
     </c:if>
     <hr/>
+    <c:if test="${sectionid == null || sectionid.equals('session-options')}">
+        <%@include file="settings-center-session.jsp" %>
+    </c:if>
+    <hr/>
 </div>
 

@@ -1,88 +1,33 @@
-
-
 <tbody>
 <tr>
-    <th class="col-2 center blue-white"><loc:message code="inputoutput.datetime"/></th>
-    <th class="col-1 center blue-white"><loc:message code="inputoutput.currency"/></th>
-    <th class="col-08 right blue-white"><loc:message code="inputoutput.amount"/></th>
-    <th class="col-06 right blue-white"><loc:message code="inputoutput.commissionAmount"/></th>
-    <th class="col-1 center blue-white"><loc:message code="inputoutput.merchant"/></th>
-    <th class="col-1 right blue-white"><loc:message code="inputoutput.operationtype"/></th>
-    <th class="col-2 center blue-white"><loc:message code="inputoutput.order"/></th>
-    <th class="col-2 center blue-white"><loc:message code="inputoutput.status"/></th>
-    <th class="col-3 center blue-white"></th>
+  <th class="col-2 center blue-white"><loc:message code="inputoutput.datetime"/></th>
+  <th class="col-1 center blue-white"><loc:message code="inputoutput.currency"/></th>
+  <th class="col-08 right blue-white"><loc:message code="inputoutput.amount"/></th>
+  <th class="col-06 right blue-white"><loc:message code="inputoutput.commissionAmount"/></th>
+  <th class="col-1 center blue-white"><loc:message code="inputoutput.merchant"/></th>
+  <th class="col-1 right blue-white"><loc:message code="inputoutput.operationtype"/></th>
+  <th class="col-2 center blue-white"><loc:message code="inputoutput.order"/></th>
+  <th class="col-2 center blue-white"><loc:message code="inputoutput.status"/></th>
+  <th class="col-3 center blue-white"></th>
 </tr>
 <script type="text/template" id="${table_row_id}">
-    <tr>
-        <td class="center blue-white"><@=datetime@></td>
-        <td class="center"><@=currencyName@></td>
-        <td class="right"><@=amount@></td>
-        <td class="right"><@=commissionAmount@></td>
-        <td class="center"><@=merchantName@></td>
-        <td class="right"><@=operationType@></td>
-        <td class="center"><@=transactionId@></td>
-        <td class="center"><@=summaryStatus@></td>
-        <td class="center table-button-block" style="text-align: right;">
-            <form id = "inputoutput-center-tableBody__form" class="table-button-block__form" action="<c:url value="/merchants/invoice/payment/confirmation"/>">
-                <input type="text" hidden value=<@=transactionId@>  name="transactionId" >
-                <input type="text" hidden value="" name="action" >
-                <input type="text" hidden value="" name="sourceType" >
-            <@=(function() {
-                const CREATED_USER = 1;
-                const DECLINED_ADMIN = 5;
-                var buttonsSet = '';
-                if (confirmationRequired) {
-                  if (invoiceRequestStatusId == CREATED_USER){
-                    buttonsSet = buttonsSet +
-                      '<button type="submit" style="font-size: 1.1rem;" class="wallet-mystatement-button table-button-block__button btn btn-primary">
-                          <loc:message code="merchants.invoice.confirm" />
-                      </button>&nbsp;';
-                  } else if (invoiceRequestStatusId == DECLINED_ADMIN){
-                    buttonsSet = buttonsSet +
-                      '<button type="submit" style="font-size: 1.1rem;" class="wallet-mystatement-button table-button-block__button btn btn-primary">
-                          <loc:message code="merchants.invoice.confirm" />
-                      </button>&nbsp;';
-                  } else {
-                    console.log("illegal invoiceRequestStatusId: "+invoiceRequestStatusId);
-                    buttonsSet = buttonsSet +'<span>ERROR</span>';
-                  }
-                }
-                if (mayBeRevoked) {
-                  <%--onclick: InputOutputClass.init--%>
-                  if (sourceType === 'INVOICE') {
-                    buttonsSet = buttonsSet +
-                      '<button id="revokeInvoiceButton" type="button" style="font-size: 1.1rem;" class="wallet-mystatement-button table-button-block__button btn btn-danger">
-                        <loc:message code="merchants.invoice.revoke" />
-                      </button>&nbsp;';
-                  } else if (sourceType === 'BTC_INVOICE') {
-                    buttonsSet = buttonsSet +
-                      '<button id="revokeBtcInvoiceButton"
-                               type="button" style="font-size: 1.1rem;"
-                               class="wallet-mystatement-button table-button-block__button btn btn-danger">
-                        <loc:message code="merchants.invoice.revoke" />
-                      </button>&nbsp;';
-                  }
-                }
-                if ((sourceType === 'INVOICE') && operationType === 'Input') {
-                  buttonsSet = buttonsSet +
-                    '<button type="submit" style="font-size: 1.1rem;" class="wallet-mystatement-button table-button-block__button btn btn-info">
-                      <loc:message code="merchants.invoice.viewConfirm" />
-                     </button>&nbsp;';
-                }
-                if ((sourceType === 'BTC_INVOICE') && operationType === 'Input') {
-                  buttonsSet = buttonsSet +
-                    '<button id="viewBtcInvoiceButton"
-                             type="button" style="font-size: 1.1rem;"
-                             class="wallet-mystatement-button table-button-block__button btn btn-info">
-                      <loc:message code="merchants.invoice.viewConfirm" />
-                    </button>&nbsp;';
-              }
-                return buttonsSet;
-            })()
-
-            @>
-            </form></td>
-    </tr>
+  <tr>
+    <td class="center blue-white"><@=datetime@></td>
+    <td class="center"><@=currencyName@></td>
+    <td class="right"><@=amount@></td>
+    <td class="right"><@=commissionAmount@></td>
+    <td class="center"><@=merchantName@></td>
+    <td class="right"><@=operationType@></td>
+    <td class="center"><@=id@></td>
+    <td class="center"><@=summaryStatus@></td>
+    <td class="center table-button-block" style="text-align: right;">
+      <form id="inputoutput-center-tableBody__form" class="table-button-block__form">
+        <input type="text" hidden value="" name="transactionId" >
+        <input type="text" hidden value="" name="action">
+        <input type="text" hidden value="" name="sourceType">
+        <@=getButtonsSet(id, sourceType, buttons, "inputoutput-table")@>
+      </form>
+  </tr>
 </script>
 </tbody>
 

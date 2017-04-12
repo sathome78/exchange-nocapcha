@@ -1921,7 +1921,7 @@ input[type=email], .dropdown-menu__form,
     background: #525f74;
 }
 
-#register_button:disabled, #submitAcceptInvoice:disabled {
+#register_button:disabled, #submitAcceptInvoice:disabled, #submit-btc:disabled {
     background: #b9c4d8;
 }
 
@@ -2158,4 +2158,10 @@ textarea#remark {
 .timeoutWarning {
     color: #cf0800;
     font-size: 1.2rem;
+}
+
+#btc-wallet-buttons {
+    display: inline-block;
+    margin-top: 20px;
+    text-align: center;
 }

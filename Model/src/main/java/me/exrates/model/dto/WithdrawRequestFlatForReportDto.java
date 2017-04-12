@@ -19,12 +19,12 @@ public class WithdrawRequestFlatForReportDto {
   private String wallet;
   private String recipientBank;
   private String userFullName;
-  private WithdrawalRequestStatus status;
-  private WithdrawStatusEnum withdrawStatus;
+  private WithdrawStatusEnum status;
   private LocalDateTime acceptanceTime;
 
+  private String userNickname;
   private String userEmail;
-  private String acceptanceUserEmail;
+  private String adminEmail;
 
   private BigDecimal amount;
   private BigDecimal commissionAmount;

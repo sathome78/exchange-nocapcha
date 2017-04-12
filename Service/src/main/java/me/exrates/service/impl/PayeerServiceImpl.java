@@ -2,9 +2,11 @@ package me.exrates.service.impl;
 
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Transaction;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.PayeerService;
 import me.exrates.service.TransactionService;
+import me.exrates.service.exception.NotImplimentedMethod;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -102,6 +104,11 @@ public class PayeerServiceImpl implements PayeerService {
         }
 
         return false;
+    }
+
+    @Override
+    public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+        throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
     }
 
 }

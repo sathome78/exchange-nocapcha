@@ -8,11 +8,13 @@ import me.exrates.model.BTCTransaction;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.PendingPayment;
 import me.exrates.model.Transaction;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.BlockchainSDKWrapper;
 import me.exrates.service.BlockchainService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.exception.MerchantInternalException;
+import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.invoice.RejectedPaymentInvoice;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -167,5 +169,10 @@ public class BlockchainServiceImpl implements BlockchainService {
             .add(secret)
             .toString();
         return algorithmService.sha256(target);
+    }
+
+    @Override
+    public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+        throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
     }
 }

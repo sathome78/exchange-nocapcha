@@ -4,12 +4,14 @@ import com.squareup.okhttp.*;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.model.Transaction;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.PerfectMoneyService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.InvalidPayeeWalletException;
 import me.exrates.service.exception.MerchantInternalException;
+import me.exrates.service.exception.NotImplimentedMethod;
 import org.apache.logging.log4j.LogManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -178,5 +180,10 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
                 ":"+passpphraseHash +
                 ":"+params.get("TIMESTAMPGMT");
         return algorithmService.computeMD5Hash(hashParams).toUpperCase();
+    }
+
+    @Override
+    public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+        throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
     }
 }

@@ -1,15 +1,18 @@
 package me.exrates.service.impl;
 
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.PendingPaymentDao;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.PendingPayment;
 import me.exrates.model.Transaction;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
 import me.exrates.service.AdvcashService;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.TransactionService;
+import me.exrates.service.exception.NotImplimentedMethod;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +30,7 @@ import java.util.Properties;
 
 @Service
 @PropertySource("classpath:/merchants/advcashmoney.properties")
+@Log4j2
 public class AdvcashServiceImpl implements AdvcashService{
 
     private @Value("${advcash.accountId}") String accountId;
@@ -151,5 +155,10 @@ public class AdvcashServiceImpl implements AdvcashService{
         }else {
             return false;
         }
+    }
+
+    @Override
+    public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+        throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
     }
 }

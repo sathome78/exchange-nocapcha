@@ -8,27 +8,6 @@
 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
-<%----------%>
-<%--<script src="<c:url value="/client/js/jquery-ui.js"/>"></script>
-<script src="<c:url value="/client/js/datepicker-local/datepicker-ru.js"/>"></script>
-<script src="<c:url value="/client/js/datepicker-local/datepicker-zh-CN.js"/>"></script>
-<script>
-    $(function () {
-        $("#report-dialog-currency-date-direction-dialog").find(".datepicker").datepicker({
-            dateFormat: "yy-mm-dd"
-        });
-        var datePickerLocale = "";
-        var currentLocale = $('#language').text().trim().toLowerCase();
-        if (currentLocale === 'ru') {
-            datePickerLocale = currentLocale;
-        } else if (currentLocale === 'cn') {
-            datePickerLocale = 'zh_CN'
-        }
-        $.datepicker.setDefaults( $.datepicker.regional[ datePickerLocale ] );
-    });
-</script>--%>
-<%----------%>
-
 <div id="report-dialog-currency-date-direction-dialog" class="modal fade delete-order-info__modal form_full_height_width" tabindex="-1" role="dialog">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -65,7 +44,7 @@
                             <label for="end-date" class="input-block-wrapper__input"><loc:message code="ordersearch.errordate"/></label>
                         </div>
                     </div>
-                    <div class="input-block-wrapper">
+                    <div id="currencyPicker" class="input-block-wrapper">
                         <div class="col-md-5 input-block-wrapper__label-wrapper">
                             <label class="input-block-wrapper__label"><loc:message code="userwallets.currencies"/></label>
                         </div>
@@ -78,7 +57,20 @@
                             </select>
                         </div>
                     </div>
-                    <div class="input-block-wrapper">
+                    <div id="currencyPairPicker" class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="userwallets.currencies"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <select id="currencyPairs" name="currencyPairList"
+                                    class="form-control input-block-wrapper__input">
+                                <c:forEach var="currency" items="${usersCurrencyPermittedList}">
+                                    <option value="${currency}">${currency}</option>
+                                </c:forEach>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="directionPicker" class="input-block-wrapper">
                         <div class="col-md-5 input-block-wrapper__label-wrapper">
                             <label class="input-block-wrapper__label"><loc:message code="userwallets.direction"/></label>
                         </div>
@@ -89,6 +81,14 @@
                                     <option value="${direction}">${direction}</option>
                                 </c:forEach>
                             </select>
+                        </div>
+                    </div>
+                    <div id="includeEmptyChecker" class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="userwallets.includeEmpty"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper">
+                            <input type="checkbox" id="includeEmpty" name="includeEmpty" value="false"/>
                         </div>
                     </div>
                 </form>

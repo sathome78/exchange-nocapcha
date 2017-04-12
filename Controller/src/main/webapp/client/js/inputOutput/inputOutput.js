@@ -98,46 +98,6 @@ function InputOutputClass(currentCurrencyPair) {
             e.preventDefault();
             that.getAndShowInputOutputData(true, null, 'FORWARD');
         });
-        $('#inputoutput-table').on('click', '#revokeInvoiceButton', function (e) {
-            e.preventDefault();
-            var $form = $(this).parents('#inputoutput-center-tableBody__form');
-            var $action = $form.find('input[name=action]');
-            $action.attr("value", "revoke");
-            var $sourceType = $form.find('input[name=sourceType]');
-            $sourceType.attr("value", "INVOICE");
-            $form[0].submit();
-        });
-        $('#inputoutput-table').on('click', '#revokeBtcInvoiceButton', function (e) {
-            e.preventDefault();
-            var $form = $(this).parents('#inputoutput-center-tableBody__form');
-            var invoiceId = $form.find('input[name=transactionId]').val();
-            $.ajax({
-                url: '/merchants/bitcoin/payment/address?id=' + invoiceId,
-                type: 'GET',
-                success: function (data) {
-                    var $modal = $("#btc-invoice-revoke-modal");
-                    $modal.find("#invoiceId").val(invoiceId);
-                    $modal.find("#address-to-pay").val(data.address);
-
-                    $modal.find("#btcInvoiceRevokeConfirm").one("click", function () {
-                        var invoiceId = $('#invoiceId').val().trim();
-                        $modal.modal('hide');
-                        $.ajax({
-                            url: '/merchants/bitcoin/payment/revoke?id=' + invoiceId,
-                            headers: {
-                                'X-CSRF-Token': $("input[name='_csrf']").val(),
-                            },
-                            type: 'POST',
-                            success: function () {
-                                that.updateAndShowAll(false);
-                            }
-                        });
-                    });
-
-                    $modal.modal();
-                }
-            });
-        });
 
         $('#inputoutput-table').on('click', '#viewBtcInvoiceButton', function (e) {
             e.preventDefault();
@@ -155,5 +115,85 @@ function InputOutputClass(currentCurrencyPair) {
                 }
             });
         });
+
+        $('#inputoutput-table').on('click', 'button[data-source=WITHDRAW].revoke_button', function (e) {
+            e.preventDefault();
+            var id = $(this).data("id");
+            var $modal = $("#confirm-with-info-modal");
+            $modal.find("label[for=info-field]").html($(this).html());
+            $modal.find("#info-field").val(id);
+            $modal.find("#confirm-button").off("click").one("click", function () {
+                $modal.modal('hide');
+                $.ajax({
+                    url: '/withdraw/request/revoke?id=' + id,
+                    headers: {
+                        'X-CSRF-Token': $("input[name='_csrf']").val(),
+                    },
+                    type: 'POST',
+                    success: function () {
+                        that.updateAndShowAll(false);
+                    }
+                });
+            });
+            $modal.modal();
+        });
+
+        $('#inputoutput-table').on('click', 'button[data-source=INVOICE].revoke_button', function (e) {
+            e.preventDefault();
+            var $form = $(this).parents('#inputoutput-center-tableBody__form');
+            $form.attr("action", "/merchants/invoice/payment/confirmation");
+            var $action = $form.find('input[name=action]');
+            $action.attr("value", "revoke");
+            var $id = $form.find('input[name=transactionId]');
+            var id = $(this).data("id");
+            $id.attr("value", id);
+            var $sourceType = $form.find('input[name=sourceType]');
+            $sourceType.attr("value", "INVOICE");
+            $form[0].submit();
+        });
+
+        $('#inputoutput-table').on('click', 'button[data-source=BTC_INVOICE].revoke_button', function (e) {
+            e.preventDefault();
+            var invoiceId = $(this).data("id");
+            $.ajax({
+                url: '/merchants/bitcoin/payment/address?id=' + invoiceId,
+                type: 'GET',
+                success: function (data) {
+                    var $modal = $("#btc-invoice-revoke-modal");
+                    $modal.find("#invoiceId").val(invoiceId);
+                    $modal.find("#address-to-pay").val(data.address);
+                    $modal.find("#btcInvoiceRevokeConfirm").off("click").one("click", function () {
+                        var invoiceId = $('#invoiceId').val().trim();
+                        $modal.modal('hide');
+                        $.ajax({
+                            url: '/merchants/bitcoin/payment/revoke?id=' + invoiceId,
+                            headers: {
+                                'X-CSRF-Token': $("input[name='_csrf']").val(),
+                            },
+                            type: 'POST',
+                            success: function () {
+                                that.updateAndShowAll(false);
+                            }
+                        });
+                    });
+                    $modal.modal();
+                }
+            });
+        });
+
+        $('#inputoutput-table').on('click', 'button[data-source=INVOICE].confirm_user_button', function (e) {
+            e.preventDefault();
+            var $form = $(this).parents('#inputoutput-center-tableBody__form');
+            $form.attr("action", "/merchants/invoice/payment/confirmation");
+            var $action = $form.find('input[name=action]');
+            $action.attr("value", "confirm");
+            var $id = $form.find('input[name=transactionId]');
+            var id = $(this).data("id");
+            $id.attr("value", id);
+            var $sourceType = $form.find('input[name=sourceType]');
+            $sourceType.attr("value", "INVOICE");
+            $form[0].submit();
+        });
+
     })(currentCurrencyPair);
 }

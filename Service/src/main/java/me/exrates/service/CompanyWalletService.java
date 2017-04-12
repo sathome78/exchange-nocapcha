@@ -27,4 +27,6 @@ public interface CompanyWalletService {
     CompanyWallet findByWalletId(int walletId);
 
     List<CompanyWallet> getCompanyWalletsSummaryForPermittedCurrencyList(Integer requesterUserId);
+
+    boolean increaseCommissionBalanceById(Integer id, BigDecimal amount);
 }

@@ -360,14 +360,16 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
     String sql = "SELECT " +
         "         INV.transaction_id, INV.payer_bank_name,  INV.payer_bank_code, INV.user_full_name,  " +
         "         INV.invoice_request_status_id, INV.acceptance_time, " +
-        "         USER.id AS user_id, USER.email AS user_email, " +
+        "         USER.id AS user_id, USER.email AS user_email, USER.nickname AS nickname, " +
         "         ADM.id AS acceptance_id, ADM.email AS acceptance_user_email, " +
+        "         MERCHANT.name AS merchant_name, " +
         "         TRANSACTION.amount, TRANSACTION.commission_amount, TRANSACTION.datetime, " +
         "         CURRENCY.name AS currency_name, " +
         "         INVOICE_BANK.name AS bank_name " +
         "    FROM INVOICE_REQUEST AS INV " +
         "    JOIN TRANSACTION ON TRANSACTION.id = INV.transaction_id AND TRANSACTION.currency_id IN (:currency_list)" +
         "    JOIN CURRENCY ON CURRENCY.id = TRANSACTION.currency_id " +
+        "    JOIN MERCHANT ON MERCHANT.id = TRANSACTION.merchant_id " +
         "    JOIN USER AS USER ON USER.id = INV.user_id " +
         "    LEFT JOIN USER AS ADM ON ADM.id = INV.acceptance_user_id " +
         "    LEFT JOIN INVOICE_BANK ON INVOICE_BANK.id = INV.bank_id " +
@@ -383,24 +385,23 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
       }
       put("currency_list", currencyList);
     }};
-    return parameterJdbcTemplate.query(sql, params, new RowMapper<InvoiceRequestFlatForReportDto>() {
-      @Override
-      public InvoiceRequestFlatForReportDto mapRow(ResultSet rs, int i) throws SQLException {
-        InvoiceRequestFlatForReportDto pendingPaymentFlatForReportDto = new InvoiceRequestFlatForReportDto();
-        pendingPaymentFlatForReportDto.setInvoiceId(rs.getInt("transaction_id"));
-        pendingPaymentFlatForReportDto.setDatetime(rs.getTimestamp("datetime") == null ? null : rs.getTimestamp("datetime").toLocalDateTime());
-        pendingPaymentFlatForReportDto.setUserEmail(rs.getString("user_email"));
-        pendingPaymentFlatForReportDto.setRecipientBank(rs.getString("bank_name"));
-        pendingPaymentFlatForReportDto.setAmount(rs.getBigDecimal("amount"));
-        pendingPaymentFlatForReportDto.setCommissionAmount(rs.getBigDecimal("commission_amount"));
-        pendingPaymentFlatForReportDto.setCurrency(rs.getString("currency_name"));
-        pendingPaymentFlatForReportDto.setUserFullName(rs.getString("user_full_name"));
-        pendingPaymentFlatForReportDto.setPayerBankCode(rs.getString("payer_bank_code"));
-        pendingPaymentFlatForReportDto.setStatus(InvoiceRequestStatusEnum.convert(rs.getInt("invoice_request_status_id")));
-        pendingPaymentFlatForReportDto.setAcceptanceUserEmail(rs.getString("acceptance_user_email"));
-        pendingPaymentFlatForReportDto.setAcceptanceTime(rs.getTimestamp("acceptance_time") == null ? null : rs.getTimestamp("acceptance_time").toLocalDateTime());
-        return pendingPaymentFlatForReportDto;
-      }
+    return parameterJdbcTemplate.query(sql, params, (rs, i) -> {
+      InvoiceRequestFlatForReportDto invoiceRequestFlatForReportDto = new InvoiceRequestFlatForReportDto();
+      invoiceRequestFlatForReportDto.setInvoiceId(rs.getInt("transaction_id"));
+      invoiceRequestFlatForReportDto.setDatetime(rs.getTimestamp("datetime") == null ? null : rs.getTimestamp("datetime").toLocalDateTime());
+      invoiceRequestFlatForReportDto.setUserNickname(rs.getString("nickname"));
+      invoiceRequestFlatForReportDto.setUserEmail(rs.getString("user_email"));
+      invoiceRequestFlatForReportDto.setRecipientBank(rs.getString("bank_name"));
+      invoiceRequestFlatForReportDto.setAmount(rs.getBigDecimal("amount"));
+      invoiceRequestFlatForReportDto.setCommissionAmount(rs.getBigDecimal("commission_amount"));
+      invoiceRequestFlatForReportDto.setCurrency(rs.getString("currency_name"));
+      invoiceRequestFlatForReportDto.setUserFullName(rs.getString("user_full_name"));
+      invoiceRequestFlatForReportDto.setPayerBankCode(rs.getString("payer_bank_code"));
+      invoiceRequestFlatForReportDto.setStatus(InvoiceRequestStatusEnum.convert(rs.getInt("invoice_request_status_id")));
+      invoiceRequestFlatForReportDto.setAcceptanceUserEmail(rs.getString("acceptance_user_email"));
+      invoiceRequestFlatForReportDto.setAcceptanceTime(rs.getTimestamp("acceptance_time") == null ? null : rs.getTimestamp("acceptance_time").toLocalDateTime());
+      invoiceRequestFlatForReportDto.setMerchant(rs.getString("merchant_name"));
+      return invoiceRequestFlatForReportDto;
     });
   }
 

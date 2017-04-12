@@ -10,6 +10,7 @@ import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
+import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.exceptions.UnsupportedUserInvoiceActionTypeException;
@@ -43,6 +44,7 @@ import java.util.stream.Collectors;
 
 import static me.exrates.model.enums.UserCommentTopicEnum.INVOICE_DECLINE;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.*;
+import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
 import static me.exrates.model.enums.invoice.InvoiceRequestStatusEnum.DECLINED_ADMIN;
 import static me.exrates.model.enums.invoice.InvoiceRequestStatusEnum.EXPIRED;
 import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
@@ -106,7 +108,13 @@ public class InvoiceServiceImpl implements InvoiceService {
     updateAmountIfPositive(invoiceId, actualPaymentSum);
     InvoiceRequest invoiceRequest = invoiceRequestDao.findByIdAndBlock(invoiceId)
         .orElseThrow(() -> new InvoiceNotFoundException(invoiceId.toString()));
-    InvoiceStatus newStatus = invoiceRequest.getInvoiceRequestStatus().nextState(ACCEPT_MANUAL);
+    Integer requesterAdminId = userService.getIdByEmail(acceptanceUserEmail);
+    InvoiceOperationPermission permission = userService.getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection(
+        requesterAdminId,
+        invoiceRequest.getTransaction().getCurrency().getId(),
+        WITHDRAW
+    );
+    InvoiceStatus newStatus = invoiceRequest.getInvoiceRequestStatus().nextState(ACCEPT_MANUAL, true, permission);
     invoiceRequest.setInvoiceRequestStatus(newStatus);
     Transaction transaction = invoiceRequest.getTransaction();
     if (transaction.getOperationType() != OperationType.INPUT) {
@@ -155,7 +163,13 @@ public class InvoiceServiceImpl implements InvoiceService {
   public void declineInvoice(Integer invoiceId, Integer transactionId, String acceptanceUserEmail, String comment) throws Exception {
     InvoiceRequest invoiceRequest = invoiceRequestDao.findByIdAndBlock(transactionId)
         .orElseThrow(() -> new InvoiceNotFoundException(transactionId.toString()));
-    InvoiceStatus newStatus = invoiceRequest.getInvoiceRequestStatus().nextState(DECLINE);
+    Integer requesterAdminId = userService.getIdByEmail(acceptanceUserEmail);
+    InvoiceOperationPermission permission = userService.getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection(
+        requesterAdminId,
+        invoiceRequest.getTransaction().getCurrency().getId(),
+        WITHDRAW
+    );
+    InvoiceStatus newStatus = invoiceRequest.getInvoiceRequestStatus().nextState(DECLINE, true, permission);
     invoiceRequest.setInvoiceRequestStatus(newStatus);
     Transaction transaction = invoiceRequest.getTransaction();
     if (transaction.getOperationType() != OperationType.INPUT) {
@@ -276,7 +290,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     invoiceRequest.setInvoiceRequestStatus(newStatus);
     if (userActionOnInvoiceEnum == REVOKE) {
       updateInvoiceRequestStatus(invoiceRequest.getTransaction().getId(), newStatus);
-    } else if (userActionOnInvoiceEnum == CONFIRM) {
+    } else if (userActionOnInvoiceEnum == CONFIRM_USER) {
       invoiceRequest.setPayerBankName(invoiceConfirmData.getPayerBankName());
       invoiceRequest.setPayerAccount(invoiceConfirmData.getUserAccount());
       invoiceRequest.setUserFullName(invoiceConfirmData.getUserFullName());

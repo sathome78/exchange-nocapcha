@@ -2,7 +2,7 @@ package me.exrates.controller;
 
 import me.exrates.controller.handler.EDCClientWebSocketHandler;
 import me.exrates.service.EDCService;
-import me.exrates.service.impl.bitcoinWallet.TempBtcCoreService;
+import me.exrates.service.EthereumService;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,15 +21,15 @@ public class UnsafeController {
 
     private final EDCClientWebSocketHandler blockchainEDC;
     private final EDCService edcService;
-    private final TempBtcCoreService tempBtcCoreService;
+    private final EthereumService ethereumService;
 
     private static final Logger LOGGER = LogManager.getLogger(UnsafeController.class);
 
     @Autowired
-    public UnsafeController(final EDCClientWebSocketHandler blockchainEDC, final EDCService edcService) {
+    public UnsafeController(final EDCClientWebSocketHandler blockchainEDC, final EDCService edcService, EthereumService ethereumService) {
         this.blockchainEDC = blockchainEDC;
         this.edcService = edcService;
-        this.tempBtcCoreService = new TempBtcCoreService();
+        this.ethereumService = ethereumService;
     }
 
     @RequestMapping(value = "unsafe/rescanEDCBlockchain")
@@ -57,16 +57,18 @@ public class UnsafeController {
     //TODO remove after BtcCore update is ready
     
     
-    @RequestMapping(value = "unsafe/initBtcCore")
-    @ResponseBody
-    public void initBtcCore() {
-        tempBtcCoreService.initClientAndDaemon();
-    }
     
-    @RequestMapping(value = "unsafe/btcGetInfo")
+    @RequestMapping(value = "unsafe/EthereumStart")
     @ResponseBody
-    public void btcGetInfo() {
-        tempBtcCoreService.getInfo();
-    }
+    public ResponseEntity<String> ethereumStart() {
+        try {
+            LOGGER.info("STARTING ETHEREUM TEST");
+            ethereumService.start();
+            return new ResponseEntity<>("TEST OK", HttpStatus.OK);
+        }catch (Exception e){
+            LOGGER.error(e);
+            return new ResponseEntity<>(e.toString(), HttpStatus.BAD_REQUEST);
+        }
 
+    }
 }

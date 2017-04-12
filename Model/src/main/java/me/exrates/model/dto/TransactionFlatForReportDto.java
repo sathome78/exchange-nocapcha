@@ -19,6 +19,7 @@ public class TransactionFlatForReportDto {
   private String merchant;
   private LocalDateTime providedDate;
 
+  private String userNickname;
   private String userEmail;
 
   private BigDecimal amount;

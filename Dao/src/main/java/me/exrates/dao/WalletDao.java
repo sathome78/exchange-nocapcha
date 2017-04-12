@@ -31,9 +31,9 @@ public interface WalletDao {
 
     MyWalletsStatisticsApiDto getWalletShortStatistics(int walletId);
 
-    List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> currencyIds, Locale locale);
+    List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> currencyIds, List<Integer> withdrawStatusIds, Locale locale);
 
-    List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, Locale locale);
+    List<MyWalletsDetailedDto> getAllWalletsForUserDetailed(String email, List<Integer> withdrawStatusIds, Locale locale);
 
     List<MyWalletConfirmationDetailDto> getWalletConfirmationDetail(Integer walletId, Locale locale);
 
@@ -61,9 +61,7 @@ public interface WalletDao {
      */
     WalletsForOrderAcceptionDto getWalletsForOrderByOrderIdAndBlock(Integer orderId, Integer userAcceptorId);
 
-    List<UserWalletSummaryDto> getUsersWalletsSummary(List<Integer> roles);
-
-    WalletTransferStatus walletInnerTransfer(int walletId, BigDecimal amount, TransactionSourceType sourceType, int sourceId);
+    WalletTransferStatus walletInnerTransfer(int walletId, BigDecimal amount, TransactionSourceType sourceType, int sourceId, String description);
 
     WalletTransferStatus walletBalanceChange(WalletOperationData walletOperationData);
 

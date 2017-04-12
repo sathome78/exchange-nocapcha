@@ -16,6 +16,7 @@ import me.exrates.model.EDCAccount;
 import me.exrates.model.PendingPayment;
 import me.exrates.model.Transaction;
 import me.exrates.model.dto.PendingPaymentSimpleDto;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
 import me.exrates.service.EDCService;
 import me.exrates.service.TransactionService;
@@ -349,8 +350,7 @@ public class EDCServiceImpl implements EDCService {
         }
     }
 
-    @Override
-    public void transferFromMainAccount(final String accountName, final String amount) throws IOException, InterruptedException {
+    private void transferFromMainAccount(final String accountName, final String amount) throws IOException, InterruptedException {
         final String responseImportKey = makeRpcCallFast(IMPORT_KEY, MAIN_ACCOUNT, MAIN_ACCOUNT_PRIVATE_KEY, 1);
         if (responseImportKey.contains("true")) {
             final String responseTransfer = makeRpcCallFast(TRANSFER_EDC,MAIN_ACCOUNT, accountName, amount, "EDC", "Output transfer", 1);
@@ -394,5 +394,12 @@ public class EDCServiceImpl implements EDCService {
         KEY_TYPE(final String type) {
             this.type = type;
         }
+    }
+
+    @Override
+    public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
+        transferFromMainAccount(
+            withdrawMerchantOperationDto.getAccountTo(),
+            withdrawMerchantOperationDto.getAmount());
     }
 }

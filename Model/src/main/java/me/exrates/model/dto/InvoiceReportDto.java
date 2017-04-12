@@ -3,10 +3,11 @@ package me.exrates.model.dto;
 import lombok.Getter;
 import lombok.Setter;
 import me.exrates.model.InvoiceRequest;
-import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
+import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.util.BigDecimalProcessing;
+import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
@@ -24,6 +25,7 @@ public class InvoiceReportDto {
   private Integer docId;
   private String currency;
   private String creationDate;
+  private String userNickname;
   private String userEmail;
   private String recipientBank;
   private BigDecimal amount;
@@ -34,6 +36,8 @@ public class InvoiceReportDto {
   private String acceptanceDate;
   private String system;
   private String operation;
+  private String merchant;
+  private InvoiceStatus statusEnum;
 
   public InvoiceReportDto(InvoiceRequest invoiceRequest) {
     this.docId = invoiceRequest.getTransaction().getId();
@@ -45,8 +49,9 @@ public class InvoiceReportDto {
     this.payerName = invoiceRequest.getUserFullName();
     this.payerBankCode = invoiceRequest.getPayerBankCode();
     this.status = ((InvoiceRequestStatusEnum) invoiceRequest.getInvoiceRequestStatus()).name();
+    this.statusEnum = invoiceRequest.getInvoiceRequestStatus();
     this.acceptorUserEmail = invoiceRequest.getAcceptanceUserEmail();
-    this.acceptanceDate = invoiceRequest.getAcceptanceTime()==null?"":invoiceRequest.getAcceptanceTime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
+    this.acceptanceDate = invoiceRequest.getAcceptanceTime() == null ? "" : invoiceRequest.getAcceptanceTime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
     this.operation = INPUT.name();
     this.system = TransactionSourceType.INVOICE.name();
   }
@@ -55,64 +60,80 @@ public class InvoiceReportDto {
     this.docId = invoiceRequestFlatForReportDto.getInvoiceId();
     this.currency = invoiceRequestFlatForReportDto.getCurrency();
     this.creationDate = invoiceRequestFlatForReportDto.getDatetime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
+    this.userNickname = invoiceRequestFlatForReportDto.getUserNickname();
     this.userEmail = invoiceRequestFlatForReportDto.getUserEmail();
     this.recipientBank = invoiceRequestFlatForReportDto.getRecipientBank();
     this.amount = invoiceRequestFlatForReportDto.getAmount();
     this.payerName = invoiceRequestFlatForReportDto.getUserFullName();
     this.payerBankCode = invoiceRequestFlatForReportDto.getPayerBankCode();
     this.status = invoiceRequestFlatForReportDto.getStatus().name();
+    this.statusEnum = invoiceRequestFlatForReportDto.getStatus();
     this.acceptorUserEmail = invoiceRequestFlatForReportDto.getAcceptanceUserEmail();
-    this.acceptanceDate = invoiceRequestFlatForReportDto.getAcceptanceTime()==null?"":invoiceRequestFlatForReportDto.getAcceptanceTime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
+    this.acceptanceDate = invoiceRequestFlatForReportDto.getAcceptanceTime() == null ? "" : invoiceRequestFlatForReportDto.getAcceptanceTime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
     this.operation = INPUT.name();
     this.system = TransactionSourceType.INVOICE.name();
+    this.merchant = invoiceRequestFlatForReportDto.getMerchant();
   }
 
   public InvoiceReportDto(PendingPaymentFlatForReportDto pendingPaymentFlatForReportDto) {
     this.docId = pendingPaymentFlatForReportDto.getInvoiceId();
     this.currency = pendingPaymentFlatForReportDto.getCurrency();
     this.creationDate = pendingPaymentFlatForReportDto.getDatetime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
+    this.userNickname = pendingPaymentFlatForReportDto.getUserNickname();
     this.userEmail = pendingPaymentFlatForReportDto.getUserEmail();
     this.recipientBank = pendingPaymentFlatForReportDto.getAddress();
     this.amount = pendingPaymentFlatForReportDto.getAmount();
     this.payerName = "";
     this.payerBankCode = "";
     this.status = pendingPaymentFlatForReportDto.getPendingPaymentStatus().name();
+    this.statusEnum = pendingPaymentFlatForReportDto.getPendingPaymentStatus();
     this.acceptorUserEmail = pendingPaymentFlatForReportDto.getAcceptanceUserEmail();
     this.acceptanceDate = pendingPaymentFlatForReportDto.getAcceptanceTime() == null ? "" : pendingPaymentFlatForReportDto.getAcceptanceTime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
     this.operation = INPUT.name();
     this.system = pendingPaymentFlatForReportDto.getSourceType().name();
+    this.merchant = pendingPaymentFlatForReportDto.getMerchant();
   }
 
   public InvoiceReportDto(TransactionFlatForReportDto transactionFlatForReportDto) {
     this.docId = transactionFlatForReportDto.getTransactionId();
     this.currency = transactionFlatForReportDto.getCurrency();
     this.creationDate = transactionFlatForReportDto.getDatetime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
+    this.userNickname = transactionFlatForReportDto.getUserNickname();
     this.userEmail = transactionFlatForReportDto.getUserEmail();
     this.recipientBank = "";
     this.amount = transactionFlatForReportDto.getAmount();
     this.payerName = transactionFlatForReportDto.getMerchant();
     this.payerBankCode = transactionFlatForReportDto.getMerchant();
     this.status = transactionFlatForReportDto.getProvided() ? "PROVIDED" : "WAITING_FOR_PROVIDING";
+    this.statusEnum = null;
     this.acceptorUserEmail = "";
     this.acceptanceDate = transactionFlatForReportDto.getProvidedDate() == null ? "" : transactionFlatForReportDto.getProvidedDate().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
     this.operation = transactionFlatForReportDto.getOperationType().name();
     this.system = transactionFlatForReportDto.getSourceType().name();
+    this.merchant = transactionFlatForReportDto.getMerchant();
   }
 
   public InvoiceReportDto(WithdrawRequestFlatForReportDto withdrawRequestFlatForReportDto) {
     this.docId = withdrawRequestFlatForReportDto.getInvoiceId();
     this.currency = withdrawRequestFlatForReportDto.getCurrency();
     this.creationDate = withdrawRequestFlatForReportDto.getDatetime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
+    this.userNickname = withdrawRequestFlatForReportDto.getUserNickname();
     this.userEmail = withdrawRequestFlatForReportDto.getUserEmail();
-    this.recipientBank = withdrawRequestFlatForReportDto.getRecipientBank();
+    this.recipientBank = !StringUtils.isEmpty(withdrawRequestFlatForReportDto.getRecipientBank()) ?
+        withdrawRequestFlatForReportDto.getRecipientBank() :
+        StringUtils.isEmpty(withdrawRequestFlatForReportDto.getWallet()) ?
+            "" :
+            withdrawRequestFlatForReportDto.getWallet();
     this.amount = withdrawRequestFlatForReportDto.getAmount();
     this.payerName = withdrawRequestFlatForReportDto.getMerchant();
     this.payerBankCode = withdrawRequestFlatForReportDto.getMerchant();
     this.status = withdrawRequestFlatForReportDto.getStatus().name();
-    this.acceptorUserEmail = withdrawRequestFlatForReportDto.getAcceptanceUserEmail();
+    this.statusEnum = withdrawRequestFlatForReportDto.getStatus();
+    this.acceptorUserEmail = withdrawRequestFlatForReportDto.getAdminEmail();
     this.acceptanceDate = withdrawRequestFlatForReportDto.getAcceptanceTime() == null ? "" : withdrawRequestFlatForReportDto.getAcceptanceTime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
     this.operation = OUTPUT.name();
     this.system = withdrawRequestFlatForReportDto.getSourceType().name();
+    this.merchant = withdrawRequestFlatForReportDto.getMerchant();
   }
 
   public static String getTitle() {
@@ -126,7 +147,7 @@ public class InvoiceReportDto {
         "Payer bank" + ";" +
         "status" + ";" +
         "Acceptor's Email" + ";" +
-        "Acceptance date" + ";" +
+        "Acceptance/Change status date" + ";" +
         "Operation" + ";" +
         "System" +
         "\r\n";

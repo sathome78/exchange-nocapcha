@@ -20,11 +20,13 @@ import me.exrates.dao.YandexMoneyMerchantDao;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.model.Transaction;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.TransactionService;
 import me.exrates.service.UserService;
 import me.exrates.service.YandexMoneyService;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
+import me.exrates.service.exception.NotImplimentedMethod;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -219,5 +221,10 @@ public class YandexMoneyServiceImpl implements YandexMoneyService {
     @Override
     public void deletePayment(Integer id) {
         yandexMoneyMerchantDao.deletePayment(id);
+    }
+
+    @Override
+    public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+        throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
     }
 }

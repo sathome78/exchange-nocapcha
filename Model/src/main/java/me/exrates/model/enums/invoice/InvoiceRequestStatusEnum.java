@@ -2,9 +2,7 @@ package me.exrates.model.enums.invoice;
 
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.model.exceptions.UnsupportedInvoiceRequestStatusIdException;
-import me.exrates.model.exceptions.UnsupportedInvoiceRequestStatusNameException;
-import me.exrates.model.exceptions.UnsupportedInvoiceStatusForActionException;
+import me.exrates.model.exceptions.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -17,7 +15,7 @@ public enum InvoiceRequestStatusEnum implements InvoiceStatus {
   CREATED_USER(1) {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
-      schemaMap.put(InvoiceActionTypeEnum.CONFIRM, CONFIRMED_USER);
+      schemaMap.put(InvoiceActionTypeEnum.CONFIRM_USER, CONFIRMED_USER);
       schemaMap.put(InvoiceActionTypeEnum.REVOKE, REVOKED_USER);
       schemaMap.put(InvoiceActionTypeEnum.EXPIRE, EXPIRED);
     }
@@ -42,7 +40,7 @@ public enum InvoiceRequestStatusEnum implements InvoiceStatus {
   DECLINED_ADMIN(5) {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
-      schemaMap.put(InvoiceActionTypeEnum.CONFIRM, CONFIRMED_USER);
+      schemaMap.put(InvoiceActionTypeEnum.CONFIRM_USER, CONFIRMED_USER);
       schemaMap.put(InvoiceActionTypeEnum.REVOKE, REVOKED_USER);
       schemaMap.put(InvoiceActionTypeEnum.EXPIRE, EXPIRED);
     }
@@ -56,6 +54,24 @@ public enum InvoiceRequestStatusEnum implements InvoiceStatus {
 
   @Override
   public InvoiceStatus nextState(InvoiceActionTypeEnum action) {
+    if (action.isAvailableForHolderOnly()) {
+      throw new AuthorisedUserIsHolderParamNeededForThisStatusException(action.name());
+    }
+    if (action.getOperationPermissionOnlyList() != null) {
+      throw new PermittedOperationParamNeededForThisStatusException(action.name());
+    }
+    return nextState(schemaMap, action)
+        .orElseThrow(() -> new UnsupportedInvoiceStatusForActionException(String.format("current state: %s action: %s", this.name(), action.name())));
+  }
+
+  @Override
+  public InvoiceStatus nextState(InvoiceActionTypeEnum action, Boolean authorisedUserIsHolder, InvoiceOperationPermission permittedOperation) {
+    if (action.isAvailableForHolderOnly() && !authorisedUserIsHolder) {
+      throw new InvoiceActionIsProhibitedForNotHolderException(String.format("current status: %s action: %s", this.name(), action.name()));
+    }
+    if (action.getOperationPermissionOnlyList() != null && !action.getOperationPermissionOnlyList().contains(permittedOperation)) {
+      throw new InvoiceActionIsProhibitedForCurrencyPermissionOperationException(String.format("current status: %s action: %s permittedOperation: %s", this.name(), action.name(), permittedOperation.name()));
+    }
     return nextState(schemaMap, action)
         .orElseThrow(() -> new UnsupportedInvoiceStatusForActionException(String.format("current state: %s action: %s", this.name(), action.name())));
   }
@@ -77,6 +93,29 @@ public enum InvoiceRequestStatusEnum implements InvoiceStatus {
     return Arrays.stream(InvoiceRequestStatusEnum.class.getEnumConstants())
         .filter(e -> e.availableForAction(action))
         .collect(Collectors.toList());
+  }
+
+  public Set<InvoiceActionTypeEnum> getAvailableActionList() {
+    schemaMap.keySet().stream()
+        .filter(InvoiceActionTypeEnum::isAvailableForHolderOnly)
+        .findAny()
+        .ifPresent(action -> {
+          throw new AuthorisedUserIsHolderParamNeededForThisStatusException(action.name());
+        });
+    schemaMap.keySet().stream()
+        .filter(e->e.getOperationPermissionOnlyList() != null)
+        .findAny()
+        .ifPresent(action -> {
+          throw new PermittedOperationParamNeededForThisStatusException(action.name());
+        });
+    return schemaMap.keySet();
+  }
+
+  public Set<InvoiceActionTypeEnum> getAvailableActionList(Boolean authorisedUserIsHolder, InvoiceOperationPermission permittedOperation) {
+    return schemaMap.keySet().stream()
+        .filter(e -> (!e.isAvailableForHolderOnly() || authorisedUserIsHolder) &&
+            (e.getOperationPermissionOnlyList()==null || e.getOperationPermissionOnlyList().contains(permittedOperation)))
+        .collect(Collectors.toSet());
   }
 
   public static List<InvoiceStatus> getAvailableForActionStatusesList(List<InvoiceActionTypeEnum> action) {
@@ -107,11 +146,11 @@ public enum InvoiceRequestStatusEnum implements InvoiceStatus {
         .filter(e -> !allNodesSet.contains(e))
         .collect(Collectors.toList());
     if (candidateList.size() == 0) {
-      System.out.println("begin state not found");
+      log.fatal("begin state not found");
       throw new AssertionError();
     }
     if (candidateList.size() > 1) {
-      System.out.println("more than single begin state found: " + candidateList);
+      log.fatal("more than single begin state found: " + candidateList);
       throw new AssertionError();
     }
     return candidateList.get(0);
@@ -127,6 +166,40 @@ public enum InvoiceRequestStatusEnum implements InvoiceStatus {
     return Arrays.stream(InvoiceRequestStatusEnum.class.getEnumConstants())
         .filter(e -> e.schemaMap.isEmpty())
         .collect(Collectors.toSet());
+  }
+
+  public static InvoiceStatus getInvoiceStatusAfterAction(InvoiceActionTypeEnum action) {
+    TreeSet<InvoiceStatus> statusSet = new TreeSet(
+        Arrays.stream(WithdrawStatusEnum.class.getEnumConstants())
+            .filter(e -> e.availableForAction(action))
+            .map(e -> e.nextState(action))
+            .collect(Collectors.toList()));
+    if (statusSet.size()==0) {
+      log.fatal("no state found !");
+      throw new AssertionError();
+    }
+    if (statusSet.size()>1) {
+      log.fatal("more then one state found !");
+      throw new AssertionError();
+    }
+    return statusSet.first();
+  }
+
+  @Override
+  public Boolean isEndStatus() {
+    return schemaMap.isEmpty();
+  }
+
+  @Override
+  public Boolean isSuccessEndStatus() {
+    Map<InvoiceActionTypeEnum, InvoiceStatus> schema = new HashMap<>();
+    Arrays.stream(InvoiceRequestStatusEnum.class.getEnumConstants())
+        .forEach(e -> schema.putAll(e.schemaMap));
+    return schema.entrySet().stream()
+        .filter(e -> e.getValue() == this)
+        .filter(e -> e.getKey().isLeadsToSuccessFinalState())
+        .findAny()
+        .isPresent();
   }
 
   private static Set<InvoiceStatus> collectAllSchemaMapNodesSet() {

@@ -3,9 +3,11 @@ package me.exrates.service.impl;
 import com.squareup.okhttp.OkHttpClient;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Transaction;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.Privat24Service;
 import me.exrates.service.TransactionService;
+import me.exrates.service.exception.NotImplimentedMethod;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,6 +92,11 @@ public class Privat24ServiceImpl implements Privat24Service {
         }
 
         return false;
+    }
+
+    @Override
+    public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+        throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
     }
 
 }

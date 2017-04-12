@@ -32,6 +32,8 @@
                 <div style="float: left; display: inline-block">
                     <button id="withdraw-requests-new" class="myorders__button blue-box margin-box">
                         <loc:message code="admin.withdraw.new"/></button>
+                    <button id="withdraw-requests-auto" class="myorders__button blue-box margin-box">
+                        <loc:message code="admin.withdraw.auto"/></button>
                     <button id="withdraw-requests-All" class="myorders__button blue-box margin-box">
                         <loc:message code="admin.withdraw.All"/></button>
                     <button id="withdraw-requests-accepted" class="myorders__button green-box margin-box">
@@ -180,15 +182,12 @@
                 </div>
             </div>
 
-
-
-
-
             <table id="withdrawalTable">
                 <thead>
                 <tr>
                     <th><loc:message code="transaction.id"/></th>
                     <th><loc:message code="withdrawal.requestDatetime"/></th>
+                    <%--<th><loc:message code="withdrawal.status"/></th>--%>
                     <th><loc:message code="withdrawal.user"/></th>
                     <th><loc:message code="withdrawal.amount"/></th>
                     <th><loc:message code="withdrawal.currency"/></th>
@@ -262,6 +261,8 @@
 
 
 <%@include file='fragments/modal/withdraw_info_modal.jsp' %>
+<%@include file="fragments/modal/confirm_with_info_modal.jsp" %>
+<%@include file='fragments/modal/enter_note_before_decline_modal.jsp' %>
 <%@include file='fragments/footer.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>

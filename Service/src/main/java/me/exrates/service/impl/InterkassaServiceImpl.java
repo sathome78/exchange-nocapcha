@@ -2,9 +2,11 @@ package me.exrates.service.impl;
 
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Transaction;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.InterkassaService;
 import me.exrates.service.TransactionService;
+import me.exrates.service.exception.NotImplimentedMethod;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -108,4 +110,8 @@ public class InterkassaServiceImpl implements InterkassaService {
         return Base64.getEncoder().encodeToString(signMD5);
     }
 
+    @Override
+    public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+        throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
+    }
 }

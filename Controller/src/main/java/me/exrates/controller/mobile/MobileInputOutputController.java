@@ -37,7 +37,7 @@ import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.util.*;
 
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CONFIRM;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CONFIRM_USER;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.REVOKE;
 import static me.exrates.service.exception.api.ErrorCode.*;
 import static org.springframework.http.HttpStatus.*;
@@ -54,8 +54,6 @@ public class MobileInputOutputController {
 
     private static final Logger LOGGER = LogManager.getLogger("mobileAPI");
 
-    private static int INVOICE_MERCHANT_ID = 12;
-    private static int INVOICE_MERCHANT_IMAGE_ID = 16;
 
 
     @Autowired
@@ -238,10 +236,9 @@ public class MobileInputOutputController {
 
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-            return merchantService.prepareCreditsOperation(payment, userEmail)
-                    .map(creditsOperation -> withdrawService.withdrawRequest(creditsOperation, new WithdrawData(), userEmail, userLocale))
-                    .map(response -> new ResponseEntity<>(response, OK))
-                    .orElseThrow(InvalidAmountException::new);
+        CreditsOperation creditsOperation = merchantService.prepareCreditsOperation(payment, userEmail).orElseThrow(InvalidAmountException::new);
+        Map<String, String> response = withdrawService.createWithdrawalRequest(creditsOperation, new WithdrawData(), userEmail, userLocale);
+        return new ResponseEntity<>(response, OK);
 
     }
 
@@ -410,7 +407,7 @@ public class MobileInputOutputController {
     public ResponseEntity<Void> confirmInvoice(@Valid InvoiceConfirmData invoiceConfirmData) throws Exception {
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-        invoiceService.userActionOnInvoice(invoiceConfirmData, CONFIRM, userLocale);
+        invoiceService.userActionOnInvoice(invoiceConfirmData, CONFIRM_USER, userLocale);
         return new ResponseEntity<>(OK);
     }
     @RequestMapping(value = "/invoice/revoke", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -503,8 +500,7 @@ public class MobileInputOutputController {
         Payment payment = new Payment();
         payment.setSum(withdrawInvoiceDto.getSum());
         payment.setCurrency(withdrawInvoiceDto.getCurrency());
-        payment.setMerchant(INVOICE_MERCHANT_ID);
-        payment.setMerchantImage(INVOICE_MERCHANT_IMAGE_ID);
+        payment.setMerchant(merchantService.findByNName("Invoice").getId());
         payment.setOperationType(OperationType.OUTPUT);
         payment.setDestination(withdrawInvoiceDto.getWalletNumber());
 
@@ -517,10 +513,18 @@ public class MobileInputOutputController {
 
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-        return merchantService.prepareCreditsOperation(payment, userEmail)
-                .map(creditsOperation -> withdrawService.withdrawRequest(creditsOperation, withdrawData, userEmail, userLocale))
-                .map(response -> new ResponseEntity<>(response, OK))
-                .orElseThrow(InvalidAmountException::new);
+        CreditsOperation creditsOperation = merchantService.prepareCreditsOperation(payment, userEmail).orElseThrow(InvalidAmountException::new);
+        Map<String, String> response = withdrawService.createWithdrawalRequest(creditsOperation, withdrawData, userEmail, userLocale);
+        
+        return new ResponseEntity<>(response, OK);
+    }
+    
+    @RequestMapping(value = "/withdraw/revoke", method = POST)
+    @ResponseBody
+    public ResponseEntity<Void> revokeWithdrawRequest(@RequestBody Map<String, String> params) {
+        Integer id = Integer.parseInt(RestApiUtils.retrieveParamFormBody(params, "invoiceId", true));
+        withdrawService.revokeWithdrawalRequest(id);
+        return new ResponseEntity<>(OK);
     }
 
 
@@ -602,7 +606,7 @@ public class MobileInputOutputController {
             throw new InvalidNicknameException(messageSource.getMessage("transfer.selfNickname", null, userLocale));
         }
         walletService.transferCostsToUser(userTransferDto.getWalletId(), userTransferDto.getNickname(),
-                userTransferDto.getAmount(), userLocale);
+                userTransferDto.getAmount(), userLocale, false);
         return new ResponseEntity<>(OK);
 
     }

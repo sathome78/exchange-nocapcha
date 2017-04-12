@@ -19,6 +19,7 @@ import me.exrates.service.BitcoinWalletService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.exception.NotImplimentedMethod;
+import me.exrates.service.exception.invoice.IllegalInvoiceAmountException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.bitcoinj.core.TransactionConfidence;
 import org.bitcoinj.core.TransactionOutput;
@@ -97,26 +98,31 @@ public class BitcoinJWalletServiceImpl implements BitcoinWalletService {
         final String address = extractRecipientAddress(tx.getOutputs());
         System.out.println(address);
         if (bitcoinTransactionService.existsPendingPaymentWithStatusAndAddress(beginStatus, address)) {
-          String txHash = tx.getHashAsString();
-          PendingPaymentStatusDto pendingPayment = bitcoinTransactionService.markStartConfirmationProcessing(address, txHash);
-          final Integer invoiceId = pendingPayment.getInvoiceId();
-          List<ListenableFuture<TransactionConfidence>> confirmations = IntStream.rangeClosed(1, CONFIRMATION_NEEDED_COUNT)
-                  .mapToObj(x -> tx.getConfidence().getDepthFuture(x))
-                  .collect(toList());
-          confirmations.forEach(confidence -> confidence.addListener(() -> {
-            try {
-              Integer confirmsCount = confidence.get().getDepthInBlocks();
-              bitcoinTransactionService.changeTransactionConfidenceForPendingPayment(invoiceId, confirmsCount);
-              if (confirmsCount >= CONFIRMATION_NEEDED_COUNT) {
-                BigDecimal factPaymentAmount = satoshiToBtc(tx.getValue(wallet).getValue());
-                bitcoinTransactionService.provideBtcTransaction(invoiceId, txHash, factPaymentAmount, null);
+          try {
+            String txHash = tx.getHashAsString();
+            BigDecimal factAmount = satoshiToBtc(tx.getValue(wallet).getValue());
+            PendingPaymentStatusDto pendingPayment = bitcoinTransactionService.markStartConfirmationProcessing(address, txHash, factAmount);
+            final Integer invoiceId = pendingPayment.getInvoiceId();
+            List<ListenableFuture<TransactionConfidence>> confirmations = IntStream.rangeClosed(1, CONFIRMATION_NEEDED_COUNT)
+                    .mapToObj(x -> tx.getConfidence().getDepthFuture(x))
+                    .collect(toList());
+            confirmations.forEach(confidence -> confidence.addListener(() -> {
+              try {
+                Integer confirmsCount = confidence.get().getDepthInBlocks();
+                bitcoinTransactionService.changeTransactionConfidenceForPendingPayment(invoiceId, confirmsCount);
+                if (confirmsCount >= CONFIRMATION_NEEDED_COUNT) {
+                  BigDecimal factPaymentAmount = satoshiToBtc(tx.getValue(wallet).getValue());
+                  bitcoinTransactionService.provideBtcTransaction(invoiceId, txHash, factPaymentAmount, null);
+                }
+              } catch (final ExecutionException | InterruptedException e) {
+                log.error(e);
+              } catch (Exception e) {
+                log.error(ExceptionUtils.getStackTrace(e));
               }
-            } catch (final ExecutionException | InterruptedException e) {
-              log.error(e);
-            } catch (Exception e) {
-              log.error(ExceptionUtils.getStackTrace(e));
-            }
-          }, pool));
+            }, pool));
+          } catch (IllegalInvoiceAmountException e) {
+            log.error(ExceptionUtils.getStackTrace(e));
+          }
         }
       });
     } catch (Exception e) {
@@ -150,6 +156,11 @@ public class BitcoinJWalletServiceImpl implements BitcoinWalletService {
   }
   
   @Override
+  public void backupWallet() {
+    throw new NotImplimentedMethod("Not implemented");
+  }
+  
+  @Override
   public BtcWalletInfoDto getWalletInfo() {
     throw new NotImplimentedMethod("Not implemented");
   }
@@ -170,12 +181,28 @@ public class BitcoinJWalletServiceImpl implements BitcoinWalletService {
   }
   
   @Override
+  public BigDecimal getActualFee() {
+    throw new NotImplimentedMethod("Not implemented");
+  }
+  
+  @Override
+  public void setTxFee(BigDecimal fee) {
+    throw new NotImplimentedMethod("Not implemented");
+  
+  }
+  
+  @Override
   public void submitWalletPassword(String password) {
     throw new NotImplimentedMethod("Not implemented");
   }
   
   @Override
   public String sendToAddress(String address, BigDecimal amount) {
+    throw new NotImplimentedMethod("Not implemented");
+  }
+  
+  @Override
+  public String sendToMany(Map<String, BigDecimal> payments) {
     throw new NotImplimentedMethod("Not implemented");
   }
 }

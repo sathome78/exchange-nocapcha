@@ -8,6 +8,7 @@ import me.exrates.model.dto.OrderCreateSummaryDto;
 import me.exrates.model.dto.OrderCreationResultDto;
 import me.exrates.model.dto.mobileApiDto.OrderCreationParamsDto;
 import me.exrates.model.dto.mobileApiDto.OrderSummaryDto;
+import me.exrates.model.enums.OrderActionEnum;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.api.ApiError;
@@ -33,6 +34,7 @@ import javax.validation.Valid;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static me.exrates.model.enums.OrderActionEnum.CREATE;
 import static me.exrates.service.exception.api.ErrorCode.*;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
@@ -279,7 +281,7 @@ public class MobileOrderController {
             }
             OrderCreationResultDto orderCreationResultDto = new OrderCreationResultDto();
 
-            Integer createdOrderId = orderService.createOrder(orderCreateDto);
+            Integer createdOrderId = orderService.createOrder(orderCreateDto, CREATE);
             if (createdOrderId <= 0) {
                 throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, userLocale));
             }

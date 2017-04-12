@@ -10,10 +10,36 @@ $(function () {
 
     updateTxHistoryTable();
     retrieveFee();
+    checkSendBtcFormFields();
+
+    $('#addPayment').click(function (e) {
+        e.preventDefault();
+        var $newPaymentDiv = $('#payment_0').clone(true);
+        var currentNum = $('.btcWalletPayment').size();
+        $newPaymentDiv.attr('id', 'payment_' + currentNum);
+        $($newPaymentDiv).find('input[name="amount"]').attr('id', 'amount_' + currentNum).val('');
+        $($newPaymentDiv).find('input[name="address"]').attr('id', 'address_' + currentNum).val('');
+        $('#payments').append($newPaymentDiv);
+        checkSendBtcFormFields();
+    });
+
+
+    $('.input-amount, .input-address').on('input', function () {
+        checkSendBtcFormFields();
+    });
+
+    $('#input-fee-actual').on('input', function () {
+        $('#tx-fee-form').find('input[name="fee"]').val($(this).val())
+    });
 
     $('#submit-btc').click(function () {
         $($passwordModal).modal();
     });
+
+    $('#reset-btc').click(function () {
+        resetForm();
+    });
+
 
     $('#submit-wallet-pass').click(function () {
         $.ajax('/2a8fy7b07dxe44/bitcoinWallet/unlock', {
@@ -31,23 +57,59 @@ $(function () {
     });
 
     $('#confirm-btc-submit').click(function () {
-        var $btcFrom = $('#send-btc-form');
-        $.ajax('/2a8fy7b07dxe44/bitcoinWallet/send', {
+        var data = {};
+        $('.btcWalletPayment').each(function () {
+            var address = $(this).find('input[name="address"]').val();
+            data[address] = parseFloat($(this).find('input[name="amount"]').val());
+        });
+        console.log(data);
+        $.ajax('/2a8fy7b07dxe44/bitcoinWallet/sendToMany', {
             headers: {
                 'X-CSRF-Token': $("input[name='_csrf']").val()
             },
             type: 'POST',
-            data: $($btcFrom).serialize(),
+            contentType: 'application/json; charset=UTF-8',
+            data: JSON.stringify(data),
             success: function (data) {
                 $($paymentConfirmModal).modal('hide');
-                $($btcFrom)[0].reset();
+                resetForm();
                 $('#current-btc-balance').text(data.newBalance);
                 successNoty(data.message)
             }
         })
     });
+    $('#submitChangeFee').click(function (e) {
+        e.preventDefault();
+        updateTxFee();
+    });
 
 });
+
+function checkSendBtcFormFields() {
+    var isFormValid = true;
+    $('.btcWalletPayment').each(function () {
+        var amount =  $(this).find('input[name="amount"]').val();
+        var address = $(this).find('input[name="address"]').val();
+        if (amount.length === 0 || address.length === 0) {
+            $('#submit-btc').prop('disabled', true);
+            isFormValid = false;
+            return false;
+        }
+    });
+    if (isFormValid) {
+        $('#submit-btc').prop('disabled', false);
+    }
+}
+
+function resetForm() {
+    var $payments = $('#payments');
+    var $initialPayment = $('#payment_0');
+    $($payments).empty();
+    $payments.append($initialPayment);
+    $('#send-btc-form')[0].reset();
+    retrieveFee();
+    checkSendBtcFormFields();
+}
 
 function fillConfirmModal() {
     var templateVariables = {
@@ -55,12 +117,19 @@ function fillConfirmModal() {
         address: '__address__'
     };
     var promptMessage = $('#confirmBtcMessage').text();
-    var address = $('#input-address').val();
-    var amount = $('#input-amount').val();
-    promptMessage = promptMessage.replace(templateVariables.amount, amount)
-        .replace(templateVariables.address, address);
+    var addresses = '';
+    var totalAmount = 0;
+    $('.btcWalletPayment').each(function () {
+        if (addresses.length === 0) {
+            addresses = addresses + $(this).find('input[name="address"]').val();
+        } else {
+            addresses = addresses + ', ' + $(this).find('input[name="address"]').val();
+        }
+        totalAmount = totalAmount + parseFloat($(this).find('input[name="amount"]').val())
+    });
+    promptMessage = promptMessage.replace(templateVariables.amount, totalAmount)
+        .replace(templateVariables.address, addresses);
     $('#btc-confirm-prompt').text(promptMessage);
-
 
 }
 
@@ -146,11 +215,27 @@ function updateTxHistoryTable() {
 
 function retrieveFee() {
     $.get('/2a8fy7b07dxe44/bitcoinWallet/estimatedFee', function (data) {
-        console.log(data);
         $('#input-fee').val(data);
+    });
+    $.get('/2a8fy7b07dxe44/bitcoinWallet/actualFee', function (data) {
+        $('#input-fee-actual').val(data);
     })
 }
 
+function updateTxFee() {
+    var data = $('#tx-fee-form').serialize();
+    $.ajax('/2a8fy7b07dxe44/bitcoinWallet/setFee', {
+        headers: {
+            'X-CSRF-Token': $("input[name='_csrf']").val()
+        },
+        type: 'POST',
+        data: data,
+        success: function () {
+            retrieveFee();
+        }
+    });
+
+}
 
 
 

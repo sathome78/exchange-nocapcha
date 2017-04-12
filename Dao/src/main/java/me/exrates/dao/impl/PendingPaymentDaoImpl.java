@@ -439,8 +439,9 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
       List<Integer> currencyList,
       List<String> sourceTypeList) {
     String sql = "SELECT  PP.*, " +
-        "         USER.email AS user_email, " +
+        "         USER.email AS user_email, USER.nickname AS nickname, " +
         "         ADM.email AS acceptance_user_email, " +
+        "         MERCHANT.name AS merchant_name, " +
         "         TX.id, TX.amount, TX.commission_amount, TX.datetime, " +
         "         TX.operation_type_id,TX.provided,TX.confirmation, " +
         "         TX.source_type, " +
@@ -448,6 +449,7 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
         " FROM PENDING_PAYMENT PP " +
         " JOIN TRANSACTION TX ON (TX.id = PP.invoice_id) AND TX.source_type IN (:source_type_list) AND (TX.currency_id IN (:currency_list)) " +
         " JOIN CURRENCY ON CURRENCY.id = TX.currency_id " +
+        " JOIN MERCHANT ON MERCHANT.id = TX.merchant_id " +
         " JOIN WALLET ON WALLET.id = TX.user_wallet_id " +
         " JOIN USER AS USER ON USER.id = WALLET.user_id " +
         " LEFT JOIN USER AS ADM ON ADM.id = PP.acceptance_user_id " +
@@ -475,6 +477,7 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
         pendingPaymentFlatForReportDto.setStatusUpdateDate(rs.getTimestamp("status_update_date") == null ? null : rs.getTimestamp("status_update_date").toLocalDateTime());
         pendingPaymentFlatForReportDto.setAcceptanceTime(rs.getTimestamp("acceptance_time") == null ? null : rs.getTimestamp("acceptance_time").toLocalDateTime());
         pendingPaymentFlatForReportDto.setHash(rs.getString("hash"));
+        pendingPaymentFlatForReportDto.setUserNickname(rs.getString("nickname"));
         pendingPaymentFlatForReportDto.setUserEmail(rs.getString("user_email"));
         pendingPaymentFlatForReportDto.setAcceptanceUserEmail(rs.getString("acceptance_user_email"));
         pendingPaymentFlatForReportDto.setAmount(rs.getBigDecimal("amount"));
@@ -484,6 +487,7 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
         pendingPaymentFlatForReportDto.setProvided(rs.getBoolean("provided"));
         pendingPaymentFlatForReportDto.setCurrency(rs.getString("currency_name"));
         pendingPaymentFlatForReportDto.setSourceType(TransactionSourceType.valueOf(rs.getString("source_type")));
+        pendingPaymentFlatForReportDto.setMerchant(rs.getString("merchant_name"));
         return pendingPaymentFlatForReportDto;
       }
     });
@@ -506,6 +510,15 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
             "AND TRANSACTION.confirmation = -1";
     return jdbcTemplate.query(sql, pendingPaymentRowMapper);
     
+  }
+  
+  @Override
+  public void updateBtcHash(Integer invoiceId, String hash) {
+    String sql = "UPDATE PENDING_PAYMENT SET hash = :btc_hash WHERE invoice_id = :invoice_id";
+    Map<String, Object> params = new HashMap<>();
+    params.put("invoice_id", invoiceId);
+    params.put("btc_hash", hash);
+    parameterJdbcTemplate.update(sql, params);
   }
 
 }

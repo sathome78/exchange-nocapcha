@@ -52,7 +52,7 @@
 
                                         </div>
                                         <button style="position: relative; top: 50%; -webkit-transform: translateY(-50%); -ms-transform: translateY(-50%); transform: translateY(-50%);" type="button" value="${merchantCurrency.merchantId}:${merchantCurrency.name}:${merchantCurrency.minSum}:${merchantImage.id}"  name="assertOutputPay"
-                                                onclick="finPassCheck('myModal', submitMerchantsOutput)" class="btn btn-primary btn-lg"><loc:message code="merchants.withdraw"/></button>
+                                                onclick="processWithdraw()" class="btn btn-primary btn-lg"><loc:message code="merchants.withdraw"/></button>
                                     </div>
                                     <br>
                                 </c:forEach>

@@ -7,20 +7,13 @@ import me.exrates.model.Wallet;
 import me.exrates.model.enums.CurrencyWarningType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.util.BigDecimalProcessing;
-import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.*;
-import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.math.BigDecimal;
@@ -28,13 +21,9 @@ import java.security.Principal;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.util.Collections.singletonMap;
 import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.OperationType.OUTPUT;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -56,7 +45,7 @@ public class CommonMerchantsController {
     private UserService userService;
 
     @Autowired
-    private MessageSource source;
+    private MessageSource messageSource;
 
     @Autowired
     WithdrawService withdrawService;
@@ -77,7 +66,7 @@ public class CommonMerchantsController {
 
         final List<Integer> currenciesId = Collections.singletonList(currencyId);
         modelAndView.addObject("merchantCurrencyData",merchantService.findAllByCurrencies(currenciesId, OperationType.INPUT));
-        modelAndView.addObject("minAmount", currencyService.retrieveMinLimitForRoleAndCurrency(userService.getCurrentUserRole(), INPUT, currencyId));
+        modelAndView.addObject("minAmount", currencyService.retrieveMinLimitForRoleAndCurrency(userService.getUserRoleFromSecurityContext(), INPUT, currencyId));
         
         //TODO refactor for a single method call
         Optional<String> warningCodeSingleAddress = currencyService.getWarningForCurrency(currencyId, CurrencyWarningType.SINGLE_ADDRESS);
@@ -95,7 +84,7 @@ public class CommonMerchantsController {
         final Wallet wallet = walletService.findByUserAndCurrency(userService.findByEmail(principal.getName()), currency);
         final Payment payment = new Payment();
         payment.setOperationType(OUTPUT);
-        final BigDecimal minWithdrawSum = currencyService.retrieveMinLimitForRoleAndCurrency(userService.getCurrentUserRole(), OUTPUT, currency.getId());
+        final BigDecimal minWithdrawSum = currencyService.retrieveMinLimitForRoleAndCurrency(userService.getUserRoleFromSecurityContext(), OUTPUT, currency.getId());
 
         modelAndView.addObject("currency",currency);
 
@@ -130,45 +119,6 @@ public class CommonMerchantsController {
                                       final @RequestParam("merchant") String merchant)
     {
         return merchantService.computeCommissionAndMapAllToString(amount, type, currency, merchant);
-    }
-
-    @RequestMapping(value="/payment/withdraw", method = POST)
-    public ResponseEntity<Map<String,String>> withdraw(@RequestBody final Payment payment,
-                                                       final Principal principal, final Locale locale) {
-        final ResponseEntity<Map<String, String>> error = new ResponseEntity<>(
-                singletonMap("failure",
-                        source.getMessage("merchants.withdrawRequestError", null, locale)),
-                BAD_REQUEST);
-        try {
-            return merchantService.prepareCreditsOperation(payment, principal.getName())
-                    .map(creditsOperation -> withdrawService.withdrawRequest(creditsOperation, new WithdrawData(), principal.getName(), locale))
-                    .map(response -> new ResponseEntity<>(response, OK))
-                    .orElseGet(() -> error);
-        } catch (final NotEnoughUserWalletMoneyException e) {
-            return error;
-        }
-    }
-
-    @RequestMapping(value = "/withdrawal/request/accept",method = POST)
-    @ResponseBody
-    public ResponseEntity<Map<String,String>> acceptWithdrawRequest(final @RequestParam("requestId") int request,
-                                                                    final Locale locale, final Principal principal) {
-        final Map<String, String> result = withdrawService.acceptWithdrawalRequest(request, locale, principal);
-        if (result.containsKey("error")) {
-            return new ResponseEntity<>(result, BAD_REQUEST);
-        }
-        return new ResponseEntity<>(result, OK);
-    }
-
-    @RequestMapping(value = "/withdrawal/request/decline")
-    @ResponseBody
-    public ResponseEntity<Map<String,Object>> declineWithdrawRequest(final @RequestParam("requestId") int request,
-                                                                    final Locale locale, Principal principal) {
-        final Map<String, Object> result = withdrawService.declineWithdrawalRequest(request, locale, principal.getName());
-        if (result.containsKey("error")) {
-            return new ResponseEntity<>(result, BAD_REQUEST);
-        }
-        return new ResponseEntity<>(result, OK);
     }
 
 }

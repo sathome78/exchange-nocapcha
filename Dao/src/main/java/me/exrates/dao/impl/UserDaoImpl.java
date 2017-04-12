@@ -5,7 +5,8 @@ import me.exrates.model.*;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.TemporaryPasswordDto;
 import me.exrates.model.enums.*;
-import me.exrates.model.util.BigDecimalProcessing;
+import me.exrates.model.enums.invoice.InvoiceOperationDirection;
+import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -671,242 +672,6 @@ public class UserDaoImpl implements UserDao {
   }
 
   @Override
-  public List<UserSummaryDto> getUsersSummaryList(String startDate, String endDate, List<Integer> roles) {
-    String condition = "";
-    if (!roles.isEmpty()) {
-      condition = " WHERE USER_ROLE.id IN (:roles) ";
-    }
-
-    String sql =
-        " SELECT  " +
-            "   USER.nickname as user_nickname,  " +
-            "   USER.email as user_email,  " +
-            "   USER.regdate as user_register_date,  " +
-            "   (SELECT ip FROM USER_IP WHERE USER_IP.user_id = USER.id ORDER BY -registration_date DESC LIMIT 1) as user_register_ip, " +
-            "   (SELECT ip FROM USER_IP WHERE USER_IP.user_id = USER.id ORDER BY last_registration_date DESC LIMIT 1) as user_last_entry_ip, " +
-            "   CURRENCY.name as currency_name,  " +
-            "   WALLET.active_balance as active_balance,  " +
-            "   WALLET.reserved_balance as reserved_balance, " +
-            "   (SELECT SUM(INPUT.amount) FROM TRANSACTION INPUT WHERE (INPUT.user_wallet_id = WALLET.id)  " +
-            "         AND (INPUT.operation_type_id=1)  " +
-            "         AND (INPUT.status_id=1)  " +
-            "         AND (INPUT.provided=1) " +
-            "         AND (DATE_FORMAT(INPUT.datetime, '%Y-%m-%d %H:%i:%s') BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))) " +
-            "   AS input_amount,  " +
-            "   (SELECT SUM(OUTPUT.amount) FROM TRANSACTION OUTPUT WHERE (OUTPUT.user_wallet_id = WALLET.id)  " +
-            "         AND (OUTPUT.operation_type_id=2)  " +
-            "         AND (OUTPUT.status_id=1)  " +
-            "         AND (OUTPUT.provided=1) " +
-            "         AND (DATE_FORMAT(OUTPUT.datetime, '%Y-%m-%d %H:%i:%s') BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))) " +
-            "   AS output_amount     " +
-            " FROM USER  " +
-            "   LEFT JOIN WALLET ON (WALLET.user_id = USER.id) " +
-            "   LEFT JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id)" +
-            "   JOIN USER_ROLE ON (USER_ROLE.id = USER.roleid) " +
-            condition;
-
-    Map<String, Object> namedParameters = new HashMap<>();
-    namedParameters.put("start_date", startDate);
-    namedParameters.put("end_date", endDate);
-    namedParameters.put("roles", roles);
-    ArrayList<UserSummaryDto> result = (ArrayList<UserSummaryDto>) namedParameterJdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<UserSummaryDto>() {
-      @Override
-      public UserSummaryDto mapRow(ResultSet rs, int rowNumber) throws SQLException {
-        UserSummaryDto userSummaryDto = new UserSummaryDto();
-        userSummaryDto.setUserNickname(rs.getString("user_nickname"));
-        userSummaryDto.setUserEmail(rs.getString("user_email"));
-        userSummaryDto.setCreationDate(rs.getTimestamp("user_register_date") == null ? "" : rs.getTimestamp("user_register_date").toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        userSummaryDto.setRegisteredIp(rs.getString("user_register_ip"));
-        userSummaryDto.setLastIp(rs.getString("user_last_entry_ip"));
-        userSummaryDto.setCurrencyName(rs.getString("currency_name"));
-        userSummaryDto.setActiveBalance(rs.getBigDecimal("active_balance"));
-        userSummaryDto.setReservedBalance(rs.getBigDecimal("reserved_balance"));
-        userSummaryDto.setWalletTurnover(BigDecimalProcessing.doActionLax(rs.getBigDecimal("input_amount"), rs.getBigDecimal("output_amount"), ActionType.SUBTRACT));
-        return userSummaryDto;
-      }
-    });
-    return result;
-  }
-
-  @Override
-  public List<UserSummaryInOutDto> getUsersSummaryInOutList(String startDate, String endDate, List<Integer> roles) {
-    String condition = "";
-    if (!roles.isEmpty()) {
-      condition = " AND USER_ROLE.id IN (:roles) ";
-    }
-
-    String sql =
-        " SELECT USER.nickname as user_nickname, USER.email as user_email, \n" +
-            "case when operation_type_id=1 then\n" +
-            "TRANSACTION.datetime end as creationIn, \n" +
-            "case when operation_type_id=2 then\n" +
-            "TRANSACTION.datetime end as creationOut, \n" +
-            "WITHDRAW_REQUEST.acceptance as confirmationOut, " +
-            "MERCHANT.name as merchantName, " +
-            "CURRENCY.name as currency_name, TRANSACTION.amount  FROM TRANSACTION \n" +
-            "LEFT JOIN WITHDRAW_REQUEST ON (WITHDRAW_REQUEST.transaction_id = TRANSACTION.id)  \n" +
-            "JOIN WALLET ON (WALLET.id = TRANSACTION.user_wallet_id)\n" +
-            "LEFT JOIN MERCHANT ON (MERCHANT.id = TRANSACTION.merchant_id)    \n" +
-            "JOIN USER ON (USER.id = WALLET.user_id)  \n" +
-            "JOIN CURRENCY ON (CURRENCY.id = WALLET.currency_id)    \n" +
-            "JOIN USER_ROLE ON (USER_ROLE.id = USER.roleid)    \n" +
-            "where provided=1 AND merchant_id is not null AND (operation_type_id=1 OR operation_type_id=2) " +
-            condition + "AND (DATE_FORMAT(TRANSACTION.datetime, '%Y-%m-%d %H:%i:%s') BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s')) ORDER BY TRANSACTION.datetime";
-    Map<String, Object> namedParameters = new HashMap<>();
-    namedParameters.put("start_date", startDate);
-    namedParameters.put("end_date", endDate);
-    namedParameters.put("roles", roles);
-
-    ArrayList<UserSummaryInOutDto> result = (ArrayList<UserSummaryInOutDto>) namedParameterJdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<UserSummaryInOutDto>() {
-      @Override
-      public UserSummaryInOutDto mapRow(ResultSet rs, int rowNumber) throws SQLException {
-        UserSummaryInOutDto userSummaryInOutDto = new UserSummaryInOutDto();
-        userSummaryInOutDto.setUserNickname(rs.getString("user_nickname"));
-        userSummaryInOutDto.setUserEmail(rs.getString("user_email"));
-        userSummaryInOutDto.setCreationIn(rs.getTimestamp("creationIn") == null ? "" : rs.getTimestamp("creationIn").toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        userSummaryInOutDto.setCreationOut(rs.getTimestamp("creationOut") == null ? "" : rs.getTimestamp("creationOut").toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        userSummaryInOutDto.setConfirmationOut(rs.getTimestamp("confirmationOut") == null ? "" : rs.getTimestamp("confirmationOut").toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        userSummaryInOutDto.setMerchantName(rs.getString("merchantName"));
-        userSummaryInOutDto.setCurrencyName(rs.getString("currency_name"));
-        userSummaryInOutDto.setAmount(rs.getBigDecimal("amount"));
-        return userSummaryInOutDto;
-      }
-    });
-    return result;
-  }
-
-  @Override
-  public List<UserSummaryTotalInOutDto> getUsersSummaryTotalInOutList(String startDate, String endDate, List<Integer> roles) {
-    String condition = "";
-    if (!roles.isEmpty()) {
-      condition = " AND USER_ROLE.id IN (:roles) ";
-    }
-
-    String sql = "SELECT CURRENCY.name as currency_name, \n " +
-        "SUM(case when operation_type_id=1 then\n" +
-        "TRANSACTION.amount end) as amountIn, \n" +
-        "SUM(case when operation_type_id=2 then\n" +
-        "TRANSACTION.amount end) as amountOut\n" +
-        "  FROM TRANSACTION \n" +
-        "JOIN CURRENCY ON (CURRENCY.id = TRANSACTION.currency_id)    \n" +
-        "JOIN WALLET ON (WALLET.id = TRANSACTION.user_wallet_id)     \n" +
-        "JOIN USER ON (USER.id = WALLET.user_id)  \n" +
-        "JOIN USER_ROLE ON (USER_ROLE.id = USER.roleid)    \n" +
-        "where provided=1 AND merchant_id is not null AND (operation_type_id=1 OR operation_type_id=2)\n" +
-        condition + " AND (DATE_FORMAT(TRANSACTION.datetime, '%Y-%m-%d %H:%i:%s') BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))" +
-        "GROUP BY CURRENCY.name, CURRENCY.id";
-    Map<String, Object> namedParameters = new HashMap<>();
-    namedParameters.put("start_date", startDate);
-    namedParameters.put("end_date", endDate);
-    namedParameters.put("roles", roles);
-
-    ArrayList<UserSummaryTotalInOutDto> result = (ArrayList<UserSummaryTotalInOutDto>) namedParameterJdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<UserSummaryTotalInOutDto>() {
-      @Override
-      public UserSummaryTotalInOutDto mapRow(ResultSet rs, int rowNumber) throws SQLException {
-        UserSummaryTotalInOutDto userSummaryTotalInOutDto = new UserSummaryTotalInOutDto();
-        userSummaryTotalInOutDto.setCurrency(rs.getString("currency_name"));
-        userSummaryTotalInOutDto.setTotalIn(rs.getBigDecimal("amountIn"));
-        userSummaryTotalInOutDto.setTotalOut(rs.getBigDecimal("amountOut"));
-        return userSummaryTotalInOutDto;
-      }
-    });
-    return result;
-  }
-
-  @Override
-  public List<UserSummaryOrdersDto> getUserSummaryOrdersList(String startDate, String endDate, List<Integer> roles) {
-    String condition = "";
-    if (!roles.isEmpty()) {
-      condition = " AND USER_ROLE.id IN (:roles) ";
-    }
-
-    String sql = "select * from (SELECT USER.email,WALLET.user_id, CURRENCY.name as currency_name, USER_ROLE.name as role,\n" +
-        "\t(select sum(amount) from TRANSACTION join EXORDERS on(EXORDERS.id = TRANSACTION.source_id) where TRANSACTION.operation_type_id=1 and TRANSACTION.provided  = 1 \n" +
-        "    and TRANSACTION.source_type='ORDER' and TRANSACTION.user_wallet_id=WALLET.id \n" +
-        "    and (DATE_FORMAT(EXORDERS.date_acception, '%Y-%m-%d %H:%i:%s') BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))) as amount_buy,\n" +
-        "\t(select sum(commission_amount) from TRANSACTION join EXORDERS on(EXORDERS.id = TRANSACTION.source_id) where TRANSACTION.operation_type_id=1 and TRANSACTION.provided  = 1 \n" +
-        "    and TRANSACTION.source_type='ORDER' and TRANSACTION.user_wallet_id=WALLET.id \n" +
-        "    and (DATE_FORMAT(EXORDERS.date_acception, '%Y-%m-%d %H:%i:%s') BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))) as amount_buy_fee,\n" +
-        "\t(select sum(amount) from TRANSACTION join EXORDERS on(EXORDERS.id = TRANSACTION.source_id) where TRANSACTION.operation_type_id=2 and TRANSACTION.provided  = 1 \n" +
-        "    and TRANSACTION.source_type='ORDER' and TRANSACTION.user_wallet_id=WALLET.id\n" +
-        "    and (DATE_FORMAT(EXORDERS.date_acception, '%Y-%m-%d %H:%i:%s') BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))) as amount_sell,\n" +
-        "\t(select sum(commission_amount) from TRANSACTION join EXORDERS on(EXORDERS.id = TRANSACTION.source_id) where TRANSACTION.operation_type_id=2 and TRANSACTION.provided  = 1 \n" +
-        "    and TRANSACTION.source_type='ORDER' and TRANSACTION.user_wallet_id=WALLET.id\n" +
-        "    and (DATE_FORMAT(EXORDERS.date_acception, '%Y-%m-%d %H:%i:%s') BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))) as amount_sell_fee\n" +
-        "    \n" +
-        "\tFROM birzha.WALLET join USER on(USER.id=WALLET.user_id) join USER_ROLE on(USER_ROLE.id = USER.roleid) join CURRENCY on(CURRENCY.id = WALLET.currency_id)\n" +
-        "    where WALLET.currency_id is not null " +
-        condition +
-        " group by WALLET.user_id, WALLET.currency_id) \n" +
-        "     as innerQuery where amount_buy is not null or amount_sell is not null";
-    Map<String, Object> namedParameters = new HashMap<>();
-    namedParameters.put("start_date", startDate);
-    namedParameters.put("end_date", endDate);
-    namedParameters.put("roles", roles);
-
-        ArrayList<UserSummaryOrdersDto> result = (ArrayList<UserSummaryOrdersDto>) namedParameterJdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<UserSummaryOrdersDto>() {
-            @Override
-            public UserSummaryOrdersDto mapRow(ResultSet rs, int rowNumber) throws SQLException {
-                UserSummaryOrdersDto userSummaryOrdersDto = new UserSummaryOrdersDto();
-                userSummaryOrdersDto.setUserEmail(rs.getString("email"));
-                userSummaryOrdersDto.setWallet(rs.getString("currency_name"));
-                userSummaryOrdersDto.setRole(rs.getString("role"));
-                userSummaryOrdersDto.setAmountBuy(rs.getBigDecimal("amount_buy"));
-                userSummaryOrdersDto.setAmountBuyFee(rs.getBigDecimal("amount_buy_fee"));
-                userSummaryOrdersDto.setAmountSell(rs.getBigDecimal("amount_sell"));
-                userSummaryOrdersDto.setAmountSellFee(rs.getBigDecimal("amount_sell_fee"));
-                return userSummaryOrdersDto;
-            }
-        });
-        return result;
-    }
-
-    @Override
-    public List<UserSummaryOrdersByCurrencyPairsDto> getUserSummaryOrdersByCurrencyPairList(String startDate, String endDate, List<Integer> roles) {
-        String condition = "";
-        if (!roles.isEmpty()){
-            condition = " AND USER_ROLE.id IN (:roles) ";
-        }
-
-        String sql = "SELECT (select name from OPERATION_TYPE where id = EXORDERS.operation_type_id) as operation, date_acception, " +
-                "(select email from USER where id = EXORDERS.user_id) as user_owner, \n" +
-                "(select nickname from USER where id = EXORDERS.user_id) as user_owner_nickname, \n" +
-                "(select email from USER where id = EXORDERS.user_acceptor_id) as user_acceptor, \n" +
-                "(select nickname from USER where id = EXORDERS.user_acceptor_id) as user_acceptor_nickname, \n" +
-                "(select name from CURRENCY_PAIR where id = EXORDERS.currency_pair_id) as currency_pair, amount_base, amount_convert, exrate \n" +
-                "from EXORDERS join USER on(USER.id=EXORDERS.user_id) join USER_ROLE on(USER_ROLE.id = USER.roleid) \n" +
-                "  WHERE status_id =3    \n" +
-                condition +
-                "AND (operation_type_id IN (3,4))  \n" +
-                "AND  (DATE_FORMAT(EXORDERS.date_acception, '%Y-%m-%d %H:%i:%s') BETWEEN STR_TO_DATE(:start_date, '%Y-%m-%d %H:%i:%s') \n" +
-                "AND STR_TO_DATE(:end_date, '%Y-%m-%d %H:%i:%s'))\n" +
-                "ORDER BY date_acception, date_creation";
-        Map<String, Object> namedParameters = new HashMap<>();
-        namedParameters.put("start_date", startDate);
-        namedParameters.put("end_date", endDate);
-        namedParameters.put("roles", roles);
-
-        ArrayList<UserSummaryOrdersByCurrencyPairsDto> result = (ArrayList<UserSummaryOrdersByCurrencyPairsDto>) namedParameterJdbcTemplate.query(sql, namedParameters, new BeanPropertyRowMapper<UserSummaryOrdersByCurrencyPairsDto>() {
-            @Override
-            public UserSummaryOrdersByCurrencyPairsDto mapRow(ResultSet rs, int rowNumber) throws SQLException {
-                UserSummaryOrdersByCurrencyPairsDto userSummaryOrdersByCurrencyPairsDto = new UserSummaryOrdersByCurrencyPairsDto();
-                userSummaryOrdersByCurrencyPairsDto.setOperationType(rs.getString("operation"));
-                userSummaryOrdersByCurrencyPairsDto.setDate(rs.getTimestamp("date_acception").toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-                userSummaryOrdersByCurrencyPairsDto.setOwnerEmail(rs.getString("user_owner"));
-                userSummaryOrdersByCurrencyPairsDto.setOwnerNickname(rs.getString("user_owner_nickname"));
-                userSummaryOrdersByCurrencyPairsDto.setAcceptorEmail(rs.getString("user_acceptor"));
-                userSummaryOrdersByCurrencyPairsDto.setAcceptorNickname(rs.getString("user_acceptor_nickname"));
-                userSummaryOrdersByCurrencyPairsDto.setCurrencyPair(rs.getString("currency_pair"));
-                userSummaryOrdersByCurrencyPairsDto.setAmountBase(rs.getBigDecimal("amount_base"));
-                userSummaryOrdersByCurrencyPairsDto.setAmountConvert(rs.getBigDecimal("amount_convert"));
-                userSummaryOrdersByCurrencyPairsDto.setExrate(rs.getBigDecimal("exrate"));
-                return userSummaryOrdersByCurrencyPairsDto;
-            }
-        });
-        return result;
-    }
-
-  @Override
   public List<UserSessionInfoDto> getUserSessionInfo(Set<String> emails) {
     String sql = "SELECT USER.id AS user_id, USER.nickname AS user_nickname, USER.email AS user_email, USER_ROLE.name AS user_role FROM USER " +
         "INNER JOIN USER_ROLE ON USER_ROLE.id = USER.roleid " +
@@ -1015,7 +780,7 @@ public class UserDaoImpl implements UserDao {
     Map<String, Object> namedParameters = new HashMap<>();
     namedParameters.put("user_id", comment.getUser().getId());
     namedParameters.put("comment", comment.getComment());
-    namedParameters.put("user_creator_id", comment.getCreator().getId());
+    namedParameters.put("user_creator_id", comment.getCreator() == null ? -1 : comment.getCreator().getId());
     namedParameters.put("message_sent", comment.isMessageSent());
     namedParameters.put("message_sent", comment.isMessageSent());
     namedParameters.put("topic_id", comment.getUserCommentTopic().getCode());
@@ -1082,6 +847,38 @@ public class UserDaoImpl implements UserDao {
       }
     });
 
+  }
+
+  @Override
+  public InvoiceOperationPermission getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection(
+      Integer userId,
+      Integer currencyId,
+      InvoiceOperationDirection invoiceOperationDirection) {
+    String sql = "SELECT invoice_operation_permission_id " +
+        " FROM USER_CURRENCY_INVOICE_OPERATION_PERMISSION " +
+        " WHERE user_id = :user_id AND currency_id = :currency_id AND operation_direction = :operation_direction";
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("user_id", userId);
+      put("currency_id", currencyId);
+      put("operation_direction", invoiceOperationDirection.name());
+    }};
+    return namedParameterJdbcTemplate.queryForObject(sql, params, (rs, idx) ->
+        InvoiceOperationPermission.convert(rs.getInt("invoice_operation_permission_id")));
+  }
+
+  @Override
+  public String getEmailById(Integer id) {
+    String sql = "SELECT email FROM USER WHERE id = :id";
+    return namedParameterJdbcTemplate.queryForObject(sql, Collections.singletonMap("id", id), String.class);
+  }
+  
+  @Override
+  public UserRole getUserRoleByEmail(String email) {
+    String sql = "select USER_ROLE.name as role_name from USER " +
+            "inner join USER_ROLE on USER.roleid = USER_ROLE.id where USER.email = :email ";
+    Map<String, String> namedParameters = Collections.singletonMap("email", email);
+    return namedParameterJdbcTemplate.queryForObject(sql, namedParameters, (rs, row) ->
+            UserRole.valueOf(rs.getString("role_name")));
   }
 
 }

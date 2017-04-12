@@ -48,7 +48,10 @@ Number.prototype.noExponents= function(){
     return str + z;
 }
 
+var notifications;
+
 $(function(){
+    notifications = new NotificationsClass();
 
     const YANDEX = 'Yandex.Money';
     const PERFECT = 'Perfect Money';
@@ -81,6 +84,10 @@ $(function(){
     var merchantsData;
     var usernameToTransfer = $('#nickname');
     var $timeoutWarning = $('.timeoutWarning');
+
+    $("#walletUid").on('keypress', function (e) {
+       return /^[\w-_\.@\s\+]*$/.test(e.key);
+    });
 
     $(".input-block-wrapper__input").prop("autocomplete", "off");
     $(".numericInputField").prop("autocomplete", "off");
@@ -231,7 +238,8 @@ $(function(){
                     form.attr('action', NO_ACTION);
             }
         } else if (operationType === 'OUTPUT' && merchant === INVOICE) {
-            form.attr('action', '/merchants/invoice/withdraw/prepare');
+            var finpass = $('#finpassword').val();
+            form.attr('action', '/merchants/invoice/withdraw/prepare?finpassword=' + finpass);
         }
     }
 
@@ -250,30 +258,32 @@ $(function(){
             if (targetMerchant === INVOICE) {
                 callback();
             } else {
-                $.ajax('/merchants/payment/withdraw', {
+                var finpass = $('#finpassword').val();
+                $.ajax('/withdraw/request/merchant/create?finpassword=' + finpass, {
                     headers: {
                         'X-CSRF-Token': $("input[name='_csrf']").val()
                     },
                     type: 'POST',
                     contentType: 'application/json',
-                    dataType: 'json',
                     data: JSON.stringify($(form).serializeObject())
-                }).done(function (response) {
-                    $('#currencyFull').val(response['balance']);
+                }).success(function (response) {
+                    $('#finPassModal .close').click();
+                    $('#myModal').modal();
                     responseControls();
-                    $('.paymentInfo').html(response['success']);
-
                     $('.wallet_input').hide();
                     $(sum).val('0.0');
                     button.prop('disabled',true);
                     $('#outputPaymentProcess')
                         .prop('disabled', false);
+                    successNoty();
+                    notifications.getNotifications();
                 }).fail(function (error, jqXHR, textStatus) {
-                    console.log(textStatus);
-                    console.log(jqXHR);
+                    $('#finPassModal .close').click();
                     responseControls();
-                    $('.paymentInfo').html(error['responseJSON']['failure']);
+                    $('#outputPaymentProcess')
+                        .prop('disabled', false);
                     $('.wallet_input').hide();
+                    errorFromCookie();
                 });
             }
 
@@ -627,22 +637,50 @@ $(function(){
 
     $("#outputPaymentProcess").on('click', function () {
         if (merchantName === INVOICE) {
-            submitProcess();
+            getFinPassModal();
+            $('#myModal .close').click();
             $('#outputPaymentProcess')
                 .prop('disabled', true);
         } else {
             var uid = $("input[name='walletUid']").val();
-            if (uid.length>3){
-                $("#destination").val(uid);
-                submitProcess();
-                $('#outputPaymentProcess')
-                    .prop('disabled', true);
+            if (uid.length>3) {
+                $('#destination').val(uid);
+                $('#myModal .close').click();
+                getFinPassModal();
             }
+        }
+    });
+
+    function performWithdraw() {
+        submitProcess();
+        $('#outputPaymentProcess')
+            .prop('disabled', true);
+    }
+
+
+    function getFinPassModal() {
+        $('#submitTransferModalButton').prop('disabled', false);
+        $('#finPassModal').modal({
+            backdrop: 'static'
+        });
+    }
+
+    $('#submitTransferModalButton').click(function (e) {
+        console.log('merchant ' + merchant);
+        e.preventDefault();
+        $('#submitTransferModalButton').prop('disabled', true);
+        if (operationType.val() === 'OUTPUT') {
+
+            performWithdraw()
+        }
+        else {
+            submitTransfer()
         }
 
     });
+
     $('#transferButton').click(function () {
-        finPassCheck('transferModal', prepareTransfer);
+        prepareTransfer()
     });
 
     function prepareTransfer() {
@@ -659,26 +697,19 @@ $(function(){
          });
     }
     $('#nicknameInput').on('keyup', validateNickname);
-
-    function validateNickname() {
-        var value = $('#nicknameInput').val();
-        if (NICKNAME_REGEX.test(value) ) {
-            $('#transferProcess').prop('disabled', false);
-        } else {
-            $('#transferProcess').prop('disabled', true);
-        }
-    }
     
     $('#transferProcess').click(function (e) {
         e.preventDefault();
         var nickname = $('#nicknameInput').val();
         $('#nickname').val(nickname);
-        submitTransfer();
         $('#transferProcess').prop('disabled', true);
+        checkTransfer();
     });
 
+
     function submitTransfer() {
-        var transferForm = $('#payment').serialize();
+        var finpass = $('#finpassword').val();
+        var transferForm = $('#payment').serialize() + '&finpassword=' + finpass;
         $.ajax('/transfer/submit', {
             type: 'POST',
             data: transferForm,
@@ -686,6 +717,8 @@ $(function(){
                 'X-CSRF-Token': $("input[name='_csrf']").val()
             },
             success: function (response) {
+                $('#finPassModal .close').click();
+                $('#transferModal').modal();
                 $('.paymentInfo').html(response.result);
                 $('.nickname_input').hide();
                 responseControls();
@@ -693,6 +726,38 @@ $(function(){
                 {
                     location.reload();
                 },5000);
+            },
+            error: function (err) {
+                $('#finPassModal .close').click();
+                var errorType = $.parseJSON(err.responseText).cause;
+                var errorMsg = $.parseJSON(err.responseText).detail;
+                switch (errorType) {
+                    case 'AbsentFinPasswordException':
+                    {
+                        window.location.href = '/settings?tabIdx=2&msg=' + errorMsg;
+                        break;
+                    }
+                    default: {
+                        responseControls ()
+                    }
+                }
+            }
+        });
+    }
+
+
+    function checkTransfer() {
+        var transferForm = $('#payment').serialize() + '&checkOnly=true';
+        $.ajax('/transfer/submit', {
+            type: 'POST',
+            data: transferForm,
+            headers: {
+                'X-CSRF-Token': $("input[name='_csrf']").val()
+            },
+            success: function (response) {
+                $('#transferModal .close').click();
+                getFinPassModal();
+                responseControls();
             },
             error: function (err) {
                 console.log(err);
@@ -705,8 +770,24 @@ $(function(){
 
     }
 
+    function validateNickname() {
+        var value = $('#nicknameInput').val();
+        if (NICKNAME_REGEX.test(value) ) {
+            $('#transferProcess').prop('disabled', false);
+        } else {
+            $('#transferProcess').prop('disabled', true);
+        }
+    }
 
 });
+
+function processWithdraw() {
+    form = $('#myModal');
+    form.modal({
+        backdrop: 'static'
+    });
+
+}
 
 
 function parseNumber(numberStr) {

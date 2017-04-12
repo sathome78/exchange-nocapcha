@@ -1,6 +1,8 @@
 package me.exrates.controller.merchants;
 
 import lombok.extern.log4j.Log4j;
+import me.exrates.controller.annotation.FinPassCheck;
+import me.exrates.controller.exception.CheckFinPassException;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.*;
 import me.exrates.model.enums.TransactionSourceType;
@@ -23,6 +25,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.FlashMap;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -277,6 +280,7 @@ public class InvoiceController {
     invoiceService.declineInvoice(id, id, principal.getName(), comment);
   }
 
+  @FinPassCheck(throwCheckPassException = true)
   @RequestMapping(value = "/withdraw/prepare", method = POST)
   public RedirectView prepareWithdraw(Payment payment, Principal principal, RedirectAttributes redirectAttributes, HttpServletRequest request) {
     RedirectView redirectView = new RedirectView("/merchants/invoice/withdrawDetails");
@@ -313,34 +317,22 @@ public class InvoiceController {
     return modelAndView;
   }
 
-  @RequestMapping(value = "/withdraw/submit", method = POST)
-  public RedirectView submitWithdraw(WithdrawData withdrawData, Principal principal, HttpServletRequest request) {
-    RedirectView redirectView = new RedirectView("/dashboard");
-    HttpSession session = request.getSession();
-    Object mutex = WebUtils.getSessionMutex(session);
-    CreditsOperation creditsOperation = (CreditsOperation) session.getAttribute("creditsOperation");
-    if (creditsOperation == null) {
-      synchronized (mutex) {
-        session.setAttribute("errorNoty", messageSource.getMessage("merchant.operationNotAvailable", null,
-            localeResolver.resolveLocale(request)));
-      }
-      return new RedirectView("/merchants/invoice/withdrawDetails");
-
-    }
-    Map<String, String> result = withdrawService.withdrawRequest(creditsOperation, withdrawData, principal.getName(),
-        localeResolver.resolveLocale(request));
-    synchronized (mutex) {
-      session.removeAttribute("creditsOperation");
-      session.setAttribute("successNoty", result.get("success"));
-    }
-    return redirectView;
-  }
-  
   @RequestMapping(value = "/payment/newCommission", method = GET)
   @ResponseBody
   public BigDecimal calculateNewCommission(@RequestParam(name = "id") Integer invoiceId,
                                            @RequestParam(name = "actualPaymentSum") BigDecimal actualPaymentSum) {
     return transactionService.calculateNewCommission(transactionService.findById(invoiceId), actualPaymentSum);
+  }
+
+  @ExceptionHandler(CheckFinPassException.class)
+  public RedirectView CheckFinPassExceptionHandler(HttpServletRequest req, Exception exception) {
+    log.error(ExceptionUtils.getStackTrace(exception));
+    FlashMap outputFlashMap = RequestContextUtils.getOutputFlashMap(req);
+    if (outputFlashMap != null){
+      outputFlashMap.put("errorNoty", messageSource.getMessage("admin.wrongfinpassword", null, localeResolver.resolveLocale(req)));
+    }
+    RedirectView redirectView = new RedirectView("/merchants/output?currency=IDR");
+    return redirectView;
   }
 
 

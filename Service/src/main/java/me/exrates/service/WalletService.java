@@ -3,11 +3,11 @@ package me.exrates.service;
 import me.exrates.model.Currency;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
-import me.exrates.model.dto.MyWalletConfirmationDetailDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
-import me.exrates.model.dto.UserWalletSummaryDto;
+import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.vo.CacheData;
@@ -58,14 +58,6 @@ public interface WalletService {
     void withdrawReservedBalance(Wallet wallet, BigDecimal sum);
 
     /**
-     * Returns user's wallets info
-     *
-     * @return list the UserWalletSummaryDto
-     * @author ValkSam
-     */
-    List<UserWalletSummaryDto> getUsersWalletsSummary(List<Integer> roles);
-
-    /**
      * Transfers money between active balance the wallet and reserved balance the wallet
      * and creates corresponding transaction
      *
@@ -77,6 +69,8 @@ public interface WalletService {
      * @author ValkSam
      */
     WalletTransferStatus walletInnerTransfer(int walletId, BigDecimal amount, TransactionSourceType sourceType, int sourceId);
+
+    WalletTransferStatus walletInnerTransfer(int walletId, BigDecimal amount, TransactionSourceType sourceType, int sourceId, String description);
 
     WalletTransferStatus walletBalanceChange(WalletOperationData walletOperationData);
 
@@ -94,9 +88,13 @@ public interface WalletService {
     @Transactional(rollbackFor = Exception.class)
     void manualBalanceChange(Integer userId, Integer currencyId, BigDecimal amount);
 
-    String transferCostsToUser(Integer fromUserWalletId, String toUserNickname, BigDecimal amount, Locale locale);
+    String transferCostsToUser(Integer fromUserWalletId, String toUserNickname, BigDecimal amount, Locale locale, boolean checkOnly);
 
-    List<UserWalletSummaryDto> getUsersWalletsSummaryForPermittedCurrencyListOld(List<Integer> roles, Integer requesterUserId);
+    List<OrderDetailDto> getOrderRelatedDataAndBlock(int orderId);
+
+    WalletsForOrderAcceptionDto getWalletsForOrderByOrderIdAndBlock(Integer orderId, Integer userAcceptorId);
+
+    WalletsForOrderCancelDto getWalletForOrderByOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType);
 
     List<UserWalletSummaryDto> getUsersWalletsSummaryForPermittedCurrencyList(Integer requesterUserId);
 }

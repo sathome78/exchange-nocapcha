@@ -9,10 +9,12 @@ import me.exrates.model.CreditsOperation;
 import me.exrates.model.PendingPayment;
 import me.exrates.model.Transaction;
 import me.exrates.model.dto.PendingPaymentSimpleDto;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.EDRCService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.exception.MerchantInternalException;
+import me.exrates.service.exception.NotImplimentedMethod;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -269,5 +271,10 @@ public class EDRCServiceImpl implements EDRCService {
             .add(key)
             .toString();
         return algorithmService.sha256(target);
+    }
+
+    @Override
+    public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
+        throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
     }
 }

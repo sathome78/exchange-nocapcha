@@ -2,6 +2,31 @@
  * Created by Valk on 04.04.16.
  */
 
+const SUCCESS_NOTY_NAME = "successNoty";
+const ERROR_NOTY_NAME = "errorNoty";
+const SUCCESS_NOTY_TYPE = {
+    successDefault: {
+        type: 'success',
+        layout: 'topCenter',
+        modal: true,
+        timeout: false
+    },
+    successOrder: {
+        type: 'success',
+        layout: 'bottomLeft',
+        modal: false,
+        timeout: 2000
+    }
+};
+const ERROR_NOTY_TYPE = {
+    errorDefault: {
+        type: 'error',
+        layout: 'topCenter',
+        modal: true,
+        timeout: false
+    }
+};
+
 $(function () {
         $(document).ajaxError(function (event, jqXHR, options, jsExc) {
             failNoty(jqXHR);
@@ -15,18 +40,10 @@ $(function () {
             }
             if (!msg){
                 msg = errorFromCookie();
-                deleteCookie("errorNoty");
+                deleteCookie(ERROR_NOTY_NAME);
             }
             if (msg) {
-                failedNote = noty({
-                    text: msg,
-                    template: '<div class="noty_message"><div class="noty_header"><button type="button" class="close" aria-label="Close">' +
-                    '<span aria-hidden="true">&times;</span></button></div><br/><span class="noty_text"></span><div class="noty_close"></div></div>',
-                    type: 'error',
-                    layout: 'topCenter',
-                    modal: true,
-                    timeout: false
-                });
+                failedNote = noty(notyOptions(msg, ERROR_NOTY_TYPE['errorDefault']));
             }
         }();
 
@@ -34,11 +51,11 @@ $(function () {
         +function showSuccessNotyOnEntry() {
             var msg = $('#successNoty').html();
             if (!msg) {
-                msg = getParameterByName('successNoty');
+                msg = getParameterByName(SUCCESS_NOTY_NAME);
             }
             if (!msg){
                 msg = successFromCookie();
-                deleteCookie("successNoty");
+                deleteCookie(SUCCESS_NOTY_NAME);
             }
             if (msg) {
                 successNoty(msg);
@@ -72,59 +89,47 @@ function closeNote() {
     }
 }
 
-function successNoty(text) {
-    successNote = noty({
-        text: text,
-        template: '<div class="noty_message"><div class="noty_header"><button type="button" class="close" aria-label="Close">' +
-        '<span aria-hidden="true">&times;</span></button></div><br/><span class="noty_text"></span><div class="noty_close"></div></div>',
-        type: 'success',
-        layout: 'topCenter',
-        modal: true,
-        timeout: false
-    });
+function successNoty(text, typeName) {
+    if (!text) {
+        var msgFromCookie = successFromCookie();
+        deleteCookie(SUCCESS_NOTY_NAME);
+        text = msgFromCookie;
+    }
+    var notyType;
+    if (!typeName || !SUCCESS_NOTY_TYPE[typeName]) {
+        notyType = SUCCESS_NOTY_TYPE['successDefault'];
+    } else {
+        notyType = SUCCESS_NOTY_TYPE[typeName];
+    }
+
+    successNote = noty(notyOptions(text, notyType));
 }
 
 function failNoty(jqXHR) {
     var notyMessage = getErrorMessage(jqXHR);
     if (notyMessage.length > 0) {
-        failedNote = noty({
-            text: notyMessage,
-            template: '<div class="noty_message"><div class="noty_header"><button type="button" class="close" aria-label="Close">' +
-            '<span aria-hidden="true">&times;</span></button></div><br/><span class="noty_text"></span><div class="noty_close"></div></div>',
-            type: 'error',
-            layout: 'topCenter',
-            modal: true,
-            timeout: false
-        });
+        failedNote = noty(notyOptions(notyMessage, ERROR_NOTY_TYPE['errorDefault']));
     }
 }
 
 function errorNoty(text) {
-    failedNote = noty({
-        text: text,
-        template: '<div class="noty_message"><div class="noty_header"><button type="button" class="close" aria-label="Close">' +
-        '<span aria-hidden="true">&times;</span></button></div><br/><span class="noty_text"></span><div class="noty_close"></div></div>',
-        type: 'error',
-        layout: 'topCenter',
-        modal: true,
-        timeout: false
-    });
+    failedNote = noty(notyOptions(text, ERROR_NOTY_TYPE['errorDefault']));
 }
 
 function errorInCookie(message){
-    $.cookie("errorNoty", message, { path: '/' });
+    $.cookie(ERROR_NOTY_NAME, message, { path: '/' });
 }
 
 function successInCookie(message){
-    $.cookie("successNoty", message, { path: '/' });
+    $.cookie(SUCCESS_NOTY_NAME, message, { path: '/' });
 }
 
 function errorFromCookie(){
-    return $.cookie("errorNoty");
+    return $.cookie(ERROR_NOTY_NAME);
 }
 
 function successFromCookie(){
-    return $.cookie("successNoty");
+    return $.cookie(SUCCESS_NOTY_NAME);
 }
 
 function deleteCookie(name) {
@@ -143,3 +148,14 @@ function getErrorMessage(jqXHR) {
     return notyMessage;
 }
 
+function notyOptions(msg, notyType) {
+    return {
+        text: msg,
+        template: '<div class="noty_message"><div class="noty_header"><button type="button" class="close" aria-label="Close">' +
+        '<span aria-hidden="true">&times;</span></button></div><br/><span class="noty_text"></span><div class="noty_close"></div></div>',
+        type: notyType.type,
+        layout: notyType.layout,
+        modal: notyType.modal,
+        timeout: notyType.timeout
+    }
+}

@@ -14,10 +14,12 @@ import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.*;
 import me.exrates.model.form.AuthorityOptionsForm;
 import me.exrates.model.vo.BackDealInterval;
+import me.exrates.security.service.UserSecureService;
 import me.exrates.security.service.UserSecureServiceImpl;
 import me.exrates.service.*;
 import me.exrates.service.exception.NoPermissionForOperationException;
 import me.exrates.service.exception.OrderDeletingException;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,7 +80,7 @@ public class AdminController {
   @Autowired
   private MessageSource messageSource;
   @Autowired
-  private UserSecureServiceImpl userSecureService;
+  private UserSecureService userSecureService;
   @Autowired
   private UserService userService;
   @Autowired
@@ -109,8 +111,6 @@ public class AdminController {
   private PhraseTemplateService phraseTemplateService;
   @Autowired
   private CommissionService commissionService;
-  @Autowired
-  ReportService reportService;
   @Autowired
   UserRoleService userRoleService;
   @Autowired
@@ -229,7 +229,6 @@ public class AdminController {
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/usersList", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
   public DataTable<List<User>> getAllUsers(@RequestParam Map<String, String> params) {
-    params.forEach((key, value) -> LOG.debug(key + " :: " + value));
     List<UserRole> userRoles = userRoleService.getRealUserRoleByGroupRoleList(USERS);
     return userSecureService.getUsersByRolesPaginated(userRoles, params);
   }
@@ -243,24 +242,26 @@ public class AdminController {
 
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/transactions", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
-  public DataTable<List<OperationViewDto>> getUserTransactions(final @RequestParam(required = false) int id,
-                                                               final @RequestParam(required = false) Integer status,
-                                                               final @RequestParam(required = false) String[] type,
-                                                               final @RequestParam(required = false) Integer[] merchant,
-                                                               final @RequestParam(required = false) String startDate,
-                                                               final @RequestParam(required = false) String endDate,
-                                                               final @RequestParam(required = false) BigDecimal amountFrom,
-                                                               final @RequestParam(required = false) BigDecimal amountTo,
-                                                               final @RequestParam(required = false) BigDecimal commissionAmountFrom,
-                                                               final @RequestParam(required = false) BigDecimal commissionAmountTo,
-                                                               final @RequestParam Map<String, String> params,
-                                                               final HttpServletRequest request) {
-
+  public DataTable<List<OperationViewDto>> getUserTransactions(
+      @RequestParam(required = false) int id,
+      @RequestParam(required = false) Integer status,
+      @RequestParam(required = false) String[] type,
+      @RequestParam(required = false) Integer[] merchant,
+      @RequestParam(required = false) String startDate,
+      @RequestParam(required = false) String endDate,
+      @RequestParam(required = false) BigDecimal amountFrom,
+      @RequestParam(required = false) BigDecimal amountTo,
+      @RequestParam(required = false) BigDecimal commissionAmountFrom,
+      @RequestParam(required = false) BigDecimal commissionAmountTo,
+      @RequestParam Map<String, String> params,
+      Principal principal,
+      HttpServletRequest request) {
     Integer transactionStatus = status == null || status == -1 ? null : status;
     List<TransactionType> types = type == null ? null :
         Arrays.stream(type).map(TransactionType::valueOf).collect(Collectors.toList());
     List<Integer> merchantIds = merchant == null ? null : Arrays.asList(merchant);
-    return transactionService.showUserOperationHistory(id, transactionStatus, types, merchantIds, startDate, endDate,
+    Integer requesterAdminId = userService.getIdByEmail(principal.getName());
+    return transactionService.showUserOperationHistory(requesterAdminId, id, transactionStatus, types, merchantIds, startDate, endDate,
         amountFrom, amountTo, commissionAmountFrom, commissionAmountTo, localeResolver.resolveLocale(request), params);
   }
 
@@ -488,7 +489,6 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/edituser/submit", method = RequestMethod.POST)
   public ModelAndView submitedit(@Valid @ModelAttribute User user, BindingResult result, ModelAndView model, HttpServletRequest request, HttpServletResponse response,
                                  HttpSession httpSession) {
-    LOG.debug(user.getRole());
     final Object mutex = WebUtils.getSessionMutex(httpSession);
     String currentRole = "";
     synchronized (mutex) {
@@ -534,7 +534,6 @@ public class AdminController {
   }
 
   private void invalidateUserSession(String userEmail) {
-    LOG.debug(sessionRegistry.getAllPrincipals().size());
     Optional<Object> updatedUser = sessionRegistry.getAllPrincipals().stream()
         .filter(principalObj -> {
           UserDetails principal = (UserDetails) principalObj;
@@ -696,11 +695,17 @@ public class AdminController {
 
   @RequestMapping(value = "/2a8fy7b07dxe44/withdrawRequests", method = GET)
   @ResponseBody
-  public DataTable<List<WithdrawRequest>> findRequestByStatus(@RequestParam(value = "status", required = false) Integer requestStatus, WithdrawFilterData withdrawFilterData,
-                                                              @RequestParam Map<String, String> params, Principal principal) {
+  public DataTable<List<WithdrawRequestsAdminTableDto>> findRequestByStatus(
+      @RequestParam("viewType") String viewTypeName,
+      WithdrawFilterData withdrawFilterData,
+      @RequestParam Map<String, String> params,
+      Principal principal,
+      Locale locale) {
+    WithdrawRequestTableViewTypeEnum viewTypeEnum = WithdrawRequestTableViewTypeEnum.convert(viewTypeName);
+    List<Integer> statusList = viewTypeEnum.getWithdrawStatusList().stream().map(WithdrawStatusEnum::getCode).collect(Collectors.toList());
     DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
     withdrawFilterData.initFilterItems();
-    return withdrawService.findWithdrawRequestsByStatus(requestStatus, dataTableParams, withdrawFilterData, principal.getName());
+    return withdrawService.getWithdrawRequestByStatusList(statusList, dataTableParams, withdrawFilterData, principal.getName(), locale);
   }
 
   @ResponseBody
@@ -719,7 +724,7 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/orderdelete", method = RequestMethod.POST)
   public Integer deleteOrderByAdmin(@RequestParam int id) {
     try {
-      return orderService.deleteOrderByAdmin(id);
+      return (Integer) orderService.deleteOrderByAdmin(id);
     } catch (Exception e) {
       LOG.error(e);
       throw e;
@@ -746,31 +751,6 @@ public class AdminController {
       return errorResult;
     }
 
-  }
-
-  @RequestMapping("/2a8fy7b07dxe44/userswallets_old")
-  public ModelAndView showUsersWalletsSummaryOld(Principal principal) {
-    Integer requesterUserId = userService.getIdByEmail(principal.getName());
-    Map<String, List<UserWalletSummaryDto>> mapUsersWalletsSummaryList = new LinkedHashMap<>();
-    mapUsersWalletsSummaryList.put("ALL", walletService.getUsersWalletsSummaryForPermittedCurrencyListOld(userRoleService.getRealUserRoleIdByBusinessRoleList("ALL"), requesterUserId));
-    mapUsersWalletsSummaryList.put("ADMIN", walletService.getUsersWalletsSummaryForPermittedCurrencyListOld(userRoleService.getRealUserRoleIdByBusinessRoleList("ADMIN"), requesterUserId));
-    mapUsersWalletsSummaryList.put("USER", walletService.getUsersWalletsSummaryForPermittedCurrencyListOld(userRoleService.getRealUserRoleIdByBusinessRoleList("USER"), requesterUserId));
-    mapUsersWalletsSummaryList.put("EXCHANGE", walletService.getUsersWalletsSummaryForPermittedCurrencyListOld(userRoleService.getRealUserRoleIdByBusinessRoleList("EXCHANGE"), requesterUserId));
-    mapUsersWalletsSummaryList.put("VIP_USER", walletService.getUsersWalletsSummaryForPermittedCurrencyListOld(userRoleService.getRealUserRoleIdByBusinessRoleList("VIP_USER"), requesterUserId));
-    mapUsersWalletsSummaryList.put("TRADER", walletService.getUsersWalletsSummaryForPermittedCurrencyListOld(userRoleService.getRealUserRoleIdByBusinessRoleList("TRADER"), requesterUserId));
-
-    ModelAndView model = new ModelAndView();
-    model.setViewName("UsersWallets");
-    model.addObject("mapUsersWalletsSummaryList", mapUsersWalletsSummaryList);
-    Set<String> usersCurrencyPermittedList = new LinkedHashSet<String>() {{
-      add("ALL");
-    }};
-    usersCurrencyPermittedList.addAll(currencyService.getCurrencyPermittedNameList(requesterUserId));
-    model.addObject("usersCurrencyPermittedList", usersCurrencyPermittedList);
-    List<String> operationDirectionList = Arrays.asList("ANY", InvoiceOperationDirection.REFILL.name(), InvoiceOperationDirection.WITHDRAW.name());
-    model.addObject("operationDirectionList", operationDirectionList);
-
-    return model;
   }
 
   @RequestMapping("/2a8fy7b07dxe44/userswallets")
@@ -823,91 +803,6 @@ public class AdminController {
     }
     result.forEach(UserWalletSummaryDto::calculate);
     return result;
-  }
-
-
-  @RequestMapping(value = "/2a8fy7b07dxe44/downloadUsersWalletsSummary", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
-  @ResponseBody
-  public String getUsersWalletsSummeryTxt(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
-    return
-        UserSummaryDto.getTitle() +
-            userService.getUsersSummaryList(startDate, endDate, userRoleService.getRealUserRoleIdByBusinessRoleList(role))
-                .stream()
-                .map(e -> e.toString())
-                .collect(Collectors.joining());
-  }
-
-  @RequestMapping(value = "/2a8fy7b07dxe44/downloadUsersWalletsSummaryInOut", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
-  @ResponseBody
-  public String getUsersWalletsSummeryInOut(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
-    String value = UserSummaryInOutDto.getTitle() +
-        userService.getUsersSummaryInOutList(startDate, endDate, userRoleService.getRealUserRoleIdByBusinessRoleList(role))
-            .stream()
-            .map(e -> e.toString())
-            .collect(Collectors.joining());
-
-    return value;
-  }
-
-  @RequestMapping(value = "/2a8fy7b07dxe44/downloadUserSummaryOrders", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
-  @ResponseBody
-  public String getUserSummaryOrders(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
-
-    List<UserSummaryOrdersDto> list = userService.getUserSummaryOrdersList(startDate, endDate, userRoleService.getRealUserRoleIdByBusinessRoleList(role));
-    BigDecimal sumAmountBuy = new BigDecimal(0.00);
-    BigDecimal sumAmountBuyFee = new BigDecimal(0.00);
-    BigDecimal sumAmountSell = new BigDecimal(0.00);
-    BigDecimal sumAmountSellFee = new BigDecimal(0.00);
-
-    String value = "Orders from " + startDate.substring(0, 10) + " till " + endDate.substring(0, 10) + ": \n \n" + UserSummaryOrdersDto.getTitle() +
-        list.stream()
-            .map(e -> e.toString())
-            .collect(Collectors.joining());
-
-    for (UserSummaryOrdersDto userSummaryOrdersDto : list) {
-      if (userSummaryOrdersDto.getAmountBuy() != null) {
-        sumAmountBuy = sumAmountBuy.add(userSummaryOrdersDto.getAmountBuy());
-      }
-      if (userSummaryOrdersDto.getAmountBuyFee() != null) {
-        sumAmountBuyFee = sumAmountBuyFee.add(userSummaryOrdersDto.getAmountBuyFee());
-      }
-      if (userSummaryOrdersDto.getAmountSell() != null) {
-        sumAmountSell = sumAmountSell.add(userSummaryOrdersDto.getAmountSell());
-      }
-      if (userSummaryOrdersDto.getAmountSellFee() != null) {
-        sumAmountSellFee = sumAmountSellFee.add(userSummaryOrdersDto.getAmountSellFee());
-      }
-    }
-    value += "\n sumBuy: " + sumAmountBuy.toString() + "\n sumBuyFee: " + sumAmountBuyFee.toString();
-    value += "\n sumSell: " + sumAmountSell.toString() + "\n sumSellFee: " + sumAmountSellFee.toString();
-
-    return value;
-  }
-
-  @RequestMapping(value = "/2a8fy7b07dxe44/downloadUserSummaryOrdersByCurrencyPairs", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
-  @ResponseBody
-  public String getUserSummaryOrdersByCurrencyPairs(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
-
-    List<UserSummaryOrdersByCurrencyPairsDto> list = userService.getUserSummaryOrdersByCurrencyPairList(startDate, endDate, userRoleService.getRealUserRoleIdByBusinessRoleList(role));
-
-    String value = "Orders by currency pairs from" + startDate.substring(0, 10) + " till " + endDate.substring(0, 10) + ": \n \n" + UserSummaryOrdersByCurrencyPairsDto.getTitle() +
-        list.stream()
-            .map(e -> e.toString())
-            .collect(Collectors.joining());
-
-    return value;
-  }
-
-  @RequestMapping(value = "/2a8fy7b07dxe44/downloadUsersWalletsSummaryTotalInOut", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
-  @ResponseBody
-  public String getUsersWalletsSummeryTotalInOut(@RequestParam String startDate, @RequestParam String endDate, @RequestParam String role) {
-    String value = UserSummaryTotalInOutDto.getTitle() +
-        userService.getUsersSummaryTotalInOutList(startDate, endDate, userRoleService.getRealUserRoleIdByBusinessRoleList(role))
-            .stream()
-            .map(e -> e.toString())
-            .collect(Collectors.joining());
-
-    return value;
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/userStatements/{walletId}")
@@ -1047,8 +942,6 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/editAuthorities/submit", method = RequestMethod.POST)
   public RedirectView editAuthorities(@ModelAttribute AuthorityOptionsForm authorityOptionsForm, Principal principal,
                                       RedirectAttributes redirectAttributes) {
-    LOG.debug(authorityOptionsForm.getOptions());
-    LOG.debug(authorityOptionsForm.getUserId());
     RedirectView redirectView = new RedirectView("/2a8fy7b07dxe44/userInfo?id=" + authorityOptionsForm.getUserId());
     try {
       userService.updateAdminAuthorities(authorityOptionsForm.getOptions(), authorityOptionsForm.getUserId(), principal.getName());
@@ -1176,29 +1069,7 @@ public class AdminController {
       @RequestBody List<UserCurrencyOperationPermissionDto> userCurrencyOperationPermissionDtoList,
       HttpSession httpSession,
       Principal principal) {
-    String currentRole = (String) httpSession.getAttribute("currentRole");
-    if (!currentRole.equals(UserRole.ADMINISTRATOR.name())) {
-      throw new NoPermissionForOperationException();
-    }
     userService.setCurrencyPermissionsByUserId(userCurrencyOperationPermissionDtoList);
-  }
-
-  @RequestMapping(value = "/2a8fy7b07dxe44/downloadInputOutputSummaryReport", method = RequestMethod.GET, produces = "text/plain;charset=utf-8")
-  @ResponseBody
-  public String getUsersWalletsSummeryTotalInOut(
-      @RequestParam String startDate,
-      @RequestParam String endDate,
-      @RequestParam String role,
-      @RequestParam String direction,
-      @RequestParam List<String> currencyList,
-      Principal principal) {
-    String value = InvoiceReportDto.getTitle() +
-        reportService.getInvoiceReport(principal.getName(), startDate, endDate, role, direction, currencyList)
-            .stream()
-            .map(e -> e.toString())
-            .collect(Collectors.joining());
-
-    return value;
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/candleTable", method = RequestMethod.GET)
@@ -1234,6 +1105,18 @@ public class AdminController {
     return bitcoinWalletService.estimateFee(6);
   }
   
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/actualFee", method = RequestMethod.GET)
+  @ResponseBody
+  public BigDecimal getActualFee() {
+    return bitcoinWalletService.getActualFee();
+  }
+  
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/setFee", method = RequestMethod.POST)
+  @ResponseBody
+  public void setFee(@RequestParam BigDecimal fee) {
+    bitcoinWalletService.setTxFee(fee);
+  }
+  
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/unlock", method = RequestMethod.POST)
   @ResponseBody
   public void submitPassword(@RequestParam String password) {
@@ -1243,6 +1126,11 @@ public class AdminController {
   @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/send", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
   public Map<String, String> sendToAddress(@RequestParam String address, @RequestParam BigDecimal amount, HttpServletRequest request) {
+    LOG.debug(String.format("Params: address %s, amount %s", address, amount));
+    if (StringUtils.isEmpty(address) || amount == null) {
+      throw new IllegalArgumentException("Empty values not allowed!");
+    }
+
     String txId = bitcoinWalletService.sendToAddress(address, amount);
     Map<String, String> result = new HashMap<>();
     result.put("message", messageSource.getMessage("btcWallet.successResult", new Object[]{txId}, localeResolver.resolveLocale(request)));
@@ -1250,6 +1138,18 @@ public class AdminController {
     return result;
   }
   
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/sendToMany", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
+          produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  @ResponseBody
+  public Map<String, String> sendToMany(@RequestBody Map<String, BigDecimal> addresses, HttpServletRequest request) {
+    LOG.debug(addresses);
+    String txId = bitcoinWalletService.sendToMany(addresses);
+    Map<String, String> result = new HashMap<>();
+    result.put("message", messageSource.getMessage("btcWallet.successResult", new Object[]{txId}, localeResolver.resolveLocale(request)));
+    result.put("newBalance", bitcoinWalletService.getWalletInfo().getBalance());
+    return result;
+  }
 
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
   @ExceptionHandler(OrderDeletingException.class)
