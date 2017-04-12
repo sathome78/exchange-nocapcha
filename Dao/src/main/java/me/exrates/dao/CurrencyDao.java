@@ -3,8 +3,10 @@ package me.exrates.dao;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
+import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.enums.CurrencyWarningType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
@@ -50,4 +52,13 @@ public interface CurrencyDao {
   Optional<String> getWarningForCurrency(Integer currencyId, CurrencyWarningType currencyWarningType);
 
   CurrencyPair findCurrencyPairByOrderId(int orderId);
+  
+  CurrencyPairLimitDto findCurrencyPairLimitForRoleByPairAndType(Integer currencyPairId, Integer roleId, Integer orderTypeId);
+  
+  List<CurrencyPairLimitDto> findLimitsForRolesByType(List<Integer> roleIds, Integer orderTypeId);
+  
+  void setCurrencyPairLimit(Integer currencyPairId, List<Integer> roleIds, Integer orderTypeId,
+                            BigDecimal minRate, BigDecimal maxRate);
+  
+  List<CurrencyPairWithLimitsDto> findAllCurrencyPairsWithLimits(Integer roleId);
 }

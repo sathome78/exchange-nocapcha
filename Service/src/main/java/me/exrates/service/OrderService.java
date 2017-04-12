@@ -32,7 +32,7 @@ public interface OrderService {
 
   OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate);
 
-  Map<String, Object> validateOrder(OrderCreateDto orderCreateDto);
+  OrderValidationDto validateOrder(OrderCreateDto orderCreateDto);
 
   /**
    * Returns the ID of the newly created and saved in DB order

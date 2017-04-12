@@ -4,10 +4,13 @@ import me.exrates.dao.CurrencyDao;
 import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
+import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.enums.CurrencyWarningType;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
@@ -298,4 +301,85 @@ public class CurrencyDaoImpl implements CurrencyDao {
 		namedParameters.put("order_id", String.valueOf(orderId));
 		return jdbcTemplate.queryForObject(sql, namedParameters, currencyPairRowMapper);
 	}
+	
+	@Override
+	public CurrencyPairLimitDto findCurrencyPairLimitForRoleByPairAndType(Integer currencyPairId, Integer roleId, Integer orderTypeId) {
+		String sql = "SELECT CURRENCY_PAIR.id AS currency_pair_id, CURRENCY_PAIR.name AS currency_pair_name, lim.min_rate, lim.max_rate " +
+						" FROM CURRENCY_PAIR_LIMIT lim " +
+						" JOIN CURRENCY_PAIR ON lim.currency_pair_id = CURRENCY_PAIR.id AND CURRENCY_PAIR.hidden != 1 " +
+						" WHERE lim.currency_pair_id = :currency_pair_id AND lim.user_role_id = :user_role_id AND lim.order_type_id = :order_type_id";
+		Map<String, Integer> namedParameters = new HashMap<>();
+		namedParameters.put("currency_pair_id", currencyPairId);
+		namedParameters.put("user_role_id", roleId);
+		namedParameters.put("order_type_id", orderTypeId);
+		return jdbcTemplate.queryForObject(sql, namedParameters, (rs, rowNum) -> {
+			CurrencyPairLimitDto dto = new CurrencyPairLimitDto();
+			dto.setCurrencyPairId(rs.getInt("currency_pair_id"));
+			dto.setCurrencyPairName(rs.getString("currency_pair_name"));
+			dto.setMinRate(rs.getBigDecimal("min_rate"));
+			dto.setMaxRate(rs.getBigDecimal("max_rate"));
+			return dto;
+		});
+	}
+	
+	@Override
+	public List<CurrencyPairLimitDto> findLimitsForRolesByType(List<Integer> roleIds, Integer orderTypeId) {
+		String sql = "SELECT DISTINCT CURRENCY_PAIR.id AS currency_pair_id, CURRENCY_PAIR.name AS currency_pair_name, " +
+						" lim.min_rate, lim.max_rate " +
+						" FROM CURRENCY_PAIR_LIMIT lim " +
+						" JOIN CURRENCY_PAIR ON lim.currency_pair_id = CURRENCY_PAIR.id " +
+						" WHERE lim.user_role_id IN(:user_role_ids) AND lim.order_type_id = :order_type_id AND CURRENCY_PAIR.hidden != 1";
+		Map<String, Object> namedParameters = new HashMap<>();
+		namedParameters.put("user_role_ids", roleIds);
+		namedParameters.put("order_type_id", orderTypeId);
+		return jdbcTemplate.query(sql, namedParameters, (rs, rowNum) -> {
+			CurrencyPairLimitDto dto = new CurrencyPairLimitDto();
+			dto.setCurrencyPairId(rs.getInt("currency_pair_id"));
+			dto.setCurrencyPairName(rs.getString("currency_pair_name"));
+			dto.setMinRate(rs.getBigDecimal("min_rate"));
+			dto.setMaxRate(rs.getBigDecimal("max_rate"));
+			return dto;
+		});
+	}
+	
+	@Override
+	public void setCurrencyPairLimit(Integer currencyPairId, List<Integer> roleIds, Integer orderTypeId,
+																	 BigDecimal minRate, BigDecimal maxRate) {
+		String sql = "UPDATE CURRENCY_PAIR_LIMIT SET max_rate = :max_rate, min_rate = :min_rate " +
+						"WHERE currency_pair_id = :currency_pair_id AND user_role_id IN(:user_role_ids) AND order_type_id = :order_type_id";
+		Map<String, Object> namedParameters = new HashMap<>();
+		namedParameters.put("currency_pair_id", currencyPairId);
+		namedParameters.put("user_role_ids", roleIds);
+		namedParameters.put("order_type_id", orderTypeId);
+		namedParameters.put("min_rate", minRate);
+		namedParameters.put("max_rate", maxRate);
+		jdbcTemplate.update(sql, namedParameters);
+	}
+	
+	@Override
+	public List<CurrencyPairWithLimitsDto> findAllCurrencyPairsWithLimits(Integer roleId) {
+		String sql = "SELECT CP.id, CP.currency1_id, CP.currency2_id, CP.name, " +
+						"     (select name from CURRENCY where id = currency1_id) as currency1_name, " +
+						"			(select name from CURRENCY where id = currency2_id) as currency2_name, " +
+						"			(SELECT min_rate FROM CURRENCY_PAIR_LIMIT lim " +
+						"					WHERE lim.currency_pair_id = CP.id AND lim.user_role_id = :role_id AND lim.order_type_id = 1) AS min_rate_sell, " +
+						"			(SELECT min_rate FROM CURRENCY_PAIR_LIMIT lim " +
+						"					WHERE lim.currency_pair_id = CP.id AND lim.user_role_id = :role_id AND lim.order_type_id = 2) AS min_rate_buy, " +
+						"			(SELECT max_rate FROM CURRENCY_PAIR_LIMIT lim " +
+						"					WHERE lim.currency_pair_id = CP.id AND lim.user_role_id = :role_id AND lim.order_type_id = 1) AS max_rate_sell, " +
+						"			(SELECT max_rate FROM CURRENCY_PAIR_LIMIT lim " +
+						"					WHERE lim.currency_pair_id = CP.id AND lim.user_role_id = :role_id AND lim.order_type_id = 2) AS max_rate_buy " +
+						"			FROM CURRENCY_PAIR CP " +
+						"			WHERE CP.hidden != 1 ";
+		return jdbcTemplate.query(sql, Collections.singletonMap("role_id", roleId), (rs, row) -> {
+			CurrencyPair currencyPair = currencyPairRowMapper.mapRow(rs, row);
+			return new CurrencyPairWithLimitsDto(currencyPair,
+							rs.getBigDecimal("min_rate_sell"),
+							rs.getBigDecimal("max_rate_sell"),
+							rs.getBigDecimal("min_rate_buy"),
+							rs.getBigDecimal("max_rate_buy"));
+		});
+		
+	}
+	
 }
