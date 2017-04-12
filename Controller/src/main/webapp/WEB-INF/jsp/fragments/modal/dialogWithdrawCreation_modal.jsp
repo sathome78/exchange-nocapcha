@@ -12,23 +12,26 @@
                     <p><loc:message code="merchants.modalOutputCommission"/></p>
                     <p><loc:message code="merchants.modalOutputFinalSum"/></p>
                 </div>
-                <div class="wallet_input">
+                <div id="destination-input-wrapper"
+                        class="wallet_input">
                     <label class="control-label" for="walletUid">
                         <loc:message code="merchants.modalOutputWallet"/>
                     </label>
                     <input class="form-control" autofocus name="walletUid" type="text" id="walletUid">
                 </div>
+                <div id="message" style="width: 100%; border-radius: 5px; display: block; padding: 5px; background: green; color: white"></div>
             </div>
             <div class="modal-footer">
-                <div class="add__money__btns request_money_operation_btn">
+                <div id = 'request-money-operation-btns-wrapper'
+                        class="add__money__btns">
                     <button class="modal-button" type="button" data-dismiss="modal">
                         <loc:message code="merchants.dismiss"/>
                     </button>
-                    <button class="modal-button" type="button" id="outputPaymentProcess" name="paymentOutput">
+                    <button class="modal-button" type="button" id="continue-btn" name="paymentOutput">
                         <loc:message code="merchants.continue"/>
                     </button>
                 </div>
-                <div class="response_money_operation_btn">
+                <div id="response-money-operation-btns-wrapper">
                     <button class="modal-button" type="button" data-dismiss="modal"><loc:message code="merchants.close"/></button>
                 </div>
             </div>

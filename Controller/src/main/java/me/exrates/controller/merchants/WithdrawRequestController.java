@@ -27,15 +27,14 @@ import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -69,23 +68,22 @@ public class WithdrawRequestController {
   @FinPassCheck
   @RequestMapping(value = "/withdraw/request/merchant/create", method = POST)
   @ResponseBody
-  public void createWithdrawalRequest(
+  public Map<String, String> createWithdrawalRequest(
       @RequestBody final Payment payment,
       Principal principal,
-      Locale locale,
-      HttpServletResponse response) throws UnsupportedEncodingException {
+      Locale locale) throws UnsupportedEncodingException {
     CreditsOperation creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName())
         .orElseThrow(InvalidAmountException::new);
     Map<String, String> result = withdrawService.createWithdrawalRequest(creditsOperation, new WithdrawData(), principal.getName(), locale);
-    Cookie cookie = new Cookie("successNoty", URLEncoder.encode(result.get("success"), "UTF-8"));
-    cookie.setPath("/");
-    response.addCookie(cookie);
+    return new HashMap<String, String>() {{
+      put("message", result.get("success"));
+    }};
   }
 
   @FinPassCheck(throwCheckPassException = true)
   @RequestMapping(value = "/withdraw/request/invoice/detail/prepare_to_entry", method = POST)
   @ResponseBody
-  public String prepareWithdraw(
+  public Map<String, String> prepareWithdraw(
       @RequestBody Payment payment,
       Principal principal,
       HttpServletRequest request) {
@@ -96,7 +94,9 @@ public class WithdrawRequestController {
     synchronized (mutex) {
       session.setAttribute("creditsOperation", creditsOperation);
     }
-    return "/withdraw/request/invoice/detail/entry";
+    return new HashMap<String, String>() {{
+      put("redirectionUrl", "/withdraw/request/invoice/detail/entry");
+    }};
   }
 
   @RequestMapping(value = "/withdraw/request/invoice/detail/entry", method = GET)

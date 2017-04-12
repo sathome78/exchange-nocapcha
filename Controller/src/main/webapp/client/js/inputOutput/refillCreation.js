@@ -29,11 +29,11 @@ $(function refillCreation() {
         startRefill(this);
     });
 
-    $refillParamsDialog.find("#inputPaymentProcess").on('click', function () {
+    $refillParamsDialog.find("#continue-btn").on('click', function () {
         if (!checkRefillParamsEntry()) {
             return;
         }
-        $withdrawParamsDialog.on('hidden.bs.modal', function () {
+        $withdrawParamsDialog.one('hidden.bs.modal', function () {
             showFinPassModal();
         });
         $withdrawParamsDialog.modal("hide");
@@ -58,12 +58,24 @@ $(function refillCreation() {
         return !merchantMinSum || (amount >= merchantMinSum);
     }
 
-    function showRefillDialog() {
-        $refillParamsDialog.one('shown.bs.modal', function () {
-            $('.request_money_operation_btn').show();
-            $('.response_money_operation_btn').hide();
-        });
+    function showRefillDialog(message) {
+        $withdrawParamsDialog.find('#request-money-operation-btns-wrapper').show();
+        $withdrawParamsDialog.find('#destination-input-wrapper').show();
+        $withdrawParamsDialog.find('#response-money-operation-btns-wrapper').hide();
+        $withdrawParamsDialog.find('#message').hide();
+        $withdrawParamsDialog.find('#message').html(message ? message : '');
+        $withdrawParamsDialog.find('#paymentQR').html('');
         $refillParamsDialog.modal();
+    }
+
+    function showRefillDialogAfterCreation(message, qr) {
+        $withdrawParamsDialog.find('#request-money-operation-btns-wrapper').hide();
+        $withdrawParamsDialog.find('#destination-input-wrapper').hide();
+        $withdrawParamsDialog.find('#response-money-operation-btns-wrapper').show();
+        $withdrawParamsDialog.find('#message').show();
+        $withdrawParamsDialog.find('#message').html(message ? message : '');
+        $withdrawParamsDialog.find('#paymentQR').html(qr ? qr : '');
+        $withdrawParamsDialog.modal();
     }
 
     function checkRefillParamsEntry() {
@@ -123,7 +135,7 @@ $(function refillCreation() {
     }
 
     function performRefill(finPassword) {
-        var url = merchantIsSimpleInvoice ? urlForWithdrawWithInvoice : urlForWithdrawWithMerchant;
+        var url = merchantIsSimpleInvoice ? urlForRefillWithInvoice : urlForRefillWithMerchant;
         var data = {
             currency: currency,
             merchant: merchant,
@@ -142,13 +154,13 @@ $(function refillCreation() {
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(data),
-        }).success(function (redirectionUrl) {
-            все же надо показать окно. Для QR
-            if (!redirectionUrl) {
-                successNoty();
+        }).success(function (result) {
+            if (!result || !result['redirectionUrl']) {
+                var qr = result['qr'] ? "<img src='https://chart.googleapis.com/chart?chs=100x100&chld=L|2&cht=qr&chl=" + result['qr'] : '';
+                showRefillDialogAfterCreation(result['message'], qr);
                 notifications.getNotifications();
             } else {
-                window.location = redirectionUrl;
+                window.location = result['redirectionUrl'];
             }
         });
     }

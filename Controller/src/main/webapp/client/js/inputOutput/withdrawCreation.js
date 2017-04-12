@@ -31,12 +31,12 @@ $(function withdrawCreation() {
         startWithdraw(this);
     });
 
-    $withdrawParamsDialog.find("#outputPaymentProcess").on('click', function () {
+    $withdrawParamsDialog.find("#continue-btn").on('click', function () {
         destination = $destinationHolder.val();
         if (!checkWithdrawParamsEntry()) {
             return;
         }
-        $withdrawParamsDialog.on('hidden.bs.modal', function () {
+        $withdrawParamsDialog.one('hidden.bs.modal', function () {
             showFinPassModal();
         });
         $withdrawParamsDialog.modal("hide");
@@ -61,11 +61,21 @@ $(function withdrawCreation() {
         return !merchantMinSum || (amount >= merchantMinSum);
     }
 
-    function showWithdrawDialog() {
-        $withdrawParamsDialog.one('shown.bs.modal', function () {
-            $('.request_money_operation_btn').show();
-            $('.response_money_operation_btn').hide();
-        });
+    function showWithdrawDialog(message) {
+        $withdrawParamsDialog.find('#request-money-operation-btns-wrapper').show();
+        $withdrawParamsDialog.find('#destination-input-wrapper').show();
+        $withdrawParamsDialog.find('#response-money-operation-btns-wrapper').hide();
+        $withdrawParamsDialog.find('#message').hide();
+        $withdrawParamsDialog.find('#message').html(message ? message : '');
+        $withdrawParamsDialog.modal();
+    }
+
+    function showWithdrawDialogAfterCreation(message) {
+        $withdrawParamsDialog.find('#request-money-operation-btns-wrapper').hide();
+        $withdrawParamsDialog.find('#destination-input-wrapper').hide();
+        $withdrawParamsDialog.find('#response-money-operation-btns-wrapper').show();
+        $withdrawParamsDialog.find('#message').show();
+        $withdrawParamsDialog.find('#message').html(message ? message : '');
         $withdrawParamsDialog.modal();
     }
 
@@ -145,12 +155,12 @@ $(function withdrawCreation() {
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(data),
-        }).success(function (redirectionUrl) {
-            if (!redirectionUrl) {
-                successNoty();
+        }).success(function (result) {
+            if (!result || !result['redirectionUrl']) {
+                showWithdrawDialogAfterCreation(result['message']);
                 notifications.getNotifications();
             } else {
-                window.location = redirectionUrl;
+                window.location = result['redirectionUrl'];
             }
         });
     }

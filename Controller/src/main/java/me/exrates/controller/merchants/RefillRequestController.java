@@ -62,9 +62,9 @@ public class RefillRequestController {
   @Autowired
   MerchantService merchantService;
 
-  /*@RequestMapping(value = "/refill/request/create", method = POST)
+  @RequestMapping(value = "/refill/request/create", method = POST)
   @ResponseBody
-  public String createWithdrawalRequest(
+  public Map<String, String> createRefillRequest(
       @ModelAttribute("payment") RefillRequestParamsDto requestParamsDto,
       Principal principal,
       Locale locale) throws UnsupportedEncodingException {
@@ -81,21 +81,28 @@ public class RefillRequestController {
     try {
       RefillRequestCreateDto request = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus);
       RedirectView rw = refillService.createRefillRequestAndGetPageOfMerchant(request);
-      rw.getUrl().concat("?").concat(
+      String url = rw.getUrl().concat("?").concat(
           rw.getAttributesMap().entrySet().stream()
           .map(e->e.getKey()+"="+e.getValue())
           .collect(Collectors.joining("&"))
       );
+      return new HashMap<String, String>() {{
+        put("redirectionUrl", url);
+      }};
     } catch (RefillRequestLimitForMerchantExceededException e) {
       Cookie cookie = new Cookie("errorNoty", URLEncoder.encode(messageSource.getMessage("merchants.InputRequestsLimit", null, locale),"UTF-8"));
       cookie.setPath("/");
-      return "/dashboard";
+      return new HashMap<String, String>() {{
+        put("redirectionUrl", "/dashboard");
+      }};
     } catch (Exception e) {
       Cookie cookie = new Cookie("errorNoty", URLEncoder.encode(messageSource.getMessage("refill.createError", null, locale),"UTF-8"));
       cookie.setPath("/");
-      return "/dashboard";
+      return new HashMap<String, String>() {{
+        put("redirectionUrl", "/dashboard");
+      }};
     }
-  }*/
+  }
 
   @ResponseStatus(HttpStatus.NOT_FOUND)
   @ExceptionHandler(InvoiceNotFoundException.class)
