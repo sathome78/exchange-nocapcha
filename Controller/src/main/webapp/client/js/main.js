@@ -85,6 +85,10 @@ $(function(){
     var usernameToTransfer = $('#nickname');
     var $timeoutWarning = $('.timeoutWarning');
 
+    $("#walletUid").on('keypress', function (e) {
+       return /^[\w-_\.@\s\+]*$/.test(e.key);
+    });
+
     $(".input-block-wrapper__input").prop("autocomplete", "off");
     $(".numericInputField").prop("autocomplete", "off");
     $(".numericInputField")

@@ -494,7 +494,7 @@ public class OrderServiceImpl implements OrderService {
       comissionForCreator.setId(exOrder.getComissionId());
             /*calculate convert currency amount for acceptor - calculate at the current commission rate*/
       OperationType operationTypeForAcceptor = exOrder.getOperationType() == OperationType.BUY ? OperationType.SELL : OperationType.BUY;
-      Commission comissionForAcceptor = commissionDao.getCommission(operationTypeForAcceptor, userService.getCurrentUserRole());
+      Commission comissionForAcceptor = commissionDao.getCommission(operationTypeForAcceptor, userService.getUserRoleFromSecurityContext());
       BigDecimal comissionRateForAcceptor = comissionForAcceptor.getValue();
       BigDecimal amountComissionForAcceptor = BigDecimalProcessing.doAction(exOrder.getAmountConvert(), comissionRateForAcceptor, ActionType.MULTIPLY_PERCENT);
       BigDecimal amountWithComissionForAcceptor;
@@ -829,13 +829,13 @@ public class OrderServiceImpl implements OrderService {
   @Transactional(readOnly = true)
   @Override
   public OrderCommissionsDto getCommissionForOrder() {
-    return orderDao.getCommissionForOrder(userService.getCurrentUserRole());
+    return orderDao.getCommissionForOrder(userService.getUserRoleFromSecurityContext());
   }
 
   @Transactional(readOnly = true)
   @Override
   public CommissionsDto getAllCommissions() {
-    UserRole userRole = userService.getCurrentUserRole();
+    UserRole userRole = userService.getUserRoleFromSecurityContext();
     return orderDao.getAllCommissions(userRole);
   }
 
@@ -891,7 +891,7 @@ public class OrderServiceImpl implements OrderService {
   @Override
   public WalletsAndCommissionsForOrderCreationDto getWalletAndCommission(String email, Currency currency,
                                                                          OperationType operationType) {
-    return orderDao.getWalletAndCommission(email, currency, operationType, userService.getCurrentUserRole());
+    return orderDao.getWalletAndCommission(email, currency, operationType, userService.getUserRoleFromSecurityContext());
   }
 
   public void setMessageSource(final MessageSource messageSource) {
