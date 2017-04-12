@@ -5,8 +5,11 @@ import me.exrates.controller.exception.InvalidNicknameException;
 import me.exrates.controller.exception.InvoiceNotFoundException;
 import me.exrates.controller.exception.NotEnoughMoneyException;
 import me.exrates.model.*;
+import me.exrates.model.dto.WithdrawRequestCreateDto;
+import me.exrates.model.dto.WithdrawRequestParamsDto;
 import me.exrates.model.dto.mobileApiDto.*;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.InvoiceData;
 import me.exrates.model.vo.WithdrawData;
@@ -222,22 +225,24 @@ public class MobileInputOutputController {
      * @apiUse InternalServerError
      */
     @RequestMapping(value="/withdraw", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Map<String,String>> withdraw(@RequestBody @Valid WithdrawDto withdrawDto) {
+    public ResponseEntity<Map<String,String>> withdraw(@RequestBody @Valid WithdrawRequestParamsDto requestParamsDto) {
 
 
         Payment payment = new Payment();
-        payment.setCurrency(withdrawDto.getCurrency());
-        payment.setMerchant(withdrawDto.getMerchant());
-        payment.setSum(withdrawDto.getSum());
-        payment.setMerchantImage(withdrawDto.getMerchantImage());
-        payment.setDestination(withdrawDto.getDestination());
+        payment.setCurrency(requestParamsDto.getCurrency());
+        payment.setMerchant(requestParamsDto.getMerchant());
+        payment.setSum(requestParamsDto.getSum().doubleValue());
+        payment.setMerchantImage(requestParamsDto.getMerchantImage());
+        payment.setDestination(requestParamsDto.getDestination());
         payment.setOperationType(OperationType.OUTPUT);
 
 
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
         CreditsOperation creditsOperation = merchantService.prepareCreditsOperation(payment, userEmail).orElseThrow(InvalidAmountException::new);
-        Map<String, String> response = withdrawService.createWithdrawalRequest(creditsOperation, new WithdrawData(), userEmail, userLocale);
+        WithdrawStatusEnum beginStatus = (WithdrawStatusEnum) WithdrawStatusEnum.getBeginState();
+        WithdrawRequestCreateDto withdrawRequestCreateDto = new WithdrawRequestCreateDto(requestParamsDto, creditsOperation, beginStatus);
+        Map<String, String> response = withdrawService.createWithdrawalRequest(withdrawRequestCreateDto, userLocale);
         return new ResponseEntity<>(response, OK);
 
     }
@@ -495,26 +500,28 @@ public class MobileInputOutputController {
     }
 
     @RequestMapping(value = "/invoice/withdraw", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Map<String, String>> withdrawInvoice(@RequestBody @Valid WithdrawInvoiceDto withdrawInvoiceDto) {
-        LOGGER.debug(withdrawInvoiceDto);
+    public ResponseEntity<Map<String, String>> withdrawInvoice(@RequestBody @Valid WithdrawRequestParamsDto requestParamsDto) {
+        LOGGER.debug(requestParamsDto);
         Payment payment = new Payment();
-        payment.setSum(withdrawInvoiceDto.getSum());
-        payment.setCurrency(withdrawInvoiceDto.getCurrency());
+        payment.setSum(requestParamsDto.getSum().doubleValue());
+        payment.setCurrency(requestParamsDto.getCurrency());
         payment.setMerchant(merchantService.findByNName("Invoice").getId());
         payment.setOperationType(OperationType.OUTPUT);
-        payment.setDestination(withdrawInvoiceDto.getWalletNumber());
+        payment.setDestination(requestParamsDto.getWalletNumber());
 
         WithdrawData withdrawData = new WithdrawData();
-        withdrawData.setRecipientBankName(withdrawInvoiceDto.getRecipientBankName());
-        withdrawData.setRecipientBankCode(withdrawInvoiceDto.getRecipientBankCode());
-        withdrawData.setUserFullName(withdrawInvoiceDto.getUserFullName());
-        withdrawData.setRemark(withdrawInvoiceDto.getRemark());
+        withdrawData.setRecipientBankName(requestParamsDto.getRecipientBankName());
+        withdrawData.setRecipientBankCode(requestParamsDto.getRecipientBankCode());
+        withdrawData.setUserFullName(requestParamsDto.getUserFullName());
+        withdrawData.setRemark(requestParamsDto.getRemark());
 
 
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
         CreditsOperation creditsOperation = merchantService.prepareCreditsOperation(payment, userEmail).orElseThrow(InvalidAmountException::new);
-        Map<String, String> response = withdrawService.createWithdrawalRequest(creditsOperation, withdrawData, userEmail, userLocale);
+        WithdrawStatusEnum beginStatus = (WithdrawStatusEnum) WithdrawStatusEnum.getBeginState();
+        WithdrawRequestCreateDto withdrawRequestCreateDto = new WithdrawRequestCreateDto(requestParamsDto, creditsOperation, beginStatus);
+        Map<String, String> response = withdrawService.createWithdrawalRequest(withdrawRequestCreateDto, userLocale);
         
         return new ResponseEntity<>(response, OK);
     }

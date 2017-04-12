@@ -76,6 +76,7 @@ public class WithdrawRequestController {
     payment.setCurrency(requestParamsDto.getCurrency());
     payment.setMerchant(requestParamsDto.getMerchant());
     payment.setSum(requestParamsDto.getSum().doubleValue());
+    payment.setDestination(requestParamsDto.getDestination());
     CreditsOperation creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName())
         .orElseThrow(InvalidAmountException::new);
     WithdrawRequestCreateDto withdrawRequestCreateDto = new WithdrawRequestCreateDto(requestParamsDto, creditsOperation, beginStatus);

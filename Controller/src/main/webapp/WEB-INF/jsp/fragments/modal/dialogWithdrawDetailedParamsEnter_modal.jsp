@@ -83,7 +83,7 @@
                 <c:forEach items="${invoiceBanks}" var="bank">
                   <option value="${bank.id}"
                           data-bank-id="${bank.id}"
-                          data-bank-name="${bank.code}">
+                          data-bank-code="${bank.code}">
                       ${bank.name}
                   </option>
                 </c:forEach>
@@ -115,9 +115,9 @@
             </div>
           </div>
           <div class="col-md-4 input-block-wrapper">
-            <button id="invoiceSubmit" class="btn btn-primary btn-lg" type="submit"><loc:message
+            <button id="invoiceSubmit" class="btn btn-primary btn-lg"><loc:message
                     code="admin.submit"/></button>
-            <button id="invoiceCancel" class="btn btn-danger btn-lg" type="button"><loc:message
+            <button id="invoiceCancel" class="btn btn-danger btn-lg" data-dismiss="modal"><loc:message
                     code="admin.cancel"/></button>
           </div>
         </div>

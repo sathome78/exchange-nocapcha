@@ -84,7 +84,7 @@ $(function withdrawCreation() {
     }
 
     function checkWithdrawParams() {
-        return destination.length > 3;
+        return merchantIsSimpleInvoice || destination.length > 3;
     }
 
     function showFinPassModal() {
@@ -150,8 +150,15 @@ $(function withdrawCreation() {
             operationType: operationType,
         };
         if (merchantIsSimpleInvoice) {
+            var withdrawDetailedParamsDialogResult = false;
+            $withdrawDetailedParamsDialog.find("#invoiceSubmit").off("click").one("click", function () {
+               withdrawDetailedParamsDialogResult = true;
+            });
             $withdrawDetailedParamsDialog.modal();
-            data.recipientBankCode = $withdrawDetailedParamsDialog.find("bankId").val(); //TODO или bankCode - что используется на бэке?
+            if (!withdrawDetailedParamsDialogResult) {
+                return;
+            }
+            data.recipientBankCode = $withdrawDetailedParamsDialog.find("bankCode").val();
             data.userFullName = $withdrawDetailedParamsDialog.find("userFullName").val();
             data.remark = $withdrawDetailedParamsDialog.find("remark").val();
         }
