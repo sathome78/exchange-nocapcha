@@ -1,7 +1,5 @@
 package me.exrates.service;
 
-import me.exrates.model.CreditsOperation;
-import me.exrates.model.WithdrawRequest;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
@@ -9,11 +7,7 @@ import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.vo.CacheData;
-import me.exrates.model.vo.WithdrawData;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.security.Principal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -23,7 +17,7 @@ import java.util.Map;
  */
 public interface WithdrawService {
 
-  Map<String, String> createWithdrawalRequest(CreditsOperation creditsOperation, WithdrawData withdrawData, String userEmail,Locale locale);
+  Map<String, String> createWithdrawalRequest(WithdrawRequestCreateDto requestCreateDto, Locale locale);
 
   void autoPostWithdrawalRequest(WithdrawRequestPostDto withdrawRequest);
 
@@ -40,12 +34,12 @@ public interface WithdrawService {
   WithdrawRequestsAdminTableDto getWithdrawRequestById(Integer id, String authorizedUserEmail);
 
   List<MyInputOutputHistoryDto> getMyInputOutputHistory(CacheData cacheData, String email, Integer offset, Integer limit, Locale locale);
-  
+
   List<MyInputOutputHistoryDto> getMyInputOutputHistory(
-          String email,
-          Integer offset, Integer limit,
-          Locale locale);
-  
+      String email,
+      Integer offset, Integer limit,
+      Locale locale);
+
   void revokeWithdrawalRequest(int requestId);
 
   void takeInWorkWithdrawalRequest(int requestId, Integer requesterAdminId);

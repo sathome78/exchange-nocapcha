@@ -30,7 +30,7 @@ $(function refillCreation() {
     });
 
     $refillParamsDialog.find("#continue-btn").on('click', function () {
-        if (!checkRefillParamsEntry()) {
+        if (!checkRefillParamsEnter()) {
             return;
         }
         $withdrawParamsDialog.one('hidden.bs.modal', function () {
@@ -78,7 +78,7 @@ $(function refillCreation() {
         $withdrawParamsDialog.modal();
     }
 
-    function checkRefillParamsEntry() {
+    function checkRefillParamsEnter() {
         return true;
     }
 

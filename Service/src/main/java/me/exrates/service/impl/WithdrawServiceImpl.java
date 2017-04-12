@@ -116,68 +116,41 @@ public class WithdrawServiceImpl implements WithdrawService {
   @Override
   @Transactional
   public Map<String, String> createWithdrawalRequest(
-      CreditsOperation creditsOperation,
-      WithdrawData withdrawData,
-      String userEmail,
+      WithdrawRequestCreateDto request,
       Locale locale) {
     ProfileData profileData = new ProfileData(1000);
     try {
       MerchantCurrencyAutoParamDto autoParamDto = getAutoWithdrawParamsByMerchantAndCurrency(
-          creditsOperation.getMerchant().getId(),
-          creditsOperation.getCurrency().getId());
+          request.getMerchantId(),
+          request.getCurrencyId());
       profileData.setTime1();
-      WithdrawStatusEnum withdrawRequestStatus = ((WithdrawStatusEnum) WithdrawStatusEnum.getBeginState());
-      WithdrawRequestCreateDto request = new WithdrawRequestCreateDto();
       request.setAutoEnabled(autoParamDto.getWithdrawAutoEnabled());
       request.setAutoThresholdAmount(autoParamDto.getWithdrawAutoThresholdAmount());
-      request.setUserId(creditsOperation.getUser().getId());
-      request.setUserEmail(creditsOperation.getUser().getEmail());
-      request.setUserWalletId(creditsOperation.getWallet().getId());
-      request.setCurrencyId(creditsOperation.getCurrency().getId());
-      request.setAmount(creditsOperation.getOrigAmountAtCreationRequest());
-      request.setUserId(creditsOperation.getWallet().getUser().getId());
-      request.setCommission(creditsOperation.getCommissionAmount());
-      request.setCommissionId(creditsOperation.getCommission().getId());
-      if (creditsOperation.getDestination().isPresent() && !creditsOperation.getDestination().get().isEmpty()) {
-        request.setDestinationWallet(creditsOperation.getDestination().get());
-      } else {
-        request.setDestinationWallet(withdrawData.getUserAccount());
-      }
-      request.setMerchantId(creditsOperation.getMerchant().getId());
-      creditsOperation
-          .getMerchantImage()
-          .ifPresent(request::setMerchantImage);
-      request.setStatusId(withdrawRequestStatus.getCode());
-      request.setRecipientBankName(withdrawData.getRecipientBankName());
-      request.setRecipientBankCode(withdrawData.getRecipientBankCode());
-      request.setUserFullName(withdrawData.getUserFullName());
-      request.setRemark(withdrawData.getRemark());
       Integer requestId = createWithdraw(request);
       request.setId(requestId);
-      profileData.setTime2();
     /**/
       String notification = null;
       String delayDescription = convertWithdrawAutoToString(autoParamDto.getWithdrawAutoDelaySeconds(), locale);
       try {
         notification = sendWithdrawalNotification(
             new WithdrawRequest(request),
-            creditsOperation.getMerchant().getDescription(),
+            request.getMerchantDescription(),
             delayDescription,
             locale);
       } catch (final MailException e) {
         log.error(e);
       }
-      profileData.setTime3();
+      profileData.setTime2();
       BigDecimal newAmount = walletService.getWalletABalance(request.getUserWalletId());
-      String currency = creditsOperation.getCurrency().getName();
+      String currency = request.getCurrencyName();
       String balance = currency + " " + currencyService.amountToString(newAmount, currency);
       Map<String, String> result = new HashMap<>();
       result.put("success", notification);
       result.put("balance", balance);
-      profileData.setTime4();
+      profileData.setTime3();
       return result;
     } finally {
-      profileData.checkAndLog("slow create WithdrawalRequest: " + creditsOperation + " profile: " + profileData);
+      profileData.checkAndLog("slow create WithdrawalRequest: " + request + " profile: " + profileData);
     }
   }
 

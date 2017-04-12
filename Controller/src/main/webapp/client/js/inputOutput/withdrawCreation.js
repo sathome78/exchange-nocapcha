@@ -9,12 +9,12 @@ $(function withdrawCreation() {
     const $container = $("#merchants-output-center");
     const operationType = $container.find("#operationType").html();
     const $withdrawParamsDialog = $container.find('#dialog-withdraw-creation');
+    const $withdrawDetailedParamsDialog = $container.find('#dialog-withdraw-detailed-params-enter');
     const $finPasswordDialog = $container.find('#finPassModal');
     const $amountHolder = $container.find("#sum");
     const $destinationHolder = $withdrawParamsDialog.find("#walletUid");
     const notifications = new NotificationsClass();
-    const urlForWithdrawWithMerchant = "/withdraw/request/merchant/create";
-    const urlForWithdrawWithInvoice = "/withdraw/request/invoice/detail/prepare_to_entry";
+    const urlForWithdrawCreate = "/withdraw/request/merchant/create";
     const modalTemplate = $container.find('.paymentInfo p');
 
     var currency;
@@ -33,7 +33,7 @@ $(function withdrawCreation() {
 
     $withdrawParamsDialog.find("#continue-btn").on('click', function () {
         destination = $destinationHolder.val();
-        if (!checkWithdrawParamsEntry()) {
+        if (!checkWithdrawParams()) {
             return;
         }
         $withdrawParamsDialog.one('hidden.bs.modal', function () {
@@ -63,7 +63,11 @@ $(function withdrawCreation() {
 
     function showWithdrawDialog(message) {
         $withdrawParamsDialog.find('#request-money-operation-btns-wrapper').show();
-        $withdrawParamsDialog.find('#destination-input-wrapper').show();
+        if (merchantIsSimpleInvoice) {
+            $withdrawParamsDialog.find('#destination-input-wrapper').hide();
+        } else {
+            $withdrawParamsDialog.find('#destination-input-wrapper').show();
+        }
         $withdrawParamsDialog.find('#response-money-operation-btns-wrapper').hide();
         $withdrawParamsDialog.find('#message').hide();
         $withdrawParamsDialog.find('#message').html(message ? message : '');
@@ -79,7 +83,7 @@ $(function withdrawCreation() {
         $withdrawParamsDialog.modal();
     }
 
-    function checkWithdrawParamsEntry() {
+    function checkWithdrawParams() {
         return destination.length > 3;
     }
 
@@ -136,7 +140,7 @@ $(function withdrawCreation() {
     }
 
     function performWithdraw(finPassword) {
-        var url = merchantIsSimpleInvoice ? urlForWithdrawWithInvoice : urlForWithdrawWithMerchant;
+        $finPasswordDialog.modal("hide");
         var data = {
             currency: currency,
             merchant: merchant,
@@ -145,9 +149,14 @@ $(function withdrawCreation() {
             merchantImage: merchantImageId,
             operationType: operationType,
         };
-        $finPasswordDialog.modal("hide");
+        if (merchantIsSimpleInvoice) {
+            $withdrawDetailedParamsDialog.modal();
+            data.recipientBankCode = $withdrawDetailedParamsDialog.find("bankId").val(); //TODO или bankCode - что используется на бэке?
+            data.userFullName = $withdrawDetailedParamsDialog.find("userFullName").val();
+            data.remark = $withdrawDetailedParamsDialog.find("remark").val();
+        }
         $.ajax({
-            url: url + '?finpassword=' + finPassword,
+            url: urlForWithdrawCreate + '?finpassword=' + finPassword,
             async: false,
             headers: {
                 'X-CSRF-Token': $("input[name='_csrf']").val()

@@ -65,7 +65,7 @@ public class RefillRequestController {
   @RequestMapping(value = "/refill/request/create", method = POST)
   @ResponseBody
   public Map<String, String> createRefillRequest(
-      @ModelAttribute("payment") RefillRequestParamsDto requestParamsDto,
+      @RequestBody RefillRequestParamsDto requestParamsDto,
       Principal principal,
       Locale locale) throws UnsupportedEncodingException {
     if (requestParamsDto.getOperationType() != INPUT) {

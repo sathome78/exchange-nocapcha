@@ -2,10 +2,12 @@ package me.exrates.controller.merchants;
 
 import me.exrates.controller.annotation.FinPassCheck;
 import me.exrates.controller.exception.ErrorInfo;
-import me.exrates.model.ClientBank;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
+import me.exrates.model.dto.WithdrawRequestCreateDto;
+import me.exrates.model.dto.WithdrawRequestParamsDto;
 import me.exrates.model.dto.WithdrawRequestsAdminTableDto;
+import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
 import me.exrates.model.vo.WithdrawData;
@@ -21,21 +23,18 @@ import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.WebUtils;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.security.Principal;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import static me.exrates.model.enums.OperationType.OUTPUT;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -65,22 +64,28 @@ public class WithdrawRequestController {
   @Autowired
   private CommissionService commissionService;
 
-  @FinPassCheck
+  @FinPassCheck(throwCheckPassException = true)
   @RequestMapping(value = "/withdraw/request/merchant/create", method = POST)
   @ResponseBody
   public Map<String, String> createWithdrawalRequest(
-      @RequestBody final Payment payment,
+      @RequestBody WithdrawRequestParamsDto requestParamsDto,
       Principal principal,
       Locale locale) throws UnsupportedEncodingException {
+    WithdrawStatusEnum beginStatus = (WithdrawStatusEnum) WithdrawStatusEnum.getBeginState();
+    Payment payment = new Payment(OUTPUT);
+    payment.setCurrency(requestParamsDto.getCurrency());
+    payment.setMerchant(requestParamsDto.getMerchant());
+    payment.setSum(requestParamsDto.getSum().doubleValue());
     CreditsOperation creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName())
         .orElseThrow(InvalidAmountException::new);
-    Map<String, String> result = withdrawService.createWithdrawalRequest(creditsOperation, new WithdrawData(), principal.getName(), locale);
+    WithdrawRequestCreateDto withdrawRequestCreateDto = new WithdrawRequestCreateDto(requestParamsDto, creditsOperation, beginStatus);
+    Map<String, String> result = withdrawService.createWithdrawalRequest(withdrawRequestCreateDto, locale);
     return new HashMap<String, String>() {{
       put("message", result.get("success"));
     }};
   }
 
-  @FinPassCheck(throwCheckPassException = true)
+  /*@FinPassCheck(throwCheckPassException = true)
   @RequestMapping(value = "/withdraw/request/invoice/detail/prepare_to_entry", method = POST)
   @ResponseBody
   public Map<String, String> prepareWithdraw(
@@ -114,8 +119,9 @@ public class WithdrawRequestController {
       modelAndView.addObject("banks", banks);
     }
     return modelAndView;
-  }
+  }*/
 
+  /*@FinPassCheck(throwCheckPassException = true)
   @RequestMapping(value = "/withdraw/request/invoice/create", method = POST)
   public RedirectView submitWithdraw(WithdrawData withdrawData, Principal principal, HttpServletRequest request, Locale locale) {
     RedirectView redirectView = new RedirectView("/dashboard");
@@ -134,7 +140,7 @@ public class WithdrawRequestController {
       session.setAttribute("successNoty", result.get("success"));
     }
     return redirectView;
-  }
+  }*/
 
   @RequestMapping(value = "/withdraw/request/revoke", method = POST)
   @ResponseBody
