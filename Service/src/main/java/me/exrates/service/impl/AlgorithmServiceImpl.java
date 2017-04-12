@@ -107,7 +107,7 @@ public class AlgorithmServiceImpl implements AlgorithmService {
 
     @Override
     public BigDecimal computeCommission(final BigDecimal amount, final OperationType type) {
-        BigDecimal commission = commissionService.findCommissionByTypeAndRole(type, userService.getCurrentUserRole()).getValue();
+        BigDecimal commission = commissionService.findCommissionByTypeAndRole(type, userService.getUserRoleFromSecurityContext()).getValue();
         return amount.multiply(commission.divide(HUNDRED).setScale(decimalPlaces, ROUND_HALF_UP)).setScale(decimalPlaces, ROUND_HALF_UP);
     }
 

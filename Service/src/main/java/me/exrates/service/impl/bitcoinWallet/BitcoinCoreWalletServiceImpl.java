@@ -374,6 +374,26 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
   }
   
   @Override
+  public BigDecimal getActualFee() {
+    try {
+      return btcdClient.getInfo().getPayTxFee();
+    } catch (BitcoindException | CommunicationException e) {
+      log.error(e);
+      throw new BitcoinCoreException(e.getMessage());
+    }
+  }
+  
+  @Override
+  public void setTxFee(BigDecimal fee) {
+    try {
+      btcdClient.setTxFee(fee);
+    } catch (BitcoindException | CommunicationException e) {
+      log.error(e);
+      throw new BitcoinCoreException(e.getMessage());
+    }
+  }
+  
+  @Override
   public void submitWalletPassword(String password) {
     try {
       Long unlockedUntil = btcdClient.getWalletInfo().getUnlockedUntil();

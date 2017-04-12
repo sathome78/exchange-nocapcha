@@ -571,7 +571,7 @@ public class UserServiceImpl implements UserService {
   }
 
   @Override
-  public UserRole getCurrentUserRole() {
+  public UserRole getUserRoleFromSecurityContext() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     String grantedAuthority = authentication.getAuthorities().
         stream().map(GrantedAuthority::getAuthority)
@@ -605,6 +605,11 @@ public class UserServiceImpl implements UserService {
   @Transactional(readOnly = true)
   public String getEmailById(Integer id) {
     return userDao.getEmailById(id);
+  }
+  
+  @Override
+  public UserRole getUserRoleFromDB(String email) {
+    return userDao.getUserRoleByEmail(email);
   }
 
 }

@@ -10,6 +10,7 @@
     $textArea.val(select.value);
     $textArea.change();
   }
+
   function onChangeText(elem) {
     var $textArea = $(elem).closest("#note-before-decline-modal").find("#commentText");
     var $button = $(elem).closest("#note-before-decline-modal").find("#createCommentConfirm");

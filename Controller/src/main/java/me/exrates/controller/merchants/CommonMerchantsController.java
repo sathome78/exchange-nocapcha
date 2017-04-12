@@ -46,8 +46,8 @@ public class CommonMerchantsController {
   @Autowired
   private UserService userService;
 
-  @Autowired
-  private MessageSource source;
+    @Autowired
+    private MessageSource messageSource;
 
   @Autowired
   WithdrawService withdrawService;
@@ -66,37 +66,40 @@ public class CommonMerchantsController {
     payment.setOperationType(INPUT);
     modelAndView.addObject("payment", payment);
 
-    final List<Integer> currenciesId = Collections.singletonList(currencyId);
-    modelAndView.addObject("merchantCurrencyData", merchantService.findAllByCurrencies(currenciesId, OperationType.INPUT));
-    modelAndView.addObject("minAmount", currencyService.retrieveMinLimitForRoleAndCurrency(userService.getCurrentUserRole(), INPUT, currencyId));
+        final List<Integer> currenciesId = Collections.singletonList(currencyId);
+        modelAndView.addObject("merchantCurrencyData",merchantService.findAllByCurrencies(currenciesId, OperationType.INPUT));
+        modelAndView.addObject("minAmount", currencyService.retrieveMinLimitForRoleAndCurrency(userService.getUserRoleFromSecurityContext(), INPUT, currencyId));
+        
+        //TODO refactor for a single method call
+        Optional<String> warningCodeSingleAddress = currencyService.getWarningForCurrency(currencyId, CurrencyWarningType.SINGLE_ADDRESS);
+        warningCodeSingleAddress.ifPresent(s -> modelAndView.addObject("warningSingleAddress", s));
+        Optional<String> warningCodeTimeout = currencyService.getWarningForCurrency(currencyId, CurrencyWarningType.TIMEOUT);
+        warningCodeTimeout.ifPresent(s -> modelAndView.addObject("warningCodeTimeout", s));
+        return modelAndView;
+    }
 
-    //TODO refactor for a single method call
-    Optional<String> warningCodeSingleAddress = currencyService.getWarningForCurrency(currencyId, CurrencyWarningType.SINGLE_ADDRESS);
-    warningCodeSingleAddress.ifPresent(s -> modelAndView.addObject("warningSingleAddress", s));
-    Optional<String> warningCodeTimeout = currencyService.getWarningForCurrency(currencyId, CurrencyWarningType.TIMEOUT);
-    warningCodeTimeout.ifPresent(s -> modelAndView.addObject("warningCodeTimeout", s));
-    return modelAndView;
-  }
+    @RequestMapping(value = "/output", method = GET)
+    public ModelAndView outputCredits(@RequestParam("currency") String currencyName, Principal principal) {
+        final ModelAndView modelAndView = new ModelAndView("globalPages/merchantsOutput");
+        final List<Wallet> wallets = walletService.getAllWallets(userService.getIdByEmail(principal.getName()));
+        final Currency currency = currencyService.findByName(currencyName);
+        final Wallet wallet = walletService.findByUserAndCurrency(userService.findByEmail(principal.getName()), currency);
+        final Payment payment = new Payment();
+        payment.setOperationType(OUTPUT);
+        final BigDecimal minWithdrawSum = currencyService.retrieveMinLimitForRoleAndCurrency(userService.getUserRoleFromSecurityContext(), OUTPUT, currency.getId());
 
-  @RequestMapping(value = "/output", method = GET)
-  public ModelAndView outputCredits(@RequestParam("currency") String currencyName, Principal principal) {
-    final ModelAndView modelAndView = new ModelAndView("globalPages/merchantsOutput");
-    final List<Wallet> wallets = walletService.getAllWallets(userService.getIdByEmail(principal.getName()));
-    final Currency currency = currencyService.findByName(currencyName);
-    final Wallet wallet = walletService.findByUserAndCurrency(userService.findByEmail(principal.getName()), currency);
-    final Payment payment = new Payment();
-    payment.setOperationType(OUTPUT);
-    final BigDecimal minWithdrawSum = currencyService.retrieveMinLimitForRoleAndCurrency(userService.getCurrentUserRole(), OUTPUT, currency.getId());
-    modelAndView.addObject("currency", currency);
-    modelAndView.addObject("wallet", wallet);
-    modelAndView.addObject("balance", BigDecimalProcessing.formatNonePoint(wallet.getActiveBalance(), false));
-    modelAndView.addObject("payment", payment);
-    modelAndView.addObject("minWithdrawSum", minWithdrawSum);
-    final List<Integer> currenciesId = new ArrayList<>();
-    currenciesId.add(currency.getId());
-    modelAndView.addObject("merchantCurrencyData", merchantService.findAllByCurrencies(currenciesId, OperationType.OUTPUT));
-    return modelAndView;
-  }
+        modelAndView.addObject("currency",currency);
+
+        modelAndView.addObject("wallet",wallet);
+        modelAndView.addObject("balance", BigDecimalProcessing.formatNonePoint(wallet.getActiveBalance(), false));
+        modelAndView.addObject("payment", payment);
+        modelAndView.addObject("minWithdrawSum", minWithdrawSum);
+        final List<Integer> currenciesId = new ArrayList<>();
+        currenciesId.add(currency.getId());
+        modelAndView.addObject("merchantCurrencyData",merchantService.findAllByCurrencies(currenciesId, OperationType.OUTPUT));
+
+        return modelAndView;
+    }
 
   @RequestMapping(value = "/data", method = GET)
   public

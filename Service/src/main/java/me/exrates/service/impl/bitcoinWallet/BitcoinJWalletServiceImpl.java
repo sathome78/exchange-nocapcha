@@ -181,6 +181,17 @@ public class BitcoinJWalletServiceImpl implements BitcoinWalletService {
   }
   
   @Override
+  public BigDecimal getActualFee() {
+    throw new NotImplimentedMethod("Not implemented");
+  }
+  
+  @Override
+  public void setTxFee(BigDecimal fee) {
+    throw new NotImplimentedMethod("Not implemented");
+  
+  }
+  
+  @Override
   public void submitWalletPassword(String password) {
     throw new NotImplimentedMethod("Not implemented");
   }

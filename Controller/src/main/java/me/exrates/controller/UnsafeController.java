@@ -3,7 +3,6 @@ package me.exrates.controller;
 import me.exrates.controller.handler.EDCClientWebSocketHandler;
 import me.exrates.service.EDCService;
 import me.exrates.service.EthereumService;
-import me.exrates.service.impl.bitcoinWallet.TempBtcCoreService;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +21,6 @@ public class UnsafeController {
 
     private final EDCClientWebSocketHandler blockchainEDC;
     private final EDCService edcService;
-    private final TempBtcCoreService tempBtcCoreService;
     private final EthereumService ethereumService;
 
     private static final Logger LOGGER = LogManager.getLogger(UnsafeController.class);
@@ -32,7 +30,6 @@ public class UnsafeController {
         this.blockchainEDC = blockchainEDC;
         this.edcService = edcService;
         this.ethereumService = ethereumService;
-        this.tempBtcCoreService = new TempBtcCoreService();
     }
 
     @RequestMapping(value = "unsafe/rescanEDCBlockchain")
@@ -60,18 +57,7 @@ public class UnsafeController {
     //TODO remove after BtcCore update is ready
     
     
-    @RequestMapping(value = "unsafe/initBtcCore")
-    @ResponseBody
-    public void initBtcCore() {
-        tempBtcCoreService.initClientAndDaemon();
-    }
     
-    @RequestMapping(value = "unsafe/btcGetInfo")
-    @ResponseBody
-    public void btcGetInfo() {
-        tempBtcCoreService.getInfo();
-    }
-
     @RequestMapping(value = "unsafe/EthereumStart")
     @ResponseBody
     public ResponseEntity<String> ethereumStart() {

@@ -128,7 +128,7 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     @Override
     public List<TransferLimitDto> retrieveMinTransferLimits(List<Integer> currencyIds) {
-        Integer roleId = userService.getCurrentUserRole().getRole();
+        Integer roleId = userService.getUserRoleFromSecurityContext().getRole();
         return currencyDao.retrieveMinTransferLimits(currencyIds, roleId);
     }
 
