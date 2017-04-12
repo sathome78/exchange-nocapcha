@@ -38,7 +38,6 @@ create index currency_pair_limit___fk_ord_type
   on CURRENCY_PAIR_LIMIT (order_type_id)
 ;
 
-CREATE UNIQUE INDEX currency_pair_limit__uq_index ON CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id);
 CREATE INDEX currency_pair_limit__index_user_role_order_type ON CURRENCY_PAIR_LIMIT (user_role_id, order_type_id);
 
 

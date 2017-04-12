@@ -192,7 +192,7 @@ public class CurrencyServiceImpl implements CurrencyService {
   
   @Override
   public CurrencyPairLimitDto findLimitForRoleByCurrencyPairAndType(Integer currencyPairId, OperationType operationType) {
-    UserRole userRole = userService.getCurrentUserRole();
+    UserRole userRole = userService.getUserRoleFromSecurityContext();
     OrderType orderType = OrderType.convert(operationType.name());
     return currencyDao.findCurrencyPairLimitForRoleByPairAndType(currencyPairId, userRole.getRole(), orderType.getType());
   }
@@ -209,7 +209,7 @@ public class CurrencyServiceImpl implements CurrencyService {
   
   @Override
   public List<CurrencyPairWithLimitsDto> findCurrencyPairsWithLimitsForUser() {
-    Integer userRoleId = userService.getCurrentUserRole().getRole();
+    Integer userRoleId = userService.getUserRoleFromSecurityContext().getRole();
     return currencyDao.findAllCurrencyPairsWithLimits(userRoleId);
   }
   
