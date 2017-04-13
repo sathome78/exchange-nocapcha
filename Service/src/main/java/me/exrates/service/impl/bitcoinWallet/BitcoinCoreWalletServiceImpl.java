@@ -422,10 +422,11 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
   public String sendToAddressAuto(String address, BigDecimal amount) {
     
     try {
-      btcdClient.walletPassphrase(walletPassword, 10);
-      String result = btcdClient.sendToAddress(address, amount);
-      btcdClient.walletLock();
-      return result;
+      Long unlockedUntil = btcdClient.getWalletInfo().getUnlockedUntil();
+      if (unlockedUntil != null && unlockedUntil == 0) {
+        btcdClient.walletPassphrase(walletPassword, 1);
+      }
+      return btcdClient.sendToAddress(address, amount);
     } catch (BitcoindException | CommunicationException e) {
       log.error(e);
       throw new BitcoinCoreException(e.getMessage());
