@@ -11,6 +11,7 @@ import me.exrates.model.Transaction;
 import me.exrates.model.dto.InvoiceUserDto;
 import me.exrates.model.dto.PendingPaymentFlatDto;
 import me.exrates.model.dto.PendingPaymentSimpleDto;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.dto.onlineTableDto.PendingPaymentStatusDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
@@ -251,5 +252,8 @@ public class BitcoinServiceImpl implements BitcoinService {
   }
   
   
-    
+  @Override
+  public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
+  
+  }
 }
