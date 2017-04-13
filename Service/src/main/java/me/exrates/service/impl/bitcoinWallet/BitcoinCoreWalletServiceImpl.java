@@ -419,6 +419,20 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
   }
   
   @Override
+  public String sendToAddressAuto(String address, BigDecimal amount) {
+    
+    try {
+      btcdClient.walletPassphrase(walletPassword, 10);
+      String result = btcdClient.sendToAddress(address, amount);
+      btcdClient.walletLock();
+      return result;
+    } catch (BitcoindException | CommunicationException e) {
+      log.error(e);
+      throw new BitcoinCoreException(e.getMessage());
+    }
+  }
+  
+  @Override
   public String sendToMany(Map<String, BigDecimal> payments) {
     try {
       return btcdClient.sendMany("", payments);

@@ -36,5 +36,7 @@ public interface BitcoinWalletService {
   
   String sendToAddress(String address, BigDecimal amount);
   
+  String sendToAddressAuto(String address, BigDecimal amount);
+  
   String sendToMany(Map<String, BigDecimal> payments);
 }
