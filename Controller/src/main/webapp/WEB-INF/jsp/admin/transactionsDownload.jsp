@@ -26,6 +26,7 @@
     <script type="text/javascript" src="<c:url value='/client/js/jquery.datetimepicker.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/moment-with-locales.min.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/dataTable/adminTransactionsDataTable.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/order/adminDeleteOrder.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/downloadTransactions.js'/>"></script>
 
 
@@ -97,7 +98,8 @@
 <input path="id" type="hidden"
             class="input-block-wrapper__input"
             id="user-id" value="${user.id}"/>
-
+<%@include file='order-modals.jsp' %>
+<%@include file='../fragments/modal/withdraw_info_modal.jsp' %>
 <%@include file='../fragments/footer.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>
