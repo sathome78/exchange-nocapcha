@@ -854,7 +854,7 @@ td.blue-white {
 ********************************/
 
 .right {
-    text-align: right;
+    text-align: right !important;
     padding-right: 5px;
 }
 
@@ -866,7 +866,7 @@ td.blue-white {
 }
 
 .left {
-    text-align: left;
+    text-align: left !important;
     padding-left: 5px;
 }
 
@@ -2164,4 +2164,20 @@ textarea#remark {
     display: inline-block;
     margin-top: 20px;
     text-align: center;
+}
+
+.credits-operation-info__item {
+    font-size: 15px;
+    line-height: 25px;
+}
+
+.credits-operation-info__item>div:nth-child(2) {
+    font-weight: bold;
+}
+.credits-operation-info__item:nth-child(odd) {
+    background: rgba(128, 128, 128, 0.25);
+}
+
+.fail-enter {
+    border: 2px solid red !important;
 }

@@ -5,6 +5,7 @@
       $textArea.val($textArea.val().trim());
     })
   });
+
   function onSelectNewValue(select) {
     var $textArea = $(select).closest("#note-before-decline-modal").find("#commentText");
     $textArea.val(select.value);

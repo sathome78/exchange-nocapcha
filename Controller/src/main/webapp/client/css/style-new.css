@@ -1997,3 +1997,7 @@ th.allign-center {
     bottom: inherit;
     background-color: #6a1c0b;
 }
+
+.credits-operation-info__item div {
+    line-height: 25px;
+}

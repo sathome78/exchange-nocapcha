@@ -1,9 +1,7 @@
 package me.exrates.controller.merchants;
 
+import me.exrates.model.*;
 import me.exrates.model.Currency;
-import me.exrates.model.MerchantCurrency;
-import me.exrates.model.Payment;
-import me.exrates.model.Wallet;
 import me.exrates.model.enums.CurrencyWarningType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.util.BigDecimalProcessing;
@@ -31,7 +29,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 @Controller
-@RequestMapping("/merchants/")
 public class CommonMerchantsController {
 
   @Autowired
@@ -52,9 +49,12 @@ public class CommonMerchantsController {
   @Autowired
   WithdrawService withdrawService;
 
+  @Autowired
+  private InvoiceService invoiceService;
+
   private static final Logger LOG = LogManager.getLogger("merchant");
 
-  @RequestMapping(value = "/input", method = GET)
+  @RequestMapping(value = "/merchants/input", method = GET)
   public ModelAndView inputCredits(@RequestParam("currency") String currency) {
 
     final ModelAndView modelAndView = new ModelAndView("globalPages/merchantsInput");
@@ -78,7 +78,7 @@ public class CommonMerchantsController {
         return modelAndView;
     }
 
-    @RequestMapping(value = "/output", method = GET)
+    @RequestMapping(value = "/merchants/output", method = GET)
     public ModelAndView outputCredits(@RequestParam("currency") String currencyName, Principal principal) {
         final ModelAndView modelAndView = new ModelAndView("globalPages/merchantsOutput");
         final List<Wallet> wallets = walletService.getAllWallets(userService.getIdByEmail(principal.getName()));
@@ -101,7 +101,7 @@ public class CommonMerchantsController {
         return modelAndView;
     }
 
-  @RequestMapping(value = "/data", method = GET)
+  @RequestMapping(value = "/merchants/data", method = GET)
   public
   @ResponseBody
   List<MerchantCurrency> getMerchantsData() {
@@ -115,7 +115,7 @@ public class CommonMerchantsController {
         .findAllByCurrencies(currenciesId, OperationType.INPUT);
   }
 
-  @RequestMapping(value = "/commission", method = GET)
+  @RequestMapping(value = "/merchants/commission", method = GET)
   @ResponseBody
   public Map<String, String> getCommissions(
       @RequestParam("type") OperationType type,
@@ -123,6 +123,13 @@ public class CommonMerchantsController {
       @RequestParam("currency") String currency,
       @RequestParam("merchant") String merchant) {
     return merchantService.computeCommissionAndMapAllToString(amount, type, currency, merchant);
+  }
+
+  @RequestMapping(value = "/withdraw/banks", method = GET)
+  @ResponseBody
+  public List<ClientBank> getBankListForCurrency(
+      @RequestParam Integer currencyId) {
+    return invoiceService.findClientBanksForCurrency(currencyId);
   }
 
 }

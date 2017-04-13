@@ -1,4 +1,8 @@
 <div id="merchants-output-center">
+  <div hidden>
+    <div id="enter-other-bank-phrase"><loc:message code="merchants.invoice.otherBank"/></div>
+    <div id="bank-not-selected"><loc:message code="merchants.notSelected"/></div>
+  </div>
   <h4><loc:message code="merchants.outputTitle"/></h4>
   <c:if test="${error!=null}">
     <label class="alert-danger has-error">
