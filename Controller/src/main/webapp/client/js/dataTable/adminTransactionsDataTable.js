@@ -48,10 +48,10 @@ $(function () {
             "order": [[0, "desc"]],
             "columns": [
                 {
-                    "data": "orderedDatetime",
+                    "data": "datetime",
                     "render": function (data, type, row) {
                         if (type == 'display') {
-                            return row.datetime.split(' ')[0];
+                            return data.split(' ')[0];
                         }
                         return data;
                     }
