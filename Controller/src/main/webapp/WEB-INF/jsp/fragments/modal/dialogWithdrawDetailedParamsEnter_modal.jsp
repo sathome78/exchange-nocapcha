@@ -111,8 +111,9 @@
   }
 </script>
 
-<div class="modal fade merchant-output" id="dialog-withdraw-detailed-params-enter">
-  <h4><loc:message code="merchants.invoiceDetails.title"/></h4>
+<div id="dialog-withdraw-detailed-params-enter"
+     class="modal fade merchant-output"
+     style="margin-top: 20px">
   <c:choose>
     <c:when test="${not empty error}">
       <label class="alert-danger has-error">
@@ -124,29 +125,36 @@
         <div id="credits-operation-info"
              class="credits-operation-info well col-md-6 col-md-offset-3 ">
           <div class="text-center">
-            <h5><loc:message code="merchants.invoiceDetails.paymentDetails"/></h5>
+            <h4><loc:message code="merchants.invoiceDetails.paymentDetails"/></h4>
           </div>
           <div class="row">
+          <div class="col-md-6 col-md-offset-3">
+          <div class="row">
             <div class="credits-operation-info__item clearfix">
-              <div class="col-md-3"><loc:message code="merchants.withdrawDetails.inputFinalSum"/></div>
-              <div class="col-md-9"><span id="amount"></span> <span class="currency"></span></div>
+              <div class="col-md-6"><loc:message code="merchants.withdrawDetails.inputFinalSum"/></div>
+              <div class="col-md-6"><span id="amount"></span> <span class="currency"></span></div>
             </div>
             <div class="credits-operation-info__item clearfix">
-              <div class="col-md-3"><loc:message code="transaction.commission"/></div>
-              <div class="col-md-9"><span id="commission-percent"></span></div>
+              <div class="col-md-6"><loc:message code="transaction.commission"/></div>
+              <div class="col-md-6"><span id="commission-percent"></span></div>
             </div>
             <div class="credits-operation-info__item clearfix">
-              <div class="col-md-3"><loc:message code="transaction.commissionAmount"/></div>
-              <div class="col-md-9"><span id="commission-amount"></span><span class="currency"></span></div>
+              <div class="col-md-6"><loc:message code="transaction.commissionAmount"/></div>
+              <div class="col-md-6"><span id="commission-amount"></span> <span class="currency"></span></div>
             </div>
             <div class="credits-operation-info__item clearfix">
-              <div class="col-md-3"><loc:message code="merchants.withdrawDetails.outputFinalSum"/></div>
-              <div class="col-md-9"><span id="total-amount"></span> <span class="currency"></span></div>
+              <div class="col-md-6"><loc:message code="merchants.withdrawDetails.outputFinalSum"/></div>
+              <div class="col-md-6"><span id="total-amount"></span> <span class="currency"></span></div>
             </div>
+          </div>
+          </div>
           </div>
         </div>
         <div id="credits-operation-enter"
              class="credits-operation-info well col-md-6 col-md-offset-3 ">
+          <div class="text-center">
+            <h4><loc:message code="merchants.invoiceDetails.title"/></h4>
+          </div>
           <div class="input-block-wrapper clearfix">
             <div class="col-md-3 input-block-wrapper__label-wrapper">
               <label for="bank-data-list" class="input-block-wrapper__label">

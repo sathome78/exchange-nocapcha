@@ -2205,7 +2205,7 @@ textarea#remark {
     font-weight: bold;
 }
 .credits-operation-info__item:nth-child(odd) {
-    background: rgba(128, 128, 128, 0.25);
+    /*background: rgba(128, 128, 128, 0.25);*/
 }
 
 .fail-enter {

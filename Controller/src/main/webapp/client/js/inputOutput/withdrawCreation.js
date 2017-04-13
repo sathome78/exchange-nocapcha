@@ -70,7 +70,7 @@ $(function withdrawCreation() {
         $withdrawParamsDialog.find('#message').hide();
         $withdrawParamsDialog.find('#message').html(message ? message : '');
         /**/
-        $withdrawParamsDialog.find("#continue-btn").on('click', function () {
+        $withdrawParamsDialog.find("#continue-btn").off('click').on('click', function () {
             destination = $destinationHolder.val();
             if (!checkWithdrawParams()) {
                 return;
@@ -183,7 +183,9 @@ $(function withdrawCreation() {
             $bankItem.html(phrases.enterOtherBankPhrase);
             $bankSelect.append($bankItem.clone());
         });
-        $withdrawDetailedParamsDialog.modal();
+        $withdrawDetailedParamsDialog.modal({
+            backdrop: 'static'
+        });
     }
 
     function showWithdrawDialogAfterCreation(message) {
