@@ -126,6 +126,7 @@
                     <span class="item__span"><loc:message code="dashboard.amount"/>
                         <span class="currencyBaseName item__span"></span>
                     </span>
+                        <div class="dark_blue_area"><span class="currencyBaseName"></span></div>
                         <form:input id="amountBuy" path="amount" type="text" class="item__input numericInputField"/>
                     </div>
 
@@ -133,34 +134,33 @@
                     <span class="item__span"><loc:message code="dashboard.price"/>
                         <span class="currencyBaseName"></span>
                     </span>
+                        <div class="dark_blue_area"><span class="currencyConvertName"></span></div>
                         <form:input id="exchangeRateBuy" path="exchangeRate" type="text"
                                     class="buyBTC__input usd_green numericInputField"/>
                     </div>
 
                     <div class="buyBTC__item item">
                         <span class="item__span"><loc:message code="dashboard.total"/></span>
-
-                        <div id="totalForBuy" class="blue_area">
+                        <div class="dark_blue_area"><span class="currencyConvertName"></span></div>
+                        <input id="totalForBuy" class="item__input numericInputField"/>
+                            <%--<div id="totalForBuy" class="blue_area">
                             <span></span>
-                            <span class="currencyConvertName white_right"></span>
-                        </div>
+                        </div>--%>
                     </div>
 
                     <div class="buyBTC__item item">
                         <span class="item__span"><loc:message code="dashboard.commission"/></span>
-
+                        <div class="dark_blue_area"><span class="currencyConvertName"></span></div>
                         <div id="calculatedCommissionForBuy" class="blue_area">
                             <span></span>
-                            <span class="currencyConvertName white_right"></span>
                         </div>
                     </div>
 
                     <div class="buyBTC__item item">
                         <span class="item__span"><loc:message code="dashboard.amountwithcommission"/></span>
-
+                        <div class="dark_blue_area"><span class="currencyConvertName"></span></div>
                         <div id="totalWithCommissionForBuy" class="blue_area">
                             <span></span>
-                            <span class="currencyConvertName white_right"></span>
                         </div>
                     </div>
 
@@ -238,6 +238,7 @@
                     <span class="item__span"><loc:message code="dashboard.amount"/>
                         <span class="currencyBaseName item__span"></span>
                     </span>
+                        <div class="dark_blue_area"><span class="currencyBaseName"></span></div>
                         <form:input id="amountSell" path="amount" type="text" class="item__input numericInputField"/>
                     </div>
 
@@ -245,34 +246,33 @@
                     <span class="item__span"><loc:message code="dashboard.price"/>
                         <span class="currencyBaseName"></span>
                     </span>
+                        <div class="dark_blue_area"><span class="currencyConvertName"></span></div>
                         <form:input id="exchangeRateSell" path="exchangeRate" type="text"
                                     class="buyBTC__input usd_green numericInputField"/>
                     </div>
 
                     <div class="buyBTC__item item">
                         <span class="item__span"><loc:message code="dashboard.total"/></span>
-
-                        <div id="totalForSell" class="blue_area">
+                        <div class="dark_blue_area"><span class="currencyConvertName"></span></div>
+                        <input id="totalForSell" class="item__input numericInputField"/>
+                       <%-- <div id="totalForSell" class="blue_area">
                             <span></span>
-                            <span class="currencyConvertName white_right"></span>
-                        </div>
+                        </div>--%>
                     </div>
 
                     <div class="buyBTC__item item">
                         <span class="item__span"><loc:message code="dashboard.commission"/></span>
-
+                        <div class="dark_blue_area"><span class="currencyConvertName"></span></div>
                         <div id="calculatedCommissionForSell" class="blue_area">
                             <span></span>
-                            <span class="currencyConvertName white_right"></span>
                         </div>
                     </div>
 
                     <div class="buyBTC__item item">
                         <span class="item__span"><loc:message code="dashboard.amountwithcommission"/></span>
-
+                        <div class="dark_blue_area"><span class="currencyConvertName"></span></div>
                         <div id="totalWithCommissionForSell" class="blue_area">
                             <span></span>
-                            <span class="currencyConvertName white_right"></span>
                         </div>
                     </div>
 
