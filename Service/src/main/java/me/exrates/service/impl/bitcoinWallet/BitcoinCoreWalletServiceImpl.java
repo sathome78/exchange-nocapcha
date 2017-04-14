@@ -97,7 +97,7 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
       * Keys are automatically refilled on unlocking
       * */
       if (keyPoolSize < KEY_POOL_LOW_THRESHOLD) {
-        btcdClient.walletPassphrase(walletPassword, 1);
+        unlockWallet(walletPassword, 1);
       }
       return btcdClient.getNewAddress();
     } catch (BitcoindException | CommunicationException e) {
@@ -396,10 +396,7 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
   @Override
   public void submitWalletPassword(String password) {
     try {
-      Long unlockedUntil = btcdClient.getWalletInfo().getUnlockedUntil();
-      if (unlockedUntil != null && unlockedUntil == 0) {
-        btcdClient.walletPassphrase(password, 60);
-      }
+      unlockWallet(password, 60);
     } catch (BitcoindException | CommunicationException e) {
       log.error(e);
       throw new BitcoinCoreException(e.getMessage());
@@ -422,14 +419,18 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
   public String sendToAddressAuto(String address, BigDecimal amount) {
     
     try {
-      Long unlockedUntil = btcdClient.getWalletInfo().getUnlockedUntil();
-      if (unlockedUntil != null && unlockedUntil == 0) {
-        btcdClient.walletPassphrase(walletPassword, 1);
-      }
+      unlockWallet(walletPassword, 1);
       return btcdClient.sendToAddress(address, amount);
     } catch (BitcoindException | CommunicationException e) {
       log.error(e);
       throw new BitcoinCoreException(e.getMessage());
+    }
+  }
+  
+  private void unlockWallet(String password, int authTimeout) throws BitcoindException, CommunicationException {
+    Long unlockedUntil = btcdClient.getWalletInfo().getUnlockedUntil();
+    if (unlockedUntil != null && unlockedUntil == 0) {
+      btcdClient.walletPassphrase(password, authTimeout);
     }
   }
   
