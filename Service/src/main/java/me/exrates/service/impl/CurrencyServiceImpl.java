@@ -212,6 +212,11 @@ public class CurrencyServiceImpl implements CurrencyService {
     Integer userRoleId = userService.getUserRoleFromSecurityContext().getRole();
     return currencyDao.findAllCurrencyPairsWithLimits(userRoleId);
   }
+
+    @Override
+    public List<Currency> findAllCurrenciesWithHidden() {
+        return currencyDao.findAllCurrenciesWithHidden();
+    }
   
   
 }

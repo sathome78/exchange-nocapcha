@@ -21,7 +21,7 @@ public interface ReferralUserGraphDao {
 
     List<ReferralInfoDto> getInfoAboutFirstLevRefs(int userId, int profitUser, int limit, int offset, RefFilterData refFilterData);
 
-    ReferralInfoDto getInfoAboutUserRef(int userId, int profitUser);
+    ReferralInfoDto getInfoAboutUserRef(int userId, int profitUser, RefFilterData filterData);
 
     List<ReferralProfitDto> detailedCountRefsTransactions(Integer userId, int profitUser, RefFilterData refFilterData);
 

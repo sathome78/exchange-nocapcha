@@ -31,6 +31,7 @@ public class RefsListContainer {
     public RefsListContainer(List<ReferralInfoDto> referralInfoDtos, int level) {
         this.referralInfoDtos = referralInfoDtos;
         this.currentLevel = level;
+        totalPages = 1;
     }
 
     public RefsListContainer(List<ReferralInfoDto> referralInfoDtos) {

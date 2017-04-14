@@ -59,5 +59,7 @@ public interface ReferralService {
 
     int getUserReferralLevelForChild(Integer childUserId, Integer parentUserId);
 
-    List<ReferralProfitDto> getAllUserRefProfit(int userId);
+    List<ReferralProfitDto> getAllUserRefProfit(int userId, RefFilterData filterData);
+
+    List<String> getRefsListForDownload(int profitUser, RefFilterData filterData);
 }

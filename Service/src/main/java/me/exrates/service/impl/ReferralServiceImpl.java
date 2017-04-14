@@ -6,10 +6,7 @@ import me.exrates.dao.ReferralTransactionDao;
 import me.exrates.dao.ReferralUserGraphDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
-import me.exrates.model.dto.RefFilterData;
-import me.exrates.model.dto.ReferralInfoDto;
-import me.exrates.model.dto.ReferralProfitDto;
-import me.exrates.model.dto.RefsListContainer;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.onlineTableDto.MyReferralDetailedDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.NotificationEvent;
@@ -19,6 +16,7 @@ import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.*;
 import me.exrates.service.util.Cache;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -263,7 +261,7 @@ public class ReferralServiceImpl implements ReferralService {
     public RefsListContainer getUsersFirstLevelAndCountProfitForUser(int userId, int profitForId, int onPage, int pageNumber, RefFilterData refFilterData) {
         int offset = (pageNumber - 1) * onPage;
         List<ReferralInfoDto> dtoList = referralUserGraphDao.getInfoAboutFirstLevRefs(userId, profitForId, onPage, offset, refFilterData);
-        setDetailedAmountToDtos(dtoList, profitForId, null);
+        setDetailedAmountToDtos(dtoList, profitForId, refFilterData);
         int totalSize = referralUserGraphDao.getInfoAboutFirstLevRefsTotalSize(userId);
         log.warn("list size {}", dtoList.size());
         return new RefsListContainer(dtoList, onPage, pageNumber, totalSize);
@@ -271,8 +269,8 @@ public class ReferralServiceImpl implements ReferralService {
 
     @Override
     public RefsListContainer getUsersRefToAnotherUser(int userId, int profitUser, int level, RefFilterData refFilterData) {
-        List<ReferralInfoDto> dtoList = Arrays.asList(referralUserGraphDao.getInfoAboutUserRef(userId, profitUser));
-        setDetailedAmountToDtos(dtoList, profitUser, null);
+        List<ReferralInfoDto> dtoList = Arrays.asList(referralUserGraphDao.getInfoAboutUserRef(userId, profitUser, refFilterData));
+        setDetailedAmountToDtos(dtoList, profitUser, refFilterData);
         return new RefsListContainer(dtoList, level);
     }
 
@@ -304,7 +302,74 @@ public class ReferralServiceImpl implements ReferralService {
     }
 
     @Override
-    public List<ReferralProfitDto> getAllUserRefProfit(int userId) {
-        return referralUserGraphDao.detailedCountRefsTransactions(null, userId, null);
+    public List<ReferralProfitDto> getAllUserRefProfit(int userId, RefFilterData filterData) {
+        return referralUserGraphDao.detailedCountRefsTransactions(null, userId, filterData);
+    }
+
+    @Override
+    public List<String> getRefsListForDownload(int profitUser, RefFilterData filterData) {
+        List<String> resultList = prepareCsv();
+        int level = 1;
+        List<ReferralInfoDto> nextLevelList;
+        if (StringUtils.isEmpty(filterData.getEmail())) {
+            nextLevelList = referralUserGraphDao
+                    .getInfoAboutFirstLevRefs(profitUser, profitUser, -1, -1, filterData);
+          } else {
+            final int userId = userService.getIdByEmail(filterData.getEmail());
+            level = this.getUserReferralLevelForChild(userId, profitUser);
+            if (level == -1) {
+                return resultList;
+            }
+            nextLevelList = Arrays.asList(referralUserGraphDao.getInfoAboutUserRef(userId, profitUser, filterData));
+        }
+        return convertTrListToString(nextLevelList, level, resultList, profitUser, filterData);
+    }
+
+    private List<String> convertTrListToString(List<ReferralInfoDto> info, int level,
+                                               List<String> resultList, int profitForId,
+                                               RefFilterData filterData) {
+        if (level > 7) return resultList;
+        setDetailedAmountToDtos(info, profitForId, filterData);
+        info.forEach(i -> {
+            StringBuilder sb = new StringBuilder();
+            sb.append(i.getEmail())
+                    .append(";")
+                    .append(i.getRefProfitFromUser() == 0 ? 0 : refProfitString(i.getReferralProfitDtoList()))/*todo: all currencies separate*/
+                    .append(";")
+                    .append(i.getFirstRefLevelCount())
+                    .append(";")
+                    .append(level);
+            resultList.add(sb.toString());
+            resultList.add("\n");
+            if (i.getFirstRefLevelCount() > 0) {
+                int newUserId = userService.getIdByEmail(i.getEmail());
+                List<ReferralInfoDto> nextLevelList = referralUserGraphDao
+                        .getInfoAboutFirstLevRefs(newUserId, profitForId, -1, -1, filterData);
+            convertTrListToString(nextLevelList, level+1, resultList, profitForId, filterData);
+            }
+        });
+        return resultList;
+    }
+
+    private String refProfitString(List<ReferralProfitDto> list) {
+        StringBuilder sb = new StringBuilder();
+        list.forEach(i -> {
+            sb.append(i.getAmount());
+            sb.append(i.getCurrencyName());
+            sb.append(", ");
+        });
+        sb.deleteCharAt(sb.lastIndexOf(","));
+        return sb.toString();
+    }
+
+    private String getCSVTransactionsHeader() {
+        return "Email;Amount;Referrals count;level";
+    }
+
+    private List<String> prepareCsv(){
+        List<String> transactionsResult = new ArrayList<>();
+        transactionsResult.add(getCSVTransactionsHeader());
+        transactionsResult.add("\n");
+        return transactionsResult;
     }
 }

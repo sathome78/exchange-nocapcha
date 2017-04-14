@@ -93,16 +93,16 @@ public class ReferralUserGraphDaoImpl implements ReferralUserGraphDao {
                 "FROM REFERRAL_USER_GRAPH RUG " +
                 "INNER JOIN USER US ON US.id = RUG.child " +
                 "LEFT JOIN REFERRAL_TRANSACTION RT ON RT.initiator_id = US.id AND RT.user_id = RUG.parent " +
-                "LEFT JOIN TRANSACTION TR ON TR.source_type = 'REFERRAL' AND TR.source_id = RT.id " +
-                "WHERE RUG.parent = :parent ";
+                "LEFT JOIN TRANSACTION TR ON TR.source_type = 'REFERRAL' AND TR.source_id = RT.id %s " +
+                "WHERE RUG.parent = :parent GROUP BY email";
         Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("parent", userId);
         namedParameters.put("profit_user", profitUser);
         namedParameters.put("limit", limit);
         namedParameters.put("offset", offset);
-        namedParameters.putAll(refFilterData.getSQLParamsMap());
-
-        sql = sql.concat(" GROUP BY email ");
+        namedParameters.putAll((Map<String, Object>) refFilterData.getSQLParamsMap().get("params"));
+        sql = String.format(sql, (String) refFilterData.getSQLParamsMap().get("sql"));
+        log.error(" sql {}", sql);
         if (offset >= 0 && limit > 0) {
             sql = sql.concat(" LIMIT :limit OFFSET :offset ");
         }
@@ -114,17 +114,19 @@ public class ReferralUserGraphDaoImpl implements ReferralUserGraphDao {
     }
 
     @Override
-    public ReferralInfoDto getInfoAboutUserRef(int userId, int profitUser) {
+    public ReferralInfoDto getInfoAboutUserRef(int userId, int profitUser, RefFilterData refFilterData) {
         String sql = "SELECT US.email AS email, US.id AS ref_id, " +
                 "(SELECT COUNT(child) FROM REFERRAL_USER_GRAPH WHERE parent = :parent) AS childs_count, " +
                 "sum(TR.amount) AS ref_profit " +
                 "FROM USER US " +
                 "LEFT JOIN REFERRAL_TRANSACTION RT ON RT.initiator_id = US.id AND RT.user_id = :profit_user " +
-                "LEFT JOIN TRANSACTION TR ON TR.source_type = 'REFERRAL' AND TR.source_id = RT.id " +
+                "LEFT JOIN TRANSACTION TR ON TR.source_type = 'REFERRAL' AND TR.source_id = RT.id %s " +
                 "WHERE US.id = :parent ";
         Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("parent", userId);
         namedParameters.put("profit_user", profitUser);
+        namedParameters.putAll((Map<String, Object>) refFilterData.getSQLParamsMap().get("params"));
+        sql = String.format(sql, (String) refFilterData.getSQLParamsMap().get("sql"));
         try {
             return jdbcTemplate.queryForObject(sql, namedParameters, getReferralInfoDtoRwoMapper());
         } catch (EmptyResultDataAccessException e) {
@@ -136,15 +138,18 @@ public class ReferralUserGraphDaoImpl implements ReferralUserGraphDao {
     public List<ReferralProfitDto> detailedCountRefsTransactions(Integer userId, int profitUser, RefFilterData refFilterData) {
         String sql = "SELECT sum(TR.amount) AS ref_profit, CU.name AS currency_name FROM USER US " +
                 "LEFT JOIN REFERRAL_TRANSACTION RT ON RT.initiator_id = US.id AND RT.user_id = :profit_user " +
-                "LEFT JOIN TRANSACTION TR ON TR.source_type = 'REFERRAL' AND TR.source_id = RT.id  " +
+                "LEFT JOIN TRANSACTION TR ON TR.source_type = 'REFERRAL' AND TR.source_id = RT.id %s " +
                 "INNER JOIN CURRENCY CU ON CU.id = TR.currency_id ";
         if (userId != null) {
             sql = sql.concat(" WHERE US.id = :userId ");
         }
-        sql = sql.concat(" GROUP BY CU.id ");
         Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("userId", userId);
         namedParameters.put("profit_user", profitUser);
+        namedParameters.putAll((Map<String, Object>) refFilterData.getSQLParamsMap().get("params"));
+        sql = String.format(sql, (String) refFilterData.getSQLParamsMap().get("sql"));
+        sql = sql.concat(" GROUP BY CU.id ");
+        log.error("profit sql {}", sql);
         try {
              return jdbcTemplate.query(sql, namedParameters, new RowMapper<ReferralProfitDto>() {
                 @Override

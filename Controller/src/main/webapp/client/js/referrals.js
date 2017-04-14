@@ -5,14 +5,14 @@ var mainUser ;
 var $pagination;
 var search;
 var defaultOpts = {
-    hideOnlyOnePage:true,
+    /*hideOnlyOnePage:true,*/
     totalPages: 4,
     first: "<<",
     prev:"<",
     next:">",
     last:">>",
     onPageClick: function (event, page) {
-        loadInfo(mainUser, page)
+        loadInfo(mainUser, page, null,'init')
     }
 };
 
@@ -23,8 +23,8 @@ $(function () {
 });
 
 
-function loadInfo(userId, page, port) {
-    var url = '/2a8fy7b07dxe44/findReferral?userId='+ userId
+function loadInfo(userId, page, port, action) {
+    var url = '/2a8fy7b07dxe44/findReferral?action=' + action + '&userId='+ userId
         + "&profitUser=" + mainUser + "&onPage=" + onPage + "&page=" + page;
     if (isFilterApplied) {
         url = url + "&" + $('#ref_download_form').serialize();
@@ -36,12 +36,9 @@ function loadInfo(userId, page, port) {
         success: function (data) {
             console.log('resp ' + JSON.stringify(data));
             append(data.referralInfoDtos, userId, port);
-            if (data.totalPages <= 1){
-                $pagination.twbsPagination('destroy');
-            } else /*if (page > 0 && data.totalPages > 1)*/ {
+            if (data.currentPage != -1) {
                 refreshPagination(data.totalPages)
             }
-
         }
     });
 }
@@ -54,8 +51,9 @@ function ShowHide(userId) {
             $(".reffil_" + userId).slideUp();
             port.empty();
         } else {
+            var action = 'toggle';
             var page = -1;
-            loadInfo(userId, page, port)
+            loadInfo(userId, page, port, action);
         }
 
     }
@@ -81,9 +79,9 @@ function refreshPagination(totalPages) {
     }));
 }
 
-function searchRef(value, page) {
+function searchRef(value, page, action) {
     var formParams = $('#ref_download_form').serialize();
-    var url = '/2a8fy7b07dxe44/findReferral?profitUser=' + mainUser + '&' + formParams;
+    var url = '/2a8fy7b07dxe44/findReferral?action=' + action + '&profitUser=' + mainUser + '&' + formParams;
     console.log("url search " +  + url);
     $.ajax({
         url: url,
@@ -95,9 +93,21 @@ function searchRef(value, page) {
                 $('#level-outer').show();
                 $('#level').text(data.currentLevel);
             }
+            if (data.currentPage != -1) {
+                refreshPagination(data.totalPages)
+            }
             isFilterApplied = true;
         }
     });
+}
+
+function downloadCsv() {
+    var url = '/2a8fy7b07dxe44/downloadRef?profitUser=' + mainUser;
+    if (isFilterApplied) {
+        url = url + "&" + $('#ref_download_form').serialize();
+    }
+    console.log("url load " + url);
+    window.open(url);
 }
 
 
@@ -141,19 +151,10 @@ $( document ).ready(function(){
         defaultTime: '00:00'
     });
 
-    /*$('#refSearch').on('change keyup', function() {
-        var value = $(this).val(); // get the current value of the input field.
-        var sendButton = $('#refSearchButton');
-        if (!value) {
-            sendButton.prop('disabled', true);
-        } else {
-            sendButton.prop('disabled', false);
-        }
-    });*/
-
     $('#refSearchButton').on("click", function () {
         searchId = $('#refSearch').val();
-        searchRef(searchId, 1);
+        var action = 'search';
+        searchRef(searchId, 1, action);
         $pagination.twbsPagination('destroy');
     });
 
@@ -161,13 +162,17 @@ $( document ).ready(function(){
         $('.filters').toggle("slow");
     });
 
+    $('#refDownloadButton').on("click", function () {
+        downloadCsv();
+    });
 
     $('#refSearchClearButton').on("click", function () {
         isFilterApplied = false;
         $pagination.twbsPagination('destroy');
-        loadInfo(mainUser, 1);
+        loadInfo(mainUser, 1, null,'init');
         $('#level-outer').hide();
-        $('#refSearch').val("");
+        $('.filter_input').val("");
+        $('.currency_check').prop('checked', true);
     });
 
 });

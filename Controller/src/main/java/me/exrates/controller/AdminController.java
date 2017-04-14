@@ -484,7 +484,8 @@ public class AdminController {
     model.addObject("userLang", userService.getPreferedLang(id).toUpperCase());
     model.addObject("usersInvoiceRefillCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), REFILL));
     model.addObject("usersInvoiceWithdrawCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), WITHDRAW));
-    model.addObject("userRefBonuses", referralService.getAllUserRefProfit(user.getId()));
+    model.addObject("userRefBonuses", referralService.getAllUserRefProfit(user.getId(), new RefFilterData()));
+    model.addObject("allCurrencies", currencyService.findAllCurrenciesWithHidden());
     return model;
   }
 
@@ -1173,53 +1174,76 @@ public class AdminController {
     return result;
   }
 
-  /*@RequestMapping(value = "/2a8fy7b07dxe44/referralInfo")
-  @ResponseBody
-  public RefsListContainer getUserReferrals(@RequestParam("userId") int userId,
-                                                   @RequestParam("profitUser") int profitUser,
-                                                    @RequestParam(value = "onPage", defaultValue = "20") int onPage,
-                                                    @RequestParam(value = "page", defaultValue = "1") int page) {
-    int level = referralService.getUserReferralLevelForChild(userId, profitUser);
-    if (level >= 7 || level < 0) {
-      return new RefsListContainer(Collections.emptyList());
-    }
-    RefsListContainer container = referralService
-            .getUsersFirstLevelAndCountProfitForUser(userId, profitUser, onPage, page);
-    container.setCurrentLevel(level);
-    return container;
-  }*/
-
   @RequestMapping(value = "/2a8fy7b07dxe44/findReferral")
   @ResponseBody
-  public RefsListContainer findUserReferral(@RequestParam(value = "userId", required = false) Integer userId,
+  public RefsListContainer findUserReferral(@RequestParam("action") String action,
+                                            @RequestParam(value = "userId", required = false) Integer userId,
                                             @RequestParam("profitUser") int profitUser,
                                             @RequestParam(value = "onPage", defaultValue = "20") int onPage,
                                             @RequestParam(value = "page", defaultValue = "1") int page,
                                             RefFilterData refFilterData) {
     LOG.error("filter data " + refFilterData);
-    int refLevel;
+    int refLevel = 1;
     RefsListContainer container;
-    if (!StringUtils.isEmpty(refFilterData.getEmail())) {
-      userId = userService.getIdByEmail(refFilterData.getEmail());
-      refLevel = referralService.getUserReferralLevelForChild(userId, profitUser);
-      if (refLevel == -1) {
-        return new RefsListContainer(Collections.emptyList());
+    RefActionType refActionType = RefActionType.convert(action);
+    switch (refActionType) {
+      case init:{
+        container = referralService
+                .getUsersFirstLevelAndCountProfitForUser(profitUser, profitUser, onPage, page, refFilterData);
+        break;
       }
-      container = referralService.getUsersRefToAnotherUser(userId, profitUser, refLevel, refFilterData);
-    } else {
-      if(userId == null) {
-        userId = profitUser;
+      case search:{
+        if (!StringUtils.isEmpty(refFilterData.getEmail())) {
+          userId = userService.getIdByEmail(refFilterData.getEmail());
+          refLevel = referralService.getUserReferralLevelForChild(userId, profitUser);
+          if (refLevel == -1) {
+            return new RefsListContainer(Collections.emptyList());
+          }
+          container = referralService.getUsersRefToAnotherUser(userId, profitUser, refLevel, refFilterData);
+        } else {
+          container = referralService
+                  .getUsersFirstLevelAndCountProfitForUser(profitUser, profitUser, onPage, page, refFilterData);
+        }
+        break;
       }
-      int level = referralService.getUserReferralLevelForChild(userId, profitUser);
-      if (level >= 7 || level < 0) {
-        return new RefsListContainer(Collections.emptyList());
+      case toggle:{
+        refLevel = referralService.getUserReferralLevelForChild(userId, profitUser);
+        if (refLevel >= 7 || refLevel < 0) {
+          return new RefsListContainer(Collections.emptyList());
+        }
+        container = referralService
+                .getUsersFirstLevelAndCountProfitForUser(userId, profitUser, onPage, page, refFilterData);
+
+        break;
       }
-      refLevel = 1;
-      container = referralService
-              .getUsersFirstLevelAndCountProfitForUser(userId, profitUser, onPage, page, refFilterData);
+      default:return new RefsListContainer(Collections.emptyList());
     }
     container.setCurrentLevel(refLevel);
     return container;
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/downloadRef")
+  public void downloadUserRefferalStructure(@RequestParam("profitUser") int profitUser,
+                                            RefFilterData refFilterData,
+                                            HttpServletResponse response) throws IOException {
+    response.setContentType("text/csv");
+    String reportName =
+            "referrals-"
+                    .concat(userService.getEmailById(profitUser))
+                    .concat(".csv");
+    response.setHeader("Content-disposition", "attachment;filename="+reportName);
+    List<String> refsList = referralService.getRefsListForDownload(profitUser, refFilterData);
+    OutputStreamWriter writer = new OutputStreamWriter(response.getOutputStream());
+    try {
+      for(String transaction : refsList) {
+        writer.write(transaction);
+      }
+    } catch (IOException e) {
+      LOG.error("error download transactions " + e);
+    } finally {
+      writer.flush();
+      writer.close();
+    }
   }
 
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)

@@ -21,8 +21,8 @@
                 </label>
             </div>
             <div class="col-md-9 input-block-wrapper__input-wrapper">
-                <input id="ref_download_start" type="text" name="dateFrom">
-                <input id="ref_download_end" type="text" name="dateTo">
+                <input id="ref_download_start" class="filter_input" type="text" name="dateFrom">
+                <input id="ref_download_end" class="filter_input" type="text" name="dateTo">
             </div>
         </div>
         <br>
@@ -33,7 +33,7 @@
                 </label>
             </div>
             <div class="col-md-9 input-block-wrapper__input-wrapper">
-                <input id="refSearch" type="text" name="email" placeholder='E-mail'>
+                <input id="refSearch" class="filter_input" type="text" name="email" placeholder='E-mail'>
             </div>
         </div>
         <br>
@@ -45,8 +45,8 @@
             </div>
             <div class="col-md-9 input-block-wrapper__input-wrapper">
                 <ul class="checkbox-grid">
-                    <c:forEach items="${currencies}" var="currency">
-                        <li><input type="checkbox" checked name="currencyIds" value="${currency.id}"><span>${currency.name}</span>
+                    <c:forEach items="${allCurrencies}" var="currency">
+                        <li><input type="checkbox" class="currency_check" checked name="currencyIds" value="${currency.id}"><span>${currency.name}</span>
                         </li>
                     </c:forEach>
                 </ul>

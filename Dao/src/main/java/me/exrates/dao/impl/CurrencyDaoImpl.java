@@ -381,5 +381,11 @@ public class CurrencyDaoImpl implements CurrencyDao {
 		});
 		
 	}
+
+	@Override
+	public List<Currency> findAllCurrenciesWithHidden() {
+		final String sql = "SELECT * FROM CURRENCY";
+		return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Currency.class));
+	}
 	
 }

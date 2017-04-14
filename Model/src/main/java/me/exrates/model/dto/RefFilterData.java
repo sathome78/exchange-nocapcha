@@ -4,6 +4,7 @@ import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.aspectj.apache.bcel.util.ClassLoaderRepository;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,17 +24,20 @@ public class RefFilterData {
         StringBuilder sqlWhere = new StringBuilder();
         Map<String, Object> paramsMap = new HashMap<>();
         if (!StringUtils.isEmpty(dateFrom)) {
-            paramsMap.put("dateFrom", dateFrom);
-            sqlWhere.append(" AND (TR.datetime BETWEEN STR_TO_DATE(:dateFrom, '%Y-%m-%d %H:%i:%s') " +
-                    "AND STR_TO_DATE(:dateTo, '%Y-%m-%d %H:%i:%s'))) ");
+            paramsMap.put("date_from", dateFrom);
+            sqlWhere.append(" AND TR.datetime >= STR_TO_DATE(:date_from, '%Y-%m-%d %H:%i:%s') ");
         }
         if (!StringUtils.isEmpty(dateTo)) {
-            paramsMap.put("dateTo", dateTo);
+            paramsMap.put("date_to", dateTo);
+            sqlWhere.append(" AND TR.datetime <= STR_TO_DATE(:date_to, '%Y-%m-%d %H:%i:%s') ");
         }
         if (currencyIds != null) {
             paramsMap.put("currencyIds", currencyIds);
-            sqlWhere.append(" AND (TX.currency_id IN (:currencyIds)) ");
+            sqlWhere.append(" AND (TR.currency_id IN (:currencyIds)) ");
         }
-        return paramsMap;
+        Map<String, Object> resultmap = new HashMap<>();
+        resultmap.put("params", paramsMap);
+        resultmap.put("sql", sqlWhere.toString());
+        return resultmap;
     }
 }
