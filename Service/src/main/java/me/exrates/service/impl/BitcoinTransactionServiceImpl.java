@@ -112,7 +112,7 @@ public class BitcoinTransactionServiceImpl implements BitcoinTransactionService 
     }
     InvoiceStatus newStatus = action == ACCEPT_AUTO ? pendingPayment.getPendingPaymentStatus().nextState(action) :
             pendingPayment.getPendingPaymentStatus().nextState(action, true,
-                    userService.getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection(pendingPayment.getUserId(),
+                    userService.getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection(userService.getIdByEmail(acceptanceUserEmail),
                             pendingPayment.getTransaction().getCurrency().getId(), InvoiceOperationDirection.REFILL));
     pendingPayment.setPendingPaymentStatus(newStatus);
     Transaction transaction = pendingPayment.getTransaction();

@@ -48,10 +48,10 @@ $(function () {
             "order": [[0, "desc"]],
             "columns": [
                 {
-                    "data": "orderedDatetime",
+                    "data": "datetime",
                     "render": function (data, type, row) {
                         if (type == 'display') {
-                            return row.datetime.split(' ')[0];
+                            return data.split(' ')[0];
                         }
                         return data;
                     }
@@ -134,10 +134,10 @@ $(function () {
                 success: function (data) {
                     $("#info-date").html(data.creationDate);
                     $("#info-currency").html(data.currencyName);
-                    $("#info-amount").html(data.amount);
+                    $("#info-amount").html(numeral(data.amount).format('0.00[000000]'));
                     $("#info-userFrom").html("<a href='mailto:" +  data.userFromEmail + "'>" + data.userFromEmail + "</a>");
                     $("#info-userTo").html("<a href='mailto:" + data.userToEmail + "'>" + data.userToEmail + "</a>");
-                    $("#info-commissionAmount").html(data.comission);
+                    $("#info-commissionAmount").html(numeral(data.comission).format('0.00[000000]'));
                     $('#user_transfer_info_modal').modal();
                 }
             });

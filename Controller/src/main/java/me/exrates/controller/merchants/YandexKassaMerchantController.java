@@ -57,7 +57,7 @@ public class YandexKassaMerchantController {
         LOG.debug("Begin method: preparePayment.");
 
         final Payment payment = new Gson().fromJson(body, Payment.class);
-        if (!merchantService.checkInputRequestsLimit(payment.getMerchant(), principal.getName())){
+        if (!merchantService.checkInputRequestsLimit(payment.getCurrency(), principal.getName())){
             final Map<String,String> error = new HashMap<>();
             error.put("error", messageSource.getMessage("merchants.InputRequestsLimit", null, locale));
 

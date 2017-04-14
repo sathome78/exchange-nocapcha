@@ -57,7 +57,7 @@ public class LiqpayMerchantController {
         final String errorRedirectView = "/merchants/".concat(payment.getOperationType() == OperationType.INPUT ?
                 "/input" : "/output");
 
-        if (!merchantService.checkInputRequestsLimit(payment.getMerchant(), principal.getName())){
+        if (!merchantService.checkInputRequestsLimit(payment.getCurrency(), principal.getName())){
             redir.addAttribute("errorNoty", messageSource.getMessage("merchants.InputRequestsLimit", null, localeResolver.resolveLocale(request)));
             return new RedirectView("/dashboard");
         }

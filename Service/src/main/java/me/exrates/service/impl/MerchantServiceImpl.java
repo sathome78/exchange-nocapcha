@@ -393,10 +393,15 @@ public class MerchantServiceImpl implements MerchantService {
   }
 
   @Override
-  public boolean checkInputRequestsLimit(int merchantId, String email) {
-    boolean inLimit = merchantDao.getInputRequests(merchantId, email) < 10;
+  public boolean checkInputRequestsLimit(int currencyId, String email) {
 
-    return inLimit;
+    return merchantDao.checkInputRequests(currencyId, email);
+  }
+
+  @Override
+  public boolean checkOutputRequestsLimit(int merchantId, String email) {
+
+    return merchantDao.checkOutputRequests(merchantId, email);
   }
 
   @Override
