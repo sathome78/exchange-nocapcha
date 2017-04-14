@@ -1,7 +1,9 @@
 package me.exrates.model.dto.filterData;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -14,8 +16,14 @@ public abstract class TableFilterData {
     public abstract void initFilterItems();
 
     void populateFilterItemsNonEmpty(FilterDataItem[] items) {
-        filterItems = Stream.of(items).filter(item -> !(item.getValue() == null || String.valueOf(item.getValue()).isEmpty()))
+        filterItems = Stream.of(items).filter(checkEmpty())
                 .collect(Collectors.toList());
+    }
+    
+    private Predicate<FilterDataItem> checkEmpty() {
+        return item -> !(item.getValue() == null
+                || String.valueOf(item.getValue()).isEmpty()
+                || item instanceof Collection && ((Collection) item).isEmpty());
     }
 
     public Map<String, Object> getNamedParams() {

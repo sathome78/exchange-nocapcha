@@ -227,34 +227,7 @@ public final class TransactionDaoImpl implements TransactionDao {
       "  (TRANSACTION.operation_type_id=5 AND IOP.operation_direction='WITHDRAW') " +
       "  )) ";
 
-  private static final Map<String, String> TABLE_TO_DB_COLUMN_MAP = new HashMap<String, String>() {{
-
-    put("orderedDatetime", "TRANSACTION.datetime+TRANSACTION.id");
-    put("datetime", "TRANSACTION.datetime");
-    put("operationType", "TRANSACTION.operation_type_id");
-    put("amount", "TRANSACTION.amount");
-    put("status", "TRANSACTION.provided");
-    put("currency", "CURRENCY.name");
-    put("merchant.description", "MERCHANT.description");
-    put("commissionAmount", "TRANSACTION.commission_amount");
-    put("order", "TRANSACTION.source_id");
-
-  }};
-
-  private static final Map<String, String> SEARCH_CRITERIA = new HashMap<String, String>() {{
-
-    put("provided", "TRANSACTION.provided = :provided");
-    put("source_types", "TRANSACTION.source_type IN (:source_types)");
-    put("operation_types", "TRANSACTION.operation_type_id IN (:operation_types)");
-    put("merchantIds", "TRANSACTION.merchant_id IN (:merchantIds)");
-    put("date_from", "TRANSACTION.datetime >= STR_TO_DATE(:date_from, '%Y-%m-%d %H:%i:%s')");
-    put("date_to", "TRANSACTION.datetime <= STR_TO_DATE(:date_to, '%Y-%m-%d %H:%i:%s')");
-    put("fromAmount", "TRANSACTION.amount >= :fromAmount");
-    put("toAmount", "TRANSACTION.amount <= :toAmount");
-    put("fromCommissionAmount", "TRANSACTION.commission_amount >= :fromCommissionAmount");
-    put("toCommissionAmount", "TRANSACTION.commission_amount <= :toCommissionAmount");
-
-  }};
+  
 
   @Autowired
   MessageSource messageSource;
@@ -363,7 +336,7 @@ public final class TransactionDaoImpl implements TransactionDao {
       final BigDecimal fromCommissionAmount, final BigDecimal toCommissionAmount,
       final int offset, final int limit,
       String sortColumn, String sortDirection, Locale locale) {
-    String sortDBColumn = TABLE_TO_DB_COLUMN_MAP.getOrDefault(sortColumn, "TRANSACTION.datetime");
+    /*String sortDBColumn = TABLE_TO_DB_COLUMN_MAP.getOrDefault(sortColumn, "TRANSACTION.datetime");
     final String whereClauseBasic = "WHERE TRANSACTION.user_wallet_id in (:ids)";
     Map<String, Object> params = new HashMap<>();
     params.put("provided", status);
@@ -408,53 +381,10 @@ public final class TransactionDaoImpl implements TransactionDao {
     result.setData(jdbcTemplate.query(selectLimitedAllSql, params, transactionRowMapper));
     result.setFiltered(total);
     result.setTotal(total);
-    return result;
+    return result;*/
+    return null;
 
   }
-
-  private Map<String, Object> retrieveTransactionTypeParams(final List<TransactionType> types) {
-    Map<String, Object> params = new HashMap<>();
-    Set<String> sourceTypes = new HashSet<>();
-    Set<Integer> operationTypes = new HashSet<>();
-    if (types != null) {
-      types.forEach(item -> {
-        if (item.getOperationType() != null) {
-          operationTypes.add(item.getOperationType().getType());
-        }
-        if (item.getSourceType() != null) {
-          sourceTypes.add(item.getSourceType().toString());
-        }
-      });
-    }
-    if (sourceTypes.size() > 0) {
-      params.put("source_types", sourceTypes);
-    }
-    if (operationTypes.size() > 0) {
-      params.put("operation_types", operationTypes);
-    }
-    return params;
-  }
-
-  private String defineFilterClause(Map<String, Object> namedParameters) {
-    String emptyValue = "";
-    StringJoiner stringJoiner = new StringJoiner(" AND ");
-    stringJoiner.setEmptyValue(emptyValue);
-
-    namedParameters.forEach((name, value) -> {
-      LOGGER.debug("params " + name + " " + value);
-      if (checkPresent(value)) {
-        Optional.ofNullable(SEARCH_CRITERIA.get(name))
-            .ifPresent(expressionForParam->stringJoiner.add(expressionForParam));
-      }
-    });
-    return stringJoiner.toString();
-
-  }
-
-  private boolean checkPresent(Object param) {
-    return !(param == null || param.toString().isEmpty());
-  }
-
 
   @Override
   public boolean provide(int id) {
@@ -711,7 +641,7 @@ public final class TransactionDaoImpl implements TransactionDao {
 
   @Override
   public List<Transaction> getAllOperationsByUserForPeriod(List<Integer> walletIds, String startDate, String endDate, String sortColumn, String sortDirection) {
-    final String whereClauseBasic = "WHERE TRANSACTION.user_wallet_id in (:ids)";
+    /*final String whereClauseBasic = "WHERE TRANSACTION.user_wallet_id in (:ids)";
     Map<String, Object> params = new HashMap<>();
     params.put("date_from", startDate);
     params.put("date_to", endDate);
@@ -725,7 +655,8 @@ public final class TransactionDaoImpl implements TransactionDao {
         .add("ORDER BY").add(sortColumn).add(sortDirection);
     final String selectLimitedAllSql = sqlJoiner.toString();
     LOGGER.debug(selectLimitedAllSql);
-    return jdbcTemplate.query(selectLimitedAllSql, params, transactionRowMapper);
+    return jdbcTemplate.query(selectLimitedAllSql, params, transactionRowMapper);*/
+    return Collections.EMPTY_LIST;
   }
 
   @Override

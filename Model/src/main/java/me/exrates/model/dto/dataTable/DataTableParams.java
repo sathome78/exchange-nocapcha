@@ -1,6 +1,8 @@
 package me.exrates.model.dto.dataTable;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.exceptions.IllegalColumnNameException;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -10,6 +12,7 @@ import java.util.stream.Stream;
 /**
  * Created by OLEG on 21.02.2017.
  */
+@Log4j2
 public class DataTableParams {
 
     private int draw;
@@ -74,7 +77,8 @@ public class DataTableParams {
     }
 
     private static void validateColumnNames(List<String> columnNames) {
-        if (!columnNames.stream().allMatch(Pattern.compile("^[a-zA-z]+([_.]{1}[a-zA-z]+)*[a-zA-z]$").asPredicate())) {
+        if (!columnNames.stream().filter(StringUtils::isNotEmpty)
+                .allMatch(Pattern.compile("^[a-zA-z]+([_.]{1}[a-zA-z]+)*[a-zA-z]$").asPredicate())) {
             throw new IllegalColumnNameException("Illegal column name!");
         }
     }
@@ -91,4 +95,5 @@ public class DataTableParams {
                 ", columns=" + columns +
                 '}';
     }
+  
 }

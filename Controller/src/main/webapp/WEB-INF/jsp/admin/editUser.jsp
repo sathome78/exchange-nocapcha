@@ -323,7 +323,7 @@
                   <div class="col-md-9 input-block-wrapper__input-wrapper">
                     <ul class="checkbox-grid">
                       <c:forEach items="${transactionTypes}" var="type">
-                        <li><input type="checkbox" name="type" value="${type}"><span>${type}</span></li>
+                        <li><input type="checkbox" name="types" value="${type}"><span>${type}</span></li>
                       </c:forEach>
                     </ul>
                   </div>
@@ -339,7 +339,7 @@
                   <div class="col-md-9 input-block-wrapper__input-wrapper">
                     <ul class="checkbox-grid">
                       <c:forEach items="${merchants}" var="merchant">
-                        <li><input type="checkbox" name="merchant" value="${merchant.id}"><span>${merchant.name}</span>
+                        <li><input type="checkbox" name="merchants" value="${merchant.id}"><span>${merchant.name}</span>
                         </li>
                       </c:forEach>
                     </ul>
