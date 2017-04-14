@@ -86,6 +86,9 @@ public class MobileInputOutputController {
     @Autowired
     WithdrawService withdrawService;
 
+    @Autowired
+    RefillService refillService;
+
 
 
     /**
@@ -474,12 +477,12 @@ public class MobileInputOutputController {
      */
     @RequestMapping(value = "/invoice/banks", method = GET)
     public List<InvoiceBank> getBanksByCurrency(@RequestParam Integer currencyId) {
-        return invoiceService.findBanksForCurrency(currencyId);
+        return refillService.findBanksForCurrency(currencyId);
     }
 
     @RequestMapping(value = "/invoice/clientBanks", method = GET)
     public List<ClientBank> getClientBanksByCurrency(@RequestParam Integer currencyId) {
-        return invoiceService.findClientBanksForCurrency(currencyId);
+        return withdrawService.findClientBanksForCurrency(currencyId);
     }
 
     @RequestMapping(value = "/invoice/requests", method = GET)

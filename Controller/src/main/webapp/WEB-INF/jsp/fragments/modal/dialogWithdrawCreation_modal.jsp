@@ -27,7 +27,8 @@
                     <button class="modal-button" type="button" data-dismiss="modal">
                         <loc:message code="merchants.dismiss"/>
                     </button>
-                    <button class="modal-button" type="button" id="continue-btn" name="paymentOutput">
+                    <button id="continue-btn"
+                            class="modal-button" type="button">
                         <loc:message code="merchants.continue"/>
                     </button>
                 </div>

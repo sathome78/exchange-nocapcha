@@ -42,6 +42,7 @@ import org.springframework.web.servlet.view.RedirectView;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static com.squareup.okhttp.MediaType.parse;
@@ -231,7 +232,7 @@ public class YandexMoneyServiceImpl implements YandexMoneyService {
     }
 
     @Override
-    public RedirectView getMerchantRefillRedirectPage(RefillRequestCreateDto request){
+    public Map<String, String> refill(RefillRequestCreateDto request){
         throw new NotImplimentedMethod("for "+request);
     }
 }

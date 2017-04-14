@@ -21,7 +21,6 @@ public class WithdrawRequestParamsDto {
   private OperationType operationType;
   private String recipientBankName;
   private String recipientBankCode;
-  private String userAccount;
   private String userFullName;
   private String remark;
   private String walletNumber;

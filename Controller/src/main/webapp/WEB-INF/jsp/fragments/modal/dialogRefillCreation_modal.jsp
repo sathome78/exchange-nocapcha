@@ -1,4 +1,4 @@
-<div class="modal fade merchant-input" id="dialog-refill_creation">
+<div class="modal fade merchant-input" id="dialog-refill-creation">
     <div class="modal-dialog modal-sm">
         <div class="modal-content">
             <div class="modal-header">
@@ -24,14 +24,15 @@
                     </c:if>
                 </div>
                 <div id="message" style="width: 100%; border-radius: 5px; display: block; padding: 5px; background: green; color: white"></div>
-                <div id="paymentQR">
+                <div id="payment-qr">
                 </div>
             </div>
             <div class="modal-footer">
                 <div id = 'request-money-operation-btns-wrapper'
                      class="add__money__btns">
                     <button class="modal-button" type="button" data-dismiss="modal"><loc:message code="merchants.dismiss"/></button>
-                    <button class="modal-button" type="button" id="continue-btn" ><loc:message code="merchants.continue"/></button>
+                    <button id="continue-btn"
+                            class="modal-button" type="button"><loc:message code="merchants.continue"/></button>
                 </div>
                 <div id="response-money-operation-btns-wrapper">
                     <button class="modal-button" type="button" data-dismiss="modal"><loc:message code="merchants.close"/></button>

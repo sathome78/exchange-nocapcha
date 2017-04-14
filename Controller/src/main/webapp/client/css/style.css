@@ -892,6 +892,14 @@ td.blue-white {
     padding-left: 5px;
 }
 
+.bold{
+    font-weight: bold !important;
+}
+
+.normal{
+    font-weight: normal !important;
+}
+
 .col-0 {
     width: 0;
     max-width: 0;

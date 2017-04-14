@@ -1,6 +1,7 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.WithdrawRequestDao;
+import me.exrates.model.ClientBank;
 import me.exrates.model.MerchantImage;
 import me.exrates.model.PagingData;
 import me.exrates.model.dto.*;
@@ -471,6 +472,22 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     params.put("status_id_list", statusIdList);
     params.put("new_status_id", inPostingStatusId);
     jdbcTemplate.update(sql, params);
+  }
+
+  @Override
+  public List<ClientBank> findClientBanksForCurrency(Integer currencyId) {
+    final String sql = "SELECT id, currency_id, name, code " +
+        " FROM CLIENT_BANK " +
+        " WHERE currency_id = :currency_id";
+    final Map<String, Integer> params = Collections.singletonMap("currency_id", currencyId);
+    return jdbcTemplate.query(sql, params, (rs, rowNum) -> {
+      ClientBank bank = new ClientBank();
+      bank.setId(rs.getInt("id"));
+      bank.setName(rs.getString("name"));
+      bank.setCurrencyId(rs.getInt("currency_id"));
+      bank.setCode(rs.getString("code"));
+      return bank;
+    });
   }
 
 }

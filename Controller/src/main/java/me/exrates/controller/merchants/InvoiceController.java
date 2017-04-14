@@ -73,6 +73,9 @@ public class InvoiceController {
   @Autowired
   WithdrawService withdrawService;
 
+  @Autowired
+  RefillService refillService;
+
   @RequestMapping(value = "/preSubmit", method = POST)
   public RedirectView preSubmit(final Payment payment, final Principal principal,
                                 RedirectAttributes redirectAttributes,
@@ -142,7 +145,7 @@ public class InvoiceController {
         modelAndView.addObject("additionMessage", messageSource.getMessage("merchants.input.addition",
             new Object[]{addition + " " + creditsOperation.getCurrency().getName()}, localeResolver.resolveLocale(request)));
       }
-      List<InvoiceBank> invoiceBanks = invoiceService.findBanksForCurrency(creditsOperation.getCurrency().getId());
+      List<InvoiceBank> invoiceBanks = refillService.findBanksForCurrency(creditsOperation.getCurrency().getId());
       String notSelected = messageSource.getMessage("merchants.notSelected", null, localeResolver.resolveLocale(request));
       invoiceBanks.add(0, new InvoiceBank(-1, creditsOperation.getCurrency().getId(), notSelected, notSelected, notSelected));
       modelAndView.addObject("invoiceBanks", invoiceBanks);
@@ -203,7 +206,7 @@ public class InvoiceController {
     return new RedirectView("/dashboard");
   }
 
-  @RequestMapping(value = "/payment/confirmation", method = GET)
+  /*@RequestMapping(value = "/payment/confirmation", method = GET)
   public ModelAndView confirmationPage(
       @RequestParam Integer transactionId,
       @RequestParam(required = false) String action,
@@ -235,7 +238,7 @@ public class InvoiceController {
       throw new UnsupportedTransactionSourceTypeNameException(sourceType);
     }
     return modelAndView;
-  }
+  }*/
 
   @RequestMapping(value = "/payment/confirm", method = POST)
   public RedirectView confirmInvoice(

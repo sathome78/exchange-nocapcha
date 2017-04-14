@@ -10,6 +10,7 @@ import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.InvoiceData;
 import me.exrates.service.exception.invoice.IllegalInvoiceStatusException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
+import me.exrates.service.merchantStrategy.IMerchantService;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -18,7 +19,7 @@ import java.util.Locale;
 import java.util.Optional;
 
 
-public interface InvoiceService {
+public interface InvoiceService extends IMerchantService {
 
   Transaction createPaymentInvoice(InvoiceData invoiceData);
 
@@ -30,12 +31,7 @@ public interface InvoiceService {
 
   List<InvoiceRequest> findAllInvoiceRequests();
 
-  List<InvoiceBank> findBanksForCurrency(Integer currencyId);
-
   InvoiceBank findBankById(Integer bankId);
-
-  List<ClientBank> findClientBanksForCurrency(Integer currencyId);
-
 
   Optional<InvoiceRequest> findRequestById(Integer transactionId);
 

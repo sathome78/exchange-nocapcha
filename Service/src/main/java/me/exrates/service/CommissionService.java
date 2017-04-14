@@ -10,32 +10,28 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public interface CommissionService {
-	
-	Commission findCommissionByTypeAndRole(OperationType operationType, UserRole userRole);
 
-	Commission getDefaultCommission(OperationType operationType);
+  Commission findCommissionByTypeAndRole(OperationType operationType, UserRole userRole);
 
-	/**
-	 * Returns individual commission for current merchant
-	 * @param merchant
-	 * @param currency
-	 * @param operationType
-	 * @return BigDecimal commission
-	 */
-	BigDecimal getCommissionMerchant(String merchant, String currency, OperationType operationType);
+  Commission getDefaultCommission(OperationType operationType);
 
-    List<Commission> getEditableCommissions();
+  BigDecimal getCommissionMerchant(String merchant, String currency, OperationType operationType);
 
-    List<CommissionShortEditDto> getEditableCommissionsByRole(String role, Locale locale);
+  List<Commission> getEditableCommissions();
 
-    void updateCommission(Integer id, BigDecimal value);
+  List<CommissionShortEditDto> getEditableCommissionsByRole(String role, Locale locale);
 
-	void updateCommission(OperationType operationType, String roleName, BigDecimal value);
+  void updateCommission(Integer id, BigDecimal value);
 
-    @Transactional
-    void updateMerchantCommission(EditMerchantCommissionDto editMerchantCommissionDto);
+  void updateCommission(OperationType operationType, String roleName, BigDecimal value);
 
-	BigDecimal getMinFixedCommission(String merchant, String currency);
+  @Transactional
+  void updateMerchantCommission(EditMerchantCommissionDto editMerchantCommissionDto);
+
+  BigDecimal getMinFixedCommission(String merchant, String currency);
+
+  Map<String, String> computeCommissionAndMapAllToString(BigDecimal amount, OperationType operationType, String currency, String merchant);
 }

@@ -1,5 +1,6 @@
 package me.exrates.service;
 
+import me.exrates.model.ClientBank;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
@@ -22,6 +23,8 @@ public interface WithdrawService {
   void autoPostWithdrawalRequest(WithdrawRequestPostDto withdrawRequest);
 
   void postWithdrawalRequest(int requestId, Integer requesterAdminId);
+
+  List<ClientBank> findClientBanksForCurrency(Integer currencyId);
 
   List<WithdrawRequestFlatForReportDto> findAllByDateIntervalAndRoleAndCurrency(String startDate, String endDate, List<Integer> roleIdList, List<Integer> currencyList);
 

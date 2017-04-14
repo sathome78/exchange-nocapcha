@@ -18,8 +18,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.view.RedirectView;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 @Service
 @PropertySource("classpath:/merchants/payeer.properties")
@@ -112,7 +114,7 @@ public class PayeerServiceImpl implements PayeerService {
   }
 
   /*@Override
-  public RedirectView getMerchantRefillRedirectPage(RefillRequestCreateDto request) {
+  public RedirectView refill(RefillRequestCreateDto request) {
     Integer orderId = request.getId();
     BigDecimal sum = request.getAmountWithCommission();
     String currency = request.getCurrencyName();
@@ -137,7 +139,7 @@ public class PayeerServiceImpl implements PayeerService {
   }*/
 
   @Override
-  public RedirectView getMerchantRefillRedirectPage(RefillRequestCreateDto request) {
+  public Map<String, String> refill(RefillRequestCreateDto request) {
     Integer orderId = request.getId();
     BigDecimal sum = request.getAmountWithCommission();
     String currency = request.getCurrencyName();
@@ -156,9 +158,10 @@ public class PayeerServiceImpl implements PayeerService {
       put("m_sign", sign);
     }};
     /**/
-    RedirectView redirectView = new RedirectView(url);
-    redirectView.setAttributes(properties);
-    return redirectView;
+    String fullUrl = generateFullUrl(url, properties);
+    return new HashMap<String, String>() {{
+      put("redirectionUrl", fullUrl);
+    }};
   }
 
 }

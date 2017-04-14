@@ -1,5 +1,4 @@
 <script>
-  const errorClass = "fail-enter";
   var bankId = -1;
   var $dialog;
   $(function () {
@@ -88,27 +87,6 @@
     return result;
   }
 
-  function validateString($elem, regex, errorDiv, allowAbsent, addErrorClass) {
-    $elem.removeClass(errorClass);
-    if (errorDiv) {
-      $(errorDiv).hide();
-    }
-    var str = $elem.val();
-    if (!str && allowAbsent) {
-      return true;
-    }
-    if (regex.test(str)) {
-      return true;
-    } else {
-      if (errorDiv) {
-        $(errorDiv).show();
-      }
-      if (addErrorClass) {
-        $elem.addClass(errorClass);
-      }
-      return false;
-    }
-  }
 </script>
 
 <div id="dialog-withdraw-detailed-params-enter"

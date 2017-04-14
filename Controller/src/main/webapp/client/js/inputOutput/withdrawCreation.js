@@ -10,17 +10,18 @@ $(function withdrawCreation() {
     const operationType = $container.find("#operationType").html();
     const $withdrawParamsDialog = $container.find('#dialog-withdraw-creation');
     const $withdrawDetailedParamsDialog = $container.find('#dialog-withdraw-detailed-params-enter');
+    const $loadingDialog = $container.find('#loading-process-modal');
     const $finPasswordDialog = $container.find('#finPassModal');
     const $amountHolder = $container.find("#sum");
     const $destinationHolder = $withdrawParamsDialog.find("#walletUid");
     const notifications = new NotificationsClass();
-    const urlForWithdrawCreate = "/withdraw/request/merchant/create";
+    const urlForWithdrawCreate = "/withdraw/request/create";
     const modalTemplate = $container.find('.paymentInfo p');
     const numberFormat = '0,0.00[0000000]';
     const phrases = {
         "bankNotSelected": $container.find("#bank-not-selected").html(),
         "enterOtherBankPhrase": $container.find("#enter-other-bank-phrase").html(),
-    }
+    };
 
     var currency;
     var currencyName;
@@ -55,40 +56,74 @@ $(function withdrawCreation() {
         }
     }
 
+    function fillModalWindow() {
+        getCommission(function (response) {
+            var templateVariables = {
+                amount: '__amount',
+                currency: '__currency',
+                merchant: '__merchant',
+                percent: '__percent'
+            };
+            var newHTMLElements = [];
+            modalTemplate.slice().each(function (index, val) {
+                newHTMLElements[index] = '<p>' + $(val).html() + '</p>';
+            });
+            newHTMLElements[0] = newHTMLElements[0]
+                .replace(templateVariables.amount, "<span class='modal-amount'>" + amount + "</span>")
+                .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>")
+                .replace(templateVariables.merchant, "<span class='modal-merchant'>" + merchantName + "</span>");
+            newHTMLElements[1] = newHTMLElements[1]
+                .replace(templateVariables.amount, "<span class='modal-amount'>" + commissionAmount + "</span>")
+                .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>")
+                .replace(templateVariables.percent, "<span class='modal-amount'>" + commissionPercent + "</span>");
+            newHTMLElements[2] = newHTMLElements[2]
+                .replace(templateVariables.amount, "<span class='modal-amount'>" + totalAmount + "</span>")
+                .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>");
+            var newHTML = '';
+            $.each(newHTMLElements, function (index) {
+                newHTML += newHTMLElements[index];
+            });
+            $('.paymentInfo').html(newHTML);
+            $('.merchantError').hide();
+        });
+    }
+
     function checkAmount() {
         return !merchantMinSum || (amount >= merchantMinSum);
     }
 
     function showWithdrawDialog(message) {
-        $withdrawParamsDialog.find('#request-money-operation-btns-wrapper').show();
         if (merchantIsSimpleInvoice) {
-            $withdrawParamsDialog.find('#destination-input-wrapper').hide();
+            showFinPassModal();
         } else {
-            $withdrawParamsDialog.find('#destination-input-wrapper').show();
-        }
-        $withdrawParamsDialog.find('#response-money-operation-btns-wrapper').hide();
-        $withdrawParamsDialog.find('#message').hide();
-        $withdrawParamsDialog.find('#message').html(message ? message : '');
-        /**/
-        $withdrawParamsDialog.find("#continue-btn").off('click').on('click', function () {
-            destination = $destinationHolder.val();
-            if (!checkWithdrawParams()) {
-                return;
-            }
-            $withdrawParamsDialog.one('hidden.bs.modal', function () {
-                showFinPassModal();
+            $withdrawParamsDialog.find('#request-money-operation-btns-wrapper').show();
+            $withdrawParamsDialog.find('#response-money-operation-btns-wrapper').hide();
+            $withdrawParamsDialog.find('#message').hide();
+            $withdrawParamsDialog.find('#message').html(message ? message : '');
+            /**/
+            $withdrawParamsDialog.find("#continue-btn").off('click').on('click', function () {
+                destination = $destinationHolder.val();
+                if (!checkWithdrawParamsEnter()) {
+                    return;
+                }
+                $withdrawParamsDialog.one('hidden.bs.modal', function () {
+                    showFinPassModal();
+                });
+                $withdrawParamsDialog.modal("hide");
             });
-            $withdrawParamsDialog.modal("hide");
-        });
-        /**/
-        $withdrawParamsDialog.modal();
+            /**/
+            $withdrawParamsDialog.modal();
+        }
     }
 
     function showFinPassModal() {
         $finPasswordDialog.find('#check-fin-password-button').off('click').one('click', function (e) {
             e.preventDefault();
             var finPassword = $finPasswordDialog.find("#finpassword").val();
-            performWithdraw(finPassword);
+            $finPasswordDialog.one("hidden.bs.modal", function () {
+                performWithdraw(finPassword);
+            });
+            $finPasswordDialog.modal("hide");
         });
         $finPasswordDialog.modal({
             backdrop: 'static'
@@ -96,7 +131,6 @@ $(function withdrawCreation() {
     }
 
     function performWithdraw(finPassword) {
-        $finPasswordDialog.modal("hide");
         var data = {
             currency: currency,
             merchant: merchant,
@@ -131,22 +165,29 @@ $(function withdrawCreation() {
     }
 
     function sendRequest(data, finPassword){
-        $.ajax({
-            url: urlForWithdrawCreate + '?finpassword=' + finPassword,
-            async: false,
-            headers: {
-                'X-CSRF-Token': $("input[name='_csrf']").val()
-            },
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(data),
-        }).success(function (result) {
-            if (!result || !result['redirectionUrl']) {
-                showWithdrawDialogAfterCreation(result['message']);
-                notifications.getNotifications();
-            } else {
-                window.location = result['redirectionUrl'];
-            }
+        $loadingDialog.one("shown.bs.modal", function () {
+            $.ajax({
+                url: urlForWithdrawCreate + '?finpassword=' + finPassword,
+                async: true,
+                headers: {
+                    'X-CSRF-Token': $("input[name='_csrf']").val()
+                },
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+            }).success(function (result) {
+                if (!result || !result['redirectionUrl']) {
+                    showWithdrawDialogAfterCreation(result['message']);
+                    notifications.getNotifications();
+                } else {
+                    window.location = result['redirectionUrl'];
+                }
+            }).complete(function () {
+                $loadingDialog.modal("hide");
+            });
+        });
+        $loadingDialog.modal({
+            backdrop: 'static'
         });
     }
 
@@ -159,6 +200,7 @@ $(function withdrawCreation() {
         $withdrawDetailedParamsDialog.find(".currency").html(currencyName);
         getBankDataList(function () {
             var $bankSelect = $withdrawDetailedParamsDialog.find("#bank-data-list");
+            $bankSelect.empty();
             var $bankItem = $("<option> </option>");
             $bankItem.val(-1);
             $bankItem.attr("data-bank-id", "");
@@ -197,49 +239,17 @@ $(function withdrawCreation() {
         $withdrawParamsDialog.modal();
     }
 
-    function checkWithdrawParams() {
+    function checkWithdrawParamsEnter() {
         return merchantIsSimpleInvoice || destination.length > 3;
-    }
-
-    function fillModalWindow() {
-        getCommission(function (response) {
-            var templateVariables = {
-                amount: '__amount',
-                currency: '__currency',
-                merchant: '__merchant',
-                percent: '__percent'
-            };
-            var newHTMLElements = [];
-            modalTemplate.slice().each(function (index, val) {
-                newHTMLElements[index] = '<p>' + $(val).html() + '</p>';
-            });
-            newHTMLElements[0] = newHTMLElements[0]
-                .replace(templateVariables.amount, "<span class='modal-amount'>" + amount + "</span>")
-                .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>")
-                .replace(templateVariables.merchant, "<span class='modal-merchant'>" + merchantName + "</span>");
-            newHTMLElements[1] = newHTMLElements[1]
-                .replace(templateVariables.amount, "<span class='modal-amount'>" + commissionAmount + "</span>")
-                .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>")
-                .replace(templateVariables.percent, "<span class='modal-amount'>" + commissionPercent + "</span>");
-            newHTMLElements[2] = newHTMLElements[2]
-                .replace(templateVariables.amount, "<span class='modal-amount'>" + totalAmount + "</span>")
-                .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>");
-            var newHTML = '';
-            $.each(newHTMLElements, function (index) {
-                newHTML += newHTMLElements[index];
-            });
-            $('.paymentInfo').html(newHTML);
-            $('.merchantError').hide();
-        });
     }
 
     function getCommission(callback) {
         $.ajax({
-            url: '/merchants/commission',
+            url: '/withdraw/commission',
             async: false,
             type: "get",
             contentType: "application/json",
-            data: {"type": operationType, "amount": amount, "currency": currencyName, "merchant": merchantName}
+            data: {"amount": amount, "currency": currencyName, "merchant": merchantName}
         }).success(function (response) {
             commissionPercent = response['commission'];
             commissionAmount = response['commissionAmount'];

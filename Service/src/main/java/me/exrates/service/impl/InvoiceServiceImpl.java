@@ -3,9 +3,14 @@ package me.exrates.service.impl;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.InvoiceRequestDao;
 import me.exrates.dao.WalletDao;
-import me.exrates.model.*;
+import me.exrates.model.CreditsOperation;
+import me.exrates.model.InvoiceBank;
+import me.exrates.model.InvoiceRequest;
+import me.exrates.model.Transaction;
 import me.exrates.model.dto.InvoiceRequestFlatForReportDto;
 import me.exrates.model.dto.InvoiceUserDto;
+import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.WalletTransferStatus;
@@ -21,6 +26,7 @@ import me.exrates.service.*;
 import me.exrates.service.exception.FileLoadingException;
 import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.IllegalTransactionProvidedStatusException;
+import me.exrates.service.exception.NotApplicableException;
 import me.exrates.service.exception.invoice.IllegalInvoiceStatusException;
 import me.exrates.service.exception.invoice.InvoiceAcceptionException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
@@ -37,9 +43,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static me.exrates.model.enums.UserCommentTopicEnum.INVOICE_DECLINE;
@@ -228,20 +232,8 @@ public class InvoiceServiceImpl implements InvoiceService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<InvoiceBank> findBanksForCurrency(Integer currencyId) {
-    return invoiceRequestDao.findInvoiceBanksByCurrency(currencyId);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public InvoiceBank findBankById(Integer bankId) {
     return invoiceRequestDao.findBankById(bankId);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<ClientBank> findClientBanksForCurrency(Integer currencyId) {
-    return invoiceRequestDao.findClientBanksForCurrency(currencyId);
   }
 
   @Override
@@ -356,4 +348,17 @@ public class InvoiceServiceImpl implements InvoiceService {
     return invoiceRequestDao.findByStatusAndByCurrencyPermittedForUser(invoiceRequestStatusIdList, requesterUserId);
   }
 
+  @Override
+  @Transactional
+  public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
+    throw new NotApplicableException("for " + withdrawMerchantOperationDto);
+  }
+
+  @Override
+  @Transactional
+  public Map<String, String> refill(RefillRequestCreateDto request) {
+    return new HashMap<String, String>() {{
+      put("message", "");
+    }};
+  }
 }

@@ -76,7 +76,6 @@ public class MerchantServiceImpl implements MerchantService {
   @Autowired
   private WithdrawRequestDao withdrawRequestDao;
 
-  private static final BigDecimal HUNDREDTH = new BigDecimal(100L);
   private static final Logger LOG = LogManager.getLogger("merchant");
 
   @Override
@@ -272,33 +271,6 @@ public class MerchantServiceImpl implements MerchantService {
         .build();
     return formatResponseMessage(creditsOperation);
 
-  }
-
-  @Override
-  public Map<String, String> computeCommissionAndMapAllToString(final BigDecimal amount,
-                                                                final OperationType type,
-                                                                final String currency,
-                                                                final String merchant) {
-    final Map<String, String> result = new HashMap<>();
-    final BigDecimal commission = commissionService.findCommissionByTypeAndRole(type, userService.getUserRoleFromSecurityContext()).getValue();
-    final BigDecimal commissionMerchant = type == USER_TRANSFER ? BigDecimal.ZERO : commissionService.getCommissionMerchant(merchant, currency, type);
-    final BigDecimal commissionTotal = commission.add(commissionMerchant).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP);
-    BigDecimal commissionAmount = amount.multiply(commissionTotal).divide(HUNDREDTH).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP);
-    String commissionString = Stream.of("(", commissionTotal.stripTrailingZeros().toString(), "%)").collect(Collectors.joining(""));
-    if (type == OUTPUT) {
-      BigDecimal merchantMinFixedCommission = commissionService.getMinFixedCommission(merchant, currency);
-      if (commissionAmount.compareTo(merchantMinFixedCommission) < 0) {
-        commissionAmount = merchantMinFixedCommission;
-        commissionString = "";
-      }
-    }
-    LOG.debug("commission: " + commissionString);
-    final BigDecimal resultAmount = type != OUTPUT ? amount.add(commissionAmount).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP) :
-        amount.subtract(commissionAmount).setScale(currencyService.resolvePrecision(currency), ROUND_DOWN);
-    result.put("commission", commissionString);
-    result.put("commissionAmount", currencyService.amountToString(commissionAmount, currency));
-    result.put("amount", currencyService.amountToString(resultAmount, currency));
-    return result;
   }
 
   @Override

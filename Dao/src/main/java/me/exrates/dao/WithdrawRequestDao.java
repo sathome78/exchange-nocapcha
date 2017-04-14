@@ -1,5 +1,6 @@
 package me.exrates.dao;
 
+import me.exrates.model.ClientBank;
 import me.exrates.model.PagingData;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTableParams;
@@ -50,4 +51,6 @@ public interface WithdrawRequestDao {
   void setHolderById(Integer id, Integer holderId);
 
   void setInPostingStatusByStatus(Integer inPostingStatusId, List<Integer> statusIdList);
+
+  List<ClientBank> findClientBanksForCurrency(Integer currencyId);
 }

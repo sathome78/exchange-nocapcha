@@ -2,19 +2,20 @@ package me.exrates.controller.merchants;
 
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.CreditsOperation;
+import me.exrates.model.InvoiceBank;
 import me.exrates.model.Payment;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestParamsDto;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
+import me.exrates.service.CommissionService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.UserService;
 import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
-import me.exrates.service.exception.RefillRequestLimitForMerchantExceededException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
@@ -24,22 +25,18 @@ import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.servlet.view.RedirectView;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
+import java.math.BigDecimal;
 import java.security.Principal;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CREATE_BY_USER;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
 /**
@@ -62,8 +59,14 @@ public class RefillRequestController {
   @Autowired
   MerchantService merchantService;
 
+  @Autowired
+  private CommissionService commissionService;
+
   @RequestMapping(value = "/refill/request/create", method = POST)
   @ResponseBody
+  Для IDR случ сумму добавить
+  Для BTC - создание
+  Для EDC - создание
   public Map<String, String> createRefillRequest(
       @RequestBody RefillRequestParamsDto requestParamsDto,
       Principal principal,
@@ -78,30 +81,24 @@ public class RefillRequestController {
     payment.setSum(requestParamsDto.getSum().doubleValue());
     CreditsOperation creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName())
         .orElseThrow(InvalidAmountException::new);
-    try {
-      RefillRequestCreateDto request = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus);
-      RedirectView rw = refillService.createRefillRequestAndGetPageOfMerchant(request);
-      String url = rw.getUrl().concat("?").concat(
-          rw.getAttributesMap().entrySet().stream()
-          .map(e->e.getKey()+"="+e.getValue())
-          .collect(Collectors.joining("&"))
-      );
-      return new HashMap<String, String>() {{
-        put("redirectionUrl", url);
-      }};
-    } catch (RefillRequestLimitForMerchantExceededException e) {
-      Cookie cookie = new Cookie("errorNoty", URLEncoder.encode(messageSource.getMessage("merchants.InputRequestsLimit", null, locale),"UTF-8"));
-      cookie.setPath("/");
-      return new HashMap<String, String>() {{
-        put("redirectionUrl", "/dashboard");
-      }};
-    } catch (Exception e) {
-      Cookie cookie = new Cookie("errorNoty", URLEncoder.encode(messageSource.getMessage("refill.createError", null, locale),"UTF-8"));
-      cookie.setPath("/");
-      return new HashMap<String, String>() {{
-        put("redirectionUrl", "/dashboard");
-      }};
-    }
+    RefillRequestCreateDto request = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus);
+    return refillService.createRefillRequest(request, locale);
+  }
+
+  @RequestMapping(value = "/refill/banks", method = GET)
+  @ResponseBody
+  public List<InvoiceBank> getBankListForCurrency(
+      @RequestParam Integer currencyId) {
+    return refillService.findBanksForCurrency(currencyId);
+  }
+
+  @RequestMapping(value = "/refill/commission", method = GET)
+  @ResponseBody
+  public Map<String, String> getCommissions(
+      @RequestParam("amount") BigDecimal amount,
+      @RequestParam("currency") String currency,
+      @RequestParam("merchant") String merchant) {
+    return commissionService.computeCommissionAndMapAllToString(amount, INPUT, currency, merchant);
   }
 
   @ResponseStatus(HttpStatus.NOT_FOUND)

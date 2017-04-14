@@ -192,7 +192,7 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
     }
 
     @Override
-    public RedirectView getMerchantRefillRedirectPage(RefillRequestCreateDto request){
+    public Map<String, String> refill(RefillRequestCreateDto request){
         Integer orderId = request.getId();
         BigDecimal sum = request.getAmountWithCommission();
         String currency = request.getCurrencyName();
@@ -211,8 +211,9 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
             }
         };
         /**/
-        RedirectView redirectView = new RedirectView(url);
-        redirectView.setAttributes(properties);
-        return redirectView;
+        String fullUrl = generateFullUrl(url, properties);
+        return new HashMap<String, String>() {{
+            put("redirectionUrl", fullUrl);
+        }};
     }
 }

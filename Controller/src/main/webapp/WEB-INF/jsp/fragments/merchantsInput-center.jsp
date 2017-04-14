@@ -1,5 +1,7 @@
 <div id="merchants-input-center">
-  <%--Deposit--%>
+  <div hidden>
+    <div id="bank-not-selected"><loc:message code="merchants.notSelected"/></div>
+  </div>
   <h4><loc:message code="merchants.inputTitle"/></h4>
   <label class="alert-danger has-error">
     <c:if test="${not empty error}">
@@ -24,7 +26,7 @@
                      style="float: left; width: auto"
                      class="form-control input-block-wrapper__input"
                      readonly
-                     value="${currencyName}"/>
+                     value="${currency.name}"/>
             </div>
 
           </div>
@@ -37,13 +39,13 @@
                      class="form-control input-block-wrapper__input numericInputField"
                      data-currency-name="${currency.name}"
                      data-max-amount="${balance}" <%--для USER_TRANSFER другое значение: ищи #maxForTransfer--%>
-                     data-min-amount="${minWithdrawSum}"
+                     data-min-amount="${minRefillSum}"
                      data-min-sum-noty-id="#min-sum-notification"
-                     data-submit-button-id="#button"/>
+                     data-submit-button-id=".start-refill"/>
             </div>
             <div class="col-md-6 input-block-wrapper__label-wrapper">
               <div id="min-sum-notification" class="red"><loc:message code="merchants.input.minSum"/>
-                <strong> ${currencyName} <span><fmt:formatNumber value="${minAmount}"
+                <strong> ${currency.name} <span><fmt:formatNumber value="${minRefillSum}"
                                                                  pattern="###,##0.00######"/></span>
                 </strong></div>
             </div>
@@ -59,7 +61,7 @@
 
                   </div>
                   <button style="position: relative; top: 50%; -webkit-transform: translateY(-50%); -ms-transform: translateY(-50%); transform: translateY(-50%);"
-                          class="refill-withdraw btn btn-primary btn-lg"
+                          class="start-refill btn btn-primary btn-lg"
                           type="button"
                           data-currency-id="${currency.getId()}"
                           data-currency-name="${currency.getName()}"
@@ -77,60 +79,12 @@
       </div>
     </c:otherwise>
   </c:choose>
-    <%@include file="modal/check_fin_pass_modal.jsp" %>
-    <%@include file="modal/dialogRefillCreation_modal.jsp" %>
+  <%@include file="modal/loading_modal.jsp" %>
+  <%@include file="modal/dialogRefillCreation_modal.jsp" %>
+  <%@include file="modal/dialogRefillDetailedParamsEnter_modal.jsp" %>
 </div>
 <c:if test="${not empty warningSingleAddress}">
   <div class="row inout-warning">
     <strong><loc:message code="${warningSingleAddress}"/></strong>
   </div>
 </c:if>
-<%--MODAL ... --%>
-<%--
-<div class="modal fade merchant-input" id="myModal">
-    <div class="modal-dialog modal-sm">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" id="assertInputPayment" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title"><loc:message code="merchants.inputTitle"/></h4>
-            </div>
-            <div class="modal-body">
-                <label class="alert-danger merchantError"><loc:message code="merchants.notAvaliablePayment"/></label>
-                <div class="paymentInfo">
-                    <p><loc:message code="merchants.modalInputHeader"/></p>
-                    <p><loc:message code="merchants.modalInputCommission"/></p>
-                    <p><loc:message code="merchants.modalInputFinalSum"/></p>
-                    <p><loc:message code="merchants.warn"/></p>
-                </div>
-                <c:if test="${not empty warningCodeTimeout}">
-                    <div class="timeoutWarning">
-                        <strong><loc:message code="${warningCodeTimeout}"/></strong>
-                    </div>
-                </c:if>
-                <div class="timeoutWarning">
-
-                </div>
-
-                <div class="paymentQR">
-
-                </div>
-            </div>
-            <div class="modal-footer">
-                <div class="add__money__btns request_money_operation_btn">
-                    <input type="hidden" id="mrcht-waiting" value="<loc:message code="merchants.waiting"/>">
-                    <input type="hidden" id="mrcht-ready" value="<loc:message code="merchants.continue"/>">
-
-                    <button class="modal-button" type="button" data-dismiss="modal"><loc:message code="merchants.dismiss"/></button>
-                    <button class="modal-button" type="button" id="inputPaymentProcess" ><loc:message code="merchants.continue"/></button>
-                </div>
-                <div class="response_money_operation_btn">
-                    <button class="modal-button" type="button" data-dismiss="modal"><loc:message code="merchants.close"/></button>
-                </div>
-            </div>
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
---%>
-
-
-<%--... MODAL--%>

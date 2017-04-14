@@ -2,11 +2,13 @@ package me.exrates.controller.merchants;
 
 import me.exrates.controller.annotation.FinPassCheck;
 import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.model.ClientBank;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.dto.WithdrawRequestParamsDto;
 import me.exrates.model.dto.WithdrawRequestsAdminTableDto;
+import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
@@ -29,8 +31,10 @@ import org.springframework.web.util.WebUtils;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -59,13 +63,10 @@ public class WithdrawRequestController {
   MerchantService merchantService;
 
   @Autowired
-  private InvoiceService invoiceService;
-
-  @Autowired
   private CommissionService commissionService;
 
   @FinPassCheck(throwCheckPassException = true)
-  @RequestMapping(value = "/withdraw/request/merchant/create", method = POST)
+  @RequestMapping(value = "/withdraw/request/create", method = POST)
   @ResponseBody
   public Map<String, String> createWithdrawalRequest(
       @RequestBody WithdrawRequestParamsDto requestParamsDto,
@@ -86,68 +87,27 @@ public class WithdrawRequestController {
     }};
   }
 
-  /*@FinPassCheck(throwCheckPassException = true)
-  @RequestMapping(value = "/withdraw/request/invoice/detail/prepare_to_entry", method = POST)
-  @ResponseBody
-  public Map<String, String> prepareWithdraw(
-      @RequestBody Payment payment,
-      Principal principal,
-      HttpServletRequest request) {
-    CreditsOperation creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName())
-        .orElseThrow(InvalidAmountException::new);
-    HttpSession session = request.getSession();
-    Object mutex = WebUtils.getSessionMutex(session);
-    synchronized (mutex) {
-      session.setAttribute("creditsOperation", creditsOperation);
-    }
-    return new HashMap<String, String>() {{
-      put("redirectionUrl", "/withdraw/request/invoice/detail/entry");
-    }};
-  }
-
-  @RequestMapping(value = "/withdraw/request/invoice/detail/entry", method = GET)
-  public ModelAndView withdrawDetailsEntry(HttpServletRequest request) {
-    ModelAndView modelAndView = new ModelAndView("/globalPages/withdrawInvoice");
-    HttpSession session = request.getSession();
-    CreditsOperation creditsOperation = (CreditsOperation) session.getAttribute("creditsOperation");
-    if (creditsOperation == null) {
-      modelAndView.addObject("error", "merchant.operationNotAvailable");
-    } else {
-      modelAndView.addObject("payment", creditsOperation);
-      modelAndView.addObject("merchantCommission", commissionService.getCommissionMerchant(creditsOperation.getMerchant().getName(),
-          creditsOperation.getCurrency().getName(), creditsOperation.getOperationType()));
-      List<ClientBank> banks = invoiceService.findClientBanksForCurrency(creditsOperation.getCurrency().getId());
-      modelAndView.addObject("banks", banks);
-    }
-    return modelAndView;
-  }*/
-
-  /*@FinPassCheck(throwCheckPassException = true)
-  @RequestMapping(value = "/withdraw/request/invoice/create", method = POST)
-  public RedirectView submitWithdraw(WithdrawData withdrawData, Principal principal, HttpServletRequest request, Locale locale) {
-    RedirectView redirectView = new RedirectView("/dashboard");
-    HttpSession session = request.getSession();
-    Object mutex = WebUtils.getSessionMutex(session);
-    CreditsOperation creditsOperation = (CreditsOperation) session.getAttribute("creditsOperation");
-    if (creditsOperation == null) {
-      synchronized (mutex) {
-        session.setAttribute("errorNoty", messageSource.getMessage("merchant.operationNotAvailable", null, locale));
-      }
-      return new RedirectView("/merchants/invoice/withdrawDetails");
-    }
-    Map<String, String> result = withdrawService.createWithdrawalRequest(creditsOperation, withdrawData, principal.getName(), locale);
-    synchronized (mutex) {
-      session.removeAttribute("creditsOperation");
-      session.setAttribute("successNoty", result.get("success"));
-    }
-    return redirectView;
-  }*/
-
   @RequestMapping(value = "/withdraw/request/revoke", method = POST)
   @ResponseBody
   public void revokeWithdrawRequest(
       @RequestParam Integer id) {
     withdrawService.revokeWithdrawalRequest(id);
+  }
+
+  @RequestMapping(value = "/withdraw/banks", method = GET)
+  @ResponseBody
+  public List<ClientBank> getBankListForCurrency(
+      @RequestParam Integer currencyId) {
+    return withdrawService.findClientBanksForCurrency(currencyId);
+  }
+
+  @RequestMapping(value = "/withdraw/commission", method = GET)
+  @ResponseBody
+  public Map<String, String> getCommissions(
+      @RequestParam("amount") BigDecimal amount,
+      @RequestParam("currency") String currency,
+      @RequestParam("merchant") String merchant) {
+    return commissionService.computeCommissionAndMapAllToString(amount, OUTPUT, currency, merchant);
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/withdraw/take", method = POST)

@@ -41,7 +41,7 @@
                      data-max-amount="${balance}" <%--для USER_TRANSFER другое значение: ищи #maxForTransfer--%>
                      data-min-amount="${minWithdrawSum}"
                      data-min-sum-noty-id="#min-sum-notification"
-                     data-submit-button-id="#button"/>
+                     data-submit-button-id=".start-withdraw"/>
             </div>
             <div class="col-md-6 input-block-wrapper__label-wrapper">
               <div id="min-sum-notification" class="red"><loc:message code="mercnahts.output.minSum"/>
@@ -82,6 +82,7 @@
     </c:otherwise>
   </c:choose>
 
+  <%@include file="modal/loading_modal.jsp" %>
   <%@include file="modal/check_fin_pass_modal.jsp" %>
   <%@include file="modal/dialogWithdrawCreation_modal.jsp" %>
   <%@include file="modal/dialogWithdrawDetailedParamsEnter_modal.jsp" %>

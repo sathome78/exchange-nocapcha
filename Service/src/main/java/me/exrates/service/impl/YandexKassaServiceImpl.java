@@ -101,7 +101,7 @@ public class YandexKassaServiceImpl implements YandexKassaService {
     }
 
     @Override
-    public RedirectView getMerchantRefillRedirectPage(RefillRequestCreateDto request){
+    public Map<String, String> refill(RefillRequestCreateDto request){
         throw new NotImplimentedMethod("for "+request);
     }
 

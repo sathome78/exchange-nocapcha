@@ -4,11 +4,23 @@ import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import org.springframework.web.servlet.view.RedirectView;
 
+import java.util.Map;
+import java.util.Properties;
+import java.util.stream.Collectors;
+
 /**
  * Created by ValkSam on 24.03.2017.
  */
 public interface IMerchantService {
   void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception;
 
-  RedirectView getMerchantRefillRedirectPage(RefillRequestCreateDto request);
+  Map<String, String> refill(RefillRequestCreateDto request);
+
+  default String generateFullUrl(String url, Properties properties){
+    return url.concat("?").concat(
+        properties.entrySet().stream()
+            .map(e -> e.getKey() + "=" + e.getValue())
+            .collect(Collectors.joining("&"))
+    );
+  }
 }

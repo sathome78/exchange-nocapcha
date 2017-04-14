@@ -128,7 +128,7 @@ public class WithdrawServiceImpl implements WithdrawService {
       request.setAutoThresholdAmount(autoParamDto.getWithdrawAutoThresholdAmount());
       Integer requestId = createWithdraw(request);
       request.setId(requestId);
-    /**/
+      /**/
       String notification = null;
       String delayDescription = convertWithdrawAutoToString(autoParamDto.getWithdrawAutoDelaySeconds(), locale);
       try {
@@ -429,6 +429,12 @@ public class WithdrawServiceImpl implements WithdrawService {
     String userEmail = userService.getEmailById(withdrawRequestResult.getUserId());
     userService.addUserComment(WITHDRAW_POSTED, comment, userEmail, false);
     notificationService.notifyUser(withdrawRequestResult.getUserId(), NotificationEvent.IN_OUT, title, comment);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<ClientBank> findClientBanksForCurrency(Integer currencyId) {
+    return withdrawRequestDao.findClientBanksForCurrency(currencyId);
   }
 
   private WithdrawRequestFlatDto postWithdrawal(int requestId, Integer requesterAdminId) {

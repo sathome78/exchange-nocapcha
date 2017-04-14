@@ -1,6 +1,7 @@
 package me.exrates.dao.impl;
 
 import me.exrates.dao.RefillRequestDao;
+import me.exrates.model.InvoiceBank;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,7 +13,9 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -70,6 +73,23 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         .addValue("address", request.getAddress());
     jdbcTemplate.update(sql, params, keyHolder);
     return (int) keyHolder.getKey().longValue();
+  }
+
+  @Override
+  public List<InvoiceBank> findInvoiceBanksByCurrency(Integer currencyId) {
+    final String sql = "SELECT id, currency_id, name, account_number, recipient " +
+        " FROM INVOICE_BANK " +
+        " WHERE currency_id = :currency_id";
+    final Map<String, Integer> params = Collections.singletonMap("currency_id", currencyId);
+    return jdbcTemplate.query(sql, params, (rs, rowNum) -> {
+      InvoiceBank bank = new InvoiceBank();
+      bank.setId(rs.getInt("id"));
+      bank.setName(rs.getString("name"));
+      bank.setCurrencyId(rs.getInt("currency_id"));
+      bank.setAccountNumber(rs.getString("account_number"));
+      bank.setRecipient(rs.getString("recipient"));
+      return bank;
+    });
   }
 
 

@@ -25,7 +25,7 @@ $(function () {
         )
         .on('input', function (e) {
             const minSumNotyId = $(this).data("min-sum-noty-id");
-            const buttonId = $(this).data("data-submit-button-id");
+            const buttonId = $(this).data("submit-button-id");
             const currency = $(this).data("currency-name").trim();
             const maxAmount = parseFloat($(this).data("max-amount"));
             const minAmount = parseFloat($(this).data("min-amount"));
@@ -67,3 +67,27 @@ $(function () {
 
         });
 });
+
+const errorClass = "fail-enter";
+
+function validateString($elem, regex, errorDiv, allowAbsent, addErrorClass) {
+    $elem.removeClass(errorClass);
+    if (errorDiv) {
+        $(errorDiv).hide();
+    }
+    var str = $elem.val();
+    if (!str && allowAbsent) {
+        return true;
+    }
+    if (regex.test(str)) {
+        return true;
+    } else {
+        if (errorDiv) {
+            $(errorDiv).show();
+        }
+        if (addErrorClass) {
+            $elem.addClass(errorClass);
+        }
+        return false;
+    }
+}
