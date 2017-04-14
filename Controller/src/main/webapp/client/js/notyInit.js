@@ -29,7 +29,14 @@ const ERROR_NOTY_TYPE = {
 
 $(function () {
         $(document).ajaxError(function (event, jqXHR, options, jsExc) {
-            failNoty(jqXHR);
+            if (jqXHR.status != 419) {
+                failNoty(jqXHR);
+            } else {
+                /*session end*/
+                console.log(jqXHR);
+                var resp = JSON.parse(jqXHR.responseText);
+                window.location.replace(resp.url + '?errorNoty=' + resp.msg);
+            }
         });
 
         //Show error message on page load - if massage was passed to page

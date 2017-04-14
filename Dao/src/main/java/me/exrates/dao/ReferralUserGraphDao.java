@@ -1,5 +1,6 @@
 package me.exrates.dao;
 
+import me.exrates.model.dto.RefFilterData;
 import me.exrates.model.dto.ReferralInfoDto;
 import me.exrates.model.dto.ReferralProfitDto;
 
@@ -18,11 +19,11 @@ public interface ReferralUserGraphDao {
     
     void changeReferralParent(Integer formerParent, Integer newParent);
 
-    List<ReferralInfoDto> getInfoAboutFirstLevRefs(int userId, int profitUser, int limit, int offset);
+    List<ReferralInfoDto> getInfoAboutFirstLevRefs(int userId, int profitUser, int limit, int offset, RefFilterData refFilterData);
 
     ReferralInfoDto getInfoAboutUserRef(int userId, int profitUser);
 
-    List<ReferralProfitDto> detailedCountRefsTransactions(Integer userId, int profitUser);
+    List<ReferralProfitDto> detailedCountRefsTransactions(Integer userId, int profitUser, RefFilterData refFilterData);
 
     int getInfoAboutFirstLevRefsTotalSize(int parentId);
 }

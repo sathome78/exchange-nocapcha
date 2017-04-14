@@ -3,6 +3,7 @@ package me.exrates.dao.impl;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.ReferralUserGraphDao;
 import me.exrates.model.SessionParams;
+import me.exrates.model.dto.RefFilterData;
 import me.exrates.model.dto.ReferralInfoDto;
 import me.exrates.model.dto.ReferralProfitDto;
 import me.exrates.model.dto.onlineTableDto.NewsDto;
@@ -84,7 +85,8 @@ public class ReferralUserGraphDaoImpl implements ReferralUserGraphDao {
 
 
     @Override
-    public List<ReferralInfoDto> getInfoAboutFirstLevRefs(int userId, int profitUser, int limit, int offset) {
+    public List<ReferralInfoDto> getInfoAboutFirstLevRefs(int userId, int profitUser,
+                                                          int limit, int offset, RefFilterData refFilterData) {
         String sql = "SELECT US.email AS email, US.id AS ref_id, " +
                 "(SELECT COUNT(child) FROM REFERRAL_USER_GRAPH WHERE parent = RUG.child) AS childs_count, " +
                 "sum(TR.amount) AS ref_profit " +
@@ -92,12 +94,15 @@ public class ReferralUserGraphDaoImpl implements ReferralUserGraphDao {
                 "INNER JOIN USER US ON US.id = RUG.child " +
                 "LEFT JOIN REFERRAL_TRANSACTION RT ON RT.initiator_id = US.id AND RT.user_id = RUG.parent " +
                 "LEFT JOIN TRANSACTION TR ON TR.source_type = 'REFERRAL' AND TR.source_id = RT.id " +
-                "WHERE RUG.parent = :parent GROUP BY email ";
+                "WHERE RUG.parent = :parent ";
         Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("parent", userId);
         namedParameters.put("profit_user", profitUser);
         namedParameters.put("limit", limit);
         namedParameters.put("offset", offset);
+        namedParameters.putAll(refFilterData.getSQLParamsMap());
+
+        sql = sql.concat(" GROUP BY email ");
         if (offset >= 0 && limit > 0) {
             sql = sql.concat(" LIMIT :limit OFFSET :offset ");
         }
@@ -128,7 +133,7 @@ public class ReferralUserGraphDaoImpl implements ReferralUserGraphDao {
     }
 
     @Override
-    public List<ReferralProfitDto> detailedCountRefsTransactions(Integer userId, int profitUser) {
+    public List<ReferralProfitDto> detailedCountRefsTransactions(Integer userId, int profitUser, RefFilterData refFilterData) {
         String sql = "SELECT sum(TR.amount) AS ref_profit, CU.name AS currency_name FROM USER US " +
                 "LEFT JOIN REFERRAL_TRANSACTION RT ON RT.initiator_id = US.id AND RT.user_id = :profit_user " +
                 "LEFT JOIN TRANSACTION TR ON TR.source_type = 'REFERRAL' AND TR.source_id = RT.id  " +

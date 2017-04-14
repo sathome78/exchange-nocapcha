@@ -1,7 +1,11 @@
 package me.exrates.security.filter;
 
+import com.google.gson.JsonObject;
 import me.exrates.model.enums.SessionLifeTypeEnum;
+import me.exrates.service.SessionParamsService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,6 +18,7 @@ import org.springframework.security.web.authentication.logout.SecurityContextLog
 import org.springframework.security.web.util.UrlUtils;
 import org.springframework.util.Assert;
 import org.springframework.web.filter.GenericFilterBean;
+import org.springframework.web.util.WebUtils;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -23,6 +28,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Writer;
+import java.net.URLEncoder;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -37,11 +45,14 @@ import static org.apache.commons.lang.time.DateUtils.MILLIS_PER_SECOND;
 @PropertySource("classpath:session.properties")
 public class CustomConcurrentSessionFilter extends GenericFilterBean {
 
+    @Autowired
+    private SessionParamsService sessionParamsService;
 
     private SessionRegistry sessionRegistry;
     private String expiredUrl;
     private LogoutHandler[] handlers = new LogoutHandler[] { new SecurityContextLogoutHandler() };
     private RedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
+
 
     private Set<String> onlineMethods = new HashSet<>();
     private @Value("${session.lifeTypeParamName}") String sessionLifeTypeParamName;
@@ -95,11 +106,24 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
                     return;
                 }
                 else {
-                    // Non-expired - update last request date/time
-                    sessionRegistry.refreshLastRequest(info.getSessionId());
-                    if (isRefreshNeeded(request) && !isSessionExpired(session)) {
+                    if(isSessionExpired(session)) {
+                        JsonObject object = sessionParamsService.getSessionEndString(request);
+                        if (isAjax(request)) {
+                            response.setStatus(419); PrintWriter writer = response.getWriter();
+                            writer.print(object.toString());
+                            writer.close();
+                        } else {
+                            response.sendRedirect(object.getAsJsonPrimitive("url").getAsString()
+                                    .concat("?errorNoty=")
+                                    .concat(URLEncoder.encode(object.getAsJsonPrimitive("msg").getAsString(), "UTF-8")));
+                        }
+                        doLogout(request, response);
+                        return;
+                    } else if (isRefreshNeeded(request)) {
                         session.setAttribute(sessionLastRequestParamName, System.currentTimeMillis());
                     }
+                    // Non-expired - update last request date/time
+                    sessionRegistry.refreshLastRequest(info.getSessionId());
                 }
             }
         }
@@ -141,6 +165,11 @@ public class CustomConcurrentSessionFilter extends GenericFilterBean {
     protected String determineExpiredUrl(HttpServletRequest request,
                                          SessionInformation info) {
         return expiredUrl;
+    }
+
+    private boolean isAjax(HttpServletRequest request) {
+        String requestedWithHeader = request.getHeader("X-Requested-With");
+        return "XMLHttpRequest".equals(requestedWithHeader);
     }
 
     private void doLogout(HttpServletRequest request, HttpServletResponse response) {

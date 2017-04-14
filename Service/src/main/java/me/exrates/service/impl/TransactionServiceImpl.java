@@ -389,7 +389,7 @@ public class TransactionServiceImpl implements TransactionService {
           .append(";")
           .append(i.getMerchant().getName())
           .append(";")
-          .append(i.getOrder().getId());
+          .append(i.getOrder() == null ? "" : i.getOrder());
       transactionsResult.add(sb.toString());
       transactionsResult.add("\n");
     });

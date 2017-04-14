@@ -1152,7 +1152,7 @@ public class AdminController {
     return result;
   }
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/referralInfo")
+  /*@RequestMapping(value = "/2a8fy7b07dxe44/referralInfo")
   @ResponseBody
   public RefsListContainer getUserReferrals(@RequestParam("userId") int userId,
                                                    @RequestParam("profitUser") int profitUser,
@@ -1166,18 +1166,37 @@ public class AdminController {
             .getUsersFirstLevelAndCountProfitForUser(userId, profitUser, onPage, page);
     container.setCurrentLevel(level);
     return container;
-  }
+  }*/
 
   @RequestMapping(value = "/2a8fy7b07dxe44/findReferral")
   @ResponseBody
-  public RefsListContainer findUserReferral(@RequestParam("email") String email,
-                                                   @RequestParam("profitUser") int profitUser) {
-    Integer userId = userService.getIdByEmail(email);
-    int refLevel = referralService.getUserReferralLevelForChild(userId, profitUser);
-    if (refLevel == -1) {
-      return new RefsListContainer(Collections.emptyList());
+  public RefsListContainer findUserReferral(@RequestParam(value = "userId", required = false) Integer userId,
+                                            @RequestParam("profitUser") int profitUser,
+                                            @RequestParam(value = "onPage", defaultValue = "20") int onPage,
+                                            @RequestParam(value = "page", defaultValue = "1") int page,
+                                            RefFilterData refFilterData) {
+    LOG.error("filter data " + refFilterData);
+    int refLevel;
+    RefsListContainer container;
+    if (!StringUtils.isEmpty(refFilterData.getEmail())) {
+      userId = userService.getIdByEmail(refFilterData.getEmail());
+      refLevel = referralService.getUserReferralLevelForChild(userId, profitUser);
+      if (refLevel == -1) {
+        return new RefsListContainer(Collections.emptyList());
+      }
+      container = referralService.getUsersRefToAnotherUser(userId, profitUser, refLevel, refFilterData);
+    } else {
+      if(userId == null) {
+        userId = profitUser;
+      }
+      int level = referralService.getUserReferralLevelForChild(userId, profitUser);
+      if (level >= 7 || level < 0) {
+        return new RefsListContainer(Collections.emptyList());
+      }
+      refLevel = 1;
+      container = referralService
+              .getUsersFirstLevelAndCountProfitForUser(userId, profitUser, onPage, page, refFilterData);
     }
-    RefsListContainer container = referralService.getUsersRefToAnotherUser(userId, profitUser, refLevel);
     container.setCurrentLevel(refLevel);
     return container;
   }

@@ -235,19 +235,6 @@ public class OnlineRestController {
           }});
         }};
       }
-      if (principal != null && isSessionTimeOut(session)) {
-        try {
-          request.logout();
-        } catch (ServletException e) {
-          e.printStackTrace();
-        }
-        return new HashMap<String, HashMap<String, String>>() {{
-          put("redirect", new HashMap<String, String>() {{
-            put("url", "/dashboard");
-            put("urlParam1", messageSource.getMessage("session.expire", null, localeResolver.resolveLocale(request)));
-          }});
-        }};
-      }
       String cacheKey = "currencyPairStatistic" + request.getHeader("windowid");
       refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
       CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
@@ -259,15 +246,6 @@ public class OnlineRestController {
       throw e;
     } finally {
     }
-  }
-
-  private boolean isSessionTimeOut(HttpSession session) {
-    Integer sessionLifeTime = (int)session.getAttribute(sessionTimeMinutes);
-    long lastReq = (long)session.getAttribute(sessionLastRequestParamName);
-    LOGGER.error("last accTime " + lastReq +
-            " lifetime " + sessionLifeTime +
-            " system " + System.currentTimeMillis());
-    return lastReq + sessionLifeTime * MILLIS_PER_MINUTE <= System.currentTimeMillis();
   }
 
   /**

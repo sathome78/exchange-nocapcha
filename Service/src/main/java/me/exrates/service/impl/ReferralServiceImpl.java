@@ -6,6 +6,7 @@ import me.exrates.dao.ReferralTransactionDao;
 import me.exrates.dao.ReferralUserGraphDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
+import me.exrates.model.dto.RefFilterData;
 import me.exrates.model.dto.ReferralInfoDto;
 import me.exrates.model.dto.ReferralProfitDto;
 import me.exrates.model.dto.RefsListContainer;
@@ -259,30 +260,29 @@ public class ReferralServiceImpl implements ReferralService {
     }
 
     @Override
-    public RefsListContainer getUsersFirstLevelAndCountProfitForUser(int userId, int profitForId, int onPage, int pageNumber) {
+    public RefsListContainer getUsersFirstLevelAndCountProfitForUser(int userId, int profitForId, int onPage, int pageNumber, RefFilterData refFilterData) {
         int offset = (pageNumber - 1) * onPage;
-        List<ReferralInfoDto> dtoList = referralUserGraphDao.getInfoAboutFirstLevRefs(userId, profitForId, onPage, offset);
-        setDetailedAmountToDtos(dtoList, profitForId);
+        List<ReferralInfoDto> dtoList = referralUserGraphDao.getInfoAboutFirstLevRefs(userId, profitForId, onPage, offset, refFilterData);
+        setDetailedAmountToDtos(dtoList, profitForId, null);
         int totalSize = referralUserGraphDao.getInfoAboutFirstLevRefsTotalSize(userId);
         log.warn("list size {}", dtoList.size());
         return new RefsListContainer(dtoList, onPage, pageNumber, totalSize);
     }
 
     @Override
-    public RefsListContainer getUsersRefToAnotherUser(int userId, int profitUser, int level) {
+    public RefsListContainer getUsersRefToAnotherUser(int userId, int profitUser, int level, RefFilterData refFilterData) {
         List<ReferralInfoDto> dtoList = Arrays.asList(referralUserGraphDao.getInfoAboutUserRef(userId, profitUser));
-        setDetailedAmountToDtos(dtoList, profitUser);
+        setDetailedAmountToDtos(dtoList, profitUser, null);
         return new RefsListContainer(dtoList, level);
     }
 
-    private void setDetailedAmountToDtos(List<ReferralInfoDto> list, int profitUser) {
+    private void setDetailedAmountToDtos(List<ReferralInfoDto> list, int profitUser, RefFilterData refFilterData) {
         list.stream().filter(p -> p.getRefProfitFromUser() > 0)
-                .forEach(l -> l.setReferralProfitDtoList(referralUserGraphDao.detailedCountRefsTransactions(l.getRefId(), profitUser)));
+                .forEach(l -> l.setReferralProfitDtoList(referralUserGraphDao.detailedCountRefsTransactions(l.getRefId(), profitUser, refFilterData)));
     }
 
     @Override
     public int getUserReferralLevelForChild(Integer childUserId, Integer parentUserId) {
-        log.error("id- {}", childUserId);
         int i = 1;
         int level = -1;
         if (childUserId == null || childUserId.equals(0) || parentUserId == null){
@@ -293,7 +293,6 @@ public class ReferralServiceImpl implements ReferralService {
         }
         Integer parentId = referralUserGraphDao.getParent(childUserId);
         while (parentId != null && i <= 7) {
-            log.error("parent id- {}", parentId);
             if (parentId.equals(parentUserId)) {
                 level = i;
                 break;
@@ -306,6 +305,6 @@ public class ReferralServiceImpl implements ReferralService {
 
     @Override
     public List<ReferralProfitDto> getAllUserRefProfit(int userId) {
-        return referralUserGraphDao.detailedCountRefsTransactions(null, userId);
+        return referralUserGraphDao.detailedCountRefsTransactions(null, userId, null);
     }
 }
