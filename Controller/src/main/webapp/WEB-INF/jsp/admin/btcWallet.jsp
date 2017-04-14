@@ -31,6 +31,8 @@
             <div class="row text-center" style="font-size: 1.4rem">
                 <p class="green"><strong><loc:message code="btcWallet.balance"/>
                     <span id="current-btc-balance">${walletInfo.balance}</span> BTC</strong></p>
+                <p ><strong><loc:message code="btcWallet.confirmedNonSpendableBalance"/>
+                    <span id="current-btc-balance">${walletInfo.confirmedNonSpendableBalance}</span> BTC</strong></p>
                 <p class="lightblue"><strong><loc:message code="btcWallet.unconfirmedBalance"/>
                     <span id="current-btc-unconfirmed-balance">${walletInfo.unconfirmedBalance}</span> BTC</strong></p>
             </div>

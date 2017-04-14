@@ -421,12 +421,19 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
     }
   }
   
+  
+  /*
+  * Using sendMany instead of sendToAddress allows to send only UTXO with certain number of confirmations.
+  * DO NOT use immutable map creation methods like Collections.singletonMap(...), it will cause an error within lib code
+  * */
   @Override
   public String sendToAddressAuto(String address, BigDecimal amount) {
     
     try {
       unlockWallet(walletPassword, 1);
-      return btcdClient.sendMany("", Collections.singletonMap(address, amount), MIN_CONFIRMATIONS_FOR_SPENDING);
+      Map<String, BigDecimal> payments = new HashMap<>();
+      payments.put(address, amount);
+      return btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING);
     } catch (BitcoindException | CommunicationException e) {
       log.error(e);
       throw new BitcoinCoreException(e.getMessage());
