@@ -83,6 +83,7 @@ public class WalletController {
         BigDecimal minAmount = currencyService.retrieveMinLimitForRoleAndCurrency(user.getRole(), OperationType.USER_TRANSFER, currency.getId());
         modelAndView.addObject("currency", currency);
         modelAndView.addObject("wallet", wallet);
+        modelAndView.addObject("balance", BigDecimalProcessing.formatNonePoint(wallet.getActiveBalance(), false));
         modelAndView.addObject("maxForTransfer", maxForTransfer);
         modelAndView.addObject("minAmount", minAmount);
         return modelAndView;

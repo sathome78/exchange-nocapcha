@@ -29,6 +29,7 @@ public class WithdrawRequestsAdminTableDto extends OnlineTableDto {
   private Integer id;
   @JsonSerialize(using = LocalDateTimeSerializer.class)
   private LocalDateTime dateCreation;
+  private Integer userId;
   private String userEmail;
   private BigDecimal amount;
   private String currencyName;
@@ -55,6 +56,7 @@ public class WithdrawRequestsAdminTableDto extends OnlineTableDto {
       WithdrawRequestFlatAdditionalDataDto withdrawRequestFlatAdditionalDataDto) {
     this.id = withdrawRequestFlatDto.getId();
     this.dateCreation = withdrawRequestFlatDto.getDateCreation();
+    this.userId = withdrawRequestFlatDto.getUserId();
     this.userEmail = withdrawRequestFlatAdditionalDataDto.getUserEmail();
     this.amount = withdrawRequestFlatDto.getAmount();
     this.currencyName = withdrawRequestFlatAdditionalDataDto.getCurrencyName();
