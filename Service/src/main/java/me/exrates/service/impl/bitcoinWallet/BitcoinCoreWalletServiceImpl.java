@@ -15,6 +15,7 @@ import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.PendingPayment;
 import me.exrates.model.dto.BtcWalletInfoDto;
 import me.exrates.model.dto.TxReceivedByAddressFlatDto;
+import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
@@ -54,6 +55,7 @@ import java.util.stream.Collectors;
 public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
   
   private static final int KEY_POOL_LOW_THRESHOLD = 10;
+  private static final int MIN_CONFIRMATIONS_FOR_SPENDING = 3;
   
   @Value("${btc.wallet.password}")
   private String walletPassword;
@@ -312,8 +314,12 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
     try {
       BtcWalletInfoDto dto = new BtcWalletInfoDto();
       WalletInfo walletInfo = btcdClient.getWalletInfo();
+      BigDecimal spendableBalance = btcdClient.getBalance("", MIN_CONFIRMATIONS_FOR_SPENDING);
+      BigDecimal confirmedNonSpendableBalance = BigDecimalProcessing.doAction(walletInfo.getBalance(), spendableBalance, ActionType.SUBTRACT);
       BigDecimal unconfirmedBalance = btcdClient.getUnconfirmedBalance();
-      dto.setBalance(BigDecimalProcessing.formatNonePoint(walletInfo.getBalance(), true));
+      
+      dto.setBalance(BigDecimalProcessing.formatNonePoint(spendableBalance, true));
+      dto.setConfirmedNonSpendableBalance(BigDecimalProcessing.formatNonePoint(confirmedNonSpendableBalance, true));
       dto.setUnconfirmedBalance(BigDecimalProcessing.formatNonePoint(unconfirmedBalance, true));
       dto.setTransactionCount(walletInfo.getTxCount());
       return dto;
@@ -420,7 +426,7 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
     
     try {
       unlockWallet(walletPassword, 1);
-      return btcdClient.sendToAddress(address, amount);
+      return btcdClient.sendMany("", Collections.singletonMap(address, amount), MIN_CONFIRMATIONS_FOR_SPENDING);
     } catch (BitcoindException | CommunicationException e) {
       log.error(e);
       throw new BitcoinCoreException(e.getMessage());
@@ -437,7 +443,7 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
   @Override
   public String sendToMany(Map<String, BigDecimal> payments) {
     try {
-      return btcdClient.sendMany("", payments);
+      return btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING);
     } catch (BitcoindException | CommunicationException e) {
       log.error(e);
       throw new BitcoinCoreException(e.getMessage());
