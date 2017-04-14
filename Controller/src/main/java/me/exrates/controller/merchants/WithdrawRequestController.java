@@ -68,10 +68,10 @@ public class WithdrawRequestController {
           Locale locale,
           HttpServletResponse response) throws UnsupportedEncodingException {
 
-//    if (!merchantService.checkOutputRequestsLimit(payment.getCurrency(), principal.getName())) {
-//      throw new RequestLimitExceededException(messageSource.getMessage("merchants.OutputRequestsLimit", null, locale));
-//
-//    }
+    if (!merchantService.checkOutputRequestsLimit(payment.getCurrency(), principal.getName())) {
+      throw new RequestLimitExceededException(messageSource.getMessage("merchants.OutputRequestsLimit", null, locale));
+
+    }
 
     CreditsOperation creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName())
         .orElseThrow(InvalidAmountException::new);
