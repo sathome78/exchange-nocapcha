@@ -332,9 +332,9 @@ public class TransactionServiceImpl implements TransactionService {
   }
 
   @Override
-  public List<String> getCSVTransactionsHistory(int id, String startDate, String endDate, Locale locale) {
+  public List<String> getCSVTransactionsHistory(int requesterUserId, String email, String startDate, String endDate) {
 
-    final List<Integer> wallets = walletService.getAllWallets(id).stream()
+    final List<Integer> wallets = walletService.getAllWallets(requesterUserId).stream()
         .mapToInt(Wallet::getId)
         .boxed()
         .collect(Collectors.toList());
@@ -344,7 +344,11 @@ public class TransactionServiceImpl implements TransactionService {
     String sortColumn = "TRANSACTION.datetime";
     String sortDirection = "DESC";
     List<Transaction> transactions = transactionDao.getAllOperationsByUserForPeriod(wallets, startDate, endDate, sortColumn, sortDirection);
-    return convertTrListToString(transactions, locale);
+    DataTable<List<OperationViewDto>> history =
+            showMyOperationHistory(requesterUserId, email, null, null, null, startDate, endDate,
+                    null, null, null, null, -1, -1, sortColumn, sortDirection, Locale.ENGLISH);
+
+    return convertTrListToString(history.getData());
   }
 
   @Override
@@ -362,26 +366,19 @@ public class TransactionServiceImpl implements TransactionService {
     return transactionDao.getUserSummaryOrdersList(requesterUserId, startDate, endDate, roles);
   }
 
-  private List<String> convertTrListToString(List<Transaction> transactions, Locale locale) {
+  private List<String> convertTrListToString(List<OperationViewDto> transactions) {
     List<String> transactionsResult = new ArrayList<>();
     transactionsResult.add(getCSVTransactionsHeader());
     transactionsResult.add("\n");
     transactions.forEach(i -> {
       StringBuilder sb = new StringBuilder();
-      setTransactionMerchant(i);
-      String transactionStatus = "";
-      try {
-        transactionStatus = merchantService.resolveTransactionStatus(i, Locale.ENGLISH);
-      } catch (Exception e) {
-        LOG.warn("cant get trans status " + e);
-      }
       sb.append(i.getDatetime())
           .append(";")
           .append(i.getOperationType())
           .append(";")
-          .append(transactionStatus)
+          .append(i.getStatus())
           .append(";")
-          .append(i.getCurrency().getName())
+          .append(i.getCurrency())
           .append(";")
           .append(i.getAmount())
           .append(";")
@@ -389,7 +386,7 @@ public class TransactionServiceImpl implements TransactionService {
           .append(";")
           .append(i.getMerchant().getName())
           .append(";")
-          .append(i.getOrder().getId());
+          .append(i.getOrder() != null ? i.getOrder().getId() : 0);
       transactionsResult.add(sb.toString());
       transactionsResult.add("\n");
     });
@@ -399,17 +396,5 @@ public class TransactionServiceImpl implements TransactionService {
   private String getCSVTransactionsHeader() {
     return "Date;Operation Type;Status;Currency;Amount;Comission;Merchant;Source Id";
   }
-
-  private void setTransactionMerchant(Transaction transaction) {
-    LOG.debug(transaction);
-    TransactionSourceType sourceType = transaction.getSourceType();
-    if (sourceType == TransactionSourceType.MERCHANT || sourceType == TransactionSourceType.WITHDRAW) {
-      transaction.setMerchant(transaction.getMerchant());
-    } else {
-      transaction.setMerchant(new Merchant(0, sourceType.name(), sourceType.name(), null));
-    }
-
-  }
-
 
 }
