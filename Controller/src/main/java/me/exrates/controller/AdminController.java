@@ -277,7 +277,7 @@ public class AdminController {
   public void getUserTransactions(final @RequestParam int id,
                                   final @RequestParam String startDate,
                                   final @RequestParam String endDate,
-                                  HttpServletRequest request,
+                                  Principal principal,
                                   HttpServletResponse response) throws IOException {
       response.setContentType("text/csv");
       String reportName =
@@ -289,7 +289,8 @@ public class AdminController {
                       .concat(".csv");
       response.setHeader("Content-disposition", "attachment;filename="+reportName);
       List<String> transactionsHistory = transactionService
-              .getCSVTransactionsHistory(id, startDate, endDate, localeResolver.resolveLocale(request));
+              .getCSVTransactionsHistory(userService.getIdByEmail(principal.getName()),
+                      userService.getEmailById(id), startDate, endDate);
       OutputStreamWriter writer = new OutputStreamWriter(response.getOutputStream());
       try {
         for(String transaction : transactionsHistory) {
