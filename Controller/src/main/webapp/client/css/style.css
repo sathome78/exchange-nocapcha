@@ -349,6 +349,23 @@ header li {
         font-size: 0.85rem;
     }
 
+    .blue_area {
+        width: 40%;
+    }
+
+    .dark_blue_area {
+        width: 15%;
+    }
+
+    .buyBTC__input {
+        width: 40%;
+    }
+
+    input.item_input,
+    .item__input {
+        width: 40%;
+    }
+
 
 }
 
@@ -372,6 +389,23 @@ header li {
     #balance-table button, #balance-table th, #balance-table td {
         font-size: 1.1rem;
     }
+    .blue_area {
+        width: 45%;
+    }
+
+    .dark_blue_area {
+        width: 10%;
+    }
+
+    .buyBTC__input {
+        width: 45%;
+    }
+
+    input.item_input,
+    .item__input {
+        width: 45%;
+    }
+
 }
 
 #currency_table th, #currency_table td {
@@ -503,35 +537,23 @@ th, td {
 
 input.item_input,
 .item__input {
-    width: 55%;
     float: right;
+    box-sizing: border-box;
+    padding: 3px;
 }
 
 .buyBTC__input {
-    width: 55%;
     float: right;
+    box-sizing: border-box;
+    padding: 3px;
 }
 
-.usd_green {
-    background-repeat: no-repeat;
-    background-size: 22px 22px;
-    background-position: 100px -2px;
-    padding-right: 25px;
-}
-
-.usd_red {
-    background-repeat: no-repeat;
-    background-size: 22px 22px;
-    background-position: 100px -2px;
-    padding-right: 25px;
-}
 
 .blue_area {
     background-color: #d2dae7;
     padding: 5px;
     color: #525f74;
     text-align: left;
-    width: 55%;
     float: right;
 }
 
@@ -2158,6 +2180,14 @@ textarea#remark {
 .timeoutWarning {
     color: #cf0800;
     font-size: 1.2rem;
+}
+
+.dark_blue_area {
+    padding: 5px;
+    color: #FFFFFF;
+    background-color: #525f74;
+    float: right;
+    text-align: center;
 }
 
 #btc-wallet-buttons {

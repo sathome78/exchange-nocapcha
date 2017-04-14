@@ -920,6 +920,7 @@ public class AdminController {
     ModelAndView modelAndView = new ModelAndView("admin/currencyLimits");
     modelAndView.addObject("roleNames", BusinessUserRoleEnum.values());
     modelAndView.addObject("operationTypes", Arrays.asList(OperationType.INPUT.name(), OperationType.OUTPUT.name(), OperationType.USER_TRANSFER.name()));
+    modelAndView.addObject("orderTypes", OrderType.values());
     return modelAndView;
   }
 
@@ -938,6 +939,25 @@ public class AdminController {
                                                 @RequestParam BigDecimal minAmount) {
 
     currencyService.updateCurrencyLimit(currencyId, operationType, roleName, minAmount);
+    return new ResponseEntity<>(HttpStatus.OK);
+  }
+  
+  @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits/pairs/retrieve", method = RequestMethod.GET)
+  @ResponseBody
+  public List<CurrencyPairLimitDto> retrieveCurrencyPairLimits(@RequestParam String roleName,
+                                                    @RequestParam OrderType orderType) {
+    return currencyService.findAllCurrencyLimitsForRoleAndType(roleName, orderType);
+  }
+  
+  @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits/pairs/submit", method = RequestMethod.POST)
+  @ResponseBody
+  public ResponseEntity<Void> editCurrencyPairLimit(@RequestParam int currencyPairId,
+                                                @RequestParam OrderType orderType,
+                                                @RequestParam String roleName,
+                                                @RequestParam BigDecimal minRate,
+                                                @RequestParam BigDecimal maxRate) {
+    
+    currencyService.updateCurrencyPairLimit(currencyPairId, orderType, roleName, minRate, maxRate);
     return new ResponseEntity<>(HttpStatus.OK);
   }
 
