@@ -64,7 +64,7 @@ public class BitcoinController {
       @RequestBody Payment payment,
       Principal principal,
       Locale locale) {
-    if (!merchantService.checkInputRequestsLimit(payment.getMerchant(), principal.getName())) {
+    if (!merchantService.checkInputRequestsLimit(payment.getCurrency(), principal.getName())) {
       Map<String, String> error = new HashMap<>();
       error.put("error", messageSource.getMessage("merchants.InputRequestsLimit", null, locale));
       return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);

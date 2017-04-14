@@ -15,7 +15,6 @@ import me.exrates.model.enums.invoice.*;
 import me.exrates.model.form.AuthorityOptionsForm;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.security.service.UserSecureService;
-import me.exrates.security.service.UserSecureServiceImpl;
 import me.exrates.service.*;
 import me.exrates.service.exception.NoPermissionForOperationException;
 import me.exrates.service.exception.OrderDeletingException;
@@ -51,7 +50,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
-import java.io.*;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
@@ -933,9 +934,10 @@ public class AdminController {
   public ResponseEntity<Void> editCurrencyLimit(@RequestParam int currencyId,
                                                 @RequestParam OperationType operationType,
                                                 @RequestParam String roleName,
-                                                @RequestParam BigDecimal minAmount) {
+                                                @RequestParam BigDecimal minAmount,
+                                                @RequestParam Integer maxDailyRequest) {
 
-    currencyService.updateCurrencyLimit(currencyId, operationType, roleName, minAmount);
+    currencyService.updateCurrencyLimit(currencyId, operationType, roleName, minAmount, maxDailyRequest);
     return new ResponseEntity<>(HttpStatus.OK);
   }
 

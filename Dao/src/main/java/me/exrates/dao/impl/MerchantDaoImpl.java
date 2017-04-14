@@ -13,9 +13,6 @@ import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.UserRole;
-import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
-import me.exrates.model.enums.invoice.InvoiceStatus;
-import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -31,11 +28,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Stream;
-
-import static me.exrates.model.enums.TransactionSourceType.BTC_INVOICE;
-import static me.exrates.model.enums.TransactionSourceType.INVOICE;
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CONFIRM_USER;
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.REVOKE;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -314,18 +306,49 @@ public class MerchantDaoImpl implements MerchantDao {
     });
   }
 
-  public Integer getInputRequests(int merchantId, String email) {
-    String sql = "SELECT COUNT(*) FROM birzha.TRANSACTION \n" +
+  @Override
+  public boolean checkInputRequests(int currencyId, String email) {
+    String sql = "SELECT (SELECT COUNT(*) FROM birzha.TRANSACTION \n" +
         "join WALLET ON(WALLET.id = TRANSACTION.user_wallet_id)\n" +
         "join USER ON(USER.id = WALLET.user_id)\n" +
         " where \n" +
         " TRANSACTION.source_type = 'MERCHANT' and TRANSACTION.provided = 0 \n" +
-        " and USER.email = :email and TRANSACTION.merchant_id = :merchantId \n" +
-        " and SUBSTRING_INDEX(TRANSACTION.datetime, ' ', 1) = CURDATE() ; ";
+        " and USER.email = :email and TRANSACTION.currency_id = :currencyId \n" +
+        " and SUBSTRING_INDEX(TRANSACTION.datetime, ' ', 1) = CURDATE()) < " +
+            "(SELECT CURRENCY_LIMIT.max_daily_request FROM USER \n" +
+            "join CURRENCY_LIMIT ON (CURRENCY_LIMIT.user_role_id = USER.roleid)\n" +
+            "where USER.email = :email AND operation_type_id = 1 AND currency_id = :currencyId); ";
     Map<String, Object> params = new HashMap<String, Object>();
-    params.put("merchantId", merchantId);
+    params.put("currencyId", currencyId);
     params.put("email", email);
-    return jdbcTemplate.queryForObject(sql, params, Integer.class);
+    if (jdbcTemplate.queryForObject(sql, params, Integer.class) == 0){
+      return false;
+    }else {
+      return true;
+    }
+  }
+
+  @Override
+  public boolean checkOutputRequests(int currencyId, String email) {
+    String sql = "select\n" +
+            "(SELECT COUNT(*) FROM WITHDRAW_REQUEST \n" +
+            "\n" +
+            "            join USER ON(USER.id = WITHDRAW_REQUEST.user_id)\n" +
+            "             where \n" +
+            "             USER.email = :email and WITHDRAW_REQUEST.currency_id = :currencyId \n" +
+            "             and SUBSTRING_INDEX(WITHDRAW_REQUEST.date_creation, ' ', 1) = CURDATE()) < \n" +
+            "             \n" +
+            "(SELECT CURRENCY_LIMIT.max_daily_request FROM USER \n" +
+            "join CURRENCY_LIMIT ON (CURRENCY_LIMIT.user_role_id = USER.roleid)\n" +
+            "where USER.email = :email AND operation_type_id = 2 AND currency_id = :currencyId) ";
+    Map<String, Object> params = new HashMap<String, Object>();
+    params.put("currencyId", currencyId);
+    params.put("email", email);
+    if (jdbcTemplate.queryForObject(sql, params, Integer.class) == 0){
+      return false;
+    }else {
+      return true;
+    }
   }
 
   @Override

@@ -54,6 +54,7 @@
                             <th></th>
                             <th><loc:message code="admin.currencyLimits.name"/> </th>
                             <th><loc:message code="admin.currencyLimits.minLimit"/></th>
+                            <th><loc:message code="admin.currencyLimits.maxDailyRequest"/></th>
                         </tr>
                         </thead>
                     </table>
@@ -108,6 +109,14 @@
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
                             <input  name="minAmount" class="input-block-wrapper__input" type="number">
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="admin.currencyLimits.maxDailyRequest"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper" >
+                            <input  name="maxDailyRequest" class="input-block-wrapper__input" type="number" style="align-content: center">
                         </div>
                     </div>
                     <button id="submitNewLimit" class="blue-box admin-form-submit" type="submit"><loc:message code="admin.refSubmitEditCommonRoot"/></button>

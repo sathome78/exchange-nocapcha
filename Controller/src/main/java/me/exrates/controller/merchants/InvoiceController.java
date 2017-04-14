@@ -10,7 +10,6 @@ import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.exceptions.UnsupportedTransactionSourceTypeNameException;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.InvoiceData;
-import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.*;
 import me.exrates.service.exception.FileLoadingException;
 import me.exrates.service.exception.InvalidAmountException;
@@ -80,7 +79,7 @@ public class InvoiceController {
     log.debug(payment);
     RedirectView redirectView = new RedirectView("/merchants/invoice/details");
 
-    if (!merchantService.checkInputRequestsLimit(payment.getMerchant(), principal.getName())) {
+    if (!merchantService.checkInputRequestsLimit(payment.getCurrency(), principal.getName())) {
       redirectAttributes.addFlashAttribute("error", "merchants.InputRequestsLimit");
       return redirectView;
     }

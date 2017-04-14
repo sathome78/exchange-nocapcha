@@ -1,8 +1,8 @@
 package me.exrates.controller.merchants;
 
 import me.exrates.controller.annotation.FinPassCheck;
-import me.exrates.controller.exception.CheckFinPassException;
 import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.controller.exception.RequestLimitExceededException;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.model.dto.WithdrawRequestsAdminTableDto;
@@ -63,10 +63,16 @@ public class WithdrawRequestController {
   @RequestMapping(value = "/withdraw/request/merchant/create", method = POST)
   @ResponseBody
   public void createWithdrawalRequest(
-      @RequestBody final Payment payment,
-      Principal principal,
-      Locale locale,
-      HttpServletResponse response) throws UnsupportedEncodingException {
+          @RequestBody final Payment payment,
+          Principal principal,
+          Locale locale,
+          HttpServletResponse response) throws UnsupportedEncodingException {
+
+//    if (!merchantService.checkOutputRequestsLimit(payment.getCurrency(), principal.getName())) {
+//      throw new RequestLimitExceededException(messageSource.getMessage("merchants.OutputRequestsLimit", null, locale));
+//
+//    }
+
     CreditsOperation creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName())
         .orElseThrow(InvalidAmountException::new);
     Map<String, String> result = withdrawService.createWithdrawalRequest(creditsOperation, new WithdrawData(), principal.getName(), locale);
@@ -178,7 +184,7 @@ public class WithdrawRequestController {
 
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
   @ExceptionHandler({
-      NotEnoughUserWalletMoneyException.class,
+      NotEnoughUserWalletMoneyException.class, RequestLimitExceededException.class
   })
   @ResponseBody
   public ErrorInfo NotAcceptableExceptionHandler(HttpServletRequest req, Exception exception) {
