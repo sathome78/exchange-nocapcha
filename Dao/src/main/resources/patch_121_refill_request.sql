@@ -80,3 +80,12 @@ CREATE TABLE REFILL_REQUEST_CONFIRMATION (
 COLLATE='utf8_general_ci'
 ENGINE=InnoDB;
 
+ALTER TABLE MERCHANT_CURRENCY
+	ADD COLUMN withdraw_lifetime_hours INT NOT NULL DEFAULT '0.000000000',
+	ADD COLUMN refill_lifetime_hours INT NOT NULL DEFAULT '0.000000000';
+	
+ALTER TABLE REFILL_REQUEST
+	ADD INDEX status_id_status_modification_date_currency_id_merchant_id (merchant_id, currency_id, status_modification_date, status_id);
+
+ALTER TABLE REFILL_REQUEST
+	ADD INDEX status_id_status_modification_date (status_modification_date, status_id);

@@ -8,7 +8,6 @@ import me.exrates.model.InvoiceBank;
 import me.exrates.model.InvoiceRequest;
 import me.exrates.model.Transaction;
 import me.exrates.model.dto.InvoiceRequestFlatForReportDto;
-import me.exrates.model.dto.InvoiceUserDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.enums.NotificationEvent;
@@ -42,25 +41,18 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static me.exrates.model.enums.UserCommentTopicEnum.INVOICE_DECLINE;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.*;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
 import static me.exrates.model.enums.invoice.InvoiceRequestStatusEnum.DECLINED_ADMIN;
-import static me.exrates.model.enums.invoice.InvoiceRequestStatusEnum.EXPIRED;
 import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 
 
 @Service
 @Log4j2
-@PropertySource(value = {"classpath:/job.properties"})
 public class InvoiceServiceImpl implements InvoiceService {
-
-  @Value("${invoice.blockNotifyUsers}")
-  private Boolean BLOCK_NOTIFYING;
 
   @Autowired
   private TransactionService transactionService;
@@ -85,6 +77,9 @@ public class InvoiceServiceImpl implements InvoiceService {
 
   @Autowired
   private UserService userService;
+
+  @Autowired
+  MerchantService merchantService;
 
   @Override
   @Transactional
@@ -194,34 +189,6 @@ public class InvoiceServiceImpl implements InvoiceService {
     }
     userService.addUserComment(INVOICE_DECLINE, comment, invoiceRequest.getUserEmail(), false);
     notificationService.notifyUser(invoiceRequest.getUserId(), NotificationEvent.IN_OUT, title, comment);
-  }
-
-  @Override
-  @Transactional
-  public Integer clearExpiredInvoices(Integer intervalMinutes) throws Exception {
-    List<Integer> invoiceRequestStatusIdList = InvoiceRequestStatusEnum.getAvailableForActionStatusesList(EXPIRE).stream()
-        .map(InvoiceStatus::getCode)
-        .collect(Collectors.toList());
-    Optional<LocalDateTime> nowDate = invoiceRequestDao.getAndBlockByIntervalAndStatus(
-        intervalMinutes,
-        invoiceRequestStatusIdList);
-    if (nowDate.isPresent()) {
-      invoiceRequestDao.setNewStatusByDateIntervalAndStatus(
-          nowDate.get(),
-          intervalMinutes,
-          EXPIRED.getCode(),
-          invoiceRequestStatusIdList);
-      List<InvoiceUserDto> userForNotificationList = invoiceRequestDao.findInvoicesListByStatusChangedAtDate(EXPIRED.getCode(), nowDate.get());
-      if (!BLOCK_NOTIFYING) {
-        for (InvoiceUserDto invoice : userForNotificationList) {
-          notificationService.notifyUser(invoice.getUserId(), NotificationEvent.IN_OUT, "merchants.invoice.expired.title",
-              "merchants.invoice.expired.message", new Integer[]{invoice.getInvoiceId()});
-        }
-      }
-      return userForNotificationList.size();
-    } else {
-      return 0;
-    }
   }
 
   @Override
@@ -357,8 +324,12 @@ public class InvoiceServiceImpl implements InvoiceService {
   @Override
   @Transactional
   public Map<String, String> refill(RefillRequestCreateDto request) {
+    Integer lifetime = merchantService.getMerchantCurrencyLifetimeByMerchantIdAndCurrencyId(request.getMerchantId(), request.getCurrencyId()).getRefillLifetimeHours();
+    String toWallet = String.format("%s: %s - %s", request.getRecipientBankName(), request.getAddress(), request.getRecipient());
+    String message = messageSource.getMessage("merchants.refill.refill",
+        new Object[]{request.getAmountWithCommission(), toWallet, lifetime}, request.getLocale());
     return new HashMap<String, String>() {{
-      put("message", "");
+      put("message", message);
     }};
   }
 }

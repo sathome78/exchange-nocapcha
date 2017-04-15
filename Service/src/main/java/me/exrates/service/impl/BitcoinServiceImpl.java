@@ -1,34 +1,22 @@
 package me.exrates.service.impl;
 
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
-import me.exrates.dao.BTCTransactionDao;
 import me.exrates.dao.PendingPaymentDao;
-import me.exrates.dao.WalletDao;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.PendingPayment;
 import me.exrates.model.Transaction;
-import me.exrates.model.dto.InvoiceUserDto;
-import me.exrates.model.dto.PendingPaymentFlatDto;
-import me.exrates.model.dto.PendingPaymentSimpleDto;
-import me.exrates.model.dto.onlineTableDto.PendingPaymentStatusDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
-import me.exrates.model.util.BigDecimalProcessing;
-import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.*;
 import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.IllegalTransactionProvidedStatusException;
-import me.exrates.service.exception.invoice.IllegalInvoiceAmountException;
-import me.exrates.service.exception.invoice.InvoiceAcceptionException;
+import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
-import me.exrates.service.exception.invoice.InvoiceUnexpectedHashException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
@@ -36,21 +24,15 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.toList;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.*;
 import static me.exrates.model.enums.invoice.PendingPaymentStatusEnum.EXPIRED;
-import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -207,14 +189,14 @@ public class BitcoinServiceImpl implements BitcoinService {
           intervalMinutes,
           EXPIRED.getCode(),
           pendingPaymentStatusIdList);
-      List<InvoiceUserDto> userForNotificationList = paymentDao.findInvoicesListBySourceTypeAndStatusChangedAtDate(
+      List<OperationUserDto> userForNotificationList = paymentDao.findInvoicesListBySourceTypeAndStatusChangedAtDate(
           TransactionSourceType.BTC_INVOICE.name(),
           EXPIRED.getCode(),
           nowDate.get());
       if (!BLOCK_NOTIFYING) {
-        for (InvoiceUserDto invoice : userForNotificationList) {
+        for (OperationUserDto invoice : userForNotificationList) {
           notificationService.notifyUser(invoice.getUserId(), NotificationEvent.IN_OUT, "merchants.invoice.expired.title",
-              "merchants.btc_invoice.expired.message", new Integer[]{invoice.getInvoiceId()});
+              "merchants.btc_invoice.expired.message", new Integer[]{invoice.getId()});
         }
       }
       return userForNotificationList.size();
@@ -249,7 +231,20 @@ public class BitcoinServiceImpl implements BitcoinService {
     return paymentDao.findById(pendingPaymentId)
         .orElseThrow(() -> new InvoiceNotFoundException(pendingPaymentId.toString()));
   }
-  
-  
+
+  @Override
+  @Transactional
+  public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
+    throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
+  }
+
+  @Override
+  @Transactional
+  public Map<String, String> refill(RefillRequestCreateDto request) {
+    String address = address();
+    return new HashMap<String, String>() {{
+      put("message", "");
+    }};
+  }
     
 }

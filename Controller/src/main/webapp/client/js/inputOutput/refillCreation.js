@@ -131,9 +131,10 @@ $(function refillCreation() {
             });
             $refillDetailedParamsDialog.one("hidden.bs.modal", function () {
                 if (refillDetailedParamsDialogResult) {
-                    data.recipientBankCode = $refillDetailedParamsDialog.find("#bank-code").val();
-                    data.recipientBankName = $refillDetailedParamsDialog.find("#bank-name").val();
-                    data.address = $refillDetailedParamsDialog.find("#user-account").val();
+                    data.recipientBankCode = $refillDetailedParamsDialog.find("#bank-code").html();
+                    data.recipientBankName = $refillDetailedParamsDialog.find("#bank-name").html();
+                    data.recipient = $refillDetailedParamsDialog.find("#bank-recipient").html();
+                    data.address = $refillDetailedParamsDialog.find("#bank-account").html();
                     data.userFullName = $refillDetailedParamsDialog.find("#user-full-name").val();
                     data.remark = $refillDetailedParamsDialog.find("#remark").val();
                     sendRequest(data);

@@ -218,9 +218,9 @@
           </div>
           <div class="col-md-4 input-block-wrapper">
             <button id="invoiceSubmit"
-                    class="btn btn-primary btn-lg"
+                    class="btn btn-primary btn-md"
                     onmouseover="checkAllFields()"><loc:message code="admin.submit"/></button>
-            <button id="invoiceCancel" class="btn btn-danger btn-lg" data-dismiss="modal"><loc:message
+            <button id="invoiceCancel" class="btn btn-danger btn-md" data-dismiss="modal"><loc:message
                     code="admin.cancel"/></button>
           </div>
         </div>

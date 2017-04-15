@@ -27,8 +27,6 @@ public interface InvoiceService extends IMerchantService {
 
   void declineInvoice(Integer invoiceId, Integer transactionId, String acceptanceUserEmail, String comment) throws Exception;
 
-  Integer clearExpiredInvoices(Integer intervalMinutes) throws Exception;
-
   List<InvoiceRequest> findAllInvoiceRequests();
 
   InvoiceBank findBankById(Integer bankId);

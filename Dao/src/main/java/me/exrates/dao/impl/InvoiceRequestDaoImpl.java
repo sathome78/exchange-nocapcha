@@ -4,7 +4,6 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.InvoiceRequestDao;
 import me.exrates.model.*;
 import me.exrates.model.dto.InvoiceRequestFlatForReportDto;
-import me.exrates.model.dto.InvoiceUserDto;
 import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -13,8 +12,6 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -183,61 +180,6 @@ public class InvoiceRequestDaoImpl implements InvoiceRequestDao {
     }};
     try {
       return parameterJdbcTemplate.query(sql, params, invoiceRequestRowMapper);
-    } catch (EmptyResultDataAccessException e) {
-      return Collections.EMPTY_LIST;
-    }
-  }
-
-  @Override
-  public Optional<LocalDateTime> getAndBlockByIntervalAndStatus(Integer intervalMinutes, List<Integer> invoiceRequestStatusIdList) {
-    LocalDateTime nowDate = jdbcTemplate.queryForObject("SELECT NOW()", LocalDateTime.class);
-    String sql =
-        " SELECT COUNT(*) " +
-            " FROM INVOICE_REQUEST " +
-            " WHERE status_update_date <= DATE_SUB(:now_date, INTERVAL " + intervalMinutes + " MINUTE) " +
-            "       AND invoice_request_status_id IN (:invoice_request_status_id_list)" +
-            " FOR UPDATE"; //FOR UPDATE Important!
-    final Map<String, Object> params = new HashMap<String, Object>() {{
-      put("now_date", nowDate);
-      put("invoice_request_status_id_list", invoiceRequestStatusIdList);
-    }};
-    return Optional.ofNullable(parameterJdbcTemplate.queryForObject(sql, params, Integer.class) > 0 ? nowDate : null);
-  }
-
-  @Override
-  public void setNewStatusByDateIntervalAndStatus(LocalDateTime nowDate, Integer intervalMinutes, Integer newInvoiceRequestStatusId, List<Integer> invoiceRequestStatusIdList) {
-    final String sql =
-        " UPDATE INVOICE_REQUEST " +
-            " SET invoice_request_status_id = :invoice_request_status_id, " +
-            "     status_update_date = :now_date " +
-            " WHERE status_update_date <= DATE_SUB(:now_date, INTERVAL " + intervalMinutes + " MINUTE) " +
-            "       AND invoice_request_status_id IN (:invoice_request_status_id_list)";
-    final Map<String, Object> params = new HashMap<String, Object>() {{
-      put("now_date", nowDate);
-      put("invoice_request_status_id", newInvoiceRequestStatusId);
-      put("invoice_request_status_id_list", invoiceRequestStatusIdList);
-    }};
-    parameterJdbcTemplate.update(sql, params);
-  }
-
-  @Override
-  public List<InvoiceUserDto> findInvoicesListByStatusChangedAtDate(Integer invoiceRequestStatusId, LocalDateTime dateWhenChanged) {
-    String sql =
-        " SELECT transaction_id, user_id " +
-            " FROM INVOICE_REQUEST " +
-            " WHERE status_update_date = :date " +
-            "       AND invoice_request_status_id = :invoice_request_status_id";
-    final Map<String, Object> params = new HashMap<String, Object>() {{
-      put("date", dateWhenChanged);
-      put("invoice_request_status_id", invoiceRequestStatusId);
-    }};
-    try {
-      return parameterJdbcTemplate.query(sql, params, (resultSet, i) -> {
-        InvoiceUserDto invoiceUserDto = new InvoiceUserDto();
-        invoiceUserDto.setUserId(resultSet.getInt("user_id"));
-        invoiceUserDto.setInvoiceId(resultSet.getInt("transaction_id"));
-        return invoiceUserDto;
-      });
     } catch (EmptyResultDataAccessException e) {
       return Collections.EMPTY_LIST;
     }

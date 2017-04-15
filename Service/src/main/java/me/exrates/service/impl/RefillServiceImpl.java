@@ -4,14 +4,13 @@ import me.exrates.dao.MerchantDao;
 import me.exrates.dao.RefillRequestDao;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.Merchant;
+import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
+import me.exrates.model.dto.OperationUserDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawRequestFlatDto;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
-import me.exrates.model.enums.invoice.InvoiceOperationPermission;
-import me.exrates.model.enums.invoice.RefillStatusEnum;
-import me.exrates.model.enums.invoice.WithdrawStatusEnum;
+import me.exrates.model.enums.invoice.*;
 import me.exrates.model.vo.TransactionDescription;
 import me.exrates.service.*;
 import me.exrates.service.exception.RefillRequestLimitForMerchantExceededException;
@@ -21,26 +20,33 @@ import me.exrates.service.vo.ProfileData;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
-import static java.math.BigDecimal.ZERO;
 import static me.exrates.model.enums.OperationType.INPUT;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.EXPIRE;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
+import static me.exrates.model.enums.invoice.InvoiceRequestStatusEnum.EXPIRED;
 
 /**
  * created by ValkSam
  */
 
 @Service
+@PropertySource(value = {"classpath:/job.properties"})
 public class RefillServiceImpl implements RefillService {
+
+  @Value("${invoice.blockNotifyUsers}")
+  private Boolean BLOCK_NOTIFYING;
 
   private static final Logger log = LogManager.getLogger("refill");
 
@@ -57,7 +63,7 @@ public class RefillServiceImpl implements RefillService {
   private RefillRequestDao refillRequestDao;
 
   @Autowired
-  private WalletService walletService;
+  private MerchantService merchantService;
 
   @Autowired
   private CompanyWalletService companyWalletService;
@@ -98,6 +104,7 @@ public class RefillServiceImpl implements RefillService {
           notification = sendRefillNotification(
               request,
               request.getMerchantDescription(),
+              result.get("message"),
               locale);
           result.put("message", notification);
         } catch (MailException e) {
@@ -128,22 +135,62 @@ public class RefillServiceImpl implements RefillService {
     return result;
   }
 
+  @Override
+  @Transactional
+  public Integer clearExpiredInvoices() throws Exception {
+    List<Integer> invoiceRequestStatusIdList = InvoiceRequestStatusEnum.getAvailableForActionStatusesList(EXPIRE).stream()
+        .map(InvoiceStatus::getCode)
+        .collect(Collectors.toList());
+    List<OperationUserDto> userForNotificationList = new ArrayList<>();
+    List<MerchantCurrencyLifetimeDto> merchantCurrencyList = merchantService.getMerchantCurrencyWithRefillLifetime();
+    for (MerchantCurrencyLifetimeDto merchantCurrency : merchantCurrencyList) {
+      Integer intervalHours = merchantCurrency.getRefillLifetimeHours();
+      Integer merchantId = merchantCurrency.getMerchantId();
+      Integer currencyId = merchantCurrency.getCurrencyId();
+      Optional<LocalDateTime> nowDate = refillRequestDao.getAndBlockByIntervalAndStatus(
+          merchantId,
+          currencyId,
+          intervalHours,
+          invoiceRequestStatusIdList);
+      if (nowDate.isPresent()) {
+        refillRequestDao.setNewStatusByDateIntervalAndStatus(
+            merchantId,
+            currencyId,
+            nowDate.get(),
+            intervalHours,
+            EXPIRED.getCode(),
+            invoiceRequestStatusIdList);
+        userForNotificationList.addAll(refillRequestDao.findInvoicesListByStatusChangedAtDate(
+            merchantId,
+            currencyId,
+            EXPIRED.getCode(),
+            nowDate.get()));
+      }
+    }
+    if (!BLOCK_NOTIFYING) {
+      for (OperationUserDto invoice : userForNotificationList) {
+        notificationService.notifyUser(invoice.getUserId(), NotificationEvent.IN_OUT, "merchants.refillNotification.header",
+            "merchants.refillNotification." + EXPIRED, new Integer[]{invoice.getId()});
+      }
+    }
+    return userForNotificationList.size();
+  }
+
   private String sendRefillNotification(
       RefillRequestCreateDto withdrawRequest,
       String merchantDescription,
+      String addMessage,
       Locale locale) {
-    final String notification;
-    final Object[] messageParams = {
+    Object[] messageParams = {
         withdrawRequest.getId(),
         merchantDescription
     };
-    String notificationMessageCode;
-    notificationMessageCode = "merchants.refillNotification.".concat(withdrawRequest.getStatus().name());
-    notification = messageSource
-        .getMessage(notificationMessageCode, messageParams, locale);
-    notificationService.notifyUser(withdrawRequest.getUserEmail(), NotificationEvent.IN_OUT,
-        "merchants.refillNotification.header", notificationMessageCode, messageParams);
-    return notification;
+    String title = messageSource.getMessage("merchants.refillNotification.header", null, locale);
+    String mainNotificationMessageCode = "merchants.refillNotification.".concat(withdrawRequest.getStatus().name());
+    String mainNotification = messageSource.getMessage(mainNotificationMessageCode, messageParams, locale);
+    String fullNotification = mainNotification.concat("<br>").concat("<br>").concat(addMessage);
+    notificationService.notifyUser(withdrawRequest.getUserId(), NotificationEvent.IN_OUT,title, fullNotification);
+    return fullNotification;
   }
 
   private void checkIfOperationLimitExceededForMerchantByUser(RefillRequestCreateDto request) {

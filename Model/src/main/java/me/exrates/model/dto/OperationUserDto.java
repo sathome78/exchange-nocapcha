@@ -7,7 +7,7 @@ import lombok.Setter;
  * Created by ValkSam
  */
 @Getter @Setter
-public class InvoiceUserDto {
-  Integer invoiceId;
+public class OperationUserDto {
+  Integer id;
   Integer userId;
 }

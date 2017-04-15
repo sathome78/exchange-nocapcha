@@ -3,7 +3,7 @@ package me.exrates.dao.impl;
 import me.exrates.dao.PendingPaymentDao;
 import me.exrates.model.PendingPayment;
 import me.exrates.model.Transaction;
-import me.exrates.model.dto.InvoiceUserDto;
+import me.exrates.model.dto.OperationUserDto;
 import me.exrates.model.dto.PendingPaymentFlatDto;
 import me.exrates.model.dto.PendingPaymentFlatForReportDto;
 import me.exrates.model.dto.PendingPaymentSimpleDto;
@@ -390,7 +390,7 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
   }
 
   @Override
-  public List<InvoiceUserDto> findInvoicesListBySourceTypeAndStatusChangedAtDate(String sourceName, Integer pendingPaymentStatusId, LocalDateTime dateWhenChanged) {
+  public List<OperationUserDto> findInvoicesListBySourceTypeAndStatusChangedAtDate(String sourceName, Integer pendingPaymentStatusId, LocalDateTime dateWhenChanged) {
     String sql =
         " SELECT PP.invoice_id, W.user_id " +
             " FROM PENDING_PAYMENT PP " +
@@ -406,10 +406,10 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
     }};
     try {
       return parameterJdbcTemplate.query(sql, params, (resultSet, i) -> {
-        InvoiceUserDto invoiceUserDto = new InvoiceUserDto();
-        invoiceUserDto.setUserId(resultSet.getInt("user_id"));
-        invoiceUserDto.setInvoiceId(resultSet.getInt("invoice_id"));
-        return invoiceUserDto;
+        OperationUserDto operationUserDto = new OperationUserDto();
+        operationUserDto.setUserId(resultSet.getInt("user_id"));
+        operationUserDto.setId(resultSet.getInt("invoice_id"));
+        return operationUserDto;
       });
     } catch (EmptyResultDataAccessException e) {
       return Collections.EMPTY_LIST;

@@ -1,6 +1,7 @@
 package me.exrates.service;
 
 import me.exrates.model.*;
+import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
@@ -49,10 +50,14 @@ public interface MerchantService {
 
   void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType);
 
-  @Transactional
   void setBlockForAll(OperationType operationType, boolean blockStatus);
 
-  @Transactional
   void setBlockForMerchant(Integer merchantId, Integer currencyId, OperationType operationType, boolean blockStatus);
 
+  List<MerchantCurrencyLifetimeDto> getMerchantCurrencyWithRefillLifetime();
+
+  @Transactional
+  MerchantCurrencyLifetimeDto getMerchantCurrencyLifetimeByMerchantIdAndCurrencyId(
+      Integer merchantId,
+      Integer currencyId);
 }

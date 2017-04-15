@@ -2,21 +2,22 @@ package me.exrates.dao.impl;
 
 import me.exrates.dao.RefillRequestDao;
 import me.exrates.model.InvoiceBank;
+import me.exrates.model.dto.OperationUserDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.util.*;
 
 
 /**
@@ -29,7 +30,10 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   private static final Logger log = LogManager.getLogger("refill");
 
   @Autowired
-  private NamedParameterJdbcTemplate jdbcTemplate;
+  private JdbcTemplate jdbcTemplate;
+
+  @Autowired
+  private NamedParameterJdbcTemplate parameterJdbcTemplate;
 
   @Autowired
   private MessageSource messageSource;
@@ -45,7 +49,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
       put("user_id", userId);
       put("merchant_id", merchantId);
     }};
-    return jdbcTemplate.queryForObject(sql, params, Integer.class);
+    return parameterJdbcTemplate.queryForObject(sql, params, Integer.class);
   }
 
   @Override
@@ -71,7 +75,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         .addValue("user_full_name", request.getUserFullName())
         .addValue("remark", request.getRemark())
         .addValue("address", request.getAddress());
-    jdbcTemplate.update(sql, params, keyHolder);
+    parameterJdbcTemplate.update(sql, params, keyHolder);
     return (int) keyHolder.getKey().longValue();
   }
 
@@ -81,7 +85,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         " FROM INVOICE_BANK " +
         " WHERE currency_id = :currency_id";
     final Map<String, Integer> params = Collections.singletonMap("currency_id", currencyId);
-    return jdbcTemplate.query(sql, params, (rs, rowNum) -> {
+    return parameterJdbcTemplate.query(sql, params, (rs, rowNum) -> {
       InvoiceBank bank = new InvoiceBank();
       bank.setId(rs.getInt("id"));
       bank.setName(rs.getString("name"));
@@ -90,6 +94,90 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
       bank.setRecipient(rs.getString("recipient"));
       return bank;
     });
+  }
+
+  @Override
+  public Optional<LocalDateTime> getAndBlockByIntervalAndStatus(
+      Integer merchantId,
+      Integer currencyId,
+      Integer intervalHours,
+      List<Integer> statusIdList) {
+    LocalDateTime nowDate = jdbcTemplate.queryForObject("SELECT NOW()", LocalDateTime.class);
+    String sql =
+        " SELECT COUNT(*) " +
+            " FROM REFILL_REQUEST " +
+            " WHERE " +
+            "   merchant_id = :merchant_id " +
+            "   AND currency_id = :currency_id" +
+            "   AND status_modification_date <= DATE_SUB(:now_date, INTERVAL " + intervalHours + " HOUR ) " +
+            "   AND status_id IN (:istatus_id_list)" +
+            " FOR UPDATE"; //FOR UPDATE Important!
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("merchant_id", merchantId);
+      put("currency_id", currencyId);
+      put("now_date", nowDate);
+      put("status_id_list", statusIdList);
+    }};
+    return Optional.ofNullable(parameterJdbcTemplate.queryForObject(sql, params, Integer.class) > 0 ? nowDate : null);
+  }
+
+  @Override
+  public void setNewStatusByDateIntervalAndStatus(
+      Integer merchantId,
+      Integer currencyId,
+      LocalDateTime nowDate,
+      Integer intervalHours,
+      Integer newStatusId,
+      List<Integer> statusIdList) {
+    final String sql =
+        " UPDATE REFILL_REQUEST " +
+            " SET status_id = :status_id, " +
+            "     status_modification_date = :now_date " +
+            " WHERE " +
+            "   merchant_id = :merchant_id " +
+            "   AND currency_id = :currency_id" +
+            "   AND status_modification_date <= DATE_SUB(:now_date, INTERVAL " + intervalHours + " HOUR) " +
+            "   AND status_id IN (:status_id_list)";
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("merchant_id", merchantId);
+      put("currency_id", currencyId);
+      put("now_date", nowDate);
+      put("status_id", newStatusId);
+      put("status_id_list", statusIdList);
+    }};
+    parameterJdbcTemplate.update(sql, params);
+  }
+
+  @Override
+  public List<OperationUserDto> findInvoicesListByStatusChangedAtDate(
+      Integer merchantId,
+      Integer currencyId,
+      Integer statusId,
+      LocalDateTime dateWhenChanged) {
+    String sql =
+        " SELECT id, user_id " +
+            " FROM REFILL_REQUEST " +
+            " WHERE " +
+            "   merchant_id = :merchant_id " +
+            "   AND currency_id = :currency_id" +
+            "   AND status_modification_date = :date " +
+            "   AND status_id = :status_id";
+    final Map<String, Object> params = new HashMap<String, Object>() {{
+      put("merchant_id", merchantId);
+      put("currency_id", currencyId);
+      put("date", dateWhenChanged);
+      put("status_id", statusId);
+    }};
+    try {
+      return parameterJdbcTemplate.query(sql, params, (resultSet, i) -> {
+        OperationUserDto operationUserDto = new OperationUserDto();
+        operationUserDto.setUserId(resultSet.getInt("user_id"));
+        operationUserDto.setId(resultSet.getInt("id"));
+        return operationUserDto;
+      });
+    } catch (EmptyResultDataAccessException e) {
+      return Collections.EMPTY_LIST;
+    }
   }
 
 

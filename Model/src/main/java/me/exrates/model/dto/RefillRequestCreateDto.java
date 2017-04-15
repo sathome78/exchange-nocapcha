@@ -8,6 +8,7 @@ import me.exrates.model.CreditsOperation;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 
 import java.math.BigDecimal;
+import java.util.Locale;
 
 /**
  * @author ValkSam
@@ -32,16 +33,19 @@ public class RefillRequestCreateDto {
   private RefillStatusEnum status;
   private String recipientBankCode;
   private String recipientBankName;
+  private String recipient;
   private String userFullName;
   private String remark;
   private String address;
+  private Locale locale;
 
-  public RefillRequestCreateDto(RefillRequestParamsDto paramsDto,  CreditsOperation creditsOperation, RefillStatusEnum status) {
+  public RefillRequestCreateDto(RefillRequestParamsDto paramsDto,  CreditsOperation creditsOperation, RefillStatusEnum status, Locale locale) {
     this.currencyId = paramsDto.getCurrency();
     this.amount = paramsDto.getSum();
     this.merchantId = paramsDto.getMerchant();
     this.recipientBankCode = paramsDto.getRecipientBankCode();
     this.recipientBankName = paramsDto.getRecipientBankName();
+    this.recipient = paramsDto.getRecipient();
     this.userFullName = paramsDto.getUserFullName();
     this.remark = paramsDto.getRemark();
     this.address = paramsDto.getAddress();
@@ -58,5 +62,7 @@ public class RefillRequestCreateDto {
     /**/
     this.amountWithCommission = this.amount.add(this.commission);
     this.status = status;
+    /**/
+    this.locale = locale;
   }
 }

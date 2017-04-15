@@ -23,4 +23,6 @@ public interface RefillService {
   List<InvoiceBank> findBanksForCurrency(Integer currencyId);
 
   Map<String, String> correctAmountAndCalculateCommission(BigDecimal amount, String currency, String merchant);
+
+  Integer clearExpiredInvoices() throws Exception;
 }

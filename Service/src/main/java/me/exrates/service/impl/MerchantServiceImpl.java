@@ -5,6 +5,7 @@ import me.exrates.dao.MerchantDao;
 import me.exrates.dao.WithdrawRequestDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
+import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
@@ -384,6 +385,19 @@ public class MerchantServiceImpl implements MerchantService {
     merchantDao.setBlockForMerchant(merchantId, currencyId, operationType, blockStatus);
   }
 
+  @Override
+  @Transactional
+  public List<MerchantCurrencyLifetimeDto> getMerchantCurrencyWithRefillLifetime() {
+    return merchantDao.findMerchantCurrencyWithRefillLifetime();
+  }
+
+  @Override
+  @Transactional
+  public MerchantCurrencyLifetimeDto getMerchantCurrencyLifetimeByMerchantIdAndCurrencyId(
+      Integer merchantId,
+      Integer currencyId) {
+    return merchantDao.findMerchantCurrencyLifetimeByMerchantIdAndCurrencyId(merchantId, currencyId);
+  }
 
   private void checkMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType) {
     boolean isBlocked = merchantDao.checkMerchantBlock(merchantId, currencyId, operationType);

@@ -6,6 +6,7 @@ import me.exrates.model.Merchant;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.MerchantImage;
 import me.exrates.model.dto.MerchantCurrencyAutoParamDto;
+import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.MerchantImageShortenedDto;
@@ -13,14 +14,13 @@ import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.UserRole;
-import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
-import me.exrates.model.enums.invoice.InvoiceStatus;
-import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -28,14 +28,11 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Stream;
-
-import static me.exrates.model.enums.TransactionSourceType.BTC_INVOICE;
-import static me.exrates.model.enums.TransactionSourceType.INVOICE;
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CONFIRM_USER;
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.REVOKE;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -45,7 +42,10 @@ import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.REVOKE;
 public class MerchantDaoImpl implements MerchantDao {
 
   @Autowired
-  private NamedParameterJdbcTemplate jdbcTemplate;
+  private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
+  @Autowired
+  private JdbcTemplate jdbcTemplate;
 
   @Autowired
   MessageSource messageSource;
@@ -57,7 +57,7 @@ public class MerchantDaoImpl implements MerchantDao {
     MapSqlParameterSource params = new MapSqlParameterSource()
         .addValue("description", merchant.getDescription())
         .addValue("name", merchant.getName());
-    if (jdbcTemplate.update(sql, params, keyHolder) > 0) {
+    if (namedParameterJdbcTemplate.update(sql, params, keyHolder) > 0) {
       merchant.setId(keyHolder.getKey().intValue());
       return merchant;
     }
@@ -72,20 +72,20 @@ public class MerchantDaoImpl implements MerchantDao {
         put("id", id);
       }
     };
-    return jdbcTemplate.queryForObject(sql, params, new BeanPropertyRowMapper<>(Merchant.class));
+    return namedParameterJdbcTemplate.queryForObject(sql, params, new BeanPropertyRowMapper<>(Merchant.class));
   }
 
   @Override
   public Merchant findByName(String name) {
     final String sql = "SELECT * FROM MERCHANT WHERE name = :name";
     final Map<String, String> params = Collections.singletonMap("name", name);
-    return jdbcTemplate.queryForObject(sql, params, new BeanPropertyRowMapper<>(Merchant.class));
+    return namedParameterJdbcTemplate.queryForObject(sql, params, new BeanPropertyRowMapper<>(Merchant.class));
   }
 
   @Override
   public List<Merchant> findAll() {
     final String sql = "SELECT * FROM MERCHANT";
-    return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Merchant.class));
+    return namedParameterJdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Merchant.class));
   }
 
 
@@ -98,7 +98,7 @@ public class MerchantDaoImpl implements MerchantDao {
       }
     };
     try {
-      return jdbcTemplate.query(sql, params, (resultSet, i) -> {
+      return namedParameterJdbcTemplate.query(sql, params, (resultSet, i) -> {
         Merchant merchant = new Merchant();
         merchant.setDescription(resultSet.getString("description"));
         merchant.setId(resultSet.getInt("id"));
@@ -119,7 +119,7 @@ public class MerchantDaoImpl implements MerchantDao {
         put("currency", currency);
       }
     };
-    return jdbcTemplate.queryForObject(sql, params, BigDecimal.class);
+    return namedParameterJdbcTemplate.queryForObject(sql, params, BigDecimal.class);
   }
 
   @Override
@@ -140,7 +140,7 @@ public class MerchantDaoImpl implements MerchantDao {
         " order by MERCHANT.merchant_order";
 
     try {
-      return jdbcTemplate.query(sql, Collections.singletonMap("currenciesId", currenciesId), (resultSet, i) -> {
+      return namedParameterJdbcTemplate.query(sql, Collections.singletonMap("currenciesId", currenciesId), (resultSet, i) -> {
         MerchantCurrency merchantCurrency = new MerchantCurrency();
         merchantCurrency.setMerchantId(resultSet.getInt("merchant_id"));
         merchantCurrency.setName(resultSet.getString("name"));
@@ -156,7 +156,7 @@ public class MerchantDaoImpl implements MerchantDao {
         Map<String, Integer> params = new HashMap<String, Integer>();
         params.put("merchant_id", resultSet.getInt("merchant_id"));
         params.put("currency_id", resultSet.getInt("currency_id"));
-        merchantCurrency.setListMerchantImage(jdbcTemplate.query(sqlInner, params, new BeanPropertyRowMapper<>(MerchantImage.class)));
+        merchantCurrency.setListMerchantImage(namedParameterJdbcTemplate.query(sqlInner, params, new BeanPropertyRowMapper<>(MerchantImage.class)));
         return merchantCurrency;
       });
     } catch (EmptyResultDataAccessException e) {
@@ -184,7 +184,7 @@ public class MerchantDaoImpl implements MerchantDao {
     }};
 
     try {
-      return jdbcTemplate.query(sql, paramMap, (resultSet, i) -> {
+      return namedParameterJdbcTemplate.query(sql, paramMap, (resultSet, i) -> {
         MerchantCurrencyApiDto merchantCurrencyApiDto = new MerchantCurrencyApiDto();
         merchantCurrencyApiDto.setMerchantId(resultSet.getInt("merchant_id"));
         merchantCurrencyApiDto.setCurrencyId(resultSet.getInt("currency_id"));
@@ -201,7 +201,7 @@ public class MerchantDaoImpl implements MerchantDao {
         Map<String, Integer> params = new HashMap<String, Integer>();
         params.put("merchant_id", resultSet.getInt("merchant_id"));
         params.put("currency_id", resultSet.getInt("currency_id"));
-        merchantCurrencyApiDto.setListMerchantImage(jdbcTemplate.query(sqlInner, params, new BeanPropertyRowMapper<>(MerchantImageShortenedDto.class)));
+        merchantCurrencyApiDto.setListMerchantImage(namedParameterJdbcTemplate.query(sqlInner, params, new BeanPropertyRowMapper<>(MerchantImageShortenedDto.class)));
         return merchantCurrencyApiDto;
       });
     } catch (EmptyResultDataAccessException e) {
@@ -220,7 +220,7 @@ public class MerchantDaoImpl implements MerchantDao {
         "JOIN MERCHANT_CURRENCY ON MERCHANT.id = MERCHANT_CURRENCY.merchant_id " +
         "JOIN CURRENCY ON MERCHANT_CURRENCY.currency_id = CURRENCY.id AND CURRENCY.hidden != 1 " +
         "ORDER BY merchant_id, currency_id";
-    return jdbcTemplate.query(sql, (rs, rowNum) -> {
+    return namedParameterJdbcTemplate.query(sql, (rs, rowNum) -> {
       MerchantCurrencyOptionsDto dto = new MerchantCurrencyOptionsDto();
       dto.setMerchantId(rs.getInt("merchant_id"));
       dto.setCurrencyId(rs.getInt("currency_id"));
@@ -276,7 +276,7 @@ public class MerchantDaoImpl implements MerchantDao {
     final Map<String, Object> params = new HashMap<>();
     params.put("email", email);
     params.put("operation_type_id_list", operationTypeIdList);
-    return jdbcTemplate.query(sql, params, (rs, i) -> {
+    return namedParameterJdbcTemplate.query(sql, params, (rs, i) -> {
       MyInputOutputHistoryDto myInputOutputHistoryDto = new MyInputOutputHistoryDto();
       myInputOutputHistoryDto.setDatetime(rs.getTimestamp("datetime").toLocalDateTime());
       myInputOutputHistoryDto.setCurrencyName(rs.getString("currency"));
@@ -327,7 +327,7 @@ public class MerchantDaoImpl implements MerchantDao {
     Map<String, Object> params = new HashMap<String, Object>();
     params.put("merchantId", merchantId);
     params.put("email", email);
-    return jdbcTemplate.queryForObject(sql, params, Integer.class);
+    return namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class);
   }
 
   @Override
@@ -338,7 +338,7 @@ public class MerchantDaoImpl implements MerchantDao {
     Map<String, Integer> params = new HashMap<>();
     params.put("merchant_id", merchantId);
     params.put("currency_id", currencyId);
-    jdbcTemplate.update(sql, params);
+    namedParameterJdbcTemplate.update(sql, params);
   }
 
   @Override
@@ -346,7 +346,7 @@ public class MerchantDaoImpl implements MerchantDao {
     String blockField = resolveBlockFieldByOperationType(operationType);
     String sql = "UPDATE MERCHANT_CURRENCY SET " + blockField + " = :block";
     Map<String, Integer> params = Collections.singletonMap("block", blockStatus ? 1 : 0);
-    jdbcTemplate.update(sql, params);
+    namedParameterJdbcTemplate.update(sql, params);
   }
 
   @Override
@@ -358,7 +358,7 @@ public class MerchantDaoImpl implements MerchantDao {
     params.put("block", blockStatus ? 1 : 0);
     params.put("merchant_id", merchantId);
     params.put("currency_id", currencyId);
-    jdbcTemplate.update(sql, params);
+    namedParameterJdbcTemplate.update(sql, params);
   }
 
   @Override
@@ -369,7 +369,7 @@ public class MerchantDaoImpl implements MerchantDao {
     Map<String, Integer> params = new HashMap<>();
     params.put("merchant_id", merchantId);
     params.put("currency_id", currencyId);
-    return jdbcTemplate.queryForObject(sql, params, Boolean.class);
+    return namedParameterJdbcTemplate.queryForObject(sql, params, Boolean.class);
   }
 
   private String resolveBlockFieldByOperationType(OperationType operationType) {
@@ -407,7 +407,7 @@ public class MerchantDaoImpl implements MerchantDao {
       put("merchant_id", merchantId);
       put("currency_id", currencyId);
     }};
-    jdbcTemplate.update(sql, params);
+    namedParameterJdbcTemplate.update(sql, params);
   }
 
   @Override
@@ -422,7 +422,7 @@ public class MerchantDaoImpl implements MerchantDao {
       put("merchant_id", merchantId);
       put("currency_id", currencyId);
     }};
-    return jdbcTemplate.queryForObject(sql, params, (resultSet, i) -> {
+    return namedParameterJdbcTemplate.queryForObject(sql, params, (resultSet, i) -> {
       MerchantCurrencyAutoParamDto dto = new MerchantCurrencyAutoParamDto();
       dto.setWithdrawAutoEnabled(resultSet.getBoolean("withdraw_auto_enabled"));
       dto.setWithdrawAutoThresholdAmount(resultSet.getBigDecimal("withdraw_auto_threshold_amount"));
@@ -431,5 +431,37 @@ public class MerchantDaoImpl implements MerchantDao {
     });
   }
 
+  @Override
+  public List<MerchantCurrencyLifetimeDto> findMerchantCurrencyWithRefillLifetime() {
+    String sql = "SELECT currency_id, merchant_id, refill_lifetime_hours " +
+        " FROM MERCHANT_CURRENCY " +
+        " WHERE refill_lifetime_hours IS NOT NULL ";
+    return jdbcTemplate.query(sql, (rs, i) -> {
+      MerchantCurrencyLifetimeDto result =  new MerchantCurrencyLifetimeDto();
+      result.setCurrencyId(rs.getInt("currency_id"));
+      result.setMerchantId(rs.getInt("merchant_id"));
+      result.setRefillLifetimeHours(rs.getInt("refill_lifetime_hours"));
+      return result;
+    });
+  }
 
+  @Override
+  public MerchantCurrencyLifetimeDto findMerchantCurrencyLifetimeByMerchantIdAndCurrencyId(Integer merchantId, Integer currencyId) {
+    String sql = "SELECT currency_id, merchant_id, refill_lifetime_hours " +
+        " FROM MERCHANT_CURRENCY " +
+        " WHERE " +
+        "   merchant_id = :merchant_id " +
+        "   AND currency_id = :currency_id";
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("merchant_id", merchantId);
+      put("currency_id", currencyId);
+    }};
+    return namedParameterJdbcTemplate.queryForObject(sql, params, (rs, i) -> {
+      MerchantCurrencyLifetimeDto result =  new MerchantCurrencyLifetimeDto();
+      result.setCurrencyId(rs.getInt("currency_id"));
+      result.setMerchantId(rs.getInt("merchant_id"));
+      result.setRefillLifetimeHours(rs.getInt("refill_lifetime_hours"));
+      return result;
+    });
+  }
 }

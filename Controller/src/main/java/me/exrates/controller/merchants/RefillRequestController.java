@@ -74,7 +74,7 @@ public class RefillRequestController {
     payment.setSum(requestParamsDto.getSum().doubleValue());
     CreditsOperation creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName())
         .orElseThrow(InvalidAmountException::new);
-    RefillRequestCreateDto request = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus);
+    RefillRequestCreateDto request = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
     return refillService.createRefillRequest(request, locale);
   }
 
