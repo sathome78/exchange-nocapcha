@@ -9,7 +9,6 @@ import me.exrates.model.dto.RefillRequestParamsDto;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
-import me.exrates.service.CommissionService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.UserService;
@@ -59,14 +58,8 @@ public class RefillRequestController {
   @Autowired
   MerchantService merchantService;
 
-  @Autowired
-  private CommissionService commissionService;
-
   @RequestMapping(value = "/refill/request/create", method = POST)
   @ResponseBody
-  Для IDR случ сумму добавить
-  Для BTC - создание
-  Для EDC - создание
   public Map<String, String> createRefillRequest(
       @RequestBody RefillRequestParamsDto requestParamsDto,
       Principal principal,
@@ -98,7 +91,7 @@ public class RefillRequestController {
       @RequestParam("amount") BigDecimal amount,
       @RequestParam("currency") String currency,
       @RequestParam("merchant") String merchant) {
-    return commissionService.computeCommissionAndMapAllToString(amount, INPUT, currency, merchant);
+    return refillService.correctAmountAndCalculateCommission(amount, currency, merchant);
   }
 
   @ResponseStatus(HttpStatus.NOT_FOUND)

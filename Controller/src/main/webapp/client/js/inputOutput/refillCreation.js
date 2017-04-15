@@ -227,9 +227,17 @@ $(function refillCreation() {
             contentType: "application/json",
             data: {"amount": amount, "currency": currencyName, "merchant": merchantName}
         }).success(function (response) {
+            amount = response['amount'];
             commissionPercent = response['commission'];
             commissionAmount = response['commissionAmount'];
-            totalAmount = response['amount'];
+            totalAmount = response['totalAmount'];
+            var additional = response['addition'];
+            $refillDetailedParamsDialog.find("#additional").html(additional);
+            if (additional != 0) {
+                $refillDetailedParamsDialog.find("#additional-wrapper").show();
+            } else {
+                $refillDetailedParamsDialog.find("#additional-wrapper").hide();
+            }
             if (callback) {
                 callback();
             }

@@ -8,11 +8,9 @@ import me.exrates.model.Payment;
 import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.dto.WithdrawRequestParamsDto;
 import me.exrates.model.dto.WithdrawRequestsAdminTableDto;
-import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
-import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.*;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
@@ -25,15 +23,11 @@ import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.view.RedirectView;
-import org.springframework.web.util.WebUtils;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.security.Principal;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -81,10 +75,7 @@ public class WithdrawRequestController {
     CreditsOperation creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName())
         .orElseThrow(InvalidAmountException::new);
     WithdrawRequestCreateDto withdrawRequestCreateDto = new WithdrawRequestCreateDto(requestParamsDto, creditsOperation, beginStatus);
-    Map<String, String> result = withdrawService.createWithdrawalRequest(withdrawRequestCreateDto, locale);
-    return new HashMap<String, String>() {{
-      put("message", result.get("success"));
-    }};
+    return withdrawService.createWithdrawalRequest(withdrawRequestCreateDto, locale);
   }
 
   @RequestMapping(value = "/withdraw/request/revoke", method = POST)
@@ -107,7 +98,7 @@ public class WithdrawRequestController {
       @RequestParam("amount") BigDecimal amount,
       @RequestParam("currency") String currency,
       @RequestParam("merchant") String merchant) {
-    return commissionService.computeCommissionAndMapAllToString(amount, OUTPUT, currency, merchant);
+    return withdrawService.correctAmountAndCalculateCommission(amount, currency, merchant);
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/withdraw/take", method = POST)

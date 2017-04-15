@@ -118,9 +118,10 @@ public class CommissionServiceImpl implements CommissionService {
     }
     final BigDecimal resultAmount = type != OUTPUT ? amount.add(commissionAmount).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP) :
         amount.subtract(commissionAmount).setScale(currencyService.resolvePrecision(currency), ROUND_DOWN);
+    result.put("amount", amount.toString());
     result.put("commission", commissionString);
     result.put("commissionAmount", currencyService.amountToString(commissionAmount, currency));
-    result.put("amount", currencyService.amountToString(resultAmount, currency));
+    result.put("totalAmount", currencyService.amountToString(resultAmount, currency));
     return result;
   }
 

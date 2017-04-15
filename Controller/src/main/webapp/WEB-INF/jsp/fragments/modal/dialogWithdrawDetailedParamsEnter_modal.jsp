@@ -108,21 +108,26 @@
           <div class="row">
           <div class="col-md-6 col-md-offset-3">
           <div class="row">
+            <div id="additional-wrapper"
+                 class="credits-operation-info__item clearfix">
+              <div class="col-md-6"><loc:message code="merchants.addition"/></div>
+              <div class="col-md-6 right"><span id="additional"></span> <span class="currency"></span></div>
+            </div>
             <div class="credits-operation-info__item clearfix">
               <div class="col-md-6"><loc:message code="merchants.withdrawDetails.inputFinalSum"/></div>
-              <div class="col-md-6"><span id="amount"></span> <span class="currency"></span></div>
+              <div class="col-md-6 right"><span id="amount"></span> <span class="currency"></span></div>
             </div>
             <div class="credits-operation-info__item clearfix">
               <div class="col-md-6"><loc:message code="transaction.commission"/></div>
-              <div class="col-md-6"><span id="commission-percent"></span></div>
+              <div class="col-md-6 right"><span id="commission-percent"></span></div>
             </div>
             <div class="credits-operation-info__item clearfix">
               <div class="col-md-6"><loc:message code="transaction.commissionAmount"/></div>
-              <div class="col-md-6"><span id="commission-amount"></span> <span class="currency"></span></div>
+              <div class="col-md-6 right"><span id="commission-amount"></span> <span class="currency"></span></div>
             </div>
             <div class="credits-operation-info__item clearfix">
               <div class="col-md-6"><loc:message code="merchants.withdrawDetails.outputFinalSum"/></div>
-              <div class="col-md-6"><span id="total-amount"></span> <span class="currency"></span></div>
+              <div class="col-md-6 right"><span id="total-amount"></span> <span class="currency"></span></div>
             </div>
           </div>
           </div>

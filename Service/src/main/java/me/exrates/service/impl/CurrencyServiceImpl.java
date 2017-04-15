@@ -212,6 +212,17 @@ public class CurrencyServiceImpl implements CurrencyService {
     Integer userRoleId = userService.getUserRoleFromSecurityContext().getRole();
     return currencyDao.findAllCurrencyPairsWithLimits(userRoleId);
   }
+
+  @Override
+  public BigDecimal computeRandomizedAddition(String currencyName, OperationType operationType) {
+    Optional<OperationType.AdditionalRandomAmountParam> randomAmountParam = operationType.getRandomAmountParam(currencyName);
+    if (!randomAmountParam.isPresent()){
+      return BigDecimal.ZERO;
+    } else {
+      OperationType.AdditionalRandomAmountParam param = randomAmountParam.get();
+      return  BigDecimal.valueOf(Math.random() * (param.highBound - param.lowBound) + param.lowBound).setScale(0, BigDecimal.ROUND_DOWN);
+    }
+  }
   
   
 }

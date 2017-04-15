@@ -41,8 +41,6 @@ public interface MerchantService {
 
   Map<String, String> formatResponseMessage(Transaction transaction);
 
-  Optional<CreditsOperation> prepareCreditsOperation(Payment payment, BigDecimal addition, String userEmail);
-
   Optional<CreditsOperation> prepareCreditsOperation(Payment payment, String userEmail);
 
   List<MyInputOutputHistoryDto> getMyInputOutputHistory(String email, Integer offset, Integer limit, Locale locale);

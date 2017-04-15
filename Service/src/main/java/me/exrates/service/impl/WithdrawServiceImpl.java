@@ -37,7 +37,9 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.math.BigDecimal.ZERO;
 import static java.util.Collections.EMPTY_LIST;
+import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.OperationType.OUTPUT;
 import static me.exrates.model.enums.UserCommentTopicEnum.WITHDRAW_DECLINE;
 import static me.exrates.model.enums.UserCommentTopicEnum.WITHDRAW_POSTED;
@@ -85,6 +87,9 @@ public class WithdrawServiceImpl implements WithdrawService {
 
   @Autowired
   MerchantServiceContext merchantServiceContext;
+
+  @Autowired
+  private CommissionService commissionService;
 
   @Override
   @Transactional
@@ -145,7 +150,7 @@ public class WithdrawServiceImpl implements WithdrawService {
       String currency = request.getCurrencyName();
       String balance = currency + " " + currencyService.amountToString(newAmount, currency);
       Map<String, String> result = new HashMap<>();
-      result.put("success", notification);
+      result.put("message", notification);
       result.put("balance", balance);
       profileData.setTime3();
       return result;
@@ -435,6 +440,17 @@ public class WithdrawServiceImpl implements WithdrawService {
   @Transactional(readOnly = true)
   public List<ClientBank> findClientBanksForCurrency(Integer currencyId) {
     return withdrawRequestDao.findClientBanksForCurrency(currencyId);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Map<String, String> correctAmountAndCalculateCommission(BigDecimal amount, String currency, String merchant) {
+    OperationType operationType = OUTPUT;
+    BigDecimal addition = currencyService.computeRandomizedAddition(currency, operationType);
+    amount = amount.add(addition);
+    Map<String, String> result = commissionService.computeCommissionAndMapAllToString(amount, operationType, currency, merchant);
+    result.put("addition", addition.toString());
+    return result;
   }
 
   private WithdrawRequestFlatDto postWithdrawal(int requestId, Integer requesterAdminId) {

@@ -251,9 +251,17 @@ $(function withdrawCreation() {
             contentType: "application/json",
             data: {"amount": amount, "currency": currencyName, "merchant": merchantName}
         }).success(function (response) {
+            amount = response['amount'];
             commissionPercent = response['commission'];
             commissionAmount = response['commissionAmount'];
-            totalAmount = response['amount'];
+            totalAmount = response['totalAmount'];
+            var additional = response['addition'];
+            $withdrawDetailedParamsDialog.find("#additional").html(additional);
+            if (additional != 0) {
+                $withdrawDetailedParamsDialog.find("#additional-wrapper").show();
+            } else {
+                $withdrawDetailedParamsDialog.find("#additional-wrapper").hide();
+            }
             if (callback) {
                 callback();
             }

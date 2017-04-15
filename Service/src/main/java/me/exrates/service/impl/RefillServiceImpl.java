@@ -7,6 +7,7 @@ import me.exrates.model.Merchant;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawRequestFlatDto;
 import me.exrates.model.enums.NotificationEvent;
+import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
@@ -25,10 +26,13 @@ import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import static java.math.BigDecimal.ZERO;
+import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
 
 /**
@@ -71,7 +75,7 @@ public class RefillServiceImpl implements RefillService {
   MerchantServiceContext merchantServiceContext;
 
   @Autowired
-  private MerchantService merchantService;
+  private CommissionService commissionService;
 
   @Override
   @Transactional
@@ -111,6 +115,17 @@ public class RefillServiceImpl implements RefillService {
   @Transactional(readOnly = true)
   public List<InvoiceBank> findBanksForCurrency(Integer currencyId) {
     return refillRequestDao.findInvoiceBanksByCurrency(currencyId);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Map<String, String> correctAmountAndCalculateCommission(BigDecimal amount, String currency, String merchant) {
+    OperationType operationType = INPUT;
+    BigDecimal addition = currencyService.computeRandomizedAddition(currency, operationType);
+    amount = amount.add(addition);
+    Map<String, String> result = commissionService.computeCommissionAndMapAllToString(amount, operationType, currency, merchant);
+    result.put("addition", addition.toString());
+    return result;
   }
 
   private String sendRefillNotification(

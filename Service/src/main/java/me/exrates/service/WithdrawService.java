@@ -9,6 +9,7 @@ import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.vo.CacheData;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -56,4 +57,6 @@ public interface WithdrawService {
   void setAllAvailableInPostingStatus();
 
   List<WithdrawRequestPostDto> dirtyReadForPostByStatusList(InvoiceStatus status);
+
+  Map<String, String> correctAmountAndCalculateCommission(BigDecimal amount, String currency, String merchant);
 }

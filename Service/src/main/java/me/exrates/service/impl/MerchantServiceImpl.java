@@ -274,15 +274,14 @@ public class MerchantServiceImpl implements MerchantService {
   }
 
   @Override
-  public Optional<CreditsOperation> prepareCreditsOperation(Payment payment, BigDecimal addition, String userEmail) {
+  public Optional<CreditsOperation> prepareCreditsOperation(Payment payment, String userEmail) {
     checkMerchantBlock(payment.getMerchant(), payment.getCurrency(), payment.getOperationType());
-    final OperationType operationType = payment.getOperationType();
-    BigDecimal amount = valueOf(payment.getSum()).add(addition);
-    //Addition of three digits is required for IDR input
-    final Merchant merchant = merchantDao.findById(payment.getMerchant());
-    final Currency currency = currencyService.findById(payment.getCurrency());
-    final String destination = payment.getDestination();
-    final MerchantImage merchantImage = new MerchantImage();
+    OperationType operationType = payment.getOperationType();
+    BigDecimal amount = valueOf(payment.getSum());
+    Merchant merchant = merchantDao.findById(payment.getMerchant());
+    Currency currency = currencyService.findById(payment.getCurrency());
+    String destination = payment.getDestination();
+    MerchantImage merchantImage = new MerchantImage();
     merchantImage.setId(payment.getMerchantImage());
     try {
       if (!isPayable(merchant, currency, amount)) {
@@ -294,23 +293,23 @@ public class MerchantServiceImpl implements MerchantService {
           "Input" : "Output");
       throw new UnsupportedMerchantException(exceptionMessage);
     }
-    final User user = userService.findByEmail(userEmail);
-    final Commission commissionByType = commissionService.findCommissionByTypeAndRole(operationType, user.getRole());
-    final BigDecimal commissionMerchant = commissionService.getCommissionMerchant(merchant.getName(), currency.getName(), operationType);
-    final BigDecimal commissionTotal = commissionByType.getValue().add(commissionMerchant)
+    User user = userService.findByEmail(userEmail);
+    Commission commissionByType = commissionService.findCommissionByTypeAndRole(operationType, user.getRole());
+    BigDecimal commissionMerchant = commissionService.getCommissionMerchant(merchant.getName(), currency.getName(), operationType);
+    BigDecimal commissionTotal = commissionByType.getValue().add(commissionMerchant)
         .setScale(currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP);
     BigDecimal commissionAmount =
         commissionTotal
             .multiply(amount)
             .divide(valueOf(100), currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP);
     commissionAmount = correctForMerchantFixedCommission(merchant.getName(), currency.getName(), operationType, commissionAmount);
-    final Wallet wallet = walletService.findByUserAndCurrency(user, currency);
-    final BigDecimal newAmount = payment.getOperationType() == INPUT ?
+    Wallet wallet = walletService.findByUserAndCurrency(user, currency);
+    BigDecimal newAmount = payment.getOperationType() == INPUT ?
         amount :
         amount.subtract(commissionAmount).setScale(currencyService.resolvePrecision(currency.getName()), ROUND_DOWN);
     TransactionSourceType transactionSourceType = operationType == OUTPUT ? TransactionSourceType.WITHDRAW :
         TransactionSourceType.convert(merchant.getTransactionSourceTypeId());
-    final CreditsOperation creditsOperation = new CreditsOperation.Builder()
+    CreditsOperation creditsOperation = new CreditsOperation.Builder()
         .fullAmount(amount)
         .amount(newAmount)
         .commissionAmount(commissionAmount)
@@ -325,10 +324,6 @@ public class MerchantServiceImpl implements MerchantService {
         .transactionSourceType(transactionSourceType)
         .build();
     return Optional.of(creditsOperation);
-  }
-
-  public Optional<CreditsOperation> prepareCreditsOperation(Payment payment, String userEmail) {
-    return prepareCreditsOperation(payment, BigDecimal.ZERO, userEmail);
   }
 
   private BigDecimal correctForMerchantFixedCommission(String merchantName, String currencyName, OperationType operationType, BigDecimal commissionAmount) {

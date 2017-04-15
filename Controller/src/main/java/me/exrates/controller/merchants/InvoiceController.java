@@ -76,50 +76,6 @@ public class InvoiceController {
   @Autowired
   RefillService refillService;
 
-  @RequestMapping(value = "/preSubmit", method = POST)
-  public RedirectView preSubmit(final Payment payment, final Principal principal,
-                                RedirectAttributes redirectAttributes,
-                                HttpServletRequest request) {
-    log.debug(payment);
-    RedirectView redirectView = new RedirectView("/merchants/invoice/details");
-
-    if (!merchantService.checkInputRequestsLimit(payment.getMerchant(), principal.getName())) {
-      redirectAttributes.addFlashAttribute("error", "merchants.InputRequestsLimit");
-      return redirectView;
-    }
-    if (/*payment.getCurrency() == 10 || */payment.getCurrency() == 12 || payment.getCurrency() == 13) {
-      redirectAttributes.addFlashAttribute("error", "merchants.withoutInvoiceWallet");
-      return redirectView;
-    }
-    BigDecimal addition = computeRandomizedAdditionForIdr(payment);
-
-    Optional<CreditsOperation> creditsOperationPrepared = merchantService
-        .prepareCreditsOperation(payment, addition, principal.getName());
-    if (!creditsOperationPrepared.isPresent()) {
-      redirectAttributes.addFlashAttribute("error", "merchants.incorrectPaymentDetails");
-    } else {
-      CreditsOperation creditsOperation = creditsOperationPrepared.get();
-      log.debug(creditsOperation);
-      HttpSession session = request.getSession();
-      Object mutex = WebUtils.getSessionMutex(session);
-      synchronized (mutex) {
-        session.setAttribute("creditsOperation", creditsOperation);
-        session.setAttribute("addition", addition);
-      }
-    }
-    return redirectView;
-  }
-
-  private BigDecimal computeRandomizedAdditionForIdr(Payment payment) {
-    BigDecimal addition;
-    if (payment.getCurrency() == 10) {
-      addition = BigDecimal.valueOf(Math.random() * 899 + 100).setScale(0, BigDecimal.ROUND_DOWN);
-    } else {
-      addition = BigDecimal.ZERO;
-    }
-    return addition;
-  }
-
   @RequestMapping(value = "/details", method = GET)
   public ModelAndView invoiceDetails(HttpServletRequest request) {
     ModelAndView modelAndView = new ModelAndView("/globalPages/invoiceDetails");
