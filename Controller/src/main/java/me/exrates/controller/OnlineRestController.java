@@ -113,6 +113,9 @@ public class OnlineRestController {
   @Autowired
   WithdrawService withdrawService;
 
+  @Autowired
+  InputOutputService inputOutputService;
+
   @RequestMapping(value = "/dashboard/commission/{type}", method = RequestMethod.GET)
   public BigDecimal getCommissions(@PathVariable("type") String type) {
     UserRole userRole = userService.getUserRoleFromSecurityContext();
@@ -814,7 +817,7 @@ public class OnlineRestController {
     String cacheKey = "myInputoutputData" + tableId + request.getHeader("windowid");
     refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
     CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
-    List<MyInputOutputHistoryDto> result = withdrawService.getMyInputOutputHistory(cacheData, email, tableParams.getOffset(), tableParams.getLimit(), localeResolver.resolveLocale(request));
+    List<MyInputOutputHistoryDto> result = inputOutputService.getMyInputOutputHistory(cacheData, email, tableParams.getOffset(), tableParams.getLimit(), localeResolver.resolveLocale(request));
     if (!result.isEmpty()) {
       result.get(0).setPage(tableParams.getPageNumber());
     }

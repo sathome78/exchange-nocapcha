@@ -3,25 +3,26 @@ package me.exrates.service.impl;
 import me.exrates.dao.MerchantDao;
 import me.exrates.dao.WithdrawRequestDao;
 import me.exrates.model.*;
-import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
-import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.*;
-import me.exrates.model.enums.invoice.*;
+import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
+import me.exrates.model.enums.invoice.InvoiceOperationPermission;
+import me.exrates.model.enums.invoice.InvoiceStatus;
+import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
-import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.TransactionDescription;
 import me.exrates.model.vo.WalletOperationData;
-import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.*;
-import me.exrates.service.exception.*;
+import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
+import me.exrates.service.exception.WithdrawRequestCreationException;
+import me.exrates.service.exception.WithdrawRequestPostException;
+import me.exrates.service.exception.WithdrawRequestRevokeException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
-import me.exrates.service.util.Cache;
 import me.exrates.service.vo.ProfileData;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -34,19 +35,18 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 
-import static java.math.BigDecimal.ZERO;
-import static java.util.Collections.EMPTY_LIST;
-import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.OperationType.OUTPUT;
 import static me.exrates.model.enums.UserCommentTopicEnum.WITHDRAW_DECLINE;
 import static me.exrates.model.enums.UserCommentTopicEnum.WITHDRAW_POSTED;
 import static me.exrates.model.enums.WalletTransferStatus.SUCCESS;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.*;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
-import static me.exrates.model.enums.invoice.PendingPaymentStatusEnum.ON_BCH_EXAM;
 import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 
 /**
@@ -90,6 +90,9 @@ public class WithdrawServiceImpl implements WithdrawService {
 
   @Autowired
   private CommissionService commissionService;
+
+  @Autowired
+  InputOutputService inputOutputService;
 
   @Override
   @Transactional
@@ -226,7 +229,7 @@ public class WithdrawServiceImpl implements WithdrawService {
     output.setData(result.getData().stream()
         .map(e -> new WithdrawRequestsAdminTableDto(e, withdrawRequestDao.getAdditionalDataForId(e.getId())))
         .peek(e -> e.setButtons(
-            generateAndGetButtonsSet(
+            inputOutputService.generateAndGetButtonsSet(
                 e.getStatus(),
                 e.getInvoiceOperationPermission(),
                 authorizedUserId.equals(e.getAdminHolderId()),
@@ -249,53 +252,6 @@ public class WithdrawServiceImpl implements WithdrawService {
         authorizedUserId);
     DataTable<List<WithdrawRequestsAdminTableDto>> output = new DataTable<>();
     return new WithdrawRequestsAdminTableDto(withdraw, withdrawRequestDao.getAdditionalDataForId(withdraw.getId()));
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<MyInputOutputHistoryDto> getMyInputOutputHistory(
-      CacheData cacheData,
-      String email,
-      Integer offset, Integer limit,
-      Locale locale) {
-    List<Integer> operationTypeList = OperationType.getInputOutputOperationsList()
-        .stream()
-        .map(OperationType::getType)
-        .collect(Collectors.toList());
-    List<MyInputOutputHistoryDto> result = withdrawRequestDao.findMyInputOutputHistoryByOperationType(email, offset, limit, operationTypeList, locale);
-    if (Cache.checkCache(cacheData, result)) {
-      result = new ArrayList<MyInputOutputHistoryDto>() {{
-        add(new MyInputOutputHistoryDto(false));
-      }};
-    } else {
-      result.forEach(e ->
-      {
-        e.setSummaryStatus(generateAndGetSummaryStatus(e, locale));
-        e.setButtons(generateAndGetButtonsSet(e.getStatus(), null, false, locale));
-        e.setAuthorisedUserId(e.getUserId());
-      });
-    }
-    return result;
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public List<MyInputOutputHistoryDto> getMyInputOutputHistory(
-      String email,
-      Integer offset, Integer limit,
-      Locale locale) {
-    List<Integer> operationTypeList = OperationType.getInputOutputOperationsList()
-        .stream()
-        .map(OperationType::getType)
-        .collect(Collectors.toList());
-    List<MyInputOutputHistoryDto> result = withdrawRequestDao.findMyInputOutputHistoryByOperationType(email, offset, limit, operationTypeList, locale);
-    result.forEach(e ->
-    {
-      e.setSummaryStatus(generateAndGetSummaryStatus(e, locale));
-      e.setButtons(generateAndGetButtonsSet(e.getStatus(), null, false, locale));
-      e.setAuthorisedUserId(e.getUserId());
-    });
-    return result;
   }
 
   @Override
@@ -556,45 +512,6 @@ public class WithdrawServiceImpl implements WithdrawService {
     notificationService.notifyUser(withdrawRequest.getUserEmail(), NotificationEvent.IN_OUT,
         "merchants.withdrawNotification.header", notificationMessageCode, messageParams);
     return notification;
-  }
-
-  private String generateAndGetSummaryStatus(MyInputOutputHistoryDto row, Locale locale) {
-    switch (row.getSourceType()) {
-      case INVOICE: {
-        InvoiceRequestStatusEnum status = (InvoiceRequestStatusEnum) row.getStatus();
-        return messageSource.getMessage("merchants.invoice.".concat(status.name()), null, locale);
-      }
-      case WITHDRAW: {
-        WithdrawStatusEnum status = (WithdrawStatusEnum) row.getStatus();
-        return messageSource.getMessage("merchants.withdraw.".concat(status.name()), null, locale);
-      }
-      case BTC_INVOICE: {
-        PendingPaymentStatusEnum status = (PendingPaymentStatusEnum) row.getStatus();
-        if (status == ON_BCH_EXAM) {
-          String confirmations = row.getConfirmation() == null ? "0" : row.getConfirmation().toString();
-          String message = confirmations.concat("/").concat(String.valueOf(BitcoinService.CONFIRMATION_NEEDED_COUNT));
-          return message;
-        } else {
-          return messageSource.getMessage("merchants.invoice.".concat(status.name()), null, locale);
-        }
-      }
-      default: {
-        return row.getTransactionProvided();
-      }
-    }
-  }
-
-  private List<Map<String, Object>> generateAndGetButtonsSet(
-      InvoiceStatus status,
-      InvoiceOperationPermission permittedOperation,
-      boolean authorisedUserIsHolder,
-      Locale locale) {
-    if (status == null) return EMPTY_LIST;
-    return status.getAvailableActionList(authorisedUserIsHolder, permittedOperation).stream()
-        .filter(e -> e.getActionTypeButton() != null)
-        .map(e -> new HashMap<String, Object>(e.getActionTypeButton().getProperty()))
-        .peek(e -> e.put("buttonTitle", messageSource.getMessage((String) e.get("buttonTitle"), null, locale)))
-        .collect(Collectors.toList());
   }
 
 

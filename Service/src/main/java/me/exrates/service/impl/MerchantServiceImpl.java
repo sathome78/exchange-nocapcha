@@ -16,10 +16,12 @@ import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
 import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
+import me.exrates.model.vo.CacheData;
 import me.exrates.service.*;
 import me.exrates.service.exception.MerchantCurrencyBlockedException;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.UnsupportedMerchantException;
+import me.exrates.service.util.Cache;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,12 +39,15 @@ import java.util.stream.Stream;
 import static java.math.BigDecimal.*;
 import static java.math.BigDecimal.valueOf;
 import static me.exrates.model.enums.OperationType.*;
+import static me.exrates.model.enums.invoice.PendingPaymentStatusEnum.ON_BCH_EXAM;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 @Service
 public class MerchantServiceImpl implements MerchantService {
+
+  private static final Logger LOG = LogManager.getLogger("merchant");
 
   @Autowired
   private MerchantDao merchantDao;
@@ -76,8 +81,6 @@ public class MerchantServiceImpl implements MerchantService {
 
   @Autowired
   private WithdrawRequestDao withdrawRequestDao;
-
-  private static final Logger LOG = LogManager.getLogger("merchant");
 
   @Override
   public List<Merchant> findAllByCurrency(Currency currency) {
@@ -352,15 +355,6 @@ public class MerchantServiceImpl implements MerchantService {
   }
 
   @Override
-  public List<MyInputOutputHistoryDto> getMyInputOutputHistory(String email, Integer offset, Integer limit, Locale locale) {
-    List<Integer> operationTypeList = OperationType.getInputOutputOperationsList()
-        .stream()
-        .map(e -> e.getType())
-        .collect(Collectors.toList());
-    return withdrawRequestDao.findMyInputOutputHistoryByOperationType(email, offset, limit, operationTypeList, locale);
-  }
-
-  @Override
   public boolean checkInputRequestsLimit(int merchantId, String email) {
     boolean inLimit = merchantDao.getInputRequests(merchantId, email) < 10;
 
@@ -384,6 +378,8 @@ public class MerchantServiceImpl implements MerchantService {
   public void setBlockForMerchant(Integer merchantId, Integer currencyId, OperationType operationType, boolean blockStatus) {
     merchantDao.setBlockForMerchant(merchantId, currencyId, operationType, blockStatus);
   }
+
+  /*============================*/
 
   @Override
   @Transactional

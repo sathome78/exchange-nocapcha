@@ -27,13 +27,6 @@ public interface WithdrawRequestDao {
 
   int create(WithdrawRequestCreateDto withdrawRequest);
 
-  List<MyInputOutputHistoryDto> findMyInputOutputHistoryByOperationType(
-      String email,
-      Integer offset,
-      Integer limit,
-      List<Integer> operationTypeIdList,
-      Locale locale);
-
   void setStatusById(Integer id, InvoiceStatus newStatus);
 
   Optional<WithdrawRequestFlatDto> getFlatByIdAndBlock(int id);
