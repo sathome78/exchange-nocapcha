@@ -17,6 +17,7 @@ import me.exrates.service.exception.RefillRequestLimitForMerchantExceededExcepti
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.vo.ProfileData;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,6 +90,7 @@ public class RefillServiceImpl implements RefillService {
       RefillRequestCreateDto request,
       Locale locale) {
     ProfileData profileData = new ProfileData(1000);
+    Map<String, String> result = null;
     try {
       checkIfOperationLimitExceededForMerchantByUser(request);
       Integer requestId = createRefill(request);
@@ -96,26 +98,21 @@ public class RefillServiceImpl implements RefillService {
       request.setId(requestId);
       IMerchantService merchantService = merchantServiceContext.getMerchantService(request.getServiceBeanName());
       profileData.setTime2();
-      Map<String, String> result = merchantService.refill(request);
+      result = merchantService.refill(request);
       profileData.setTime3();
-      if (result.get("message") != null) {
-        String notification = null;
-        try {
-          notification = sendRefillNotification(
-              request,
-              request.getMerchantDescription(),
-              result.get("message"),
-              locale);
-          result.put("message", notification);
-        } catch (MailException e) {
-          log.error(e);
-        }
-      }
-      profileData.setTime4();
-      return result;
     } finally {
       profileData.checkAndLog("slow create RefillRequest: " + request + " profile: " + profileData);
     }
+    try {
+      String notification = sendRefillNotificationAfterCreation(
+          request,
+          result.get("message"),
+          locale);
+      result.put("message", notification);
+    } catch (MailException e) {
+      log.error(e);
+    }
+    return result;
   }
 
   @Override
@@ -176,22 +173,6 @@ public class RefillServiceImpl implements RefillService {
     return userForNotificationList.size();
   }
 
-  private String sendRefillNotification(
-      RefillRequestCreateDto withdrawRequest,
-      String merchantDescription,
-      String addMessage,
-      Locale locale) {
-    Object[] messageParams = {
-        withdrawRequest.getId(),
-        merchantDescription
-    };
-    String title = messageSource.getMessage("merchants.refillNotification.header", null, locale);
-    String mainNotificationMessageCode = "merchants.refillNotification.".concat(withdrawRequest.getStatus().name());
-    String mainNotification = messageSource.getMessage(mainNotificationMessageCode, messageParams, locale);
-    String fullNotification = mainNotification.concat("<br>").concat("<br>").concat(addMessage);
-    notificationService.notifyUser(withdrawRequest.getUserId(), NotificationEvent.IN_OUT,title, fullNotification);
-    return fullNotification;
-  }
 
   private void checkIfOperationLimitExceededForMerchantByUser(RefillRequestCreateDto request) {
     Integer merchantId = request.getMerchantId();
@@ -217,6 +198,24 @@ public class RefillServiceImpl implements RefillService {
     return refillRequestDao.create(request);
   }
 
+  private String sendRefillNotificationAfterCreation(
+      RefillRequestCreateDto request,
+      String addMessage,
+      Locale locale) {
+    String title = messageSource.getMessage("merchants.refillNotification.header", null, locale);
+    Integer lifetime = merchantService.getMerchantCurrencyLifetimeByMerchantIdAndCurrencyId(request.getMerchantId(), request.getCurrencyId()).getRefillLifetimeHours();
+    String mainNotificationMessageCodeSuffix = lifetime == 0 ? "" : ".lifetime";
+    String mainNotificationMessageCode = "merchants.refillNotification.".concat(request.getStatus().name()).concat(mainNotificationMessageCodeSuffix);
+    Object[] messageParams = {
+        request.getId(),
+        request.getMerchantDescription(),
+        lifetime
+    };
+    String mainNotification = messageSource.getMessage(mainNotificationMessageCode, messageParams, locale);
+    String fullNotification = StringUtils.isEmpty(addMessage) ? mainNotification : mainNotification.concat("<br>").concat("<br>").concat(addMessage);
+    notificationService.notifyUser(request.getUserId(), NotificationEvent.IN_OUT, title, fullNotification);
+    return fullNotification;
+  }
 
   private WithdrawStatusEnum checkPermissionOnActionAndGetNewStatus(Integer requesterAdminId, WithdrawRequestFlatDto withdrawRequest, InvoiceActionTypeEnum action) {
     Boolean requesterAdminIsHolder = requesterAdminId.equals(withdrawRequest.getAdminHolderId());

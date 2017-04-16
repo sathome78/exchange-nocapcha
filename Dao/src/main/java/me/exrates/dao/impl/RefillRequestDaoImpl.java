@@ -56,11 +56,11 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   public int create(RefillRequestCreateDto request) {
     final String sql = "INSERT INTO REFILL_REQUEST " +
         " (amount, commission, status_id, currency_id, user_id, commission_id, merchant_id, " +
-        "  recipient_bank_code, user_full_name, remark, address," +
+        "  recipient_bank_id, user_full_name, remark, address," +
         "  date_creation, status_modification_date) " +
         " VALUES " +
         " (:amount, :commission, :status_id, :currency_id, :user_id, :commission_id, :merchant_id, " +
-        " :recipient_bank_code, :user_full_name, :remark, :address," +
+        " :recipient_bank_id, :user_full_name, :remark, :address," +
         " NOW(), NOW())";
     KeyHolder keyHolder = new GeneratedKeyHolder();
     MapSqlParameterSource params = new MapSqlParameterSource()
@@ -71,7 +71,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         .addValue("user_id", request.getUserId())
         .addValue("commission_id", request.getCommissionId())
         .addValue("merchant_id", request.getMerchantId())
-        .addValue("recipient_bank_code", request.getRecipientBankCode())
+        .addValue("recipient_bank_id", request.getRecipientBankId())
         .addValue("user_full_name", request.getUserFullName())
         .addValue("remark", request.getRemark())
         .addValue("address", request.getAddress());

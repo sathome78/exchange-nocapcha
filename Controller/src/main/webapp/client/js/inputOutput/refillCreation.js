@@ -131,6 +131,7 @@ $(function refillCreation() {
             });
             $refillDetailedParamsDialog.one("hidden.bs.modal", function () {
                 if (refillDetailedParamsDialogResult) {
+                    data.recipientBankId = $refillDetailedParamsDialog.find("#bank-id").html();
                     data.recipientBankCode = $refillDetailedParamsDialog.find("#bank-code").html();
                     data.recipientBankName = $refillDetailedParamsDialog.find("#bank-name").html();
                     data.recipient = $refillDetailedParamsDialog.find("#bank-recipient").html();
@@ -159,7 +160,7 @@ $(function refillCreation() {
                 data: JSON.stringify(data),
             }).success(function (result) {
                 if (!result || !result['redirectionUrl']) {
-                    var qrTag = result['qr'] ? "<img src='https://chart.googleapis.com/chart?chs=100x100&chld=L|2&cht=qr&chl=" + result['qr'] : '';
+                    var qrTag = result['qr'] ? "<img src='https://chart.googleapis.com/chart?chs=100x100&chld=L|2&cht=qr&chl=" + result['qr']+"'/>" : '';
                     showRefillDialogAfterCreation(result['message'], qrTag);
                     notifications.getNotifications();
                 } else {

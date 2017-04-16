@@ -18,6 +18,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -45,32 +46,28 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   @Value("${btcInvoice.blockNotifyUsers}")
   private Boolean BLOCK_NOTIFYING;
-  
-
-
-  private final PendingPaymentDao paymentDao;
-  private final TransactionService transactionService;
-  private final AlgorithmService algorithmService;
-  private final NotificationService notificationService;
-  private BitcoinWalletService bitcoinWalletService;
-  private BitcoinTransactionService bitcoinTransactionService;
 
   @Autowired
-  public BitcoinServiceImpl(final PendingPaymentDao paymentDao,
-                            final TransactionService transactionService,
-                            final AlgorithmService algorithmService,
-                            final NotificationService notificationService,
-                            final BitcoinWalletService bitcoinWalletService,
-                            final BitcoinTransactionService bitcoinTransactionService) {
-    this.paymentDao = paymentDao;
-    this.transactionService = transactionService;
-    this.algorithmService = algorithmService;
-    this.notificationService = notificationService;
-    this.bitcoinWalletService = bitcoinWalletService;
-    this.bitcoinTransactionService = bitcoinTransactionService;
-  }
+  private MessageSource messageSource;
 
-  
+  @Autowired
+  private PendingPaymentDao paymentDao;
+
+  @Autowired
+  private TransactionService transactionService;
+
+  @Autowired
+  private AlgorithmService algorithmService;
+
+  @Autowired
+  private NotificationService notificationService;
+
+  @Autowired
+  private BitcoinWalletService bitcoinWalletService;
+
+  @Autowired
+  private BitcoinTransactionService bitcoinTransactionService;
+
   @PostConstruct
   void startBitcoin() {
     bitcoinWalletService.initBitcoin();
@@ -242,8 +239,11 @@ public class BitcoinServiceImpl implements BitcoinService {
   @Transactional
   public Map<String, String> refill(RefillRequestCreateDto request) {
     String address = address();
+    String message = messageSource.getMessage("merchants.refill.btc",
+        new Object[]{request.getAmountWithCommission(), address}, request.getLocale());
     return new HashMap<String, String>() {{
-      put("message", "");
+      put("message", message);
+      put("qr", address);
     }};
   }
     

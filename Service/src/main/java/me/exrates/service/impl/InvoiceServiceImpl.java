@@ -324,10 +324,9 @@ public class InvoiceServiceImpl implements InvoiceService {
   @Override
   @Transactional
   public Map<String, String> refill(RefillRequestCreateDto request) {
-    Integer lifetime = merchantService.getMerchantCurrencyLifetimeByMerchantIdAndCurrencyId(request.getMerchantId(), request.getCurrencyId()).getRefillLifetimeHours();
     String toWallet = String.format("%s: %s - %s", request.getRecipientBankName(), request.getAddress(), request.getRecipient());
-    String message = messageSource.getMessage("merchants.refill.refill",
-        new Object[]{request.getAmountWithCommission(), toWallet, lifetime}, request.getLocale());
+    String message = messageSource.getMessage("merchants.refill.invoice",
+        new Object[]{request.getAmountWithCommission(), toWallet}, request.getLocale());
     return new HashMap<String, String>() {{
       put("message", message);
     }};

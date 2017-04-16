@@ -31,6 +31,7 @@ public class RefillRequestCreateDto {
   private String serviceBeanName;
   private Integer refillOperationCountLimitForUserPerDay;
   private RefillStatusEnum status;
+  private Integer recipientBankId;
   private String recipientBankCode;
   private String recipientBankName;
   private String recipient;
@@ -43,6 +44,7 @@ public class RefillRequestCreateDto {
     this.currencyId = paramsDto.getCurrency();
     this.amount = paramsDto.getSum();
     this.merchantId = paramsDto.getMerchant();
+    this.recipientBankId = paramsDto.getRecipientBankId();
     this.recipientBankCode = paramsDto.getRecipientBankCode();
     this.recipientBankName = paramsDto.getRecipientBankName();
     this.recipient = paramsDto.getRecipient();

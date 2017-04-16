@@ -10,7 +10,7 @@ import java.util.Optional;
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
-public interface BlockchainService extends IMerchantService {
+public interface BlockchainService  {
 
     PendingPayment createPaymentInvoice(CreditsOperation creditsOperation);
 

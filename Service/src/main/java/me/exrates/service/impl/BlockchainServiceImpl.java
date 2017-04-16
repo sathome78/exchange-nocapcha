@@ -173,13 +173,4 @@ public class BlockchainServiceImpl implements BlockchainService {
         return algorithmService.sha256(target);
     }
 
-    @Override
-    public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
-        throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
-    }
-
-    @Override
-    public Map<String, String> refill(RefillRequestCreateDto request){
-        throw new NotImplimentedMethod("for "+request);
-    }
 }

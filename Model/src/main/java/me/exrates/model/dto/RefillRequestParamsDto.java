@@ -17,6 +17,7 @@ public class RefillRequestParamsDto {
     private Integer currency;
     private BigDecimal sum;
     private Integer merchant;
+    private Integer recipientBankId;
     private String recipientBankCode;
     private String recipientBankName;
     private String recipient;

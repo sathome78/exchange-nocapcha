@@ -27,6 +27,7 @@
     bankId = $('#bank-data-list').val();
     var $bankInfoOption = $(select).find("option[value=" + bankId + "]");
     var $infoWrapper = $dialog.find("#credits-operation-info");
+    $infoWrapper.find("#bank-id").html($bankInfoOption.data("bank-id"));
     $infoWrapper.find("#bank-name").html($bankInfoOption.data("bank-name"));
     $infoWrapper.find("#bank-code").html($bankInfoOption.data("bank-code"));
     $infoWrapper.find("#bank-account").html($bankInfoOption.data("bank-account"));
@@ -108,6 +109,7 @@
                 <div class="credits-operation-info__item clearfix">
                   <div class="col-md-6"><loc:message code="merchants.invoiceDetails.bankName"/></div>
                   <div class="col-md-6" id="bank-name">&nbsp;<span class="col-md-9 normal" id="bank-code"></span></div>
+                  <div hidden id="bank-id"></div>
                 </div>
                 <div class="credits-operation-info__item clearfix">
                   <div class="col-md-6"><loc:message code="merchants.invoiceDetails.bankAccount"/></div>
