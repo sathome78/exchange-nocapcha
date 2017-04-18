@@ -75,6 +75,17 @@ public class DataTableParams {
         }
         return new StringJoiner(" ").add("ORDER BY").add(columns.get(orderColumn)).add(orderDirection.name()).toString();
     }
+    
+    public String getLimitAndOffsetClause() {
+      String limit;
+      if (length > 0) {
+        String offset = start > 0 ? " OFFSET :offset " : "";
+        limit = " LIMIT :limit " + offset;
+      } else {
+        limit = "";
+      }
+      return limit;
+    }
 
     private static void validateColumnNames(List<String> columnNames) {
         if (!columnNames.stream().filter(StringUtils::isNotEmpty)

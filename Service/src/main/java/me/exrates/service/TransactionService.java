@@ -7,6 +7,8 @@ import me.exrates.model.dto.TransactionFlatForReportDto;
 import me.exrates.model.dto.UserSummaryDto;
 import me.exrates.model.dto.UserSummaryOrdersDto;
 import me.exrates.model.dto.dataTable.DataTable;
+import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.enums.TransactionType;
 import me.exrates.model.vo.CacheData;
@@ -14,7 +16,6 @@ import me.exrates.model.vo.CacheData;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -38,30 +39,11 @@ public interface TransactionService {
   void provideTransaction(Transaction transaction);
 
   void invalidateTransaction(Transaction transaction);
-
-  DataTable<List<OperationViewDto>> showMyOperationHistory(
-      Integer requesterUserId,
-      String email, Integer status,
-      List<TransactionType> types, List<Integer> merchantIds,
-      String dateFrom, String dateTo,
-      BigDecimal fromAmount, BigDecimal toAmount,
-      BigDecimal fromCommissionAmount, BigDecimal toCommissionAmount,
-      int offset, int limit,
-      String sortColumn, String sortDirection, Locale locale);
-
-  DataTable<List<OperationViewDto>> showMyOperationHistory(Integer requesterUserId, String email, Locale locale, int offset, int limit);
-
-  DataTable<List<OperationViewDto>> showMyOperationHistory(Integer requesterUserId, String email, Locale locale);
-
-  DataTable<List<OperationViewDto>> showUserOperationHistory(Integer requesterUserId, int id, Locale locale);
-
+  
   DataTable<List<OperationViewDto>> showUserOperationHistory(
-      Integer requesterUserId,
-      int id, Integer status,
-      List<TransactionType> types, List<Integer> merchantIds,
-      String dateFrom, String dateTo,
-      BigDecimal fromAmount, BigDecimal toAmount,
-      BigDecimal fromCommissionAmount, BigDecimal toCommissionAmount, Locale locale, Map<String, String> viewParams);
+          Integer requesterUserId,
+          String userEmail,
+          AdminTransactionsFilterData filterData, DataTableParams dataTableParams, Locale locale);
 
   List<AccountStatementDto> getAccountStatement(CacheData cacheData, Integer walletId, Integer offset, Integer limit, Locale locale);
 

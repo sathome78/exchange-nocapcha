@@ -6,6 +6,8 @@ import me.exrates.model.Currency;
 import me.exrates.model.dto.TransactionFlatForReportDto;
 import me.exrates.model.dto.UserSummaryDto;
 import me.exrates.model.dto.UserSummaryOrdersDto;
+import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
@@ -311,78 +313,29 @@ public final class TransactionDaoImpl implements TransactionDao {
     final Map<String, Integer> params = singletonMap("id", id);
     return jdbcTemplate.queryForObject(sql, params, transactionRowMapper);
   }
-
-  @Override
-  public PagingData<List<Transaction>> findAllByUserWallets(Integer requesterUserId, final List<Integer> walletIds, final int offset, final int limit) {
-    return findAllByUserWallets(requesterUserId, walletIds, offset, limit, "", "ASC", null);
-  }
-
+  
   @Override
   public PagingData<List<Transaction>> findAllByUserWallets(
-      Integer requesterUserId,
-      final List<Integer> walletIds, final int offset,
-      final int limit, String sortColumn, String sortDirection, Locale locale) {
-
-    return findAllByUserWallets(requesterUserId, walletIds, null, null, null, null, null, null, null, null, null, offset, limit, sortColumn, sortDirection, locale);
-  }
-
-  @Override
-  public PagingData<List<Transaction>> findAllByUserWallets(
-      Integer requesterUserId,
-      final List<Integer> walletIds, final Integer status,
-      final List<TransactionType> types, final List<Integer> merchantIds,
-      final String dateFrom, final String dateTo,
-      final BigDecimal fromAmount, final BigDecimal toAmount,
-      final BigDecimal fromCommissionAmount, final BigDecimal toCommissionAmount,
-      final int offset, final int limit,
-      String sortColumn, String sortDirection, Locale locale) {
-    /*String sortDBColumn = TABLE_TO_DB_COLUMN_MAP.getOrDefault(sortColumn, "TRANSACTION.datetime");
+          Integer requesterUserId, List<Integer> walletIds, AdminTransactionsFilterData filterData, DataTableParams dataTableParams, Locale locale) {
+    String orderByClause = dataTableParams.getOrderByClause();
+    String limitAndOffset = dataTableParams.getLimitAndOffsetClause();
     final String whereClauseBasic = "WHERE TRANSACTION.user_wallet_id in (:ids)";
     Map<String, Object> params = new HashMap<>();
-    params.put("provided", status);
-    params.putAll(retrieveTransactionTypeParams(types));
-    params.put("merchantIds", merchantIds);
-    params.put("date_from", dateFrom);
-    params.put("date_to", dateTo);
-    params.put("fromAmount", fromAmount);
-    params.put("toAmount", toAmount);
-    params.put("fromCommissionAmount", fromCommissionAmount);
-    params.put("toCommissionAmount", toCommissionAmount);
-    params.put("requester_user_id", requesterUserId);
-    String criteria = defineFilterClause(params);
-    String filterClause = criteria.isEmpty() ? "" : "AND " + criteria;
     params.put("ids", walletIds);
+    params.putAll(filterData.getNamedParams());
+    String criteria = filterData.getSQLFilterClause();
+    String filterClause = criteria.isEmpty() ? "" : "AND " + criteria;
 
     String permissionClause = requesterUserId == null ? "" : PERMISSION_CLAUSE;
 
-    StringJoiner sqlJoiner = new StringJoiner(" ")
-        .add(SELECT_ALL)
-        .add(permissionClause)
-        .add(whereClauseBasic)
-        .add(filterClause)
-        .add("ORDER BY").add(sortDBColumn).add(sortDirection);
-    if (limit > 0) {
-      sqlJoiner.add("LIMIT").add(String.valueOf(limit));
-    }
-
-    if (offset > 0) {
-      sqlJoiner.add("OFFSET").add(String.valueOf(offset));
-    }
-
-    final String selectLimitedAllSql = sqlJoiner.toString();
-    final String selectAllCountSql = new StringJoiner(" ")
-        .add(SELECT_COUNT)
-        .add(permissionClause)
-        .add(whereClauseBasic)
-        .add(filterClause)
-        .toString();
+    final String selectLimitedAllSql = String.join(" ", SELECT_ALL, permissionClause, whereClauseBasic, filterClause, orderByClause, limitAndOffset);
+    final String selectAllCountSql = String.join(" ", SELECT_COUNT, permissionClause, whereClauseBasic, filterClause);
     final PagingData<List<Transaction>> result = new PagingData<>();
     final int total = jdbcTemplate.queryForObject(selectAllCountSql, params, Integer.class);
     result.setData(jdbcTemplate.query(selectLimitedAllSql, params, transactionRowMapper));
     result.setFiltered(total);
     result.setTotal(total);
-    return result;*/
-    return null;
+    return result;
 
   }
 
