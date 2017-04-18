@@ -8,10 +8,7 @@ import me.exrates.model.*;
 import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.onlineTableDto.MyReferralDetailedDto;
-import me.exrates.model.enums.ActionType;
-import me.exrates.model.enums.NotificationEvent;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.enums.*;
 import me.exrates.model.vo.CacheData;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.*;
@@ -258,7 +255,51 @@ public class ReferralServiceImpl implements ReferralService {
     }
 
     @Override
-    public RefsListContainer getUsersFirstLevelAndCountProfitForUser(int userId, int profitForId, int onPage, int pageNumber, RefFilterData refFilterData) {
+    public RefsListContainer getRefsContainerForReq(String action, Integer userId, int profitUserId,
+                                                    int onPage, int page, RefFilterData refFilterData) {
+        int refLevel = 1;
+        RefsListContainer container;
+        RefActionType refActionType = RefActionType.convert(action);
+        switch (refActionType) {
+            case init:{
+                container = this
+                        .getUsersFirstLevelAndCountProfitForUser(profitUserId, profitUserId, onPage, page, refFilterData);
+                container.setReferralProfitDtos(this.getAllUserRefProfit(null, profitUserId,  refFilterData));
+                break;
+            }
+            case search:{
+                if (!StringUtils.isEmpty(refFilterData.getEmail())) {
+                    userId = userService.getIdByEmail(refFilterData.getEmail());
+                    refLevel = this.getUserReferralLevelForChild(userId, profitUserId);
+                    if (refLevel == -1) {
+                        return new RefsListContainer(Collections.emptyList());
+                    }
+                    container = this.getUsersRefToAnotherUser(userId, profitUserId, refLevel, refFilterData);
+                    container.setReferralProfitDtos(this.getAllUserRefProfit(userId, profitUserId, refFilterData));
+                } else {
+                    container = this
+                            .getUsersFirstLevelAndCountProfitForUser(profitUserId, profitUserId, onPage, page, refFilterData);
+                    container.setReferralProfitDtos(this.getAllUserRefProfit(null, profitUserId, refFilterData));
+                }
+                break;
+            }
+            case toggle:{
+                refLevel = this.getUserReferralLevelForChild(userId, profitUserId);
+                if (refLevel >= 7 || refLevel < 0) {
+                    return new RefsListContainer(Collections.emptyList());
+                }
+                container = this
+                        .getUsersFirstLevelAndCountProfitForUser(userId, profitUserId, onPage, page, refFilterData);
+
+                break;
+            }
+            default:return new RefsListContainer(Collections.emptyList());
+        }
+        container.setCurrentLevel(refLevel);
+        return container;
+    }
+
+    private RefsListContainer getUsersFirstLevelAndCountProfitForUser(int userId, int profitForId, int onPage, int pageNumber, RefFilterData refFilterData) {
         int offset = (pageNumber - 1) * onPage;
         List<ReferralInfoDto> dtoList = referralUserGraphDao.getInfoAboutFirstLevRefs(userId, profitForId, onPage, offset, refFilterData);
         setDetailedAmountToDtos(dtoList, profitForId, refFilterData);
@@ -267,8 +308,7 @@ public class ReferralServiceImpl implements ReferralService {
         return new RefsListContainer(dtoList, onPage, pageNumber, totalSize);
     }
 
-    @Override
-    public RefsListContainer getUsersRefToAnotherUser(int userId, int profitUser, int level, RefFilterData refFilterData) {
+    private RefsListContainer getUsersRefToAnotherUser(int userId, int profitUser, int level, RefFilterData refFilterData) {
         List<ReferralInfoDto> dtoList = Arrays.asList(referralUserGraphDao.getInfoAboutUserRef(userId, profitUser, refFilterData));
         setDetailedAmountToDtos(dtoList, profitUser, refFilterData);
         return new RefsListContainer(dtoList, level);
@@ -279,8 +319,8 @@ public class ReferralServiceImpl implements ReferralService {
                 .forEach(l -> l.setReferralProfitDtoList(referralUserGraphDao.detailedCountRefsTransactions(l.getRefId(), profitUser, refFilterData)));
     }
 
-    @Override
-    public int getUserReferralLevelForChild(Integer childUserId, Integer parentUserId) {
+
+    private int getUserReferralLevelForChild(Integer childUserId, Integer parentUserId) {
         int i = 1;
         int level = -1;
         if (childUserId == null || childUserId.equals(0) || parentUserId == null){
@@ -301,9 +341,8 @@ public class ReferralServiceImpl implements ReferralService {
         return level;
     }
 
-    @Override
-    public List<ReferralProfitDto> getAllUserRefProfit(int userId, RefFilterData filterData) {
-        return referralUserGraphDao.detailedCountRefsTransactions(null, userId, filterData);
+    private List<ReferralProfitDto> getAllUserRefProfit(Integer userId, Integer profitUserId, RefFilterData filterData) {
+        return referralUserGraphDao.detailedCountRefsTransactions(userId, profitUserId, filterData);
     }
 
     @Override

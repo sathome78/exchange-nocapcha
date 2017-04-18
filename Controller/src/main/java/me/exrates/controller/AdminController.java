@@ -484,8 +484,6 @@ public class AdminController {
     model.addObject("userLang", userService.getPreferedLang(id).toUpperCase());
     model.addObject("usersInvoiceRefillCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), REFILL));
     model.addObject("usersInvoiceWithdrawCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), WITHDRAW));
-    model.addObject("userRefBonuses", referralService.getAllUserRefProfit(user.getId(), new RefFilterData()));
-    model.addObject("allCurrencies", currencyService.findAllCurrenciesWithHidden());
     return model;
   }
 
@@ -1183,43 +1181,7 @@ public class AdminController {
                                             @RequestParam(value = "page", defaultValue = "1") int page,
                                             RefFilterData refFilterData) {
     LOG.error("filter data " + refFilterData);
-    int refLevel = 1;
-    RefsListContainer container;
-    RefActionType refActionType = RefActionType.convert(action);
-    switch (refActionType) {
-      case init:{
-        container = referralService
-                .getUsersFirstLevelAndCountProfitForUser(profitUser, profitUser, onPage, page, refFilterData);
-        break;
-      }
-      case search:{
-        if (!StringUtils.isEmpty(refFilterData.getEmail())) {
-          userId = userService.getIdByEmail(refFilterData.getEmail());
-          refLevel = referralService.getUserReferralLevelForChild(userId, profitUser);
-          if (refLevel == -1) {
-            return new RefsListContainer(Collections.emptyList());
-          }
-          container = referralService.getUsersRefToAnotherUser(userId, profitUser, refLevel, refFilterData);
-        } else {
-          container = referralService
-                  .getUsersFirstLevelAndCountProfitForUser(profitUser, profitUser, onPage, page, refFilterData);
-        }
-        break;
-      }
-      case toggle:{
-        refLevel = referralService.getUserReferralLevelForChild(userId, profitUser);
-        if (refLevel >= 7 || refLevel < 0) {
-          return new RefsListContainer(Collections.emptyList());
-        }
-        container = referralService
-                .getUsersFirstLevelAndCountProfitForUser(userId, profitUser, onPage, page, refFilterData);
-
-        break;
-      }
-      default:return new RefsListContainer(Collections.emptyList());
-    }
-    container.setCurrentLevel(refLevel);
-    return container;
+    return referralService.getRefsContainerForReq(action, userId, profitUser, onPage, page, refFilterData);
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/downloadRef")

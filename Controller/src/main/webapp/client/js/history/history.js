@@ -19,6 +19,8 @@ function MyHistoryClass(currentCurrencyPair) {
     var $inputOutputContainer = $('#myinputoutput');
     var myReferral;
     var $myreferralContainer = $('#myreferral');
+    var myReferralStrucure;
+    var $myreferralStrucuteContainer = $('#myRefStructure');
     /**/
     function showMyHistoryPage($myHistoryActivePage) {
         if ($myhistoryContainer.hasClass('hidden')) {
@@ -27,12 +29,14 @@ function MyHistoryClass(currentCurrencyPair) {
         $myHistoryActivePage.siblings('.center-frame-container').addClass('hidden');
         $myHistoryActivePage.removeClass('hidden');
     }
+
     /**/
     this.updateAndShowAll = function () {
         showMyHistoryPage($myHistoryActivePage);
         that.getAndShowMyOrdersPage();
         that.getAndShowInputOutputPage();
         that.getAndShowMyReferralPage();
+        that.getAndShowMyReferralStrucurePage();
     };
 
     this.getAndShowMyOrdersPage = function () {
@@ -51,6 +55,15 @@ function MyHistoryClass(currentCurrencyPair) {
         myReferral.updateAndShowAll();
     };
 
+    this.getAndShowMyReferralStrucurePage = function () {
+        if ($myhistoryContainer.hasClass('hidden')) {
+            return;
+        }
+        myReferralStrucure.syncCurrencyPairSelector();
+        myReferralStrucure.updateAndShowAll();
+    };
+
+
     this.getAndShowInputOutputPage = function () {
         if ($myhistoryContainer.hasClass('hidden')) {
             return;
@@ -62,6 +75,7 @@ function MyHistoryClass(currentCurrencyPair) {
         myOrders = new MyOrdersClass(currentCurrencyPair);
         myReferral = new MyReferralClass(currentCurrencyPair);
         inputOutput = new InputOutputClass(currentCurrencyPair);
+        myReferralStrucure = new RefStructureClass(currentCurrencyPair);
         /**/
         $('#myhistory-button-orders').addClass('active');
         /**/
@@ -83,6 +97,13 @@ function MyHistoryClass(currentCurrencyPair) {
             $('.myhistory__button').removeClass('active');
             $(this).addClass('active');
             $myHistoryActivePage = $myreferralContainer;
+            showMyHistoryPage($myHistoryActivePage);
+            that.updateAndShowAll();
+        });
+        $('#myhistory-button-referral_structure').on('click', function () {
+            $('.myhistory__button').removeClass('active');
+            $(this).addClass('active');
+            $myHistoryActivePage = $myreferralStrucuteContainer;
             showMyHistoryPage($myHistoryActivePage);
             that.updateAndShowAll();
         });

@@ -29,15 +29,19 @@ function loadInfo(userId, page, port, action) {
     if (isFilterApplied) {
         url = url + "&" + $('#ref_download_form').serialize();
     }
-    console.log("url load " + url);
     $.ajax({
         url: url,
         type: 'GET',
         success: function (data) {
-            console.log('resp ' + JSON.stringify(data));
             append(data.referralInfoDtos, userId, port);
             if (data.currentPage != -1) {
                 refreshPagination(data.totalPages)
+            }
+            if (data.totalSize < 1) {
+                $pagination.twbsPagination('destroy');
+            }
+            if (action == 'init') {
+                appendRefBonuses(data.referralProfitDtos);
             }
         }
     });
@@ -55,7 +59,6 @@ function ShowHide(userId) {
             var page = -1;
             loadInfo(userId, page, port, action);
         }
-
     }
 }
 
@@ -82,12 +85,10 @@ function refreshPagination(totalPages) {
 function searchRef(value, page, action) {
     var formParams = $('#ref_download_form').serialize();
     var url = '/2a8fy7b07dxe44/findReferral?action=' + action + '&profitUser=' + mainUser + '&' + formParams;
-    console.log("url search " +  + url);
     $.ajax({
         url: url,
         type: 'GET',
         success: function (data) {
-            console.log('resp ' + JSON.stringify(data));
             append(data.referralInfoDtos, mainUser, $('.reffil_' + mainUser));
             if(data.referralInfoDtos.length > 0) {
                 $('#level-outer').show();
@@ -96,6 +97,10 @@ function searchRef(value, page, action) {
             if (data.currentPage != -1) {
                 refreshPagination(data.totalPages)
             }
+            if (data.totalSize < 1) {
+                $pagination.twbsPagination('destroy');
+            }
+            appendRefBonuses(data.referralProfitDtos);
             isFilterApplied = true;
         }
     });
@@ -106,19 +111,45 @@ function downloadCsv() {
     if (isFilterApplied) {
         url = url + "&" + $('#ref_download_form').serialize();
     }
-    console.log("url load " + url);
     window.open(url);
+}
+
+function appendRefBonuses(data) {
+    var port = $('#refAccrualsPort');
+    port.html('');
+    $.each(data, function(i, item) {
+        port.append(item.amount + ' ' + item.currencyName).append('<br>')
+    });
+}
+
+function getCurrencies() {
+    var url = '/dashboard/getAllCurrencies';
+    $.ajax({
+        url: url,
+        type: 'GET',
+        success: function (data) {
+            addCheckboxes(data);
+            currenciesLoaded = true;
+        }
+    });
+}
+
+function addCheckboxes(data) {
+    var container = $('#currency_container');
+    $("#currencyTemplate").template("currencies");
+    container.html($.tmpl("currencies", data));
 }
 
 
 $( document ).ready(function(){
+
+   getCurrencies();
 
     $.datetimepicker.setDateFormatter({
         parseDate: function (date, format) {
             var d = moment(date, format);
             return d.isValid() ? d.toDate() : false;
         },
-
         formatDate: function (date, format) {
             return moment(date).format(format);
         }
@@ -137,6 +168,7 @@ $( document ).ready(function(){
         defaultDate: new Date(),
         defaultTime: '00:00'
     });
+
     $('#ref_download_end').datetimepicker({
         format: 'YYYY-MM-DD HH:mm',
         formatDate: 'YYYY-MM-DD',
@@ -174,7 +206,6 @@ $( document ).ready(function(){
         $('.filter_input').val("");
         $('.currency_check').prop('checked', true);
     });
-
 });
 
 

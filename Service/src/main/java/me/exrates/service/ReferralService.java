@@ -53,13 +53,8 @@ public interface ReferralService {
   
   void updateReferralParentForChildren(User user);
 
-    RefsListContainer getUsersFirstLevelAndCountProfitForUser(int refsForEmail, int profitForEmail, int onPage, int pageNumber, RefFilterData refFilterData);
-
-    RefsListContainer getUsersRefToAnotherUser(int userId, int profitUser, int level, RefFilterData refFilterData);
-
-    int getUserReferralLevelForChild(Integer childUserId, Integer parentUserId);
-
-    List<ReferralProfitDto> getAllUserRefProfit(int userId, RefFilterData filterData);
+    RefsListContainer getRefsContainerForReq(String action, Integer userId, int profitUserId,
+                                             int onPage, int page, RefFilterData refFilterData);
 
     List<String> getRefsListForDownload(int profitUser, RefFilterData filterData);
 }

@@ -27,7 +27,6 @@
   <link rel="stylesheet" href="<c:url value="/client/css/jquery-ui.css"/>">
   <script type="text/javascript" src="<c:url value='/client/js/jquery-ui.js'/>"></script>
   <link rel="stylesheet" href="<c:url value="/client/css/jquery.datetimepicker.css"/>">
-  <link rel="stylesheet" href="<c:url value="/client/css/jquery.datetimepicker.css"/>">
   <script type="text/javascript" src="<c:url value='/client/js/jquery.datetimepicker.js'/>"></script>
   <script type="text/javascript" src="<c:url value='/client/js/moment-with-locales.min.js'/>"></script>
   <script type="text/javascript" src="<c:url value='/client/js/dataTable/adminTransactionsDataTable.js'/>"></script>

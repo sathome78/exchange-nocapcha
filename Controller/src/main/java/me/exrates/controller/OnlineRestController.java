@@ -850,4 +850,26 @@ public class OnlineRestController {
     return result;
   }
 
+  @RequestMapping(value = "/dashboard/myReferralStructure")
+  public RefsListContainer getMyReferralData(
+          @RequestParam("action") String action,
+          @RequestParam(value = "userId", required = false) Integer userId,
+          @RequestParam(value = "onPage", defaultValue = "20") int onPage,
+          @RequestParam(value = "page", defaultValue = "1") int page,
+          RefFilterData refFilterData,
+          Principal principal) {
+    if (principal == null) {
+      return null;
+    }
+    String email = principal.getName();
+        /**/
+    return referralService.getRefsContainerForReq(action, userId, userService.getIdByEmail(email), onPage, page, refFilterData);
+  }
+
+  @ResponseBody
+  @RequestMapping(value = "/dashboard/getAllCurrencies")
+  public List getAllCurrencies() {
+    return currencyService.findAllCurrenciesWithHidden();
+  }
+
 }

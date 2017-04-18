@@ -48,7 +48,7 @@
     width: 22%;
 }
 .reffil_ {
-    display: flex;
+    display: block;
     font-size: 14px;
     padding: 10px 10px;
 }
@@ -70,4 +70,19 @@
 }
 .referral-table .pagination-wrp {
     margin-top: 20px;
+}
+
+/*pagination*/
+
+.pagination>.active>a, .pagination>.active>a:focus, .pagination>.active>a:hover, .pagination>.active>span, .pagination>.active>span:focus, .pagination>.active>span:hover {
+    background-color: #5c6a80;
+    border-color: #5c6a80;
+}
+
+.pagination>li>a:focus, .pagination>li>a:hover, .pagination>li>span:focus, .pagination>li>span:hover {
+    color: #2c3749;
+}
+
+.pagination>li>a, .pagination>li>span {
+    color: #2c3749;
 }

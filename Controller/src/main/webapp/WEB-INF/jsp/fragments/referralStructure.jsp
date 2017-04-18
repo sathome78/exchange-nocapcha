@@ -1,13 +1,12 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@taglib uri="http://www.springframework.org/tags" prefix="loc" %>
-<div class="col-md-12 content">
+<div id="myRefStructure" class="col-md-12 content">
 <%--ref stat--%>
 <div class="form-group" style="text-align: left">
-    <H6><loc:message code="admin.referralAccruals"/></H6>
-    <c:forEach var="item" items="${userRefBonuses}">
-        <span>${item.amount} ${item.currencyName} </span><br>
-    </c:forEach>
+    <H6><loc:message code="admin.referralAccruals"/>:</H6>
+    <div id="refAccrualsPort">
+    </div>
 </div>
 <br>
 <%--search filters--%>
@@ -45,10 +44,8 @@
             </div>
             <div class="col-md-9 input-block-wrapper__input-wrapper">
                 <ul class="checkbox-grid">
-                    <c:forEach items="${allCurrencies}" var="currency">
-                        <li><input type="checkbox" class="currency_check" checked name="currencyIds" value="${currency.id}"><span>${currency.name}</span>
-                        </li>
-                    </c:forEach>
+                    <li id="currency_container">
+                    </li>
                 </ul>
             </div>
         </div>
@@ -63,26 +60,28 @@
 <div class="form-group" style="text-align: left">
     <button id="refExtFilter" class="blue-box"><loc:message code="admin.user.transactions.extendedFilter"/></button>
     <button id="refSearchClearButton" class="blue-box"><loc:message code="admin.reset"/></button>
-    <button id="refDownloadButton" class="blue-box"><loc:message code="admin.user.transactions.downloadHistory"/></button>
+    <sec:authorize access="<%=AdminController.adminAnyAuthority%>">
+        <button id="refDownloadButton" class="blue-box"><loc:message code="admin.user.transactions.downloadHistory"/></button>
+    </sec:authorize>
 </div>
 
 <%--ref table--%>
 <div hidden id="level-outer"><loc:message code="admin.referralLevel" />: <span id="level"></span></div>
-<div id="ref" class="referral-table">
-    <div class="table-wrp">
-        <div class="table-body-wrp">
-            <table class="table">
-                <th class="user_name"><loc:message code="login.email"/></th>
-                <th class="user-bonus"><loc:message code="btcWallet.history.amount"/></th>
-                <th class="user-bonus"><loc:message code="admin.referrals"/></th>
-            </table >
-            <div class="wrap-rows reffil_${user.id}">
-                <%--port for templates--%>
+    <div id="ref" class="referral-table">
+        <div class="table-wrp">
+            <div class="table-body-wrp">
+                <table class="table">
+                    <th class="user_name"><loc:message code="login.email"/></th>
+                    <th class="user-bonus"><loc:message code="btcWallet.history.amount"/></th>
+                    <th class="user-bonus"><loc:message code="admin.referrals"/></th>
+                </table >
+                <div class="main-ref wrap-rows reffil_${user.id}">
+                    <%--port for templates--%>
+                </div>
             </div>
         </div>
     </div>
-</div>
-<ul id="pagination-demo" class="pagination-sm"></ul>
+    <ul id="pagination-demo" class="pagination-sm"></ul>
 </div>
 
 <%--referrals template --%>
@@ -91,7 +90,7 @@
         <div class="reffil_">
             <div class="column-left">{%= email %}
                 {%if firstRefLevelCount>0 %}
-                    <span id="span_{%= id %}" class="fa-stack ref-Show" style="cursor:pointer; font-size: 10px;"  onclick="ShowHide({%= refId %})" >
+                    <span id="span_{%= id %}" class="fa-stack ref-Show" data-refId='({%= refId %})' style="cursor:pointer; font-size: 10px;"  onclick="ShowHide({%= refId %})" >
                         <i class="fa fa-info fa-stack-1x"></i><i class="fa fa-circle-thin fa-stack-2x"></i>
                     </span>
                 {%/if%}
@@ -116,3 +115,10 @@
         </div>
     </div>
 </script>
+
+<script id="currencyTemplate" type="text/html">
+    <li><input type="checkbox" class="currency_check" checked name="currencyIds" value="{%= id %}"><span>{%= name %}</span>
+    </li>
+</script>
+
+
