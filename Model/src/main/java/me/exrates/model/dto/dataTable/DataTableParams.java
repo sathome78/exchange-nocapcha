@@ -15,13 +15,13 @@ import java.util.stream.Stream;
 @Log4j2
 public class DataTableParams {
 
-    private int draw;
-    private int orderColumn;
-    private OrderDirection orderDirection;
-    private int start;
-    private int length;
-    private String searchValue;
-    private List<String> columns;
+    private int draw = 1;
+    private int orderColumn = 0;
+    private OrderDirection orderDirection = OrderDirection.ASC;
+    private int start = 0;
+    private int length = 0;
+    private String searchValue = "";
+    private List<String> columns = Collections.EMPTY_LIST;
 
 
     enum OrderDirection {
@@ -66,6 +66,17 @@ public class DataTableParams {
                 .collect(Collectors.toList());
         validateColumnNames(columnNames);
         dataTableParams.columns = columnNames;
+        return dataTableParams;
+    }
+    
+    public static DataTableParams defaultParams() {
+        return new DataTableParams();
+    }
+    
+    public static DataTableParams sortNoPaginationParams(String sortColumn, String sortDirection) {
+        DataTableParams dataTableParams = new DataTableParams();
+        dataTableParams.columns = Collections.singletonList(sortColumn);
+        dataTableParams.orderDirection = OrderDirection.valueOf(sortDirection.toUpperCase());
         return dataTableParams;
     }
 

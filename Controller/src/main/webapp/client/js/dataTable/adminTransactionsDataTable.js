@@ -59,7 +59,6 @@ $(function () {
                 },
                 {
                     "data": "datetime",
-
                     "render": function (data, type, row) {
                         if (type == 'display') {
                             return data.split(' ')[1];

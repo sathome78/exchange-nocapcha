@@ -254,9 +254,8 @@ public class AdminController {
     DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
     
     Integer requesterAdminId = userService.getIdByEmail(principal.getName());
-    /*return transactionService.showUserOperationHistory(requesterAdminId, id, transactionStatus, types, merchantIds, startDate, endDate,
-        amountFrom, amountTo, commissionAmountFrom, commissionAmountTo, localeResolver.resolveLocale(request), params);*/
-    return null;
+    return transactionService.showUserOperationHistory(requesterAdminId, principal.getName(), filterData, dataTableParams,
+            localeResolver.resolveLocale(request));
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/downloadTransactionsPage")
@@ -268,22 +267,21 @@ public class AdminController {
 
   @RequestMapping(value = "/2a8fy7b07dxe44/downloadTransactions")
   public void getUserTransactions(final @RequestParam int id,
-                                  final @RequestParam String startDate,
-                                  final @RequestParam String endDate,
+                                  AdminTransactionsFilterData filterData,
                                   Principal principal,
                                   HttpServletResponse response) throws IOException {
       response.setContentType("text/csv");
       String reportName =
-              "transactions"
+              "transactions"/*
                       .concat(startDate)
                       .concat("-")
                       .concat(endDate)
-                      .replaceAll(" ", " _")
+                      .replaceAll(" ", "_")*/
                       .concat(".csv");
       response.setHeader("Content-disposition", "attachment;filename="+reportName);
       List<String> transactionsHistory = transactionService
               .getCSVTransactionsHistory(userService.getIdByEmail(principal.getName()),
-                      userService.getEmailById(id), startDate, endDate);
+                      userService.getEmailById(id), filterData);
       OutputStreamWriter writer = new OutputStreamWriter(response.getOutputStream());
       try {
         for(String transaction : transactionsHistory) {

@@ -16,14 +16,14 @@ public abstract class TableFilterData {
     public abstract void initFilterItems();
 
     void populateFilterItemsNonEmpty(FilterDataItem[] items) {
-        filterItems = Stream.of(items).filter(checkEmpty())
+        filterItems = Stream.of(items).filter(checkNotEmpty())
                 .collect(Collectors.toList());
     }
     
-    private Predicate<FilterDataItem> checkEmpty() {
+    private Predicate<FilterDataItem> checkNotEmpty() {
         return item -> !(item.getValue() == null
                 || String.valueOf(item.getValue()).isEmpty()
-                || item instanceof Collection && ((Collection) item).isEmpty());
+                || (item.getValue() instanceof Collection && ((Collection) item.getValue()).isEmpty()));
     }
 
     public Map<String, Object> getNamedParams() {
@@ -33,6 +33,10 @@ public abstract class TableFilterData {
     public String getSQLFilterClause() {
         return filterItems.stream().map(item -> item.getSqlClause().concat(" ").concat(item.formatParamForSql()))
                 .collect(Collectors.joining(" AND "));
+    }
+    
+    public static void main(String[] args) {
+    
     }
 
 }

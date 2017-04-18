@@ -10,7 +10,6 @@ import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
-import me.exrates.model.enums.TransactionType;
 import me.exrates.model.vo.CacheData;
 
 import java.math.BigDecimal;
@@ -61,7 +60,7 @@ public interface TransactionService {
 
   boolean setStatusById(Integer trasactionId, Integer statusId);
 
-  List<String> getCSVTransactionsHistory(int requesterUserId, String email, String startDate, String endDate);
+  List<String> getCSVTransactionsHistory(int requesterUserId, String email, AdminTransactionsFilterData filterData);
 
   List<UserSummaryDto> getTurnoverInfoByUserAndCurrencyForPeriodAndRoleList(Integer requesterUserId, String startDate, String endDate, List<Integer> roleIdList);
 

@@ -289,7 +289,7 @@ public class TransactionServiceImpl implements TransactionService {
   }
 
   @Override
-  public List<String> getCSVTransactionsHistory(int requesterUserId, String email, String startDate, String endDate) {
+  public List<String> getCSVTransactionsHistory(int requesterUserId, String email, AdminTransactionsFilterData filterData) {
 
     final List<Integer> wallets = walletService.getAllWallets(requesterUserId).stream()
         .mapToInt(Wallet::getId)
@@ -300,11 +300,8 @@ public class TransactionServiceImpl implements TransactionService {
     }
     String sortColumn = "TRANSACTION.datetime";
     String sortDirection = "DESC";
-  //  List<Transaction> transactions = transactionDao.getAllOperationsByUserForPeriod(wallets, startDate, endDate, sortColumn, sortDirection);
-    DataTable<List<OperationViewDto>> history = null;
-            /*showMyOperationHistory(requesterUserId, email, null, null, null, startDate, endDate,
-                    null, null, null, null, -1, -1, sortColumn, sortDirection, Locale.ENGLISH);*/
-
+    DataTableParams dataTableParams = DataTableParams.sortNoPaginationParams(sortColumn, sortDirection);
+    DataTable<List<OperationViewDto>> history = showUserOperationHistory(requesterUserId, email, filterData, dataTableParams, Locale.ENGLISH);
     return convertTrListToString(history.getData());
   }
 
