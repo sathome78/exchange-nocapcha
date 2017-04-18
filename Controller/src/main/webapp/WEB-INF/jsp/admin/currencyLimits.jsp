@@ -25,7 +25,7 @@
         <%@include file='left_side_menu.jsp' %>
         <div class="col-md-6 col-md-offset-2 admin-container">
             <div class="text-center"><h4><loc:message code="admin.currencyLimits.title"/></h4></div>
-            <div id="limitsMenu" class="buttons">
+            <div id="limitsMenu" class="buttons text-center">
                 <button class="active adminForm-toggler blue-box">
                     <loc:message code="admin.currencyLimits.menu.currencies"/>
                 </button>

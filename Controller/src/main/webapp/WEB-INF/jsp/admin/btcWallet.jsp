@@ -37,7 +37,7 @@
                     <span id="current-btc-unconfirmed-balance">${walletInfo.unconfirmedBalance}</span> BTC</strong></p>
             </div>
             <sec:authorize access="hasAuthority('${admin_manageBtcWallet}')">
-            <div id="walletMenu" class="buttons">
+            <div id="walletMenu" class="buttons text-center">
                 <button class="active adminForm-toggler blue-box">
                     <loc:message code="btcWallet.history.title"/>
                 </button>
