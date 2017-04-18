@@ -22,6 +22,7 @@ import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.*;
 import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.IllegalTransactionProvidedStatusException;
+import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.WithdrawRequestPostException;
 import me.exrates.service.exception.invoice.IllegalInvoiceAmountException;
 import me.exrates.service.exception.invoice.InvoiceAcceptionException;
@@ -255,10 +256,11 @@ public class BitcoinServiceImpl implements BitcoinService {
   
   @Override
   public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
-    if (!"BTC".equalsIgnoreCase(withdrawMerchantOperationDto.getCurrency())) {
+    /*if (!"BTC".equalsIgnoreCase(withdrawMerchantOperationDto.getCurrency())) {
       throw new WithdrawRequestPostException("Currency not supported by merchant");
     }
     BigDecimal withdrawAmount = new BigDecimal(withdrawMerchantOperationDto.getAmount());
-    bitcoinWalletService.sendToAddressAuto(withdrawMerchantOperationDto.getAccountTo(), withdrawAmount);
+    bitcoinWalletService.sendToAddressAuto(withdrawMerchantOperationDto.getAccountTo(), withdrawAmount);*/
+    throw new NotImplimentedMethod("Not implemented!");
   }
 }
