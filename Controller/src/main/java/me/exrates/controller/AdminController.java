@@ -1,6 +1,7 @@
 package me.exrates.controller;
 
 import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.controller.exception.InvalidNumberParamException;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
@@ -13,6 +14,7 @@ import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.*;
 import me.exrates.model.form.AuthorityOptionsForm;
+import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.security.service.UserSecureService;
 import me.exrates.service.*;
@@ -50,14 +52,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
-import java.awt.*;
-import java.io.*;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.List;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
@@ -935,9 +937,10 @@ public class AdminController {
   public ResponseEntity<Void> editCurrencyLimit(@RequestParam int currencyId,
                                                 @RequestParam OperationType operationType,
                                                 @RequestParam String roleName,
-                                                @RequestParam BigDecimal minAmount) {
+                                                @RequestParam BigDecimal minAmount,
+                                                @RequestParam Integer maxDailyRequest) {
 
-    currencyService.updateCurrencyLimit(currencyId, operationType, roleName, minAmount);
+    currencyService.updateCurrencyLimit(currencyId, operationType, roleName, minAmount, maxDailyRequest);
     return new ResponseEntity<>(HttpStatus.OK);
   }
   
@@ -955,7 +958,9 @@ public class AdminController {
                                                 @RequestParam String roleName,
                                                 @RequestParam BigDecimal minRate,
                                                 @RequestParam BigDecimal maxRate) {
-    
+    if (!BigDecimalProcessing.isNonNegative(minRate) || !BigDecimalProcessing.isNonNegative(maxRate) || minRate.compareTo(maxRate) >= 0) {
+      throw new InvalidNumberParamException("Invalid request params!");
+    }
     currencyService.updateCurrencyPairLimit(currencyPairId, orderType, roleName, minRate, maxRate);
     return new ResponseEntity<>(HttpStatus.OK);
   }

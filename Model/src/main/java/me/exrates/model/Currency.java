@@ -1,5 +1,6 @@
 package me.exrates.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,6 +12,7 @@ import lombok.ToString;
 public class Currency {
   private int id;
   private String name;
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   private String description;
 
   public Currency(int id) {

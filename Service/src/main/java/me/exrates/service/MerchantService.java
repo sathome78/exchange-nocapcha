@@ -1,22 +1,13 @@
 package me.exrates.service;
 
 import me.exrates.model.*;
-import me.exrates.model.dto.MerchantCurrencyAutoParamDto;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
-import me.exrates.model.dto.WithdrawRequestFlatForReportDto;
-import me.exrates.model.dto.dataTable.DataTable;
-import me.exrates.model.dto.dataTable.DataTableParams;
-import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.WithdrawalRequestStatus;
-import me.exrates.model.vo.CacheData;
-import me.exrates.model.vo.WithdrawData;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.security.Principal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -58,7 +49,9 @@ public interface MerchantService {
 
     List<MyInputOutputHistoryDto> getMyInputOutputHistory(String email, Integer offset, Integer limit, Locale locale);
 
-    boolean checkInputRequestsLimit(int merchantId, String email);
+    boolean checkInputRequestsLimit(int currencyId, String email);
+
+    boolean checkOutputRequestsLimit(int currencyId, String email);
 
     void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType);
 

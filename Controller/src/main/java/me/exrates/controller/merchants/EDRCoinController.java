@@ -59,7 +59,7 @@ public class EDRCoinController {
         final HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("Content-Type", "text/plain; charset=utf-8");
 
-        if (!merchantService.checkInputRequestsLimit(payment.getMerchant(), principal.getName())){
+        if (!merchantService.checkInputRequestsLimit(payment.getCurrency(), principal.getName())){
             error = source.getMessage("merchants.InputRequestsLimit", null, locale);
 
             return new ResponseEntity<>(error, httpHeaders, HttpStatus.FORBIDDEN);

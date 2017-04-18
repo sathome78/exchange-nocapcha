@@ -15,6 +15,7 @@ import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.PendingPayment;
 import me.exrates.model.dto.BtcWalletInfoDto;
 import me.exrates.model.dto.TxReceivedByAddressFlatDto;
+import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
@@ -54,6 +55,7 @@ import java.util.stream.Collectors;
 public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
   
   private static final int KEY_POOL_LOW_THRESHOLD = 10;
+  private static final int MIN_CONFIRMATIONS_FOR_SPENDING = 3;
   
   @Value("${btc.wallet.password}")
   private String walletPassword;
@@ -97,7 +99,7 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
       * Keys are automatically refilled on unlocking
       * */
       if (keyPoolSize < KEY_POOL_LOW_THRESHOLD) {
-        btcdClient.walletPassphrase(walletPassword, 1);
+        unlockWallet(walletPassword, 1);
       }
       return btcdClient.getNewAddress();
     } catch (BitcoindException | CommunicationException e) {
@@ -312,8 +314,12 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
     try {
       BtcWalletInfoDto dto = new BtcWalletInfoDto();
       WalletInfo walletInfo = btcdClient.getWalletInfo();
+      BigDecimal spendableBalance = btcdClient.getBalance("", MIN_CONFIRMATIONS_FOR_SPENDING);
+      BigDecimal confirmedNonSpendableBalance = BigDecimalProcessing.doAction(walletInfo.getBalance(), spendableBalance, ActionType.SUBTRACT);
       BigDecimal unconfirmedBalance = btcdClient.getUnconfirmedBalance();
-      dto.setBalance(BigDecimalProcessing.formatNonePoint(walletInfo.getBalance(), true));
+      
+      dto.setBalance(BigDecimalProcessing.formatNonePoint(spendableBalance, true));
+      dto.setConfirmedNonSpendableBalance(BigDecimalProcessing.formatNonePoint(confirmedNonSpendableBalance, true));
       dto.setUnconfirmedBalance(BigDecimalProcessing.formatNonePoint(unconfirmedBalance, true));
       dto.setTransactionCount(walletInfo.getTxCount());
       return dto;
@@ -396,10 +402,7 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
   @Override
   public void submitWalletPassword(String password) {
     try {
-      Long unlockedUntil = btcdClient.getWalletInfo().getUnlockedUntil();
-      if (unlockedUntil != null && unlockedUntil == 0) {
-        btcdClient.walletPassphrase(password, 60);
-      }
+      unlockWallet(password, 60);
     } catch (BitcoindException | CommunicationException e) {
       log.error(e);
       throw new BitcoinCoreException(e.getMessage());
@@ -418,10 +421,36 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
     }
   }
   
+  
+  /*
+  * Using sendMany instead of sendToAddress allows to send only UTXO with certain number of confirmations.
+  * DO NOT use immutable map creation methods like Collections.singletonMap(...), it will cause an error within lib code
+  * */
+  @Override
+  public String sendToAddressAuto(String address, BigDecimal amount) {
+    
+    try {
+      unlockWallet(walletPassword, 1);
+      Map<String, BigDecimal> payments = new HashMap<>();
+      payments.put(address, amount);
+      return btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING);
+    } catch (BitcoindException | CommunicationException e) {
+      log.error(e);
+      throw new BitcoinCoreException(e.getMessage());
+    }
+  }
+  
+  private void unlockWallet(String password, int authTimeout) throws BitcoindException, CommunicationException {
+    Long unlockedUntil = btcdClient.getWalletInfo().getUnlockedUntil();
+    if (unlockedUntil != null && unlockedUntil == 0) {
+      btcdClient.walletPassphrase(password, authTimeout);
+    }
+  }
+  
   @Override
   public String sendToMany(Map<String, BigDecimal> payments) {
     try {
-      return btcdClient.sendMany("", payments);
+      return btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING);
     } catch (BitcoindException | CommunicationException e) {
       log.error(e);
       throw new BitcoinCoreException(e.getMessage());

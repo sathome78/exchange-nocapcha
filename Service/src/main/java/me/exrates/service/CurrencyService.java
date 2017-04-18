@@ -35,7 +35,7 @@ public interface CurrencyService {
 
     boolean updateMinWithdraw(int currencyId, BigDecimal minAmount);
 
-    void updateCurrencyLimit(int currencyId, OperationType operationType, String roleName, BigDecimal minAmount);
+    void updateCurrencyLimit(int currencyId, OperationType operationType, String roleName, BigDecimal minAmount, Integer maxDailyRequest);
 
     List<CurrencyLimit> retrieveCurrencyLimitsForRole(String roleName, OperationType operationType);
 

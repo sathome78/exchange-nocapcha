@@ -7,6 +7,7 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
+import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.InvoiceStatus;
@@ -55,6 +56,8 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     withdrawRequestFlatDto.setRemark(rs.getString("remark"));
     withdrawRequestFlatDto.setAmount(rs.getBigDecimal("amount"));
     withdrawRequestFlatDto.setCommissionAmount(rs.getBigDecimal("commission"));
+    withdrawRequestFlatDto.setNetAmount(BigDecimalProcessing.doAction(rs.getBigDecimal("amount"),
+            rs.getBigDecimal("commission"), ActionType.SUBTRACT));
     withdrawRequestFlatDto.setCommissionId(rs.getInt("commission_id"));
     withdrawRequestFlatDto.setStatus(WithdrawStatusEnum.convert(rs.getInt("status_id")));
     withdrawRequestFlatDto.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());

@@ -90,7 +90,7 @@ public class YandexMoneyMerchantController {
     public RedirectView preparePayment(@Valid @ModelAttribute("payment") Payment payment,
                                        BindingResult result, Principal principal, RedirectAttributes redir,
                                        HttpSession httpSession, final HttpServletRequest request) {
-        if (!merchantService.checkInputRequestsLimit(payment.getMerchant(), principal.getName())){
+        if (!merchantService.checkInputRequestsLimit(payment.getCurrency(), principal.getName())){
             redir.addAttribute("errorNoty", messageSource.getMessage("merchants.InputRequestsLimit", null, localeResolver.resolveLocale(request)));
             return new RedirectView("/dashboard");
         }
