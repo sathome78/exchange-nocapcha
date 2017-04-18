@@ -31,11 +31,13 @@
             <div class="row text-center" style="font-size: 1.4rem">
                 <p class="green"><strong><loc:message code="btcWallet.balance"/>
                     <span id="current-btc-balance">${walletInfo.balance}</span> BTC</strong></p>
+                <p ><strong><loc:message code="btcWallet.confirmedNonSpendableBalance"/>
+                    <span id="current-btc-balance">${walletInfo.confirmedNonSpendableBalance}</span> BTC</strong></p>
                 <p class="lightblue"><strong><loc:message code="btcWallet.unconfirmedBalance"/>
                     <span id="current-btc-unconfirmed-balance">${walletInfo.unconfirmedBalance}</span> BTC</strong></p>
             </div>
             <sec:authorize access="hasAuthority('${admin_manageBtcWallet}')">
-            <div id="walletMenu" class="buttons">
+            <div id="walletMenu" class="buttons text-center">
                 <button class="active adminForm-toggler blue-box">
                     <loc:message code="btcWallet.history.title"/>
                 </button>
@@ -97,7 +99,7 @@
                                     </div>
                                     <div id="fee-div" class="input-block-wrapper">
                                         <div class="col-md-4 input-block-wrapper__label-wrapper">
-                                            <label for="input-fee" class="input-block-wrapper__label pull-right"><loc:message code="btcWallet.fee"/></label>
+                                            <label for="input-fee" class="input-block-wrapper__label"><loc:message code="btcWallet.fee"/></label>
                                         </div>
                                         <div class="col-md-4 input-block-wrapper__input-wrapper">
                                             <input id="input-fee" readonly disabled type="number" class="input-block-wrapper__input admin-form-input"/>

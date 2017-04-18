@@ -1,0 +1,3 @@
+ALTER TABLE `CURRENCY_LIMIT`
+ADD COLUMN `max_daily_request` INT(3) NULL DEFAULT 10 AFTER `max_sum`;
+

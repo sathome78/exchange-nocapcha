@@ -20,6 +20,7 @@ $(document).ready(function () {
         var currencyId = rowData.currency.id;
         var currencyName = rowData.currency.name;
         var currentMinLimit = rowData.minSum;
+        var currentMaxDailyRequest = rowData.maxDailyRequest;
         var operationType = $('#operationType').val();
         var userRole = $('#roleName').val();
         $($editCurrencyLimitForm).find('input[name="currencyId"]').val(currencyId);
@@ -27,6 +28,7 @@ $(document).ready(function () {
         $($editCurrencyLimitForm).find('input[name="operationType"]').val(operationType);
         $($editCurrencyLimitForm).find('input[name="roleName"]').val(userRole);
         $($editCurrencyLimitForm).find('input[name="minAmount"]').val(currentMinLimit);
+        $($editCurrencyLimitForm).find('input[name="maxDailyRequest"]').val(currentMaxDailyRequest);
         $('#editLimitModal').modal();
     });
 
@@ -98,6 +100,9 @@ function updateCurrencyLimitsDataTable() {
                 },
                 {
                     "data": "minSum"
+                },
+                {
+                    "data": "maxDailyRequest"
                 }
             ]
         });

@@ -25,7 +25,7 @@
         <%@include file='left_side_menu.jsp' %>
         <div class="col-md-6 col-md-offset-2 admin-container">
             <div class="text-center"><h4><loc:message code="admin.currencyLimits.title"/></h4></div>
-            <div id="limitsMenu" class="buttons">
+            <div id="limitsMenu" class="buttons text-center">
                 <button class="active adminForm-toggler blue-box">
                     <loc:message code="admin.currencyLimits.menu.currencies"/>
                 </button>
@@ -62,7 +62,8 @@
                                 <th></th>
                                 <th><loc:message code="admin.currencyLimits.name"/></th>
                                 <th><loc:message code="admin.currencyLimits.minLimit"/></th>
-                            </tr>
+                            <th><loc:message code="admin.currencyLimits.maxDailyRequest"/></th>
+                        </tr>
                             </thead>
                         </table>
                     </div>
@@ -96,8 +97,8 @@
                             <tr>
                                 <th></th>
                                 <th><loc:message code="admin.currencyLimits.name"/></th>
-                                <th><loc:message code="admin.currencyLimits.minLimit"/></th>
-                                <th><loc:message code="admin.currencyLimits.minLimit"/></th>
+                                <th><loc:message code="admin.currencyLimits.minRate"/></th>
+                                <th><loc:message code="admin.currencyLimits.maxRate"/></th>
                             </tr>
                             </thead>
                             <tbody></tbody>
@@ -154,6 +155,14 @@
                         </div>
                         <div class="col-md-7 input-block-wrapper__input-wrapper">
                             <input name="minAmount" class="input-block-wrapper__input" type="number">
+                        </div>
+                    </div>
+                    <div class="input-block-wrapper">
+                        <div class="col-md-5 input-block-wrapper__label-wrapper">
+                            <label class="input-block-wrapper__label"><loc:message code="admin.currencyLimits.maxDailyRequest"/></label>
+                        </div>
+                        <div class="col-md-7 input-block-wrapper__input-wrapper" >
+                            <input  name="maxDailyRequest" class="input-block-wrapper__input" type="number" style="align-content: center">
                         </div>
                     </div>
                     <button id="submitNewLimit" class="blue-box admin-form-submit" type="submit"><loc:message

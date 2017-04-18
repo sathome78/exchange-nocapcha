@@ -59,7 +59,7 @@ public class EDCController {
                                                  final Principal principal,
                                                  final Locale locale)
     {
-        if (!merchantService.checkInputRequestsLimit(payment.getMerchant(), principal.getName())){
+        if (!merchantService.checkInputRequestsLimit(payment.getCurrency(), principal.getName())){
             final Map<String,String> error = new HashMap<>();
             error.put("error", messageSource.getMessage("merchants.InputRequestsLimit", null, locale));
 

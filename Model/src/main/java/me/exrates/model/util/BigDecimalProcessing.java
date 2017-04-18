@@ -316,6 +316,10 @@ public class BigDecimalProcessing {
     BigDecimal decimalValue2 = value2 == null ? null : new BigDecimal(value2);
     return doAction(decimalValue1, decimalValue2, actionType);
   }
+  
+  public static boolean isNonNegative(BigDecimal value) {
+    return value != null && value.signum() >= 0;
+  }
 
 
 }

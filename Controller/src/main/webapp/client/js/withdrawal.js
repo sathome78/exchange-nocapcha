@@ -345,10 +345,6 @@ function updateWithdrawalTable() {
                     },
                     "className": "text-center"
                 },
-                /* {
-                 "data": "status",
-                 "name": "WITHDRAW_REQUEST.status_id",
-                 },*/
                 {
                     "data": "userId",
                     "name": "WITHDRAW_REQUEST.user_id",
@@ -357,17 +353,17 @@ function updateWithdrawalTable() {
                     }
                 },
                 {
-                    "data": "amount",
-                    "name": "WITHDRAW_REQUEST.amount",
+                    "data": "netAmount",
+                    "name": "WITHDRAW_REQUEST.amount"
                 },
                 {
                     "data": "currencyName",
-                    "name": "WITHDRAW_REQUEST.currency_id",
+                    "name": "WITHDRAW_REQUEST.currency_id"
                 },
 
                 {
                     "data": "commissionAmount",
-                    "name": "WITHDRAW_REQUEST.commission",
+                    "name": "WITHDRAW_REQUEST.commission"
                 },
                 {
                     "data": "merchantName",
@@ -383,7 +379,7 @@ function updateWithdrawalTable() {
                 },
                 {
                     "data": "wallet",
-                    "name": "WITHDRAW_REQUEST.wallet",
+                    "name": "WITHDRAW_REQUEST.wallet"
                 },
                 {
                     "data": "adminHolderEmail",
