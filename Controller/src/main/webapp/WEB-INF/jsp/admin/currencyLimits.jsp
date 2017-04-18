@@ -97,8 +97,8 @@
                             <tr>
                                 <th></th>
                                 <th><loc:message code="admin.currencyLimits.name"/></th>
-                                <th><loc:message code="admin.currencyLimits.minLimit"/></th>
-                                <th><loc:message code="admin.currencyLimits.minLimit"/></th>
+                                <th><loc:message code="admin.currencyLimits.minRate"/></th>
+                                <th><loc:message code="admin.currencyLimits.maxRate"/></th>
                             </tr>
                             </thead>
                             <tbody></tbody>
