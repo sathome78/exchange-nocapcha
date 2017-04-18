@@ -2,8 +2,6 @@ package me.exrates.model.dto;
 
 import lombok.Getter;
 import lombok.Setter;
-import me.exrates.model.enums.TransactionSourceType;
-import me.exrates.model.enums.WithdrawalRequestStatus;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 

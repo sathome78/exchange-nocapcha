@@ -48,9 +48,13 @@ CREATE TABLE REFILL_REQUEST (
 	receipt_scan VARCHAR(100) NULL DEFAULT NULL,
 	receipt_scan_name VARCHAR(50) NULL DEFAULT NULL,
 	address VARCHAR(64) NULL DEFAULT NULL,
+	wif_priv_key VARCHAR(256) DEFAULT NULL,
+	pub_key VARCHAR(256) DEFAULT NULL,
+	brain_priv_key VARCHAR(256) DEFAULT NULL,
 	hash VARCHAR(64) NULL DEFAULT NULL,
 	merchant_transaction_id VARCHAR(256) NULL DEFAULT NULL,
 	admin_holder_id INT(11) NULL DEFAULT NULL,
+	import_note VARCHAR(50) NULL DEFAULT NULL,
 	PRIMARY KEY (id),
 	INDEX FK_refill_request_refill_request_status (status_id),
 	INDEX FK_refill_request_currency (currency_id),
@@ -69,7 +73,13 @@ COLLATE='utf8_general_ci'
 ENGINE=InnoDB;
 
 ALTER TABLE REFILL_REQUEST
-	ADD CONSTRAINT FK_refill_request_invoice_bank FOREIGN KEY (recipient_bank_id) REFERENCES invoice_bank (id);
+	ADD COLUMN merchant_image_id INT(11) NULL DEFAULT NULL;
+
+ALTER TABLE REFILL_REQUEST
+	ADD CONSTRAINT FK_refill_request_merchant_image FOREIGN KEY (merchant_image_id) REFERENCES MERCHANT_IMAGE (id);
+
+ALTER TABLE REFILL_REQUEST
+	ADD CONSTRAINT FK_refill_request_invoice_bank FOREIGN KEY (recipient_bank_id) REFERENCES INVOICE_BANK (id);
 
 CREATE TABLE REFILL_REQUEST_CONFIRMATION (
 	id INT(11) NOT NULL AUTO_INCREMENT,
@@ -92,3 +102,6 @@ ALTER TABLE REFILL_REQUEST
 
 ALTER TABLE REFILL_REQUEST
 	ADD INDEX status_id_status_modification_date (status_modification_date, status_id);
+
+ALTER TABLE TRANSACTION
+	CHANGE COLUMN source_type source_type ENUM('ORDER','MERCHANT','REFERRAL','ACCRUAL','MANUAL','USER_TRANSFER','INVOICE','BTC_INVOICE','WITHDRAW','REFILL') NULL DEFAULT NULL;
