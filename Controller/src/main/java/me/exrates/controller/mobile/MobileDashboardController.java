@@ -207,8 +207,8 @@ public class MobileDashboardController {
      *
      */
     @RequestMapping(value = "/currencyPairs", method = GET)
-    public List<CurrencyPair> getCurrencyPairs() {
-        return currencyService.getAllCurrencyPairs();
+    public List<CurrencyPairWithLimitsDto> getCurrencyPairs() {
+        return currencyService.findCurrencyPairsWithLimitsForUser();
 
     }
 

@@ -1,6 +1,7 @@
 package me.exrates.controller;
 
 import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.controller.exception.InvalidNumberParamException;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
@@ -13,6 +14,7 @@ import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.*;
 import me.exrates.model.form.AuthorityOptionsForm;
+import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.security.service.UserSecureService;
 import me.exrates.service.*;
@@ -920,6 +922,7 @@ public class AdminController {
     ModelAndView modelAndView = new ModelAndView("admin/currencyLimits");
     modelAndView.addObject("roleNames", BusinessUserRoleEnum.values());
     modelAndView.addObject("operationTypes", Arrays.asList(OperationType.INPUT.name(), OperationType.OUTPUT.name(), OperationType.USER_TRANSFER.name()));
+    modelAndView.addObject("orderTypes", OrderType.values());
     return modelAndView;
   }
 
@@ -939,6 +942,27 @@ public class AdminController {
                                                 @RequestParam Integer maxDailyRequest) {
 
     currencyService.updateCurrencyLimit(currencyId, operationType, roleName, minAmount, maxDailyRequest);
+    return new ResponseEntity<>(HttpStatus.OK);
+  }
+  
+  @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits/pairs/retrieve", method = RequestMethod.GET)
+  @ResponseBody
+  public List<CurrencyPairLimitDto> retrieveCurrencyPairLimits(@RequestParam String roleName,
+                                                    @RequestParam OrderType orderType) {
+    return currencyService.findAllCurrencyLimitsForRoleAndType(roleName, orderType);
+  }
+  
+  @RequestMapping(value = "/2a8fy7b07dxe44/editCurrencyLimits/pairs/submit", method = RequestMethod.POST)
+  @ResponseBody
+  public ResponseEntity<Void> editCurrencyPairLimit(@RequestParam int currencyPairId,
+                                                @RequestParam OrderType orderType,
+                                                @RequestParam String roleName,
+                                                @RequestParam BigDecimal minRate,
+                                                @RequestParam BigDecimal maxRate) {
+    if (!BigDecimalProcessing.isNonNegative(minRate) || !BigDecimalProcessing.isNonNegative(maxRate) || minRate.compareTo(maxRate) >= 0) {
+      throw new InvalidNumberParamException("Invalid request params!");
+    }
+    currencyService.updateCurrencyPairLimit(currencyPairId, orderType, roleName, minRate, maxRate);
     return new ResponseEntity<>(HttpStatus.OK);
   }
 

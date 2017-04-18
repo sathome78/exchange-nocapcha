@@ -22,7 +22,7 @@
                             <td id="info-currency"></td>
                         </tr>
                         <tr>
-                            <td><loc:message code="transaction.amount"/></td>
+                            <td><loc:message code="myorders.amountwithcommission"/></td>
                             <td id="info-amount"></td>
                         </tr>
                         <tr>

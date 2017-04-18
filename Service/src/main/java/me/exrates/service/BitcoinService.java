@@ -4,6 +4,7 @@ import me.exrates.model.CreditsOperation;
 import me.exrates.model.PendingPayment;
 import me.exrates.model.dto.PendingPaymentFlatDto;
 import me.exrates.model.dto.PendingPaymentSimpleDto;
+import me.exrates.service.merchantStrategy.IMerchantService;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -12,7 +13,7 @@ import java.util.List;
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
-public interface BitcoinService {
+public interface BitcoinService extends IMerchantService {
 
     int CONFIRMATION_NEEDED_COUNT = 4;
 

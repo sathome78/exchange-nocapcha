@@ -6,6 +6,7 @@ import me.exrates.model.ExOrder;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.dto.OrderCreateSummaryDto;
 import me.exrates.model.dto.OrderCreationResultDto;
+import me.exrates.model.dto.OrderValidationDto;
 import me.exrates.model.dto.mobileApiDto.OrderCreationParamsDto;
 import me.exrates.model.dto.mobileApiDto.OrderSummaryDto;
 import me.exrates.model.enums.OrderActionEnum;
@@ -224,9 +225,10 @@ public class MobileOrderController {
         OrderCreateDto orderCreateDto = orderService.prepareNewOrder(activeCurrencyPair, orderCreationParamsDto.getOrderType(),
                 userEmail, orderCreationParamsDto.getAmount(), orderCreationParamsDto.getRate());
         LOGGER.debug("Order prepared" + orderCreateDto);
-        Map<String, Object> errors = orderService.validateOrder(orderCreateDto);
+        OrderValidationDto orderValidationDto = orderService.validateOrder(orderCreateDto);
+        Map<String, Object> errors = orderValidationDto.getErrors();
         if (!errors.isEmpty()) {
-            errors.replaceAll((key, value) -> messageSource.getMessage(value.toString(), null, userLocale));
+            errors.replaceAll((key, value) -> messageSource.getMessage(value.toString(), orderValidationDto.getErrorParams().get(key), userLocale));
             throw new OrderParamsWrongException(errors.toString());
         }
         UUID orderKey = UUID.randomUUID();
