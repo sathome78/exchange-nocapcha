@@ -9,6 +9,7 @@ create table ORDER_TYPE
 )
 ;
 
+INSERT INTO ORDER_TYPE(id, name) VALUES (1, 'SELL'), (2, 'BUY');
 
 create table CURRENCY_PAIR_LIMIT
 (
@@ -17,8 +18,8 @@ create table CURRENCY_PAIR_LIMIT
   currency_pair_id int not null,
   user_role_id int not null,
   order_type_id int not null,
-  min_rate decimal(40,9) null,
-  max_rate decimal(40,9) null,
+  min_rate decimal(40,9) not null DEFAULT 0,
+  max_rate decimal(40,9) not null DEFAULT 99999999999,
   constraint currency_pair_limit__uq_index
   unique (currency_pair_id, user_role_id, order_type_id),
   constraint currency_pair_limit___fk_cur_pair
@@ -41,7 +42,6 @@ create index currency_pair_limit___fk_ord_type
 CREATE INDEX currency_pair_limit__index_user_role_order_type ON CURRENCY_PAIR_LIMIT (user_role_id, order_type_id);
 
 
-INSERT INTO ORDER_TYPE(id, name) VALUES (1, 'SELL'), (2, 'BUY');
 INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, min_rate, max_rate)
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
   JOIN USER_ROLE UR
