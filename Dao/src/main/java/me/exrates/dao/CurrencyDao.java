@@ -61,4 +61,6 @@ public interface CurrencyDao {
                             BigDecimal minRate, BigDecimal maxRate);
   
   List<CurrencyPairWithLimitsDto> findAllCurrencyPairsWithLimits(Integer roleId);
+
+    List<Currency> findAllCurrenciesWithHidden();
 }

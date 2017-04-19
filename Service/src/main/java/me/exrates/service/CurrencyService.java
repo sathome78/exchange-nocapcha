@@ -74,4 +74,6 @@ public interface CurrencyService {
   void updateCurrencyPairLimit(Integer currencyPairId, OrderType orderType, String roleName, BigDecimal minRate, BigDecimal maxRate);
   
   List<CurrencyPairWithLimitsDto> findCurrencyPairsWithLimitsForUser();
+
+  List<Currency> findAllCurrenciesWithHidden();
 }

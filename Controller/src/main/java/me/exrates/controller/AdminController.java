@@ -486,7 +486,6 @@ public class AdminController {
     model.addObject("userLang", userService.getPreferedLang(id).toUpperCase());
     model.addObject("usersInvoiceRefillCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), REFILL));
     model.addObject("usersInvoiceWithdrawCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), WITHDRAW));
-
     return model;
   }
 
@@ -1176,6 +1175,42 @@ public class AdminController {
     result.put("message", messageSource.getMessage("btcWallet.successResult", new Object[]{txId}, localeResolver.resolveLocale(request)));
     result.put("newBalance", bitcoinWalletService.getWalletInfo().getBalance());
     return result;
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/findReferral")
+  @ResponseBody
+  public RefsListContainer findUserReferral(@RequestParam("action") String action,
+                                            @RequestParam(value = "userId", required = false) Integer userId,
+                                            @RequestParam("profitUser") int profitUser,
+                                            @RequestParam(value = "onPage", defaultValue = "20") int onPage,
+                                            @RequestParam(value = "page", defaultValue = "1") int page,
+                                            RefFilterData refFilterData) {
+    LOG.error("filter data " + refFilterData);
+    return referralService.getRefsContainerForReq(action, userId, profitUser, onPage, page, refFilterData);
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/downloadRef")
+  public void downloadUserRefferalStructure(@RequestParam("profitUser") int profitUser,
+                                            RefFilterData refFilterData,
+                                            HttpServletResponse response) throws IOException {
+    response.setContentType("text/csv");
+    String reportName =
+            "referrals-"
+                    .concat(userService.getEmailById(profitUser))
+                    .concat(".csv");
+    response.setHeader("Content-disposition", "attachment;filename="+reportName);
+    List<String> refsList = referralService.getRefsListForDownload(profitUser, refFilterData);
+    OutputStreamWriter writer = new OutputStreamWriter(response.getOutputStream());
+    try {
+      for(String transaction : refsList) {
+        writer.write(transaction);
+      }
+    } catch (IOException e) {
+      LOG.error("error download transactions " + e);
+    } finally {
+      writer.flush();
+      writer.close();
+    }
   }
 
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)

@@ -235,19 +235,6 @@ public class OnlineRestController {
           }});
         }};
       }
-      if (principal != null && isSessionTimeOut(session)) {
-        try {
-          request.logout();
-        } catch (ServletException e) {
-          e.printStackTrace();
-        }
-        return new HashMap<String, HashMap<String, String>>() {{
-          put("redirect", new HashMap<String, String>() {{
-            put("url", "/dashboard");
-            put("urlParam1", messageSource.getMessage("session.expire", null, localeResolver.resolveLocale(request)));
-          }});
-        }};
-      }
       String cacheKey = "currencyPairStatistic" + request.getHeader("windowid");
       refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
       CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
@@ -259,15 +246,6 @@ public class OnlineRestController {
       throw e;
     } finally {
     }
-  }
-
-  private boolean isSessionTimeOut(HttpSession session) {
-    Integer sessionLifeTime = (int)session.getAttribute(sessionTimeMinutes);
-    long lastReq = (long)session.getAttribute(sessionLastRequestParamName);
-    LOGGER.error("last accTime " + lastReq +
-            " lifetime " + sessionLifeTime +
-            " system " + System.currentTimeMillis());
-    return lastReq + sessionLifeTime * MILLIS_PER_MINUTE <= System.currentTimeMillis();
   }
 
   /**
@@ -870,6 +848,28 @@ public class OnlineRestController {
     long after = System.currentTimeMillis();
     LOGGER.debug("completed... ms: " + (after - before));
     return result;
+  }
+
+  @RequestMapping(value = "/dashboard/myReferralStructure")
+  public RefsListContainer getMyReferralData(
+          @RequestParam("action") String action,
+          @RequestParam(value = "userId", required = false) Integer userId,
+          @RequestParam(value = "onPage", defaultValue = "20") int onPage,
+          @RequestParam(value = "page", defaultValue = "1") int page,
+          RefFilterData refFilterData,
+          Principal principal) {
+    if (principal == null) {
+      return null;
+    }
+    String email = principal.getName();
+        /**/
+    return referralService.getRefsContainerForReq(action, userId, userService.getIdByEmail(email), onPage, page, refFilterData);
+  }
+
+  @ResponseBody
+  @RequestMapping(value = "/dashboard/getAllCurrencies")
+  public List getAllCurrencies() {
+    return currencyService.findAllCurrenciesWithHidden();
   }
 
 }
