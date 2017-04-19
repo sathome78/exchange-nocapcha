@@ -6,7 +6,26 @@ FROM TRANSACTION TX
 GROUP BY TX.source_type
 /*CHECK :
 MERCHANT, BTC_INVOICE, INVOICE must not be presented*/
+
+"source_type"	"COUNT(*)"
+"ORDER"	"1117930"
+"MERCHANT"	"3" <<<<<<<<<<<<<<<<<<<<<< !!!!
+"REFERRAL"	"630452"
+"MANUAL"	"737"
+"USER_TRANSFER"	"238"
+"WITHDRAW"	"34684"
+
  */
+
+/*BACKUP AND DELETE TRANSACTIONS that is bind with none source_type*/
+INSERT INTO TRANSACTION_BACKUP_REFILL
+SELECT TX.* FROM TRANSACTION TX
+WHERE TX.source_type='MERCHANT';
+/* Затронуто строк: 3*/
+
+DELETE FROM TRANSACTION
+WHERE source_type='MERCHANT';
+/* Затронуто строк: 3*/
 
 SELECT MAX(id) FROM TRANSACTION -> 1223124   remember id after which new tranactins will be inserted
 
