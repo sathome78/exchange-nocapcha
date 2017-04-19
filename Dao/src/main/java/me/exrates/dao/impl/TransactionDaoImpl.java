@@ -322,8 +322,10 @@ public final class TransactionDaoImpl implements TransactionDao {
     final String whereClauseBasic = "WHERE TRANSACTION.user_wallet_id in (:ids)";
     Map<String, Object> params = new HashMap<>();
     params.put("ids", walletIds);
+    params.put("limit", dataTableParams.getLength());
     params.put("offset", dataTableParams.getStart());
     params.put("limit", dataTableParams.getLength());
+    params.put("requester_user_id", requesterUserId);
     params.putAll(filterData.getNamedParams());
     String criteria = filterData.getSQLFilterClause();
     String filterClause = criteria.isEmpty() ? "" : "AND " + criteria;

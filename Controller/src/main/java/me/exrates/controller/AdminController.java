@@ -247,6 +247,7 @@ public class AdminController {
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/transactions", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
   public DataTable<List<OperationViewDto>> getUserTransactions(AdminTransactionsFilterData filterData,
+      @RequestParam Integer id,
       @RequestParam Map<String, String> params,
       Principal principal,
       HttpServletRequest request) {
@@ -254,7 +255,7 @@ public class AdminController {
     DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
     
     Integer requesterAdminId = userService.getIdByEmail(principal.getName());
-    return transactionService.showUserOperationHistory(requesterAdminId, principal.getName(), filterData, dataTableParams,
+    return transactionService.showUserOperationHistory(requesterAdminId, id, filterData, dataTableParams,
             localeResolver.resolveLocale(request));
   }
 
@@ -270,6 +271,7 @@ public class AdminController {
                                   AdminTransactionsFilterData filterData,
                                   Principal principal,
                                   HttpServletResponse response) throws IOException {
+    filterData.initFilterItems();
       response.setContentType("text/csv");
       String reportName =
               "transactions"/*
@@ -281,7 +283,7 @@ public class AdminController {
       response.setHeader("Content-disposition", "attachment;filename="+reportName);
       List<String> transactionsHistory = transactionService
               .getCSVTransactionsHistory(userService.getIdByEmail(principal.getName()),
-                      userService.getEmailById(id), filterData);
+                      id, filterData);
       OutputStreamWriter writer = new OutputStreamWriter(response.getOutputStream());
       try {
         for(String transaction : transactionsHistory) {

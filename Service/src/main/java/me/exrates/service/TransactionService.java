@@ -41,7 +41,7 @@ public interface TransactionService {
   
   DataTable<List<OperationViewDto>> showUserOperationHistory(
           Integer requesterUserId,
-          String userEmail,
+          Integer userId,
           AdminTransactionsFilterData filterData, DataTableParams dataTableParams, Locale locale);
 
   List<AccountStatementDto> getAccountStatement(CacheData cacheData, Integer walletId, Integer offset, Integer limit, Locale locale);
@@ -60,7 +60,7 @@ public interface TransactionService {
 
   boolean setStatusById(Integer trasactionId, Integer statusId);
 
-  List<String> getCSVTransactionsHistory(int requesterUserId, String email, AdminTransactionsFilterData filterData);
+  List<String> getCSVTransactionsHistory(Integer requesterUserId, Integer userId, AdminTransactionsFilterData filterData);
 
   List<UserSummaryDto> getTurnoverInfoByUserAndCurrencyForPeriodAndRoleList(Integer requesterUserId, String startDate, String endDate, List<Integer> roleIdList);
 

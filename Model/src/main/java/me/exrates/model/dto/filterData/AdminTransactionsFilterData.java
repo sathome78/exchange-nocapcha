@@ -19,7 +19,6 @@ import static me.exrates.model.dto.filterData.FilterDataItem.IN_FORMAT;
 @NoArgsConstructor
 @ToString
 public class AdminTransactionsFilterData extends TableFilterData {
-  private Integer id;
   private Integer status;
   private List<TransactionType> types;
   private List<Integer> merchants;
@@ -46,7 +45,6 @@ public class AdminTransactionsFilterData extends TableFilterData {
     }
    
     FilterDataItem[] items = new FilterDataItem[] {
-            new FilterDataItem("id", "TRANSACTION.id =", id),
             new FilterDataItem("provided", "TRANSACTION.provided =", status),
             new FilterDataItem("date_from", "TRANSACTION.datetime >=", startDate, DATE_FORMAT),
             new FilterDataItem("date_to", "TRANSACTION.datetime <=", endDate, DATE_FORMAT),

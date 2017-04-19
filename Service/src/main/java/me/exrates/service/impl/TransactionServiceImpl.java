@@ -188,9 +188,8 @@ public class TransactionServiceImpl implements TransactionService {
   @Override
   public DataTable<List<OperationViewDto>> showUserOperationHistory(
           Integer requesterUserId,
-          String userEmail,
+          Integer userId,
           AdminTransactionsFilterData filterData, DataTableParams dataTableParams, Locale locale) {
-    final int userId = userService.getIdByEmail(userEmail);
     requesterUserId = requesterUserId.equals(userId) ? null : requesterUserId;
     final List<Integer> wallets = walletService.getAllWallets(userId).stream()
             .mapToInt(Wallet::getId)
@@ -198,7 +197,7 @@ public class TransactionServiceImpl implements TransactionService {
             .collect(Collectors.toList());
     final DataTable<List<OperationViewDto>> result = new DataTable<>();
     if (wallets.isEmpty()) {
-      result.setData(new ArrayList<>());
+      result.setData(Collections.EMPTY_LIST);
       return result;
     }
     final PagingData<List<Transaction>> transactions = transactionDao.findAllByUserWallets(requesterUserId, wallets,
@@ -289,19 +288,11 @@ public class TransactionServiceImpl implements TransactionService {
   }
 
   @Override
-  public List<String> getCSVTransactionsHistory(int requesterUserId, String email, AdminTransactionsFilterData filterData) {
-
-    final List<Integer> wallets = walletService.getAllWallets(requesterUserId).stream()
-        .mapToInt(Wallet::getId)
-        .boxed()
-        .collect(Collectors.toList());
-    if (wallets.isEmpty()) {
-      return Collections.emptyList();
-    }
+  public List<String> getCSVTransactionsHistory(Integer requesterUserId, Integer userId, AdminTransactionsFilterData filterData) {
     String sortColumn = "TRANSACTION.datetime";
     String sortDirection = "DESC";
     DataTableParams dataTableParams = DataTableParams.sortNoPaginationParams(sortColumn, sortDirection);
-    DataTable<List<OperationViewDto>> history = showUserOperationHistory(requesterUserId, email, filterData, dataTableParams, Locale.ENGLISH);
+    DataTable<List<OperationViewDto>> history = showUserOperationHistory(requesterUserId, userId, filterData, dataTableParams, Locale.ENGLISH);
     return convertTrListToString(history.getData());
   }
 
