@@ -72,6 +72,10 @@
     margin-top: 20px;
 }
 
+.no-left-padding {
+    padding-left: 0;
+}
+
 /*pagination*/
 
 .pagination>.active>a, .pagination>.active>a:focus, .pagination>.active>a:hover, .pagination>.active>span, .pagination>.active>span:focus, .pagination>.active>span:hover {
@@ -86,3 +90,5 @@
 .pagination>li>a, .pagination>li>span {
     color: #2c3749;
 }
+
+

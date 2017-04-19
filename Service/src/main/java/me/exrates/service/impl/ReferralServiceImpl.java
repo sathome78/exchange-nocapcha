@@ -373,7 +373,7 @@ public class ReferralServiceImpl implements ReferralService {
             StringBuilder sb = new StringBuilder();
             sb.append(i.getEmail())
                     .append(";")
-                    .append(i.getRefProfitFromUser() == 0 ? 0 : refProfitString(i.getReferralProfitDtoList()))/*todo: all currencies separate*/
+                    .append(i.getRefProfitFromUser() == 0 ? 0 : refProfitString(i.getReferralProfitDtoList()))
                     .append(";")
                     .append(i.getFirstRefLevelCount())
                     .append(";")

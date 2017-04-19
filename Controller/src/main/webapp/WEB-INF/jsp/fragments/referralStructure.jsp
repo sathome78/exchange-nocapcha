@@ -16,7 +16,7 @@
         <div class="input-block-wrapper">
             <div class="col-md-3 ">
                  <label class="input-block-wrapper__label">
-                    <loc:message code="ordersearch.date"/>
+                    <loc:message code="admin.user.transactions.downloadHistory.choosePeriod"/>
                 </label>
             </div>
             <div class="col-md-9 input-block-wrapper__input-wrapper">
@@ -43,7 +43,7 @@
                 </label>
             </div>
             <div class="col-md-9 input-block-wrapper__input-wrapper">
-                <ul class="checkbox-grid">
+                <ul class="checkbox-grid no-left-padding">
                     <li id="currency_container">
                     </li>
                 </ul>
