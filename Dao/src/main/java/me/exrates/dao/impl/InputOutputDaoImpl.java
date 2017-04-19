@@ -54,7 +54,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
         "    WITHDRAW_REQUEST.status_id AS withdraw_request_status_id, " +
         "    WITHDRAW_REQUEST.status_modification_date AS withdraw_request_status_update_date, " +
         "    WITHDRAW_REQUEST.admin_holder_id AS admin_holder_id," +
-        "WITHDRAW_REQUEST.wallet AS withdraw_recipient_account" +
+        "   WITHDRAW_REQUEST.wallet AS withdraw_recipient_account" +
         "  FROM TRANSACTION " +
         "    left join CURRENCY on TRANSACTION.currency_id=CURRENCY.id" +
         "    left join INVOICE_REQUEST on TRANSACTION.id=INVOICE_REQUEST.transaction_id" +
@@ -69,6 +69,35 @@ public class InputOutputDaoImpl implements InputOutputDao {
         "  WHERE " +
         "    TRANSACTION.operation_type_id IN (:operation_type_id_list) and " +
         "    USER.email=:email " +
+
+        "  UNION " +
+        "  (SELECT " +
+        "     WR.date_creation, " +
+        "     CUR.name, WR.amount, WR.commission, " +
+        "     'WITHDRAW', WR.id, -1," +
+        "     IF(WR.merchant_image_id IS NULL, M.name, MI.image_name), " +
+        "     'Output', WR.id, 1, " +
+        "     null, " +
+        "     USER.id, " +
+        "     null, " +
+        "     WR.status_modification_date, " +
+        "     WR.user_full_name, WR.remark, " +
+        "     null, " +
+        "     null, " +
+        "     WR.status_id, " +
+        "     WR.status_modification_date, " +
+        "     WR.admin_holder_id," +
+        "     WR.wallet " +
+        "   FROM REFILL_REQUEST RR " +
+        "     JOIN CURRENCY CUR ON CUR.id=RR.currency_id " +
+        "     JOIN USER USER ON USER.id=RR.user_id " +
+        "     JOIN MERCHANT M ON M.id=RR.merchant_id " +
+        "     LEFT JOIN MERCHANT_IMAGE MI ON MI.id=RR.merchant_image_id " +
+        "   WHERE USER.email=:email AND " +
+        "     NOT EXISTS(SELECT * FROM TRANSACTION TX WHERE TX.source_type='WITHDRAW' AND TX.source_id=WR.id AND TX.operation_type_id=2) " +
+        "  )  " +
+
+
         "  UNION " +
         "  (SELECT " +
         "     WR.date_creation, " +
