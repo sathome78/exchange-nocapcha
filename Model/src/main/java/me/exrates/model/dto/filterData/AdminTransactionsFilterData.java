@@ -15,10 +15,11 @@ import static me.exrates.model.dto.filterData.FilterDataItem.IN_FORMAT;
 /**
  * Created by OLEG on 14.04.2017.
  */
+@Getter @Setter
 @NoArgsConstructor
 @ToString
 public class AdminTransactionsFilterData extends TableFilterData {
-  private int id;
+  private Integer id;
   private Integer status;
   private List<TransactionType> types;
   private List<Integer> merchants;

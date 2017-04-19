@@ -49,7 +49,7 @@ $(function () {
             "columns": [
                 {
                     "data": "datetime",
-                    "name":"TRANSACTIOIN.datetime",
+                    "name":"TRANSACTION.datetime",
                     "render": function (data, type, row) {
                         if (type == 'display') {
                             return data.split(' ')[0];
