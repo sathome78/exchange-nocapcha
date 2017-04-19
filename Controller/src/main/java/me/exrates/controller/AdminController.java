@@ -8,6 +8,7 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
+import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
@@ -245,27 +246,17 @@ public class AdminController {
 
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/transactions", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
-  public DataTable<List<OperationViewDto>> getUserTransactions(
-      @RequestParam(required = false) int id,
-      @RequestParam(required = false) Integer status,
-      @RequestParam(required = false) String[] type,
-      @RequestParam(required = false) Integer[] merchant,
-      @RequestParam(required = false) String startDate,
-      @RequestParam(required = false) String endDate,
-      @RequestParam(required = false) BigDecimal amountFrom,
-      @RequestParam(required = false) BigDecimal amountTo,
-      @RequestParam(required = false) BigDecimal commissionAmountFrom,
-      @RequestParam(required = false) BigDecimal commissionAmountTo,
+  public DataTable<List<OperationViewDto>> getUserTransactions(AdminTransactionsFilterData filterData,
+      @RequestParam Integer id,
       @RequestParam Map<String, String> params,
       Principal principal,
       HttpServletRequest request) {
-    Integer transactionStatus = status == null || status == -1 ? null : status;
-    List<TransactionType> types = type == null ? null :
-        Arrays.stream(type).map(TransactionType::valueOf).collect(Collectors.toList());
-    List<Integer> merchantIds = merchant == null ? null : Arrays.asList(merchant);
+    filterData.initFilterItems();
+    DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
+    
     Integer requesterAdminId = userService.getIdByEmail(principal.getName());
-    return transactionService.showUserOperationHistory(requesterAdminId, id, transactionStatus, types, merchantIds, startDate, endDate,
-        amountFrom, amountTo, commissionAmountFrom, commissionAmountTo, localeResolver.resolveLocale(request), params);
+    return transactionService.showUserOperationHistory(requesterAdminId, id, filterData, dataTableParams,
+            localeResolver.resolveLocale(request));
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/downloadTransactionsPage")
@@ -277,22 +268,22 @@ public class AdminController {
 
   @RequestMapping(value = "/2a8fy7b07dxe44/downloadTransactions")
   public void getUserTransactions(final @RequestParam int id,
-                                  final @RequestParam String startDate,
-                                  final @RequestParam String endDate,
+                                  AdminTransactionsFilterData filterData,
                                   Principal principal,
                                   HttpServletResponse response) throws IOException {
+    filterData.initFilterItems();
       response.setContentType("text/csv");
       String reportName =
-              "transactions"
+              "transactions"/*
                       .concat(startDate)
                       .concat("-")
                       .concat(endDate)
-                      .replaceAll(" ", " _")
+                      .replaceAll(" ", "_")*/
                       .concat(".csv");
       response.setHeader("Content-disposition", "attachment;filename="+reportName);
       List<String> transactionsHistory = transactionService
               .getCSVTransactionsHistory(userService.getIdByEmail(principal.getName()),
-                      userService.getEmailById(id), startDate, endDate);
+                      id, filterData);
       OutputStreamWriter writer = new OutputStreamWriter(response.getOutputStream());
       try {
         for(String transaction : transactionsHistory) {

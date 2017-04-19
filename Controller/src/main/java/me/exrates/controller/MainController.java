@@ -261,13 +261,6 @@ public class MainController {
 
     }
 
-    @RequestMapping(value = "/transaction")
-    public ModelAndView transactions(Principal principal) {
-        final int id = userService.getIdByEmail(principal.getName());
-        Integer requesterAdminId = id;
-        List<OperationViewDto> list = transactionService.showMyOperationHistory(requesterAdminId, principal.getName(), localeResolver.resolveLocale(request)).getData();
-        return new ModelAndView("transaction", "transactions", list);
-    }
 
     @RequestMapping(value = "/referral")
     public ModelAndView referral(final Principal principal) {

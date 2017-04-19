@@ -1,7 +1,9 @@
 package me.exrates.model.dto.filterData;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -14,8 +16,14 @@ public abstract class TableFilterData {
     public abstract void initFilterItems();
 
     void populateFilterItemsNonEmpty(FilterDataItem[] items) {
-        filterItems = Stream.of(items).filter(item -> !(item.getValue() == null || String.valueOf(item.getValue()).isEmpty()))
+        filterItems = Stream.of(items).filter(checkNotEmpty())
                 .collect(Collectors.toList());
+    }
+    
+    private Predicate<FilterDataItem> checkNotEmpty() {
+        return item -> !(item.getValue() == null
+                || String.valueOf(item.getValue()).isEmpty()
+                || (item.getValue() instanceof Collection && ((Collection) item.getValue()).isEmpty()));
     }
 
     public Map<String, Object> getNamedParams() {
@@ -25,6 +33,10 @@ public abstract class TableFilterData {
     public String getSQLFilterClause() {
         return filterItems.stream().map(item -> item.getSqlClause().concat(" ").concat(item.formatParamForSql()))
                 .collect(Collectors.joining(" AND "));
+    }
+    
+    public static void main(String[] args) {
+    
     }
 
 }

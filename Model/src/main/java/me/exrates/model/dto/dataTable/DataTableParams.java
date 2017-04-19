@@ -1,6 +1,8 @@
 package me.exrates.model.dto.dataTable;
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.model.exceptions.IllegalColumnNameException;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -10,15 +12,16 @@ import java.util.stream.Stream;
 /**
  * Created by OLEG on 21.02.2017.
  */
+@Log4j2
 public class DataTableParams {
 
-    private int draw;
-    private int orderColumn;
-    private OrderDirection orderDirection;
-    private int start;
-    private int length;
-    private String searchValue;
-    private List<String> columns;
+    private int draw = 1;
+    private int orderColumn = 0;
+    private OrderDirection orderDirection = OrderDirection.ASC;
+    private int start = 0;
+    private int length = 0;
+    private String searchValue = "";
+    private List<String> columns = Collections.EMPTY_LIST;
 
 
     enum OrderDirection {
@@ -65,6 +68,17 @@ public class DataTableParams {
         dataTableParams.columns = columnNames;
         return dataTableParams;
     }
+    
+    public static DataTableParams defaultParams() {
+        return new DataTableParams();
+    }
+    
+    public static DataTableParams sortNoPaginationParams(String sortColumn, String sortDirection) {
+        DataTableParams dataTableParams = new DataTableParams();
+        dataTableParams.columns = Collections.singletonList(sortColumn);
+        dataTableParams.orderDirection = OrderDirection.valueOf(sortDirection.toUpperCase());
+        return dataTableParams;
+    }
 
     public String getOrderByClause() {
         if (columns.isEmpty() || orderColumn >= columns.size()) {
@@ -72,9 +86,21 @@ public class DataTableParams {
         }
         return new StringJoiner(" ").add("ORDER BY").add(columns.get(orderColumn)).add(orderDirection.name()).toString();
     }
+    
+    public String getLimitAndOffsetClause() {
+      String limit;
+      if (length > 0) {
+        String offset = start > 0 ? " OFFSET :offset " : "";
+        limit = " LIMIT :limit " + offset;
+      } else {
+        limit = "";
+      }
+      return limit;
+    }
 
     private static void validateColumnNames(List<String> columnNames) {
-        if (!columnNames.stream().allMatch(Pattern.compile("^[a-zA-z]+([_.]{1}[a-zA-z]+)*[a-zA-z]$").asPredicate())) {
+        if (!columnNames.stream().filter(StringUtils::isNotEmpty)
+                .allMatch(Pattern.compile("^[a-zA-z]+([_.]{1}[a-zA-z]+)*[a-zA-z]$").asPredicate())) {
             throw new IllegalColumnNameException("Illegal column name!");
         }
     }
@@ -91,4 +117,5 @@ public class DataTableParams {
                 ", columns=" + columns +
                 '}';
     }
+  
 }
