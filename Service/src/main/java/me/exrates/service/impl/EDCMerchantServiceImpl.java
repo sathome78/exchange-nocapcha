@@ -157,7 +157,6 @@ public class EDCMerchantServiceImpl implements EDCMerchantService{
                 MerchantCurrency merchantCurrency = merchantService.findAllByCurrencies(list, OperationType.INPUT).get(0);
                 payment.setMerchant(merchantCurrency.getMerchantId());
                 payment.setOperationType(OperationType.INPUT);
-                payment.setMerchantImage(merchantCurrency.getListMerchantImage().get(0).getId());
                 payment.setSum(Double.parseDouble(params.get("amount")));
                 CreditsOperation creditsOperation = merchantService
                         .prepareCreditsOperation(payment, userEmail)

@@ -685,7 +685,7 @@ public class AdminController {
     if (!permittedCurrencies.isEmpty()) {
       List<Merchant> merchants = merchantService.findAllByCurrencies(permittedCurrencies.stream()
           .map(UserCurrencyOperationPermissionDto::getCurrencyId).collect(Collectors.toList()), OperationType.OUTPUT).stream()
-          .map(item -> new Merchant(item.getMerchantId(), item.getName(), item.getDescription(), null))
+          .map(item -> new Merchant(item.getMerchantId(), item.getName(), item.getDescription()))
           .distinct().collect(Collectors.toList());
       params.put("merchants", merchants);
     }

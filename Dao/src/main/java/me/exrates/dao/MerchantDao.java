@@ -37,8 +37,6 @@ public interface MerchantDao {
 
   List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions();
 
-  List<MyInputOutputHistoryDto> findMyInputOutputHistoryByOperationType(String email, Integer offset, Integer limit, List<Integer> operationTypeIdList, Locale locale);
-
   Integer getInputRequests(int merchantId, String email);
 
   void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType);

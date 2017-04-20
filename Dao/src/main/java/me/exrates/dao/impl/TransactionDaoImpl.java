@@ -92,7 +92,6 @@ public final class TransactionDaoImpl implements TransactionDao {
         withdraw.setId(resultSet.getInt("WITHDRAW_REQUEST.id"));
         withdraw.setWallet(resultSet.getString("WITHDRAW_REQUEST.wallet"));
         withdraw.setUserId(resultSet.getInt("WITHDRAW_REQUEST.user_id"));
-        withdraw.setMerchantImage(new MerchantImage(resultSet.getInt("WITHDRAW_REQUEST.merchant_image_id")));
         withdraw.setRecipientBankName(resultSet.getString("WITHDRAW_REQUEST.recipient_bank_name"));
         withdraw.setRecipientBankCode(resultSet.getString("WITHDRAW_REQUEST.recipient_bank_code"));
         withdraw.setUserFullName(resultSet.getString("WITHDRAW_REQUEST.user_full_name"));

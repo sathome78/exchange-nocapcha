@@ -27,7 +27,6 @@ public class WithdrawRequestCreateDto {
   private String destinationWallet;
   private Integer merchantId;
   private String merchantDescription;
-  private MerchantImage merchantImage;
   private Integer statusId;
   private String recipientBankName;
   private String recipientBankCode;
@@ -48,7 +47,6 @@ public class WithdrawRequestCreateDto {
     this.destinationWallet = creditsOperation.getDestination().get();
     this.merchantId = creditsOperation.getMerchant().getId();
     this.merchantDescription = creditsOperation.getMerchant().getDescription();
-    this.merchantImage = creditsOperation.getMerchantImage().orElse(null);
     this.statusId = status.getCode();
     this.recipientBankName = withdrawRequestParamsDto.getRecipientBankName();
     this.recipientBankCode = withdrawRequestParamsDto.getRecipientBankCode();

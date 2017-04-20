@@ -1,16 +1,13 @@
 package me.exrates.controller.merchants;
 
 import lombok.extern.log4j.Log4j;
-import me.exrates.controller.annotation.FinPassCheck;
 import me.exrates.controller.exception.CheckFinPassException;
 import me.exrates.controller.exception.ErrorInfo;
-import me.exrates.model.*;
-import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.CreditsOperation;
+import me.exrates.model.InvoiceBank;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
-import me.exrates.model.exceptions.UnsupportedTransactionSourceTypeNameException;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.InvoiceData;
-import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.*;
 import me.exrates.service.exception.FileLoadingException;
 import me.exrates.service.exception.InvalidAmountException;
@@ -23,7 +20,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.FlashMap;
 import org.springframework.web.servlet.LocaleResolver;
@@ -39,10 +35,7 @@ import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
-import static me.exrates.model.enums.TransactionSourceType.BTC_INVOICE;
-import static me.exrates.model.enums.TransactionSourceType.INVOICE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -57,10 +50,10 @@ public class InvoiceController {
 
   @Autowired
   private InvoiceService invoiceService;
-  
+
   @Autowired
   private TransactionService transactionService;
-  
+
   @Autowired
   private CommissionService commissionService;
 
@@ -250,7 +243,7 @@ public class InvoiceController {
   public RedirectView CheckFinPassExceptionHandler(HttpServletRequest req, Exception exception) {
     log.error(ExceptionUtils.getStackTrace(exception));
     FlashMap outputFlashMap = RequestContextUtils.getOutputFlashMap(req);
-    if (outputFlashMap != null){
+    if (outputFlashMap != null) {
       outputFlashMap.put("errorNoty", messageSource.getMessage("admin.wrongfinpassword", null, localeResolver.resolveLocale(req)));
     }
     RedirectView redirectView = new RedirectView("/merchants/output?currency=IDR");

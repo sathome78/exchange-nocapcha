@@ -6,8 +6,12 @@ import org.springframework.context.MessageSource;
 
 import java.util.*;
 
+import static me.exrates.model.enums.TransactionSourceType.ORDER;
+import static me.exrates.model.enums.TransactionSourceType.REFILL;
+import static me.exrates.model.enums.TransactionSourceType.WITHDRAW;
+
 public enum OperationType {
-    INPUT(1){{
+    INPUT(1, REFILL){{
         /*Addition of three digits is required for IDR input*/
         currencyForAddRandomValueToAmount.put(10, new AdditionalRandomAmountParam(){{
             currencyName = "IDR";
@@ -15,7 +19,7 @@ public enum OperationType {
             highBound = 999;
         }});
     }},
-    OUTPUT(2),
+    OUTPUT(2, WITHDRAW),
     SELL(3),
     BUY(4),
     WALLET_INNER_TRANSFER(5),
@@ -42,10 +46,16 @@ public enum OperationType {
 
     public final int type;
 
+    TransactionSourceType transactionSourceType = null;
+
     protected final Map<Integer, AdditionalRandomAmountParam> currencyForAddRandomValueToAmount = new HashMap<>();
 
     OperationType(int type) {
         this.type = type;
+    }
+    OperationType(int type, TransactionSourceType transactionSourceType) {
+        this.type = type;
+        this.transactionSourceType = transactionSourceType;
     }
 
     public Optional<AdditionalRandomAmountParam> getRandomAmountParam(Integer currencyId){
@@ -82,6 +92,10 @@ public enum OperationType {
 
     public int getType() {
         return type;
+    }
+
+    public TransactionSourceType getTransactionSourceType() {
+        return transactionSourceType;
     }
 
     public static OperationType convert(int id) {

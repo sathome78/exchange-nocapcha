@@ -44,6 +44,7 @@ $(function () {
 
             if (maxAmount && val >= maxAmount) {
                 $(this).val(maxAmount);
+                val = maxAmount;
             }
 
             minLimit = minAmount;

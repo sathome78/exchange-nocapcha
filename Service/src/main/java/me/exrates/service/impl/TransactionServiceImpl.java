@@ -203,7 +203,7 @@ public class TransactionServiceImpl implements TransactionService {
       view.setOrder(t.getOrder());
       view.setStatus(merchantService.resolveTransactionStatus(t, locale));
       view.setOperationType(TransactionType.resolveFromOperationTypeAndSource(t.getSourceType(), t.getOperationType(), t.getAmount()));
-      view.setMerchant(t.getMerchant() == null ? new Merchant(0, null, t.getSourceType().name(), null) : t.getMerchant());
+      view.setMerchant(t.getMerchant() == null ? new Merchant(0, null, t.getSourceType().name()) : t.getMerchant());
       view.setSourceType(t.getSourceType().name());
       view.setSourceId(t.getSourceId());
       setTransactionMerchantAndOrder(view, t);
@@ -223,7 +223,7 @@ public class TransactionServiceImpl implements TransactionService {
     if (sourceType == TransactionSourceType.REFILL || sourceType == TransactionSourceType.WITHDRAW) {
       view.setMerchant(transaction.getMerchant());
     } else {
-      view.setMerchant(new Merchant(0, sourceType.name(), sourceType.name(), null));
+      view.setMerchant(new Merchant(0, sourceType.name(), sourceType.name()));
     }
 
   }
@@ -406,7 +406,7 @@ public class TransactionServiceImpl implements TransactionService {
     if (sourceType == TransactionSourceType.REFILL || sourceType == TransactionSourceType.WITHDRAW) {
       transaction.setMerchant(transaction.getMerchant());
     } else {
-      transaction.setMerchant(new Merchant(0, sourceType.name(), sourceType.name(), null));
+      transaction.setMerchant(new Merchant(0, sourceType.name(), sourceType.name()));
     }
 
   }

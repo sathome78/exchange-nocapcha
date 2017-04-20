@@ -17,7 +17,6 @@ public class Payment {
     private int merchant;
     private double sum;
     private String destination;
-    private int merchantImage;
     private OperationType operationType;
 
     public Payment(OperationType operationType) {

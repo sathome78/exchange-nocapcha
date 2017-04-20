@@ -212,10 +212,7 @@ public class YandexMoneyServiceImpl implements YandexMoneyService {
 
     @Override
     public int saveInputPayment(Payment payment) {
-        Integer merchantImageId = payment.getMerchantImage() > 0 ? payment.getMerchantImage() : null;
-
-
-        return yandexMoneyMerchantDao.savePayment(payment.getCurrency(), BigDecimal.valueOf(payment.getSum()), merchantImageId);
+        return yandexMoneyMerchantDao.savePayment(payment.getCurrency(), BigDecimal.valueOf(payment.getSum()));
     }
     @Override
     public Optional<Payment> getPaymentById(Integer id) {

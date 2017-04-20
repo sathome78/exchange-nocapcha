@@ -44,7 +44,6 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     withdrawRequestFlatDto.setId(rs.getInt("id"));
     withdrawRequestFlatDto.setWallet(rs.getString("wallet"));
     withdrawRequestFlatDto.setUserId(rs.getInt("user_id"));
-    withdrawRequestFlatDto.setMerchantImageId(rs.getInt("merchant_image_id"));
     withdrawRequestFlatDto.setRecipientBankName(rs.getString("recipient_bank_name"));
     withdrawRequestFlatDto.setRecipientBankCode(rs.getString("recipient_bank_code"));
     withdrawRequestFlatDto.setUserFullName(rs.getString("user_full_name"));
@@ -133,14 +132,13 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
   @Override
   public int create(WithdrawRequestCreateDto withdrawRequest) {
     final String sql = "INSERT INTO WITHDRAW_REQUEST " +
-        "(wallet, merchant_image_id, recipient_bank_name, recipient_bank_code, user_full_name, remark, amount, commission, status_id," +
+        "(wallet, recipient_bank_name, recipient_bank_code, user_full_name, remark, amount, commission, status_id," +
         " date_creation, status_modification_date, currency_id, merchant_id, user_id, commission_id) " +
-        "VALUES (:wallet, :merchant_image_id, :payer_bank_name, :payer_bank_code, :user_full_name, :remark, :amount, :commission, :status_id," +
+        "VALUES (:wallet, :payer_bank_name, :payer_bank_code, :user_full_name, :remark, :amount, :commission, :status_id," +
         " NOW(), NOW(), :currency_id, :merchant_id, :user_id, :commission_id)";
     KeyHolder keyHolder = new GeneratedKeyHolder();
     MapSqlParameterSource params = new MapSqlParameterSource()
         .addValue("wallet", withdrawRequest.getDestinationWallet())
-        .addValue("merchant_image_id", withdrawRequest.getMerchantImage().getId() == 0 ? null : withdrawRequest.getMerchantImage().getId())
         .addValue("payer_bank_name", withdrawRequest.getRecipientBankName())
         .addValue("payer_bank_code", withdrawRequest.getRecipientBankCode())
         .addValue("user_full_name", withdrawRequest.getUserFullName())
@@ -298,15 +296,12 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
         "   CUR.name AS currency_name, " +
         "   USER.email AS user_email, " +
         "   ADMIN.email AS admin_email, " +
-        "   M.name AS merchant_name, " +
-        "   MI.id AS merchant_image_id, " +
-        "   MI.image_name AS merchant_image_name " +
+        "   M.name AS merchant_name " +
         " FROM WITHDRAW_REQUEST WR " +
         " JOIN CURRENCY CUR ON (CUR.id = WR.currency_id) " +
         " JOIN USER USER ON (USER.id = WR.user_id) " +
         " LEFT JOIN USER ADMIN ON (ADMIN.id = WR.admin_holder_id) " +
         " JOIN MERCHANT M ON (M.id = WR.merchant_id) " +
-        " LEFT JOIN MERCHANT_IMAGE MI ON MI.id = WR.merchant_image_id" +
         " WHERE WR.id = :id";
     return jdbcTemplate.queryForObject(sql, singletonMap("id", id), (rs, idx) -> {
           WithdrawRequestFlatAdditionalDataDto withdrawRequestFlatAdditionalDataDto = new WithdrawRequestFlatAdditionalDataDto();
@@ -314,10 +309,6 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
           withdrawRequestFlatAdditionalDataDto.setAdminHolderEmail(rs.getString("admin_email"));
           withdrawRequestFlatAdditionalDataDto.setCurrencyName(rs.getString("currency_name"));
           withdrawRequestFlatAdditionalDataDto.setMerchantName(rs.getString("merchant_name"));
-          MerchantImage merchantImage = new MerchantImage();
-          merchantImage.setId(rs.getInt("merchant_image_id"));
-          merchantImage.setImage_name(rs.getString("merchant_image_name"));
-          withdrawRequestFlatAdditionalDataDto.setMerchantImage(merchantImage);
           return withdrawRequestFlatAdditionalDataDto;
         }
     );

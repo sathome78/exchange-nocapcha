@@ -23,7 +23,6 @@ public class CreditsOperation {
   private final Wallet wallet;
   private final Merchant merchant;
   private final Optional<String> destination;
-  private final Optional<MerchantImage> merchantImage;
   private final TransactionSourceType transactionSourceType;
 
   private CreditsOperation(Builder builder) {
@@ -38,8 +37,6 @@ public class CreditsOperation {
     this.merchant = builder.merchant;
     this.destination = builder.destination == null ?
         Optional.empty() : builder.destination;
-    this.merchantImage = builder.merchantImage == null ?
-        Optional.empty() : builder.merchantImage;
     this.transactionSourceType = builder.transactionSourceType;
   }
 
@@ -56,7 +53,6 @@ public class CreditsOperation {
     private Wallet wallet;
     private Merchant merchant;
     private Optional<String> destination;
-    private Optional<MerchantImage> merchantImage;
     private TransactionSourceType transactionSourceType;
 
     public Builder user(User user) {
@@ -109,11 +105,6 @@ public class CreditsOperation {
       return this;
     }
 
-    public Builder merchantImage(MerchantImage merchantImage) {
-      this.merchantImage = Optional.ofNullable(merchantImage);
-      return this;
-    }
-
     public Builder transactionSourceType(TransactionSourceType transactionSourceType) {
       this.transactionSourceType = transactionSourceType;
       return this;
@@ -141,8 +132,7 @@ public class CreditsOperation {
     if (currency != null ? !currency.equals(that.currency) : that.currency != null) return false;
     if (merchant != null ? !merchant.equals(that.merchant) : that.merchant != null) return false;
     if (destination != null ? !destination.equals(that.destination) : that.destination != null) return false;
-    if (transactionSourceType != null ? !transactionSourceType.equals(that.transactionSourceType) : that.transactionSourceType != null) return false;
-    return merchantImage != null ? merchantImage.equals(that.merchantImage) : that.merchantImage == null;
+    return transactionSourceType != null ? transactionSourceType.equals(that.transactionSourceType) : that.transactionSourceType == null;
 
   }
 
@@ -157,7 +147,6 @@ public class CreditsOperation {
     result = 31 * result + (currency != null ? currency.hashCode() : 0);
     result = 31 * result + (merchant != null ? merchant.hashCode() : 0);
     result = 31 * result + (destination != null ? destination.hashCode() : 0);
-    result = 31 * result + (merchantImage != null ? merchantImage.hashCode() : 0);
     result = 31 * result + (transactionSourceType != null ? transactionSourceType.hashCode() : 0);
     return result;
   }
@@ -174,7 +163,6 @@ public class CreditsOperation {
         ", currency=" + currency +
         ", merchant=" + merchant +
         ", destination=" + destination +
-        ", merchantImage=" + merchantImage +
         ", transactionSourceType=" + transactionSourceType +
         '}';
   }

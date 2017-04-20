@@ -18,6 +18,7 @@ import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.CacheData;
 import me.exrates.service.*;
+import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.MerchantCurrencyBlockedException;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.UnsupportedMerchantException;
@@ -285,8 +286,6 @@ public class MerchantServiceImpl implements MerchantService {
     Merchant merchant = merchantDao.findById(payment.getMerchant());
     Currency currency = currencyService.findById(payment.getCurrency());
     String destination = payment.getDestination();
-    MerchantImage merchantImage = new MerchantImage();
-    merchantImage.setId(payment.getMerchantImage());
     try {
       if (!isPayable(merchant, currency, amount)) {
         LOG.warn("Merchant respond as not support this pay " + payment);
@@ -311,8 +310,10 @@ public class MerchantServiceImpl implements MerchantService {
     BigDecimal newAmount = payment.getOperationType() == INPUT ?
         amount :
         amount.subtract(commissionAmount).setScale(currencyService.resolvePrecision(currency.getName()), ROUND_DOWN);
-    TransactionSourceType transactionSourceType = operationType == OUTPUT ? TransactionSourceType.WITHDRAW :
-        TransactionSourceType.convert(merchant.getTransactionSourceTypeId());
+    if (newAmount.compareTo(ZERO)<=0) {
+      throw new InvalidAmountException(amount.toString());
+    }
+    TransactionSourceType transactionSourceType = operationType.getTransactionSourceType();
     CreditsOperation creditsOperation = new CreditsOperation.Builder()
         .fullAmount(amount)
         .amount(newAmount)
@@ -324,7 +325,6 @@ public class MerchantServiceImpl implements MerchantService {
         .wallet(wallet)
         .merchant(merchant)
         .destination(destination)
-        .merchantImage(merchantImage)
         .transactionSourceType(transactionSourceType)
         .build();
     return Optional.of(creditsOperation);

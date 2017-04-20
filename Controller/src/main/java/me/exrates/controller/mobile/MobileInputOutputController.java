@@ -235,7 +235,6 @@ public class MobileInputOutputController {
         payment.setCurrency(requestParamsDto.getCurrency());
         payment.setMerchant(requestParamsDto.getMerchant());
         payment.setSum(requestParamsDto.getSum().doubleValue());
-        payment.setMerchantImage(requestParamsDto.getMerchantImage());
         payment.setDestination(requestParamsDto.getDestination());
         payment.setOperationType(OperationType.OUTPUT);
 
@@ -296,7 +295,6 @@ public class MobileInputOutputController {
         payment.setCurrency(paymentDto.getCurrency());
         payment.setMerchant(paymentDto.getMerchant());
         payment.setSum(paymentDto.getSum());
-        payment.setMerchantImage(paymentDto.getMerchantImage());
         payment.setOperationType(OperationType.INPUT);
         String merchantName = merchantService.findById(payment.getMerchant()).getName();
         String beanName = String.join("", merchantName.split("[\\s.]+")).concat( "PaymentService");
@@ -556,7 +554,6 @@ public class MobileInputOutputController {
         payment.setCurrency(paymentDto.getCurrency());
         payment.setMerchant(paymentDto.getMerchant());
         payment.setSum(paymentDto.getSum());
-        payment.setMerchantImage(paymentDto.getMerchantImage());
         payment.setOperationType(OperationType.INPUT);
         String userEmail = getAuthenticatedUserEmail();
         final CreditsOperation creditsOperation = merchantService

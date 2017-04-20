@@ -19,7 +19,6 @@ public class WithdrawRequest {
   private String wallet;
   private Integer userId;
   private String userEmail;
-  private MerchantImage merchantImage;
   private String recipientBankName;
   private String recipientBankCode;
   private String userFullName;
@@ -39,7 +38,6 @@ public class WithdrawRequest {
     this.wallet = withdrawRequestCreateDto.getDestinationWallet();
     this.userId = withdrawRequestCreateDto.getUserId();
     this.userEmail = withdrawRequestCreateDto.getUserEmail();
-    this.merchantImage = withdrawRequestCreateDto.getMerchantImage();
     this.recipientBankName = withdrawRequestCreateDto.getRecipientBankName();
     this.recipientBankCode = withdrawRequestCreateDto.getRecipientBankCode();
     this.userFullName = withdrawRequestCreateDto.getUserFullName();

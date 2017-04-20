@@ -44,7 +44,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
         "    TRANSACTION.source_type AS source_type, " +
         "    OPERATION_TYPE.name as operation_type, TRANSACTION.id AS transaction_id, " +
         "    IF (WITHDRAW_REQUEST.id IS NOT NULL, WITHDRAW_REQUEST.id, REFILL_REQUEST.id) AS operation_id," +
-        "    (SELECT MAX(confirmation_number) FROM REFILL_REQUEST_CONFIRMATION RRC WHERE RRC.refill_request_id = RR.id) AS confirmation, " +
+        "    (SELECT MAX(confirmation_number) FROM REFILL_REQUEST_CONFIRMATION RRC WHERE RRC.refill_request_id = REFILL_REQUEST.id) AS confirmation, " +
         "    IF(WITHDRAW_REQUEST.wallet IS NOT NULL, WITHDRAW_REQUEST.wallet, INVOICE_BANK.account_number) AS destination, " +
         "    USER.id AS user_id," +
         "    IF (WITHDRAW_REQUEST.status_id IS NOT NULL, WITHDRAW_REQUEST.status_id, REFILL_REQUEST.status_id) AS status_id," +
@@ -58,7 +58,6 @@ public class InputOutputDaoImpl implements InputOutputDao {
         "    left join REFILL_REQUEST on TRANSACTION.source_type = 'REFILL' AND REFILL_REQUEST.id = TRANSACTION.source_id" +
         "    left join INVOICE_BANK on INVOICE_BANK.id = REFILL_REQUEST.recipient_bank_id " +
         "    left join MERCHANT on (MERCHANT.id = REFILL_REQUEST.merchant_id) OR (MERCHANT.id = WITHDRAW_REQUEST.merchant_id)" +
-        "    left join MERCHANT_IMAGE on MERCHANT_IMAGE.id = WITHDRAW_REQUEST.merchant_image_id " +
         "    left join OPERATION_TYPE on OPERATION_TYPE.id = TRANSACTION.operation_type_id" +
         "    left join WALLET on WALLET.id = TRANSACTION.user_wallet_id" +
         "    left join USER on WALLET.user_id=USER.id" +
@@ -101,7 +100,6 @@ public class InputOutputDaoImpl implements InputOutputDao {
         "     WR.id, " +
         "     NULL, " +
         "     WR.wallet, " +
-        "     null, " +
         "     USER.id, " +
         "     WR.status_id, " +
         "     WR.status_modification_date, " +
@@ -116,7 +114,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
         "     NOT EXISTS(SELECT * FROM TRANSACTION TX WHERE TX.source_type='WITHDRAW' AND TX.source_id=WR.id AND TX.operation_type_id=2) " +
         "  )  " +
 
-        "  ORDER BY datetime DESC, id DESC " +
+        "  ORDER BY datetime DESC, operation_id DESC " +
         (limit == -1 ? "" : "  LIMIT " + limit + " OFFSET " + offset);
     final Map<String, Object> params = new HashMap<>();
     params.put("email", email);
@@ -135,7 +133,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
       myInputOutputHistoryDto.setTransactionProvided(myInputOutputHistoryDto.getProvided() == 0 ?
           messageSource.getMessage("inputoutput.statusFalse", null, locale) :
           messageSource.getMessage("inputoutput.statusTrue", null, locale));
-      myInputOutputHistoryDto.setId(rs.getInt("id"));
+      myInputOutputHistoryDto.setId(rs.getInt("operation_id"));
       myInputOutputHistoryDto.setUserId(rs.getInt("user_id"));
       myInputOutputHistoryDto.setBankAccount(rs.getString("destination"));
       TransactionSourceType sourceType = TransactionSourceType.convert(rs.getString("source_type"));

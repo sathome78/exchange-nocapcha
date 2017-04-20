@@ -238,7 +238,8 @@ public class BitcoinServiceImpl implements BitcoinService {
   @Override
   @Transactional
   public Map<String, String> refill(RefillRequestCreateDto request) {
-    String address = address();
+//    String address = address(); TODO !!!
+    String address = "some btc address";
     String message = messageSource.getMessage("merchants.refill.btc",
         new Object[]{request.getAmountWithCommission(), address}, request.getLocale());
     return new HashMap<String, String>() {{

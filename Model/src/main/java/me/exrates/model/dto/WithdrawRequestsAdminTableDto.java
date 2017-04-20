@@ -45,7 +45,6 @@ public class WithdrawRequestsAdminTableDto extends OnlineTableDto {
   private WithdrawStatusEnum status;
   @JsonSerialize(using = LocalDateTimeSerializer.class)
   private LocalDateTime statusModificationDate;
-  private MerchantImage merchantImage;
   private TransactionSourceType sourceType = WITHDRAW;
   private InvoiceOperationPermission invoiceOperationPermission;
   private Boolean isEndStatus;
@@ -71,7 +70,6 @@ public class WithdrawRequestsAdminTableDto extends OnlineTableDto {
     this.remark = withdrawRequestFlatDto.getRemark();
     this.status = withdrawRequestFlatDto.getStatus();
     this.statusModificationDate = withdrawRequestFlatDto.getStatusModificationDate();
-    this.merchantImage = withdrawRequestFlatAdditionalDataDto.getMerchantImage();
     this.invoiceOperationPermission = withdrawRequestFlatDto.getInvoiceOperationPermission();
     this.isEndStatus = this.status.isEndStatus();
     this.buttons = null;

@@ -17,5 +17,4 @@ public class WithdrawRequestFlatAdditionalDataDto {
   private String currencyName;
   private String merchantName;
   private String adminHolderEmail;
-  private MerchantImage merchantImage;
 }
