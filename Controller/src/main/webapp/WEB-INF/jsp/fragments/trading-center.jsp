@@ -46,60 +46,7 @@
     </div>
 
     <div class="row">
-        <div class="cols-md-4">
-            <div id="orders-history-table-wrapper">
-            <div class="deals-scope-switcher__wrapper">
-                <div id="all-deals" class="deals-scope-switcher__button ht ht-active"
-                     data-tableId="orders-history-table">
-                    <loc:message code="dashboard.dealshistory"/>
-                </div>
-                <sec:authorize access="isAuthenticated()">
-                    <div id="my-deals" class="deals-scope-switcher__button ht"
-                         data-tableId="orders-history-table__my-deals">
-                        <loc:message code="dashboard.transactions"/>
-                    </div>
-                </sec:authorize>
-            </div>
-            <%--ALL TRADES TABLE --%>
 
-            <table id="orders-history-table" class="orders-history-table table_middle default-skin">
-                <tbody>
-                <tr class="ht__theader">
-                    <th class="center"><loc:message code="dashboard.time"/></th>
-                    <th class="center"><loc:message code="dashboard.price"/></th>
-                    <th class="center currencyBaseName"></th>
-                </tr>
-                <script type="text/template" id="orders-history-table_row">
-                    <tr>
-                        <td><@=dateAcceptionTime@></td>
-                        <td><@=rate@></td>
-                        <@var c = operationType == 'BUY' ? 'green' : 'red';@>
-                        <td class=<@=c@>><@=amountBase@></td>
-                    </tr>
-                </script>
-                </tbody>
-            </table>
-            <%--MY TRADES ONLY TABLE --%>
-            <table id="orders-history-table__my-deals" class="orders-history-table table_middle hidden">
-                <tbody>
-                <tr class="ht__theader">
-                    <th class="center"><loc:message code="dashboard.time"/></th>
-                    <th class="center"><loc:message code="dashboard.price"/></th>
-                    <th class="center currencyBaseName"></th>
-                </tr>
-                <script type="text/template" id="orders-history-table_row__my-deals">
-                    <tr>
-                        <td><@=dateAcceptionTime@></td>
-                        <td><@=rate@></td>
-                        <@var c = operationType == 'BUY' ? 'green' : 'red';@>
-                        <td class=<@=c@>><@=amountBase@></td>
-                    </tr>
-                </script>
-                </tbody>
-            </table>
-            </div>
-        </div>
-        <!-- end cols-md-2 -->
 
         <div class="cols-md-4">
             <div class="lightblue em-08">
@@ -183,7 +130,7 @@
                 <%--... BUY FORM--%>
             </div>
             <!-- end buyBTC -->
-            <span class="green marginTop-15"><loc:message code="dashboard.sellOrders"/></span>
+            <span class="green marginTop-25"><loc:message code="dashboard.sellOrders"/></span>
             <div id="orders-sell-table-wrapper">
             <table class="table_middle table_middle2">
                 <table id="dashboard-orders-sell-table" class="dashboard-order__table table_middle">
@@ -295,7 +242,7 @@
                 <%--... SELL FORM--%>
             </div>
             <!-- end buyBTC -->
-            <span class="green marginTop-15"><loc:message code="dashboard.buyOrders"/></span>
+            <span class="green marginTop-25"><loc:message code="dashboard.buyOrders"/></span>
             <div id="orders-buy-table-wrapper">
             <table class="table_middle table_middle2">
                 <tbody class="table_middle2">
@@ -324,6 +271,148 @@
                 </tbody>
             </table>
             </div>
+        </div>
+
+        <div class="cols-md-4">
+            <div class="lightblue em-08">
+                <span class="green margin-right">Stop-Limit</span>
+                <span class="currencyBaseName red margin-right"></span>
+                <loc:message code="dashboard.lowestPrice"/>
+                <span id="minRate" class="green"></span>
+            </div>
+            <div class="buyBTC">
+                <%--stop-limit ...--%>
+                <sec:authorize access="isAuthenticated()">
+                    <div class="buyBTC__item item">
+                            <span class="item__span"><loc:message code="dashboard.yourBalance"/>
+                        <span class="currencyConvertName item__span"></span>
+                    </span>
+                        <%--<span id="currentConvertBalance" class="item__span trading-current-balance"></span>--%>
+                    </div>
+                </sec:authorize>
+                <form:form id="dashboard-buy-form" class="dashboard-sell-buy__form" action="/order/submitnew/BUY"
+                           method="post"
+                           modelAttribute="orderCreateDto">
+
+                    <div class="buyBTC__item item">
+                    <span class="item__span">Stop
+                        <span class="currencyBaseName"></span>
+                    </span>
+                        <div class="dark_blue_area"><span class="currencyConvertName"></span></div>
+                        <form:input id="stop-stop" path="stop" type="text"
+                                    class="buyBTC__input usd_green numericInputField"/>
+                    </div>
+
+                    <div class="buyBTC__item item">
+                    <span class="item__span">Limit
+                        <span class="currencyBaseName"></span>
+                    </span>
+                        <div class="dark_blue_area"><span class="currencyConvertName"></span></div>
+                        <form:input id="limit-stop" path="exchangeRate" type="text"
+                                    class="buyBTC__input usd_green numericInputField"/>
+                    </div>
+
+                    <div class="buyBTC__item item">
+                    <span class="item__span"><loc:message code="dashboard.amount"/>
+                        <span class="currencyBaseName item__span"></span>
+                    </span>
+                        <div class="dark_blue_area"><span class="currencyBaseName"></span></div>
+                        <form:input id="amount-stop" path="amount" type="text" class="item__input numericInputField"/>
+                    </div>
+
+
+                    <div class="buyBTC__item item">
+                        <span class="item__span"><loc:message code="dashboard.total"/></span>
+                        <div class="dark_blue_area"><span class="currencyConvertName"></span></div>
+                        <input id="totalForBuy" class="item__input numericInputField"/>
+                            <%--<div id="totalForBuy" class="blue_area">
+                            <span></span>
+                        </div>--%>
+                    </div>
+
+                    <div class="buyBTC__item item">
+                        <span class="item__span"><loc:message code="dashboard.commission"/></span>
+                        <div class="dark_blue_area"><span class="currencyConvertName"></span></div>
+                        <div id="calculatedCommissionForStop" class="blue_area">
+                            <span></span>
+                        </div>
+                    </div>
+
+                    <div class="buyBTC__item item">
+                        <span class="item__span"><loc:message code="dashboard.amountwithcommission"/></span>
+                        <div class="dark_blue_area"><span class="currencyConvertName"></span></div>
+                        <div id="totalWithCommissionForStop" class="blue_area">
+                            <span></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <sec:authorize access="isAuthenticated()">
+                            <button id="dashboard-stop-buy" class="dashboard-stop-sell-buy__button">
+                                <loc:message code="dashboard.buy"/>
+                            </button>
+                            <button id="dashboard--stop-sell" class="dashboard-stop-sell-buy__button">
+                                <loc:message code="dashboard.sell"/>
+                            </button>
+                        </sec:authorize>
+                    </div>
+                </form:form>
+                <%--... stop limit FORM--%>
+            </div>
+            <!-- end stop limit -->
+
+           <div id="orders-history-table-wrapper" class="margin-top-10">
+           <div class="deals-scope-switcher__wrapper">
+               <div id="all-deals" class="deals-scope-switcher__button ht ht-active"
+                    data-tableId="orders-history-table">
+                   <loc:message code="dashboard.dealshistory"/>
+               </div>
+               <sec:authorize access="isAuthenticated()">
+                   <div id="my-deals" class="deals-scope-switcher__button ht"
+                        data-tableId="orders-history-table__my-deals">
+                       <loc:message code="dashboard.transactions"/>
+                   </div>
+               </sec:authorize>
+           </div>
+          <%-- ALL TRADES TABLE--%>
+
+           <table id="orders-history-table" class="orders-history-table table_middle default-skin">
+               <tbody>
+               <tr class="ht__theader">
+                   <th class="center"><loc:message code="dashboard.time"/></th>
+                   <th class="center"><loc:message code="dashboard.price"/></th>
+                   <th class="center currencyBaseName"></th>
+               </tr>
+               <script type="text/template" id="orders-history-table_row">
+                   <tr>
+                       <td><@=dateAcceptionTime@></td>
+                       <td><@=rate@></td>
+                       <@var c = operationType == 'BUY' ? 'green' : 'red';@>
+                       <td class=<@=c@>><@=amountBase@></td>
+                   </tr>
+               </script>
+               </tbody>
+           </table>
+           <%--MY TRADES ONLY TABLE--%>
+           <table id="orders-history-table__my-deals" class="orders-history-table table_middle hidden">
+               <tbody>
+               <tr class="ht__theader">
+                   <th class="center"><loc:message code="dashboard.time"/></th>
+                   <th class="center"><loc:message code="dashboard.price"/></th>
+                   <th class="center currencyBaseName"></th>
+               </tr>
+               <script type="text/template" id="orders-history-table_row__my-deals">
+                   <tr>
+                       <td><@=dateAcceptionTime@></td>
+                       <td><@=rate@></td>
+                       <@var c = operationType == 'BUY' ? 'green' : 'red';@>
+                       <td class=<@=c@>><@=amountBase@></td>
+                   </tr>
+               </script>
+               </tbody>
+           </table>
+           </div>
+
         </div>
     </div>
 </div>

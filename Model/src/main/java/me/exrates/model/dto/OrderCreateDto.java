@@ -36,6 +36,7 @@ that consists two forms: for BUY and for SELL. After submit this field will be s
 However if we transfered to form the orders from dashboard, the fields one form (of two forms: SELL or BUY) must be filled.
 To determine which of these forms to be filled, we must set field operationType
 */
+    private BigDecimal stop; //stop rate for stop order
     private OperationType operationType;
     private BigDecimal exchangeRate;
     private BigDecimal amount; //amount of base currency: base currency can be bought or sold dependending on operationType
@@ -277,4 +278,11 @@ To determine which of these forms to be filled, we must set field operationType
         this.totalWithComission = totalWithComission;
     }
 
+    public BigDecimal getStop() {
+        return stop;
+    }
+
+    public void setStop(BigDecimal stop) {
+        this.stop = stop;
+    }
 }
