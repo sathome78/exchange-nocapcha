@@ -550,6 +550,7 @@ $(function(){
 
         }).fail(function () {
             $('.paymentInfo').hide();
+            $('.wallet_input').hide();
             $('.merchantError').show();
         });
     }

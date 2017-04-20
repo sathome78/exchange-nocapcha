@@ -82,13 +82,8 @@ public class CurrencyServiceImpl implements CurrencyService {
     public List<Currency> findAllCurrencies() {
         return currencyDao.findAllCurrencies();
     }
-
-    @Override
-    public boolean updateMinWithdraw(int currencyId, BigDecimal minAmount) {
-        return currencyDao.updateMinWithdraw(currencyId, minAmount);
-    }
-
-    @Override
+  
+  @Override
     public void updateCurrencyLimit(int currencyId, OperationType operationType, String roleName, BigDecimal minAmount, Integer maxDailyRequest) {
         currencyDao.updateCurrencyLimit(currencyId, operationType, userRoleService.getRealUserRoleIdByBusinessRoleList(roleName), minAmount, maxDailyRequest);
     }

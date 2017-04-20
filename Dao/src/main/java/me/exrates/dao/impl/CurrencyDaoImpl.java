@@ -105,21 +105,8 @@ public class CurrencyDaoImpl implements CurrencyDao {
 		final String sql = "SELECT * FROM CURRENCY WHERE hidden IS NOT TRUE ";
 		return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Currency.class));
 	}
-
+	
 	@Override
-    public boolean updateMinWithdraw(int currencyId, BigDecimal minAmount) {
-        String sql = "UPDATE CURRENCY SET min_withdraw_sum = :min_withdraw_sum WHERE id = :id";
-        final Map<String,Number> params = new HashMap<String,Number>(){
-            {
-                put("id", currencyId);
-                put("min_withdraw_sum", minAmount);
-            }
-        };
-
-        return jdbcTemplate.update(sql, params) > 0;
-    }
-
-    @Override
 	public List<CurrencyLimit> retrieveCurrencyLimitsForRoles(List<Integer> roleIds, OperationType operationType) {
 		String sql = "SELECT DISTINCT CURRENCY_LIMIT.currency_id, CURRENCY.name, " +
 				"CURRENCY_LIMIT.min_sum, CURRENCY_LIMIT.max_sum, CURRENCY_LIMIT.max_daily_request " +
