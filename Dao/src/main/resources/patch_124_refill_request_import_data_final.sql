@@ -73,4 +73,8 @@ WHERE RR.confirmation>=0)
 
 ALTER TABLE REFILL_REQUEST
 	DROP COLUMN confirmation;
+	
+ALTER TABLE TRANSACTION
+	CHANGE COLUMN source_type source_type ENUM('ORDER','REFERRAL','ACCRUAL','MANUAL','USER_TRANSFER','WITHDRAW','REFILL') NULL DEFAULT NULL;
 /*------------ В САМОМ КОНЦЕ----------------------------------*/
+

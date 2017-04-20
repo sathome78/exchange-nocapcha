@@ -19,7 +19,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.EMPTY_LIST;
-import static me.exrates.model.enums.invoice.PendingPaymentStatusEnum.ON_BCH_EXAM;
+import static me.exrates.model.enums.invoice.RefillStatusEnum.ON_BCH_EXAM;
 
 /**
  * created by ValkSam
@@ -100,23 +100,19 @@ public class InputOutputServiceImpl implements InputOutputService {
 
   private String generateAndGetSummaryStatus(MyInputOutputHistoryDto row, Locale locale) {
     switch (row.getSourceType()) {
-      case INVOICE: {
-        InvoiceRequestStatusEnum status = (InvoiceRequestStatusEnum) row.getStatus();
-        return messageSource.getMessage("merchants.invoice.".concat(status.name()), null, locale);
-      }
-      case WITHDRAW: {
-        WithdrawStatusEnum status = (WithdrawStatusEnum) row.getStatus();
-        return messageSource.getMessage("merchants.withdraw.".concat(status.name()), null, locale);
-      }
-      case BTC_INVOICE: {
-        PendingPaymentStatusEnum status = (PendingPaymentStatusEnum) row.getStatus();
+      case REFILL: {
+        RefillStatusEnum status = (RefillStatusEnum) row.getStatus();
         if (status == ON_BCH_EXAM) {
           String confirmations = row.getConfirmation() == null ? "0" : row.getConfirmation().toString();
           String message = confirmations.concat("/").concat(String.valueOf(BitcoinService.CONFIRMATION_NEEDED_COUNT));
           return message;
         } else {
-          return messageSource.getMessage("merchants.invoice.".concat(status.name()), null, locale);
+          return messageSource.getMessage("merchants.refill.".concat(status.name()), null, locale);
         }
+      }
+      case WITHDRAW: {
+        WithdrawStatusEnum status = (WithdrawStatusEnum) row.getStatus();
+        return messageSource.getMessage("merchants.withdraw.".concat(status.name()), null, locale);
       }
       default: {
         return row.getTransactionProvided();

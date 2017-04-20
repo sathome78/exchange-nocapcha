@@ -53,7 +53,7 @@ public class InvoiceReportDto {
     this.acceptorUserEmail = invoiceRequest.getAcceptanceUserEmail();
     this.acceptanceDate = invoiceRequest.getAcceptanceTime() == null ? "" : invoiceRequest.getAcceptanceTime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
     this.operation = INPUT.name();
-    this.system = TransactionSourceType.INVOICE.name();
+    this.system = TransactionSourceType.REFILL.name();
   }
 
   public InvoiceReportDto(InvoiceRequestFlatForReportDto invoiceRequestFlatForReportDto) {
@@ -71,7 +71,7 @@ public class InvoiceReportDto {
     this.acceptorUserEmail = invoiceRequestFlatForReportDto.getAcceptanceUserEmail();
     this.acceptanceDate = invoiceRequestFlatForReportDto.getAcceptanceTime() == null ? "" : invoiceRequestFlatForReportDto.getAcceptanceTime().format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"));
     this.operation = INPUT.name();
-    this.system = TransactionSourceType.INVOICE.name();
+    this.system = TransactionSourceType.REFILL.name();
     this.merchant = invoiceRequestFlatForReportDto.getMerchant();
   }
 

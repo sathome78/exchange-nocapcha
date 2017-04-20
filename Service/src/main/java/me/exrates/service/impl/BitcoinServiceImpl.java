@@ -138,7 +138,7 @@ public class BitcoinServiceImpl implements BitcoinService {
         .map(InvoiceStatus::getCode)
         .collect(Collectors.toList());
     return paymentDao.findFlattenDtoByStatus(
-        TransactionSourceType.BTC_INVOICE.name(),
+        TransactionSourceType.REFILL.name(),
         pendingPaymentStatusIdList);
   }
 
@@ -159,7 +159,7 @@ public class BitcoinServiceImpl implements BitcoinService {
                                                                                  Collection<InvoiceStatus> states) {
     List<Integer> pendingPaymentStatusIdList = states.stream().map(InvoiceStatus::getCode).collect(toList());
     return paymentDao.findFlattenDtoByStatusAndCurrencyPermittedForUser(
-            TransactionSourceType.BTC_INVOICE.name(), pendingPaymentStatusIdList,
+            TransactionSourceType.REFILL.name(), pendingPaymentStatusIdList,
             requesterUserId);
   }
 
@@ -176,18 +176,18 @@ public class BitcoinServiceImpl implements BitcoinService {
         .map(InvoiceStatus::getCode)
         .collect(Collectors.toList());
     Optional<LocalDateTime> nowDate = paymentDao.getAndBlockBySourceTypeAndIntervalAndStatus(
-        TransactionSourceType.BTC_INVOICE.name(),
+        TransactionSourceType.REFILL.name(),
         intervalMinutes,
         pendingPaymentStatusIdList);
     if (nowDate.isPresent()) {
       paymentDao.setNewStatusBySourceTypeAndDateIntervalAndStatus(
-          TransactionSourceType.BTC_INVOICE.name(),
+          TransactionSourceType.REFILL.name(),
           nowDate.get(),
           intervalMinutes,
           EXPIRED.getCode(),
           pendingPaymentStatusIdList);
       List<OperationUserDto> userForNotificationList = paymentDao.findInvoicesListBySourceTypeAndStatusChangedAtDate(
-          TransactionSourceType.BTC_INVOICE.name(),
+          TransactionSourceType.REFILL.name(),
           EXPIRED.getCode(),
           nowDate.get());
       if (!BLOCK_NOTIFYING) {

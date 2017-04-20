@@ -84,7 +84,7 @@ public class ReportServiceImpl implements ReportService {
       /*get list based on the table "pending_payment" for particular source_type, which fully represented in pending_payment
       * Now it is BTC_INVOICE */
       List<String> sourceType = new ArrayList<String>() {{
-        add(TransactionSourceType.BTC_INVOICE.name());
+        add(TransactionSourceType.REFILL.name());
       }};
       List<PendingPaymentFlatForReportDto> pendingPaymentList = pendingPaymentService.getByDateIntervalAndRoleAndCurrencyAndSourceType(
           startDate, endDate, realRoleIdList, currencyListForRefillOperation, sourceType);
@@ -95,7 +95,7 @@ public class ReportServiceImpl implements ReportService {
       /*get list based on the table "transaction" for particular source_type, which is weakly represented in pending_payment or not represented there at all
       * Now source_type the MERCHANT is that which is weakly represented (only not significant fields) in pending_payment or not represented there at all */
       sourceType = new ArrayList<String>() {{
-        add(TransactionSourceType.MERCHANT.name());
+        add(TransactionSourceType.REFILL.name());
       }};
       List<TransactionFlatForReportDto> inputTransactionList = transactionService.getAllByDateIntervalAndRoleAndOperationTypeAndCurrencyAndSourceType(
           startDate, endDate, INPUT.getType(), realRoleIdList, currencyListForRefillOperation, sourceType);

@@ -17,9 +17,7 @@ import java.util.stream.Collectors;
 import static me.exrates.model.enums.TransactionSourceType.*;
 
 public enum TransactionType {
-  MERCHANT_IN(MERCHANT, OperationType.INPUT),
-  INVOICE_IN(INVOICE, OperationType.INPUT),
-  BTC_IN(BTC_INVOICE, OperationType.INPUT),
+  REFILL_IN(REFILL, null),
   WITHDRAW_OUT(WITHDRAW, null),
   ORDER_IN(ORDER, OperationType.INPUT),
   ORDER_OUT(ORDER, OperationType.OUTPUT),

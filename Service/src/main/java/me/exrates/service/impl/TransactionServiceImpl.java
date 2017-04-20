@@ -220,7 +220,7 @@ public class TransactionServiceImpl implements TransactionService {
     OperationType operationType = transaction.getOperationType();
     BigDecimal amount = transaction.getAmount();
     view.setOperationType(TransactionType.resolveFromOperationTypeAndSource(sourceType, operationType, amount));
-    if (sourceType == TransactionSourceType.MERCHANT || sourceType == TransactionSourceType.WITHDRAW) {
+    if (sourceType == TransactionSourceType.REFILL || sourceType == TransactionSourceType.WITHDRAW) {
       view.setMerchant(transaction.getMerchant());
     } else {
       view.setMerchant(new Merchant(0, sourceType.name(), sourceType.name(), null));
@@ -403,7 +403,7 @@ public class TransactionServiceImpl implements TransactionService {
   private void setTransactionMerchant(Transaction transaction) {
     LOG.debug(transaction);
     TransactionSourceType sourceType = transaction.getSourceType();
-    if (sourceType == TransactionSourceType.MERCHANT || sourceType == TransactionSourceType.WITHDRAW) {
+    if (sourceType == TransactionSourceType.REFILL || sourceType == TransactionSourceType.WITHDRAW) {
       transaction.setMerchant(transaction.getMerchant());
     } else {
       transaction.setMerchant(new Merchant(0, sourceType.name(), sourceType.name(), null));

@@ -237,7 +237,7 @@ import_note,
 confirmation)
 SELECT
 0, 0,
-4/*ON_PENDING*/, NULL, NULL,
+4/*ON_PENDING*/, NOW(), NOW(),
 CUR.id, USER.id,
 NULL, 13, /*E-DinarCoin*/
 NULL, NULL, NULL, NULL, NULL, NULL,

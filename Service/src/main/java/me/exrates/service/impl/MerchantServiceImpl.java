@@ -94,7 +94,7 @@ public class MerchantServiceImpl implements MerchantService {
 
   @Override
   public String resolveTransactionStatus(final Transaction transaction, final Locale locale) {
-    if (transaction.getSourceType() == TransactionSourceType.INVOICE) {
+    if (transaction.getSourceType() == TransactionSourceType.REFILL) {
       Integer statusId = invoiceService.getInvoiceRequestStatusByInvoiceId(transaction.getSourceId());
       InvoiceRequestStatusEnum invoiceRequestStatus = InvoiceRequestStatusEnum.convert(statusId);
       return messageSource.getMessage("merchants.invoice.".concat(invoiceRequestStatus.name()), null, locale);
@@ -107,7 +107,7 @@ public class MerchantServiceImpl implements MerchantService {
         return messageSource.getMessage("merchants.withdraw.".concat(status.name()), null, locale);
       }
     }
-    if (transaction.getSourceType() == TransactionSourceType.BTC_INVOICE) {
+    if (transaction.getSourceType() == TransactionSourceType.REFILL) {
       Integer statusId = bitcoinService.getPendingPaymentStatusByInvoiceId(transaction.getSourceId());
       PendingPaymentStatusEnum pendingPaymentStatus = PendingPaymentStatusEnum.convert(statusId);
       String message = messageSource.getMessage("merchants.invoice.".concat(pendingPaymentStatus.name()), null, locale);

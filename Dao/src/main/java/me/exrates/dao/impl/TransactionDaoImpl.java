@@ -20,6 +20,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.sql.ResultSet;
@@ -594,7 +595,7 @@ public final class TransactionDaoImpl implements TransactionDao {
           }
         }
         String merchantName = rs.getString("merchant_name");
-        if (transactionSourceType != TransactionSourceType.MERCHANT) {
+        if (StringUtils.isEmpty(merchantName)) {
           merchantName = accountStatementDto.getSourceType();
         }
         accountStatementDto.setMerchantName(merchantName);

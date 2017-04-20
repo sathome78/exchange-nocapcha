@@ -5,19 +5,14 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import me.exrates.model.enums.TransactionSourceType;
-import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
-import me.exrates.model.enums.invoice.InvoiceStatus;
-import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
-import me.exrates.model.enums.invoice.WithdrawStatusEnum;
+import me.exrates.model.enums.invoice.*;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-import static me.exrates.model.enums.TransactionSourceType.BTC_INVOICE;
-import static me.exrates.model.enums.TransactionSourceType.INVOICE;
-import static me.exrates.model.enums.TransactionSourceType.WITHDRAW;
+import static me.exrates.model.enums.TransactionSourceType.*;
 
 /**
  * Created by Ajet on 23.07.2016.
@@ -32,9 +27,11 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
   private String commissionAmount;
   private String merchantName;
   private String operationType;
-  private Integer id;
+  private Integer transactionId;
   private Integer provided;
   private String transactionProvided;
+  private Integer id;
+  private String destination;
   private Integer userId;
   private String bankAccount;
   private InvoiceStatus status;
@@ -59,13 +56,15 @@ public class MyInputOutputHistoryDto extends OnlineTableDto {
   }
 
   public void setStatus(Integer statusId) {
-    if (sourceType == INVOICE) {
-      this.status = InvoiceRequestStatusEnum.convert(statusId);
-    } else if (sourceType == BTC_INVOICE) {
-      this.status = PendingPaymentStatusEnum.convert(statusId);
+    if (sourceType == REFILL) {
+      this.status = RefillStatusEnum.convert(statusId);
     } else if (sourceType == WITHDRAW) {
       this.status = WithdrawStatusEnum.convert(statusId);
     }
+  }
+
+  public void setSourceId(String sourceType) {
+    this.sourceId = TransactionSourceType.convert(sourceType).getCode();
   }
 
   @Override
