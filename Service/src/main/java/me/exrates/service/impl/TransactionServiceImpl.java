@@ -14,6 +14,7 @@ import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.TransactionType;
+import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.CacheData;
 import me.exrates.service.*;
 import me.exrates.service.exception.TransactionPersistException;
@@ -325,9 +326,9 @@ public class TransactionServiceImpl implements TransactionService {
           .append(";")
           .append(i.getCurrency())
           .append(";")
-          .append(i.getAmount())
+          .append(BigDecimalProcessing.formatNonePoint(i.getAmount(), false))
           .append(";")
-          .append(i.getCommissionAmount())
+          .append(BigDecimalProcessing.formatNonePoint(i.getCommissionAmount(), false))
           .append(";")
           .append(i.getMerchant().getName())
           .append(";")
