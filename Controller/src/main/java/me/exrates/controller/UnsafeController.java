@@ -53,10 +53,6 @@ public class UnsafeController {
         }
     }
     
-    // Both methods below are designed to check btc core node accessibility via Exrates app on lk.exrates.me.
-    //TODO remove after BtcCore update is ready
-    
-    
     
     @RequestMapping(value = "unsafe/EthereumStart")
     @ResponseBody
