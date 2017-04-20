@@ -27,11 +27,22 @@ DELETE FROM TRANSACTION
 WHERE source_type='MERCHANT';
 /* Затронуто строк: 3*/
 
-SELECT MAX(id) FROM TRANSACTION -> 1223124   remember id after which new tranactins will be inserted
+SELECT MAX(id) FROM TRANSACTION -> 1914669   remember id after which new tranactins will be inserted
 
 SELECT status_id, count(*)
 FROM REFILL_REQUEST
 GROUP BY status_id
+/*
+"status_id"	"count(*)"
+"3"	"7"
+"4"	"18561"
+"8"	"1"
+"9"	"12973"  <<<<<<<<<<<<<<<<
+"10"	"1237" <<<<<<<<<<<<<<<<
+"11"	"313"
+"12"	"5664"
+>>>>>>>>>>> 12 973+1 237 = 14 210
+ */
 
 INSERT INTO TRANSACTION
 (user_wallet_id, company_wallet_id, amount, commission_amount, commission_id, operation_type_id, currency_id, merchant_id,
@@ -47,8 +58,9 @@ JOIN WALLET W ON (W.user_id=RR.user_id AND W.currency_id=RR.currency_id)
 JOIN USER ON USER.id = W.user_id
 JOIN COMPANY_WALLET CW ON (CW.currency_id=RR.currency_id)
 JOIN COMMISSION COM ON (COM.operation_type = 1 AND user_role = USER.roleid)
-WHERE RR.status IN (9 /*ACCEPTED_AUTO*/, 10 /*ACCEPTED_ADMIN*/)
+WHERE RR.status_id IN (9 /*ACCEPTED_AUTO*/, 10 /*ACCEPTED_ADMIN*/)
 );
+/* Затронуто строк: 14 210*/
 
 
 INSERT INTO REFILL_REQUEST_CONFIRMATION
@@ -56,7 +68,7 @@ INSERT INTO REFILL_REQUEST_CONFIRMATION
 (SELECT id, status_modification_date, RR.confirmation
 FROM REFILL_REQUEST RR
 WHERE RR.confirmation>=0)
-
+/* Затронуто строк: 4 581*/
 
 
 ALTER TABLE REFILL_REQUEST
