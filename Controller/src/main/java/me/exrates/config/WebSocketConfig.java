@@ -44,8 +44,6 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(final WebSocketHandlerRegistry registry) {
-        //TODO temporary disable
-        
         String[] origins = allowedOrigins.split(",");
         registry.addHandler(handlers.get(EN), "/chat-en").setAllowedOrigins(origins).withSockJS()
                 .setClientLibraryUrl(clientLibraryUrl);
