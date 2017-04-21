@@ -683,8 +683,11 @@ public class AdminController {
         .stream().filter(dto -> dto.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE).collect(Collectors.toList());
     params.put("currencies", permittedCurrencies);
     if (!permittedCurrencies.isEmpty()) {
-      List<Merchant> merchants = merchantService.findAllByCurrencies(permittedCurrencies.stream()
-          .map(UserCurrencyOperationPermissionDto::getCurrencyId).collect(Collectors.toList()), OperationType.OUTPUT).stream()
+      List<Integer> currencyList = permittedCurrencies.stream()
+          .map(UserCurrencyOperationPermissionDto::getCurrencyId)
+          .collect(Collectors.toList());
+      List<Merchant> merchants = merchantService.findAllByCurrencies(currencyList, OperationType.OUTPUT)
+          .stream()
           .map(item -> new Merchant(item.getMerchantId(), item.getName(), item.getDescription()))
           .distinct().collect(Collectors.toList());
       params.put("merchants", merchants);
@@ -705,6 +708,26 @@ public class AdminController {
     DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
     withdrawFilterData.initFilterItems();
     return withdrawService.getWithdrawRequestByStatusList(statusList, dataTableParams, withdrawFilterData, principal.getName(), locale);
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/refill")
+  public ModelAndView refillRequests(Principal principal) {
+    final Map<String, Object> params = new HashMap<>();
+    List<UserCurrencyOperationPermissionDto> permittedCurrencies = currencyService.getCurrencyOperationPermittedForWithdraw(principal.getName())
+        .stream().filter(dto -> dto.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE).collect(Collectors.toList());
+    params.put("currencies", permittedCurrencies);
+    if (!permittedCurrencies.isEmpty()) {
+      List<Integer> currencyList = permittedCurrencies.stream()
+          .map(UserCurrencyOperationPermissionDto::getCurrencyId)
+          .collect(Collectors.toList());
+      List<Merchant> merchants = merchantService.findAllByCurrencies(currencyList, OperationType.INPUT)
+          .stream()
+          .map(item -> new Merchant(item.getMerchantId(), item.getName(), item.getDescription()))
+          .distinct()
+          .collect(Collectors.toList());
+      params.put("merchants", merchants);
+    }
+    return new ModelAndView("refillRequests", params);
   }
 
   @ResponseBody

@@ -18,7 +18,7 @@
 
 </head>
 
-<body>
+<body id="main-admin">
 
 <%@include file='../fragments/header-simple.jsp' %>
 

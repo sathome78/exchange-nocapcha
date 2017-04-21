@@ -224,7 +224,11 @@ public class RefillServiceImpl implements RefillService {
         withdrawRequest.getCurrencyId(),
         WITHDRAW
     );
-    return (WithdrawStatusEnum) withdrawRequest.getStatus().nextState(action, requesterAdminIsHolder, permission);
+    InvoiceActionTypeEnum.InvoiceActionParamsValue paramsValue = InvoiceActionTypeEnum.InvoiceActionParamsValue.builder()
+        .authorisedUserIsHolder(requesterAdminIsHolder)
+        .permittedOperation(permission)
+        .build();
+    return (WithdrawStatusEnum) withdrawRequest.getStatus().nextState(action, paramsValue);
   }
 
 

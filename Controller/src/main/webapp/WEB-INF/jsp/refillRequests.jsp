@@ -8,7 +8,7 @@
 <head>
     <meta charset="utf-8" />
     <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
-    <title><loc:message code="admin.withdrawRequests"/></title>
+    <title><loc:message code="admin.refillRequests"/></title>
     <meta name="keywords" content="" />
     <meta name="description" content="" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -18,11 +18,11 @@
     <link rel="stylesheet" href="<c:url value="/client/css/jquery.datetimepicker.css"/>">
     <script type="text/javascript" src="<c:url value='/client/js/jquery.datetimepicker.js'/>"></script>
     <script type="text/javascript" src="<c:url value='/client/js/moment-with-locales.min.js'/>"></script>
-    <script type="text/javascript" src="<c:url value='/client/js/inputOutput/withdrawal.js'/>"></script>
+    <script type="text/javascript" src="<c:url value='/client/js/inputOutput/refill.js'/>"></script>
 
 </head>
 
-<body id ="withdraw-requests-admin">
+<body id="refill-requests-admin">
 <%@include file='fragments/header-simple.jsp'%>
 <main class="container">
     <div class="row">
@@ -30,26 +30,26 @@
         <div class="col-md-8 col-sm-offset-1 content admin-container">
             <div class="row text-center">
                 <div style="float: left; display: inline-block">
-                    <button id="withdraw-requests-new" class="myorders__button blue-box margin-box">
-                        <loc:message code="admin.withdraw.new"/></button>
-                    <button id="withdraw-requests-auto" class="myorders__button blue-box margin-box">
-                        <loc:message code="admin.withdraw.auto"/></button>
-                    <button id="withdraw-requests-All" class="myorders__button blue-box margin-box">
-                        <loc:message code="admin.withdraw.All"/></button>
-                    <button id="withdraw-requests-accepted" class="myorders__button green-box margin-box">
-                        <loc:message code="admin.withdraw.accepted"/></button>
+                    <button id="refill-requests-new" class="myorders__button blue-box margin-box">
+                        <loc:message code="admin.refill.new"/></button>
+                    <button id="refill-requests-auto" class="myorders__button blue-box margin-box">
+                        <loc:message code="admin.refill.auto"/></button>
+                    <button id="refill-requests-All" class="myorders__button blue-box margin-box">
+                        <loc:message code="admin.refill.All"/></button>
+                    <button id="refill-requests-accepted" class="myorders__button green-box margin-box">
+                        <loc:message code="admin.refill.accepted"/></button>
                     <button id="withdraw-requests-declined" class="myorders__button red-box margin-box">
-                        <loc:message code="admin.withdraw.declined"/></button>
+                        <loc:message code="admin.refill.declined"/></button>
                 </div>
             </div>
 
 
-            <div class="row text-center"><h4><loc:message code="admin.withdrawRequests"/></h4></div>
+            <div class="row text-center"><h4><loc:message code="admin.refillRequests"/></h4></div>
             <div class="col-md-8">
-                <button data-toggle="collapse" class="blue-box" style="margin: 10px 0;" data-target="#withdrawal-request-filter">
+                <button data-toggle="collapse" class="blue-box" style="margin: 10px 0;" data-target="#refill-request-filter">
                     <loc:message code="admin.user.transactions.extendedFilter"/> </button>
-                <div id="withdrawal-request-filter" class="collapse">
-                    <form id="withdrawal-request-search-form" class="form_full_height_width" method="get">
+                <div id="refill-request-filter" class="collapse">
+                    <form id="refill-request-search-form" class="form_full_height_width" method="get">
                         <%--ID--%>
                         <div class="input-block-wrapper">
                             <div class="col-md-3 input-block-wrapper__label-wrapper">
@@ -80,7 +80,7 @@
                         <div class="input-block-wrapper">
                             <div class="col-md-3 input-block-wrapper__label-wrapper">
                                 <label class="input-block-wrapper__label">
-                                    <loc:message code="withdrawal.merchant" />
+                                    <loc:message code="refill.merchant" />
                                 </label>
                             </div>
                             <div class="col-md-9 ">
@@ -145,7 +145,7 @@
                         <div class="input-block-wrapper">
                             <div class="col-md-3 input-block-wrapper__label-wrapper">
                                 <label class="input-block-wrapper__label">
-                                    <loc:message code="merchants.withdrawDetails.recipientAccount" />
+                                    <loc:message code="merchants.refillDetails.recipientAccount" />
                                 </label>
                             </div>
                             <div class="col-md-9 input-block-wrapper__input-wrapper">
@@ -156,7 +156,7 @@
                         <div class="input-block-wrapper">
                             <div class="col-md-3 input-block-wrapper__label-wrapper">
                                 <label class="input-block-wrapper__label">
-                                    <loc:message code="merchants.withdrawDetails.recipientBank" />
+                                    <loc:message code="merchants.refillDetails.recipientBank" />
                                 </label>
                             </div>
                             <div class="col-md-9 input-block-wrapper__input-wrapper">
@@ -167,7 +167,7 @@
                         <div class="input-block-wrapper">
                             <div class="col-md-3 input-block-wrapper__label-wrapper">
                                 <label class="input-block-wrapper__label">
-                                    <loc:message code="merchants.withdrawDetails.recipientFullName" />
+                                    <loc:message code="merchants.refillDetails.recipientFullName" />
                                 </label>
                             </div>
                             <div class="col-md-9 input-block-wrapper__input-wrapper">
@@ -182,18 +182,18 @@
                 </div>
             </div>
 
-            <table id="withdrawalTable">
+            <table id="refillTable">
                 <thead>
                 <tr>
                     <th><loc:message code="transaction.id"/></th>
-                    <th><loc:message code="withdrawal.requestDatetime"/></th>
-                    <th><loc:message code="withdrawal.user"/></th>
-                    <th><loc:message code="withdrawal.amount"/></th>
-                    <th><loc:message code="withdrawal.currency"/></th>
-                    <th><loc:message code="withdrawal.commission"/></th>
-                    <th><loc:message code="withdrawal.merchant"/></th>
-                    <th><loc:message code="merchants.withdrawDetails.recipientAccount"/></th>
-                    <th><loc:message code="withdrawal.acceptanceUser"/></th>
+                    <th><loc:message code="refill.requestDatetime"/></th>
+                    <th><loc:message code="refill.user"/></th>
+                    <th><loc:message code="refill.amount"/></th>
+                    <th><loc:message code="refill.currency"/></th>
+                    <th><loc:message code="refill.commission"/></th>
+                    <th><loc:message code="refill.merchant"/></th>
+                    <th><loc:message code="merchants.refillDetails.recipientAccount"/></th>
+                    <th><loc:message code="refill.acceptanceUser"/></th>
                 </tr>
                 </thead>
 
@@ -210,16 +210,16 @@
 </div>
 
 <div id="accepted" style="display: none">
-    <loc:message code="merchants.withdrawRequestAccepted"/>
+    <loc:message code="merchants.refillRequestAccepted"/>
 </div>
 <div id="declined" style="display: none">
-    <loc:message code="merchants.WithdrawRequestDecline"/>
+    <loc:message code="merchants.refillRequestDecline"/>
 </div>
 <div id="prompt_acc_rqst" style="display: none">
-    <loc:message code="merchants.promptWithdrawRequestAccept"/>
+    <loc:message code="merchants.promptRefillRequestAccept"/>
 </div>
 <div id="prompt_dec_rqst" style="display: none">
-    <loc:message code="merchants.promptWithdrawRequestDecline"/>
+    <loc:message code="merchants.promptRefillRequestDecline"/>
 </div>
 <div id="prompt_send_message_rqst" style="display: none">
     <loc:message code="admin.promptSendMessageRequestAccept"/>
@@ -259,7 +259,7 @@
 <%--... MODAL--%>
 
 
-<%@include file='fragments/modal/withdraw_info_modal.jsp' %>
+<%@include file='fragments/modal/refill_info_modal.jsp' %>
 <%@include file="fragments/modal/confirm_with_info_modal.jsp" %>
 <%@include file='fragments/modal/enter_note_before_decline_modal.jsp' %>
 <%@include file='fragments/footer.jsp' %>

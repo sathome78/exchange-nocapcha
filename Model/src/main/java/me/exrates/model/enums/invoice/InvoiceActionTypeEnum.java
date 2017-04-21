@@ -1,12 +1,13 @@
 package me.exrates.model.enums.invoice;
 
+import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import me.exrates.model.exceptions.UnsupportedInvoiceActionTypeNameException;
+import lombok.Setter;
+import me.exrates.model.exceptions.*;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import static me.exrates.model.enums.invoice.InvoiceActionTypeButtonEnum.*;
@@ -18,92 +19,92 @@ import static me.exrates.model.enums.invoice.InvoiceOperationPermission.ACCEPT_D
 @NoArgsConstructor
 public enum InvoiceActionTypeEnum {
   CONFIRM_USER {{
-    getProperty().put("actionTypeButton", CONFIRM_USER_BUTTON);
+    getProperty().setActionTypeButton(CONFIRM_USER_BUTTON);
   }},
   CONFIRM_ADMIN {{
-    getProperty().put("actionTypeButton", CONFIRM_ADMIN_BUTTON);
-    getProperty().put("operationPermissionOnlyList", Arrays.asList(ACCEPT_DECLINE));
+    getProperty().setActionTypeButton(CONFIRM_ADMIN_BUTTON);
+    getProperty().setOperationPermissionOnlyList(Arrays.asList(ACCEPT_DECLINE));
   }},
   REVOKE {{
-    getProperty().put("actionTypeButton", REVOKE_BUTTON);
+    getProperty().setActionTypeButton(REVOKE_BUTTON);
   }},
   EXPIRE,
   BCH_EXAMINE,
   ACCEPT_MANUAL {{
-    getProperty().put("actionTypeButton", ACCEPT_BUTTON);
-    getProperty().put("operationPermissionOnlyList", Arrays.asList(ACCEPT_DECLINE));
-    getProperty().put("leadsToSuccessFinalState", true);
+    getProperty().setActionTypeButton(ACCEPT_BUTTON);
+    getProperty().setOperationPermissionOnlyList(Arrays.asList(ACCEPT_DECLINE));
+    getProperty().setLeadsToSuccessFinalState(true);
+    getProperty().setCheckIfAvailableForCurrentContextNeeded(true);
   }},
-  ACCEPT_AUTO{{
-    getProperty().put("leadsToSuccessFinalState", true);
+  ACCEPT_AUTO {{
+    getProperty().setLeadsToSuccessFinalState(true);
   }},
   DECLINE {{
-    getProperty().put("actionTypeButton", DECLINE_BUTTON);
-    getProperty().put("operationPermissionOnlyList", Arrays.asList(ACCEPT_DECLINE));
+    getProperty().setActionTypeButton(DECLINE_BUTTON);
+    getProperty().setOperationPermissionOnlyList(Arrays.asList(ACCEPT_DECLINE));
   }},
   DECLINE_HOLDED {{
-    getProperty().put("actionTypeButton", DECLINE_HOLDED_BUTTON);
-    getProperty().put("availableForHolderOnly", true);
-    getProperty().put("operationPermissionOnlyList", Arrays.asList(ACCEPT_DECLINE));
+    getProperty().setActionTypeButton(DECLINE_HOLDED_BUTTON);
+    getProperty().setAvailableForHolderOnly(true);
+    getProperty().setOperationPermissionOnlyList(Arrays.asList(ACCEPT_DECLINE));
   }},
   PUT_FOR_MANUAL,
   PUT_FOR_AUTO,
   PUT_FOR_CONFIRM,
   HOLD_TO_POST,
   POST_AUTO {{
-    getProperty().put("leadsToSuccessFinalState", true);
+    getProperty().setLeadsToSuccessFinalState(true);
   }},
   POST_HOLDED {{
-    getProperty().put("actionTypeButton", POST_HOLDED_BUTTON);
-    getProperty().put("availableForHolderOnly", true);
-    getProperty().put("operationPermissionOnlyList", Arrays.asList(ACCEPT_DECLINE));
-    getProperty().put("leadsToSuccessFinalState", true);
+    getProperty().setActionTypeButton(POST_HOLDED_BUTTON);
+    getProperty().setAvailableForHolderOnly(true);
+    getProperty().setOperationPermissionOnlyList(Arrays.asList(ACCEPT_DECLINE));
+    getProperty().setLeadsToSuccessFinalState(true);
   }},
   TAKE_TO_WORK {{
-    getProperty().put("actionTypeButton", TAKE_TO_WORK_BUTTON);
-    getProperty().put("operationPermissionOnlyList", Arrays.asList(ACCEPT_DECLINE));
+    getProperty().setActionTypeButton(TAKE_TO_WORK_BUTTON);
+    getProperty().setOperationPermissionOnlyList(Arrays.asList(ACCEPT_DECLINE));
   }},
   RETURN_FROM_WORK {{
-    getProperty().put("actionTypeButton", RETURN_FROM_WORK_BUTTON);
-    getProperty().put("availableForHolderOnly", true);
-    getProperty().put("operationPermissionOnlyList", Arrays.asList(ACCEPT_DECLINE));
+    getProperty().setActionTypeButton(RETURN_FROM_WORK_BUTTON);
+    getProperty().setAvailableForHolderOnly(true);
+    getProperty().setOperationPermissionOnlyList(Arrays.asList(ACCEPT_DECLINE));
   }},
   CREATE_BY_USER,
   CREATE_BY_FACT,
   PUT_FOR_CONFIRM_USER,
   PUT_FOR_PENDING,
   ACCEPT_HOLDED {{
-    getProperty().put("actionTypeButton", ACCEPT_HOLDED_BUTTON);
-    getProperty().put("availableForHolderOnly", true);
-    getProperty().put("operationPermissionOnlyList", Arrays.asList(ACCEPT_DECLINE));
+    getProperty().setActionTypeButton(ACCEPT_HOLDED_BUTTON);
+    getProperty().setAvailableForHolderOnly(true);
+    getProperty().setOperationPermissionOnlyList(Arrays.asList(ACCEPT_DECLINE));
   }},
   START_BCH_EXAMINE;
 
-  private Map<String, Object> property = new HashMap<String, Object>() {{
-    put("actionTypeButton", null);
-    put("availableForHolderOnly", false);
-    put("operationPermissionOnlyList", null);
-    put("leadsToSuccessFinalState", false);
-  }};
+  private InvoiceActionParams property = new InvoiceActionParams();
 
-  public Map<String, Object> getProperty() {
+  public InvoiceActionParams getProperty() {
     return property;
   }
 
   public InvoiceActionTypeButtonEnum getActionTypeButton() {
-    return (InvoiceActionTypeButtonEnum) property.get("actionTypeButton");
+    return property.getActionTypeButton();
   }
 
   public Boolean isAvailableForHolderOnly() {
-    return (Boolean) property.get("availableForHolderOnly");
+    return property.isAvailableForHolderOnly();
   }
 
   public List<InvoiceOperationPermission> getOperationPermissionOnlyList() {
-    return (List<InvoiceOperationPermission>) property.get("operationPermissionOnlyList");
+    return property.getOperationPermissionOnlyList();
   }
 
   public Boolean isLeadsToSuccessFinalState() {
-    return (Boolean) property.get("leadsToSuccessFinalState");
+    return property.isLeadsToSuccessFinalState();
+  }
+
+  public Boolean isCheckIfAvailableForCurrentContextNeeded() {
+    return property.isCheckIfAvailableForCurrentContextNeeded();
   }
 
   public static InvoiceActionTypeEnum convert(String name) {
@@ -117,6 +118,59 @@ public enum InvoiceActionTypeEnum {
     return names.stream()
         .map(InvoiceActionTypeEnum::convert)
         .collect(Collectors.toList());
+  }
+
+  public void checkAvailabilityTheActionForParamsValue(InvoiceActionParamsValue paramsValue) {
+    if (this.isAvailableForHolderOnly() && (paramsValue.getAuthorisedUserIsHolder() == null || !paramsValue.getAuthorisedUserIsHolder())) {
+      throw new InvoiceActionIsProhibitedForNotHolderException(this.name());
+    }
+    if (this.getOperationPermissionOnlyList() != null && (paramsValue.getPermittedOperation() == null || !this.getOperationPermissionOnlyList().contains(paramsValue.getPermittedOperation()))) {
+      throw new InvoiceActionIsProhibitedForCurrencyPermissionOperationException(this.name());
+    }
+    if (this.isCheckIfAvailableForCurrentContextNeeded() && (paramsValue.getAvailableForCurrentContext() == null || !paramsValue.getAvailableForCurrentContext())) {
+      throw new InvoiceActionIsProhibitedForCurrentContextException(this.name());
+    }
+  }
+
+  public void checkRestrictParamNeeded() {
+    if (this.isAvailableForHolderOnly()) {
+      throw new AuthorisedUserIsHolderParamNeededForThisActionException(this.name());
+    }
+    if (this.getOperationPermissionOnlyList() != null) {
+      throw new PermittedOperationParamNeededForThisActionException(this.name());
+    }
+    if (this.isAvailableForHolderOnly()) {
+      throw new AvailableForCurrentContextParamNeededForThisActionException(this.name());
+    }
+  }
+
+  public Boolean isMatchesTheParamsValue(InvoiceActionParamsValue paramsValue) {
+    if (this.isAvailableForHolderOnly() && (paramsValue.getAuthorisedUserIsHolder() == null || !paramsValue.getAuthorisedUserIsHolder())) {
+      return false;
+    }
+    if (this.getOperationPermissionOnlyList() != null && (paramsValue.getPermittedOperation() == null || !this.getOperationPermissionOnlyList().contains(paramsValue.getPermittedOperation()))) {
+      return false;
+    }
+    if (this.isCheckIfAvailableForCurrentContextNeeded() && (paramsValue.getAvailableForCurrentContext() == null || !paramsValue.getAvailableForCurrentContext())) {
+      return false;
+    }
+    return true;
+  }
+
+  @Getter @Setter class InvoiceActionParams {
+    private InvoiceActionTypeButtonEnum actionTypeButton = null;
+    private boolean availableForHolderOnly = false;
+    private List<InvoiceOperationPermission> operationPermissionOnlyList = null;
+    private boolean leadsToSuccessFinalState = false;
+    private boolean checkIfAvailableForCurrentContextNeeded = false;
+  }
+
+  @Builder
+  @Getter
+  public static class InvoiceActionParamsValue {
+    private Boolean authorisedUserIsHolder = null;
+    private InvoiceOperationPermission permittedOperation = null;
+    private Boolean availableForCurrentContext = null;
   }
 
 }

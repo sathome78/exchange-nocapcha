@@ -78,6 +78,13 @@
                 <a href="<c:url value='/2a8fy7b07dxe44/withdrawal'/>"><loc:message code="admin.withdrawRequests"/></a>
             </sec:authorize>
         </li>
+
+        <li>
+            <%--refill--%>
+                <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
+                <a href="<c:url value='/2a8fy7b07dxe44/refill'/>"><loc:message code="admin.refillRequests"/></a>
+            </sec:authorize>
+        </li>
         <%--Удаление ордера--%>
         <li>
 

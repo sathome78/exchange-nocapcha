@@ -10,10 +10,7 @@ import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.WalletTransferStatus;
-import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
-import me.exrates.model.enums.invoice.InvoiceOperationDirection;
-import me.exrates.model.enums.invoice.InvoiceStatus;
-import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
+import me.exrates.model.enums.invoice.*;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.*;
@@ -110,10 +107,14 @@ public class BitcoinTransactionServiceImpl implements BitcoinTransactionService 
     if (action == ACCEPT_AUTO && !hash.equals(pendingPayment.getHash())) {
       throw new InvoiceUnexpectedHashException(String.format("hash stored in invoice: %s actual get from BCH: %s", pendingPayment.getHash(), hash));
     }
+    InvoiceOperationPermission permission = userService.getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection(pendingPayment.getUserId(),
+        pendingPayment.getTransaction().getCurrency().getId(), InvoiceOperationDirection.REFILL);
+    InvoiceActionTypeEnum.InvoiceActionParamsValue paramsValue = InvoiceActionTypeEnum.InvoiceActionParamsValue.builder()
+        .authorisedUserIsHolder(true)
+        .permittedOperation(permission)
+        .build();
     InvoiceStatus newStatus = action == ACCEPT_AUTO ? pendingPayment.getPendingPaymentStatus().nextState(action) :
-            pendingPayment.getPendingPaymentStatus().nextState(action, true,
-                    userService.getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection(pendingPayment.getUserId(),
-                            pendingPayment.getTransaction().getCurrency().getId(), InvoiceOperationDirection.REFILL));
+            pendingPayment.getPendingPaymentStatus().nextState(action, paramsValue);
     pendingPayment.setPendingPaymentStatus(newStatus);
     Transaction transaction = pendingPayment.getTransaction();
     if (transaction.getOperationType() != OperationType.INPUT) {

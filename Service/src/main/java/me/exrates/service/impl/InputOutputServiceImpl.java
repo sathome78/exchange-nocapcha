@@ -90,7 +90,11 @@ public class InputOutputServiceImpl implements InputOutputService {
       boolean authorisedUserIsHolder,
       Locale locale) {
     if (status == null) return EMPTY_LIST;
-    return status.getAvailableActionList(authorisedUserIsHolder, permittedOperation).stream()
+    InvoiceActionTypeEnum.InvoiceActionParamsValue paramsValue = InvoiceActionTypeEnum.InvoiceActionParamsValue.builder()
+        .authorisedUserIsHolder(authorisedUserIsHolder)
+        .permittedOperation(permittedOperation)
+        .build();
+    return status.getAvailableActionList(paramsValue).stream()
         .filter(e -> e.getActionTypeButton() != null)
         .map(e -> new HashMap<String, Object>(e.getActionTypeButton().getProperty()))
         .peek(e -> e.put("buttonTitle", messageSource.getMessage((String) e.get("buttonTitle"), null, locale)))

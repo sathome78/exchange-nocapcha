@@ -113,7 +113,11 @@ public class InvoiceServiceImpl implements InvoiceService {
         invoiceRequest.getTransaction().getCurrency().getId(),
         WITHDRAW
     );
-    InvoiceStatus newStatus = invoiceRequest.getInvoiceRequestStatus().nextState(ACCEPT_MANUAL, true, permission);
+    InvoiceActionTypeEnum.InvoiceActionParamsValue paramsValue = InvoiceActionTypeEnum.InvoiceActionParamsValue.builder()
+        .authorisedUserIsHolder(true)
+        .permittedOperation(permission)
+        .build();
+    InvoiceStatus newStatus = invoiceRequest.getInvoiceRequestStatus().nextState(ACCEPT_MANUAL, paramsValue);
     invoiceRequest.setInvoiceRequestStatus(newStatus);
     Transaction transaction = invoiceRequest.getTransaction();
     if (transaction.getOperationType() != OperationType.INPUT) {
@@ -168,7 +172,11 @@ public class InvoiceServiceImpl implements InvoiceService {
         invoiceRequest.getTransaction().getCurrency().getId(),
         WITHDRAW
     );
-    InvoiceStatus newStatus = invoiceRequest.getInvoiceRequestStatus().nextState(DECLINE, true, permission);
+    InvoiceActionTypeEnum.InvoiceActionParamsValue paramsValue = InvoiceActionTypeEnum.InvoiceActionParamsValue.builder()
+        .authorisedUserIsHolder(true)
+        .permittedOperation(permission)
+        .build();
+    InvoiceStatus newStatus = invoiceRequest.getInvoiceRequestStatus().nextState(DECLINE, paramsValue);
     invoiceRequest.setInvoiceRequestStatus(newStatus);
     Transaction transaction = invoiceRequest.getTransaction();
     if (transaction.getOperationType() != OperationType.INPUT) {
