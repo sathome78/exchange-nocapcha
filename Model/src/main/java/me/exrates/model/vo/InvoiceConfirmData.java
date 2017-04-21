@@ -29,6 +29,7 @@ public class InvoiceConfirmData {
     @NotNull
     private MultipartFile receiptScan;
     private String receiptScanName;
+    private String receiptScanPath;
 
 
 }

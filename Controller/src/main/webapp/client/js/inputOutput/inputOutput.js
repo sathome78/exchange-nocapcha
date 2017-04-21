@@ -21,6 +21,14 @@ function InputOutputClass(currentCurrencyPair) {
     var tableId = "inputoutput-table";
     var inputoutputCurrencyPairSelector;
     var tablePageSize = 20;
+    /**/
+    const numberFormat = '0,0.00[0000000]';
+    const $pageContainer = $('#myinputoutput');
+    const $refillDetailedParamsDialog = $pageContainer.find('#dialog-refill-confirmation-params-enter');
+    const phrases = {
+        "bankNotSelected": $pageContainer.find("#bank-not-selected").html(),
+        "enterOtherBankPhrase": $pageContainer.find("#enter-other-bank-phrase").html(),
+    };
 
     function onCurrencyPairChange(currentCurrencyPair) {
         that.updateAndShowAll(currentCurrencyPair);
@@ -138,61 +146,134 @@ function InputOutputClass(currentCurrencyPair) {
             $modal.modal();
         });
 
-        $('#inputoutput-table').on('click', 'button[data-source=INVOICE].revoke_button', function (e) {
+        $('#inputoutput-table').on('click', 'button[data-source=REFILL].revoke_button', function (e) {
             e.preventDefault();
-            var $form = $(this).parents('#inputoutput-center-tableBody__form');
-            $form.attr("action", "/merchants/invoice/payment/confirmation");
-            var $action = $form.find('input[name=action]');
-            $action.attr("value", "revoke");
-            var $id = $form.find('input[name=transactionId]');
             var id = $(this).data("id");
-            $id.attr("value", id);
-            var $sourceType = $form.find('input[name=sourceType]');
-            $sourceType.attr("value", "INVOICE");
-            $form[0].submit();
+            var $modal = $("#confirm-with-info-modal");
+            $modal.find("label[for=info-field]").html($(this).html());
+            $modal.find("#info-field").val(id);
+            $modal.find("#confirm-button").off("click").one("click", function () {
+                $modal.modal('hide');
+                $.ajax({
+                    url: '/refill/request/revoke?id=' + id,
+                    headers: {
+                        'X-CSRF-Token': $("input[name='_csrf']").val(),
+                    },
+                    type: 'POST',
+                    success: function () {
+                        that.updateAndShowAll(false);
+                    }
+                });
+            });
+            $modal.modal();
         });
 
-        $('#inputoutput-table').on('click', 'button[data-source=BTC_INVOICE].revoke_button', function (e) {
+        $('#inputoutput-table').on('click', 'button[data-source=REFILL].confirm_user_button', function (e) {
             e.preventDefault();
-            var invoiceId = $(this).data("id");
+            var id = $(this).data("id");
             $.ajax({
-                url: '/merchants/bitcoin/payment/address?id=' + invoiceId,
+                url: '/refill/request/info?id=' + id,
+                headers: {
+                    'X-CSRF-Token': $("input[name='_csrf']").val(),
+                },
                 type: 'GET',
-                success: function (data) {
-                    var $modal = $("#btc-invoice-revoke-modal");
-                    $modal.find("#invoiceId").val(invoiceId);
-                    $modal.find("#address-to-pay").val(data.address);
-                    $modal.find("#btcInvoiceRevokeConfirm").off("click").one("click", function () {
-                        var invoiceId = $('#invoiceId').val().trim();
-                        $modal.modal('hide');
-                        $.ajax({
-                            url: '/merchants/bitcoin/payment/revoke?id=' + invoiceId,
-                            headers: {
-                                'X-CSRF-Token': $("input[name='_csrf']").val(),
-                            },
-                            type: 'POST',
-                            success: function () {
-                                that.updateAndShowAll(false);
-                            }
-                        });
+                success: function (requestData) {
+                    var refillDetailedParamsDialogResult= false;
+                    $refillDetailedParamsDialog.find("#invoiceSubmit").off("click").one("click", function () {
+                        refillDetailedParamsDialogResult = true;
+                        $refillDetailedParamsDialog.modal("hide");
                     });
-                    $modal.modal();
+                    $refillDetailedParamsDialog.one("hidden.bs.modal", function () {
+                        if (refillDetailedParamsDialogResult) {
+                            sendConfirm(requestData.id);
+                        }
+                    });
+                    showRefillDetailDialog(requestData);
                 }
             });
-        });
 
-        $('#inputoutput-table').on('click', 'button[data-source=INVOICE].confirm_user_button', function (e) {
-            e.preventDefault();
-            var $form = $(this).parents('#inputoutput-center-tableBody__form');
-            $form.attr("action", "/merchants/invoice/payment/confirmation");
-            var $action = $form.find('input[name=action]');
-            $action.attr("value", "confirm");
-            var $id = $form.find('input[name=transactionId]');
-            var id = $(this).data("id");
-            $id.attr("value", id);
-            var $sourceType = $form.find('input[name=sourceType]');
-            $sourceType.attr("value", "INVOICE");
-            $form[0].submit();
+            function showRefillDetailDialog(data) {
+                resetForm();
+                $refillDetailedParamsDialog.find("#amount").html(numeral(data.amount).format(numberFormat));
+                $refillDetailedParamsDialog.find("#bank-name").html(data.recipientBankName);
+                $refillDetailedParamsDialog.find("#bank-account").html(data.recipientBankAccount);
+                $refillDetailedParamsDialog.find("#bank-recipient").html(data.recipientBankRecipient);
+                getBankDataList(data.currencyId, function (bankDataList) {
+                    var $bankSelect = $refillDetailedParamsDialog.find("#bank-data-list");
+                    $bankSelect.empty();
+                    var $bankItem = $("<option> </option>");
+                    $bankItem.val(-1);
+                    $bankItem.attr("data-bank-id", "");
+                    $bankItem.attr("data-bank-code", "");
+                    $bankItem.attr("data-bank-name", "");
+                    $bankItem.attr("data-bank-account", "");
+                    $bankItem.attr("data-bank-recipient", "");
+                    $bankItem.html(phrases.bankNotSelected);
+                    $bankSelect.append($bankItem.clone());
+                    /**/
+                    bankDataList.forEach(function (bank) {
+                        $bankItem.val(bank.id);
+                        $bankItem.attr("data-bank-id", bank.id);
+                        $bankItem.attr("data-bank-code", bank.code);
+                        $bankItem.attr("data-bank-name", bank.name);
+                        $bankItem.attr("data-bank-account", bank.accountNumber);
+                        $bankItem.attr("data-bank-recipient", bank.recipient);
+                        $bankItem.html(bank.name);
+                        $bankSelect.append($bankItem.clone());
+                    });
+                    /**/
+                    $bankItem.val(0);
+                    $bankItem.attr("data-bank-id", "");
+                    $bankItem.attr("data-bank-code", "");
+                    $bankItem.attr("data-bank-name", "");
+                    $bankItem.html(phrases.enterOtherBankPhrase);
+                    $bankSelect.append($bankItem.clone());
+                });
+                $refillDetailedParamsDialog.modal({
+                    backdrop: 'static'
+                });
+            }
+
+            function getBankDataList(currency, callback) {
+                $.ajax({
+                    url: '/withdraw/banks',
+                    async: true,
+                    type: "get",
+                    contentType: "application/json",
+                    data: {"currencyId": currency}
+                }).success(function (response) {
+                    if (callback) {
+                        callback(response);
+                    }
+                });
+            }
+
+            function sendConfirm(id) {
+                var data = new FormData();
+                data.append('invoiceId', id);
+                data.append('payerBankName', $refillDetailedParamsDialog.find('#bank-data-list').find('option:selected').text());
+                data.append('payerBankCode', $refillDetailedParamsDialog.find("#bank-code").val());
+                data.append('userAccount', $refillDetailedParamsDialog.find("#user-account").val());
+                data.append('userFullName', $refillDetailedParamsDialog.find("#user-full-name").val());
+                data.append('remark', $refillDetailedParamsDialog.find("#remark").val());
+                data.append('receiptScan', $refillDetailedParamsDialog.find("#receipt-scan")[0].files[0]);
+                $.ajax({
+                    url: '/refill/request/confirm',
+                    headers: {
+                        'X-CSRF-Token': $("input[name='_csrf']").val(),
+                    },
+                    data: data,
+                    type: 'POST',
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    enctype: 'multipart/form-data',
+                    success: function () {
+                        that.updateAndShowAll(false);
+                    }
+                });
+            }
+
         });
 
     })(currentCurrencyPair);

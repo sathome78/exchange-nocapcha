@@ -1,12 +1,10 @@
 package me.exrates.service;
 
-import me.exrates.model.CreditsOperation;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.dto.RefillRequestCreateDto;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.vo.WithdrawData;
+import me.exrates.model.dto.RefillRequestFlatDto;
+import me.exrates.model.vo.InvoiceConfirmData;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.servlet.view.RedirectView;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -19,6 +17,12 @@ import java.util.Map;
 public interface RefillService {
 
   Map<String, String> createRefillRequest(RefillRequestCreateDto requestCreateDto, Locale locale);
+
+  void confirmRefillRequest(InvoiceConfirmData invoiceConfirmData, Locale locale);
+
+  RefillRequestFlatDto getFlatById(Integer id);
+
+  void revokeRefillRequest(int requestId);
 
   List<InvoiceBank> findBanksForCurrency(Integer currencyId);
 

@@ -4,16 +4,16 @@ import me.exrates.dao.MerchantDao;
 import me.exrates.dao.RefillRequestDao;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.Merchant;
-import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
-import me.exrates.model.dto.OperationUserDto;
-import me.exrates.model.dto.RefillRequestCreateDto;
-import me.exrates.model.dto.WithdrawRequestFlatDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.invoice.*;
+import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.TransactionDescription;
 import me.exrates.service.*;
+import me.exrates.service.exception.FileLoadingException;
 import me.exrates.service.exception.RefillRequestLimitForMerchantExceededException;
+import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.vo.ProfileData;
@@ -27,14 +27,16 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static me.exrates.model.enums.OperationType.INPUT;
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.EXPIRE;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.*;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
 import static me.exrates.model.enums.invoice.InvoiceRequestStatusEnum.EXPIRED;
 
@@ -70,6 +72,9 @@ public class RefillServiceImpl implements RefillService {
   private CompanyWalletService companyWalletService;
 
   @Autowired
+  private WalletService walletService;
+
+  @Autowired
   private UserService userService;
 
   @Autowired
@@ -83,6 +88,9 @@ public class RefillServiceImpl implements RefillService {
 
   @Autowired
   private CommissionService commissionService;
+
+  @Autowired
+  private UserFilesService userFilesService;
 
   @Override
   @Transactional
@@ -113,6 +121,51 @@ public class RefillServiceImpl implements RefillService {
       log.error(e);
     }
     return result;
+  }
+
+  @Override
+  @Transactional
+  public void confirmRefillRequest(InvoiceConfirmData invoiceConfirmData, Locale locale) {
+    Integer requestId = invoiceConfirmData.getInvoiceId();
+    RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
+        .orElseThrow(() -> new InvoiceNotFoundException(String.format("withdraw request id: %s", requestId)));
+    RefillStatusEnum currentStatus = refillRequest.getStatus();
+    InvoiceActionTypeEnum action = CONFIRM_USER;
+    RefillStatusEnum newStatus = (RefillStatusEnum) currentStatus.nextState(action);
+    /**/
+    MultipartFile receiptScan = invoiceConfirmData.getReceiptScan();
+    boolean emptyFile = receiptScan == null || receiptScan.isEmpty();
+    if (emptyFile) {
+      throw new FileLoadingException(messageSource.getMessage("refill.receiptScan.absent", null, locale));
+    }
+    if (!userFilesService.checkFileValidity(receiptScan) || receiptScan.getSize() > 1048576L) {
+      throw new FileLoadingException(messageSource.getMessage("merchants.errorUploadReceipt", null, locale));
+    }
+    try {
+      String scanPath = userFilesService.saveReceiptScan(refillRequest.getUserId(), refillRequest.getId(), receiptScan);
+      invoiceConfirmData.setReceiptScanPath(scanPath);
+    } catch (IOException e) {
+      throw new FileLoadingException(messageSource.getMessage("merchants.errorUploadReceipt", null, locale));
+    }
+    refillRequestDao.setStatusAndConfirmationDataById(requestId, newStatus, invoiceConfirmData);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public RefillRequestFlatDto getFlatById(Integer id) {
+    return refillRequestDao.getFlatById(id)
+        .orElseThrow(() -> new InvoiceNotFoundException(id.toString()));
+  }
+
+  @Override
+  @Transactional
+  public void revokeRefillRequest(int requestId) {
+    RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
+        .orElseThrow(() -> new InvoiceNotFoundException(String.format("withdraw request id: %s", requestId)));
+    RefillStatusEnum currentStatus = refillRequest.getStatus();
+    InvoiceActionTypeEnum action = REVOKE;
+    RefillStatusEnum newStatus = (RefillStatusEnum) currentStatus.nextState(action);
+    refillRequestDao.setStatusById(requestId, newStatus);
   }
 
   @Override

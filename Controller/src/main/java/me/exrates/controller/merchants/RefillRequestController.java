@@ -5,10 +5,12 @@ import me.exrates.model.CreditsOperation;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.Payment;
 import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.RefillRequestFlatDto;
 import me.exrates.model.dto.RefillRequestParamsDto;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
+import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.service.MerchantService;
 import me.exrates.service.RefillService;
 import me.exrates.service.UserService;
@@ -76,6 +78,28 @@ public class RefillRequestController {
         .orElseThrow(InvalidAmountException::new);
     RefillRequestCreateDto request = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
     return refillService.createRefillRequest(request, locale);
+  }
+
+  @RequestMapping(value = "/refill/request/revoke", method = POST)
+  @ResponseBody
+  public void revokeWithdrawRequest(
+      @RequestParam Integer id) {
+    refillService.revokeRefillRequest(id);
+  }
+
+  @RequestMapping(value = "/refill/request/info", method = GET)
+  @ResponseBody
+  public RefillRequestFlatDto getInfoRefill(
+      @RequestParam Integer id) {
+    return refillService.getFlatById(id);
+  }
+
+  @RequestMapping(value = "/refill/request/confirm", method = POST)
+  @ResponseBody
+  public void confirmWithdrawRequest(
+      InvoiceConfirmData invoiceConfirmData,
+      Locale locale) {
+    refillService.confirmRefillRequest(invoiceConfirmData, locale);
   }
 
   @RequestMapping(value = "/refill/banks", method = GET)

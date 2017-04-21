@@ -64,8 +64,6 @@ public class UserFilesServiceImpl implements UserFilesService {
 
     @Override
     public boolean checkFileValidity(final MultipartFile file) {
-        LOG.debug(extractContentType(file));
-        LOG.debug(contentTypes);
         return !file.isEmpty() && contentTypes.contains(extractContentType(file));
     }
 
@@ -113,7 +111,7 @@ public class UserFilesServiceImpl implements UserFilesService {
     }
 
     @Override
-    public void saveReceiptScan(final int userId, final int invoiceId, final MultipartFile file) throws IOException {
+    public String saveReceiptScan(final int userId, final int invoiceId, final MultipartFile file) throws IOException {
         final Path path = Paths.get(userFilesDir + userId, "receipts");
         if (!Files.exists(path)) {
             Files.createDirectories(path);
@@ -123,7 +121,7 @@ public class UserFilesServiceImpl implements UserFilesService {
                 .add(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")))
                 .toString();
         Path logicalPath = writeUserFile(path, Paths.get(userFilesLogicalDir, String.valueOf(userId), "receipts"), baseFilename, file);
-        invoiceService.updateReceiptScan(invoiceId, logicalPath.toString());
+        return logicalPath.toString();
     }
 
 
