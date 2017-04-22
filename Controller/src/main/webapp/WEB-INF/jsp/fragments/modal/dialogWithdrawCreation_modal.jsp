@@ -20,6 +20,11 @@
           </label>
           <input class="form-control" autofocus name="walletUid" type="text" id="walletUid">
         </div>
+        <div class="timeoutWarning">
+          <c:forEach var="warningCode" items="${warningCodeList}">
+            <div><strong><loc:message code="${warningCode}"/></strong></div>
+          </c:forEach>
+        </div>
         <div id="message"
              style="width: 100%; border-radius: 5px; display: block; padding: 5px; background: green; color: white"></div>
       </div>

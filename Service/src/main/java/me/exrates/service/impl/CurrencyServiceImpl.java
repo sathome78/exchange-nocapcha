@@ -8,7 +8,7 @@ import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
-import me.exrates.model.enums.CurrencyWarningType;
+import me.exrates.model.enums.CurrencyWarningTopicEnum;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderType;
 import me.exrates.model.enums.UserRole;
@@ -180,8 +180,8 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
     
     @Override
-    public Optional<String> getWarningForCurrency(Integer currencyId, CurrencyWarningType currencyWarningType) {
-      return currencyDao.getWarningForCurrency(currencyId, currencyWarningType);
+    public List<String> getWarningForCurrency(Integer currencyId, CurrencyWarningTopicEnum currencyWarningTopicEnum) {
+      return currencyDao.getWarningForCurrency(currencyId, currencyWarningTopicEnum);
     }
 
   @Override

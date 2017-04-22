@@ -15,15 +15,10 @@
           <p><loc:message code="merchants.modalInputFinalSum"/></p>
           <p><loc:message code="merchants.warn"/></p>
         </div>
-        <c:if test="${not empty warningCodeTimeout}">
-          <div class="timeoutWarning">
-            <strong><loc:message code="${warningCodeTimeout}"/></strong>
-          </div>
-        </c:if>
         <div class="timeoutWarning">
-          <c:if test="${not empty warningCodeTimeout}">
-            <strong><loc:message code="${warningCodeTimeout}"/></strong>
-          </c:if>
+          <c:forEach var="warningCode" items="${warningCodeList}">
+            <div><strong><loc:message code="${warningCode}"/></strong></div>
+          </c:forEach>
         </div>
         <div id="message"
              style="width: 100%; border-radius: 5px; display: block; padding: 5px; background: green; color: white"></div>

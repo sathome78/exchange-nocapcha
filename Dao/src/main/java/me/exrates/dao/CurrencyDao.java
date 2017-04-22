@@ -7,7 +7,7 @@ import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
-import me.exrates.model.enums.CurrencyWarningType;
+import me.exrates.model.enums.CurrencyWarningTopicEnum;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 
@@ -49,7 +49,7 @@ public interface CurrencyDao {
 
   List<UserCurrencyOperationPermissionDto> findCurrencyOperationPermittedByUserList(Integer userId);
   
-  Optional<String> getWarningForCurrency(Integer currencyId, CurrencyWarningType currencyWarningType);
+  List<String> getWarningForCurrency(Integer currencyId, CurrencyWarningTopicEnum currencyWarningTopicEnum);
 
   CurrencyPair findCurrencyPairByOrderId(int orderId);
   

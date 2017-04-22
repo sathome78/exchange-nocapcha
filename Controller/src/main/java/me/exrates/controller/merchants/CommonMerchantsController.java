@@ -4,7 +4,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.Payment;
 import me.exrates.model.Wallet;
-import me.exrates.model.enums.CurrencyWarningType;
+import me.exrates.model.enums.CurrencyWarningTopicEnum;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.*;
@@ -20,7 +20,6 @@ import org.springframework.web.servlet.ModelAndView;
 
 import java.math.BigDecimal;
 import java.security.Principal;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -69,10 +68,8 @@ public class CommonMerchantsController {
     modelAndView.addObject("minRefillSum", minRefillSum);
     List<Integer> currenciesId = Collections.singletonList(currency.getId());
     modelAndView.addObject("merchantCurrencyData", merchantService.findAllByCurrencies(currenciesId, OperationType.INPUT));
-    Optional<String> warningCodeSingleAddress = currencyService.getWarningForCurrency(currency.getId(), CurrencyWarningType.SINGLE_ADDRESS);
-    warningCodeSingleAddress.ifPresent(s -> modelAndView.addObject("warningSingleAddress", s));
-    Optional<String> warningCodeTimeout = currencyService.getWarningForCurrency(currency.getId(), CurrencyWarningType.TIMEOUT);
-    warningCodeTimeout.ifPresent(s -> modelAndView.addObject("warningCodeTimeout", s));
+    List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), CurrencyWarningTopicEnum.REFILL_CURRENCY_WARNING);
+    modelAndView.addObject("warningCodeList", warningCodeList);
     return modelAndView;
   }
 
@@ -93,7 +90,8 @@ public class CommonMerchantsController {
     modelAndView.addObject("minWithdrawSum", minWithdrawSum);
     List<Integer> currenciesId = Collections.singletonList(currency.getId());
     modelAndView.addObject("merchantCurrencyData", merchantService.findAllByCurrencies(currenciesId, OperationType.OUTPUT));
-
+    List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), CurrencyWarningTopicEnum.WITHDRAW_CURRENCY_WARNING);
+    modelAndView.addObject("warningCodeList", warningCodeList);
     return modelAndView;
   }
 
