@@ -213,6 +213,7 @@ public class WithdrawServiceImpl implements WithdrawService {
   }
 
   @Override
+  @Transactional
   public DataTable<List<WithdrawRequestsAdminTableDto>> getWithdrawRequestByStatusList(
       List<Integer> requestStatus,
       DataTableParams dataTableParams,
@@ -243,6 +244,7 @@ public class WithdrawServiceImpl implements WithdrawService {
   }
 
   @Override
+  @Transactional
   public WithdrawRequestsAdminTableDto getWithdrawRequestById(
       Integer id,
       String authorizedUserEmail) {

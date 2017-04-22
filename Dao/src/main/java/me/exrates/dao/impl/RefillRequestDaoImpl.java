@@ -2,12 +2,18 @@ package me.exrates.dao.impl;
 
 import me.exrates.dao.RefillRequestDao;
 import me.exrates.model.InvoiceBank;
+import me.exrates.model.PagingData;
 import me.exrates.model.dto.OperationUserDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.RefillRequestFlatAdditionalDataDto;
 import me.exrates.model.dto.RefillRequestFlatDto;
+import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.RefillFilterData;
+import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.vo.InvoiceConfirmData;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,30 +44,30 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   private static final Logger log = LogManager.getLogger("refill");
 
   protected static RowMapper<RefillRequestFlatDto> refillRequestFlatDtoRowMapper = (rs, idx) -> {
-    RefillRequestFlatDto withdrawRequestFlatDto = new RefillRequestFlatDto();
-    withdrawRequestFlatDto.setId(rs.getInt("id"));
-    withdrawRequestFlatDto.setAddress(rs.getString("address"));
-    withdrawRequestFlatDto.setUserId(rs.getInt("user_id"));
-    withdrawRequestFlatDto.setPayerBankName(rs.getString("payer_bank_name"));
-    withdrawRequestFlatDto.setPayerBankCode(rs.getString("payer_bank_code"));
-    withdrawRequestFlatDto.setUserFullName(rs.getString("user_full_name"));
-    withdrawRequestFlatDto.setRemark(rs.getString("remark"));
-    withdrawRequestFlatDto.setReceiptScan(rs.getString("receipt_scan"));
-    withdrawRequestFlatDto.setReceiptScanName(rs.getString("receipt_scan_name"));
-    withdrawRequestFlatDto.setAmount(rs.getBigDecimal("amount"));
-    withdrawRequestFlatDto.setCommissionAmount(rs.getBigDecimal("commission"));
-    withdrawRequestFlatDto.setCommissionId(rs.getInt("commission_id"));
-    withdrawRequestFlatDto.setStatus(RefillStatusEnum.convert(rs.getInt("status_id")));
-    withdrawRequestFlatDto.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
-    withdrawRequestFlatDto.setStatusModificationDate(rs.getTimestamp("status_modification_date").toLocalDateTime());
-    withdrawRequestFlatDto.setCurrencyId(rs.getInt("currency_id"));
-    withdrawRequestFlatDto.setMerchantId(rs.getInt("merchant_id"));
-    withdrawRequestFlatDto.setAdminHolderId(rs.getInt("admin_holder_id"));
-    withdrawRequestFlatDto.setRecipientBankId(rs.getInt("recipient_bank_id"));
-    withdrawRequestFlatDto.setRecipientBankName(rs.getString("name"));
-    withdrawRequestFlatDto.setRecipientBankAccount(rs.getString("account_number"));
-    withdrawRequestFlatDto.setRecipientBankRecipient(rs.getString("recipient"));
-    return withdrawRequestFlatDto;
+    RefillRequestFlatDto refillRequestFlatDto = new RefillRequestFlatDto();
+    refillRequestFlatDto.setId(rs.getInt("id"));
+    refillRequestFlatDto.setAddress(rs.getString("address"));
+    refillRequestFlatDto.setUserId(rs.getInt("user_id"));
+    refillRequestFlatDto.setPayerBankName(rs.getString("payer_bank_name"));
+    refillRequestFlatDto.setPayerBankCode(rs.getString("payer_bank_code"));
+    refillRequestFlatDto.setUserFullName(rs.getString("user_full_name"));
+    refillRequestFlatDto.setRemark(rs.getString("remark"));
+    refillRequestFlatDto.setReceiptScan(rs.getString("receipt_scan"));
+    refillRequestFlatDto.setReceiptScanName(rs.getString("receipt_scan_name"));
+    refillRequestFlatDto.setAmount(rs.getBigDecimal("amount"));
+    refillRequestFlatDto.setCommissionAmount(rs.getBigDecimal("commission"));
+    refillRequestFlatDto.setCommissionId(rs.getInt("commission_id"));
+    refillRequestFlatDto.setStatus(RefillStatusEnum.convert(rs.getInt("status_id")));
+    refillRequestFlatDto.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
+    refillRequestFlatDto.setStatusModificationDate(rs.getTimestamp("status_modification_date").toLocalDateTime());
+    refillRequestFlatDto.setCurrencyId(rs.getInt("currency_id"));
+    refillRequestFlatDto.setMerchantId(rs.getInt("merchant_id"));
+    refillRequestFlatDto.setAdminHolderId(rs.getInt("admin_holder_id"));
+    refillRequestFlatDto.setRecipientBankId(rs.getInt("recipient_bank_id"));
+    refillRequestFlatDto.setRecipientBankName(rs.getString("name"));
+    refillRequestFlatDto.setRecipientBankAccount(rs.getString("account_number"));
+    refillRequestFlatDto.setRecipientBankRecipient(rs.getString("recipient"));
+    return refillRequestFlatDto;
   };
 
   @Autowired
@@ -278,6 +284,99 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     } catch (EmptyResultDataAccessException e) {
       return Collections.EMPTY_LIST;
     }
+  }
+
+  @Override
+  public PagingData<List<RefillRequestFlatDto>> getPermittedFlatByStatus(
+      List<Integer> statusIdList,
+      Integer requesterUserId,
+      DataTableParams dataTableParams,
+      RefillFilterData refillFilterData) {
+    final String JOINS_FOR_FILTER =
+        " JOIN USER ON USER.id = REFILL_REQUEST.user_id ";
+    String filter = refillFilterData.getSQLFilterClause();
+    String sqlBase =
+        " FROM REFILL_REQUEST " +
+            " JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
+            "				(IOP.currency_id=REFILL_REQUEST.currency_id) " +
+            "				AND (IOP.user_id=:requester_user_id) " +
+            "				AND (IOP.operation_direction=:operation_direction) " +
+            (filter.isEmpty() ? "" : JOINS_FOR_FILTER) +
+            (statusIdList.isEmpty() ? "" : " WHERE status_id IN (:status_id_list) ");
+
+    String whereClauseFilter = StringUtils.isEmpty(filter) ? "" : " AND ".concat(filter);
+    String orderClause = dataTableParams.getOrderByClause();
+    String offsetAndLimit = dataTableParams.getLimitAndOffsetClause();
+    String sqlMain = String.join(" ", "SELECT REFILL_REQUEST.*, IOP.invoice_operation_permission_id ",
+        sqlBase, whereClauseFilter, orderClause, offsetAndLimit);
+    String sqlCount = String.join(" ", "SELECT COUNT(*) ", sqlBase, whereClauseFilter);
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("status_id_list", statusIdList);
+      put("requester_user_id", requesterUserId);
+      put("operation_direction", "REFILL");
+      put("offset", dataTableParams.getStart());
+      put("limit", dataTableParams.getLength());
+    }};
+    params.putAll(refillFilterData.getNamedParams());
+
+    List<RefillRequestFlatDto> requests = namedParameterJdbcTemplate.query(sqlMain, params, (rs, i) -> {
+      RefillRequestFlatDto refillRequestFlatDto = refillRequestFlatDtoRowMapper.mapRow(rs, i);
+      refillRequestFlatDto.setInvoiceOperationPermission(InvoiceOperationPermission.convert(rs.getInt("invoice_operation_permission_id")));
+      return refillRequestFlatDto;
+    });
+    Integer totalQuantity = namedParameterJdbcTemplate.queryForObject(sqlCount, params, Integer.class);
+    PagingData<List<RefillRequestFlatDto>> result = new PagingData<>();
+    result.setData(requests);
+    result.setFiltered(totalQuantity);
+    result.setTotal(totalQuantity);
+    return result;
+  }
+
+  @Override
+  public RefillRequestFlatDto getPermittedFlatById(
+      Integer id,
+      Integer requesterUserId) {
+    String sql = "SELECT REFILL_REQUEST.*, IOP.invoice_operation_permission_id " +
+        " FROM REFILL_REQUEST " +
+        " JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
+        "				(IOP.currency_id=REFILL_REQUEST.currency_id) " +
+        "				AND (IOP.user_id=:requester_user_id) " +
+        "				AND (IOP.operation_direction=:operation_direction) " +
+        " WHERE REFILL_REQUEST.id=:id ";
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("id", id);
+      put("requester_user_id", requesterUserId);
+      put("operation_direction", "REFILL");
+    }};
+    return namedParameterJdbcTemplate.queryForObject(sql, params, (rs, i) -> {
+      RefillRequestFlatDto refillRequestFlatDto = refillRequestFlatDtoRowMapper.mapRow(rs, i);
+      refillRequestFlatDto.setInvoiceOperationPermission(InvoiceOperationPermission.convert(rs.getInt("invoice_operation_permission_id")));
+      return refillRequestFlatDto;
+    });
+  }
+
+  @Override
+  public RefillRequestFlatAdditionalDataDto getAdditionalDataForId(int id) {
+    String sql = "SELECT " +
+        "   CUR.name AS currency_name, " +
+        "   USER.email AS user_email, " +
+        "   ADMIN.email AS admin_email, " +
+        "   M.name AS merchant_name " +
+        " FROM REFILL_REQUEST WR " +
+        " JOIN CURRENCY CUR ON (CUR.id = WR.currency_id) " +
+        " JOIN USER USER ON (USER.id = WR.user_id) " +
+        " LEFT JOIN USER ADMIN ON (ADMIN.id = WR.admin_holder_id) " +
+        " JOIN MERCHANT M ON (M.id = WR.merchant_id) " +
+        " WHERE WR.id = :id";
+    return namedParameterJdbcTemplate.queryForObject(sql, singletonMap("id", id), (rs, idx) -> {
+          RefillRequestFlatAdditionalDataDto refillRequestFlatAdditionalDataDto = new RefillRequestFlatAdditionalDataDto();
+          refillRequestFlatAdditionalDataDto.setUserEmail(rs.getString("user_email"));
+          refillRequestFlatAdditionalDataDto.setAdminHolderEmail(rs.getString("admin_email"));
+          refillRequestFlatAdditionalDataDto.setCurrencyName(rs.getString("currency_name"));
+          refillRequestFlatAdditionalDataDto.setMerchantName(rs.getString("merchant_name"));
+          return refillRequestFlatAdditionalDataDto;
+        }
+    );
   }
 
 

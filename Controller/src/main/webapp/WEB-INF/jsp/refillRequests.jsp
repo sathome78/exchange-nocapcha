@@ -32,8 +32,10 @@
                 <div style="float: left; display: inline-block">
                     <button id="refill-requests-new" class="myorders__button blue-box margin-box">
                         <loc:message code="admin.refill.new"/></button>
-                    <button id="refill-requests-auto" class="myorders__button blue-box margin-box">
-                        <loc:message code="admin.refill.auto"/></button>
+                    <button id="refill-requests-on-pending" class="myorders__button blue-box margin-box">
+                        <loc:message code="admin.refill.waitPayment"/></button>
+                    <button id="refill-requests-on-bch-exam" class="myorders__button blue-box margin-box">
+                        <loc:message code="admin.refill.confirmationCollecting"/></button>
                     <button id="refill-requests-All" class="myorders__button blue-box margin-box">
                         <loc:message code="admin.refill.All"/></button>
                     <button id="refill-requests-accepted" class="myorders__button green-box margin-box">
@@ -190,10 +192,11 @@
                     <th><loc:message code="refill.user"/></th>
                     <th><loc:message code="refill.amount"/></th>
                     <th><loc:message code="refill.currency"/></th>
+                    <th><loc:message code="refill.paymentAmount"/></th>
                     <th><loc:message code="refill.commission"/></th>
                     <th><loc:message code="refill.merchant"/></th>
                     <th><loc:message code="merchants.refillDetails.recipientAccount"/></th>
-                    <th><loc:message code="refill.acceptanceUser"/></th>
+                    <th></th>
                 </tr>
                 </thead>
 

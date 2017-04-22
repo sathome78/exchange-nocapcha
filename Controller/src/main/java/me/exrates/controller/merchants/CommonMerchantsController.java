@@ -66,7 +66,7 @@ public class CommonMerchantsController {
     BigDecimal minRefillSum = currencyService.retrieveMinLimitForRoleAndCurrency(userService.getUserRoleFromSecurityContext(), INPUT, currency.getId());
     modelAndView.addObject("minRefillSum", minRefillSum);
     List<Integer> currenciesId = Collections.singletonList(currency.getId());
-    modelAndView.addObject("merchantCurrencyData", merchantService.findAllByCurrencies(currenciesId, OperationType.INPUT));
+    modelAndView.addObject("merchantCurrencyData", merchantService.getAllUnblockedForOperationTypeByCurrencies(currenciesId, OperationType.INPUT));
     List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), CurrencyWarningTopicEnum.REFILL_CURRENCY_WARNING);
     modelAndView.addObject("warningCodeList", warningCodeList);
     return modelAndView;
@@ -88,7 +88,7 @@ public class CommonMerchantsController {
     BigDecimal minWithdrawSum = currencyService.retrieveMinLimitForRoleAndCurrency(userService.getUserRoleFromSecurityContext(), OUTPUT, currency.getId());
     modelAndView.addObject("minWithdrawSum", minWithdrawSum);
     List<Integer> currenciesId = Collections.singletonList(currency.getId());
-    modelAndView.addObject("merchantCurrencyData", merchantService.findAllByCurrencies(currenciesId, OperationType.OUTPUT));
+    modelAndView.addObject("merchantCurrencyData", merchantService.getAllUnblockedForOperationTypeByCurrencies(currenciesId, OperationType.OUTPUT));
     List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), CurrencyWarningTopicEnum.WITHDRAW_CURRENCY_WARNING);
     modelAndView.addObject("warningCodeList", warningCodeList);
     return modelAndView;
@@ -105,7 +105,7 @@ public class CommonMerchantsController {
         .boxed()
         .collect(Collectors.toList());
     return merchantService
-        .findAllByCurrencies(currenciesId, OperationType.INPUT);
+        .getAllUnblockedForOperationTypeByCurrencies(currenciesId, OperationType.INPUT);
   }
 
 

@@ -51,8 +51,6 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     withdrawRequestFlatDto.setRemark(rs.getString("remark"));
     withdrawRequestFlatDto.setAmount(rs.getBigDecimal("amount"));
     withdrawRequestFlatDto.setCommissionAmount(rs.getBigDecimal("commission"));
-    withdrawRequestFlatDto.setNetAmount(BigDecimalProcessing.doAction(rs.getBigDecimal("amount"),
-            rs.getBigDecimal("commission"), ActionType.SUBTRACT));
     withdrawRequestFlatDto.setCommissionId(rs.getInt("commission_id"));
     withdrawRequestFlatDto.setStatus(WithdrawStatusEnum.convert(rs.getInt("status_id")));
     withdrawRequestFlatDto.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());

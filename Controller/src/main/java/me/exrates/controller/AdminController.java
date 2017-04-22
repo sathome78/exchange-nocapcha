@@ -671,60 +671,6 @@ public class AdminController {
     return model;
   }
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/withdrawal")
-  public ModelAndView withdrawalRequests(Principal principal) {
-    final Map<String, Object> params = new HashMap<>();
-    List<UserCurrencyOperationPermissionDto> permittedCurrencies = currencyService.getCurrencyOperationPermittedForWithdraw(principal.getName())
-        .stream().filter(dto -> dto.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE).collect(Collectors.toList());
-    params.put("currencies", permittedCurrencies);
-    if (!permittedCurrencies.isEmpty()) {
-      List<Integer> currencyList = permittedCurrencies.stream()
-          .map(UserCurrencyOperationPermissionDto::getCurrencyId)
-          .collect(Collectors.toList());
-      List<Merchant> merchants = merchantService.findAllByCurrencies(currencyList, OperationType.OUTPUT)
-          .stream()
-          .map(item -> new Merchant(item.getMerchantId(), item.getName(), item.getDescription()))
-          .distinct().collect(Collectors.toList());
-      params.put("merchants", merchants);
-    }
-    return new ModelAndView("withdrawalRequests", params);
-  }
-
-  @RequestMapping(value = "/2a8fy7b07dxe44/withdrawRequests", method = GET)
-  @ResponseBody
-  public DataTable<List<WithdrawRequestsAdminTableDto>> findRequestByStatus(
-      @RequestParam("viewType") String viewTypeName,
-      WithdrawFilterData withdrawFilterData,
-      @RequestParam Map<String, String> params,
-      Principal principal,
-      Locale locale) {
-    WithdrawRequestTableViewTypeEnum viewTypeEnum = WithdrawRequestTableViewTypeEnum.convert(viewTypeName);
-    List<Integer> statusList = viewTypeEnum.getWithdrawStatusList().stream().map(WithdrawStatusEnum::getCode).collect(Collectors.toList());
-    DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
-    withdrawFilterData.initFilterItems();
-    return withdrawService.getWithdrawRequestByStatusList(statusList, dataTableParams, withdrawFilterData, principal.getName(), locale);
-  }
-
-  @RequestMapping(value = "/2a8fy7b07dxe44/refill")
-  public ModelAndView refillRequests(Principal principal) {
-    final Map<String, Object> params = new HashMap<>();
-    List<UserCurrencyOperationPermissionDto> permittedCurrencies = currencyService.getCurrencyOperationPermittedForWithdraw(principal.getName())
-        .stream().filter(dto -> dto.getInvoiceOperationPermission() != InvoiceOperationPermission.NONE).collect(Collectors.toList());
-    params.put("currencies", permittedCurrencies);
-    if (!permittedCurrencies.isEmpty()) {
-      List<Integer> currencyList = permittedCurrencies.stream()
-          .map(UserCurrencyOperationPermissionDto::getCurrencyId)
-          .collect(Collectors.toList());
-      List<Merchant> merchants = merchantService.findAllByCurrencies(currencyList, OperationType.INPUT)
-          .stream()
-          .map(item -> new Merchant(item.getMerchantId(), item.getName(), item.getDescription()))
-          .distinct()
-          .collect(Collectors.toList());
-      params.put("merchants", merchants);
-    }
-    return new ModelAndView("refillRequests", params);
-  }
-
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/orderinfo", method = RequestMethod.GET)
   public OrderInfoDto getOrderInfo(@RequestParam int id, HttpServletRequest request) {

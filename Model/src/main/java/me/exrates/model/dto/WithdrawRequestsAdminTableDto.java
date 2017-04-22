@@ -8,10 +8,12 @@ import me.exrates.model.MerchantImage;
 import me.exrates.model.dto.WithdrawRequestFlatAdditionalDataDto;
 import me.exrates.model.dto.WithdrawRequestFlatDto;
 import me.exrates.model.dto.onlineTableDto.OnlineTableDto;
+import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
+import me.exrates.model.util.BigDecimalProcessing;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -61,7 +63,7 @@ public class WithdrawRequestsAdminTableDto extends OnlineTableDto {
     this.amount = withdrawRequestFlatDto.getAmount();
     this.currencyName = withdrawRequestFlatAdditionalDataDto.getCurrencyName();
     this.commissionAmount = withdrawRequestFlatDto.getCommissionAmount();
-    this.netAmount = withdrawRequestFlatDto.getNetAmount();
+    this.netAmount = BigDecimalProcessing.doAction(this.amount, this.commissionAmount, ActionType.SUBTRACT);
     this.merchantName = withdrawRequestFlatAdditionalDataDto.getMerchantName();
     this.wallet = withdrawRequestFlatDto.getWallet();
     this.adminHolderId = withdrawRequestFlatDto.getAdminHolderId();

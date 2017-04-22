@@ -118,7 +118,7 @@ public class MerchantDaoImpl implements MerchantDao {
   }
 
   @Override
-  public List<MerchantCurrency> findAllByCurrencies(List<Integer> currenciesId, OperationType operationType) {
+  public List<MerchantCurrency> findAllUnblockedForOperationTypeByCurrencies(List<Integer> currenciesId, OperationType operationType) {
     String blockClause = "";
     if (operationType == OperationType.INPUT) {
       blockClause = " AND MERCHANT_CURRENCY.refill_block = 0";

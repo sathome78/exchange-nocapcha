@@ -4,7 +4,11 @@ import me.exrates.dao.MerchantDao;
 import me.exrates.dao.RefillRequestDao;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.Merchant;
+import me.exrates.model.PagingData;
 import me.exrates.model.dto.*;
+import me.exrates.model.dto.dataTable.DataTable;
+import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.RefillFilterData;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.invoice.*;
@@ -37,7 +41,7 @@ import java.util.stream.Collectors;
 
 import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.*;
-import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
+import static me.exrates.model.enums.invoice.InvoiceOperationDirection.REFILL;
 import static me.exrates.model.enums.invoice.InvoiceRequestStatusEnum.EXPIRED;
 
 /**
@@ -92,6 +96,9 @@ public class RefillServiceImpl implements RefillService {
   @Autowired
   private UserFilesService userFilesService;
 
+  @Autowired
+  InputOutputService inputOutputService;
+
   @Override
   @Transactional
   public Map<String, String> createRefillRequest(
@@ -128,7 +135,7 @@ public class RefillServiceImpl implements RefillService {
   public void confirmRefillRequest(InvoiceConfirmData invoiceConfirmData, Locale locale) {
     Integer requestId = invoiceConfirmData.getInvoiceId();
     RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
-        .orElseThrow(() -> new InvoiceNotFoundException(String.format("withdraw request id: %s", requestId)));
+        .orElseThrow(() -> new InvoiceNotFoundException(String.format("refill request id: %s", requestId)));
     RefillStatusEnum currentStatus = refillRequest.getStatus();
     InvoiceActionTypeEnum action = CONFIRM_USER;
     RefillStatusEnum newStatus = (RefillStatusEnum) currentStatus.nextState(action);
@@ -161,7 +168,7 @@ public class RefillServiceImpl implements RefillService {
   @Transactional
   public void revokeRefillRequest(int requestId) {
     RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
-        .orElseThrow(() -> new InvoiceNotFoundException(String.format("withdraw request id: %s", requestId)));
+        .orElseThrow(() -> new InvoiceNotFoundException(String.format("refill request id: %s", requestId)));
     RefillStatusEnum currentStatus = refillRequest.getStatus();
     InvoiceActionTypeEnum action = REVOKE;
     RefillStatusEnum newStatus = (RefillStatusEnum) currentStatus.nextState(action);
@@ -226,6 +233,37 @@ public class RefillServiceImpl implements RefillService {
     return userForNotificationList.size();
   }
 
+  @Override
+  @Transactional
+  public DataTable<List<RefillRequestsAdminTableDto>> getRefillRequestByStatusList(
+      List<Integer> requestStatus,
+      DataTableParams dataTableParams,
+      RefillFilterData refillFilterData,
+      String authorizedUserEmail,
+      Locale locale) {
+    Integer authorizedUserId = userService.getIdByEmail(authorizedUserEmail);
+    PagingData<List<RefillRequestFlatDto>> result = refillRequestDao.getPermittedFlatByStatus(
+        requestStatus,
+        authorizedUserId,
+        dataTableParams,
+        refillFilterData);
+    DataTable<List<RefillRequestsAdminTableDto>> output = new DataTable<>();
+    output.setData(result.getData().stream()
+        .map(e -> new RefillRequestsAdminTableDto(e, refillRequestDao.getAdditionalDataForId(e.getId())))
+        .peek(e -> e.setButtons(
+            inputOutputService.generateAndGetButtonsSet(
+                e.getStatus(),
+                e.getInvoiceOperationPermission(),
+                authorizedUserId.equals(e.getAdminHolderId()),
+                locale)
+        ))
+        .collect(Collectors.toList())
+    );
+    output.setRecordsTotal(result.getTotal());
+    output.setRecordsFiltered(result.getFiltered());
+    return output;
+  }
+
 
   private void checkIfOperationLimitExceededForMerchantByUser(RefillRequestCreateDto request) {
     Integer merchantId = request.getMerchantId();
@@ -270,18 +308,18 @@ public class RefillServiceImpl implements RefillService {
     return fullNotification;
   }
 
-  private WithdrawStatusEnum checkPermissionOnActionAndGetNewStatus(Integer requesterAdminId, WithdrawRequestFlatDto withdrawRequest, InvoiceActionTypeEnum action) {
-    Boolean requesterAdminIsHolder = requesterAdminId.equals(withdrawRequest.getAdminHolderId());
+  private RefillStatusEnum checkPermissionOnActionAndGetNewStatus(Integer requesterAdminId, RefillRequestFlatDto refillRequest, InvoiceActionTypeEnum action) {
+    Boolean requesterAdminIsHolder = requesterAdminId.equals(refillRequest.getAdminHolderId());
     InvoiceOperationPermission permission = userService.getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection(
         requesterAdminId,
-        withdrawRequest.getCurrencyId(),
-        WITHDRAW
+        refillRequest.getCurrencyId(),
+        REFILL
     );
     InvoiceActionTypeEnum.InvoiceActionParamsValue paramsValue = InvoiceActionTypeEnum.InvoiceActionParamsValue.builder()
         .authorisedUserIsHolder(requesterAdminIsHolder)
         .permittedOperation(permission)
         .build();
-    return (WithdrawStatusEnum) withdrawRequest.getStatus().nextState(action, paramsValue);
+    return (RefillStatusEnum) refillRequest.getStatus().nextState(action, paramsValue);
   }
 
 

@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -154,7 +153,7 @@ public class EDCMerchantServiceImpl implements EDCMerchantService{
                 payment.setCurrency(currency.getId());
                 List<Integer> list = new ArrayList<>();
                 list.add(currency.getId());
-                MerchantCurrency merchantCurrency = merchantService.findAllByCurrencies(list, OperationType.INPUT).get(0);
+                MerchantCurrency merchantCurrency = merchantService.getAllUnblockedForOperationTypeByCurrencies(list, OperationType.INPUT).get(0);
                 payment.setMerchant(merchantCurrency.getMerchantId());
                 payment.setOperationType(OperationType.INPUT);
                 payment.setSum(Double.parseDouble(params.get("amount")));

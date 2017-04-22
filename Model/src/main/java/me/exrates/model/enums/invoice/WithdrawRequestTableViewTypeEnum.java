@@ -1,13 +1,11 @@
 package me.exrates.model.enums.invoice;
 
-import me.exrates.model.exceptions.UnsupportedGroupUserRoleNameException;
 import me.exrates.model.exceptions.UnsupportedWithdrawRequestTableViewTypeNameException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.*;
 import static me.exrates.model.enums.invoice.WithdrawStatusEnum.*;
 
 /**
@@ -23,7 +21,7 @@ public enum WithdrawRequestTableViewTypeEnum {
 
   private List<WithdrawStatusEnum> withdrawStatusList = new ArrayList<>();
 
-  WithdrawRequestTableViewTypeEnum(WithdrawStatusEnum ... withdrawStatusEnum) {
+  WithdrawRequestTableViewTypeEnum(WithdrawStatusEnum... withdrawStatusEnum) {
     withdrawStatusList.addAll(Arrays.asList(withdrawStatusEnum));
   }
 

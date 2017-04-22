@@ -3,8 +3,11 @@ package me.exrates.service;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.RefillRequestFlatDto;
+import me.exrates.model.dto.RefillRequestsAdminTableDto;
+import me.exrates.model.dto.dataTable.DataTable;
+import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.RefillFilterData;
 import me.exrates.model.vo.InvoiceConfirmData;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -29,4 +32,6 @@ public interface RefillService {
   Map<String, String> correctAmountAndCalculateCommission(BigDecimal amount, String currency, String merchant);
 
   Integer clearExpiredInvoices() throws Exception;
+
+  DataTable<List<RefillRequestsAdminTableDto>> getRefillRequestByStatusList(List<Integer> requestStatus, DataTableParams dataTableParams, RefillFilterData refillFilterData, String authorizedUserEmail, Locale locale);
 }
