@@ -235,7 +235,8 @@ public class MobileInputOutputController {
         payment.setDestination(requestParamsDto.getDestination());
         payment.setOperationType(OperationType.OUTPUT);
 
-
+        String userEmail = getAuthenticatedUserEmail();
+        Locale userLocale = userService.getUserLocaleForMobile(userEmail);
         CreditsOperation creditsOperation = merchantService.prepareCreditsOperation(payment, userEmail).orElseThrow(InvalidAmountException::new);
         WithdrawStatusEnum beginStatus = (WithdrawStatusEnum) WithdrawStatusEnum.getBeginState();
         WithdrawRequestCreateDto withdrawRequestCreateDto = new WithdrawRequestCreateDto(requestParamsDto, creditsOperation, beginStatus);

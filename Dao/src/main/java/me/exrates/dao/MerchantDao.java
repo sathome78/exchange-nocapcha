@@ -37,8 +37,6 @@ public interface MerchantDao {
 
   List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions();
 
-  Integer getInputRequests(int merchantId, String email);
-
   boolean checkInputRequests(int currencyId, String email);
 
   boolean checkOutputRequests(int currencyId, String email);

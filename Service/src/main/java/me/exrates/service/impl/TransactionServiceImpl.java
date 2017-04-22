@@ -173,19 +173,6 @@ public class TransactionServiceImpl implements TransactionService {
     }
   }
 
-  private void setTransactionMerchantAndOrder(OperationViewDto view, Transaction transaction) {
-    TransactionSourceType sourceType = transaction.getSourceType();
-    OperationType operationType = transaction.getOperationType();
-    BigDecimal amount = transaction.getAmount();
-    view.setOperationType(TransactionType.resolveFromOperationTypeAndSource(sourceType, operationType, amount));
-    if (sourceType == TransactionSourceType.MERCHANT || sourceType == TransactionSourceType.WITHDRAW) {
-      view.setMerchant(transaction.getMerchant());
-    } else {
-      view.setMerchant(new Merchant(0, sourceType.name(), sourceType.name(), null));
-    }
-
-  }
-
   @Override
   public DataTable<List<OperationViewDto>> showUserOperationHistory(
           Integer requesterUserId,

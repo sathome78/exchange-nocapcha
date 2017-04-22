@@ -10,17 +10,13 @@ import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.MerchantImageShortenedDto;
-import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.UserRole;
-import me.exrates.model.util.BigDecimalProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -28,11 +24,10 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Stream;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -238,9 +233,6 @@ public class MerchantDaoImpl implements MerchantDao {
     });
   }
 
-  public Integer getInputRequests(int merchantId, String email) {
-    String sql = "SELECT COUNT(*) FROM birzha.TRANSACTION \n" +
-
   @Override
   public boolean checkInputRequests(int currencyId, String email) {
     String sql = "SELECT (SELECT COUNT(*) FROM birzha.TRANSACTION \n" +
@@ -256,8 +248,7 @@ public class MerchantDaoImpl implements MerchantDao {
     Map<String, Object> params = new HashMap<String, Object>();
     params.put("currencyId", currencyId);
     params.put("email", email);
-    return namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class);
-    if (jdbcTemplate.queryForObject(sql, params, Integer.class) == 0){
+    if (namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class) == 0){
       return false;
     }else {
       return true;
@@ -280,7 +271,7 @@ public class MerchantDaoImpl implements MerchantDao {
     Map<String, Object> params = new HashMap<String, Object>();
     params.put("currencyId", currencyId);
     params.put("email", email);
-    if (jdbcTemplate.queryForObject(sql, params, Integer.class) == 0){
+    if (namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class) == 0){
       return false;
     }else {
       return true;
