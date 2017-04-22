@@ -338,16 +338,6 @@ public class MerchantServiceImpl implements MerchantService {
     return commissionAmount.compareTo(merchantMinFixedCommission) < 0 ? merchantMinFixedCommission : commissionAmount;
   }
 
-  private BigDecimal addMinimalCommission(BigDecimal commissionAmount, String name) {
-    if (commissionAmount.compareTo(BigDecimal.ZERO) == 0) {
-      if (currencyService.resolvePrecision(name) == 2) {
-        commissionAmount = commissionAmount.add(new BigDecimal("0.01"));
-      } else {
-        commissionAmount = commissionAmount.add(new BigDecimal("0.00000001"));
-      }
-    }
-    return commissionAmount;
-  }
 
   private boolean isPayable(Merchant merchant, Currency currency, BigDecimal sum) {
     final BigDecimal minSum = merchantDao.getMinSum(merchant.getId(), currency.getId());
@@ -355,10 +345,15 @@ public class MerchantServiceImpl implements MerchantService {
   }
 
   @Override
-  public boolean checkInputRequestsLimit(int merchantId, String email) {
-    boolean inLimit = merchantDao.getInputRequests(merchantId, email) < 10;
+  public boolean checkInputRequestsLimit(int currencyId, String email) {
 
-    return inLimit;
+    return merchantDao.checkInputRequests(currencyId, email);
+  }
+
+  @Override
+  public boolean checkOutputRequestsLimit(int merchantId, String email) {
+
+    return merchantDao.checkOutputRequests(merchantId, email);
   }
 
   @Override

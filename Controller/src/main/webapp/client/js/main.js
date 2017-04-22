@@ -405,6 +405,12 @@ $(function () {
     }*/
 
 
+        }).fail(function () {
+            $('.paymentInfo').hide();
+            $('.wallet_input').hide();
+            $('.merchantError').show();
+        });
+    }
 
     currency.on('change', function () {
         resetMerchantsList(this.value);

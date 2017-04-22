@@ -28,16 +28,14 @@ public interface CurrencyDao {
 	Currency findById(int id);
 
 	List<Currency> findAllCurrencies();
-
-    boolean updateMinWithdraw(int currencyId, BigDecimal minAmount);
-
-    List<CurrencyLimit> retrieveCurrencyLimitsForRoles(List<Integer> roleIds, OperationType operationType);
+  
+  List<CurrencyLimit> retrieveCurrencyLimitsForRoles(List<Integer> roleIds, OperationType operationType);
 
     List<TransferLimitDto> retrieveMinTransferLimits(List<Integer> currencyIds, Integer roleId);
 
     BigDecimal retrieveMinLimitForRoleAndCurrency(UserRole userRole, OperationType operationType, Integer currencyId);
 
-    void updateCurrencyLimit(int currencyId, OperationType operationType, List<Integer> roleIds, BigDecimal minAmount);
+    void updateCurrencyLimit(int currencyId, OperationType operationType, List<Integer> roleIds, BigDecimal minAmount, Integer maxDailyRequest);
 
 	List<CurrencyPair> getAllCurrencyPairs();
 
@@ -61,4 +59,6 @@ public interface CurrencyDao {
                             BigDecimal minRate, BigDecimal maxRate);
   
   List<CurrencyPairWithLimitsDto> findAllCurrencyPairsWithLimits(Integer roleId);
+
+    List<Currency> findAllCurrenciesWithHidden();
 }

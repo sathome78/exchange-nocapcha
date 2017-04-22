@@ -1,6 +1,9 @@
 package me.exrates.service;
 
 import me.exrates.model.*;
+import me.exrates.model.dto.RefFilterData;
+import me.exrates.model.dto.ReferralProfitDto;
+import me.exrates.model.dto.RefsListContainer;
 import me.exrates.model.dto.onlineTableDto.MyReferralDetailedDto;
 import me.exrates.model.vo.CacheData;
 
@@ -49,4 +52,9 @@ public interface ReferralService {
   List<Integer> getChildrenForParentAndBlock(Integer parentId);
   
   void updateReferralParentForChildren(User user);
+
+    RefsListContainer getRefsContainerForReq(String action, Integer userId, int profitUserId,
+                                             int onPage, int page, RefFilterData refFilterData);
+
+    List<String> getRefsListForDownload(int profitUser, RefFilterData filterData);
 }

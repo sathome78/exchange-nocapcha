@@ -7,6 +7,9 @@ import me.exrates.model.PagingData;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
+import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
+import me.exrates.model.enums.ActionType;
+import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.invoice.InvoiceOperationPermission;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
@@ -51,6 +54,8 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
     withdrawRequestFlatDto.setRemark(rs.getString("remark"));
     withdrawRequestFlatDto.setAmount(rs.getBigDecimal("amount"));
     withdrawRequestFlatDto.setCommissionAmount(rs.getBigDecimal("commission"));
+    withdrawRequestFlatDto.setNetAmount(BigDecimalProcessing.doAction(rs.getBigDecimal("amount"),
+            rs.getBigDecimal("commission"), ActionType.SUBTRACT));
     withdrawRequestFlatDto.setCommissionId(rs.getInt("commission_id"));
     withdrawRequestFlatDto.setStatus(WithdrawStatusEnum.convert(rs.getInt("status_id")));
     withdrawRequestFlatDto.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
@@ -201,21 +206,10 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
 
     String whereClauseFilter = StringUtils.isEmpty(filter) ? "" : " AND ".concat(filter);
     String orderClause = dataTableParams.getOrderByClause();
-    String offsetAndLimit = " LIMIT :limit OFFSET :offset ";
-    String sqlMain = new StringJoiner(" ")
-        .add("SELECT WITHDRAW_REQUEST.*, IOP.invoice_operation_permission_id ")
-        .add(sqlBase)
-        .add(whereClauseFilter)
-        .add(orderClause)
-        .add(offsetAndLimit)
-        .toString();
-
-    String sqlCount = new StringJoiner(" ")
-        .add("SELECT COUNT(*) ")
-        .add(sqlBase)
-        .add(whereClauseFilter)
-        .toString();
-
+    String offsetAndLimit = dataTableParams.getLimitAndOffsetClause();
+    String sqlMain = String.join(" ", "SELECT WITHDRAW_REQUEST.*, IOP.invoice_operation_permission_id ",
+            sqlBase, whereClauseFilter, orderClause, offsetAndLimit);
+    String sqlCount = String.join(" ", "SELECT COUNT(*) ", sqlBase, whereClauseFilter);
     Map<String, Object> params = new HashMap<String, Object>() {{
       put("status_id_list", statusIdList);
       put("requester_user_id", requesterUserId);

@@ -1,9 +1,6 @@
 package me.exrates.controller.mobile;
 
-import me.exrates.controller.exception.InputRequestLimitExceededException;
-import me.exrates.controller.exception.InvalidNicknameException;
-import me.exrates.controller.exception.InvoiceNotFoundException;
-import me.exrates.controller.exception.NotEnoughMoneyException;
+import me.exrates.controller.exception.*;
 import me.exrates.model.*;
 import me.exrates.model.dto.WithdrawRequestCreateDto;
 import me.exrates.model.dto.WithdrawRequestParamsDto;
@@ -239,8 +236,6 @@ public class MobileInputOutputController {
         payment.setOperationType(OperationType.OUTPUT);
 
 
-        String userEmail = getAuthenticatedUserEmail();
-        Locale userLocale = userService.getUserLocaleForMobile(userEmail);
         CreditsOperation creditsOperation = merchantService.prepareCreditsOperation(payment, userEmail).orElseThrow(InvalidAmountException::new);
         WithdrawStatusEnum beginStatus = (WithdrawStatusEnum) WithdrawStatusEnum.getBeginState();
         WithdrawRequestCreateDto withdrawRequestCreateDto = new WithdrawRequestCreateDto(requestParamsDto, creditsOperation, beginStatus);
@@ -287,7 +282,7 @@ public class MobileInputOutputController {
     public ResponseEntity<MerchantInputResponseDto> preparePayment(@RequestBody @Valid PaymentDto paymentDto) {
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-        if (!merchantService.checkInputRequestsLimit(paymentDto.getMerchant(), userEmail)){
+        if (!merchantService.checkInputRequestsLimit(paymentDto.getCurrency(), userEmail)){
             throw new InputRequestLimitExceededException(messageSource.getMessage("merchants.InputRequestsLimit", null, userLocale));
         }
 
@@ -350,6 +345,9 @@ public class MobileInputOutputController {
     public ResponseEntity<InvoiceResponseDto> prepareInvoice(@RequestBody @Valid InvoicePaymentDto paymentDto) {
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
+        if (!merchantService.checkInputRequestsLimit(paymentDto.getCurrencyId(), userEmail)){
+            throw new InputRequestLimitExceededException(messageSource.getMessage("merchants.InputRequestsLimit", null, userLocale));
+        }
         Payment payment = new Payment();
         payment.setCurrency(paymentDto.getCurrencyId());
         payment.setMerchant(merchantService.findByNName("Invoice").getId());
@@ -502,7 +500,11 @@ public class MobileInputOutputController {
 
     @RequestMapping(value = "/invoice/withdraw", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Map<String, String>> withdrawInvoice(@RequestBody @Valid WithdrawRequestParamsDto requestParamsDto) {
-        LOGGER.debug(requestParamsDto);
+        String userEmail = getAuthenticatedUserEmail();
+        Locale userLocale = userService.getUserLocaleForMobile(userEmail);
+        if (!merchantService.checkOutputRequestsLimit(requestParamsDto.getCurrency(), userEmail)) {
+            throw new RequestLimitExceededException(messageSource.getMessage("merchants.OutputRequestsLimit", null, userLocale));
+        }
         Payment payment = new Payment();
         payment.setSum(requestParamsDto.getSum().doubleValue());
         payment.setCurrency(requestParamsDto.getCurrency());
@@ -517,8 +519,7 @@ public class MobileInputOutputController {
         withdrawData.setRemark(requestParamsDto.getRemark());
 
 
-        String userEmail = getAuthenticatedUserEmail();
-        Locale userLocale = userService.getUserLocaleForMobile(userEmail);
+
         CreditsOperation creditsOperation = merchantService.prepareCreditsOperation(payment, userEmail).orElseThrow(InvalidAmountException::new);
         WithdrawStatusEnum beginStatus = (WithdrawStatusEnum) WithdrawStatusEnum.getBeginState();
         WithdrawRequestCreateDto withdrawRequestCreateDto = new WithdrawRequestCreateDto(requestParamsDto, creditsOperation, beginStatus);
@@ -698,16 +699,11 @@ public class MobileInputOutputController {
         return new ApiError(ErrorCode.INPUT_REQUEST_LIMIT_EXCEEDED, req.getRequestURL(), exception);
     }
 
-
-
-
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ExceptionHandler(NullPointerException.class)
+    @ResponseStatus(NOT_ACCEPTABLE)
+    @ExceptionHandler(RequestLimitExceededException.class)
     @ResponseBody
-    public Map<String, Object> NullPointerHandler(HttpServletRequest req, Exception exception) {
-        Map<String, Object> result = new HashMap<>();
-        result.put("stacktrace", Arrays.asList(exception.getStackTrace()));
-        return result;
+    public ApiError outputRequestLimitExceededExceptionHandler(HttpServletRequest req, Exception exception) {
+        return new ApiError(ErrorCode.OUTPUT_REQUEST_LIMIT_EXCEEDED, req.getRequestURL(), exception);
     }
 
     @ResponseStatus(INTERNAL_SERVER_ERROR)

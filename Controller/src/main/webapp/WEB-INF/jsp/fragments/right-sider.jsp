@@ -36,14 +36,13 @@
 
             </c:when>
             <c:otherwise>
-                <%--TODO temporary disable--%>
-                <%--<form id="new_mess" method="POST">
+                <form id="new_mess" method="POST">
                     <input type="text" name="body" class="message_text"
                            placeholder='<loc:message code="dashboard.onlinechatenter"/>'>
                     <input type="hidden" name="lang" value="EN"/>
                     <button class="send_button" type="submit"><loc:message code="dashboard.onlinechatsend"/></button>
 
-                </form>--%>
+                </form>
             </c:otherwise>
 
         </c:choose>

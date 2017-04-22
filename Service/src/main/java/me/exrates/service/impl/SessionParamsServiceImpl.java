@@ -1,5 +1,6 @@
 package me.exrates.service.impl;
 
+import com.google.gson.JsonObject;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.SessionParamsDao;
 import me.exrates.model.SessionLifeTimeType;
@@ -11,19 +12,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.LocaleResolver;
 
-import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.security.Principal;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Created by maks on 31.03.2017.
@@ -44,6 +41,10 @@ public class SessionParamsServiceImpl implements SessionParamsService {
     private SessionParamsDao sessionParamsDao;
     @Autowired
     private UserService userService;
+    @Autowired
+    private MessageSource messageSource;
+    @Autowired
+    private LocaleResolver localeResolver;
 
     @Override
     public List<SessionLifeTimeType> getAllByActive(boolean active) {
@@ -123,6 +124,14 @@ public class SessionParamsServiceImpl implements SessionParamsService {
         session.setAttribute(sessionTimeMinutesParamName, params.getSessionTimeMinutes());
         session.setAttribute(sessionLifeTimeParamName, params.getSessionLifeTypeId());
         session.setAttribute(sessionLastRequestParamName, System.currentTimeMillis());
+    }
+
+    @Override
+    public JsonObject getSessionEndString(HttpServletRequest request) {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("url", "/dashboard");
+        jsonObject.addProperty("msg", messageSource.getMessage("session.expire", null, localeResolver.resolveLocale(request)));
+        return jsonObject;
     }
 
 }

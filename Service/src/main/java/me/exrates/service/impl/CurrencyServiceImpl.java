@@ -83,14 +83,9 @@ public class CurrencyServiceImpl implements CurrencyService {
         return currencyDao.findAllCurrencies();
     }
 
-    @Override
-    public boolean updateMinWithdraw(int currencyId, BigDecimal minAmount) {
-        return currencyDao.updateMinWithdraw(currencyId, minAmount);
-    }
-
-    @Override
-    public void updateCurrencyLimit(int currencyId, OperationType operationType, String roleName, BigDecimal minAmount) {
-        currencyDao.updateCurrencyLimit(currencyId, operationType, userRoleService.getRealUserRoleIdByBusinessRoleList(roleName), minAmount);
+  @Override
+    public void updateCurrencyLimit(int currencyId, OperationType operationType, String roleName, BigDecimal minAmount, Integer maxDailyRequest) {
+        currencyDao.updateCurrencyLimit(currencyId, operationType, userRoleService.getRealUserRoleIdByBusinessRoleList(roleName), minAmount, maxDailyRequest);
     }
 
     @Override
@@ -213,6 +208,11 @@ public class CurrencyServiceImpl implements CurrencyService {
     return currencyDao.findAllCurrencyPairsWithLimits(userRoleId);
   }
 
+    @Override
+    public List<Currency> findAllCurrenciesWithHidden() {
+        return currencyDao.findAllCurrenciesWithHidden();
+    }
+
   @Override
   public BigDecimal computeRandomizedAddition(String currencyName, OperationType operationType) {
     Optional<OperationType.AdditionalRandomAmountParam> randomAmountParam = operationType.getRandomAmountParam(currencyName);
@@ -223,6 +223,6 @@ public class CurrencyServiceImpl implements CurrencyService {
       return  BigDecimal.valueOf(Math.random() * (param.highBound - param.lowBound) + param.lowBound).setScale(0, BigDecimal.ROUND_DOWN);
     }
   }
-  
+
   
 }

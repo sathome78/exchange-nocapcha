@@ -13,7 +13,6 @@ import static me.exrates.model.dto.filterData.FilterDataItem.*;
 /**
  * Created by OLEG on 28.02.2017.
  */
-@Getter @Setter
 @NoArgsConstructor
 @ToString
 public class WithdrawFilterData extends TableFilterData {

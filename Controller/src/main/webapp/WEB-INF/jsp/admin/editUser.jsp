@@ -27,7 +27,6 @@
   <link rel="stylesheet" href="<c:url value="/client/css/jquery-ui.css"/>">
   <script type="text/javascript" src="<c:url value='/client/js/jquery-ui.js'/>"></script>
   <link rel="stylesheet" href="<c:url value="/client/css/jquery.datetimepicker.css"/>">
-  <link rel="stylesheet" href="<c:url value="/client/css/jquery.datetimepicker.css"/>">
   <script type="text/javascript" src="<c:url value='/client/js/jquery.datetimepicker.js'/>"></script>
   <script type="text/javascript" src="<c:url value='/client/js/moment-with-locales.min.js'/>"></script>
   <script type="text/javascript" src="<c:url value='/client/js/dataTable/adminTransactionsDataTable.js'/>"></script>
@@ -36,6 +35,10 @@
   <script type="text/javascript" src="<c:url value='/client/js/order/adminDeleteOrder.js'/>"></script>
   <script type="text/javascript" src="<c:url value='/client/js/userCurrencyOperationPermissions.js'/>"></script>
   <script type="text/javascript" src="<c:url value='/client/js/downloadTransactions.js'/>"></script>
+  <script type="text/javascript" src="<c:url value='/client/js/referrals.js'/>"></script>
+  <script type="text/javascript" src="<c:url value='/client/js/jquery.tmpl.js'/>"></script>
+  <script type="text/javascript" src="<c:url value='/client/js/jquery.twbsPagination.min.js'/>"></script>
+  <link rel="stylesheet" href="<c:url value="/client/css/refTable.css"/>">
   <c:set var="admin_manualBalanceChange" value="<%=AdminAuthority.MANUAL_BALANCE_CHANGE%>"/>
 
   <sec:authorize access="hasAuthority('${admin_manualBalanceChange}')">
@@ -86,6 +89,12 @@
           <sec:authorize access="<%=AdminController.adminAnyAuthority%>">
             <button class="adminForm-toggler blue-box">
               <loc:message code="admin.comments"/>
+            </button>
+          </sec:authorize>
+          <%--Comments--%>
+          <sec:authorize access="<%=AdminController.adminAnyAuthority%>">
+            <button class="adminForm-toggler blue-box">
+              <loc:message code="admin.referral"/>
             </button>
           </sec:authorize>
 
@@ -323,7 +332,7 @@
                   <div class="col-md-9 input-block-wrapper__input-wrapper">
                     <ul class="checkbox-grid">
                       <c:forEach items="${transactionTypes}" var="type">
-                        <li><input type="checkbox" name="type" value="${type}"><span>${type}</span></li>
+                        <li><input type="checkbox" name="types" value="${type}"><span>${type}</span></li>
                       </c:forEach>
                     </ul>
                   </div>
@@ -339,7 +348,7 @@
                   <div class="col-md-9 input-block-wrapper__input-wrapper">
                     <ul class="checkbox-grid">
                       <c:forEach items="${merchants}" var="merchant">
-                        <li><input type="checkbox" name="merchant" value="${merchant.id}"><span>${merchant.name}</span>
+                        <li><input type="checkbox" name="merchants" value="${merchant.id}"><span>${merchant.name}</span>
                         </li>
                       </c:forEach>
                     </ul>
@@ -632,6 +641,10 @@
 
           </div>
         </div>
+          <%--User referrals--%>
+          <div id="panel7" class="tab-pane">
+            <%@include file='../fragments/referralStructure.jsp' %>
+          </div>
         <%--Access management--%>
 
         <sec:authorize access="hasAuthority('${admin_manageAccess}')">
@@ -800,6 +813,7 @@
 
   </div>
   <hr>
+  <div hidden id="user-id">${user.id}</div>
 </main>
 <div hidden id="prompt_delete_rqst">
   <loc:message code="admin.promptDeleteUserFiles"/>

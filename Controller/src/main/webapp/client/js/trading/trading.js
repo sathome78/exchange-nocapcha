@@ -557,7 +557,6 @@ function TradingClass(period, chartType, currentCurrencyPair) {
                 data.rate = e.value;
             }
         });
-        that.clearOrdersCreationForm();
         showOrderCreateDialog(data);
     }
 
@@ -572,7 +571,6 @@ function TradingClass(period, chartType, currentCurrencyPair) {
                 data.rate = e.value;
             }
         });
-        that.clearOrdersCreationForm();
         showOrderCreateDialog(data);
     }
 
@@ -654,6 +652,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         that.getAndShowBuyOrders();
         leftSider.getStatisticsForMyWallets();
         leftSider.getStatisticsForAllCurrencies();
+        that.clearOrdersCreationForm();
         successNoty(data.result, 'successOrder');
     }
 

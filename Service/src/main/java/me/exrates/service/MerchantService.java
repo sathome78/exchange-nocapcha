@@ -47,6 +47,8 @@ public interface MerchantService {
 
   boolean checkInputRequestsLimit(int merchantId, String email);
 
+    boolean checkOutputRequestsLimit(int currencyId, String email);
+
   void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType);
 
   void setBlockForAll(OperationType operationType, boolean blockStatus);

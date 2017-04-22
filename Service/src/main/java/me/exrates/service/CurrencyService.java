@@ -33,9 +33,7 @@ public interface CurrencyService {
 
     List<Currency> findAllCurrencies();
 
-    boolean updateMinWithdraw(int currencyId, BigDecimal minAmount);
-
-    void updateCurrencyLimit(int currencyId, OperationType operationType, String roleName, BigDecimal minAmount);
+  void updateCurrencyLimit(int currencyId, OperationType operationType, String roleName, BigDecimal minAmount, Integer maxDailyRequest);
 
     List<CurrencyLimit> retrieveCurrencyLimitsForRole(String roleName, OperationType operationType);
 
@@ -74,6 +72,8 @@ public interface CurrencyService {
   void updateCurrencyPairLimit(Integer currencyPairId, OrderType orderType, String roleName, BigDecimal minRate, BigDecimal maxRate);
   
   List<CurrencyPairWithLimitsDto> findCurrencyPairsWithLimitsForUser();
+
+  List<Currency> findAllCurrenciesWithHidden();
 
   BigDecimal computeRandomizedAddition(String currencyName, OperationType operationType);
 }

@@ -1,18 +1,21 @@
 package me.exrates.controller;
 
 import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.controller.exception.InvalidNumberParamException;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
+import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.*;
 import me.exrates.model.form.AuthorityOptionsForm;
+import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.security.service.UserSecureService;
 import me.exrates.service.*;
@@ -50,7 +53,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
-import java.io.*;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.time.LocalDateTime;
@@ -241,27 +246,17 @@ public class AdminController {
 
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/transactions", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
-  public DataTable<List<OperationViewDto>> getUserTransactions(
-      @RequestParam(required = false) int id,
-      @RequestParam(required = false) Integer status,
-      @RequestParam(required = false) String[] type,
-      @RequestParam(required = false) Integer[] merchant,
-      @RequestParam(required = false) String startDate,
-      @RequestParam(required = false) String endDate,
-      @RequestParam(required = false) BigDecimal amountFrom,
-      @RequestParam(required = false) BigDecimal amountTo,
-      @RequestParam(required = false) BigDecimal commissionAmountFrom,
-      @RequestParam(required = false) BigDecimal commissionAmountTo,
+  public DataTable<List<OperationViewDto>> getUserTransactions(AdminTransactionsFilterData filterData,
+      @RequestParam Integer id,
       @RequestParam Map<String, String> params,
       Principal principal,
       HttpServletRequest request) {
-    Integer transactionStatus = status == null || status == -1 ? null : status;
-    List<TransactionType> types = type == null ? null :
-        Arrays.stream(type).map(TransactionType::valueOf).collect(Collectors.toList());
-    List<Integer> merchantIds = merchant == null ? null : Arrays.asList(merchant);
+    filterData.initFilterItems();
+    DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
+    
     Integer requesterAdminId = userService.getIdByEmail(principal.getName());
-    return transactionService.showUserOperationHistory(requesterAdminId, id, transactionStatus, types, merchantIds, startDate, endDate,
-        amountFrom, amountTo, commissionAmountFrom, commissionAmountTo, localeResolver.resolveLocale(request), params);
+    return transactionService.showUserOperationHistory(requesterAdminId, id, filterData, dataTableParams,
+            localeResolver.resolveLocale(request));
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/downloadTransactionsPage")
@@ -273,21 +268,22 @@ public class AdminController {
 
   @RequestMapping(value = "/2a8fy7b07dxe44/downloadTransactions")
   public void getUserTransactions(final @RequestParam int id,
-                                  final @RequestParam String startDate,
-                                  final @RequestParam String endDate,
-                                  HttpServletRequest request,
+                                  AdminTransactionsFilterData filterData,
+                                  Principal principal,
                                   HttpServletResponse response) throws IOException {
+    filterData.initFilterItems();
       response.setContentType("text/csv");
       String reportName =
-              "transactions"
+              "transactions"/*
                       .concat(startDate)
                       .concat("-")
                       .concat(endDate)
-                      .replaceAll(" ", " _")
+                      .replaceAll(" ", "_")*/
                       .concat(".csv");
       response.setHeader("Content-disposition", "attachment;filename="+reportName);
       List<String> transactionsHistory = transactionService
-              .getCSVTransactionsHistory(id, startDate, endDate, localeResolver.resolveLocale(request));
+              .getCSVTransactionsHistory(userService.getIdByEmail(principal.getName()),
+                      id, filterData);
       OutputStreamWriter writer = new OutputStreamWriter(response.getOutputStream());
       try {
         for(String transaction : transactionsHistory) {
@@ -481,7 +477,6 @@ public class AdminController {
     model.addObject("userLang", userService.getPreferedLang(id).toUpperCase());
     model.addObject("usersInvoiceRefillCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), REFILL));
     model.addObject("usersInvoiceWithdrawCurrencyPermissions", currencyService.findWithOperationPermissionByUserAndDirection(user.getId(), WITHDRAW));
-
     return model;
   }
 
@@ -956,9 +951,10 @@ public class AdminController {
   public ResponseEntity<Void> editCurrencyLimit(@RequestParam int currencyId,
                                                 @RequestParam OperationType operationType,
                                                 @RequestParam String roleName,
-                                                @RequestParam BigDecimal minAmount) {
+                                                @RequestParam BigDecimal minAmount,
+                                                @RequestParam Integer maxDailyRequest) {
 
-    currencyService.updateCurrencyLimit(currencyId, operationType, roleName, minAmount);
+    currencyService.updateCurrencyLimit(currencyId, operationType, roleName, minAmount, maxDailyRequest);
     return new ResponseEntity<>(HttpStatus.OK);
   }
   
@@ -976,7 +972,9 @@ public class AdminController {
                                                 @RequestParam String roleName,
                                                 @RequestParam BigDecimal minRate,
                                                 @RequestParam BigDecimal maxRate) {
-    
+    if (!BigDecimalProcessing.isNonNegative(minRate) || !BigDecimalProcessing.isNonNegative(maxRate) || minRate.compareTo(maxRate) >= 0) {
+      throw new InvalidNumberParamException("Invalid request params!");
+    }
     currencyService.updateCurrencyPairLimit(currencyPairId, orderType, roleName, minRate, maxRate);
     return new ResponseEntity<>(HttpStatus.OK);
   }
@@ -1191,6 +1189,42 @@ public class AdminController {
     result.put("message", messageSource.getMessage("btcWallet.successResult", new Object[]{txId}, localeResolver.resolveLocale(request)));
     result.put("newBalance", bitcoinWalletService.getWalletInfo().getBalance());
     return result;
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/findReferral")
+  @ResponseBody
+  public RefsListContainer findUserReferral(@RequestParam("action") String action,
+                                            @RequestParam(value = "userId", required = false) Integer userId,
+                                            @RequestParam("profitUser") int profitUser,
+                                            @RequestParam(value = "onPage", defaultValue = "20") int onPage,
+                                            @RequestParam(value = "page", defaultValue = "1") int page,
+                                            RefFilterData refFilterData) {
+    LOG.error("filter data " + refFilterData);
+    return referralService.getRefsContainerForReq(action, userId, profitUser, onPage, page, refFilterData);
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/downloadRef")
+  public void downloadUserRefferalStructure(@RequestParam("profitUser") int profitUser,
+                                            RefFilterData refFilterData,
+                                            HttpServletResponse response) throws IOException {
+    response.setContentType("text/csv");
+    String reportName =
+            "referrals-"
+                    .concat(userService.getEmailById(profitUser))
+                    .concat(".csv");
+    response.setHeader("Content-disposition", "attachment;filename="+reportName);
+    List<String> refsList = referralService.getRefsListForDownload(profitUser, refFilterData);
+    OutputStreamWriter writer = new OutputStreamWriter(response.getOutputStream());
+    try {
+      for(String transaction : refsList) {
+        writer.write(transaction);
+      }
+    } catch (IOException e) {
+      LOG.error("error download transactions " + e);
+    } finally {
+      writer.flush();
+      writer.close();
+    }
   }
 
   @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)

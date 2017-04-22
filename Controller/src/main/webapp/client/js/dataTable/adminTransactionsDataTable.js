@@ -48,10 +48,11 @@ $(function () {
             "order": [[0, "desc"]],
             "columns": [
                 {
-                    "data": "orderedDatetime",
+                    "data": "datetime",
+                    "name":"TRANSACTION.datetime",
                     "render": function (data, type, row) {
                         if (type == 'display') {
-                            return row.datetime.split(' ')[0];
+                            return data.split(' ')[0];
                         }
                         return data;
                     }
@@ -63,19 +64,25 @@ $(function () {
                             return data.split(' ')[1];
                         }
                         return data;
-                    }
+                    },
+                    "orderable": false
                 },
                 {
-                    "data": "operationType"
+                    "data": "operationType",
+                    "name":"TRANSACTIOIN.operation_type_id"
                 },
                 {
-                    "data": "status"
+                    "data": "status",
+                    "name":"TRANSACTION.provided"
                 },
                 {
-                    "data": "currency"
+                    "data": "currency",
+                    "name":"TRANSACTION.currency_id"
+
                 },
                 {
                     "data": "amount",
+                    "name":"TRANSACTION.amount",
                     "render": function (data, type, row) {
                         if (type == 'display') {
                             return numeral(data).format('0.00[000000]');
@@ -85,6 +92,7 @@ $(function () {
                 },
                 {
                     "data": "commissionAmount",
+                    "name":"TRANSACTION.commission_amount",
                     "render": function (data, type, row) {
                         if (type == 'display') {
                             return numeral(data).format('0.00[000000]');
@@ -93,7 +101,8 @@ $(function () {
                     }
                 },
                 {
-                    "data": "merchant.description"
+                    "data": "merchant.description",
+                    "name":"MERCHANT.description"
                 },
                 {
                     "data": "sourceId",
@@ -134,10 +143,10 @@ $(function () {
                 success: function (data) {
                     $("#info-date").html(data.creationDate);
                     $("#info-currency").html(data.currencyName);
-                    $("#info-amount").html(data.amount);
+                    $("#info-amount").html(numeral(data.amount).format('0.00[000000]'));
                     $("#info-userFrom").html("<a href='mailto:" +  data.userFromEmail + "'>" + data.userFromEmail + "</a>");
                     $("#info-userTo").html("<a href='mailto:" + data.userToEmail + "'>" + data.userToEmail + "</a>");
-                    $("#info-commissionAmount").html(data.comission);
+                    $("#info-commissionAmount").html(numeral(data.comission).format('0.00[000000]'));
                     $('#user_transfer_info_modal').modal();
                 }
             });
@@ -178,6 +187,12 @@ $(function () {
         $('#transaction-search-form')[0].reset();
         reloadTable();
 
+    });
+
+    $('#download_trans_history').click(function() {
+        var formParams = $('#transaction-search-form').serialize();
+        var url = '/2a8fy7b07dxe44/downloadTransactions?id=' + $("#user-id").val() + '&' + formParams;
+        window.open(url);
     });
 
     function reloadTable() {
