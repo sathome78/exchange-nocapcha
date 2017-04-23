@@ -23,8 +23,8 @@
                             <td id="info-commissionAmount"></td>
                         </tr>
                         <tr>
-                            <td><loc:message code="merchants.refillDetails.recipientBank"/></td>
-                            <td id="info-bankRecipient"></td>
+                            <td><loc:message code="refill.paymentAmount"/></td>
+                            <td id="info-paymentAmount"></td>
                         </tr>
                         <tr>
                             <td><loc:message code="refill.status"/></td>
@@ -35,12 +35,21 @@
                             <td id="info-status-date"></td>
                         </tr>
                         <tr>
-                            <td><loc:message code="merchants.refillDetails.recipientAccount"/></td>
-                            <td id="info-wallet"></td>
+                            <td><loc:message code="merchants.refillDetails.recipientBank"/></td>
+                            <td id="info-bankRecipient"></td>
+                        </tr>
+                        <tr><td></td><td></td></tr>
+                        <tr>
+                            <td><loc:message code="refill.payerData"/></td>
+                            <td id="info-payer-data"></td>
                         </tr>
                         <tr>
-                            <td><loc:message code="merchants.refillDetails.recipientFullName"/></td>
-                            <td id="info-userFullName"></td>
+                            <td><loc:message code="refill.hash"/></td>
+                            <td id="info-hash"></td>
+                        </tr>
+                        <tr>
+                            <td><loc:message code="refill.merchantTransactionId"/></td>
+                            <td id="info-merchant-transaction-id"></td>
                         </tr>
                         <tr>
                             <td><loc:message code="merchants.invoiceDetails.remark"/></td>

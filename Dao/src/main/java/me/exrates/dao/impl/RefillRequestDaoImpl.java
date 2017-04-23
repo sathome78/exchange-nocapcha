@@ -50,6 +50,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     refillRequestFlatDto.setUserId(rs.getInt("user_id"));
     refillRequestFlatDto.setPayerBankName(rs.getString("payer_bank_name"));
     refillRequestFlatDto.setPayerBankCode(rs.getString("payer_bank_code"));
+    refillRequestFlatDto.setRecipientBankAccount(rs.getString("payer_account"));
     refillRequestFlatDto.setUserFullName(rs.getString("user_full_name"));
     refillRequestFlatDto.setRemark(rs.getString("remark"));
     refillRequestFlatDto.setReceiptScan(rs.getString("receipt_scan"));
@@ -62,11 +63,13 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     refillRequestFlatDto.setStatusModificationDate(rs.getTimestamp("status_modification_date").toLocalDateTime());
     refillRequestFlatDto.setCurrencyId(rs.getInt("currency_id"));
     refillRequestFlatDto.setMerchantId(rs.getInt("merchant_id"));
-    refillRequestFlatDto.setAdminHolderId(rs.getInt("admin_holder_id"));
+    refillRequestFlatDto.setHash(rs.getString("hash"));
+    refillRequestFlatDto.setMerchantTransactionId(rs.getString("merchant_transaction_id"));
     refillRequestFlatDto.setRecipientBankId(rs.getInt("recipient_bank_id"));
     refillRequestFlatDto.setRecipientBankName(rs.getString("name"));
     refillRequestFlatDto.setRecipientBankAccount(rs.getString("account_number"));
     refillRequestFlatDto.setRecipientBankRecipient(rs.getString("recipient"));
+    refillRequestFlatDto.setAdminHolderId(rs.getInt("admin_holder_id"));
     return refillRequestFlatDto;
   };
 
@@ -297,6 +300,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     String filter = refillFilterData.getSQLFilterClause();
     String sqlBase =
         " FROM REFILL_REQUEST " +
+            " JOIN INVOICE_BANK IB ON (IB.id = REFILL_REQUEST.recipient_bank_id) " +
             " JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
             "				(IOP.currency_id=REFILL_REQUEST.currency_id) " +
             "				AND (IOP.user_id=:requester_user_id) " +
@@ -307,7 +311,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     String whereClauseFilter = StringUtils.isEmpty(filter) ? "" : " AND ".concat(filter);
     String orderClause = dataTableParams.getOrderByClause();
     String offsetAndLimit = dataTableParams.getLimitAndOffsetClause();
-    String sqlMain = String.join(" ", "SELECT REFILL_REQUEST.*, IOP.invoice_operation_permission_id ",
+    String sqlMain = String.join(" ", "SELECT REFILL_REQUEST.*, IB.*, IOP.invoice_operation_permission_id ",
         sqlBase, whereClauseFilter, orderClause, offsetAndLimit);
     String sqlCount = String.join(" ", "SELECT COUNT(*) ", sqlBase, whereClauseFilter);
     Map<String, Object> params = new HashMap<String, Object>() {{

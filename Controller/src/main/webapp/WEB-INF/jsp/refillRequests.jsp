@@ -195,7 +195,6 @@
                     <th><loc:message code="refill.paymentAmount"/></th>
                     <th><loc:message code="refill.commission"/></th>
                     <th><loc:message code="refill.merchant"/></th>
-                    <th><loc:message code="merchants.refillDetails.recipientAccount"/></th>
                     <th></th>
                 </tr>
                 </thead>
@@ -227,40 +226,6 @@
 <div id="prompt_send_message_rqst" style="display: none">
     <loc:message code="admin.promptSendMessageRequestAccept"/>
 </div>
-<%--MODAL ... --%>
-<div class="modal fade comment" id="myModal">
-    <div class="modal-dialog modal-sm">
-        <div class="modal-content">
-            <div class="modal-header">
-
-                <h4 class="modal-title" id="user_info"></h4>
-            </div>
-            <div class="modal-body">
-                <p><loc:message code="admin.comment"/>:<Br>
-                    <textarea class="form-control" cols="40" rows="3" id="commentText"></textarea>
-                <p><input style="vertical-align: bottom" id="sendMessageCheckbox" type="checkbox">
-                    <loc:message code="admin.sendMessage"/>
-                <p><span id="checkMessage" style="color: #FF0000; " hidden><loc:message code="admin.checkLanguage"/></span>
-
-            </div>
-            <div class="modal-footer">
-                <div>
-                    <button class="modal-button" type="button" id="createCommentConfirm">
-                        <loc:message code="merchants.continue"/>
-                    </button>
-
-                    <button class="modal-button" type="button" id="createCommentCancel" data-dismiss="modal">
-                        <loc:message code="merchants.close"/>
-                    </button>
-                </div>
-            </div>
-        </div>
-        <!-- /.modal-content -->
-    </div>
-    <!-- /.modal-dialog -->
-</div>
-<%--... MODAL--%>
-
 
 <%@include file='fragments/modal/refill_info_modal.jsp' %>
 <%@include file="fragments/modal/confirm_with_info_modal.jsp" %>

@@ -1,4 +1,5 @@
 var currentEmail;
+var $withdrawalPage;
 var $withdrawalTable;
 var withdrawalDataTable;
 var withdrawRequestsBaseUrl;
@@ -36,6 +37,7 @@ $(function () {
     });
 
 
+    $withdrawalPage = $('#withdraw-requests-admin');
     $withdrawalTable = $('#withdrawalTable');
     tableViewType = "FOR_WORK";
     filterParams = '';
@@ -61,48 +63,12 @@ $(function () {
 
     function changeTableViewType($elem, newStatus) {
         tableViewType = newStatus;
-        $('.myorders__button').removeClass('active');
+        $withdrawalTable.find('.myorders__button').removeClass('active');
         $($elem).addClass('active');
         updateWithdrawalTable();
     }
 
-
     updateWithdrawalTable();
-
-    $('#createCommentConfirm').on('click', function () {
-
-        var newComment = document.getElementById("commentText").value;
-        var email = currentEmail;
-        var sendMessage = document.getElementById("sendMessageCheckbox").checked;
-        if (sendMessage == true) {
-            if (confirm($('#prompt_send_message_rqst').html() + " " + email + "?")) {
-
-            } else {
-                $("[data-dismiss=modal]").trigger({type: "click"});
-                return;
-            }
-        }
-        $.ajax({
-            url: '/2a8fy7b07dxe44/addComment',
-            type: 'POST',
-            headers: {
-                'X-CSRF-Token': $("input[name='_csrf']").val()
-            },
-            data: {
-                "newComment": newComment,
-                "email": email,
-                "sendMessage": sendMessage
-
-            },
-            success: function (data) {
-            },
-            error: function (err) {
-                console.log(err);
-            }
-        });
-        $("[data-dismiss=modal]").trigger({type: "click"});
-        return;
-    });
 
     $('#filter-apply').on('click', function (e) {
         e.preventDefault();
@@ -253,36 +219,16 @@ $(function () {
     });
 });
 
-function promptDeclineRequest(requestId) {
-    if (confirm($('#prompt_dec_rqst').html())) {
-        var data = "requestId=" + requestId;
-        document.getElementById("commentText").value = "";
-        document.getElementById("user_info").textContent = "";
-        $.ajax('/merchants/withdrawal/request/decline', {
-            headers: {
-                'X-CSRF-Token': $("input[name='_csrf']").val()
-            },
-            type: 'POST',
-            dataType: 'json',
-            data: data,
-            success: function (result) {
-                alert(result['success']);
-                updateWithdrawalTable();
-                $("#myModal").modal();
-                document.getElementById("sendMessageCheckbox").checked = true;
-                currentEmail = result.userEmail;
-                document.getElementById("user_info").textContent = document.getElementById("language").innerText + ", " + result.userEmail;
-                $('#checkMessage').show();
-            }
-        });
-    }
-
-
-}
-
 function getRowId($elem) {
     var rowData = retrieveRowDataForElement($elem);
     return rowData.transaction.id;
+}
+
+function viewRequestInfo($elem) {
+    var rowData = retrieveRowDataForElement($elem);
+    var $modal = $withdrawalPage.find('#withdraw-info-modal');
+    fillModal($modal, rowData);
+    $modal.modal();
 }
 
 function retrieveRowDataForElement($elem) {
@@ -290,24 +236,17 @@ function retrieveRowDataForElement($elem) {
     return withdrawalDataTable.row($row).data();
 }
 
-function viewRequestInfo($elem) {
-    var rowData = retrieveRowDataForElement($elem);
-    var $modal = $('#withdraw-info-modal');
-    fillModal($modal, rowData);
-    $modal.modal();
-}
-
 function fillModal($modal, rowData) {
     $modal.find('#info-currency').text(rowData.currencyName);
     $modal.find('#info-amount').text(rowData.amount);
     $modal.find('#info-commissionAmount').text(rowData.commissionAmount);
-    var recipientBank = rowData.recipientBankName ? rowData.recipientBankName : '';
-    var recipientBankCode = rowData.recipientBankCode ? rowData.recipientBankCode : '';
-    var userFullName = rowData.userFullName ? rowData.userFullName : '';
-    $modal.find('#info-bankRecipient').text(recipientBank + ' ' + recipientBankCode);
     $modal.find('#info-status').text(rowData.status);
     $modal.find('#info-status-date').text(rowData.statusModificationDate);
+    var recipientBank = rowData.recipientBankName ? rowData.recipientBankName : '';
+    var recipientBankCode = rowData.recipientBankCode ? rowData.recipientBankCode : '';
+    $modal.find('#info-bankRecipient').text(recipientBank + ' ' + recipientBankCode);
     $modal.find('#info-wallet').text(rowData.wallet);
+    var userFullName = rowData.userFullName ? rowData.userFullName : '';
     $modal.find('#info-userFullName').text(rowData.userFullName);
     $modal.find('#info-remark').find('textarea').html(rowData.remark);
 }
@@ -317,10 +256,10 @@ function updateWithdrawalTable() {
     var filter = filterParams.length > 0 ? '&' + filterParams : '';
     var url = withdrawRequestsBaseUrl + tableViewType + filter;
     if ($.fn.dataTable.isDataTable('#withdrawalTable')) {
-        withdrawalDataTable = $($withdrawalTable).DataTable();
+        withdrawalDataTable = $withdrawalTable.DataTable();
         withdrawalDataTable.ajax.url(url).load();
     } else {
-        withdrawalDataTable = $($withdrawalTable).DataTable({
+        withdrawalDataTable = $withdrawalTable.DataTable({
             "ajax": {
                 "url": url,
                 "dataSrc": "data"

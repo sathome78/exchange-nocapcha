@@ -17,13 +17,13 @@ public enum InvoiceActionTypeButtonEnum {
     getProperty().put("tableIdListOnly", new String[]{"inputoutput-table"});
   }},
   ACCEPT_BUTTON {{
-    getProperty().put("tableIdListOnly", new String[]{"withdrawalTable"});
+    getProperty().put("tableIdListOnly", new String[]{"withdrawalTable", "refillTable"});
   }},
   DECLINE_BUTTON {{
     getProperty().put("tableIdListOnly", new String[]{"withdrawalTable"});
   }},
   DECLINE_HOLDED_BUTTON {{
-    getProperty().put("tableIdListOnly", new String[]{"withdrawalTable"});
+    getProperty().put("tableIdListOnly", new String[]{"withdrawalTable", "refillTable"});
   }},
   POST_BUTTON {{
     getProperty().put("tableIdListOnly", new String[]{"withdrawalTable"});
@@ -35,10 +35,10 @@ public enum InvoiceActionTypeButtonEnum {
     getProperty().put("tableIdListOnly", new String[]{"refillTable"});
   }},
   TAKE_TO_WORK_BUTTON {{
-    getProperty().put("tableIdListOnly", new String[]{"withdrawalTable"});
+    getProperty().put("tableIdListOnly", new String[]{"withdrawalTable", "refillTable"});
   }},
   RETURN_FROM_WORK_BUTTON {{
-    getProperty().put("tableIdListOnly", new String[]{"withdrawalTable"});
+    getProperty().put("tableIdListOnly", new String[]{"withdrawalTable", "refillTable"});
   }};
 
   private Map<String, Object> property = new HashMap<>();
