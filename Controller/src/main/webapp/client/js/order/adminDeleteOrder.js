@@ -2,7 +2,12 @@
  * Created by Valk on 12.05.2016.
  */
 
+var currentOrderId;
+var orderTableRow;
+
 function getOrderDetailedInfo(currentRow, orderId, enableDelete) {
+    currentOrderId = orderId;
+    orderTableRow = currentRow;
     $.ajax({
         url: '/2a8fy7b07dxe44/orderinfo?id=' + orderId,
         type: 'GET',
@@ -25,15 +30,11 @@ function getOrderDetailedInfo(currentRow, orderId, enableDelete) {
                 $("#delete-order-info__delete").toggle(false);
             } else {
                 $("#delete-order-info__delete").toggle(true);
-                $("#delete-order-info__delete").on('click', function () {
-                    deleteOrderByAdmin(data.id, currentRow);
-                })
+
             }
             if (data.orderStatusName.toUpperCase() === 'OPENED') {
                 $("#delete-order-info__accept").toggle(true);
-                $("#delete-order-info__accept").on('click', function () {
-                    acceptOrderByAdmin(data.id, currentRow);
-                });
+
             } else {
                 $("#delete-order-info__accept").toggle(false);
             }
@@ -267,4 +268,12 @@ $(function () {
     if ($('#delete-order-info__form').size() > 0) {
         searchOrder();
     }
+
+    $("#delete-order-info__delete").on('click', function () {
+        deleteOrderByAdmin(currentOrderId, orderTableRow);
+    })
+    $("#delete-order-info__accept").on('click', function () {
+        acceptOrderByAdmin(currentOrderId, orderTableRow);
+    });
+
 });

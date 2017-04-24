@@ -226,6 +226,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers("/yandex_7a3c41ddb19f4716.html").permitAll()
         .antMatchers("/termsAndConditions", "/privacyPolicy", "/contacts").permitAll()
         .antMatchers(POST, "/sendFeedback").permitAll()
+        .antMatchers(GET, "/utcOffset").permitAll()
         .antMatchers(POST, "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword").anonymous()
         .antMatchers(GET, "/rest/userFiles/**/avatar/**").permitAll()
         .antMatchers(GET, "/rest/userFiles/**/receipts/**").permitAll()
