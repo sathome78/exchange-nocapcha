@@ -3,6 +3,7 @@ package me.exrates.model.dto;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
 
 import java.math.BigDecimal;
@@ -40,6 +41,7 @@ To determine which of these forms to be filled, we must set field operationType
     private OperationType operationType;
     private BigDecimal exchangeRate;
     private BigDecimal amount; //amount of base currency: base currency can be bought or sold dependending on operationType
+    private OrderBaseType orderBaseType;
     //
     /*
     * these fields will be calculated after submitting the order and before final creation confirmation the order
@@ -284,5 +286,13 @@ To determine which of these forms to be filled, we must set field operationType
 
     public void setStop(BigDecimal stop) {
         this.stop = stop;
+    }
+
+    public OrderBaseType getOrderBaseType() {
+        return orderBaseType;
+    }
+
+    public void setOrderBaseType(OrderBaseType orderBaseType) {
+        this.orderBaseType = orderBaseType;
     }
 }

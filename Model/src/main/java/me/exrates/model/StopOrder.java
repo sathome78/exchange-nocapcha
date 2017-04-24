@@ -1,7 +1,9 @@
 package me.exrates.model;
 
 import lombok.Data;
+import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -18,13 +20,33 @@ public class StopOrder {
     private BigDecimal stop;
     private BigDecimal limit;
     private BigDecimal amountBase;
-    private BigDecimal amountConvert;/*nedded?*/
-    private BigDecimal comissionFixedamount;
+    private BigDecimal amountConvert;
     private int currencyPairId;
     private OperationType operationType;
-    private Integer orderId;
-    private int orderStatus;
+    private Integer limitOrderId;
+    private OrderStatus status;
     private LocalDateTime dateCreation;
     private LocalDateTime modificationDate;
+    private int comissionId;
+    private BigDecimal commissionFixedAmount;
+    private CurrencyPair currencyPair;
+
+    public StopOrder() {
+    }
+
+    public StopOrder(ExOrder exOrder) {
+        this.id = exOrder.getId();
+        this.userId = exOrder.getUserId();
+        this.currencyPairId = exOrder.getCurrencyPair().getId();
+        this.operationType = exOrder.getOperationType();
+        this.stop = exOrder.getStop();
+        this.limit = exOrder.getExRate();
+        this.amountBase = exOrder.getAmountBase();
+        this.amountConvert = exOrder.getAmountConvert();
+        this.comissionId = exOrder.getComissionId();
+        this.commissionFixedAmount = exOrder.getCommissionFixedAmount();
+        this.status = exOrder.getStatus();
+        this.currencyPair = exOrder.getCurrencyPair();
+    }
 
 }

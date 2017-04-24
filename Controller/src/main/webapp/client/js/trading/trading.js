@@ -23,6 +23,10 @@ function TradingClass(period, chartType, currentCurrencyPair) {
     var $totalForBuyInput = $('#totalForBuy');
     var $exchangeRateBuyInput = $('#exchangeRateBuy');
     var $amountBuyInput = $('#amountBuy');
+    var $amountStopInput = $('#amount-stop');
+    var $stopRateInput = $('#stop');
+    var $limitRateInput = $('#limit-stop');
+    var $totalStopInput = $('#totalForStop');
 
     var $totalForSellInput = $('#totalForSell');
     var $exchangeRateSellInput = $('#exchangeRateSell');
@@ -280,6 +284,9 @@ function TradingClass(period, chartType, currentCurrencyPair) {
             var lastSellExrate = getLastExrate('#dashboard-orders-sell-table .dashboard-order__tr:first', currencyPairName);
             $('#exchangeRateSell').val(lastSellExrate);
             calculateFieldsForSell();
+            $('#limit-stop').val(lastSellExrate);
+            $('#amount-stop').val(initialAmountString);
+            calculateFieldsForStop();
             that.fillOrderBalance(currencyPairName);
 
 
@@ -293,6 +300,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
             var currentConvertBalance = getCurrentBalanceByCurrency(currencies[1]);
             $('#currentBaseBalance').text(currentBaseBalance);
             $('#currentConvertBalance').text(currentConvertBalance);
+            $('.currentConvertBalance').text(currentConvertBalance);
         }
     };
 
@@ -348,6 +356,25 @@ function TradingClass(period, chartType, currentCurrencyPair) {
                 calculateFieldsForSell();
             }
         });
+    }
+
+    function calculateFieldsForStop() {
+        var amount = +$($amountStopInput).val();
+        var exchangeRate = +$($limitRateInput).val();
+        var totalForBuy = +$($totalStopInput).val(amount * exchangeRate).val();
+    }
+
+    function calculateFieldsForStopBackward() {
+        var totalForBuy = +$($totalStopInput).val();
+        var exchangeRate = +$($limitRateInput).val();
+        if (!totalForBuy) {
+            $($amountStopInput).val(0);
+        } else if (!exchangeRate) {
+            $($amountStopInput).val(0);
+            $($limitRateInput).val(0);
+        } else {
+            $($amountBuyInput).val(numeral(totalForBuy / exchangeRate).format(that.numeralFormat));
+        }
     }
 
     function calculateFieldsForBuy() {
@@ -438,11 +465,16 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         $('#exchangeRateSell').on('keyup', calculateFieldsForSell).on('keydown', that.resetOrdersListForAccept);
         $('#totalForBuy').on('keyup', calculateFieldsForBuyBackward).on('keydown', that.resetOrdersListForAccept);
         $('#totalForSell').on('keyup', calculateFieldsForSellBackward).on('keydown', that.resetOrdersListForAccept);
+        $('#limit-stop').on('keyup', calculateFieldsForStop);
+        $('#amount-stop').on('keyup', calculateFieldsForStop);
+        $('#totalForStop').on('keyup', calculateFieldsForStopBackward);
         /**/
         $('.dashboard-order__table').on('click', '.dashboard-order__tr', fillOrdersFormFromCurrentOrder);
         /**/
         $('#dashboard-buy').on('click', orderBuy);
         $('#dashboard-sell').on('click', orderSell);
+        $('#dashboard-stop-buy').on('click', stopOrder);
+        $('#dashboard-stop-sell').on('click', stopOrder);
         /**/
         $('#dashboard-buy-accept').on('click', orderBuyAccept);
         $('#dashboard-sell-accept').on('click', orderSellAccept);
@@ -576,17 +608,40 @@ function TradingClass(period, chartType, currentCurrencyPair) {
         showOrderCreateDialog(data);
     }
 
+    function stopOrder(event) {
+        console.log('sending stop order');
+        event.preventDefault();
+        var data = {operationType: $(this).data('action')};
+        $.map($('#dashboard-stop-order-form').serializeArray(), function (e) {
+            if (e.name == 'amount') {
+                data.amount = e.value;
+            }
+            if (e.name == 'exchangeRate') {
+                data.rate = e.value;
+            }
+            if (e.name == 'stop') {
+                data.stop = e.value;
+            }
+        });
+        data.baseType = 'STOP_LIMIT';
+        that.clearOrdersCreationForm();
+        showOrderCreateDialog(data);
+    }
+
     /*...PREPARE DATA FOR MODAL DIALOG FOR CREATION ORDER */
 
     /*MODAL DIALOG FOR CREATION ORDER ... */
     function showOrderCreateDialog(data) {
         /**/
+        $('.stop-rate').hide();
         var $balanceErrorContainer = $('#order-create-confirm__modal').find('[for=balance]');
         $balanceErrorContainer.empty();
         var $amountErrorContainer = $('#order-create-confirm__modal').find('[for=amount]');
         $amountErrorContainer.empty();
         var $exrateErrorContainer = $('#order-create-confirm__modal').find('[for=exrate]');
         $exrateErrorContainer.empty();
+        var $stopErrorContainer = $('#order-create-confirm__modal').find('[for=stop]');
+        $stopErrorContainer.empty();
         $('#order-create-confirm__submit').removeClass('hidden');
         $.ajax({
             headers: {
@@ -596,10 +651,14 @@ function TradingClass(period, chartType, currentCurrencyPair) {
             data: data,
             type: 'POST',
             success: function (data) {
-                $('#order-create-confirm__modal').find('#operationTypeName').val(data.operationTypeName);
+                $('#order-create-confirm__modal').find('#operationTypeName').val(data.operationTypeName + ' ' + data.baseType);
                 $('#order-create-confirm__modal').find('#currencyPairName').val(data.currencyPairName);
                 $('#order-create-confirm__modal').find('#balance').val(data.balance);
                 $('#order-create-confirm__modal').find('#amount').val(data.amount);
+                if (data.baseType == 'STOP_LIMIT') {
+                    $('#order-create-confirm__modal').find('#stop').val(data.stop);
+                    $('.stop-rate').show();
+                }
                 $('#order-create-confirm__modal').find('#exrate').val(data.exrate);
                 $('#order-create-confirm__modal').find('#total').val(data.total);
                 $('#order-create-confirm__modal').find('#commission').val(data.commission);
@@ -619,13 +678,20 @@ function TradingClass(period, chartType, currentCurrencyPair) {
                     if (f.split('_')[0] == 'exrate') {
                         $exrateErrorContainer.append('<div class="input-block-wrapper__error">' + responseData[f] + '</div>');
                     }
+                    if (f.split('_')[0] == 'stop') {
+                        $stopErrorContainer.append('<div class="input-block-wrapper__error">' + responseData[f] + '</div>');
+                    }
                 }
                 var data = responseData.order;
                 if (data) {
-                    $('#order-create-confirm__modal').find('#operationTypeName').val(data.operationTypeName);
+                    $('#order-create-confirm__modal').find('#operationTypeName').val(data.operationTypeName + ' ' + data.baseType);
                     $('#order-create-confirm__modal').find('#currencyPairName').val(data.currencyPairName);
                     $('#order-create-confirm__modal').find('#balance').val(data.balance);
                     $('#order-create-confirm__modal').find('#amount').val(data.amount);
+                    if (data.baseType == 'STOP_LIMIT') {
+                        $('#order-create-confirm__modal').find('#stop').val(data.stop);
+                        $('.stop-rate').show();
+                    }
                     $('#order-create-confirm__modal').find('#exrate').val(data.exrate);
                     $('#order-create-confirm__modal').find('#total').val(data.total);
                     $('#order-create-confirm__modal').find('#commission').val(data.commission);

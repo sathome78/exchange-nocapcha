@@ -276,9 +276,6 @@
         <div class="cols-md-4">
             <div class="lightblue em-08">
                 <span class="green margin-right">Stop-Limit</span>
-                <span class="currencyBaseName red margin-right"></span>
-                <loc:message code="dashboard.lowestPrice"/>
-                <span id="minRate" class="green"></span>
             </div>
             <div class="buyBTC">
                 <%--stop-limit ...--%>
@@ -287,30 +284,12 @@
                             <span class="item__span"><loc:message code="dashboard.yourBalance"/>
                         <span class="currencyConvertName item__span"></span>
                     </span>
-                        <%--<span id="currentConvertBalance" class="item__span trading-current-balance"></span>--%>
+                        <span id="currentConvertBalance" class="item__span trading-current-balance currentConvertBalance"></span>
                     </div>
                 </sec:authorize>
-                <form:form id="dashboard-buy-form" class="dashboard-sell-buy__form" action="/order/submitnew/BUY"
+                <form:form id="dashboard-stop-order-form" class="dashboard-sell-buy__form" action="/order/submitnew/BUY"
                            method="post"
                            modelAttribute="orderCreateDto">
-
-                    <div class="buyBTC__item item">
-                    <span class="item__span">Stop
-                        <span class="currencyBaseName"></span>
-                    </span>
-                        <div class="dark_blue_area"><span class="currencyConvertName"></span></div>
-                        <form:input id="stop-stop" path="stop" type="text"
-                                    class="buyBTC__input usd_green numericInputField"/>
-                    </div>
-
-                    <div class="buyBTC__item item">
-                    <span class="item__span">Limit
-                        <span class="currencyBaseName"></span>
-                    </span>
-                        <div class="dark_blue_area"><span class="currencyConvertName"></span></div>
-                        <form:input id="limit-stop" path="exchangeRate" type="text"
-                                    class="buyBTC__input usd_green numericInputField"/>
-                    </div>
 
                     <div class="buyBTC__item item">
                     <span class="item__span"><loc:message code="dashboard.amount"/>
@@ -320,38 +299,40 @@
                         <form:input id="amount-stop" path="amount" type="text" class="item__input numericInputField"/>
                     </div>
 
+                    <div class="buyBTC__item item">
+                    <span class="item__span">Stop
+                        <%--<span class="currencyBaseName"></span>--%>
+                    </span>
+                        <div class="dark_blue_area"><span class="currencyConvertName"></span></div>
+                        <form:input id="stop" path="stop" type="text"
+                                    class="buyBTC__input usd_green numericInputField"/>
+                    </div>
+
+                    <div class="buyBTC__item item">
+                    <span class="item__span">Limit
+                        <%--<span class="currencyBaseName"></span>--%>
+                    </span>
+                        <div class="dark_blue_area"><span class="currencyConvertName"></span></div>
+                        <form:input id="limit-stop" path="exchangeRate" type="text"
+                                    class="buyBTC__input usd_green numericInputField"/>
+                    </div>
+
 
                     <div class="buyBTC__item item">
                         <span class="item__span"><loc:message code="dashboard.total"/></span>
                         <div class="dark_blue_area"><span class="currencyConvertName"></span></div>
-                        <input id="totalForBuy" class="item__input numericInputField"/>
+                        <input id="totalForStop" class="item__input numericInputField"/>
                             <%--<div id="totalForBuy" class="blue_area">
                             <span></span>
                         </div>--%>
                     </div>
 
-                    <div class="buyBTC__item item">
-                        <span class="item__span"><loc:message code="dashboard.commission"/></span>
-                        <div class="dark_blue_area"><span class="currencyConvertName"></span></div>
-                        <div id="calculatedCommissionForStop" class="blue_area">
-                            <span></span>
-                        </div>
-                    </div>
-
-                    <div class="buyBTC__item item">
-                        <span class="item__span"><loc:message code="dashboard.amountwithcommission"/></span>
-                        <div class="dark_blue_area"><span class="currencyConvertName"></span></div>
-                        <div id="totalWithCommissionForStop" class="blue_area">
-                            <span></span>
-                        </div>
-                    </div>
-
                     <div class="row">
                         <sec:authorize access="isAuthenticated()">
-                            <button id="dashboard-stop-buy" class="dashboard-stop-sell-buy__button">
+                            <button id="dashboard-stop-buy" data-action="BUY" class="dashboard-stop-sell-buy__button">
                                 <loc:message code="dashboard.buy"/>
                             </button>
-                            <button id="dashboard--stop-sell" class="dashboard-stop-sell-buy__button">
+                            <button id="dashboard-stop-sell" data-action="SELL" class="dashboard-stop-sell-buy__button">
                                 <loc:message code="dashboard.sell"/>
                             </button>
                         </sec:authorize>

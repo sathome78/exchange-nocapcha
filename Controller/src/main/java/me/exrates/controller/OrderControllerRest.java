@@ -9,7 +9,7 @@ import me.exrates.model.dto.OrderCreateSummaryDto;
 import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.OrderValidationDto;
 import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.OrderActionEnum;
+import me.exrates.model.enums.OrderBaseType;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -28,7 +28,6 @@ import java.security.Principal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static me.exrates.model.enums.OrderActionEnum.CREATE;
@@ -58,20 +57,28 @@ public class OrderControllerRest {
     @Autowired
     LocaleResolver localeResolver;
 
+    @Autowired
+    StopOrderService stopOrderService;
+
     @RequestMapping("/order/submitnew/{orderType}")
     public OrderCreateSummaryDto newOrderToSell(@PathVariable OperationType orderType,
                                                 Principal principal,
                                                 BigDecimal amount,
                                                 BigDecimal rate,
+                                                OrderBaseType baseType,
+                                                @RequestParam(value = "stop", required = false) BigDecimal stop,
                                                 HttpServletRequest request) {
         long before = System.currentTimeMillis();
         try {
             OrderCreateSummaryDto orderCreateSummaryDto;
             if (amount == null) amount = BigDecimal.ZERO;
             if (rate == null) rate = BigDecimal.ZERO;
+            if (baseType == null) baseType = OrderBaseType.LIMIT;
             CurrencyPair activeCurrencyPair = (CurrencyPair) request.getSession().getAttribute("currentCurrencyPair");
             OrderCreateDto orderCreateDto = orderService.prepareNewOrder(activeCurrencyPair, orderType, principal.getName(), amount, rate);
-        /**/
+            orderCreateDto.setOrderBaseType(baseType);
+            orderCreateDto.setStop(stop);
+            /**/
             OrderValidationDto orderValidationDto = orderService.validateOrder(orderCreateDto);
             Map<String, Object> errorMap = orderValidationDto.getErrors();
             orderCreateSummaryDto = new OrderCreateSummaryDto(orderCreateDto, localeResolver.resolveLocale(request));
@@ -115,7 +122,7 @@ public class OrderControllerRest {
                 throw new OrderCreationException(messageSource.getMessage("order.recreateerror", null, localeResolver.resolveLocale(request)));
             }
             try {
-                Optional<String> autoAcceptResult = orderService.autoAccept(orderCreateDto, localeResolver.resolveLocale(request));
+                /*Optional<String> autoAcceptResult = orderService.autoAccept(orderCreateDto, localeResolver.resolveLocale(request));
                 profileData.setTime1();
                 if (autoAcceptResult.isPresent()) {
                     LOGGER.debug(autoAcceptResult.get());
@@ -125,8 +132,8 @@ public class OrderControllerRest {
                 profileData.setTime2();
                 if (orderId <= 0) {
                     throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, localeResolver.resolveLocale(request)));
-                }
-                return "{\"result\":\"" + messageSource.getMessage("createdorder.text", null, localeResolver.resolveLocale(request)) + "\"}";
+                }*/
+                return orderService.createOrder(orderCreateDto, CREATE, localeResolver.resolveLocale(request));
             } catch (NotEnoughUserWalletMoneyException e) {
                 throw new NotEnoughUserWalletMoneyException(messageSource.getMessage("validation.orderNotEnoughMoney", null, localeResolver.resolveLocale(request)));
             } catch (OrderCreationException e) {
@@ -171,13 +178,26 @@ public class OrderControllerRest {
 
 
     @RequestMapping("/order/submitdelete/{orderId}")
-    public OrderCreateSummaryDto submitDeleteOrder(@PathVariable Integer orderId, HttpServletRequest request) {
+    public OrderCreateSummaryDto submitDeleteOrder(@PathVariable Integer orderId,
+                                                   @RequestParam(value = "baseType", defaultValue = "1") int typeId,
+                                                   HttpServletRequest request) {
         long before = System.currentTimeMillis();
+        OrderBaseType orderBaseType = OrderBaseType.convert(typeId);
         try {
-            OrderCreateDto orderCreateDto = orderService.getMyOrderById(orderId);
+            OrderCreateDto orderCreateDto;
+            switch (orderBaseType) {
+                case STOP_LIMIT: {
+                    orderCreateDto = stopOrderService.getOrderById(orderId);
+                    break;
+                }
+                default: {
+                    orderCreateDto = orderService.getMyOrderById(orderId);
+                }
+            }
             if (orderCreateDto == null) {
                 throw new OrderNotFoundException(messageSource.getMessage("orders.getordererror", new Object[]{orderId}, localeResolver.resolveLocale(request)));
             }
+            orderCreateDto.setOrderBaseType(orderBaseType);
             request.getSession().setAttribute("/order/submitdelete/orderCreateDto", orderCreateDto);
             OrderCreateSummaryDto orderForDelete = new OrderCreateSummaryDto(orderCreateDto, localeResolver.resolveLocale(request));
             return orderForDelete;

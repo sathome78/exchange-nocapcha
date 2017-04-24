@@ -34,6 +34,9 @@ public interface OrderService {
 
   OrderValidationDto validateOrder(OrderCreateDto orderCreateDto);
 
+  @Transactional
+  String createOrder(OrderCreateDto orderCreateDto, OrderActionEnum action, Locale locale);
+
   /**
    * Returns the ID of the newly created and saved in DB order
    * Generates transaction of transferring money from active balance to reserved balance the corresponding wallet
