@@ -41,6 +41,7 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TimeZone;
 
 import static java.util.Collections.singletonMap;
 import static java.util.Objects.isNull;
@@ -380,9 +381,12 @@ public class MainController {
 
         return modelAndView;
     }
-
-
-
-
+    
+    @RequestMapping(value = "/utcOffset")
+    @ResponseBody
+    public Integer getServerUtcOffsetMinutes() {
+        return TimeZone.getDefault().getOffset(System.currentTimeMillis()) / (1000 * 60);
+    }
+    
 
 }

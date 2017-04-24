@@ -23,17 +23,12 @@ function RightSiderClass() {
     /*===========================================================*/
     (function init() {
         that.newsList = new NewsClass($newsLoadingImg);
-        $.ajax({
-            url: window.location.href.toString(),
-            type: 'HEAD',
-            data: '',
-            success: function (data, textStatus, jqXHR) {
-                currentTime = moment(Date.parse(jqXHR.getResponseHeader('Date')));
-                setInterval(function () {
-                    $('#current-datetime').text(currentTime.format('YYYY-MM-DD HH:mm:ss'));
-                    currentTime.add(1, 's');
-                }, 1000)
-            }
+        $.get('/utcOffset', function (data) {
+            currentTime = moment().utcOffset(data);
+            setInterval(function () {
+                $('#current-datetime').text(currentTime.format('YYYY-MM-DD HH:mm:ss'));
+                currentTime.add(1, 's');
+            }, 1000)
         });
     })();
 
