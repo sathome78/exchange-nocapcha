@@ -52,4 +52,6 @@ public interface RefillRequestDao {
       Integer requesterUserId);
 
   RefillRequestFlatAdditionalDataDto getAdditionalDataForId(int id);
+
+  boolean checkInputRequests(int currencyId, String email);
 }

@@ -340,18 +340,6 @@ public class MerchantServiceImpl implements MerchantService {
   }
 
   @Override
-  public boolean checkInputRequestsLimit(int currencyId, String email) {
-
-    return merchantDao.checkInputRequests(currencyId, email);
-  }
-
-  @Override
-  public boolean checkOutputRequestsLimit(int merchantId, String email) {
-
-    return merchantDao.checkOutputRequests(merchantId, email);
-  }
-
-  @Override
   @Transactional
   public void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType) {
     merchantDao.toggleMerchantBlock(merchantId, currencyId, operationType);

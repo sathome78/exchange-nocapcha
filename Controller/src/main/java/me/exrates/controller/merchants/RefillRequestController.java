@@ -1,6 +1,7 @@
 package me.exrates.controller.merchants;
 
 import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.service.RequestLimitExceededException;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.Payment;
@@ -68,6 +69,9 @@ public class RefillRequestController {
       Locale locale) throws UnsupportedEncodingException {
     if (requestParamsDto.getOperationType() != INPUT) {
       throw new IllegalOperationTypeException(requestParamsDto.getOperationType().name());
+    }
+    if (!refillService.checkInputRequestsLimit(requestParamsDto.getCurrency(), principal.getName())) {
+      throw new RequestLimitExceededException(messageSource.getMessage("merchants.InputRequestsLimit", null, locale));
     }
     RefillStatusEnum beginStatus = (RefillStatusEnum) RefillStatusEnum.X_STATE.nextState(CREATE_BY_USER);
     Payment payment = new Payment(INPUT);

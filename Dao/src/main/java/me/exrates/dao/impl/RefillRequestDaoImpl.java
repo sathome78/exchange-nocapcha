@@ -383,6 +383,22 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     );
   }
 
+  @Override
+  public boolean checkInputRequests(int currencyId, String email) {
+    String sql = "SELECT COUNT(*) < IF (CL.max_daily_request IS NULL, 0, CL.max_daily_request) " +
+        "  FROM REFILL_REQUEST RR " +
+        "  JOIN USER ON(USER.id = RR.user_id) AND (USER.email = :email) " +
+        "  LEFT JOIN CURRENCY_LIMIT CL ON (CL.user_role_id = USER.roleid) " +
+        "            AND (CL.operation_type_id = 1) " +
+        "            AND (CL.currency_id = RR.currency_id) " +
+        "  WHERE RR.currency_id = :currencyId  " +
+        "  AND DATE(RR.date_creation) = CURDATE()";
+    Map<String, Object> params = new HashMap<String, Object>();
+    params.put("currencyId", currencyId);
+    params.put("email", email);
+    return namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class) == 1;
+  }
+
 
 }
 

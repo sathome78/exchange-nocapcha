@@ -49,45 +49,6 @@ public class EDRCoinController {
 
     private static final Logger LOG = LogManager.getLogger("merchant");
 
-    @RequestMapping(value = "/payment/prepare", method = POST)
-    public ResponseEntity<String> preparePayment(final @RequestBody String body,
-        final Principal principal, final Locale locale)
-    {
-        final Payment payment = new Gson().fromJson(body, Payment.class);
-        final String error;
-
-        final HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add("Content-Type", "text/plain; charset=utf-8");
-
-        if (!merchantService.checkInputRequestsLimit(payment.getCurrency(), principal.getName())){
-            error = source.getMessage("merchants.InputRequestsLimit", null, locale);
-
-            return new ResponseEntity<>(error, httpHeaders, HttpStatus.FORBIDDEN);
-        }
-        final String email = principal.getName();
-        final CreditsOperation creditsOperation = merchantService
-            .prepareCreditsOperation(payment, email)
-            .orElseThrow(InvalidAmountException::new);
-
-        try {
-            final PendingPayment pendingPayment = edrcService
-                .createPaymentInvoice(creditsOperation);
-            final String notification = merchantService
-                .sendDepositNotification(Optional.ofNullable(pendingPayment
-                        .getAddress()).orElseThrow(() -> new MerchantInternalException("Address not presented")),
-                        email , locale, creditsOperation, "merchants.depositNotification.body");
-            return new ResponseEntity<>(notification, httpHeaders, OK);
-        } catch (final InvalidAmountException|RejectedPaymentInvoice e) {
-            LOG.error(e);
-            error = source.getMessage("merchants.incorrectPaymentDetails", null, locale);
-        }
-        catch (final MerchantInternalException e) {
-            LOG.error(e);
-            error = source.getMessage("merchants.internalError", null, locale);
-        }
-        return new ResponseEntity<>(error, httpHeaders, HttpStatus.NOT_FOUND);
-    }
-
     @RequestMapping(value = "payment/received",method = POST)
     public ResponseEntity<Void> paymentHandler (final @RequestParam Map<String,String> params) {
         final ResponseEntity<Void> response = new ResponseEntity<>(OK);

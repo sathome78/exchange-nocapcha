@@ -16,7 +16,6 @@ import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.TransactionDescription;
 import me.exrates.service.*;
 import me.exrates.service.exception.FileLoadingException;
-import me.exrates.service.exception.RefillRequestLimitForMerchantExceededException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
@@ -107,7 +106,6 @@ public class RefillServiceImpl implements RefillService {
     ProfileData profileData = new ProfileData(1000);
     Map<String, String> result = null;
     try {
-      checkIfOperationLimitExceededForMerchantByUser(request);
       Integer requestId = createRefill(request);
       profileData.setTime1();
       request.setId(requestId);
@@ -264,20 +262,10 @@ public class RefillServiceImpl implements RefillService {
     return output;
   }
 
-
-  private void checkIfOperationLimitExceededForMerchantByUser(RefillRequestCreateDto request) {
-    Integer merchantId = request.getMerchantId();
-    Integer userId = request.getUserId();
-    Integer operationLimit = request.getRefillOperationCountLimitForUserPerDay();
-    Integer operationsAtTheMoment = refillRequestDao.findActiveRequestsByMerchantIdAndUserIdForCurrentDate(merchantId, userId);
-    if (operationsAtTheMoment > operationLimit) {
-      throw new RefillRequestLimitForMerchantExceededException(String.format("Merchant: %s user: %s operations at the moment: %s, limit: %s",
-          merchantId,
-          request.getUserEmail(),
-          operationsAtTheMoment,
-          operationLimit
-      ));
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public boolean checkInputRequestsLimit(int currencyId, String email) {
+    return refillRequestDao.checkInputRequests(currencyId, email);
   }
 
   private Integer createRefill(RefillRequestCreateDto request) {

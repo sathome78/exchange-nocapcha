@@ -54,44 +54,6 @@ public class EDCController {
         this.edcMerchantService = edcMerchantService;
     }
 
-    @RequestMapping(value = "/payment/prepare", method = POST)
-    public ResponseEntity<Map<String, String>> preparePayment(final @RequestBody Payment payment,
-                                                 final Principal principal,
-                                                 final Locale locale)
-    {
-        if (!merchantService.checkInputRequestsLimit(payment.getCurrency(), principal.getName())){
-            final Map<String,String> error = new HashMap<>();
-            error.put("error", messageSource.getMessage("merchants.InputRequestsLimit", null, locale));
-
-            return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
-        }
-
-        final String email = principal.getName();
-        final CreditsOperation creditsOperation = merchantService
-                .prepareCreditsOperation(payment, email)
-                .orElseThrow(InvalidAmountException::new);
-        try {
-//            final String account = edcService.createInvoice(creditsOperation); // node
-            final String account = edcMerchantService.createAddress(creditsOperation); // merchant
-            final String notification = merchantService
-                    .sendDepositNotification(account,email ,locale, creditsOperation, "merchants.depositNotification.body");
-            final HttpHeaders httpHeaders = new HttpHeaders();
-            httpHeaders.add("Content-Type", "text/plain; charset=utf-8");
-            Map<String,String> responseMap = new TreeMap<>();
-            responseMap.put("notification", notification);
-            responseMap.put("qr", account + "/"
-                    + creditsOperation.getAmount().add(creditsOperation.getCommissionAmount()).doubleValue()
-                    + "/image.png");
-
-            return new ResponseEntity<>(responseMap, HttpStatus.OK);
-        } catch (Exception e) {
-            final Map<String,String> error = new HashMap<>();
-            error.put("error", messageSource.getMessage("merchants.incorrectPaymentDetails", null, locale));
-            LOG.error(e);
-            return new ResponseEntity<>(error, NOT_FOUND);
-        }
-    }
-
     @RequestMapping(value = "payment/received",method = RequestMethod.POST)
     public ResponseEntity<Void> statusPayment(@RequestBody Map<String,String> params, RedirectAttributes redir) {
 

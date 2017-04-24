@@ -53,31 +53,6 @@ public class Privat24MerchantController {
 
     private static final Logger LOG = LogManager.getLogger("merchant");
 
-    @RequestMapping(value = "payment/prepare",method = RequestMethod.POST)
-    public ResponseEntity<Map<String,String>> preparePayment(@RequestBody String body, Principal principal,final Locale locale) {
-        final Payment payment = new Gson().fromJson(body, Payment.class);
-        if (!merchantService.checkInputRequestsLimit(payment.getCurrency(), principal.getName())){
-            final Map<String,String> error = new HashMap<>();
-            error.put("error", messageSource.getMessage("merchants.InputRequestsLimit", null, locale));
-
-            return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
-        }
-
-        final Optional<CreditsOperation> creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName());
-        if (!creditsOperation.isPresent()) {
-            final Map<String, String> errors = new HashMap<String, String>() {
-                {
-                    put("error", messageSource.getMessage("merchants.incorrectPaymentDetails", null, locale));
-                }
-            };
-            return new ResponseEntity<>(errors, HttpStatus.NOT_FOUND);
-        }
-
-        final Map<String, String> params = privat24Service.preparePayment(creditsOperation.get(), principal.getName());
-
-        return new ResponseEntity<>(params,HttpStatus.OK);
-    }
-
     @RequestMapping(value = "payment/status",method = RequestMethod.POST)
     public ResponseEntity<Void> statusPayment(final @RequestParam Map<String,String> params,
                                               final RedirectAttributes redir) {

@@ -3,7 +3,7 @@ package me.exrates.controller.merchants;
 import me.exrates.controller.annotation.FinPassCheck;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.ClientBank;
-import me.exrates.controller.exception.RequestLimitExceededException;
+import me.exrates.service.RequestLimitExceededException;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.model.dto.WithdrawRequestCreateDto;
@@ -67,7 +67,7 @@ public class WithdrawRequestController {
       @RequestBody WithdrawRequestParamsDto requestParamsDto,
       Principal principal,
       Locale locale) throws UnsupportedEncodingException {
-    if (!merchantService.checkOutputRequestsLimit(requestParamsDto.getCurrency(), principal.getName())) {
+    if (!withdrawService.checkOutputRequestsLimit(requestParamsDto.getCurrency(), principal.getName())) {
       throw new RequestLimitExceededException(messageSource.getMessage("merchants.OutputRequestsLimit", null, locale));
     }
     WithdrawStatusEnum beginStatus = (WithdrawStatusEnum) WithdrawStatusEnum.getBeginState();

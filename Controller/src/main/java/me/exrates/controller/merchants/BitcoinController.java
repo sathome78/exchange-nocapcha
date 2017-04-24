@@ -59,51 +59,6 @@ public class BitcoinController {
     this.messageSource = messageSource;
   }
 
-  @RequestMapping(value = "/payment/prepare", method = POST)
-  public ResponseEntity<Map<String, String>> preparePayment(
-      @RequestBody Payment payment,
-      Principal principal,
-      Locale locale) {
-    if (!merchantService.checkInputRequestsLimit(payment.getCurrency(), principal.getName())) {
-      Map<String, String> error = new HashMap<>();
-      error.put("error", messageSource.getMessage("merchants.InputRequestsLimit", null, locale));
-      return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
-    }
-    String email = principal.getName();
-    CreditsOperation creditsOperation = merchantService
-        .prepareCreditsOperation(payment, email)
-        .orElseThrow(InvalidAmountException::new);
-    try {
-      PendingPayment pendingPayment = bitcoinService.createInvoice(creditsOperation);
-      String notification = merchantService
-          .sendDepositNotification(Optional.ofNullable(pendingPayment
-                  .getAddress()).orElseThrow(
-              () -> new MerchantInternalException("Address not presented"))
-              , email, locale, creditsOperation, "merchants.depositNotification.body");
-
-      HttpHeaders httpHeaders = new HttpHeaders();
-      httpHeaders.add("Content-Type", "text/plain; charset=utf-8");
-      Map<String, String> responseMap = new TreeMap<>();
-      responseMap.put("notification", notification);
-      responseMap.put("qr", "bitcoin:" + Optional.ofNullable(pendingPayment
-          .getAddress()).orElseThrow(
-          () -> new MerchantInternalException("Address not presented")) + "?amount="
-          + creditsOperation.getAmount().add(creditsOperation.getCommissionAmount()).doubleValue() + "&message=Donation%20for%20project%20Exrates");
-
-      return new ResponseEntity<>(responseMap, HttpStatus.OK);
-    } catch (final InvalidAmountException | RejectedPaymentInvoice e) {
-      Map<String, String> error = new HashMap<>();
-      error.put("error", messageSource.getMessage("merchants.incorrectPaymentDetails", null, locale));
-      log.warn(error);
-      return new ResponseEntity<>(error, NOT_FOUND);
-    } catch (final Exception e) {
-      Map<String, String> error = new HashMap<>();
-      error.put("error", messageSource.getMessage("merchants.internalError", null, locale));
-      log.error(ExceptionUtils.getStackTrace(e));
-      return new ResponseEntity<>(error, INTERNAL_SERVER_ERROR);
-    }
-  }
-
   @RequestMapping(value = "/payment/accept", method = GET)
   public RedirectView acceptPayment(
       @RequestParam(name = "id") Integer pendingPaymentId,

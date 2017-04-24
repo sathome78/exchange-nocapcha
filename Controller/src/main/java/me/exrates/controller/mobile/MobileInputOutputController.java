@@ -283,7 +283,7 @@ public class MobileInputOutputController {
     public ResponseEntity<MerchantInputResponseDto> preparePayment(@RequestBody @Valid PaymentDto paymentDto) {
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-        if (!merchantService.checkInputRequestsLimit(paymentDto.getCurrency(), userEmail)){
+        if (!refillService.checkInputRequestsLimit(paymentDto.getCurrency(), userEmail)){
             throw new InputRequestLimitExceededException(messageSource.getMessage("merchants.InputRequestsLimit", null, userLocale));
         }
 
@@ -346,7 +346,7 @@ public class MobileInputOutputController {
     public ResponseEntity<InvoiceResponseDto> prepareInvoice(@RequestBody @Valid InvoicePaymentDto paymentDto) {
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-        if (!merchantService.checkInputRequestsLimit(paymentDto.getCurrencyId(), userEmail)){
+        if (!refillService.checkInputRequestsLimit(paymentDto.getCurrencyId(), userEmail)){
             throw new InputRequestLimitExceededException(messageSource.getMessage("merchants.InputRequestsLimit", null, userLocale));
         }
         Payment payment = new Payment();
@@ -503,7 +503,7 @@ public class MobileInputOutputController {
     public ResponseEntity<Map<String, String>> withdrawInvoice(@RequestBody @Valid WithdrawRequestParamsDto requestParamsDto) {
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-        if (!merchantService.checkOutputRequestsLimit(requestParamsDto.getCurrency(), userEmail)) {
+        if (!withdrawService.checkOutputRequestsLimit(requestParamsDto.getCurrency(), userEmail)) {
             throw new RequestLimitExceededException(messageSource.getMessage("merchants.OutputRequestsLimit", null, userLocale));
         }
         Payment payment = new Payment();

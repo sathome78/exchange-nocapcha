@@ -34,4 +34,6 @@ public interface RefillService {
   Integer clearExpiredInvoices() throws Exception;
 
   DataTable<List<RefillRequestsAdminTableDto>> getRefillRequestByStatusList(List<Integer> requestStatus, DataTableParams dataTableParams, RefillFilterData refillFilterData, String authorizedUserEmail, Locale locale);
+
+  boolean checkInputRequestsLimit(int currencyId, String email);
 }

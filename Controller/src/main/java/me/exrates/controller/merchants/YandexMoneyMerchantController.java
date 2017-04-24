@@ -85,32 +85,6 @@ public class YandexMoneyMerchantController {
         return new ModelAndView("redirect:/merchants/yandexmoney/payment/process");
     }
 
-    //// TODO: HANDLE 500 if OperationType is not be converted
-    @RequestMapping(value = "/payment/prepare", method = RequestMethod.POST)
-    public RedirectView preparePayment(@Valid @ModelAttribute("payment") Payment payment,
-                                       BindingResult result, Principal principal, RedirectAttributes redir,
-                                       HttpSession httpSession, final HttpServletRequest request) {
-        if (!merchantService.checkInputRequestsLimit(payment.getCurrency(), principal.getName())){
-            redir.addAttribute("errorNoty", messageSource.getMessage("merchants.InputRequestsLimit", null, localeResolver.resolveLocale(request)));
-            return new RedirectView("/dashboard");
-        }
-
-        final Map<String, Object> model = result.getModel();
-        final Optional<CreditsOperation> creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName());
-        if (!creditsOperation.isPresent()) {
-            redir.addAttribute("errorNoty", messageSource.getMessage("merchants.incorrectPaymentDetails", null, localeResolver.resolveLocale(request)));
-            return new RedirectView("/dashboard");
-        }
-        final OperationType operationType = creditsOperation.get().getOperationType();
-        String viewName = operationType==OperationType.INPUT ? "/yandexmoney/token/authorization" : "/yandexmoney/payment/process";
-        final RedirectView redirectView = new RedirectView("/merchants/"+viewName);
-        final Object mutex = WebUtils.getSessionMutex(httpSession);
-        synchronized (mutex) {
-            httpSession.setAttribute("creditsOperation",creditsOperation.get());
-        }
-        return redirectView;
-    }
-
     @RequestMapping(value = "/payment/process")
     public RedirectView processPayment(@ModelAttribute(value = "token") String token, RedirectAttributes redir,
                                        HttpSession httpSession, final HttpServletRequest httpServletRequest) {

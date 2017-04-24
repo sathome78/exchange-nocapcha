@@ -486,6 +486,12 @@ public class WithdrawServiceImpl implements WithdrawService {
     return withdrawRequestDao.getForPostByStatusList(status.getCode());
   }
 
+  @Override
+  @Transactional(readOnly = true)
+  public boolean checkOutputRequestsLimit(int merchantId, String email) {
+    return withdrawRequestDao.checkOutputRequests(merchantId, email);
+  }
+
   private WithdrawStatusEnum checkPermissionOnActionAndGetNewStatus(Integer requesterAdminId, WithdrawRequestFlatDto withdrawRequest, InvoiceActionTypeEnum action) {
     Boolean requesterAdminIsHolder = requesterAdminId.equals(withdrawRequest.getAdminHolderId());
     InvoiceOperationPermission permission = userService.getCurrencyPermissionsByUserIdAndCurrencyIdAndDirection(

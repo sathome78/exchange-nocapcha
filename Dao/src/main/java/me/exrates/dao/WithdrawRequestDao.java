@@ -46,4 +46,6 @@ public interface WithdrawRequestDao {
   void setInPostingStatusByStatus(Integer inPostingStatusId, List<Integer> statusIdList);
 
   List<ClientBank> findClientBanksForCurrency(Integer currencyId);
+
+  boolean checkOutputRequests(int currencyId, String email);
 }

@@ -4,12 +4,8 @@ import me.exrates.model.*;
 import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
-import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.OperationType;
-import me.exrates.model.vo.CacheData;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -44,10 +40,6 @@ public interface MerchantService {
   Map<String, String> formatResponseMessage(Transaction transaction);
 
   Optional<CreditsOperation> prepareCreditsOperation(Payment payment, String userEmail);
-
-  boolean checkInputRequestsLimit(int merchantId, String email);
-
-    boolean checkOutputRequestsLimit(int currencyId, String email);
 
   void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType);
 

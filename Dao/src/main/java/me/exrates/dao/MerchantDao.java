@@ -37,10 +37,6 @@ public interface MerchantDao {
 
   List<MerchantCurrencyOptionsDto> findMerchantCurrencyOptions();
 
-  boolean checkInputRequests(int currencyId, String email);
-
-  boolean checkOutputRequests(int currencyId, String email);
-
   void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType);
 
   void setBlockForAll(OperationType operationType, boolean blockStatus);

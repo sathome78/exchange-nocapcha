@@ -51,25 +51,6 @@ public class NixMoneyMerchantController {
 
     private static final Logger logger = LogManager.getLogger(NixMoneyMerchantController.class);
 
-    @RequestMapping(value = "/payment/prepare", method = RequestMethod.POST)
-    public RedirectView preparePayment(@Valid @ModelAttribute("payment") Payment payment,
-                                       BindingResult result, Principal principal, RedirectAttributes redir, final HttpServletRequest request) {
-
-        if (!merchantService.checkInputRequestsLimit(payment.getCurrency(), principal.getName())){
-            redir.addAttribute("errorNoty", messageSource.getMessage("merchants.InputRequestsLimit", null, localeResolver.resolveLocale(request)));
-            return new RedirectView("/dashboard");
-        }
-
-        final Optional<CreditsOperation> creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName());
-        if (!creditsOperation.isPresent()) {
-            redir.addAttribute("errorNoty", messageSource.getMessage("merchants.incorrectPaymentDetails", null, localeResolver.resolveLocale(request)));
-            return new RedirectView("/dashboard");
-        }
-
-        return nixMoneyService.preparePayment(creditsOperation.get(), principal.getName());
-
-    }
-
     @RequestMapping(value = "payment/status",method = RequestMethod.POST)
     public ResponseEntity<Void> statusPayment(@RequestParam Map<String,String> params, RedirectAttributes redir) {
 
