@@ -37,7 +37,7 @@ public class LiqPayPaymentService implements MerchantPaymentService {
 
     private static final Logger LOGGER = LogManager.getLogger("merchant");
 
-    @Override
+    /*@Override
     @Transactional
     public MerchantInputResponseDto preparePayment(String email, Payment payment, Locale locale) {
         final CreditsOperation creditsOperation = merchantService
@@ -60,7 +60,7 @@ public class LiqPayPaymentService implements MerchantPaymentService {
                 .queryParams(queryParams)
                 .build(true).toUriString());
         return dto;
-    }
+    }*/
 
     @Override
     public Map<String, String> preparePostPayment(String email, CreditsOperation creditsOperation, Locale locale) {

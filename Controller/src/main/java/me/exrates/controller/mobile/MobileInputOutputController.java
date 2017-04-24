@@ -279,7 +279,7 @@ public class MobileInputOutputController {
      * @apiUse InvalidAmountError
      * @apiUse InternalServerError
      */
-    @RequestMapping(value = "/preparePayment", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    /*@RequestMapping(value = "/preparePayment", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<MerchantInputResponseDto> preparePayment(@RequestBody @Valid PaymentDto paymentDto) {
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
@@ -297,7 +297,7 @@ public class MobileInputOutputController {
         final MerchantInputResponseDto result = merchantPaymentServices.get(beanName).preparePayment(userEmail, payment,
                 userLocale);
         return new ResponseEntity<>(result, OK);
-    }
+    }*/
 
     /**
      * @api {post} /api/payments/invoice/prepare Prepare invoice
@@ -549,7 +549,7 @@ public class MobileInputOutputController {
         return modelAndView;
     }
 
-    @RequestMapping(value = "/preparePostPayment", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    /*@RequestMapping(value = "/preparePostPayment", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Map<String,String>> preparePostPayment(@RequestBody @Valid PaymentDto paymentDto) {
         LOGGER.debug(paymentDto);
         Payment payment = new Payment();
@@ -568,7 +568,7 @@ public class MobileInputOutputController {
                 userLocale);
         LOGGER.debug(result);
         return new ResponseEntity<>(result, OK);
-    }
+    }*/
 
     private String getAuthenticatedUserEmail() {
         return SecurityContextHolder.getContext().getAuthentication().getName();

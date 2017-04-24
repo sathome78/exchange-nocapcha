@@ -1,6 +1,7 @@
 package me.exrates.controller.merchants;
 
 import me.exrates.controller.exception.ErrorInfo;
+import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.service.RequestLimitExceededException;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.InvoiceBank;
@@ -120,6 +121,47 @@ public class RefillRequestController {
       @RequestParam("currency") String currency,
       @RequestParam("merchant") String merchant) {
     return refillService.correctAmountAndCalculateCommission(amount, currency, merchant);
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/refill/take", method = POST)
+  @ResponseBody
+  public void takeToWork(
+      @RequestParam Integer id,
+      Principal principal) {
+    Integer requesterAdminId = userService.getIdByEmail(principal.getName());
+    refillService.takeInWorkRefillRequest(id, requesterAdminId);
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/refill/return", method = POST)
+  @ResponseBody
+  public void returnFromWork(
+      @RequestParam Integer id,
+      Principal principal) {
+    Integer requesterAdminId = userService.getIdByEmail(principal.getName());
+    refillService.returnFromWorkRefillRequest(id, requesterAdminId);
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/refill/decline", method = POST)
+  @ResponseBody
+  public void decline(
+      @RequestParam Integer id,
+      @RequestParam String comment,
+      Principal principal) {
+    Integer requesterAdminId = userService.getIdByEmail(principal.getName());
+    refillService.declineRefillRequest(id, requesterAdminId, comment);
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/refill/accept", method = POST)
+  @ResponseBody
+  public void accept(
+      @RequestParam(required = true) Integer id,
+      Principal principal) {
+    Integer requesterAdminId = userService.getIdByEmail(principal.getName());
+    RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
+        .requestId(id)
+        .requesterAdminId(requesterAdminId)
+        .build();
+    refillService.acceptRefillRequest(requestAcceptDto);
   }
 
   @ResponseStatus(HttpStatus.NOT_FOUND)

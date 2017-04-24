@@ -39,7 +39,7 @@ public class PerfectMoneyPaymentService implements MerchantPaymentService {
 
     private static final Logger LOGGER = LogManager.getLogger("merchant");
 
-    @Override
+    /*@Override
     @Transactional
     public MerchantInputResponseDto preparePayment(String email, Payment payment, Locale locale) {
         MerchantInputResponseDto dto = new MerchantInputResponseDto();
@@ -55,7 +55,7 @@ public class PerfectMoneyPaymentService implements MerchantPaymentService {
         dto.setData(rootUrl + "/api/payments/merchantRedirect?" + paramJoiner.toString());
 
         return dto;
-    }
+    }*/
 
     @Override
     @Transactional

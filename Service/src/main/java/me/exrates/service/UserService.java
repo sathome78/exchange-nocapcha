@@ -165,4 +165,6 @@ public interface UserService {
   String getEmailById(Integer id);
   
   UserRole getUserRoleFromDB(String email);
+
+  UserRole getUserRoleFromDB(Integer userId);
 }

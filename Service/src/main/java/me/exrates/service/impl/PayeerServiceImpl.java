@@ -113,46 +113,21 @@ public class PayeerServiceImpl implements PayeerService {
     throw new NotImplimentedMethod("for " + withdrawMerchantOperationDto);
   }
 
-  /*@Override
-  public RedirectView refill(RefillRequestCreateDto request) {
-    Integer orderId = request.getId();
-    BigDecimal sum = request.getAmountWithCommission();
-    String currency = request.getCurrencyName();
-    BigDecimal amountToPay = sum.setScale(2, BigDecimal.ROUND_HALF_UP);
-    *//**//*
-    Properties properties = new Properties() {{
-      put("m_shop", m_shop);
-      put("m_orderid", orderId);
-      put("m_amount", amountToPay);
-      put("m_curr", currency);
-      String desc = algorithmService.base64Encode(m_desc);
-      put("m_desc", desc);
-      String sign = algorithmService.sha256(m_shop + ":" + orderId
-          + ":" + amountToPay + ":" + currency
-          + ":" + desc + ":" + m_key).toUpperCase();
-      put("m_sign", sign);
-    }};
-    *//**//*
-    RedirectView redirectView = new RedirectView(url);
-    redirectView.setAttributes(properties);
-    return redirectView;
-  }*/
-
   @Override
   public Map<String, String> refill(RefillRequestCreateDto request) {
-    Integer orderId = request.getId();
+    Integer requestId = request.getId();
     BigDecimal sum = request.getAmountWithCommission();
     String currency = request.getCurrencyName();
     BigDecimal amountToPay = sum.setScale(2, BigDecimal.ROUND_HALF_UP);
     /**/
     Properties properties = new Properties() {{
       put("m_shop", m_shop);
-      put("m_orderid", orderId);
+      put("m_orderid", requestId);
       put("m_amount", amountToPay);
       put("m_curr", currency);
       String desc = algorithmService.base64Encode(m_desc);
       put("m_desc", desc);
-      String sign = algorithmService.sha256(m_shop + ":" + orderId
+      String sign = algorithmService.sha256(m_shop + ":" + requestId
           + ":" + amountToPay + ":" + currency
           + ":" + desc + ":" + m_key).toUpperCase();
       put("m_sign", sign);

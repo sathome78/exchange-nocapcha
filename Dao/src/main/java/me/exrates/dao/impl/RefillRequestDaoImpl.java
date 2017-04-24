@@ -91,17 +91,28 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   }
 
   @Override
-  public int findActiveRequestsByMerchantIdAndUserIdForCurrentDate(Integer merchantId, Integer userId) {
-    String sql = "SELECT COUNT(*)" +
+  public Optional<Integer> findIdByMerchantIdAndCurrencyIdAndAddressAndStatusIs(
+      String address,
+      Integer merchantId,
+      Integer currencyId,
+      Integer statusId) {
+    String sql = "SELECT RR.id " +
         " FROM REFILL_REQUEST RR " +
-        " WHERE RR.user_id = :user_id " +
+        " WHERE RR.address = :address " +
         "       AND RR.merchant_id = :merchant_id " +
-        "       AND SUBSTRING_INDEX(RR.date_creation, ' ', 1) = CURDATE() ";
+        "       AND RR.currency_id = :currency_id " +
+        "       AND RR.status_id = :status_id ";
     Map<String, Object> params = new HashMap<String, Object>() {{
-      put("user_id", userId);
+      put("address", address);
       put("merchant_id", merchantId);
+      put("currency_id", currencyId);
+      put("status_id", statusId);
     }};
-    return namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class);
+    try {
+      return Optional.of(namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class));
+    } catch (EmptyResultDataAccessException e){
+      return Optional.empty();
+    }
   }
 
   @Override
@@ -384,6 +395,28 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   }
 
   @Override
+  public void setHolderById(Integer id, Integer holderId) {
+    final String sql = "UPDATE REFILL_REQUEST " +
+        "  SET admin_holder_id = :admin_holder_id " +
+        "  WHERE id = :id";
+    Map<String, Object> params = new HashMap<>();
+    params.put("id", id);
+    params.put("admin_holder_id", holderId);
+    namedParameterJdbcTemplate.update(sql, params);
+  }
+
+  @Override
+  public void setMerchantTransactionIdById(Integer id, String merchantTransactionId) {
+    final String sql = "UPDATE REFILL_REQUEST " +
+        "  SET merchant_transaction_id = :merchant_transaction_id " +
+        "  WHERE id = :id";
+    Map<String, Object> params = new HashMap<>();
+    params.put("id", id);
+    params.put("merchant_transaction_id", merchantTransactionId);
+    namedParameterJdbcTemplate.update(sql, params);
+  }
+
+  @Override
   public boolean checkInputRequests(int currencyId, String email) {
     String sql = "SELECT " +
         " (SELECT COUNT(*) FROM WITHDRAW_REQUEST REQUEST " +
@@ -395,7 +428,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         " JOIN USER ON (USER.roleid = CURRENCY_LIMIT.user_role_id) " +
         " WHERE USER.email = :email AND operation_type_id = 1 AND currency_id = :currency_id) ;";
     Map<String, Object> params = new HashMap<String, Object>();
-    params.put("currencyId", currencyId);
+    params.put("currency_id", currencyId);
     params.put("email", email);
     return namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class) == 1;
   }

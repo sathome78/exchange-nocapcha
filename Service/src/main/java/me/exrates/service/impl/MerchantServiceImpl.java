@@ -11,6 +11,7 @@ import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
 import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
@@ -293,7 +294,7 @@ public class MerchantServiceImpl implements MerchantService {
     }
     User user = userService.findByEmail(userEmail);
     Commission commissionByType = commissionService.findCommissionByTypeAndRole(operationType, user.getRole());
-    BigDecimal commissionMerchant = commissionService.getCommissionMerchant(merchant.getName(), currency.getName(), operationType);
+    BigDecimal commissionMerchant = commissionService.getCommissionMerchant(merchant.getId(), currency.getId(), operationType);
     BigDecimal commissionTotal = commissionByType.getValue().add(commissionMerchant)
         .setScale(currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP);
     BigDecimal commissionAmount =
@@ -323,6 +324,16 @@ public class MerchantServiceImpl implements MerchantService {
         .transactionSourceType(transactionSourceType)
         .build();
     return Optional.of(creditsOperation);
+  }
+
+  @Override
+  @Transactional
+  public BigDecimal getTotalCommissionRate(OperationType operationType, Integer merchantId, Integer currencyId, UserRole userRole){
+    Commission commissionByType = commissionService.findCommissionByTypeAndRole(operationType, userRole);
+    BigDecimal commissionMerchant = commissionService.getCommissionMerchant(merchantId, currencyId, operationType);
+    return commissionByType.getValue()
+        .add(commissionMerchant)
+        .setScale(currencyService.resolvePrecision(currencyService.getCurrencyName(currencyId)), ROUND_HALF_UP);
   }
 
   private BigDecimal correctForMerchantFixedCommission(String merchantName, String currencyName, OperationType operationType, BigDecimal commissionAmount) {

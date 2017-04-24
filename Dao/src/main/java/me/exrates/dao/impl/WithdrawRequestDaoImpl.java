@@ -360,7 +360,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
         " JOIN USER ON (USER.roleid = CURRENCY_LIMIT.user_role_id)" +
         " WHERE USER.email = :email AND operation_type_id = 2 AND currency_id = :currency_id) ;";
     Map<String, Object> params = new HashMap<String, Object>();
-    params.put("currencyId", currencyId);
+    params.put("currency_id", currencyId);
     params.put("email", email);
     return jdbcTemplate.queryForObject(sql, params, Integer.class) == 1;
   }

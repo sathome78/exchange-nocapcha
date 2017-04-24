@@ -34,7 +34,7 @@ public class BlockchainPaymentService implements MerchantPaymentService {
     @Autowired
     private MessageSource messageSource;
 
-    @Override
+    /*@Override
     @Transactional
     public MerchantInputResponseDto preparePayment(String email, Payment payment, Locale locale) {
         final CreditsOperation creditsOperation = merchantService
@@ -54,7 +54,7 @@ public class BlockchainPaymentService implements MerchantPaymentService {
                 + creditsOperation.getAmount().doubleValue() + "&message=Donation%20for%20project%20Exrates");
         return dto;
 
-    }
+    }*/
 
     @Override
     public Map<String, String> preparePostPayment(String email, CreditsOperation creditsOperation, Locale locale) {

@@ -36,7 +36,7 @@ public class Privat24PaymentService implements MerchantPaymentService {
     @Autowired
     private Privat24Service privat24Service;
 
-    @Override
+    /*@Override
     @Transactional
     public MerchantInputResponseDto preparePayment(String email, Payment payment, Locale locale) {
         MerchantInputResponseDto dto = new MerchantInputResponseDto();
@@ -52,7 +52,7 @@ public class Privat24PaymentService implements MerchantPaymentService {
         dto.setData(rootUrl + "/api/payments/merchantRedirect?" + paramJoiner.toString());
 
         return dto;
-    }
+    }*/
 
     @Override
     @Transactional

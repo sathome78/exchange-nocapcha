@@ -2,20 +2,21 @@ package me.exrates.service.impl;
 
 import me.exrates.dao.MerchantDao;
 import me.exrates.dao.RefillRequestDao;
-import me.exrates.model.InvoiceBank;
-import me.exrates.model.Merchant;
-import me.exrates.model.PagingData;
+import me.exrates.model.*;
+import me.exrates.model.Currency;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillFilterData;
-import me.exrates.model.enums.NotificationEvent;
-import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.*;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.TransactionDescription;
+import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.*;
 import me.exrates.service.exception.FileLoadingException;
+import me.exrates.service.exception.NotImplimentedMethod;
+import me.exrates.service.exception.RefillRequestRevokeException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
@@ -38,10 +39,15 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.math.BigDecimal.ROUND_HALF_UP;
 import static me.exrates.model.enums.OperationType.INPUT;
+import static me.exrates.model.enums.UserCommentTopicEnum.REFILL_ACCEPTED;
+import static me.exrates.model.enums.UserCommentTopicEnum.REFILL_DECLINE;
+import static me.exrates.model.enums.WalletTransferStatus.SUCCESS;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.*;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.REFILL;
 import static me.exrates.model.enums.invoice.InvoiceRequestStatusEnum.EXPIRED;
+import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 
 /**
  * created by ValkSam
@@ -156,6 +162,134 @@ public class RefillServiceImpl implements RefillService {
   }
 
   @Override
+  @Transactional
+  public Optional<Integer> getActiveRequestIdByAddressAndMerchantIdAndCurrencyId(String address, Integer merchantId, Integer currencyId) {
+    RefillStatusEnum activeRequestStatus = RefillStatusEnum.ON_PENDING;
+    return refillRequestDao.findIdByMerchantIdAndCurrencyIdAndAddressAndStatusIs(address, merchantId, currencyId, activeRequestStatus.getCode());
+  }
+
+  @Override
+  @Transactional
+  public void autoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto) {
+    Integer requestId = requestAcceptDto.getRequestId();
+    if (requestId == null) {
+      Optional<Integer> requestIdOptional = getActiveRequestIdByAddressAndMerchantIdAndCurrencyId(
+          requestAcceptDto.getAddress(),
+          requestAcceptDto.getMerchantId(),
+          requestAcceptDto.getCurrencyId());
+      if (requestIdOptional.isPresent()) {
+        requestId = requestIdOptional.get();
+      }
+    }
+    if (requestId != null) {
+      RefillRequestFlatDto refillRequestFlatDto = acceptRefill(
+          requestId,
+          requestAcceptDto.getAmount(),
+          null);
+      refillRequestDao.setMerchantTransactionIdById(requestId, requestAcceptDto.getMerchantTransactionId());
+      /**/
+      Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
+      String title = messageSource.getMessage("refill.accepted.title", new Integer[]{requestId}, locale);
+      String comment = messageSource.getMessage("merchants.refillNotification.".concat(refillRequestFlatDto.getStatus().name()),
+          new Integer[]{requestId},
+          locale);
+      String userEmail = userService.getEmailById(refillRequestFlatDto.getUserId());
+      userService.addUserComment(REFILL_ACCEPTED, comment, userEmail, false);
+      notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
+    } else {
+      throw new NotImplimentedMethod("received payment for old address");
+    }
+  }
+
+  @Override
+  @Transactional
+  public void acceptRefillRequest(RefillRequestAcceptDto requestAcceptDto) {
+    Integer requestId = requestAcceptDto.getRequestId();
+    RefillRequestFlatDto refillRequestFlatDto = acceptRefill(
+        requestId,
+        requestAcceptDto.getAmount(),
+        requestAcceptDto.getRequesterAdminId());
+    refillRequestDao.setMerchantTransactionIdById(requestId, requestAcceptDto.getMerchantTransactionId());
+      /**/
+    Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
+    String title = messageSource.getMessage("refill.accepted.title", new Integer[]{requestId}, locale);
+    String comment = messageSource.getMessage("merchants.refillNotification.".concat(refillRequestFlatDto.getStatus().name()),
+        new Integer[]{requestId},
+        locale);
+    String userEmail = userService.getEmailById(refillRequestFlatDto.getUserId());
+    userService.addUserComment(REFILL_ACCEPTED, comment, userEmail, false);
+    notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
+  }
+
+  private RefillRequestFlatDto acceptRefill(Integer requestId, BigDecimal factAmount, Integer requesterAdminId) {
+    ProfileData profileData = new ProfileData(1000);
+    try {
+      RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
+          .orElseThrow(() -> new InvoiceNotFoundException(String.format("refill request id: %s", requestId)));
+      RefillStatusEnum currentStatus = refillRequest.getStatus();
+      InvoiceActionTypeEnum action = refillRequest.getStatus().availableForAction(ACCEPT_HOLDED) ? ACCEPT_HOLDED : ACCEPT_AUTO;
+      RefillStatusEnum newStatus = requesterAdminId == null ?
+          (RefillStatusEnum) currentStatus.nextState(action) :
+          checkPermissionOnActionAndGetNewStatus(requesterAdminId, refillRequest, action);
+      refillRequestDao.setStatusById(requestId, newStatus);
+      refillRequestDao.setHolderById(requestId, requesterAdminId);
+      refillRequest.setStatus(newStatus);
+      refillRequest.setAdminHolderId(requesterAdminId);
+      profileData.setTime1();
+      /**/
+      Integer userWalletId = walletService.getWalletId(refillRequest.getUserId(), refillRequest.getCurrencyId());
+      /**/
+      BigDecimal amount = refillRequest.getAmount();
+      BigDecimal commission = refillRequest.getCommissionAmount();
+      if (!factAmount.equals(amount)) {
+        amount = factAmount;
+        commission = reCalculateCommissionFromAmount(refillRequest, amount);
+      }
+      /**/
+      WalletOperationData walletOperationData = new WalletOperationData();
+      walletOperationData.setOperationType(INPUT);
+      walletOperationData.setWalletId(userWalletId);
+      walletOperationData.setAmount(amount);
+      walletOperationData.setBalanceType(ACTIVE);
+      walletOperationData.setCommission(new Commission(refillRequest.getCommissionId()));
+      walletOperationData.setCommissionAmount(commission);
+      walletOperationData.setSourceType(TransactionSourceType.REFILL);
+      walletOperationData.setSourceId(refillRequest.getId());
+      String description = transactionDescription.get(currentStatus, action);
+      walletOperationData.setDescription(description);
+      WalletTransferStatus walletTransferStatus = walletService.walletBalanceChange(walletOperationData);
+      if (walletTransferStatus != SUCCESS) {
+        throw new RefillRequestRevokeException(walletTransferStatus.name());
+      }
+      profileData.setTime2();
+      CompanyWallet companyWallet = companyWalletService.findByCurrency(new Currency(refillRequest.getCurrencyId()));
+      companyWalletService.deposit(
+          companyWallet,
+          refillRequest.getAmount(),
+          walletOperationData.getCommissionAmount()
+      );
+      profileData.setTime3();
+      return refillRequest;
+    } finally {
+      profileData.checkAndLog("slow post RefillRequest: " + requestId + " profile: " + profileData);
+    }
+  }
+
+  private BigDecimal reCalculateCommissionFromAmount(RefillRequestFlatDto refillRequest, BigDecimal newAmount) {
+    String currencyName = currencyService.getCurrencyName(refillRequest.getCurrencyId());
+    int scale = currencyService.resolvePrecision(currencyName);
+    UserRole userRole = userService.getUserRoleFromDB(refillRequest.getUserId());
+    BigDecimal totalCommissionRate = merchantService.getTotalCommissionRate(
+        INPUT,
+        refillRequest.getMerchantId(),
+        refillRequest.getCurrencyId(),
+        userRole);
+    BigDecimal mass = BigDecimal.valueOf(100L).add(totalCommissionRate);
+    return newAmount.multiply(totalCommissionRate)
+        .divide(mass, scale, ROUND_HALF_UP).setScale(scale, ROUND_HALF_UP);
+  }
+
+  @Override
   @Transactional(readOnly = true)
   public RefillRequestFlatDto getFlatById(Integer id) {
     return refillRequestDao.getFlatById(id)
@@ -266,6 +400,69 @@ public class RefillServiceImpl implements RefillService {
   @Transactional(readOnly = true)
   public boolean checkInputRequestsLimit(int currencyId, String email) {
     return refillRequestDao.checkInputRequests(currencyId, email);
+  }
+
+  @Override
+  @Transactional
+  public void revokeWithdrawalRequest(int requestId) {
+    RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
+        .orElseThrow(() -> new InvoiceNotFoundException(String.format("refill request id: %s", requestId)));
+    RefillStatusEnum currentStatus = refillRequest.getStatus();
+    InvoiceActionTypeEnum action = REVOKE;
+    RefillStatusEnum newStatus = (RefillStatusEnum) currentStatus.nextState(action);
+    refillRequestDao.setStatusById(requestId, newStatus);
+  }
+
+  @Override
+  @Transactional
+  public void takeInWorkRefillRequest(int requestId, Integer requesterAdminId) {
+    RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
+        .orElseThrow(() -> new InvoiceNotFoundException(String.format("refill request id: %s", requestId)));
+    InvoiceActionTypeEnum action = TAKE_TO_WORK;
+    RefillStatusEnum newStatus = checkPermissionOnActionAndGetNewStatus(requesterAdminId, refillRequest, action);
+    refillRequestDao.setStatusById(requestId, newStatus);
+    /**/
+    refillRequestDao.setHolderById(requestId, requesterAdminId);
+  }
+
+  @Override
+  @Transactional
+  public void returnFromWorkRefillRequest(int requestId, Integer requesterAdminId) {
+    RefillRequestFlatDto withdrawRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
+        .orElseThrow(() -> new InvoiceNotFoundException(String.format("refill request id: %s", requestId)));
+    InvoiceActionTypeEnum action = RETURN_FROM_WORK;
+    RefillStatusEnum newStatus = checkPermissionOnActionAndGetNewStatus(requesterAdminId, withdrawRequest, action);
+    refillRequestDao.setStatusById(requestId, newStatus);
+    /**/
+    refillRequestDao.setHolderById(requestId, null);
+  }
+
+  @Override
+  @Transactional
+  public void declineRefillRequest(int requestId, Integer requesterAdminId, String comment) {
+    ProfileData profileData = new ProfileData(1000);
+    try {
+      RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
+          .orElseThrow(() -> new InvoiceNotFoundException(String.format("refill request id: %s", requestId)));
+      RefillStatusEnum currentStatus = refillRequest.getStatus();
+      InvoiceActionTypeEnum action = refillRequest.getStatus().availableForAction(DECLINE_HOLDED) ? DECLINE_HOLDED : DECLINE;
+      RefillStatusEnum newStatus = checkPermissionOnActionAndGetNewStatus(requesterAdminId, refillRequest, action);
+      refillRequestDao.setStatusById(requestId, newStatus);
+      refillRequestDao.setHolderById(requestId, requesterAdminId);
+      profileData.setTime1();
+      /**/
+      Locale locale = new Locale(userService.getPreferedLang(refillRequest.getUserId()));
+      String title = messageSource.getMessage("refill.declined.title", new Integer[]{requestId}, locale);
+      if (StringUtils.isEmpty(comment)) {
+        comment = messageSource.getMessage("merchants.refillNotification.".concat(newStatus.name()), new Integer[]{requestId}, locale);
+      }
+      String userEmail = userService.getEmailById(refillRequest.getUserId());
+      userService.addUserComment(REFILL_DECLINE, comment, userEmail, false);
+      notificationService.notifyUser(refillRequest.getUserId(), NotificationEvent.IN_OUT, title, comment);
+      profileData.setTime3();
+    } finally {
+      profileData.checkAndLog("slow decline RefillRequest: " + requestId + " profile: " + profileData);
+    }
   }
 
   private Integer createRefill(RefillRequestCreateDto request) {

@@ -21,7 +21,7 @@ import java.util.Optional;
  */
 public interface RefillRequestDao {
 
-  int findActiveRequestsByMerchantIdAndUserIdForCurrentDate(Integer merchantId, Integer userId);
+  Optional<Integer> findIdByMerchantIdAndCurrencyIdAndAddressAndStatusIs(String address, Integer merchantId, Integer currencyId, Integer statusId);
 
   int create(RefillRequestCreateDto request);
 
@@ -52,6 +52,10 @@ public interface RefillRequestDao {
       Integer requesterUserId);
 
   RefillRequestFlatAdditionalDataDto getAdditionalDataForId(int id);
+
+  void setHolderById(Integer id, Integer holderId);
+
+  void setMerchantTransactionIdById(Integer id, String merchantTransactionId);
 
   boolean checkInputRequests(int currencyId, String email);
 }

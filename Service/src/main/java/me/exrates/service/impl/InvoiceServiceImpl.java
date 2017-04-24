@@ -32,9 +32,7 @@ import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -43,7 +41,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 
-import static me.exrates.model.enums.UserCommentTopicEnum.INVOICE_DECLINE;
+import static me.exrates.model.enums.UserCommentTopicEnum.REFILL_DECLINE;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.*;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.WITHDRAW;
 import static me.exrates.model.enums.invoice.InvoiceRequestStatusEnum.DECLINED_ADMIN;
@@ -195,7 +193,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     if (StringUtils.isEmpty(comment)) {
       comment = messageSource.getMessage("merchants.invoice.declined.message", new Integer[]{invoiceId}, locale);
     }
-    userService.addUserComment(INVOICE_DECLINE, comment, invoiceRequest.getUserEmail(), false);
+    userService.addUserComment(REFILL_DECLINE, comment, invoiceRequest.getUserEmail(), false);
     notificationService.notifyUser(invoiceRequest.getUserId(), NotificationEvent.IN_OUT, title, comment);
   }
 

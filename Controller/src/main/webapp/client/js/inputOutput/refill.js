@@ -86,32 +86,7 @@ $(function () {
         updateRefillTable();
     });
 
-    $('#refillTable').on('click', 'button[data-source=REFILL].accept_holded_button', function (e) {
-        alert("$('#refillTable').on('click', 'button[data-source=REFILL].accept_holded_button', function (e) {");
-        e.preventDefault();
-        var id = $(this).data("id");
-        var $modal = $("#confirm-with-info-modal");
-        $modal.find("label[for=info-field]").html($(this).html());
-        $modal.find("#info-field").val(id);
-        $modal.find("#confirm-button").off("click").one("click", function () {
-            $modal.modal('hide');
-            $.ajax({
-                url: '/2a8fy7b07dxe44/refill/accept?id=' + id,
-                async: false,
-                headers: {
-                    'X-CSRF-Token': $("input[name='_csrf']").val(),
-                },
-                type: 'POST',
-                complete: function () {
-                    updateRefillTable();
-                }
-            });
-        });
-        $modal.modal();
-    });
-
     $('#refillTable').on('click', 'button[data-source=REFILL].take_to_work_button', function (e) {
-        alert("$('#refillTable').on('click', 'button[data-source=REFILL].take_to_work_button', function (e) {");
         e.preventDefault();
         var id = $(this).data("id");
         var $modal = $("#confirm-with-info-modal");
@@ -135,7 +110,6 @@ $(function () {
     });
 
     $('#refillTable').on('click', 'button[data-source=REFILL].return_from_work_button', function (e) {
-        alert("$('#refillTable').on('click', 'button[data-source=REFILL].return_from_work_button', function (e) {");
         e.preventDefault();
         var id = $(this).data("id");
         var $modal = $("#confirm-with-info-modal");
@@ -158,9 +132,7 @@ $(function () {
         $modal.modal();
     });
 
-
     $('#refillTable').on('click', 'button[data-source=REFILL].decline_holded_button', function (e) {
-        alert("$('#refillTable').on('click', 'button[data-source=REFILL].decline_holded_button', function (e) {");
         e.stopPropagation();
         var id = $(this).data("id");
         var $modal = $("#note-before-decline-modal");
@@ -201,6 +173,30 @@ $(function () {
             }
         });
     });
+
+    $('#refillTable').on('click', 'button[data-source=REFILL].accept_holded_button', function (e) {
+        e.preventDefault();
+        var id = $(this).data("id");
+        var $modal = $("#confirm-with-info-modal");
+        $modal.find("label[for=info-field]").html($(this).html());
+        $modal.find("#info-field").val(id);
+        $modal.find("#confirm-button").off("click").one("click", function () {
+            $modal.modal('hide');
+            $.ajax({
+                url: '/2a8fy7b07dxe44/refill/accept?id=' + id,
+                async: false,
+                headers: {
+                    'X-CSRF-Token': $("input[name='_csrf']").val(),
+                },
+                type: 'POST',
+                complete: function () {
+                    updateRefillTable();
+                }
+            });
+        });
+        $modal.modal();
+    });
+
 
 });
 

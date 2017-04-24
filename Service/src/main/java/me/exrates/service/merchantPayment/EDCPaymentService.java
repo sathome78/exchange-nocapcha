@@ -1,27 +1,15 @@
 package me.exrates.service.merchantPayment;
 
 import me.exrates.model.CreditsOperation;
-import me.exrates.model.Payment;
-import me.exrates.model.dto.mobileApiDto.MerchantInputResponseDto;
-import me.exrates.model.enums.MerchantApiResponseType;
-import me.exrates.service.EDCMerchantService;
 import me.exrates.service.EDCService;
 import me.exrates.service.MerchantService;
-import me.exrates.service.exception.InvalidAmountException;
-import me.exrates.service.exception.MerchantInternalException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 /**
  * Created by OLEG on 05.09.2016.
@@ -34,15 +22,12 @@ public class EDCPaymentService implements MerchantPaymentService {
     private EDCService edcService;
     
     @Autowired
-    private EDCMerchantService edcMerchantService;
-
-    @Autowired
     private MerchantService merchantService;
 
     @Autowired
     private MessageSource messageSource;
 
-    @Override
+    /*@Override
     @Transactional
     public MerchantInputResponseDto preparePayment(String email, Payment payment, Locale locale) {
         final CreditsOperation creditsOperation = merchantService
@@ -66,7 +51,7 @@ public class EDCPaymentService implements MerchantPaymentService {
             LOGGER.error(e);
             throw new MerchantInternalException(error);
         }
-    }
+    }*/
 
     @Override
     public Map<String, String> preparePostPayment(String email, CreditsOperation creditsOperation, Locale locale) {

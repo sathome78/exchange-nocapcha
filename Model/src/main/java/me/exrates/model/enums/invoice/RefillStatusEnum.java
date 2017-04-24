@@ -48,7 +48,7 @@ public enum RefillStatusEnum implements InvoiceStatus {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
       schemaMap.put(InvoiceActionTypeEnum.ACCEPT_AUTO, ACCEPTED_AUTO);
-      schemaMap.put(InvoiceActionTypeEnum.ACCEPT_MANUAL, ACCEPTED_ADMIN);
+      schemaMap.put(InvoiceActionTypeEnum.TAKE_TO_WORK, TAKEN_FROM_PENDING);
       schemaMap.put(InvoiceActionTypeEnum.START_BCH_EXAMINE, ON_BCH_EXAM);
       schemaMap.put(InvoiceActionTypeEnum.REVOKE, REVOKED_USER);
       schemaMap.put(InvoiceActionTypeEnum.EXPIRE, EXPIRED);
@@ -64,7 +64,7 @@ public enum RefillStatusEnum implements InvoiceStatus {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
       schemaMap.put(InvoiceActionTypeEnum.ACCEPT_AUTO, ACCEPTED_AUTO);
-      schemaMap.put(InvoiceActionTypeEnum.ACCEPT_MANUAL, ACCEPTED_ADMIN);
+      schemaMap.put(InvoiceActionTypeEnum.TAKE_TO_WORK, TAKEN_FROM_EXAM);
     }
   },
   IN_WORK_OF_ADMIN(7) {
@@ -100,6 +100,20 @@ public enum RefillStatusEnum implements InvoiceStatus {
   EXPIRED(12) {
     @Override
     public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
+    }
+  },
+  TAKEN_FROM_PENDING(13){
+    @Override
+    public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
+      schemaMap.put(InvoiceActionTypeEnum.ACCEPT_HOLDED, ACCEPTED_ADMIN);
+      schemaMap.put(InvoiceActionTypeEnum.RETURN_FROM_WORK, ON_PENDING);
+    }
+  },
+  TAKEN_FROM_EXAM(14){
+    @Override
+    public void initSchema(Map<InvoiceActionTypeEnum, InvoiceStatus> schemaMap) {
+      schemaMap.put(InvoiceActionTypeEnum.ACCEPT_HOLDED, ACCEPTED_ADMIN);
+      schemaMap.put(InvoiceActionTypeEnum.RETURN_FROM_WORK, ON_BCH_EXAM);
     }
   };
 

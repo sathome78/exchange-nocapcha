@@ -33,7 +33,7 @@ public class AdvcashMoneyPaymentService implements MerchantPaymentService {
     @Autowired
     private AdvcashService advcashService;
 
-    @Override
+    /*@Override
     @Transactional
     public MerchantInputResponseDto preparePayment(String email, Payment payment, Locale locale) {
         final CreditsOperation creditsOperation = merchantService
@@ -54,7 +54,7 @@ public class AdvcashMoneyPaymentService implements MerchantPaymentService {
                 .queryParams(queryParams)
                 .build(true).toUriString());
         return dto;
-    }
+    }*/
 
     @Override
     public Map<String, String> preparePostPayment(String email, CreditsOperation creditsOperation, Locale locale) {

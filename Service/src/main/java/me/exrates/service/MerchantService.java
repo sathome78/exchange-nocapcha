@@ -5,7 +5,9 @@ import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.UserRole;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -40,6 +42,8 @@ public interface MerchantService {
   Map<String, String> formatResponseMessage(Transaction transaction);
 
   Optional<CreditsOperation> prepareCreditsOperation(Payment payment, String userEmail);
+
+  BigDecimal getTotalCommissionRate(OperationType operationType, Integer merchantId, Integer currencyId, UserRole userRole);
 
   void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType);
 

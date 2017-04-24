@@ -4,7 +4,6 @@ import me.exrates.model.Currency;
 import me.exrates.model.MerchantCurrency;
 import me.exrates.model.Payment;
 import me.exrates.model.Wallet;
-import me.exrates.model.enums.CurrencyWarningTopicEnum;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.*;
@@ -26,6 +25,8 @@ import java.util.stream.Collectors;
 
 import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.OperationType.OUTPUT;
+import static me.exrates.model.enums.UserCommentTopicEnum.REFILL_CURRENCY_WARNING;
+import static me.exrates.model.enums.UserCommentTopicEnum.WITHDRAW_CURRENCY_WARNING;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 /**
@@ -67,7 +68,7 @@ public class CommonMerchantsController {
     modelAndView.addObject("minRefillSum", minRefillSum);
     List<Integer> currenciesId = Collections.singletonList(currency.getId());
     modelAndView.addObject("merchantCurrencyData", merchantService.getAllUnblockedForOperationTypeByCurrencies(currenciesId, OperationType.INPUT));
-    List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), CurrencyWarningTopicEnum.REFILL_CURRENCY_WARNING);
+    List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), REFILL_CURRENCY_WARNING);
     modelAndView.addObject("warningCodeList", warningCodeList);
     return modelAndView;
   }
@@ -89,7 +90,7 @@ public class CommonMerchantsController {
     modelAndView.addObject("minWithdrawSum", minWithdrawSum);
     List<Integer> currenciesId = Collections.singletonList(currency.getId());
     modelAndView.addObject("merchantCurrencyData", merchantService.getAllUnblockedForOperationTypeByCurrencies(currenciesId, OperationType.OUTPUT));
-    List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), CurrencyWarningTopicEnum.WITHDRAW_CURRENCY_WARNING);
+    List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), WITHDRAW_CURRENCY_WARNING);
     modelAndView.addObject("warningCodeList", warningCodeList);
     return modelAndView;
   }

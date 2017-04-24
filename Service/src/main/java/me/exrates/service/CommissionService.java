@@ -20,6 +20,8 @@ public interface CommissionService {
 
   BigDecimal getCommissionMerchant(String merchant, String currency, OperationType operationType);
 
+  BigDecimal getCommissionMerchant(Integer merchantId, Integer currencyId, OperationType operationType);
+
   List<Commission> getEditableCommissions();
 
   List<CommissionShortEditDto> getEditableCommissionsByRole(String role, Locale locale);
@@ -28,7 +30,6 @@ public interface CommissionService {
 
   void updateCommission(OperationType operationType, String roleName, BigDecimal value);
 
-  @Transactional
   void updateMerchantCommission(EditMerchantCommissionDto editMerchantCommissionDto);
 
   BigDecimal getMinFixedCommission(String merchant, String currency);

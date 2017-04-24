@@ -36,7 +36,7 @@ public class YandexkassaPaymentService implements MerchantPaymentService {
 
     private static final Logger LOGGER = LogManager.getLogger("merchant");
 
-    @Override
+    /*@Override
     @Transactional
     public MerchantInputResponseDto preparePayment(String email, Payment payment, Locale locale) {
         MerchantInputResponseDto dto = new MerchantInputResponseDto();
@@ -51,7 +51,7 @@ public class YandexkassaPaymentService implements MerchantPaymentService {
         urlParams.forEach((key, value) -> paramJoiner.add(key + "=" + value));
         dto.setData(rootUrl + "/api/payments/merchantRedirect?" + paramJoiner.toString());
         return dto;
-    }
+    }*/
 
     @Override
     @Transactional

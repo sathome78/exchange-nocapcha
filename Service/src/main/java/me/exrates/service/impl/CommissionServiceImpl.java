@@ -55,11 +55,21 @@ public class CommissionServiceImpl implements CommissionService {
   }
 
   @Override
+  @Transactional
   public BigDecimal getCommissionMerchant(String merchant, String currency, OperationType operationType) {
     if (!(operationType == OperationType.INPUT || operationType == OperationType.OUTPUT)) {
       throw new IllegalArgumentException("Invalid operation type");
     }
     return commissionDao.getCommissionMerchant(merchant, currency, operationType);
+  }
+
+  @Override
+  @Transactional
+  public BigDecimal getCommissionMerchant(Integer merchantId, Integer currencyId, OperationType operationType) {
+    if (!(operationType == OperationType.INPUT || operationType == OperationType.OUTPUT)) {
+      throw new IllegalArgumentException("Invalid operation type");
+    }
+    return commissionDao.getCommissionMerchant(merchantId, merchantId, operationType);
   }
 
   @Override

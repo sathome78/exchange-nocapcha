@@ -40,7 +40,7 @@ public class YandexMoneyPaymentService implements MerchantPaymentService {
 
     private static final Logger LOGGER = LogManager.getLogger("merchant");
 
-    @Override
+    /*@Override
     @Transactional
     public MerchantInputResponseDto preparePayment(String email, Payment payment, Locale locale) {
         int paymentId = yandexMoneyService.saveInputPayment(payment);
@@ -49,9 +49,7 @@ public class YandexMoneyPaymentService implements MerchantPaymentService {
         String redirectURI = apiRedirectURI + "&paymentId=" + paymentId + "&userId=" + userService.getIdByEmail(email);
         dto.setData(yandexMoneyService.getTemporaryAuthCode(redirectURI));
         return dto;
-
-
-    }
+    }*/
 
     @Override
     public Map<String, String> preparePostPayment(String email, CreditsOperation creditsOperation, Locale locale) {

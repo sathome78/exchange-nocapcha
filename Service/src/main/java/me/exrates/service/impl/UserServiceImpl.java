@@ -612,4 +612,10 @@ public class UserServiceImpl implements UserService {
     return userDao.getUserRoleByEmail(email);
   }
 
+  @Override
+  @Transactional
+  public UserRole getUserRoleFromDB(Integer userId) {
+    return userDao.getUserRoleById(userId);
+  }
+
 }

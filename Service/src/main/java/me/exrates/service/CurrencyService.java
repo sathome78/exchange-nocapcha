@@ -7,10 +7,7 @@ import me.exrates.model.dto.CurrencyPairLimitDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
-import me.exrates.model.enums.CurrencyWarningTopicEnum;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.OrderType;
-import me.exrates.model.enums.UserRole;
+import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 
 import java.math.BigDecimal;
@@ -61,7 +58,7 @@ public interface CurrencyService {
 
   Set<String> getCurrencyPermittedNameList(Integer userId);
   
-  List<String> getWarningForCurrency(Integer currencyId, CurrencyWarningTopicEnum currencyWarningTopicEnum);
+  List<String> getWarningForCurrency(Integer currencyId, UserCommentTopicEnum currencyWarningTopicEnum);
 
   Currency getById(int id);
   

@@ -37,7 +37,7 @@ public class NixMoneyPaymentService implements MerchantPaymentService {
 
     private static final Logger LOGGER = LogManager.getLogger("merchant");
 
-    @Override
+    /*@Override
     @Transactional
     public MerchantInputResponseDto preparePayment(String email, Payment payment, Locale locale) {
         final CreditsOperation creditsOperation = merchantService
@@ -52,7 +52,7 @@ public class NixMoneyPaymentService implements MerchantPaymentService {
 
         dto.setData(redirectView.getUrl() + "?" + params.toString());
         return dto;
-    }
+    }*/
 
     @Override
     public Map<String, String> preparePostPayment(String email, CreditsOperation creditsOperation, Locale locale) {

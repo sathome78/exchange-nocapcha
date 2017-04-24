@@ -12,7 +12,7 @@ import java.util.Map;
  */
 public interface MerchantPaymentService {
 
-    MerchantInputResponseDto preparePayment(String email, Payment payment, Locale locale);
+//    MerchantInputResponseDto preparePayment(String email, Payment payment, Locale locale);
 
     Map<String, String> preparePostPayment(String email, CreditsOperation creditsOperation, Locale locale);
 }
