@@ -442,6 +442,13 @@ public class OrderServiceImpl implements OrderService {
     acceptOrder(userAcceptorId, orderId, locale, true);
 
   }
+  
+  @Override
+  @Transactional(rollbackFor = {Exception.class})
+  public void acceptOrderByAdmin(String acceptorEmail, Integer orderId, Locale locale) {
+    Integer userId = userService.getIdByEmail(acceptorEmail);
+    acceptOrder(userId, orderId, locale);
+  }
 
   private void acceptOrder(int userAcceptorId, int orderId, Locale locale, boolean sendNotification) {
     try {

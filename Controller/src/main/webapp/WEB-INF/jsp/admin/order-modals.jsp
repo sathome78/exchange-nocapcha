@@ -46,12 +46,12 @@
             </div>
             <div class="modal-footer">
                 <div class="delete-order-info__button-wrapper">
-                    <button id="delete-order-info__delete" class="delete-order-info__button"
-                    ><loc:message
-                            code="deleteorder.submit"/></button>
-                    <button class="delete-order-info__button" data-dismiss="modal"
-                    ><loc:message
-                            code="submitorder.cancell"/></button>
+                    <button id="delete-order-info__accept" class="btn btn-success">
+                        <loc:message code="acceptorder.submit"/></button>
+                    <button id="delete-order-info__delete" class="btn btn-danger">
+                        <loc:message code="deleteorder.submit"/></button>
+                    <button class="btn btn-warning" data-dismiss="modal">
+                        <loc:message code="submitorder.cancell"/></button>
                 </div>
             </div>
         </div>

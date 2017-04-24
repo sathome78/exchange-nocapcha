@@ -104,7 +104,9 @@ public interface OrderService {
    * @param locale  is current locale. Used to generate messages
    */
   void acceptOrder(int userId, int orderId, Locale locale);
-
+  
+  void acceptOrderByAdmin(String acceptorEmail, Integer orderId, Locale locale);
+  
   /**
    * Cancels the order and set status "CANCELLED"
    * Only order with status "OPENED" can be cancelled

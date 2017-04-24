@@ -25,10 +25,17 @@ function getOrderDetailedInfo(currentRow, orderId, enableDelete) {
                 $("#delete-order-info__delete").toggle(false);
             } else {
                 $("#delete-order-info__delete").toggle(true);
-                /*$("#delete-order-info__delete").attr('onclick', 'deleteOrderByAdmin(' + data.id + ')');*/
                 $("#delete-order-info__delete").on('click', function () {
                     deleteOrderByAdmin(data.id, currentRow);
                 })
+            }
+            if (data.orderStatusName.toUpperCase() === 'OPENED') {
+                $("#delete-order-info__accept").toggle(true);
+                $("#delete-order-info__accept").on('click', function () {
+                    acceptOrderByAdmin(data.id, currentRow);
+                });
+            } else {
+                $("#delete-order-info__accept").toggle(false);
             }
 
             /**/
@@ -84,6 +91,30 @@ function deleteOrderByAdmin(order_id, currentRow) {
                         $('#order-delete-modal--result-info').modal();
                     }
 
+                }
+            }
+        );
+    });
+    $('#order-delete-modal').modal('hide');
+}
+
+function acceptOrderByAdmin(order_id, currentRow) {
+    $('#order-delete-modal').one('hidden.bs.modal', function (e) {
+        /*placed in close callback because we must give time for #order-delete-modal to restore parameters of <body>
+         * otherwise we get the shift of the window to the left every time when open and then close #order-delete-modal--ok
+         */
+        $.ajax({
+                headers: {
+                    'X-CSRF-Token': $("input[name='_csrf']").val()
+                },
+                url: '/2a8fy7b07dxe44/order/accept?id=' + order_id,
+                type: 'POST',
+                success: function (data) {
+                    var updated = currentRow.data();
+                    updated.status = "CLOSED";
+                    currentRow.data(updated).draw();
+
+                    successNoty(data['result'], 'successDefault');
                 }
             }
         );
