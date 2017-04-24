@@ -724,6 +724,13 @@ public class AdminController {
       throw e;
     }
   }
+  
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/order/accept", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  public Map<String, Object> acceptOrderByAdmin(@RequestParam int id, Principal principal, Locale locale) {
+    orderService.acceptOrderByAdmin(principal.getName(), id, locale);
+    return Collections.singletonMap("result", messageSource.getMessage("admin.order.acceptsuccess", new Object[]{id}, locale));
+  }
 
   @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/searchorders", method = RequestMethod.GET)
