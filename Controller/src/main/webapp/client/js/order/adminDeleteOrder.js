@@ -114,7 +114,7 @@ function acceptOrderByAdmin(order_id, currentRow) {
                     updated.status = "CLOSED";
                     currentRow.data(updated).draw();
 
-                    successNoty(data['result'], 'successDefault');
+                    successNoty(data['result'], 'successOrder');
                 }
             }
         );
