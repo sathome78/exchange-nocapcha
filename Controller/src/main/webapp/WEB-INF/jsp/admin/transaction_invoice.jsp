@@ -121,7 +121,7 @@
                     <input hidden id="transactionId" name="id">
                     <input hidden id="actualPaymentSum" name="actualPaymentSum">
                     <div class="table-button-block" style="white-space: nowrap; margin-top: 20px">
-                        <button id="submitAcceptInvoice" class="blue-box" type="button"><loc:message code="admin.submit"/></button>
+                        <button id="submit-accept" class="blue-box" type="button"><loc:message code="admin.submit"/></button>
                         <button id="cancelAcceptInvoice" class="red-box" type="button"><loc:message code="admin.cancel"/></button>
                     </div>
                 </form>

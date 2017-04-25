@@ -1951,7 +1951,7 @@ input[type=email], .dropdown-menu__form,
     background: #525f74;
 }
 
-#register_button:disabled, #submitAcceptInvoice:disabled, #submit-btc:disabled {
+#register_button:disabled, #submit-accept:disabled, #submit-btc:disabled {
     background: #b9c4d8;
 }
 

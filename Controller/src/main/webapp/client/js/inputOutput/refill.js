@@ -177,9 +177,12 @@ $(function () {
     $('#refillTable').on('click', 'button[data-source=REFILL].accept_holded_button', function (e) {
         e.preventDefault();
         var id = $(this).data("id");
-        var $modal = $("#confirm-with-info-modal");
-        $modal.find("label[for=info-field]").html($(this).html());
-        $modal.find("#info-field").val(id);
+        var initialAmount = retrieveRowDataForElement(this).amount;
+        var commission = retrieveRowDataForElement(this).commission;
+        var $modal = $("#dialog-refill-accept");
+        $modal.find("initial-amount").val(initialAmount);
+        $modal.find("actual-amount").val(initialAmount);
+        $modal.find("new-commission").val(commission);
         $modal.find("#confirm-button").off("click").one("click", function () {
             $modal.modal('hide');
             $.ajax({

@@ -1,10 +1,7 @@
 package me.exrates.service;
 
 import me.exrates.model.InvoiceBank;
-import me.exrates.model.dto.RefillRequestAcceptDto;
-import me.exrates.model.dto.RefillRequestCreateDto;
-import me.exrates.model.dto.RefillRequestFlatDto;
-import me.exrates.model.dto.RefillRequestsAdminTableDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillFilterData;
@@ -31,6 +28,8 @@ public interface RefillService {
   void autoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto);
 
   void acceptRefillRequest(RefillRequestAcceptDto requestAcceptDto);
+
+  BigDecimal reCalculateCommissionFromAmount(RefillRequestDataForCalculateCommissionDto dataForCalculateCommission, BigDecimal newAmount);
 
   RefillRequestFlatDto getFlatById(Integer id);
 

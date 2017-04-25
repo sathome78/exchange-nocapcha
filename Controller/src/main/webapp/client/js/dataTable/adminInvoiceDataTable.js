@@ -15,7 +15,7 @@ $(document).ready(function () {
     var computeCommissionLocMessage = $('#computeCommissionLocMessage').text();
     var cancelLocMessage = $('#cancelLocMessage').text();
 
-    var $submitAcceptButton = $('#submitAcceptInvoice');
+    var $submitAcceptButton = $('#submit-accept');
 
 
     /**/
@@ -220,7 +220,7 @@ function showAcceptModal($elem) {
     $($actualAmountInput).val(totelAmount);
     $('#newCommission').val(rowData.transaction.commissionAmount);
     $('#transactionId').val(rowData.transaction.id);
-    $('#submitAcceptInvoice').prop('disabled', false);
+    $('#submit-accept').prop('disabled', false);
     $('#computeCommission').prop('disabled', true);
     $('#actualPaymentSum').val('');
     $('#acceptModal').modal();

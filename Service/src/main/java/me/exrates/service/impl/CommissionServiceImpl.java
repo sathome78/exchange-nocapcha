@@ -69,7 +69,7 @@ public class CommissionServiceImpl implements CommissionService {
     if (!(operationType == OperationType.INPUT || operationType == OperationType.OUTPUT)) {
       throw new IllegalArgumentException("Invalid operation type");
     }
-    return commissionDao.getCommissionMerchant(merchantId, merchantId, operationType);
+    return commissionDao.getCommissionMerchant(merchantId, currencyId, operationType);
   }
 
   @Override
