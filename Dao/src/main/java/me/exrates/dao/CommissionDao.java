@@ -32,6 +32,8 @@ public interface CommissionDao {
 
     void updateCommission(OperationType operationType, List<Integer> roleIds, BigDecimal value);
 
-    BigDecimal getMinFixedCommission(String merchant, String currency);
+    BigDecimal getMinFixedCommission(Integer currencyId, Integer merchantId);
+
+  Commission getCommissionById(Integer commissionId);
 }
 

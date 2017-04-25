@@ -1,24 +1,32 @@
 package me.exrates.service.impl;
 
 import me.exrates.dao.InputOutputDao;
+import me.exrates.model.*;
+import me.exrates.model.Currency;
+import me.exrates.model.dto.CommissionDataDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.TransactionSourceType;
 import me.exrates.model.enums.invoice.*;
 import me.exrates.model.vo.CacheData;
-import me.exrates.service.BitcoinService;
-import me.exrates.service.InputOutputService;
+import me.exrates.service.*;
+import me.exrates.service.exception.UnsupportedMerchantException;
 import me.exrates.service.util.Cache;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.math.BigDecimal.valueOf;
 import static java.util.Collections.EMPTY_LIST;
+import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.invoice.RefillStatusEnum.ON_BCH_EXAM;
 
 /**
@@ -35,6 +43,21 @@ public class InputOutputServiceImpl implements InputOutputService {
 
   @Autowired
   InputOutputDao inputOutputDao;
+
+  @Autowired
+  private CommissionService commissionService;
+
+  @Autowired
+  private UserService userService;
+
+  @Autowired
+  private WalletService walletService;
+
+  @Autowired
+  private MerchantService merchantService;
+
+  @Autowired
+  private CurrencyService currencyService;
 
   @Override
   @Transactional(readOnly = true)
@@ -122,6 +145,55 @@ public class InputOutputServiceImpl implements InputOutputService {
         return row.getTransactionProvided();
       }
     }
+  }
+
+  @Override
+  @Transactional
+  public Optional<CreditsOperation> prepareCreditsOperation(Payment payment, String userEmail) {
+    merchantService.checkMerchantIsBlocked(payment.getMerchant(), payment.getCurrency(), payment.getOperationType());
+    OperationType operationType = payment.getOperationType();
+    BigDecimal amount = valueOf(payment.getSum());
+    Merchant merchant = merchantService.findById(payment.getMerchant());
+    me.exrates.model.Currency currency = currencyService.findById(payment.getCurrency());
+    String destination = payment.getDestination();
+    try {
+      if (!isPayable(merchant, currency, amount)) {
+        log.warn("Merchant respond as not support this pay " + payment);
+        return Optional.empty();
+      }
+    } catch (EmptyResultDataAccessException e) {
+      final String exceptionMessage = "MerchantService".concat(operationType == INPUT ?
+          "Input" : "Output");
+      throw new UnsupportedMerchantException(exceptionMessage);
+    }
+    User user = userService.findByEmail(userEmail);
+    Wallet wallet = walletService.findByUserAndCurrency(user, currency);
+    CommissionDataDto commissionData = commissionService.normalizeAmountAndCalculateCommission(
+        user.getId(),
+        amount,
+        operationType,
+        currency.getId(),
+        merchant.getId());
+    TransactionSourceType transactionSourceType = operationType.getTransactionSourceType();
+    CreditsOperation creditsOperation = new CreditsOperation.Builder()
+        .initialAmount(commissionData.getAmount())
+        .amount(commissionData.getResultAmount())
+        .commissionAmount(commissionData.getCompanyCommissionAmount())
+        .commission(commissionData.getCompanyCommission())
+        .operationType(operationType)
+        .user(user)
+        .currency(currency)
+        .wallet(wallet)
+        .merchant(merchant)
+        .destination(destination)
+        .transactionSourceType(transactionSourceType)
+        .build();
+    return Optional.of(creditsOperation);
+  }
+
+  private boolean isPayable(Merchant merchant, Currency currency, BigDecimal sum) {
+    final BigDecimal minSum = merchantService.getMinSum(merchant.getId(), currency.getId());
+    return sum.compareTo(minSum) >= 0;
   }
 
 }

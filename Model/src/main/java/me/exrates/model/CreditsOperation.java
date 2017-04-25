@@ -60,7 +60,7 @@ public class CreditsOperation {
       return this;
     }
 
-    public Builder fullAmount(BigDecimal fullAmount) {
+    public Builder initialAmount(BigDecimal fullAmount) {
       this.origAmountAtCreationRequest = fullAmount;
       return this;
     }

@@ -474,7 +474,7 @@ public class EDCServiceImpl implements EDCService {
   public Map<String, String> refill(RefillRequestCreateDto request) {
     String address = getAddress();
     String message = messageSource.getMessage("merchants.refill.edr",
-        new Object[]{request.getAmountWithCommission(), address}, request.getLocale());
+        new Object[]{request.getAmount(), address}, request.getLocale());
     return new HashMap<String, String>() {{
       put("message", message);
       put("qr", address);

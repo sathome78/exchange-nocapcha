@@ -5,6 +5,7 @@ import me.exrates.model.MerchantCurrency;
 import me.exrates.model.dto.MerchantCurrencyAutoParamDto;
 import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
+import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.OperationType;
@@ -52,4 +53,6 @@ public interface MerchantDao {
   List<MerchantCurrencyLifetimeDto> findMerchantCurrencyWithRefillLifetime();
 
   MerchantCurrencyLifetimeDto findMerchantCurrencyLifetimeByMerchantIdAndCurrencyId(Integer merchantId, Integer currencyId);
+
+  MerchantCurrencyScaleDto findMerchantCurrencyScaleByMerchantIdAndCurrencyId(Integer merchantId, Integer currencyId);
 }

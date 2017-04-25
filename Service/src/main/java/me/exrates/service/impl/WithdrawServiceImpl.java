@@ -402,11 +402,11 @@ public class WithdrawServiceImpl implements WithdrawService {
 
   @Override
   @Transactional(readOnly = true)
-  public Map<String, String> correctAmountAndCalculateCommission(BigDecimal amount, String currency, String merchant) {
+  public Map<String, String> correctAmountAndCalculateCommission(Integer userId, BigDecimal amount, Integer currencyId, Integer merchantId) {
     OperationType operationType = OUTPUT;
-    BigDecimal addition = currencyService.computeRandomizedAddition(currency, operationType);
+    BigDecimal addition = currencyService.computeRandomizedAddition(currencyId, operationType);
     amount = amount.add(addition);
-    Map<String, String> result = commissionService.computeCommissionAndMapAllToString(amount, operationType, currency, merchant);
+    Map<String, String> result = commissionService.computeCommissionAndMapAllToString(userId, amount, operationType, currencyId, merchantId);
     result.put("addition", addition.toString());
     return result;
   }

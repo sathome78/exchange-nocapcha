@@ -7,6 +7,7 @@ import me.exrates.controller.merchants.YandexMoneyMerchantController;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.model.enums.OperationType;
+import me.exrates.service.InputOutputService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.UserService;
 import me.exrates.service.YandexMoneyService;
@@ -47,6 +48,9 @@ public class YandexMoneyRestController {
     @Autowired
     private MessageSource messageSource;
 
+    @Autowired
+    private InputOutputService inputOutputService;
+
     @RequestMapping(value = "/rest/yandexmoney/payment/process", method = RequestMethod.GET)
     public ResponseEntity<String> processYandexPayment(@RequestParam String token,
                                                        @RequestParam Integer userId,
@@ -58,7 +62,7 @@ public class YandexMoneyRestController {
         Payment payment = yandexMoneyService.getPaymentById(paymentId).orElseThrow(()
                 -> new MerchantInternalException(messageSource.getMessage("merchants.authRejected", null, userLocale)));
 
-        final CreditsOperation creditsOperation = merchantService
+        final CreditsOperation creditsOperation = inputOutputService
                 .prepareCreditsOperation(payment, email)
                 .orElseThrow(InvalidAmountException::new);
         final Optional<RequestPayment> requestPayment = yandexMoneyService.requestPayment(token, creditsOperation);

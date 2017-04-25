@@ -332,7 +332,7 @@ public class InvoiceServiceImpl implements InvoiceService {
   public Map<String, String> refill(RefillRequestCreateDto request) {
     String toWallet = String.format("%s: %s - %s", request.getRecipientBankName(), request.getAddress(), request.getRecipient());
     String message = messageSource.getMessage("merchants.refill.invoice",
-        new Object[]{request.getAmountWithCommission(), toWallet}, request.getLocale());
+        new Object[]{request.getAmount(), toWallet}, request.getLocale());
     return new HashMap<String, String>() {{
       put("message", message);
     }};

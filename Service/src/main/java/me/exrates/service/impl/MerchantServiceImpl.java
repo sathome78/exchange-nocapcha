@@ -5,22 +5,20 @@ import me.exrates.dao.MerchantDao;
 import me.exrates.dao.WithdrawRequestDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
+import me.exrates.model.dto.CommissionDataDto;
 import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
+import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
-import me.exrates.model.enums.UserRole;
 import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
 import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.*;
-import me.exrates.service.exception.InvalidAmountException;
-import me.exrates.service.exception.MerchantCurrencyBlockedException;
-import me.exrates.service.exception.MerchantInternalException;
-import me.exrates.service.exception.UnsupportedMerchantException;
+import me.exrates.service.exception.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,22 +48,13 @@ public class MerchantServiceImpl implements MerchantService {
   private MerchantDao merchantDao;
 
   @Autowired
-  private CommissionService commissionService;
-
-  @Autowired
   private UserService userService;
-
-  @Autowired
-  private CurrencyService currencyService;
 
   @Autowired
   private SendMailService sendMailService;
 
   @Autowired
   private MessageSource messageSource;
-
-  @Autowired
-  private WalletService walletService;
 
   @Autowired
   private NotificationService notificationService;
@@ -75,9 +64,6 @@ public class MerchantServiceImpl implements MerchantService {
 
   @Autowired
   private BitcoinService bitcoinService;
-
-  @Autowired
-  private WithdrawRequestDao withdrawRequestDao;
 
   @Override
   public List<Merchant> findAllByCurrency(Currency currency) {
@@ -275,82 +261,6 @@ public class MerchantServiceImpl implements MerchantService {
   }
 
   @Override
-  public Optional<CreditsOperation> prepareCreditsOperation(Payment payment, String userEmail) {
-    checkMerchantBlock(payment.getMerchant(), payment.getCurrency(), payment.getOperationType());
-    OperationType operationType = payment.getOperationType();
-    BigDecimal amount = valueOf(payment.getSum());
-    Merchant merchant = merchantDao.findById(payment.getMerchant());
-    Currency currency = currencyService.findById(payment.getCurrency());
-    String destination = payment.getDestination();
-    try {
-      if (!isPayable(merchant, currency, amount)) {
-        LOG.warn("Merchant respond as not support this pay " + payment);
-        return Optional.empty();
-      }
-    } catch (EmptyResultDataAccessException e) {
-      final String exceptionMessage = "MerchantService".concat(operationType == INPUT ?
-          "Input" : "Output");
-      throw new UnsupportedMerchantException(exceptionMessage);
-    }
-    User user = userService.findByEmail(userEmail);
-    Commission commissionByType = commissionService.findCommissionByTypeAndRole(operationType, user.getRole());
-    BigDecimal commissionMerchant = commissionService.getCommissionMerchant(merchant.getId(), currency.getId(), operationType);
-    BigDecimal commissionTotal = commissionByType.getValue().add(commissionMerchant)
-        .setScale(currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP);
-    BigDecimal commissionAmount =
-        commissionTotal
-            .multiply(amount)
-            .divide(valueOf(100), currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP);
-    commissionAmount = correctForMerchantFixedCommission(merchant.getName(), currency.getName(), operationType, commissionAmount);
-    Wallet wallet = walletService.findByUserAndCurrency(user, currency);
-    BigDecimal newAmount = payment.getOperationType() == INPUT ?
-        amount :
-        amount.subtract(commissionAmount).setScale(currencyService.resolvePrecision(currency.getName()), ROUND_DOWN);
-    if (newAmount.compareTo(ZERO)<=0) {
-      throw new InvalidAmountException(amount.toString());
-    }
-    TransactionSourceType transactionSourceType = operationType.getTransactionSourceType();
-    CreditsOperation creditsOperation = new CreditsOperation.Builder()
-        .fullAmount(amount)
-        .amount(newAmount)
-        .commissionAmount(commissionAmount)
-        .commission(commissionByType)
-        .operationType(operationType)
-        .user(user)
-        .currency(currency)
-        .wallet(wallet)
-        .merchant(merchant)
-        .destination(destination)
-        .transactionSourceType(transactionSourceType)
-        .build();
-    return Optional.of(creditsOperation);
-  }
-
-  @Override
-  @Transactional
-  public BigDecimal getTotalCommissionRate(OperationType operationType, Integer merchantId, Integer currencyId, UserRole userRole){
-    Commission commissionByType = commissionService.findCommissionByTypeAndRole(operationType, userRole);
-    BigDecimal commissionMerchant = commissionService.getCommissionMerchant(merchantId, currencyId, operationType);
-    return commissionByType.getValue()
-        .add(commissionMerchant)
-        .setScale(currencyService.resolvePrecision(currencyService.getCurrencyName(currencyId)), ROUND_HALF_UP);
-  }
-
-  private BigDecimal correctForMerchantFixedCommission(String merchantName, String currencyName, OperationType operationType, BigDecimal commissionAmount) {
-    if (operationType != OUTPUT) {
-      return commissionAmount;
-    }
-    BigDecimal merchantMinFixedCommission = commissionService.getMinFixedCommission(merchantName, currencyName);
-    return commissionAmount.compareTo(merchantMinFixedCommission) < 0 ? merchantMinFixedCommission : commissionAmount;
-  }
-
-
-  private boolean isPayable(Merchant merchant, Currency currency, BigDecimal sum) {
-    final BigDecimal minSum = merchantDao.getMinSum(merchant.getId(), currency.getId());
-    return sum.compareTo(minSum) >= 0;
-  }
-
-  @Override
   @Transactional
   public void toggleMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType) {
     merchantDao.toggleMerchantBlock(merchantId, currencyId, operationType);
@@ -366,6 +276,12 @@ public class MerchantServiceImpl implements MerchantService {
   @Transactional
   public void setBlockForMerchant(Integer merchantId, Integer currencyId, OperationType operationType, boolean blockStatus) {
     merchantDao.setBlockForMerchant(merchantId, currencyId, operationType, blockStatus);
+  }
+
+  @Override
+  @Transactional
+  public BigDecimal getMinSum(Integer merchantId, Integer currencyId){
+    return merchantDao.getMinSum(merchantId, currencyId);
   }
 
   /*============================*/
@@ -384,7 +300,24 @@ public class MerchantServiceImpl implements MerchantService {
     return merchantDao.findMerchantCurrencyLifetimeByMerchantIdAndCurrencyId(merchantId, currencyId);
   }
 
-  private void checkMerchantBlock(Integer merchantId, Integer currencyId, OperationType operationType) {
+  @Override
+  @Transactional
+  public int getMerchantCurrencyScaleByMerchantIdAndCurrencyIdAndOperationType(
+      Integer merchantId,
+      Integer currencyId,
+      OperationType operationType) {
+    int DEFAULT_PRECISION = 2;
+    MerchantCurrencyScaleDto result = merchantDao.findMerchantCurrencyScaleByMerchantIdAndCurrencyId(merchantId, currencyId);
+    if (operationType == OUTPUT) {
+      return result.getScaleForWithdraw() == null?  DEFAULT_PRECISION: result.getScaleForWithdraw();
+    } else {
+      throw new IllegalOperationTypeException(operationType.name());
+    }
+  }
+
+  @Override
+  @Transactional
+  public void checkMerchantIsBlocked(Integer merchantId, Integer currencyId, OperationType operationType) {
     boolean isBlocked = merchantDao.checkMerchantBlock(merchantId, currencyId, operationType);
     if (isBlocked) {
       throw new MerchantCurrencyBlockedException("Operation " + operationType + " is blocked for this currency! ");

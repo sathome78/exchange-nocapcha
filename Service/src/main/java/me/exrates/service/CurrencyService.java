@@ -72,5 +72,5 @@ public interface CurrencyService {
 
   List<Currency> findAllCurrenciesWithHidden();
 
-  BigDecimal computeRandomizedAddition(String currencyName, OperationType operationType);
+  BigDecimal computeRandomizedAddition(Integer currencyId, OperationType operationType);
 }

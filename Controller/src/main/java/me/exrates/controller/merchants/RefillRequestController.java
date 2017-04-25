@@ -2,7 +2,7 @@ package me.exrates.controller.merchants;
 
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.model.dto.RefillRequestAcceptDto;
-import me.exrates.service.RequestLimitExceededException;
+import me.exrates.service.*;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.Payment;
@@ -13,9 +13,6 @@ import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
 import me.exrates.model.vo.InvoiceConfirmData;
-import me.exrates.service.MerchantService;
-import me.exrates.service.RefillService;
-import me.exrates.service.UserService;
 import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
@@ -62,6 +59,9 @@ public class RefillRequestController {
   @Autowired
   MerchantService merchantService;
 
+  @Autowired
+  private InputOutputService inputOutputService;
+
   @RequestMapping(value = "/refill/request/create", method = POST)
   @ResponseBody
   public Map<String, String> createRefillRequest(
@@ -79,7 +79,7 @@ public class RefillRequestController {
     payment.setCurrency(requestParamsDto.getCurrency());
     payment.setMerchant(requestParamsDto.getMerchant());
     payment.setSum(requestParamsDto.getSum().doubleValue());
-    CreditsOperation creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName())
+    CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principal.getName())
         .orElseThrow(InvalidAmountException::new);
     RefillRequestCreateDto request = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
     return refillService.createRefillRequest(request, locale);
@@ -118,9 +118,11 @@ public class RefillRequestController {
   @ResponseBody
   public Map<String, String> getCommissions(
       @RequestParam("amount") BigDecimal amount,
-      @RequestParam("currency") String currency,
-      @RequestParam("merchant") String merchant) {
-    return refillService.correctAmountAndCalculateCommission(amount, currency, merchant);
+      @RequestParam("currency") Integer currencyId,
+      @RequestParam("merchant") Integer merchantId,
+      Principal principal) {
+    Integer userId = userService.getIdByEmail(principal.getName());
+    return refillService.correctAmountAndCalculateCommission(userId, amount, currencyId, merchantId);
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/refill/take", method = POST)

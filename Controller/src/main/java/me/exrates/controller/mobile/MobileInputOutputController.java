@@ -75,7 +75,7 @@ public class MobileInputOutputController {
     private InvoiceService invoiceService;
 
     @Autowired
-    private UserFilesService userFilesService;
+    private InputOutputService inputOutputService;
 
     @Autowired
     private MessageSource messageSource;
@@ -237,7 +237,7 @@ public class MobileInputOutputController {
 
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-        CreditsOperation creditsOperation = merchantService.prepareCreditsOperation(payment, userEmail).orElseThrow(InvalidAmountException::new);
+        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, userEmail).orElseThrow(InvalidAmountException::new);
         WithdrawStatusEnum beginStatus = (WithdrawStatusEnum) WithdrawStatusEnum.getBeginState();
         WithdrawRequestCreateDto withdrawRequestCreateDto = new WithdrawRequestCreateDto(requestParamsDto, creditsOperation, beginStatus);
         Map<String, String> response = withdrawService.createWithdrawalRequest(withdrawRequestCreateDto, userLocale);
@@ -354,7 +354,7 @@ public class MobileInputOutputController {
         payment.setMerchant(merchantService.findByNName("Invoice").getId());
         payment.setSum(paymentDto.getAmount().doubleValue());
         payment.setOperationType(OperationType.INPUT);
-        final CreditsOperation creditsOperation = merchantService
+        final CreditsOperation creditsOperation = inputOutputService
                 .prepareCreditsOperation(payment, userEmail)
                 .orElseThrow(InvalidAmountException::new);
         InvoiceData invoiceData = new InvoiceData();
@@ -521,7 +521,7 @@ public class MobileInputOutputController {
 
 
 
-        CreditsOperation creditsOperation = merchantService.prepareCreditsOperation(payment, userEmail).orElseThrow(InvalidAmountException::new);
+        CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, userEmail).orElseThrow(InvalidAmountException::new);
         WithdrawStatusEnum beginStatus = (WithdrawStatusEnum) WithdrawStatusEnum.getBeginState();
         WithdrawRequestCreateDto withdrawRequestCreateDto = new WithdrawRequestCreateDto(requestParamsDto, creditsOperation, beginStatus);
         Map<String, String> response = withdrawService.createWithdrawalRequest(withdrawRequestCreateDto, userLocale);

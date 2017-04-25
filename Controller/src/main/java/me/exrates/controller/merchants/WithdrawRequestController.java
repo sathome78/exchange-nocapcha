@@ -58,6 +58,9 @@ public class WithdrawRequestController {
   MerchantService merchantService;
 
   @Autowired
+  private InputOutputService inputOutputService;
+
+  @Autowired
   private CommissionService commissionService;
 
   @FinPassCheck(throwCheckPassException = true)
@@ -76,7 +79,7 @@ public class WithdrawRequestController {
     payment.setMerchant(requestParamsDto.getMerchant());
     payment.setSum(requestParamsDto.getSum().doubleValue());
     payment.setDestination(requestParamsDto.getDestination());
-    CreditsOperation creditsOperation = merchantService.prepareCreditsOperation(payment, principal.getName())
+    CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principal.getName())
         .orElseThrow(InvalidAmountException::new);
     WithdrawRequestCreateDto withdrawRequestCreateDto = new WithdrawRequestCreateDto(requestParamsDto, creditsOperation, beginStatus);
     return withdrawService.createWithdrawalRequest(withdrawRequestCreateDto, locale);
@@ -100,9 +103,11 @@ public class WithdrawRequestController {
   @ResponseBody
   public Map<String, String> getCommissions(
       @RequestParam("amount") BigDecimal amount,
-      @RequestParam("currency") String currency,
-      @RequestParam("merchant") String merchant) {
-    return withdrawService.correctAmountAndCalculateCommission(amount, currency, merchant);
+      @RequestParam("currency") Integer currencyId,
+      @RequestParam("merchant") Integer merchantId,
+      Principal principal) {
+    Integer userId = userService.getIdByEmail(principal.getName());
+    return withdrawService.correctAmountAndCalculateCommission(userId, amount, currencyId, merchantId);
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/withdraw/take", method = POST)

@@ -194,7 +194,7 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request){
         Integer orderId = request.getId();
-        BigDecimal sum = request.getAmountWithCommission();
+        BigDecimal sum = request.getAmount();
         String currency = request.getCurrencyName();
         Number amountToPay = "GOLD".equals(currency) ? sum.toBigInteger() : sum.setScale(2, BigDecimal.ROUND_HALF_UP);
         /**/

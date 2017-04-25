@@ -1,6 +1,7 @@
 package me.exrates.service;
 
 import me.exrates.model.Commission;
+import me.exrates.model.dto.CommissionDataDto;
 import me.exrates.model.dto.CommissionShortEditDto;
 import me.exrates.model.dto.EditMerchantCommissionDto;
 import me.exrates.model.enums.OperationType;
@@ -32,7 +33,11 @@ public interface CommissionService {
 
   void updateMerchantCommission(EditMerchantCommissionDto editMerchantCommissionDto);
 
-  BigDecimal getMinFixedCommission(String merchant, String currency);
+  BigDecimal getMinFixedCommission(Integer currencyId, Integer merchantId);
 
-  Map<String, String> computeCommissionAndMapAllToString(BigDecimal amount, OperationType operationType, String currency, String merchant);
+  Map<String, String> computeCommissionAndMapAllToString(Integer userId, BigDecimal amount, OperationType operationType, Integer currencyId, Integer merchantId);
+
+  CommissionDataDto normalizeAmountAndCalculateCommission(Integer userId, BigDecimal amount, OperationType type, Integer currencyId, Integer merchantId);
+
+  BigDecimal calculateCommissionForRefillAmount(BigDecimal amount, Integer commissionId);
 }

@@ -29,15 +29,13 @@ public interface RefillService {
 
   void acceptRefillRequest(RefillRequestAcceptDto requestAcceptDto);
 
-  BigDecimal reCalculateCommissionFromAmount(RefillRequestDataForCalculateCommissionDto dataForCalculateCommission, BigDecimal newAmount);
-
   RefillRequestFlatDto getFlatById(Integer id);
 
   void revokeRefillRequest(int requestId);
 
   List<InvoiceBank> findBanksForCurrency(Integer currencyId);
 
-  Map<String, String> correctAmountAndCalculateCommission(BigDecimal amount, String currency, String merchant);
+  Map<String, String> correctAmountAndCalculateCommission(Integer userId, BigDecimal amount, Integer currencyId, Integer merchantId);
 
   Integer clearExpiredInvoices() throws Exception;
 

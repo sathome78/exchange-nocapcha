@@ -116,7 +116,7 @@ public class PayeerServiceImpl implements PayeerService {
   @Override
   public Map<String, String> refill(RefillRequestCreateDto request) {
     Integer requestId = request.getId();
-    BigDecimal sum = request.getAmountWithCommission();
+    BigDecimal sum = request.getAmount();
     String currency = request.getCurrencyName();
     BigDecimal amountToPay = sum.setScale(2, BigDecimal.ROUND_HALF_UP);
     /**/

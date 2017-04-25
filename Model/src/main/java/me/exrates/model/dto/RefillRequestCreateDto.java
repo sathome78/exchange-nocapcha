@@ -24,7 +24,6 @@ public class RefillRequestCreateDto {
   private String currencyName;
   private BigDecimal amount;
   private BigDecimal commission;
-  private BigDecimal amountWithCommission;
   private Integer commissionId;
   private Integer merchantId;
   private String merchantDescription;
@@ -62,7 +61,6 @@ public class RefillRequestCreateDto {
     this.serviceBeanName = creditsOperation.getMerchant().getServiceBeanName();
     this.merchantDescription = creditsOperation.getMerchant().getDescription();
     /**/
-    this.amountWithCommission = this.amount.add(this.commission);
     this.status = status;
     /**/
     this.locale = locale;

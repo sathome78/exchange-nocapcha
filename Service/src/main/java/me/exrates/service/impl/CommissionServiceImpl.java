@@ -2,14 +2,19 @@ package me.exrates.service.impl;
 
 import me.exrates.dao.CommissionDao;
 import me.exrates.model.Commission;
+import me.exrates.model.dto.CommissionDataDto;
 import me.exrates.model.dto.CommissionShortEditDto;
 import me.exrates.model.dto.EditMerchantCommissionDto;
+import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
+import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.CommissionService;
-import me.exrates.service.CurrencyService;
+import me.exrates.service.MerchantService;
 import me.exrates.service.UserRoleService;
 import me.exrates.service.UserService;
+import me.exrates.service.exception.IllegalOperationTypeException;
+import me.exrates.service.exception.InvalidAmountException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,19 +24,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import static java.math.BigDecimal.ROUND_DOWN;
 import static java.math.BigDecimal.ROUND_HALF_UP;
 import static java.math.BigDecimal.ZERO;
-import static me.exrates.model.enums.OperationType.OUTPUT;
-import static me.exrates.model.enums.OperationType.USER_TRANSFER;
+import static me.exrates.model.enums.ActionType.ADD;
+import static me.exrates.model.enums.ActionType.MULTIPLY_PERCENT;
+import static me.exrates.model.enums.ActionType.SUBTRACT;
+import static me.exrates.model.enums.OperationType.*;
 
 @Service
 public class CommissionServiceImpl implements CommissionService {
-
-
   @Autowired
   CommissionDao commissionDao;
 
@@ -39,10 +41,10 @@ public class CommissionServiceImpl implements CommissionService {
   UserService userService;
 
   @Autowired
-  private CurrencyService currencyService;
+  UserRoleService userRoleService;
 
   @Autowired
-  UserRoleService userRoleService;
+  MerchantService merchantService;
 
   @Override
   public Commission findCommissionByTypeAndRole(OperationType operationType, UserRole userRole) {
@@ -102,37 +104,86 @@ public class CommissionServiceImpl implements CommissionService {
   }
 
   @Override
-  public BigDecimal getMinFixedCommission(String merchant, String currency) {
-    return commissionDao.getMinFixedCommission(merchant, currency);
+  public BigDecimal getMinFixedCommission(Integer currencyId, Integer merchantId) {
+    return commissionDao.getMinFixedCommission(currencyId, merchantId);
   }
 
   @Override
   @Transactional
   public Map<String, String> computeCommissionAndMapAllToString(
+      Integer userId,
       BigDecimal amount,
       OperationType type,
-      String currency,
-      String merchant) {
+      Integer currencyId,
+      Integer merchantId) {
     Map<String, String> result = new HashMap<>();
-    BigDecimal commission = findCommissionByTypeAndRole(type, userService.getUserRoleFromSecurityContext()).getValue();
-    BigDecimal commissionMerchant = type == USER_TRANSFER ? ZERO : getCommissionMerchant(merchant, currency, type);
-    BigDecimal commissionTotal = commission.add(commissionMerchant).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP);
-    BigDecimal commissionAmount = amount.multiply(commissionTotal).divide(new BigDecimal(100L)).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP);
-    String commissionString = Stream.of("(", commissionTotal.stripTrailingZeros().toString(), "%)").collect(Collectors.joining(""));
-    if (type == OUTPUT) {
-      BigDecimal merchantMinFixedCommission = getMinFixedCommission(merchant, currency);
-      if (commissionAmount.compareTo(merchantMinFixedCommission) < 0) {
-        commissionAmount = merchantMinFixedCommission;
-        commissionString = "";
-      }
-    }
-    final BigDecimal resultAmount = type != OUTPUT ? amount.add(commissionAmount).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP) :
-        amount.subtract(commissionAmount).setScale(currencyService.resolvePrecision(currency), ROUND_DOWN);
-    result.put("amount", amount.toString());
-    result.put("commission", commissionString);
-    result.put("commissionAmount", currencyService.amountToString(commissionAmount, currency));
-    result.put("totalAmount", currencyService.amountToString(resultAmount, currency));
+    CommissionDataDto commissionData = normalizeAmountAndCalculateCommission(userId, amount, type, currencyId, merchantId);
+    result.put("amount", commissionData.getAmount().toPlainString());
+    result.put("merchantCommissionRate", commissionData.getMerchantCommissionRate().toPlainString().concat(" ").concat(commissionData.getMerchantCommissionUnit()));
+    result.put("merchantCommissionAmount", commissionData.getMerchantCommissionAmount().toPlainString());
+    result.put("companyCommissionRate", commissionData.getCompanyCommissionRate().toPlainString().concat(" ").concat(commissionData.getCompanyCommissionUnit()));
+    result.put("companyCommissionAmount", commissionData.getCompanyCommissionAmount().toPlainString());
+    result.put("totalCommissionAmount", commissionData.getTotalCommissionAmount().toPlainString());
+    result.put("resultAmount", commissionData.getResultAmount().toPlainString());
     return result;
+  }
+
+  @Override
+  @Transactional
+  public CommissionDataDto normalizeAmountAndCalculateCommission(
+      Integer userId,
+      BigDecimal amount,
+      OperationType type,
+      Integer currencyId,
+      Integer merchantId) {
+    Map<String, String> result = new HashMap<>();
+    BigDecimal merchantCommissionRate = type == USER_TRANSFER ? ZERO : getCommissionMerchant(merchantId, currencyId, type);
+    Commission companyCommission = findCommissionByTypeAndRole(type, userService.getUserRoleFromDB(userId));
+    BigDecimal companyCommissionRate = companyCommission.getValue();
+    BigDecimal merchantCommissionAmount;
+    BigDecimal companyCommissionAmount;
+    String merchantCommissionUnit = "%";
+    String companyCommissionUnit = "%";
+    if (type == INPUT) {
+      merchantCommissionAmount = BigDecimalProcessing.doAction(amount, merchantCommissionRate, MULTIPLY_PERCENT);
+      companyCommissionAmount = BigDecimalProcessing.doAction(amount.subtract(merchantCommissionAmount), companyCommissionRate, MULTIPLY_PERCENT);
+    } else if (type == OUTPUT) {
+      int currencyScale = merchantService.getMerchantCurrencyScaleByMerchantIdAndCurrencyIdAndOperationType(merchantId, currencyId, type);
+      amount = amount.setScale(currencyScale, ROUND_HALF_UP);
+      companyCommissionAmount = BigDecimalProcessing.doAction(amount, companyCommissionRate, MULTIPLY_PERCENT).setScale(currencyScale, ROUND_HALF_UP);
+      merchantCommissionAmount = BigDecimalProcessing.doAction(amount.subtract(companyCommissionAmount), merchantCommissionRate, MULTIPLY_PERCENT).setScale(currencyScale, ROUND_HALF_UP);
+      BigDecimal merchantMinFixedCommission = getMinFixedCommission(currencyId, merchantId);
+      if (merchantCommissionAmount.compareTo(merchantMinFixedCommission) < 0) {
+        merchantCommissionAmount = merchantMinFixedCommission;
+        merchantCommissionUnit = "";
+      }
+    } else {
+      throw new IllegalOperationTypeException(type.name());
+    }
+    BigDecimal totalCommissionAmount = BigDecimalProcessing.doAction(merchantCommissionAmount, companyCommissionAmount, ADD);
+    BigDecimal totalAmount = BigDecimalProcessing.doAction(amount, totalCommissionAmount, SUBTRACT);
+    if (totalAmount.compareTo(ZERO) <= 0) {
+      throw new InvalidAmountException(amount.toString());
+    }
+    return new CommissionDataDto(
+        amount,
+        merchantCommissionRate,
+        merchantCommissionUnit,
+        merchantCommissionAmount,
+        companyCommission,
+        companyCommissionRate,
+        companyCommissionUnit,
+        companyCommissionAmount,
+        totalCommissionAmount,
+        totalAmount
+    );
+  }
+
+  @Override
+  @Transactional
+  public BigDecimal calculateCommissionForRefillAmount(BigDecimal amount, Integer commissionId) {
+    BigDecimal companyCommissionRate = commissionDao.getCommissionById(commissionId).getValue();
+    return BigDecimalProcessing.doAction(amount, companyCommissionRate, MULTIPLY_PERCENT);
   }
 
 }

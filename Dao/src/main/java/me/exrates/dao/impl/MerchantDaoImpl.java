@@ -8,6 +8,7 @@ import me.exrates.model.MerchantImage;
 import me.exrates.model.dto.MerchantCurrencyAutoParamDto;
 import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
+import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.dto.mobileApiDto.MerchantImageShortenedDto;
 import me.exrates.model.enums.OperationType;
@@ -367,4 +368,26 @@ public class MerchantDaoImpl implements MerchantDao {
       return result;
     });
   }
+
+  @Override
+  public MerchantCurrencyScaleDto findMerchantCurrencyScaleByMerchantIdAndCurrencyId(Integer merchantId, Integer currencyId) {
+    String sql = "SELECT currency_id, merchant_id, max_scale_for_refill, max_scale_for_withdraw " +
+        " FROM MERCHANT_CURRENCY " +
+        " WHERE " +
+        "   merchant_id = :merchant_id " +
+        "   AND currency_id = :currency_id";
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("merchant_id", merchantId);
+      put("currency_id", currencyId);
+    }};
+    return namedParameterJdbcTemplate.queryForObject(sql, params, (rs, i) -> {
+      MerchantCurrencyScaleDto result =  new MerchantCurrencyScaleDto();
+      result.setCurrencyId(rs.getInt("currency_id"));
+      result.setMerchantId(rs.getInt("merchant_id"));
+      result.setScaleForRefill(rs.getInt("max_scale_for_refill"));
+      result.setScaleForWithdraw(rs.getInt("max_scale_for_withdraw"));
+      return result;
+    });
+  }
 }
+

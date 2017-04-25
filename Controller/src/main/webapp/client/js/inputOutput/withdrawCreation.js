@@ -249,7 +249,7 @@ $(function withdrawCreation() {
             async: false,
             type: "get",
             contentType: "application/json",
-            data: {"amount": amount, "currency": currencyName, "merchant": merchantName}
+            data: {"amount": amount, "currency": currency, "merchant": merchant}
         }).success(function (response) {
             amount = response['amount'];
             commissionPercent = response['commission'];

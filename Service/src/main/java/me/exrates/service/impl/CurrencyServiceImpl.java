@@ -217,8 +217,8 @@ public class CurrencyServiceImpl implements CurrencyService {
   }
 
   @Override
-  public BigDecimal computeRandomizedAddition(String currencyName, OperationType operationType) {
-    Optional<OperationType.AdditionalRandomAmountParam> randomAmountParam = operationType.getRandomAmountParam(currencyName);
+  public BigDecimal computeRandomizedAddition(Integer currencyId, OperationType operationType) {
+    Optional<OperationType.AdditionalRandomAmountParam> randomAmountParam = operationType.getRandomAmountParam(currencyId);
     if (!randomAmountParam.isPresent()) {
       return BigDecimal.ZERO;
     } else {

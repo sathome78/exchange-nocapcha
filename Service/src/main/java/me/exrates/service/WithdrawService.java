@@ -51,7 +51,7 @@ public interface WithdrawService {
 
   List<WithdrawRequestPostDto> dirtyReadForPostByStatusList(InvoiceStatus status);
 
-  Map<String, String> correctAmountAndCalculateCommission(BigDecimal amount, String currency, String merchant);
+  Map<String, String> correctAmountAndCalculateCommission(Integer userId, BigDecimal amount, Integer currencyId, Integer merchantId);
 
   boolean checkOutputRequestsLimit(int merchantId, String email);
 }

@@ -239,18 +239,12 @@ public class RefillServiceImpl implements RefillService {
       /**/
       Integer userWalletId = walletService.getWalletId(refillRequest.getUserId(), refillRequest.getCurrencyId());
       /**/
-      BigDecimal amount = refillRequest.getAmount();
-      BigDecimal commission = refillRequest.getCommissionAmount();
-      if (!factAmount.equals(amount)) {
-        amount = factAmount;
-        commission = reCalculateCommissionFromAmount(
-            new RefillRequestDataForCalculateCommissionDto(), amount);
-      }
+      BigDecimal commission = commissionService.calculateCommissionForRefillAmount(factAmount, refillRequest.getCommissionId());
       /**/
       WalletOperationData walletOperationData = new WalletOperationData();
       walletOperationData.setOperationType(INPUT);
       walletOperationData.setWalletId(userWalletId);
-      walletOperationData.setAmount(amount);
+      walletOperationData.setAmount(factAmount);
       walletOperationData.setBalanceType(ACTIVE);
       walletOperationData.setCommission(new Commission(refillRequest.getCommissionId()));
       walletOperationData.setCommissionAmount(commission);
@@ -272,24 +266,8 @@ public class RefillServiceImpl implements RefillService {
       profileData.setTime3();
       return refillRequest;
     } finally {
-      profileData.checkAndLog("slow post RefillRequest: " + requestId + " profile: " + profileData);
+      profileData.checkAndLog("slow accept RefillRequest: " + requestId + " profile: " + profileData);
     }
-  }
-
-  @Override
-  @Transactional
-  public BigDecimal reCalculateCommissionFromAmount(RefillRequestDataForCalculateCommissionDto dataForCalculateCommission, BigDecimal newAmount) {
-    String currencyName = currencyService.getCurrencyName(dataForCalculateCommission.getCurrencyId());
-    int scale = currencyService.resolvePrecision(currencyName);
-    UserRole userRole = userService.getUserRoleFromDB(dataForCalculateCommission.getUserId());
-    BigDecimal totalCommissionRate = merchantService.getTotalCommissionRate(
-        INPUT,
-        dataForCalculateCommission.getMerchantId(),
-        dataForCalculateCommission.getCurrencyId(),
-        userRole);
-    BigDecimal mass = BigDecimal.valueOf(100L).add(totalCommissionRate);
-    return newAmount.multiply(totalCommissionRate)
-        .divide(mass, scale, ROUND_HALF_UP).setScale(scale, ROUND_HALF_UP);
   }
 
   @Override
@@ -318,11 +296,11 @@ public class RefillServiceImpl implements RefillService {
 
   @Override
   @Transactional(readOnly = true)
-  public Map<String, String> correctAmountAndCalculateCommission(BigDecimal amount, String currency, String merchant) {
+  public Map<String, String> correctAmountAndCalculateCommission(Integer userId, BigDecimal amount, Integer currencyId, Integer merchantId) {
     OperationType operationType = INPUT;
-    BigDecimal addition = currencyService.computeRandomizedAddition(currency, operationType);
+    BigDecimal addition = currencyService.computeRandomizedAddition(currencyId, operationType);
     amount = amount.add(addition);
-    Map<String, String> result = commissionService.computeCommissionAndMapAllToString(amount, operationType, currency, merchant);
+    Map<String, String> result = commissionService.computeCommissionAndMapAllToString(userId, amount, operationType, currencyId, merchantId);
     result.put("addition", addition.toString());
     return result;
   }

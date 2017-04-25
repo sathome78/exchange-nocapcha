@@ -243,7 +243,7 @@ public class BitcoinServiceImpl implements BitcoinService {
     String address = address();
 //    String address = "some btc address";
     String message = messageSource.getMessage("merchants.refill.btc",
-        new Object[]{request.getAmountWithCommission(), address}, request.getLocale());
+        new Object[]{request.getAmount(), address}, request.getLocale());
     return new HashMap<String, String>() {{
       put("message", message);
       put("qr", address);
