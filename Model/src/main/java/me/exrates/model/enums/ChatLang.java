@@ -1,6 +1,7 @@
 package me.exrates.model.enums;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 
@@ -12,7 +13,8 @@ public enum ChatLang {
     EN("EN"),
     RU("RU"),
     CN("CN"),
-    AR("AR");
+    AR("AR"),
+    IN("IN");
 
     public final String val;
 
@@ -21,13 +23,7 @@ public enum ChatLang {
     }
 
     public static ChatLang toInstance(final String val) {
-        switch (val.toUpperCase()) {
-            case "EN" : return EN;
-            case "RU" : return RU;
-            case "CN" : return CN;
-            case "AR" : return AR;
-            default:
-                throw new IllegalArgumentException(val + " no such instance");
-        }
+        return Stream.of(ChatLang.values()).filter(item -> item.val.equalsIgnoreCase(val))
+                .findAny().orElseThrow(() -> new IllegalArgumentException(val + " no such instance"));
     }
 }

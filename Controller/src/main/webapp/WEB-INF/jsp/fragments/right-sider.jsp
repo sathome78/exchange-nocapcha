@@ -19,6 +19,7 @@
             <a href="javascript:void(0)" onclick="changeChatLocale('ru')">RU</a>
             <a href="javascript:void(0)" onclick="changeChatLocale('cn')">CN</a>
             <a href="javascript:void(0)" onclick="changeChatLocale('ar')">AR</a>
+            <a href="javascript:void(0)" onclick="changeChatLocale('in')">IN</a>
         </div>
     </div>
 
