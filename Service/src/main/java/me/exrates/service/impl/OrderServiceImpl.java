@@ -227,16 +227,24 @@ public class OrderServiceImpl implements OrderService {
         errors.put("amount_" + errors.size(), "order.valuerange");
       }
     }
+    CurrencyPairLimitDto currencyPairLimit = currencyService.findLimitForRoleByCurrencyPairAndType(orderCreateDto.getCurrencyPair().getId(),
+            orderCreateDto.getOperationType());
     if (orderCreateDto.getOrderBaseType().equals(OrderBaseType.STOP_LIMIT)) {
       if (orderCreateDto.getStop() == null || orderCreateDto.getStop().compareTo(BigDecimal.ZERO) <= 0) {
         errors.put("stop_" + errors.size(), "order.fillfield");
       }
-
-
+      if (orderCreateDto.getStop().compareTo(currencyPairLimit.getMinRate()) < 0) {
+        String key = "exrate_" + errors.size();
+        errors.put(key, "order.minrate");
+        errorParams.put(key, new Object[]{currencyPairLimit.getMinRate()});
+      }
+      if (orderCreateDto.getStop().compareTo(currencyPairLimit.getMaxRate()) > 0) {
+        String key = "exrate_" + errors.size();
+        errors.put(key, "order.maxrate");
+        errorParams.put(key, new Object[]{currencyPairLimit.getMaxRate()});
+      }
     }
     if (orderCreateDto.getExchangeRate() != null) {
-      CurrencyPairLimitDto currencyPairLimit = currencyService.findLimitForRoleByCurrencyPairAndType(orderCreateDto.getCurrencyPair().getId(),
-              orderCreateDto.getOperationType());
       if (orderCreateDto.getExchangeRate().compareTo(BigDecimal.ZERO) < 1) {
         errors.put("exrate_" + errors.size(), "order.zerorate");
       }
@@ -285,7 +293,7 @@ public class OrderServiceImpl implements OrderService {
     ProfileData profileData = new ProfileData(200);
     try {
       String description = transactionDescription.get(null, action);
-      int createdOrderId = 0;
+      int createdOrderId;
       int outWalletId;
       BigDecimal outAmount;
       if (orderCreateDto.getOperationType() == OperationType.BUY) {
@@ -303,13 +311,16 @@ public class OrderServiceImpl implements OrderService {
           orderBaseType = OrderBaseType.LIMIT;
           exOrder.setOrderBaseType(OrderBaseType.LIMIT);
         }
+        TransactionSourceType sourceType;
         switch (orderBaseType) {
           case STOP_LIMIT: {
             createdOrderId = stopOrderService.createOrder(exOrder);
+            sourceType = TransactionSourceType.STOP_ORDER;
             break;
           }
           default: {
             createdOrderId = orderDao.createOrder(exOrder);
+            sourceType = TransactionSourceType.ORDER;
           }
         }
         if (createdOrderId > 0) {
@@ -318,7 +329,7 @@ public class OrderServiceImpl implements OrderService {
           WalletTransferStatus result = walletService.walletInnerTransfer(
                   outWalletId,
                   outAmount.negate(),
-                  TransactionSourceType.ORDER,
+                  sourceType,
                   exOrder.getId(),
                   description);
           profileData.setTime3();
@@ -466,14 +477,14 @@ public class OrderServiceImpl implements OrderService {
     return orderDao.getOrderById(orderId);
   }
 
-  @Transactional(propagation = Propagation.NESTED)
+  @Transactional
   public boolean setStatus(int orderId, OrderStatus status, OrderBaseType orderBaseType) {
     switch (orderBaseType) {
       case STOP_LIMIT: {
         return stopOrderService.setStatus(orderId, status);
       }
       default: {
-        return orderDao.setStatus(orderId, status);
+        return this.setStatus(orderId, status);
       }
     }
   }
@@ -765,19 +776,13 @@ public class OrderServiceImpl implements OrderService {
       if (transferResult != WalletTransferStatus.SUCCESS) {
         throw new OrderCancellingException(transferResult.toString());
       }
-      switch (exOrder.getOrderBaseType()) {
-        case STOP_LIMIT: {
-          return stopOrderService.cancelOrder(exOrder);
-        }
-        default: {
-          return setStatus(exOrder.getId(), OrderStatus.CANCELLED, exOrder.getOrderBaseType());
-        }
-      }
+      return setStatus(exOrder.getId(), OrderStatus.CANCELLED);
     } catch (Exception e) {
       logger.error("Error while cancelling order " + exOrder.getId() + " , " + e.getLocalizedMessage());
       throw e;
     }
   }
+
 
   private String getStatusString(OrderStatus status, Locale ru) {
     String statusString = null;

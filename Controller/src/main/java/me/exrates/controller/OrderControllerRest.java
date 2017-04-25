@@ -187,7 +187,7 @@ public class OrderControllerRest {
             OrderCreateDto orderCreateDto;
             switch (orderBaseType) {
                 case STOP_LIMIT: {
-                    orderCreateDto = stopOrderService.getOrderById(orderId);
+                    orderCreateDto = stopOrderService.getOrderById(orderId, false);
                     break;
                 }
                 default: {
@@ -220,7 +220,17 @@ public class OrderControllerRest {
             if (orderCreateDto == null) {
                 throw new OrderCreationException(messageSource.getMessage("order.redeleteerror", null, localeResolver.resolveLocale(request)));
             }
-            if (!orderService.cancellOrder(new ExOrder(orderCreateDto), localeResolver.resolveLocale(request))) {
+            boolean result;
+            switch (orderCreateDto.getOrderBaseType()) {
+                case STOP_LIMIT: {
+                    result = stopOrderService.cancelOrder(new ExOrder(orderCreateDto), localeResolver.resolveLocale(request));
+                    break;
+                }
+                default: {
+                    result = orderService.cancellOrder(new ExOrder(orderCreateDto), localeResolver.resolveLocale(request));
+                }
+            }
+            if (!result) {
                 throw new OrderCancellingException(messageSource.getMessage("myorders.deletefailed", null, localeResolver.resolveLocale(request)));
             }
             return "{\"result\":\"" + messageSource.getMessage("myorders.deletesuccess", null, localeResolver.resolveLocale(request)) + "\"}";

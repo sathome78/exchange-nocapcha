@@ -36,6 +36,20 @@
         <%@include file="orders-center-tableBody.jsp" %>
     </table>
 
+        </br>
+        <h4 class="h4_green"><loc:message code="myorders.stoporders"/></h4>
+        </br>
+        <ul class="pager balance__table orders__pager">
+            <li class="previous stop_orders-buy-table__backward"><a href="#"><loc:message code="table.backward"/></a></li>
+            <div class="stop_orders-buy-table__page" style="display:inline-block"></div>
+            <li class="next stop_orders-buy-table__forward"><a href="#"><loc:message code="table.forward"/></a></li>
+        </ul>
+        <table id="orders-buy-table" class="balance__table orders__table orders-buy-table">
+            <c:set value="orders-buy-table_row" var="table_row_id"/>
+            <%@include file="stopOrders-center-tableBody.jsp" %>
+        </table>
+
+
 </div>
 <%--MODAL--%>
 <%@include file="modal/order_delete_confirm_modal.jsp" %>

@@ -23,7 +23,7 @@ public class StopOrder {
     private BigDecimal amountConvert;
     private int currencyPairId;
     private OperationType operationType;
-    private Integer limitOrderId;
+    private Integer childOrderId;
     private OrderStatus status;
     private LocalDateTime dateCreation;
     private LocalDateTime modificationDate;

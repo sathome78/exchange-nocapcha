@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.StopOrderDao;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
+import me.exrates.model.SessionLifeTimeType;
 import me.exrates.model.StopOrder;
 import me.exrates.model.dto.OrderCreateDto;
 import me.exrates.model.enums.ActionType;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +36,30 @@ public class StopOrderDaoImpl implements StopOrderDao {
 
     @Autowired
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
+    private RowMapper<StopOrder> getStopOrdersRowMapper() {
+        return (resultSet, i) -> {
+            final StopOrder stopOrder = new StopOrder();
+            stopOrder.setId(resultSet.getInt("id"));
+            stopOrder.setUserId(resultSet.getInt("user_id"));
+            stopOrder.setCurrencyPairId(resultSet.getInt("currency_pair_id"));
+            stopOrder.setOperationType(OperationType.convert(resultSet.getInt("operation_type_id")));
+            stopOrder.setStatus(OrderStatus.convert(resultSet.getInt("status_id")));
+            stopOrder.setStop(resultSet.getBigDecimal("stop_rate"));
+            stopOrder.setLimit(resultSet.getBigDecimal("limit_rate"));
+            stopOrder.setAmountBase(resultSet.getBigDecimal("amount_base"));
+            stopOrder.setAmountConvert(resultSet.getBigDecimal("amount_convert"));
+            stopOrder.setComissionId(resultSet.getInt("commission_id"));
+            stopOrder.setCommissionFixedAmount(resultSet.getBigDecimal("commission_fixed_amount"));
+            stopOrder.setDateCreation(resultSet.getTimestamp("date_creation").toLocalDateTime());
+            Timestamp modTimestamp = resultSet.getTimestamp("date_modification");
+            stopOrder.setModificationDate(modTimestamp == null ? null : modTimestamp.toLocalDateTime());
+            if (stopOrder.getStatus().equals(OrderStatus.CLOSED)) {
+                stopOrder.setChildOrderId(resultSet.getInt("child_order_id"));
+            }
+            return stopOrder;
+        };
+    }
 
     @Override
     public Integer create(StopOrder order) {
@@ -73,26 +99,46 @@ public class StopOrderDaoImpl implements StopOrderDao {
         return result > 0;
     }
 
+    @Override
+    public boolean setStatusAndChildOrderId(int orderId, int childOrderId, OrderStatus status) {
+        String sql = "UPDATE STOP_ORDERS SET status_id=:status_id, child_order_id=:child_order_id " +
+                "WHERE id = :id";
+        Map<String, String> namedParameters = new HashMap<>();
+        namedParameters.put("status_id", String.valueOf(status.getStatus()));
+        namedParameters.put("id", String.valueOf(orderId));
+        namedParameters.put("child_order_id", String.valueOf(childOrderId));
+        int result = namedParameterJdbcTemplate.update(sql, namedParameters);
+        return result > 0;
+    }
+
 
 
     @Override
     public List<StopOrder> getOrdersBypairId(List<Integer> pairIds, OrderStatus status) {
-        String sql = "SELECT user_id" +
-                "  (user_id, currency_pair_id, operation_type_id, stop,  limit, amount_base, amount_convert, commission_id, commission_fixed_amount, status_id)" +
-                "  VALUES " +
-                "  (:user_id, :currency_pair_id, :operation_type_id, :stop, :limit, :amount_base, :amount_convert, :commission_id, :commission_fixed_amount, :status_id)";
-
-        return null;
+        String sql = "SELECT * FROM STOP_ORDERS AS SO " +
+                "INNER JOIN CURRENCY_PAIR AS CP ON CP.ID = SO.currency_pair_id " +
+                "WHERE SO.currency_pair_id IN (:pairsId) AND SO.status_id = :statusId";
+        Map<String, Object> namedParameters = new HashMap<>();
+        namedParameters.put("pairsId", pairIds);
+        namedParameters.put("statusId", status.getStatus());
+        try {
+            return namedParameterJdbcTemplate.query(sql, namedParameters, getStopOrdersRowMapper());
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
     }
 
     @Override
-    public OrderCreateDto getOrderById(Integer orderId) {
+    public OrderCreateDto getOrderById(Integer orderId, boolean forUpdate) {
         String sql = "SELECT STOP_ORDERS.id as order_id, SO.user_id, SO.status_id, SO.operation_type_id,  " +
                 "  SO.limit_rate, SO.stop_rate, SO.amount_base, SO.amount_convert, SO.commission_fixed_amount, " +
                 "  CURRENCY_PAIR.id AS currency_pair_id, CURRENCY_PAIR.name AS currency_pair_name  " +
                 "  FROM STOP_ORDERS as SO " +
                 "  LEFT JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = SO.currency_pair_id) " +
                 "  WHERE SO.id = :order_id";
+        if (forUpdate) {
+            sql = sql.concat(" FOR UPDATE");
+        }
         Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("order_id", orderId);
         try {

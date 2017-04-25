@@ -5,7 +5,7 @@ import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.StopOrder;
 import me.exrates.model.dto.StopOrderSummaryDto;
-import me.exrates.model.enums.OrderType;
+import me.exrates.model.enums.OperationType;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.StopOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 /**
  * Created by maks on 22.04.2017.
@@ -42,11 +42,22 @@ public class StopOrdersHolderImpl implements StopOrdersHolder {
     @PostConstruct
     public void init() {
         List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs();
+        List<StopOrder> activeOrders = stopOrderService
+                .getActiveStopOrdersByCurrencyPairsId(currencyPairs.stream().map(CurrencyPair::getId).collect(Collectors.toList()));
         currencyPairs.forEach(p->{
-            sellOrdersMap.put(p.getId(), new ConcurrentSkipListSet<StopOrderSummaryDto>(comparator));
-            buyOrdersMap.put(p.getId(), new ConcurrentSkipListSet<StopOrderSummaryDto>(comparator));
+            List<StopOrder> thisPairsOrders = activeOrders.stream().filter(i->i.getCurrencyPairId() == p.getId()).collect(Collectors.toList());
+            ConcurrentSkipListSet<StopOrderSummaryDto> sellSet = new ConcurrentSkipListSet<>(comparator);
+            thisPairsOrders.stream().filter(i->i.getOperationType().equals(OperationType.SELL)).forEach(i->{
+                sellSet.add(new StopOrderSummaryDto(i.getId(), i.getStop(), i.getOperationType()));
+            });
+            sellOrdersMap.put(p.getId(), sellSet);
+            ConcurrentSkipListSet<StopOrderSummaryDto> buySet = new ConcurrentSkipListSet<>(comparator);
+            thisPairsOrders.stream().filter(i->i.getOperationType().equals(OperationType.BUY)).forEach(i->{
+                buySet.add(new StopOrderSummaryDto(i.getId(), i.getStop(), i.getOperationType()));
+            });
+            buyOrdersMap.put(p.getId(), buySet);
         });
-    }
+        }
 
     /**
      * return set with orders by this currency pair @pairId pair which has higher or equal @rate*/

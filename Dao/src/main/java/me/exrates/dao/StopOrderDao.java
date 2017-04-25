@@ -14,7 +14,9 @@ public interface StopOrderDao {
 
     Integer create(StopOrder order);
 
+    boolean setStatusAndChildOrderId(int orderId, int childOrderId, OrderStatus status);
+
     List<StopOrder> getOrdersBypairId(List<Integer> pairIds, OrderStatus opened);
 
-    OrderCreateDto getOrderById(Integer orderId);
+    OrderCreateDto getOrderById(Integer orderId, boolean forUpdate);
 }

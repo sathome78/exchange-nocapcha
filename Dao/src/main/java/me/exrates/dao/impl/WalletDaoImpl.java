@@ -8,10 +8,7 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.mobileApiDto.dashboard.MyWalletsStatisticsApiDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsDetailedDto;
 import me.exrates.model.dto.onlineTableDto.MyWalletsStatisticsDto;
-import me.exrates.model.enums.ActionType;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.TransactionSourceType;
-import me.exrates.model.enums.WalletTransferStatus;
+import me.exrates.model.enums.*;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.WalletOperationData;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -59,6 +56,24 @@ public class WalletDaoImpl implements WalletDao {
 
     return userWallet;
   };
+
+  private RowMapper<WalletsForOrderCancelDto> getWalletsForOrderCancelDtoMapper(OperationType operationType) {
+    return (rs, i) -> {
+      WalletsForOrderCancelDto result = new WalletsForOrderCancelDto();
+      result.setOrderId(rs.getInt("order_id"));
+      result.setOrderStatusId(rs.getInt("order_status_id"));
+      BigDecimal reservedAmount = operationType == SELL ? rs.getBigDecimal("amount_base") :
+              BigDecimalProcessing.doAction(rs.getBigDecimal("amount_convert"), rs.getBigDecimal("commission_fixed_amount"),
+                      ActionType.ADD);
+
+      result.setReservedAmount(reservedAmount);
+      result.setWalletId(rs.getInt("wallet_id"));
+      result.setActiveBalance(rs.getBigDecimal("active_balance"));
+      result.setActiveBalance(rs.getBigDecimal("reserved_balance"));
+      return result;
+    };
+  }
+
 
 
   public BigDecimal getWalletABalance(int walletId) {
@@ -650,20 +665,33 @@ public class WalletDaoImpl implements WalletDao {
     namedParameters.put("order_id", orderId);
     namedParameters.put("currency_id", operationType == SELL ? currencyPair.getCurrency1().getId() : currencyPair.getCurrency2().getId());
     try {
-      return jdbcTemplate.queryForObject(sql, namedParameters, (rs, i) -> {
-        WalletsForOrderCancelDto result = new WalletsForOrderCancelDto();
-        result.setOrderId(rs.getInt("order_id"));
-        result.setOrderStatusId(rs.getInt("order_status_id"));
-        BigDecimal reservedAmount = operationType == SELL ? rs.getBigDecimal("amount_base") :
-                BigDecimalProcessing.doAction(rs.getBigDecimal("amount_convert"), rs.getBigDecimal("commission_fixed_amount"),
-                        ActionType.ADD);
-        
-        result.setReservedAmount(reservedAmount);
-        result.setWalletId(rs.getInt("wallet_id"));
-        result.setActiveBalance(rs.getBigDecimal("active_balance"));
-        result.setActiveBalance(rs.getBigDecimal("reserved_balance"));
-        return result;
-      });
+      return jdbcTemplate.queryForObject(sql, namedParameters, getWalletsForOrderCancelDtoMapper(operationType));
+    } catch (EmptyResultDataAccessException e) {
+      return null;
+    }
+  }
+
+  @Override
+  public WalletsForOrderCancelDto getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType, CurrencyPair currencyPair) {
+    String sql = "SELECT " +
+            " SO.id AS order_id, " +
+            " SO.status_id AS order_status_id, " +
+            " SO.amount_base AS amount_base, " +
+            " SO.amount_convert AS amount_convert, " +
+            " SO.commission_fixed_amount AS commission_fixed_amount, " +
+            " WA.id AS wallet_id, " +
+            " WA.active_balance AS active_balance, " +
+            " WA.reserved_balance AS reserved_balance " +
+            " FROM STOP_ORDERS AS SO " +
+            " JOIN WALLET AS WA ON  (WA.user_id = SO.user_id) AND " +
+            "             (WA.currency_id = :currency_id) " +
+            " WHERE (EXORDERS.id = :order_id)" +
+            " FOR UPDATE "; //FOR UPDATE !Impotant
+    Map<String, Object> namedParameters = new HashMap<>();
+    namedParameters.put("order_id", orderId);
+    namedParameters.put("currency_id", operationType == SELL ? currencyPair.getCurrency1().getId() : currencyPair.getCurrency2().getId());
+    try {
+      return jdbcTemplate.queryForObject(sql, namedParameters, getWalletsForOrderCancelDtoMapper(operationType));
     } catch (EmptyResultDataAccessException e) {
       return null;
     }

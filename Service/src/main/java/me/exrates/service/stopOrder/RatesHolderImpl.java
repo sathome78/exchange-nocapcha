@@ -4,13 +4,12 @@ import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.enums.OperationType;
+import me.exrates.service.CurrencyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by maks on 22.04.2017.
@@ -19,13 +18,14 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class RatesHolderImpl implements RatesHolder {
 
+    @Autowired
+    private CurrencyService currencyService;
 
     /*contains currency pairId and its rate*/
-    private Table<Integer, OperationType, BigDecimal > ratesMap = HashBasedTable.create();
+    private Table<Integer, OperationType, BigDecimal> ratesMap = HashBasedTable.create();
 
     @PostConstruct
     public void init() {
-        /*populate ratesMap and check stop-orders*/
     }
 
     @Override
