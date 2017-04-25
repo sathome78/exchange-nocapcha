@@ -155,31 +155,31 @@ $(function(){
 
         });
 
-
-    function resetMerchantsList(currency) {
-        var optionsHTML = '';
-        $.each(merchantsData,function(index){
-            if (merchantsData[index].currencyId == currency) {
-                optionsHTML+='<option value="'+merchantsData[index].merchantId+'">'+merchantsData[index].description+'</option>';
-                fractionalAmount = merchantsData[index].minSum.noExponents().split('.')[1].length;
+    (function loadData(dataUrl) {
+        $.ajax({
+            url: dataUrl,
+            type: 'GET',
+            dataType: 'json'
+        }).done(function (data) {
+            merchantsData = data;
+            $.each(merchantsData,function(index){
+                if (merchantsData[index].currencyId == $('#currency').val()) {
+                    fractionalAmount = merchantsData[index].minSum.noExponents().split('.')[1].length;
+                }
+            });
+        }).fail(function (jqXHR, textStatus) {
+            console.log(jqXHR);
+            console.log(textStatus);
+            if (textStatus === 'parsererror') {
+                console.log('Requested JSON parse failed.');
+            } else if (textStatus === 'abort') {
+                console.log('Ajax request was aborted.');
+            } else {
+                console.log('Error status code:' + jqXHR.status);
             }
         });
-        if (optionsHTML==='') {
-            document.getElementById('sum').disabled  = true;
-            merchant.fadeOut();
-            button.prop('disabled', true);
-        } else {
-            merchant.fadeIn();
-            //button.prop('disabled', false);
-        }
-        merchant.empty();
-        merchant.html(optionsHTML);
-        if (isCorrectSum()) {
-            //button.prop('disabled',false);
-        } else {
-            button.prop('disabled',true);
-        }
-    }
+    })('/merchants/data');
+
 
     function resetFormAction(operationType,merchant,form) {
         var formAction = {
@@ -554,10 +554,6 @@ $(function(){
             $('.merchantError').show();
         });
     }
-
-    currency.on('change', function () {
-        resetMerchantsList(this.value);
-    });
 
     function submitProcess() {
         var targetMerchant = merchantName;
