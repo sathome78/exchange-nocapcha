@@ -2,6 +2,7 @@ package me.exrates.service.impl;
 
 import me.exrates.dao.InputOutputDao;
 import me.exrates.model.*;
+import me.exrates.model.Currency;
 import me.exrates.model.dto.CommissionDataDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.OperationType;
@@ -153,7 +154,7 @@ public class InputOutputServiceImpl implements InputOutputService {
     OperationType operationType = payment.getOperationType();
     BigDecimal amount = valueOf(payment.getSum());
     Merchant merchant = merchantService.findById(payment.getMerchant());
-    me.exrates.model.Currency currency = currencyService.findById(payment.getCurrency());
+    Currency currency = currencyService.findById(payment.getCurrency());
     String destination = payment.getDestination();
     try {
       merchantService.checkAmountForMinSum(merchant.getId(), currency.getId(), amount);

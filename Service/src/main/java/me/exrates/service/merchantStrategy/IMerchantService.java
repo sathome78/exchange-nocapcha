@@ -2,6 +2,7 @@ package me.exrates.service.merchantStrategy;
 
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
+import me.exrates.service.exception.RefillRequestNotFountException;
 import org.springframework.web.servlet.view.RedirectView;
 
 import java.util.Map;
@@ -15,6 +16,8 @@ public interface IMerchantService {
   void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception;
 
   Map<String, String> refill(RefillRequestCreateDto request);
+
+  void processPayment(Map<String, String> params) throws RefillRequestNotFountException;
 
   default String generateFullUrl(String url, Properties properties){
     return url.concat("?").concat(

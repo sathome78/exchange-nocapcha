@@ -15,7 +15,7 @@ import java.util.Optional;
  * @author ValkSam
  */
 @Builder
-@Getter
+@Getter @Setter
 @ToString
 public class RefillRequestAcceptDto {
   private Integer requestId;
@@ -24,6 +24,7 @@ public class RefillRequestAcceptDto {
   private BigDecimal amount;
   private String address;
   private String merchantTransactionId;
+  private String hash;
   private Integer requesterAdminId;
   private String remark;
 }

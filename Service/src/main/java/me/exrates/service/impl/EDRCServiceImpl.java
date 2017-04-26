@@ -16,6 +16,7 @@ import me.exrates.service.EDRCService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.NotImplimentedMethod;
+import me.exrates.service.exception.RefillRequestNotFountException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -283,5 +284,10 @@ public class EDRCServiceImpl implements EDRCService {
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request){
         throw new NotImplimentedMethod("for "+request);
+    }
+
+    @Override
+    public void processPayment(Map<String, String> params) throws RefillRequestNotFountException {
+        throw new NotImplimentedMethod("for "+params);
     }
 }

@@ -14,6 +14,7 @@ import me.exrates.service.AlgorithmService;
 import me.exrates.service.LiqpayService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.exception.NotImplimentedMethod;
+import me.exrates.service.exception.RefillRequestNotFountException;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -185,5 +186,10 @@ public class LiqpayServiceImpl implements LiqpayService {
     return new HashMap<String, String>() {{
       put("redirectionUrl", fullUrl);
     }};
+  }
+
+  @Override
+  public void processPayment(Map<String, String> params) throws RefillRequestNotFountException {
+    throw new NotImplimentedMethod("for "+params);
   }
 }

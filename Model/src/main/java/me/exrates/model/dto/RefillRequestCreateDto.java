@@ -15,6 +15,7 @@ import java.util.Locale;
  */
 @Getter @Setter
 @ToString
+@NoArgsConstructor
 public class RefillRequestCreateDto {
   private Integer id;
   private Integer userId;

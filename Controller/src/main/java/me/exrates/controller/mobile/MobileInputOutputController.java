@@ -351,7 +351,7 @@ public class MobileInputOutputController {
         }
         Payment payment = new Payment();
         payment.setCurrency(paymentDto.getCurrencyId());
-        payment.setMerchant(merchantService.findByNName("Invoice").getId());
+        payment.setMerchant(merchantService.findByName("Invoice").getId());
         payment.setSum(paymentDto.getAmount().doubleValue());
         payment.setOperationType(OperationType.INPUT);
         final CreditsOperation creditsOperation = inputOutputService
@@ -509,7 +509,7 @@ public class MobileInputOutputController {
         Payment payment = new Payment();
         payment.setSum(requestParamsDto.getSum().doubleValue());
         payment.setCurrency(requestParamsDto.getCurrency());
-        payment.setMerchant(merchantService.findByNName("Invoice").getId());
+        payment.setMerchant(merchantService.findByName("Invoice").getId());
         payment.setOperationType(OperationType.OUTPUT);
         payment.setDestination(requestParamsDto.getWalletNumber());
 

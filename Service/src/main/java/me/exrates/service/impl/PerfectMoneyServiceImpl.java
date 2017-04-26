@@ -9,10 +9,7 @@ import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.PerfectMoneyService;
 import me.exrates.service.TransactionService;
-import me.exrates.service.exception.InvalidAmountException;
-import me.exrates.service.exception.InvalidPayeeWalletException;
-import me.exrates.service.exception.MerchantInternalException;
-import me.exrates.service.exception.NotImplimentedMethod;
+import me.exrates.service.exception.*;
 import org.apache.logging.log4j.LogManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -215,5 +212,10 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
         return new HashMap<String, String>() {{
             put("redirectionUrl", fullUrl);
         }};
+    }
+
+    @Override
+    public void processPayment(Map<String, String> params) throws RefillRequestNotFountException {
+        throw new NotImplimentedMethod("for "+params);
     }
 }

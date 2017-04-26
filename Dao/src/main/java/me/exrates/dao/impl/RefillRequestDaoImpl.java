@@ -93,7 +93,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   }
 
   @Override
-  public Optional<Integer> findIdByMerchantIdAndCurrencyIdAndAddressAndStatusIs(
+  public Optional<Integer> findIdByMerchantIdAndCurrencyIdAndAddressAndStatusId(
       String address,
       Integer merchantId,
       Integer currencyId,
@@ -109,6 +109,29 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
       put("merchant_id", merchantId);
       put("currency_id", currencyId);
       put("status_id", statusId);
+    }};
+    try {
+      return Optional.of(namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class));
+    } catch (EmptyResultDataAccessException e){
+      return Optional.empty();
+    }
+  }
+
+  @Override
+  public Optional<Integer> findUserIdByMerchantIdAndCurrencyIdAndAddress(
+      String address,
+      Integer merchantId,
+      Integer currencyId) {
+    String sql = "SELECT RR.user_id " +
+        " FROM REFILL_REQUEST RR " +
+        " WHERE RR.address = :address " +
+        "       AND RR.merchant_id = :merchant_id " +
+        "       AND RR.currency_id = :currency_id " +
+        " LIMIT 1 ";
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("address", address);
+      put("merchant_id", merchantId);
+      put("currency_id", currencyId);
     }};
     try {
       return Optional.of(namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class));
@@ -434,6 +457,17 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     Map<String, Object> params = new HashMap<>();
     params.put("id", id);
     params.put("merchant_transaction_id", merchantTransactionId);
+    namedParameterJdbcTemplate.update(sql, params);
+  }
+
+  @Override
+  public void setHashById(Integer id, String hash) {
+    final String sql = "UPDATE REFILL_REQUEST " +
+        "  SET hash = :hash " +
+        "  WHERE id = :id";
+    Map<String, Object> params = new HashMap<>();
+    params.put("id", id);
+    params.put("hash", hash);
     namedParameterJdbcTemplate.update(sql, params);
   }
 

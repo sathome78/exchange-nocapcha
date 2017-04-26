@@ -22,10 +22,7 @@ import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.InvoiceData;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.*;
-import me.exrates.service.exception.FileLoadingException;
-import me.exrates.service.exception.IllegalOperationTypeException;
-import me.exrates.service.exception.IllegalTransactionProvidedStatusException;
-import me.exrates.service.exception.NotApplicableException;
+import me.exrates.service.exception.*;
 import me.exrates.service.exception.invoice.IllegalInvoiceStatusException;
 import me.exrates.service.exception.invoice.InvoiceAcceptionException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
@@ -336,5 +333,10 @@ public class InvoiceServiceImpl implements InvoiceService {
     return new HashMap<String, String>() {{
       put("message", message);
     }};
+  }
+
+  @Override
+  public void processPayment(Map<String, String> params) throws RefillRequestNotFountException {
+    throw new NotApplicableException("for " + params);
   }
 }

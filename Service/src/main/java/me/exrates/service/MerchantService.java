@@ -31,7 +31,7 @@ public interface MerchantService {
 
   Merchant findById(int id);
 
-  Merchant findByNName(String name);
+  Merchant findByName(String name);
 
   List<MerchantCurrency> getAllUnblockedForOperationTypeByCurrencies(List<Integer> currenciesId, OperationType operationType);
 

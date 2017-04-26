@@ -1,18 +1,10 @@
 package me.exrates.controller.merchants;
 
-import me.exrates.model.CreditsOperation;
-import me.exrates.model.Currency;
-import me.exrates.model.Merchant;
-import me.exrates.model.Payment;
-import me.exrates.model.dto.RefillRequestAcceptDto;
-import me.exrates.service.*;
-import me.exrates.service.exception.InvalidAmountException;
+import me.exrates.service.EDCService;
+import me.exrates.service.exception.RefillRequestNotFountException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,12 +12,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.math.BigDecimal;
-import java.security.Principal;
-import java.util.*;
+import java.util.Map;
 
-import static org.springframework.http.HttpStatus.*;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import static org.springframework.http.HttpStatus.OK;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -33,39 +22,19 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 @Controller
 public class EDCController {
 
-    @Autowired
-    private EDCService edcService;
 
-    @Autowired
-    private RefillService refillService;
+  @Autowired
+  private EDCService edcService;
 
-    @Autowired
-    private MerchantService merchantService;
+  private final Logger LOG = LogManager.getLogger("merchant");
 
-    @Autowired
-    private CurrencyService currencyService;
-
-    @Autowired
-    private MessageSource messageSource;
-
-    private final Logger LOG = LogManager.getLogger("merchant");
-
-    @RequestMapping(value = "/merchants/edc/payment/received",method = RequestMethod.POST)
-    public ResponseEntity<Void> statusPayment(@RequestBody Map<String,String> params, RedirectAttributes redir) {
-        LOG.info("Response: " + params);
+  @RequestMapping(value = "/merchants/edc/payment/received", method = RequestMethod.POST)
+  public ResponseEntity<Void> statusPayment(@RequestBody Map<String, String> params, RedirectAttributes redir) throws RefillRequestNotFountException {
+    LOG.info("Response: " + params);
 //        edcService.checkTransactionByHistory(params); TODO off for tesining
-        String merchantTransactionId = params.get("id");
-        String address = params.get("address");
-        Currency currency = currencyService.findByName("EDR");
-        Merchant merchant = merchantService.findByNName("EDC");
-        RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
-            .address(address)
-            .merchantId(merchant.getId())
-            .currencyId(currency.getId())
-            .amount(BigDecimal.valueOf(Double.parseDouble(params.get("amount"))))
-            .merchantTransactionId(merchantTransactionId)
-            .build();
-        refillService.autoAcceptRefillRequest(requestAcceptDto);
-        return new ResponseEntity<>(OK);
-    }
+    edcService.processPayment(params);
+    return new ResponseEntity<>(OK);
+  }
+
+
 }

@@ -3,6 +3,7 @@ package me.exrates.model;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import me.exrates.model.enums.OperationType;
 
 import javax.validation.constraints.Min;
@@ -12,6 +13,7 @@ import javax.validation.constraints.Min;
  */
 @Getter @Setter
 @NoArgsConstructor
+@ToString
 public class Payment {
     private int currency;
     private int merchant;

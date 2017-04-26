@@ -28,6 +28,7 @@ import me.exrates.service.YandexMoneyService;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
 import me.exrates.service.exception.NotImplimentedMethod;
+import me.exrates.service.exception.RefillRequestNotFountException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -231,5 +232,10 @@ public class YandexMoneyServiceImpl implements YandexMoneyService {
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request){
         throw new NotImplimentedMethod("for "+request);
+    }
+
+    @Override
+    public void processPayment(Map<String, String> params) throws RefillRequestNotFountException {
+        throw new NotImplimentedMethod("for "+params);
     }
 }

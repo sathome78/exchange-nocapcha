@@ -9,6 +9,7 @@ import me.exrates.service.AlgorithmService;
 import me.exrates.service.Privat24Service;
 import me.exrates.service.TransactionService;
 import me.exrates.service.exception.NotImplimentedMethod;
+import me.exrates.service.exception.RefillRequestNotFountException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -104,6 +105,11 @@ public class Privat24ServiceImpl implements Privat24Service {
     @Override
     public Map<String, String> refill(RefillRequestCreateDto request){
         throw new NotImplimentedMethod("for "+request);
+    }
+
+    @Override
+    public void processPayment(Map<String, String> params) throws RefillRequestNotFountException {
+        throw new NotImplimentedMethod("for "+params);
     }
 
 }

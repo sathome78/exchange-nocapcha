@@ -9,18 +9,17 @@ import com.google.gson.JsonParser;
 import com.squareup.okhttp.*;
 import me.exrates.dao.EDCAccountDao;
 import me.exrates.dao.PendingPaymentDao;
-import me.exrates.model.CreditsOperation;
-import me.exrates.model.EDCAccount;
-import me.exrates.model.PendingPayment;
-import me.exrates.model.Transaction;
+import me.exrates.model.*;
 import me.exrates.model.dto.PendingPaymentSimpleDto;
+import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
-import me.exrates.service.EDCService;
-import me.exrates.service.TransactionService;
+import me.exrates.service.*;
 import me.exrates.service.exception.EdcFakePaymentException;
 import me.exrates.service.exception.MerchantInternalException;
+import me.exrates.service.exception.RefillRequestNotFountException;
+import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.util.BiTuple;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -41,6 +40,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static java.math.BigDecimal.ROUND_HALF_UP;
+import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.ACCEPT_AUTO;
 import static org.springframework.transaction.annotation.Propagation.NESTED;
 
 /**
@@ -96,6 +96,16 @@ public class EDCServiceImpl implements EDCService {
 
   @Autowired
   private MessageSource messageSource;
+
+  @Autowired
+  private RefillService refillService;
+
+  @Autowired
+  private MerchantService merchantService;
+
+  @Autowired
+  private CurrencyService currencyService;
+
 
   public void changeDebugLogStatus(final boolean status) {
     debugLog = true;
@@ -480,6 +490,32 @@ public class EDCServiceImpl implements EDCService {
       put("message", message);
       put("qr", address);
     }};
+  }
+
+  @Override
+  public void processPayment(Map<String, String> params) throws RefillRequestNotFountException {
+    String merchantTransactionId = params.get("id");
+    String address = params.get("address");
+    String hash = params.get("hash");
+    me.exrates.model.Currency currency = currencyService.findByName("EDR");
+    Merchant merchant = merchantService.findByName("EDC");
+    BigDecimal amount = BigDecimal.valueOf(Double.parseDouble(params.get("amount")));
+    RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
+        .address(address)
+        .merchantId(merchant.getId())
+        .currencyId(currency.getId())
+        .amount(amount)
+        .merchantTransactionId(merchantTransactionId)
+        .hash(hash)
+        .build();
+    try {
+      refillService.autoAcceptRefillRequest(requestAcceptDto);
+    } catch (RefillRequestNotFountException e) {
+      LOG.debug("RefillRequestNotFountException: "+params);
+      Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
+      requestAcceptDto.setRequestId(requestId);
+      refillService.autoAcceptRefillRequest(requestAcceptDto);
+    }
   }
 
 }

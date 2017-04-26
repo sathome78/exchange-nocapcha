@@ -20,7 +20,9 @@ import java.util.Optional;
  */
 public interface RefillRequestDao {
 
-  Optional<Integer> findIdByMerchantIdAndCurrencyIdAndAddressAndStatusIs(String address, Integer merchantId, Integer currencyId, Integer statusId);
+  Optional<Integer> findIdByMerchantIdAndCurrencyIdAndAddressAndStatusId(String address, Integer merchantId, Integer currencyId, Integer statusId);
+
+  Optional<Integer> findUserIdByMerchantIdAndCurrencyIdAndAddress(String address, Integer merchantId, Integer currencyId);
 
   int create(RefillRequestCreateDto request);
 
@@ -51,6 +53,8 @@ public interface RefillRequestDao {
   void setRemarkById(Integer id, String remark);
 
   void setMerchantTransactionIdById(Integer id, String merchantTransactionId);
+
+  void setHashById(Integer id, String hash);
 
   boolean checkInputRequests(int currencyId, String email);
 

@@ -79,7 +79,7 @@ public class RefillRequestController {
     CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principal.getName())
         .orElseThrow(InvalidAmountException::new);
     RefillRequestCreateDto request = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);
-    return refillService.createRefillRequest(request, locale);
+    return refillService.createRefillRequest(request);
   }
 
   @RequestMapping(value = "/refill/request/revoke", method = POST)

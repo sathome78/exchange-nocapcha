@@ -135,7 +135,7 @@ public class MerchantServiceImpl implements MerchantService {
   }
 
   @Override
-  public Merchant findByNName(String name) {
+  public Merchant findByName(String name) {
     return merchantDao.findByName(name);
   }
 
