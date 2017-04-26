@@ -5,7 +5,6 @@ import me.exrates.model.Commission;
 import me.exrates.model.dto.CommissionDataDto;
 import me.exrates.model.dto.CommissionShortEditDto;
 import me.exrates.model.dto.EditMerchantCommissionDto;
-import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.UserRole;
 import me.exrates.model.util.BigDecimalProcessing;
@@ -115,13 +114,20 @@ public class CommissionServiceImpl implements CommissionService {
       BigDecimal amount,
       OperationType type,
       Integer currencyId,
-      Integer merchantId) {
+      Integer merchantId,
+      Locale locale) {
     Map<String, String> result = new HashMap<>();
     CommissionDataDto commissionData = normalizeAmountAndCalculateCommission(userId, amount, type, currencyId, merchantId);
     result.put("amount", commissionData.getAmount().toPlainString());
-    result.put("merchantCommissionRate", commissionData.getMerchantCommissionRate().toPlainString().concat(" ").concat(commissionData.getMerchantCommissionUnit()));
+    result.put("merchantCommissionRate", "("
+        .concat(BigDecimalProcessing.formatLocale(commissionData.getMerchantCommissionRate(), locale, false))
+        .concat(commissionData.getMerchantCommissionUnit())
+        .concat(")"));
     result.put("merchantCommissionAmount", commissionData.getMerchantCommissionAmount().toPlainString());
-    result.put("companyCommissionRate", commissionData.getCompanyCommissionRate().toPlainString().concat(" ").concat(commissionData.getCompanyCommissionUnit()));
+    result.put("companyCommissionRate", "("
+        .concat(BigDecimalProcessing.formatLocale(commissionData.getCompanyCommissionRate(), locale, false))
+        .concat(commissionData.getCompanyCommissionUnit())
+        .concat(")"));
     result.put("companyCommissionAmount", commissionData.getCompanyCommissionAmount().toPlainString());
     result.put("totalCommissionAmount", commissionData.getTotalCommissionAmount().toPlainString());
     result.put("resultAmount", commissionData.getResultAmount().toPlainString());
@@ -145,10 +151,12 @@ public class CommissionServiceImpl implements CommissionService {
     String merchantCommissionUnit = "%";
     String companyCommissionUnit = "%";
     if (type == INPUT) {
+      int currencyScale = merchantService.getMerchantCurrencyScaleByMerchantIdAndCurrencyId(merchantId, currencyId).getScaleForRefill();
+      amount = amount.setScale(currencyScale, ROUND_HALF_UP);
       merchantCommissionAmount = BigDecimalProcessing.doAction(amount, merchantCommissionRate, MULTIPLY_PERCENT);
       companyCommissionAmount = BigDecimalProcessing.doAction(amount.subtract(merchantCommissionAmount), companyCommissionRate, MULTIPLY_PERCENT);
     } else if (type == OUTPUT) {
-      int currencyScale = merchantService.getMerchantCurrencyScaleByMerchantIdAndCurrencyIdAndOperationType(merchantId, currencyId, type);
+      int currencyScale = merchantService.getMerchantCurrencyScaleByMerchantIdAndCurrencyId(merchantId, currencyId).getScaleForWithdraw();
       amount = amount.setScale(currencyScale, ROUND_HALF_UP);
       companyCommissionAmount = BigDecimalProcessing.doAction(amount, companyCommissionRate, MULTIPLY_PERCENT).setScale(currencyScale, ROUND_HALF_UP);
       merchantCommissionAmount = BigDecimalProcessing.doAction(amount.subtract(companyCommissionAmount), merchantCommissionRate, MULTIPLY_PERCENT).setScale(currencyScale, ROUND_HALF_UP);

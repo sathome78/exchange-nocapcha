@@ -2,10 +2,8 @@ package me.exrates.service.impl;
 
 import javafx.util.Pair;
 import me.exrates.dao.MerchantDao;
-import me.exrates.dao.WithdrawRequestDao;
 import me.exrates.model.*;
 import me.exrates.model.Currency;
-import me.exrates.model.dto.CommissionDataDto;
 import me.exrates.model.dto.MerchantCurrencyLifetimeDto;
 import me.exrates.model.dto.MerchantCurrencyOptionsDto;
 import me.exrates.model.dto.MerchantCurrencyScaleDto;
@@ -18,12 +16,14 @@ import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.*;
-import me.exrates.service.exception.*;
+import me.exrates.service.exception.InvalidAmountException;
+import me.exrates.service.exception.MerchantCurrencyBlockedException;
+import me.exrates.service.exception.MerchantInternalException;
+import me.exrates.service.exception.ScaleForAmountNotSetException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.mail.MailException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,9 +32,8 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.math.BigDecimal.*;
-import static java.math.BigDecimal.valueOf;
-import static me.exrates.model.enums.OperationType.*;
+import static java.math.BigDecimal.ROUND_HALF_UP;
+import static me.exrates.model.enums.OperationType.OUTPUT;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -280,8 +279,16 @@ public class MerchantServiceImpl implements MerchantService {
 
   @Override
   @Transactional
-  public BigDecimal getMinSum(Integer merchantId, Integer currencyId){
+  public BigDecimal getMinSum(Integer merchantId, Integer currencyId) {
     return merchantDao.getMinSum(merchantId, currencyId);
+  }
+
+  @Override
+  @Transactional
+  public void checkAmountForMinSum(Integer merchantId, Integer currencyId, BigDecimal amount) {
+    if (amount.compareTo(getMinSum(merchantId, currencyId)) < 0){
+      throw new InvalidAmountException(String.format("merchant: %s currency: %s amount %s", merchantId, currencyId, amount.toString()));
+    }
   }
 
   /*============================*/
@@ -302,17 +309,13 @@ public class MerchantServiceImpl implements MerchantService {
 
   @Override
   @Transactional
-  public int getMerchantCurrencyScaleByMerchantIdAndCurrencyIdAndOperationType(
+  public MerchantCurrencyScaleDto getMerchantCurrencyScaleByMerchantIdAndCurrencyId(
       Integer merchantId,
-      Integer currencyId,
-      OperationType operationType) {
-    int DEFAULT_PRECISION = 2;
+      Integer currencyId) {
     MerchantCurrencyScaleDto result = merchantDao.findMerchantCurrencyScaleByMerchantIdAndCurrencyId(merchantId, currencyId);
-    if (operationType == OUTPUT) {
-      return result.getScaleForWithdraw() == null?  DEFAULT_PRECISION: result.getScaleForWithdraw();
-    } else {
-      throw new IllegalOperationTypeException(operationType.name());
-    }
+    Optional.ofNullable(result.getScaleForRefill()).orElseThrow(()->new ScaleForAmountNotSetException("currency: "+currencyId));
+    Optional.ofNullable(result.getScaleForWithdraw()).orElseThrow(()->new ScaleForAmountNotSetException("currency: "+currencyId));
+    return  result;
   }
 
   @Override

@@ -51,11 +51,13 @@ public interface MerchantService {
 
   BigDecimal getMinSum(Integer merchantId, Integer currencyId);
 
+  void checkAmountForMinSum(Integer merchantId, Integer currencyId, BigDecimal amount);
+
   List<MerchantCurrencyLifetimeDto> getMerchantCurrencyWithRefillLifetime();
 
   MerchantCurrencyLifetimeDto getMerchantCurrencyLifetimeByMerchantIdAndCurrencyId(Integer merchantId, Integer currencyId);
 
-  int getMerchantCurrencyScaleByMerchantIdAndCurrencyIdAndOperationType(Integer merchantId, Integer currencyId, OperationType operationType);
+  MerchantCurrencyScaleDto getMerchantCurrencyScaleByMerchantIdAndCurrencyId(Integer merchantId, Integer currencyId);
 
   void checkMerchantIsBlocked(Integer merchantId, Integer currencyId, OperationType operationType);
 }

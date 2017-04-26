@@ -40,6 +40,7 @@
                      data-currency-name="${currency.name}"
                      data-max-amount="${balance}" <%--для USER_TRANSFER другое значение: ищи #maxForTransfer--%>
                      data-min-amount="${minRefillSum}"
+                     data-scale-of-amount="${scaleForCurrency}"
                      data-min-sum-noty-id="#min-sum-notification"
                      data-submit-button-id=".start-refill"/>
             </div>
@@ -55,13 +56,18 @@
             <br>
             <c:forEach var="merchantCurrency" items="${merchantCurrencyData}">
               <c:forEach var="merchantImage" items="${merchantCurrency.listMerchantImage}">
-                <div style=" width: 700px; height: 48px; ">
-                  <div style="float: left; width: 408px; text-align: right; margin-right: 10px; ">
-                    <img class="img-thumbnail" src="${merchantImage.image_path}" style="width: 168px; height: 52px"/>
-
+                <div style=" width: 700px; height: 88px; border: 1px solid #d5d5d5; padding: 10px; border-radius: 10px">
+                  <div style="float: left; height: 20px;  width: 408px; text-align: right; margin-right: 10px">
+                    <img class="img-thumbnail" src="${merchantImage.image_path}"
+                         style="width: 168px; height: 52px; margin-right: 35px"/>
+                    <div style="float: left; height: 20px;  width: 408px; text-align: left; margin-right: 10px; padding-left: 210px">
+                      <c:if test="${(merchantCurrency.minSum > 0) && (!merchantCurrency.simpleInvoice)}">
+                        <span><loc:message code="merchants.input.minSum"/></span>
+                        <span>${merchantCurrency.minSum.stripTrailingZeros().toPlainString()}</span>
+                      </c:if>
+                    </div>
                   </div>
-                  <button style="position: relative; top: 50%; -webkit-transform: translateY(-50%); -ms-transform: translateY(-50%); transform: translateY(-50%);"
-                          class="start-refill btn btn-primary btn-lg"
+                  <button class="start-withdraw btn btn-primary btn-lg"
                           type="button"
                           data-currency-id="${currency.getId()}"
                           data-currency-name="${currency.getName()}"
@@ -69,7 +75,8 @@
                           data-merchant-name="${merchantCurrency.name}"
                           data-merchant-min-sum="${merchantCurrency.minSum}"
                           data-simple-invoice="${merchantCurrency.simpleInvoice}"
-                          data-merchant-image-d="${merchantImage.id}"><loc:message code="merchants.deposit"/></button>
+                          data-merchant-image-d="${merchantImage.id}"><loc:message code="merchants.deposit"/>
+                  </button>
                 </div>
                 <br>
               </c:forEach>

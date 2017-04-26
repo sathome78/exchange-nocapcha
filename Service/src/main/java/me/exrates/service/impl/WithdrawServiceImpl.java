@@ -94,6 +94,9 @@ public class WithdrawServiceImpl implements WithdrawService {
   @Autowired
   InputOutputService inputOutputService;
 
+  @Autowired
+  private MerchantService merchantService;
+
   @Override
   @Transactional
   public void setAutoWithdrawParams(MerchantCurrencyOptionsDto merchantCurrencyOptionsDto) {
@@ -402,11 +405,12 @@ public class WithdrawServiceImpl implements WithdrawService {
 
   @Override
   @Transactional(readOnly = true)
-  public Map<String, String> correctAmountAndCalculateCommission(Integer userId, BigDecimal amount, Integer currencyId, Integer merchantId) {
+  public Map<String, String> correctAmountAndCalculateCommissionPreliminarily(Integer userId, BigDecimal amount, Integer currencyId, Integer merchantId, Locale locale) {
     OperationType operationType = OUTPUT;
     BigDecimal addition = currencyService.computeRandomizedAddition(currencyId, operationType);
     amount = amount.add(addition);
-    Map<String, String> result = commissionService.computeCommissionAndMapAllToString(userId, amount, operationType, currencyId, merchantId);
+    merchantService.checkAmountForMinSum(merchantId, currencyId, amount);
+    Map<String, String> result = commissionService.computeCommissionAndMapAllToString(userId, amount, operationType, currencyId, merchantId, locale);
     result.put("addition", addition.toString());
     return result;
   }

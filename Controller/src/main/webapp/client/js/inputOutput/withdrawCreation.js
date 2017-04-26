@@ -34,6 +34,8 @@ $(function withdrawCreation() {
     var amount;
     var commissionPercent;
     var commissionAmount;
+    var commissionMerchantPercent;
+    var commissionMerchantAmount;
     var totalAmount;
     var bankDataList;
 
@@ -77,6 +79,10 @@ $(function withdrawCreation() {
                 .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>")
                 .replace(templateVariables.percent, "<span class='modal-amount'>" + commissionPercent + "</span>");
             newHTMLElements[2] = newHTMLElements[2]
+                .replace(templateVariables.amount, "<span class='modal-amount'>" + commissionMerchantAmount + "</span>")
+                .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>")
+                .replace(templateVariables.percent, "<span class='modal-amount'>" + commissionMerchantPercent + "</span>");
+            newHTMLElements[3] = newHTMLElements[3]
                 .replace(templateVariables.amount, "<span class='modal-amount'>" + totalAmount + "</span>")
                 .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>");
             var newHTML = '';
@@ -252,9 +258,11 @@ $(function withdrawCreation() {
             data: {"amount": amount, "currency": currency, "merchant": merchant}
         }).success(function (response) {
             amount = response['amount'];
-            commissionPercent = response['commission'];
-            commissionAmount = response['commissionAmount'];
-            totalAmount = response['totalAmount'];
+            commissionPercent = response['companyCommissionRate'];
+            commissionAmount = response['companyCommissionAmount'];
+            commissionMerchantAmount = response['merchantCommissionAmount'];
+            commissionMerchantPercent = response['merchantCommissionRate'];
+            totalAmount = response['resultAmount'];
             var additional = response['addition'];
             $withdrawDetailedParamsDialog.find("#additional").html(additional);
             if (additional != 0) {

@@ -29,4 +29,9 @@ UPDATE USER_COMMENT_TOPIC SET topic='REFILL_DECLINE' WHERE  id=2;
 
 
 ALTER TABLE MERCHANT_CURRENCY
+	ADD COLUMN max_scale_for_refill INT NULL,
+	ADD COLUMN max_scale_for_withdraw INT NULL;
+
+ALTER TABLE CURRENCY
+	ADD COLUMN max_scale_for_refill INT NULL,
 	ADD COLUMN max_scale_for_withdraw INT NULL;

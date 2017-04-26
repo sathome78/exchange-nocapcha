@@ -4,6 +4,7 @@ $(function () {
     $(".numericInputField")
         .keypress(
             function (e) {
+                const fractionalAmount = $(this).data("scale-of-amount");
                 var decimal = $(this).val().split('.')[1];
                 if (decimal && decimal.length >= fractionalAmount + 1) {
                     return false;
@@ -30,6 +31,7 @@ $(function () {
             const maxAmount = parseFloat($(this).data("max-amount"));
             const minAmount = parseFloat($(this).data("min-amount"));
             const balance = parseFloat($(this).data("balance"));
+            const fractionalAmount = $(this).data("scale-of-amount");
             var val = $(this).val();
             var regx = /^(^[1-9]+\d*((\.{1}\d*)|(\d*)))|(^0{1}\.{1}\d*)|(^0{1})$/;
             var result = val.match(regx);

@@ -105,9 +105,10 @@ public class WithdrawRequestController {
       @RequestParam("amount") BigDecimal amount,
       @RequestParam("currency") Integer currencyId,
       @RequestParam("merchant") Integer merchantId,
-      Principal principal) {
+      Principal principal,
+      Locale locale) {
     Integer userId = userService.getIdByEmail(principal.getName());
-    return withdrawService.correctAmountAndCalculateCommission(userId, amount, currencyId, merchantId);
+    return withdrawService.correctAmountAndCalculateCommissionPreliminarily(userId, amount, currencyId, merchantId, locale);
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/withdraw/take", method = POST)

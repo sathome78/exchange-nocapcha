@@ -2,7 +2,6 @@ package me.exrates.service.impl;
 
 import me.exrates.dao.InputOutputDao;
 import me.exrates.model.*;
-import me.exrates.model.Currency;
 import me.exrates.model.dto.CommissionDataDto;
 import me.exrates.model.dto.onlineTableDto.MyInputOutputHistoryDto;
 import me.exrates.model.enums.OperationType;
@@ -157,10 +156,7 @@ public class InputOutputServiceImpl implements InputOutputService {
     me.exrates.model.Currency currency = currencyService.findById(payment.getCurrency());
     String destination = payment.getDestination();
     try {
-      if (!isPayable(merchant, currency, amount)) {
-        log.warn("Merchant respond as not support this pay " + payment);
-        return Optional.empty();
-      }
+      merchantService.checkAmountForMinSum(merchant.getId(), currency.getId(), amount);
     } catch (EmptyResultDataAccessException e) {
       final String exceptionMessage = "MerchantService".concat(operationType == INPUT ?
           "Input" : "Output");
@@ -189,11 +185,6 @@ public class InputOutputServiceImpl implements InputOutputService {
         .transactionSourceType(transactionSourceType)
         .build();
     return Optional.of(creditsOperation);
-  }
-
-  private boolean isPayable(Merchant merchant, Currency currency, BigDecimal sum) {
-    final BigDecimal minSum = merchantService.getMinSum(merchant.getId(), currency.getId());
-    return sum.compareTo(minSum) >= 0;
   }
 
 }

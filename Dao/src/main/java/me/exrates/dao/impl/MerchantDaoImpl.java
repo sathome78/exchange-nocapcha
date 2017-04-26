@@ -371,11 +371,13 @@ public class MerchantDaoImpl implements MerchantDao {
 
   @Override
   public MerchantCurrencyScaleDto findMerchantCurrencyScaleByMerchantIdAndCurrencyId(Integer merchantId, Integer currencyId) {
-    String sql = "SELECT currency_id, merchant_id, max_scale_for_refill, max_scale_for_withdraw " +
-        " FROM MERCHANT_CURRENCY " +
-        " WHERE " +
-        "   merchant_id = :merchant_id " +
-        "   AND currency_id = :currency_id";
+    String sql = "SELECT currency_id, merchant_id, " +
+        "  IF(MERCHANT_CURRENCY.max_scale_for_refill IS NOT NULL, MERCHANT_CURRENCY.max_scale_for_refill, CURRENCY.max_scale_for_refill) AS max_scale_for_refill, " +
+        "  IF(MERCHANT_CURRENCY.max_scale_for_withdraw IS NOT NULL, MERCHANT_CURRENCY.max_scale_for_withdraw, CURRENCY.max_scale_for_withdraw) AS max_scale_for_withdraw" +
+        "  FROM MERCHANT_CURRENCY " +
+        "  JOIN CURRENCY ON CURRENCY.id = MERCHANT_CURRENCY.currency_id " +
+        "  WHERE merchant_id = :merchant_id " +
+        "        AND currency_id = :currency_id";
     Map<String, Object> params = new HashMap<String, Object>() {{
       put("merchant_id", merchantId);
       put("currency_id", currencyId);
@@ -384,8 +386,8 @@ public class MerchantDaoImpl implements MerchantDao {
       MerchantCurrencyScaleDto result =  new MerchantCurrencyScaleDto();
       result.setCurrencyId(rs.getInt("currency_id"));
       result.setMerchantId(rs.getInt("merchant_id"));
-      result.setScaleForRefill(rs.getInt("max_scale_for_refill"));
-      result.setScaleForWithdraw(rs.getInt("max_scale_for_withdraw"));
+      result.setScaleForRefill((Integer) rs.getObject("max_scale_for_refill"));
+      result.setScaleForWithdraw((Integer) rs.getObject("max_scale_for_withdraw"));
       return result;
     });
   }

@@ -120,9 +120,10 @@ public class RefillRequestController {
       @RequestParam("amount") BigDecimal amount,
       @RequestParam("currency") Integer currencyId,
       @RequestParam("merchant") Integer merchantId,
-      Principal principal) {
+      Principal principal,
+      Locale locale) {
     Integer userId = userService.getIdByEmail(principal.getName());
-    return refillService.correctAmountAndCalculateCommission(userId, amount, currencyId, merchantId);
+    return refillService.correctAmountAndCalculateCommission(userId, amount, currencyId, merchantId, locale);
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/refill/take", method = POST)

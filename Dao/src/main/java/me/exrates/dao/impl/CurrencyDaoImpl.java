@@ -5,6 +5,7 @@ import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.CurrencyPairLimitDto;
+import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
@@ -45,7 +46,7 @@ public class CurrencyDaoImpl implements CurrencyDao {
     currency2.setId(rs.getInt("currency2_id"));
     currency2.setName(rs.getString("currency2_name"));
     currencyPair.setCurrency2(currency2);
-			/**/
+      /**/
     return currencyPair;
 
   };
@@ -373,6 +374,25 @@ public class CurrencyDaoImpl implements CurrencyDao {
   public List<Currency> findAllCurrenciesWithHidden() {
     final String sql = "SELECT * FROM CURRENCY";
     return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Currency.class));
+  }
+
+  @Override
+  public MerchantCurrencyScaleDto findCurrencyScaleByCurrencyId(Integer currencyId) {
+    String sql = "SELECT id, " +
+        "  max_scale_for_refill, max_scale_for_withdraw " +
+        "  FROM CURRENCY " +
+        "  WHERE id = :currency_id";
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("currency_id", currencyId);
+    }};
+    return jdbcTemplate.queryForObject(sql, params, (rs, i) -> {
+      MerchantCurrencyScaleDto result = new MerchantCurrencyScaleDto();
+      result.setCurrencyId(rs.getInt("id"));
+      result.setMerchantId(null);
+      result.setScaleForRefill((Integer) rs.getObject("max_scale_for_refill"));
+      result.setScaleForWithdraw((Integer) rs.getObject("max_scale_for_withdraw"));
+      return result;
+    });
   }
 
 }

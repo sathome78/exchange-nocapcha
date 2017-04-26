@@ -4,11 +4,13 @@ import me.exrates.model.Currency;
 import me.exrates.model.CurrencyLimit;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.dto.CurrencyPairLimitDto;
+import me.exrates.model.dto.MerchantCurrencyScaleDto;
 import me.exrates.model.dto.UserCurrencyOperationPermissionDto;
 import me.exrates.model.dto.mobileApiDto.TransferLimitDto;
 import me.exrates.model.dto.mobileApiDto.dashboard.CurrencyPairWithLimitsDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceOperationDirection;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -73,4 +75,6 @@ public interface CurrencyService {
   List<Currency> findAllCurrenciesWithHidden();
 
   BigDecimal computeRandomizedAddition(Integer currencyId, OperationType operationType);
+
+  MerchantCurrencyScaleDto getCurrencyScaleByCurrencyId(Integer currencyId);
 }

@@ -296,11 +296,17 @@ public class RefillServiceImpl implements RefillService {
 
   @Override
   @Transactional(readOnly = true)
-  public Map<String, String> correctAmountAndCalculateCommission(Integer userId, BigDecimal amount, Integer currencyId, Integer merchantId) {
+  public Map<String, String> correctAmountAndCalculateCommission(
+      Integer userId,
+      BigDecimal amount,
+      Integer currencyId,
+      Integer merchantId,
+      Locale locale) {
     OperationType operationType = INPUT;
     BigDecimal addition = currencyService.computeRandomizedAddition(currencyId, operationType);
     amount = amount.add(addition);
-    Map<String, String> result = commissionService.computeCommissionAndMapAllToString(userId, amount, operationType, currencyId, merchantId);
+    merchantService.checkAmountForMinSum(merchantId, currencyId, amount);
+    Map<String, String> result = commissionService.computeCommissionAndMapAllToString(userId, amount, operationType, currencyId, merchantId, locale);
     result.put("addition", addition.toString());
     return result;
   }
