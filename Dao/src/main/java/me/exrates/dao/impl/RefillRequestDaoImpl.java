@@ -416,6 +416,17 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   }
 
   @Override
+  public void setRemarkById(Integer id, String remark) {
+    final String sql = "UPDATE REFILL_REQUEST " +
+        "  SET remark = :remark " +
+        "  WHERE id = :id";
+    Map<String, Object> params = new HashMap<>();
+    params.put("id", id);
+    params.put("remark", remark);
+    namedParameterJdbcTemplate.update(sql, params);
+  }
+
+  @Override
   public void setMerchantTransactionIdById(Integer id, String merchantTransactionId) {
     final String sql = "UPDATE REFILL_REQUEST " +
         "  SET merchant_transaction_id = :merchant_transaction_id " +

@@ -193,6 +193,7 @@ public class RefillServiceImpl implements RefillService {
       RefillRequestFlatDto refillRequestFlatDto = acceptRefill(
           requestId,
           requestAcceptDto.getAmount(),
+          null,
           null);
       refillRequestDao.setMerchantTransactionIdById(requestId, requestAcceptDto.getMerchantTransactionId());
       /**/
@@ -216,7 +217,8 @@ public class RefillServiceImpl implements RefillService {
     RefillRequestFlatDto refillRequestFlatDto = acceptRefill(
         requestId,
         requestAcceptDto.getAmount(),
-        requestAcceptDto.getRequesterAdminId());
+        requestAcceptDto.getRequesterAdminId(),
+        requestAcceptDto.getRemark());
     refillRequestDao.setMerchantTransactionIdById(requestId, requestAcceptDto.getMerchantTransactionId());
       /**/
     Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
@@ -229,7 +231,7 @@ public class RefillServiceImpl implements RefillService {
     notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
   }
 
-  private RefillRequestFlatDto acceptRefill(Integer requestId, BigDecimal factAmount, Integer requesterAdminId) {
+  private RefillRequestFlatDto acceptRefill(Integer requestId, BigDecimal factAmount, Integer requesterAdminId, String remark) {
     ProfileData profileData = new ProfileData(1000);
     try {
       RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
@@ -241,6 +243,7 @@ public class RefillServiceImpl implements RefillService {
           checkPermissionOnActionAndGetNewStatus(requesterAdminId, refillRequest, action);
       refillRequestDao.setStatusById(requestId, newStatus);
       refillRequestDao.setHolderById(requestId, requesterAdminId);
+      refillRequestDao.setRemarkById(requestId, remark);
       refillRequest.setStatus(newStatus);
       refillRequest.setAdminHolderId(requesterAdminId);
       profileData.setTime1();

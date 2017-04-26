@@ -181,16 +181,25 @@ $(function () {
         var $modal = $("#dialog-refill-accept");
         $modal.find("#initial-amount").html(initialAmount);
         $modal.find("#actual-amount").val(initialAmount);
+        $modal.find("#remark").val("");
         $modal.find("#confirm-button").off("click").one("click", function () {
             $modal.modal('hide');
             var amount = $modal.find("#actual-amount").val();
+            var remark = $modal.find("#remark").val();
+            var data = {
+                "requestId": id,
+                "amount": amount,
+                "remark": remark,
+            };
             $.ajax({
-                url: '/2a8fy7b07dxe44/refill/accept?id=' + id+'&amount='+amount,
+                url: '/2a8fy7b07dxe44/refill/accept',
                 async: false,
                 headers: {
                     'X-CSRF-Token': $("input[name='_csrf']").val(),
                 },
                 type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
                 complete: function () {
                     updateRefillTable();
                 }

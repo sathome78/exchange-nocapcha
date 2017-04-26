@@ -26,8 +26,14 @@
   }
 
   function checkField($elem) {
-    const NAME_REGEX = /^\d+\.?\d*$/;
-    result = validateString($elem, NAME_REGEX, '', false);
+    const AMOUNT_REGEX = /^\d+\.?\d*$/;
+    var elemId = $elem.attr("id");
+    if (elemId == 'actual-amount') {
+      result = validateString($elem, AMOUNT_REGEX, '', false);
+    }
+    else if (elemId == 'remark') {
+      result = $elem.val().trim() ? true : false;
+    }
     return result;
   }
 
@@ -55,6 +61,15 @@
                  class="form-control credits-operation-enter__item"
                  autofocus
                  type="text">
+        </div>
+        <hr>
+        <div>
+          <label class="control-label" for="remark">
+            <loc:message code="merchants.invoiceDetails.remark"/>
+          </label>
+          <textarea id="remark"
+                    class="form-control credits-operation-enter__item">
+          </textarea>
         </div>
       </div>
       <div class="modal-footer">

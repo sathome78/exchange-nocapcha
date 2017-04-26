@@ -48,6 +48,8 @@ public interface RefillRequestDao {
 
   void setHolderById(Integer id, Integer holderId);
 
+  void setRemarkById(Integer id, String remark);
+
   void setMerchantTransactionIdById(Integer id, String merchantTransactionId);
 
   boolean checkInputRequests(int currencyId, String email);

@@ -1,14 +1,11 @@
 package me.exrates.controller.merchants;
 
 import me.exrates.controller.exception.ErrorInfo;
-import me.exrates.model.dto.RefillRequestAcceptDto;
+import me.exrates.model.dto.*;
 import me.exrates.service.*;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.Payment;
-import me.exrates.model.dto.RefillRequestCreateDto;
-import me.exrates.model.dto.RefillRequestFlatDto;
-import me.exrates.model.dto.RefillRequestParamsDto;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
@@ -157,14 +154,14 @@ public class RefillRequestController {
   @RequestMapping(value = "/2a8fy7b07dxe44/refill/accept", method = POST)
   @ResponseBody
   public void accept(
-      @RequestParam(required = true) Integer id,
-      @RequestParam(required = true) BigDecimal amount,
+      @RequestBody RefillRequestAcceptParamDto acceptDto,
       Principal principal) {
     Integer requesterAdminId = userService.getIdByEmail(principal.getName());
     RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
-        .requestId(id)
-        .amount(amount)
+        .requestId(acceptDto.getRequestId())
+        .amount(acceptDto.getAmount())
         .requesterAdminId(requesterAdminId)
+        .remark(acceptDto.getRemark())
         .build();
     refillService.acceptRefillRequest(requestAcceptDto);
   }

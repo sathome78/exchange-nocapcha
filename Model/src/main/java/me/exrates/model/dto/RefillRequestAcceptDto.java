@@ -25,4 +25,5 @@ public class RefillRequestAcceptDto {
   private String address;
   private String merchantTransactionId;
   private Integer requesterAdminId;
+  private String remark;
 }

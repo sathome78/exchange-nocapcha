@@ -41,7 +41,7 @@
                         <loc:message code="admin.refill.All"/></button>
                     <button id="refill-requests-accepted" class="myorders__button green-box margin-box">
                         <loc:message code="admin.refill.accepted"/></button>
-                    <button id="withdraw-requests-declined" class="myorders__button red-box margin-box">
+                    <button id="refill-requests-declined" class="myorders__button red-box margin-box">
                         <loc:message code="admin.refill.declined"/></button>
                 </div>
             </div>
