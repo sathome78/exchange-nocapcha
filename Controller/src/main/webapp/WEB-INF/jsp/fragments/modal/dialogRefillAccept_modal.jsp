@@ -1,51 +1,39 @@
-<div id="dialog-refill-accept" class="modal fade form_full_width">
-  <div class="modal-dialog modal-md">
+<div id="dialog-refill-accept" class="modal fade merchant-output">
+  <div style="font-size: 14px"
+       class="modal-dialog modal-md">
     <div class="modal-content">
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                aria-hidden="true">&times;</span></button>
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
         <h4 class="modal-title"><loc:message code="merchants.invoice.accept.modalTitle"/></h4>
       </div>
       <div class="modal-body">
-        <div class="row text-center">
-          <p style="font-size: 1.34rem"><loc:message code="merchants.invoice.promptAccept"/></p>
+        <div>
+          <label class="control-label" for="initial-amount">
+            <loc:message code="admin.invoice.initialAmount"/>
+          </label>
+          <span id="initial-amount" class="form-control"></span>
         </div>
-        <form id="invoice-accept-form">
-          <div class="input-block-wrapper">
-            <div class="col-md-4 input-block-wrapper__label-wrapper">
-              <label for="initial-amount" class="input-block-wrapper__label"><loc:message code="admin.invoice.initialAmount"/></label>
-            </div>
-            <div class="col-md-8 input-block-wrapper__input-wrapper">
-              <input id="initial-amount" readonly disabled class="input-block-wrapper__input" type="number" step="0.01">
-            </div>
-          </div>
-          <div class="input-block-wrapper">
-            <div class="col-md-4 input-block-wrapper__label-wrapper">
-              <label for="actual-amount" class="input-block-wrapper__label"><loc:message code="admin.invoice.actualAmount"/></label>
-            </div>
-            <div class="col-md-4 input-block-wrapper__input-wrapper">
-              <input id="actual-amount" class="input-block-wrapper__input" type="number" step="0.01">
-            </div>
-            <div class="col-md-4 input-block-wrapper__input-wrapper">
-              <button type="button" id="computeCommission" class="btn btn-sm btn-danger"><loc:message code="admin.invoice.computeCommission"/></button>
-            </div>
-          </div>
-          <div class="input-block-wrapper">
-            <div class="col-md-4 input-block-wrapper__label-wrapper">
-              <label for="new-commission" class="input-block-wrapper__label"><loc:message code="transaction.commissionAmount"/></label>
-            </div>
-            <div class="col-md-8 input-block-wrapper__input-wrapper">
-              <input id="new-commission" readonly disabled class="input-block-wrapper__input" type="number" step="0.01">
-            </div>
-          </div>
-          <input hidden id="transactionId" name="id">
-          <input hidden id="actualPaymentSum" name="actualPaymentSum">
-          <div class="table-button-block" style="white-space: nowrap; margin-top: 20px">
-            <button id="confirm-button" class="blue-box" type="button"><loc:message code="admin.submit"/></button>
-            <button id="cancel-acceptance" class="red-box" type="button"><loc:message code="admin.cancel"/></button>
-          </div>
-        </form>
+        <div>
+          <label class="control-label" for="actual-amount">
+            <loc:message code="admin.invoice.actualAmount"/>
+          </label>
+          <input id="actual-amount" class="form-control" autofocus type="text">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <div id='request-money-operation-btns-wrapper'
+             class="add__money__btns">
+          <button id="continue-btn"
+                  class="btn btn-primary btn-md" type="button">
+            <loc:message code="merchants.continue"/>
+          </button>
+          <button class="btn btn-danger btn-md" type="button" data-dismiss="modal">
+            <loc:message code="merchants.dismiss"/>
+          </button>
+        </div>
       </div>
     </div>
+    <!-- /.modal-content -->
   </div>
+  <!-- /.modal-dialog -->
 </div>

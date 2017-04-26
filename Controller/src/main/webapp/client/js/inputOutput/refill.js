@@ -178,11 +178,9 @@ $(function () {
         e.preventDefault();
         var id = $(this).data("id");
         var initialAmount = retrieveRowDataForElement(this).amount;
-        var commission = retrieveRowDataForElement(this).commission;
         var $modal = $("#dialog-refill-accept");
-        $modal.find("initial-amount").val(initialAmount);
-        $modal.find("actual-amount").val(initialAmount);
-        $modal.find("new-commission").val(commission);
+        $modal.find("#initial-amount").html(initialAmount);
+        $modal.find("#actual-amount").val(initialAmount);
         $modal.find("#confirm-button").off("click").one("click", function () {
             $modal.modal('hide');
             $.ajax({

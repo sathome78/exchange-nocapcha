@@ -67,7 +67,7 @@
                       </c:if>
                     </div>
                   </div>
-                  <button class="start-withdraw btn btn-primary btn-lg"
+                  <button class="start-refill btn btn-primary btn-lg"
                           type="button"
                           data-currency-id="${currency.getId()}"
                           data-currency-name="${currency.getName()}"

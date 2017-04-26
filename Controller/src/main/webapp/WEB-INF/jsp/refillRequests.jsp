@@ -227,6 +227,7 @@
     <loc:message code="admin.promptSendMessageRequestAccept"/>
 </div>
 
+<%@include file='fragments/modal/dialogRefillAccept_modal.jsp' %>
 <%@include file='fragments/modal/refill_info_modal.jsp' %>
 <%@include file="fragments/modal/confirm_with_info_modal.jsp" %>
 <%@include file='fragments/modal/enter_note_before_decline_modal.jsp' %>
