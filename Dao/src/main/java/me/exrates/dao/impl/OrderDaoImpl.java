@@ -62,9 +62,9 @@ public class OrderDaoImpl implements OrderDao {
 
     public int createOrder(ExOrder exOrder) {
         String sql = "INSERT INTO EXORDERS" +
-                "  (user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, commission_id, commission_fixed_amount, status_id)" +
+                "  (user_id, currency_pair_id, operation_type_id, exrate, amount_base, amount_convert, commission_id, commission_fixed_amount, status_id, order_source_id)" +
                 "  VALUES " +
-                "  (:user_id, :currency_pair_id, :operation_type_id, :exrate, :amount_base, :amount_convert, :commission_id, :commission_fixed_amount, :status_id)";
+                "  (:user_id, :currency_pair_id, :operation_type_id, :exrate, :amount_base, :amount_convert, :commission_id, :commission_fixed_amount, :status_id, :order_source_id)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         MapSqlParameterSource parameters = new MapSqlParameterSource()
                 .addValue("user_id", exOrder.getUserId())
@@ -75,7 +75,8 @@ public class OrderDaoImpl implements OrderDao {
                 .addValue("amount_convert", exOrder.getAmountConvert())
                 .addValue("commission_id", exOrder.getComissionId())
                 .addValue("commission_fixed_amount", exOrder.getCommissionFixedAmount())
-                .addValue("status_id", OrderStatus.INPROCESS.getStatus());
+                .addValue("status_id", OrderStatus.INPROCESS.getStatus())
+                .addValue("order_source_id", exOrder.getSourceId());
         int result = namedParameterJdbcTemplate.update(sql, parameters, keyHolder);
         int id = (int) keyHolder.getKey().longValue();
         if (result <= 0) {
@@ -362,7 +363,8 @@ public class OrderDaoImpl implements OrderDao {
                         "     CREATOR.email AS order_creator_email, " +
                         "     ACCEPTOR.email AS order_acceptor_email, " +
                         "     COUNT(TRANSACTION.id) AS transaction_count,  " +
-                        "     SUM(TRANSACTION.commission_amount) AS company_commission " +
+                        "     SUM(TRANSACTION.commission_amount) AS company_commission," +
+                        "     EXORDERS.order_source_id AS source_id  " +
                         " FROM EXORDERS " +
                         "      JOIN ORDER_STATUS ON (ORDER_STATUS.id = EXORDERS.status_id) " +
                         "      JOIN OPERATION_TYPE AS ORDER_OPERATION ON (ORDER_OPERATION.id = EXORDERS.operation_type_id) " +
@@ -415,12 +417,19 @@ public class OrderDaoImpl implements OrderDao {
                     orderInfoDto.setOrderAcceptorEmail(rs.getString("order_acceptor_email"));
                     orderInfoDto.setTransactionCount(BigDecimalProcessing.formatLocale(rs.getBigDecimal("transaction_count"), locale, 2));
                     orderInfoDto.setCompanyCommission(BigDecimalProcessing.formatLocale(rs.getBigDecimal("company_commission"), locale, 2));
+                    orderInfoDto.setSource((Integer) rs.getObject("source_id"));
+                    orderInfoDto.setChildren(getOrderChildren(orderId));
                     return orderInfoDto;
                 }
             });
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
+    }
+    
+    private List<Integer> getOrderChildren(int id) {
+        String sql = "SELECT id FROM EXORDERS WHERE order_source_id = :id";
+        return namedParameterJdbcTemplate.queryForList(sql, Collections.singletonMap("id", id), Integer.class);
     }
 
     @Override
