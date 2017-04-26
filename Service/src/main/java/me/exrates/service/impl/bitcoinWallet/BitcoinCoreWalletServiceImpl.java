@@ -246,6 +246,7 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
   private void changeConfirmationsOrProvide(Integer invoiceId, String txId, BigDecimal amount, Integer confirmations) {
     bitcoinTransactionService.changeTransactionConfidenceForPendingPayment(invoiceId, confirmations);
     if (confirmations >= BitcoinService.CONFIRMATION_NEEDED_COUNT) {
+      log.debug("Providing transaction!");
       try {
         bitcoinTransactionService.provideBtcTransaction(invoiceId, txId, amount, null);
       } catch (IllegalInvoiceAmountException | IllegalOperationTypeException | IllegalTransactionProvidedStatusException e) {
