@@ -168,6 +168,11 @@ public class OrderServiceImpl implements OrderService {
 
   @Override
   public OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate) {
+    return prepareNewOrder(activeCurrencyPair, orderType, userEmail, amount, rate, null);
+  }
+  
+  @Override
+  public OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, Integer sourceId) {
     Currency spendCurrency = null;
     if (orderType == OperationType.SELL) {
       spendCurrency = activeCurrencyPair.getCurrency1();
@@ -183,6 +188,7 @@ public class OrderServiceImpl implements OrderService {
     orderCreateDto.setExchangeRate(rate);
     orderCreateDto.setUserId(walletsAndCommissions.getUserId());
     orderCreateDto.setCurrencyPair(activeCurrencyPair);
+    orderCreateDto.setSourceId(sourceId);
     if (orderType == OperationType.SELL) {
       orderCreateDto.setWalletIdCurrencyBase(walletsAndCommissions.getSpendWalletId());
       orderCreateDto.setCurrencyBaseBalance(walletsAndCommissions.getSpendWalletActiveBalance());
@@ -381,10 +387,10 @@ public class OrderServiceImpl implements OrderService {
     BigDecimal amountForPartialAccept = newOrder.getAmount().subtract(cumulativeSum.subtract(orderForPartialAccept.getAmountBase()));
     OrderCreateDto accepted = prepareNewOrder(newOrder.getCurrencyPair(), orderForPartialAccept.getOperationType(),
         userService.getUserById(orderForPartialAccept.getUserId()).getEmail(), amountForPartialAccept,
-        orderForPartialAccept.getExRate());
+        orderForPartialAccept.getExRate(), orderForPartialAccept.getId());
     OrderCreateDto remainder = prepareNewOrder(newOrder.getCurrencyPair(), orderForPartialAccept.getOperationType(),
         userService.getUserById(orderForPartialAccept.getUserId()).getEmail(), orderForPartialAccept.getAmountBase().subtract(amountForPartialAccept),
-        orderForPartialAccept.getExRate());
+        orderForPartialAccept.getExRate(), orderForPartialAccept.getId());
     int acceptedId = createOrder(accepted, CREATE);
     createOrder(remainder, CREATE_SPLIT);
     acceptOrder(newOrder.getUserId(), acceptedId, locale, false);
@@ -786,7 +792,7 @@ public class OrderServiceImpl implements OrderService {
   @Override
   @Transactional(rollbackFor = {Exception.class})
   public Integer deleteOrderForPartialAccept(int orderId) {
-    Object result = deleteOrder(orderId, OrderStatus.SPLIT, DELETE_SPLIT);
+    Object result = deleteOrder(orderId, OrderStatus.SPLIT_CLOSED, DELETE_SPLIT);
     if (result instanceof OrderDeleteStatus) {
       if ((OrderDeleteStatus) result == OrderDeleteStatus.NOT_FOUND) {
         return 0;
