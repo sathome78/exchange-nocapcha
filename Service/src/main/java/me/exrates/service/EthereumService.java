@@ -1,8 +1,12 @@
 package me.exrates.service;
 
+import me.exrates.model.CreditsOperation;
+
 /**
- * Created by ajet on 28.03.2017.
+ * Created by ajet on
  */
 public interface EthereumService {
-    void start() throws Exception;
+
+    String createAddress(CreditsOperation creditsOperation);
+
 }

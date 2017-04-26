@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -51,20 +50,5 @@ public class UnsafeController {
             LOGGER.error(e);
             return new ResponseEntity<>("Error EDC rescan unused accouts. Checkout merchant.log", HttpStatus.BAD_REQUEST);
         }
-    }
-    
-    
-    @RequestMapping(value = "unsafe/EthereumStart")
-    @ResponseBody
-    public ResponseEntity<String> ethereumStart() {
-        try {
-            LOGGER.info("STARTING ETHEREUM TEST");
-            ethereumService.start();
-            return new ResponseEntity<>("TEST OK", HttpStatus.OK);
-        }catch (Exception e){
-            LOGGER.error(e);
-            return new ResponseEntity<>(e.toString(), HttpStatus.BAD_REQUEST);
-        }
-
     }
 }

@@ -141,7 +141,7 @@ public class MerchantDaoImpl implements MerchantDao {
         merchantCurrency.setInputCommission(resultSet.getBigDecimal("merchant_input_commission"));
         merchantCurrency.setOutputCommission(resultSet.getBigDecimal("merchant_output_commission"));
         merchantCurrency.setFixedMinCommission(resultSet.getBigDecimal("merchant_fixed_commission"));
-        final String sqlInner = "SELECT * FROM birzha.MERCHANT_IMAGE where merchant_id = :merchant_id" +
+        final String sqlInner = "SELECT * FROM MERCHANT_IMAGE where merchant_id = :merchant_id" +
             " AND currency_id = :currency_id;";
         Map<String, Integer> params = new HashMap<String, Integer>();
         params.put("merchant_id", resultSet.getInt("merchant_id"));
@@ -308,7 +308,7 @@ public class MerchantDaoImpl implements MerchantDao {
 
   @Override
   public boolean checkInputRequests(int currencyId, String email) {
-    String sql = "SELECT (SELECT COUNT(*) FROM birzha.TRANSACTION \n" +
+    String sql = "SELECT (SELECT COUNT(*) FROM TRANSACTION \n" +
         "join WALLET ON(WALLET.id = TRANSACTION.user_wallet_id)\n" +
         "join USER ON(USER.id = WALLET.user_id)\n" +
         " where \n" +
