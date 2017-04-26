@@ -1,3 +1,37 @@
+<script>
+  var $dialog;
+  $(function () {
+    $dialog = $("#dialog-refill-accept");
+    $(".credits-operation-enter__item").on("change input", function (event) {
+      var $elem = $(event.currentTarget);
+      var checkResult = checkField($elem);
+      if (checkResult) {
+        $('#continue-btn').prop('disabled', false);
+      } else {
+        $('#continue-btn').prop('disabled', true);
+      }
+    });
+  });
+
+  function checkAllFields() {
+    result = true;
+    [].forEach.call($dialog.find(".credits-operation-enter__item"), function (item) {
+      result = checkField($(item)) && result;
+    });
+    if (result) {
+      $('#continue-btn').prop('disabled', false);
+    } else {
+      $('#continue-btn').prop('disabled', true);
+    }
+  }
+
+  function checkField($elem) {
+    const NAME_REGEX = /^\d+\.?\d*$/;
+    result = validateString($elem, NAME_REGEX, '', false);
+    return result;
+  }
+
+</script>
 <div id="dialog-refill-accept" class="modal fade merchant-output">
   <div style="font-size: 14px"
        class="modal-dialog modal-md">
@@ -17,7 +51,10 @@
           <label class="control-label" for="actual-amount">
             <loc:message code="admin.invoice.actualAmount"/>
           </label>
-          <input id="actual-amount" class="form-control" autofocus type="text">
+          <input id="actual-amount"
+                 class="form-control credits-operation-enter__item"
+                 autofocus
+                 type="text">
         </div>
       </div>
       <div class="modal-footer">

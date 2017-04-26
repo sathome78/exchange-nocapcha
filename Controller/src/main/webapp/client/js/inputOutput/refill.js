@@ -183,8 +183,9 @@ $(function () {
         $modal.find("#actual-amount").val(initialAmount);
         $modal.find("#confirm-button").off("click").one("click", function () {
             $modal.modal('hide');
+            var amount = $modal.find("#actual-amount").val(initialAmount);
             $.ajax({
-                url: '/2a8fy7b07dxe44/refill/accept?id=' + id,
+                url: '/2a8fy7b07dxe44/refill/accept?id=' + id+'&amount='+amount,
                 async: false,
                 headers: {
                     'X-CSRF-Token': $("input[name='_csrf']").val(),
@@ -195,6 +196,7 @@ $(function () {
                 }
             });
         });
+        checkAllFields();
         $modal.modal();
     });
 
