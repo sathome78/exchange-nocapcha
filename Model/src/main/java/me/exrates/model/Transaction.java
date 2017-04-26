@@ -39,4 +39,5 @@ public class Transaction {
     private Integer sourceId;
     private String description;
     private WithdrawRequest withdrawRequest;
+    private RefillRequest refillRequest;
 }

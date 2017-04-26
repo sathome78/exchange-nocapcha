@@ -58,6 +58,7 @@ public class RefillRequestsAdminTableDto extends OnlineTableDto {
   private LocalDateTime statusModificationDate;
   private TransactionSourceType sourceType = REFILL;
   private InvoiceOperationPermission invoiceOperationPermission;
+  private Integer confirmations;
   private Boolean isEndStatus;
   private List<Map<String, Object>> buttons;
 
@@ -92,6 +93,7 @@ public class RefillRequestsAdminTableDto extends OnlineTableDto {
     this.status = refillRequestFlatDto.getStatus();
     this.statusModificationDate = refillRequestFlatDto.getStatusModificationDate();
     this.invoiceOperationPermission = refillRequestFlatDto.getInvoiceOperationPermission();
+    this.confirmations = refillRequestFlatAdditionalDataDto.getConfirmations();
     this.isEndStatus = this.status.isEndStatus();
     this.buttons = null;
   }

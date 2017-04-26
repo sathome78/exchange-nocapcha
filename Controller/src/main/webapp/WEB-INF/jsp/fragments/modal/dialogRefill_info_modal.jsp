@@ -39,6 +39,10 @@
                             <td id="info-status-date"></td>
                         </tr>
                         <tr>
+                            <td><loc:message code="refill.confirmations"/></td>
+                            <td id="info-confirmations"></td>
+                        </tr>
+                        <tr>
                             <td><loc:message code="merchants.refillDetails.recipientBank"/></td>
                             <td id="info-bankRecipient"></td>
                         </tr>

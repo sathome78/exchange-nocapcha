@@ -51,4 +51,8 @@ public interface RefillRequestDao {
   void setMerchantTransactionIdById(Integer id, String merchantTransactionId);
 
   boolean checkInputRequests(int currencyId, String email);
+
+  void setAddressById(
+      Integer id,
+      String address);
 }

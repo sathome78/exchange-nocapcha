@@ -476,6 +476,7 @@ public class EDCServiceImpl implements EDCService {
     String message = messageSource.getMessage("merchants.refill.edr",
         new Object[]{request.getAmount(), address}, request.getLocale());
     return new HashMap<String, String>() {{
+      put("address", address);
       put("message", message);
       put("qr", address);
     }};

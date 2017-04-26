@@ -8,7 +8,10 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillFilterData;
-import me.exrates.model.enums.*;
+import me.exrates.model.enums.NotificationEvent;
+import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.TransactionSourceType;
+import me.exrates.model.enums.WalletTransferStatus;
 import me.exrates.model.enums.invoice.*;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.InvoiceConfirmData;
@@ -40,7 +43,6 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.math.BigDecimal.ROUND_HALF_UP;
 import static me.exrates.model.enums.ActionType.SUBTRACT;
 import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.UserCommentTopicEnum.REFILL_ACCEPTED;
@@ -120,6 +122,10 @@ public class RefillServiceImpl implements RefillService {
       IMerchantService merchantService = merchantServiceContext.getMerchantService(request.getServiceBeanName());
       profileData.setTime2();
       result = merchantService.refill(request);
+      String address = result.get("address");
+      if (!StringUtils.isEmpty(address)) {
+        keepAddress(requestId, address);
+      }
       profileData.setTime3();
     } finally {
       profileData.checkAndLog("slow create RefillRequest: " + request + " profile: " + profileData);
@@ -462,6 +468,10 @@ public class RefillServiceImpl implements RefillService {
     RefillStatusEnum newStatus = (RefillStatusEnum) currentStatus.nextState(action);
     request.setStatus(newStatus);
     return refillRequestDao.create(request);
+  }
+
+  private void keepAddress(Integer requestId, String address) {
+    refillRequestDao.setAddressById(requestId, address);
   }
 
   private String sendRefillNotificationAfterCreation(

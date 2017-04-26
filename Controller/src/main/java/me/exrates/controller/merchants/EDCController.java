@@ -31,7 +31,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
 @Controller
-@RequestMapping("/merchants/edc")
 public class EDCController {
 
     @Autowired
@@ -51,10 +50,10 @@ public class EDCController {
 
     private final Logger LOG = LogManager.getLogger("merchant");
 
-    @RequestMapping(value = "payment/received",method = RequestMethod.POST)
+    @RequestMapping(value = "/merchants/edc/payment/received",method = RequestMethod.POST)
     public ResponseEntity<Void> statusPayment(@RequestBody Map<String,String> params, RedirectAttributes redir) {
         LOG.info("Response: " + params);
-        edcService.checkTransactionByHistory(params);
+//        edcService.checkTransactionByHistory(params); TODO off for tesining
         String merchantTransactionId = params.get("id");
         String address = params.get("address");
         Currency currency = currencyService.findByName("EDR");

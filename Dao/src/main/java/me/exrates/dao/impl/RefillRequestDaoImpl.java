@@ -237,7 +237,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     String sql = "SELECT REFILL_REQUEST.*,  " +
         " INVOICE_BANK.name, INVOICE_BANK.account_number, INVOICE_BANK.recipient " +
         " FROM REFILL_REQUEST " +
-        " JOIN INVOICE_BANK ON (INVOICE_BANK.id = REFILL_REQUEST.recipient_bank_id) " +
+        " LEFT JOIN INVOICE_BANK ON (INVOICE_BANK.id = REFILL_REQUEST.recipient_bank_id) " +
         " WHERE REFILL_REQUEST.id = :id";
     return of(namedParameterJdbcTemplate.queryForObject(sql, singletonMap("id", id), refillRequestFlatDtoRowMapper));
   }
@@ -312,7 +312,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     String filter = refillFilterData.getSQLFilterClause();
     String sqlBase =
         " FROM REFILL_REQUEST " +
-            " JOIN INVOICE_BANK IB ON (IB.id = REFILL_REQUEST.recipient_bank_id) " +
+            " LEFT JOIN INVOICE_BANK IB ON (IB.id = REFILL_REQUEST.recipient_bank_id) " +
             " JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
             "				(IOP.currency_id=REFILL_REQUEST.currency_id) " +
             "				AND (IOP.user_id=:requester_user_id) " +
@@ -378,7 +378,8 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         "   USER.email AS user_email, " +
         "   ADMIN.email AS admin_email, " +
         "   M.name AS merchant_name, " +
-        "   TX.amount AS amount, TX.commission_amount AS commission_amount " +
+        "   TX.amount AS amount, TX.commission_amount AS commission_amount, " +
+        "   (SELECT IF(MAX(confirmation_number) IS NULL, -1, MAX(confirmation_number)) FROM REFILL_REQUEST_CONFIRMATION RRC WHERE RRC.refill_request_id = :id) AS confirmations " +
         " FROM REFILL_REQUEST WR " +
         " JOIN CURRENCY CUR ON (CUR.id = WR.currency_id) " +
         " JOIN USER USER ON (USER.id = WR.user_id) " +
@@ -397,6 +398,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
           refillRequestFlatAdditionalDataDto.setMerchantName(rs.getString("merchant_name"));
           refillRequestFlatAdditionalDataDto.setCommissionAmount(rs.getBigDecimal("commission_amount"));
           refillRequestFlatAdditionalDataDto.setTransactionAmount(rs.getBigDecimal("amount"));
+          refillRequestFlatAdditionalDataDto.setConfirmations(rs.getInt("confirmations"));
           return refillRequestFlatAdditionalDataDto;
         }
     );
@@ -439,6 +441,19 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     params.put("currency_id", currencyId);
     params.put("email", email);
     return namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class) == 1;
+  }
+
+  @Override
+  public void setAddressById(
+      Integer id,
+      String address) {
+    final String sql = "UPDATE REFILL_REQUEST " +
+        "  SET address = :address " +
+        "  WHERE id = :id";
+    Map<String, Object> params = new HashMap<>();
+    params.put("id", id);
+    params.put("address", address);
+    namedParameterJdbcTemplate.update(sql, params);
   }
 
 

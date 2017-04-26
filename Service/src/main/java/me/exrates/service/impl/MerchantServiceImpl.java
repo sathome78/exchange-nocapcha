@@ -11,14 +11,12 @@ import me.exrates.model.dto.mobileApiDto.MerchantCurrencyApiDto;
 import me.exrates.model.enums.NotificationEvent;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.TransactionSourceType;
-import me.exrates.model.enums.invoice.InvoiceRequestStatusEnum;
-import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
+import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.*;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.MerchantCurrencyBlockedException;
-import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.ScaleForAmountNotSetException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -33,7 +31,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.math.BigDecimal.ROUND_HALF_UP;
-import static me.exrates.model.enums.OperationType.OUTPUT;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -76,56 +73,20 @@ public class MerchantServiceImpl implements MerchantService {
 
   @Override
   public String resolveTransactionStatus(final Transaction transaction, final Locale locale) {
-    if (transaction.getSourceType() == TransactionSourceType.REFILL) {
-      Integer statusId = invoiceService.getInvoiceRequestStatusByInvoiceId(transaction.getSourceId());
-      InvoiceRequestStatusEnum invoiceRequestStatus = InvoiceRequestStatusEnum.convert(statusId);
-      return messageSource.getMessage("merchants.invoice.".concat(invoiceRequestStatus.name()), null, locale);
-    }
     if (transaction.getSourceType() == TransactionSourceType.WITHDRAW) {
-      if (transaction.getOperationType() != OUTPUT) {
-        return "";
-      } else {
-        WithdrawStatusEnum status = transaction.getWithdrawRequest().getStatus();
-        return messageSource.getMessage("merchants.withdraw.".concat(status.name()), null, locale);
-      }
+      WithdrawStatusEnum status = transaction.getWithdrawRequest().getStatus();
+      return messageSource.getMessage("merchants.withdraw.".concat(status.name()), null, locale);
     }
     if (transaction.getSourceType() == TransactionSourceType.REFILL) {
-      Integer statusId = bitcoinService.getPendingPaymentStatusByInvoiceId(transaction.getSourceId());
-      PendingPaymentStatusEnum pendingPaymentStatus = PendingPaymentStatusEnum.convert(statusId);
-      String message = messageSource.getMessage("merchants.invoice.".concat(pendingPaymentStatus.name()), null, locale);
-      if (message.isEmpty()) {
-        message = messageSource.getMessage("transaction.confirmations",
-            new Object[]{
-                transaction.getConfirmation(),
-                BitcoinService.CONFIRMATION_NEEDED_COUNT
-            }, locale);
-      }
-      return message;
+      RefillStatusEnum status = transaction.getRefillRequest().getStatus();
+      Integer confirmations = transaction.getRefillRequest().getConfirmations();
+      return messageSource.getMessage("merchants.refill.".concat(status.name()), new Object[]{confirmations}, locale);
     }
     if (transaction.isProvided()) {
       return messageSource.getMessage("transaction.provided", null, locale);
-    }
-    if (transaction.getConfirmation() == null || transaction.getConfirmation() == -1) {
+    } else {
       return messageSource.getMessage("transaction.notProvided", null, locale);
     }
-    final String name = transaction.getCurrency().getName();
-    final int acceptableConfirmations;
-    switch (name) {
-      case "EDRC":
-        acceptableConfirmations = EDRCService.CONFIRMATIONS;
-        break;
-      case "BTC":
-        acceptableConfirmations = BlockchainService.CONFIRMATIONS;
-        break;
-      default:
-        throw new MerchantInternalException("Unknown confirmations number on " + transaction.getCurrency() +
-            " " + transaction.getMerchant());
-    }
-    return messageSource.getMessage("transaction.confirmations",
-        new Object[]{
-            transaction.getConfirmation(),
-            acceptableConfirmations
-        }, locale);
   }
 
   @Override
@@ -286,7 +247,7 @@ public class MerchantServiceImpl implements MerchantService {
   @Override
   @Transactional
   public void checkAmountForMinSum(Integer merchantId, Integer currencyId, BigDecimal amount) {
-    if (amount.compareTo(getMinSum(merchantId, currencyId)) < 0){
+    if (amount.compareTo(getMinSum(merchantId, currencyId)) < 0) {
       throw new InvalidAmountException(String.format("merchant: %s currency: %s amount %s", merchantId, currencyId, amount.toString()));
     }
   }
@@ -313,9 +274,9 @@ public class MerchantServiceImpl implements MerchantService {
       Integer merchantId,
       Integer currencyId) {
     MerchantCurrencyScaleDto result = merchantDao.findMerchantCurrencyScaleByMerchantIdAndCurrencyId(merchantId, currencyId);
-    Optional.ofNullable(result.getScaleForRefill()).orElseThrow(()->new ScaleForAmountNotSetException("currency: "+currencyId));
-    Optional.ofNullable(result.getScaleForWithdraw()).orElseThrow(()->new ScaleForAmountNotSetException("currency: "+currencyId));
-    return  result;
+    Optional.ofNullable(result.getScaleForRefill()).orElseThrow(() -> new ScaleForAmountNotSetException("currency: " + currencyId));
+    Optional.ofNullable(result.getScaleForWithdraw()).orElseThrow(() -> new ScaleForAmountNotSetException("currency: " + currencyId));
+    return result;
   }
 
   @Override

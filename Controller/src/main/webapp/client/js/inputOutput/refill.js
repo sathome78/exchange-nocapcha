@@ -228,6 +228,7 @@ function fillModal($modal, rowData) {
     $modal.find('#info-enrolledAmount').text(rowData.enrolledAmount);
     $modal.find('#info-status').text(rowData.status);
     $modal.find('#info-status-date').text(rowData.statusModificationDate);
+    $modal.find('#info-confirmations').text(rowData.confirmations);
     var recipientBankName = rowData.recipientBankName ? rowData.recipientBankName : '';
     var recipientBankAccount = rowData.recipientBankAccount ? '</br>'+rowData.recipientBankAccount : '';
     var recipientBankRecipient = rowData.recipientBankRecipient ? '</br>'+rowData.recipientBankRecipient : '';
