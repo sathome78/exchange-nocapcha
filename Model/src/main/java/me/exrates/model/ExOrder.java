@@ -30,6 +30,7 @@ public class ExOrder {
     private LocalDateTime dateAcception;
     private OrderStatus status;
     private CurrencyPair currencyPair;
+    private Integer sourceId;
 
     /*constructors*/
     public ExOrder() {
@@ -47,6 +48,7 @@ public class ExOrder {
         this.commissionFixedAmount = orderCreateDto.getComission();
         this.status = orderCreateDto.getStatus();
         this.currencyPair = orderCreateDto.getCurrencyPair();
+        this.sourceId = orderCreateDto.getSourceId();
     }
 
     /*hash equals*/

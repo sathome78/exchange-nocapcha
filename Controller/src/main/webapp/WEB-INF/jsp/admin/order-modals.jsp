@@ -18,31 +18,39 @@
                 <div class="delete-order-info__item" id="id"><loc:message code="orderinfo.id"/><span></span></div>
                 <div class="delete-order-info__item" id="orderStatusName"><loc:message
                         code="orderinfo.status"/><span></span></div>
-                </br>
-                </br>
+                <br/>
+                <br/>
                 <div class="delete-order-info__item" id="currencyPairName"><span></span></div>
                 <div class="delete-order-info__item" id="orderTypeName"><span></span></div>
                 <div class="delete-order-info__item" id="exrate"><loc:message code="orderinfo.rate"/><span></span></div>
-                <div class="delete-order-info__item" id="amountBase"><loc:message
-                        code="orderinfo.baseamount"/><span></span></div>
-                <div class="delete-order-info__item" id="amountConvert"><loc:message
-                        code="orderinfo.convertamount"/><span></span></div>
-                </br>
-                </br>
-                <div class="delete-order-info__item" id="dateCreation"><loc:message
-                        code="orderinfo.createdate"/><span></span></div>
-                <div class="delete-order-info__item" id="dateAcception"><loc:message
-                        code="orderinfo.acceptdate"/><span></span></div>
-                </br>
-                <div class="delete-order-info__item" id="orderCreatorEmail"><loc:message
-                        code="orderinfo.creator"/><span></span></div>
-                <div class="delete-order-info__item" id="orderAcceptorEmail"><loc:message
-                        code="orderinfo.acceptor"/><span></span></div>
-                </br>
-                </br>
-                <div class="delete-order-info__item" id="companyCommission"><loc:message
-                        code="orderinfo.companycommission"/><span></span></div>
-                </br>
+                <div class="delete-order-info__item" id="amountBase">
+                    <loc:message code="orderinfo.baseamount"/><span></span></div>
+                <div class="delete-order-info__item" id="amountConvert">
+                    <loc:message code="orderinfo.convertamount"/><span></span></div>
+                <br/>
+                <br/>
+                <div class="delete-order-info__item" id="dateCreation">
+                    <loc:message code="orderinfo.createdate"/><span></span></div>
+                <div class="delete-order-info__item" id="dateAcception">
+                    <loc:message code="orderinfo.acceptdate"/><span></span></div>
+                <br/>
+                <div class="delete-order-info__item" id="orderCreatorEmail">
+                    <loc:message code="orderinfo.creator"/><span></span></div>
+                <div class="delete-order-info__item" id="orderAcceptorEmail">
+                    <loc:message code="orderinfo.acceptor"/><span></span></div>
+                <br/>
+                <br/>
+                <div class="delete-order-info__item" id="companyCommission">
+                    <loc:message code="orderinfo.companycommission"/><span></span></div>
+                <br/>
+                <div class="delete-order-info__item full-width" id="orderSource">
+                    <loc:message code="orderinfo.orderSource"/><div></div><br/></div>
+                <div class="delete-order-info__item full-width" id="orderChildren">
+                    <loc:message code="orderinfo.orderChildren"/><div></div><br/></div>
+
+
+
+
             </div>
             <div class="modal-footer">
                 <div class="delete-order-info__button-wrapper">
