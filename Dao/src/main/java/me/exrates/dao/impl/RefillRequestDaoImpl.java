@@ -32,6 +32,7 @@ import java.util.*;
 
 import static java.util.Collections.singletonMap;
 import static java.util.Optional.of;
+import static me.exrates.model.enums.TransactionSourceType.REFILL;
 
 
 /**
@@ -50,6 +51,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     refillRequestFlatDto.setUserId(rs.getInt("user_id"));
     refillRequestFlatDto.setPayerBankName(rs.getString("payer_bank_name"));
     refillRequestFlatDto.setPayerBankCode(rs.getString("payer_bank_code"));
+    refillRequestFlatDto.setPayerAccount(rs.getString("payer_account"));
     refillRequestFlatDto.setRecipientBankAccount(rs.getString("payer_account"));
     refillRequestFlatDto.setUserFullName(rs.getString("user_full_name"));
     refillRequestFlatDto.setRemark(rs.getString("remark"));
@@ -375,19 +377,26 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         "   CUR.name AS currency_name, " +
         "   USER.email AS user_email, " +
         "   ADMIN.email AS admin_email, " +
-        "   M.name AS merchant_name " +
+        "   M.name AS merchant_name, " +
+        "   TX.amount AS amount, TX.commission_amount AS commission_amount " +
         " FROM REFILL_REQUEST WR " +
         " JOIN CURRENCY CUR ON (CUR.id = WR.currency_id) " +
         " JOIN USER USER ON (USER.id = WR.user_id) " +
         " LEFT JOIN USER ADMIN ON (ADMIN.id = WR.admin_holder_id) " +
         " JOIN MERCHANT M ON (M.id = WR.merchant_id) " +
+        " LEFT JOIN TRANSACTION TX ON (TX.source_type = :source_type) AND (TX.source_id = :id) " +
         " WHERE WR.id = :id";
-    return namedParameterJdbcTemplate.queryForObject(sql, singletonMap("id", id), (rs, idx) -> {
+    MapSqlParameterSource params = new MapSqlParameterSource()
+        .addValue("id", id)
+        .addValue("source_type", REFILL.name());
+    return namedParameterJdbcTemplate.queryForObject(sql, params, (rs, idx) -> {
           RefillRequestFlatAdditionalDataDto refillRequestFlatAdditionalDataDto = new RefillRequestFlatAdditionalDataDto();
           refillRequestFlatAdditionalDataDto.setUserEmail(rs.getString("user_email"));
           refillRequestFlatAdditionalDataDto.setAdminHolderEmail(rs.getString("admin_email"));
           refillRequestFlatAdditionalDataDto.setCurrencyName(rs.getString("currency_name"));
           refillRequestFlatAdditionalDataDto.setMerchantName(rs.getString("merchant_name"));
+          refillRequestFlatAdditionalDataDto.setCommissionAmount(rs.getBigDecimal("commission_amount"));
+          refillRequestFlatAdditionalDataDto.setTransactionAmount(rs.getBigDecimal("amount"));
           return refillRequestFlatAdditionalDataDto;
         }
     );

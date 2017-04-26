@@ -14,11 +14,13 @@
           <p><loc:message code="merchants.modalOutputCommissionMerchant"/></p>
           <p><loc:message code="merchants.modalOutputFinalSum"/></p>
         </div>
-        <hr>
-        <div class="red">
-          <loc:message code="merchant.commission.warning"/>
+        <div id="merchant-commission-warning">
+          <hr>
+          <div class="red">
+            <loc:message code="merchant.commission.warning"/>
+          </div>
+          <hr>
         </div>
-        <hr>
         <div id="destination-input-wrapper"
              class="wallet_input">
           <label class="control-label" for="walletUid">

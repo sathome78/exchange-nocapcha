@@ -158,10 +158,12 @@ public class RefillRequestController {
   @ResponseBody
   public void accept(
       @RequestParam(required = true) Integer id,
+      @RequestParam(required = true) BigDecimal amount,
       Principal principal) {
     Integer requesterAdminId = userService.getIdByEmail(principal.getName());
     RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
         .requestId(id)
+        .amount(amount)
         .requesterAdminId(requesterAdminId)
         .build();
     refillService.acceptRefillRequest(requestAcceptDto);

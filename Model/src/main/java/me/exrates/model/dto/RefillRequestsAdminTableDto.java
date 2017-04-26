@@ -33,7 +33,8 @@ public class RefillRequestsAdminTableDto extends OnlineTableDto {
   private BigDecimal amount;
   private String currencyName;
   private BigDecimal commissionAmount;
-  private BigDecimal paymentAmount;
+  private BigDecimal enrolledAmount;
+  private BigDecimal receivedAmount;
   private String merchantName;
   private String address = "";
   private Integer adminHolderId;
@@ -69,8 +70,9 @@ public class RefillRequestsAdminTableDto extends OnlineTableDto {
     this.userEmail = refillRequestFlatAdditionalDataDto.getUserEmail();
     this.amount = refillRequestFlatDto.getAmount();
     this.currencyName = refillRequestFlatAdditionalDataDto.getCurrencyName();
-    this.commissionAmount = refillRequestFlatDto.getCommissionAmount();
-    this.paymentAmount = BigDecimalProcessing.doAction(this.amount, this.commissionAmount, ActionType.ADD);
+    this.enrolledAmount = refillRequestFlatAdditionalDataDto.getTransactionAmount() == null ? BigDecimal.ZERO : refillRequestFlatAdditionalDataDto.getTransactionAmount();
+    this.commissionAmount = refillRequestFlatAdditionalDataDto.getCommissionAmount() == null ? BigDecimal.ZERO : refillRequestFlatAdditionalDataDto.getCommissionAmount();
+    this.receivedAmount = BigDecimalProcessing.doAction(this.enrolledAmount, this.commissionAmount, ActionType.ADD);
     this.merchantName = refillRequestFlatAdditionalDataDto.getMerchantName();
     this.address = refillRequestFlatDto.getAddress();
     this.adminHolderId = refillRequestFlatDto.getAdminHolderId();
@@ -80,7 +82,7 @@ public class RefillRequestsAdminTableDto extends OnlineTableDto {
     this.recipientBankRecipient = refillRequestFlatDto.getRecipientBankRecipient();
     this.payerBankName = refillRequestFlatDto.getPayerBankName();
     this.payerBankCode = refillRequestFlatDto.getPayerBankCode();
-    this.payerBankAccount = refillRequestFlatDto.getRecipientBankAccount();
+    this.payerBankAccount = refillRequestFlatDto.getPayerAccount();
     this.receiptScan = refillRequestFlatDto.getReceiptScan();
     this.userFullName = refillRequestFlatDto.getUserFullName();
     this.remark = refillRequestFlatDto.getRemark();

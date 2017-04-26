@@ -15,11 +15,13 @@
           <p><loc:message code="merchants.modalInputCommission"/></p>
           <p><loc:message code="merchants.modalInputFinalSum"/></p>
         </div>
-        <hr>
-        <div class="red">
-          <loc:message code="merchant.commission.warning"/>
+        <div id="merchant-commission-warning">
+          <hr>
+          <div class="red">
+            <loc:message code="merchant.commission.warning"/>
+          </div>
+          <hr>
         </div>
-        <hr>
         <div class="timeoutWarning">
           <c:forEach var="warningCode" items="${warningCodeList}">
             <div><strong><loc:message code="${warningCode}"/></strong></div>

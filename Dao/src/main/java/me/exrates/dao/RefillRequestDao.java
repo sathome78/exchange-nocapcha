@@ -10,7 +10,6 @@ import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillFilterData;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.vo.InvoiceConfirmData;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -41,15 +40,9 @@ public interface RefillRequestDao {
 
   List<OperationUserDto> findInvoicesListByStatusChangedAtDate(Integer merchantId, Integer currencyId, Integer statusId, LocalDateTime dateWhenChanged);
 
-  PagingData<List<RefillRequestFlatDto>> getPermittedFlatByStatus(
-      List<Integer> statusIdList,
-      Integer requesterUserId,
-      DataTableParams dataTableParams,
-      RefillFilterData refillFilterData);
+  PagingData<List<RefillRequestFlatDto>> getPermittedFlatByStatus(List<Integer> statusIdList, Integer requesterUserId, DataTableParams dataTableParams, RefillFilterData refillFilterData);
 
-  RefillRequestFlatDto getPermittedFlatById(
-      Integer id,
-      Integer requesterUserId);
+  RefillRequestFlatDto getPermittedFlatById(Integer id, Integer requesterUserId);
 
   RefillRequestFlatAdditionalDataDto getAdditionalDataForId(int id);
 

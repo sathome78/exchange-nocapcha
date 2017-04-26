@@ -100,8 +100,10 @@ $(function withdrawCreation() {
 
     function showWithdrawDialog(message) {
         if (merchantIsSimpleInvoice) {
+            $withdrawParamsDialog.find("#merchant-commission-warning").hide();
             showFinPassModal();
         } else {
+            $withdrawParamsDialog.find("#merchant-commission-warning").hide();
             $withdrawParamsDialog.find('#request-money-operation-btns-wrapper').show();
             $withdrawParamsDialog.find('#response-money-operation-btns-wrapper').hide();
             $withdrawParamsDialog.find('#message').hide();

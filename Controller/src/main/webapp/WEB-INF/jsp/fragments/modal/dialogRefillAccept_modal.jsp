@@ -6,9 +6,9 @@
       var $elem = $(event.currentTarget);
       var checkResult = checkField($elem);
       if (checkResult) {
-        $('#continue-btn').prop('disabled', false);
+        $('#confirm-button').prop('disabled', false);
       } else {
-        $('#continue-btn').prop('disabled', true);
+        $('#confirm-button').prop('disabled', true);
       }
     });
   });
@@ -19,9 +19,9 @@
       result = checkField($(item)) && result;
     });
     if (result) {
-      $('#continue-btn').prop('disabled', false);
+      $('#confirm-button').prop('disabled', false);
     } else {
-      $('#continue-btn').prop('disabled', true);
+      $('#confirm-button').prop('disabled', true);
     }
   }
 
@@ -60,7 +60,7 @@
       <div class="modal-footer">
         <div id='request-money-operation-btns-wrapper'
              class="add__money__btns">
-          <button id="continue-btn"
+          <button id="confirm-button"
                   class="btn btn-primary btn-md" type="button">
             <loc:message code="merchants.continue"/>
           </button>

@@ -19,12 +19,16 @@
                             <td id="info-amount"></td>
                         </tr>
                         <tr>
+                            <td><loc:message code="refill.receivedAmount"/></td>
+                            <td id="info-receivedAmount"></td>
+                        </tr>
+                        <tr>
                             <td><loc:message code="transaction.commissionAmount"/></td>
                             <td id="info-commissionAmount"></td>
                         </tr>
                         <tr>
-                            <td><loc:message code="refill.paymentAmount"/></td>
-                            <td id="info-paymentAmount"></td>
+                            <td><loc:message code="refill.enrolledAmount"/></td>
+                            <td id="info-enrolledAmount"></td>
                         </tr>
                         <tr>
                             <td><loc:message code="refill.status"/></td>

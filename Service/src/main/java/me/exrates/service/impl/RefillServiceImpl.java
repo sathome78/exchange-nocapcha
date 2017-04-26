@@ -10,6 +10,7 @@ import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillFilterData;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.*;
+import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.TransactionDescription;
 import me.exrates.model.vo.WalletOperationData;
@@ -40,6 +41,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.math.BigDecimal.ROUND_HALF_UP;
+import static me.exrates.model.enums.ActionType.SUBTRACT;
 import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.UserCommentTopicEnum.REFILL_ACCEPTED;
 import static me.exrates.model.enums.UserCommentTopicEnum.REFILL_DECLINE;
@@ -240,11 +242,12 @@ public class RefillServiceImpl implements RefillService {
       Integer userWalletId = walletService.getWalletId(refillRequest.getUserId(), refillRequest.getCurrencyId());
       /**/
       BigDecimal commission = commissionService.calculateCommissionForRefillAmount(factAmount, refillRequest.getCommissionId());
+      BigDecimal amountToEnroll = BigDecimalProcessing.doAction(factAmount, commission, SUBTRACT);
       /**/
       WalletOperationData walletOperationData = new WalletOperationData();
       walletOperationData.setOperationType(INPUT);
       walletOperationData.setWalletId(userWalletId);
-      walletOperationData.setAmount(factAmount);
+      walletOperationData.setAmount(amountToEnroll);
       walletOperationData.setBalanceType(ACTIVE);
       walletOperationData.setCommission(new Commission(refillRequest.getCommissionId()));
       walletOperationData.setCommissionAmount(commission);
@@ -260,7 +263,7 @@ public class RefillServiceImpl implements RefillService {
       CompanyWallet companyWallet = companyWalletService.findByCurrency(new Currency(refillRequest.getCurrencyId()));
       companyWalletService.deposit(
           companyWallet,
-          refillRequest.getAmount(),
+          amountToEnroll,
           walletOperationData.getCommissionAmount()
       );
       profileData.setTime3();

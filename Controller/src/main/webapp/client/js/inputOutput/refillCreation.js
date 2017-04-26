@@ -96,8 +96,10 @@ $(function refillCreation() {
 
     function showRefillDialog(message) {
         if (merchantIsSimpleInvoice) {
+            $refillParamsDialog.find("#merchant-commission-warning").hide();
             performRefill();
         } else {
+            $refillParamsDialog.find("#merchant-commission-warning").show();
             $refillParamsDialog.find('#request-money-operation-btns-wrapper').show();
             $refillParamsDialog.find('#destination-input-wrapper').show();
             $refillParamsDialog.find('#response-money-operation-btns-wrapper').hide();

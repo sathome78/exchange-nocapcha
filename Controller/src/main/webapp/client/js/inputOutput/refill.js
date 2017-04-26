@@ -183,7 +183,7 @@ $(function () {
         $modal.find("#actual-amount").val(initialAmount);
         $modal.find("#confirm-button").off("click").one("click", function () {
             $modal.modal('hide');
-            var amount = $modal.find("#actual-amount").val(initialAmount);
+            var amount = $modal.find("#actual-amount").val();
             $.ajax({
                 url: '/2a8fy7b07dxe44/refill/accept?id=' + id+'&amount='+amount,
                 async: false,
@@ -223,8 +223,9 @@ function retrieveRowDataForElement($elem) {
 function fillModal($modal, rowData) {
     $modal.find('#info-currency').text(rowData.currencyName);
     $modal.find('#info-amount').text(rowData.amount);
+    $modal.find('#info-receivedAmount').text(rowData.receivedAmount);
     $modal.find('#info-commissionAmount').text(rowData.commissionAmount);
-    $modal.find('#info-paymentAmount').text(rowData.paymentAmount);
+    $modal.find('#info-enrolledAmount').text(rowData.enrolledAmount);
     $modal.find('#info-status').text(rowData.status);
     $modal.find('#info-status-date').text(rowData.statusModificationDate);
     var recipientBankName = rowData.recipientBankName ? rowData.recipientBankName : '';
@@ -291,11 +292,15 @@ function updateRefillTable() {
                     "name": "REFILL_REQUEST.currency_id"
                 },
                 {
-                    "data": "paymentAmount",
+                    "data": "receivedAmount",
                     "name": "REFILL_REQUEST.commission"
                 },
                 {
                     "data": "commissionAmount",
+                    "name": "REFILL_REQUEST.commission"
+                },
+                {
+                    "data": "enrolledAmount",
                     "name": "REFILL_REQUEST.commission"
                 },
                 {

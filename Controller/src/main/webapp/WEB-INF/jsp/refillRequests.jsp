@@ -193,8 +193,9 @@
                     <th><loc:message code="refill.user"/></th>
                     <th><loc:message code="refill.amount"/></th>
                     <th><loc:message code="refill.currency"/></th>
-                    <th><loc:message code="refill.paymentAmount"/></th>
+                    <th><loc:message code="refill.receivedAmount"/></th>
                     <th><loc:message code="refill.commission"/></th>
+                    <th><loc:message code="refill.enrolledAmount"/></th>
                     <th><loc:message code="refill.merchant"/></th>
                     <th></th>
                 </tr>
@@ -229,7 +230,7 @@
 </div>
 
 <%@include file='fragments/modal/dialogRefillAccept_modal.jsp' %>
-<%@include file='fragments/modal/refill_info_modal.jsp' %>
+<%@include file='fragments/modal/dialogRefill_info_modal.jsp' %>
 <%@include file="fragments/modal/confirm_with_info_modal.jsp" %>
 <%@include file='fragments/modal/enter_note_before_decline_modal.jsp' %>
 <%@include file='fragments/footer.jsp' %>
