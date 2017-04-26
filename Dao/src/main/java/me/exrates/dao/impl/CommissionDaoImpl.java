@@ -73,7 +73,7 @@ public class CommissionDaoImpl implements CommissionDao {
 		String selectedField = operationType == OperationType.INPUT ? "merchant_input_commission" : "merchant_output_commission";
 
 
-		final String sql = "SELECT " + selectedField + " FROM birzha.MERCHANT_CURRENCY " +
+		final String sql = "SELECT " + selectedField + " FROM MERCHANT_CURRENCY " +
 				"where merchant_id = (select id from MERCHANT where name = :merchant) \n" +
 				"and currency_id = (select id from CURRENCY where name = :currency)";
 		final HashMap<String, String> params = new HashMap<>();

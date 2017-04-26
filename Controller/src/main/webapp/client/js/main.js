@@ -67,6 +67,7 @@ $(function(){
     const EDC = 'EDC';
     const OKPAY = 'OkPay';
     const PAYEER = 'Payeer';
+    const ETHEREUM = 'Ethereum';
 
     const NO_ACTION = 'javascript:void(0);';
 
@@ -194,6 +195,7 @@ $(function(){
             interkassa:'https://sci.interkassa.com/',
             okpay:'/merchants/okpay/payment/prepare/',
             payeer:'/merchants/payeer/payment/prepare/',
+            ethereum:'/merchants/ethereum/payment/prepare/',
             invoice: '/merchants/invoice/preSubmit'
 
         };
@@ -228,6 +230,9 @@ $(function(){
                     break;
                 case PAYEER :
                     form.attr('action', formAction.payeer);
+                    break;
+                case ETHEREUM :
+                    form.attr('action', formAction.ethereum);
                     break;
                 case INVOICE:
                     form.attr('action', formAction.invoice);
@@ -494,6 +499,46 @@ $(function(){
                         responseControls();
                         $('.paymentInfo').html(error.responseJSON.error);
                         console.log(error);
+                    });
+                    break;
+                case ETHEREUM :
+                    $('#inputPaymentProcess')
+                        .prop('disabled', true)
+                        .html($('#mrcht-waiting').val());
+                    if ($($timeoutWarning).size() > 0) {
+                        $($timeoutWarning).show();
+                    }
+                    $.ajax('/merchants/ethereum/payment/prepare', {
+                        headers: {
+                            'X-CSRF-Token': $("input[name='_csrf']").val()
+                        },
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify($(form).serializeObject()),
+                        success:function (response) {
+                            $('#inputPaymentProcess')
+                                .prop('disabled', false)
+                                .html($('#mrcht-ready').val());
+                            console.log(response);
+                            if ($($timeoutWarning).size() > 0) {
+                                $($timeoutWarning).hide();
+                            }
+                            $.each(response, function (key) {
+                                if(key=='notification'){
+                                    $('.paymentInfo').html(response[key] + "<p>");
+                                }
+                             });
+
+                            responseControls();
+                        },
+                        error:function (jqXHR, textStatus, errorThrown) {
+                            console.log(jqXHR);
+                            console.log(textStatus);
+                            console.log(errorThrown);
+                            $('.paymentInfo').html(jqXHR.responseJSON.error);
+
+                            responseControls();
+                        }
                     });
                     break;
                 default:
