@@ -14,7 +14,7 @@ import me.exrates.service.AdvcashService;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.TransactionService;
 import me.exrates.service.exception.NotImplimentedMethod;
-import me.exrates.service.exception.RefillRequestNotFountException;
+import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -170,7 +170,7 @@ public class AdvcashServiceImpl implements AdvcashService{
     }
 
     @Override
-    public void processPayment(Map<String, String> params) throws RefillRequestNotFountException {
+    public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
         throw new NotImplimentedMethod("for "+params);
     }
 }

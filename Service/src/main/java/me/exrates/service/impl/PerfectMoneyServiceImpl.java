@@ -17,7 +17,6 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.servlet.view.RedirectView;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -215,7 +214,7 @@ public class PerfectMoneyServiceImpl implements PerfectMoneyService {
     }
 
     @Override
-    public void processPayment(Map<String, String> params) throws RefillRequestNotFountException {
+    public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
         throw new NotImplimentedMethod("for "+params);
     }
 }

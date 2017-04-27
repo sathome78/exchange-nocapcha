@@ -8,8 +8,4 @@ import java.util.Map;
 
 public interface PayeerService extends IMerchantService {
 
-    RedirectView preparePayment(CreditsOperation creditsOperation, String email);
-
-    boolean confirmPayment(Map<String, String> params);
-
 }

@@ -336,7 +336,7 @@ public class InvoiceServiceImpl implements InvoiceService {
   }
 
   @Override
-  public void processPayment(Map<String, String> params) throws RefillRequestNotFountException {
+  public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
     throw new NotApplicableException("for " + params);
   }
 }

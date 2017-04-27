@@ -309,7 +309,11 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         " FROM REFILL_REQUEST " +
         " LEFT JOIN INVOICE_BANK ON (INVOICE_BANK.id = REFILL_REQUEST.recipient_bank_id) " +
         " WHERE REFILL_REQUEST.id = :id";
-    return of(namedParameterJdbcTemplate.queryForObject(sql, singletonMap("id", id), refillRequestFlatDtoRowMapper));
+    try {
+      return of(namedParameterJdbcTemplate.queryForObject(sql, singletonMap("id", id), refillRequestFlatDtoRowMapper));
+    } catch (EmptyResultDataAccessException e) {
+      return Optional.empty();
+    }
   }
 
   @Override

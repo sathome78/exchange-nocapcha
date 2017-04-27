@@ -15,7 +15,7 @@ import me.exrates.service.*;
 import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.IllegalTransactionProvidedStatusException;
 import me.exrates.service.exception.NotImplimentedMethod;
-import me.exrates.service.exception.RefillRequestNotFountException;
+import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -253,7 +253,7 @@ public class BitcoinServiceImpl implements BitcoinService {
   }
 
   @Override
-  public void processPayment(Map<String, String> params) throws RefillRequestNotFountException {
+  public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
     throw new NotImplimentedMethod("for "+params);
   }
     

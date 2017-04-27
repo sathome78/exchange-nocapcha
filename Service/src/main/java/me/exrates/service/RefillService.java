@@ -5,10 +5,8 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillFilterData;
-import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.vo.InvoiceConfirmData;
-import me.exrates.service.exception.RefillRequestNotFountException;
-import org.springframework.transaction.annotation.Transactional;
+import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -33,11 +31,11 @@ public interface RefillService {
 
   Optional<Integer> getUserIdByMerchantIdAndCurrencyIdAndAddress(String address, Integer merchantId, Integer currencyId);
 
-  void putOnBchExamRefillRequest(RefillRequestPutOnBchExamDto onBchExamDto) throws RefillRequestNotFountException;
+  void putOnBchExamRefillRequest(RefillRequestPutOnBchExamDto onBchExamDto) throws RefillRequestAppropriateNotFoundException;
 
   void setConfirmationCollectedNumber(RefillRequestSetConfirmationsNumberDto confirmationsNumberDto);
 
-  void autoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestNotFountException;
+  void autoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException;
 
   void acceptRefillRequest(RefillRequestAcceptDto requestAcceptDto);
 

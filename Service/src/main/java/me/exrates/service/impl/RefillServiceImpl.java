@@ -19,7 +19,6 @@ import me.exrates.model.vo.TransactionDescription;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
-import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
 import me.exrates.service.vo.ProfileData;
@@ -175,7 +174,7 @@ public class RefillServiceImpl implements RefillService {
   public void confirmRefillRequest(InvoiceConfirmData invoiceConfirmData, Locale locale) {
     Integer requestId = invoiceConfirmData.getInvoiceId();
     RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
-        .orElseThrow(() -> new InvoiceNotFoundException(String.format("refill request id: %s", requestId)));
+        .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
     RefillStatusEnum currentStatus = refillRequest.getStatus();
     InvoiceActionTypeEnum action = CONFIRM_USER;
     RefillStatusEnum newStatus = (RefillStatusEnum) currentStatus.nextState(action);
@@ -244,7 +243,7 @@ public class RefillServiceImpl implements RefillService {
    */
   @Override
   @Transactional
-  public void putOnBchExamRefillRequest(RefillRequestPutOnBchExamDto onBchExamDto) throws RefillRequestNotFountException {
+  public void putOnBchExamRefillRequest(RefillRequestPutOnBchExamDto onBchExamDto) throws RefillRequestAppropriateNotFoundException {
     Optional<Integer> requestIdOptional = getRequestIdInPendingByAddressAndMerchantIdAndCurrencyId(
         onBchExamDto.getAddress(),
         onBchExamDto.getMerchantId(),
@@ -263,7 +262,7 @@ public class RefillServiceImpl implements RefillService {
       userService.addUserComment(REFILL_ACCEPTED, comment, userEmail, false);
       notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
     } else {
-      throw new RefillRequestNotFountException(onBchExamDto.toString());
+      throw new RefillRequestAppropriateNotFoundException(onBchExamDto.toString());
     }
   }
 
@@ -272,7 +271,7 @@ public class RefillServiceImpl implements RefillService {
     String hash = onBchExamDto.getHash();
     BigDecimal amount = onBchExamDto.getAmount();
     RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
-        .orElseThrow(() -> new InvoiceNotFoundException(String.format("refill request id: %s", requestId)));
+        .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
     RefillStatusEnum currentStatus = refillRequest.getStatus();
     InvoiceActionTypeEnum action = START_BCH_EXAMINE;
     RefillStatusEnum newStatus = (RefillStatusEnum) currentStatus.nextState(action);
@@ -297,7 +296,7 @@ public class RefillServiceImpl implements RefillService {
     BigDecimal amount = confirmationsNumberDto.getAmount();
     Integer confirmations = confirmationsNumberDto.getConfirmations();
     RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
-        .orElseThrow(() -> new InvoiceNotFoundException(String.format("refill request id: %s", requestId)));
+        .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
     RefillStatusEnum currentStatus = refillRequest.getStatus();
     if (!currentStatus.availableForAction(ACCEPT_AUTO)) {
       throw new RefillRequestIllegalStatusException(refillRequest.toString());
@@ -310,7 +309,7 @@ public class RefillServiceImpl implements RefillService {
 
   @Override
   @Transactional
-  public void autoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestNotFountException {
+  public void autoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestAppropriateNotFoundException {
     Integer requestId = requestAcceptDto.getRequestId();
     if (requestId == null) {
       Optional<Integer> requestIdOptional = getRequestIdInPendingByAddressAndMerchantIdAndCurrencyId(
@@ -334,7 +333,7 @@ public class RefillServiceImpl implements RefillService {
       userService.addUserComment(REFILL_ACCEPTED, comment, userEmail, false);
       notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
     } else {
-      throw new RefillRequestNotFountException(requestAcceptDto.toString());
+        throw new RefillRequestAppropriateNotFoundException(requestAcceptDto.toString());
     }
   }
 
@@ -343,7 +342,7 @@ public class RefillServiceImpl implements RefillService {
   public void acceptRefillRequest(RefillRequestAcceptDto requestAcceptDto) {
     Integer requestId = requestAcceptDto.getRequestId();
     RefillRequestFlatDto refillRequestFlatDto = acceptRefill(requestAcceptDto);
-      /**/
+    /**/
     Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
     String title = messageSource.getMessage("refill.accepted.title", new Integer[]{requestId}, locale);
     String comment = messageSource.getMessage("merchants.refillNotification.".concat(refillRequestFlatDto.getStatus().name()),
@@ -364,7 +363,7 @@ public class RefillServiceImpl implements RefillService {
     String hash = requestAcceptDto.getHash();
     try {
       RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
-          .orElseThrow(() -> new InvoiceNotFoundException(String.format("refill request id: %s", requestId)));
+          .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
       RefillStatusEnum currentStatus = refillRequest.getStatus();
       InvoiceActionTypeEnum action = refillRequest.getStatus().availableForAction(ACCEPT_HOLDED) ? ACCEPT_HOLDED : ACCEPT_AUTO;
       RefillStatusEnum newStatus = requesterAdminId == null ?
@@ -420,14 +419,14 @@ public class RefillServiceImpl implements RefillService {
   @Transactional(readOnly = true)
   public RefillRequestFlatDto getFlatById(Integer id) {
     return refillRequestDao.getFlatById(id)
-        .orElseThrow(() -> new InvoiceNotFoundException(id.toString()));
+        .orElseThrow(() -> new RefillRequestNotFoundException(id.toString()));
   }
 
   @Override
   @Transactional
   public void revokeRefillRequest(int requestId) {
     RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
-        .orElseThrow(() -> new InvoiceNotFoundException(String.format("refill request id: %s", requestId)));
+        .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
     RefillStatusEnum currentStatus = refillRequest.getStatus();
     InvoiceActionTypeEnum action = REVOKE;
     RefillStatusEnum newStatus = (RefillStatusEnum) currentStatus.nextState(action);
@@ -540,7 +539,7 @@ public class RefillServiceImpl implements RefillService {
   @Transactional
   public void revokeWithdrawalRequest(int requestId) {
     RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
-        .orElseThrow(() -> new InvoiceNotFoundException(String.format("refill request id: %s", requestId)));
+        .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
     RefillStatusEnum currentStatus = refillRequest.getStatus();
     InvoiceActionTypeEnum action = REVOKE;
     RefillStatusEnum newStatus = (RefillStatusEnum) currentStatus.nextState(action);
@@ -551,7 +550,7 @@ public class RefillServiceImpl implements RefillService {
   @Transactional
   public void takeInWorkRefillRequest(int requestId, Integer requesterAdminId) {
     RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
-        .orElseThrow(() -> new InvoiceNotFoundException(String.format("refill request id: %s", requestId)));
+        .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
     InvoiceActionTypeEnum action = TAKE_TO_WORK;
     RefillStatusEnum newStatus = checkPermissionOnActionAndGetNewStatus(requesterAdminId, refillRequest, action);
     refillRequestDao.setStatusById(requestId, newStatus);
@@ -563,7 +562,7 @@ public class RefillServiceImpl implements RefillService {
   @Transactional
   public void returnFromWorkRefillRequest(int requestId, Integer requesterAdminId) {
     RefillRequestFlatDto withdrawRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
-        .orElseThrow(() -> new InvoiceNotFoundException(String.format("refill request id: %s", requestId)));
+        .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
     InvoiceActionTypeEnum action = RETURN_FROM_WORK;
     RefillStatusEnum newStatus = checkPermissionOnActionAndGetNewStatus(requesterAdminId, withdrawRequest, action);
     refillRequestDao.setStatusById(requestId, newStatus);
@@ -577,7 +576,7 @@ public class RefillServiceImpl implements RefillService {
     ProfileData profileData = new ProfileData(1000);
     try {
       RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
-          .orElseThrow(() -> new InvoiceNotFoundException(String.format("refill request id: %s", requestId)));
+          .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
       RefillStatusEnum currentStatus = refillRequest.getStatus();
       InvoiceActionTypeEnum action = refillRequest.getStatus().availableForAction(DECLINE_HOLDED) ? DECLINE_HOLDED : DECLINE;
       RefillStatusEnum newStatus = checkPermissionOnActionAndGetNewStatus(requesterAdminId, refillRequest, action);

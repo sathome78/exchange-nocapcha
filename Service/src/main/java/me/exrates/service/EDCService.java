@@ -11,14 +11,5 @@ import java.util.Map;
  */
 public interface EDCService extends IMerchantService {
 
-  String createInvoice(CreditsOperation operation) throws Exception;
-
-  void submitTransactionsForProcessing(String list);
-
-  String extractAccountId(final String account, final int invoiceId) throws IOException;
-
-  void rescanUnusedAccounts();
-
-  void checkTransactionByHistory(Map<String, String> params);
 
 }

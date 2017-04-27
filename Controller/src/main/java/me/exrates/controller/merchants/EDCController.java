@@ -1,7 +1,7 @@
 package me.exrates.controller.merchants;
 
 import me.exrates.service.EDCService;
-import me.exrates.service.exception.RefillRequestNotFountException;
+import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,9 +16,6 @@ import java.util.Map;
 
 import static org.springframework.http.HttpStatus.OK;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Controller
 public class EDCController {
 
@@ -29,9 +26,7 @@ public class EDCController {
   private final Logger LOG = LogManager.getLogger("merchant");
 
   @RequestMapping(value = "/merchants/edc/payment/received", method = RequestMethod.POST)
-  public ResponseEntity<Void> statusPayment(@RequestBody Map<String, String> params, RedirectAttributes redir) throws RefillRequestNotFountException {
-    LOG.info("Response: " + params);
-//        edcService.checkTransactionByHistory(params); TODO off for tesining
+  public ResponseEntity<Void> statusPayment(@RequestBody Map<String, String> params, RedirectAttributes redir) throws RefillRequestAppropriateNotFoundException {
     edcService.processPayment(params);
     return new ResponseEntity<>(OK);
   }
