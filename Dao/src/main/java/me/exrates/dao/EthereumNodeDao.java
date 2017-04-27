@@ -21,5 +21,7 @@ public interface EthereumNodeDao {
 
     Integer findTransactionId(String merchantTransactionId);
 
+    boolean isMerchantTransactionExists(String merchantTransactionId);
+
     String findAddressByMerchantTransactionId(String merchantTransactionId);
 }

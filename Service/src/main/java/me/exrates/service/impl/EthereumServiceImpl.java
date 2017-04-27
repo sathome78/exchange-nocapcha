@@ -153,10 +153,12 @@ public class EthereumServiceImpl implements EthereumService{
 
                 String recipient = ethBlock.getTo();
                 if (accounts.contains(recipient)){
-                    BigDecimal amount = Convert.fromWei(String.valueOf(ethBlock.getValue()), Convert.Unit.ETHER);
-                    LOG.debug("recipient: " + recipient + ", amount: " + amount);
-                    pendingTransactions.add(ethBlock.getHash());
-                    createTransaction(recipient, String.valueOf(amount), ethBlock.getHash());
+                    if (!ethereumNodeDao.isMerchantTransactionExists(ethBlock.getHash())){
+                        BigDecimal amount = Convert.fromWei(String.valueOf(ethBlock.getValue()), Convert.Unit.ETHER);
+                        LOG.debug("recipient: " + recipient + ", amount: " + amount);
+                        pendingTransactions.add(ethBlock.getHash());
+                        createTransaction(recipient, String.valueOf(amount), ethBlock.getHash());
+                    }
                 }
 
                 });

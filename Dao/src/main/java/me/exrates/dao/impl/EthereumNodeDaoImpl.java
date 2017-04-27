@@ -113,6 +113,20 @@ public class EthereumNodeDaoImpl implements EthereumNodeDao {
     }
 
     @Override
+    public boolean isMerchantTransactionExists(String merchantTransactionId){
+        final String sql = "select COUNT(transaction_id) from  EDC_MERCHANT_TRANSACTION " +
+                "where merchant_transaction_id = :merchant_transaction_id";
+        final Map<String, String> params = new HashMap<>();
+        params.put("merchant_transaction_id", merchantTransactionId);
+
+        if (jdbcTemplate.queryForObject(sql, params, Integer.class) > 0){
+            return true;
+        }else {
+            return false;
+        }
+    }
+
+    @Override
     public String findAddressByMerchantTransactionId(String merchantTransactionId){
         final String sql = "select address from  EDC_MERCHANT_TRANSACTION " +
                 "where merchant_transaction_id = :merchant_transaction_id";
