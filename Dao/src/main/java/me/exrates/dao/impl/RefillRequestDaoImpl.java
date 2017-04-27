@@ -27,6 +27,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -93,28 +94,74 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   }
 
   @Override
-  public Optional<Integer> findIdByMerchantIdAndCurrencyIdAndAddressAndStatusId(
+  public Optional<Integer> findIdWithoutConfirmationsByMerchantIdAndCurrencyIdAndAddressAndStatusId(
       String address,
       Integer merchantId,
       Integer currencyId,
-      Integer statusId) {
+      List<InvoiceStatus> statusList) {
     String sql = "SELECT RR.id " +
         " FROM REFILL_REQUEST RR " +
+        " LEFT JOIN REFILL_REQUEST_CONFIRMATION RRC ON (RRC.refill_request_id = RR.id) " +
         " WHERE RR.address = :address " +
         "       AND RR.merchant_id = :merchant_id " +
         "       AND RR.currency_id = :currency_id " +
-        "       AND RR.status_id = :status_id ";
+        "       AND RR.status_id IN (:status_id_list) " +
+        "       AND RRC.id IS NULL ";
     Map<String, Object> params = new HashMap<String, Object>() {{
       put("address", address);
       put("merchant_id", merchantId);
       put("currency_id", currencyId);
-      put("status_id", statusId);
+      put("status_id_list", statusList);
     }};
     try {
       return Optional.of(namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class));
-    } catch (EmptyResultDataAccessException e){
+    } catch (EmptyResultDataAccessException e) {
       return Optional.empty();
     }
+  }
+
+  @Override
+  public List<RefillRequestFlatDto> findAllWithoutConfirmationsByMerchantIdAndCurrencyIdAndStatusId(
+      Integer merchantId,
+      Integer currencyId,
+      List<InvoiceStatus> statusList) {
+    String sql = "SELECT REFILL_REQUEST.*,  " +
+        " INVOICE_BANK.name, INVOICE_BANK.account_number, INVOICE_BANK.recipient " +
+        " FROM REFILL_REQUEST " +
+        " LEFT JOIN INVOICE_BANK ON (INVOICE_BANK.id = REFILL_REQUEST.recipient_bank_id) " +
+        " LEFT JOIN REFILL_REQUEST_CONFIRMATION RRC ON (RRC.refill_request_id = REFILL_REQUEST.id) " +
+        " WHERE REFILL_REQUEST.merchant_id = :merchant_id " +
+        "       AND REFILL_REQUEST.currency_id = :currency_id " +
+        "       AND REFILL_REQUEST.status_id IN (:status_id_list) " +
+        "       AND RRC.id IS NULL ";
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("merchant_id", merchantId);
+      put("currency_id", currencyId);
+      put("status_id_list", statusList);
+    }};
+    return namedParameterJdbcTemplate.query(sql, params, refillRequestFlatDtoRowMapper);
+  }
+
+  @Override
+  public List<RefillRequestFlatDto> findAllWithConfirmationsByMerchantIdAndCurrencyIdAndStatusId(
+      Integer merchantId,
+      Integer currencyId,
+      List<InvoiceStatus> statusList) {
+    String sql = "SELECT REFILL_REQUEST.*,  " +
+        " INVOICE_BANK.name, INVOICE_BANK.account_number, INVOICE_BANK.recipient " +
+        " FROM REFILL_REQUEST " +
+        " LEFT JOIN INVOICE_BANK ON (INVOICE_BANK.id = REFILL_REQUEST.recipient_bank_id) " +
+        " JOIN REFILL_REQUEST_CONFIRMATION RRC ON (RRC.refill_request_id = REFILL_REQUEST.id) " +
+        " WHERE REFILL_REQUEST.merchant_id = :merchant_id " +
+        "       AND REFILL_REQUEST.currency_id = :currency_id " +
+        "       AND REFILL_REQUEST.status_id IN (:status_id_list) " +
+        "       AND RRC.id IS NULL ";
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("merchant_id", merchantId);
+      put("currency_id", currencyId);
+      put("status_id_list", statusList);
+    }};
+    return namedParameterJdbcTemplate.query(sql, params, refillRequestFlatDtoRowMapper);
   }
 
   @Override
@@ -135,7 +182,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     }};
     try {
       return Optional.of(namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class));
-    } catch (EmptyResultDataAccessException e){
+    } catch (EmptyResultDataAccessException e) {
       return Optional.empty();
     }
   }
@@ -498,6 +545,26 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     Map<String, Object> params = new HashMap<>();
     params.put("id", id);
     params.put("address", address);
+    namedParameterJdbcTemplate.update(sql, params);
+  }
+
+  @Override
+  public Integer findConfirmationsNumberByRequestId(Integer requestId) {
+    String sql = "SELECT IF(MAX(confirmation_number) IS NULL, -1, MAX(confirmation_number)) " +
+        "  FROM REFILL_REQUEST_CONFIRMATION RRC " +
+        "  WHERE RRC.refill_request_id = refill_request_id ";
+    return namedParameterJdbcTemplate.queryForObject(sql, singletonMap("refill_request_id", requestId), Integer.class);
+  }
+
+  @Override
+  public void setConfirmationsNumberByRequestId(Integer requestId, BigDecimal amount, Integer confirmations) {
+    String sql = " INSERT INTO REFILL_REQUEST_CONFIRMATION " +
+        "  (refill_request_id, datetime, confirmation_number, amount) " +
+        "  VALUES (:request_id, NOW(), :confirmation_number, :amount) ";
+    MapSqlParameterSource params = new MapSqlParameterSource()
+        .addValue("request_id", requestId)
+        .addValue("confirmation_number", confirmations)
+        .addValue("amount", amount);
     namedParameterJdbcTemplate.update(sql, params);
   }
 

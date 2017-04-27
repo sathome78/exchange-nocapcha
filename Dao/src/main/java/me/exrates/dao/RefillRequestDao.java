@@ -11,6 +11,7 @@ import me.exrates.model.dto.filterData.RefillFilterData;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.vo.InvoiceConfirmData;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -20,7 +21,14 @@ import java.util.Optional;
  */
 public interface RefillRequestDao {
 
-  Optional<Integer> findIdByMerchantIdAndCurrencyIdAndAddressAndStatusId(String address, Integer merchantId, Integer currencyId, Integer statusId);
+  Optional<Integer> findIdWithoutConfirmationsByMerchantIdAndCurrencyIdAndAddressAndStatusId(String address, Integer merchantId, Integer currencyId, List<InvoiceStatus> statusList);
+
+  List<RefillRequestFlatDto> findAllWithoutConfirmationsByMerchantIdAndCurrencyIdAndStatusId(Integer merchantId, Integer currencyId, List<InvoiceStatus> statusList);
+
+  List<RefillRequestFlatDto> findAllWithConfirmationsByMerchantIdAndCurrencyIdAndStatusId(
+      Integer merchantId,
+      Integer currencyId,
+      List<InvoiceStatus> statusList);
 
   Optional<Integer> findUserIdByMerchantIdAndCurrencyIdAndAddress(String address, Integer merchantId, Integer currencyId);
 
@@ -58,7 +66,9 @@ public interface RefillRequestDao {
 
   boolean checkInputRequests(int currencyId, String email);
 
-  void setAddressById(
-      Integer id,
-      String address);
+  void setAddressById(Integer id, String address);
+
+  Integer findConfirmationsNumberByRequestId(Integer requestId);
+
+  void setConfirmationsNumberByRequestId(Integer requestId, BigDecimal amount, Integer confirmations);
 }

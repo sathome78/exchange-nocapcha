@@ -154,7 +154,7 @@ public class RefillRequestController {
   @RequestMapping(value = "/2a8fy7b07dxe44/refill/accept", method = POST)
   @ResponseBody
   public void accept(
-      @RequestBody RefillRequestAcceptParamDto acceptDto,
+      @RequestBody RefillRequestAcceptEntryParamsDto acceptDto,
       Principal principal) {
     Integer requesterAdminId = userService.getIdByEmail(principal.getName());
     RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()

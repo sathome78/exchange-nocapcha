@@ -1,16 +1,14 @@
 package me.exrates.service;
 
 import me.exrates.model.InvoiceBank;
-import me.exrates.model.dto.RefillRequestAcceptDto;
-import me.exrates.model.dto.RefillRequestCreateDto;
-import me.exrates.model.dto.RefillRequestFlatDto;
-import me.exrates.model.dto.RefillRequestsAdminTableDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillFilterData;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.service.exception.RefillRequestNotFountException;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -29,9 +27,15 @@ public interface RefillService {
 
   void confirmRefillRequest(InvoiceConfirmData invoiceConfirmData, Locale locale);
 
-  Optional<Integer> getActiveRequestIdByAddressAndMerchantIdAndCurrencyId(String address, Integer merchantId, Integer currencyId);
+  List<RefillRequestFlatDto> getInPendingByMerchantIdAndCurrencyIdList(Integer merchantId, Integer currencyId);
+
+  List<RefillRequestFlatDto> getInExamineByMerchantIdAndCurrencyIdList(Integer merchantId, Integer currencyId);
 
   Optional<Integer> getUserIdByMerchantIdAndCurrencyIdAndAddress(String address, Integer merchantId, Integer currencyId);
+
+  void putOnBchExamRefillRequest(RefillRequestPutOnBchExamDto onBchExamDto) throws RefillRequestNotFountException;
+
+  void setConfirmationCollectedNumber(RefillRequestSetConfirmationsNumberDto confirmationsNumberDto);
 
   void autoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestNotFountException;
 

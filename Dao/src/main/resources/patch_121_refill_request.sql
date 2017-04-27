@@ -86,6 +86,7 @@ CREATE TABLE REFILL_REQUEST_CONFIRMATION (
 	refill_request_id INT(11) NOT NULL,
 	datetime TIMESTAMP NULL DEFAULT NULL,
 	confirmation_number INT NOT NULL,
+	amount DECIMAL(40, 9) NOT NULL,
 	PRIMARY KEY (id),
 	INDEX FK_refill_request_confirmation_refill_request (refill_request_id),
 	CONSTRAINT FK_refill_request_confirmation_refill_request FOREIGN KEY (refill_request_id) REFERENCES REFILL_REQUEST (id)

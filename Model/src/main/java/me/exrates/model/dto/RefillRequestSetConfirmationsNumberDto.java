@@ -10,10 +10,12 @@ import java.math.BigDecimal;
 /**
  * @author ValkSam
  */
+@Builder
 @Getter @Setter
 @ToString
-public class RefillRequestAcceptParamDto {
+public class RefillRequestSetConfirmationsNumberDto {
   private Integer requestId;
+  private Integer confirmations;
+  private String hash;
   private BigDecimal amount;
-  private String remark;
 }

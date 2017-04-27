@@ -18,10 +18,7 @@ import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.model.vo.TransactionDescription;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.*;
-import me.exrates.service.exception.CreatorForTheRefillRequestNotDefinedException;
-import me.exrates.service.exception.FileLoadingException;
-import me.exrates.service.exception.RefillRequestNotFountException;
-import me.exrates.service.exception.RefillRequestRevokeException;
+import me.exrates.service.exception.*;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.merchantStrategy.IMerchantService;
 import me.exrates.service.merchantStrategy.MerchantServiceContext;
@@ -200,11 +197,39 @@ public class RefillServiceImpl implements RefillService {
     refillRequestDao.setStatusAndConfirmationDataById(requestId, newStatus, invoiceConfirmData);
   }
 
+  private Optional<Integer> getRequestIdInPendingByAddressAndMerchantIdAndCurrencyId(String address, Integer merchantId, Integer currencyId) {
+    List<InvoiceStatus> statusList = RefillStatusEnum.getAvailableForActionStatusesList(START_BCH_EXAMINE);
+    return refillRequestDao.findIdWithoutConfirmationsByMerchantIdAndCurrencyIdAndAddressAndStatusId(
+        address,
+        merchantId,
+        currencyId,
+        statusList);
+  }
+
+  /**
+   * findUnpaidBtcPayments
+   */
   @Override
   @Transactional
-  public Optional<Integer> getActiveRequestIdByAddressAndMerchantIdAndCurrencyId(String address, Integer merchantId, Integer currencyId) {
-    RefillStatusEnum activeRequestStatus = RefillStatusEnum.ON_PENDING;
-    return refillRequestDao.findIdByMerchantIdAndCurrencyIdAndAddressAndStatusId(address, merchantId, currencyId, activeRequestStatus.getCode());
+  public List<RefillRequestFlatDto> getInPendingByMerchantIdAndCurrencyIdList(Integer merchantId, Integer currencyId) {
+    List<InvoiceStatus> statusList = RefillStatusEnum.getAvailableForActionStatusesList(START_BCH_EXAMINE);
+    return refillRequestDao.findAllWithoutConfirmationsByMerchantIdAndCurrencyIdAndStatusId(
+        merchantId,
+        currencyId,
+        statusList);
+  }
+
+  /**
+   * findUnconfirmedBtcPayments
+   */
+  @Override
+  @Transactional
+  public List<RefillRequestFlatDto> getInExamineByMerchantIdAndCurrencyIdList(Integer merchantId, Integer currencyId) {
+    List<InvoiceStatus> statusList = RefillStatusEnum.getAvailableForActionStatusesList(ACCEPT_AUTO);
+    return refillRequestDao.findAllWithConfirmationsByMerchantIdAndCurrencyIdAndStatusId(
+        merchantId,
+        currencyId,
+        statusList);
   }
 
   @Override
@@ -213,12 +238,82 @@ public class RefillServiceImpl implements RefillService {
     return refillRequestDao.findUserIdByMerchantIdAndCurrencyIdAndAddress(address, merchantId, currencyId);
   }
 
+  /**
+   *
+   * markStartConfirmationProcessing
+   */
+  @Override
+  @Transactional
+  public void putOnBchExamRefillRequest(RefillRequestPutOnBchExamDto onBchExamDto) throws RefillRequestNotFountException {
+    Optional<Integer> requestIdOptional = getRequestIdInPendingByAddressAndMerchantIdAndCurrencyId(
+        onBchExamDto.getAddress(),
+        onBchExamDto.getMerchantId(),
+        onBchExamDto.getCurrencyId());
+    if (requestIdOptional.isPresent()) {
+      Integer requestId = requestIdOptional.get();
+      onBchExamDto.setRequestId(requestId);
+      RefillRequestFlatDto refillRequestFlatDto = putOnBchExam(onBchExamDto);
+      /**/
+      Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
+      String title = messageSource.getMessage("refill.accepted.title", new Integer[]{requestId}, locale);
+      String comment = messageSource.getMessage("merchants.refillNotification.".concat(refillRequestFlatDto.getStatus().name()),
+          new Integer[]{requestId},
+          locale);
+      String userEmail = userService.getEmailById(refillRequestFlatDto.getUserId());
+      userService.addUserComment(REFILL_ACCEPTED, comment, userEmail, false);
+      notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
+    } else {
+      throw new RefillRequestNotFountException(onBchExamDto.toString());
+    }
+  }
+
+  private RefillRequestFlatDto putOnBchExam(RefillRequestPutOnBchExamDto onBchExamDto) {
+    Integer requestId = onBchExamDto.getRequestId();
+    String hash = onBchExamDto.getHash();
+    BigDecimal amount = onBchExamDto.getAmount();
+    RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
+        .orElseThrow(() -> new InvoiceNotFoundException(String.format("refill request id: %s", requestId)));
+    RefillStatusEnum currentStatus = refillRequest.getStatus();
+    InvoiceActionTypeEnum action = START_BCH_EXAMINE;
+    RefillStatusEnum newStatus = (RefillStatusEnum) currentStatus.nextState(action);
+    refillRequestDao.setStatusById(requestId, newStatus);
+    refillRequestDao.setHashById(requestId, hash);
+    refillRequest.setStatus(newStatus);
+    refillRequest.setHash(hash);
+    refillRequestDao.setConfirmationsNumberByRequestId(requestId, amount, 0);
+    return refillRequest;
+  }
+
+  /**
+   * changeTransactionConfidenceForPendingPayment
+   * updateFactAmountForPendingPayment
+   * updatePendingPaymentHash
+   */
+  @Override
+  @Transactional
+  public void setConfirmationCollectedNumber(RefillRequestSetConfirmationsNumberDto confirmationsNumberDto) {
+    Integer requestId = confirmationsNumberDto.getRequestId();
+    String hash = confirmationsNumberDto.getHash();
+    BigDecimal amount = confirmationsNumberDto.getAmount();
+    Integer confirmations = confirmationsNumberDto.getConfirmations();
+    RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
+        .orElseThrow(() -> new InvoiceNotFoundException(String.format("refill request id: %s", requestId)));
+    RefillStatusEnum currentStatus = refillRequest.getStatus();
+    if (!currentStatus.availableForAction(ACCEPT_AUTO)) {
+      throw new RefillRequestIllegalStatusException(refillRequest.toString());
+    }
+    if (!hash.equals(refillRequest.getHash())) {
+      refillRequestDao.setHashById(requestId, hash);
+    }
+    refillRequestDao.setConfirmationsNumberByRequestId(requestId, amount, confirmations);
+  }
+
   @Override
   @Transactional
   public void autoAcceptRefillRequest(RefillRequestAcceptDto requestAcceptDto) throws RefillRequestNotFountException {
     Integer requestId = requestAcceptDto.getRequestId();
     if (requestId == null) {
-      Optional<Integer> requestIdOptional = getActiveRequestIdByAddressAndMerchantIdAndCurrencyId(
+      Optional<Integer> requestIdOptional = getRequestIdInPendingByAddressAndMerchantIdAndCurrencyId(
           requestAcceptDto.getAddress(),
           requestAcceptDto.getMerchantId(),
           requestAcceptDto.getCurrencyId());
@@ -227,13 +322,8 @@ public class RefillServiceImpl implements RefillService {
       }
     }
     if (requestId != null) {
-      RefillRequestFlatDto refillRequestFlatDto = acceptRefill(
-          requestId,
-          requestAcceptDto.getAmount(),
-          null,
-          null);
-      refillRequestDao.setMerchantTransactionIdById(requestId, requestAcceptDto.getMerchantTransactionId());
-      refillRequestDao.setHashById(requestId, requestAcceptDto.getHash());
+      requestAcceptDto.setRequestId(requestId);
+      RefillRequestFlatDto refillRequestFlatDto = acceptRefill(requestAcceptDto);
       /**/
       Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
       String title = messageSource.getMessage("refill.accepted.title", new Integer[]{requestId}, locale);
@@ -252,12 +342,7 @@ public class RefillServiceImpl implements RefillService {
   @Transactional
   public void acceptRefillRequest(RefillRequestAcceptDto requestAcceptDto) {
     Integer requestId = requestAcceptDto.getRequestId();
-    RefillRequestFlatDto refillRequestFlatDto = acceptRefill(
-        requestId,
-        requestAcceptDto.getAmount(),
-        requestAcceptDto.getRequesterAdminId(),
-        requestAcceptDto.getRemark());
-    refillRequestDao.setMerchantTransactionIdById(requestId, requestAcceptDto.getMerchantTransactionId());
+    RefillRequestFlatDto refillRequestFlatDto = acceptRefill(requestAcceptDto);
       /**/
     Locale locale = new Locale(userService.getPreferedLang(refillRequestFlatDto.getUserId()));
     String title = messageSource.getMessage("refill.accepted.title", new Integer[]{requestId}, locale);
@@ -269,8 +354,14 @@ public class RefillServiceImpl implements RefillService {
     notificationService.notifyUser(refillRequestFlatDto.getUserId(), NotificationEvent.IN_OUT, title, comment);
   }
 
-  private RefillRequestFlatDto acceptRefill(Integer requestId, BigDecimal factAmount, Integer requesterAdminId, String remark) {
+  private RefillRequestFlatDto acceptRefill(RefillRequestAcceptDto requestAcceptDto) {
     ProfileData profileData = new ProfileData(1000);
+    Integer requestId = requestAcceptDto.getRequestId();
+    BigDecimal factAmount = requestAcceptDto.getAmount();
+    Integer requesterAdminId = requestAcceptDto.getRequesterAdminId();
+    String remark = requestAcceptDto.getRemark();
+    String merchantTransactionId = requestAcceptDto.getMerchantTransactionId();
+    String hash = requestAcceptDto.getHash();
     try {
       RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
           .orElseThrow(() -> new InvoiceNotFoundException(String.format("refill request id: %s", requestId)));
@@ -282,8 +373,13 @@ public class RefillServiceImpl implements RefillService {
       refillRequestDao.setStatusById(requestId, newStatus);
       refillRequestDao.setHolderById(requestId, requesterAdminId);
       refillRequestDao.setRemarkById(requestId, remark);
+      refillRequestDao.setMerchantTransactionIdById(requestId, merchantTransactionId);
+      refillRequestDao.setHashById(requestId, hash);
       refillRequest.setStatus(newStatus);
       refillRequest.setAdminHolderId(requesterAdminId);
+      refillRequest.setRemark(remark);
+      refillRequest.setMerchantTransactionId(merchantTransactionId);
+      refillRequest.setHash(hash);
       profileData.setTime1();
       /**/
       Integer userWalletId = walletService.getWalletId(refillRequest.getUserId(), refillRequest.getCurrencyId());

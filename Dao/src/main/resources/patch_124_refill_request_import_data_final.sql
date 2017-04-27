@@ -64,8 +64,8 @@ WHERE RR.status_id IN (9 /*ACCEPTED_AUTO*/, 10 /*ACCEPTED_ADMIN*/)
 
 
 INSERT INTO REFILL_REQUEST_CONFIRMATION
-(refill_request_id, datetime, confirmation_number)
-(SELECT id, status_modification_date, RR.confirmation
+(refill_request_id, datetime, confirmation_number, amount)
+(SELECT id, status_modification_date, RR.confirmation, RR.amount
 FROM REFILL_REQUEST RR
 WHERE RR.confirmation>=0)
 /* Затронуто строк: 4 581*/
