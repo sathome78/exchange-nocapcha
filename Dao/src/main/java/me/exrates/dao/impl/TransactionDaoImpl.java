@@ -722,7 +722,7 @@ public final class TransactionDaoImpl implements TransactionDao {
     Map<String, Object> namedParameters = new HashMap<String, Object>() {{
       put("start_date", startDate);
       put("end_date", endDate);
-      put("roles", roleIdList);
+      put("role_id_list", roleIdList);
       put("requester_user_id", requesterUserId);
     }};
     return jdbcTemplate.query(sql, namedParameters, (rs, idx) -> {
