@@ -2,7 +2,10 @@
  * Created by Valk on 12.05.2016.
  */
 
-function getOrderDetailedInfo(currentRow, orderId, enableDelete) {
+var currentOrderId;
+
+function getOrderDetailedInfo(orderId, enableActions) {
+    currentOrderId = orderId;
     $.ajax({
         url: '/2a8fy7b07dxe44/orderinfo?id=' + orderId,
         type: 'GET',
@@ -21,14 +24,38 @@ function getOrderDetailedInfo(currentRow, orderId, enableDelete) {
             $("#transactionCount").find('span').html(data.transactionCount);
             $("#companyCommission").find('span').html(data.companyCommission?data.companyCommission + ' ' + data.currencyConvertName:'-');
             /**/
-            if (data.orderStatusName.toUpperCase() === 'DELETED' || !enableDelete) {
+            var statusUpperCase = data.orderStatusName.toUpperCase();
+
+            if (statusUpperCase === 'DELETED' || statusUpperCase === 'SPLIT_CLOSED' || !enableActions) {
                 $("#delete-order-info__delete").toggle(false);
             } else {
                 $("#delete-order-info__delete").toggle(true);
-                /*$("#delete-order-info__delete").attr('onclick', 'deleteOrderByAdmin(' + data.id + ')');*/
-                $("#delete-order-info__delete").on('click', function () {
-                    deleteOrderByAdmin(data.id, currentRow);
-                })
+
+            }
+            if (data.orderStatusName.toUpperCase() === 'OPENED' && enableActions) {
+                $("#delete-order-info__accept").toggle(true);
+
+            } else {
+                $("#delete-order-info__accept").toggle(false);
+            }
+
+            if (data.source) {
+                $('#orderSource').toggle(true);
+                $('#orderSource').find('div').html('<button class="btn btn-sm btn-default" ' +
+                    'onclick="getOrderDetailedInfo(' + data.source + ', true)">' + data.source + '</button>')
+            } else {
+                $('#orderSource').toggle(false);
+            }
+
+            if (data.children && data.children.length > 0) {
+                $('#orderChildren').find('div').empty();
+                data.children.forEach(function (item) {
+                    $('#orderChildren').find('div').append('<button class="btn btn-sm btn-default" ' +
+                        'onclick="getOrderDetailedInfo(' + item + ', true)">' + item + '</button>')
+                });
+                $('#orderChildren').toggle(true);
+            } else {
+                $('#orderChildren').toggle(false);
             }
 
             /**/
@@ -53,7 +80,7 @@ function getTransferDetailedInfo(orderId) {
     });
 }
 
-function deleteOrderByAdmin(order_id, currentRow) {
+function deleteOrderByAdmin(order_id) {
     $('#order-delete-modal').one('hidden.bs.modal', function (e) {
         /*placed in close callback because we must give time for #order-delete-modal to restore parameters of <body>
          * otherwise we get the shift of the window to the left every time when open and then close #order-delete-modal--ok
@@ -71,10 +98,7 @@ function deleteOrderByAdmin(order_id, currentRow) {
                     } else {
                         $('#order-delete-modal--result-info').find('.success').toggle(true);
                         $("#order-delete-modal--result-info").find('.success').find('span').html(data);
-                        var updated = currentRow.data();
-                        updated.status = "DELETED";
-                        currentRow.data(updated).draw();
-
+                        updateOrderTable();
                     }
                     $('#order-delete-modal--result-info').modal();
                 },
@@ -84,6 +108,27 @@ function deleteOrderByAdmin(order_id, currentRow) {
                         $('#order-delete-modal--result-info').modal();
                     }
 
+                }
+            }
+        );
+    });
+    $('#order-delete-modal').modal('hide');
+}
+
+function acceptOrderByAdmin(order_id) {
+    $('#order-delete-modal').one('hidden.bs.modal', function (e) {
+        /*placed in close callback because we must give time for #order-delete-modal to restore parameters of <body>
+         * otherwise we get the shift of the window to the left every time when open and then close #order-delete-modal--ok
+         */
+        $.ajax({
+                headers: {
+                    'X-CSRF-Token': $("input[name='_csrf']").val()
+                },
+                url: '/2a8fy7b07dxe44/order/accept?id=' + order_id,
+                type: 'POST',
+                success: function (data) {
+                    successNoty(data['result'], 'successOrder');
+                    updateOrderTable()
                 }
             }
         );
@@ -119,7 +164,7 @@ function validateErrorForm() {
     return isError;
 }
 
-function searchOrder() {
+function updateOrderTable() {
     var isError = validateErrorForm();
     if (isError) {
         return;
@@ -188,9 +233,7 @@ function searchOrder() {
         });
         $('#order-info-table tbody').on('click', 'tr', function () {
             var currentRow = orderDataTable.row( this );
-            var currentData = currentRow.data();
-
-            getOrderDetailedInfo(currentRow, currentRow.data().id, true);
+            getOrderDetailedInfo(currentRow.data().id, true);
         } );
 
 
@@ -227,13 +270,22 @@ $(function () {
         defaultDate: new Date(),
         defaultTime: '00:00'
     });
-    $('#delete-order-info__search').on('click', searchOrder);
+    $('#delete-order-info__search').on('click', updateOrderTable);
     $('#delete-order-info__reset').on('click', function () {
         $('#delete-order-info__form')[0].reset();
-        searchOrder();
+        updateOrderTable();
     });
 
     if ($('#delete-order-info__form').size() > 0) {
-        searchOrder();
+        updateOrderTable();
     }
+
+    $("#delete-order-info__delete").on('click', function () {
+        deleteOrderByAdmin(currentOrderId);
+    })
+    $("#delete-order-info__accept").on('click', function () {
+        acceptOrderByAdmin(currentOrderId);
+    });
+
+
 });

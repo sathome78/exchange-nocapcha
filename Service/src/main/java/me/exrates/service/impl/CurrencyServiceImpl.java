@@ -50,17 +50,19 @@ public class CurrencyServiceImpl implements CurrencyService {
   @Autowired
   UserRoleService userRoleService;
 
-  private static final Logger logger = LogManager.getLogger(CurrencyServiceImpl.class);
-  private static final Set<String> CRYPTO = new HashSet<String>() {
-    {
-      add("EDRC");
-      add("BTC");
-      add("LTC");
-      add("EDR");
-    }
-  };
-  private static final int CRYPTO_PRECISION = 8;
-  private static final int DEFAULT_PRECISION = 2;
+    private static final Logger logger = LogManager.getLogger(CurrencyServiceImpl.class);
+    private static final Set<String> CRYPTO = new HashSet<String>() {
+        {
+            add("EDRC");
+            add("BTC");
+            add("LTC");
+            add("EDR");
+            add("ETH");
+        }
+    };
+    private static final int CRYPTO_PRECISION = 8;
+    private static final int DEFAULT_PRECISION = 2;
+    private static final int EDC_OUTPUT_PRECISION = 3;
 
   @Override
   @Transactional(readOnly = true)
@@ -129,11 +131,20 @@ public class CurrencyServiceImpl implements CurrencyService {
     return CRYPTO.contains(currency) ? CRYPTO_PRECISION : DEFAULT_PRECISION;
   }
 
-  @Override
-  public List<TransferLimitDto> retrieveMinTransferLimits(List<Integer> currencyIds) {
-    Integer roleId = userService.getUserRoleFromSecurityContext().getRole();
-    return currencyDao.retrieveMinTransferLimits(currencyIds, roleId);
-  }
+    @Override
+    public int resolvePrecisionByOperationType(final String currency, OperationType operationType) {
+
+        return currency.equals(currencyDao.findByName("EDR").getName()) && (operationType == OperationType.OUTPUT) ?
+                EDC_OUTPUT_PRECISION :
+                CRYPTO.contains(currency) ? CRYPTO_PRECISION :
+                DEFAULT_PRECISION;
+    }
+
+    @Override
+    public List<TransferLimitDto> retrieveMinTransferLimits(List<Integer> currencyIds) {
+        Integer roleId = userService.getUserRoleFromSecurityContext().getRole();
+        return currencyDao.retrieveMinTransferLimits(currencyIds, roleId);
+    }
 
   @Override
   @Transactional(readOnly = true)

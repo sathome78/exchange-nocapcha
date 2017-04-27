@@ -46,6 +46,8 @@ public interface CurrencyService {
 
     int resolvePrecision(String currency);
 
+    int resolvePrecisionByOperationType(final String currency, OperationType operationType);
+
     List<TransferLimitDto> retrieveMinTransferLimits(List<Integer> currencyIds);
 
     List<UserCurrencyOperationPermissionDto> getCurrencyOperationPermittedForRefill(String userEmail);

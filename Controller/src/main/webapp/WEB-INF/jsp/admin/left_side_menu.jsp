@@ -89,7 +89,7 @@
         <li>
 
             <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}', '${admin_finOperatorEnum}')">
-                <a href="<c:url value='/2a8fy7b07dxe44/removeOrder'/>"><loc:message code="deleteorder.title"/></a>
+                <a href="<c:url value='/2a8fy7b07dxe44/removeOrder'/>"><loc:message code="manageOrder.title"/></a>
             </sec:authorize>
         </li>
 
