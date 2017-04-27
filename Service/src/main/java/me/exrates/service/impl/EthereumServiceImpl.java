@@ -215,7 +215,7 @@ public class EthereumServiceImpl implements EthereumService{
     }
 
     private void createTransaction(String address, String amount, String hash){
-        try {
+        /*try {
             String userEmail = ethereumNodeDao.findUserEmailByAddress(address);
             Payment payment = new Payment();
             Currency currency = currencyService.findByName("ETH");
@@ -245,7 +245,7 @@ public class EthereumServiceImpl implements EthereumService{
         }catch (EthereumException e){
             subscribeCreated = false;
             LOG.error(e);
-        }
+        }*/
     }
 
     private void provideTransactionAndTransferFunds(String merchantTransactionId){
