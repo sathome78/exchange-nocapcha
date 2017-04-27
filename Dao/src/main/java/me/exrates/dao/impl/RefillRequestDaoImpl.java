@@ -98,7 +98,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
       String address,
       Integer merchantId,
       Integer currencyId,
-      List<InvoiceStatus> statusList) {
+      List<Integer> statusList) {
     String sql = "SELECT RR.id " +
         " FROM REFILL_REQUEST RR " +
         " LEFT JOIN REFILL_REQUEST_CONFIRMATION RRC ON (RRC.refill_request_id = RR.id) " +
@@ -124,7 +124,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   public List<RefillRequestFlatDto> findAllWithoutConfirmationsByMerchantIdAndCurrencyIdAndStatusId(
       Integer merchantId,
       Integer currencyId,
-      List<InvoiceStatus> statusList) {
+      List<Integer> statusList) {
     String sql = "SELECT REFILL_REQUEST.*,  " +
         " INVOICE_BANK.name, INVOICE_BANK.account_number, INVOICE_BANK.recipient " +
         " FROM REFILL_REQUEST " +
@@ -449,7 +449,8 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         "   ADMIN.email AS admin_email, " +
         "   M.name AS merchant_name, " +
         "   TX.amount AS amount, TX.commission_amount AS commission_amount, " +
-        "   (SELECT IF(MAX(confirmation_number) IS NULL, -1, MAX(confirmation_number)) FROM REFILL_REQUEST_CONFIRMATION RRC WHERE RRC.refill_request_id = :id) AS confirmations " +
+        "   (SELECT IF(MAX(confirmation_number) IS NULL, -1, MAX(confirmation_number)) FROM REFILL_REQUEST_CONFIRMATION RRC WHERE RRC.refill_request_id = :id) AS confirmations, " +
+        "   (SELECT amount FROM REFILL_REQUEST_CONFIRMATION RRC WHERE RRC.refill_request_id = :id ORDER BY id DESC LIMIT 1) AS amount_by_bch " +
         " FROM REFILL_REQUEST WR " +
         " JOIN CURRENCY CUR ON (CUR.id = WR.currency_id) " +
         " JOIN USER USER ON (USER.id = WR.user_id) " +
@@ -468,6 +469,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
           refillRequestFlatAdditionalDataDto.setMerchantName(rs.getString("merchant_name"));
           refillRequestFlatAdditionalDataDto.setCommissionAmount(rs.getBigDecimal("commission_amount"));
           refillRequestFlatAdditionalDataDto.setTransactionAmount(rs.getBigDecimal("amount"));
+          refillRequestFlatAdditionalDataDto.setByBchAmount(rs.getBigDecimal("amount_by_bch"));
           refillRequestFlatAdditionalDataDto.setConfirmations(rs.getInt("confirmations"));
           return refillRequestFlatAdditionalDataDto;
         }

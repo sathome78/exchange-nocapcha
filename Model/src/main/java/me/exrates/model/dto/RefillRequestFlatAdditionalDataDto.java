@@ -16,5 +16,6 @@ public class RefillRequestFlatAdditionalDataDto {
   private String adminHolderEmail;
   private BigDecimal transactionAmount;
   private BigDecimal commissionAmount;
+  private BigDecimal byBchAmount;
   private Integer confirmations;
 }

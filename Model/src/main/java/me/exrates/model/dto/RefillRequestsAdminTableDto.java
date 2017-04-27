@@ -71,9 +71,19 @@ public class RefillRequestsAdminTableDto extends OnlineTableDto {
     this.userEmail = refillRequestFlatAdditionalDataDto.getUserEmail();
     this.amount = refillRequestFlatDto.getAmount();
     this.currencyName = refillRequestFlatAdditionalDataDto.getCurrencyName();
-    this.enrolledAmount = refillRequestFlatAdditionalDataDto.getTransactionAmount() == null ? BigDecimal.ZERO : refillRequestFlatAdditionalDataDto.getTransactionAmount();
-    this.commissionAmount = refillRequestFlatAdditionalDataDto.getCommissionAmount() == null ? BigDecimal.ZERO : refillRequestFlatAdditionalDataDto.getCommissionAmount();
-    this.receivedAmount = BigDecimalProcessing.doAction(this.enrolledAmount, this.commissionAmount, ActionType.ADD);
+    if (refillRequestFlatAdditionalDataDto.getTransactionAmount() != null) {
+      this.enrolledAmount = refillRequestFlatAdditionalDataDto.getTransactionAmount();
+      this.commissionAmount = refillRequestFlatAdditionalDataDto.getCommissionAmount() == null ? BigDecimal.ZERO : refillRequestFlatAdditionalDataDto.getCommissionAmount();
+      this.receivedAmount = BigDecimalProcessing.doAction(this.enrolledAmount, this.commissionAmount, ActionType.ADD);
+    } else if (refillRequestFlatAdditionalDataDto.getByBchAmount() != null) {
+      this.receivedAmount = refillRequestFlatAdditionalDataDto.getByBchAmount();
+      this.enrolledAmount = BigDecimal.ZERO;
+      this.commissionAmount = BigDecimal.ZERO;
+    } else {
+      this.enrolledAmount = BigDecimal.ZERO;
+      this.commissionAmount = BigDecimal.ZERO;
+      this.receivedAmount = BigDecimal.ZERO;
+    }
     this.merchantName = refillRequestFlatAdditionalDataDto.getMerchantName();
     this.address = refillRequestFlatDto.getAddress();
     this.adminHolderId = refillRequestFlatDto.getAdminHolderId();

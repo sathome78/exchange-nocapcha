@@ -203,7 +203,7 @@ public class RefillServiceImpl implements RefillService {
         address,
         merchantId,
         currencyId,
-        statusList);
+        statusList.stream().map(InvoiceStatus::getCode).collect(Collectors.toList()));
   }
 
   /**
@@ -216,7 +216,7 @@ public class RefillServiceImpl implements RefillService {
     return refillRequestDao.findAllWithoutConfirmationsByMerchantIdAndCurrencyIdAndStatusId(
         merchantId,
         currencyId,
-        statusList);
+        statusList.stream().map(InvoiceStatus::getCode).collect(Collectors.toList()));
   }
 
   /**
@@ -441,13 +441,14 @@ public class RefillServiceImpl implements RefillService {
   }
 
   @Override
-  @Transactional(readOnly = true)
+  @Transactional
   public Map<String, String> correctAmountAndCalculateCommission(
       Integer userId,
       BigDecimal amount,
       Integer currencyId,
       Integer merchantId,
       Locale locale) {
+
     OperationType operationType = INPUT;
     BigDecimal addition = currencyService.computeRandomizedAddition(currencyId, operationType);
     amount = amount.add(addition);
