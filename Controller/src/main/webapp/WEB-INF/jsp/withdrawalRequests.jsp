@@ -30,8 +30,10 @@
         <div class="col-md-8 col-sm-offset-1 content admin-container">
             <div class="row text-center">
                 <div style="float: left; display: inline-block">
-                    <button id="withdraw-requests-new" class="myorders__button blue-box margin-box">
-                        <loc:message code="admin.withdraw.new"/></button>
+                    <button id="withdraw-requests-manual" class="myorders__button blue-box margin-box">
+                        <loc:message code="admin.withdraw.manual"/></button>
+                    <button id="withdraw-requests-confirm" class="myorders__button blue-box margin-box">
+                        <loc:message code="admin.withdraw.confirm"/></button>
                     <button id="withdraw-requests-auto" class="myorders__button blue-box margin-box">
                         <loc:message code="admin.withdraw.auto"/></button>
                     <button id="withdraw-requests-All" class="myorders__button blue-box margin-box">
