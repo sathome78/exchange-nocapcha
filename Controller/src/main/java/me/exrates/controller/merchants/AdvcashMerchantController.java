@@ -54,10 +54,10 @@ public class AdvcashMerchantController {
 
     private static final String merchantInputErrorPage = "redirect:/merchants/input";
 
-    @RequestMapping(value = "payment/status",method = RequestMethod.POST)
-    public ResponseEntity<Void> statusPayment(@RequestParam Map<String,String> params) {
+    @RequestMapping(value = "payment/status", method = RequestMethod.POST)
+    public ResponseEntity<Void> statusPayment(@RequestParam Map<String, String> params) {
 
-        Transaction transaction = transactionService.findById(Integer.parseInt(params.get("ac_order_id")));
+        /*Transaction transaction = transactionService.findById(Integer.parseInt(params.get("ac_order_id")));
         Double transactionSum = transaction.getAmount().add(transaction.getCommissionAmount()).doubleValue();
         final ResponseEntity<Void> response = new ResponseEntity<>(OK);
 
@@ -74,15 +74,15 @@ public class AdvcashMerchantController {
 
             return response;
 
-        }
+        }*/
 
         return new ResponseEntity<>(BAD_REQUEST);
     }
 
-    @RequestMapping(value = "payment/success",method = RequestMethod.POST)
-    public RedirectView successPayment(@RequestParam Map<String,String> response, RedirectAttributes redir, final HttpServletRequest request) {
+    @RequestMapping(value = "payment/success", method = RequestMethod.POST)
+    public RedirectView successPayment(@RequestParam Map<String, String> response, RedirectAttributes redir, final HttpServletRequest request) {
 
-        Transaction transaction = transactionService.findById(Integer.parseInt(response.get("ac_order_id")));
+        /*Transaction transaction = transactionService.findById(Integer.parseInt(response.get("ac_order_id")));
         Double transactionSum = transaction.getAmount().add(transaction.getCommissionAmount()).doubleValue();
         logger.debug("Begin method: advcashSuccessPayment.");
         logger.info("Response: " + response);
@@ -111,5 +111,7 @@ public class AdvcashMerchantController {
         redir.addAttribute("errorNoty", messageSource.getMessage("merchants.internalError", null, localeResolver.resolveLocale(request)));
 
         return new RedirectView("/dashboard");
-        }
+        }*/
+        return new RedirectView("/dashboard");
     }
+}

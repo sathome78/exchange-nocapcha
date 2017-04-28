@@ -9,11 +9,10 @@ import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
 import me.exrates.model.dto.filterData.AdminTransactionsFilterData;
-import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.*;
-import me.exrates.model.enums.invoice.*;
+import me.exrates.model.enums.invoice.InvoiceOperationDirection;
 import me.exrates.model.form.AuthorityOptionsForm;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BackDealInterval;
@@ -105,10 +104,6 @@ public class AdminController {
   private UserFilesService userFilesService;
   @Autowired
   private ReferralService referralService;
-  @Autowired
-  private InvoiceService invoiceService;
-  @Autowired
-  private BitcoinService bitcoinService;
   @Autowired
   private NotificationService notificationService;
   @Autowired
@@ -787,64 +782,6 @@ public class AdminController {
     Integer offset = Integer.parseInt(params.getOrDefault("start", "0"));
     Integer limit = Integer.parseInt(params.getOrDefault("length", "-1"));
     return transactionService.getAccountStatementForAdmin(walletId, offset, limit, localeResolver.resolveLocale(request));
-  }
-
-
-  @RequestMapping(value = "/2a8fy7b07dxe44/invoiceConfirmation")
-  public ModelAndView invoiceTransactions(Principal principal) {
-    Integer requesterUserId = userService.getIdByEmail(principal.getName());
-    return new ModelAndView("admin/transaction_invoice");
-  }
-
-  @RequestMapping(value = "/2a8fy7b07dxe44/invoiceRequests")
-  @ResponseBody
-  public List<InvoiceRequest> invoiceRequests(
-      Principal principal,
-      @RequestParam(required = false) List<String> availableActionSet) {
-    Integer requesterUserId = userService.getIdByEmail(principal.getName());
-    if (availableActionSet == null || availableActionSet.isEmpty()) {
-      return invoiceService.findAllInvoiceRequestsByCurrencyPermittedForUser(requesterUserId);
-    } else {
-      List<InvoiceActionTypeEnum> invoiceActionTypeEnumList = InvoiceActionTypeEnum.convert(availableActionSet);
-      List<InvoiceStatus> invoiceRequestStatusList = InvoiceRequestStatusEnum.getAvailableForActionStatusesList(invoiceActionTypeEnumList);
-      List<Integer> invoiceRequestStatusIdList = invoiceRequestStatusList.stream()
-          .map(InvoiceStatus::getCode)
-          .collect(Collectors.toList());
-      return invoiceService.findAllByStatusAndByCurrencyPermittedForUser(invoiceRequestStatusIdList, requesterUserId);
-    }
-  }
-
-  @RequestMapping(value = "/2a8fy7b07dxe44/invoiceRequests/{status}")
-  @ResponseBody
-  public List<InvoiceRequest> invoiceRequestsByStatus(
-      Principal principal,
-      @PathVariable String status) {
-    Integer requesterUserId = userService.getIdByEmail(principal.getName());
-    return invoiceService.findAllByStatusAndByCurrencyPermittedForUser(
-        Collections.singletonList(InvoiceRequestStatusEnum.convert(status).getCode()),
-        requesterUserId);
-
-  }
-
-
-  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinConfirmation")
-  public ModelAndView bitcoinTransactions() {
-    return new ModelAndView("admin/transaction_bitcoin");
-  }
-
-  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinRequests/reviewed")
-  @ResponseBody
-  public List<PendingPaymentFlatDto> getBitcoinRequests(Principal principal) {
-    Integer requesterUserId = userService.getIdByEmail(principal.getName());
-    return bitcoinService.getBitcoinTransactionsForCurrencyPermitted(requesterUserId);
-  }
-
-
-  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinRequests/accepted")
-  @ResponseBody
-  public List<PendingPaymentFlatDto> getBitcoinRequestsByStatus(Principal principal) {
-    Integer requesterUserId = userService.getIdByEmail(principal.getName());
-    return bitcoinService.getBitcoinTransactionsAcceptedForCurrencyPermitted(requesterUserId);
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/sessionControl")

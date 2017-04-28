@@ -12,13 +12,5 @@ import java.util.Optional;
  */
 public interface BlockchainService  {
 
-    PendingPayment createPaymentInvoice(CreditsOperation creditsOperation);
-
-    PendingPayment findByInvoiceId(int invoiceId);
-
-    Optional<String> notCorresponds(Map<String,String> pretended,PendingPayment actual);
-
-    String approveBlockchainTransaction(PendingPayment payment,Map<String,String> params);
-
     int CONFIRMATIONS = 4;
 }

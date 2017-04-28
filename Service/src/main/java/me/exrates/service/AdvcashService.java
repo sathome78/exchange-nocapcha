@@ -11,16 +11,4 @@ import java.util.Map;
 @Service
 public interface AdvcashService extends IMerchantService {
 
-    Map<String, String> getAdvcashParams(Transaction transaction);
-
-    RedirectView preparePayment(CreditsOperation creditsOperation, String email);
-
-    Transaction preparePaymentTransactionRequest(CreditsOperation creditsOperation);
-
-    void provideTransaction(Transaction transaction);
-
-    void invalidateTransaction(Transaction transaction);
-
-    boolean checkHashTransactionByTransactionId(int invoiceId, String inputHash);
-
 }

@@ -57,21 +57,6 @@
             </sec:authorize>
         </li>
 
-
-        <li>
-            <%--Заявки на пополнение валюты--%>
-            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}', '${admin_finOperatorEnum}')">
-                <a href="<c:url value='/2a8fy7b07dxe44/invoiceConfirmation'/>"><loc:message code="transaction.titleInvoice"/></a>
-            </sec:authorize>
-        </li>
-
-        <li>
-            <%--Заявки на пополнение Bitcoin--%>
-            <sec:authorize access="hasAnyAuthority('${adminEnum}', '${accountantEnum}', '${admin_userEnum}')">
-                <a href="<c:url value='/2a8fy7b07dxe44/bitcoinConfirmation'/>"><loc:message code="transaction.titleBitcoin"/></a>
-            </sec:authorize>
-        </li>
-
         <li>
             <%--withdraw--%>
             <sec:authorize access="hasAnyAuthority('${admin_processWithdraw}')">

@@ -8,7 +8,6 @@ import me.exrates.model.dto.mobileApiDto.*;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.vo.InvoiceConfirmData;
-import me.exrates.model.vo.InvoiceData;
 import me.exrates.model.vo.WithdrawData;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
@@ -37,8 +36,6 @@ import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.util.*;
 
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CONFIRM_USER;
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.REVOKE;
 import static me.exrates.service.exception.api.ErrorCode.*;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
@@ -70,9 +67,6 @@ public class MobileInputOutputController {
 
     @Autowired
     private WalletService walletService;
-
-    @Autowired
-    private InvoiceService invoiceService;
 
     @Autowired
     private InputOutputService inputOutputService;
@@ -342,6 +336,8 @@ public class MobileInputOutputController {
      * @apiUse InvalidAmountError
      * @apiUse InternalServerError
      */
+    /*
+    //TODO REFILL
     @RequestMapping(value = "/invoice/prepare", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<InvoiceResponseDto> prepareInvoice(@RequestBody @Valid InvoicePaymentDto paymentDto) {
         String userEmail = getAuthenticatedUserEmail();
@@ -373,7 +369,7 @@ public class MobileInputOutputController {
         dto.setWalletNumber(invoiceService.findBankById(paymentDto.getBankId()).getAccountNumber());
         dto.setInvoiceId(transaction.getId());
         return new ResponseEntity<>(dto, OK);
-    }
+    }*/
 
 
     /**
@@ -412,7 +408,7 @@ public class MobileInputOutputController {
     public ResponseEntity<Void> confirmInvoice(@Valid InvoiceConfirmData invoiceConfirmData) throws Exception {
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-        invoiceService.userActionOnInvoice(invoiceConfirmData, CONFIRM_USER, userLocale);
+//        invoiceService.userActionOnInvoice(invoiceConfirmData, CONFIRM_USER, userLocale); //TODO REFILL
         return new ResponseEntity<>(OK);
     }
     @RequestMapping(value = "/invoice/revoke", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -423,7 +419,7 @@ public class MobileInputOutputController {
         invoiceConfirmData.setInvoiceId(invoiceId);
         String userEmail = getAuthenticatedUserEmail();
         Locale userLocale = userService.getUserLocaleForMobile(userEmail);
-        invoiceService.userActionOnInvoice(invoiceConfirmData, REVOKE, userLocale);
+//        invoiceService.userActionOnInvoice(invoiceConfirmData, REVOKE, userLocale); //TODO REFILL
         return new ResponseEntity<>(OK);
     }
 
@@ -482,12 +478,16 @@ public class MobileInputOutputController {
         return withdrawService.findClientBanksForCurrency(currencyId);
     }
 
+    /*
+    //TODO REFILL
     @RequestMapping(value = "/invoice/requests", method = GET)
     public List<InvoiceRequest> findInvoiceRequestsForUser() {
         return invoiceService.findAllRequestsForUser(getAuthenticatedUserEmail());
 
-    }
+    }*/
 
+    /*
+    //TODO REFILL
     @RequestMapping(value = "/invoice/details", method = GET)
     public InvoiceDetailsDto findInvoiceRequestDetails(@RequestParam Integer invoiceId, HttpServletRequest request) {
         Optional<InvoiceRequest> invoiceRequestResult = invoiceService.findRequestById(invoiceId);
@@ -498,7 +498,7 @@ public class MobileInputOutputController {
         String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + "/rest";
         return new InvoiceDetailsDto(invoiceRequest, baseUrl);
     }
-
+*/
     @RequestMapping(value = "/invoice/withdraw", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Map<String, String>> withdrawInvoice(@RequestBody @Valid WithdrawRequestParamsDto requestParamsDto) {
         String userEmail = getAuthenticatedUserEmail();

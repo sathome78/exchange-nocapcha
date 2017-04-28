@@ -3,13 +3,9 @@ package me.exrates.service.impl;
 //import com.liqpay.LiqPay;
 
 import com.google.gson.Gson;
-import me.exrates.dao.PendingPaymentDao;
 import me.exrates.model.CreditsOperation;
-import me.exrates.model.PendingPayment;
-import me.exrates.model.Transaction;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
-import me.exrates.model.enums.OperationType;
 import me.exrates.service.AlgorithmService;
 import me.exrates.service.LiqpayService;
 import me.exrates.service.TransactionService;
@@ -29,7 +25,6 @@ import java.math.BigDecimal;
 import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Properties;
 
 @Service
@@ -51,13 +46,10 @@ public class LiqpayServiceImpl implements LiqpayService {
   @Autowired
   private AlgorithmService algorithmService;
 
-  @Autowired
-  private PendingPaymentDao pendingPaymentDao;
-
 
   @Transactional
   public RedirectView preparePayment(CreditsOperation creditsOperation, String email) {
-    Transaction transaction = transactionService.createTransactionRequest(creditsOperation);
+    /*Transaction transaction = transactionService.createTransactionRequest(creditsOperation);
 
     BigDecimal sum = transaction.getAmount().add(transaction.getCommissionAmount());
     final String currency = transaction.getCurrency().getName();
@@ -96,29 +88,12 @@ public class LiqpayServiceImpl implements LiqpayService {
     redirectView.setAttributes(properties);
 
 
-    return redirectView;
+    return redirectView;*/
+
+    return null;
 
   }
 
-  @Override
-  @Transactional
-  public void provideTransaction(Transaction transaction) {
-    if (transaction.getOperationType() == OperationType.INPUT) {
-      pendingPaymentDao.delete(transaction.getId());
-    }
-    transactionService.provideTransaction(transaction);
-  }
-
-
-  public Map<String, Object> getResponse(String data) {
-    String decodeData = algorithmService.base64Decode(data);
-    Gson gson = new Gson();
-
-    Map<String, Object> map = new HashMap<String, Object>();
-    map = (Map<String, Object>) gson.fromJson(decodeData.toString(), map.getClass());
-
-    return map;
-  }
 
   public static String base64_encode(byte[] bytes) {
     return DatatypeConverter.printBase64Binary(bytes);
@@ -135,17 +110,6 @@ public class LiqpayServiceImpl implements LiqpayService {
     }
   }
 
-  @Override
-  public boolean checkHashTransactionByTransactionId(int invoiceId, String inputHash) {
-    Optional<PendingPayment> pendingPayment = pendingPaymentDao.findByInvoiceId(invoiceId);
-
-    if (pendingPayment.isPresent()) {
-      String transactionHash = pendingPayment.get().getTransactionHash();
-      return transactionHash.equals(inputHash);
-    } else {
-      return false;
-    }
-  }
 
   @Override
   public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) {
@@ -190,6 +154,6 @@ public class LiqpayServiceImpl implements LiqpayService {
 
   @Override
   public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
-    throw new NotImplimentedMethod("for "+params);
+    throw new NotImplimentedMethod("for " + params);
   }
 }

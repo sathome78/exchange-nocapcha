@@ -7,6 +7,7 @@ import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.RefillFilterData;
 import me.exrates.model.vo.InvoiceConfirmData;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -53,11 +54,11 @@ public interface RefillService {
 
   boolean checkInputRequestsLimit(int currencyId, String email);
 
-  void revokeWithdrawalRequest(int requestId);
-
   void takeInWorkRefillRequest(int requestId, Integer requesterAdminId);
 
   void returnFromWorkRefillRequest(int requestId, Integer requesterAdminId);
 
   void declineRefillRequest(int requestId, Integer requesterAdminId, String comment);
+
+  Boolean existsUnclosedRefillRequestForAddress(String address, Integer merchantId, Integer currencyId);
 }

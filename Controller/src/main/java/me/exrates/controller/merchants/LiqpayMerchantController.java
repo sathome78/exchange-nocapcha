@@ -53,7 +53,7 @@ public class LiqpayMerchantController {
     @RequestMapping(value = "payment/success",method = RequestMethod.POST)
     public RedirectView successPayment(@RequestParam Map<String,String> response, RedirectAttributes redir, final HttpServletRequest request) {
 
-        String signature = response.get("signature");
+    /*    String signature = response.get("signature");
         String data = response.get("data");;
 
 
@@ -83,14 +83,14 @@ public class LiqpayMerchantController {
 
         redir.addAttribute("errorNoty", messageSource.getMessage("merchants.internalError", null, localeResolver.resolveLocale(request)));
 
-
+*/
         return new RedirectView("/dashboard");
     }
 
     @RequestMapping(value = "payment/status",method = RequestMethod.POST)
     public RedirectView statusPayment(@RequestParam Map<String,String> response, RedirectAttributes redir, final HttpServletRequest request) {
 
-        String signature = response.get("signature");
+        /*String signature = response.get("signature");
         String data = response.get("data");;
 
 
@@ -118,7 +118,7 @@ public class LiqpayMerchantController {
         }
 
         redir.addAttribute("errorNoty", messageSource.getMessage("merchants.internalError", null, localeResolver.resolveLocale(request)));
-
+*/
         return new RedirectView("/dashboard");
     }
 }

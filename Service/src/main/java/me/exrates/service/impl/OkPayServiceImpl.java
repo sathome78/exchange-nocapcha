@@ -3,7 +3,6 @@ package me.exrates.service.impl;
 import com.squareup.okhttp.FormEncodingBuilder;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
-import me.exrates.dao.PendingPaymentDao;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Transaction;
 import me.exrates.model.dto.RefillRequestCreateDto;
@@ -44,9 +43,6 @@ public class OkPayServiceImpl implements OkPayService {
 
     @Autowired
     private TransactionService transactionService;
-
-    @Autowired
-    private PendingPaymentDao pendingPaymentDao;
 
     @Autowired
     private AlgorithmService algorithmService;

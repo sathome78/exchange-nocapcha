@@ -4,20 +4,23 @@ import com.neemre.btcdcli4j.core.BitcoindException;
 import com.neemre.btcdcli4j.core.CommunicationException;
 import com.neemre.btcdcli4j.core.client.BtcdClient;
 import com.neemre.btcdcli4j.core.client.BtcdClientImpl;
-import com.neemre.btcdcli4j.core.domain.*;
+import com.neemre.btcdcli4j.core.domain.Address;
+import com.neemre.btcdcli4j.core.domain.Block;
+import com.neemre.btcdcli4j.core.domain.Transaction;
+import com.neemre.btcdcli4j.core.domain.WalletInfo;
 import com.neemre.btcdcli4j.core.domain.enums.PaymentCategories;
 import com.neemre.btcdcli4j.daemon.BtcdDaemon;
 import com.neemre.btcdcli4j.daemon.BtcdDaemonImpl;
 import com.neemre.btcdcli4j.daemon.event.BlockListener;
 import com.neemre.btcdcli4j.daemon.event.WalletListener;
 import lombok.extern.log4j.Log4j2;
-import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.PendingPayment;
+import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.BtcWalletInfoDto;
 import me.exrates.model.dto.TxReceivedByAddressFlatDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.invoice.InvoiceStatus;
-import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
+import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BtcTransactionShort;
 import me.exrates.service.BitcoinService;
@@ -164,7 +167,7 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
     Optional<Transaction> targetTxResult = handleConflicts(transaction);
     if (targetTxResult.isPresent()) {
       Transaction targetTx = targetTxResult.get();
-      InvoiceStatus beginStatus = PendingPaymentStatusEnum.getBeginState();
+      InvoiceStatus beginStatus = RefillStatusEnum.getBeginState();
       targetTx.getDetails().stream().filter(payment -> payment.getCategory() == PaymentCategories.RECEIVE)
               .forEach(payment -> {
         String address = payment.getAddress();

@@ -55,12 +55,6 @@ public class MerchantServiceImpl implements MerchantService {
   @Autowired
   private NotificationService notificationService;
 
-  @Autowired
-  private InvoiceService invoiceService;
-
-  @Autowired
-  private BitcoinService bitcoinService;
-
   @Override
   public List<Merchant> findAllByCurrency(Currency currency) {
     return merchantDao.findAllByCurrency(currency.getId());

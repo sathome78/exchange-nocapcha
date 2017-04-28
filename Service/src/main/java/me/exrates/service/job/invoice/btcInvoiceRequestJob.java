@@ -2,7 +2,6 @@ package me.exrates.service.job.invoice;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.service.BitcoinService;
-import me.exrates.service.InvoiceService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,7 +27,8 @@ public class btcInvoiceRequestJob {
   private void invoiceExpiredClean() throws Exception {
     try {
       if (EXPIRE_CLEAN_INTERVAL_MINUTES > 0) {
-        Integer expireCount = bitcoinService.clearExpiredInvoices(EXPIRE_CLEAN_INTERVAL_MINUTES);
+// TODO REFILL
+// Integer expireCount = bitcoinService.clearExpiredInvoices(EXPIRE_CLEAN_INTERVAL_MINUTES);
       }
     } catch (Exception e){
       log.error(ExceptionUtils.getStackTrace(e));

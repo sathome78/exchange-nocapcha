@@ -287,21 +287,6 @@
             <AppenderRef ref="MobileAPILog"/>
         </Logger>
 
-        <!--INVOICE ... -->
-        <Logger name="me.exrates.controller.merchants.InvoiceController" level="ERROR" additivity="false">
-            <AppenderRef ref="Console"/>
-            <AppenderRef ref="invoice_log"/>
-        </Logger>
-        <Logger name="me.exrates.service.impl.InvoiceServiceImpl" level="ERROR" additivity="false">
-            <AppenderRef ref="Console"/>
-            <AppenderRef ref="invoice_log"/>
-        </Logger>
-        <Logger name="me.exrates.dao.impl.InvoiceRequestDaoImpl" level="ERROR" additivity="false">
-            <AppenderRef ref="Console"/>
-            <AppenderRef ref="invoice_log"/>
-        </Logger>
-        <!--... INVOICE-->
-
         <!--WALLET ... -->
         <Logger name="me.exrates.controller.WalletController" level="ERROR" additivity="false">
             <AppenderRef ref="Console"/>

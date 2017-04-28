@@ -47,7 +47,7 @@ import static me.exrates.model.enums.UserCommentTopicEnum.REFILL_DECLINE;
 import static me.exrates.model.enums.WalletTransferStatus.SUCCESS;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.*;
 import static me.exrates.model.enums.invoice.InvoiceOperationDirection.REFILL;
-import static me.exrates.model.enums.invoice.InvoiceRequestStatusEnum.EXPIRED;
+import static me.exrates.model.enums.invoice.RefillStatusEnum.EXPIRED;
 import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 
 /**
@@ -460,7 +460,7 @@ public class RefillServiceImpl implements RefillService {
   @Override
   @Transactional
   public Integer clearExpiredInvoices() throws Exception {
-    List<Integer> invoiceRequestStatusIdList = InvoiceRequestStatusEnum.getAvailableForActionStatusesList(EXPIRE).stream()
+    List<Integer> invoiceRequestStatusIdList = RefillStatusEnum.getAvailableForActionStatusesList(EXPIRE).stream()
         .map(InvoiceStatus::getCode)
         .collect(Collectors.toList());
     List<OperationUserDto> userForNotificationList = new ArrayList<>();
@@ -537,17 +537,6 @@ public class RefillServiceImpl implements RefillService {
 
   @Override
   @Transactional
-  public void revokeWithdrawalRequest(int requestId) {
-    RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
-        .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
-    RefillStatusEnum currentStatus = refillRequest.getStatus();
-    InvoiceActionTypeEnum action = REVOKE;
-    RefillStatusEnum newStatus = (RefillStatusEnum) currentStatus.nextState(action);
-    refillRequestDao.setStatusById(requestId, newStatus);
-  }
-
-  @Override
-  @Transactional
   public void takeInWorkRefillRequest(int requestId, Integer requesterAdminId) {
     RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
         .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
@@ -596,6 +585,13 @@ public class RefillServiceImpl implements RefillService {
     } finally {
       profileData.checkAndLog("slow decline RefillRequest: " + requestId + " profile: " + profileData);
     }
+  }
+
+  @Override
+  @Transactional
+  public Boolean existsUnclosedRefillRequestForAddress(String address, Integer merchantId, Integer currencyId){
+    List<InvoiceStatus> statusList = new ArrayList<>(RefillStatusEnum.getEndStatesSet());
+    return refillRequestDao.getCountByMerchantIdAndCurrencyIdAndAddressAndStatusId(address, merchantId, currencyId, statusList) > 0;
   }
 
   private Integer createRefill(RefillRequestCreateDto request) {

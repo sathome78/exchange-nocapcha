@@ -1,25 +1,22 @@
 package me.exrates.service.impl;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.squareup.okhttp.*;
+import com.squareup.okhttp.FormEncodingBuilder;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
 import me.exrates.dao.EDCAccountDao;
-import me.exrates.dao.PendingPaymentDao;
-import me.exrates.model.*;
-import me.exrates.model.dto.PendingPaymentSimpleDto;
+import me.exrates.model.Currency;
+import me.exrates.model.Merchant;
 import me.exrates.model.dto.RefillRequestAcceptDto;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
-import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
 import me.exrates.service.*;
-import me.exrates.service.exception.RefillRequestFakePaymentReceivedException;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
-import me.exrates.service.util.BiTuple;
+import me.exrates.service.exception.RefillRequestFakePaymentReceivedException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,23 +24,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
-import static java.math.BigDecimal.ROUND_HALF_UP;
-import static org.springframework.transaction.annotation.Propagation.NESTED;
 
-/**
- * @author Denis Savin (pilgrimm333@gmail.com)
- */
 @Service
 @PropertySource({"classpath:edc_cli_wallet.properties", "classpath:/merchants/edcmerchant.properties"})
 public class EDCServiceImpl implements EDCService {
@@ -52,45 +40,13 @@ public class EDCServiceImpl implements EDCService {
   private @Value("${edcmerchant.main_account}") String main_account;
   private @Value("${edcmerchant.hook}") String hook;
 
-  private @Value("${edc.blockchain.host_delayed}") String RPC_URL_DELAYED;
-  private @Value("${edc.blockchain.host_fast}") String RPC_URL_FAST;
-  private @Value("${edc.account.registrar}") String REGISTRAR_ACCOUNT;
-  private @Value("${edc.account.referrer}") String REFERRER_ACCOUNT;
-  private @Value("${edc.account.main}") String MAIN_ACCOUNT;
-  private @Value("${edc.account.main.private.key}") String MAIN_ACCOUNT_PRIVATE_KEY;
-  private final String PENDING_PAYMENT_HASH = "1fc3403096856798ab8992f73f241334a4fe98ce";
-
   private final Logger LOG = LogManager.getLogger("merchant");
-
-  private final BigDecimal BTS = new BigDecimal(1000L);
-  private final int DEC_PLACES = 2;
-
-  private final OkHttpClient HTTP_CLIENT = new OkHttpClient();
-  private final MediaType MEDIA_TYPE = MediaType.parse("application/x-www-form-urlencoded");
-
-  private final ConcurrentMap<String, PendingPaymentSimpleDto> pendingPayments = new ConcurrentHashMap<>();
-  private final BlockingQueue<String> rawTransactions = new LinkedBlockingQueue<>();
-  private final BlockingQueue<BiTuple<String, String>> incomingPayments = new LinkedBlockingQueue<>();
-  private final ExecutorService workers = Executors.newFixedThreadPool(2);
-  private volatile boolean isRunning = true;
-
-  private final String ACCOUNT_PREFIX = "ex1f";
-  private final String REGISTER_NEW_ACCOUNT_RPC = "{\"method\":\"register_account\", \"jsonrpc\": \"2.0\", \"params\": [\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", 0, \"true\"], \"id\":%s}";
-  private final String NEW_KEY_PAIR_RPC = "{\"method\": \"suggest_brain_key\", \"jsonrpc\": \"2.0\", \"params\": [], \"id\": %d}";
-  private final String IMPORT_KEY = "{\"method\": \"import_key\", \"jsonrpc\": \"2.0\", \"params\": [\"%s\",\"%s\"], \"id\": %s}";
-  private final String TRANSFER_EDC = "{\"method\":\"transfer\", \"jsonrpc\": \"2.0\", \"params\": [\"%s\", \"%s\", \"%s\", \"%s\", \"%s\", \"true\"], \"id\":%s}";
-  private final Pattern pattern = Pattern.compile("\"brain_priv_key\":\"([\\w\\s]+)+\",\"wif_priv_key\":\"(\\S+)\",\"pub_key\":\"(\\S+)\"");
-
-  private volatile boolean debugLog = true;
 
   @Autowired
   TransactionService transactionService;
 
   @Autowired
   EDCAccountDao edcAccountDao;
-
-  @Autowired
-  PendingPaymentDao paymentDao;
 
   @Autowired
   private MessageSource messageSource;
@@ -132,7 +88,7 @@ public class EDCServiceImpl implements EDCService {
     String merchantTransactionId = params.get("id");
     String address = params.get("address");
     String hash = params.get("hash");
-    me.exrates.model.Currency currency = currencyService.findByName("EDR");
+    Currency currency = currencyService.findByName("EDR");
     Merchant merchant = merchantService.findByName("EDC");
     BigDecimal amount = BigDecimal.valueOf(Double.parseDouble(params.get("amount")));
     RefillRequestAcceptDto requestAcceptDto = RefillRequestAcceptDto.builder()
@@ -146,7 +102,7 @@ public class EDCServiceImpl implements EDCService {
     try {
       refillService.autoAcceptRefillRequest(requestAcceptDto);
     } catch (RefillRequestAppropriateNotFoundException e) {
-      LOG.debug("RefillRequestNotFountException: "+params);
+      LOG.debug("RefillRequestNotFountException: " + params);
       Integer requestId = refillService.createRefillRequestByFact(requestAcceptDto);
       requestAcceptDto.setRequestId(requestId);
       refillService.autoAcceptRefillRequest(requestAcceptDto);
@@ -161,7 +117,7 @@ public class EDCServiceImpl implements EDCService {
     final String returnResponse;
 
     try {
-      returnResponse =client
+      returnResponse = client
           .newCall(request)
           .execute()
           .body()
@@ -173,9 +129,9 @@ public class EDCServiceImpl implements EDCService {
     JsonParser parser = new JsonParser();
     JsonArray jsonArray = parser.parse(returnResponse).getAsJsonArray();
 
-    for (JsonElement element : jsonArray){
-      if (element.getAsJsonObject().get("id").getAsString().equals(params.get("id"))){
-        if (element.getAsJsonObject().get("amount").getAsString().equals(params.get("amount"))){
+    for (JsonElement element : jsonArray) {
+      if (element.getAsJsonObject().get("id").getAsString().equals(params.get("id"))) {
+        if (element.getAsJsonObject().get("amount").getAsString().equals(params.get("amount"))) {
           return;
         }
       }
@@ -207,7 +163,6 @@ public class EDCServiceImpl implements EDCService {
     JsonObject object = parser.parse(returnResponse).getAsJsonObject();
     return object.get("address").getAsString();
   }
-
 
 
 }

@@ -3,28 +3,20 @@ package me.exrates.service.impl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.squareup.okhttp.*;
 import me.exrates.dao.EDCAccountDao;
-import me.exrates.dao.PendingPaymentDao;
-import me.exrates.model.*;
-import me.exrates.model.dto.PendingPaymentSimpleDto;
-import me.exrates.model.dto.RefillRequestAcceptDto;
-import me.exrates.model.dto.RefillRequestCreateDto;
-import me.exrates.model.dto.WithdrawMerchantOperationDto;
-import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
-import me.exrates.service.*;
+import me.exrates.model.EDCAccount;
+import me.exrates.model.Transaction;
+import me.exrates.service.EDCServiceNode;
+import me.exrates.service.TransactionService;
 import me.exrates.service.exception.MerchantInternalException;
-import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
-import me.exrates.service.exception.RefillRequestFakePaymentReceivedException;
 import me.exrates.service.util.BiTuple;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,12 +25,14 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static java.math.BigDecimal.ROUND_HALF_UP;
 import static org.springframework.transaction.annotation.Propagation.NESTED;
 
 /**
@@ -68,7 +62,6 @@ public class EDCServiceNodeImpl implements EDCServiceNode {
   private final OkHttpClient HTTP_CLIENT = new OkHttpClient();
   private final MediaType MEDIA_TYPE = MediaType.parse("application/x-www-form-urlencoded");
 
-  private final ConcurrentMap<String, PendingPaymentSimpleDto> pendingPayments = new ConcurrentHashMap<>();
   private final BlockingQueue<String> rawTransactions = new LinkedBlockingQueue<>();
   private final BlockingQueue<BiTuple<String, String>> incomingPayments = new LinkedBlockingQueue<>();
   private final ExecutorService workers = Executors.newFixedThreadPool(2);
@@ -88,22 +81,6 @@ public class EDCServiceNodeImpl implements EDCServiceNode {
 
   @Autowired
   EDCAccountDao edcAccountDao;
-
-  @Autowired
-  PendingPaymentDao paymentDao;
-
-  @Autowired
-  private MessageSource messageSource;
-
-  @Autowired
-  private RefillService refillService;
-
-  @Autowired
-  private MerchantService merchantService;
-
-  @Autowired
-  private CurrencyService currencyService;
-
 
   public void changeDebugLogStatus(final boolean status) {
     debugLog = true;
@@ -137,41 +114,6 @@ public class EDCServiceNodeImpl implements EDCServiceNode {
   }
 
   @Transactional
-  private void acceptTransaction(final BiTuple<String, String> tuple) {
-    try {
-
-      final String accountId = tuple.left;
-      final PendingPaymentSimpleDto payment = pendingPayments.get(accountId);
-      if (payment != null) {
-        final Transaction tx = transactionService.findById(payment.getInvoiceId());
-        if (debugLog) {
-          LOG.info("PROVIDING EDC TRANSACTION : " + tx);
-        }
-        final BigDecimal targetAmount = tx.getAmount().add(tx.getCommissionAmount()).setScale(DEC_PLACES, ROUND_HALF_UP);
-        final BigDecimal currentAmount = new BigDecimal(tuple.right).setScale(DEC_PLACES, ROUND_HALF_UP).divide(BTS, ROUND_HALF_UP).setScale(DEC_PLACES, ROUND_HALF_UP);
-        if (targetAmount.compareTo(currentAmount) != 0) {
-          transactionService.updateTransactionAmount(tx, currentAmount);
-        }
-        transactionService.provideTransaction(tx);
-        paymentDao.delete(payment.getInvoiceId());
-        pendingPayments.remove(accountId);
-        transferToMainAccount(accountId, tx);
-        edcAccountDao.setAccountUsed(tx.getId());
-      }
-    } catch (InterruptedException e) {
-      LOG.info("Method acceptTransaction InterruptedException........................................... error: ");
-      LOG.error(e);
-    } catch (IOException e) {
-      LOG.info("Method acceptTransaction IOException........................................... error: ");
-      LOG.error(e);
-    } catch (Exception e) {
-      LOG.info("Method acceptTransaction Exception........................................... error: ");
-      LOG.error(e);
-    }
-
-  }
-
-  @Transactional
   @Override
   public void rescanUnusedAccounts() {
     List<EDCAccount> list = edcAccountDao.getUnusedAccounts();
@@ -187,10 +129,19 @@ public class EDCServiceNodeImpl implements EDCServiceNode {
               throw new InterruptedException("Could not transfer money to main account!\n" + responseTransfer);
             }
             edcAccountDao.setAccountUsed(account.getTransactionId());
+            /*
+              TODO REFILL
+              Не вникал для чего этот метод rescanUnusedAccounts, но удалять в любом случае нельзя
             Optional<PendingPayment> payment = paymentDao.findByInvoiceId(account.getTransactionId());
             if (payment.isPresent()) {
+
               paymentDao.delete(account.getTransactionId());
             }
+            */
+            /*
+            TODO REFILL
+            этот код удалить. Но сам не стал, чтобы был перед глазами при изменении метода rescanUnusedAccounts в целом
+
             Transaction transaction = transactionService.findById(account.getTransactionId());
             if (!transaction.isProvided()) {
 
@@ -200,7 +151,7 @@ public class EDCServiceNodeImpl implements EDCServiceNode {
                 transactionService.updateTransactionAmount(transaction, currentAmount);
               }
               transactionService.provideTransaction(transaction);
-            }
+            }*/
           } else {
             edcAccountDao.setAccountUsed(account.getTransactionId());
           }
@@ -216,6 +167,9 @@ public class EDCServiceNodeImpl implements EDCServiceNode {
   @PostConstruct
   public void init() {
     // cache warm
+    /*
+
+    TODO REFILL
     try {
 
       paymentDao.findAllByHash(PENDING_PAYMENT_HASH)
@@ -239,49 +193,13 @@ public class EDCServiceNodeImpl implements EDCServiceNode {
     } catch (Exception e) {
       LOG.info("Method init Exception........................................... error: ");
       LOG.error(e);
-    }
+    }*/
   }
 
   @PreDestroy
   public void destroy() {
     isRunning = false;
     workers.shutdown();
-  }
-
-  @Override
-  @Transactional
-  public String createInvoice(CreditsOperation operation) throws Exception {
-    final Transaction tx = transactionService.createTransactionRequest(operation);
-    final String account = createAccount(tx.getId());
-    getDelayedAccountId(account, tx);
-    return account;
-  }
-
-  private void getDelayedAccountId(String account, Transaction tx) throws IOException {
-    new Thread(new Runnable() {
-      @Override
-      public void run() {
-
-        String accountId = "";
-        try {
-          Thread.sleep(60000);
-          accountId = extractAccountId(account, tx.getId());
-          final PendingPayment payment = new PendingPayment();
-          payment.setAddress(accountId);
-          payment.setInvoiceId(tx.getId());
-          payment.setTransactionHash(PENDING_PAYMENT_HASH); // every edc payment invoice has uniform tx-hash to distinguish them from other invoices
-          payment.setPendingPaymentStatus(PendingPaymentStatusEnum.getBeginState());
-          pendingPayments.put(accountId, new PendingPaymentSimpleDto(payment));
-          paymentDao.create(payment);
-          edcAccountDao.setAccountIdByTransactionId(tx.getId(), accountId);
-        } catch (IOException e) {
-          LOG.error(e);
-        } catch (InterruptedException e) {
-          LOG.error(e);
-        }
-      }
-    }).start();
-
   }
 
   @Override
@@ -292,7 +210,6 @@ public class EDCServiceNodeImpl implements EDCServiceNode {
       e.printStackTrace();
     }
   }
-
 
   @Override
   public String extractAccountId(final String account, final int invoiceId) throws IOException {
@@ -441,7 +358,6 @@ public class EDCServiceNodeImpl implements EDCServiceNode {
     return object.get("address").getAsString();
 
   }
-
 
 
 }

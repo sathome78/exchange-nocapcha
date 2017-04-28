@@ -1,37 +1,24 @@
 package me.exrates.service.impl;
 
 import lombok.extern.log4j.Log4j2;
-import me.exrates.dao.PendingPaymentDao;
-import me.exrates.dao.WalletDao;
 import me.exrates.model.PendingPayment;
 import me.exrates.model.Transaction;
-import me.exrates.model.dto.onlineTableDto.PendingPaymentStatusDto;
 import me.exrates.model.enums.ActionType;
-import me.exrates.model.enums.NotificationEvent;
-import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.WalletTransferStatus;
-import me.exrates.model.enums.invoice.*;
+import me.exrates.model.enums.invoice.InvoiceStatus;
+import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
-import me.exrates.model.vo.WalletOperationData;
-import me.exrates.service.*;
+import me.exrates.service.BitcoinTransactionService;
+import me.exrates.service.TransactionService;
+import me.exrates.service.UserService;
 import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.IllegalTransactionProvidedStatusException;
 import me.exrates.service.exception.invoice.IllegalInvoiceAmountException;
-import me.exrates.service.exception.invoice.InvoiceAcceptionException;
-import me.exrates.service.exception.invoice.InvoiceNotFoundException;
-import me.exrates.service.exception.invoice.InvoiceUnexpectedHashException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.Collections;
 import java.util.List;
-
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.ACCEPT_AUTO;
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.ACCEPT_MANUAL;
-import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.BCH_EXAMINE;
-import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 
 /**
  * Created by OLEG on 17.03.2017.
@@ -41,18 +28,7 @@ import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 public class BitcoinTransactionServiceImpl implements BitcoinTransactionService {
   
   @Autowired
-  private PendingPaymentDao paymentDao;
-  @Autowired
   private TransactionService transactionService;
-  
-  @Autowired
-  private WalletDao walletDao;
-  
-  @Autowired
-  private CompanyWalletService companyWalletService;
-  
-  @Autowired
-  private NotificationService notificationService;
   
   @Autowired
   private UserService userService;
@@ -62,13 +38,18 @@ public class BitcoinTransactionServiceImpl implements BitcoinTransactionService 
   @Override
   @Transactional(readOnly = true)
   public boolean existsPendingPaymentWithStatusAndAddress(InvoiceStatus beginStatus, String address) {
-    return paymentDao.existsPendingPaymentWithAddressAndStatus(address, Collections.singletonList(beginStatus.getCode()));
+    /*
+    TODO REFILL
+    return paymentDao.existsPendingPaymentWithAddressAndStatus(address, Collections.singletonList(beginStatus.getCode()));*/
+    return false;
   }
   
   
   @Override
   @Transactional
-  public PendingPaymentStatusDto markStartConfirmationProcessing(String address, String txHash, BigDecimal factAmount) throws IllegalInvoiceAmountException {
+  public RefillStatusEnum markStartConfirmationProcessing(String address, String txHash, BigDecimal factAmount) throws IllegalInvoiceAmountException {
+    /*
+    TODO REFILL
     if (factAmount.compareTo(BigDecimal.ZERO) <= 0) {
       throw new IllegalInvoiceAmountException(factAmount.toString());
     }
@@ -84,7 +65,8 @@ public class BitcoinTransactionServiceImpl implements BitcoinTransactionService 
     Transaction transaction = pendingPayment.getTransaction();
     updateFactAmountForPendingPayment(transaction, factAmount);
     changeTransactionConfidenceForPendingPayment(invoiceId, 0);
-    return pendingPaymentStatusDto;
+    return pendingPaymentStatusDto;*/
+    return null;
   }
   
   @Override
@@ -98,6 +80,8 @@ public class BitcoinTransactionServiceImpl implements BitcoinTransactionService 
   @Override
   @Transactional
   public void provideBtcTransaction(Integer pendingPaymentId, String hash, BigDecimal factAmount, String acceptanceUserEmail) throws IllegalInvoiceAmountException, IllegalOperationTypeException, IllegalTransactionProvidedStatusException {
+    /*
+    TODO REFILL
     if (factAmount.compareTo(BigDecimal.ZERO) <= 0) {
       throw new IllegalInvoiceAmountException(factAmount.toString());
     }
@@ -140,17 +124,17 @@ public class BitcoinTransactionServiceImpl implements BitcoinTransactionService 
       log.error("\n\t" + message);
       throw new InvoiceAcceptionException(message);
     }
-    /**/
+    *//**//*
     companyWalletService.deposit(transaction.getCompanyWallet(), transaction.getAmount(),
             transaction.getCommissionAmount());
-    /**/
+    *//**//*
     pendingPayment.setAcceptanceUserEmail(acceptanceUserEmail);
     pendingPayment.setPendingPaymentStatus(newStatus);
     pendingPayment.setHash(hash);
     paymentDao.updateAcceptanceStatus(pendingPayment);
-    /**/
+    *//**//*
     notificationService.notifyUser(pendingPayment.getUserId(), NotificationEvent.IN_OUT, "paymentRequest.accepted.title",
-            "paymentRequest.accepted.message", new Integer[]{pendingPaymentId});
+            "paymentRequest.accepted.message", new Integer[]{pendingPaymentId});*/
   }
   
   private void updateFactAmountForPendingPayment(Transaction transaction, BigDecimal factAmount) {
@@ -163,18 +147,27 @@ public class BitcoinTransactionServiceImpl implements BitcoinTransactionService 
   
   @Override
   public List<PendingPayment> findUnconfirmedBtcPayments() {
-    return paymentDao.findAllUnconfirmedPayments();
+    /*
+    TODO REFILL
+    return paymentDao.findAllUnconfirmedPayments();*/
+    return null;
   }
   
   
   @Override
   public List<PendingPayment> findUnpaidBtcPayments() {
-    return paymentDao.findUnpaidBtcPayments();
+    /*
+    TODO REFILL
+    return paymentDao.findUnpaidBtcPayments();*/
+    return null;
   }
   
   @Override
   public void updatePendingPaymentHash(Integer txId, String hash) {
-    paymentDao.updateBtcHash(txId, hash);
+
+    /*
+    TODO REFILL
+    paymentDao.updateBtcHash(txId, hash);*/
   }
   
 }

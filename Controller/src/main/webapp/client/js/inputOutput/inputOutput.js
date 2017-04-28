@@ -107,23 +107,6 @@ function InputOutputClass(currentCurrencyPair) {
             that.getAndShowInputOutputData(true, null, 'FORWARD');
         });
 
-        $('#inputoutput-table').on('click', '#viewBtcInvoiceButton', function (e) {
-            e.preventDefault();
-            var $form = $(this).parents('#inputoutput-center-tableBody__form');
-            var invoiceId = $form.find('input[name=transactionId]').val();
-            $.ajax({
-                url: '/merchants/bitcoin/payment/address?id=' + invoiceId,
-                type: 'GET',
-                success: function (data) {
-                    var $modal = $("#btc-invoice-info-modal");
-                    $modal.find("#invoiceId").val(invoiceId);
-                    $modal.find("#address-to-pay").val(data.address);
-                    $modal.find("#btc-transaction").val(data.hash);
-                    $modal.modal();
-                }
-            });
-        });
-
         $('#inputoutput-table').on('click', 'button[data-source=WITHDRAW].revoke_button', function (e) {
             e.preventDefault();
             var id = $(this).data("id");

@@ -1,42 +1,32 @@
 package me.exrates.service.impl.bitcoinWallet;
 
-import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.model.BitcoinWalletAppKit;
-import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
+import me.exrates.model.dto.BtcTransactionHistoryDto;
 import me.exrates.model.dto.BtcWalletInfoDto;
 import me.exrates.model.dto.TxReceivedByAddressFlatDto;
-import me.exrates.model.dto.onlineTableDto.PendingPaymentStatusDto;
 import me.exrates.model.enums.OperationType;
-import me.exrates.model.enums.invoice.InvoiceStatus;
-import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
 import me.exrates.service.BitcoinTransactionService;
 import me.exrates.service.BitcoinWalletService;
 import me.exrates.service.CurrencyService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.exception.NotImplimentedMethod;
-import me.exrates.service.exception.invoice.IllegalInvoiceAmountException;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.bitcoinj.core.TransactionConfidence;
 import org.bitcoinj.core.TransactionOutput;
 import org.bitcoinj.kits.WalletAppKit;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PreDestroy;
 import java.math.BigDecimal;
-import java.util.*;
-import java.util.concurrent.ExecutionException;
+import java.util.List;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.IntStream;
-
-import static java.util.stream.Collectors.toList;
-import static me.exrates.model.util.BitCoinUtils.satoshiToBtc;
-import static me.exrates.service.BitcoinService.CONFIRMATION_NEEDED_COUNT;
 
 /**
  * Created by OLEG on 16.03.2017.
@@ -92,8 +82,10 @@ public class BitcoinJWalletServiceImpl implements BitcoinWalletService {
   }
   
   public void init() {
-    try {
-      InvoiceStatus beginStatus = PendingPaymentStatusEnum.getBeginState();
+    /*try {
+
+      TODO REFILL
+      InvoiceStatus beginStatus = RefillStatusEnum.getBeginState();
       kit.wallet().addCoinsReceivedEventListener((wallet, tx, prevBalance, newBalance) -> {
         final String address = extractRecipientAddress(tx.getOutputs());
         System.out.println(address);
@@ -127,7 +119,7 @@ public class BitcoinJWalletServiceImpl implements BitcoinWalletService {
       });
     } catch (Exception e) {
       log.error(ExceptionUtils.getStackTrace(e));
-    }
+    }*/
   }
   
   @PreDestroy

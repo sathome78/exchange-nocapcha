@@ -1,9 +1,7 @@
 package me.exrates.service.impl;
 
-import me.exrates.service.InvoiceService;
 import me.exrates.service.UserFilesService;
 import me.exrates.service.UserService;
-import me.exrates.service.exception.FileLoadingException;
 import me.exrates.service.exception.api.DeleteFileException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -17,7 +15,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -37,15 +34,13 @@ public class UserFilesServiceImpl implements UserFilesService {
     private @Value("${upload.userFilesLogicalDir}") String userFilesLogicalDir;
 
     private final UserService userService;
-    private final InvoiceService invoiceService;
     private final Set<String> contentTypes;
 
     private static final Logger LOG = LogManager.getLogger(UserFilesServiceImpl.class);
 
     @Autowired
-    public UserFilesServiceImpl(final UserService userService, final InvoiceService invoiceService) {
+    public UserFilesServiceImpl(final UserService userService) {
         this.userService = userService;
-        this.invoiceService = invoiceService;
         contentTypes = new HashSet<>();
         contentTypes.addAll(asList("image/jpg", "image/jpeg", "image/png"));
     }

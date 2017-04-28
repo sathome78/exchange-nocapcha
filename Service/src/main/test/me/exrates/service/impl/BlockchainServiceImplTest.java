@@ -3,7 +3,6 @@ package me.exrates.service.impl;
 import info.blockchain.api.APIException;
 import info.blockchain.api.receive.ReceiveResponse;
 import me.exrates.dao.BTCTransactionDao;
-import me.exrates.dao.PendingPaymentDao;
 import me.exrates.model.BTCTransaction;
 import me.exrates.model.Commission;
 import me.exrates.model.CreditsOperation;

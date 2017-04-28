@@ -82,8 +82,6 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   @Autowired
   private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-  @Autowired
-  private MessageSource messageSource;
 
   private Optional<Integer> blockById(int id) {
     String sql = "SELECT COUNT(*) " +
@@ -162,6 +160,27 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
       put("status_id_list", statusList);
     }};
     return namedParameterJdbcTemplate.query(sql, params, refillRequestFlatDtoRowMapper);
+  }
+
+  @Override
+  public Integer getCountByMerchantIdAndCurrencyIdAndAddressAndStatusId(
+      String address,
+      Integer merchantId,
+      Integer currencyId,
+      List<InvoiceStatus> statusList) {
+    String sql = "SELECT COUNT(*)  " +
+        " FROM REFILL_REQUEST " +
+        " WHERE REFILL_REQUEST.address = :address " +
+        "       AND REFILL_REQUEST.merchant_id = :merchant_id " +
+        "       AND REFILL_REQUEST.currency_id = :currency_id " +
+        "       AND REFILL_REQUEST.status_id IN (:status_id_list) ";
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("address", address);
+      put("merchant_id", merchantId);
+      put("currency_id", currencyId);
+      put("status_id_list", statusList);
+    }};
+    return namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class);
   }
 
   @Override
@@ -573,7 +592,6 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         .addValue("amount", amount);
     namedParameterJdbcTemplate.update(sql, params);
   }
-
 
 }
 
