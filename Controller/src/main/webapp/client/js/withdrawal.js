@@ -40,7 +40,7 @@ $(function () {
     tableViewType = "FOR_WORK";
     filterParams = '';
     withdrawRequestsBaseUrl = '/2a8fy7b07dxe44/withdrawRequests?viewType=';
-    $('#withdraw-requests-new').addClass('active');
+    $('#withdraw-requests-manual').addClass('active');
 
 
     $('#withdraw-requests-new').click(function () {
