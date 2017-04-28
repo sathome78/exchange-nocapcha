@@ -52,10 +52,12 @@ public class CurrencyServiceImpl implements CurrencyService {
             add("BTC");
             add("LTC");
             add("EDR");
+            add("ETH");
         }
     };
     private static final int CRYPTO_PRECISION = 8;
     private static final int DEFAULT_PRECISION = 2;
+    private static final int EDC_OUTPUT_PRECISION = 3;
 
     @Override
     @Transactional(readOnly = true)
@@ -122,6 +124,15 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Override
     public int resolvePrecision(final String currency) {
         return CRYPTO.contains(currency) ? CRYPTO_PRECISION : DEFAULT_PRECISION;
+    }
+
+    @Override
+    public int resolvePrecisionByOperationType(final String currency, OperationType operationType) {
+
+        return currency.equals(currencyDao.findByName("EDR").getName()) && (operationType == OperationType.OUTPUT) ?
+                EDC_OUTPUT_PRECISION :
+                CRYPTO.contains(currency) ? CRYPTO_PRECISION :
+                DEFAULT_PRECISION;
     }
 
     @Override
