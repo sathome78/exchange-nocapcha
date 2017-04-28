@@ -36,4 +36,10 @@ DROP FOREIGN KEY `fk_EDC_MERCHANT_ACCOUNT`;
 ALTER TABLE `EDC_MERCHANT_TRANSACTION`
 DROP INDEX `fk_EDC_MERCHANT_ACCOUNT_idx` ;
 
+ALTER TABLE `CURRENCY_WARNING`
+CHANGE COLUMN `warning_type` `warning_type` ENUM('SINGLE_ADDRESS', 'TIMEOUT', 'ETH_ACCOUNT') NOT NULL ;
+INSERT INTO PHRASE_TEMPLATE (template, topic_id) VALUES
+  ('input.warning.ETH', 5);
+INSERT `CURRENCY_WARNING` (`id`, `currency_id`, `phrase_template_id`, `warning_type`) VALUES ('4', '14', '8', 'ETH_ACCOUNT');
+
 
