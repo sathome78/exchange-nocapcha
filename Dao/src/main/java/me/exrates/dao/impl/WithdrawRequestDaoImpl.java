@@ -313,24 +313,26 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
       Integer requesterUserId,
       DataTableParams dataTableParams,
       WithdrawFilterData withdrawFilterData) {
-    final String JOINS_FOR_FILTER =
-        " JOIN USER ON USER.id = WITHDRAW_REQUEST.user_id ";
     String filter = withdrawFilterData.getSQLFilterClause();
+    String searchClause = dataTableParams.getSearchClause();
     String sqlBase =
         " FROM WITHDRAW_REQUEST " +
             " JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
             "				(IOP.currency_id=WITHDRAW_REQUEST.currency_id) " +
             "				AND (IOP.user_id=:requester_user_id) " +
             "				AND (IOP.operation_direction=:operation_direction) " +
-            (filter.isEmpty() ? "": JOINS_FOR_FILTER)+
+                " JOIN USER ON USER.id = WITHDRAW_REQUEST.user_id " +
+                " JOIN CURRENCY ON WITHDRAW_REQUEST.currency_id = CURRENCY.id " +
+                " JOIN MERCHANT ON WITHDRAW_REQUEST.merchant_id = MERCHANT.id" +
             (statusIdList.isEmpty() ? "" : " WHERE status_id IN (:status_id_list) ");
 
     String whereClauseFilter = StringUtils.isEmpty(filter) ? "" : " AND ".concat(filter);
+    String whereClauseSearch = StringUtils.isEmpty(searchClause) ? "" : " AND ".concat(searchClause);
     String orderClause = dataTableParams.getOrderByClause();
     String offsetAndLimit = dataTableParams.getLimitAndOffsetClause();
     String sqlMain = String.join(" ", "SELECT WITHDRAW_REQUEST.*, IOP.invoice_operation_permission_id ",
-            sqlBase, whereClauseFilter, orderClause, offsetAndLimit);
-    String sqlCount = String.join(" ", "SELECT COUNT(*) ", sqlBase, whereClauseFilter);
+            sqlBase, whereClauseFilter, whereClauseSearch, orderClause, offsetAndLimit);
+    String sqlCount = String.join(" ", "SELECT COUNT(*) ", sqlBase, whereClauseFilter, whereClauseSearch);
     Map<String, Object> params = new HashMap<String, Object>() {{
       put("status_id_list", statusIdList);
       put("requester_user_id", requesterUserId);
@@ -339,6 +341,7 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
       put("limit", dataTableParams.getLength());
     }};
     params.putAll(withdrawFilterData.getNamedParams());
+    params.putAll(dataTableParams.getSearchNamedParams());
 
     List<WithdrawRequestFlatDto> requests = jdbcTemplate.query(sqlMain, params, (rs, i) -> {
       WithdrawRequestFlatDto withdrawRequestFlatDto = withdrawRequestFlatDtoRowMapper.mapRow(rs, i);

@@ -407,12 +407,11 @@ public class WithdrawServiceImpl implements WithdrawService {
       /**/
       Locale locale = new Locale(userService.getPreferedLang(withdrawRequest.getUserId()));
       String title = messageSource.getMessage("withdrawal.declined.title", new Integer[]{requestId}, locale);
-      if (StringUtils.isEmpty(comment)) {
-        comment = messageSource.getMessage("merchants.withdrawNotification.".concat(newStatus.name()), new Integer[]{requestId}, locale);
-      }
+      String notification = String.join(": ", messageSource.getMessage("merchants.withdrawNotification.".concat(newStatus.name()), new Integer[]{requestId}, locale),
+              comment);
       String userEmail = userService.getEmailById(withdrawRequest.getUserId());
       userService.addUserComment(WITHDRAW_DECLINE, comment, userEmail, false);
-      notificationService.notifyUser(withdrawRequest.getUserId(), NotificationEvent.IN_OUT, title, comment);
+      notificationService.notifyUser(withdrawRequest.getUserId(), NotificationEvent.IN_OUT, title, notification);
       profileData.setTime3();
     } finally {
       profileData.checkAndLog("slow decline WithdrawalRequest: " + requestId + " profile: " + profileData);

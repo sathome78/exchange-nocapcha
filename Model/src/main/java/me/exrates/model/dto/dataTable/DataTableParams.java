@@ -14,6 +14,8 @@ import java.util.stream.Stream;
  */
 @Log4j2
 public class DataTableParams {
+    
+    private final String SEARCH_VALUE_KEY = "search_value";
 
     private int draw = 1;
     private int orderColumn = 0;
@@ -85,6 +87,16 @@ public class DataTableParams {
             return "";
         }
         return new StringJoiner(" ").add("ORDER BY").add(columns.get(orderColumn)).add(orderDirection.name()).toString();
+    }
+    
+    public String getSearchClause() {
+        return StringUtils.isEmpty(searchValue) ? "" : columns.stream().map(columnName ->
+                        String.format("CONVERT(%s USING utf8) LIKE :%s", columnName, SEARCH_VALUE_KEY))
+                .collect(Collectors.joining(" OR ", "(", ")"));
+    }
+    
+    public Map<String, String> getSearchNamedParams() {
+        return Collections.singletonMap(SEARCH_VALUE_KEY, String.format("%%%s%%", searchValue));
     }
     
     public String getLimitAndOffsetClause() {
