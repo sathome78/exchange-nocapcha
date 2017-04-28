@@ -1,3 +1,4 @@
+<%@ taglib prefix="loc" uri="http://www.springframework.org/tags" %>
 <tbody>
 <tr>
     <th class="col-2 myo_orid center blue-white"><loc:message code="myorders.id"/></th>

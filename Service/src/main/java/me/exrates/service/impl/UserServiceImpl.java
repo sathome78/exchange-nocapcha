@@ -1,6 +1,7 @@
 package me.exrates.service.impl;
 
 
+import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.UserDao;
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
@@ -36,6 +37,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Log4j2
 @Service
 public class UserServiceImpl implements UserService {
 

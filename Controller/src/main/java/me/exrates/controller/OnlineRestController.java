@@ -8,6 +8,7 @@ import me.exrates.model.enums.*;
 import me.exrates.model.vo.BackDealInterval;
 import me.exrates.model.vo.CacheData;
 import me.exrates.service.*;
+import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,7 +21,6 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.LocaleResolver;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
@@ -30,7 +30,6 @@ import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.apache.commons.lang3.time.DateUtils.MILLIS_PER_MINUTE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 /**
@@ -112,6 +111,9 @@ public class OnlineRestController {
 
   @Autowired
   WithdrawService withdrawService;
+
+  @Autowired
+  StopOrderService stopOrderService;
 
   @RequestMapping(value = "/dashboard/commission/{type}", method = RequestMethod.GET)
   public BigDecimal getCommissions(@PathVariable("type") String type) {
@@ -646,6 +648,7 @@ public class OnlineRestController {
       @RequestParam(required = false) String scope,
       @RequestParam(required = false) Integer page,
       @RequestParam(required = false) PagingDirection direction,
+      @RequestParam(value = "baseType", defaultValue = "LIMIT") OrderBaseType orderBaseType,
       Principal principal,
       HttpServletRequest request) {
     if (principal == null) {
@@ -667,9 +670,20 @@ public class OnlineRestController {
     String cacheKey = "myOrdersData" + tableId + status + request.getHeader("windowid");
     refreshIfNeeded = refreshIfNeeded == null ? false : refreshIfNeeded;
     CacheData cacheData = new CacheData(request, cacheKey, !refreshIfNeeded);
-    List<OrderWideListDto> result = orderService.getMyOrdersWithState(cacheData, email,
-        showAllPairs == null || !showAllPairs ? currencyPair : null,
-        status, type, scope, tableParams.getOffset(), tableParams.getLimit(), localeResolver.resolveLocale(request));
+    List<OrderWideListDto> result;
+    switch (orderBaseType) {
+      case STOP_LIMIT: {
+        result = stopOrderService.getMyOrdersWithState(cacheData, email,
+                showAllPairs == null || !showAllPairs ? currencyPair : null,
+                status, type, scope, tableParams.getOffset(), tableParams.getLimit(), localeResolver.resolveLocale(request));
+        break;
+      }
+      default: {
+        result = orderService.getMyOrdersWithState(cacheData, email,
+                showAllPairs == null || !showAllPairs ? currencyPair : null,
+                status, type, scope, tableParams.getOffset(), tableParams.getLimit(), localeResolver.resolveLocale(request));
+      }
+    }
     if (!result.isEmpty()) {
       result.get(0).setPage(tableParams.getPageNumber());
     }

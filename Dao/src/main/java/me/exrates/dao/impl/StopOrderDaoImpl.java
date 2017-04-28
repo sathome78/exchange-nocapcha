@@ -1,14 +1,17 @@
 package me.exrates.dao.impl;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.dao.OrderDao;
 import me.exrates.dao.StopOrderDao;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.SessionLifeTimeType;
 import me.exrates.model.StopOrder;
 import me.exrates.model.dto.OrderCreateDto;
+import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,12 +23,12 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by maks on 20.04.2017.
@@ -100,13 +103,13 @@ public class StopOrderDaoImpl implements StopOrderDao {
     }
 
     @Override
-    public boolean setStatusAndChildOrderId(int orderId, int childOrderId, OrderStatus status) {
+    public boolean setStatusAndChildOrderId(int orderId, Integer childOrderId, OrderStatus status) {
         String sql = "UPDATE STOP_ORDERS SET status_id=:status_id, child_order_id=:child_order_id " +
                 "WHERE id = :id";
-        Map<String, String> namedParameters = new HashMap<>();
-        namedParameters.put("status_id", String.valueOf(status.getStatus()));
-        namedParameters.put("id", String.valueOf(orderId));
-        namedParameters.put("child_order_id", String.valueOf(childOrderId));
+        Map<String, Object> namedParameters = new HashMap<>();
+        namedParameters.put("status_id", status.getStatus());
+        namedParameters.put("id", orderId);
+        namedParameters.put("child_order_id", childOrderId);
         int result = namedParameterJdbcTemplate.update(sql, namedParameters);
         return result > 0;
     }
@@ -130,10 +133,10 @@ public class StopOrderDaoImpl implements StopOrderDao {
 
     @Override
     public OrderCreateDto getOrderById(Integer orderId, boolean forUpdate) {
-        String sql = "SELECT STOP_ORDERS.id as order_id, SO.user_id, SO.status_id, SO.operation_type_id,  " +
+        String sql = "SELECT SO.id as order_id, SO.user_id, SO.status_id, SO.operation_type_id,  " +
                 "  SO.limit_rate, SO.stop_rate, SO.amount_base, SO.amount_convert, SO.commission_fixed_amount, " +
                 "  CURRENCY_PAIR.id AS currency_pair_id, CURRENCY_PAIR.name AS currency_pair_name  " +
-                "  FROM STOP_ORDERS as SO " +
+                "  FROM STOP_ORDERS AS SO " +
                 "  LEFT JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = SO.currency_pair_id) " +
                 "  WHERE SO.id = :order_id";
         if (forUpdate) {
@@ -170,6 +173,80 @@ public class StopOrderDaoImpl implements StopOrderDao {
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
+    }
+
+    @Override
+    public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, OrderStatus status,
+                                                       OperationType operationType,
+                                                       String scope, Integer offset, Integer limit, Locale locale) {
+        return getMyOrdersWithState(email, currencyPair, Collections.singletonList(status), operationType, scope, offset, limit, locale);
+    }
+
+    @Override
+    public List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, List<OrderStatus> statuses,
+                                                       OperationType operationType,
+                                                       String scope, Integer offset, Integer limit, Locale locale) {
+        String userFilterClause;
+        String userJoinClause;
+        if(scope == null || scope.isEmpty()) {
+            userFilterClause = " AND CREATOR.email = :email ";
+            userJoinClause = "  JOIN USER AS CREATOR ON CREATOR.id=STOP_ORDERS.user_id ";
+        } else {
+            switch (scope) {
+                default:
+                    userFilterClause = " AND CREATOR.email = :email ";
+                    userJoinClause = "  JOIN USER AS CREATOR ON CREATOR.id=STOP_ORDERS.user_id ";
+                    break;
+            }
+        }
+
+        List<Integer> statusIds = statuses.stream().map(OrderStatus::getStatus).collect(Collectors.toList());
+        String orderClause = "  ORDER BY  date_creation DESC";
+        String sql = "SELECT STOP_ORDERS.*, CURRENCY_PAIR.name AS currency_pair_name" +
+                "  FROM STOP_ORDERS " +
+                userJoinClause +
+                "  JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = STOP_ORDERS.currency_pair_id) " +
+                "  WHERE (status_id IN (:status_ids))" +
+                userFilterClause +
+                (currencyPair == null ? "" : " AND STOP_ORDERS.currency_pair_id=" + currencyPair.getId()) +
+                orderClause +
+                (limit == -1 ? "" : "  LIMIT " + limit + " OFFSET " + offset);
+        Map<String, Object> namedParameters = new HashMap<>();
+        namedParameters.put("email", email);
+        namedParameters.put("status_ids", statusIds);
+        if (operationType != null) {
+            namedParameters.put("operation_type_id", operationType.getType());
+            sql = sql.concat(" AND (operation_type_id = :operation_type_id) ");
+        }
+        return namedParameterJdbcTemplate.query(sql, namedParameters, new RowMapper<OrderWideListDto>() {
+            @Override
+            public OrderWideListDto mapRow(ResultSet rs, int rowNum) throws SQLException {
+                OrderWideListDto orderWideListDto = new OrderWideListDto();
+                orderWideListDto.setId(rs.getInt("id"));
+                orderWideListDto.setUserId(rs.getInt("user_id"));
+                orderWideListDto.setOperationType(OperationType.convert(rs.getInt("operation_type_id")));
+                orderWideListDto.setStopRate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("stop_rate"), locale, 2));
+                orderWideListDto.setExExchangeRate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("limit_rate"), locale, 2));
+                orderWideListDto.setAmountBase(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount_base"), locale, 2));
+                orderWideListDto.setAmountConvert(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount_convert"), locale, 2));
+                orderWideListDto.setComissionId(rs.getInt("commission_id"));
+                orderWideListDto.setCommissionFixedAmount(BigDecimalProcessing.formatLocale(rs.getBigDecimal("commission_fixed_amount"), locale, 2));
+                BigDecimal amountWithCommission = rs.getBigDecimal("amount_convert");
+                if (orderWideListDto.getOperationType() == OperationType.SELL) {
+                    amountWithCommission = BigDecimalProcessing.doAction(amountWithCommission, rs.getBigDecimal("commission_fixed_amount"), ActionType.SUBTRACT);
+                } else if (orderWideListDto.getOperationType() == OperationType.BUY) {
+                    amountWithCommission = BigDecimalProcessing.doAction(amountWithCommission, rs.getBigDecimal("commission_fixed_amount"), ActionType.ADD);
+                }
+                orderWideListDto.setAmountWithCommission(BigDecimalProcessing.formatLocale(amountWithCommission, locale, 2));
+                orderWideListDto.setDateCreation(rs.getTimestamp("date_creation") == null ? null : rs.getTimestamp("date_creation").toLocalDateTime());
+                orderWideListDto.setStatus(OrderStatus.convert(rs.getInt("status_id")));
+                orderWideListDto.setDateStatusModification(rs.getTimestamp("date_modification") == null ? null : rs.getTimestamp("date_modification").toLocalDateTime());
+                orderWideListDto.setCurrencyPairId(rs.getInt("currency_pair_id"));
+                orderWideListDto.setCurrencyPairName(rs.getString("currency_pair_name"));
+                orderWideListDto.setOrderBaseType(OrderBaseType.STOP_LIMIT);
+                return orderWideListDto;
+            }
+        });
     }
 
 

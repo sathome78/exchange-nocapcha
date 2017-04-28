@@ -2,6 +2,7 @@ package me.exrates.model.dto.onlineTableDto;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import me.exrates.model.enums.OperationType;
+import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
 
@@ -14,6 +15,7 @@ public class OrderWideListDto extends OnlineTableDto{
     private int id;
     private int userId;
     private OperationType operationType;
+    private String stopRate; /*for stop orders*/
     private String exExchangeRate;
     private String amountBase;
     private String amountConvert;
@@ -34,6 +36,8 @@ public class OrderWideListDto extends OnlineTableDto{
     private int currencyPairId;
     private String currencyPairName;
     private String statusString;
+    private OrderBaseType orderBaseType;
+
 
     /*constructors*/
 
@@ -222,5 +226,21 @@ public class OrderWideListDto extends OnlineTableDto{
 
     public void setCurrencyPairId(int currencyPairId) {
         this.currencyPairId = currencyPairId;
+    }
+
+    public String getStopRate() {
+        return stopRate;
+    }
+
+    public void setStopRate(String stopRate) {
+        this.stopRate = stopRate;
+    }
+
+    public OrderBaseType getOrderBaseType() {
+        return orderBaseType;
+    }
+
+    public void setOrderBaseType(OrderBaseType orderBaseType) {
+        this.orderBaseType = orderBaseType;
     }
 }

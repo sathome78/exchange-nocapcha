@@ -7,7 +7,6 @@ import me.exrates.model.StopOrder;
 import me.exrates.model.dto.StopOrderSummaryDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.service.CurrencyService;
-import me.exrates.service.StopOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -37,8 +36,8 @@ public class StopOrdersHolderImpl implements StopOrdersHolder {
     private Comparator<StopOrderSummaryDto> comparator = Comparator.comparing(StopOrderSummaryDto::getStopRate)
             .thenComparing(StopOrderSummaryDto::getOrderId);
 
-    /*----methods-----*/
 
+    /*----methods-----*/
     @PostConstruct
     public void init() {
         List<CurrencyPair> currencyPairs = currencyService.getAllCurrencyPairs();
@@ -51,24 +50,27 @@ public class StopOrdersHolderImpl implements StopOrdersHolder {
                 sellSet.add(new StopOrderSummaryDto(i.getId(), i.getStop(), i.getOperationType()));
             });
             sellOrdersMap.put(p.getId(), sellSet);
+            log.debug("sell set for currency {} size: {}", p.getId(),sellSet.size());
             ConcurrentSkipListSet<StopOrderSummaryDto> buySet = new ConcurrentSkipListSet<>(comparator);
             thisPairsOrders.stream().filter(i->i.getOperationType().equals(OperationType.BUY)).forEach(i->{
                 buySet.add(new StopOrderSummaryDto(i.getId(), i.getStop(), i.getOperationType()));
             });
             buyOrdersMap.put(p.getId(), buySet);
+            log.debug("buy set for currency {} size: {}", p.getId(), buySet.size());
         });
         }
 
     /**
      * return set with orders by this currency pair @pairId pair which has higher or equal @rate*/
-
     @Override
     public NavigableSet<StopOrderSummaryDto> getSellOrdersForPairAndStopRate(int pairId, BigDecimal rate) {
         if (!sellOrdersMap.containsKey(pairId)) {
             addNewPairToMap(sellOrdersMap, pairId);
             return Collections.emptyNavigableSet();
         }
+        log.debug("order accepted {} {}", pairId, rate);
         ConcurrentSkipListSet<StopOrderSummaryDto> thisOrdersSet = sellOrdersMap.get(pairId);
+        log.debug("sell orders size {}", thisOrdersSet.size());
         return thisOrdersSet.tailSet(new StopOrderSummaryDto(0, rate), true);
     }
 
@@ -80,8 +82,10 @@ public class StopOrdersHolderImpl implements StopOrdersHolder {
             addNewPairToMap(buyOrdersMap, pairId);
             return Collections.emptyNavigableSet();
         }
+        log.debug("order accepted {} {}", pairId, rate);
         ConcurrentSkipListSet<StopOrderSummaryDto> thisOrdersSet = buyOrdersMap.get(pairId);
-        return thisOrdersSet.headSet(new StopOrderSummaryDto(thisOrdersSet.size(), rate), true);
+        log.debug("buy orders size {}", thisOrdersSet.size());
+        return thisOrdersSet.headSet(new StopOrderSummaryDto(Integer.MAX_VALUE, rate), true);
     }
 
     @Override
@@ -97,26 +101,33 @@ public class StopOrdersHolderImpl implements StopOrdersHolder {
                 break;
             }
             default: {
-                throw new RuntimeException("map not conatins this order! ".concat(summaryDto.toString()));
+                throw new RuntimeException("wrong order operation type! ".concat(summaryDto.toString()));
             }
         }
         if (!thisOrdersSet.contains(summaryDto)) {;
             throw new RuntimeException("map not conatins this order! ".concat(summaryDto.toString()));
         }
+        log.debug("delete, before: {}", thisOrdersSet.size());
         thisOrdersSet.remove(summaryDto);
+        log.debug("delete, after: {}", thisOrdersSet.size());
     }
 
     @Override
     public void addOrder(ExOrder exOrder) {
+        log.debug("add order: {}", exOrder.getId());
         switch (exOrder.getOperationType()) {
             case BUY: {
+                log.error("add buy before: {}", buyOrdersMap.get(exOrder.getCurrencyPairId()).size());
                 buyOrdersMap.get(exOrder.getCurrencyPairId())
-                        .add(new StopOrderSummaryDto(exOrder.getId(), exOrder.getExRate(), exOrder.getOperationType()));
+                        .add(new StopOrderSummaryDto(exOrder.getId(), exOrder.getStop(), exOrder.getOperationType()));
+                log.error("add buy after: {}", buyOrdersMap.get(exOrder.getCurrencyPairId()).size());
                 break;
             }
             case SELL: {
+                log.error("add sell before: {}", buyOrdersMap.get(exOrder.getCurrencyPairId()).size());
                 sellOrdersMap.get(exOrder.getCurrencyPairId())
-                        .add(new StopOrderSummaryDto(exOrder.getId(), exOrder.getExRate(), exOrder.getOperationType()));
+                        .add(new StopOrderSummaryDto(exOrder.getId(), exOrder.getStop(), exOrder.getOperationType()));
+                log.error("add sell after: {}", buyOrdersMap.get(exOrder.getCurrencyPairId()).size());
                 break;
             }
         }

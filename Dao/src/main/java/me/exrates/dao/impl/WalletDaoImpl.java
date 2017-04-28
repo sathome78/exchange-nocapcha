@@ -528,6 +528,7 @@ public class WalletDaoImpl implements WalletDao {
     try {
       transactionDao.create(transaction);
     } catch (Exception e) {
+      log.error(e);
       return WalletTransferStatus.TRANSACTION_CREATION_ERROR;
     }
         /**/
@@ -672,7 +673,8 @@ public class WalletDaoImpl implements WalletDao {
   }
 
   @Override
-  public WalletsForOrderCancelDto getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType, CurrencyPair currencyPair) {
+  public WalletsForOrderCancelDto getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType, int currencyPairId) {
+    CurrencyPair currencyPair = currencyDao.findCurrencyPairById(currencyPairId);
     String sql = "SELECT " +
             " SO.id AS order_id, " +
             " SO.status_id AS order_status_id, " +
@@ -685,7 +687,7 @@ public class WalletDaoImpl implements WalletDao {
             " FROM STOP_ORDERS AS SO " +
             " JOIN WALLET AS WA ON  (WA.user_id = SO.user_id) AND " +
             "             (WA.currency_id = :currency_id) " +
-            " WHERE (EXORDERS.id = :order_id)" +
+            " WHERE (SO.id = :order_id)" +
             " FOR UPDATE "; //FOR UPDATE !Impotant
     Map<String, Object> namedParameters = new HashMap<>();
     namedParameters.put("order_id", orderId);

@@ -6,7 +6,7 @@
     <th class="col-2 myo_crpr center blue-white"><loc:message code="myorders.currencypair"/></th>
     <th class="col-2 myo_amnt right blue-white"><loc:message code="myorders.amount"/></th>
     <th class="col-2 myo_rate right blue-white"><loc:message code="myorders.stopRate"/></th>
-    <th class="col-2 myo_rate right blue-white"><loc:message code="myorders.rate"/></th>
+    <th class="col-2 myo_rate right blue-white"><loc:message code="myorders.limitRate"/></th>
     <th class="col-2 myo_totl right blue-white"><loc:message code="myorders.total"/></th>
     <th class="col-2 myo_comm right blue-white"><loc:message code="myorders.commission"/></th>
     <th class="col-2 myo_amcm right blue-white"><loc:message code="myorders.amountwithcommission"/></th>
@@ -15,7 +15,7 @@
 <script type="text/template" id="${table_row_id}">
     <tr>
         <td class="myo_orid center blue-white"><@=id@></td>
-        <td class="myo_orid center blue-white"><@=orderType@></td>
+        <td class="myo_orid center blue-white"><@=operationType@></td>
         <td class="myo_dcrt center"><@=dateCreation@></td>
         <td class="myo_crpr center"><@=currencyPairName@></td>
         <td class="myo_amnt right"><@=amountBase@></td>
@@ -25,7 +25,7 @@
         <td class="myo_comm right"><@=commissionFixedAmount@></td>
         <td class="myo_amcm right"><@=amountWithCommission@></td>
         <td class="myo_delt table-button-block">
-            <button id="<@=id@>" class="table-button-block__button btn btn-danger button_delete_stop_order">
+            <button id="<@=id@>" data-basetype="2" class="table-button-block__button btn btn-danger button_delete_stop_order">
                 <loc:message code="myorders.delete"/>
             </button>
         </td>

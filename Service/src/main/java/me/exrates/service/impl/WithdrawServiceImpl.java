@@ -452,8 +452,8 @@ public class WithdrawServiceImpl implements WithdrawService {
       userService.addUserComment(WITHDRAW_POSTED, comment, userEmail, false);
       notificationService.notifyUser(withdrawRequestResult.getUserId(), NotificationEvent.IN_OUT, title, comment);
     } catch (Exception e) {
-      throw new WithdrawRequestPostException(String.format("withdraw data: %s via merchant: %s", withdrawMerchantOperation.toString(), merchantService.toString()));
-    }
+  /* todo:uncomment   throw new WithdrawRequestPostException(String.format("withdraw data: %s via merchant: %s", withdrawMerchantOperation.toString(), merchantService.toString()));
+  */  }
   }
 
   @Override

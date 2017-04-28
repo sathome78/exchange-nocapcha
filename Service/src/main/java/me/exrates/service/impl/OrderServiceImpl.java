@@ -23,6 +23,7 @@ import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
 import me.exrates.service.stopOrder.RatesHolder;
+import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.util.Cache;
 import me.exrates.service.vo.ProfileData;
 import org.apache.axis.utils.StringUtils;
@@ -270,20 +271,32 @@ public class OrderServiceImpl implements OrderService {
   }
 
   @Override
-  @Transactional
   public String createOrder(OrderCreateDto orderCreateDto, OrderActionEnum action, Locale locale) {
-    if (!orderCreateDto.getOrderBaseType().equals(OrderBaseType.STOP_LIMIT)) {
-      Optional<String> autoAcceptResult = this.autoAccept(orderCreateDto, locale);
-      if (autoAcceptResult.isPresent()) {
-        logger.debug(autoAcceptResult.get());
-        return autoAcceptResult.get();
-      }
+    Optional<String> autoAcceptResult = this.autoAccept(orderCreateDto, locale);
+    if (autoAcceptResult.isPresent()) {
+      logger.debug(autoAcceptResult.get());
+      return autoAcceptResult.get();
     }
     Integer orderId = this.createOrder(orderCreateDto, CREATE);
     if (orderId <= 0) {
       throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, locale));
     }
     return "{\"result\":\"" + messageSource.getMessage("createdorder.text", null, locale) + "\"}";
+  }
+
+  @Override
+  @Transactional
+  public Integer createOrderByStopOrder(OrderCreateDto orderCreateDto, OrderActionEnum action, Locale locale) {
+      Optional<OrderCreationResultDto> autoAcceptResult = this.autoAcceptOrders(orderCreateDto, locale);
+      if (autoAcceptResult.isPresent()) {
+        logger.debug(autoAcceptResult.get());
+        return autoAcceptResult.get().getCreatedOrderId();
+      }
+    Integer orderId = this.createOrder(orderCreateDto, CREATE);
+    if (orderId <= 0) {
+      throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, locale));
+    }
+    return orderId;
   }
   
   

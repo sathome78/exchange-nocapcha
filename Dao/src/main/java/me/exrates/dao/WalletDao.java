@@ -68,7 +68,7 @@ public interface WalletDao {
 
     WalletsForOrderCancelDto getWalletForOrderByOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType);
 
-    WalletsForOrderCancelDto getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType, CurrencyPair currencyPair);
+    WalletsForOrderCancelDto getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType, int currencyPairId);
 
     List<OrderDetailDto> getOrderRelatedDataAndBlock(int orderId);
   
