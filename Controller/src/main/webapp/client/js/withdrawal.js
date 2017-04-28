@@ -347,7 +347,7 @@ function updateWithdrawalTable() {
                 },
                 {
                     "data": "userId",
-                    "name": "WITHDRAW_REQUEST.user_id",
+                    "name": "USER.email",
                     "render": function (data, type, row) {
                         return '<a data-userEmail="' + row.userEmail + '" href="/2a8fy7b07dxe44/userInfo?id=' + data + '">' + row.userEmail + '</a>'
                     }
@@ -358,7 +358,7 @@ function updateWithdrawalTable() {
                 },
                 {
                     "data": "currencyName",
-                    "name": "WITHDRAW_REQUEST.currency_id"
+                    "name": "CURRENCY.name"
                 },
 
                 {
@@ -367,7 +367,7 @@ function updateWithdrawalTable() {
                 },
                 {
                     "data": "merchantName",
-                    "name": "WITHDRAW_REQUEST.merchant_id",
+                    "name": "MERCHANT.name",
                     "render": function (data, type, row) {
                         var merchantName = data;
                         var merchantImageName = '';
