@@ -235,12 +235,12 @@ public class OrderServiceImpl implements OrderService {
       if (orderCreateDto.getExchangeRate().compareTo(currencyPairLimit.getMinRate()) < 0) {
         String key = "exrate_" + errors.size();
         errors.put(key, "order.minrate");
-        errorParams.put(key, new Object[]{currencyPairLimit.getMinRate()});
+        errorParams.put(key, new Object[]{BigDecimalProcessing.formatNonePoint(currencyPairLimit.getMinRate(), false)});
       }
       if (orderCreateDto.getExchangeRate().compareTo(currencyPairLimit.getMaxRate()) > 0) {
         String key = "exrate_" + errors.size();
         errors.put(key, "order.maxrate");
-        errorParams.put(key, new Object[]{currencyPairLimit.getMaxRate()});
+        errorParams.put(key, new Object[]{BigDecimalProcessing.formatNonePoint(currencyPairLimit.getMaxRate(), false)});
       }
       
     }
