@@ -46,6 +46,12 @@ $(function () {
     $('#withdraw-requests-new').click(function () {
         changeTableViewType(this, "FOR_WORK")
     });
+    $('#withdraw-requests-manual').click(function () {
+        changeTableViewType(this, "FOR_MANUAL")
+    });
+    $('#withdraw-requests-confirm').click(function () {
+        changeTableViewType(this, "FOR_CONFIRM")
+    });
     $('#withdraw-requests-auto').click(function () {
         changeTableViewType(this, "AUTO_PROCESSING")
     });
