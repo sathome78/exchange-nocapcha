@@ -42,11 +42,17 @@ $(function () {
     tableViewType = "FOR_WORK";
     filterParams = '';
     withdrawRequestsBaseUrl = '/2a8fy7b07dxe44/withdrawRequests?viewType=';
-    $('#withdraw-requests-new').addClass('active');
+    $('#withdraw-requests-manual').addClass('active');
 
 
     $('#withdraw-requests-new').click(function () {
         changeTableViewType(this, "FOR_WORK")
+    });
+    $('#withdraw-requests-manual').click(function () {
+        changeTableViewType(this, "FOR_MANUAL")
+    });
+    $('#withdraw-requests-confirm').click(function () {
+        changeTableViewType(this, "FOR_CONFIRM")
     });
     $('#withdraw-requests-auto').click(function () {
         changeTableViewType(this, "AUTO_PROCESSING")
@@ -63,7 +69,7 @@ $(function () {
 
     function changeTableViewType($elem, newStatus) {
         tableViewType = newStatus;
-        $withdrawalTable.find('.myorders__button').removeClass('active');
+        $withdrawalPage.find('.myorders__button').removeClass('active');
         $($elem).addClass('active');
         updateWithdrawalTable();
     }
