@@ -3,8 +3,14 @@ package me.exrates.service.stopOrder;
 import me.exrates.model.CurrencyPair;
 import me.exrates.model.ExOrder;
 import me.exrates.model.StopOrder;
+import me.exrates.model.dto.OrderBasicInfoDto;
 import me.exrates.model.dto.OrderCreateDto;
+import me.exrates.model.dto.OrderInfoDto;
 import me.exrates.model.dto.StopOrderSummaryDto;
+import me.exrates.model.dto.dataTable.DataTable;
+import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.AdminOrderFilterData;
+import me.exrates.model.dto.filterData.AdminStopOrderFilterData;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderActionEnum;
@@ -52,4 +58,15 @@ public interface StopOrderService {
                                                 String email, CurrencyPair currencyPair, OrderStatus status,
                                                 OperationType operationType,
                                                 String scope, Integer offset, Integer limit, Locale locale);
+
+    @Transactional
+    DataTable<List<OrderBasicInfoDto>> searchOrdersByAdmin(AdminStopOrderFilterData adminOrderFilterData, DataTableParams dataTableParams, Locale locale);
+
+    /*@Transactional
+    OrderInfoDto getStopOrderInfo(int orderId, Locale locale);*/
+
+    @Transactional
+    OrderInfoDto getStopOrderInfo(int orderId, Locale locale);
+
+    Object deleteOrderByAdmin(int id, Locale locale);
 }

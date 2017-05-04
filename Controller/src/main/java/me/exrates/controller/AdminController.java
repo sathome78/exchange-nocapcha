@@ -8,6 +8,7 @@ import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
 import me.exrates.model.dto.filterData.AdminOrderFilterData;
+import me.exrates.model.dto.filterData.AdminStopOrderFilterData;
 import me.exrates.model.dto.filterData.WithdrawFilterData;
 import me.exrates.model.dto.onlineTableDto.AccountStatementDto;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
@@ -20,6 +21,7 @@ import me.exrates.security.service.UserSecureService;
 import me.exrates.service.*;
 import me.exrates.service.exception.NoPermissionForOperationException;
 import me.exrates.service.exception.OrderDeletingException;
+import me.exrates.service.stopOrder.StopOrderService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -120,6 +122,8 @@ public class AdminController {
   UserTransferService userTransferService;
   @Autowired
   WithdrawService withdrawService;
+  @Autowired
+  StopOrderService stopOrderService;
   
   @Autowired
   private BitcoinWalletService bitcoinWalletService;
@@ -183,6 +187,17 @@ public class AdminController {
     model.addObject("operationTypes", Arrays.asList(OperationType.SELL, OperationType.BUY));
     model.addObject("statusList", Arrays.asList(OrderStatus.values()));
     model.setViewName("admin/order_delete");
+    return model;
+  }
+
+  @RequestMapping(value = "/2a8fy7b07dxe44/removeStopOrder", method = GET)
+  public ModelAndView stopOrderDeletion() {
+    ModelAndView model = new ModelAndView();
+    List<CurrencyPair> currencyPairList = currencyService.getAllCurrencyPairs();
+    model.addObject("currencyPairList", currencyPairList);
+    model.addObject("operationTypes", Arrays.asList(OperationType.SELL, OperationType.BUY));
+    model.addObject("statusList", Arrays.asList(OrderStatus.OPENED, OrderStatus.CLOSED, OrderStatus.CANCELLED, OrderStatus.INPROCESS));
+    model.setViewName("admin/stop_order_delete");
     return model;
   }
 
@@ -718,6 +733,12 @@ public class AdminController {
   }
 
   @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/stopOrderinfo", method = RequestMethod.GET)
+  public OrderInfoDto getStopOrderInfo(@RequestParam int id, HttpServletRequest request) {
+    return stopOrderService.getStopOrderInfo(id, localeResolver.resolveLocale(request));
+  }
+
+  @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/transferInfo", method = RequestMethod.GET)
   public UserTransferInfoDto getTransferInfo(@RequestParam int id, HttpServletRequest request) {
     return userTransferService.getTransferInfoBySourceId(id);
@@ -735,6 +756,17 @@ public class AdminController {
   }
 
   @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/stopOrderDelete", method = RequestMethod.POST)
+  public boolean deleteStopOrderByAdmin(@RequestParam int id, HttpServletRequest request) {
+    try {
+      return (boolean) stopOrderService.deleteOrderByAdmin(id, localeResolver.resolveLocale(request));
+    } catch (Exception e) {
+      LOG.error(e);
+      throw e;
+    }
+  }
+
+  @ResponseBody
   @RequestMapping(value = "/2a8fy7b07dxe44/searchorders", method = RequestMethod.GET)
   public DataTable<List<OrderBasicInfoDto>> searchOrderByAdmin(AdminOrderFilterData adminOrderFilterData,
                                                                @RequestParam Map<String, String> params,
@@ -745,6 +777,27 @@ public class AdminController {
       DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
       DataTable<List<OrderBasicInfoDto>> orderInfo = orderService.searchOrdersByAdmin(adminOrderFilterData, dataTableParams,
           localeResolver.resolveLocale(request));
+      return orderInfo;
+    } catch (Exception ex) {
+      LOG.error(ex.getMessage(), ex);
+      DataTable<List<OrderBasicInfoDto>> errorResult = new DataTable<>();
+      errorResult.setError(ex.getMessage());
+      errorResult.setData(Collections.EMPTY_LIST);
+      return errorResult;
+    }
+  }
+
+  @ResponseBody
+  @RequestMapping(value = "/2a8fy7b07dxe44/searchStopOrders", method = RequestMethod.GET)
+  public DataTable<List<OrderBasicInfoDto>> searchStopOrderByAdmin(AdminStopOrderFilterData adminOrderFilterData,
+                                                               @RequestParam Map<String, String> params,
+                                                               HttpServletRequest request) {
+
+    try {
+      adminOrderFilterData.initFilterItems();
+      DataTableParams dataTableParams = DataTableParams.resolveParamsFromRequest(params);
+      DataTable<List<OrderBasicInfoDto>> orderInfo = stopOrderService.searchOrdersByAdmin(adminOrderFilterData, dataTableParams,
+              localeResolver.resolveLocale(request));
       return orderInfo;
     } catch (Exception ex) {
       LOG.error(ex.getMessage(), ex);

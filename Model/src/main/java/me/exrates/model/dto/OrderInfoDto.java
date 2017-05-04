@@ -19,6 +19,7 @@ public class OrderInfoDto {
     private String orderTypeName;
     private String orderStatusName;
     private String exrate;
+    private String stopRate;
     private String amountBase;
     private String amountConvert;
     private String currencyBaseName;
@@ -148,6 +149,14 @@ public class OrderInfoDto {
 
     public void setCompanyCommission(String companyCommission) {
         this.companyCommission = companyCommission;
+    }
+
+    public String getStopRate() {
+        return stopRate;
+    }
+
+    public void setStopRate(String stopRate) {
+        this.stopRate = stopRate;
     }
 };
 

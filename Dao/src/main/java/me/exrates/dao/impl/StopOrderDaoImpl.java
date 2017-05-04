@@ -3,17 +3,20 @@ package me.exrates.dao.impl;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.OrderDao;
 import me.exrates.dao.StopOrderDao;
-import me.exrates.model.CurrencyPair;
-import me.exrates.model.ExOrder;
-import me.exrates.model.SessionLifeTimeType;
-import me.exrates.model.StopOrder;
+import me.exrates.model.*;
+import me.exrates.model.dto.OrderBasicInfoDto;
 import me.exrates.model.dto.OrderCreateDto;
+import me.exrates.model.dto.OrderInfoDto;
+import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.AdminOrderFilterData;
+import me.exrates.model.dto.filterData.AdminStopOrderFilterData;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.ActionType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderBaseType;
 import me.exrates.model.enums.OrderStatus;
 import me.exrates.model.util.BigDecimalProcessing;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
@@ -249,5 +252,117 @@ public class StopOrderDaoImpl implements StopOrderDao {
         });
     }
 
+    @Override
+    public PagingData<List<OrderBasicInfoDto>> searchOrders(AdminStopOrderFilterData adminOrderFilterData, DataTableParams dataTableParams, Locale locale) {
+        String sqlSelect = " SELECT  " +
+                "     STOP_ORDERS.id, STOP_ORDERS.date_creation, STOP_ORDERS.status_id AS status, " +
+                "     CURRENCY_PAIR.name as currency_pair_name,  " +
+                "     UPPER(ORDER_OPERATION.name) AS order_type_name,  " +
+                "     STOP_ORDERS.limit_rate, STOP_ORDERS.stop_rate, STOP_ORDERS.amount_base, " +
+                "     CREATOR.email AS order_creator_email ";
+        String sqlFrom = "FROM STOP_ORDERS " +
+                "      JOIN OPERATION_TYPE AS ORDER_OPERATION ON (ORDER_OPERATION.id = STOP_ORDERS.operation_type_id) " +
+                "      JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = STOP_ORDERS.currency_pair_id) " +
+                "      JOIN USER CREATOR ON (CREATOR.id = STOP_ORDERS.user_id) ";
+        String sqlSelectCount = "SELECT COUNT(*) ";
+        String limit;
+        if (dataTableParams.getLength() > 0) {
+            String offset = dataTableParams.getStart() > 0 ? " OFFSET :offset " : "";
+            limit = " LIMIT :limit " + offset;
+        } else {
+            limit = "";
+        }
+        String orderBy = dataTableParams.getOrderByClause();
+        Map<String, Object> namedParameters = new HashMap<>();
+        namedParameters.put("offset", dataTableParams.getStart());
+        namedParameters.put("limit", dataTableParams.getLength());
+        namedParameters.putAll(adminOrderFilterData.getNamedParams());
+        String criteria = adminOrderFilterData.getSQLFilterClause();
+        String whereClause = StringUtils.isNotEmpty(criteria) ? "WHERE " + criteria : "";
+        String selectQuery = new StringJoiner(" ").add(sqlSelect)
+                .add(sqlFrom)
+                .add(whereClause)
+                .add(orderBy).add(limit).toString();
+        String selectCountQuery = new StringJoiner(" ").add(sqlSelectCount)
+                .add(sqlFrom)
+                .add(whereClause).toString();
+        log.debug(selectQuery);
+        log.debug(selectCountQuery);
+        PagingData<List<OrderBasicInfoDto>> result = new PagingData<>();
+        List<OrderBasicInfoDto> infoDtoList = namedParameterJdbcTemplate.query(selectQuery, namedParameters, (rs, rowNum) -> {
+            OrderBasicInfoDto infoDto = new OrderBasicInfoDto();
+            infoDto.setId(rs.getInt("id"));
+            infoDto.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
+            infoDto.setCurrencyPairName(rs.getString("currency_pair_name"));
+            infoDto.setOrderTypeName(rs.getString("order_type_name"));
+            infoDto.setExrate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("limit_rate"), locale, 2));
+            infoDto.setStopRate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("stop_rate"), locale, 2));
+            infoDto.setAmountBase(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount_base"), locale, 2));
+            infoDto.setOrderCreatorEmail(rs.getString("order_creator_email"));
+            infoDto.setStatusId(rs.getInt("status"));
+            infoDto.setStatus(OrderStatus.convert(rs.getInt("status")).toString());
+            return infoDto;
+        });
+        int total = namedParameterJdbcTemplate.queryForObject(selectCountQuery, namedParameters, Integer.class);
+        result.setData(infoDtoList);
+        result.setTotal(total);
+        result.setFiltered(total);
+        return result;
+    }
 
+    @Override
+    public OrderInfoDto getStopOrderInfo(int orderId, Locale locale) {
+        String sql =
+                " SELECT  " +
+                        "     STOP_ORDERS.id, STOP_ORDERS.date_creation, STOP_ORDERS.date_modification,  " +
+                        "     ORDER_STATUS.name AS order_status_name,  " +
+                        "     CURRENCY_PAIR.name as currency_pair_name,  " +
+                        "     UPPER(ORDER_OPERATION.name) AS order_type_name,  " +
+                        "     STOP_ORDERS.limit_rate, STOP_ORDERS.stop_rate, STOP_ORDERS.amount_base, STOP_ORDERS.amount_convert, " +
+                        "     STOP_ORDERS.commission_fixed_amount, ORDER_CURRENCY_BASE.name as currency_base_name, ORDER_CURRENCY_CONVERT.name as currency_convert_name, " +
+                        "     CREATOR.email AS order_creator_email " +
+                        " FROM STOP_ORDERS " +
+                        "      JOIN ORDER_STATUS ON (ORDER_STATUS.id = STOP_ORDERS.status_id) " +
+                        "      JOIN OPERATION_TYPE AS ORDER_OPERATION ON (ORDER_OPERATION.id = STOP_ORDERS.operation_type_id) " +
+                        "      JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = STOP_ORDERS.currency_pair_id) " +
+                        "      JOIN CURRENCY ORDER_CURRENCY_BASE ON (ORDER_CURRENCY_BASE.id = CURRENCY_PAIR.currency1_id)   " +
+                        "      JOIN CURRENCY ORDER_CURRENCY_CONVERT ON (ORDER_CURRENCY_CONVERT.id = CURRENCY_PAIR.currency2_id)  " +
+                        "      JOIN USER CREATOR ON (CREATOR.id = STOP_ORDERS.user_id) " +
+                        " WHERE STOP_ORDERS.id=:order_id" +
+                        " GROUP BY " +
+                        "     STOP_ORDERS.id, STOP_ORDERS.date_creation, STOP_ORDERS.date_modification,  " +
+                        "     order_status_name,  " +
+                        "     currency_pair_name,  " +
+                        "     order_type_name,  " +
+                        "     STOP_ORDERS.limit_rate, STOP_ORDERS.stop_rate, STOP_ORDERS.amount_base, STOP_ORDERS.amount_convert, " +
+                        "     currency_base_name, currency_convert_name, " +
+                        "     order_creator_email ";
+        Map<String, String> mapParameters = new HashMap<>();
+        mapParameters.put("order_id", String.valueOf(orderId));
+        try {
+            return namedParameterJdbcTemplate.queryForObject(sql, mapParameters, new RowMapper<OrderInfoDto>() {
+                @Override
+                public OrderInfoDto mapRow(ResultSet rs, int rowNum) throws SQLException {
+                    OrderInfoDto orderInfoDto = new OrderInfoDto();
+                    orderInfoDto.setId(rs.getInt("id"));
+                    orderInfoDto.setDateCreation(rs.getTimestamp("date_creation").toLocalDateTime());
+                    orderInfoDto.setDateAcception(rs.getTimestamp("date_modification") == null ? null : rs.getTimestamp("date_modification").toLocalDateTime());
+                    orderInfoDto.setCurrencyPairName(rs.getString("currency_pair_name"));
+                    orderInfoDto.setOrderTypeName(rs.getString("order_type_name"));
+                    orderInfoDto.setOrderStatusName(rs.getString("order_status_name"));
+                    orderInfoDto.setExrate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("limit_rate"), locale, 2));
+                    orderInfoDto.setStopRate(BigDecimalProcessing.formatLocale(rs.getBigDecimal("stop_rate"), locale, 2));
+                    orderInfoDto.setAmountBase(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount_base"), locale, 2));
+                    orderInfoDto.setAmountConvert(BigDecimalProcessing.formatLocale(rs.getBigDecimal("amount_convert"), locale, 2));
+                    orderInfoDto.setCurrencyBaseName(rs.getString("currency_base_name"));
+                    orderInfoDto.setCurrencyConvertName(rs.getString("currency_convert_name"));
+                    orderInfoDto.setOrderCreatorEmail(rs.getString("order_creator_email"));
+                    orderInfoDto.setCompanyCommission(rs.getString("commission_fixed_amount"));
+                    return orderInfoDto;
+                }
+            });
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
+    }
 }

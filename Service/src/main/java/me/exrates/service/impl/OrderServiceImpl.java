@@ -31,6 +31,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -975,7 +977,15 @@ public class OrderServiceImpl implements OrderService {
   @Override
   public WalletsAndCommissionsForOrderCreationDto getWalletAndCommission(String email, Currency currency,
                                                                          OperationType operationType) {
-    return orderDao.getWalletAndCommission(email, currency, operationType, userService.getUserRoleFromSecurityContext());
+    UserRole userRole = null;
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    logger.debug("auth22 " + authentication);
+    if (authentication == null) {
+      userRole = userService.getUserRoleFromDB(email);
+    } else {
+      userRole = userService.getUserRoleFromSecurityContext();
+    }
+    return orderDao.getWalletAndCommission(email, currency, operationType, userRole);
   }
 
   public void setMessageSource(final MessageSource messageSource) {

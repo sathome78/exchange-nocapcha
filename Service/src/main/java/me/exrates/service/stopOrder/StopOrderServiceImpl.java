@@ -3,13 +3,11 @@ package me.exrates.service.stopOrder;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.dao.StopOrderDao;
-import me.exrates.model.Currency;
-import me.exrates.model.CurrencyPair;
-import me.exrates.model.ExOrder;
-import me.exrates.model.StopOrder;
-import me.exrates.model.dto.OrderCreateDto;
-import me.exrates.model.dto.StopOrderSummaryDto;
-import me.exrates.model.dto.WalletsForOrderCancelDto;
+import me.exrates.model.*;
+import me.exrates.model.dto.*;
+import me.exrates.model.dto.dataTable.DataTable;
+import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.AdminStopOrderFilterData;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.*;
 import me.exrates.model.vo.CacheData;
@@ -27,7 +25,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -62,9 +59,10 @@ public class StopOrderServiceImpl implements StopOrderService {
     @Autowired
     private CurrencyService currencyService;
 
-    private final static int THREADS_NUMBER = 20;
-    private final static ExecutorService executor = Executors.newFixedThreadPool(THREADS_NUMBER);
+    private final static int THREADS_NUMBER = 50;
+    private final static ExecutorService checkExecutors = Executors.newFixedThreadPool(THREADS_NUMBER);
     private ConcurrentMap<Integer, Object> buyLocks = new ConcurrentHashMap<>();
+    private final static ExecutorService ordersExecutors = Executors.newFixedThreadPool(THREADS_NUMBER);
     private ConcurrentMap<Integer, Object> sellLocks = new ConcurrentHashMap<>();
 
 
@@ -92,13 +90,18 @@ public class StopOrderServiceImpl implements StopOrderService {
 
     @Override
     public void proceedStopOrders(int pairId, NavigableSet<StopOrderSummaryDto> orders) {
-       orders.forEach(p->{
-           try {
-               this.proceedStopOrderAndRemove(p.getOrderId());
-           } catch (Exception e) {
-               log.error("error processing stop order {}", e);
-           }
-       });
+           orders.forEach(p->{
+               try {
+                   ordersExecutors.execute(new Runnable() {
+                       @Override
+                       public void run() {
+                           proceedStopOrderAndRemove(p.getOrderId());
+                       }
+                   });
+               } catch (Exception e) {
+                   log.error("error processing stop order {}", e);
+               }
+           });
     }
 
     @Transactional
@@ -179,28 +182,13 @@ public class StopOrderServiceImpl implements StopOrderService {
     @Override
     public void onLimitOrderAccept(ExOrder exOrder) {
         ratesHolder.onRateChange(exOrder.getCurrencyPairId(), exOrder.getOperationType(), exOrder.getExRate());
-        final Authentication a = SecurityContextHolder.getContext().getAuthentication();
-        executor.execute(() -> {
-            try {
-                SecurityContext ctx = SecurityContextHolder.createEmptyContext();
-                ctx.setAuthentication(a);
-                SecurityContextHolder.setContext(ctx);
-                checkOrders(exOrder, OperationType.BUY);
-            } finally {
-                SecurityContextHolder.clearContext();
-            }
-        });
-        executor.execute(() -> {
-            try {
-                SecurityContext ctx = SecurityContextHolder.createEmptyContext();
-                ctx.setAuthentication(a);
-                SecurityContextHolder.setContext(ctx);
-                checkOrders(exOrder, OperationType.SELL);
-            } finally {
-                SecurityContextHolder.clearContext();
-            }
-        });
+        checkExecutors.execute(() -> {
+            checkOrders(exOrder, OperationType.BUY);
 
+        });
+        checkExecutors.execute(() -> {
+            checkOrders(exOrder, OperationType.SELL);
+        });
     }
 
 
@@ -263,7 +251,7 @@ public class StopOrderServiceImpl implements StopOrderService {
             log.debug("current rate {}, stop {}", currentRate, exOrder.getStop() );
             switch (exOrder.getOperationType()) {
                 case SELL: {
-                        if (currentRate!= null && exOrder.getStop().compareTo(currentRate) >= 0) {
+                        if (currentRate != null && exOrder.getStop().compareTo(currentRate) >= 0) {
                             log.error("try to proceed sell stop order {}", exOrder.getId());
                             this.proceedStopOrder(exOrder);
                         } else {
@@ -273,7 +261,7 @@ public class StopOrderServiceImpl implements StopOrderService {
                     }
                     break;
                 case BUY: {
-                        if (currentRate!= null && exOrder.getStop().compareTo(currentRate) <= 0) {
+                        if (currentRate != null && exOrder.getStop().compareTo(currentRate) <= 0) {
                             log.error("try to proceed buy stop order {}", exOrder.getId());
                             this.proceedStopOrder(exOrder);
                         } else {
@@ -303,5 +291,28 @@ public class StopOrderServiceImpl implements StopOrderService {
         return result;
     }
 
+    @Override
+    @Transactional
+    public DataTable<List<OrderBasicInfoDto>> searchOrdersByAdmin(AdminStopOrderFilterData adminOrderFilterData, DataTableParams dataTableParams, Locale locale) {
 
+        PagingData<List<OrderBasicInfoDto>> searchResult = stopOrderDao.searchOrders(adminOrderFilterData, dataTableParams, locale);
+        DataTable<List<OrderBasicInfoDto>> output = new DataTable<>();
+        output.setData(searchResult.getData());
+        output.setRecordsTotal(searchResult.getTotal());
+        output.setRecordsFiltered(searchResult.getFiltered());
+        return output;
+    }
+
+    @Transactional
+    @Override
+    public OrderInfoDto getStopOrderInfo(int orderId, Locale locale) {
+        return stopOrderDao.getStopOrderInfo(orderId, locale);
+    }
+
+    @Override
+    public Object deleteOrderByAdmin(int id, Locale locale) {
+        OrderCreateDto orderCreateDto = this.getOrderById(id, true);
+        log.debug("order {}", orderCreateDto);
+        return this.cancelOrder(new ExOrder(orderCreateDto), locale);
+    }
 }

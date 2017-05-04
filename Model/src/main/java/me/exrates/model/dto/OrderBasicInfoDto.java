@@ -21,6 +21,7 @@ public class OrderBasicInfoDto {
     private String currencyPairName;
     private String orderTypeName;
     private String exrate;
+    private String stopRate;
     private String amountBase;
     private String orderCreatorEmail;
     private String status;

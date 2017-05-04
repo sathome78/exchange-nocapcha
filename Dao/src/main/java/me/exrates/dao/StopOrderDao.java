@@ -1,8 +1,14 @@
 package me.exrates.dao;
 
 import me.exrates.model.CurrencyPair;
+import me.exrates.model.PagingData;
 import me.exrates.model.StopOrder;
+import me.exrates.model.dto.OrderBasicInfoDto;
 import me.exrates.model.dto.OrderCreateDto;
+import me.exrates.model.dto.OrderInfoDto;
+import me.exrates.model.dto.dataTable.DataTableParams;
+import me.exrates.model.dto.filterData.AdminOrderFilterData;
+import me.exrates.model.dto.filterData.AdminStopOrderFilterData;
 import me.exrates.model.dto.onlineTableDto.OrderWideListDto;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.enums.OrderStatus;
@@ -29,4 +35,8 @@ public interface StopOrderDao {
     List<OrderWideListDto> getMyOrdersWithState(String email, CurrencyPair currencyPair, List<OrderStatus> statuses,
                                                 OperationType operationType,
                                                 String scope, Integer offset, Integer limit, Locale locale);
+
+    PagingData<List<OrderBasicInfoDto>> searchOrders(AdminStopOrderFilterData adminOrderFilterData, DataTableParams dataTableParams, Locale locale);
+
+    OrderInfoDto getStopOrderInfo(int orderId, Locale locale);
 }

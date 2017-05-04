@@ -49,19 +49,18 @@
         <%@include file="myorders-center-tableBody.jsp" %>
     </table>
 
-
-    <%--    <br>
+        <br>
         <h4 class="h4_green"><loc:message code="myorders.stoporders"/></h4>
         <br>
         <ul class="pager balance__table myorders__pager">
-            <li class="previous myorders-buy-table__backward"><a href="#"><loc:message code="table.backward"/></a></li>
-            <div class="myorders-buy-table__page" style="display:inline-block"></div>
-            <li class="next myorders-buy-table__forward"><a href="#"><loc:message code="table.forward"/></a></li>
+            <li class="previous myorders-stop-table__backward"><a href="#"><loc:message code="table.backward"/></a></li>
+            <div class="myorders-stop-table__page" style="display:inline-block"></div>
+            <li class="next myorders-stop-table__forward"><a href="#"><loc:message code="table.forward"/></a></li>
         </ul>
-        <table id="myorders-buy-table" class="balance__table myorders__table">
-            <c:set value="myorders-buy-table_row" var="table_row_id"/>
+        <table id="myorders-stop-table" class="balance__table myorders__table">
+            <c:set value="myorders-stop-table_row" var="table_row_id"/>
             <%@include file="myStopOrders-center-tableBody.jsp" %>
-        </table>--%>
+        </table>
 
 
 

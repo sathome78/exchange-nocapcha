@@ -291,7 +291,7 @@
                            method="post"
                            modelAttribute="orderCreateDto">
 
-                    <div class="buyBTC__item item">
+                    <div class="buyBTC__item stop item">
                     <span class="item__span"><loc:message code="dashboard.amount"/>
                         <span class="currencyBaseName item__span"></span>
                     </span>
@@ -299,7 +299,7 @@
                         <form:input id="amount-stop" path="amount" type="text" class="item__input numericInputField"/>
                     </div>
 
-                    <div class="buyBTC__item item">
+                    <div class="buyBTC__item stop item">
                     <span class="item__span">Stop
                         <%--<span class="currencyBaseName"></span>--%>
                     </span>
@@ -308,7 +308,7 @@
                                     class="buyBTC__input usd_green numericInputField"/>
                     </div>
 
-                    <div class="buyBTC__item item">
+                    <div class="buyBTC__item stop item">
                     <span class="item__span">Limit
                         <%--<span class="currencyBaseName"></span>--%>
                     </span>
@@ -318,7 +318,7 @@
                     </div>
 
 
-                    <div class="buyBTC__item item">
+                    <div class="buyBTC__item stop item">
                         <span class="item__span"><loc:message code="dashboard.total"/></span>
                         <div class="dark_blue_area"><span class="currencyConvertName"></span></div>
                         <input id="totalForStop" class="item__input numericInputField"/>
