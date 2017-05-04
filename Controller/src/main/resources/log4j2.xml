@@ -22,6 +22,15 @@
             </Policies>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+        <RollingFile name="Node_ethereum" fileName="${sys:catalina.home}/logs/merchants/node_ethereum.log"
+                     filePattern="${sys:catalina.home}/logs/merchants/node_ethereum_%d_%i.log" append="true">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+                <SizeBasedTriggeringPolicy size="20 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
         <RollingFile name="Logs" fileName="${sys:catalina.home}/logs/general/log.log"
             filePattern="${sys:catalina.home}/logs/general/log_%d_%i.log" append="true">
             <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} %level [%t] %C:%M:%L - %message%n"/>
@@ -194,6 +203,10 @@
         <Logger name="merchant_edr" level="TRACE" additivity="false">
             <!--<AppenderRef ref="Console"/>-->
             <AppenderRef ref="Merchants_edr"/>
+        </Logger>
+        <Logger name="node_ethereum" level="TRACE" additivity="false">
+
+            <AppenderRef ref="Node_ethereum"/>
         </Logger>
         <logger name="org.quartz" level="ERROR" additivity="false">
             <AppenderRef ref="Console"/>

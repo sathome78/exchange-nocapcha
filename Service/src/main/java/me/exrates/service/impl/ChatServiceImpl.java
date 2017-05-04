@@ -95,7 +95,7 @@ public class ChatServiceImpl implements ChatService {
         message.setUserId(user.getId());
         message.setNickname(user.getNickname());
         message.setId(GENERATOR.incrementAndGet());
-        message.setTime(LocalDateTime.now(ZoneOffset.UTC));
+        message.setTime(LocalDateTime.now());
         final ChatComponent comp = chats.get(lang);
         try {
             comp.getLock().writeLock().lock();

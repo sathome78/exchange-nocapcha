@@ -595,27 +595,7 @@ public final class TransactionDaoImpl implements TransactionDao {
     }};
     return jdbcTemplate.update(sql, params) > 0;
   }
-
-  @Override
-  public List<Transaction> getAllOperationsByUserForPeriod(List<Integer> walletIds, String startDate, String endDate, String sortColumn, String sortDirection) {
-    /*final String whereClauseBasic = "WHERE TRANSACTION.user_wallet_id in (:ids)";
-    Map<String, Object> params = new HashMap<>();
-    params.put("date_from", startDate);
-    params.put("date_to", endDate);
-    String criteria = defineFilterClause(params);
-    String filterClause = criteria.isEmpty() ? "" : "AND " + criteria;
-    params.put("ids", walletIds);
-    StringJoiner sqlJoiner = new StringJoiner(" ")
-        .add(SELECT_ALL)
-        .add(whereClauseBasic)
-        .add(filterClause)
-        .add("ORDER BY").add(sortColumn).add(sortDirection);
-    final String selectLimitedAllSql = sqlJoiner.toString();
-    LOGGER.debug(selectLimitedAllSql);
-    return jdbcTemplate.query(selectLimitedAllSql, params, transactionRowMapper);*/
-    return Collections.EMPTY_LIST;
-  }
-
+  
   @Override
   public List<UserSummaryDto> getTurnoverInfoByUserAndCurrencyForPeriodAndRoleList(
       Integer requesterUserId,
@@ -722,7 +702,7 @@ public final class TransactionDaoImpl implements TransactionDao {
     Map<String, Object> namedParameters = new HashMap<String, Object>() {{
       put("start_date", startDate);
       put("end_date", endDate);
-      put("roles", roleIdList);
+      put("role_id_list", roleIdList);
       put("requester_user_id", requesterUserId);
     }};
     return jdbcTemplate.query(sql, namedParameters, (rs, idx) -> {

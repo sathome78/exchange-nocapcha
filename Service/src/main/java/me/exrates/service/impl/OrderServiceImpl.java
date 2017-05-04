@@ -178,6 +178,11 @@ public class OrderServiceImpl implements OrderService {
 
   @Override
   public OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate) {
+    return prepareNewOrder(activeCurrencyPair, orderType, userEmail, amount, rate, null);
+  }
+  
+  @Override
+  public OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, Integer sourceId) {
     Currency spendCurrency = null;
     if (orderType == OperationType.SELL) {
       spendCurrency = activeCurrencyPair.getCurrency1();
@@ -193,6 +198,7 @@ public class OrderServiceImpl implements OrderService {
     orderCreateDto.setExchangeRate(rate);
     orderCreateDto.setUserId(walletsAndCommissions.getUserId());
     orderCreateDto.setCurrencyPair(activeCurrencyPair);
+    orderCreateDto.setSourceId(sourceId);
     if (orderType == OperationType.SELL) {
       orderCreateDto.setWalletIdCurrencyBase(walletsAndCommissions.getSpendWalletId());
       orderCreateDto.setCurrencyBaseBalance(walletsAndCommissions.getSpendWalletActiveBalance());
@@ -254,12 +260,12 @@ public class OrderServiceImpl implements OrderService {
       if (orderCreateDto.getExchangeRate().compareTo(currencyPairLimit.getMinRate()) < 0) {
         String key = "exrate_" + errors.size();
         errors.put(key, "order.minrate");
-        errorParams.put(key, new Object[]{currencyPairLimit.getMinRate()});
+        errorParams.put(key, new Object[]{BigDecimalProcessing.formatNonePoint(currencyPairLimit.getMinRate(), false)});
       }
       if (orderCreateDto.getExchangeRate().compareTo(currencyPairLimit.getMaxRate()) > 0) {
         String key = "exrate_" + errors.size();
         errors.put(key, "order.maxrate");
-        errorParams.put(key, new Object[]{currencyPairLimit.getMaxRate()});
+        errorParams.put(key, new Object[]{BigDecimalProcessing.formatNonePoint(currencyPairLimit.getMaxRate(), false)});
       }
       
     }
@@ -453,10 +459,10 @@ public class OrderServiceImpl implements OrderService {
     BigDecimal amountForPartialAccept = newOrder.getAmount().subtract(cumulativeSum.subtract(orderForPartialAccept.getAmountBase()));
     OrderCreateDto accepted = prepareNewOrder(newOrder.getCurrencyPair(), orderForPartialAccept.getOperationType(),
         userService.getUserById(orderForPartialAccept.getUserId()).getEmail(), amountForPartialAccept,
-        orderForPartialAccept.getExRate());
+        orderForPartialAccept.getExRate(), orderForPartialAccept.getId());
     OrderCreateDto remainder = prepareNewOrder(newOrder.getCurrencyPair(), orderForPartialAccept.getOperationType(),
         userService.getUserById(orderForPartialAccept.getUserId()).getEmail(), orderForPartialAccept.getAmountBase().subtract(amountForPartialAccept),
-        orderForPartialAccept.getExRate());
+        orderForPartialAccept.getExRate(), orderForPartialAccept.getId());
     int acceptedId = createOrder(accepted, CREATE);
     createOrder(remainder, CREATE_SPLIT);
     acceptOrder(newOrder.getUserId(), acceptedId, locale, false);
@@ -525,6 +531,13 @@ public class OrderServiceImpl implements OrderService {
   public void acceptOrder(int userAcceptorId, int orderId, Locale locale) {
     acceptOrder(userAcceptorId, orderId, locale, true);
 
+  }
+  
+  @Override
+  @Transactional(rollbackFor = {Exception.class})
+  public void acceptOrderByAdmin(String acceptorEmail, Integer orderId, Locale locale) {
+    Integer userId = userService.getIdByEmail(acceptorEmail);
+    acceptOrder(userId, orderId, locale);
   }
 
   private void acceptOrder(int userAcceptorId, int orderId, Locale locale, boolean sendNotification) {
@@ -865,7 +878,7 @@ public class OrderServiceImpl implements OrderService {
   @Override
   @Transactional(rollbackFor = {Exception.class})
   public Integer deleteOrderForPartialAccept(int orderId) {
-    Object result = deleteOrder(orderId, OrderStatus.SPLIT, DELETE_SPLIT);
+    Object result = deleteOrder(orderId, OrderStatus.SPLIT_CLOSED, DELETE_SPLIT);
     if (result instanceof OrderDeleteStatus) {
       if ((OrderDeleteStatus) result == OrderDeleteStatus.NOT_FOUND) {
         return 0;

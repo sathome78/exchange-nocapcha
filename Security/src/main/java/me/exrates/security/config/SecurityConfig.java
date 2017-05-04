@@ -137,7 +137,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers("/2a8fy7b07dxe44/addComment",
             "/2a8fy7b07dxe44/deleteUserComment").hasAuthority(AdminAuthority.COMMENT_USER.name())
         .antMatchers("/2a8fy7b07dxe44/updateTransactionAmount").hasAuthority(AdminAuthority.PROCESS_INVOICE.name())
-        .antMatchers("/2a8fy7b07dxe44/orderdelete").hasAuthority(AdminAuthority.DELETE_ORDER.name())
+        .antMatchers("/2a8fy7b07dxe44/orderdelete, /2a8fy7b07dxe44/order/accept").hasAuthority(AdminAuthority.DELETE_ORDER.name())
         .antMatchers("/2a8fy7b07dxe44/expireSession").hasAuthority(AdminAuthority.MANAGE_SESSIONS.name())
         .antMatchers("/2a8fy7b07dxe44/editCurrencyLimits/submit",
             "/2a8fy7b07dxe44/editCmnRefRoot",
@@ -204,8 +204,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             "/merchants/okpay/payment/failure").permitAll()
         .antMatchers(POST, "/merchants/payeer/payment/status",
             "/merchants/payeer/payment/success").permitAll()
-        .antMatchers(POST, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**").permitAll()
-        .antMatchers(GET, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**", "/chat/history").permitAll()
+        .antMatchers(POST, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**", "/chat-in/**").permitAll()
+        .antMatchers(GET, "/chat-en/**", "/chat-ru/**", "/chat-cn/**", "/chat-ar/**", "/chat-in/**", "/chat/history").permitAll()
         .antMatchers(GET, "/generateReferral").permitAll()
         .antMatchers(POST, "/merchants/edrcoin/payment/received").permitAll()
         .antMatchers(POST, "/merchants/edc/payment/received").permitAll()
@@ -226,6 +226,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers("/yandex_7a3c41ddb19f4716.html").permitAll()
         .antMatchers("/termsAndConditions", "/privacyPolicy", "/contacts").permitAll()
         .antMatchers(POST, "/sendFeedback").permitAll()
+        .antMatchers(GET, "/utcOffset").permitAll()
         .antMatchers(POST, "/rest/user/register", "/rest/user/authenticate", "/rest/user/restorePassword").anonymous()
         .antMatchers(GET, "/rest/userFiles/**/avatar/**").permitAll()
         .antMatchers(GET, "/rest/userFiles/**/receipts/**").permitAll()
@@ -267,7 +268,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .invalidateHttpSession(true)
         .and()
         .csrf()
-        .ignoringAntMatchers("/chat-en/**", "/chat-ru/**", "/chat-cn/**",
+        .ignoringAntMatchers("/chat-en/**", "/chat-ru/**", "/chat-cn/**",  "/chat-ar/**", "/chat-in/**",
             "/merchants/perfectmoney/payment/status",
             "/merchants/perfectmoney/payment/failure",
             "/merchants/perfectmoney/payment/success", "/merchants/advcash/payment/status",

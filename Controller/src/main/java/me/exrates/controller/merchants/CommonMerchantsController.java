@@ -8,6 +8,7 @@ import me.exrates.model.enums.CurrencyWarningType;
 import me.exrates.model.enums.OperationType;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.*;
+import me.exrates.service.exception.InvalidAmountException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -114,11 +115,16 @@ public class CommonMerchantsController {
     @RequestMapping(value = "/commission", method = GET)
     @ResponseBody
     public Map<String,String> getCommissions(final @RequestParam("type") OperationType type,
-                                      final @RequestParam("amount") BigDecimal amount,
-                                      final @RequestParam("currency") String currency,
-                                      final @RequestParam("merchant") String merchant)
+                                             final @RequestParam("amount") BigDecimal amount,
+                                             final @RequestParam("currency") String currency,
+                                             final @RequestParam("merchant") String merchant,
+                                             Locale locale)
     {
-        return merchantService.computeCommissionAndMapAllToString(amount, type, currency, merchant);
+        try {
+            return merchantService.computeCommissionAndMapAllToString(amount, type, currency, merchant);
+        } catch (InvalidAmountException e) {
+            throw new InvalidAmountException(messageSource.getMessage(e.getMessage(), null, locale));
+        }
     }
 
 }

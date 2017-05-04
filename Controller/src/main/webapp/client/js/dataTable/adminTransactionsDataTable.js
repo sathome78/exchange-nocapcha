@@ -130,7 +130,7 @@ $(function () {
             if (sourceType === "USER_TRANSFER") {
                 getTransferDetailedInfo(sourceId);
             } else if (sourceType === "ORDER") {
-                getOrderDetailedInfo(null, sourceId, false);
+                getOrderDetailedInfo(sourceId, false);
             } else if (sourceType === "WITHDRAW") {
                 getWithdrawDetailedInfo(sourceId);
             }

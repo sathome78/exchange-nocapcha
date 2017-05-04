@@ -16,6 +16,7 @@ import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.service.*;
+import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.MerchantCurrencyBlockedException;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.UnsupportedMerchantException;
@@ -282,8 +283,8 @@ public class MerchantServiceImpl implements MerchantService {
     final Map<String, String> result = new HashMap<>();
     final BigDecimal commission = commissionService.findCommissionByTypeAndRole(type, userService.getUserRoleFromSecurityContext()).getValue();
     final BigDecimal commissionMerchant = type == USER_TRANSFER ? BigDecimal.ZERO : commissionService.getCommissionMerchant(merchant, currency, type);
-    final BigDecimal commissionTotal = commission.add(commissionMerchant).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP);
-    BigDecimal commissionAmount = amount.multiply(commissionTotal).divide(HUNDREDTH).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP);
+    final BigDecimal commissionTotal = commission.add(commissionMerchant).setScale(currencyService.resolvePrecisionByOperationType(currency, type), ROUND_HALF_UP);
+    BigDecimal commissionAmount = amount.multiply(commissionTotal).divide(HUNDREDTH).setScale(currencyService.resolvePrecisionByOperationType(currency, type), ROUND_HALF_UP);
     String commissionString = Stream.of("(", commissionTotal.stripTrailingZeros().toString(), "%)").collect(Collectors.joining(""));
     if (type == OUTPUT) {
       BigDecimal merchantMinFixedCommission = commissionService.getMinFixedCommission(merchant, currency);
@@ -293,8 +294,11 @@ public class MerchantServiceImpl implements MerchantService {
       }
     }
     LOG.debug("commission: " + commissionString);
-    final BigDecimal resultAmount = type != OUTPUT ? amount.add(commissionAmount).setScale(currencyService.resolvePrecision(currency), ROUND_HALF_UP) :
-        amount.subtract(commissionAmount).setScale(currencyService.resolvePrecision(currency), ROUND_DOWN);
+    final BigDecimal resultAmount = type != OUTPUT ? amount.add(commissionAmount).setScale(currencyService.resolvePrecisionByOperationType(currency, type), ROUND_HALF_UP) :
+        amount.subtract(commissionAmount).setScale(currencyService.resolvePrecisionByOperationType(currency, type), ROUND_DOWN);
+    if (resultAmount.signum() <= 0) {
+      throw new InvalidAmountException("merchants.invalidSum");
+    }
     result.put("commission", commissionString);
     result.put("commissionAmount", currencyService.amountToString(commissionAmount, currency));
     result.put("amount", currencyService.amountToString(resultAmount, currency));
@@ -326,16 +330,19 @@ public class MerchantServiceImpl implements MerchantService {
     final Commission commissionByType = commissionService.findCommissionByTypeAndRole(operationType, user.getRole());
     final BigDecimal commissionMerchant = commissionService.getCommissionMerchant(merchant.getName(), currency.getName(), operationType);
     final BigDecimal commissionTotal = commissionByType.getValue().add(commissionMerchant)
-        .setScale(currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP);
+        .setScale(currencyService.resolvePrecisionByOperationType(currency.getName(), operationType), ROUND_HALF_UP);
     BigDecimal commissionAmount =
         commissionTotal
             .multiply(amount)
-            .divide(valueOf(100), currencyService.resolvePrecision(currency.getName()), ROUND_HALF_UP);
+            .divide(valueOf(100), currencyService.resolvePrecisionByOperationType(currency.getName(), operationType), ROUND_HALF_UP);
     commissionAmount = correctForMerchantFixedCommission(merchant.getName(), currency.getName(), operationType, commissionAmount);
     final Wallet wallet = walletService.findByUserAndCurrency(user, currency);
     final BigDecimal newAmount = payment.getOperationType() == INPUT ?
         amount :
-        amount.subtract(commissionAmount).setScale(currencyService.resolvePrecision(currency.getName()), ROUND_DOWN);
+        amount.subtract(commissionAmount).setScale(currencyService.resolvePrecisionByOperationType(currency.getName(), operationType), ROUND_DOWN);
+    if (newAmount.signum() <= 0) {
+      throw new InvalidAmountException("merchants.invalidSum");
+    }
     TransactionSourceType transactionSourceType = operationType == OUTPUT ? TransactionSourceType.WITHDRAW :
         TransactionSourceType.convert(merchant.getTransactionSourceTypeId());
     final CreditsOperation creditsOperation = new CreditsOperation.Builder()
@@ -367,16 +374,6 @@ public class MerchantServiceImpl implements MerchantService {
     return commissionAmount.compareTo(merchantMinFixedCommission) < 0 ? merchantMinFixedCommission : commissionAmount;
   }
 
-  private BigDecimal addMinimalCommission(BigDecimal commissionAmount, String name) {
-    if (commissionAmount.compareTo(BigDecimal.ZERO) == 0) {
-      if (currencyService.resolvePrecision(name) == 2) {
-        commissionAmount = commissionAmount.add(new BigDecimal("0.01"));
-      } else {
-        commissionAmount = commissionAmount.add(new BigDecimal("0.00000001"));
-      }
-    }
-    return commissionAmount;
-  }
 
   private boolean isPayable(Merchant merchant, Currency currency, BigDecimal sum) {
     final BigDecimal minSum = merchantDao.getMinSum(merchant.getId(), currency.getId());

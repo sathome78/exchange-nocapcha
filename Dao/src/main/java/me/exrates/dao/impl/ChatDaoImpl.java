@@ -44,7 +44,8 @@ public class ChatDaoImpl implements ChatDao {
 
     @Override
     public void persist(final ChatLang lang, final Set<ChatMessage> message) {
-        final String sql = "INSERT INTO CHAT_" + lang.val + "(id, user_id, body, message_time) VALUES (:id, :userId, :body, :time)";
+        final String sql = "INSERT INTO CHAT_" + lang.val + "(id, user_id, body, message_time) VALUES (:id, :userId, :body, :time) " +
+                " ON DUPLICATE KEY UPDATE body = :body";
         final SqlParameterSource[] batch = SqlParameterSourceUtils.createBatch(message.toArray());
         jdbcTemplate.batchUpdate(sql, batch);
     }

@@ -3,6 +3,8 @@
  */
 
 function RightSiderClass() {
+    var currentTime;
+
     if (RightSiderClass.__instance) {
         return RightSiderClass.__instance;
     } else if (this === window) {
@@ -21,9 +23,13 @@ function RightSiderClass() {
     /*===========================================================*/
     (function init() {
         that.newsList = new NewsClass($newsLoadingImg);
-        setInterval(function () {
-            $('#current-datetime').text(moment.utc().format('YYYY-MM-DD HH:mm:ss'));
-        }, 1000)
+        $.get('/utcOffset', function (data) {
+            currentTime = moment().utcOffset(data);
+            setInterval(function () {
+                $('#current-datetime').text(currentTime.format('YYYY-MM-DD HH:mm:ss'));
+                currentTime.add(1, 's');
+            }, 1000)
+        });
     })();
 
 

@@ -261,5 +261,6 @@ public class BitcoinServiceImpl implements BitcoinService {
     }
     BigDecimal withdrawAmount = new BigDecimal(withdrawMerchantOperationDto.getAmount());
     bitcoinWalletService.sendToAddressAuto(withdrawMerchantOperationDto.getAccountTo(), withdrawAmount);
+ //   throw new NotImplimentedMethod("Not implemented!");
   }
 }

@@ -88,8 +88,7 @@ function changeChatLocale(lang) {
     $('#chat .mCSB_container').empty();
     $('#new_mess').find('input[name="lang"]').val(lang);
 
-    //TODO temporary disable WS connection
-  //  connect(lang);
+    connect(lang);
     loadChatHistory(lang);
 }
 

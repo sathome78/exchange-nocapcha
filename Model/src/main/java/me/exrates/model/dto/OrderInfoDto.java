@@ -1,14 +1,20 @@
 package me.exrates.model.dto;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import me.exrates.model.serializer.LocalDateTimeSerializer;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Created by Valk on 11.05.2016.
  */
+@Getter @Setter
+@ToString
 public class OrderInfoDto {
     private int id;
     @JsonSerialize(using = LocalDateTimeSerializer.class)
@@ -28,135 +34,9 @@ public class OrderInfoDto {
     private String orderAcceptorEmail;
     private String transactionCount;
     private String companyCommission;
+    private Integer source;
+    private List<Integer> children;
 
-    /*getters setters*/
 
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public LocalDateTime getDateCreation() {
-        return dateCreation;
-    }
-
-    public void setDateCreation(LocalDateTime dateCreation) {
-        this.dateCreation = dateCreation;
-    }
-
-    public LocalDateTime getDateAcception() {
-        return dateAcception;
-    }
-
-    public void setDateAcception(LocalDateTime dateAcception) {
-        this.dateAcception = dateAcception;
-    }
-
-    public String getCurrencyPairName() {
-        return currencyPairName;
-    }
-
-    public void setCurrencyPairName(String currencyPairName) {
-        this.currencyPairName = currencyPairName;
-    }
-
-    public String getOrderTypeName() {
-        return orderTypeName;
-    }
-
-    public void setOrderTypeName(String orderTypeName) {
-        this.orderTypeName = orderTypeName;
-    }
-
-    public String getOrderStatusName() {
-        return orderStatusName;
-    }
-
-    public void setOrderStatusName(String orderStatusName) {
-        this.orderStatusName = orderStatusName;
-    }
-
-    public String getExrate() {
-        return exrate;
-    }
-
-    public void setExrate(String exrate) {
-        this.exrate = exrate;
-    }
-
-    public String getAmountBase() {
-        return amountBase;
-    }
-
-    public void setAmountBase(String amountBase) {
-        this.amountBase = amountBase;
-    }
-
-    public String getAmountConvert() {
-        return amountConvert;
-    }
-
-    public void setAmountConvert(String amountConvert) {
-        this.amountConvert = amountConvert;
-    }
-
-    public String getCurrencyBaseName() {
-        return currencyBaseName;
-    }
-
-    public void setCurrencyBaseName(String currencyBaseName) {
-        this.currencyBaseName = currencyBaseName;
-    }
-
-    public String getCurrencyConvertName() {
-        return currencyConvertName;
-    }
-
-    public void setCurrencyConvertName(String currencyConvertName) {
-        this.currencyConvertName = currencyConvertName;
-    }
-
-    public String getOrderCreatorEmail() {
-        return orderCreatorEmail;
-    }
-
-    public void setOrderCreatorEmail(String orderCreatorEmail) {
-        this.orderCreatorEmail = orderCreatorEmail;
-    }
-
-    public String getOrderAcceptorEmail() {
-        return orderAcceptorEmail;
-    }
-
-    public void setOrderAcceptorEmail(String orderAcceptorEmail) {
-        this.orderAcceptorEmail = orderAcceptorEmail;
-    }
-
-    public String getTransactionCount() {
-        return transactionCount;
-    }
-
-    public void setTransactionCount(String transactionCount) {
-        this.transactionCount = transactionCount;
-    }
-
-    public String getCompanyCommission() {
-        return companyCommission;
-    }
-
-    public void setCompanyCommission(String companyCommission) {
-        this.companyCommission = companyCommission;
-    }
-
-    public String getStopRate() {
-        return stopRate;
-    }
-
-    public void setStopRate(String stopRate) {
-        this.stopRate = stopRate;
-    }
 };
 

@@ -31,6 +31,7 @@ public class ExOrder {
     private LocalDateTime dateAcception;
     private OrderStatus status;
     private CurrencyPair currencyPair;
+    private Integer sourceId;
     private BigDecimal stop;
     private OrderBaseType orderBaseType = OrderBaseType.LIMIT;
 
@@ -50,6 +51,7 @@ public class ExOrder {
         this.commissionFixedAmount = orderCreateDto.getComission();
         this.status = orderCreateDto.getStatus();
         this.currencyPair = orderCreateDto.getCurrencyPair();
+        this.sourceId = orderCreateDto.getSourceId();
         this.stop = orderCreateDto.getStop();
         this.orderBaseType = orderCreateDto.getOrderBaseType();
     }

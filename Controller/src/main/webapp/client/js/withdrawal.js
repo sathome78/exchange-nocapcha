@@ -40,11 +40,17 @@ $(function () {
     tableViewType = "FOR_WORK";
     filterParams = '';
     withdrawRequestsBaseUrl = '/2a8fy7b07dxe44/withdrawRequests?viewType=';
-    $('#withdraw-requests-new').addClass('active');
+    $('#withdraw-requests-manual').addClass('active');
 
 
     $('#withdraw-requests-new').click(function () {
         changeTableViewType(this, "FOR_WORK")
+    });
+    $('#withdraw-requests-manual').click(function () {
+        changeTableViewType(this, "FOR_MANUAL")
+    });
+    $('#withdraw-requests-confirm').click(function () {
+        changeTableViewType(this, "FOR_CONFIRM")
     });
     $('#withdraw-requests-auto').click(function () {
         changeTableViewType(this, "AUTO_PROCESSING")
@@ -347,7 +353,7 @@ function updateWithdrawalTable() {
                 },
                 {
                     "data": "userId",
-                    "name": "WITHDRAW_REQUEST.user_id",
+                    "name": "USER.email",
                     "render": function (data, type, row) {
                         return '<a data-userEmail="' + row.userEmail + '" href="/2a8fy7b07dxe44/userInfo?id=' + data + '">' + row.userEmail + '</a>'
                     }
@@ -358,7 +364,7 @@ function updateWithdrawalTable() {
                 },
                 {
                     "data": "currencyName",
-                    "name": "WITHDRAW_REQUEST.currency_id"
+                    "name": "CURRENCY.name"
                 },
 
                 {
@@ -367,7 +373,7 @@ function updateWithdrawalTable() {
                 },
                 {
                     "data": "merchantName",
-                    "name": "WITHDRAW_REQUEST.merchant_id",
+                    "name": "MERCHANT.name",
                     "render": function (data, type, row) {
                         var merchantName = data;
                         var merchantImageName = '';

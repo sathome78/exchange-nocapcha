@@ -31,7 +31,9 @@ public interface OrderService {
   List<ExOrderStatisticsShortByPairsDto> getOrdersStatisticByPairsSessionless(Locale locale);
 
   OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate);
-
+  
+  OrderCreateDto prepareNewOrder(CurrencyPair activeCurrencyPair, OperationType orderType, String userEmail, BigDecimal amount, BigDecimal rate, Integer sourceId);
+  
   OrderValidationDto validateOrder(OrderCreateDto orderCreateDto);
 
   @Transactional
@@ -110,7 +112,9 @@ public interface OrderService {
    * @param locale  is current locale. Used to generate messages
    */
   void acceptOrder(int userId, int orderId, Locale locale);
-
+  
+  void acceptOrderByAdmin(String acceptorEmail, Integer orderId, Locale locale);
+  
   /**
    * Cancels the order and set status "CANCELLED"
    * Only order with status "OPENED" can be cancelled

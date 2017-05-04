@@ -55,6 +55,7 @@ To determine which of these forms to be filled, we must set field operationType
     private int comissionId;
     private BigDecimal comission; //calculated comission amount depending on operationType and corresponding comission rate
     private BigDecimal totalWithComission; //total + comission
+    private Integer sourceId;
 
     /*constructors*/
 
@@ -278,6 +279,14 @@ To determine which of these forms to be filled, we must set field operationType
 
     public void setTotalWithComission(BigDecimal totalWithComission) {
         this.totalWithComission = totalWithComission;
+    }
+
+    public Integer getSourceId() {
+        return sourceId;
+    }
+
+    public void setSourceId(Integer sourceId) {
+        this.sourceId = sourceId;
     }
 
     public BigDecimal getStop() {

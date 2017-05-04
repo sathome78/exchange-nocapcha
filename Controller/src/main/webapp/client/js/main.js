@@ -67,6 +67,7 @@ $(function(){
     const EDC = 'EDC';
     const OKPAY = 'OkPay';
     const PAYEER = 'Payeer';
+    const ETHEREUM = 'Ethereum';
 
     const NO_ACTION = 'javascript:void(0);';
 
@@ -155,31 +156,31 @@ $(function(){
 
         });
 
-
-    function resetMerchantsList(currency) {
-        var optionsHTML = '';
-        $.each(merchantsData,function(index){
-            if (merchantsData[index].currencyId == currency) {
-                optionsHTML+='<option value="'+merchantsData[index].merchantId+'">'+merchantsData[index].description+'</option>';
-                fractionalAmount = merchantsData[index].minSum.noExponents().split('.')[1].length;
+    (function loadData(dataUrl) {
+        $.ajax({
+            url: dataUrl,
+            type: 'GET',
+            dataType: 'json'
+        }).done(function (data) {
+            merchantsData = data;
+            $.each(merchantsData,function(index){
+                if (merchantsData[index].currencyId == $('#currency').val()) {
+                    fractionalAmount = merchantsData[index].minSum.noExponents().split('.')[1].length;
+                }
+            });
+        }).fail(function (jqXHR, textStatus) {
+            console.log(jqXHR);
+            console.log(textStatus);
+            if (textStatus === 'parsererror') {
+                console.log('Requested JSON parse failed.');
+            } else if (textStatus === 'abort') {
+                console.log('Ajax request was aborted.');
+            } else {
+                console.log('Error status code:' + jqXHR.status);
             }
         });
-        if (optionsHTML==='') {
-            document.getElementById('sum').disabled  = true;
-            merchant.fadeOut();
-            button.prop('disabled', true);
-        } else {
-            merchant.fadeIn();
-            //button.prop('disabled', false);
-        }
-        merchant.empty();
-        merchant.html(optionsHTML);
-        if (isCorrectSum()) {
-            //button.prop('disabled',false);
-        } else {
-            button.prop('disabled',true);
-        }
-    }
+    })('/merchants/data');
+
 
     function resetFormAction(operationType,merchant,form) {
         var formAction = {
@@ -194,6 +195,7 @@ $(function(){
             interkassa:'https://sci.interkassa.com/',
             okpay:'/merchants/okpay/payment/prepare/',
             payeer:'/merchants/payeer/payment/prepare/',
+            ethereum:'/merchants/ethereum/payment/prepare/',
             invoice: '/merchants/invoice/preSubmit'
 
         };
@@ -228,6 +230,9 @@ $(function(){
                     break;
                 case PAYEER :
                     form.attr('action', formAction.payeer);
+                    break;
+                case ETHEREUM :
+                    form.attr('action', formAction.ethereum);
                     break;
                 case INVOICE:
                     form.attr('action', formAction.invoice);
@@ -496,6 +501,46 @@ $(function(){
                         console.log(error);
                     });
                     break;
+                case ETHEREUM :
+                    $('#inputPaymentProcess')
+                        .prop('disabled', true)
+                        .html($('#mrcht-waiting').val());
+                    if ($($timeoutWarning).size() > 0) {
+                        $($timeoutWarning).show();
+                    }
+                    $.ajax('/merchants/ethereum/payment/prepare', {
+                        headers: {
+                            'X-CSRF-Token': $("input[name='_csrf']").val()
+                        },
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify($(form).serializeObject()),
+                        success:function (response) {
+                            $('#inputPaymentProcess')
+                                .prop('disabled', false)
+                                .html($('#mrcht-ready').val());
+                            console.log(response);
+                            if ($($timeoutWarning).size() > 0) {
+                                $($timeoutWarning).hide();
+                            }
+                            $.each(response, function (key) {
+                                if(key=='notification'){
+                                    $('.paymentInfo').html(response[key] + "<p>");
+                                }
+                             });
+
+                            responseControls();
+                        },
+                        error:function (jqXHR, textStatus, errorThrown) {
+                            console.log(jqXHR);
+                            console.log(textStatus);
+                            console.log(errorThrown);
+                            $('.paymentInfo').html(jqXHR.responseJSON.error);
+
+                            responseControls();
+                        }
+                    });
+                    break;
                 default:
                     callback();
             }
@@ -550,13 +595,10 @@ $(function(){
 
         }).fail(function () {
             $('.paymentInfo').hide();
+            $('.wallet_input').hide();
             $('.merchantError').show();
         });
     }
-
-    currency.on('change', function () {
-        resetMerchantsList(this.value);
-    });
 
     function submitProcess() {
         var targetMerchant = merchantName;

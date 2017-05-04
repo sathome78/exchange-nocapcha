@@ -28,10 +28,8 @@ public interface CurrencyDao {
 	Currency findById(int id);
 
 	List<Currency> findAllCurrencies();
-
-    boolean updateMinWithdraw(int currencyId, BigDecimal minAmount);
-
-    List<CurrencyLimit> retrieveCurrencyLimitsForRoles(List<Integer> roleIds, OperationType operationType);
+  
+  List<CurrencyLimit> retrieveCurrencyLimitsForRoles(List<Integer> roleIds, OperationType operationType);
 
     List<TransferLimitDto> retrieveMinTransferLimits(List<Integer> currencyIds, Integer roleId);
 
