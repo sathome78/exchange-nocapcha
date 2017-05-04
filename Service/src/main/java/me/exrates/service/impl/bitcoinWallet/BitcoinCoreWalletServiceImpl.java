@@ -27,6 +27,8 @@ import me.exrates.service.exception.BitcoinCoreException;
 import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.IllegalTransactionProvidedStatusException;
 import me.exrates.service.exception.invoice.IllegalInvoiceAmountException;
+import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
+import me.exrates.service.exception.invoice.InvalidAccountException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -434,7 +436,17 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
       Map<String, BigDecimal> payments = new HashMap<>();
       payments.put(address, amount);
       return btcdClient.sendMany("", payments, MIN_CONFIRMATIONS_FOR_SPENDING);
-    } catch (BitcoindException | CommunicationException e) {
+    } catch (BitcoindException e) {
+      log.error(e);
+      if (e.getCode() == -5) {
+        throw new InvalidAccountException();
+      }
+      if (e.getCode() == -6) {
+        throw new InsufficientCostsInWalletException();
+      }
+      throw new BitcoinCoreException(e.getMessage());
+    }
+    catch (CommunicationException e) {
       log.error(e);
       throw new BitcoinCoreException(e.getMessage());
     }

@@ -1,17 +1,27 @@
 package me.exrates.service.job.invoice;
 
 import lombok.extern.log4j.Log4j2;
+import me.exrates.model.Email;
 import me.exrates.model.dto.WithdrawRequestPostDto;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.WithdrawStatusEnum;
+import me.exrates.service.SendMailService;
+import me.exrates.service.UserService;
 import me.exrates.service.WithdrawService;
+import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
+import me.exrates.service.exception.invoice.InvalidAccountException;
+import me.exrates.service.exception.invoice.MerchantException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Locale;
 
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.POST_AUTO;
 
@@ -20,10 +30,27 @@ import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.POST_AUTO;
  */
 @Service
 @Log4j2(topic = "job")
+@PropertySource(value = {"classpath:/job.properties"})
 public class withdrawRequestJob {
+  
+  
+  @Value("${withdraw.rejectErrorTimeout}")
+  private Long REJECT_ERROR_TIMEOUT;
+  
+  @Value("${withdraw.walletNotifyEmails}")
+  private String WALLET_NOTIFY_EMAILS;
 
   @Autowired
   WithdrawService withdrawService;
+  
+  @Autowired
+  private UserService userService;
+  
+  @Autowired
+  SendMailService sendMailService;
+  
+  @Autowired
+  MessageSource messageSource;
 
   @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 1)
   private void setInPostingStatus() throws Exception {
@@ -43,12 +70,43 @@ public class withdrawRequestJob {
       for (WithdrawRequestPostDto withdrawRequest : withdrawForPostingList) {
         try {
           withdrawService.autoPostWithdrawalRequest(withdrawRequest);
-        } catch (Exception e) {
+        }
+        catch (InsufficientCostsInWalletException e) {
+          log.error(ExceptionUtils.getStackTrace(e));
+          withdrawService.rejectError(withdrawRequest.getId(), REJECT_ERROR_TIMEOUT, e.getReason());
+          sendEmailsOnInsufficientCosts(withdrawRequest.getCurrencyName());
+        }
+        catch (InvalidAccountException e) {
+          log.error(ExceptionUtils.getStackTrace(e));
+          withdrawService.rejectError(withdrawRequest.getId(), e.getReason());
+        }
+        catch (MerchantException e) {
+          log.error(ExceptionUtils.getStackTrace(e));
+          withdrawService.rejectToReview(withdrawRequest.getId());
+        }
+        catch (Exception e) {
           log.error(ExceptionUtils.getStackTrace(e));
         }
       }
-    } catch (Exception e) {
+    }
+        catch (Exception e) {
       log.error(ExceptionUtils.getStackTrace(e));
+    }
+  }
+  
+  private void sendEmailsOnInsufficientCosts(String currencyName) {
+    String[] notifyEmails = WALLET_NOTIFY_EMAILS.split(",");
+    for (String emailAddress : notifyEmails) {
+      String userLanguage = userService.getPreferedLangByEmail(emailAddress);
+      if (userLanguage != null) {
+        Email email = new Email();
+        email.setTo(emailAddress);
+        Locale locale = new Locale(userLanguage);
+        email.setSubject(messageSource.getMessage("withdraw.wallet.insufficientCosts.title", null, locale));
+        email.setMessage(messageSource.getMessage("withdraw.wallet.insufficientCosts.body", new Object[]{currencyName}, locale));
+        sendMailService.sendInfoMail(email);
+      }
+      
     }
   }
 

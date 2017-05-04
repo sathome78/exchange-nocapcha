@@ -256,11 +256,11 @@ public class BitcoinServiceImpl implements BitcoinService {
   
   @Override
   public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
-    /*if (!"BTC".equalsIgnoreCase(withdrawMerchantOperationDto.getCurrency())) {
+    if (!"BTC".equalsIgnoreCase(withdrawMerchantOperationDto.getCurrency())) {
       throw new WithdrawRequestPostException("Currency not supported by merchant");
     }
     BigDecimal withdrawAmount = new BigDecimal(withdrawMerchantOperationDto.getAmount());
-    bitcoinWalletService.sendToAddressAuto(withdrawMerchantOperationDto.getAccountTo(), withdrawAmount);*/
-    throw new NotImplimentedMethod("Not implemented!");
+    bitcoinWalletService.sendToAddressAuto(withdrawMerchantOperationDto.getAccountTo(), withdrawAmount);
+ //   throw new NotImplimentedMethod("Not implemented!");
   }
 }

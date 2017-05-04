@@ -4,6 +4,8 @@ package me.exrates.service.exception.invoice;
  * Created by OLEG on 28.04.2017.
  */
 public class MerchantException extends RuntimeException {
+  private final String REASON_CODE = "withdraw.reject.reason.general";
+  
   public MerchantException() {
   }
   
@@ -17,5 +19,9 @@ public class MerchantException extends RuntimeException {
   
   public MerchantException(Throwable cause) {
     super(cause);
+  }
+  
+  public String getReason() {
+    return REASON_CODE;
   }
 }
