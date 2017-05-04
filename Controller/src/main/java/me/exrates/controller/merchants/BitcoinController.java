@@ -16,6 +16,7 @@ import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.exception.invoice.RejectedPaymentInvoice;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -51,7 +52,7 @@ public class BitcoinController {
   private LocaleResolver localeResolver;
 
   @Autowired
-  public BitcoinController(final BitcoinService bitcoinService,
+  public BitcoinController(final @Qualifier("bitcoinService") BitcoinService bitcoinService,
                            final MerchantService merchantService,
                            final MessageSource messageSource) {
     this.bitcoinService = bitcoinService;

@@ -108,6 +108,7 @@ public class AdminController {
   @Autowired
   private InvoiceService invoiceService;
   @Autowired
+  @Qualifier("bitcoinService")
   private BitcoinService bitcoinService;
   @Autowired
   private NotificationService notificationService;
@@ -123,6 +124,7 @@ public class AdminController {
   WithdrawService withdrawService;
   
   @Autowired
+  @Qualifier("bitcoinCoreWalletService")
   private BitcoinWalletService bitcoinWalletService;
 
   @Autowired

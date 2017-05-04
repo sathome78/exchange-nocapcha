@@ -58,7 +58,6 @@ import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
-@Service
 @PropertySource(value = {"classpath:/job.properties"})
 public class BitcoinServiceImpl implements BitcoinService {
 
@@ -69,26 +68,20 @@ public class BitcoinServiceImpl implements BitcoinService {
   
 
 
-  private final PendingPaymentDao paymentDao;
-  private final TransactionService transactionService;
-  private final AlgorithmService algorithmService;
-  private final NotificationService notificationService;
+  @Autowired
+  private PendingPaymentDao paymentDao;
+  @Autowired
+  private TransactionService transactionService;
+  @Autowired
+  private AlgorithmService algorithmService;
+  @Autowired
+  private NotificationService notificationService;
   private BitcoinWalletService bitcoinWalletService;
+  @Autowired
   private BitcoinTransactionService bitcoinTransactionService;
 
-  @Autowired
-  public BitcoinServiceImpl(final PendingPaymentDao paymentDao,
-                            final TransactionService transactionService,
-                            final AlgorithmService algorithmService,
-                            final NotificationService notificationService,
-                            final BitcoinWalletService bitcoinWalletService,
-                            final BitcoinTransactionService bitcoinTransactionService) {
-    this.paymentDao = paymentDao;
-    this.transactionService = transactionService;
-    this.algorithmService = algorithmService;
-    this.notificationService = notificationService;
+  public BitcoinServiceImpl(BitcoinWalletService bitcoinWalletService) {
     this.bitcoinWalletService = bitcoinWalletService;
-    this.bitcoinTransactionService = bitcoinTransactionService;
   }
 
   

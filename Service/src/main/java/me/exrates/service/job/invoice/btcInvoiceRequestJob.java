@@ -5,6 +5,7 @@ import me.exrates.service.BitcoinService;
 import me.exrates.service.InvoiceService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -22,6 +23,7 @@ public class btcInvoiceRequestJob {
   private Integer EXPIRE_CLEAN_INTERVAL_MINUTES;
 
   @Autowired
+  @Qualifier("bitcoinService")
   BitcoinService bitcoinService;
 
   @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 6)

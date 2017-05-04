@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
 import java.io.IOException;
@@ -51,21 +52,22 @@ import java.util.stream.Collectors;
  * Created by OLEG on 14.03.2017.
  */
 @Log4j2(topic = "bitcoin_core")
-@PropertySource("classpath:/merchants/btc_wallet.properties")
 public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
+  private final String walletPassword;
+  private final String backupFolder;
+  private final String nodePropertySource;
   
   private static final int KEY_POOL_LOW_THRESHOLD = 10;
   private static final int MIN_CONFIRMATIONS_FOR_SPENDING = 3;
   
-  @Value("${btc.wallet.password}")
-  private String walletPassword;
-  
-  @Value("${btc.backup.folder}")
-  private String btcBackupFolder;
-    
- 
-  @Autowired
   private BitcoinTransactionService bitcoinTransactionService;
+  
+  public BitcoinCoreWalletServiceImpl(String walletPassword, String backupFolder, String nodePropertySource, BitcoinTransactionService bitcoinTransactionService) {
+    this.walletPassword = walletPassword;
+    this.backupFolder = backupFolder;
+    this.nodePropertySource = nodePropertySource;
+    this.bitcoinTransactionService = bitcoinTransactionService;
+  }
   
   private BtcdClient btcdClient;
   
@@ -74,7 +76,7 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
   
   @Override
   public void initBitcoin() {
-  
+    
     try {
       log.debug("Starting Bitcoin Core client");
       initBitcoindClient();
@@ -84,7 +86,7 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
     } catch (BitcoindException | CommunicationException | IOException e) {
       log.error(e);
     }
-  
+    
   }
   
   
@@ -112,7 +114,7 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
   @Scheduled(initialDelay = 5 * 60000, fixedDelay = 12 * 60 * 60000)
   public void backupWallet() {
     try {
-      String filename = new StringJoiner("").add(btcBackupFolder).add("backup_")
+      String filename = new StringJoiner("").add(backupFolder).add("backup_")
               .add((LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))))
               .add(".dat").toString();
       log.debug("Backing up wallet to file: " + filename);
@@ -137,7 +139,7 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
     CloseableHttpClient httpProvider = HttpClients.custom().setConnectionManager(cm)
             .build();
     Properties nodeConfig = new Properties();
-    nodeConfig.load(getClass().getClassLoader().getResourceAsStream("node_config.properties"));
+    nodeConfig.load(getClass().getClassLoader().getResourceAsStream(nodePropertySource));
     log.debug("Node config: " + nodeConfig);
     btcdClient = new BtcdClientImpl(httpProvider, nodeConfig);
   }
@@ -167,15 +169,15 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
       InvoiceStatus beginStatus = PendingPaymentStatusEnum.getBeginState();
       targetTx.getDetails().stream().filter(payment -> payment.getCategory() == PaymentCategories.RECEIVE)
               .forEach(payment -> {
-        String address = payment.getAddress();
-        if (bitcoinTransactionService.existsPendingPaymentWithStatusAndAddress(beginStatus, address) && targetTx.getConfirmations() == 0) {
-          try {
-            bitcoinTransactionService.markStartConfirmationProcessing(address, targetTx.getTxId(), payment.getAmount());
-          } catch (IllegalInvoiceAmountException e) {
-            log.error(ExceptionUtils.getStackTrace(e));
-          }
-        }
-      });
+                String address = payment.getAddress();
+                if (bitcoinTransactionService.existsPendingPaymentWithStatusAndAddress(beginStatus, address) && targetTx.getConfirmations() == 0) {
+                  try {
+                    bitcoinTransactionService.markStartConfirmationProcessing(address, targetTx.getTxId(), payment.getAmount());
+                  } catch (IllegalInvoiceAmountException e) {
+                    log.error(ExceptionUtils.getStackTrace(e));
+                  }
+                }
+              });
     } else {
       log.error("Invalid transaction");
     }
@@ -354,16 +356,16 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
     try {
       return btcdClient.listSinceBlock().getPayments().stream()
               .map(payment -> {
-        BtcTransactionHistoryDto dto = new BtcTransactionHistoryDto();
-        dto.setTxId(payment.getTxId());
-        dto.setAddress(payment.getAddress());
-        dto.setCategory(payment.getCategory().getName());
-        dto.setAmount(BigDecimalProcessing.formatNonePoint(payment.getAmount(), true));
-        dto.setFee(BigDecimalProcessing.formatNonePoint(payment.getFee(), true));
-        dto.setConfirmations(payment.getConfirmations());
-        dto.setTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(payment.getTime() * 1000L), ZoneId.systemDefault()));
-        return dto;
-      }).collect(Collectors.toList());
+                BtcTransactionHistoryDto dto = new BtcTransactionHistoryDto();
+                dto.setTxId(payment.getTxId());
+                dto.setAddress(payment.getAddress());
+                dto.setCategory(payment.getCategory().getName());
+                dto.setAmount(BigDecimalProcessing.formatNonePoint(payment.getAmount(), true));
+                dto.setFee(BigDecimalProcessing.formatNonePoint(payment.getFee(), true));
+                dto.setConfirmations(payment.getConfirmations());
+                dto.setTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(payment.getTime() * 1000L), ZoneId.systemDefault()));
+                return dto;
+              }).collect(Collectors.toList());
     } catch (BitcoindException | CommunicationException e) {
       log.error(e);
       throw new BitcoinCoreException(e.getMessage());
@@ -458,6 +460,5 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
     }
   }
   
-  
-  
+ 
 }
