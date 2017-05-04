@@ -3,11 +3,11 @@ DROP TABLE IF EXISTS STOP_ORDERS ;
 CREATE TABLE STOP_ORDERS (
   `id` int(40) NOT NULL AUTO_INCREMENT,
   `user_id` int(40) NOT NULL,
-  `child_order_id` int(40) NOT NULL,
+  `child_order_id` int(40) UNIQUE,
   `currency_pair_id` int(11) NOT NULL,
   `operation_type_id` int(40) NOT NULL,
-  `stop` double(40,9) NOT NULL,
-  `limit` double(40,9) NOT NULL,
+  `stop_rate` double(40,9) NOT NULL,
+  `limit_rate` double(40,9) NOT NULL,
   `amount_base` double(40,9) NOT NULL,
   `amount_convert` double(40,9) NOT NULL,
   `commission_id` int(40) DEFAULT NULL,
@@ -37,7 +37,7 @@ INSERT INTO TRANSACTION_SOURCE_TYPE (id, name) VALUES (10, 'STOP_ORDER');
 COMMIT;
 
 CREATE TRIGGER `STOP_ORDERS_BEFORE_UPD_TR`
-BEFORE UPDATE ON `stop_orders`
+BEFORE UPDATE ON `STOP_ORDERS`
 FOR EACH ROW
   BEGIN
     IF (NEW.status_id <> OLD.status_id) THEN
