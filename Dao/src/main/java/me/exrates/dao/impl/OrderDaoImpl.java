@@ -746,13 +746,7 @@ public class OrderDaoImpl implements OrderDao {
                 "      JOIN CURRENCY_PAIR ON (CURRENCY_PAIR.id = EXORDERS.currency_pair_id) " +
                 "      JOIN USER CREATOR ON (CREATOR.id = EXORDERS.user_id) ";
         String sqlSelectCount = "SELECT COUNT(*) ";
-        String limit;
-        if (dataTableParams.getLength() > 0) {
-            String offset = dataTableParams.getStart() > 0 ? " OFFSET :offset " : "";
-            limit = " LIMIT :limit " + offset;
-        } else {
-            limit = "";
-        }
+        String limitAndOffset = dataTableParams.getLimitAndOffsetClause();
         String orderBy = dataTableParams.getOrderByClause();
         Map<String, Object> namedParameters = new HashMap<>();
         namedParameters.put("offset", dataTableParams.getStart());
@@ -760,13 +754,8 @@ public class OrderDaoImpl implements OrderDao {
         namedParameters.putAll(adminOrderFilterData.getNamedParams());
         String criteria = adminOrderFilterData.getSQLFilterClause();
         String whereClause = StringUtils.isNotEmpty(criteria) ? "WHERE " + criteria : "";
-        String selectQuery = new StringJoiner(" ").add(sqlSelect)
-                .add(sqlFrom)
-                .add(whereClause)
-                .add(orderBy).add(limit).toString();
-        String selectCountQuery = new StringJoiner(" ").add(sqlSelectCount)
-                .add(sqlFrom)
-                .add(whereClause).toString();
+        String selectQuery = String.join(" ", sqlSelect, sqlFrom, whereClause, orderBy, limitAndOffset);
+        String selectCountQuery = String.join(" ", sqlSelectCount, sqlFrom, whereClause);
         LOGGER.debug(selectQuery);
         LOGGER.debug(selectCountQuery);
 

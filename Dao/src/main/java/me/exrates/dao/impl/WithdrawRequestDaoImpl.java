@@ -327,21 +327,10 @@ public class WithdrawRequestDaoImpl implements WithdrawRequestDao {
 
     String whereClauseFilter = StringUtils.isEmpty(filter) ? "" : " AND ".concat(filter);
     String orderClause = dataTableParams.getOrderByClause();
-    String offsetAndLimit = " LIMIT :limit OFFSET :offset ";
-    String sqlMain = new StringJoiner(" ")
-        .add("SELECT WITHDRAW_REQUEST.*, IOP.invoice_operation_permission_id ")
-        .add(sqlBase)
-        .add(whereClauseFilter)
-        .add(orderClause)
-        .add(offsetAndLimit)
-        .toString();
-
-    String sqlCount = new StringJoiner(" ")
-        .add("SELECT COUNT(*) ")
-        .add(sqlBase)
-        .add(whereClauseFilter)
-        .toString();
-
+    String offsetAndLimit = dataTableParams.getLimitAndOffsetClause();
+    String sqlMain = String.join(" ", "SELECT WITHDRAW_REQUEST.*, IOP.invoice_operation_permission_id ",
+            sqlBase, whereClauseFilter, orderClause, offsetAndLimit);
+    String sqlCount = String.join(" ", "SELECT COUNT(*) ", sqlBase, whereClauseFilter);
     Map<String, Object> params = new HashMap<String, Object>() {{
       put("status_id_list", statusIdList);
       put("requester_user_id", requesterUserId);

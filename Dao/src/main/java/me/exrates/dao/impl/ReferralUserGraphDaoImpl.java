@@ -155,7 +155,7 @@ public class ReferralUserGraphDaoImpl implements ReferralUserGraphDao {
                 @Override
                 public ReferralProfitDto mapRow(ResultSet rs, int rowNum) throws SQLException {
                     ReferralProfitDto profitDto = new ReferralProfitDto();
-                    profitDto.setAmount(rs.getDouble("ref_profit"));
+                    profitDto.setAmount(rs.getBigDecimal("ref_profit").toPlainString());
                     profitDto.setCurrencyName(rs.getString("currency_name"));
                     return profitDto;
                 }

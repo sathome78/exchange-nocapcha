@@ -44,17 +44,7 @@ $(document).ready(function() {
     });
 
 
-    $('#download_trans_history').click(function() {
-        var id = $("#user-id").val();
-        window.location.replace("/2a8fy7b07dxe44/downloadTransactionsPage?id=" + id);
-    });
 
-
-    $('#download_trans_history_action').click(function() {
-        var formParams = $('#transactions_history_download_form').serialize();
-        var url = '/2a8fy7b07dxe44/downloadTransactions?id=' + $("#user-id").val() +'&' + formParams;
-        window.open(url);
-    });
 
     $('#trans_download_start, #trans_download_end').on('change', function() {
         var formParams = $('#transactions_history_download_form').serialize();

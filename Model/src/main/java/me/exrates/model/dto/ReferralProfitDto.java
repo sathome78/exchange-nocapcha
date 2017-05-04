@@ -8,6 +8,6 @@ import lombok.Data;
 @Data
 public class ReferralProfitDto {
 
-    private double amount;
+    private String amount;
     private String currencyName;
 }
