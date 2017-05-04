@@ -29,6 +29,7 @@ import me.exrates.service.exception.IllegalTransactionProvidedStatusException;
 import me.exrates.service.exception.invoice.IllegalInvoiceAmountException;
 import me.exrates.service.exception.invoice.InsufficientCostsInWalletException;
 import me.exrates.service.exception.invoice.InvalidAccountException;
+import me.exrates.service.exception.invoice.MerchantException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -444,11 +445,11 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
       if (e.getCode() == -6) {
         throw new InsufficientCostsInWalletException();
       }
-      throw new BitcoinCoreException(e.getMessage());
+      throw new MerchantException(e.getMessage());
     }
     catch (CommunicationException e) {
       log.error(e);
-      throw new BitcoinCoreException(e.getMessage());
+      throw new MerchantException(e.getMessage());
     }
   }
   
