@@ -361,7 +361,7 @@ function TradingClass(period, chartType, currentCurrencyPair) {
     function calculateFieldsForStop() {
         var amount = +$($amountStopInput).val();
         var exchangeRate = +$($limitRateInput).val();
-        var totalForBuy = +$($totalStopInput).val(amount * exchangeRate).val();
+        $($totalStopInput).val(numeral(amount * exchangeRate).format(that.numeralFormat));
     }
 
     function calculateFieldsForStopBackward() {
@@ -380,7 +380,8 @@ function TradingClass(period, chartType, currentCurrencyPair) {
     function calculateFieldsForBuy() {
         var amount = +$($amountBuyInput).val();
         var exchangeRate = +$($exchangeRateBuyInput).val();
-        var totalForBuy = +$($totalForBuyInput).val(amount * exchangeRate).val();
+        $($totalForBuyInput).val(numeral(amount * exchangeRate).format(that.numeralFormat));
+        var totalForBuy = +$($totalForBuyInput).val();
         fillCommissionFieldsBuy(totalForBuy);
     }
     function calculateFieldsForBuyBackward() {
@@ -400,7 +401,8 @@ function TradingClass(period, chartType, currentCurrencyPair) {
     function calculateFieldsForSell() {
         var amount = +$($amountSellInput).val();
         var exchangeRate = +$($exchangeRateSellInput).val();
-        var totalForSell = +$($totalForSellInput).val(amount * exchangeRate).val();
+        $($totalForSellInput).val(numeral(amount * exchangeRate).format(that.numeralFormat));
+        var totalForSell = +$($totalForSellInput).val();
         fillCommissionFieldsSell(totalForSell);
     }
 
