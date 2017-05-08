@@ -14,7 +14,7 @@
 <%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
 <html>
 <head>
-    <title><loc:message code="btcWallet.title"/></title>
+    <title>${title}</title>
     <%@include file='links_scripts.jsp' %>
     <script type="text/javascript" src="<c:url value='/client/js/admin-btcWallet/btcWallet.js'/>"></script>
 </head>
@@ -26,15 +26,15 @@
         <%@include file='left_side_menu.jsp' %>
         <div class="col-md-8 col-md-offset-1 admin-container">
             <div class="text-center">
-                <h4><loc:message code="btcWallet.title"/></h4>
+                <h4>${title}</h4>
             </div>
             <div class="row text-center" style="font-size: 1.4rem">
                 <p class="green"><strong><loc:message code="btcWallet.balance"/>
-                    <span id="current-btc-balance">${walletInfo.balance}</span> BTC</strong></p>
+                    <span id="current-btc-balance">${walletInfo.balance}</span> ${currency}</strong></p>
                 <p ><strong><loc:message code="btcWallet.confirmedNonSpendableBalance"/>
-                    <span id="current-btc-balance">${walletInfo.confirmedNonSpendableBalance}</span> BTC</strong></p>
+                    <span id="current-btc-balance">${walletInfo.confirmedNonSpendableBalance}</span> ${currency}</strong></p>
                 <p class="lightblue"><strong><loc:message code="btcWallet.unconfirmedBalance"/>
-                    <span id="current-btc-unconfirmed-balance">${walletInfo.unconfirmedBalance}</span> BTC</strong></p>
+                    <span id="current-btc-unconfirmed-balance">${walletInfo.unconfirmedBalance}</span> ${currency}</strong></p>
             </div>
             <sec:authorize access="hasAuthority('${admin_manageBtcWallet}')">
             <div id="walletMenu" class="buttons text-center">
@@ -43,7 +43,7 @@
                 </button>
 
                     <button class="adminForm-toggler blue-box">
-                        <loc:message code="btcWallet.send.title"/>
+                        <loc:message code="btcWallet.send.title"/> ${currency}
                     </button>
             </div>
             </sec:authorize>
@@ -69,7 +69,7 @@
                 </div>
                 <sec:authorize access="hasAuthority('${admin_manageBtcWallet}')">
                 <div id="panel2" class="tab-pane">
-                    <div class="text-center"><h4><loc:message code="btcWallet.send.title"/></h4></div>
+                    <div class="text-center"><h4><loc:message code="btcWallet.send.title"/> ${currency}</h4></div>
                     <div class="col-md-8 col-md-offset-2">
                         <form id="send-btc-form" class="form_full_width">
 
@@ -199,7 +199,7 @@
 
 
 <span hidden id="confirmBtcMessage"><loc:message code="btcWallet.payment.prompt"/></span>
-
+<span hidden id="currencyName">${currency}</span>
 <%@include file='../fragments/footer.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>

@@ -2,6 +2,7 @@ package me.exrates.controller;
 
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.InvalidNumberParamException;
+import me.exrates.controller.exception.UnsupportedWalletException;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
@@ -126,6 +127,10 @@ public class AdminController {
   @Autowired
   @Qualifier("bitcoinCoreWalletService")
   private BitcoinWalletService bitcoinWalletService;
+  
+  @Autowired
+  @Qualifier("litecoinCoreWalletService")
+  private BitcoinWalletService litecoinWalletService;
 
   @Autowired
   @Qualifier("ExratesSessionRegistry")
@@ -1114,67 +1119,85 @@ public class AdminController {
     return orderService.getDataForCandleChart(currencyPair, backDealInterval, startTime);
   }
   
-  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet", method = RequestMethod.GET)
-  public ModelAndView bitcoinWallet() {
-    return new ModelAndView("/admin/btcWallet", "walletInfo", bitcoinWalletService.getWalletInfo());
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{currencyName}", method = RequestMethod.GET)
+  public ModelAndView bitcoinWallet(@PathVariable String currencyName, Locale locale) {
+    ModelAndView modelAndView = new ModelAndView("/admin/btcWallet");
+    modelAndView.addObject("title", messageSource.getMessage(currencyName.toLowerCase() + "Wallet.title", null, locale));
+    modelAndView.addObject("currency", currencyName);
+    modelAndView.addObject("walletInfo", resolveWalletServiceBean(currencyName).getWalletInfo());
+    return modelAndView;
   }
   
-  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/transactions", method = RequestMethod.GET)
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{currencyName}/transactions", method = RequestMethod.GET)
   @ResponseBody
-  public List<BtcTransactionHistoryDto> getBtcTransactions() {
-    return bitcoinWalletService.listAllTransactions();
+  public List<BtcTransactionHistoryDto> getBtcTransactions(@PathVariable String currencyName) {
+    return resolveWalletServiceBean(currencyName).listAllTransactions();
   }
   
-  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/estimatedFee", method = RequestMethod.GET)
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{currencyName}/estimatedFee", method = RequestMethod.GET)
   @ResponseBody
-  public BigDecimal getEstimatedFee() {
-    return bitcoinWalletService.estimateFee(6);
+  public BigDecimal getEstimatedFee(@PathVariable String currencyName) {
+    return resolveWalletServiceBean(currencyName).estimateFee(6);
   }
   
-  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/actualFee", method = RequestMethod.GET)
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{currencyName}/actualFee", method = RequestMethod.GET)
   @ResponseBody
-  public BigDecimal getActualFee() {
-    return bitcoinWalletService.getActualFee();
+  public BigDecimal getActualFee(@PathVariable String currencyName) {
+    return resolveWalletServiceBean(currencyName).getActualFee();
   }
   
-  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/setFee", method = RequestMethod.POST)
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{currencyName}/setFee", method = RequestMethod.POST)
   @ResponseBody
-  public void setFee(@RequestParam BigDecimal fee) {
-    bitcoinWalletService.setTxFee(fee);
+  public void setFee(@PathVariable String currencyName, @RequestParam BigDecimal fee) {
+    resolveWalletServiceBean(currencyName).setTxFee(fee);
   }
   
-  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/unlock", method = RequestMethod.POST)
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{currencyName}/unlock", method = RequestMethod.POST)
   @ResponseBody
-  public void submitPassword(@RequestParam String password) {
-    bitcoinWalletService.submitWalletPassword(password);
+  public void submitPassword(@PathVariable String currencyName, @RequestParam String password) {
+    resolveWalletServiceBean(currencyName).submitWalletPassword(password);
   }
   
-  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/send", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{currencyName}/send", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
-  public Map<String, String> sendToAddress(@RequestParam String address, @RequestParam BigDecimal amount, HttpServletRequest request) {
+  public Map<String, String> sendToAddress(@PathVariable String currencyName,
+                                           @RequestParam String address, @RequestParam BigDecimal amount, HttpServletRequest request) {
     LOG.debug(String.format("Params: address %s, amount %s", address, amount));
     if (StringUtils.isEmpty(address) || amount == null) {
       throw new IllegalArgumentException("Empty values not allowed!");
     }
+    BitcoinWalletService walletService = resolveWalletServiceBean(currencyName);
 
-    String txId = bitcoinWalletService.sendToAddress(address, amount);
+    String txId = walletService.sendToAddress(address, amount);
     Map<String, String> result = new HashMap<>();
     result.put("message", messageSource.getMessage("btcWallet.successResult", new Object[]{txId}, localeResolver.resolveLocale(request)));
-    result.put("newBalance", bitcoinWalletService.getWalletInfo().getBalance());
+    result.put("newBalance", walletService.getWalletInfo().getBalance());
     return result;
   }
   
 
-  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/sendToMany", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{currencyName}/sendToMany", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
           produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
-  public Map<String, String> sendToMany(@RequestBody Map<String, BigDecimal> addresses, HttpServletRequest request) {
+  public Map<String, String> sendToMany(@PathVariable String currencyName,
+                                        @RequestBody Map<String, BigDecimal> addresses, HttpServletRequest request) {
     LOG.debug(addresses);
-    String txId = bitcoinWalletService.sendToMany(addresses);
+    BitcoinWalletService walletService = resolveWalletServiceBean(currencyName);
+    String txId = walletService.sendToMany(addresses);
     Map<String, String> result = new HashMap<>();
     result.put("message", messageSource.getMessage("btcWallet.successResult", new Object[]{txId}, localeResolver.resolveLocale(request)));
-    result.put("newBalance", bitcoinWalletService.getWalletInfo().getBalance());
+    result.put("newBalance", walletService.getWalletInfo().getBalance());
     return result;
+  }
+  
+  private BitcoinWalletService resolveWalletServiceBean(String currencyName) {
+    switch (currencyName) {
+      case "BTC": return bitcoinWalletService;
+      case "LTC": return litecoinWalletService;
+      default:
+        throw new UnsupportedWalletException(String.format("Wallet for %s is not supported", currencyName));
+    }
+    
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/findReferral")
