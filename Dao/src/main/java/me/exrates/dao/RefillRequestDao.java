@@ -21,7 +21,11 @@ import java.util.Optional;
  */
 public interface RefillRequestDao {
 
+  Optional<Integer> findIdByMerchantIdAndCurrencyIdAndAddressAndStatusId(String address, Integer merchantId, Integer currencyId, List<Integer> statusList);
+
   Optional<Integer> findIdWithoutConfirmationsByMerchantIdAndCurrencyIdAndAddressAndStatusId(String address, Integer merchantId, Integer currencyId, List<Integer> statusList);
+
+  Optional<Integer> findIdByMerchantIdAndCurrencyIdAndAddressAndHash(String address, Integer merchantId, Integer currencyId, String hash);
 
   List<RefillRequestFlatDto> findAllWithoutConfirmationsByMerchantIdAndCurrencyIdAndStatusId(Integer merchantId, Integer currencyId, List<Integer> statusList);
 

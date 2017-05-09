@@ -92,6 +92,31 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   }
 
   @Override
+  public Optional<Integer> findIdByMerchantIdAndCurrencyIdAndAddressAndStatusId(
+      String address,
+      Integer merchantId,
+      Integer currencyId,
+      List<Integer> statusList) {
+    String sql = "SELECT RR.id " +
+        " FROM REFILL_REQUEST RR " +
+        " WHERE RR.address = :address " +
+        "       AND RR.merchant_id = :merchant_id " +
+        "       AND RR.currency_id = :currency_id " +
+        "       AND RR.status_id IN (:status_id_list) ";
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("address", address);
+      put("merchant_id", merchantId);
+      put("currency_id", currencyId);
+      put("status_id_list", statusList);
+    }};
+    try {
+      return Optional.of(namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class));
+    } catch (EmptyResultDataAccessException e) {
+      return Optional.empty();
+    }
+  }
+
+  @Override
   public Optional<Integer> findIdWithoutConfirmationsByMerchantIdAndCurrencyIdAndAddressAndStatusId(
       String address,
       Integer merchantId,
@@ -110,6 +135,31 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
       put("merchant_id", merchantId);
       put("currency_id", currencyId);
       put("status_id_list", statusList);
+    }};
+    try {
+      return Optional.of(namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class));
+    } catch (EmptyResultDataAccessException e) {
+      return Optional.empty();
+    }
+  }
+
+  @Override
+  public Optional<Integer> findIdByMerchantIdAndCurrencyIdAndAddressAndHash(
+      String address,
+      Integer merchantId,
+      Integer currencyId,
+      String hash) {
+    String sql = "SELECT RR.id " +
+        " FROM REFILL_REQUEST RR " +
+        " WHERE RR.address = :address " +
+        "       AND RR.merchant_id = :merchant_id " +
+        "       AND RR.currency_id = :currency_id " +
+        "       AND RR.hash = :hash ";
+    Map<String, Object> params = new HashMap<String, Object>() {{
+      put("address", address);
+      put("merchant_id", merchantId);
+      put("currency_id", currencyId);
+      put("hash", hash);
     }};
     try {
       return Optional.of(namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class));

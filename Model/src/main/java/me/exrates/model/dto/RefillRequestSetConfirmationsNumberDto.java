@@ -15,6 +15,9 @@ import java.math.BigDecimal;
 @ToString
 public class RefillRequestSetConfirmationsNumberDto {
   private Integer requestId;
+  private String address;
+  private Integer merchantId;
+  private Integer currencyId;
   private Integer confirmations;
   private String hash;
   private BigDecimal amount;
