@@ -5,7 +5,7 @@ INSERT INTO WALLET (user_id, currency_id)
       SELECT * FROM WALLET WHERE user_id = u.id AND currency_id = (select id from CURRENCY where name='LTC')));
 
 INSERT INTO MERCHANT (`description`, `name`, transaction_source_type_id) VALUES ('Litecoin', 'Litecoin',
-                                                                                 (SELECT id FROM transaction_source_type WHERE name = 'BTC_INVOICE'));
+                                                                                 (SELECT id FROM TRANSACTION_SOURCE_TYPE WHERE name = 'BTC_INVOICE'));
 
 UPDATE MERCHANT
 SET name = 'Bitcoin', description = 'Bitcoin'
