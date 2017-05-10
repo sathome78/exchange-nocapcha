@@ -394,7 +394,8 @@ function updateWithdrawalTable() {
                         if (data && row.isEndStatus) {
                             return '<a href="/2a8fy7b07dxe44/userInfo?id=' + row.adminHolderId + '">' + data + '</a>';
                         } else {
-                            return tableViewType == "ALL" ? row.status : getButtonsSet(row.id, row.sourceType, row.buttons, "withdrawalTable");
+                            return tableViewType == "ALL" ? row.status : getButtonsSet(row.id, row.sourceType, row.merchantName,
+                                row.buttons, "withdrawalTable");
                         }
                     },
                     "className": "text-center"

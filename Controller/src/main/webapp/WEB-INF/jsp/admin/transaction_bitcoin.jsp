@@ -62,6 +62,7 @@
           <th><loc:message code="transaction.datetime"/></th>
           <th><loc:message code="transaction.id"/></th>
           <th><loc:message code="transaction.initiatorEmail"/></th>
+          <th><loc:message code="transaction.currency"/></th>
           <th><loc:message code="transaction.status"/></th>
           <th><loc:message code="transaction.amount"/></th>
           <th><loc:message code="transaction.commissionAmount"/></th>

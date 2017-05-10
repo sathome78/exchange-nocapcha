@@ -310,10 +310,11 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
     String sql = "SELECT  PP.*, " +
         "                 TX.amount, TX.commission_amount, TX.datetime, TX.confirmation, TX.provided, " +
         "                 USER.id AS user_id, USER.email AS user_email, " +
-        "                 ADM.id AS acceptance_id, ADM.email AS acceptance_user_email " +
+        "                 ADM.id AS acceptance_id, ADM.email AS acceptance_user_email, CURRENCY.name AS currency_name " +
         " FROM PENDING_PAYMENT PP " +
         " JOIN TRANSACTION TX ON (TX.id = PP.invoice_id) AND TX.source_type=:source_type " +
-        " JOIN WALLET ON WALLET.id = TX.user_wallet_id " +
+        " JOIN WALLET ON WALLET.id = TX.user_wallet_id" +
+        " JOIN CURRENCY ON TX.currency_id = CURRENCY.id" +
         " JOIN USER AS USER ON USER.id = WALLET.user_id " +
         " JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
         "				(IOP.currency_id=TX.currency_id) " +
@@ -348,6 +349,7 @@ public class PendingPaymentDaoImpl implements PendingPaymentDao {
         pendingPaymentFlatDto.setDatetime(rs.getTimestamp("datetime") == null ? null : rs.getTimestamp("datetime").toLocalDateTime());
         pendingPaymentFlatDto.setConfirmation(rs.getInt("confirmation"));
         pendingPaymentFlatDto.setProvided(rs.getBoolean("provided"));
+        pendingPaymentFlatDto.setCurrencyName(rs.getString("currency_name"));
         return pendingPaymentFlatDto;
       }
     });

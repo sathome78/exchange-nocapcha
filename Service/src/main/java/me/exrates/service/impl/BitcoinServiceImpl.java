@@ -6,6 +6,7 @@ import me.exrates.dao.BTCTransactionDao;
 import me.exrates.dao.PendingPaymentDao;
 import me.exrates.dao.WalletDao;
 import me.exrates.model.CreditsOperation;
+import me.exrates.model.Payment;
 import me.exrates.model.PendingPayment;
 import me.exrates.model.Transaction;
 import me.exrates.model.dto.InvoiceUserDto;
@@ -20,20 +21,18 @@ import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
 import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.*;
-import me.exrates.service.exception.IllegalOperationTypeException;
-import me.exrates.service.exception.IllegalTransactionProvidedStatusException;
-import me.exrates.service.exception.NotImplimentedMethod;
-import me.exrates.service.exception.WithdrawRequestPostException;
-import me.exrates.service.exception.invoice.IllegalInvoiceAmountException;
-import me.exrates.service.exception.invoice.InvoiceAcceptionException;
-import me.exrates.service.exception.invoice.InvoiceNotFoundException;
-import me.exrates.service.exception.invoice.InvoiceUnexpectedHashException;
+import me.exrates.service.exception.*;
+import me.exrates.service.exception.invoice.*;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,11 +53,12 @@ import static java.util.stream.Collectors.toList;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.*;
 import static me.exrates.model.enums.invoice.PendingPaymentStatusEnum.EXPIRED;
 import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
  */
-@Service
 @PropertySource(value = {"classpath:/job.properties"})
 public class BitcoinServiceImpl implements BitcoinService {
 
@@ -69,26 +69,27 @@ public class BitcoinServiceImpl implements BitcoinService {
   
 
 
-  private final PendingPaymentDao paymentDao;
-  private final TransactionService transactionService;
-  private final AlgorithmService algorithmService;
-  private final NotificationService notificationService;
+  @Autowired
+  private PendingPaymentDao paymentDao;
+  @Autowired
+  private TransactionService transactionService;
+  @Autowired
+  private AlgorithmService algorithmService;
+  @Autowired
+  private NotificationService notificationService;
+  
+  @Autowired
+  private MerchantService merchantService;
+  
+  @Autowired
+  private MessageSource messageSource;
+  
   private BitcoinWalletService bitcoinWalletService;
+  @Autowired
   private BitcoinTransactionService bitcoinTransactionService;
 
-  @Autowired
-  public BitcoinServiceImpl(final PendingPaymentDao paymentDao,
-                            final TransactionService transactionService,
-                            final AlgorithmService algorithmService,
-                            final NotificationService notificationService,
-                            final BitcoinWalletService bitcoinWalletService,
-                            final BitcoinTransactionService bitcoinTransactionService) {
-    this.paymentDao = paymentDao;
-    this.transactionService = transactionService;
-    this.algorithmService = algorithmService;
-    this.notificationService = notificationService;
+  public BitcoinServiceImpl(BitcoinWalletService bitcoinWalletService) {
     this.bitcoinWalletService = bitcoinWalletService;
-    this.bitcoinTransactionService = bitcoinTransactionService;
   }
 
   
@@ -262,5 +263,27 @@ public class BitcoinServiceImpl implements BitcoinService {
     BigDecimal withdrawAmount = new BigDecimal(withdrawMerchantOperationDto.getAmount());
     bitcoinWalletService.sendToAddressAuto(withdrawMerchantOperationDto.getAccountTo(), withdrawAmount);
  //   throw new NotImplimentedMethod("Not implemented!");
+  }
+  
+  @Override
+  @Transactional
+  public Map<String, String> prepareBitcoinPayment(Payment payment, String email, String currencyNameForQr, Locale locale) {
+    CreditsOperation creditsOperation = merchantService
+            .prepareCreditsOperation(payment, email)
+            .orElseThrow(InvalidAmountException::new);
+      PendingPayment pendingPayment = createInvoice(creditsOperation);
+      String notification = merchantService
+              .sendDepositNotification(Optional.ofNullable(pendingPayment
+                              .getAddress()).orElseThrow(
+                      () -> new MerchantInternalException("Address not presented"))
+                      , email, locale, creditsOperation, "merchants.depositNotification.body");
+      Map<String, String> responseMap = new TreeMap<>();
+      responseMap.put("notification", notification);
+      responseMap.put("qr", currencyNameForQr + ":" + Optional.ofNullable(pendingPayment
+              .getAddress()).orElseThrow(
+              () -> new MerchantInternalException("Address not presented")) + "?amount="
+              + creditsOperation.getAmount().add(creditsOperation.getCommissionAmount()).doubleValue() + "&message=Donation%20for%20project%20Exrates");
+    
+      return responseMap;
   }
 }

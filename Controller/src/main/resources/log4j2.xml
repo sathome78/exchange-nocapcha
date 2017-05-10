@@ -213,6 +213,7 @@
             <AppenderRef ref="Logs"/>
         </logger>
         <logger name="bitcoin_core" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
             <AppenderRef ref="bitcoin_core_log"/>
         </logger>
         <logger name="org.bitcoinj" level="INFO" additivity="false">
@@ -220,6 +221,7 @@
             <AppenderRef ref="bitcoinj_log"/>
         </logger>
         <logger name="com.neemre.btcdcli4j" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
             <AppenderRef ref="bitcoin_core_log"/>
         </logger>
         <logger name="org.apache.http" level="ERROR" additivity="false">

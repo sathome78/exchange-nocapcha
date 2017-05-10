@@ -12,6 +12,7 @@ import me.exrates.service.exception.MerchantInternalException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +27,7 @@ public class BlockchainPaymentService implements MerchantPaymentService {
     private static final Logger LOGGER = LogManager.getLogger("merchant");
 
     @Autowired
+    @Qualifier("bitcoinService")
     private BitcoinService bitcoinService;
 
     @Autowired
