@@ -1,60 +1,39 @@
 package me.exrates.service.impl;
 
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
-import me.exrates.dao.BTCTransactionDao;
 import me.exrates.dao.PendingPaymentDao;
-import me.exrates.dao.WalletDao;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
 import me.exrates.model.PendingPayment;
 import me.exrates.model.Transaction;
-import me.exrates.model.dto.InvoiceUserDto;
-import me.exrates.model.dto.PendingPaymentFlatDto;
-import me.exrates.model.dto.PendingPaymentSimpleDto;
-import me.exrates.model.dto.WithdrawMerchantOperationDto;
-import me.exrates.model.dto.onlineTableDto.PendingPaymentStatusDto;
+import me.exrates.model.dto.*;
 import me.exrates.model.enums.*;
 import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
 import me.exrates.model.enums.invoice.InvoiceStatus;
 import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
-import me.exrates.model.util.BigDecimalProcessing;
-import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.exception.invoice.*;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.toList;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.*;
 import static me.exrates.model.enums.invoice.PendingPaymentStatusEnum.EXPIRED;
-import static me.exrates.model.vo.WalletOperationData.BalanceType.ACTIVE;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -83,25 +62,40 @@ public class BitcoinServiceImpl implements BitcoinService {
   
   @Autowired
   private MessageSource messageSource;
-  
-  private BitcoinWalletService bitcoinWalletService;
+  @Autowired
+  private CoreWalletService bitcoinWalletService;
   @Autowired
   private BitcoinTransactionService bitcoinTransactionService;
-
-  public BitcoinServiceImpl(BitcoinWalletService bitcoinWalletService) {
-    this.bitcoinWalletService = bitcoinWalletService;
+  
+  private String walletPassword;
+  
+  private String backupFolder;
+  
+  private String nodePropertySource;
+  
+  
+  public BitcoinServiceImpl(String propertySource) {
+    Properties props = new Properties();
+    try {
+      props.load(getClass().getClassLoader().getResourceAsStream(propertySource));
+      this.walletPassword = props.getProperty("wallet.password");
+      this.backupFolder = props.getProperty("backup.folder");
+      this.nodePropertySource = props.getProperty("node.propertySource");
+    } catch (IOException e) {
+      LOG.error(e);
+    }
+    
   }
-
   
   @PostConstruct
   void startBitcoin() {
-    bitcoinWalletService.initBitcoin();
+    bitcoinWalletService.initCore(nodePropertySource);
   }
    
 
   private String address() {
     boolean isFreshAddress = false;
-    String address = bitcoinWalletService.getNewAddress();
+    String address = bitcoinWalletService.getNewAddress(walletPassword);
 
     final List<Integer> unclosedPendingPaymentStatesList = PendingPaymentStatusEnum.getMiddleStatesSet().stream()
         .map(InvoiceStatus::getCode)
@@ -111,7 +105,7 @@ public class BitcoinServiceImpl implements BitcoinService {
       final int LIMIT = 2000;
       int i = 0;
       while (!isFreshAddress && i++ < LIMIT) {
-        address = bitcoinWalletService.getNewAddress();
+        address = bitcoinWalletService.getNewAddress(walletPassword);
         isFreshAddress = !paymentDao.existsPendingPaymentWithAddressAndStatus(address, unclosedPendingPaymentStatesList);
       }
       if (i >= LIMIT) {
@@ -261,7 +255,7 @@ public class BitcoinServiceImpl implements BitcoinService {
       throw new WithdrawRequestPostException("Currency not supported by merchant");
     }
     BigDecimal withdrawAmount = new BigDecimal(withdrawMerchantOperationDto.getAmount());
-    bitcoinWalletService.sendToAddressAuto(withdrawMerchantOperationDto.getAccountTo(), withdrawAmount);
+    bitcoinWalletService.sendToAddressAuto(withdrawMerchantOperationDto.getAccountTo(), withdrawAmount, walletPassword);
  //   throw new NotImplimentedMethod("Not implemented!");
   }
   
@@ -285,5 +279,46 @@ public class BitcoinServiceImpl implements BitcoinService {
               + creditsOperation.getAmount().add(creditsOperation.getCommissionAmount()).doubleValue() + "&message=Donation%20for%20project%20Exrates");
     
       return responseMap;
+  }
+  
+  @Override
+  @Scheduled(initialDelay = 5 * 60000, fixedDelay = 12 * 60 * 60000)
+  public void backupWallet() {
+    bitcoinWalletService.backupWallet(backupFolder);
+  }
+  
+  @Override
+  public BtcWalletInfoDto getWalletInfo() {
+    return bitcoinWalletService.getWalletInfo();
+  }
+  
+  @Override
+  public List<BtcTransactionHistoryDto> listAllTransactions() {
+    return bitcoinWalletService.listAllTransactions();
+  }
+  
+  @Override
+  public BigDecimal estimateFee(int blockCount) {
+    return bitcoinWalletService.estimateFee(blockCount);
+  }
+  
+  @Override
+  public BigDecimal getActualFee() {
+    return bitcoinWalletService.getActualFee();
+  }
+  
+  @Override
+  public void setTxFee(BigDecimal fee) {
+    bitcoinWalletService.setTxFee(fee);
+  }
+  
+  @Override
+  public void submitWalletPassword(String password) {
+    bitcoinWalletService.submitWalletPassword(password);
+  }
+  
+  @Override
+  public String sendToMany(Map<String, BigDecimal> payments) {
+    return bitcoinWalletService.sendToMany(payments);
   }
 }

@@ -2,7 +2,7 @@ package me.exrates.controller;
 
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.InvalidNumberParamException;
-import me.exrates.controller.exception.UnsupportedWalletException;
+import me.exrates.controller.exception.NoRequestedBeansFoundException;
 import me.exrates.controller.validator.RegisterFormValidation;
 import me.exrates.model.*;
 import me.exrates.model.dto.*;
@@ -24,9 +24,9 @@ import me.exrates.service.*;
 import me.exrates.service.exception.NoPermissionForOperationException;
 import me.exrates.service.exception.OrderDeletingException;
 import me.exrates.service.stopOrder.StopOrderService;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.apache.logging.log4j.core.util.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
@@ -111,8 +111,7 @@ public class AdminController {
   @Autowired
   private InvoiceService invoiceService;
   @Autowired
-  @Qualifier("bitcoinService")
-  private BitcoinService bitcoinService;
+  private Map<String, BitcoinService> bitcoinLikeServices;
   @Autowired
   private NotificationService notificationService;
   @Autowired
@@ -127,14 +126,6 @@ public class AdminController {
   WithdrawService withdrawService;
   @Autowired
   StopOrderService stopOrderService;
-
-  @Autowired
-  @Qualifier("bitcoinCoreWalletService")
-  private BitcoinWalletService bitcoinWalletService;
-  
-  @Autowired
-  @Qualifier("litecoinCoreWalletService")
-  private BitcoinWalletService litecoinWalletService;
 
   @Autowired
   @Qualifier("ExratesSessionRegistry")
@@ -479,8 +470,7 @@ public class AdminController {
     User user = userService.getUserById(id);
     user.setId(id);
     model.addObject("user", user);
-    model.addObject("currencies", currencyService.findAllCurrencies().stream()
-        .filter(currency -> !"LTC".equals(currency.getName())).collect(Collectors.toList()));
+    model.addObject("currencies", currencyService.findAllCurrencies());
     model.addObject("currencyPairs", currencyService.getAllCurrencyPairs());
     model.setViewName("admin/editUser");
     model.addObject("userFiles", userService.findUserDoc(id));
@@ -927,7 +917,7 @@ public class AdminController {
   @ResponseBody
   public List<PendingPaymentFlatDto> getBitcoinRequests(Principal principal) {
     Integer requesterUserId = userService.getIdByEmail(principal.getName());
-    return bitcoinService.getBitcoinTransactionsForCurrencyPermitted(requesterUserId);
+    return findAnyBitcoinServiceBean().getBitcoinTransactionsForCurrencyPermitted(requesterUserId);
   }
 
 
@@ -935,7 +925,11 @@ public class AdminController {
   @ResponseBody
   public List<PendingPaymentFlatDto> getBitcoinRequestsByStatus(Principal principal) {
     Integer requesterUserId = userService.getIdByEmail(principal.getName());
-    return bitcoinService.getBitcoinTransactionsAcceptedForCurrencyPermitted(requesterUserId);
+    return findAnyBitcoinServiceBean().getBitcoinTransactionsAcceptedForCurrencyPermitted(requesterUserId);
+  }
+  
+  private BitcoinService findAnyBitcoinServiceBean() {
+    return bitcoinLikeServices.entrySet().stream().findAny().orElseThrow(NoRequestedBeansFoundException::new).getValue();
   }
 
   @RequestMapping(value = "/2a8fy7b07dxe44/sessionControl")
@@ -1172,70 +1166,60 @@ public class AdminController {
     return orderService.getDataForCandleChart(currencyPair, backDealInterval, startTime);
   }
   
-  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{currencyName}", method = RequestMethod.GET)
-  public ModelAndView bitcoinWallet(@PathVariable String currencyName, Locale locale) {
+  @RequestMapping(value = "/2a8fy7b07dxe44/coreWallets", method = RequestMethod.GET)
+  @ResponseBody
+  public List<String> getCoreWallets() {
+    return merchantService.retrieveBtcCoreBasedMerchantNames();
+  }
+  
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}", method = RequestMethod.GET)
+  public ModelAndView bitcoinWallet(@PathVariable String merchantName, Locale locale) {
     ModelAndView modelAndView = new ModelAndView("/admin/btcWallet");
-    modelAndView.addObject("title", messageSource.getMessage(currencyName.toLowerCase() + "Wallet.title", null, locale));
-    modelAndView.addObject("currency", currencyName);
-    modelAndView.addObject("walletInfo", resolveWalletServiceBean(currencyName).getWalletInfo());
+    modelAndView.addObject("merchant", merchantName);
+    String currency = merchantService.retrieveCoreWalletCurrencyNameByMerchant(merchantName);
+    modelAndView.addObject("currency", currency);
+    modelAndView.addObject("title", messageSource.getMessage(currency.toLowerCase() + "Wallet.title", null, locale));
+    modelAndView.addObject("walletInfo", resolveBitcoinServiceBeanFromMerchant(merchantName).getWalletInfo());
     return modelAndView;
   }
   
-  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{currencyName}/transactions", method = RequestMethod.GET)
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/transactions", method = RequestMethod.GET)
   @ResponseBody
-  public List<BtcTransactionHistoryDto> getBtcTransactions(@PathVariable String currencyName) {
-    return resolveWalletServiceBean(currencyName).listAllTransactions();
+  public List<BtcTransactionHistoryDto> getBtcTransactions(@PathVariable String merchantName) {
+    return resolveBitcoinServiceBeanFromMerchant(merchantName).listAllTransactions();
   }
   
-  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{currencyName}/estimatedFee", method = RequestMethod.GET)
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/estimatedFee", method = RequestMethod.GET)
   @ResponseBody
-  public BigDecimal getEstimatedFee(@PathVariable String currencyName) {
-    return resolveWalletServiceBean(currencyName).estimateFee(6);
+  public BigDecimal getEstimatedFee(@PathVariable String merchantName) {
+    return resolveBitcoinServiceBeanFromMerchant(merchantName).estimateFee(6);
   }
   
-  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{currencyName}/actualFee", method = RequestMethod.GET)
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/actualFee", method = RequestMethod.GET)
   @ResponseBody
-  public BigDecimal getActualFee(@PathVariable String currencyName) {
-    return resolveWalletServiceBean(currencyName).getActualFee();
+  public BigDecimal getActualFee(@PathVariable String merchantName) {
+    return resolveBitcoinServiceBeanFromMerchant(merchantName).getActualFee();
   }
   
-  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{currencyName}/setFee", method = RequestMethod.POST)
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/setFee", method = RequestMethod.POST)
   @ResponseBody
-  public void setFee(@PathVariable String currencyName, @RequestParam BigDecimal fee) {
-    resolveWalletServiceBean(currencyName).setTxFee(fee);
+  public void setFee(@PathVariable String merchantName, @RequestParam BigDecimal fee) {
+    resolveBitcoinServiceBeanFromMerchant(merchantName).setTxFee(fee);
   }
   
-  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{currencyName}/unlock", method = RequestMethod.POST)
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/unlock", method = RequestMethod.POST)
   @ResponseBody
-  public void submitPassword(@PathVariable String currencyName, @RequestParam String password) {
-    resolveWalletServiceBean(currencyName).submitWalletPassword(password);
+  public void submitPassword(@PathVariable String merchantName, @RequestParam String password) {
+    resolveBitcoinServiceBeanFromMerchant(merchantName).submitWalletPassword(password);
   }
   
-  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{currencyName}/send", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-  @ResponseBody
-  public Map<String, String> sendToAddress(@PathVariable String currencyName,
-                                           @RequestParam String address, @RequestParam BigDecimal amount, HttpServletRequest request) {
-    LOG.debug(String.format("Params: address %s, amount %s", address, amount));
-    if (StringUtils.isEmpty(address) || amount == null) {
-      throw new IllegalArgumentException("Empty values not allowed!");
-    }
-    BitcoinWalletService walletService = resolveWalletServiceBean(currencyName);
-
-    String txId = walletService.sendToAddress(address, amount);
-    Map<String, String> result = new HashMap<>();
-    result.put("message", messageSource.getMessage("btcWallet.successResult", new Object[]{txId}, localeResolver.resolveLocale(request)));
-    result.put("newBalance", walletService.getWalletInfo().getBalance());
-    return result;
-  }
-  
-
-  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{currencyName}/sendToMany", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
+  @RequestMapping(value = "/2a8fy7b07dxe44/bitcoinWallet/{merchantName}/sendToMany", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
           produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ResponseBody
-  public Map<String, String> sendToMany(@PathVariable String currencyName,
+  public Map<String, String> sendToMany(@PathVariable String merchantName,
                                         @RequestBody Map<String, BigDecimal> addresses, HttpServletRequest request) {
     LOG.debug(addresses);
-    BitcoinWalletService walletService = resolveWalletServiceBean(currencyName);
+    BitcoinService walletService = resolveBitcoinServiceBeanFromMerchant(merchantName);
     String txId = walletService.sendToMany(addresses);
     Map<String, String> result = new HashMap<>();
     result.put("message", messageSource.getMessage("btcWallet.successResult", new Object[]{txId}, localeResolver.resolveLocale(request)));
@@ -1243,15 +1227,11 @@ public class AdminController {
     return result;
   }
   
-  private BitcoinWalletService resolveWalletServiceBean(String currencyName) {
-    switch (currencyName) {
-      case "BTC": return bitcoinWalletService;
-      case "LTC": return litecoinWalletService;
-      default:
-        throw new UnsupportedWalletException(String.format("Wallet for %s is not supported", currencyName));
-    }
-    
+  private BitcoinService resolveBitcoinServiceBeanFromMerchant(String merchantName) {
+    Assert.requireNonNull(merchantName, "Merchant name required!");
+    return bitcoinLikeServices.get(merchantName.toLowerCase().concat("ServiceImpl"));
   }
+  
 
   @RequestMapping(value = "/2a8fy7b07dxe44/findReferral")
   @ResponseBody

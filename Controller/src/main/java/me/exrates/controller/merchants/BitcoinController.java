@@ -3,14 +3,11 @@ package me.exrates.controller.merchants;
 import lombok.extern.log4j.Log4j2;
 import me.exrates.controller.exception.ErrorInfo;
 import me.exrates.controller.exception.ErrorInfoDto;
-import me.exrates.model.CreditsOperation;
 import me.exrates.model.Payment;
-import me.exrates.model.PendingPayment;
 import me.exrates.model.dto.PendingPaymentSimpleDto;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.MerchantService;
 import me.exrates.service.exception.InvalidAmountException;
-import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.invoice.IllegalInvoiceStatusException;
 import me.exrates.service.exception.invoice.InvoiceNotFoundException;
 import me.exrates.service.exception.invoice.RejectedPaymentInvoice;
@@ -18,7 +15,6 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.MessageSource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -54,7 +50,7 @@ public class BitcoinController {
   private LocaleResolver localeResolver;
 
   @Autowired
-  public BitcoinController(final @Qualifier("bitcoinService") BitcoinService bitcoinService,
+  public BitcoinController(final @Qualifier("bitcoinServiceImpl") BitcoinService bitcoinService,
                            final MerchantService merchantService,
                            final MessageSource messageSource) {
     this.bitcoinService = bitcoinService;

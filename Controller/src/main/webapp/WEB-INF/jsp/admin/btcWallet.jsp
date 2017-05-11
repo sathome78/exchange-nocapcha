@@ -200,6 +200,7 @@
 
 <span hidden id="confirmBtcMessage"><loc:message code="btcWallet.payment.prompt"/></span>
 <span hidden id="currencyName">${currency}</span>
+<span hidden id="mechantName">${merchant}</span>
 <%@include file='../fragments/footer.jsp' %>
 <span hidden id="errorNoty">${errorNoty}</span>
 <span hidden id="successNoty">${successNoty}</span>

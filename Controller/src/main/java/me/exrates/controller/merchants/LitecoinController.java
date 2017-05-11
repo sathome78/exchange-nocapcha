@@ -52,7 +52,7 @@ public class LitecoinController {
   private LocaleResolver localeResolver;
   
   @Autowired
-  public LitecoinController(final @Qualifier("litecoinService") BitcoinService bitcoinService,
+  public LitecoinController(final @Qualifier("litecoinServiceImpl") BitcoinService bitcoinService,
                            final MerchantService merchantService,
                            final MessageSource messageSource) {
     this.bitcoinService = bitcoinService;

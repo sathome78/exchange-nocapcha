@@ -1,4 +1,4 @@
-package me.exrates.service.impl.bitcoinWallet;
+package me.exrates.service.impl;
 
 import com.neemre.btcdcli4j.core.BitcoindException;
 import com.neemre.btcdcli4j.core.CommunicationException;
@@ -22,7 +22,7 @@ import me.exrates.model.util.BigDecimalProcessing;
 import me.exrates.model.vo.BtcTransactionShort;
 import me.exrates.service.BitcoinService;
 import me.exrates.service.BitcoinTransactionService;
-import me.exrates.service.BitcoinWalletService;
+import me.exrates.service.CoreWalletService;
 import me.exrates.service.exception.BitcoinCoreException;
 import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.IllegalTransactionProvidedStatusException;
@@ -36,9 +36,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
@@ -54,35 +51,26 @@ import java.util.stream.Collectors;
 /**
  * Created by OLEG on 14.03.2017.
  */
+@Component
 @Log4j2(topic = "bitcoin_core")
-public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
-  private final String walletPassword;
-  private final String backupFolder;
-  private final String nodePropertySource;
+public class CoreWalletServiceImpl implements CoreWalletService {
   
   private static final int KEY_POOL_LOW_THRESHOLD = 10;
   private static final int MIN_CONFIRMATIONS_FOR_SPENDING = 3;
   
+  @Autowired
   private BitcoinTransactionService bitcoinTransactionService;
-  
-  public BitcoinCoreWalletServiceImpl(String walletPassword, String backupFolder, String nodePropertySource, BitcoinTransactionService bitcoinTransactionService) {
-    this.walletPassword = walletPassword;
-    this.backupFolder = backupFolder;
-    this.nodePropertySource = nodePropertySource;
-    this.bitcoinTransactionService = bitcoinTransactionService;
-  }
+ 
   
   private BtcdClient btcdClient;
-  
   private BtcdDaemon daemon;
   
   
   @Override
-  public void initBitcoin() {
+  public void initCore(String nodePropertySource) {
     
     try {
-      log.debug("Starting Bitcoin Core client");
-      initBitcoindClient();
+      initCoreClient(nodePropertySource);
       initBtcdDaemon();
       checkUnpaidBtcPayments();
       
@@ -94,7 +82,7 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
   
   
   @Override
-  public String getNewAddress() {
+  public String getNewAddress(String walletPassword) {
     try {
       WalletInfo walletInfo = btcdClient.getWalletInfo();
       Integer keyPoolSize = walletInfo.getKeypoolSize();
@@ -114,8 +102,7 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
   }
   
   @Override
-  @Scheduled(initialDelay = 5 * 60000, fixedDelay = 12 * 60 * 60000)
-  public void backupWallet() {
+  public void backupWallet(String backupFolder) {
     try {
       String filename = new StringJoiner("").add(backupFolder).add("backup_")
               .add((LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))))
@@ -137,7 +124,7 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
   }
   
   
-  private void initBitcoindClient() throws BitcoindException, CommunicationException, IOException {
+  private void initCoreClient(String nodePropertySource) throws BitcoindException, CommunicationException, IOException {
     PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
     CloseableHttpClient httpProvider = HttpClients.custom().setConnectionManager(cm)
             .build();
@@ -415,25 +402,13 @@ public class BitcoinCoreWalletServiceImpl implements BitcoinWalletService {
     }
   }
   
-  @Override
-  public String sendToAddress(String address, BigDecimal amount) {
-    try {
-      String result = btcdClient.sendToAddress(address, amount);
-      btcdClient.walletLock();
-      return result;
-    } catch (BitcoindException | CommunicationException e) {
-      log.error(e);
-      throw new BitcoinCoreException(e.getMessage());
-    }
-  }
-  
   
   /*
   * Using sendMany instead of sendToAddress allows to send only UTXO with certain number of confirmations.
   * DO NOT use immutable map creation methods like Collections.singletonMap(...), it will cause an error within lib code
   * */
   @Override
-  public String sendToAddressAuto(String address, BigDecimal amount) {
+  public String sendToAddressAuto(String address, BigDecimal amount, String walletPassword) {
     
     try {
       unlockWallet(walletPassword, 1);

@@ -6,8 +6,8 @@ var urlBase;
 $(function () {
    var $passwordModal = $('#password-modal');
    var $paymentConfirmModal = $('#payment-confirm-modal');
-   var currencyName = $('#currencyName').text();
-   urlBase = '/2a8fy7b07dxe44/bitcoinWallet/' + currencyName + '/';
+   var merchantName = $('#merchantName').text();
+   urlBase = '/2a8fy7b07dxe44/bitcoinWallet/' + merchantName + '/';
 
 
     updateTxHistoryTable();

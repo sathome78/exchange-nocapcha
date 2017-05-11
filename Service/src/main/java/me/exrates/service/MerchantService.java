@@ -60,5 +60,8 @@ public interface MerchantService {
 
     @Transactional
     void setBlockForMerchant(Integer merchantId, Integer currencyId, OperationType operationType, boolean blockStatus);
-
+  
+  List<String> retrieveBtcCoreBasedMerchantNames();
+  
+  String retrieveCoreWalletCurrencyNameByMerchant(String merchantName);
 }

@@ -13,11 +13,7 @@ import me.exrates.model.enums.ChatLang;
 import me.exrates.security.config.SecurityConfig;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.BitcoinService;
-import me.exrates.service.BitcoinTransactionService;
-import me.exrates.service.BitcoinWalletService;
 import me.exrates.service.impl.BitcoinServiceImpl;
-import me.exrates.service.impl.BitcoinTransactionServiceImpl;
-import me.exrates.service.impl.bitcoinWallet.BitcoinCoreWalletServiceImpl;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
@@ -33,7 +29,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -75,9 +70,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
   "classpath:/db.properties",
     "classpath:/uploadfiles.properties",
     "classpath:/news.properties",
-    "classpath:/mail.properties",
-    "classpath:/merchants/btc_wallet.properties",
-    "classpath:/merchants/ltc_wallet.properties"})
+    "classpath:/mail.properties"})
 @MultipartConfig(location = "/tmp")
 public class WebAppConfig extends WebMvcConfigurerAdapter {
 
@@ -142,19 +135,6 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Value("${mail_info.password}")
     String mailInfoPassword;
     
-    @Value("${btc.wallet.password}")
-    private String btcWalletPassword;
-    @Value("${btc.backup.folder}")
-    private String btcBackupFolder;
-    @Value("${btc.propertySource}")
-    private String btcNodePropertySource;
-    
-    @Value("${ltc.wallet.password}")
-    private String ltcWalletPassword;
-    @Value("${ltc.backup.folder}")
-    private String ltcBackupFolder;
-    @Value("${ltc.propertySource}")
-    private String ltcNodePropertySource;
     
 
 
@@ -361,29 +341,15 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
         return new LoggingAspect();
     }
     
-    @Bean
-    public BitcoinTransactionService bitcoinTransactionService() {
-        return new BitcoinTransactionServiceImpl();
-    }
     
-    @Bean
-    public BitcoinWalletService bitcoinCoreWalletService() {
-        return new BitcoinCoreWalletServiceImpl(btcWalletPassword, btcBackupFolder, btcNodePropertySource, bitcoinTransactionService());
-    }
-    
-    @Bean
-    public BitcoinWalletService litecoinCoreWalletService() {
-        return new BitcoinCoreWalletServiceImpl(ltcWalletPassword, ltcBackupFolder, ltcNodePropertySource, bitcoinTransactionService());
-    }
-    
-    @Bean
+    @Bean(name = "bitcoinServiceImpl")
     public BitcoinService bitcoinService() {
-        return new BitcoinServiceImpl(bitcoinCoreWalletService());
+        return new BitcoinServiceImpl("merchants/bitcoin_wallet.properties");
     }
     
-    @Bean
+    @Bean(name = "litecoinServiceImpl")
     public BitcoinService litecoinService() {
-        return new BitcoinServiceImpl(litecoinCoreWalletService());
+        return new BitcoinServiceImpl("merchants/litecoin_wallet.properties");
     }
 
 }

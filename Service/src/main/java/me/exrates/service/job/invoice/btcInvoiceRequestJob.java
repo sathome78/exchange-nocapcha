@@ -2,7 +2,6 @@ package me.exrates.service.job.invoice;
 
 import lombok.extern.log4j.Log4j2;
 import me.exrates.service.BitcoinService;
-import me.exrates.service.InvoiceService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -23,7 +22,7 @@ public class btcInvoiceRequestJob {
   private Integer EXPIRE_CLEAN_INTERVAL_MINUTES;
 
   @Autowired
-  @Qualifier("bitcoinService")
+  @Qualifier("bitcoinServiceImpl")
   BitcoinService bitcoinService;
 
   @Scheduled(initialDelay = 1000, fixedDelay = 1000 * 60 * 6)

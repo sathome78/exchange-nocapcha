@@ -14,6 +14,10 @@
 <%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
 <script type="text/javascript">
     $(function () {
+        emphasizeTitles();
+    });
+
+    function emphasizeTitles() {
         var title = $('title').text().trim();
         var $menuItem = $('.sidebar > ul li').filter(function (index) {
 
@@ -24,7 +28,10 @@
 
         });
         $menuItem.children('a').wrapInner('<strong></strong>');
-    })
+    }
+
+
+
 </script>
 
 <div id="admin_side_menu" class="col-md-2">
@@ -111,8 +118,8 @@
                     <loc:message code="cryptoWallets.title"/><i class="fa fa-caret-down"></i></a>
                 <div class="collapse" id="cryptoWalletsMenu">
                     <ul>
-                        <li><a href="<c:url value='/2a8fy7b07dxe44/bitcoinWallet/BTC'/>"><loc:message code="btcWallet.title"/></a></li>
-                        <li><a href="<c:url value='/2a8fy7b07dxe44/bitcoinWallet/LTC'/>"><loc:message code="ltcWallet.title"/></a></li>
+                        <li><a href="<c:url value='/2a8fy7b07dxe44/bitcoinWallet/Bitcoin'/>"><loc:message code="btcWallet.title"/></a></li>
+                        <li><a href="<c:url value='/2a8fy7b07dxe44/bitcoinWallet/Litecoin'/>"><loc:message code="ltcWallet.title"/></a></li>
                     </ul>
                 </div>
             </sec:authorize>

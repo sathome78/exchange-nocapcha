@@ -27,7 +27,7 @@ public class BlockchainPaymentService implements MerchantPaymentService {
     private static final Logger LOGGER = LogManager.getLogger("merchant");
 
     @Autowired
-    @Qualifier("bitcoinService")
+    @Qualifier("bitcoinServiceImpl")
     private BitcoinService bitcoinService;
 
     @Autowired
