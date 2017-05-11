@@ -147,7 +147,7 @@ public class RefillServiceImpl implements RefillService {
     Integer currencyId = requestAcceptDto.getCurrencyId();
     Integer merchantId = requestAcceptDto.getMerchantId();
     BigDecimal amount = requestAcceptDto.getAmount();
-    Integer userId = getUserIdByMerchantIdAndCurrencyIdAndAddress(address, merchantId, currencyId)
+    Integer userId = getUserIdByAddressAndMerchantIdAndCurrencyId(address, merchantId, currencyId)
         .orElseThrow(() -> new CreatorForTheRefillRequestNotDefinedException(String.format("address: %s currency: %s merchant: %s amount: %s",
             address, currencyId, merchantId, amount)));
     Locale locale = new Locale(userService.getPreferedLang(userId));
@@ -199,17 +199,24 @@ public class RefillServiceImpl implements RefillService {
     refillRequestDao.setStatusAndConfirmationDataById(requestId, newStatus, invoiceConfirmData);
   }
 
-  private Optional<Integer> getRequestIdInPendingByAddressAndMerchantIdAndCurrencyId(String address, Integer merchantId, Integer currencyId) {
+  private Optional<Integer> getRequestIdInPendingByAddressAndMerchantIdAndCurrencyId(
+      String address,
+      Integer merchantId,
+      Integer currencyId) {
     List<InvoiceStatus> statusList = RefillStatusEnum.getAvailableForActionStatusesList(START_BCH_EXAMINE);
-    return refillRequestDao.findIdWithoutConfirmationsByMerchantIdAndCurrencyIdAndAddressAndStatusId(
+    return refillRequestDao.findIdWithoutConfirmationsByAddressAndMerchantIdAndCurrencyIdAndStatusId(
         address,
         merchantId,
         currencyId,
         statusList.stream().map(InvoiceStatus::getCode).collect(Collectors.toList()));
   }
 
-  private Optional<Integer> getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(String address, Integer merchantId, Integer currencyId, String hash) {
-    return refillRequestDao.findIdByMerchantIdAndCurrencyIdAndAddressAndHash(
+  private Optional<Integer> getRequestIdByAddressAndMerchantIdAndCurrencyIdAndHash(
+      String address,
+      Integer merchantId,
+      Integer currencyId,
+      String hash) {
+    return refillRequestDao.findIdByAddressAndMerchantIdAndCurrencyIdAndHash(
         address,
         merchantId,
         currencyId,
@@ -218,7 +225,7 @@ public class RefillServiceImpl implements RefillService {
 
   private Optional<Integer> getRequestIdReadyForAutoAcceptByAddressAndMerchantIdAndCurrencyId(String address, Integer merchantId, Integer currencyId) {
     List<InvoiceStatus> statusList = RefillStatusEnum.getAvailableForActionStatusesList(ACCEPT_AUTO);
-    return refillRequestDao.findIdByMerchantIdAndCurrencyIdAndAddressAndStatusId(
+    return refillRequestDao.findIdByAddressAndMerchantIdAndCurrencyIdAndStatusId(
         address,
         merchantId,
         currencyId,
@@ -253,8 +260,11 @@ public class RefillServiceImpl implements RefillService {
 
   @Override
   @Transactional
-  public Optional<Integer> getUserIdByMerchantIdAndCurrencyIdAndAddress(String address, Integer merchantId, Integer currencyId) {
-    return refillRequestDao.findUserIdByMerchantIdAndCurrencyIdAndAddress(address, merchantId, currencyId);
+  public Optional<Integer> getUserIdByAddressAndMerchantIdAndCurrencyId(
+      String address,
+      Integer merchantId,
+      Integer currencyId) {
+    return refillRequestDao.findUserIdByAddressAndMerchantIdAndCurrencyId(address, merchantId, currencyId);
   }
 
   /**
@@ -474,7 +484,7 @@ public class RefillServiceImpl implements RefillService {
   @Override
   @Transactional(readOnly = true)
   public List<InvoiceBank> findBanksForCurrency(Integer currencyId) {
-    return refillRequestDao.findInvoiceBanksByCurrency(currencyId);
+    return refillRequestDao.findInvoiceBankListByCurrency(currencyId);
   }
 
   @Override
@@ -520,7 +530,7 @@ public class RefillServiceImpl implements RefillService {
             intervalHours,
             EXPIRED.getCode(),
             invoiceRequestStatusIdList);
-        userForNotificationList.addAll(refillRequestDao.findInvoicesListByStatusChangedAtDate(
+        userForNotificationList.addAll(refillRequestDao.findListByMerchantIdAndCurrencyIdStatusChangedAtDate(
             merchantId,
             currencyId,
             EXPIRED.getCode(),

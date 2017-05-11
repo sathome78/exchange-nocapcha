@@ -92,15 +92,15 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   }
 
   @Override
-  public Optional<Integer> findIdByMerchantIdAndCurrencyIdAndAddressAndStatusId(
+  public Optional<Integer> findIdByAddressAndMerchantIdAndCurrencyIdAndStatusId(
       String address,
       Integer merchantId,
       Integer currencyId,
       List<Integer> statusList) {
     String sql = "SELECT RR.id " +
         " FROM REFILL_REQUEST RR " +
-        " WHERE RR.address = :address " +
-        "       AND RR.merchant_id = :merchant_id " +
+        " JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id = RR.refill_request_address_id) AND (RRA.address = :address) " +
+        " WHERE RR.merchant_id = :merchant_id " +
         "       AND RR.currency_id = :currency_id " +
         "       AND RR.status_id IN (:status_id_list) ";
     Map<String, Object> params = new HashMap<String, Object>() {{
@@ -117,16 +117,16 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   }
 
   @Override
-  public Optional<Integer> findIdWithoutConfirmationsByMerchantIdAndCurrencyIdAndAddressAndStatusId(
+  public Optional<Integer> findIdWithoutConfirmationsByAddressAndMerchantIdAndCurrencyIdAndStatusId(
       String address,
       Integer merchantId,
       Integer currencyId,
       List<Integer> statusList) {
     String sql = "SELECT RR.id " +
         " FROM REFILL_REQUEST RR " +
+        " JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id = RR.refill_request_address_id) AND (RRA.address = :address) " +
         " LEFT JOIN REFILL_REQUEST_CONFIRMATION RRC ON (RRC.refill_request_id = RR.id) " +
-        " WHERE RR.address = :address " +
-        "       AND RR.merchant_id = :merchant_id " +
+        " WHERE RR.merchant_id = :merchant_id " +
         "       AND RR.currency_id = :currency_id " +
         "       AND RR.status_id IN (:status_id_list) " +
         "       AND RRC.id IS NULL ";
@@ -144,17 +144,17 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   }
 
   @Override
-  public Optional<Integer> findIdByMerchantIdAndCurrencyIdAndAddressAndHash(
+  public Optional<Integer> findIdByAddressAndMerchantIdAndCurrencyIdAndHash(
       String address,
       Integer merchantId,
       Integer currencyId,
       String hash) {
     String sql = "SELECT RR.id " +
         " FROM REFILL_REQUEST RR " +
-        " WHERE RR.address = :address " +
-        "       AND RR.merchant_id = :merchant_id " +
-        "       AND RR.currency_id = :currency_id " +
-        "       AND RR.hash = :hash ";
+        " JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id = RR.refill_request_address_id) AND (RRA.address = :address) " +
+        " JOIN REFILL_REQUEST_PARAM RRP ON (RRP.refill_request_id = RR.id) AND (RRP.param_name='merchant_transaction_id') AND (RRP.param_value = :hash) " +
+        " WHERE RR.merchant_id = :merchant_id " +
+        "       AND RR.currency_id = :currency_id ";
     Map<String, Object> params = new HashMap<String, Object>() {{
       put("address", address);
       put("merchant_id", merchantId);
@@ -234,14 +234,14 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   }
 
   @Override
-  public Optional<Integer> findUserIdByMerchantIdAndCurrencyIdAndAddress(
+  public Optional<Integer> findUserIdByAddressAndMerchantIdAndCurrencyId(
       String address,
       Integer merchantId,
       Integer currencyId) {
     String sql = "SELECT RR.user_id " +
         " FROM REFILL_REQUEST RR " +
-        " WHERE RR.address = :address " +
-        "       AND RR.merchant_id = :merchant_id " +
+        " JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id = RR.refill_request_address_id) AND (RRA.address = :address) " +
+        " WHERE RR.merchant_id = :merchant_id " +
         "       AND RR.currency_id = :currency_id " +
         " LIMIT 1 ";
     Map<String, Object> params = new HashMap<String, Object>() {{
@@ -324,7 +324,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   }
 
   @Override
-  public List<InvoiceBank> findInvoiceBanksByCurrency(Integer currencyId) {
+  public List<InvoiceBank> findInvoiceBankListByCurrency(Integer currencyId) {
     final String sql = "SELECT id, currency_id, name, account_number, recipient " +
         " FROM INVOICE_BANK " +
         " WHERE currency_id = :currency_id";
@@ -413,7 +413,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   }
 
   @Override
-  public List<OperationUserDto> findInvoicesListByStatusChangedAtDate(
+  public List<OperationUserDto> findListByMerchantIdAndCurrencyIdStatusChangedAtDate(
       Integer merchantId,
       Integer currencyId,
       Integer statusId,
