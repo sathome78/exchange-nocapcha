@@ -18,11 +18,14 @@
 
     <script src="<c:url value="/client/js/jquery_1.11.3.min.js"/>" type="text/javascript"></script>
     <script src="<c:url value='/client/js/jquery.mCustomScrollbar.concat.min.js'/>" type="text/javascript"></script>
+    <script src="<c:url value="/client/js/jquery-ui.js"/>" type="text/javascript"></script>
+    <script src="<c:url value="/client/js/polyfill/polyfill.js"/>" type="text/javascript"></script>
 
     <link rel="stylesheet" href="<c:url value="/client/css/font-awesome.min.css"/>">
     <link href="<c:url value='/client/css/jquery.mCustomScrollbar.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/bootstrap.min.css'/>" rel="stylesheet">
     <link href="<c:url value='/client/css/style.css'/>" rel="stylesheet">
+    <link href="<c:url value='/client/css/jquery-ui.css'/>" rel="stylesheet">
 
     <%----------%>
     <script type="text/javascript" src="<c:url value='/client/js/moment-with-locales.min.js'/>"></script>

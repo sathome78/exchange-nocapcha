@@ -133,6 +133,7 @@ public class AdminController {
 
   public static String adminAnyAuthority;
   public static String pureAdminAnyAuthority;
+  public static String nonAdminAnyAuthority;
 
   @PostConstruct
   private void init() {
@@ -141,6 +142,7 @@ public class AdminController {
         .map(e -> "'" + e.name() + "'")
         .collect(Collectors.joining(","));
     adminAnyAuthority = "hasAnyAuthority(" + adminList + ")";
+    nonAdminAnyAuthority = "!" + adminAnyAuthority;
     String pureAdminList = adminRoles.stream()
         .filter(e -> e != FIN_OPERATOR)
         .map(e -> "'" + e.name() + "'")
