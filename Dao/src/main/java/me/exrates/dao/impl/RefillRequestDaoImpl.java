@@ -172,13 +172,13 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
       Integer merchantId,
       Integer currencyId,
       List<Integer> statusList) {
-    String sql = "SELECT REFILL_REQUEST.*,  " +
-        " INVOICE_BANK.name, INVOICE_BANK.account_number, INVOICE_BANK.recipient " +
+    String sql = "SELECT  REFILL_REQUEST.*, RRA.*, RRP.*, " +
+        "                 INVOICE_BANK.name, INVOICE_BANK.account_number, INVOICE_BANK.recipient " +
         " FROM REFILL_REQUEST " +
-        " LEFT JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id = RR.refill_request_address_id) AND (RRA.address = :address) " +
-        " LEFT JOIN REFILL_REQUEST_PARAM RRP ON (RRP.id = RR.refill_request_param_id) " +
-        " LEFT JOIN INVOICE_BANK ON (INVOICE_BANK.id = REFILL_REQUEST.recipient_bank_id) " +
-        " LEFT JOIN REFILL_REQUEST_CONFIRMATION RRC ON (RRC.refill_request_id = REFILL_REQUEST.id) " +
+        "   LEFT JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id = RR.refill_request_address_id) AND (RRA.address = :address) " +
+        "   LEFT JOIN REFILL_REQUEST_PARAM RRP ON (RRP.id = RR.refill_request_param_id) " +
+        "   LEFT JOIN INVOICE_BANK ON (INVOICE_BANK.id = REFILL_REQUEST.recipient_bank_id) " +
+        "   LEFT JOIN REFILL_REQUEST_CONFIRMATION RRC ON (RRC.refill_request_id = REFILL_REQUEST.id) " +
         " WHERE REFILL_REQUEST.merchant_id = :merchant_id " +
         "       AND REFILL_REQUEST.currency_id = :currency_id " +
         "       AND REFILL_REQUEST.status_id IN (:status_id_list) " +
@@ -196,11 +196,13 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
       Integer merchantId,
       Integer currencyId,
       List<InvoiceStatus> statusList) {
-    String sql = "SELECT REFILL_REQUEST.*,  " +
-        " INVOICE_BANK.name, INVOICE_BANK.account_number, INVOICE_BANK.recipient " +
+    String sql = "SELECT  REFILL_REQUEST.*, RRA.*, RRP.*,  " +
+        "                 INVOICE_BANK.name, INVOICE_BANK.account_number, INVOICE_BANK.recipient " +
         " FROM REFILL_REQUEST " +
-        " LEFT JOIN INVOICE_BANK ON (INVOICE_BANK.id = REFILL_REQUEST.recipient_bank_id) " +
-        " JOIN REFILL_REQUEST_CONFIRMATION RRC ON (RRC.refill_request_id = REFILL_REQUEST.id) " +
+        "   LEFT JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id = REFILL_REQUEST.refill_request_address_id) AND (RRA.address = :address) " +
+        "   LEFT JOIN REFILL_REQUEST_PARAM RRP ON (RRP.id = REFILL_REQUEST.refill_request_param_id) " +
+        "   LEFT JOIN INVOICE_BANK ON (INVOICE_BANK.id = REFILL_REQUEST.recipient_bank_id) " +
+        "   JOIN REFILL_REQUEST_CONFIRMATION RRC ON (RRC.refill_request_id = REFILL_REQUEST.id) " +
         " WHERE REFILL_REQUEST.merchant_id = :merchant_id " +
         "       AND REFILL_REQUEST.currency_id = :currency_id " +
         "       AND REFILL_REQUEST.status_id IN (:status_id_list) " +
@@ -435,10 +437,12 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
 
   @Override
   public Optional<RefillRequestFlatDto> getFlatById(Integer id) {
-    String sql = "SELECT REFILL_REQUEST.*,  " +
-        " INVOICE_BANK.name, INVOICE_BANK.account_number, INVOICE_BANK.recipient " +
+    String sql = "SELECT  REFILL_REQUEST.*, RRA.*, RRP.*,  " +
+        "                 INVOICE_BANK.name, INVOICE_BANK.account_number, INVOICE_BANK.recipient " +
         " FROM REFILL_REQUEST " +
-        " LEFT JOIN INVOICE_BANK ON (INVOICE_BANK.id = REFILL_REQUEST.recipient_bank_id) " +
+        "   LEFT JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id = REFILL_REQUEST.refill_request_address_id) AND (RRA.address = :address) " +
+        "   LEFT JOIN REFILL_REQUEST_PARAM RRP ON (RRP.id = REFILL_REQUEST.refill_request_param_id) " +
+        "   LEFT JOIN INVOICE_BANK ON (INVOICE_BANK.id = REFILL_REQUEST.recipient_bank_id) " +
         " WHERE REFILL_REQUEST.id = :id";
     try {
       return of(namedParameterJdbcTemplate.queryForObject(sql, singletonMap("id", id), refillRequestFlatDtoRowMapper));
@@ -517,6 +521,8 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     String filter = refillFilterData.getSQLFilterClause();
     String sqlBase =
         " FROM REFILL_REQUEST " +
+            " LEFT JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id = REFILL_REQUEST.refill_request_address_id) AND (RRA.address = :address) " +
+            " LEFT JOIN REFILL_REQUEST_PARAM RRP ON (RRP.id = REFILL_REQUEST.refill_request_param_id) " +
             " LEFT JOIN INVOICE_BANK IB ON (IB.id = REFILL_REQUEST.recipient_bank_id) " +
             " JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
             "				(IOP.currency_id=REFILL_REQUEST.currency_id) " +
@@ -528,7 +534,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     String whereClauseFilter = StringUtils.isEmpty(filter) ? "" : " AND ".concat(filter);
     String orderClause = dataTableParams.getOrderByClause();
     String offsetAndLimit = dataTableParams.getLimitAndOffsetClause();
-    String sqlMain = String.join(" ", "SELECT REFILL_REQUEST.*, IB.*, IOP.invoice_operation_permission_id ",
+    String sqlMain = String.join(" ", "SELECT REFILL_REQUEST.*, RRA.*, RRP.*, IB.*, IOP.invoice_operation_permission_id ",
         sqlBase, whereClauseFilter, orderClause, offsetAndLimit);
     String sqlCount = String.join(" ", "SELECT COUNT(*) ", sqlBase, whereClauseFilter);
     Map<String, Object> params = new HashMap<String, Object>() {{
@@ -557,12 +563,15 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   public RefillRequestFlatDto getPermittedFlatById(
       Integer id,
       Integer requesterUserId) {
-    String sql = "SELECT REFILL_REQUEST.*, IOP.invoice_operation_permission_id " +
+    String sql = "SELECT  REFILL_REQUEST.*, RRA.*, RRP.*, " +
+        "                 IOP.invoice_operation_permission_id " +
         " FROM REFILL_REQUEST " +
-        " JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
-        "				(IOP.currency_id=REFILL_REQUEST.currency_id) " +
-        "				AND (IOP.user_id=:requester_user_id) " +
-        "				AND (IOP.operation_direction=:operation_direction) " +
+        "   LEFT JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id = REFILL_REQUEST.refill_request_address_id) AND (RRA.address = :address) " +
+        "   LEFT JOIN REFILL_REQUEST_PARAM RRP ON (RRP.id = REFILL_REQUEST.refill_request_param_id) " +
+        "   JOIN USER_CURRENCY_INVOICE_OPERATION_PERMISSION IOP ON " +
+        "	  			(IOP.currency_id=REFILL_REQUEST.currency_id) " +
+        "	  			AND (IOP.user_id=:requester_user_id) " +
+        "	  			AND (IOP.operation_direction=:operation_direction) " +
         " WHERE REFILL_REQUEST.id=:id ";
     Map<String, Object> params = new HashMap<String, Object>() {{
       put("id", id);
