@@ -6,8 +6,8 @@ DELETE FROM REFILL_REQUEST_ADDRESS;
 /*------------------------------*/
 
 INSERT INTO REFILL_REQUEST_ADDRESS
- (currency_id, address, user_id, priv_key, pub_key, brain_priv_key)
- SELECT currency_id, address, user_id,
+ (id, currency_id, address, user_id, priv_key, pub_key, brain_priv_key)
+ SELECT id, currency_id, address, user_id,
 
  (SELECT wif_priv_key
  FROM REFILL_REQUEST_TEMP RRTI
@@ -20,77 +20,36 @@ INSERT INTO REFILL_REQUEST_ADDRESS
  WHERE RRTI.id = RRT.id)
 
  FROM
- (SELECT currency_id, address, user_id, MAX(id) AS id
+ (SELECT MAX(id) AS id, currency_id, address, user_id
  FROM REFILL_REQUEST_TEMP
  WHERE address IS NOT NULL AND address <> ''
  GROUP BY currency_id, address
  ) RRT;
 
 /*------------------------------*/
+
+INSERT INTO REFILL_REQUEST_PARAM
+(id, recipient_bank_id, user_full_name, remark, payer_bank_name, payer_bank_code, payer_account, receipt_scan, receipt_scan_name)
+SELECT id, recipient_bank_id, user_full_name, remark, payer_bank_name, payer_bank_code, payer_account, receipt_scan, receipt_scan_name
+FROM REFILL_REQUEST_TEMP
+WHERE recipient_bank_id IS NOT NULL;
+
+/*------------------------------*/
+
 INSERT INTO REFILL_REQUEST
-(id, amount, date_creation, status_id, status_modification_date, currency_id, user_id, commission_id, merchant_id, recipient_bank_id, admin_holder_id, import_note,
+(id, amount, date_creation, status_id, status_modification_date, currency_id, user_id, commission_id, merchant_id, admin_holder_id, import_note,
+refill_request_param_id,
+merchant_transaction_id,
 refill_request_address_id)
-SELECT id, amount, date_creation, status_id, status_modification_date, currency_id, user_id, commission_id, merchant_id, recipient_bank_id, admin_holder_id, import_note,
-(SELECT id FROM REFILL_REQUEST_ADDRESS RRA WHERE RRA.currency_id = RRT.currency_id AND RRA.address = RRT.address)
+SELECT id, amount, date_creation, status_id, status_modification_date, currency_id, user_id, commission_id, merchant_id, admin_holder_id, import_note,
+(SELECT id FROM REFILL_REQUEST_PARAM RRP WHERE RRP.id = RRT.id),
+IF (hash IS NOT NULL AND hash <> '', hash, merchant_transaction_id),
+(SELECT id FROM REFILL_REQUEST_ADDRESS RRA WHERE RRA.id = RRT.id)
 FROM REFILL_REQUEST_TEMP RRT;
 
 SELECT COUNT(DISTINCT refill_request_address_id) FROM REFILL_REQUEST WHERE refill_request_address_id IS NOT NULL;
 
 /*------------------------------*/
-
-INSERT INTO REFILL_REQUEST_PARAM
-(refill_request_id, param_name, param_value)
-SELECT id, 'user_full_name', user_full_name
-FROM REFILL_REQUEST_TEMP
-WHERE user_full_name IS NOT NULL AND user_full_name <> '';
-
-INSERT INTO REFILL_REQUEST_PARAM
-(refill_request_id, param_name, param_value)
-SELECT id, 'remark', remark
-FROM REFILL_REQUEST_TEMP
-WHERE remark IS NOT NULL AND remark <> '';
-
-INSERT INTO REFILL_REQUEST_PARAM
-(refill_request_id, param_name, param_value)
-SELECT id, 'payer_bank_name', payer_bank_name
-FROM REFILL_REQUEST_TEMP
-WHERE payer_bank_name IS NOT NULL AND payer_bank_name <> '';
-
-INSERT INTO REFILL_REQUEST_PARAM
-(refill_request_id, param_name, param_value)
-SELECT id, 'payer_bank_code', payer_bank_code
-FROM REFILL_REQUEST_TEMP
-WHERE payer_bank_code IS NOT NULL AND payer_bank_code <> '';
-
-INSERT INTO REFILL_REQUEST_PARAM
-(refill_request_id, param_name, param_value)
-SELECT id, 'payer_account', payer_account
-FROM REFILL_REQUEST_TEMP
-WHERE payer_account IS NOT NULL AND payer_account <> '';
-
-INSERT INTO REFILL_REQUEST_PARAM
-(refill_request_id, param_name, param_value)
-SELECT id, 'receipt_scan', receipt_scan
-FROM REFILL_REQUEST_TEMP
-WHERE receipt_scan IS NOT NULL AND receipt_scan <> '';
-
-INSERT INTO REFILL_REQUEST_PARAM
-(refill_request_id, param_name, param_value)
-SELECT id, 'receipt_scan_name', receipt_scan_name
-FROM REFILL_REQUEST_TEMP
-WHERE receipt_scan_name IS NOT NULL AND receipt_scan_name <> '';
-
-INSERT INTO REFILL_REQUEST_PARAM
-(refill_request_id, param_name, param_value)
-SELECT id, 'merchant_transaction_id', hash
-FROM REFILL_REQUEST_TEMP
-WHERE hash IS NOT NULL AND hash <> '';
-
-INSERT INTO REFILL_REQUEST_PARAM
-(refill_request_id, param_name, param_value)
-SELECT id, 'merchant_transaction_id', merchant_transaction_id
-FROM REFILL_REQUEST_TEMP
-WHERE merchant_transaction_id IS NOT NULL AND merchant_transaction_id <> '' AND (hash IS NULL);
 
 SET FOREIGN_KEY_CHECKS = 1;
 
@@ -126,10 +85,9 @@ WHERE RRI.user_id <> RRA.user_id;
 
 DELETE RRP
 FROM REFILL_REQUEST_PARAM RRP
-JOIN REFILL_REQUEST RRI ON (RRI.id=RRP.refill_request_id)
+JOIN REFILL_REQUEST RRI ON (RRI.refill_request_param_id=RRP.id)
 JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id=RRI.refill_request_address_id)
 WHERE RRI.user_id <> RRA.user_id;
-
 
 DELETE RR
 FROM REFILL_REQUEST RR

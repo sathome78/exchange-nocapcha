@@ -176,6 +176,8 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     String sql = "SELECT REFILL_REQUEST.*,  " +
         " INVOICE_BANK.name, INVOICE_BANK.account_number, INVOICE_BANK.recipient " +
         " FROM REFILL_REQUEST " +
+        " LEFT JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id = RR.refill_request_address_id) AND (RRA.address = :address) " +
+        " LEFT JOIN REFILL_REQUEST_PARAM RRP ON (RRP.refill_request_id = RR.id) " +
         " LEFT JOIN INVOICE_BANK ON (INVOICE_BANK.id = REFILL_REQUEST.recipient_bank_id) " +
         " LEFT JOIN REFILL_REQUEST_CONFIRMATION RRC ON (RRC.refill_request_id = REFILL_REQUEST.id) " +
         " WHERE REFILL_REQUEST.merchant_id = :merchant_id " +
