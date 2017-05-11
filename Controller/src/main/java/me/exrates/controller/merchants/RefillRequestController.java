@@ -1,15 +1,15 @@
 package me.exrates.controller.merchants;
 
 import me.exrates.controller.exception.ErrorInfo;
-import me.exrates.model.dto.*;
-import me.exrates.service.*;
 import me.exrates.model.CreditsOperation;
 import me.exrates.model.InvoiceBank;
 import me.exrates.model.Payment;
+import me.exrates.model.dto.*;
 import me.exrates.model.enums.invoice.RefillStatusEnum;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForCurrencyPermissionOperationException;
 import me.exrates.model.exceptions.InvoiceActionIsProhibitedForNotHolderException;
 import me.exrates.model.vo.InvoiceConfirmData;
+import me.exrates.service.*;
 import me.exrates.service.exception.IllegalOperationTypeException;
 import me.exrates.service.exception.InvalidAmountException;
 import me.exrates.service.exception.NotEnoughUserWalletMoneyException;
@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -70,6 +71,20 @@ public class RefillRequestController {
     }
     if (!refillService.checkInputRequestsLimit(requestParamsDto.getCurrency(), principal.getName())) {
       throw new RequestLimitExceededException(messageSource.getMessage("merchants.InputRequestsLimit", null, locale));
+    }
+    if (!requestParamsDto.getGenerateNewAddress()) {
+      String address = refillService.getAddressByMerchantIdAndCurrencyIdAndUserId(
+          requestParamsDto.getMerchant(),
+          requestParamsDto.getCurrency(),
+          userService.getIdByEmail(principal.getName())
+      );
+      if (address != null) {
+        return new HashMap<String, String>() {{
+          put("address", address);
+          put("message", "");
+          put("qr", address);
+        }};
+      }
     }
     RefillStatusEnum beginStatus = (RefillStatusEnum) RefillStatusEnum.X_STATE.nextState(CREATE_BY_USER);
     Payment payment = new Payment(INPUT);

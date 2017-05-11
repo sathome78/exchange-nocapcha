@@ -114,17 +114,21 @@ public class RefillServiceImpl implements RefillService {
     ProfileData profileData = new ProfileData(1000);
     Map<String, String> result = null;
     try {
-      Integer requestId = createRefill(request);
-      profileData.setTime1();
-      request.setId(requestId);
       IMerchantService merchantService = merchantServiceContext.getMerchantService(request.getServiceBeanName());
-      profileData.setTime2();
-      result = merchantService.refill(request);
-      String address = result.get("address");
-      if (!StringUtils.isEmpty(address)) {
-        keepAddress(requestId, address);
+      profileData.setTime1();
+      try {
+        result = merchantService.refill(request);
+        request.setAddress(result.get("address"));
+        createRefill(request);
+      } catch (RefillRequestIdNeededException e){
+        Integer requestId = createRefill(request);
+        request.setId(requestId);
+        try {
+          result = merchantService.refill(request);
+        } catch (RefillRequestIdNeededException ignored){
+        }
       }
-      profileData.setTime3();
+      profileData.setTime2();
     } finally {
       profileData.checkAndLog("slow create RefillRequest: " + request + " profile: " + profileData);
     }
@@ -138,6 +142,12 @@ public class RefillServiceImpl implements RefillService {
       log.error(e);
     }
     return result;
+  }
+
+  @Override
+  @Transactional
+  public String getAddressByMerchantIdAndCurrencyIdAndUserId(Integer merchantId, Integer currencyId, Integer userId){
+    return refillRequestDao.findAddressByMerchantIdAndCurrencyIdAndUserId(merchantId, currencyId, userId);
   }
 
   @Override
@@ -653,10 +663,6 @@ public class RefillServiceImpl implements RefillService {
 
   private Integer createRefillByFact(RefillRequestCreateDto request) {
     return refillRequestDao.create(request);
-  }
-
-  private void keepAddress(Integer requestId, String address) {
-    refillRequestDao.setAddressById(requestId, address);
   }
 
   private String sendRefillNotificationAfterCreation(

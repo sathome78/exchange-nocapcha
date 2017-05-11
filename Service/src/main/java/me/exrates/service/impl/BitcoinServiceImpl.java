@@ -1,8 +1,9 @@
 package me.exrates.service.impl;
 
-import me.exrates.model.*;
 import me.exrates.model.Currency;
-import me.exrates.model.dto.*;
+import me.exrates.model.Merchant;
+import me.exrates.model.dto.RefillRequestCreateDto;
+import me.exrates.model.dto.WithdrawMerchantOperationDto;
 import me.exrates.service.*;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
@@ -16,7 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @PropertySource(value = {"classpath:/job.properties"})
@@ -46,18 +48,18 @@ public class BitcoinServiceImpl implements BitcoinService {
   void startBitcoin() {
     bitcoinWalletService.initBitcoin();
   }
-   
+
 
   @Override
   @Transactional
   public void withdraw(WithdrawMerchantOperationDto withdrawMerchantOperationDto) throws Exception {
-    throw new NotImplimentedMethod("for "+withdrawMerchantOperationDto);
+    throw new NotImplimentedMethod("for " + withdrawMerchantOperationDto);
   }
 
   @Override
   @Transactional
   public Map<String, String> refill(RefillRequestCreateDto request) {
-    String address = address();
+    String address = request.getAddress();
 //    String address = "some btc address";
     String message = messageSource.getMessage("merchants.refill.btc",
         new Object[]{request.getAmount(), address}, request.getLocale());
@@ -70,7 +72,7 @@ public class BitcoinServiceImpl implements BitcoinService {
 
   @Override
   public void processPayment(Map<String, String> params) throws RefillRequestAppropriateNotFoundException {
-    throw new NotImplimentedMethod("for "+params);
+    throw new NotImplimentedMethod("for " + params);
   }
 
   private String address() {
@@ -92,5 +94,5 @@ public class BitcoinServiceImpl implements BitcoinService {
 
     return address;
   }
-    
+
 }

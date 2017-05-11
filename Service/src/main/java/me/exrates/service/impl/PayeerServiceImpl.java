@@ -9,6 +9,7 @@ import me.exrates.service.*;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.RefillRequestFakePaymentReceivedException;
+import me.exrates.service.exception.RefillRequestIdNeededException;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -51,8 +52,11 @@ public class PayeerServiceImpl implements PayeerService {
   }
 
   @Override
-  public Map<String, String> refill(RefillRequestCreateDto request) {
+  public Map<String, String> refill(RefillRequestCreateDto request) throws RefillRequestIdNeededException {
     Integer requestId = request.getId();
+    if (requestId == null) {
+      throw new RefillRequestIdNeededException(request.toString());
+    }
     BigDecimal sum = request.getAmount();
     String currency = request.getCurrencyName();
     BigDecimal amountToPay = sum.setScale(2, BigDecimal.ROUND_HALF_UP);

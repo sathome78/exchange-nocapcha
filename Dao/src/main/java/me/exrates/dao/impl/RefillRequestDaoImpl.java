@@ -17,7 +17,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -152,9 +151,9 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     String sql = "SELECT RR.id " +
         " FROM REFILL_REQUEST RR " +
         " JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id = RR.refill_request_address_id) AND (RRA.address = :address) " +
-        " JOIN REFILL_REQUEST_PARAM RRP ON (RRP.refill_request_id = RR.id) AND (RRP.param_name='merchant_transaction_id') AND (RRP.param_value = :hash) " +
         " WHERE RR.merchant_id = :merchant_id " +
-        "       AND RR.currency_id = :currency_id ";
+        "       AND RR.currency_id = :currency_id " +
+        "       AND RR.merchant_transaction_id = :hash ";
     Map<String, Object> params = new HashMap<String, Object>() {{
       put("address", address);
       put("merchant_id", merchantId);
@@ -177,7 +176,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         " INVOICE_BANK.name, INVOICE_BANK.account_number, INVOICE_BANK.recipient " +
         " FROM REFILL_REQUEST " +
         " LEFT JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id = RR.refill_request_address_id) AND (RRA.address = :address) " +
-        " LEFT JOIN REFILL_REQUEST_PARAM RRP ON (RRP.refill_request_id = RR.id) " +
+        " LEFT JOIN REFILL_REQUEST_PARAM RRP ON (RRP.id = RR.refill_request_param_id) " +
         " LEFT JOIN INVOICE_BANK ON (INVOICE_BANK.id = REFILL_REQUEST.recipient_bank_id) " +
         " LEFT JOIN REFILL_REQUEST_CONFIRMATION RRC ON (RRC.refill_request_id = REFILL_REQUEST.id) " +
         " WHERE REFILL_REQUEST.merchant_id = :merchant_id " +
@@ -262,11 +261,9 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   public int create(RefillRequestCreateDto request) {
     final String sql = "INSERT INTO REFILL_REQUEST " +
         " (amount, status_id, currency_id, user_id, commission_id, merchant_id, " +
-        "  recipient_bank_id, user_full_name, remark, address," +
         "  date_creation, status_modification_date) " +
         " VALUES " +
         " (:amount, :status_id, :currency_id, :user_id, :commission_id, :merchant_id, " +
-        " :recipient_bank_id, :user_full_name, :remark, :address," +
         " NOW(), NOW())";
     KeyHolder keyHolder = new GeneratedKeyHolder();
     MapSqlParameterSource params = new MapSqlParameterSource()
@@ -275,13 +272,70 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
         .addValue("currency_id", request.getCurrencyId())
         .addValue("user_id", request.getUserId())
         .addValue("commission_id", request.getCommissionId())
-        .addValue("merchant_id", request.getMerchantId())
-        .addValue("recipient_bank_id", request.getRecipientBankId())
-        .addValue("user_full_name", request.getUserFullName())
-        .addValue("remark", request.getRemark())
-        .addValue("address", request.getAddress());
+        .addValue("merchant_id", request.getMerchantId());
     namedParameterJdbcTemplate.update(sql, params, keyHolder);
-    return (int) keyHolder.getKey().longValue();
+    Integer refillRequestId = (int) keyHolder.getKey().longValue();
+    Integer refillRequestAddressId = null;
+    Integer refillRequestParamId = null;
+    if (!StringUtils.isEmpty(request.getAddress())) {
+      final String findAddressSql = "SELECT id FROM REFILL_REQUEST_ADDRESS " +
+          " WHERE currency_id = :currency_id AND address = :address AND user_id = :user_id ";
+      params = new MapSqlParameterSource()
+          .addValue("currency_id", request.getCurrencyId())
+          .addValue("address", request.getAddress())
+          .addValue("user_id", request.getUserId());
+      refillRequestAddressId = namedParameterJdbcTemplate.queryForObject(findAddressSql, params, Integer.class);
+      if (refillRequestAddressId == null) {
+        final String addAddressSql = "INSERT INTO REFILL_REQUEST_ADDRESS " +
+            " (id, recipient_bank_id, user_full_name, remark) " +
+            " VALUES " +
+            " (:id, :recipient_bank_id, :user_full_name, :remark) ";
+        params = new MapSqlParameterSource()
+            .addValue("id", refillRequestId)
+            .addValue("recipient_bank_id", request.getRecipientBankId())
+            .addValue("user_full_name", request.getUserFullName())
+            .addValue("remark", request.getRemark());
+        namedParameterJdbcTemplate.update(addAddressSql, params);
+        refillRequestAddressId = refillRequestId;
+      }
+    }
+    if (request.getRecipientBankId() != null) {
+      final String addParamSql = "INSERT INTO REFILL_REQUEST_PARAM " +
+          " (id, currency_id, address, user_id) " +
+          " VALUES " +
+          " (:id, currency_id, address, user_id) ";
+      params = new MapSqlParameterSource()
+          .addValue("id", refillRequestId)
+          .addValue("currency_id", request.getCurrencyId())
+          .addValue("address", request.getAddress())
+          .addValue("user_id", request.getUserId());
+      namedParameterJdbcTemplate.update(addParamSql, params);
+      refillRequestParamId = refillRequestId;
+    }
+    final String setKeysSql = "UPDATE REFILL_REQUEST " +
+        " SET refill_request_param_id = :refill_request_param_id," +
+        "     refill_request_address_id = :refill_request_address_id" +
+        " WHERE id = :id ";
+    params = new MapSqlParameterSource()
+        .addValue("id", refillRequestId)
+        .addValue("refill_request_param_id", refillRequestParamId)
+        .addValue("refill_request_address_id", refillRequestAddressId);
+    namedParameterJdbcTemplate.update(setKeysSql, params);
+    return refillRequestId;
+  }
+
+  @Override
+  public String findAddressByMerchantIdAndCurrencyIdAndUserId(
+      Integer merchantId,
+      Integer currencyId,
+      Integer userId) {
+    final String sql = "SELECT address FROM REFILL_REQUEST_ADDRESS " +
+        " WHERE currency_id = :currency_id AND merchant_id = :merchant_id AND user_id = :user_id ";
+    MapSqlParameterSource params = new MapSqlParameterSource()
+        .addValue("currency_id", currencyId)
+        .addValue("merchant_id", merchantId)
+        .addValue("user_id", userId);
+    return namedParameterJdbcTemplate.queryForObject(sql, params, String.class);
   }
 
   @Override
@@ -304,17 +358,23 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     final String sql = "UPDATE REFILL_REQUEST " +
         "  SET status_id = :new_status_id, " +
         "      status_modification_date = NOW(), " +
-        "      payer_bank_code = :payer_bank_code, " +
+        "  WHERE id = :id";
+    Map<String, Object> params = new HashMap<>();
+    params.put("id", id);
+    params.put("new_status_id", newStatus.getCode());
+    namedParameterJdbcTemplate.update(sql, params);
+    /**/
+    final String updateParamSql = "UPDATE REFILL_REQUEST_PARAM " +
+        "  JOIN REFILL_REQUEST ON (REFILL_REQUEST.refill_request_param_id = REFILL_REQUEST_PARAM.id) AND (REFILL_REQUEST.id = :id)" +
+        "  SET payer_bank_code = :payer_bank_code, " +
         "      payer_bank_name = :payer_bank_name, " +
         "      payer_account = :payer_account, " +
         "      user_full_name = :user_full_name, " +
         "      remark = :remark, " +
         "      receipt_scan_name = :receipt_scan_name, " +
-        "      receipt_scan = :receipt_scan " +
-        "  WHERE id = :id";
-    Map<String, Object> params = new HashMap<>();
+        "      receipt_scan = :receipt_scan ";
+    params = new HashMap<>();
     params.put("id", id);
-    params.put("new_status_id", newStatus.getCode());
     params.put("payer_bank_code", invoiceConfirmData.getPayerBankCode());
     params.put("payer_bank_name", invoiceConfirmData.getPayerBankName());
     params.put("payer_account", invoiceConfirmData.getUserAccount());
@@ -322,7 +382,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     params.put("remark", invoiceConfirmData.getRemark());
     params.put("receipt_scan_name", invoiceConfirmData.getReceiptScanName());
     params.put("receipt_scan", invoiceConfirmData.getReceiptScanPath());
-    namedParameterJdbcTemplate.update(sql, params);
+    namedParameterJdbcTemplate.update(updateParamSql, params);
   }
 
   @Override
@@ -564,9 +624,9 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
 
   @Override
   public void setRemarkById(Integer id, String remark) {
-    final String sql = "UPDATE REFILL_REQUEST " +
-        "  SET remark = :remark " +
-        "  WHERE id = :id";
+    final String sql = "UPDATE REFILL_REQUEST_PARAM " +
+        "  JOIN REFILL_REQUEST ON (REFILL_REQUEST.refill_request_param_id = REFILL_REQUEST_PARAM.id) AND (REFILL_REQUEST.id = :id) " +
+        "  SET remark = :remark ";
     Map<String, Object> params = new HashMap<>();
     params.put("id", id);
     params.put("remark", remark);
@@ -587,7 +647,7 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
   @Override
   public void setHashById(Integer id, String hash) {
     final String sql = "UPDATE REFILL_REQUEST " +
-        "  SET hash = :hash " +
+        "  SET merchant_transaction_id = :hash " +
         "  WHERE id = :id";
     Map<String, Object> params = new HashMap<>();
     params.put("id", id);
@@ -610,19 +670,6 @@ public class RefillRequestDaoImpl implements RefillRequestDao {
     params.put("currency_id", currencyId);
     params.put("email", email);
     return namedParameterJdbcTemplate.queryForObject(sql, params, Integer.class) == 1;
-  }
-
-  @Override
-  public void setAddressById(
-      Integer id,
-      String address) {
-    final String sql = "UPDATE REFILL_REQUEST " +
-        "  SET address = :address " +
-        "  WHERE id = :id";
-    Map<String, Object> params = new HashMap<>();
-    params.put("id", id);
-    params.put("address", address);
-    namedParameterJdbcTemplate.update(sql, params);
   }
 
   @Override

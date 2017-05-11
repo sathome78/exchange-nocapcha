@@ -22,6 +22,8 @@ public interface RefillService {
 
   Map<String, String> createRefillRequest(RefillRequestCreateDto requestCreateDto);
 
+  String getAddressByMerchantIdAndCurrencyIdAndUserId(Integer merchantId, Integer currencyId, Integer userId);
+
   Integer createRefillRequestByFact(RefillRequestAcceptDto request);
 
   void confirmRefillRequest(InvoiceConfirmData invoiceConfirmData, Locale locale);

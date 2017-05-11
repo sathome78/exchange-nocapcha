@@ -24,4 +24,5 @@ public class RefillRequestParamsDto {
     private String userFullName;
     private String remark;
     private String address;
+    private Boolean generateNewAddress;
 }
