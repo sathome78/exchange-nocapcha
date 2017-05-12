@@ -14,11 +14,15 @@ import me.exrates.model.enums.ChatLang;
 import me.exrates.security.config.SecurityConfig;
 import me.exrates.security.filter.VerifyReCaptchaSec;
 import me.exrates.service.BitcoinWalletService;
+import me.exrates.service.handler.RestResponseErrorHandler;
 import me.exrates.service.impl.bitcoinWallet.BitcoinCoreWalletServiceImpl;
 import me.exrates.service.impl.bitcoinWallet.BitcoinJWalletServiceImpl;
 import me.exrates.service.token.TokenScheduler;
 import me.exrates.service.util.ChatComponent;
 import org.apache.commons.dbcp2.BasicDataSource;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.MessageSource;
@@ -27,6 +31,8 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.format.FormatterRegistry;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -37,6 +43,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -355,6 +362,21 @@ public class WebAppConfig extends WebMvcConfigurerAdapter {
     @Bean
     public LoggingAspect loggingAspect() {
         return new LoggingAspect();
+    }
+
+    @Bean
+    public RestTemplate restTemplate() {
+        HttpClientBuilder b = HttpClientBuilder.create();
+        HttpClient client = b.build();
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.setErrorHandler(new RestResponseErrorHandler());
+        restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+        requestFactory.setHttpClient(client);
+        requestFactory.setConnectionRequestTimeout(25000);
+        requestFactory.setReadTimeout(25000);
+        restTemplate.setRequestFactory(requestFactory);
+        return new RestTemplate();
     }
 
 }
