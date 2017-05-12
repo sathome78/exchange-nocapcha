@@ -181,16 +181,15 @@ public class MobileInputOutputController {
      * HTTP/1.1 406 Not Acceptable
      *      {
      *           "errorCode": "INPUT_REQUEST_LIMIT_EXCEEDED",
-     *           "url": "http://127.0.0.1:8080/api/payments/withdraw",
-     *           "cause": "NotEnoughUserWalletMoneyException",
-     *           "detail": "Not enough money to withdraw on user wallet Wallet{id=4277, currencyId=1, userId=golvazin@gmail.com,
-     *           activeBalance=-10.000000000, reservedBalance=0E-9, name='RUB'}"
+     *           "url": "http://127.0.0.1:8080/api/payments/preparePayment",
+     *           "cause": "InputRequestLimitExceededException",
+     *           "detail": "Ваш дневной лимит ввода для этой валюты превышен. Пожалуйста, попробуйте завтра."
      *      }
      *
      * */
     
     /**
-     * @apiDefine RequestLimitExceededException
+     * @apiDefine OutputRequestLimitExceededException
      * @apiError (406) {String} errorCode error code
      * @apiError (406) {String} url request URL
      * @apiError (406) {String} cause name of root exception
@@ -200,9 +199,8 @@ public class MobileInputOutputController {
      *      {
      *           "errorCode": "OUTPUT_REQUEST_LIMIT_EXCEEDED",
      *           "url": "http://127.0.0.1:8080/api/payments/withdraw",
-     *           "cause": "NotEnoughUserWalletMoneyException",
-     *           "detail": "Not enough money to withdraw on user wallet Wallet{id=4277, currencyId=1, userId=golvazin@gmail.com,
-     *           activeBalance=-10.000000000, reservedBalance=0E-9, name='RUB'}"
+     *           "cause": "RequestLimitExceededException",
+     *           "detail": "Ваш дневной лимит вывода для этой валюты превышен. Пожалуйста, попробуйте завтра."
      *      }
      *
      * */
@@ -319,6 +317,8 @@ public class MobileInputOutputController {
      * @apiUse MessageNotReadableError
      * @apiUse InvalidAmountError
      * @apiUse InvalidParamError
+     * @apiUse MerchantCurrencyBlockedException
+     * @apiUse OutputRequestLimitExceededException
      * @apiUse InternalServerError
      */
     @RequestMapping(value="/withdraw", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -387,6 +387,7 @@ public class MobileInputOutputController {
      * @apiUse MessageNotReadableError
      * @apiUse InvalidAmountError
      * @apiUse MerchantCurrencyBlockedException
+     * @apiUse InputRequestLimitExceededException
      * @apiUse InternalServerError
      */
     @RequestMapping(value = "/preparePayment", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -451,6 +452,8 @@ public class MobileInputOutputController {
      * @apiUse InvalidParamError
      * @apiUse MessageNotReadableError
      * @apiUse InvalidAmountError
+     * @apiUse InputRequestLimitExceededException
+     * @apiUse MerchantCurrencyBlockedException
      * @apiUse InternalServerError
      */
     @RequestMapping(value = "/invoice/prepare", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -790,6 +793,7 @@ public class MobileInputOutputController {
      * @apiUse MessageNotReadableError
      * @apiUse InvalidAmountError
      * @apiUse MerchantCurrencyBlockedException
+     * @apiUse OutputRequestLimitExceededException
      * @apiUse InternalServerError
      */
     @RequestMapping(value = "/invoice/withdraw", method = POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
