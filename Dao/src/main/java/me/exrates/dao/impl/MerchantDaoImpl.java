@@ -313,7 +313,8 @@ public class MerchantDaoImpl implements MerchantDao {
         "join WALLET ON(WALLET.id = TRANSACTION.user_wallet_id)\n" +
         "join USER ON(USER.id = WALLET.user_id)\n" +
         " where \n" +
-        " TRANSACTION.source_type = 'MERCHANT' OR TRANSACTION.source_type = 'INVOICE' OR TRANSACTION.source_type = 'BTC_INVOICE' and TRANSACTION.provided = 0 \n" +
+        " (TRANSACTION.source_type = 'MERCHANT' OR TRANSACTION.source_type = 'INVOICE' OR TRANSACTION.source_type = 'BTC_INVOICE') " +
+        " and TRANSACTION.provided = 0 \n" +
         " and USER.email = :email and TRANSACTION.currency_id = :currencyId \n" +
         " and SUBSTRING_INDEX(TRANSACTION.datetime, ' ', 1) = CURDATE()) < " +
             "(SELECT CURRENCY_LIMIT.max_daily_request FROM USER \n" +
