@@ -36,6 +36,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
@@ -52,6 +53,7 @@ import java.util.stream.Collectors;
  * Created by OLEG on 14.03.2017.
  */
 @Component
+@Scope("prototype")
 @Log4j2(topic = "bitcoin_core")
 public class CoreWalletServiceImpl implements CoreWalletService {
   

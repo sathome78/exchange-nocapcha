@@ -1231,7 +1231,11 @@ public class AdminController {
   
   private BitcoinService resolveBitcoinServiceBeanFromMerchant(String merchantName) {
     Assert.requireNonNull(merchantName, "Merchant name required!");
-    return bitcoinLikeServices.get(merchantName.toLowerCase().concat("ServiceImpl"));
+    BitcoinService bitcoinService = bitcoinLikeServices.get(merchantName.toLowerCase().concat("ServiceImpl"));
+    if (bitcoinService == null) {
+      throw new NoRequestedBeansFoundException(merchantName);
+    }
+    return bitcoinService;
   }
   
 
