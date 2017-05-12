@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import me.exrates.model.PendingPayment;
 import me.exrates.model.Transaction;
 import me.exrates.model.User;
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
  * Created by ValkSam
  */
 @Getter @Setter
+@ToString
 public class PendingPaymentFlatDto {
   private int invoiceId;
   private String transactionHash;
@@ -39,4 +41,5 @@ public class PendingPaymentFlatDto {
   private LocalDateTime datetime;
   private Integer confirmation;
   private Boolean provided;
+  private String currencyName;
 }

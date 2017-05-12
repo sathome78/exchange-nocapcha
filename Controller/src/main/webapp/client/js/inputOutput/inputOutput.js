@@ -155,8 +155,9 @@ function InputOutputClass(currentCurrencyPair) {
         $('#inputoutput-table').on('click', 'button[data-source=BTC_INVOICE].revoke_button', function (e) {
             e.preventDefault();
             var invoiceId = $(this).data("id");
+            var merchant = $(this).data("merchant").toLowerCase();
             $.ajax({
-                url: '/merchants/bitcoin/payment/address?id=' + invoiceId,
+                url: '/merchants/' + merchant + '/payment/address?id=' + invoiceId,
                 type: 'GET',
                 success: function (data) {
                     var $modal = $("#btc-invoice-revoke-modal");
@@ -166,7 +167,7 @@ function InputOutputClass(currentCurrencyPair) {
                         var invoiceId = $('#invoiceId').val().trim();
                         $modal.modal('hide');
                         $.ajax({
-                            url: '/merchants/bitcoin/payment/revoke?id=' + invoiceId,
+                            url: '/merchants/' + merchant +'/payment/revoke?id=' + invoiceId,
                             headers: {
                                 'X-CSRF-Token': $("input[name='_csrf']").val(),
                             },

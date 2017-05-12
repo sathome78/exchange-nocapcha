@@ -241,16 +241,17 @@ public class OrderServiceImpl implements OrderService {
     if (orderCreateDto.getOrderBaseType().equals(OrderBaseType.STOP_LIMIT)) {
       if (orderCreateDto.getStop() == null || orderCreateDto.getStop().compareTo(BigDecimal.ZERO) <= 0) {
         errors.put("stop_" + errors.size(), "order.fillfield");
-      }
-      if (orderCreateDto.getStop().compareTo(currencyPairLimit.getMinRate()) < 0) {
-        String key = "exrate_" + errors.size();
-        errors.put(key, "order.minrate");
-        errorParams.put(key, new Object[]{currencyPairLimit.getMinRate()});
-      }
-      if (orderCreateDto.getStop().compareTo(currencyPairLimit.getMaxRate()) > 0) {
-        String key = "exrate_" + errors.size();
-        errors.put(key, "order.maxrate");
-        errorParams.put(key, new Object[]{currencyPairLimit.getMaxRate()});
+      } else {
+        if (orderCreateDto.getStop().compareTo(currencyPairLimit.getMinRate()) < 0) {
+          String key = "stop_" + errors.size();
+          errors.put(key, "order.minrate");
+          errorParams.put(key, new Object[]{currencyPairLimit.getMinRate()});
+        }
+        if (orderCreateDto.getStop().compareTo(currencyPairLimit.getMaxRate()) > 0) {
+          String key = "stop_" + errors.size();
+          errors.put(key, "order.maxrate");
+          errorParams.put(key, new Object[]{currencyPairLimit.getMaxRate()});
+        }
       }
     }
     if (orderCreateDto.getExchangeRate() != null) {

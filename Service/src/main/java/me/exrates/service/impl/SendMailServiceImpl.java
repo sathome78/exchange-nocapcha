@@ -8,11 +8,16 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import me.exrates.model.Email;
 import me.exrates.service.SendMailService;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import java.util.stream.Stream;
+
 @Service
+@PropertySource(value = {"classpath:/mail.properties"})
 public class SendMailServiceImpl implements SendMailService{
 
 	@Autowired
@@ -22,6 +27,14 @@ public class SendMailServiceImpl implements SendMailService{
 	@Autowired
 	@Qualifier("InfoMailSender")
 	private JavaMailSender infoMailSender;
+	
+	@Value("${mail_info.allowedOnly}")
+	private Boolean allowedOnly;
+	
+	@Value("${mail_info.allowedEmails}")
+	private String allowedEmailsList;
+	
+	
 
 	private static final Logger logger = LogManager.getLogger(SendMailServiceImpl.class);
 
@@ -34,6 +47,12 @@ public class SendMailServiceImpl implements SendMailService{
 
 	@Override
 	public void sendInfoMail(Email email) {
+		if (allowedOnly) {
+			String[] allowedEmails = allowedEmailsList.split(",");
+			if (Stream.of(allowedEmails).noneMatch(mail -> mail.equals(email.getTo()))) {
+				return;
+			}
+		}
 		sendMail(email, INFO_EMAIL, infoMailSender);
 	}
 

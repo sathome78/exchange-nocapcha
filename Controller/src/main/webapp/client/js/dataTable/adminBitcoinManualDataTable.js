@@ -58,6 +58,9 @@ $(document).ready(function () {
                         }
                     },
                     {
+                        "data": "currencyName"
+                    },
+                    {
                         "data": "pendingPaymentStatus"
                     },
                     {

@@ -12,13 +12,13 @@ import java.util.Map;
 /**
  * Created by OLEG on 14.03.2017.
  */
-public interface BitcoinWalletService {
-  void initBitcoin();
+public interface CoreWalletService {
+  void initCore(String nodePropertySource);
   
-  String getNewAddress();
+  String getNewAddress(String walletPassword);
   
   @Scheduled(initialDelay = 5 * 60000, fixedDelay = 12 * 60 * 60000)
-  void backupWallet();
+  void backupWallet(String backupFolder);
   
   BtcWalletInfoDto getWalletInfo();
   
@@ -34,9 +34,7 @@ public interface BitcoinWalletService {
   
   void submitWalletPassword(String password);
   
-  String sendToAddress(String address, BigDecimal amount);
-  
-  String sendToAddressAuto(String address, BigDecimal amount);
+  String sendToAddressAuto(String address, BigDecimal amount, String walletPassword);
   
   String sendToMany(Map<String, BigDecimal> payments);
 }

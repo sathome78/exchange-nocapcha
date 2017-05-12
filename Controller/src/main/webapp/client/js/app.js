@@ -46,7 +46,7 @@ function blink_green($element) {
     }, 250);
 }
 
-function getButtonsSet(id, sourceType, buttonDataList, tableIdFor) {
+function getButtonsSet(id, sourceType, merchant, buttonDataList, tableIdFor) {
     var buttonsSet = '';
     buttonDataList.forEach(function (e) {
         if (e.tableIdListOnly.indexOf(tableIdFor) > -1
@@ -54,6 +54,7 @@ function getButtonsSet(id, sourceType, buttonDataList, tableIdFor) {
             buttonsSet = buttonsSet +
                 '<button data-id = ' + id +
                 '        data-source = ' + sourceType +
+                '        data-merchant= ' + merchant +
                 '        style="font-size: 1.1rem;" ' +
                 '        class="action-button table-button-block__button btn ' + e.buttonId + '">' +
                 e.buttonTitle +

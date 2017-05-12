@@ -12,6 +12,7 @@ import me.exrates.model.enums.UserRole;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 /**
  * @author Denis Savin (pilgrimm333@gmail.com)
@@ -53,4 +54,8 @@ public interface MerchantDao {
   void setAutoWithdrawParamsByMerchantAndCurrency(Integer merchantId, Integer currencyId, Boolean withdrawAutoEnabled, Integer withdrawAutoDelaySeconds, BigDecimal withdrawAutoThresholdAmount);
 
   MerchantCurrencyAutoParamDto findAutoWithdrawParamsByMerchantAndCurrency(Integer merchantId, Integer currencyId);
+  
+  List<String> retrieveBtcCoreBasedMerchantNames();
+  
+  Optional<String> retrieveCoreWalletCurrencyNameByMerchant(String merchantName);
 }

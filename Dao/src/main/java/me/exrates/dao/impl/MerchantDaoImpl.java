@@ -16,6 +16,7 @@ import me.exrates.model.enums.UserRole;
 import me.exrates.model.util.BigDecimalProcessing;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -312,7 +313,8 @@ public class MerchantDaoImpl implements MerchantDao {
         "join WALLET ON(WALLET.id = TRANSACTION.user_wallet_id)\n" +
         "join USER ON(USER.id = WALLET.user_id)\n" +
         " where \n" +
-        " TRANSACTION.source_type = 'MERCHANT' and TRANSACTION.provided = 0 \n" +
+        " (TRANSACTION.source_type = 'MERCHANT' OR TRANSACTION.source_type = 'INVOICE' OR TRANSACTION.source_type = 'BTC_INVOICE') " +
+        " and TRANSACTION.provided = 0 \n" +
         " and USER.email = :email and TRANSACTION.currency_id = :currencyId \n" +
         " and SUBSTRING_INDEX(TRANSACTION.datetime, ' ', 1) = CURDATE()) < " +
             "(SELECT CURRENCY_LIMIT.max_daily_request FROM USER \n" +
@@ -321,11 +323,8 @@ public class MerchantDaoImpl implements MerchantDao {
     Map<String, Object> params = new HashMap<String, Object>();
     params.put("currencyId", currencyId);
     params.put("email", email);
-    if (jdbcTemplate.queryForObject(sql, params, Integer.class) == 0){
-      return false;
-    }else {
-      return true;
-    }
+    int result = jdbcTemplate.queryForObject(sql, params, Integer.class);
+    return result != 0;
   }
 
   @Override
@@ -344,11 +343,8 @@ public class MerchantDaoImpl implements MerchantDao {
     Map<String, Object> params = new HashMap<String, Object>();
     params.put("currencyId", currencyId);
     params.put("email", email);
-    if (jdbcTemplate.queryForObject(sql, params, Integer.class) == 0){
-      return false;
-    }else {
-      return true;
-    }
+    int result = jdbcTemplate.queryForObject(sql, params, Integer.class);
+    return result != 0;
   }
 
   @Override
@@ -450,6 +446,25 @@ public class MerchantDaoImpl implements MerchantDao {
       dto.setWithdrawAutoDelaySeconds(resultSet.getInt("withdraw_auto_delay_seconds"));
       return dto;
     });
+  }
+  
+  @Override
+  public List<String> retrieveBtcCoreBasedMerchantNames() {
+    String sql = "SELECT name FROM MERCHANT JOIN CRYPTO_CORE_WALLET core ON MERCHANT.id = core.merchant_id";
+    return jdbcTemplate.queryForList(sql, Collections.EMPTY_MAP, String.class);
+  }
+  
+  @Override
+  public Optional<String> retrieveCoreWalletCurrencyNameByMerchant(String merchantName) {
+    String sql = "SELECT CURRENCY.name FROM CURRENCY " +
+            "JOIN CRYPTO_CORE_WALLET core ON CURRENCY.id = core.currency_id " +
+            "JOIN MERCHANT ON MERCHANT.id = core.merchant_id " +
+            "WHERE MERCHANT.name = :merchant_name";
+    try {
+      return Optional.of(jdbcTemplate.queryForObject(sql, Collections.singletonMap("merchant_name", merchantName), String.class));
+    } catch (EmptyResultDataAccessException e) {
+      return Optional.empty();
+    }
   }
 
 
