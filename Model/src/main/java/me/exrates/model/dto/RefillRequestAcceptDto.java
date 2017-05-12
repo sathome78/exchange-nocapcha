@@ -24,7 +24,6 @@ public class RefillRequestAcceptDto {
   private BigDecimal amount;
   private String address;
   private String merchantTransactionId;
-  private String hash;
   private Integer requesterAdminId;
   private String remark;
 }

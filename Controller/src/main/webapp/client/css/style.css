@@ -1,4 +1,4 @@
-﻿﻿﻿html,
+﻿html,
 body {
     width: 100%;
     background: #e2ebf9;
@@ -2218,4 +2218,12 @@ textarea#remark {
 
 .fail-enter {
     border: 2px solid red !important;
+}
+
+.address-copy{
+    margin-left: 15px;
+    width: 60px;
+    height: 20px;
+    color: black;
+    padding: 0;
 }

@@ -52,10 +52,6 @@
                             <td id="info-payer-data"></td>
                         </tr>
                         <tr>
-                            <td><loc:message code="refill.hash"/></td>
-                            <td id="info-hash"></td>
-                        </tr>
-                        <tr>
                             <td><loc:message code="refill.merchantTransactionId"/></td>
                             <td id="info-merchant-transaction-id"></td>
                         </tr>

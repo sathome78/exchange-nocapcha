@@ -37,7 +37,7 @@ public interface RefillRequestDao {
 
   int create(RefillRequestCreateDto request);
 
-  String findAddressByMerchantIdAndCurrencyIdAndUserId(Integer merchantId, Integer currencyId, Integer userId);
+  Optional<String> findAddressByMerchantIdAndCurrencyIdAndUserId(Integer merchantId, Integer currencyId, Integer userId);
 
   void setStatusById(Integer id, InvoiceStatus newStatus);
 
@@ -66,8 +66,6 @@ public interface RefillRequestDao {
   void setRemarkById(Integer id, String remark);
 
   void setMerchantTransactionIdById(Integer id, String merchantTransactionId);
-
-  void setHashById(Integer id, String hash);
 
   boolean checkInputRequests(int currencyId, String email);
 

@@ -14,7 +14,7 @@ public class Merchant {
     private String name;
     private String description;
     private  String serviceBeanName;
-    private Boolean simpleInvoice;
+    private String processType;
     private Integer refillOperationCountLimitForUserPerDay;
 
     public Merchant(int id) {

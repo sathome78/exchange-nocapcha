@@ -248,7 +248,6 @@ function fillModal($modal, rowData) {
     var userFullName = rowData.userFullName ? '</br>'+rowData.userFullName : '';
     var payerDataString = payerBankCode+payerBankName+payerBankAccount+userFullName;
     $modal.find('#info-payer-data').html(payerDataString);
-    $modal.find('#info-hash').text(rowData.hash);
     $modal.find('#info-merchant-transaction-id').text(rowData.merchantTransactionId);
     $modal.find('#info-remark').find('textarea').html(rowData.remark);
 }

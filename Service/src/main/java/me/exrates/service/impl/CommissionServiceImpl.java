@@ -2,6 +2,7 @@ package me.exrates.service.impl;
 
 import me.exrates.dao.CommissionDao;
 import me.exrates.model.Commission;
+import me.exrates.model.Merchant;
 import me.exrates.model.dto.CommissionDataDto;
 import me.exrates.model.dto.CommissionShortEditDto;
 import me.exrates.model.dto.EditMerchantCommissionDto;
@@ -143,48 +144,65 @@ public class CommissionServiceImpl implements CommissionService {
       Integer currencyId,
       Integer merchantId) {
     Map<String, String> result = new HashMap<>();
-    BigDecimal merchantCommissionRate = type == USER_TRANSFER ? ZERO : getCommissionMerchant(merchantId, currencyId, type);
     Commission companyCommission = findCommissionByTypeAndRole(type, userService.getUserRoleFromDB(userId));
     BigDecimal companyCommissionRate = companyCommission.getValue();
-    BigDecimal merchantCommissionAmount;
-    BigDecimal companyCommissionAmount;
-    String merchantCommissionUnit = "%";
     String companyCommissionUnit = "%";
-    if (type == INPUT) {
-      int currencyScale = merchantService.getMerchantCurrencyScaleByMerchantIdAndCurrencyId(merchantId, currencyId).getScaleForRefill();
-      amount = amount.setScale(currencyScale, ROUND_HALF_UP);
-      merchantCommissionAmount = BigDecimalProcessing.doAction(amount, merchantCommissionRate, MULTIPLY_PERCENT);
-      companyCommissionAmount = BigDecimalProcessing.doAction(amount.subtract(merchantCommissionAmount), companyCommissionRate, MULTIPLY_PERCENT);
-    } else if (type == OUTPUT) {
-      int currencyScale = merchantService.getMerchantCurrencyScaleByMerchantIdAndCurrencyId(merchantId, currencyId).getScaleForWithdraw();
-      amount = amount.setScale(currencyScale, ROUND_HALF_UP);
-      companyCommissionAmount = BigDecimalProcessing.doAction(amount, companyCommissionRate, MULTIPLY_PERCENT).setScale(currencyScale, ROUND_HALF_UP);
-      merchantCommissionAmount = BigDecimalProcessing.doAction(amount.subtract(companyCommissionAmount), merchantCommissionRate, MULTIPLY_PERCENT).setScale(currencyScale, ROUND_HALF_UP);
-      BigDecimal merchantMinFixedCommission = getMinFixedCommission(currencyId, merchantId);
-      if (merchantCommissionAmount.compareTo(merchantMinFixedCommission) < 0) {
-        merchantCommissionAmount = merchantMinFixedCommission;
-        merchantCommissionUnit = "";
+    Merchant merchant = merchantService.findById(merchantId);
+    String merchantProcessType = merchant.getProcessType();
+    if (!"CRYPTO".equals(merchantProcessType) || amount.compareTo(BigDecimal.ZERO) != 0) {
+      BigDecimal merchantCommissionRate = type == USER_TRANSFER ? ZERO : getCommissionMerchant(merchantId, currencyId, type);
+      BigDecimal merchantCommissionAmount;
+      BigDecimal companyCommissionAmount;
+      String merchantCommissionUnit = "%";
+      if (type == INPUT) {
+        int currencyScale = merchantService.getMerchantCurrencyScaleByMerchantIdAndCurrencyId(merchantId, currencyId).getScaleForRefill();
+        amount = amount.setScale(currencyScale, ROUND_HALF_UP);
+        merchantCommissionAmount = BigDecimalProcessing.doAction(amount, merchantCommissionRate, MULTIPLY_PERCENT);
+        companyCommissionAmount = BigDecimalProcessing.doAction(amount.subtract(merchantCommissionAmount), companyCommissionRate, MULTIPLY_PERCENT);
+      } else if (type == OUTPUT) {
+        int currencyScale = merchantService.getMerchantCurrencyScaleByMerchantIdAndCurrencyId(merchantId, currencyId).getScaleForWithdraw();
+        amount = amount.setScale(currencyScale, ROUND_HALF_UP);
+        companyCommissionAmount = BigDecimalProcessing.doAction(amount, companyCommissionRate, MULTIPLY_PERCENT).setScale(currencyScale, ROUND_HALF_UP);
+        merchantCommissionAmount = BigDecimalProcessing.doAction(amount.subtract(companyCommissionAmount), merchantCommissionRate, MULTIPLY_PERCENT).setScale(currencyScale, ROUND_HALF_UP);
+        BigDecimal merchantMinFixedCommission = getMinFixedCommission(currencyId, merchantId);
+        if (merchantCommissionAmount.compareTo(merchantMinFixedCommission) < 0) {
+          merchantCommissionAmount = merchantMinFixedCommission;
+          merchantCommissionUnit = "";
+        }
+      } else {
+        throw new IllegalOperationTypeException(type.name());
       }
+      BigDecimal totalCommissionAmount = BigDecimalProcessing.doAction(merchantCommissionAmount, companyCommissionAmount, ADD);
+      BigDecimal totalAmount = BigDecimalProcessing.doAction(amount, totalCommissionAmount, SUBTRACT);
+      if (totalAmount.compareTo(ZERO) <= 0) {
+        throw new InvalidAmountException(amount.toString());
+      }
+      return new CommissionDataDto(
+          amount,
+          merchantCommissionRate,
+          merchantCommissionUnit,
+          merchantCommissionAmount,
+          companyCommission,
+          companyCommissionRate,
+          companyCommissionUnit,
+          companyCommissionAmount,
+          totalCommissionAmount,
+          totalAmount
+      );
     } else {
-      throw new IllegalOperationTypeException(type.name());
+      return new CommissionDataDto(
+          ZERO,
+          ZERO,
+          "",
+          ZERO,
+          companyCommission,
+          companyCommissionRate,
+          companyCommissionUnit,
+          ZERO,
+          ZERO,
+          ZERO
+      );
     }
-    BigDecimal totalCommissionAmount = BigDecimalProcessing.doAction(merchantCommissionAmount, companyCommissionAmount, ADD);
-    BigDecimal totalAmount = BigDecimalProcessing.doAction(amount, totalCommissionAmount, SUBTRACT);
-    if (totalAmount.compareTo(ZERO) <= 0) {
-      throw new InvalidAmountException(amount.toString());
-    }
-    return new CommissionDataDto(
-        amount,
-        merchantCommissionRate,
-        merchantCommissionUnit,
-        merchantCommissionAmount,
-        companyCommission,
-        companyCommissionRate,
-        companyCommissionUnit,
-        companyCommissionAmount,
-        totalCommissionAmount,
-        totalAmount
-    );
   }
 
   @Override

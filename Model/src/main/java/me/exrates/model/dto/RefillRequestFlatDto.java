@@ -26,19 +26,19 @@ public class RefillRequestFlatDto {
   private String receiptScan;
   private String receiptScanName;
   private BigDecimal amount;
-  private BigDecimal commissionAmount;
   private Integer commissionId;
   private RefillStatusEnum status;
   private LocalDateTime dateCreation;
   private LocalDateTime statusModificationDate;
   private Integer currencyId;
   private Integer merchantId;
-  private String hash;
   private String merchantTransactionId;
   private String recipientBankName;
   private Integer recipientBankId;
   private String recipientBankAccount;
   private String recipientBankRecipient;
   private Integer adminHolderId;
+  private Integer refillRequestAddressId;
+  private Integer refillRequestParamId;
   private InvoiceOperationPermission invoiceOperationPermission;
 }

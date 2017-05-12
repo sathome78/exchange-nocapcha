@@ -1,6 +1,7 @@
 package me.exrates.service;
 
 import me.exrates.model.InvoiceBank;
+import me.exrates.model.MerchantCurrency;
 import me.exrates.model.dto.*;
 import me.exrates.model.dto.dataTable.DataTable;
 import me.exrates.model.dto.dataTable.DataTableParams;
@@ -22,7 +23,9 @@ public interface RefillService {
 
   Map<String, String> createRefillRequest(RefillRequestCreateDto requestCreateDto);
 
-  String getAddressByMerchantIdAndCurrencyIdAndUserId(Integer merchantId, Integer currencyId, Integer userId);
+  Optional<String> getAddressByMerchantIdAndCurrencyIdAndUserId(Integer merchantId, Integer currencyId, Integer userId);
+
+  List<MerchantCurrency> setAddressForMerchantCurrencyByMerchantIdAndCurrencyIdAndUserId(List<MerchantCurrency> merchantCurrencies, String userEmail);
 
   Integer createRefillRequestByFact(RefillRequestAcceptDto request);
 

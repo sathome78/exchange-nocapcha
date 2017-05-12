@@ -20,19 +20,19 @@ CREATE TABLE REFILL_REQUEST_ADDRESS (
 COLLATE='utf8_general_ci'
 ENGINE=InnoDB;
 
-CREATE TABLE `REFILL_REQUEST_PARAM` (
-	`id` INT(11) NOT NULL AUTO_INCREMENT,
-	`recipient_bank_id` INT(11) NULL DEFAULT NULL,
-	`user_full_name` VARCHAR(250) NULL DEFAULT NULL,
-	`remark` VARCHAR(300) NULL DEFAULT NULL,
-	`payer_bank_name` VARCHAR(200) NULL DEFAULT NULL,
-	`payer_bank_code` VARCHAR(10) NULL DEFAULT NULL,
-	`payer_account` VARCHAR(100) NULL DEFAULT NULL,
-	`receipt_scan` VARCHAR(100) NULL DEFAULT NULL,
-	`receipt_scan_name` VARCHAR(50) NULL DEFAULT NULL,
-	PRIMARY KEY (`id`),
-	INDEX `FK_refill_request_param_invoice_bank` (`recipient_bank_id`),
-	CONSTRAINT `FK_refill_request_param_invoice_bank` FOREIGN KEY (`recipient_bank_id`) REFERENCES `invoice_bank` (`id`)
+CREATE TABLE REFILL_REQUEST_PARAM (
+	id INT(11) NOT NULL,
+	recipient_bank_id INT(11) NULL DEFAULT NULL,
+	user_full_name VARCHAR(250) NULL DEFAULT NULL,
+	remark VARCHAR(2048) NULL DEFAULT NULL,
+	payer_bank_name VARCHAR(200) NULL DEFAULT NULL,
+	payer_bank_code VARCHAR(10) NULL DEFAULT NULL,
+	payer_account VARCHAR(100) NULL DEFAULT NULL,
+	receipt_scan VARCHAR(100) NULL DEFAULT NULL,
+	receipt_scan_name VARCHAR(50) NULL DEFAULT NULL,
+	PRIMARY KEY (id),
+	INDEX FK_refill_request_param_invoice_bank (recipient_bank_id),
+	CONSTRAINT FK_refill_request_param_invoice_bank FOREIGN KEY (recipient_bank_id) REFERENCES invoice_bank (id)
 )
 COLLATE='latin1_swedish_ci'
 ENGINE=InnoDB;
@@ -76,6 +76,12 @@ CREATE TABLE REFILL_REQUEST (
 COLLATE='latin1_swedish_ci'
 ENGINE=InnoDB;
 
+
+ALTER TABLE REFILL_REQUEST_PARAM
+	ADD CONSTRAINT FK_refill_request_param_refill_request FOREIGN KEY (id) REFERENCES refill_request (id);
+	
+ALTER TABLE MERCHANT
+	ADD COLUMN process_type ENUM('INVOICE','MERCHANT','CRYPTO') NOT NULL DEFAULT 'MERCHANT' ;
 
 SET FOREIGN_KEY_CHECKS = 1;
 

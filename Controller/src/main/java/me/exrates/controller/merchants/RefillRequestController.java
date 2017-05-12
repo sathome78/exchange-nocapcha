@@ -27,10 +27,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.security.Principal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import static me.exrates.model.enums.OperationType.INPUT;
 import static me.exrates.model.enums.invoice.InvoiceActionTypeEnum.CREATE_BY_USER;
@@ -72,17 +69,19 @@ public class RefillRequestController {
     if (!refillService.checkInputRequestsLimit(requestParamsDto.getCurrency(), principal.getName())) {
       throw new RequestLimitExceededException(messageSource.getMessage("merchants.InputRequestsLimit", null, locale));
     }
-    if (!requestParamsDto.getGenerateNewAddress()) {
-      String address = refillService.getAddressByMerchantIdAndCurrencyIdAndUserId(
+    Boolean forceGenerateNewAddress = requestParamsDto.getGenerateNewAddress() != null && requestParamsDto.getGenerateNewAddress();
+    if (!forceGenerateNewAddress) {
+      Optional<String> address = refillService.getAddressByMerchantIdAndCurrencyIdAndUserId(
           requestParamsDto.getMerchant(),
           requestParamsDto.getCurrency(),
           userService.getIdByEmail(principal.getName())
       );
-      if (address != null) {
+      if (address.isPresent()) {
+        String message = messageSource.getMessage("refill.messageAboutCurrentAddress", new String[]{address.get()}, locale);
         return new HashMap<String, String>() {{
-          put("address", address);
-          put("message", "");
-          put("qr", address);
+          put("address", address.get());
+          put("message", message);
+          put("qr", address.get());
         }};
       }
     }
@@ -90,7 +89,7 @@ public class RefillRequestController {
     Payment payment = new Payment(INPUT);
     payment.setCurrency(requestParamsDto.getCurrency());
     payment.setMerchant(requestParamsDto.getMerchant());
-    payment.setSum(requestParamsDto.getSum().doubleValue());
+    payment.setSum(requestParamsDto.getSum() == null ? 0 : requestParamsDto.getSum().doubleValue());
     CreditsOperation creditsOperation = inputOutputService.prepareCreditsOperation(payment, principal.getName())
         .orElseThrow(InvalidAmountException::new);
     RefillRequestCreateDto request = new RefillRequestCreateDto(requestParamsDto, creditsOperation, beginStatus, locale);

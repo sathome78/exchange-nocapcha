@@ -49,14 +49,16 @@ public class InputOutputDaoImpl implements InputOutputDao {
         "    USER.id AS user_id," +
         "    IF (WITHDRAW_REQUEST.status_id IS NOT NULL, WITHDRAW_REQUEST.status_id, REFILL_REQUEST.status_id) AS status_id," +
         "    IF (WITHDRAW_REQUEST.status_modification_date IS NOT NULL, WITHDRAW_REQUEST.status_modification_date, REFILL_REQUEST.status_modification_date) AS status_modification_date," +
-        "    IF (WITHDRAW_REQUEST.user_full_name IS NOT NULL, WITHDRAW_REQUEST.user_full_name, REFILL_REQUEST.user_full_name) AS user_full_name," +
-        "    IF (WITHDRAW_REQUEST.remark IS NOT NULL, WITHDRAW_REQUEST.remark, REFILL_REQUEST.remark) AS remark," +
+        "    IF (WITHDRAW_REQUEST.user_full_name IS NOT NULL, WITHDRAW_REQUEST.user_full_name, RRP.user_full_name) AS user_full_name," +
+        "    IF (WITHDRAW_REQUEST.remark IS NOT NULL, WITHDRAW_REQUEST.remark, RRP.remark) AS remark," +
         "    IF (WITHDRAW_REQUEST.admin_holder_id IS NOT NULL, WITHDRAW_REQUEST.admin_holder_id, REFILL_REQUEST.admin_holder_id) AS admin_holder_id" +
         "  FROM TRANSACTION " +
         "    left join CURRENCY on TRANSACTION.currency_id=CURRENCY.id" +
         "    left join WITHDRAW_REQUEST on TRANSACTION.source_type = 'WITHDRAW' AND WITHDRAW_REQUEST.id = TRANSACTION.source_id" +
         "    left join REFILL_REQUEST on TRANSACTION.source_type = 'REFILL' AND REFILL_REQUEST.id = TRANSACTION.source_id" +
-        "    left join INVOICE_BANK on INVOICE_BANK.id = REFILL_REQUEST.recipient_bank_id " +
+        "    left join REFILL_REQUEST_ADDRESS RRA ON (RRA.id = REFILL_REQUEST.refill_request_address_id)  " +
+        "    left join REFILL_REQUEST_PARAM RRP ON (RRP.id = REFILL_REQUEST.refill_request_param_id) " +
+        "    left join INVOICE_BANK on INVOICE_BANK.id = RRP.recipient_bank_id " +
         "    left join MERCHANT on (MERCHANT.id = REFILL_REQUEST.merchant_id) OR (MERCHANT.id = WITHDRAW_REQUEST.merchant_id)" +
         "    left join OPERATION_TYPE on OPERATION_TYPE.id = TRANSACTION.operation_type_id" +
         "    left join WALLET on WALLET.id = TRANSACTION.user_wallet_id" +
@@ -68,7 +70,7 @@ public class InputOutputDaoImpl implements InputOutputDao {
         "  UNION " +
         "  (SELECT " +
         "     RR.date_creation, " +
-        "     CUR.name, RR.amount, RR.commission, " +
+        "     CUR.name, RR.amount, NULL, " +
         "     M.name, " +
         "     'REFILL', " +
         "     'Input', NULL, " +
@@ -78,14 +80,16 @@ public class InputOutputDaoImpl implements InputOutputDao {
         "     USER.id, " +
         "     RR.status_id, " +
         "     RR.status_modification_date, " +
-        "     RR.user_full_name, " +
-        "     RR.remark, " +
+        "     RRP.user_full_name, " +
+        "     RRP.remark, " +
         "     RR.admin_holder_id" +
         "   FROM REFILL_REQUEST RR " +
         "     JOIN CURRENCY CUR ON CUR.id=RR.currency_id " +
         "     JOIN USER USER ON USER.id=RR.user_id " +
         "     JOIN MERCHANT M ON M.id=RR.merchant_id " +
-        "     LEFT JOIN INVOICE_BANK on INVOICE_BANK.id = RR.recipient_bank_id " +
+        "     LEFT JOIN REFILL_REQUEST_ADDRESS RRA ON (RRA.id = RR.refill_request_address_id)  " +
+        "     LEFT JOIN REFILL_REQUEST_PARAM RRP ON (RRP.id = RR.refill_request_param_id) " +
+        "     LEFT JOIN INVOICE_BANK on INVOICE_BANK.id = RRP.recipient_bank_id " +
         "   WHERE USER.email=:email AND " +
         "     NOT EXISTS(SELECT * FROM TRANSACTION TX WHERE TX.source_type='REFILL' AND TX.source_id=RR.id AND TX.operation_type_id=1) " +
         "  )  " +

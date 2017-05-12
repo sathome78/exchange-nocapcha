@@ -274,7 +274,7 @@ public enum RefillStatusEnum implements InvoiceStatus {
   }
 
   public InvoiceActionTypeEnum getStartAction(Merchant merchant) {
-    if (merchant.getSimpleInvoice()) {
+    if ("INVOICE".equals(merchant.getProcessType())) {
       return PUT_FOR_CONFIRM_USER;
     } else {
       return PUT_FOR_PENDING;

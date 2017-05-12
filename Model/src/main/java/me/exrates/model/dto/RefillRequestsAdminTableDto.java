@@ -51,7 +51,6 @@ public class RefillRequestsAdminTableDto extends OnlineTableDto {
   private String wifPrivKey = "";
   private String pubKey = "";
   private String brainPrivKey = "";
-  private String hash = "";
   private String merchantTransactionId = "";
   private RefillStatusEnum status;
   @JsonSerialize(using = LocalDateTimeSerializer.class)
@@ -103,6 +102,7 @@ public class RefillRequestsAdminTableDto extends OnlineTableDto {
     this.status = refillRequestFlatDto.getStatus();
     this.statusModificationDate = refillRequestFlatDto.getStatusModificationDate();
     this.invoiceOperationPermission = refillRequestFlatDto.getInvoiceOperationPermission();
+    this.merchantTransactionId = refillRequestFlatDto.getMerchantTransactionId();
     this.confirmations = refillRequestFlatAdditionalDataDto.getConfirmations();
     this.isEndStatus = this.status.isEndStatus();
     this.buttons = null;

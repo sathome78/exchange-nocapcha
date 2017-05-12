@@ -53,11 +53,15 @@ public class CommonMerchantsController {
   @Autowired
   WithdrawService withdrawService;
 
+  @Autowired
+  RefillService refillService;
+
   private static final Logger LOG = LogManager.getLogger("merchant");
 
   @RequestMapping(value = "/merchants/input", method = GET)
   public ModelAndView inputCredits(
-      @RequestParam("currency") String currencyName) {
+      @RequestParam("currency") String currencyName,
+      Principal principal) {
     try {
       ModelAndView modelAndView = new ModelAndView("globalPages/merchantsInput");
       Currency currency = currencyService.findByName(currencyName);
@@ -70,7 +74,9 @@ public class CommonMerchantsController {
       Integer scaleForCurrency = currencyService.getCurrencyScaleByCurrencyId(currency.getId()).getScaleForRefill();
       modelAndView.addObject("scaleForCurrency", scaleForCurrency);
       List<Integer> currenciesId = Collections.singletonList(currency.getId());
-      modelAndView.addObject("merchantCurrencyData", merchantService.getAllUnblockedForOperationTypeByCurrencies(currenciesId, OperationType.INPUT));
+      List<MerchantCurrency> merchantCurrencyData = merchantService.getAllUnblockedForOperationTypeByCurrencies(currenciesId, OperationType.INPUT);
+      refillService.setAddressForMerchantCurrencyByMerchantIdAndCurrencyIdAndUserId(merchantCurrencyData, principal.getName());
+      modelAndView.addObject("merchantCurrencyData", merchantCurrencyData);
       List<String> warningCodeList = currencyService.getWarningForCurrency(currency.getId(), REFILL_CURRENCY_WARNING);
       modelAndView.addObject("warningCodeList", warningCodeList);
       return modelAndView;

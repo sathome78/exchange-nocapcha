@@ -17,6 +17,7 @@ import me.exrates.service.*;
 import me.exrates.service.exception.MerchantInternalException;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
 import me.exrates.service.exception.RefillRequestFakePaymentReceivedException;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,7 +75,7 @@ public class EDCServiceImpl implements EDCService {
   public Map<String, String> refill(RefillRequestCreateDto request) {
     String address = getAddress();
     String message = messageSource.getMessage("merchants.refill.edr",
-        new Object[]{request.getAmount(), address}, request.getLocale());
+        new Object[]{address}, request.getLocale());
     return new HashMap<String, String>() {{
       put("address", address);
       put("message", message);
@@ -96,8 +97,7 @@ public class EDCServiceImpl implements EDCService {
         .merchantId(merchant.getId())
         .currencyId(currency.getId())
         .amount(amount)
-        .merchantTransactionId(merchantTransactionId)
-        .hash(hash)
+        .merchantTransactionId(StringUtils.isEmpty(merchantTransactionId) ? hash : merchantTransactionId)
         .build();
     try {
       refillService.autoAcceptRefillRequest(requestAcceptDto);
@@ -136,7 +136,8 @@ public class EDCServiceImpl implements EDCService {
         }
       }
     }
-    throw new RefillRequestFakePaymentReceivedException(params.toString());
+    return;
+//    throw new RefillRequestFakePaymentReceivedException(params.toString());
   }
 
   private String getAddress() {

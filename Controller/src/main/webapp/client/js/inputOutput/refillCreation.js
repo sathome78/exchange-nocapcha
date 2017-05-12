@@ -27,6 +27,7 @@ $(function refillCreation() {
     var merchantMinSum;
     var merchantImageId;
     var merchantIsSimpleInvoice;
+    var merchantIsCrypto;
     var amount;
     var commissionPercent;
     var commissionAmount;
@@ -39,6 +40,10 @@ $(function refillCreation() {
         startRefill(this);
     });
 
+    $('#merchants-input-center').on('click', '#address-copy', function (event) {
+        selectAndCopyText($(event.currentTarget).siblings("#address-to-pay"));
+    });
+
     function startRefill(button) {
         currency = $(button).data("currency-id");
         currencyName = $(button).data("currency-name");
@@ -46,48 +51,54 @@ $(function refillCreation() {
         merchantName = $(button).data("merchant-name");
         merchantMinSum = $(button).data("merchant-min-sum");
         merchantImageId = $(button).data("merchant-image-id");
-        merchantIsSimpleInvoice = $(button).data("simple-invoice");
+        merchantIsSimpleInvoice = $(button).data("process_type")=="INVOICE";
+        merchantIsCrypto = $(button).data("process_type")=="CRYPTO";
         amount = parseFloat($amountHolder.val());
-        if (checkAmount()) {
+        if (merchantIsCrypto || checkAmount()) {
             fillModalWindow();
             showRefillDialog();
         }
     }
 
     function fillModalWindow() {
-        getCommission(function (response) {
-            var templateVariables = {
-                amount: '__amount',
-                currency: '__currency',
-                merchant: '__merchant',
-                percent: '__percent'
-            };
-            var newHTMLElements = [];
-            modalTemplate.slice().each(function (index, val) {
-                newHTMLElements[index] = '<p>' + $(val).html() + '</p>';
+        if (amount) {
+            getCommission(function (response) {
+                var templateVariables = {
+                    amount: '__amount',
+                    currency: '__currency',
+                    merchant: '__merchant',
+                    percent: '__percent'
+                };
+                var newHTMLElements = [];
+                modalTemplate.slice().each(function (index, val) {
+                    newHTMLElements[index] = '<p>' + $(val).html() + '</p>';
+                });
+                newHTMLElements[0] = newHTMLElements[0]
+                    .replace(templateVariables.amount, "<span class='modal-amount'>" + amount + "</span>")
+                    .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>")
+                    .replace(templateVariables.merchant, "<span class='modal-merchant'>" + merchantName + "</span>");
+                newHTMLElements[1] = newHTMLElements[1]
+                    .replace(templateVariables.amount, "<span class='modal-amount'>" + commissionMerchantAmount + "</span>")
+                    .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>")
+                    .replace(templateVariables.percent, "<span class='modal-amount'>" + commissionMerchantPercent + "</span>");
+                newHTMLElements[2] = newHTMLElements[2]
+                    .replace(templateVariables.amount, "<span class='modal-amount'>" + commissionAmount + "</span>")
+                    .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>")
+                    .replace(templateVariables.percent, "<span class='modal-amount'>" + commissionPercent + "</span>");
+                newHTMLElements[3] = newHTMLElements[3]
+                    .replace(templateVariables.amount, "<span class='modal-amount'>" + totalAmount + "</span>")
+                    .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>");
+                var newHTML = '';
+                $.each(newHTMLElements, function (index) {
+                    newHTML += newHTMLElements[index];
+                });
+                $('.paymentInfo').html(newHTML);
+                $('.merchantError').hide();
+                $("#amount-info-wrapper").show();
             });
-            newHTMLElements[0] = newHTMLElements[0]
-                .replace(templateVariables.amount, "<span class='modal-amount'>" + amount + "</span>")
-                .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>")
-                .replace(templateVariables.merchant, "<span class='modal-merchant'>" + merchantName + "</span>");
-            newHTMLElements[1] = newHTMLElements[1]
-                .replace(templateVariables.amount, "<span class='modal-amount'>" + commissionMerchantAmount + "</span>")
-                .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>")
-                .replace(templateVariables.percent, "<span class='modal-amount'>" + commissionMerchantPercent + "</span>");
-            newHTMLElements[2] = newHTMLElements[2]
-                .replace(templateVariables.amount, "<span class='modal-amount'>" + commissionAmount + "</span>")
-                .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>")
-                .replace(templateVariables.percent, "<span class='modal-amount'>" + commissionPercent + "</span>");
-            newHTMLElements[3] = newHTMLElements[3]
-                .replace(templateVariables.amount, "<span class='modal-amount'>" + totalAmount + "</span>")
-                .replace(templateVariables.currency, "<span class='modal-amount'>" + currencyName + "</span>");
-            var newHTML = '';
-            $.each(newHTMLElements, function (index) {
-                newHTML += newHTMLElements[index];
-            });
-            $('.paymentInfo').html(newHTML);
-            $('.merchantError').hide();
-        });
+        } else {
+            $("#amount-info-wrapper").hide();
+        }
     }
 
     function checkAmount() {
@@ -97,6 +108,8 @@ $(function refillCreation() {
     function showRefillDialog(message) {
         if (merchantIsSimpleInvoice) {
             $refillParamsDialog.find("#merchant-commission-warning").hide();
+            performRefill();
+        } else if (merchantIsCrypto) {
             performRefill();
         } else {
             $refillParamsDialog.find("#merchant-commission-warning").show();
@@ -151,6 +164,7 @@ $(function refillCreation() {
             });
             showRefillDetailDialog();
         } else {
+            data.generateNewAddress = true;
             sendRequest(data);
         }
     }

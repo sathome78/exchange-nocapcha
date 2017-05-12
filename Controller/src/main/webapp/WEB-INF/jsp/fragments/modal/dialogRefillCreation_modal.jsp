@@ -8,27 +8,30 @@
         <h4 class="modal-title"><loc:message code="merchants.inputTitle"/></h4>
       </div>
       <div class="modal-body">
-        <label class="alert-danger merchantError"><loc:message code="merchants.notAvaliablePayment"/></label>
-        <div class="paymentInfo">
-          <p><loc:message code="merchants.modalInputHeader"/></p>
-          <p><loc:message code="merchants.modalInputCommissionMerchant"/></p>
-          <p><loc:message code="merchants.modalInputCommission"/></p>
-          <p><loc:message code="merchants.modalInputFinalSum"/></p>
-        </div>
-        <div id="merchant-commission-warning">
-          <hr>
-          <div class="red">
-            <loc:message code="merchant.commission.warning"/>
+        <div id="amount-info-wrapper">
+          <label class="alert-danger merchantError"><loc:message code="merchants.notAvaliablePayment"/></label>
+          <div class="paymentInfo">
+            <p><loc:message code="merchants.modalInputHeader"/></p>
+            <p><loc:message code="merchants.modalInputCommissionMerchant"/></p>
+            <p><loc:message code="merchants.modalInputCommission"/></p>
+            <p><loc:message code="merchants.modalInputFinalSum"/></p>
           </div>
-          <hr>
+          <div id="merchant-commission-warning">
+            <hr>
+            <div class="red">
+              <loc:message code="merchant.commission.warning"/>
+            </div>
+            <hr>
+          </div>
         </div>
         <div class="timeoutWarning">
           <c:forEach var="warningCode" items="${warningCodeList}">
             <div><strong><loc:message code="${warningCode}"/></strong></div>
           </c:forEach>
         </div>
+
         <div id="message"
-             style="width: 100%; border-radius: 5px; display: block; padding: 5px; background: green; color: white"></div>
+             style="width: 100%; border-radius: 5px; display: block; padding: 5px; background: rgba(111, 111, 111, 0.83); color: white"></div>
         <div id="payment-qr">
         </div>
       </div>

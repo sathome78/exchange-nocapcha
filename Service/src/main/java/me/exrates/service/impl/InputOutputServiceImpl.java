@@ -24,6 +24,7 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.math.BigDecimal.ZERO;
 import static java.math.BigDecimal.valueOf;
 import static java.util.Collections.EMPTY_LIST;
 import static me.exrates.model.enums.OperationType.INPUT;
@@ -156,12 +157,14 @@ public class InputOutputServiceImpl implements InputOutputService {
     Merchant merchant = merchantService.findById(payment.getMerchant());
     Currency currency = currencyService.findById(payment.getCurrency());
     String destination = payment.getDestination();
-    try {
-      merchantService.checkAmountForMinSum(merchant.getId(), currency.getId(), amount);
-    } catch (EmptyResultDataAccessException e) {
-      final String exceptionMessage = "MerchantService".concat(operationType == INPUT ?
-          "Input" : "Output");
-      throw new UnsupportedMerchantException(exceptionMessage);
+    if (!"CRYPTO".equals(merchant.getProcessType()) || amount.compareTo(BigDecimal.ZERO) != 0) {
+      try {
+        merchantService.checkAmountForMinSum(merchant.getId(), currency.getId(), amount);
+      } catch (EmptyResultDataAccessException e) {
+        final String exceptionMessage = "MerchantService".concat(operationType == INPUT ?
+            "Input" : "Output");
+        throw new UnsupportedMerchantException(exceptionMessage);
+      }
     }
     User user = userService.findByEmail(userEmail);
     Wallet wallet = walletService.findByUserAndCurrency(user, currency);

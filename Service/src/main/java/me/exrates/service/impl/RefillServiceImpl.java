@@ -118,14 +118,18 @@ public class RefillServiceImpl implements RefillService {
       profileData.setTime1();
       try {
         result = merchantService.refill(request);
+        if (result.keySet().contains("address") && StringUtils.isEmpty(result.get("address"))){
+          throw new RefillRequestExpectedAddressNotDetermineException(request.toString());
+        }
         request.setAddress(result.get("address"));
-        createRefill(request);
-      } catch (RefillRequestIdNeededException e){
+        Integer requestId = createRefill(request);
+        request.setId(requestId);
+      } catch (RefillRequestIdNeededException e) {
         Integer requestId = createRefill(request);
         request.setId(requestId);
         try {
           result = merchantService.refill(request);
-        } catch (RefillRequestIdNeededException ignored){
+        } catch (RefillRequestIdNeededException ignored) {
         }
       }
       profileData.setTime2();
@@ -146,8 +150,16 @@ public class RefillServiceImpl implements RefillService {
 
   @Override
   @Transactional
-  public String getAddressByMerchantIdAndCurrencyIdAndUserId(Integer merchantId, Integer currencyId, Integer userId){
+  public Optional<String> getAddressByMerchantIdAndCurrencyIdAndUserId(Integer merchantId, Integer currencyId, Integer userId) {
     return refillRequestDao.findAddressByMerchantIdAndCurrencyIdAndUserId(merchantId, currencyId, userId);
+  }
+
+  @Override
+  @Transactional
+  public List<MerchantCurrency> setAddressForMerchantCurrencyByMerchantIdAndCurrencyIdAndUserId(List<MerchantCurrency> merchantCurrencies, String userEmail) {
+    Integer userId = userService.getIdByEmail(userEmail);
+    merchantCurrencies.forEach(e->e.setAddress(refillRequestDao.findAddressByMerchantIdAndCurrencyIdAndUserId(e.getMerchantId(), e.getCurrencyId(), userId).orElse("")));
+    return merchantCurrencies;
   }
 
   @Override
@@ -170,6 +182,7 @@ public class RefillServiceImpl implements RefillService {
     request.setMerchantId(merchantId);
     request.setAmount(amount);
     request.setCommissionId(commissionId);
+    request.setAddress(address);
     Integer requestId = createRefillByFact(request);
     request.setId(requestId);
     try {
@@ -206,6 +219,8 @@ public class RefillServiceImpl implements RefillService {
     } catch (IOException e) {
       throw new FileLoadingException(messageSource.getMessage("merchants.errorUploadReceipt", null, locale));
     }
+    String remark = refillRequest.getRemark().concat("\nuser: ").concat(invoiceConfirmData.getRemark());
+    invoiceConfirmData.setRemark(remark);
     refillRequestDao.setStatusAndConfirmationDataById(requestId, newStatus, invoiceConfirmData);
   }
 
@@ -320,9 +335,9 @@ public class RefillServiceImpl implements RefillService {
     InvoiceActionTypeEnum action = START_BCH_EXAMINE;
     RefillStatusEnum newStatus = (RefillStatusEnum) currentStatus.nextState(action);
     refillRequestDao.setStatusById(requestId, newStatus);
-    refillRequestDao.setHashById(requestId, hash);
+    refillRequestDao.setMerchantTransactionIdById(requestId, hash);
     refillRequest.setStatus(newStatus);
-    refillRequest.setHash(hash);
+    refillRequest.setMerchantTransactionId(hash);
     refillRequestDao.setConfirmationsNumberByRequestId(requestId, amount, 0);
     return refillRequest;
   }
@@ -356,8 +371,8 @@ public class RefillServiceImpl implements RefillService {
       if (!currentStatus.availableForAction(ACCEPT_AUTO)) {
         throw new RefillRequestIllegalStatusException(refillRequest.toString());
       }
-      if (!hash.equals(refillRequest.getHash())) {
-        refillRequestDao.setHashById(requestId, hash);
+      if (!hash.equals(refillRequest.getMerchantTransactionId())) {
+        refillRequestDao.setMerchantTransactionIdById(requestId, hash);
       }
       refillRequestDao.setConfirmationsNumberByRequestId(requestId, amount, confirmations);
     } else {
@@ -418,7 +433,6 @@ public class RefillServiceImpl implements RefillService {
     Integer requesterAdminId = requestAcceptDto.getRequesterAdminId();
     String remark = requestAcceptDto.getRemark();
     String merchantTransactionId = requestAcceptDto.getMerchantTransactionId();
-    String hash = requestAcceptDto.getHash();
     try {
       RefillRequestFlatDto refillRequest = refillRequestDao.getFlatByIdAndBlock(requestId)
           .orElseThrow(() -> new RefillRequestNotFoundException(String.format("refill request id: %s", requestId)));
@@ -429,14 +443,15 @@ public class RefillServiceImpl implements RefillService {
           checkPermissionOnActionAndGetNewStatus(requesterAdminId, refillRequest, action);
       refillRequestDao.setStatusById(requestId, newStatus);
       refillRequestDao.setHolderById(requestId, requesterAdminId);
-      refillRequestDao.setRemarkById(requestId, remark);
       refillRequestDao.setMerchantTransactionIdById(requestId, merchantTransactionId);
-      refillRequestDao.setHashById(requestId, hash);
       refillRequest.setStatus(newStatus);
       refillRequest.setAdminHolderId(requesterAdminId);
-      refillRequest.setRemark(remark);
       refillRequest.setMerchantTransactionId(merchantTransactionId);
-      refillRequest.setHash(hash);
+      remark = concatAdminRemark(refillRequest, remark);
+      if (!StringUtils.isEmpty(remark)) {
+        refillRequestDao.setRemarkById(requestId, remark);
+        refillRequest.setRemark(remark);
+      }
       profileData.setTime1();
       /**/
       Integer userWalletId = walletService.getWalletId(refillRequest.getUserId(), refillRequest.getCurrencyId());
@@ -473,6 +488,20 @@ public class RefillServiceImpl implements RefillService {
     }
   }
 
+  private String concatAdminRemark(RefillRequestFlatDto refillRequest, String remark) {
+    if (refillRequest.getRefillRequestParamId() == null) {
+      return null;
+    }
+    String currentRemark = refillRequest.getRemark() == null ? "" : refillRequest.getRemark();
+    String adminPhrase = StringUtils.isEmpty(remark) ? "" : "\nadmin (#"
+        .concat(refillRequest.getAdminHolderId() == null ? "null" : refillRequest.getAdminHolderId().toString())
+        .concat("): ")
+        .concat(remark);
+    remark = currentRemark.concat(adminPhrase);
+    return remark;
+  }
+
+
   @Override
   @Transactional(readOnly = true)
   public RefillRequestFlatDto getFlatById(Integer id) {
@@ -505,12 +534,18 @@ public class RefillServiceImpl implements RefillService {
       Integer currencyId,
       Integer merchantId,
       Locale locale) {
-
     OperationType operationType = INPUT;
     BigDecimal addition = currencyService.computeRandomizedAddition(currencyId, operationType);
     amount = amount.add(addition);
     merchantService.checkAmountForMinSum(merchantId, currencyId, amount);
-    Map<String, String> result = commissionService.computeCommissionAndMapAllToString(userId, amount, operationType, currencyId, merchantId, locale);
+    Merchant merchant = merchantService.findById(merchantId);
+    Map<String, String> result = commissionService.computeCommissionAndMapAllToString(
+        userId,
+        amount,
+        operationType,
+        currencyId,
+        merchantId,
+        locale);
     result.put("addition", addition.toString());
     return result;
   }
@@ -629,12 +664,19 @@ public class RefillServiceImpl implements RefillService {
       RefillStatusEnum newStatus = checkPermissionOnActionAndGetNewStatus(requesterAdminId, refillRequest, action);
       refillRequestDao.setStatusById(requestId, newStatus);
       refillRequestDao.setHolderById(requestId, requesterAdminId);
+      refillRequest.setStatus(newStatus);
+      refillRequest.setAdminHolderId(requesterAdminId);
       profileData.setTime1();
       /**/
       Locale locale = new Locale(userService.getPreferedLang(refillRequest.getUserId()));
       String title = messageSource.getMessage("refill.declined.title", new Integer[]{requestId}, locale);
       if (StringUtils.isEmpty(comment)) {
         comment = messageSource.getMessage("merchants.refillNotification.".concat(newStatus.name()), new Integer[]{requestId}, locale);
+      }
+      String remark = concatAdminRemark(refillRequest, comment);
+      if (!StringUtils.isEmpty(remark)) {
+        refillRequestDao.setRemarkById(requestId, remark);
+        refillRequest.setRemark(remark);
       }
       String userEmail = userService.getEmailById(refillRequest.getUserId());
       userService.addUserComment(REFILL_DECLINE, comment, userEmail, false);
@@ -674,7 +716,7 @@ public class RefillServiceImpl implements RefillService {
     String mainNotificationMessageCodeSuffix = lifetime == 0 ? "" : ".lifetime";
     String mainNotificationMessageCode = "merchants.refillNotification.".concat(request.getStatus().name()).concat(mainNotificationMessageCodeSuffix);
     Object[] messageParams = {
-        request.getId(),
+        request.getCurrencyName(),
         request.getMerchantDescription(),
         lifetime
     };
