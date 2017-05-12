@@ -322,11 +322,8 @@ public class MerchantDaoImpl implements MerchantDao {
     Map<String, Object> params = new HashMap<String, Object>();
     params.put("currencyId", currencyId);
     params.put("email", email);
-    if (jdbcTemplate.queryForObject(sql, params, Integer.class) == 0){
-      return false;
-    }else {
-      return true;
-    }
+    int result = jdbcTemplate.queryForObject(sql, params, Integer.class);
+    return result != 0;
   }
 
   @Override
@@ -345,11 +342,8 @@ public class MerchantDaoImpl implements MerchantDao {
     Map<String, Object> params = new HashMap<String, Object>();
     params.put("currencyId", currencyId);
     params.put("email", email);
-    if (jdbcTemplate.queryForObject(sql, params, Integer.class) == 0){
-      return false;
-    }else {
-      return true;
-    }
+    int result = jdbcTemplate.queryForObject(sql, params, Integer.class);
+    return result != 0;
   }
 
   @Override

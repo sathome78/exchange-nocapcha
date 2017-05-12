@@ -177,7 +177,10 @@ public class MobileDashboardController {
      * @apiDescription Retrieves list of available currency pairs
      * @apiSuccess (200) {Array} data Array of currency pairs
      * @apiUse CurrencyPair
-     *
+     * @apiSuccess (200) (Number) minRateSell Min rate for sell orders
+     * @apiSuccess (200) (Number) maxRateSell Max rate for sell orders
+     * @apiSuccess (200) (Number) minRateBuy Min rate for buy orders
+     * @apiSuccess (200) (Number) maxRateBuy Max rate for buy orders
      * @apiSuccessExample {json} Success-Response:
      *     HTTP/1.1 200 OK
      * [
@@ -197,6 +200,10 @@ public class MobileDashboardController {
      *              "minWithdrawSum": null
      *              }
      *          }
+     *          "minRateSell": 500,
+     *          "maxRateSell": 5000,
+     *          "minRateBuy": 700,
+     *          "maxRateBuy": 99999999999
      *  ]
      * @apiUse ExpiredAuthenticationTokenError
      * @apiUse MissingAuthenticationTokenError
@@ -471,7 +478,8 @@ public class MobileDashboardController {
      *          "inputCommission": 0.5,
      *          "outputCommission": 0.5,
      *          "sellCommission": 0.2,
-     *          "buyCommission": 0.2
+     *          "buyCommission": 0.2,
+     *          "transferCommission": 0
      *     }
      * @apiUse ExpiredAuthenticationTokenError
      * @apiUse MissingAuthenticationTokenError
@@ -829,7 +837,8 @@ public class MobileDashboardController {
      * @apiSuccess {String} data.sourceTypeId MERCHANT, ORDER
      * @apiSuccess {Integer} data.sourceId source id - if source is order - order id, null otherwise
      * @apiSuccess {String} data.transactionStatus CREATED, DELETED
-     * @apiSuccess {Boolean} data.walletId id of wallet
+     * @apiSuccess {Integer} data.walletId id of wallet
+     * @apiSuccess {Integer} data.userId id of user
      * @apiSuccessExample {json} Success-Response:
      *     HTTP/1.1 200 OK
      * [
@@ -848,6 +857,7 @@ public class MobileDashboardController {
      *              "sourceId": 38760,
      *              "transactionStatus": "CREATED",
      *              "walletId": 4280
+     *              "userId": 495
      *           },
      * ]
      *
@@ -891,19 +901,28 @@ public class MobileDashboardController {
      * @apiSuccess {String} data.merchantName name of merchant
      * @apiSuccess {String} data.operationType INPUT, OUTPUT, WALLET_INNER_TRANSFER
      * @apiSuccess {Integer} data.transactionId transaction id
+     * @apiSuccess {Integer} data.sourceId id of transaction source
      * @apiSuccess {String} data.transactionProvided localized message for transaction status
+     * @apiSuccess {Integer} data.userId user id
+     * @apiSuccess {String} data.bankAccount account of bank
+     * @apiSuccess {String} data.invoiceStatus if present, indicates current status of input/output payment
      * @apiSuccessExample {json} Success-Response:
      *     HTTP/1.1 200 OK
      *     [
      *          {
-     *              "datetime": 1473260864000,
-     *              "currencyName": "EDR",
-     *              "amount": 76.61,
-     *              "commissionAmount": 0.39,
-     *              "merchantName": "E-DinarCoin",
-     *              "operationType": "Output",
-     *              "transactionId": 126599,
-     *              "transactionProvided": "Pending"
+     *              "datetime": 1494585059000,
+     *              "currencyName": "IDR",
+     *              "amount": 100305,
+     *              "commissionAmount": 0,
+     *              "merchantName": "Invoice",
+     *              "operationType": "Input",
+     *              "transactionId": 1775518,
+     *              "sourceId": 1775518,
+     *              "transactionProvided": "Completed",
+     *              "userId": 495,
+     *              "bankAccount": "1440099965557",
+     *              "invoiceStatus": "ACCEPTED_ADMIN"
+     *
      *          },
      *          {
      *              "datetime": 1473260819000,
@@ -916,8 +935,6 @@ public class MobileDashboardController {
      *              "transactionProvided": "Pending"
      *          }
      *     ]
-     *
-     *
      *
      *
      * @apiUse ExpiredAuthenticationTokenError
@@ -945,7 +962,39 @@ public class MobileDashboardController {
 
 
     }
-
+    
+    /**
+     * @api {get} /api/dashboard/transferLimits Limits for transfers
+     * @apiName retrieveMinTransferLimits
+     * @apiGroup Dashboard
+     * @apiUse TokenHeader
+     * @apiPermission user
+     * @apiDescription returns list of transfer limits for currencies
+     * @apiParamExample Request Example:
+     *      /api/dashboard/transferLimits
+     * @apiSuccess {Array} result Result
+     * @apiSuccess {Object} data Container object
+     * @apiSuccess {Integer} data.currencyId currency id
+     * @apiSuccess {Number} data.transferMinLimit min limit for transfer
+     * @apiSuccessExample {json} Success-Response:
+     *     HTTP/1.1 200 OK
+     * [
+     *           {
+     *              "currencyId": 1,
+     *              "transferMinLimit": 200
+     *           },
+     *           {
+     *              "currencyId": 2,
+     *              "transferMinLimit": 5
+     *           }
+     * ]
+     *
+     * @apiUse ExpiredAuthenticationTokenError
+     * @apiUse MissingAuthenticationTokenError
+     * @apiUse InvalidAuthenticationTokenError
+     * @apiUse AuthenticationError
+     * @apiUse InternalServerError
+     */
     @RequestMapping(value = "/transferLimits", method = GET)
     public List<TransferLimitDto> retrieveMinTransferLimits(@RequestParam(required = false) Integer[] currencyIds) {
         List<Integer> currencyIdList = currencyIds == null || currencyIds.length == 0 ? Collections.EMPTY_LIST : Arrays.asList(currencyIds);

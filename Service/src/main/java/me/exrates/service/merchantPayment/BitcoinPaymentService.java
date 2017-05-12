@@ -22,8 +22,8 @@ import java.util.*;
 /**
  * Created by OLEG on 05.09.2016.
  */
-@Component("BlockchainPaymentService")
-public class BlockchainPaymentService implements MerchantPaymentService {
+@Component("BitcoinPaymentService")
+public class BitcoinPaymentService implements MerchantPaymentService {
     private static final Logger LOGGER = LogManager.getLogger("merchant");
 
     @Autowired
