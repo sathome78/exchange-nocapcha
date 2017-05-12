@@ -52,6 +52,10 @@
                             <td id="info-payer-data"></td>
                         </tr>
                         <tr>
+                            <td><loc:message code="refill.address"/></td>
+                            <td id="info-address"></td>
+                        </tr>
+                        <tr>
                             <td><loc:message code="refill.merchantTransactionId"/></td>
                             <td id="info-merchant-transaction-id"></td>
                         </tr>
