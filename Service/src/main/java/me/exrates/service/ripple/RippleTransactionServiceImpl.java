@@ -49,11 +49,11 @@ public class RippleTransactionServiceImpl implements RippleTransactionService {
     }
 
     protected void processIncomeTransaction() {
-        transferToMainAccount();
+        transferToMainAccount("", new BigDecimal(2));
     }
 
 
-    private void transferToMainAccount() {
+    private void transferToMainAccount(String address, BigDecimal amount) {
 
     }
 
@@ -65,7 +65,6 @@ public class RippleTransactionServiceImpl implements RippleTransactionService {
         transaction.setType(type);
         rippledNodeService.signTransaction(transaction);
         transaction.setStatus(RippleTransactionStatus.SIGNED);
-        reserveCosts();
         transactionDao.createRippleTransaction(transaction);
         rippledNodeService.submitTransaction(transaction);
         transaction.setStatus(RippleTransactionStatus.SUBMITTED);
@@ -78,21 +77,15 @@ public class RippleTransactionServiceImpl implements RippleTransactionService {
         boolean verified = rippledNodeService.checkSendedTransactionConsensus(transaction.getTxHash());
         if (verified) {
             transaction.setStatus(RippleTransactionStatus.CONFIRMED);
-            provideTransactionAndTransferFunds(transaction.getTransactionId());
 
             transactionDao.updateRippleTransaction(transaction);
         }
     }
 
     /*for refill transactions*/
-    @Override
-    private void provideTransactionAndTransferFunds(int txId){
-        Transaction transaction = transactionService.findById(txId);
-        if (!transaction.isProvided()){
-            transactionService.provideTransaction(transaction);
-            log.debug("Ripple transaction " + transaction.toString() + " --- PROVIDED!!!");
-            transferToMainAccount(ethereumNodeDao.findAddressByMerchantTransactionId(merchantTransactionId), transaction.getAmount());
-        }
+    private void provideTransactionAndTransferFunds(String address){
+
+
     }
 
     private RippleTransaction prepareTransaction(BigDecimal amount, RippleAccount account, String destinationAccount) {

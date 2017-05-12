@@ -31,7 +31,7 @@ INSERT INTO MERCHANT_CURRENCY (merchant_id, currency_id, min_sum)
           (SELECT id from CURRENCY WHERE name='XRP'),
           0.000001);
 
-INSERT INTO `MERCHANT_IMAGE` (`merchant_id`, `image_path`, `image_name`, `currency_id`) VALUES ((SELECT id from MERCHANT WHERE name='Ethereum')
+INSERT INTO `MERCHANT_IMAGE` (`merchant_id`, `image_path`, `image_name`, `currency_id`) VALUES ((SELECT id from MERCHANT WHERE name='Ripple')
 , '/client/img/merchants/ripple.png', 'Ripple', (SELECT id from CURRENCY WHERE name='XRP'));
 
 INSERT INTO WALLET (user_id, currency_id) select id, (select id from CURRENCY where name='XRP') from USER;
@@ -48,3 +48,12 @@ INSERT INTO CURRENCY_PAIR_LIMIT (currency_pair_id, user_role_id, order_type_id, 
   SELECT CP.id, UR.id, OT.id, 0, 99999999999 FROM CURRENCY_PAIR CP
   JOIN USER_ROLE UR
   JOIN ORDER_TYPE OT where CP.name='XRP/USD';
+
+CREATE TRIGGER `RIPPLE_TRANSACTION_BEFORE_UPD_TR`
+BEFORE UPDATE ON `RIPPLE_TRANSACTION`
+FOR EACH ROW
+  BEGIN
+    IF (NEW.tx_status <> OLD.tx_status) THEN
+      SET new.date_last_modification = CURRENT_TIMESTAMP;
+    END IF;
+  END

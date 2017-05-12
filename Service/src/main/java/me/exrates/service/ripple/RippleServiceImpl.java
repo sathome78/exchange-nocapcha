@@ -5,6 +5,7 @@ import me.exrates.model.dto.RippleAccount;
 import me.exrates.model.dto.RippleTransaction;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -12,6 +13,7 @@ import java.math.BigDecimal;
 /**
  * Created by maks on 11.05.2017.
  */
+@Service
 public class RippleServiceImpl implements RippleService {
 
     @Autowired
@@ -24,7 +26,6 @@ public class RippleServiceImpl implements RippleService {
         /*getting account from db*/
         RippleAccount rippleAccount = new RippleAccount();
         BigDecimal amount = result.getBigDecimal("amount");
-        rippleTransactionService.
 
 
     }
