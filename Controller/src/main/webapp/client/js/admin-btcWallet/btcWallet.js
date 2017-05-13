@@ -2,10 +2,12 @@
  * Created by OLEG on 24.03.2017.
  */
 var txHistoryDataTable;
-
+var urlBase;
 $(function () {
    var $passwordModal = $('#password-modal');
    var $paymentConfirmModal = $('#payment-confirm-modal');
+   var merchantName = $('#merchantName').text();
+   urlBase = '/2a8fy7b07dxe44/bitcoinWallet/' + merchantName + '/';
 
 
     updateTxHistoryTable();
@@ -42,7 +44,7 @@ $(function () {
 
 
     $('#submit-wallet-pass').click(function () {
-        $.ajax('/2a8fy7b07dxe44/bitcoinWallet/unlock', {
+        $.ajax(urlBase + 'unlock', {
             headers: {
                 'X-CSRF-Token': $("input[name='_csrf']").val()
             },
@@ -63,7 +65,7 @@ $(function () {
             data[address] = parseFloat($(this).find('input[name="amount"]').val());
         });
         console.log(data);
-        $.ajax('/2a8fy7b07dxe44/bitcoinWallet/sendToMany', {
+        $.ajax(urlBase + 'sendToMany', {
             headers: {
                 'X-CSRF-Token': $("input[name='_csrf']").val()
             },
@@ -138,7 +140,7 @@ function fillConfirmModal() {
 
 function updateTxHistoryTable() {
     var $txHistoryTable = $('#txHistory');
-    var url = '/2a8fy7b07dxe44/bitcoinWallet/transactions';
+    var url = urlBase + 'transactions';
 
     if ($.fn.dataTable.isDataTable('#txHistory')) {
         txHistoryDataTable = $($txHistoryTable).DataTable();
@@ -214,17 +216,17 @@ function updateTxHistoryTable() {
 }
 
 function retrieveFee() {
-    $.get('/2a8fy7b07dxe44/bitcoinWallet/estimatedFee', function (data) {
+    $.get(urlBase + 'estimatedFee', function (data) {
         $('#input-fee').val(data);
     });
-    $.get('/2a8fy7b07dxe44/bitcoinWallet/actualFee', function (data) {
+    $.get(urlBase + 'actualFee', function (data) {
         $('#input-fee-actual').val(data);
     })
 }
 
 function updateTxFee() {
     var data = $('#tx-fee-form').serialize();
-    $.ajax('/2a8fy7b07dxe44/bitcoinWallet/setFee', {
+    $.ajax(urlBase + 'setFee', {
         headers: {
             'X-CSRF-Token': $("input[name='_csrf']").val()
         },

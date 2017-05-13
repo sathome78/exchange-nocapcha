@@ -575,8 +575,18 @@ input.item_input,
     margin: 6px;
 }
 
+.marginTop-10 {
+    margin-top: 10px;
+    display: block;
+}
+
 .marginTop-15 {
     margin-top: 15px;
+    display: block;
+}
+
+.marginTop-25 {
+    margin-top: 25px;
     display: block;
 }
 
@@ -1069,6 +1079,14 @@ td.blue-white {
     padding: 5px;
 }
 
+.dashboard-stop-sell-buy__button {
+    width: 49%;
+    background: #969faf;
+    color: white;
+    border: none;
+    padding: 5px;
+}
+
 .dashboard-accept__button {
     color: #ffff00;
     width: 85%;
@@ -1438,7 +1456,6 @@ td.blue-white {
     display: block;
     max-height: 360px;
     overflow-y: hidden;
-
 }
 
 table tbody .blink,
@@ -2226,4 +2243,8 @@ textarea#remark {
     height: 20px;
     color: black;
     padding: 0;
+}
+
+.stop {
+    margin-bottom: 11.3px;
 }

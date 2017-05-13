@@ -25,6 +25,7 @@ public class OrderInfoDto {
     private String orderTypeName;
     private String orderStatusName;
     private String exrate;
+    private String stopRate;
     private String amountBase;
     private String amountConvert;
     private String currencyBaseName;
@@ -36,6 +37,6 @@ public class OrderInfoDto {
     private Integer source;
     private List<Integer> children;
 
-   
+
 };
 

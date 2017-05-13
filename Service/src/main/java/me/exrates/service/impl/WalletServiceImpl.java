@@ -343,4 +343,10 @@ public final class WalletServiceImpl implements WalletService {
   public WalletsForOrderCancelDto getWalletForOrderByOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType) {
     return walletDao.getWalletForOrderByOrderIdAndOperationTypeAndBlock(orderId, operationType);
   }
+
+  @Override
+  @Transactional
+  public WalletsForOrderCancelDto getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType, int currencyPairId) {
+    return walletDao.getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(orderId, operationType, currencyPairId);
+  }
 }

@@ -79,7 +79,9 @@ public enum InvoiceActionTypeEnum {
     getProperty().setAvailableForHolderOnly(true);
     getProperty().setOperationPermissionOnlyList(Arrays.asList(ACCEPT_DECLINE));
   }},
-  START_BCH_EXAMINE;
+  START_BCH_EXAMINE,
+  REJECT_TO_REVIEW,
+  REJECT_ERROR;
 
   private InvoiceActionParams property = new InvoiceActionParams();
 

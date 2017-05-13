@@ -60,4 +60,10 @@ public interface MerchantService {
   MerchantCurrencyScaleDto getMerchantCurrencyScaleByMerchantIdAndCurrencyId(Integer merchantId, Integer currencyId);
 
   void checkMerchantIsBlocked(Integer merchantId, Integer currencyId, OperationType operationType);
+    @Transactional
+    void setBlockForMerchant(Integer merchantId, Integer currencyId, OperationType operationType, boolean blockStatus);
+
+  List<String> retrieveBtcCoreBasedMerchantNames();
+
+  String retrieveCoreWalletCurrencyNameByMerchant(String merchantName);
 }

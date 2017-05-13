@@ -1,5 +1,6 @@
 package me.exrates.dao;
 
+import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
 import me.exrates.model.dto.*;
@@ -66,6 +67,8 @@ public interface WalletDao {
     WalletTransferStatus walletBalanceChange(WalletOperationData walletOperationData);
 
     WalletsForOrderCancelDto getWalletForOrderByOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType);
+
+    WalletsForOrderCancelDto getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType, int currencyPairId);
 
     List<OrderDetailDto> getOrderRelatedDataAndBlock(int orderId);
   

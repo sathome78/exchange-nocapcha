@@ -9,7 +9,7 @@
     <a id="showAllNews" href="#"> <h4 class="h4_green"><loc:message code="news.title"/></h4></a>
 </sec:authorize>
 
-<sec:authorize access="<%=AdminController.adminAnyAuthority%>">
+<sec:authorize access="<%=AdminController.nonAdminAnyAuthority%>">
     <h4 class="h4_green"><loc:message code="news.title"/></h4>
 </sec:authorize>
 <hr class="under_h4">

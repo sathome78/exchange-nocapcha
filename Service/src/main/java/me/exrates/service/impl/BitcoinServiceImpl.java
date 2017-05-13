@@ -4,9 +4,21 @@ import me.exrates.model.Currency;
 import me.exrates.model.Merchant;
 import me.exrates.model.dto.RefillRequestCreateDto;
 import me.exrates.model.dto.WithdrawMerchantOperationDto;
+import me.exrates.dao.PendingPaymentDao;
+import me.exrates.model.CreditsOperation;
+import me.exrates.model.Payment;
+import me.exrates.model.PendingPayment;
+import me.exrates.model.Transaction;
+import me.exrates.model.dto.*;
+import me.exrates.model.enums.*;
+import me.exrates.model.enums.invoice.InvoiceActionTypeEnum;
+import me.exrates.model.enums.invoice.InvoiceStatus;
+import me.exrates.model.enums.invoice.PendingPaymentStatusEnum;
 import me.exrates.service.*;
 import me.exrates.service.exception.NotImplimentedMethod;
 import me.exrates.service.exception.RefillRequestAppropriateNotFoundException;
+import me.exrates.service.exception.*;
+import me.exrates.service.exception.invoice.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,11 +26,18 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @PropertySource(value = {"classpath:/job.properties"})
@@ -30,23 +49,47 @@ public class BitcoinServiceImpl implements BitcoinService {
   private Boolean BLOCK_NOTIFYING;
 
   @Autowired
-  private MessageSource messageSource;
-
+  private PendingPaymentDao paymentDao;
   @Autowired
-  private RefillService refillService;
+  private TransactionService transactionService;
+  @Autowired
+  private AlgorithmService algorithmService;
+  @Autowired
+  private NotificationService notificationService;
 
   @Autowired
   private MerchantService merchantService;
 
   @Autowired
-  private CurrencyService currencyService;
-
+  private MessageSource messageSource;
   @Autowired
-  private BitcoinWalletService bitcoinWalletService;
+  private CoreWalletService bitcoinWalletService;
+  @Autowired
+  private BitcoinTransactionService bitcoinTransactionService;
 
+  private String walletPassword;
+
+  private String backupFolder;
+
+  private String nodePropertySource;
+
+
+  public BitcoinServiceImpl(String propertySource) {
+    Properties props = new Properties();
+    try {
+      props.load(getClass().getClassLoader().getResourceAsStream(propertySource));
+      this.walletPassword = props.getProperty("wallet.password");
+      this.backupFolder = props.getProperty("backup.folder");
+      this.nodePropertySource = props.getProperty("node.propertySource");
+    } catch (IOException e) {
+      LOG.error(e);
+    }
+
+  }
+  
   @PostConstruct
   void startBitcoin() {
-    bitcoinWalletService.initBitcoin();
+    bitcoinWalletService.initCore(nodePropertySource);
   }
 
 
@@ -81,11 +124,21 @@ public class BitcoinServiceImpl implements BitcoinService {
     Currency currency = currencyService.findByName("BTC");
     Merchant merchant = merchantService.findByName("Blockchain");
     if (refillService.existsUnclosedRefillRequestForAddress(address, merchant.getId(), currency.getId())) {
+    /*String address = bitcoinWalletService.getNewAddress(walletPassword);
+
+    final List<Integer> unclosedPendingPaymentStatesList = PendingPaymentStatusEnum.getMiddleStatesSet().stream()
+        .map(InvoiceStatus::getCode)
+        .collect(toList());
+
+    if (paymentDao.existsPendingPaymentWithAddressAndStatus(address, unclosedPendingPaymentStatesList)) {
+      */
       final int LIMIT = 2000;
       int i = 0;
       while (!isFreshAddress && i++ < LIMIT) {
         address = bitcoinWalletService.getNewAddress();
         isFreshAddress = !refillService.existsUnclosedRefillRequestForAddress(address, merchant.getId(), currency.getId());
+        /*address = bitcoinWalletService.getNewAddress(walletPassword);
+        isFreshAddress = !paymentDao.existsPendingPaymentWithAddressAndStatus(address, unclosedPendingPaymentStatesList);*/
       }
       if (i >= LIMIT) {
         throw new IllegalStateException("Can`t generate fresh address");

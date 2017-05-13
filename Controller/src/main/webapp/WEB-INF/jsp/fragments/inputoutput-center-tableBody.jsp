@@ -25,7 +25,7 @@
         <input type="text" hidden value="" name="transactionId" >
         <input type="text" hidden value="" name="action">
         <input type="text" hidden value="" name="sourceType">
-        <@=getButtonsSet(id, sourceType, buttons, "inputoutput-table")@>
+        <@=getButtonsSet(id, sourceType, merchantName, buttons, "inputoutput-table")@>
       </form>
   </tr>
 </script>

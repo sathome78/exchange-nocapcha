@@ -68,6 +68,21 @@
                                 <div class="input-block-wrapper__error"></div>
                             </div>
                         </div>
+                        <div class="input-block-wrapper clearfix stop-rate">
+                            <div class="col-md-5 input-block-wrapper__label-wrapper">
+                                <label class="input-block-wrapper__label">
+                                    <loc:message code="order.stop"/>
+                                </label>
+                            </div>
+                            <div class="col-md-7 input-block-wrapper__input-wrapper">
+                                <input id="stop" name="exrate"
+                                       readonly="true"
+                                       class="form-control input-block-wrapper__input numericInputField"/>
+                            </div>
+                            <div for="stop" class="col-md-12 input-block-wrapper__error-wrapper">
+                                <div class="input-block-wrapper__error"></div>
+                            </div>
+                        </div>
                         <div class="input-block-wrapper clearfix">
                             <div class="col-md-5 input-block-wrapper__label-wrapper">
                                 <label class="input-block-wrapper__label">

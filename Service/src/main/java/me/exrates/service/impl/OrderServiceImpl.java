@@ -22,6 +22,8 @@ import me.exrates.model.vo.WalletOperationData;
 import me.exrates.service.*;
 import me.exrates.service.exception.*;
 import me.exrates.service.impl.proxy.ServiceCacheableProxy;
+import me.exrates.service.stopOrder.RatesHolder;
+import me.exrates.service.stopOrder.StopOrderService;
 import me.exrates.service.util.Cache;
 import me.exrates.service.vo.ProfileData;
 import org.apache.axis.utils.StringUtils;
@@ -29,6 +31,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -84,6 +88,12 @@ public class OrderServiceImpl implements OrderService {
 
   @Autowired
   TransactionDescription transactionDescription;
+
+  @Autowired
+  StopOrderService stopOrderService;
+
+  @Autowired
+  RatesHolder ratesHolder;
 
   @Transactional
   @Override
@@ -226,9 +236,25 @@ public class OrderServiceImpl implements OrderService {
         errors.put("amount_" + errors.size(), "order.valuerange");
       }
     }
+    CurrencyPairLimitDto currencyPairLimit = currencyService.findLimitForRoleByCurrencyPairAndType(orderCreateDto.getCurrencyPair().getId(),
+            orderCreateDto.getOperationType());
+    if (orderCreateDto.getOrderBaseType().equals(OrderBaseType.STOP_LIMIT)) {
+      if (orderCreateDto.getStop() == null || orderCreateDto.getStop().compareTo(BigDecimal.ZERO) <= 0) {
+        errors.put("stop_" + errors.size(), "order.fillfield");
+      } else {
+        if (orderCreateDto.getStop().compareTo(currencyPairLimit.getMinRate()) < 0) {
+          String key = "stop_" + errors.size();
+          errors.put(key, "order.minrate");
+          errorParams.put(key, new Object[]{currencyPairLimit.getMinRate()});
+        }
+        if (orderCreateDto.getStop().compareTo(currencyPairLimit.getMaxRate()) > 0) {
+          String key = "stop_" + errors.size();
+          errors.put(key, "order.maxrate");
+          errorParams.put(key, new Object[]{currencyPairLimit.getMaxRate()});
+        }
+      }
+    }
     if (orderCreateDto.getExchangeRate() != null) {
-      CurrencyPairLimitDto currencyPairLimit = currencyService.findLimitForRoleByCurrencyPairAndType(orderCreateDto.getCurrencyPair().getId(),
-              orderCreateDto.getOperationType());
       if (orderCreateDto.getExchangeRate().compareTo(BigDecimal.ZERO) < 1) {
         errors.put("exrate_" + errors.size(), "order.zerorate");
       }
@@ -252,6 +278,35 @@ public class OrderServiceImpl implements OrderService {
     }
     return orderValidationDto;
   }
+
+  @Override
+  public String createOrder(OrderCreateDto orderCreateDto, OrderActionEnum action, Locale locale) {
+    Optional<String> autoAcceptResult = this.autoAccept(orderCreateDto, locale);
+    if (autoAcceptResult.isPresent()) {
+      logger.debug(autoAcceptResult.get());
+      return autoAcceptResult.get();
+    }
+    Integer orderId = this.createOrder(orderCreateDto, CREATE);
+    if (orderId <= 0) {
+      throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, locale));
+    }
+    return "{\"result\":\"" + messageSource.getMessage("createdorder.text", null, locale) + "\"}";
+  }
+
+  @Override
+  @Transactional
+  public Integer createOrderByStopOrder(OrderCreateDto orderCreateDto, OrderActionEnum action, Locale locale) {
+      Optional<OrderCreationResultDto> autoAcceptResult = this.autoAcceptOrders(orderCreateDto, locale);
+      if (autoAcceptResult.isPresent()) {
+        logger.debug(autoAcceptResult.get());
+        return autoAcceptResult.get().getCreatedOrderId();
+      }
+    Integer orderId = this.createOrder(orderCreateDto, CREATE);
+    if (orderId <= 0) {
+      throw new NotCreatableOrderException(messageSource.getMessage("dberror.text", null, locale));
+    }
+    return orderId;
+  }
   
   
   @Override
@@ -260,7 +315,7 @@ public class OrderServiceImpl implements OrderService {
     ProfileData profileData = new ProfileData(200);
     try {
       String description = transactionDescription.get(null, action);
-      int createdOrderId = 0;
+      int createdOrderId;
       int outWalletId;
       BigDecimal outAmount;
       if (orderCreateDto.getOperationType() == OperationType.BUY) {
@@ -273,20 +328,37 @@ public class OrderServiceImpl implements OrderService {
       if (walletService.ifEnoughMoney(outWalletId, outAmount)) {
         profileData.setTime1();
         ExOrder exOrder = new ExOrder(orderCreateDto);
-        if ((createdOrderId = orderDao.createOrder(exOrder)) > 0) {
+        OrderBaseType orderBaseType = orderCreateDto.getOrderBaseType();
+        if (orderBaseType == null) {
+          orderBaseType = OrderBaseType.LIMIT;
+          exOrder.setOrderBaseType(OrderBaseType.LIMIT);
+        }
+        TransactionSourceType sourceType;
+        switch (orderBaseType) {
+          case STOP_LIMIT: {
+            createdOrderId = stopOrderService.createOrder(exOrder);
+            sourceType = TransactionSourceType.STOP_ORDER;
+            break;
+          }
+          default: {
+            createdOrderId = orderDao.createOrder(exOrder);
+            sourceType = TransactionSourceType.ORDER;
+          }
+        }
+        if (createdOrderId > 0) {
           profileData.setTime2();
           exOrder.setId(createdOrderId);
           WalletTransferStatus result = walletService.walletInnerTransfer(
-              outWalletId,
-              outAmount.negate(),
-              TransactionSourceType.ORDER,
-              exOrder.getId(),
-              description);
+                  outWalletId,
+                  outAmount.negate(),
+                  sourceType,
+                  exOrder.getId(),
+                  description);
           profileData.setTime3();
           if (result != WalletTransferStatus.SUCCESS) {
             throw new OrderCreationException(result.toString());
           }
-          setStatus(exOrder.getId(), OrderStatus.OPENED);
+          setStatus(createdOrderId, OrderStatus.OPENED, exOrder.getOrderBaseType());
           profileData.setTime4();
         }
       } else {
@@ -298,6 +370,7 @@ public class OrderServiceImpl implements OrderService {
       profileData.checkAndLog("slow creation order: "+orderCreateDto+" profile: "+profileData);
     }
   }
+
 
   @Override
   @Transactional(rollbackFor = {Exception.class})
@@ -424,6 +497,18 @@ public class OrderServiceImpl implements OrderService {
   @Transactional(readOnly = true)
   public ExOrder getOrderById(int orderId) {
     return orderDao.getOrderById(orderId);
+  }
+
+  @Transactional
+  public boolean setStatus(int orderId, OrderStatus status, OrderBaseType orderBaseType) {
+    switch (orderBaseType) {
+      case STOP_LIMIT: {
+        return stopOrderService.setStatus(orderId, status);
+      }
+      default: {
+        return this.setStatus(orderId, status);
+      }
+    }
   }
 
   @Transactional(propagation = Propagation.NESTED)
@@ -657,7 +742,8 @@ public class OrderServiceImpl implements OrderService {
             "acceptorder.message", new Object[]{exOrder.getId()});
       }
 
-
+      stopOrderService.onLimitOrderAccept(exOrder);/*check stop-orders for process
+*/
     } catch (Exception e) {
       logger.error("Error while accepting order with id = " + orderId + " exception: " + e.getLocalizedMessage());
       throw e;
@@ -725,6 +811,7 @@ public class OrderServiceImpl implements OrderService {
       throw e;
     }
   }
+
 
   private String getStatusString(OrderStatus status, Locale ru) {
     String statusString = null;
@@ -904,7 +991,15 @@ public class OrderServiceImpl implements OrderService {
   @Override
   public WalletsAndCommissionsForOrderCreationDto getWalletAndCommission(String email, Currency currency,
                                                                          OperationType operationType) {
-    return orderDao.getWalletAndCommission(email, currency, operationType, userService.getUserRoleFromSecurityContext());
+    UserRole userRole = null;
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    logger.debug("auth22 " + authentication);
+    if (authentication == null) {
+      userRole = userService.getUserRoleFromDB(email);
+    } else {
+      userRole = userService.getUserRoleFromSecurityContext();
+    }
+    return orderDao.getWalletAndCommission(email, currency, operationType, userRole);
   }
 
   public void setMessageSource(final MessageSource messageSource) {

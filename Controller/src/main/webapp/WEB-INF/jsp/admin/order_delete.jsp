@@ -35,6 +35,8 @@
             </div>
             <button data-toggle="collapse" class="blue-box" style="margin: 10px 0;" data-target="#order-search">
                 <loc:message code="admin.user.transactions.extendedFilter"/> </button>
+            <a href="/2a8fy7b07dxe44/removeStopOrder" class="blue-box" style="margin: 10px 0;" data-target="#order-search">
+                <loc:message code="myorders.stoporders"/> </a>
 
             <div id="order-search" class="collapse">
 

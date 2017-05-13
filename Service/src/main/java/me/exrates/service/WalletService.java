@@ -1,6 +1,7 @@
 package me.exrates.service;
 
 import me.exrates.model.Currency;
+import me.exrates.model.CurrencyPair;
 import me.exrates.model.User;
 import me.exrates.model.Wallet;
 import me.exrates.model.dto.*;
@@ -97,4 +98,7 @@ public interface WalletService {
     WalletsForOrderCancelDto getWalletForOrderByOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType);
 
     List<UserWalletSummaryDto> getUsersWalletsSummaryForPermittedCurrencyList(Integer requesterUserId);
+
+    @Transactional
+    WalletsForOrderCancelDto getWalletForStopOrderByStopOrderIdAndOperationTypeAndBlock(Integer orderId, OperationType operationType, int currencyPairId);
 }

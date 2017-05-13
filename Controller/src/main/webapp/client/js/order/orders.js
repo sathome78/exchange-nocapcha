@@ -19,10 +19,12 @@ function OrdersClass(currentCurrencyPair) {
     /**/
     var tableSellId = "orders-sell-table";
     var tableBuyId = "orders-buy-table";
+    var stopOrdersTableId = "stop-orders-table";
     var $ordersContainer = $('#orders');
     var ordersCurrencyPairSelector;
     var tableSellPageSize = 5;
     var tableBuyPageSize = 5;
+    var tableStopPageSize = 5;
     var myordersStatusForShow = 'OPENED';
 
     function onCurrencyPairChange(currentCurrencyPair) {
@@ -41,8 +43,57 @@ function OrdersClass(currentCurrencyPair) {
     this.updateAndShowAll = function (refreshIfNeeded, page, direction) {
         that.getAndShowSellOrdersData(refreshIfNeeded, page, direction);
         that.getAndShowBuyOrdersData(refreshIfNeeded, page, direction);
+        that.getAndShowStopOrdersData(refreshIfNeeded, page, direction);
     };
 
+
+    this.getAndShowStopOrdersData = function (refreshIfNeeded, page, direction) {
+        if ($ordersContainer.hasClass('hidden') || !windowIsActive) {
+            clearTimeout(timeOutIdForOrdersData);
+            timeOutIdForOrdersData = setTimeout(function () {
+                that.updateAndShowAll(true);
+            }, refreshIntervalForOrdersData);
+            return;
+        }
+        if (showLog) {
+            console.log(new Date() + '  ' + refreshIfNeeded + ' ' + 'getAndShowStopOrdersData');
+        }
+        var $stopOrdersTable = $('#' + stopOrdersTableId).find('tbody');
+        var url = '/dashboard/myOrdersData/' + stopOrdersTableId + '' +
+            '?status=' + myordersStatusForShow + '' +
+            '&page=' + (page ? page : '') +
+            '&direction=' + (direction ? direction : '') +
+            '&baseType=STOP_LIMIT' +
+            '&refreshIfNeeded=' + (refreshIfNeeded ? 'true' : 'false');
+        $.ajax({
+            url: url,
+            type: 'GET',
+            headers: {
+                "windowid": windowId
+            },
+            success: function (data) {
+                if (!data) return;
+                if (data.length == 0 || data[0].needRefresh) {
+                    var $tmpl = $('#stop-orders-table_row').html().replace(/@/g, '%');
+                    clearTable($stopOrdersTable);
+                    data.forEach(function (e) {
+                        $stopOrdersTable.append(tmpl($tmpl, e));
+                    });
+                    blink($stopOrdersTable.find('td:not(:first-child)'));
+                }
+                if (data.length > 0) {
+                    $('.stop_orders-table__page').text(data[0].page);
+                } else if (refreshIfNeeded) {
+                    var p = parseInt($('.stop_orders-table__page').text());
+                    $('.orders-sell-table__page').text(++p);
+                }
+                clearTimeout(timeOutIdForOrdersData);
+                timeOutIdForOrdersData = setTimeout(function () {
+                    that.updateAndShowAll(true);
+                }, refreshIntervalForOrdersData);
+            }
+        });
+    };
 
     this.getAndShowSellOrdersData = function (refreshIfNeeded, page, direction) {
         if ($ordersContainer.hasClass('hidden') || !windowIsActive) {
@@ -201,9 +252,13 @@ function OrdersClass(currentCurrencyPair) {
         syncTableParams(tableBuyId, tableBuyPageSize, function (data) {
             that.getAndShowBuyOrdersData();
         });
+        syncTableParams(stopOrdersTableId, tableStopPageSize, function (data) {
+            that.getAndShowStopOrdersData();
+        });
         /**/
         $('#orders-sell-table').on('click', '.button_delete_order', submitOrderDeleting);
         $('#orders-buy-table').on('click', '.button_delete_order', submitOrderDeleting);
+        $('#stop-orders-table').on('click', '.button_delete_stop_order', submitOrderDeleting);
         $('#order-delete-confirm__submit').on('click', deletingOrder);
         /**/
         $('.orders-sell-table__backward').on('click', function (e) {
@@ -223,13 +278,24 @@ function OrdersClass(currentCurrencyPair) {
             e.preventDefault();
             that.getAndShowBuyOrdersData(true, null, 'FORWARD');
         });
+        /**/
+        $('.stop_orders-table__backward').on('click', function (e) {
+            e.preventDefault();
+            that.getAndShowStopOrdersData(true, null, 'BACKWARD');
+        });
+        $('.stop_orders-table__forward').on('click', function (e) {
+            e.preventDefault();
+            that.getAndShowStopOrdersData()(true, null, 'FORWARD');
+        });
     })(currentCurrencyPair);
 
     /*PREPARE DATA FOR MODAL DIALOG FOR DELETING ORDER ... */
     function submitOrderDeleting() {
+        var baseType = $(this).data('basetype');
         var orderId = $(this).attr("id");
         var data = {orderId: orderId};
-        showOrderDeleteDialog(data);
+        baseType ? data.baseType = baseType : data.baseType = 1;
+            showOrderDeleteDialog(data);
     }
 
     /*...PREPARE DATA FOR MODAL DIALOG FOR DELETING ORDER */
@@ -240,7 +306,7 @@ function OrdersClass(currentCurrencyPair) {
             headers: {
                 'X-CSRF-Token': $("input[name='_csrf']").val()
             },
-            url: '/order/submitdelete/' + data.orderId,
+            url: '/order/submitdelete/' + data.orderId +'?baseType=' + data.baseType,
             type: 'POST',
             success: function (data) {
                 $('#order-delete-confirm__modal').find('#operationTypeName').val(data.operationTypeName);
